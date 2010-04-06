@@ -8,4 +8,5 @@ env = Environment(ENV=os.environ) # this builds in a dependency on the PATH, whi
 env.Replace(CPPPATH=['#/include'])
 env.Replace(CCFLAGS='-O3 -Wall -Wextra -I%s -I%s' % (scopeDir, boostDir))
 
-env.SConscript('test/SConscript', exports='env')
+test = env.SConscript('test/SConscript', exports='env')
+env.Command('unittests', test, './$SOURCE')
