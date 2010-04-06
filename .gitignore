@@ -1,0 +1,4 @@
+*.dblite
+*.o
+deps/*
+*~
