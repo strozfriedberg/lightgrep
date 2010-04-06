@@ -15,7 +15,6 @@ SCOPE_TEST(litAccept) {
   SCOPE_ASSERT_EQUAL(1u, bits.count());
   SCOPE_ASSERT(bits.test('a'));
   SCOPE_ASSERT(bits.any());
-  SCOPE_ASSERT_EQUAL(256u, bits.size());
   SCOPE_ASSERT(!bits.test('c'));
 }
 
@@ -27,6 +26,13 @@ SCOPE_TEST(eitherAccept) {
   SCOPE_ASSERT_EQUAL(&ch, e.allowed(&ch, &ch+1));
   ch = 'A';
   SCOPE_ASSERT_EQUAL(&ch+1, e.allowed(&ch, &ch+1));
+  
+  std::bitset<256> bits(0);
+  e.getBits(bits);
+  SCOPE_ASSERT_EQUAL(2u, bits.count());
+  SCOPE_ASSERT(bits.test('a'));
+  SCOPE_ASSERT(bits.test('A'));
+  SCOPE_ASSERT(!bits.test('#'));
 }
 
 SCOPE_TEST(rangeAccept) {
