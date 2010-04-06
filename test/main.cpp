@@ -1,6 +1,7 @@
 #include <iostream>
 
-int main() {
-  std::cout << "Hello, world!" << std::endl;
-  return 0;
+#include <scope/testrunner.h>
+
+int main(int argc, char** argv) {
+  return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
 }
