@@ -19,3 +19,13 @@ public:
 private:
   char Lit1, Lit2;
 };
+
+class RangeState {
+public:
+  RangeState(char first, char last): First(first), Last(last) {}
+
+  const char* allowed(const char* beg, const char*) const { return First <= *beg && *beg <= Last ? beg+1: beg; }
+
+private:
+  char First, Last;
+};
