@@ -1,10 +1,14 @@
 #pragma once
 
+#include <bitset>
+
 class LitState {
 public:
   LitState(char lit): Lit(lit) {}
   
   const char* allowed(const char* beg, const char*) const { return *beg == Lit ? beg+1: beg; }
+
+  void getBits(std::bitset<256>& bits) const { bits.set(Lit); }
 
 private:
   char Lit;

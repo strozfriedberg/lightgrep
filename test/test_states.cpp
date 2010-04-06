@@ -2,12 +2,22 @@
 
 #include "states.h"
 
+#include <iostream>
+
 SCOPE_TEST(litAccept) {
   LitState lit('a');
-  char ch = 'a';
-  SCOPE_ASSERT_EQUAL(&ch+1, lit.allowed(&ch, &ch+1));
-  ch = 'b';
-  SCOPE_ASSERT_EQUAL(&ch, lit.allowed(&ch, &ch+1));
+  char ch[2] = "a";
+  SCOPE_ASSERT_EQUAL(ch+1, lit.allowed(ch, ch+1));
+  ch[0] = 'b';
+  SCOPE_ASSERT_EQUAL(ch, lit.allowed(ch, ch+1));
+  std::bitset<256> bits(0);
+  lit.getBits(bits);
+  // std::cerr << bits.count() << ": " << bits << std::endl;
+  // SCOPE_ASSERT(0 == bits.count());
+  SCOPE_ASSERT(bits.test('a'));
+  SCOPE_ASSERT(bits.any());
+  SCOPE_ASSERT_EQUAL(256u, bits.size());
+  SCOPE_ASSERT(!bits.test('c'));
 }
 
 SCOPE_TEST(eitherAccept) {
@@ -32,4 +42,11 @@ SCOPE_TEST(rangeAccept) {
       SCOPE_ASSERT_EQUAL(&ch, r.allowed(&ch, &ch+1));
     }
   }
+}
+
+SCOPE_TEST(bitset) {
+  std::bitset<256> bits(0);
+  SCOPE_ASSERT_EQUAL(0u, bits.count());
+  bits.set('a');
+  SCOPE_ASSERT_EQUAL(1u, bits.count());
 }
