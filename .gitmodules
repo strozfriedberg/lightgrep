@@ -1,0 +1,3 @@
+[submodule "vendors/scope"]
+	path = vendors/scope
+	url = git://github.com/jonstewart/scope.git
