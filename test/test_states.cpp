@@ -9,3 +9,13 @@ SCOPE_TEST(litAccept) {
   ch = 'b';
   SCOPE_ASSERT_EQUAL(&ch, lit.allowed(&ch, &ch+1));
 }
+
+SCOPE_TEST(eitherAccept) {
+  const EitherState e('A', 'a');
+  char ch = 'a';
+  SCOPE_ASSERT_EQUAL(&ch+1, e.allowed(&ch, &ch+1));
+  ch = 'b';
+  SCOPE_ASSERT_EQUAL(&ch, e.allowed(&ch, &ch+1));
+  ch = 'A';
+  SCOPE_ASSERT_EQUAL(&ch+1, e.allowed(&ch, &ch+1));
+}
