@@ -20,6 +20,8 @@ public:
 
   const char* allowed(const char* beg, const char*) const { return *beg == Lit1 || *beg == Lit2 ? beg+1: beg; }
 
+  void getBits(std::bitset<256>& bits) const { bits.set(Lit1); bits.set(Lit2); }
+
 private:
   char Lit1, Lit2;
 };
