@@ -24,6 +24,10 @@ public:
   void getBits(std::bitset<256>& bits) const { bits.set(Lit); }
 
   size_t objSize() const { return sizeof(*this); }
+  
+  LitState* clone(void* buffer) const {
+    return new(buffer) LitState(Lit);
+  }
 
 private:
   byte Lit;
@@ -39,6 +43,10 @@ public:
 
   size_t objSize() const { return sizeof(*this); }
 
+  EitherState* clone(void* buffer) const {
+    return new(buffer) EitherState(Lit1, Lit2);
+  }
+
 private:
   byte Lit1, Lit2;
 };
@@ -52,6 +60,10 @@ public:
   void getBits(std::bitset<256>& bits) const { for (byte i = First; i <= Last; ++i) { bits.set(i); }; }
 
   size_t objSize() const { return sizeof(*this); }
+
+  RangeState* clone(void* buffer) const {
+    return new(buffer) RangeState(First, Last);
+  }
 
 private:
   byte First, Last;
