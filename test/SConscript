@@ -1,5 +1,5 @@
 import glob
 
 Import('env')
-ret = env.Program('test', glob.glob('*.cpp'))
+ret = env.Program('test', glob.glob('*.cpp'), LIBS=['lightgrep'])
 Return('ret')

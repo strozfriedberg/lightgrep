@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bitset>
+#include <boost/smart_ptr.hpp>
 
 typedef unsigned char byte;
 
