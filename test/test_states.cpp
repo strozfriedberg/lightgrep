@@ -16,6 +16,8 @@ SCOPE_TEST(litAccept) {
   SCOPE_ASSERT(bits.test('a'));
   SCOPE_ASSERT(bits.any());
   SCOPE_ASSERT(!bits.test('c'));
+
+  SCOPE_ASSERT_EQUAL(sizeof(void*) + 1, lit.objSize());
 }
 
 SCOPE_TEST(eitherAccept) {
@@ -33,6 +35,8 @@ SCOPE_TEST(eitherAccept) {
   SCOPE_ASSERT(bits.test('a'));
   SCOPE_ASSERT(bits.test('A'));
   SCOPE_ASSERT(!bits.test('#'));
+
+  SCOPE_ASSERT_EQUAL(sizeof(void*) + 2, e.objSize());
 }
 
 SCOPE_TEST(rangeAccept) {
@@ -51,5 +55,7 @@ SCOPE_TEST(rangeAccept) {
       SCOPE_ASSERT_EQUAL(&ch, r.allowed(&ch, &ch+1));
       SCOPE_ASSERT(!bits.test(ch));
     }
+
+    SCOPE_ASSERT_EQUAL(sizeof(void*) + 2, r.objSize());
   }
 }
