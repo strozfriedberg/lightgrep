@@ -6,7 +6,7 @@
 
 SCOPE_TEST(litAccept) {
   LitState lit('a');
-  char ch[2] = "a";
+  byte ch[2] = "a";
   SCOPE_ASSERT_EQUAL(ch+1, lit.allowed(ch, ch+1));
   ch[0] = 'b';
   SCOPE_ASSERT_EQUAL(ch, lit.allowed(ch, ch+1));
@@ -20,7 +20,7 @@ SCOPE_TEST(litAccept) {
 
 SCOPE_TEST(eitherAccept) {
   const EitherState e('A', 'a');
-  char ch = 'a';
+  byte ch = 'a';
   SCOPE_ASSERT_EQUAL(&ch+1, e.allowed(&ch, &ch+1));
   ch = 'b';
   SCOPE_ASSERT_EQUAL(&ch, e.allowed(&ch, &ch+1));
@@ -37,14 +37,19 @@ SCOPE_TEST(eitherAccept) {
 
 SCOPE_TEST(rangeAccept) {
   const RangeState r('0', '9');
-  char ch;
+  byte ch;
+  std::bitset<256> bits(0);
+  r.getBits(bits);
+  SCOPE_ASSERT_EQUAL(10u, bits.count());
   for (unsigned int i = 0; i < 256; ++i) {
     ch = i;
     if ('0' <= ch && ch <= '9') {
       SCOPE_ASSERT_EQUAL(&ch+1, r.allowed(&ch, &ch+1));
+      SCOPE_ASSERT(bits.test(ch));
     }
     else {
       SCOPE_ASSERT_EQUAL(&ch, r.allowed(&ch, &ch+1));
+      SCOPE_ASSERT(!bits.test(ch));
     }
   }
 }
