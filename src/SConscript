@@ -1,0 +1,3 @@
+Import('env')
+ret = env.Library('lightgrep', Glob('*.cpp'))
+Return('ret')
