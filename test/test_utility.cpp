@@ -17,4 +17,5 @@ SCOPE_TEST(aFSM) {
   boost::shared_ptr<StaticFSM> tight(convert_to_static(fsm));
   SCOPE_ASSERT(tight);
   SCOPE_ASSERT_EQUAL(2u, tight->numStates());
+  SCOPE_ASSERT_EQUAL(1u, tight->numEdges());
 }
