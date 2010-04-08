@@ -18,4 +18,13 @@ SCOPE_TEST(aFSM) {
   SCOPE_ASSERT(tight);
   SCOPE_ASSERT_EQUAL(2u, tight->numStates());
   SCOPE_ASSERT_EQUAL(1u, tight->numEdges());
+  StaticFSM::StateT s0 = tight->getFirstState();
+  StaticFSM::EdgeRange edges = tight->getEdges(s0);
+  uint32 numEdges = 0;
+  SCOPE_ASSERT_EQUAL((uint64)(tight->getRawBuffer() + 4), (uint64)edges.first);
+  SCOPE_ASSERT_EQUAL((uint64)(tight->getRawBuffer() + 12), (uint64)edges.second);
+  for (StaticFSM::EdgeIt cur = edges.first; cur != edges.second; ++cur) {
+    ++numEdges;
+  }
+  SCOPE_ASSERT_EQUAL(1u, numEdges);
 }
