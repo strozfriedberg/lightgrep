@@ -20,11 +20,7 @@ StaticFSM::StateT StaticFSM::getFirstState() const {
 }
 
 StaticFSM::EdgeRange StaticFSM::getEdges(StaticFSM::StateT curState) const {
-  std::pair<EdgeIt, EdgeIt> ret;
-  uint32 numEdges = *((uint32*)(getRawBuffer() + curState));
-  ret.first = (EdgeIt)(getRawBuffer() + curState + sizeof(uint32));
-  ret.second = ret.first + numEdges;
-  return ret;
+  return getEdges(getRawBuffer() + curState);
 }
 
 uint32 StaticFSM::allocate(uint32 transitionSize, uint32 numStates, uint32 numEdges) {
@@ -35,4 +31,12 @@ uint32 StaticFSM::allocate(uint32 transitionSize, uint32 numStates, uint32 numEd
   NumStates = numStates;
   NumEdges = numEdges;
   return size;
+}
+
+StaticFSM::EdgeRange StaticFSM::getEdges(const byte* buffer) {
+  EdgeRange ret;
+  uint32 numEdges = *((uint32*)buffer);
+  ret.first = (EdgeIt)(buffer + sizeof(uint32));
+  ret.second = ret.first + numEdges;
+  return ret;
 }

@@ -27,6 +27,8 @@ public:
   uint32 allocate(uint32 transitionSize, uint32 numStates, uint32 numEdges);
   byte*  getRawBuffer() const { return Buffer.get(); }
 
+  static EdgeRange getEdges(const byte* buffer);
+
 private:
   uint32 NumStates,
          NumEdges;
