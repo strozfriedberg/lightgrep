@@ -49,7 +49,9 @@ uint32 StaticFSM::allocate(uint32 transitionSize, uint32 numStates, uint32 numEd
 StaticFSM::EdgeRange StaticFSM::getEdges(const byte* buffer) {
   EdgeRange ret;
   uint32 numEdges = *((uint32*)buffer);
-  ret.first = (EdgeIt)(buffer + sizeof(uint32));
-  ret.second = ret.first + numEdges;
+  if (numEdges) {
+    ret.first = (EdgeIt)(buffer + sizeof(uint32));
+    ret.second = ret.first + numEdges;
+  }
   return ret;
 }

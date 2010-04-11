@@ -32,4 +32,8 @@ SCOPE_TEST(aFSM) {
   SCOPE_ASSERT(tight->allowed(&text, &text+1, *edges.first));
   text = 'b';
   SCOPE_ASSERT(!tight->allowed(&text, &text+1, *edges.first));
+
+  edges = tight->getEdges(edges.first->StateOffset);
+  SCOPE_ASSERT(edges.first == edges.second);
+  SCOPE_ASSERT_EQUAL(0, (uint64)edges.first);
 }
