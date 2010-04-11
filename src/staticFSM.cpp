@@ -1,5 +1,6 @@
 #include "staticFSM.h"
 
+#include "transition.h"
 #include <iostream>
 
 static const uint32 STATE_SIZE = 4;
@@ -21,6 +22,11 @@ StaticFSM::StateT StaticFSM::getFirstState() const {
 
 StaticFSM::EdgeRange StaticFSM::getEdges(StaticFSM::StateT curState) const {
   return getEdges(getRawBuffer() + curState);
+}
+
+bool StaticFSM::allowed(const byte *cur, const byte* end, const StaticEdge& edge) const {
+  Transition *t = reinterpret_cast<Transition*>(getRawBuffer() + edge.TransitionOffset);
+  return cur != t->allowed(cur, end);
 }
 
 uint32 StaticFSM::allocate(uint32 transitionSize, uint32 numStates, uint32 numEdges) {
