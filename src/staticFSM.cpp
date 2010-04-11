@@ -25,12 +25,19 @@ StaticFSM::EdgeRange StaticFSM::getEdges(StaticFSM::StateT curState) const {
 
 uint32 StaticFSM::allocate(uint32 transitionSize, uint32 numStates, uint32 numEdges) {
   // std::cout << "allocate) transitionSize = " << transitionSize << "; numStates = " << numStates << "; numEdges = " << numEdges << std::endl;
-
-  uint32 size = transitionSize + (numStates * STATE_SIZE) + (numEdges * sizeof(StaticEdge));
-  Buffer.reset(new byte[size]);
-  NumStates = numStates;
-  NumEdges = numEdges;
-  return size;
+  if (!(numEdges > 0 && numStates < 2)) {
+    uint32 size = transitionSize + (numStates * STATE_SIZE) + (numEdges * sizeof(StaticEdge));
+    Buffer.reset(new byte[size]);
+    NumStates = numStates;
+    NumEdges = numEdges;
+    return size;
+  }
+  else {
+    Buffer.reset(0);
+    NumStates = 0;
+    NumEdges = 0;
+    return 0;
+  }
 }
 
 StaticFSM::EdgeRange StaticFSM::getEdges(const byte* buffer) {
