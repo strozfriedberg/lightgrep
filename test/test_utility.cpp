@@ -27,4 +27,9 @@ SCOPE_TEST(aFSM) {
     ++numEdges;
   }
   SCOPE_ASSERT_EQUAL(1u, numEdges);
+
+  byte text = 'a';
+  SCOPE_ASSERT(tight->allowed(&text, &text+1, *edges.first));
+  text = 'b';
+  SCOPE_ASSERT(!tight->allowed(&text, &text+1, *edges.first));
 }

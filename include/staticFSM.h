@@ -24,6 +24,8 @@ public:
   StateT getFirstState() const;
   EdgeRange getEdges(StateT curState) const;
 
+  bool allowed(const byte* cur, const byte* end, const StaticEdge& edge) const;
+
   uint32 allocate(uint32 transitionSize, uint32 numStates, uint32 numEdges);
   byte*  getRawBuffer() const { return Buffer.get(); }
 
