@@ -1,6 +1,8 @@
 #pragma once
 
 #include <bitset>
+#include <exception>
+#include <sstream>
 #include <boost/smart_ptr.hpp>
 
 typedef unsigned char byte;
@@ -13,3 +15,7 @@ typedef long long int64;
 
 typedef std::bitset<256> ByteSet;
 
+#define THROW_RUNTIME_ERROR_WITH_OUTPUT(expression) \
+  std::stringstream buf; \
+  buf << __FILE__ << ":" << __LINE__ << ": " << expression; \
+  throw std::runtime_error(buf.str())

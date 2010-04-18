@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <cstring>
+#include <exception>
 
 #include <boost/graph/breadth_first_search.hpp>
 
@@ -50,12 +51,18 @@ public:
     for (DynamicFSM::out_edge_iterator cur = adj.first; cur != adj.second; ++cur) {
       // std::cout << "adding edge (" << boost::source(*cur, graph) << ", " << boost::target(*cur, graph) << ") at " << (uint64)curEdge << std::endl;
       if (curEdge->StateOffset != UNALLOCATED || curEdge->TransitionOffset != UNALLOCATED) {
-        std::cerr << "uh oh..." << std::endl;
+        // std::stringstream buf;
+        // buf << __FILE__ << ":" << __LINE__ << ": "<< "(" << boost::source(*cur, graph) << ", " << boost::target(*cur, graph) << "), stateOffset = " << curEdge->StateOffset
+        //   << ", transitionOffset = " << curEdge->TransitionOffset;
+        // throw std::runtime_error(buf.str());
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("(" << boost::source(*cur, graph) << ", " << boost::target(*cur, graph) << "), stateOffset = " << curEdge->StateOffset
+          << ", transitionOffset = " << curEdge->TransitionOffset);
       }
       curEdge->StateOffset = Helper->Offsets[boost::target(*cur, graph)];
       curEdge->TransitionOffset = tranGuard - Helper->Buffer;
       // std::cout << "StateOffset = " << curEdge->StateOffset << "; TransitionOffset = " << curEdge->TransitionOffset << "; tranGuard = " << (uint64)tranGuard << std::endl;
       tranGuard += graph[*cur]->clone(tranGuard)->objSize();
+      ++curEdge;
     }
   }
 

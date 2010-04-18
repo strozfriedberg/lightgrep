@@ -74,6 +74,19 @@ SCOPE_TEST(abFSM) {
   SCOPE_ASSERT_EQUAL(0u, (uint64)edges.first);
 }
 
+SCOPE_TEST(aOrbAndC) {
+  DynamicFSM fsm(4);
+  fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
+  fsm[boost::add_edge(0, 2, fsm).first].reset(new LitState('b'));
+  fsm[boost::add_edge(1, 3, fsm).first].reset(new LitState('c'));
+  fsm[boost::add_edge(2, 3, fsm).first].reset(new LitState('c'));
+
+  boost::shared_ptr<StaticFSM> tight(convert_to_static(fsm));
+  SCOPE_ASSERT(tight);
+  SCOPE_ASSERT_EQUAL(4u, tight->numStates());
+  SCOPE_ASSERT_EQUAL(4u, tight->numEdges());
+}
+
 SCOPE_TEST(staticStateSize) {
   DynamicFSM fsm = createAfsm();
   SCOPE_ASSERT_EQUAL(4 + 8 + sizeof(LitState), staticStateSize(0, fsm));
