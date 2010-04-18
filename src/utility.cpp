@@ -2,8 +2,65 @@
 
 #include <vector>
 #include <iostream>
+#include <cstring>
+
+#include <boost/graph/breadth_first_search.hpp>
 
 static const uint32 UNALLOCATED = 0xffffffff;
+
+struct LayoutHelper {
+  LayoutHelper(uint32 numStates, byte* buf): SizeVec(numStates), Offsets(numStates), Buffer(buf), Guard(buf) {}
+  
+  std::vector< uint32 > SizeVec,
+                        Offsets;
+  byte* Buffer,
+      * Guard;
+};
+
+class LayoutVisitor: public boost::default_bfs_visitor {
+public:
+  LayoutVisitor(boost::shared_ptr<LayoutHelper> helper): Helper(helper) {}
+
+  void initialize_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+    // std::cout << "initialize_vertex: " << v << std::endl;
+    Helper->SizeVec[v] = staticStateSize(v, graph);
+    // std::cout << "size is " << Helper->SizeVec[v] << std::endl;
+  }
+  void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+    // std::cout << "discover_vertex: " << v << std::endl;
+    *((uint32*)Helper->Guard) = out_degree(v, graph);
+    size_t offset = Helper->Guard - Helper->Buffer;
+    Helper->Offsets[v] = offset;
+    // std::cout << "offset is " << offset << std::endl;
+    std::memset(Helper->Guard + sizeof(uint32), UNALLOCATED, Helper->SizeVec[v] - sizeof(uint32));
+    Helper->Guard += Helper->SizeVec[v];
+  }
+
+  void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+    // std::cout << "finish_vertex: " << v << std::endl;
+    byte* statePtr = Helper->Buffer + Helper->Offsets[v];
+    
+    uint32 numEdges = *((uint32*)statePtr);
+    // std::cout << "numEdges = " << numEdges << std::endl;
+    StaticEdge* curEdge = reinterpret_cast<StaticEdge*>(statePtr + sizeof(uint32));
+    
+    std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> adj(boost::out_edges(v, graph));
+    byte* tranGuard = statePtr + sizeof(uint32) + (sizeof(StaticEdge) * (*((uint32*)statePtr)));
+    
+    for (DynamicFSM::out_edge_iterator cur = adj.first; cur != adj.second; ++cur) {
+      // std::cout << "adding edge (" << boost::source(*cur, graph) << ", " << boost::target(*cur, graph) << ") at " << (uint64)curEdge << std::endl;
+      if (curEdge->StateOffset != UNALLOCATED || curEdge->TransitionOffset != UNALLOCATED) {
+        std::cerr << "uh oh..." << std::endl;
+      }
+      curEdge->StateOffset = Helper->Offsets[boost::target(*cur, graph)];
+      curEdge->TransitionOffset = tranGuard - statePtr;
+      tranGuard += graph[*cur]->clone(tranGuard)->objSize();
+    }
+  }
+
+private:
+  boost::shared_ptr<LayoutHelper> Helper;
+};
 
 boost::shared_ptr<StaticFSM> convert_to_static(const DynamicFSM& graph) {
   boost::shared_ptr<StaticFSM> ret(new StaticFSM());
@@ -16,35 +73,21 @@ boost::shared_ptr<StaticFSM> convert_to_static(const DynamicFSM& graph) {
   if (bufSize > 0) {
     std::vector<uint32> stateOffsets(num_vertices(graph), UNALLOCATED);
 
-    stateOffsets[0] = 0;
-    uint32 numEdges = out_degree(0, graph);
-    
-    byte* buffer = ret->getRawBuffer();
-    *((uint32*)buffer) = numEdges;
-    // std::cout << "numEdges = " << numEdges << std::endl;
-
-    StaticEdge* curEdge = reinterpret_cast<StaticEdge*>(buffer + sizeof(uint32));
-    std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> adj(boost::out_edges(0u, graph));
-    byte* tranGuard = buffer + sizeof(uint32) + (sizeof(StaticEdge) * numEdges);
-    
-    // std::cout << "buffer = " << (uint64)buffer << "; bufSize = " << bufSize << "; tranGuard = " << (uint64)tranGuard << std::endl;
-
-    uint32 i = 0;
-    for (DynamicFSM::out_edge_iterator cur = adj.first; cur != adj.second; ++cur) {
-      curEdge->TransitionOffset = tranGuard - buffer;
-      // std::cout << i++ << ": TransitionOffset = " << curEdge->TransitionOffset << std::endl;
-      tranGuard += graph[*cur]->clone(tranGuard)->objSize();
-    }
-    i = 0;
-    for (DynamicFSM::out_edge_iterator cur = adj.first; cur != adj.second; ++cur) {
-      DynamicFSM::vertex_descriptor nextState = boost::target(*cur, graph);
-      if (stateOffsets[nextState] == UNALLOCATED) {
-        stateOffsets[nextState] = tranGuard - buffer;
-      }
-      curEdge->StateOffset = stateOffsets[nextState];
-      // std::cout << i++ << ": StateOffset = " << curEdge->StateOffset << std::endl;
-    }
-    // std::cout << "buffer = " << (uint64)buffer << "; bufSize = " << bufSize << "; tranGuard = " << (uint64)tranGuard << std::endl;
+    LayoutVisitor vis(boost::shared_ptr<LayoutHelper>(new LayoutHelper(num_vertices(graph), ret->getRawBuffer())));
+    // std::cout << " *** starting ***" << std::endl;
+    boost::breadth_first_search(graph, 0, visitor(vis));
+    // std::cout << " *** finishing ***" << std::endl;
   }
   return ret;
+}
+
+uint32 staticStateSize(DynamicFSM::vertex_descriptor state, const DynamicFSM& graph) {
+  uint32 numEdges = 0,
+         tSize = 0;
+  std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> adj(boost::out_edges(state, graph));
+  for (DynamicFSM::out_edge_iterator cur = adj.first; cur != adj.second; ++cur) {
+    ++numEdges;
+    tSize += graph[*cur]->objSize();
+  }
+  return sizeof(uint32) + (boost::out_degree(state, graph) * sizeof(StaticEdge)) + tSize;
 }

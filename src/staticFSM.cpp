@@ -53,5 +53,8 @@ StaticFSM::EdgeRange StaticFSM::getEdges(const byte* buffer) {
     ret.first = (EdgeIt)(buffer + sizeof(uint32));
     ret.second = ret.first + numEdges;
   }
+  else {
+    ret.first = ret.second = 0;
+  }
   return ret;
 }
