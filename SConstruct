@@ -7,9 +7,15 @@ def sub(src):
 scopeDir = 'vendors/scope'
 boostDir = 'vendors/boost'
 
+debug = ARGUMENTS.get('debug', 'false')
+if (debug == 'true'):
+  flags = '-g'
+else:
+  flags = '-O3'
+
 env = Environment(ENV=os.environ) # this builds in a dependency on the PATH, which is useful for ccache
 env.Replace(CPPPATH=['#/include'])
-env.Replace(CCFLAGS='-O2 -Wall -Wextra -I%s -I%s' % (scopeDir, boostDir))
+env.Replace(CCFLAGS='-Wall -Wextra %s -I%s -I%s' % (flags, scopeDir, boostDir))
 env.Append(LIBPATH=['#/lib'])
 
 liblg = sub('src')
