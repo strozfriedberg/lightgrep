@@ -85,6 +85,26 @@ SCOPE_TEST(aOrbAndC) {
   SCOPE_ASSERT(tight);
   SCOPE_ASSERT_EQUAL(4u, tight->numStates());
   SCOPE_ASSERT_EQUAL(4u, tight->numEdges());
+  StaticFSM::StateT s0 = tight->getFirstState(),
+                    s1, s2;
+  StaticFSM::EdgeRange edges = tight->getEdges(s0);
+  SCOPE_ASSERT_EQUAL(2u, edges.second - edges.first);
+  byte text = 'a';
+  SCOPE_ASSERT(tight->allowed(&text, &text+1, *edges.first));
+  text = 'b';
+  SCOPE_ASSERT(tight->allowed(&text, &text+1, *(edges.first+1)));
+  s1 = edges.first->StateOffset;
+  s2 = (edges.first+1)->StateOffset;
+  edges = tight->getEdges(s1);
+  SCOPE_ASSERT_EQUAL(1u, edges.second - edges.first);
+  text = 'c';
+  SCOPE_ASSERT(tight->allowed(&text, &text+1, *edges.first));
+  edges = tight->getEdges(s2);
+  SCOPE_ASSERT_EQUAL(1u, edges.second - edges.first);
+  text = 'c';
+  SCOPE_ASSERT(tight->allowed(&text, &text+1, *edges.first));
+  edges = tight->getEdges(edges.first->StateOffset);
+  SCOPE_ASSERT_EQUAL(0u, edges.second - edges.first);
 }
 
 SCOPE_TEST(staticStateSize) {
