@@ -8,11 +8,16 @@ SCOPE_TEST(emptyFsm) {
   boost::shared_ptr<StaticFSM> tight(convert_to_static(DynamicFSM()));
 }
 
-SCOPE_TEST(aFSM) {
+DynamicFSM createAfsm() {
   DynamicFSM fsm(2);
   std::pair<EdgeIdx, bool> edge(boost::add_edge(0, 1, fsm));
   SCOPE_ASSERT(edge.second);
   fsm[edge.first].reset(new LitState('a'));
+  return fsm;
+}
+
+SCOPE_TEST(aFSM) {
+  DynamicFSM fsm = createAfsm();
 
   boost::shared_ptr<StaticFSM> tight(convert_to_static(fsm));
   SCOPE_ASSERT(tight);
@@ -34,6 +39,23 @@ SCOPE_TEST(aFSM) {
   SCOPE_ASSERT(!tight->allowed(&text, &text+1, *edges.first));
 
   edges = tight->getEdges(edges.first->StateOffset);
-  SCOPE_ASSERT(edges.first == edges.second);
+  SCOPE_ASSERT_EQUAL(edges.first, edges.second);
   SCOPE_ASSERT_EQUAL(0, (uint64)edges.first);
+}
+
+SCOPE_TEST(abFSM) {
+  DynamicFSM fsm(3);
+  fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
+  fsm[boost::add_edge(1, 2, fsm).first].reset(new LitState('b'));
+
+  boost::shared_ptr<StaticFSM> tight(convert_to_static(fsm));
+  SCOPE_ASSERT(tight);
+  SCOPE_ASSERT_EQUAL(3u, tight->numStates());
+  SCOPE_ASSERT_EQUAL(2u, tight->numEdges());
+}
+
+SCOPE_TEST(staticStateSize) {
+  DynamicFSM fsm = createAfsm();
+  SCOPE_ASSERT_EQUAL(4 + 8 + sizeof(LitState), staticStateSize(0, fsm));
+  SCOPE_ASSERT_EQUAL(sizeof(uint32), staticStateSize(1, fsm));
 }
