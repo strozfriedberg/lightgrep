@@ -1,5 +1,7 @@
 #include <scope/test.h>
 
+#include <iostream>
+
 #include "utility.h"
 #include "states.h"
 
@@ -52,6 +54,24 @@ SCOPE_TEST(abFSM) {
   SCOPE_ASSERT(tight);
   SCOPE_ASSERT_EQUAL(3u, tight->numStates());
   SCOPE_ASSERT_EQUAL(2u, tight->numEdges());
+  StaticFSM::StateT s0 = tight->getFirstState();
+  StaticFSM::EdgeRange edges = tight->getEdges(s0);
+  SCOPE_ASSERT_EQUAL(1u, edges.second - edges.first);
+  byte text = 'a';
+  SCOPE_ASSERT(tight->allowed(&text, &text+1, *edges.first));
+  text = 'b';
+  SCOPE_ASSERT(!tight->allowed(&text, &text+1, *edges.first));
+
+  edges = tight->getEdges(edges.first->StateOffset);
+  SCOPE_ASSERT_EQUAL(1u, edges.second - edges.first);
+  SCOPE_ASSERT(tight->allowed(&text, &text+1, *edges.first));
+  text = 'a';
+  SCOPE_ASSERT(!tight->allowed(&text, &text+1, *edges.first));
+
+  edges = tight->getEdges(edges.first->StateOffset);
+  SCOPE_ASSERT_EQUAL(0u, edges.second - edges.first);
+  SCOPE_ASSERT_EQUAL(edges.first, edges.second);
+  SCOPE_ASSERT_EQUAL(0u, (uint64)edges.first);
 }
 
 SCOPE_TEST(staticStateSize) {

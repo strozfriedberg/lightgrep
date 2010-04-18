@@ -53,7 +53,8 @@ public:
         std::cerr << "uh oh..." << std::endl;
       }
       curEdge->StateOffset = Helper->Offsets[boost::target(*cur, graph)];
-      curEdge->TransitionOffset = tranGuard - statePtr;
+      curEdge->TransitionOffset = tranGuard - Helper->Buffer;
+      // std::cout << "StateOffset = " << curEdge->StateOffset << "; TransitionOffset = " << curEdge->TransitionOffset << "; tranGuard = " << (uint64)tranGuard << std::endl;
       tranGuard += graph[*cur]->clone(tranGuard)->objSize();
     }
   }
