@@ -40,7 +40,7 @@ SCOPE_TEST(aFSM) {
 
   edges = tight->getEdges(edges.first->StateOffset);
   SCOPE_ASSERT_EQUAL(edges.first, edges.second);
-  SCOPE_ASSERT_EQUAL(0, (uint64)edges.first);
+  SCOPE_ASSERT_EQUAL(0u, (uint64)edges.first);
 }
 
 SCOPE_TEST(abFSM) {

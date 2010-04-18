@@ -40,7 +40,7 @@ public:
     // std::cout << "finish_vertex: " << v << std::endl;
     byte* statePtr = Helper->Buffer + Helper->Offsets[v];
     
-    uint32 numEdges = *((uint32*)statePtr);
+    // uint32 numEdges = *((uint32*)statePtr);
     // std::cout << "numEdges = " << numEdges << std::endl;
     StaticEdge* curEdge = reinterpret_cast<StaticEdge*>(statePtr + sizeof(uint32));
     
