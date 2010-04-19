@@ -22,4 +22,4 @@ liblg = sub('src')
 libDir = env.Install('lib', liblg)
 test = sub('test')
 
-env.Command('unittests', test, './$SOURCE')
+env.Command('unittests', test, './$SOURCE test')
