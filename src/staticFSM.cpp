@@ -20,8 +20,16 @@ StaticFSM::StateT StaticFSM::getFirstState() const {
   return 0;
 }
 
+StaticFSM::StateT StaticFSM::getLastState() const {
+  return LastState;
+}
+
 StaticFSM::EdgeRange StaticFSM::getEdges(StaticFSM::StateT curState) const {
   return getEdges(getRawBuffer() + curState);
+}
+
+void StaticFSM::setLastState(StateT last) {
+  LastState = last;
 }
 
 bool StaticFSM::allowed(const byte *cur, const byte* end, const StaticEdge& edge) const {

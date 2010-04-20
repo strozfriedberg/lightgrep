@@ -22,7 +22,10 @@ public:
   uint32 numEdges() const;
 
   StateT getFirstState() const;
+  StateT getLastState() const;
   EdgeRange getEdges(StateT curState) const;
+
+  void setLastState(StateT last);
 
   bool allowed(const byte* cur, const byte* end, const StaticEdge& edge) const;
 
@@ -33,7 +36,8 @@ public:
 
 private:
   uint32 NumStates,
-         NumEdges;
+         NumEdges,
+         LastState;
   
   boost::shared_array<byte> Buffer;
 };

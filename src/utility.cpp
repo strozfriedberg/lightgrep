@@ -10,10 +10,12 @@
 static const uint32 UNALLOCATED = 0xffffffff;
 
 struct LayoutHelper {
-  LayoutHelper(uint32 numStates, byte* buf): SizeVec(numStates), Offsets(numStates), Buffer(buf), Guard(buf) {}
+  LayoutHelper(uint32 numStates, byte* buf): SizeVec(numStates), Offsets(numStates), LastState(UNALLOCATED), Buffer(buf), Guard(buf) {}
   
   std::vector< uint32 > SizeVec,
                         Offsets;
+
+  uint32 LastState;
   byte* Buffer,
       * Guard;
 };
@@ -29,9 +31,19 @@ public:
   }
   void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
     // std::cout << "discover_vertex: " << v << std::endl;
-    *((uint32*)Helper->Guard) = out_degree(v, graph);
+    uint32 numEdges = out_degree(v, graph);
+    *((uint32*)Helper->Guard) = numEdges;
     size_t offset = Helper->Guard - Helper->Buffer;
     Helper->Offsets[v] = offset;
+    if (0 == numEdges) {
+      if (UNALLOCATED == Helper->LastState) {
+        // std::cout << "last state is " << v << " at offset " << offset << std::endl;
+        Helper->LastState = offset;
+      }
+      else {
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Helper->LastState = " << Helper->LastState << ", offset = " << offset << ", v = " << v);
+      }
+    }
     // std::cout << "offset is " << offset << std::endl;
     std::memset(Helper->Guard + sizeof(uint32), UNALLOCATED, Helper->SizeVec[v] - sizeof(uint32));
     Helper->Guard += Helper->SizeVec[v];
@@ -79,12 +91,12 @@ boost::shared_ptr<StaticFSM> convert_to_static(const DynamicFSM& graph) {
   }
   uint32 bufSize = ret->allocate(tSize, num_vertices(graph), num_edges(graph));
   if (bufSize > 0) {
-    std::vector<uint32> stateOffsets(num_vertices(graph), UNALLOCATED);
-
-    LayoutVisitor vis(boost::shared_ptr<LayoutHelper>(new LayoutHelper(num_vertices(graph), ret->getRawBuffer())));
+    boost::shared_ptr<LayoutHelper> helper(new LayoutHelper(num_vertices(graph), ret->getRawBuffer()));
+    LayoutVisitor vis(helper);
     // std::cout << " *** starting ***" << std::endl;
     boost::breadth_first_search(graph, 0, visitor(vis));
     // std::cout << " *** finishing ***" << std::endl;
+    ret->setLastState(helper->LastState);
   }
   return ret;
 }
