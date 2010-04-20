@@ -101,6 +101,7 @@ SCOPE_TEST(aOrbAndC) {
   SCOPE_ASSERT(tight->allowed(&text, &text+1, *edges.first));
   edges = tight->getEdges(s2);
   SCOPE_ASSERT_EQUAL(1u, edges.second - edges.first);
+  SCOPE_ASSERT_EQUAL(edges.first->StateOffset, tight->getLastState());
   text = 'c';
   SCOPE_ASSERT(tight->allowed(&text, &text+1, *edges.first));
   edges = tight->getEdges(edges.first->StateOffset);
