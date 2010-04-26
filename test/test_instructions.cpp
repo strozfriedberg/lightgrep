@@ -37,3 +37,9 @@ SCOPE_TEST(makeJump) {
   SCOPE_ASSERT_EQUAL(5u, i.Op.Offset);
   SCOPE_EXPECT(Instruction::makeJump(1 << 24), std::overflow_error);
 }
+
+SCOPE_TEST(makeMatch) {
+  Instruction i = Instruction::makeMatch();
+  SCOPE_ASSERT_EQUAL(MATCH_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+}
