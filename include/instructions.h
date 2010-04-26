@@ -17,5 +17,20 @@ struct Instruction {
   unsigned OpCode : 6;
   unsigned Size   : 2;
   Operand  Op;
+
+  byte wordSize() const {
+    switch (Size) {
+      case 1:
+        return 2; // 4 bytes of data after this instruction
+      case 2:
+        return 5; // 16 bytes of data after this instruction
+      case 3:
+        return 9; // 32 bytes of data after this instruction
+      default:
+        return 1; // no additional data after this instruction
+    }
+  }
+
+  byte byteSize() const { return sizeof(Instruction) * wordSize(); }
 };
 #pragma pack(pop)
