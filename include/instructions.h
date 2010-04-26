@@ -13,6 +13,10 @@ union Operand {
   byte      Literal;
 };
 
+enum OpCodes {
+  LIT_OP
+};
+
 struct Instruction {
   unsigned OpCode : 6;
   unsigned Size   : 2;
@@ -32,5 +36,7 @@ struct Instruction {
   }
 
   byte byteSize() const { return sizeof(Instruction) * wordSize(); }
+
+  static Instruction makeLit(byte b);
 };
 #pragma pack(pop)
