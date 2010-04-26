@@ -20,3 +20,10 @@ SCOPE_TEST(instructionSizes) {
   SCOPE_ASSERT_EQUAL(9u, i.wordSize());
   SCOPE_ASSERT_EQUAL(36u, i.byteSize());
 }
+
+SCOPE_TEST(makeLit) {
+  Instruction i = Instruction::makeLit('a');
+  SCOPE_ASSERT_EQUAL(LIT_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL('a', i.Op.Literal);
+}
