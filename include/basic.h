@@ -15,7 +15,9 @@ typedef long long int64;
 
 typedef std::bitset<256> ByteSet;
 
-#define THROW_RUNTIME_ERROR_WITH_OUTPUT(expression) \
+#define THROW_WITH_OUTPUT(exceptType, expression) \
   std::stringstream buf; \
   buf << __FILE__ << ":" << __LINE__ << ": " << expression; \
-  throw std::runtime_error(buf.str())
+  throw exceptType(buf.str())
+
+#define THROW_RUNTIME_ERROR_WITH_OUTPUT(expression) THROW_WITH_OUTPUT(std::runtime_error, expression)

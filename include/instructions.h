@@ -14,7 +14,8 @@ union Operand {
 };
 
 enum OpCodes {
-  LIT_OP
+  LIT_OP,
+  JUMP_OP
 };
 
 struct Instruction {
@@ -38,5 +39,6 @@ struct Instruction {
   byte byteSize() const { return sizeof(Instruction) * wordSize(); }
 
   static Instruction makeLit(byte b);
+  static Instruction makeJump(uint32 relativeOffset);
 };
 #pragma pack(pop)

@@ -3,6 +3,8 @@
 
 #include "instructions.h"
 
+#include <stdexcept>
+
 SCOPE_TEST(instructionSizes) {
   SCOPE_ASSERT_EQUAL(4u, sizeof(Instruction));
 
@@ -26,4 +28,12 @@ SCOPE_TEST(makeLit) {
   SCOPE_ASSERT_EQUAL(LIT_OP, i.OpCode);
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
   SCOPE_ASSERT_EQUAL('a', i.Op.Literal);
+}
+
+SCOPE_TEST(makeJump) {
+  Instruction i = Instruction::makeJump(5);
+  SCOPE_ASSERT_EQUAL(JUMP_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL(5u, i.Op.Offset);
+  SCOPE_EXPECT(Instruction::makeJump(1 << 24), std::overflow_error);
 }
