@@ -43,3 +43,11 @@ SCOPE_TEST(makeMatch) {
   SCOPE_ASSERT_EQUAL(MATCH_OP, i.OpCode);
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
 }
+
+SCOPE_TEST(makeSaveLabel) {
+  Instruction i = Instruction::makeSaveLabel(3);
+  SCOPE_ASSERT_EQUAL(SAVE_LABEL_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL(3u, i.Op.Offset);
+  SCOPE_EXPECT(Instruction::makeSaveLabel(1 << 24), std::overflow_error);
+}
