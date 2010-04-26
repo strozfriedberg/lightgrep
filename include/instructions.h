@@ -15,7 +15,8 @@ union Operand {
 
 enum OpCodes {
   LIT_OP,
-  JUMP_OP
+  JUMP_OP,
+  MATCH_OP
 };
 
 struct Instruction {
@@ -40,5 +41,6 @@ struct Instruction {
 
   static Instruction makeLit(byte b);
   static Instruction makeJump(uint32 relativeOffset);
+  static Instruction makeMatch();
 };
 #pragma pack(pop)
