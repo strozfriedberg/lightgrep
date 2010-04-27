@@ -57,3 +57,8 @@ Instruction Instruction::makeSaveLabel(uint32 label) {
   i.OpCode = SAVE_LABEL_OP;
   return i;
 }
+
+std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
+  out << instr.toString();
+  return out;
+}
