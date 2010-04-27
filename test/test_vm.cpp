@@ -17,6 +17,27 @@ SCOPE_TEST(executeLit) {
   SCOPE_ASSERT_EQUAL(0u, next.size());
 }
 
+SCOPE_TEST(executeEither) {
+  byte b = 'z';
+  Instruction i = Instruction::makeEither('z', '3');
+  Thread      cur(&i, 0, 0, 0);
+  ThreadList  next;
+  SCOPE_ASSERT(!Vm::execute(&i, cur, next, &b, 0));
+  SCOPE_ASSERT_EQUAL(1u, next.size());
+  SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);
+
+  next.clear();
+  b = '3';
+  SCOPE_ASSERT(!Vm::execute(&i, cur, next, &b, 0));
+  SCOPE_ASSERT_EQUAL(1u, next.size());
+  SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);
+
+  next.clear();
+  b = '4';
+  SCOPE_ASSERT(!Vm::execute(&i, cur, next, &b, 0));
+  SCOPE_ASSERT_EQUAL(0u, next.size());
+}
+
 SCOPE_TEST(executeJump) {
   byte b;
   Instruction i = Instruction::makeJump(18);
