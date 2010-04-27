@@ -64,3 +64,13 @@ SCOPE_TEST(makeEither) {
   SCOPE_ASSERT_EQUAL('B', i.Op.Range.Last);
   SCOPE_ASSERT_EQUAL("Either 0x61/'a', 0x42/'B'", i.toString());
 }
+
+SCOPE_TEST(makeRange) {
+  Instruction i = Instruction::makeRange('A', 'Z');
+  SCOPE_ASSERT_EQUAL(RANGE_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL('A', i.Op.Range.First);
+  SCOPE_ASSERT_EQUAL('Z', i.Op.Range.Last);
+  SCOPE_ASSERT_EQUAL("Range 0x41/'A'-0x5a/'Z'", i.toString());
+  SCOPE_EXPECT(Instruction::makeRange('Z', 'A'), std::range_error);
+}

@@ -16,6 +16,7 @@ union Operand {
 enum OpCodes {
   LIT_OP,
   EITHER_OP,
+  RANGE_OP,
   JUMP_OP,
   MATCH_OP,
   SAVE_LABEL_OP,
@@ -50,6 +51,7 @@ struct Instruction {
 
   static Instruction makeLit(byte b);
   static Instruction makeEither(byte one, byte two);
+  static Instruction makeRange(byte first, byte last);
   static Instruction makeJump(uint32 relativeOffset);
   static Instruction makeMatch();
   static Instruction makeSaveLabel(uint32 label);

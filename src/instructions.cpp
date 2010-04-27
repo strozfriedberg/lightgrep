@@ -24,6 +24,9 @@ std::string Instruction::toString() const {
     case EITHER_OP:
       buf << "Either 0x" << HexCode(Op.Range.First) << "/'" << Op.Range.First << "', 0x" << HexCode(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
       break;
+    case RANGE_OP:
+      buf << "Range 0x" << HexCode(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
+      break;
     case JUMP_OP:
       buf << "Jump 0x" << std::hex << std::setfill('0') << std::setw(8) << Op.Offset << '/' << std::dec << Op.Offset;
       break;
@@ -53,6 +56,18 @@ Instruction Instruction::makeEither(byte one, byte two) {
   i.Size = 0;
   i.Op.Range.First = one;
   i.Op.Range.Last = two;
+  return i;
+}
+
+Instruction Instruction::makeRange(byte first, byte last) {
+  if (last < first) {
+    THROW_WITH_OUTPUT(std::range_error, "out-of-order range; first = " << first << "; last = " << last);
+  }
+  Instruction i;
+  i.OpCode = RANGE_OP;
+  i.Size = 0;
+  i.Op.Range.First = first;
+  i.Op.Range.Last = last;
   return i;
 }
 
