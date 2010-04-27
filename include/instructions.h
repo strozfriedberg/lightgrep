@@ -15,6 +15,7 @@ union Operand {
 
 enum OpCodes {
   LIT_OP,
+  EITHER_OP,
   JUMP_OP,
   MATCH_OP,
   SAVE_LABEL_OP,
@@ -48,6 +49,7 @@ struct Instruction {
   bool operator==(const Instruction& x) const { return *((uint32*)this) == *((uint32*)&x); } // total hack
 
   static Instruction makeLit(byte b);
+  static Instruction makeEither(byte one, byte two);
   static Instruction makeJump(uint32 relativeOffset);
   static Instruction makeMatch();
   static Instruction makeSaveLabel(uint32 label);
