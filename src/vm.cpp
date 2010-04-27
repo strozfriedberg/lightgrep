@@ -19,6 +19,11 @@ bool Vm::execute(const Instruction* base, Thread& t, ThreadList& next, const byt
         next.push_back(Thread(t.PC + t.PC->wordSize(), 0, 0, 0));
       }
       break;
+    case RANGE_OP:
+      if (t.PC->Op.Range.First <= *cur && *cur <= t.PC->Op.Range.Last) {
+        next.push_back(Thread(t.PC + t.PC->wordSize(), 0, 0, 0));
+      }
+      break;
     case JUMP_OP:
       t.PC = base + t.PC->Op.Offset;
       return true;
