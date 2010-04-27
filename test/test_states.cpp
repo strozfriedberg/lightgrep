@@ -79,6 +79,11 @@ SCOPE_TEST(rangeAccept) {
       SCOPE_ASSERT(!bits.test(ch));
     }
   }
+  Instruction instr;
+  SCOPE_ASSERT_EQUAL(1u, r.numInstructions());
+  SCOPE_ASSERT(r.toInstruction(&instr));
+  SCOPE_ASSERT_EQUAL(Instruction::makeRange('0', '9'), instr);
+
   SCOPE_ASSERT_EQUAL(sizeof(void*) + 2, r.objSize());
   ch = '1';
   testClone(r, &ch);
