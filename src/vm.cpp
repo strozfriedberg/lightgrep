@@ -1,12 +1,12 @@
 #include "vm.h"
 
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
-  out << "{ \"pc\":" << std::hex << t.PC << ", \"Label\":" << t.Label << ", \"Start\":" << t.Start << ", \"End\":"
+  out << "{ \"pc\":" << std::hex << t.PC << ", \"Label\":" << std::dec << t.Label << ", \"Start\":" << t.Start << ", \"End\":"
     << t.End << " }";
   return out;
 }
 
-bool Vm::execute(const Instruction* base, const Instruction* pc, Thread& t, ThreadList& next, const byte* cur) {
+bool Vm::execute(const Instruction* base, const Instruction* pc, Thread& t, ThreadList& next, const byte* cur, uint64 offset) {
   switch (pc->OpCode) {
     case LIT_OP:
       if (*cur == pc->Op.Literal) {
@@ -19,6 +19,8 @@ bool Vm::execute(const Instruction* base, const Instruction* pc, Thread& t, Thre
     case JUMP_OP:
       t.PC = base + pc->Op.Offset;
       return true;
+    case MATCH_OP:
+      t.End = offset;
   }
   return false;
 }
