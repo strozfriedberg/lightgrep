@@ -40,6 +40,8 @@ struct Instruction {
 
   byte byteSize() const { return sizeof(Instruction) * wordSize(); }
 
+  std::string toString() const;
+
   static Instruction makeLit(byte b);
   static Instruction makeJump(uint32 relativeOffset);
   static Instruction makeMatch();
