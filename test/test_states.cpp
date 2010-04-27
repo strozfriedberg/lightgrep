@@ -2,6 +2,7 @@
 #include <boost/smart_ptr.hpp>
 
 #include "states.h"
+#include "instructions.h"
 
 #include <iostream>
 
@@ -25,6 +26,11 @@ SCOPE_TEST(litAccept) {
   SCOPE_ASSERT(bits.test('a'));
   SCOPE_ASSERT(bits.any());
   SCOPE_ASSERT(!bits.test('c'));
+
+  Instruction instr;
+  SCOPE_ASSERT_EQUAL(1u, lit.numInstructions());
+  SCOPE_ASSERT(lit.toInstruction(&instr));
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), instr);
 
   SCOPE_ASSERT_EQUAL(sizeof(void*) + 1, lit.objSize());
   ch[0] = 'a';

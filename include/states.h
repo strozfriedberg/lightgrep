@@ -29,6 +29,9 @@ public:
     return new(buffer) LitState(Lit);
   }
 
+  virtual size_t numInstructions() const { return 1; };
+  virtual bool   toInstruction(Instruction* addr) const;
+
 private:
   byte Lit;
 };
@@ -47,6 +50,9 @@ public:
     return new(buffer) EitherState(Lit1, Lit2);
   }
 
+  virtual size_t numInstructions() const { return 1; };
+  virtual bool   toInstruction(Instruction* addr) const;
+
 private:
   byte Lit1, Lit2;
 };
@@ -64,6 +70,9 @@ public:
   RangeState* clone(void* buffer) const {
     return new(buffer) RangeState(First, Last);
   }
+
+  virtual size_t numInstructions() const { return 1; };
+  virtual bool   toInstruction(Instruction* addr) const;
 
 private:
   byte First, Last;

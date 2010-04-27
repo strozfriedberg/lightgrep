@@ -17,13 +17,16 @@ enum OpCodes {
   LIT_OP,
   JUMP_OP,
   MATCH_OP,
-  SAVE_LABEL_OP
+  SAVE_LABEL_OP,
+  ILLEGAL
 };
 
 struct Instruction {
   unsigned OpCode : 6;
   unsigned Size   : 2;
   Operand  Op;
+
+  Instruction(): OpCode(ILLEGAL), Size(0) { Op.Offset = 0; }
 
   byte wordSize() const {
     switch (Size) {
@@ -42,9 +45,13 @@ struct Instruction {
 
   std::string toString() const;
 
+  bool operator==(const Instruction& x) const { return *((uint32*)this) == *((uint32*)&x); } // total hack
+
   static Instruction makeLit(byte b);
   static Instruction makeJump(uint32 relativeOffset);
   static Instruction makeMatch();
   static Instruction makeSaveLabel(uint32 label);
 };
 #pragma pack(pop)
+
+std::ostream& operator<<(std::ostream& out, const Instruction& instr);
