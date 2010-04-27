@@ -38,6 +38,24 @@ SCOPE_TEST(executeEither) {
   SCOPE_ASSERT_EQUAL(0u, next.size());
 }
 
+SCOPE_TEST(executeRange) {
+  Instruction i = Instruction::makeRange('c', 't');
+  Thread      cur(&i, 0, 0, 0);
+  ThreadList  next;
+  for (uint32 j = 0; j < 256; ++j) {
+    next.clear();
+    byte b = j;
+    SCOPE_ASSERT(!Vm::execute(&i, cur, next, &b, 0));
+    if ('c' <= j && j <= 't') {
+      SCOPE_ASSERT_EQUAL(1u, next.size());
+      SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);      
+    }
+    else {
+      SCOPE_ASSERT_EQUAL(0u, next.size());
+    }
+  }
+}
+
 SCOPE_TEST(executeJump) {
   byte b;
   Instruction i = Instruction::makeJump(18);
