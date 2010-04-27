@@ -13,6 +13,6 @@ bool   EitherState::toInstruction(Instruction* addr) const {
 }
 
 bool   RangeState::toInstruction(Instruction* addr) const {
-  *addr = Instruction();
+  *addr = Instruction::makeRange(First, Last);
   return true;
 }
