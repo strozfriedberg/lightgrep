@@ -3,6 +3,7 @@
 #include <bitset>
 #include <exception>
 #include <sstream>
+#include <vector>
 #include <boost/smart_ptr.hpp>
 
 typedef unsigned char byte;
