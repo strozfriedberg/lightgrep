@@ -53,6 +53,11 @@ SCOPE_TEST(eitherAccept) {
   SCOPE_ASSERT(bits.test('A'));
   SCOPE_ASSERT(!bits.test('#'));
 
+  Instruction instr;
+  SCOPE_ASSERT_EQUAL(1u, e.numInstructions());
+  SCOPE_ASSERT(e.toInstruction(&instr));
+  SCOPE_ASSERT_EQUAL(Instruction::makeEither('A', 'a'), instr);
+
   SCOPE_ASSERT_EQUAL(sizeof(void*) + 2, e.objSize());
   testClone(e, &ch);
 }

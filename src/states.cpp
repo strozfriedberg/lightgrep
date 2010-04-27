@@ -8,7 +8,7 @@ bool   LitState::toInstruction(Instruction* addr) const {
 }
 
 bool   EitherState::toInstruction(Instruction* addr) const {
-  *addr = Instruction();
+  *addr = Instruction::makeEither(Lit1, Lit2);
   return true;
 }
 
