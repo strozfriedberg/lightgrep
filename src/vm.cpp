@@ -6,7 +6,7 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
   return out;
 }
 
-bool Vm::execute(const Instruction* pc, ThreadList& next, const byte* cur) {
+bool Vm::execute(const Instruction* base, const Instruction* pc, Thread& t, ThreadList& next, const byte* cur) {
   switch (pc->OpCode) {
     case LIT_OP:
       if (*cur == pc->Op.Literal) {
@@ -16,6 +16,9 @@ bool Vm::execute(const Instruction* pc, ThreadList& next, const byte* cur) {
       else {
         return false;
       }
+    case JUMP_OP:
+      t.PC = base + pc->Op.Offset;
+      return true;
   }
   return false;
 }
