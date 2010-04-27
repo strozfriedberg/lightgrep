@@ -55,3 +55,12 @@ SCOPE_TEST(makeSaveLabel) {
   SCOPE_ASSERT_EQUAL("SaveLabel 3", i.toString());
   SCOPE_EXPECT(Instruction::makeSaveLabel(1 << 24), std::overflow_error);
 }
+
+SCOPE_TEST(makeEither) {
+  Instruction i = Instruction::makeEither('a', 'B');
+  SCOPE_ASSERT_EQUAL(EITHER_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL('a', i.Op.Range.First);
+  SCOPE_ASSERT_EQUAL('B', i.Op.Range.Last);
+  SCOPE_ASSERT_EQUAL("Either 0x61/'a', 0x42/'B'", i.toString());
+}
