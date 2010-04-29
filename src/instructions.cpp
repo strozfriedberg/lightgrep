@@ -30,6 +30,9 @@ std::string Instruction::toString() const {
     case JUMP_OP:
       buf << "Jump 0x" << std::hex << std::setfill('0') << std::setw(8) << Op.Offset << '/' << std::dec << Op.Offset;
       break;
+    case FORK_OP:
+      buf << "Fork 0x" << std::hex << std::setfill('0') << std::setw(8) << Op.Offset << '/' << std::dec << Op.Offset;
+      break;
     case MATCH_OP:
       buf << "Match";
       break;
