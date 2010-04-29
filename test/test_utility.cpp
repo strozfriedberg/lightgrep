@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "utility.h"
+#include "utility_impl.h"
 #include "states.h"
 
 SCOPE_TEST(emptyFsm) {
@@ -112,4 +112,21 @@ SCOPE_TEST(staticStateSize) {
   DynamicFSM fsm = createAfsm();
   SCOPE_ASSERT_EQUAL(4 + 8 + sizeof(LitState), staticStateSize(0, fsm));
   SCOPE_ASSERT_EQUAL(sizeof(uint32), staticStateSize(1, fsm));
+}
+
+SCOPE_TEST(codeGenExamineVertex) {
+  DynamicFSM fsm(2);
+  fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+  CodeGenVisitor vis(cg);
+
+  vis.examine_vertex(0, fsm);
+  SCOPE_ASSERT_EQUAL(0u, cg->Snippets[0].first);
+  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[0].second);
+  SCOPE_ASSERT_EQUAL(1u, cg->Guard);
+
+   vis.examine_vertex(1, fsm);
+   SCOPE_ASSERT_EQUAL(1u, cg->Snippets[1].first);
+   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[1].second);
+   SCOPE_ASSERT_EQUAL(3u, cg->Guard);
 }
