@@ -6,7 +6,6 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
   return out;
 }
 
-// TODO: there's no need to pass in PC separately, since it's part of the thread
 bool Vm::execute(const Instruction* base, Thread& t, ThreadList& next, const byte* cur, uint64 offset) {
   switch (t.PC->OpCode) {
     case LIT_OP:
@@ -26,6 +25,9 @@ bool Vm::execute(const Instruction* base, Thread& t, ThreadList& next, const byt
       break;
     case JUMP_OP:
       t.PC = base + t.PC->Op.Offset;
+      return true;
+    case FORK_OP:
+      next.push_back(Thread(base + t.PC->Op.Offset, 0, 0, 0));
       return true;
     case MATCH_OP:
       t.End = offset;

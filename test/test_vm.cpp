@@ -86,6 +86,16 @@ SCOPE_TEST(executeSaveLabel) {
   SCOPE_ASSERT_EQUAL(Thread(&i+1, 31, 47, 0), cur);
 }
 
+SCOPE_TEST(executeFork) {
+  byte b;
+  Instruction i = Instruction::makeFork(237);
+  Thread      cur(&i, 0, 0, 0);
+  ThreadList  next;
+  SCOPE_ASSERT(Vm::execute(&i, cur, next, &b, 47));
+  SCOPE_ASSERT_EQUAL(1u, next.size());
+  SCOPE_ASSERT_EQUAL(Thread(&i+237, 0, 0, 0), next[0]);
+}
+
 SCOPE_TEST(simpleLitMatch) {
   Instruction prog[4] = { Instruction::makeSaveLabel(3),
                           Instruction::makeLit('a'),
