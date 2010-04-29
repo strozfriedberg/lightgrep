@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utility.h"
+#include "instructions.h"
 
 #include <vector>
 #include <iostream>
@@ -20,6 +21,7 @@ struct CodeGenHelper {
     Guard += num;
   }
 
+  std::vector< Instruction > Program;
   std::vector< std::pair< uint32, uint32 > > Snippets;
   uint32 Guard;
 };
@@ -28,8 +30,27 @@ class CodeGenVisitor: public boost::default_bfs_visitor {
 public:
   CodeGenVisitor(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
 
-  void examine_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
     Helper->addSnippet(v, std::max(out_degree(v, graph), 1ul) + (v == 0 ? 0: 1));
+  }
+
+  void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+    std::pair<DynamicFSM::in_edge_iterator, DynamicFSM::in_edge_iterator> inRange(in_edges(v, graph));
+    if (inRange.first != inRange.second) {
+      TransitionPtr t(graph[*inRange.first]); // this assumes that all states have the same incoming transitions
+      Instruction i;
+      t->toInstruction(&i);
+//      Helper->Program.push_back(i);
+    }
+    std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> outRange(out_edges(v, graph));
+    if (outRange.first != outRange.second) {
+      for (DynamicFSM::out_edge_iterator cur(outRange.first); cur != outRange.second; ++cur) {
+        Helper->Program.push_back(Instruction::makeFork(Helper->Snippets[target(*cur, graph)].first));
+      }
+    }
+    else {
+      Helper->Program.push_back(Instruction::makeMatch());
+    }
   }
 
 private:

@@ -114,19 +114,33 @@ SCOPE_TEST(staticStateSize) {
   SCOPE_ASSERT_EQUAL(sizeof(uint32), staticStateSize(1, fsm));
 }
 
-SCOPE_TEST(codeGenExamineVertex) {
+SCOPE_TEST(codeGenDiscoveryVertex) {
   DynamicFSM fsm(2);
   fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
   CodeGenVisitor vis(cg);
 
-  vis.examine_vertex(0, fsm);
+  vis.discover_vertex(0, fsm);
   SCOPE_ASSERT_EQUAL(0u, cg->Snippets[0].first);
   SCOPE_ASSERT_EQUAL(1u, cg->Snippets[0].second);
   SCOPE_ASSERT_EQUAL(1u, cg->Guard);
 
-   vis.examine_vertex(1, fsm);
+   vis.discover_vertex(1, fsm);
    SCOPE_ASSERT_EQUAL(1u, cg->Snippets[1].first);
    SCOPE_ASSERT_EQUAL(2u, cg->Snippets[1].second);
    SCOPE_ASSERT_EQUAL(3u, cg->Guard);
+}
+
+SCOPE_TEST(codeGenFinishVertex) {
+  DynamicFSM fsm(2);
+  fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+  cg->Snippets[0] = std::make_pair(0u, 1u);
+  cg->Snippets[1] = std::make_pair(1u, 2u);
+  cg->Guard = 3;
+
+  CodeGenVisitor vis(cg);
+  vis.finish_vertex(0, fsm);
+  SCOPE_ASSERT_EQUAL(1u, cg->Program.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(1), cg->Program[0]);
 }
