@@ -74,3 +74,11 @@ SCOPE_TEST(makeRange) {
   SCOPE_ASSERT_EQUAL("Range 0x41/'A'-0x5a/'Z'", i.toString());
   SCOPE_EXPECT(Instruction::makeRange('Z', 'A'), std::range_error);
 }
+
+SCOPE_TEST(makeFork) {
+  Instruction i = Instruction::makeFork(1027);
+  SCOPE_ASSERT_EQUAL(FORK_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL(1027u, i.Op.Offset);
+  SCOPE_EXPECT(Instruction::makeFork(1 << 24), std::overflow_error);
+}
