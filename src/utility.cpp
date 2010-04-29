@@ -30,3 +30,12 @@ uint32 staticStateSize(DynamicFSM::vertex_descriptor state, const DynamicFSM& gr
   }
   return sizeof(uint32) + (boost::out_degree(state, graph) * sizeof(StaticEdge)) + tSize;
 }
+
+boost::shared_ptr< std::vector<Instruction> > createProgram(const DynamicFSM& graph) {
+  boost::shared_ptr< std::vector<Instruction> > ret(new std::vector<Instruction>());
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(graph)));
+  CodeGenVisitor vis(cg);
+  boost::breadth_first_search(graph, 0, visitor(vis));
+  ret->swap(cg->Program);
+  return ret;
+}

@@ -40,7 +40,7 @@ public:
       TransitionPtr t(graph[*inRange.first]); // this assumes that all states have the same incoming transitions
       Instruction i;
       t->toInstruction(&i);
-//      Helper->Program.push_back(i);
+      Helper->Program.push_back(i);
     }
     std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> outRange(out_edges(v, graph));
     if (outRange.first != outRange.second) {
