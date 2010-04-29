@@ -14,17 +14,19 @@ union Operand {
 };
 
 enum OpCodes {
+  UNINITIALIZED = 0,
   LIT_OP,
   EITHER_OP,
   RANGE_OP,
   JUMP_OP,
+  FORK_OP,
   MATCH_OP,
   SAVE_LABEL_OP,
   ILLEGAL
 };
 
 struct Instruction {
-  unsigned OpCode : 6;
+  signed   OpCode : 6;
   unsigned Size   : 2;
   Operand  Op;
 
@@ -55,6 +57,7 @@ struct Instruction {
   static Instruction makeJump(uint32 relativeOffset);
   static Instruction makeMatch();
   static Instruction makeSaveLabel(uint32 label);
+  static Instruction makeFork(uint32 index);
 };
 #pragma pack(pop)
 

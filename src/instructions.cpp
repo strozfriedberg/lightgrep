@@ -97,6 +97,12 @@ Instruction Instruction::makeSaveLabel(uint32 label) {
   return i;
 }
 
+Instruction Instruction::makeFork(uint32 index) {
+  Instruction i = makeJump(index);
+  i.OpCode = FORK_OP;
+  return i;
+}
+
 std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
   out << instr.toString();
   return out;
