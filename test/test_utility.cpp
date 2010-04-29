@@ -143,4 +143,30 @@ SCOPE_TEST(codeGenFinishVertex) {
   vis.finish_vertex(0, fsm);
   SCOPE_ASSERT_EQUAL(1u, cg->Program.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(1), cg->Program[0]);
+
+  vis.finish_vertex(1, fsm);
+  SCOPE_ASSERT_EQUAL(3u, cg->Program.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), cg->Program[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), cg->Program[2]);
+}
+
+SCOPE_TEST(acOrbcProgram) {
+  DynamicFSM fsm(4);
+  fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
+  fsm[boost::add_edge(0, 2, fsm).first].reset(new LitState('b'));
+  fsm[boost::add_edge(1, 3, fsm).first].reset(new LitState('c'));
+  fsm[boost::add_edge(2, 3, fsm).first].reset(new LitState('c'));
+  boost::shared_ptr< std::vector<Instruction> > program = createProgram(fsm);
+  // for (uint32 i = 0; i < program->size(); ++i) {
+  //   std::cout << i << '\t' << (*program)[i].toString() << std::endl;
+  // }
+  SCOPE_ASSERT_EQUAL(8u, program->size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(2), (*program)[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(4), (*program)[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), (*program)[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(6), (*program)[3]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), (*program)[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(6), (*program)[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), (*program)[6]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), (*program)[7]);
 }
