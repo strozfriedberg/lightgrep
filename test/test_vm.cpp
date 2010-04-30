@@ -96,13 +96,28 @@ SCOPE_TEST(executeFork) {
   SCOPE_ASSERT_EQUAL(Thread(&i+237, 0, 0, 0), next[0]);
 }
 
+class TestCallback: public HitCallback {
+public:
+  virtual void collect(const SearchHit& hit) {
+    Hits.push_back(hit);
+  }
+  
+  std::vector<SearchHit> Hits;
+};
+
 SCOPE_TEST(simpleLitMatch) {
-  Instruction prog[4] = { Instruction::makeSaveLabel(3),
-                          Instruction::makeLit('a'),
-                          Instruction::makeLit('b'),
-                          Instruction::makeMatch()      };
+  ProgramPtr p(new Program());
+  Program& prog(*p);
+  prog.push_back(Instruction::makeSaveLabel(3));
+  prog.push_back(Instruction::makeLit('a'));
+  prog.push_back(Instruction::makeLit('b'));
+  prog.push_back(Instruction::makeMatch());
+
   byte text[] = {'a', 'b', 'c'};
-  SCOPE_ASSERT(Vm::run(prog, 4, text, &text[3], 35));
+  TestCallback cb;
+  Vm v;
+  v.init(p);
+  SCOPE_ASSERT(v.search(text, &text[3], 35, cb));
   text[1] = 'c';
-  SCOPE_ASSERT(!Vm::run(prog, 4, text, &text[3], 35));
+  SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
 }
