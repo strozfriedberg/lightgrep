@@ -17,3 +17,8 @@ OutStream& operator<<(OutStream& out, const SearchHit& hit) {
   out << '(' << hit.Offset << ", " << hit.Length << ')';
   return out;
 }
+
+class HitCallback {
+public:
+  virtual void collect(const SearchHit& hit) = 0;
+};
