@@ -7,6 +7,7 @@ struct Instruction;
 struct Thread {
   Thread(): PC(0), Label(0), Start(0), End(0) {}
   Thread(const Instruction* pc, uint32 label, uint64 start, uint64 end): PC(pc), Label(label), Start(start), End(end) {}
+  Thread(const Instruction* pc, const Thread& parent): PC(pc), Label(parent.Label), Start(parent.Start), End(parent.End) {}
 
   const Instruction* PC;
   uint32             Label;
