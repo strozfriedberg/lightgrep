@@ -83,7 +83,7 @@ SCOPE_TEST(executeSaveLabel) {
   ThreadList  next;
   SCOPE_ASSERT(Vm::execute(&i, cur, next, &b, 47));
   SCOPE_ASSERT_EQUAL(0u, next.size());
-  SCOPE_ASSERT_EQUAL(Thread(&i+1, 31, 47, 0), cur);
+  SCOPE_ASSERT_EQUAL(Thread(&i+1, 31, 0, 0), cur);
 }
 
 SCOPE_TEST(executeFork) {
@@ -118,6 +118,20 @@ SCOPE_TEST(simpleLitMatch) {
   Vm v;
   v.init(p);
   SCOPE_ASSERT(v.search(text, &text[3], 35, cb));
+  SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(35, 2), cb.Hits[0]);
   text[1] = 'c';
   SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
+}
+
+SCOPE_TEST(twoKeywords) {
+  ProgramPtr p(new Program);
+  p->push_back(Instruction::makeFork(2));
+  p->push_back(Instruction::makeFork(4));
+  p->push_back(Instruction::makeLit('a'));
+  p->push_back(Instruction::makeSaveLabel(0));
+  p->push_back(Instruction::makeMatch());
+  p->push_back(Instruction::makeLit('b'));
+  p->push_back(Instruction::makeSaveLabel(1));
+  p->push_back(Instruction::makeMatch());
 }
