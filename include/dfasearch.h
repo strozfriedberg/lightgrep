@@ -4,11 +4,6 @@
 
 #include "SearchHit.h"
 
-class HitCallback {
-public:
-  virtual void collect(const SearchHit& hit) = 0;
-};
-
 class DFASearch {
 public:
   bool init(boost::shared_ptr<StaticFSM> fsm);
