@@ -41,8 +41,9 @@ bool Vm::execute(const Instruction* base, Thread& t, ThreadList& next, const byt
   return false;
 }
 
-bool Vm::run(const Instruction* base, uint32 num, const byte* beg, const byte* end, uint64 startOffset) {
-  // this will likely need to become a member function  
+bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
+  const Instruction* base = &(*Program)[0];
+  uint32     num = Program->size();
   uint64     offset = startOffset;
   Thread     t(base, 0, 0, 0);
   ThreadList active,
