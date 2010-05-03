@@ -8,7 +8,7 @@
 class Vm {
 public:
   
-  static bool execute(const Instruction* base, Thread& t, ThreadList& next, const byte* cur, uint64 offset);
+  static bool execute(const Instruction* base, Thread& t, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset);
   
   void init(ProgramPtr prog) { Program = prog; }
   bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);

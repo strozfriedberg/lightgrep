@@ -22,7 +22,7 @@ void match(const byte* beg, const byte* end, StaticFSM& fsm, StaticFSM::StateT c
         curState = curEdge->StateOffset;
         edges = fsm.getEdges(curState);
         if (edges.first == edges.second) {
-          collector.collect(SearchHit(start, cur - beg + 1));
+          collector.collect(SearchHit(start, cur - beg + 1, 0));
           return;
         }
         good = true;
