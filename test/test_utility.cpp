@@ -142,7 +142,7 @@ SCOPE_TEST(codeGenFinishVertex) {
   CodeGenVisitor vis(cg);
   vis.finish_vertex(0, fsm);
   SCOPE_ASSERT_EQUAL(1u, cg->Program.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeFork(1), cg->Program[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(1), cg->Program[0]);
 
   vis.finish_vertex(1, fsm);
   SCOPE_ASSERT_EQUAL(3u, cg->Program.size());
@@ -162,11 +162,11 @@ SCOPE_TEST(acOrbcProgram) {
   // }
   SCOPE_ASSERT_EQUAL(8u, program->size());
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(2), (*program)[0]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeFork(4), (*program)[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(4), (*program)[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), (*program)[2]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeFork(6), (*program)[3]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(6), (*program)[3]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), (*program)[4]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeFork(6), (*program)[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(6), (*program)[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), (*program)[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), (*program)[7]);
 }

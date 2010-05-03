@@ -45,7 +45,14 @@ public:
     std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> outRange(out_edges(v, graph));
     if (outRange.first != outRange.second) {
       for (DynamicFSM::out_edge_iterator cur(outRange.first); cur != outRange.second; ++cur) {
-        Helper->Program.push_back(Instruction::makeFork(Helper->Snippets[target(*cur, graph)].first));
+        DynamicFSM::out_edge_iterator next(cur);
+        ++next;
+        if (next == outRange.second) {
+          Helper->Program.push_back(Instruction::makeJump(Helper->Snippets[target(*cur, graph)].first));
+        }
+        else {
+          Helper->Program.push_back(Instruction::makeFork(Helper->Snippets[target(*cur, graph)].first));
+        }
       }
     }
     else {

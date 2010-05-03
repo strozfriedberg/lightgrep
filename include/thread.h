@@ -9,6 +9,20 @@ struct Thread {
   Thread(const Instruction* pc, uint32 label, uint64 start, uint64 end): PC(pc), Label(label), Start(start), End(end) {}
   Thread(const Instruction* pc, const Thread& parent): PC(pc), Label(parent.Label), Start(parent.Start), End(parent.End) {}
 
+  void jump(const Instruction* base, uint32 offset) {
+    PC = base;
+    PC += offset;
+  }
+
+  void fork(const Thread& parent, const Instruction* base, uint32 offset) {
+    *this = parent;
+    jump(base, offset);
+  }
+
+  void advance() {
+    PC += PC->wordSize();
+  }
+
   const Instruction* PC;
   uint32             Label;
   uint64             Start,

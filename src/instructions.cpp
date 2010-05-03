@@ -16,6 +16,7 @@ std::ostream& operator<<(std::ostream& out, const HexCode& hex) {
 }
 
 std::string Instruction::toString() const {
+  std::string ret;
   std::stringstream buf;
   switch (OpCode) {
     case LIT_OP:
@@ -42,7 +43,8 @@ std::string Instruction::toString() const {
     default:
       buf << "* UNRECOGNIZED *";
   };
-  return buf.str();
+  ret = buf.str();
+  return ret;
 }
 
 Instruction Instruction::makeLit(byte b) {

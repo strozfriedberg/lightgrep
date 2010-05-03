@@ -31,6 +31,6 @@ SCOPE_TEST(dfaSearch) {
   HitCollector hc;
   search.search(mem, mem+7, 0, hc);
   SCOPE_ASSERT_EQUAL(2u, hc.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(1, 2), hc.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(5, 2), hc.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), hc.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(5, 2, 0), hc.Hits[1]);
 }
