@@ -15,4 +15,6 @@ public:
 
 private:
   ProgramPtr Program;
+  ThreadList Active,
+             Next;
 };

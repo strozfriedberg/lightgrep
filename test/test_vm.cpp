@@ -143,7 +143,7 @@ SCOPE_TEST(simpleLitMatch) {
   TestCallback cb;
   Vm v;
   v.init(p);
-  SCOPE_ASSERT(v.search(text, &text[3], 35, cb));
+  SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
   SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(35, 2, 3), cb.Hits[0]);
   text[1] = 'c';
@@ -151,7 +151,7 @@ SCOPE_TEST(simpleLitMatch) {
 }
 
 SCOPE_TEST(threeKeywords) {
-  ProgramPtr p(new Program);
+  ProgramPtr p(new Program); // (a)|(b)|(bc)
   p->push_back(Instruction::makeFork(2));       // 0
   p->push_back(Instruction::makeJump(5));       // 1
   p->push_back(Instruction::makeLit('a'));      // 2
@@ -169,9 +169,26 @@ SCOPE_TEST(threeKeywords) {
   TestCallback cb;
   Vm v;
   v.init(p);
-  SCOPE_ASSERT(v.search(text, &text[4], 10, cb));
+  SCOPE_ASSERT(!v.search(text, &text[4], 10, cb));
   SCOPE_ASSERT_EQUAL(3u, cb.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(11, 1, 0), cb.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(12, 1, 1), cb.Hits[1]);
   SCOPE_ASSERT_EQUAL(SearchHit(12, 2, 2), cb.Hits[2]);
+}
+
+SCOPE_TEST(stitchedText) {
+  ProgramPtr p(new Program);
+  p->push_back(Instruction::makeLit('a'));
+  p->push_back(Instruction::makeLit('b'));
+  p->push_back(Instruction::makeMatch());
+  byte text1[] = {'a', 'c', 'a'},
+       text2[] = {'b', 'b'};
+  TestCallback cb;
+  Vm v;
+  v.init(p);
+  SCOPE_ASSERT(v.search(text1, &text1[3], 0, cb));
+  SCOPE_ASSERT_EQUAL(0u, cb.Hits.size());
+  SCOPE_ASSERT(!v.search(text2, &text2[2], 3, cb));
+  SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(2, 2, 0), cb.Hits[0]);
 }
