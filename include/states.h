@@ -17,7 +17,8 @@
 
 class LitState: public Transition {
 public:
-  LitState(byte lit): Lit(lit) {}
+  LitState(byte lit): Transition(), Lit(lit) {}
+  LitState(byte lit, uint32 label): Transition(label), Lit(lit) {}
   
   const byte* allowed(const byte* beg, const byte*) const { return *beg == Lit ? beg+1: beg; }
 
@@ -38,7 +39,8 @@ private:
 
 class EitherState: public Transition {
 public:
-  EitherState(byte one, byte two): Lit1(one), Lit2(two) {}
+  EitherState(byte one, byte two): Transition(), Lit1(one), Lit2(two) {}
+  EitherState(byte one, byte two, uint32 label): Transition(label), Lit1(one), Lit2(two) {}
 
   const byte* allowed(const byte* beg, const byte*) const { return *beg == Lit1 || *beg == Lit2 ? beg+1: beg; }
 
@@ -59,7 +61,8 @@ private:
 
 class RangeState: public Transition {
 public:
-  RangeState(byte first, byte last): First(first), Last(last) {}
+  RangeState(byte first, byte last): Transition(), First(first), Last(last) {}
+  RangeState(byte first, byte last, uint32 label): Transition(label), First(first), Last(last) {}
 
   const byte* allowed(const byte* beg, const byte*) const { return First <= *beg && *beg <= Last ? beg+1: beg; }
 
