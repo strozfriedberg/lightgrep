@@ -1,11 +1,12 @@
 #pragma once
 
 #include "basic.h"
+#include <limits>
 
 struct Instruction;
 
 struct Thread {
-  Thread(): PC(0), Label(0), Start(0), End(0) {}
+  Thread(): PC(0), Label(0), Start(0), End(std::numeric_limits<uint64>::max()) {}
   Thread(const Instruction* pc, uint32 label, uint64 start, uint64 end): PC(pc), Label(label), Start(start), End(end) {}
   Thread(const Instruction* pc, const Thread& parent): PC(pc), Label(parent.Label), Start(parent.Start), End(parent.End) {}
 

@@ -20,8 +20,8 @@ enum OpCodes {
   RANGE_OP,
   JUMP_OP,
   FORK_OP,
-  MATCH_OP,
   SAVE_LABEL_OP,
+  MATCH_OP,
   ILLEGAL
 };
 
