@@ -150,6 +150,10 @@ SCOPE_TEST(codeGenFinishVertex) {
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), cg->Program[2]);
 }
 
+void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, Transition* tPtr) {
+  fsm[boost::add_edge(source, target, fsm).first].reset(tPtr);
+}
+
 SCOPE_TEST(acOrbcProgram) {
   DynamicFSM fsm(4);
   fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
@@ -169,4 +173,23 @@ SCOPE_TEST(acOrbcProgram) {
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(6), (*program)[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), (*program)[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), (*program)[7]);
+}
+
+SCOPE_TEST(keywordLabels) {
+  DynamicFSM fsm(4);
+  edge(0, 1, fsm, new LitState('a', 0));
+  edge(0, 2, fsm, new LitState('b'));
+  edge(2, 3, fsm, new LitState('c', 1));
+  ProgramPtr program = createProgram(fsm);
+  SCOPE_ASSERT_EQUAL(10u, program->size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(2), (*program)[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(5), (*program)[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), (*program)[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeSaveLabel(0), (*program)[3]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), (*program)[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), (*program)[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(7), (*program)[6]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), (*program)[7]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeSaveLabel(1), (*program)[8]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), (*program)[9]);
 }
