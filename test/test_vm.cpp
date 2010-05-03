@@ -150,7 +150,7 @@ SCOPE_TEST(simpleLitMatch) {
   SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
 }
 
-SCOPE_TEST(twoKeywords) {
+SCOPE_TEST(threeKeywords) {
   ProgramPtr p(new Program);
   p->push_back(Instruction::makeFork(2));       // 0
   p->push_back(Instruction::makeJump(5));       // 1
@@ -158,15 +158,20 @@ SCOPE_TEST(twoKeywords) {
   p->push_back(Instruction::makeSaveLabel(0));  // 3
   p->push_back(Instruction::makeMatch());       // 4
   p->push_back(Instruction::makeLit('b'));      // 5
-  p->push_back(Instruction::makeSaveLabel(1));  // 6
-  p->push_back(Instruction::makeMatch());       // 7
+  p->push_back(Instruction::makeFork(9));       // 6
+  p->push_back(Instruction::makeSaveLabel(1));  // 7
+  p->push_back(Instruction::makeMatch());       // 8
+  p->push_back(Instruction::makeLit('c'));      // 9
+  p->push_back(Instruction::makeSaveLabel(2));  // 10
+  p->push_back(Instruction::makeMatch());       // 11
 
   byte text[] = {'c', 'a', 'b', 'c'};
   TestCallback cb;
   Vm v;
   v.init(p);
   SCOPE_ASSERT(v.search(text, &text[4], 10, cb));
-  SCOPE_ASSERT_EQUAL(2u, cb.Hits.size());
+  SCOPE_ASSERT_EQUAL(3u, cb.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(11, 1, 0), cb.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(12, 1, 1), cb.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(12, 2, 2), cb.Hits[2]);
 }

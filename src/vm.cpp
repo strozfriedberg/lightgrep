@@ -87,6 +87,17 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
     active.swap(next);
     next.clear();
   }
-  // BUG: need to evaluate any epsilon instructions at the end, in case there was a match
+  // this flushes out last char matches
+  for (uint32 i = 0; i < active.size(); ++i) {
+    Thread* t = &active[i];
+    while (execute(base, *t, active, next, end-1, offset)) ; // doesn't matter that the char is re-inspected
+    if (t->End == offset) {
+      hit.Offset = t->Start;
+      hit.Length = t->End - t->Start;
+      hit.Label = t->Label;
+      hitFn.collect(hit);
+      ret = true;
+    }
+  }
   return ret;
 }
