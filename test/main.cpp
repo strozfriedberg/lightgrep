@@ -44,7 +44,7 @@ boost::shared_ptr<Vm> initSearch(const char* keyFilePath) {
   }
   
   boost::shared_ptr<Vm> ret(new Vm);
-  ret->init(p);
+  ret->init(p, firstBytes(*fsm));
   return ret;
 }
 

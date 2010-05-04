@@ -8,10 +8,11 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
   return out;
 }
 
-void Vm::init(ProgramPtr prog) {
+void Vm::init(ProgramPtr prog, ByteSet firstBytes) {
   Program = prog;
   Active.resize(Program->size());
   Next.resize(Program->size());
+  First = firstBytes;
 }
 
 bool Vm::execute(const Instruction* base, Thread& t, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
@@ -98,7 +99,9 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
   Thread     t;
   for (const byte* cur = beg; cur != end; ++cur) {
     // std::cerr << "offset = " << offset << ", " << *cur << std::endl;
-    Active.push_back(Thread(base, 0, offset, std::numeric_limits<uint64>::max()));
+    if (First[*cur]) {
+      Active.push_back(Thread(base, 0, offset, std::numeric_limits<uint64>::max()));
+    }
     for (uint32 i = 0; i < Active.size(); ++i) {
       t = Active[i];
       // std::cerr << i << std::endl;
