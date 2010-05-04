@@ -13,10 +13,11 @@ public:
   
   static bool execute(const Instruction* base, Thread& t, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset);
   
-  void init(ProgramPtr prog);
+  void init(ProgramPtr prog, ByteSet firstBytes);
   bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
 
 private:
+  ByteSet    First;
   ProgramPtr Program;
   ThreadList Active,
              Next;
