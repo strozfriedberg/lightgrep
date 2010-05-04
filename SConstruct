@@ -9,7 +9,7 @@ boostDir = 'vendors/boost'
 
 debug = ARGUMENTS.get('debug', 'false')
 if (debug == 'true'):
-  flags = '-g'
+  flags = '-g -fstack-protector-all'
 else:
   flags = '-O3'
 
