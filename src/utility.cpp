@@ -5,16 +5,36 @@
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
   DynamicFSMPtr g(new DynamicFSM(1));
   uint32 keyIdx = 0;
+  ByteSet charBits,
+          edgeBits;
   for (std::vector<std::string>::const_iterator kw(keywords.begin()); kw != keywords.end(); ++kw) {
     if (!kw->empty()) {
       DynamicFSM::vertex_descriptor source = 0;
       for (uint32 i = 0; i < kw->size(); ++i) {
-        DynamicFSM::vertex_descriptor target = boost::add_vertex(*g);
-        if (i == kw->size() - 1) {
-          (*g)[boost::add_edge(source, target, *g).first].reset(new LitState((*kw)[i], keyIdx));
+        byte b = (*kw)[i];
+        charBits.reset();
+        charBits.set(b);
+        std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> edgeRange(boost::out_edges(source, *g));
+        DynamicFSM::vertex_descriptor target;
+        bool found = false;
+        for (DynamicFSM::out_edge_iterator edgeIt(edgeRange.first); edgeIt != edgeRange.second; ++edgeIt) {
+          edgeBits.reset();
+          Transition& trans(*(*g)[*edgeIt]);
+          trans.getBits(edgeBits);
+          if (charBits == edgeBits && (trans.Label == 0xffffffff || trans.Label == keyIdx)) {
+            target = boost::target(*edgeIt, *g);
+            found = true;
+            break;
+          }
         }
-        else {
-          (*g)[boost::add_edge(source, target, *g).first].reset(new LitState((*kw)[i]));
+        if (!found) {
+          target = boost::add_vertex(*g);
+          if (i == kw->size() - 1) {
+            (*g)[boost::add_edge(source, target, *g).first].reset(new LitState(b, keyIdx));
+          }
+          else {
+            (*g)[boost::add_edge(source, target, *g).first].reset(new LitState(b));
+          }
         }
         source = target;
       }
