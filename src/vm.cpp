@@ -9,7 +9,7 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
 }
 
 bool Vm::execute(const Instruction* base, Thread& t, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
-  std::string instr;
+  // std::string instr;
   // std::cerr << t << std::endl;
   // instr = t.PC->toString(); // for some reason, toString() is corrupting the stack... maybe?
   // std::cerr << instr << std::endl;
@@ -89,19 +89,20 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
   const Instruction* base = &(*Program)[0];
   SearchHit  hit;
   uint64     offset = startOffset;
+  Thread     t;
   for (const byte* cur = beg; cur != end; ++cur) {
     // std::cerr << "offset = " << offset << ", " << *cur << std::endl;
     Active.push_back(Thread(base, 0, offset, std::numeric_limits<uint64>::max()));
     for (uint32 i = 0; i < Active.size(); ++i) {
-      Thread* t = &Active[i];
+      t = Active[i];
       // std::cerr << i << std::endl;
-      // std:: cout << i << " threadex " << *t << std::endl;
-      while (execute(base, *t, Active, Next, cur, offset)) ;
+      // std:: cout << i << " threadex " << t << std::endl;
+      while (execute(base, t, Active, Next, cur, offset)) ;
       // std::cerr << "finished thread" << std::endl;
-      if (t->End == offset) {
-        hit.Offset = t->Start;
-        hit.Length = t->End - t->Start;
-        hit.Label = t->Label;
+      if (t.End == offset) {
+        hit.Offset = t.Start;
+        hit.Length = t.End - t.Start;
+        hit.Label = t.Label;
         hitFn.collect(hit);
       }
     }
@@ -112,12 +113,12 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
   // this flushes out last char matches
   // and leaves us only with comparison instructions (in next)
   for (uint32 i = 0; i < Active.size(); ++i) {
-    Thread* t = &Active[i];
-    while (executeEpsilons(base, *t, Active, Next, offset)) ;
-    if (t->End == offset) {
-      hit.Offset = t->Start;
-      hit.Length = t->End - t->Start;
-      hit.Label = t->Label;
+    t = Active[i];
+    while (executeEpsilons(base, t, Active, Next, offset)) ;
+    if (t.End == offset) {
+      hit.Offset = t.Start;
+      hit.Length = t.End - t.Start;
+      hit.Label = t.Label;
       hitFn.collect(hit);
     }
   }
