@@ -193,3 +193,11 @@ SCOPE_TEST(keywordLabels) {
   SCOPE_ASSERT_EQUAL(Instruction::makeSaveLabel(1), (*program)[8]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), (*program)[9]);
 }
+
+SCOPE_TEST(twoFixedStrings) {
+  std::vector< std::string > kws;
+  kws.push_back("one");
+  kws.push_back("two");
+  DynamicFSMPtr fsm = createDynamicFSM(kws);
+  SCOPE_ASSERT_EQUAL(7u, num_vertices(*fsm));
+}

@@ -1,5 +1,29 @@
 #include "utility_impl.h"
 
+#include "states.h"
+
+DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
+  DynamicFSMPtr g(new DynamicFSM(1));
+  uint32 keyIdx = 0;
+  for (std::vector<std::string>::const_iterator kw(keywords.begin()); kw != keywords.end(); ++kw) {
+    if (!kw->empty()) {
+      DynamicFSM::vertex_descriptor source = 0,
+                                    lastSource = 0;
+      for (uint32 i = 0; i < kw->size(); ++i) {
+        DynamicFSM::vertex_descriptor target = boost::add_vertex(*g);
+        if (i == kw->size() - 1) {
+          (*g)[boost::add_edge(source, target, *g).first].reset(new LitState((*kw)[i], keyIdx));
+        }
+        else {
+          (*g)[boost::add_edge(source, target, *g).first].reset(new LitState((*kw)[i]));
+        }
+        source = target;
+      }
+      ++keyIdx;
+    }
+  }
+  return g;
+}
 
 boost::shared_ptr<StaticFSM> convert_to_static(const DynamicFSM& graph) {
   boost::shared_ptr<StaticFSM> ret(new StaticFSM());
