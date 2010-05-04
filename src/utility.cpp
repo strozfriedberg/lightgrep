@@ -7,8 +7,7 @@ DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
   uint32 keyIdx = 0;
   for (std::vector<std::string>::const_iterator kw(keywords.begin()); kw != keywords.end(); ++kw) {
     if (!kw->empty()) {
-      DynamicFSM::vertex_descriptor source = 0,
-                                    lastSource = 0;
+      DynamicFSM::vertex_descriptor source = 0;
       for (uint32 i = 0; i < kw->size(); ++i) {
         DynamicFSM::vertex_descriptor target = boost::add_vertex(*g);
         if (i == kw->size() - 1) {
