@@ -36,5 +36,3 @@ struct Thread {
 };
 
 std::ostream& operator<<(std::ostream& out, const Thread& t);
-
-typedef std::vector< Thread > ThreadList;

@@ -6,7 +6,7 @@ SCOPE_TEST(executeLit) {
   byte b = 'a';
   Instruction i = Instruction::makeLit('a');
   Thread      cur(&i, 0, 0, 0);
-  ThreadList  next,
+  Vm::ThreadList  next,
               active;
   SCOPE_ASSERT(!Vm::execute(&i, cur, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
@@ -24,7 +24,7 @@ SCOPE_TEST(executeEither) {
   byte b = 'z';
   Instruction i = Instruction::makeEither('z', '3');
   Thread      cur(&i, 0, 0, 0);
-  ThreadList  next,
+  Vm::ThreadList  next,
               active;
   SCOPE_ASSERT(!Vm::execute(&i, cur, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
@@ -53,7 +53,7 @@ SCOPE_TEST(executeEither) {
 SCOPE_TEST(executeRange) {
   Instruction i = Instruction::makeRange('c', 't');
   Thread      cur(&i, 0, 0, 0);
-  ThreadList  next,
+  Vm::ThreadList  next,
               active;
   for (uint32 j = 0; j < 256; ++j) {
     next.clear();
@@ -77,7 +77,7 @@ SCOPE_TEST(executeJump) {
   byte b;
   Instruction i = Instruction::makeJump(18);
   Thread      cur(&i, 0, 0, 0);
-  ThreadList  next,
+  Vm::ThreadList  next,
               active;
   SCOPE_ASSERT(Vm::execute(&i, cur, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
@@ -89,7 +89,7 @@ SCOPE_TEST(executeMatch) {
   byte b;
   Instruction i = Instruction::makeMatch();
   Thread      cur(&i, 0, 0, 0);
-  ThreadList  next,
+  Vm::ThreadList  next,
               active;
   SCOPE_ASSERT(!Vm::execute(&i, cur, active, next, &b, 57));
   SCOPE_ASSERT_EQUAL(0u, active.size());
@@ -101,7 +101,7 @@ SCOPE_TEST(executeSaveLabel) {
   byte b;
   Instruction i = Instruction::makeSaveLabel(31);
   Thread      cur(&i, 0, 0, 0);
-  ThreadList  next,
+  Vm::ThreadList  next,
               active;
   SCOPE_ASSERT(Vm::execute(&i, cur, active, next, &b, 47));
   SCOPE_ASSERT_EQUAL(0u, active.size());
@@ -113,7 +113,7 @@ SCOPE_TEST(executeFork) {
   byte b;
   Instruction i = Instruction::makeFork(237);
   Thread      cur(&i, 0, 0, 0);
-  ThreadList  next,
+  Vm::ThreadList  next,
               active;
   SCOPE_ASSERT(Vm::execute(&i, cur, active, next, &b, 47));
   SCOPE_ASSERT_EQUAL(1u, active.size());
