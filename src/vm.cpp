@@ -96,22 +96,19 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
   const Instruction* base = &(*Program)[0];
   SearchHit  hit;
   uint64     offset = startOffset;
-  Thread     t;
   for (const byte* cur = beg; cur != end; ++cur) {
     // std::cerr << "offset = " << offset << ", " << *cur << std::endl;
     if (First[*cur]) {
       Active.push_back(Thread(base, 0, offset, std::numeric_limits<uint64>::max()));
     }
-    for (uint32 i = 0; i < Active.size(); ++i) {
-      t = Active[i];
-      // std::cerr << i << std::endl;
-      // std:: cout << i << " threadex " << t << std::endl;
-      while (execute(base, t, Active, Next, cur, offset)) ;
+    for (ThreadList::iterator threadIt(Active.begin()); threadIt != Active.end(); ++threadIt) {
+      // std:: cout << i << " threadex " << *threadIt << std::endl;
+      while (execute(base, *threadIt, Active, Next, cur, offset)) ;
       // std::cerr << "finished thread" << std::endl;
-      if (t.End == offset) {
-        hit.Offset = t.Start;
-        hit.Length = t.End - t.Start;
-        hit.Label = t.Label;
+      if (threadIt->End == offset) {
+        hit.Offset = threadIt->Start;
+        hit.Length = threadIt->End - threadIt->Start;
+        hit.Label = threadIt->Label;
         hitFn.collect(hit);
       }
     }
@@ -121,13 +118,12 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
   }
   // this flushes out last char matches
   // and leaves us only with comparison instructions (in next)
-  for (uint32 i = 0; i < Active.size(); ++i) {
-    t = Active[i];
-    while (executeEpsilons(base, t, Active, Next, offset)) ;
-    if (t.End == offset) {
-      hit.Offset = t.Start;
-      hit.Length = t.End - t.Start;
-      hit.Label = t.Label;
+  for (ThreadList::iterator threadIt(Active.begin()); threadIt != Active.end(); ++threadIt) {
+    while (executeEpsilons(base, *threadIt, Active, Next, offset)) ;
+    if (threadIt->End == offset) {
+      hit.Offset = threadIt->Start;
+      hit.Length = threadIt->End - threadIt->Start;
+      hit.Label = threadIt->Label;
       hitFn.collect(hit);
     }
   }
