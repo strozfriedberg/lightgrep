@@ -8,6 +8,12 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
   return out;
 }
 
+void Vm::init(ProgramPtr prog) {
+  Program = prog;
+  Active.resize(Program->size());
+  Next.resize(Program->size());
+}
+
 bool Vm::execute(const Instruction* base, Thread& t, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
   // std::string instr;
   // std::cerr << t << std::endl;
@@ -58,7 +64,7 @@ bool Vm::execute(const Instruction* base, Thread& t, ThreadList& active, ThreadL
   return false;
 }
 
-bool executeEpsilons(const Instruction* base, Thread& t, ThreadList& active, ThreadList& next, uint64 offset) {
+bool executeEpsilons(const Instruction* base, Thread& t, Vm::ThreadList& active, Vm::ThreadList& next, uint64 offset) {
   Thread f;
   switch (t.PC->OpCode) {
     case LIT_OP:
