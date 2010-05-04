@@ -62,3 +62,15 @@ boost::shared_ptr< std::vector<Instruction> > createProgram(const DynamicFSM& gr
   ret->swap(cg->Program);
   return ret;
 }
+
+ByteSet firstBytes(const DynamicFSM& graph) {
+  std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> edgeRange(boost::out_edges(0, graph));
+  ByteSet ret,
+          tBits;
+  for (DynamicFSM::out_edge_iterator curEdge(edgeRange.first); curEdge != edgeRange.second; ++curEdge) {
+    tBits.reset();
+    graph[*curEdge]->getBits(tBits);
+    ret |= tBits;
+  }
+  return ret;
+}

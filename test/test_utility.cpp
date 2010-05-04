@@ -201,3 +201,19 @@ SCOPE_TEST(twoFixedStrings) {
   DynamicFSMPtr fsm = createDynamicFSM(kws);
   SCOPE_ASSERT_EQUAL(7u, num_vertices(*fsm));
 }
+
+SCOPE_TEST(firstBitset) {
+  DynamicFSM fsm(3);
+  edge(0, 1, fsm, new LitState('A'));
+  edge(0, 2, fsm, new LitState('B'));
+
+  ByteSet accepted = firstBytes(fsm);
+  for (unsigned int i = 0; i < 256; ++i) {
+    if (i == 'A' || i == 'B') {
+      SCOPE_ASSERT(accepted[i]);
+    }
+    else {
+      SCOPE_ASSERT(!accepted[i]);
+    }
+  }
+}
