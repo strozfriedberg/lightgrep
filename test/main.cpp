@@ -29,18 +29,18 @@ boost::shared_ptr<Vm> initSearch(const char* keyFilePath) {
     std::string lineS(line);
     if (!lineS.empty()) {
       keys.push_back(lineS);
-      std::cout << "read " << lineS << std::endl;
+      std::cerr << "read " << lineS << std::endl;
     }
   }
   DynamicFSMPtr fsm = createDynamicFSM(keys);
 
-  std::cout << "vertices " << boost::num_vertices(*fsm) << ", edges " << boost::num_edges(*fsm) << std::endl;
+  std::cerr << "vertices " << boost::num_vertices(*fsm) << ", edges " << boost::num_edges(*fsm) << std::endl;
 
   ProgramPtr p = createProgram(*fsm);
 
-  std::cout << "instructions " << p->size() << std::endl;
+  std::cerr << "instructions " << p->size() << std::endl;
   for (uint32 i = 0; i < p->size(); ++i) {
-    std::cout << i << '\t' << (*p)[i].toString() << std::endl;
+    std::cerr << i << '\t' << (*p)[i].toString() << std::endl;
   }
   
   boost::shared_ptr<Vm> ret(new Vm);
@@ -48,7 +48,7 @@ boost::shared_ptr<Vm> initSearch(const char* keyFilePath) {
   return ret;
 }
 
-static const int BLOCKSIZE = 1024 * 1024;
+static const unsigned int BLOCKSIZE = 1024 * 1024;
 
 int main(int argc, char** argv) {
   if (argc > 1) {
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
         }
         file.read((char*)block, size);
         search->search(block, block + size, offset, cb);
-        std::cout << "had " << cb.NumHits << " hits" << std::endl;
+        std::cerr << "had " << cb.NumHits << " hits" << std::endl;
         file.close();
         delete [] block;
         // delete [] argArray;
