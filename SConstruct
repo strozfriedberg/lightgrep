@@ -10,6 +10,8 @@ boostDir = 'vendors/boost'
 debug = ARGUMENTS.get('debug', 'false')
 if (debug == 'true'):
   flags = '-g -fstack-protector-all'
+elif (debug == 'profile'):
+  flags = '-g -O1'
 else:
   flags = '-O3'
 
