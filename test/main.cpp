@@ -29,9 +29,10 @@ boost::shared_ptr<Vm> initSearch(const char* keyFilePath) {
     std::string lineS(line);
     if (!lineS.empty()) {
       keys.push_back(lineS);
-      std::cerr << "read " << lineS << std::endl;
+      // std::cerr << "read " << lineS << std::endl;
     }
   }
+  std::cerr << "keywords " << keys.size() << std::endl;
   DynamicFSMPtr fsm = createDynamicFSM(keys);
 
   std::cerr << "vertices " << boost::num_vertices(*fsm) << ", edges " << boost::num_edges(*fsm) << std::endl;
@@ -39,9 +40,6 @@ boost::shared_ptr<Vm> initSearch(const char* keyFilePath) {
   ProgramPtr p = createProgram(*fsm);
 
   std::cerr << "instructions " << p->size() << std::endl;
-  for (uint32 i = 0; i < p->size(); ++i) {
-    std::cerr << i << '\t' << (*p)[i].toString() << std::endl;
-  }
   
   boost::shared_ptr<Vm> ret(new Vm);
   ret->init(p, firstBytes(*fsm));
