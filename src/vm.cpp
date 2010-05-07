@@ -46,6 +46,10 @@ bool Vm::execute(const Instruction* base, Thread& t, ThreadList& active, ThreadL
       // std::cerr << "Jump " << t.PC->Op.Offset << std::endl;
       t.jump(base, t.PC->Op.Offset);
       return true;
+    case JUMP_TABLE_OP:
+      nextT.fork(t, t.PC, 1 + *cur);
+      next.push_back(nextT);
+      break;
     case FORK_OP:
       // std::cerr << "Fork " << t.PC->Op.Offset << std::endl;
       nextT.fork(t, base, t.PC->Op.Offset);
@@ -71,6 +75,7 @@ bool executeEpsilons(const Instruction* base, Thread& t, Vm::ThreadList& active,
     case LIT_OP:
     case EITHER_OP:
     case RANGE_OP:
+    case JUMP_TABLE_OP:
       next.push_back(t);
       return false;
     case JUMP_OP:

@@ -85,6 +85,24 @@ SCOPE_TEST(executeJump) {
   SCOPE_ASSERT_EQUAL(&i+18, cur.PC);
 }
 
+SCOPE_TEST(executeJumpTable) {
+  byte b;
+  Instruction instr = Instruction::makeJumpTable();
+  Vm::ThreadList next,
+                 active;
+  for (uint32 i = 0; i < 256; ++i) {
+    b = i;
+    next.clear();
+    active.clear();
+    Thread cur(&instr, 0, 0, 0);
+    SCOPE_ASSERT(!Vm::execute(&instr, cur, active, next, &b, 0));
+    SCOPE_ASSERT_EQUAL(0u, active.size());
+    SCOPE_ASSERT_EQUAL(1u, next.size());
+    SCOPE_ASSERT_EQUAL(&instr, cur.PC);
+    SCOPE_ASSERT_EQUAL(Thread(&instr + 1 + b, 0, 0, 0), next[0]);
+  }
+}
+
 SCOPE_TEST(executeMatch) {
   byte b;
   Instruction i = Instruction::makeMatch();
