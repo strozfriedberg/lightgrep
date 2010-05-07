@@ -83,3 +83,11 @@ SCOPE_TEST(makeFork) {
   SCOPE_ASSERT_EQUAL("Fork 0x00000403/1027", i.toString());
   SCOPE_EXPECT(Instruction::makeFork(1 << 24), std::overflow_error);
 }
+
+SCOPE_TEST(makeJumpTable) {
+  Instruction i = Instruction::makeJumpTable();
+  SCOPE_ASSERT_EQUAL(JUMP_TABLE_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL(0u, i.Op.Offset);
+  SCOPE_ASSERT_EQUAL("JumpTable", i.toString());
+}
