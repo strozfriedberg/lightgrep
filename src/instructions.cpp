@@ -31,6 +31,9 @@ std::string Instruction::toString() const {
     case JUMP_OP:
       buf << "Jump 0x" << std::hex << std::setfill('0') << std::setw(8) << Op.Offset << '/' << std::dec << Op.Offset;
       break;
+    case JUMP_TABLE_OP:
+      buf << "JumpTable";
+      break;
     case FORK_OP:
       buf << "Fork 0x" << std::hex << std::setfill('0') << std::setw(8) << Op.Offset << '/' << std::dec << Op.Offset;
       break;
@@ -86,6 +89,13 @@ Instruction Instruction::makeJump(uint32 relativeOffset) {
   i.OpCode = JUMP_OP;
   i.Size = 0;
   i.Op.Offset = relativeOffset;
+  return i;
+}
+
+Instruction Instruction::makeJumpTable() {
+  Instruction i;
+  i.OpCode = JUMP_TABLE_OP;
+  i.Op.Offset = 0;
   return i;
 }
 
