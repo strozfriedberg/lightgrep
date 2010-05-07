@@ -23,12 +23,23 @@ def run(lightgrep, keypath, docpath, temppath):
   results = os.open(temppath, os.O_CREAT | os.O_TRUNC)
   proc = subprocess.Popen(['time', lightgrep, 'search', keypath, docpath], stdout=results, stderr=subprocess.PIPE)
   cerr = proc.communicate()[1].splitlines()
+  #print cerr
   rec = {}
   for line in cerr:
+    #print line
     atoms = line.split()
     while (len(atoms) >= 2):
-      key = atoms.pop()
-      rec[key] = atoms.pop()
+      if (line.find("system")>0):
+        idxsys = line.find("system")
+        idxsplit = line.find(" ")
+        idxusr = line.find("user")
+        rec["real"] = "N/A"
+        rec["user"] = line[0:idxusr]
+        rec["sys"] = line[idxsplit:idxsys]
+        break
+      else:
+        key = atoms.pop()
+        rec[key] = atoms.pop()
   print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (docpath,
                                                     keypath,
                                                     rec['keywords'],
