@@ -14,7 +14,11 @@
 static const uint32 UNALLOCATED = 0xffffffff;
 
 struct CodeGenHelper {
-  CodeGenHelper(uint32 numStates): Snippets(numStates), Guard(0) {}
+  CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, UNALLOCATED), Snippets(numStates), Guard(0), NumDiscovered(0) {}
+
+  void discover(DynamicFSM::vertex_descriptor v) {
+    DiscoverRanks[v] = NumDiscovered++;
+  }
 
   void addSnippet(uint32 state, uint32 num) {
     Snippets[state] = std::make_pair(Guard, num);
@@ -22,15 +26,19 @@ struct CodeGenHelper {
   }
 
   std::vector< Instruction > Program;
+  std::vector< uint32 > DiscoverRanks;
   std::vector< std::pair< uint32, uint32 > > Snippets;
-  uint32 Guard;
+  uint32 Guard,
+         NumDiscovered;
 };
+
+typedef DynamicFSM::in_edge_iterator InEdgeIt;
+typedef std::pair<InEdgeIt, InEdgeIt> InEdgeRange;
+typedef DynamicFSM::out_edge_iterator OutEdgeIt;
+typedef std::pair< OutEdgeIt, OutEdgeIt > OutEdgeRange;
 
 class CodeGenVisitor: public boost::default_bfs_visitor {
 public:
-  typedef DynamicFSM::in_edge_iterator InEdgeIt;
-  typedef std::pair<InEdgeIt, InEdgeIt> InEdgeRange;
-
   CodeGenVisitor(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
 
   void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
@@ -77,3 +85,82 @@ public:
 private:
   boost::shared_ptr<CodeGenHelper> Helper;
 };
+
+class CodeGenVisitor2: public boost::default_bfs_visitor {
+public:
+  CodeGenVisitor2(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
+
+  void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM&) {
+    Helper->discover(v);
+  }
+
+  void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+    // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
+    InEdgeRange inRange(in_edges(v, graph));
+    uint32 labels = 0;
+    for (InEdgeIt in(inRange.first); in != inRange.second; ++in) {
+      if (graph[*in]->Label < 0xffffffff) {
+        ++labels;
+        break;  // only counts first label
+      }
+    }
+    uint32 outOps = 0;
+    OutEdgeRange outRange(out_edges(v, graph));
+    if (outRange.first == outRange.second) {
+      outOps = 1; // MATCH instruction
+    }
+    else {
+      for (OutEdgeIt curOut(outRange.first); curOut != outRange.second; ++curOut) {
+        // if a target state immediately follows the current state, then we don't need an instruction for it
+        if (Helper->DiscoverRanks[v] + 1 != Helper->DiscoverRanks[target(*curOut, graph)]) {
+          ++outOps;
+        }
+      }
+    }
+    Helper->addSnippet(v, outOps + (v == 0 ? 0: 1) + labels);
+    // std::cerr << "start " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
+  }
+
+private:
+  boost::shared_ptr<CodeGenHelper> Helper;
+};
+
+template<class VisitorT>
+void specialVisit(const DynamicFSM& graph, DynamicFSM::vertex_descriptor startVertex, VisitorT& vis) {
+  std::deque< DynamicFSM::vertex_descriptor > statesToVisit;
+  std::vector< DynamicFSM::vertex_descriptor > inOrder;
+  std::vector< bool > discovered(boost::num_vertices(graph), false);
+
+  discovered[startVertex].flip();
+  vis.discover_vertex(startVertex, graph);
+  statesToVisit.push_back(startVertex);
+  while (!statesToVisit.empty()) {
+    DynamicFSM::vertex_descriptor v = statesToVisit.front();
+    statesToVisit.pop_front();
+
+    vis.discover_vertex(v, graph);
+    inOrder.push_back(v);
+
+    uint32 numOut = boost::out_degree(v, graph);
+    OutEdgeRange outRange = boost::out_edges(v, graph);
+    // InEdgeRange  inRange  = boost::in_edges(v, graph);
+    bool front = numOut < 2;// && boost::in_degree(v, graph) == 1 && boost::out_degree(boost::source(*inRange.first, graph), graph) == 1;
+    for (OutEdgeIt curOut(outRange.first); curOut != outRange.second; ++curOut) {
+      DynamicFSM::vertex_descriptor t = boost::target(*curOut, graph);
+      if (!discovered[t]) {
+        discovered[t].flip();
+        // vis.discover_vertex(t, graph);
+        if (front) {
+          statesToVisit.push_front(t);
+        }
+        else {
+          statesToVisit.push_back(t);
+        }
+      }
+    }
+    // vis.finish_vertex(v, graph);
+  }
+  for (uint32 i = 0; i < inOrder.size(); ++i) {
+    vis.finish_vertex(inOrder[i], graph);
+  }
+}

@@ -120,3 +120,162 @@ SCOPE_TEST(simpleCollapse) {
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, *fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, *fsm));
 }
+
+SCOPE_TEST(codeGen2DiscoverVertex) {
+  DynamicFSM fsm(2);
+  fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+  CodeGenVisitor2 vis(cg);
+
+  vis.discover_vertex(1, fsm);
+  SCOPE_ASSERT_EQUAL(1u, cg->NumDiscovered);
+  SCOPE_ASSERT_EQUAL(0u, cg->DiscoverRanks[1]);
+
+  vis.discover_vertex(0, fsm);
+  SCOPE_ASSERT_EQUAL(2u, cg->NumDiscovered);
+  SCOPE_ASSERT_EQUAL(1u, cg->DiscoverRanks[0]);
+}
+
+SCOPE_TEST(codeGen2FinishVertex) {
+  DynamicFSM fsm(5);
+  fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
+  fsm[boost::add_edge(1, 2, fsm).first].reset(new LitState('b'));
+  fsm[boost::add_edge(2, 3, fsm).first].reset(new LitState('c'));
+  fsm[boost::add_edge(2, 4, fsm).first].reset(new LitState('d'));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+  CodeGenVisitor2 vis(cg);
+
+  cg->NumDiscovered = 3;
+  cg->DiscoverRanks[0] = 0;
+  cg->DiscoverRanks[1] = 1;
+  cg->DiscoverRanks[2] = 2;
+  cg->DiscoverRanks[3] = 3;
+  cg->DiscoverRanks[4] = 4;
+
+  vis.finish_vertex(0, fsm);
+  SCOPE_ASSERT_EQUAL(0u, cg->Snippets[0].first);
+  SCOPE_ASSERT_EQUAL(0u, cg->Snippets[0].second);
+
+  vis.finish_vertex(1, fsm);
+  SCOPE_ASSERT_EQUAL(0u, cg->Snippets[1].first);
+  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[1].second);
+
+  vis.finish_vertex(2, fsm);
+  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[2].first);
+  SCOPE_ASSERT_EQUAL(2u, cg->Snippets[2].second);
+
+  vis.finish_vertex(3, fsm);
+  SCOPE_ASSERT_EQUAL(3u, cg->Snippets[3].first);
+  SCOPE_ASSERT_EQUAL(2u, cg->Snippets[3].second);
+  
+  vis.finish_vertex(4, fsm);
+  SCOPE_ASSERT_EQUAL(5u, cg->Snippets[4].first);
+  SCOPE_ASSERT_EQUAL(2u, cg->Snippets[4].second);
+}
+
+SCOPE_TEST(alternationCodeGen2FinishVertex) {
+  DynamicFSM fsm(3);
+  edge(0, 1, fsm, new LitState('a'));
+  edge(0, 2, fsm, new LitState('b'));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+  CodeGenVisitor2 vis(cg);
+  
+  cg->NumDiscovered = 3;
+  cg->DiscoverRanks[0] = 0;
+  cg->DiscoverRanks[1] = 1;
+  cg->DiscoverRanks[2] = 2;
+
+  vis.finish_vertex(0, fsm);
+  SCOPE_ASSERT_EQUAL(0u, cg->Snippets[0].first);
+  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[0].second);
+  
+  vis.finish_vertex(1, fsm);
+  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[1].first);
+  SCOPE_ASSERT_EQUAL(2u, cg->Snippets[1].second);
+  
+  vis.finish_vertex(2, fsm);
+  SCOPE_ASSERT_EQUAL(3u, cg->Snippets[2].first);
+  SCOPE_ASSERT_EQUAL(2u, cg->Snippets[2].second);
+}
+
+SCOPE_TEST(twoStateBetterLayout) {
+  DynamicFSM fsm(2);
+  edge(0, 1, fsm, new LitState('a'));
+  
+  ProgramPtr p = createProgram2(fsm);
+  Program& prog(*p);
+  SCOPE_ASSERT_EQUAL(2u, prog.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[1]);
+}
+
+SCOPE_TEST(alternationBetterLayout) {
+  DynamicFSM fsm(3);
+  edge(0, 1, fsm, new LitState('a'));
+  edge(0, 2, fsm, new LitState('b'));
+  ProgramPtr p = createProgram2(fsm);
+  Program& prog(*p);
+  
+  // std::cout << "alternationBetterLayout" << '\n' << prog;
+  
+  SCOPE_ASSERT_EQUAL(5u, prog.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(3), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[3]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[4]);
+}
+
+void createTrie(DynamicFSM& fsm) {
+  edge(0, 1, fsm, new LitState('a'));
+  edge(1, 2, fsm, new LitState('b'));
+  edge(2, 3, fsm, new LitState('l'));
+  edge(3, 4, fsm, new LitState('e'));
+  edge(2, 5, fsm, new LitState('e'));
+  edge(5, 6, fsm, new LitState('t'));
+  edge(0, 7, fsm, new LitState('b'));
+  edge(7, 8, fsm, new LitState('i'));
+  edge(8, 9, fsm, new LitState('t'));
+  edge(9, 10, fsm, new LitState('e'));
+}
+
+SCOPE_TEST(betterLayout) {
+  // a
+  //  b
+  //   le
+  //   et
+  // b
+  //  ite
+
+  DynamicFSM fsm(11);
+  createTrie(fsm);
+
+  ProgramPtr p = createProgram2(fsm);
+  Program& prog(*p);
+  // std::cout << "betterLayout\n" << prog;
+  SCOPE_ASSERT_EQUAL(16u, prog.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(5), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(10), prog[3]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(13), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('i'), prog[6]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('t'), prog[7]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('e'), prog[8]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[9]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('l'), prog[10]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('e'), prog[11]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[12]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('e'), prog[13]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('t'), prog[14]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[15]);
+}
+
+// SCOPE_TEST(testSpecialVisit) {
+//   DynamicFSM fsm(11);
+//   createTrie(fsm);
+//   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+//   CodeGenVisitor2 vis(cg);
+//   specialVisit(fsm, 0, vis);
+// }
