@@ -2,6 +2,8 @@
 
 #include "states.h"
 
+#include <deque>
+
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
   DynamicFSMPtr g(new DynamicFSM(1));
   uint32 keyIdx = 0;
@@ -50,6 +52,65 @@ boost::shared_ptr< std::vector<Instruction> > createProgram(const DynamicFSM& gr
   CodeGenVisitor vis(cg);
   boost::breadth_first_search(graph, 0, visitor(vis));
   ret->swap(cg->Program);
+  return ret;
+}
+
+// need a two-pass to get it to work with the bgl visitors
+//  discover_vertex: determine slot
+//  finish_vertex:   
+
+ProgramPtr createProgram2(const DynamicFSM& graph) {
+  // std::cerr << "createProgram2" << std::endl;
+  ProgramPtr ret(new std::vector<Instruction>());
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(graph)));
+  CodeGenVisitor2 vis(cg);
+  specialVisit(graph, 0ul, vis);
+  
+  ret->resize(cg->Guard);
+  for (DynamicFSM::vertex_descriptor v = 0; v < boost::num_vertices(graph); ++v) {
+    // std::cerr << "on vertex " << v << " at " << cg->Snippets[v].first << std::endl;
+    Instruction* curOp = &(*ret)[cg->Snippets[v].first];
+    InEdgeRange inRange(in_edges(v, graph));
+    if (inRange.first != inRange.second) {
+      TransitionPtr t(graph[*inRange.first]); // this assumes that all states have the same incoming transitions
+      Instruction i;
+      t->toInstruction(&i);
+      *curOp++ = i;
+      // std::cerr << "wrote " << i << std::endl;
+      if (t->Label < 0xffffffff) {
+        *curOp++ = Instruction::makeSaveLabel(t->Label); // also problematic
+        // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
+      }
+    }
+    OutEdgeRange outRange(out_edges(v, graph));
+    if (outRange.first != outRange.second) {
+      bool hasTargetAtNext = false;
+      for (DynamicFSM::out_edge_iterator cur(outRange.first); cur != outRange.second; ++cur) {
+        DynamicFSM::vertex_descriptor curTarget = boost::target(*cur, graph);
+        // std::cerr << "targeting " << curTarget << " at " << cg->Snippets[curTarget].first << std::endl;
+        if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget]) {
+          DynamicFSM::out_edge_iterator next(cur);
+          ++next;
+          if (next == outRange.second && !hasTargetAtNext) {
+            *curOp++ = Instruction::makeJump(cg->Snippets[curTarget].first);
+            // std::cerr << "wrote " << Instruction::makeJump(cg->Snippets[curTarget].first) << std::endl;
+          }
+          else {
+            *curOp++ = Instruction::makeFork(cg->Snippets[curTarget].first);
+            // std::cerr << "wrote " << Instruction::makeFork(cg->Snippets[curTarget].first) << std::endl;
+          }
+        }
+        else {
+          hasTargetAtNext = true;
+          // std::cerr << "skipping because it's next" << std::endl;
+        }
+      }
+    }
+    else {
+      *curOp++ = Instruction::makeMatch();
+      // std::cerr << "wrote " << Instruction::makeMatch() << std::endl;
+    }
+  }
   return ret;
 }
 
