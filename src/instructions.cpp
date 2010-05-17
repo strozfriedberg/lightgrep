@@ -122,3 +122,10 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
   out << instr.toString();
   return out;
 }
+
+std::ostream& operator<<(std::ostream& out, const Program& prog) {
+  for (uint32 i = 0; i < prog.size(); ++i) {
+    out << std::setfill('0') << std::setw(7) << i << '\t' << prog[i] << '\n';
+  }
+  return out;
+}

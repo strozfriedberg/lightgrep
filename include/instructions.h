@@ -63,7 +63,8 @@ struct Instruction {
 };
 #pragma pack(pop)
 
-std::ostream& operator<<(std::ostream& out, const Instruction& instr);
-
 typedef std::vector<Instruction> Program;
 typedef boost::shared_ptr<Program> ProgramPtr;
+
+std::ostream& operator<<(std::ostream& out, const Instruction& instr);
+std::ostream& operator<<(std::ostream& out, const Program& prog);
