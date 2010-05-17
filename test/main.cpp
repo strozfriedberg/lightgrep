@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <scope/testrunner.h>
+#include <boost/timer.hpp>
 #include <fstream>
 
 #include "utility.h"
@@ -38,7 +39,7 @@ boost::shared_ptr<Vm> initSearch(const char* keyFilePath) {
   std::cerr << boost::num_vertices(*fsm) << " vertices" << '\n';
   std::cerr << boost::num_edges(*fsm) << " edges" << std::endl;
 
-  ProgramPtr p = createProgram(*fsm);
+  ProgramPtr p = createProgram2(*fsm);
 
   std::cerr << p->size() << " instructions" << std::endl;
   
@@ -65,16 +66,21 @@ int main(int argc, char** argv) {
         uint64 size = file.tellg(),
                offset = 0;
         byte* block = new byte[BLOCKSIZE];
-        file.seekg(0, ios::beg);
-        while (size > BLOCKSIZE) {
-          file.read((char*)block, BLOCKSIZE);
-          search->search(block, block + BLOCKSIZE, offset, cb);
-          size -= BLOCKSIZE;
-          offset += BLOCKSIZE;
+        {
+          boost::timer searchClock;
+          file.seekg(0, ios::beg);
+          while (size > BLOCKSIZE) {
+            file.read((char*)block, BLOCKSIZE);
+            search->search(block, block + BLOCKSIZE, offset, cb);
+            size -= BLOCKSIZE;
+            offset += BLOCKSIZE;
+          }
+          file.read((char*)block, size);
+          search->search(block, block + size, offset, cb);
+          double t = searchClock.elapsed();
+          std::cerr << t << " searchTime" << std::endl;
+          std::cerr << cb.NumHits << " hits" << std::endl;
         }
-        file.read((char*)block, size);
-        search->search(block, block + size, offset, cb);
-        std::cerr << cb.NumHits << " hits" << std::endl;
         file.close();
         delete [] block;
         // delete [] argArray;

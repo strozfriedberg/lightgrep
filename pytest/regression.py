@@ -40,7 +40,7 @@ def run(lightgrep, keypath, docpath, temppath):
       else:
         key = atoms.pop()
         rec[key] = atoms.pop()
-  print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (docpath,
+  print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (docpath,
                                                     keypath,
                                                     rec['keywords'],
                                                     rec['vertices'],
@@ -49,13 +49,14 @@ def run(lightgrep, keypath, docpath, temppath):
                                                     rec['hits'],
                                                     rec['real'],
                                                     rec['user'],
-                                                    rec['sys']))
+                                                    rec['sys'],
+                                                    rec['searchTime']))
 
 def main():
   keyfiles = os.listdir(keysDir)
   corpora = os.listdir(docsDir)
   lightgrep = p.abspath('./bin/test/test')
-  print("doc\tkeyfile\tkeywords\tvertices\tedges\tinstructions\thits\treal\tuser\tsys")
+  print("doc\tkeyfile\tkeywords\tvertices\tedges\tinstructions\thits\treal\tuser\tsys\tsearchTime")
   if (p.exists(tempDir) == False):
     os.mkdir(tempDir)
   for doc in corpora:
