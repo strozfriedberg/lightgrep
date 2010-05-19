@@ -32,6 +32,7 @@ public:
 
   virtual size_t numInstructions() const { return 1; };
   virtual bool   toInstruction(Instruction* addr) const;
+  virtual std::string label() const;
 
 private:
   byte Lit;
@@ -54,6 +55,7 @@ public:
 
   virtual size_t numInstructions() const { return 1; };
   virtual bool   toInstruction(Instruction* addr) const;
+  virtual std::string label() const;
 
 private:
   byte Lit1, Lit2;
@@ -76,6 +78,7 @@ public:
 
   virtual size_t numInstructions() const { return 1; };
   virtual bool   toInstruction(Instruction* addr) const;
+  virtual std::string label() const;
 
 private:
   byte First, Last;

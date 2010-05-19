@@ -35,6 +35,7 @@ SCOPE_TEST(litAccept) {
   SCOPE_ASSERT_EQUAL(sizeof(Transition) + 1, lit.objSize());
   ch[0] = 'a';
   testClone(lit, ch);
+  SCOPE_ASSERT_EQUAL("a", lit.label());
 }
 
 SCOPE_TEST(eitherAccept) {
@@ -60,6 +61,7 @@ SCOPE_TEST(eitherAccept) {
 
   SCOPE_ASSERT_EQUAL(sizeof(Transition) + 2, e.objSize());
   testClone(e, &ch);
+  SCOPE_ASSERT_EQUAL("[Aa]", e.label());
 }
 
 SCOPE_TEST(rangeAccept) {
@@ -87,4 +89,5 @@ SCOPE_TEST(rangeAccept) {
   SCOPE_ASSERT_EQUAL(sizeof(Transition) + 2, r.objSize());
   ch = '1';
   testClone(r, &ch);
+  SCOPE_ASSERT_EQUAL("[0-9]", r.label());
 }
