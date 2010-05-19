@@ -2,6 +2,8 @@
 
 #include <scope/testrunner.h>
 #include <boost/timer.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <boost/bind.hpp>
 #include <fstream>
 
 #include "utility.h"
@@ -21,18 +23,53 @@ public:
   }
 };
 
-boost::shared_ptr<Vm> initSearch(const char* keyFilePath) {
-  std::ifstream keyFile(keyFilePath, ios::in);
-  std::vector<std::string> keys;
-  while (keyFile) {
-    char line[1024];
-    keyFile.getline(line, 1024);
-    std::string lineS(line);
-    if (!lineS.empty()) {
-      keys.push_back(lineS);
-      // std::cerr << "read " << lineS << std::endl;
+bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys) {
+  std::ifstream keyFile(keyFilePath.c_str(), ios::in);
+  keys.clear();
+  if (keyFile) {
+    while (keyFile) {
+      char line[1024];
+      keyFile.getline(line, 1024);
+      std::string lineS(line);
+      if (!lineS.empty()) {
+        keys.push_back(lineS);
+        // std::cerr << "read " << lineS << std::endl;
+      }
     }
+    return !keys.empty();
   }
+  else {
+    return false;
+  }
+}
+
+void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  if (boost::in_degree(v, graph) == 0) {
+    out << "[style=\"filled\", fillcolor=\"lightgreen\"]";
+  }
+  else if (boost::out_degree(v, graph) == 0) {
+    out << "[style=\"filled\", fillcolor=\"tomato\", shape=\"doublecircle\"]";
+  }
+}
+
+void writeEdge(std::ostream& out, DynamicFSM::edge_descriptor e, const DynamicFSM& graph) {
+  TransitionPtr t(graph[e]);
+  Instruction i;
+  t->toInstruction(&i);
+  out << "[label=\"" << i.toString() << "\"]";
+}
+
+void writeGraphviz(const std::string& keyFilePath) {
+  std::vector<std::string> keys;
+  if (readKeyFile(keyFilePath, keys)) {
+    DynamicFSMPtr fsm = createDynamicFSM(keys);
+    boost::write_graphviz(std::cout, *fsm, boost::bind(&writeVertex, _1, _2, boost::cref(*fsm)), boost::bind(&writeEdge, _1, _2, boost::cref(*fsm)));
+  }
+}
+
+boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath) {
+  std::vector<std::string> keys;
+  readKeyFile(keyFilePath, keys);
   std::cerr << keys.size() << " keywords"<< std::endl;
   DynamicFSMPtr fsm = createDynamicFSM(keys);
 
@@ -85,6 +122,9 @@ int main(int argc, char** argv) {
         delete [] block;
         // delete [] argArray;
       }
+    }
+    else if (argc > 2 && first == "gv") {
+      writeGraphviz(argv[2]);
     }
   }
   return 0;
