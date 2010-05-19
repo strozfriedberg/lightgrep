@@ -21,6 +21,7 @@ enum OpCodes {
   JUMP_TABLE_OP,
   JUMP_OP,
   FORK_OP,
+  CHECKED_FORK_OP,
   SAVE_LABEL_OP,
   MATCH_OP,
   ILLEGAL
@@ -60,6 +61,7 @@ struct Instruction {
   static Instruction makeMatch();
   static Instruction makeSaveLabel(uint32 label);
   static Instruction makeFork(uint32 index);
+  static std::vector<Instruction> makeCheckedFork(uint32 targetLocation, uint32 checkIndex);
 };
 #pragma pack(pop)
 

@@ -118,6 +118,17 @@ Instruction Instruction::makeFork(uint32 index) {
   return i;
 }
 
+std::vector<Instruction> Instruction::makeCheckedFork(uint32 targetLocation, uint32 checkIndex) {
+  std::vector<Instruction> ret(2);
+  ret[0].OpCode = CHECKED_FORK_OP;
+  ret[0].Size = 1;
+  ret[0].Op.Offset = checkIndex;
+  ret[1].OpCode = ILLEGAL;
+  ret[1].Size = 0;
+  ret[1].Op.Offset = targetLocation;
+  return ret;
+}
+
 std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
   out << instr.toString();
   return out;
