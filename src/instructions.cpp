@@ -3,15 +3,21 @@
 #include <stdexcept>
 #include <iomanip>
 
+template<typename IntT>
 class HexCode {
 public:
-  HexCode(byte b): MyByte(b) {}
+  HexCode(IntT i): MyI(i) {}
 
-  byte MyByte;
+  IntT MyI;
 };
 
-std::ostream& operator<<(std::ostream& out, const HexCode& hex) {
-  out << std::hex << std::setfill('0') << std::setw(2) << (unsigned short)hex.MyByte;
+std::ostream& operator<<(std::ostream& out, const HexCode<byte>& hex) {
+  out << std::hex << std::setfill('0') << std::setw(2) << (unsigned short)hex.MyI;
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const HexCode<uint32>& hex) {
+  out << std::hex << std::setfill('0') << std::setw(8) << hex.MyI;
   return out;
 }
 
@@ -20,25 +26,28 @@ std::string Instruction::toString() const {
   std::stringstream buf;
   switch (OpCode) {
     case LIT_OP:
-      buf << "Literal 0x" << HexCode(Op.Literal) << "/'" << Op.Literal << '\'';
+      buf << "Literal 0x" << HexCode<byte>(Op.Literal) << "/'" << Op.Literal << '\'';
       break;
     case EITHER_OP:
-      buf << "Either 0x" << HexCode(Op.Range.First) << "/'" << Op.Range.First << "', 0x" << HexCode(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
+      buf << "Either 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "', 0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
       break;
     case RANGE_OP:
-      buf << "Range 0x" << HexCode(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
+      buf << "Range 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
       break;
     case JUMP_OP:
-      buf << "Jump 0x" << std::hex << std::setfill('0') << std::setw(8) << Op.Offset << '/' << std::dec << Op.Offset;
+      buf << "Jump 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
     case JUMP_TABLE_OP:
       buf << "JumpTable";
       break;
     case FORK_OP:
-      buf << "Fork 0x" << std::hex << std::setfill('0') << std::setw(8) << Op.Offset << '/' << std::dec << Op.Offset;
+      buf << "Fork 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
     case MATCH_OP:
       buf << "Match";
+      break;
+    case CHECK_BRANCH_OP:
+      buf << "CheckBranch 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
     case SAVE_LABEL_OP:
       buf << "SaveLabel " << Op.Offset;
@@ -118,15 +127,10 @@ Instruction Instruction::makeFork(uint32 index) {
   return i;
 }
 
-std::vector<Instruction> Instruction::makeCheckedFork(uint32 targetLocation, uint32 checkIndex) {
-  std::vector<Instruction> ret(2);
-  ret[0].OpCode = CHECKED_FORK_OP;
-  ret[0].Size = 1;
-  ret[0].Op.Offset = checkIndex;
-  ret[1].OpCode = ILLEGAL;
-  ret[1].Size = 0;
-  ret[1].Op.Offset = targetLocation;
-  return ret;
+Instruction Instruction::makeCheckBranch(uint32 checkIndex) {
+  Instruction i = makeJump(checkIndex);
+  i.OpCode = CHECK_BRANCH_OP;
+  return i;
 }
 
 std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
