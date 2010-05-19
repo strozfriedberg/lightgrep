@@ -96,6 +96,16 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
       active.push_back(f);
       t.advance();
       break;
+    case CHECK_BRANCH_OP:
+      if (checkStates[t.PC->Op.Offset]) {
+        t.advance();
+      }
+      else {
+        checkStates[t.PC->Op.Offset] = true;
+        checkStates[0] = true;
+      }
+      t.advance();
+      return true;
     case SAVE_LABEL_OP:
       t.Label = t.PC->Op.Offset;
       t.advance();
