@@ -8,11 +8,13 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
   return out;
 }
 
-void Vm::init(ProgramPtr prog, ByteSet firstBytes) {
+void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates) {
   Program = prog;
   Active.resize(Program->size());
   Next.resize(Program->size());
   First = firstBytes;
+  CheckStates.resize(numCheckedStates);
+  CheckStates.assign(numCheckedStates, false);
 }
 
 bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
@@ -119,7 +121,6 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
 
 bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
   const Instruction* base = &(*Program)[0];
-  std::vector<bool> checkStates;
   SearchHit  hit;
   uint64     offset = startOffset;
   for (const byte* cur = beg; cur != end; ++cur) {
@@ -129,7 +130,7 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
     }
     for (ThreadList::iterator threadIt(Active.begin()); threadIt != Active.end(); ++threadIt) {
       // std:: cout << i << " threadex " << *threadIt << std::endl;
-      while (execute(base, *threadIt, checkStates, Active, Next, cur, offset)) ;
+      while (execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
       // std::cerr << "finished thread" << std::endl;
       if (threadIt->End == offset) {
         hit.Offset = threadIt->Start;
@@ -141,11 +142,14 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
     ++offset;
     Active.swap(Next);
     Next.clear();
+    if (CheckStates[0]) {
+      CheckStates.assign(CheckStates.size(), false);
+    }
   }
   // this flushes out last char matches
   // and leaves us only with comparison instructions (in next)
   for (ThreadList::iterator threadIt(Active.begin()); threadIt != Active.end(); ++threadIt) {
-    while (executeEpsilons(base, *threadIt, checkStates, Active, Next, offset)) ;
+    while (executeEpsilons(base, *threadIt, CheckStates, Active, Next, offset)) ;
     if (threadIt->End == offset) {
       hit.Offset = threadIt->Start;
       hit.Length = threadIt->End - threadIt->Start;
@@ -155,5 +159,8 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
   }
   Active.clear();
   Active.swap(Next);
+  if (CheckStates[0]) {
+    CheckStates.assign(CheckStates.size(), false);
+  }
   return Active.size() > 0; // potential hits, if there's more data
 }

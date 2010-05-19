@@ -86,7 +86,7 @@ boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath) {
   std::cerr << p->size() << " instructions" << std::endl;
   
   boost::shared_ptr<Vm> ret(new Vm);
-  ret->init(p, firstBytes(*fsm));
+  ret->init(p, firstBytes(*fsm), 1);
   return ret;
 }
 
