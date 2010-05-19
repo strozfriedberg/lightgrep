@@ -17,6 +17,7 @@ public:
   virtual Transition* clone(void* buffer) const = 0;
   virtual size_t numInstructions() const = 0;
   virtual bool   toInstruction(Instruction* addr) const = 0;
+  virtual std::string label() const = 0;
 
   uint32 Label;
 };
