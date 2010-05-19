@@ -4,29 +4,31 @@
 
 SCOPE_TEST(executeLit) {
   byte b = 'a';
+  std::vector<bool> checkStates;
   Instruction i = Instruction::makeLit('a');
   Thread      cur(&i, 0, 0, 0);
   Vm::ThreadList  next,
               active;
-  SCOPE_ASSERT(!Vm::execute(&i, cur, active, next, &b, 0));
+  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(1u, next.size());
   SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);
   
   next.clear();
   b = 'c';
-  SCOPE_ASSERT(!Vm::execute(&i, cur, active, next, &b, 0));
+  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(0u, next.size());
 }
 
 SCOPE_TEST(executeEither) {
   byte b = 'z';
+  std::vector<bool> checkStates;
   Instruction i = Instruction::makeEither('z', '3');
   Thread      cur(&i, 0, 0, 0);
   Vm::ThreadList  next,
               active;
-  SCOPE_ASSERT(!Vm::execute(&i, cur, active, next, &b, 0));
+  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(1u, next.size());
   SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);
@@ -35,7 +37,7 @@ SCOPE_TEST(executeEither) {
   next.clear();
   b = '3';
   cur.PC = &i;
-  SCOPE_ASSERT(!Vm::execute(&i, cur, active, next, &b, 0));
+  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(1u, next.size());
   SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);
@@ -44,7 +46,7 @@ SCOPE_TEST(executeEither) {
   next.clear();
   b = '4';
   cur.PC = &i;
-  SCOPE_ASSERT(!Vm::execute(&i, cur, active, next, &b, 0));
+  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(0u, next.size());
   SCOPE_ASSERT_EQUAL(&i, cur.PC);
@@ -52,6 +54,7 @@ SCOPE_TEST(executeEither) {
 
 SCOPE_TEST(executeRange) {
   Instruction i = Instruction::makeRange('c', 't');
+  std::vector<bool> checkStates;
   Thread      cur(&i, 0, 0, 0);
   Vm::ThreadList  next,
               active;
@@ -59,7 +62,7 @@ SCOPE_TEST(executeRange) {
     next.clear();
     byte b = j;
     cur.PC = &i;
-    SCOPE_ASSERT(!Vm::execute(&i, cur, active, next, &b, 0));
+    SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
     if ('c' <= j && j <= 't') {
       SCOPE_ASSERT_EQUAL(0u, active.size());
       SCOPE_ASSERT_EQUAL(1u, next.size());
@@ -75,11 +78,12 @@ SCOPE_TEST(executeRange) {
 
 SCOPE_TEST(executeJump) {
   byte b;
+  std::vector<bool> checkStates;
   Instruction i = Instruction::makeJump(18);
   Thread      cur(&i, 0, 0, 0);
   Vm::ThreadList  next,
               active;
-  SCOPE_ASSERT(Vm::execute(&i, cur, active, next, &b, 0));
+  SCOPE_ASSERT(Vm::execute(&i, cur, checkStates, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(0u, next.size());
   SCOPE_ASSERT_EQUAL(&i+18, cur.PC);
@@ -87,6 +91,7 @@ SCOPE_TEST(executeJump) {
 
 SCOPE_TEST(executeJumpTable) {
   byte b;
+  std::vector<bool> checkStates;
   Instruction instr = Instruction::makeJumpTable();
   Vm::ThreadList next,
                  active;
@@ -95,7 +100,7 @@ SCOPE_TEST(executeJumpTable) {
     next.clear();
     active.clear();
     Thread cur(&instr, 0, 0, 0);
-    SCOPE_ASSERT(!Vm::execute(&instr, cur, active, next, &b, 0));
+    SCOPE_ASSERT(!Vm::execute(&instr, cur, checkStates, active, next, &b, 0));
     SCOPE_ASSERT_EQUAL(0u, active.size());
     SCOPE_ASSERT_EQUAL(1u, next.size());
     SCOPE_ASSERT_EQUAL(&instr, cur.PC);
@@ -105,11 +110,12 @@ SCOPE_TEST(executeJumpTable) {
 
 SCOPE_TEST(executeMatch) {
   byte b;
+  std::vector<bool> checkStates;
   Instruction i = Instruction::makeMatch();
   Thread      cur(&i, 0, 0, 0);
   Vm::ThreadList  next,
               active;
-  SCOPE_ASSERT(!Vm::execute(&i, cur, active, next, &b, 57));
+  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 57));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(0u, next.size());
   SCOPE_ASSERT_EQUAL(Thread(&i, 0, 0, 57), cur);
@@ -117,11 +123,12 @@ SCOPE_TEST(executeMatch) {
 
 SCOPE_TEST(executeSaveLabel) {
   byte b;
+  std::vector<bool> checkStates;
   Instruction i = Instruction::makeSaveLabel(31);
   Thread      cur(&i, 0, 0, 0);
   Vm::ThreadList  next,
               active;
-  SCOPE_ASSERT(Vm::execute(&i, cur, active, next, &b, 47));
+  SCOPE_ASSERT(Vm::execute(&i, cur, checkStates, active, next, &b, 47));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(0u, next.size());
   SCOPE_ASSERT_EQUAL(Thread(&i+1, 31, 0, 0), cur);
@@ -129,15 +136,39 @@ SCOPE_TEST(executeSaveLabel) {
 
 SCOPE_TEST(executeFork) {
   byte b;
+  std::vector<bool> checkStates;
   Instruction i = Instruction::makeFork(237);
   Thread      cur(&i, 0, 0, 0);
   Vm::ThreadList  next,
               active;
-  SCOPE_ASSERT(Vm::execute(&i, cur, active, next, &b, 47));
+  SCOPE_ASSERT(Vm::execute(&i, cur, checkStates, active, next, &b, 47));
   SCOPE_ASSERT_EQUAL(1u, active.size());
   SCOPE_ASSERT_EQUAL(0u, next.size());
   SCOPE_ASSERT_EQUAL(Thread(&i+237, 0, 0, 0), active[0]);
   SCOPE_ASSERT_EQUAL(&i+1, cur.PC);
+}
+
+SCOPE_TEST(executeCheckBranch) {
+  byte b;
+  std::vector<bool> checkStates(6, false);
+  Instruction i[] = {Instruction::makeCheckBranch(5), Instruction::makeJump(3019)};
+  Thread      cur(i, 0, 0, 0);
+  Vm::ThreadList next,
+                 active;
+  SCOPE_ASSERT(Vm::execute(i, cur, checkStates, active, next, &b, 231));
+  SCOPE_ASSERT_EQUAL(0u, active.size());
+  SCOPE_ASSERT_EQUAL(0u, next.size());
+  SCOPE_ASSERT_EQUAL(Thread(i+1, 0, 0, 0), cur);
+  SCOPE_ASSERT(checkStates[5]);
+  SCOPE_ASSERT(checkStates[0]); // this bit is reserved specially to see whether we need to clear the set
+
+  cur.PC = i;
+  SCOPE_ASSERT(Vm::execute(i, cur, checkStates, active, next, &b, 231));
+  SCOPE_ASSERT_EQUAL(0u, active.size());
+  SCOPE_ASSERT_EQUAL(0u, next.size());
+  SCOPE_ASSERT_EQUAL(Thread(i+2, 0, 0, 0), cur); // skipped ahead because the state was set
+  SCOPE_ASSERT(checkStates[5]);
+  SCOPE_ASSERT(checkStates[0]);
 }
 
 class TestCallback: public HitCallback {

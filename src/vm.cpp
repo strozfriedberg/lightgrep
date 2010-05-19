@@ -15,7 +15,7 @@ void Vm::init(ProgramPtr prog, ByteSet firstBytes) {
   First = firstBytes;
 }
 
-bool Vm::execute(const Instruction* base, Thread& t, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
+bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
   // std::string instr;
   // std::cerr << t << std::endl;
   // instr = t.PC->toString(); // for some reason, toString() is corrupting the stack... maybe?
@@ -56,6 +56,16 @@ bool Vm::execute(const Instruction* base, Thread& t, ThreadList& active, ThreadL
       active.push_back(nextT);
       t.advance();
       return true;
+    case CHECK_BRANCH_OP:
+      if (checkStates[t.PC->Op.Offset]) {
+        t.advance();
+      }
+      else {
+        checkStates[t.PC->Op.Offset] = true;
+        checkStates[0] = true;
+      }
+      t.advance();
+      return true;
     case SAVE_LABEL_OP:
       // std::cerr << "SaveLabel " << t.PC->Op.Offset << std::endl;
       t.Label = t.PC->Op.Offset;
@@ -69,7 +79,7 @@ bool Vm::execute(const Instruction* base, Thread& t, ThreadList& active, ThreadL
   return false;
 }
 
-bool executeEpsilons(const Instruction* base, Thread& t, Vm::ThreadList& active, Vm::ThreadList& next, uint64 offset) {
+bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& checkStates, Vm::ThreadList& active, Vm::ThreadList& next, uint64 offset) {
   Thread f;
   switch (t.PC->OpCode) {
     case LIT_OP:
@@ -99,6 +109,7 @@ bool executeEpsilons(const Instruction* base, Thread& t, Vm::ThreadList& active,
 
 bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
   const Instruction* base = &(*Program)[0];
+  std::vector<bool> checkStates;
   SearchHit  hit;
   uint64     offset = startOffset;
   for (const byte* cur = beg; cur != end; ++cur) {
@@ -108,7 +119,7 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
     }
     for (ThreadList::iterator threadIt(Active.begin()); threadIt != Active.end(); ++threadIt) {
       // std:: cout << i << " threadex " << *threadIt << std::endl;
-      while (execute(base, *threadIt, Active, Next, cur, offset)) ;
+      while (execute(base, *threadIt, checkStates, Active, Next, cur, offset)) ;
       // std::cerr << "finished thread" << std::endl;
       if (threadIt->End == offset) {
         hit.Offset = threadIt->Start;
@@ -124,7 +135,7 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
   // this flushes out last char matches
   // and leaves us only with comparison instructions (in next)
   for (ThreadList::iterator threadIt(Active.begin()); threadIt != Active.end(); ++threadIt) {
-    while (executeEpsilons(base, *threadIt, Active, Next, offset)) ;
+    while (executeEpsilons(base, *threadIt, checkStates, Active, Next, offset)) ;
     if (threadIt->End == offset) {
       hit.Offset = threadIt->Start;
       hit.Length = threadIt->End - threadIt->Start;
