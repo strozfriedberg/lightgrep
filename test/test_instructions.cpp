@@ -84,6 +84,17 @@ SCOPE_TEST(makeFork) {
   SCOPE_EXPECT(Instruction::makeFork(1 << 24), std::overflow_error);
 }
 
+SCOPE_TEST(makeCheckedFork) {
+  std::vector<Instruction> i = Instruction::makeCheckedFork(35, 3);
+  SCOPE_ASSERT_EQUAL(2u, i.size());
+  SCOPE_ASSERT_EQUAL(CHECKED_FORK_OP, i[0].OpCode);
+  SCOPE_ASSERT_EQUAL(3u, i[0].Op.Offset);
+  SCOPE_ASSERT_EQUAL(2u, i[0].wordSize());
+  SCOPE_ASSERT_EQUAL(ILLEGAL, i[1].OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i[1].wordSize());
+  SCOPE_ASSERT_EQUAL(35u, i[1].Op.Offset);
+}
+
 SCOPE_TEST(makeJumpTable) {
   Instruction i = Instruction::makeJumpTable();
   SCOPE_ASSERT_EQUAL(JUMP_TABLE_OP, i.OpCode);
