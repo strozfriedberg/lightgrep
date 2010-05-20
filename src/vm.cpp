@@ -77,6 +77,8 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
       // std::cerr << "Match" << std::endl;
       t.End = offset;
       break;
+    case HALT_OP:
+      return false;
   }
   return false;
 }
@@ -114,6 +116,8 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
       break;
     case MATCH_OP:
       t.End = offset;
+      return false;
+    case HALT_OP:
       return false;
   }
   return true;

@@ -171,6 +171,18 @@ SCOPE_TEST(executeCheckBranch) {
   SCOPE_ASSERT(checkStates[0]);
 }
 
+SCOPE_TEST(executeHalt) {
+  byte b;
+  std::vector<bool> checkStates(1, false);
+  Instruction i = Instruction::makeHalt();
+  Thread cur(&i, 0, 0, 0);
+  Vm::ThreadList next, active;
+  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 317));
+  SCOPE_ASSERT_EQUAL(0u, active.size());
+  SCOPE_ASSERT_EQUAL(0u, next.size());
+  SCOPE_ASSERT_EQUAL(Thread(&i, 0, 0, 0), cur);
+}
+
 class TestCallback: public HitCallback {
 public:
   virtual void collect(const SearchHit& hit) {
