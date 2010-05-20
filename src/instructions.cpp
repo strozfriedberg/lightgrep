@@ -43,14 +43,17 @@ std::string Instruction::toString() const {
     case FORK_OP:
       buf << "Fork 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
-    case MATCH_OP:
-      buf << "Match";
-      break;
     case CHECK_BRANCH_OP:
       buf << "CheckBranch 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
     case SAVE_LABEL_OP:
       buf << "SaveLabel " << Op.Offset;
+      break;
+    case MATCH_OP:
+      buf << "Match";
+      break;
+    case HALT_OP:
+      buf << "Halt";
       break;
     default:
       buf << "* UNRECOGNIZED *";
@@ -130,6 +133,14 @@ Instruction Instruction::makeFork(uint32 index) {
 Instruction Instruction::makeCheckBranch(uint32 checkIndex) {
   Instruction i = makeJump(checkIndex);
   i.OpCode = CHECK_BRANCH_OP;
+  return i;
+}
+
+Instruction Instruction::makeHalt() {
+  Instruction i;
+  i.OpCode = HALT_OP;
+  i.Size = 0;
+  i.Op.Offset = 0;
   return i;
 }
 

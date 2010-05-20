@@ -24,6 +24,7 @@ enum OpCodes {
   CHECK_BRANCH_OP,
   SAVE_LABEL_OP,
   MATCH_OP,
+  HALT_OP,
   ILLEGAL
 };
 
@@ -62,6 +63,7 @@ struct Instruction {
   static Instruction makeSaveLabel(uint32 label);
   static Instruction makeFork(uint32 index);
   static Instruction makeCheckBranch(uint32 checkIndex);
+  static Instruction makeHalt();
 };
 #pragma pack(pop)
 

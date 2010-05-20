@@ -100,3 +100,11 @@ SCOPE_TEST(makeJumpTable) {
   SCOPE_ASSERT_EQUAL(0u, i.Op.Offset);
   SCOPE_ASSERT_EQUAL("JumpTable", i.toString());
 }
+
+SCOPE_TEST(makeHalt) {
+  Instruction i = Instruction::makeHalt();
+  SCOPE_ASSERT_EQUAL(HALT_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL(0u, i.Op.Offset);
+  SCOPE_ASSERT_EQUAL("Halt", i.toString());
+}
