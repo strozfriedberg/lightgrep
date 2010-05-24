@@ -32,7 +32,9 @@ DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
         if (!found) {
           target = boost::add_vertex(*g);
           if (i == kw->size() - 1) {
-            (*g)[boost::add_edge(source, target, *g).first].reset(new LitState(b, keyIdx));
+            TransitionPtr t(new LitState(b, keyIdx));
+            t->IsMatch = true;
+            (*g)[boost::add_edge(source, target, *g).first] = t;
           }
           else {
             (*g)[boost::add_edge(source, target, *g).first].reset(new LitState(b));
@@ -81,6 +83,10 @@ ProgramPtr createProgram2(const DynamicFSM& graph) {
         *curOp++ = Instruction::makeSaveLabel(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
       }
+      if (t->IsMatch) {
+        *curOp++ = Instruction::makeMatch();
+      // std::cerr << "wrote " << Instruction::makeMatch() << std::endl;
+      }
     }
     OutEdgeRange outRange(out_edges(v, graph));
     if (outRange.first != outRange.second) {
@@ -107,8 +113,8 @@ ProgramPtr createProgram2(const DynamicFSM& graph) {
       }
     }
     else {
-      *curOp++ = Instruction::makeMatch();
-      // std::cerr << "wrote " << Instruction::makeMatch() << std::endl;
+      *curOp++ = Instruction::makeHalt();
+      // std::cerr << "wrote " << Instruction::makeHalt() << std::endl;
     }
   }
   return ret;
@@ -124,4 +130,12 @@ ByteSet firstBytes(const DynamicFSM& graph) {
     ret |= tBits;
   }
   return ret;
+}
+
+boost::shared_ptr<Vm> initVM(const std::vector<std::string>& keywords, SearchInfo&) {
+  boost::shared_ptr<Vm> vm(new Vm);
+  DynamicFSMPtr fsm = createDynamicFSM(keywords);
+  ProgramPtr prog = createProgram2(*fsm);
+  vm->init(prog, firstBytes(*fsm), 1);
+  return vm;
 }

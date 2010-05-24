@@ -7,8 +7,8 @@ class Instruction;
 #pragma pack(1)
 class Transition {
 public:
-  Transition(): Label(0xffffffff) {}
-  Transition(uint32 lbl): Label(lbl) {}
+  Transition(): IsMatch(false), Label(0xffffffff) {}
+  Transition(uint32 lbl): IsMatch(false), Label(lbl) {}
   virtual ~Transition() {}
 
   virtual const byte* allowed(const byte* beg, const byte* end) const = 0;
@@ -19,6 +19,7 @@ public:
   virtual bool   toInstruction(Instruction* addr) const = 0;
   virtual std::string label() const = 0;
 
+  bool   IsMatch;
   uint32 Label;
 };
 #pragma pack(pop)
