@@ -126,3 +126,20 @@ boost::shared_ptr<Vm> initVM(const std::vector<std::string>& keywords, SearchInf
   vm->init(prog, firstBytes(*fsm), 1);
   return vm;
 }
+
+std::vector< std::set< DynamicFSM::vertex_descriptor > > pivotStates(DynamicFSM::vertex_descriptor source, const DynamicFSM& graph) {
+  std::vector< std::set< DynamicFSM::vertex_descriptor > > ret(256);
+  OutEdgeRange outRange(boost::out_edges(source, graph));
+  ByteSet permitted;
+  for (OutEdgeIt outIt(outRange.first); outIt != outRange.second; ++outIt) {
+    permitted.reset();
+    graph[*outIt]->getBits(permitted);
+    DynamicFSM::vertex_descriptor t = boost::target(*outIt, graph);
+    for (uint32 i = 0; i < 256; ++i) {
+      if (permitted[i]) {
+        ret[i].insert(t);
+      }
+    }
+  }
+  return ret;
+}

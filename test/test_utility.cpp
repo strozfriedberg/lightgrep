@@ -253,3 +253,28 @@ SCOPE_TEST(testInitVM) {
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), cb.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(5, 3, 1), cb.Hits[1]);
 }
+
+SCOPE_TEST(testPivotTransitions) {
+  DynamicFSM fsm(4);
+  edge(0, 1, fsm, new LitState('a', 0));
+  edge(0, 2, fsm, new LitState('a', 1));
+  edge(0, 2, fsm, new LitState('z'));
+  edge(0, 3, fsm, new LitState('z'));
+  std::vector< std::set< DynamicFSM::vertex_descriptor > > tbl = pivotStates(0, fsm);
+  SCOPE_ASSERT_EQUAL(256u, tbl.size());
+  for (uint32 i = 0; i < 256; ++i) {
+    if (i == 'a') {
+      SCOPE_ASSERT_EQUAL(2u, tbl[i].size());
+      SCOPE_ASSERT(tbl[i].find(1) != tbl[i].end());
+      SCOPE_ASSERT(tbl[i].find(2) != tbl[i].end());
+    }
+    else if (i == 'z') {
+      SCOPE_ASSERT_EQUAL(2u, tbl[i].size());
+      SCOPE_ASSERT(tbl[i].find(2) != tbl[i].end());
+      SCOPE_ASSERT(tbl[i].find(3) != tbl[i].end());
+    }
+    else {
+      SCOPE_ASSERT(tbl[i].empty());
+    }
+  }
+}
