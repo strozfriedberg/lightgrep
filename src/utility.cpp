@@ -62,7 +62,7 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
   ret->resize(cg->Guard);
   for (DynamicFSM::vertex_descriptor v = 0; v < boost::num_vertices(graph); ++v) {
     // std::cerr << "on vertex " << v << " at " << cg->Snippets[v].first << std::endl;
-    Instruction* curOp = &(*ret)[cg->Snippets[v].first];
+    Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
     InEdgeRange inRange(in_edges(v, graph));
     if (inRange.first != inRange.second) {
       TransitionPtr t(graph[*inRange.first]); // this assumes that all states have the same incoming transitions
@@ -85,11 +85,11 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
           DynamicFSM::out_edge_iterator next(cur);
           ++next;
           if (next == outRange.second && !hasTargetAtNext) {
-            *curOp++ = Instruction::makeJump(cg->Snippets[curTarget].first);
+            *curOp++ = Instruction::makeJump(cg->Snippets[curTarget].Start);
             // std::cerr << "wrote " << Instruction::makeJump(cg->Snippets[curTarget].first) << std::endl;
           }
           else {
-            *curOp++ = Instruction::makeFork(cg->Snippets[curTarget].first);
+            *curOp++ = Instruction::makeFork(cg->Snippets[curTarget].Start);
             // std::cerr << "wrote " << Instruction::makeFork(cg->Snippets[curTarget].first) << std::endl;
           }
         }

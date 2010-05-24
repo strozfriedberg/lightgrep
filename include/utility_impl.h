@@ -13,6 +13,17 @@
 
 static const uint32 UNALLOCATED = 0xffffffff;
 
+struct StateLayoutInfo {
+  uint32 Start,
+         NumEval,
+         NumOther;
+
+  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED) {}
+  StateLayoutInfo(uint32 s, uint32 e, uint32 o): Start(s), NumEval(e), NumOther(o) {}
+
+  uint32 numTotal() const { return NumEval + NumOther; }
+};
+
 struct CodeGenHelper {
   CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, UNALLOCATED), Snippets(numStates), Guard(0), NumDiscovered(0) {}
 
@@ -20,14 +31,15 @@ struct CodeGenHelper {
     DiscoverRanks[v] = NumDiscovered++;
   }
 
-  void addSnippet(uint32 state, uint32 num) {
-    Snippets[state] = std::make_pair(Guard, num);
-    Guard += num;
+  void addSnippet(uint32 state, uint32 numEval, uint32 numOther) {
+    StateLayoutInfo info(Guard, numEval, numOther);
+    Snippets[state] = info;
+    Guard += info.numTotal();
   }
 
   std::vector< Instruction > Program;
   std::vector< uint32 > DiscoverRanks;
-  std::vector< std::pair< uint32, uint32 > > Snippets;
+  std::vector< StateLayoutInfo > Snippets;
   uint32 Guard,
          NumDiscovered;
 };
@@ -70,7 +82,7 @@ public:
       }
     }
     // std::cerr << "outOps = " << outOps << "; labels = " << labels << "; match = " << isMatch << std::endl;
-    Helper->addSnippet(v, outOps + (v == 0 ? 0: 1) + labels);
+    Helper->addSnippet(v, (v == 0 ? 0: 1), outOps + labels);
     // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
   }
 
