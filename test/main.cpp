@@ -81,7 +81,7 @@ boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath) {
   std::cerr << boost::num_vertices(*fsm) << " vertices" << '\n';
   std::cerr << boost::num_edges(*fsm) << " edges" << std::endl;
 
-  ProgramPtr p = createProgram2(*fsm);
+  ProgramPtr p = createProgram(*fsm);
 
   std::cerr << p->size() << " instructions" << std::endl;
   

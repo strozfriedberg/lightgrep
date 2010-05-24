@@ -68,13 +68,9 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
       }
       t.advance();
       return true;
-    case SAVE_LABEL_OP:
-      // std::cerr << "SaveLabel " << t.PC->Op.Offset << std::endl;
-      t.Label = t.PC->Op.Offset;
-      t.advance();
-      return true;
     case MATCH_OP:
-      // std::cerr << "Match" << std::endl;
+      // std::cerr << "at " << offset << ", " << *t.PC << std::endl;
+      t.Label = t.PC->Op.Offset;
       t.End = offset;
       t.advance();
       return true;
@@ -111,11 +107,8 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
       }
       t.advance();
       return true;
-    case SAVE_LABEL_OP:
-      t.Label = t.PC->Op.Offset;
-      t.advance();
-      break;
     case MATCH_OP:
+      t.Label = t.PC->Op.Offset;
       t.End = offset;
       t.advance();
       break;

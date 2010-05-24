@@ -48,24 +48,15 @@ DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
   return g;
 }
 
-boost::shared_ptr< std::vector<Instruction> > createProgram(const DynamicFSM& graph) {
-  boost::shared_ptr< std::vector<Instruction> > ret(new std::vector<Instruction>());
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(graph)));
-  CodeGenVisitor vis(cg);
-  boost::breadth_first_search(graph, 0, visitor(vis));
-  ret->swap(cg->Program);
-  return ret;
-}
-
 // need a two-pass to get it to work with the bgl visitors
 //  discover_vertex: determine slot
 //  finish_vertex:   
 
-ProgramPtr createProgram2(const DynamicFSM& graph) {
+ProgramPtr createProgram(const DynamicFSM& graph) {
   // std::cerr << "createProgram2" << std::endl;
   ProgramPtr ret(new std::vector<Instruction>());
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(graph)));
-  CodeGenVisitor2 vis(cg);
+  CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
   
   ret->resize(cg->Guard);
@@ -80,12 +71,8 @@ ProgramPtr createProgram2(const DynamicFSM& graph) {
       *curOp++ = i;
       // std::cerr << "wrote " << i << std::endl;
       if (t->Label < 0xffffffff) {
-        *curOp++ = Instruction::makeSaveLabel(t->Label); // also problematic
+        *curOp++ = Instruction::makeMatch(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
-      }
-      if (t->IsMatch) {
-        *curOp++ = Instruction::makeMatch();
-      // std::cerr << "wrote " << Instruction::makeMatch() << std::endl;
       }
     }
     OutEdgeRange outRange(out_edges(v, graph));
@@ -135,7 +122,7 @@ ByteSet firstBytes(const DynamicFSM& graph) {
 boost::shared_ptr<Vm> initVM(const std::vector<std::string>& keywords, SearchInfo&) {
   boost::shared_ptr<Vm> vm(new Vm);
   DynamicFSMPtr fsm = createDynamicFSM(keywords);
-  ProgramPtr prog = createProgram2(*fsm);
+  ProgramPtr prog = createProgram(*fsm);
   vm->init(prog, firstBytes(*fsm), 1);
   return vm;
 }

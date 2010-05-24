@@ -46,9 +46,6 @@ std::string Instruction::toString() const {
     case CHECK_BRANCH_OP:
       buf << "CheckBranch 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
-    case SAVE_LABEL_OP:
-      buf << "SaveLabel " << Op.Offset;
-      break;
     case MATCH_OP:
       buf << "Match " << Op.Offset;
       break;
@@ -114,12 +111,6 @@ Instruction Instruction::makeJumpTable() {
 Instruction Instruction::makeMatch(uint32 label) {
   Instruction i = makeJump(label);
   i.OpCode = MATCH_OP;
-  return i;
-}
-
-Instruction Instruction::makeSaveLabel(uint32 label) {
-  Instruction i = makeJump(label);
-  i.OpCode = SAVE_LABEL_OP;
   return i;
 }
 

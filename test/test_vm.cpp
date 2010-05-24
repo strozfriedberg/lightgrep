@@ -112,27 +112,14 @@ SCOPE_TEST(executeJumpTable) {
 SCOPE_TEST(executeMatch) {
   byte b;
   std::vector<bool> checkStates;
-  Instruction i = Instruction::makeMatch();
+  Instruction i = Instruction::makeMatch(3);
   Thread      cur(&i, 0, 0, 0);
   Vm::ThreadList  next,
               active;
   SCOPE_ASSERT(Vm::execute(&i, cur, checkStates, active, next, &b, 57));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(0u, next.size());
-  SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 57), cur);
-}
-
-SCOPE_TEST(executeSaveLabel) {
-  byte b;
-  std::vector<bool> checkStates;
-  Instruction i = Instruction::makeSaveLabel(31);
-  Thread      cur(&i, 0, 0, 0);
-  Vm::ThreadList  next,
-              active;
-  SCOPE_ASSERT(Vm::execute(&i, cur, checkStates, active, next, &b, 47));
-  SCOPE_ASSERT_EQUAL(0u, active.size());
-  SCOPE_ASSERT_EQUAL(0u, next.size());
-  SCOPE_ASSERT_EQUAL(Thread(&i+1, 31, 0, 0), cur);
+  SCOPE_ASSERT_EQUAL(Thread(&i+1, 3, 0, 57), cur);
 }
 
 SCOPE_TEST(executeFork) {
@@ -187,10 +174,9 @@ SCOPE_TEST(executeHalt) {
 SCOPE_TEST(simpleLitMatch) {
   ProgramPtr p(new Program());
   Program& prog(*p);
-  prog.push_back(Instruction::makeSaveLabel(3));
   prog.push_back(Instruction::makeLit('a'));
   prog.push_back(Instruction::makeLit('b'));
-  prog.push_back(Instruction::makeMatch());
+  prog.push_back(Instruction::makeMatch(3));
   prog.push_back(Instruction::makeHalt());
 
   byte text[] = {'a', 'b', 'c'};
@@ -209,20 +195,17 @@ SCOPE_TEST(simpleLitMatch) {
 SCOPE_TEST(threeKeywords) {
   ProgramPtr p(new Program); // (a)|(b)|(bc)
   p->push_back(Instruction::makeFork(2));       // 0
-  p->push_back(Instruction::makeJump(6));       // 1
+  p->push_back(Instruction::makeJump(5));       // 1
   p->push_back(Instruction::makeLit('a'));      // 2
-  p->push_back(Instruction::makeSaveLabel(0));  // 3
-  p->push_back(Instruction::makeMatch());       // 4
-  p->push_back(Instruction::makeHalt());        // 5
-  p->push_back(Instruction::makeLit('b'));      // 6
-  p->push_back(Instruction::makeFork(11));      // 7
-  p->push_back(Instruction::makeSaveLabel(1));  // 8
-  p->push_back(Instruction::makeMatch());       // 9
-  p->push_back(Instruction::makeHalt());        // 10
-  p->push_back(Instruction::makeLit('c'));      // 11
-  p->push_back(Instruction::makeSaveLabel(2));  // 12
-  p->push_back(Instruction::makeMatch());       // 13
-  p->push_back(Instruction::makeHalt());        // 14
+  p->push_back(Instruction::makeMatch(0));       // 3
+  p->push_back(Instruction::makeHalt());        // 4
+  p->push_back(Instruction::makeLit('b'));      // 5
+  p->push_back(Instruction::makeFork(9));      // 6
+  p->push_back(Instruction::makeMatch(1));       // 7
+  p->push_back(Instruction::makeHalt());        // 8
+  p->push_back(Instruction::makeLit('c'));      // 9
+  p->push_back(Instruction::makeMatch(2));       // 10
+  p->push_back(Instruction::makeHalt());        // 11
 
   byte text[] = {'c', 'a', 'b', 'c'};
   MockCallback cb;
@@ -242,7 +225,7 @@ SCOPE_TEST(stitchedText) {
   ProgramPtr p(new Program);
   p->push_back(Instruction::makeLit('a'));
   p->push_back(Instruction::makeLit('b'));
-  p->push_back(Instruction::makeMatch());
+  p->push_back(Instruction::makeMatch(0));
   p->push_back(Instruction::makeHalt());
   byte text1[] = {'a', 'c', 'a'},
        text2[] = {'b', 'b'};
