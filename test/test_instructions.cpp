@@ -48,15 +48,6 @@ SCOPE_TEST(makeMatch) {
   SCOPE_ASSERT_EQUAL("Match 4", i.toString());
 }
 
-SCOPE_TEST(makeSaveLabel) {
-  Instruction i = Instruction::makeSaveLabel(3);
-  SCOPE_ASSERT_EQUAL(SAVE_LABEL_OP, i.OpCode);
-  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL(3u, i.Op.Offset);
-  SCOPE_ASSERT_EQUAL("SaveLabel 3", i.toString());
-  SCOPE_EXPECT(Instruction::makeSaveLabel(1 << 24), std::overflow_error);
-}
-
 SCOPE_TEST(makeEither) {
   Instruction i = Instruction::makeEither('a', 'B');
   SCOPE_ASSERT_EQUAL(EITHER_OP, i.OpCode);

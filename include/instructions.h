@@ -22,7 +22,6 @@ enum OpCodes {
   JUMP_OP,
   FORK_OP,
   CHECK_BRANCH_OP,
-  SAVE_LABEL_OP,
   MATCH_OP,
   HALT_OP,
   ILLEGAL
@@ -59,8 +58,7 @@ struct Instruction {
   static Instruction makeRange(byte first, byte last);
   static Instruction makeJump(uint32 relativeOffset);
   static Instruction makeJumpTable();
-  static Instruction makeMatch(uint32 label=0);
-  static Instruction makeSaveLabel(uint32 label);
+  static Instruction makeMatch(uint32 label);
   static Instruction makeFork(uint32 index);
   static Instruction makeCheckBranch(uint32 checkIndex);
   static Instruction makeHalt();

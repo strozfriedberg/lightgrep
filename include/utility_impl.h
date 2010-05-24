@@ -41,55 +41,6 @@ class CodeGenVisitor: public boost::default_bfs_visitor {
 public:
   CodeGenVisitor(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
 
-  void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
-    InEdgeRange inRange(in_edges(v, graph));
-    uint32 labels = 0;
-    for (InEdgeIt in(inRange.first); in != inRange.second; ++in) {
-      if (graph[*in]->Label < 0xffffffff) {
-        ++labels;
-        break;  // only counts first label
-      }
-    }
-    Helper->addSnippet(v, std::max(out_degree(v, graph), 1ul) + (v == 0 ? 0: 1) + labels);
-  }
-
-  void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
-    InEdgeRange inRange(in_edges(v, graph));
-    if (inRange.first != inRange.second) {
-      TransitionPtr t(graph[*inRange.first]); // this assumes that all states have the same incoming transitions
-      Instruction i;
-      t->toInstruction(&i);
-      Helper->Program.push_back(i);
-      if (t->Label < 0xffffffff) {
-        Helper->Program.push_back(Instruction::makeSaveLabel(t->Label)); // also problematic
-      }
-    }
-    std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> outRange(out_edges(v, graph));
-    if (outRange.first != outRange.second) {
-      for (DynamicFSM::out_edge_iterator cur(outRange.first); cur != outRange.second; ++cur) {
-        DynamicFSM::out_edge_iterator next(cur);
-        ++next;
-        if (next == outRange.second) {
-          Helper->Program.push_back(Instruction::makeJump(Helper->Snippets[target(*cur, graph)].first));
-        }
-        else {
-          Helper->Program.push_back(Instruction::makeFork(Helper->Snippets[target(*cur, graph)].first));
-        }
-      }
-    }
-    else {
-      Helper->Program.push_back(Instruction::makeMatch());
-    }
-  }
-
-private:
-  boost::shared_ptr<CodeGenHelper> Helper;
-};
-
-class CodeGenVisitor2: public boost::default_bfs_visitor {
-public:
-  CodeGenVisitor2(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
-
   void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM&) {
     Helper->discover(v);
   }
@@ -98,11 +49,7 @@ public:
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
     InEdgeRange inRange(in_edges(v, graph));
     uint32 labels = 0;
-    bool   isMatch = false;
     for (InEdgeIt in(inRange.first); in != inRange.second; ++in) {
-      if (graph[*in]->IsMatch) {
-        isMatch = true;
-      }
       if (graph[*in]->Label < 0xffffffff) {
         ++labels;
         break;  // only counts first label
@@ -123,7 +70,7 @@ public:
       }
     }
     // std::cerr << "outOps = " << outOps << "; labels = " << labels << "; match = " << isMatch << std::endl;
-    Helper->addSnippet(v, outOps + (v == 0 ? 0: 1) + labels + (isMatch ? 1: 0));
+    Helper->addSnippet(v, outOps + (v == 0 ? 0: 1) + labels);
     // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
   }
 
