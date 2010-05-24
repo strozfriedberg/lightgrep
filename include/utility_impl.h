@@ -98,7 +98,11 @@ public:
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
     InEdgeRange inRange(in_edges(v, graph));
     uint32 labels = 0;
+    bool   isMatch = false;
     for (InEdgeIt in(inRange.first); in != inRange.second; ++in) {
+      if (graph[*in]->IsMatch) {
+        isMatch = true;
+      }
       if (graph[*in]->Label < 0xffffffff) {
         ++labels;
         break;  // only counts first label
@@ -107,7 +111,8 @@ public:
     uint32 outOps = 0;
     OutEdgeRange outRange(out_edges(v, graph));
     if (outRange.first == outRange.second) {
-      outOps = 1; // MATCH instruction
+      // std::cerr << "no out edges, so a halt" << std::endl;
+      outOps = 1; // HALT instruction
     }
     else {
       for (OutEdgeIt curOut(outRange.first); curOut != outRange.second; ++curOut) {
@@ -117,8 +122,9 @@ public:
         }
       }
     }
-    Helper->addSnippet(v, outOps + (v == 0 ? 0: 1) + labels);
-    // std::cerr << "start " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
+    // std::cerr << "outOps = " << outOps << "; labels = " << labels << "; match = " << isMatch << std::endl;
+    Helper->addSnippet(v, outOps + (v == 0 ? 0: 1) + labels + (isMatch ? 1: 0));
+    // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
   }
 
 private:
@@ -132,7 +138,7 @@ void specialVisit(const DynamicFSM& graph, DynamicFSM::vertex_descriptor startVe
   std::vector< bool > discovered(boost::num_vertices(graph), false);
 
   discovered[startVertex].flip();
-  vis.discover_vertex(startVertex, graph);
+  // vis.discover_vertex(startVertex, graph);
   statesToVisit.push_back(startVertex);
   while (!statesToVisit.empty()) {
     DynamicFSM::vertex_descriptor v = statesToVisit.front();
