@@ -71,13 +71,9 @@ public:
       Helper->addSnippet(v, 0, 257 + sizeIndirectTables);
       return;
     }
-    InEdgeRange inRange(in_edges(v, graph));
     uint32 labels = 0;
-    for (InEdgeIt in(inRange.first); in != inRange.second; ++in) {
-      if (graph[*in]->Label < 0xffffffff) {
-        ++labels;
-        break;  // only counts first label
-      }
+    if (graph[v] && graph[v]->Label < 0xffffffff) {
+      ++labels;
     }
     uint32 outOps = 0;
     OutEdgeRange outRange(out_edges(v, graph));
