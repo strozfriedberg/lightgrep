@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <stack>
-// #include <boost/spirit/include/qi.hpp>
 #include <boost/bind.hpp>
 
 void parseOutput(std::string type, Node n) {
@@ -70,71 +69,3 @@ SCOPE_TEST(parseGroup) {
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
 }
-
-// 
-// namespace qi = boost::spirit::qi;
-// 
-// namespace custom_parser { BOOST_SPIRIT_TERMINAL(iter_pos); }
-// 
-// enum {
-//   ALTERNATE = 1,
-//   CONCATENATE,
-//   LITERAL,
-//   DOT,
-//   PARENTHESIS,
-//   QUESTION,
-//   STAR,
-//   PLUS
-// };
-// 
-// struct ReNode {
-//   int Type,
-//       N,
-//       Ch;
-// 
-//   std::vector<ReNode> Children;
-// };
-// 
-// void whole(std::string const& s) {
-//   std::cerr << "whole: '" << s << '\'' << std::endl;
-// }
-// 
-// void fixed(std::string const& s) {
-//   std::cerr << "fixed: '" << s << '\'' << std::endl;
-// }
-// 
-// template<typename IterType>
-// struct Regrammar: qi::grammar<IterType, std::string()> {
-//   
-//   Regrammar(): Regrammar::base_type(Regexp) {
-//     Regexp %= ((Fixed >> qi::lit('|') >> Fixed) | Fixed)[&whole];
-//     Fixed %= (+qi::alnum)[&fixed];
-//     // Regexp[&output];
-//     // Alt = (Concat | (Alt >> '|' >> Concat));
-//     // Concat = (Repeat | (Concat >> Repeat));
-//     // Repeat = Single;
-//     // Single = ('(' >> Alt >> ')') | qi::print;
-//   }
-// 
-//   qi::rule<IterType, std::string()> Regexp;
-//   qi::rule<IterType, std::string()> Fixed;
-//                                // Alt,
-//                                // Concat,
-//                                // Repeat,
-//                                // Single;
-// };
-// 
-// SCOPE_TEST(parserTest) {
-// 
-//   Regrammar<std::string::const_iterator> g;
-//   std::string text2("what|ever|dude|lebowski");
-// 
-//   std::string::const_iterator b = text2.begin(),
-//                               e = text2.end();
-// 
-//   std::string result;
-// 
-//   // SCOPE_ASSERT(qi::parse(b, e, g, result));
-//   SCOPE_ASSERT(qi::parse(b, e, g, result));
-//   SCOPE_ASSERT_EQUAL(text2, result);
-// }
