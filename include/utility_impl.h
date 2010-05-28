@@ -59,6 +59,18 @@ public:
 
   void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
+    if (0 == v && out_degree(v, graph) > 10) { // hard-coded goodness, mm, mm
+      std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl(pivotStates(v, graph));
+      uint32 sizeIndirectTables = 0;
+      for (uint32 i = 0; i < 256; ++i) {
+        uint32 num = tbl[i].size();
+        if (num > 1) {
+          sizeIndirectTables += num;
+        }
+      }
+      Helper->addSnippet(v, 0, 257 + sizeIndirectTables);
+      return;
+    }
     InEdgeRange inRange(in_edges(v, graph));
     uint32 labels = 0;
     for (InEdgeIt in(inRange.first); in != inRange.second; ++in) {
