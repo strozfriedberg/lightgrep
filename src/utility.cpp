@@ -52,6 +52,32 @@ DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
 //  discover_vertex: determine slot
 //  finish_vertex:   
 
+void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  Instruction* cur = base,
+             * indirectTbl = base + 257;
+  *cur++ = Instruction::makeJumpTable();
+  std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl(pivotStates(v, graph));
+  for (uint32 i = 0; i < 256; ++i) {
+    if (tbl[i].empty()) {
+      *cur++ = Instruction::makeHalt();
+    }
+    else if (1 == tbl[i].size()) {
+      StateLayoutInfo info = cg->Snippets[*tbl[i].begin()];
+      *cur++ = Instruction::makeJump(info.Start + info.NumEval);
+    }
+    else {
+      *cur++ = Instruction::makeJump(indirectTbl - base);
+      for (std::vector< DynamicFSM::vertex_descriptor >::const_iterator it(tbl[i].begin()); it != tbl[i].end(); ++it) {
+        StateLayoutInfo info = cg->Snippets[*it];
+        *indirectTbl++ = Instruction::makeJump(info.Start + info.NumEval);
+      }
+    }
+  }
+  if (indirectTbl - base != cg->Snippets[0].numTotal()) {
+    std::cerr << "whoa, big trouble in Little China... numTotal() == " + cg->Snippets[0].numTotal() << ", but diff is " << (indirectTbl - base) << std::endl;
+  }
+}
+
 ProgramPtr createProgram(const DynamicFSM& graph) {
   // std::cerr << "createProgram2" << std::endl;
   ProgramPtr ret(new std::vector<Instruction>());
@@ -62,6 +88,10 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
   ret->resize(cg->Guard);
   for (DynamicFSM::vertex_descriptor v = 0; v < boost::num_vertices(graph); ++v) {
     // std::cerr << "on vertex " << v << " at " << cg->Snippets[v].first << std::endl;
+    if (0 == v && cg->Snippets[v].numTotal() > 256) {
+      createJumpTable(cg, &(*ret)[0], 0, graph);
+      continue;
+    }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
     InEdgeRange inRange(in_edges(v, graph));
     if (inRange.first != inRange.second) {
@@ -127,8 +157,8 @@ boost::shared_ptr<Vm> initVM(const std::vector<std::string>& keywords, SearchInf
   return vm;
 }
 
-std::vector< std::set< DynamicFSM::vertex_descriptor > > pivotStates(DynamicFSM::vertex_descriptor source, const DynamicFSM& graph) {
-  std::vector< std::set< DynamicFSM::vertex_descriptor > > ret(256);
+std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicFSM::vertex_descriptor source, const DynamicFSM& graph) {
+  std::vector< std::vector< DynamicFSM::vertex_descriptor > > ret(256);
   OutEdgeRange outRange(boost::out_edges(source, graph));
   ByteSet permitted;
   for (OutEdgeIt outIt(outRange.first); outIt != outRange.second; ++outIt) {
@@ -136,8 +166,8 @@ std::vector< std::set< DynamicFSM::vertex_descriptor > > pivotStates(DynamicFSM:
     graph[*outIt]->getBits(permitted);
     DynamicFSM::vertex_descriptor t = boost::target(*outIt, graph);
     for (uint32 i = 0; i < 256; ++i) {
-      if (permitted[i]) {
-        ret[i].insert(t);
+      if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), t) == ret[i].end()) {
+        ret[i].push_back(t);
       }
     }
   }

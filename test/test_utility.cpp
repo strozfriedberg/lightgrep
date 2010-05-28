@@ -260,18 +260,18 @@ SCOPE_TEST(testPivotTransitions) {
   edge(0, 2, fsm, new LitState('a', 1));
   edge(0, 2, fsm, new LitState('z'));
   edge(0, 3, fsm, new LitState('z'));
-  std::vector< std::set< DynamicFSM::vertex_descriptor > > tbl = pivotStates(0, fsm);
+  std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(256u, tbl.size());
   for (uint32 i = 0; i < 256; ++i) {
     if (i == 'a') {
       SCOPE_ASSERT_EQUAL(2u, tbl[i].size());
-      SCOPE_ASSERT(tbl[i].find(1) != tbl[i].end());
-      SCOPE_ASSERT(tbl[i].find(2) != tbl[i].end());
+      SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 1) != tbl[i].end());
+      SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 2) != tbl[i].end());
     }
     else if (i == 'z') {
       SCOPE_ASSERT_EQUAL(2u, tbl[i].size());
-      SCOPE_ASSERT(tbl[i].find(2) != tbl[i].end());
-      SCOPE_ASSERT(tbl[i].find(3) != tbl[i].end());
+      SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 2) != tbl[i].end());
+      SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 3) != tbl[i].end());
     }
     else {
       SCOPE_ASSERT(tbl[i].empty());
