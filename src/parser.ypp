@@ -28,7 +28,7 @@ boost::function< void(std::string, Node) > Callback;
 
 %token <c> CHAR
 
-%type <node> regexp alt concat atom
+%type <node> regexp alt concat atom literal
 
 %start regexp
 
@@ -56,11 +56,18 @@ concat:
 ;
 
 atom:
+	'(' alt ')'
+	{
+		$$ = add("group", Node(GROUP, $2, 0, 0));
+	}
+|	literal
+;
+
+literal:
 	CHAR
 	{
-		$$ = add("atom", Node(ATOM, 0, 0, $1));
+		$$ = add("literal", Node(LITERAL, 0, 0, $1));
 	}
-;
 
 %%
 
@@ -72,7 +79,9 @@ namespace {
 				case 0:
 					return -1;
 				case '|':
-					return '|';
+				case '(':
+				case ')':
+					return c;
 				default:
 					yylval.c = c;
 					return CHAR;
