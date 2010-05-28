@@ -16,19 +16,51 @@ void parseOutput(std::string type, Node n) {
   // std::cout << type << ": " << n.Val << std::endl;
 }
 
-struct Fragment {
-  Fragment(DynamicFSM::vertex_descriptor in, const Node& n): In(in), N(n) {}
-  Fragment(DynamicFSM::vertex_descriptor in, const Node& n, const std::vector< DynamicFSM::vertex_descriptor >& out):
-    In(in), OutList(out), N(n) {}
+typedef std::vector< DynamicFSM::vertex_descriptor > VList;
 
-  DynamicFSM::vertex_descriptor In;
-  std::vector< DynamicFSM::vertex_descriptor > OutList;
+std::ostream& operator<<(std::ostream& out, const VList& list) {
+  out << '{';
+  for (VList::const_iterator it(list.begin()); it != list.end(); ++it) {
+    if (it != list.begin()) {
+      out << ", ";
+    }
+    out << *it;
+  }
+  out << '}';
+}
+
+struct Fragment {
+  Fragment(VList in, const Node& n): InList(in), N(n) {}
+  Fragment(DynamicFSM::vertex_descriptor in, const Node& n): N(n) { InList.push_back(in); }
+  Fragment(VList in, const Node& n, const VList& out):
+    InList(in), OutList(out), N(n) {}
+
+  std::vector< DynamicFSM::vertex_descriptor > InList, OutList;
   Node N;
 
   void addToOut(DynamicFSM::vertex_descriptor v) {
-    if (std::find(OutList.begin(), OutList.end(), v) == OutList.end()) {
-      OutList.push_back(v);
+    add(v, OutList);
+  }
+
+  void addToIn(DynamicFSM::vertex_descriptor v) {
+    add(v, InList);
+  }
+
+  void add(DynamicFSM::vertex_descriptor v, VList& list) {
+    if (std::find(list.begin(), list.end(), v) == list.end()) {
+      list.push_back(v);
     }
+  }
+
+  void merge(const Fragment& f) {
+    // std::cout << "merge in " << InList << ", " << f.InList << ", out " << OutList << ", " << f.OutList << std::endl;
+    for (VList::const_iterator it(f.InList.begin()); it != f.InList.end(); ++it) {
+      add(*it, InList);
+    }
+    for (VList::const_iterator it(f.OutList.begin()); it != f.OutList.end(); ++it) {
+      add(*it, OutList);
+    }
+    // std::cout << "merged in " << InList << ", out " << OutList << std::endl;
   }
 };
 
@@ -38,8 +70,29 @@ public:
 
   void callback(const std::string& type, Node n);
 
+  void patch(const VList& sources, const VList& targets, DynamicFSM& fsm) {
+    // std::cout << "patch " << sources << "->" << targets << std::endl;
+    for (VList::const_iterator srcIt(sources.begin()); srcIt != sources.end(); ++srcIt) {
+      for (VList::const_iterator targetIt(targets.begin()); targetIt != targets.end(); ++targetIt) {
+        // std::cout << "Making edge (" << *srcIt << ", " << *targetIt << ")" << std::endl;
+        boost::add_edge(*srcIt, *targetIt, fsm);
+      }
+    }
+  }
+
   void addAtom(const Node& n) {
     Stack.push(Fragment(boost::add_vertex(*Fsm), n));
+  }
+
+  void alternate(const Node& n) {
+    Fragment second = Stack.top();
+    Stack.pop();
+    Fragment first = Stack.top();
+    Stack.pop();
+    // std::cout << "alternation, in " << second.InList << ", " << first.InList << ", out " << second.OutList << ", " << first.OutList << std::endl;
+    first.merge(second);
+    first.N = n;
+    Stack.push(first);
   }
 
   void concatenate(const Node& n) {
@@ -48,21 +101,24 @@ public:
     Fragment first = Stack.top();
     Stack.pop();
     if (first.OutList.empty()) {
-      boost::add_edge(first.In, second.In, *Fsm);
+      patch(first.InList, second.InList, *Fsm);
     }
     else {
-      for (std::vector< DynamicFSM::vertex_descriptor >::const_iterator out(first.OutList.begin()); out != first.OutList.end(); ++out) {
-        boost::add_edge(*out, second.In, *Fsm);
-      }
+      patch(first.OutList, second.InList, *Fsm);
     }
-    Stack.push(Fragment(first.In, n, second.OutList));
+    Stack.push(Fragment(first.InList, n, second.OutList));
   }
 
   void finish(const Node&) {
-    while (!Stack.empty()) {
+    if (1 == Stack.size()) {
       Fragment path = Stack.top();
       Stack.pop();
-      boost::add_edge(0, path.In, *Fsm);
+      VList src;
+      src.push_back(0);
+      patch(src, path.InList, *Fsm);
+    }
+    else {
+      THROW_RUNTIME_ERROR_WITH_OUTPUT("Final parse stack size should be 1, was " << Stack.size());
     }
   }
 
@@ -73,36 +129,47 @@ private:
   std::stack< Fragment > Stack;
 };
 
-void Parser::callback(const std::string&, Node n) {
+void Parser::callback(const std::string& type, Node n) {
+  // std::cout << type << std::endl;
   switch (n.Type) {
-    case ATOM:
-      addAtom(n);
+    case REGEXP:
+      finish(n);
+      break;
+    case ALTERNATION:
+      alternate(n);
       break;
     case CONCATENATION:
       concatenate(n);
       break;
-    case REGEXP:
-      finish(n);
+    case ATOM:
+      addAtom(n);
       break;
     default:
       break;
   }
 }
 
-SCOPE_TEST(parserText) {
-  SyntaxTree tree;
-  SCOPE_ASSERT(parse("dude|sweet", tree, &parseOutput));
-  SCOPE_ASSERT_EQUAL(18u, tree.Store.size());
-}
-
 SCOPE_TEST(parseAorB) {
+  Parser     p;
   SyntaxTree tree;
-  SCOPE_ASSERT(parse("a|b", tree, &parseOutput));
+  DynamicFSM& fsm(*p.getFsm());
+  SCOPE_ASSERT(parse("a|b", tree, boost::bind(&Parser::callback, &p, _1, _2)));
+  SCOPE_ASSERT_EQUAL(3u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
 }
 
 SCOPE_TEST(parseAorBorC) {
+  Parser     p;
   SyntaxTree tree;
-  SCOPE_ASSERT(parse("a|b|c", tree, &parseOutput));
+  DynamicFSM& fsm(*p.getFsm());
+  SCOPE_ASSERT(parse("a|b|c", tree, boost::bind(&Parser::callback, &p, _1, _2)));
+  SCOPE_ASSERT_EQUAL(4u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(3u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
 }
 
 SCOPE_TEST(parseAB) {
@@ -114,7 +181,6 @@ SCOPE_TEST(parseAB) {
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
-  
 }
 
 // 
