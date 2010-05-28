@@ -7,15 +7,16 @@
 #include "MockCallback.h"
 
 void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, Transition* tPtr) {
-  fsm[boost::add_edge(source, target, fsm).first].reset(tPtr);
+  boost::add_edge(source, target, fsm);
+  fsm[target].reset(tPtr);
 }
 
 SCOPE_TEST(acOrbcProgram) {
   DynamicFSM fsm(4);
-  fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
-  fsm[boost::add_edge(0, 2, fsm).first].reset(new LitState('b'));
-  fsm[boost::add_edge(1, 3, fsm).first].reset(new LitState('c'));
-  fsm[boost::add_edge(2, 3, fsm).first].reset(new LitState('c'));
+  edge(0, 1, fsm, new LitState('a'));
+  edge(0, 2, fsm, new LitState('b'));
+  edge(1, 3, fsm, new LitState('c'));
+  edge(2, 3, fsm, new LitState('c'));
   boost::shared_ptr< std::vector<Instruction> > program = createProgram(fsm);
   
   SCOPE_ASSERT_EQUAL(6u, program->size());
@@ -83,7 +84,7 @@ SCOPE_TEST(simpleCollapse) {
 
 SCOPE_TEST(codeGen2DiscoverVertex) {
   DynamicFSM fsm(2);
-  fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
+  edge(0, 1, fsm, new LitState('a'));
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
   CodeGenVisitor vis(cg);
 
@@ -98,10 +99,10 @@ SCOPE_TEST(codeGen2DiscoverVertex) {
 
 SCOPE_TEST(codeGen2FinishVertex) {
   DynamicFSM fsm(5);
-  fsm[boost::add_edge(0, 1, fsm).first].reset(new LitState('a'));
-  fsm[boost::add_edge(1, 2, fsm).first].reset(new LitState('b'));
-  fsm[boost::add_edge(2, 3, fsm).first].reset(new LitState('c'));
-  fsm[boost::add_edge(2, 4, fsm).first].reset(new LitState('d'));
+  edge(0, 1, fsm, new LitState('a'));
+  edge(1, 2, fsm, new LitState('b'));
+  edge(2, 3, fsm, new LitState('c'));
+  edge(2, 4, fsm, new LitState('d'));
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
   CodeGenVisitor vis(cg);
 
@@ -255,11 +256,11 @@ SCOPE_TEST(testInitVM) {
 }
 
 SCOPE_TEST(testPivotTransitions) {
-  DynamicFSM fsm(4);
+  DynamicFSM fsm(5);
   edge(0, 1, fsm, new LitState('a', 0));
   edge(0, 2, fsm, new LitState('a', 1));
-  edge(0, 2, fsm, new LitState('z'));
   edge(0, 3, fsm, new LitState('z'));
+  edge(0, 4, fsm, new LitState('z'));
   std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(256u, tbl.size());
   for (uint32 i = 0; i < 256; ++i) {
@@ -270,8 +271,8 @@ SCOPE_TEST(testPivotTransitions) {
     }
     else if (i == 'z') {
       SCOPE_ASSERT_EQUAL(2u, tbl[i].size());
-      SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 2) != tbl[i].end());
       SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 3) != tbl[i].end());
+      SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 4) != tbl[i].end());
     }
     else {
       SCOPE_ASSERT(tbl[i].empty());

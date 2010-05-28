@@ -53,12 +53,13 @@ void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const Dynam
 }
 
 void writeEdge(std::ostream& out, DynamicFSM::edge_descriptor e, const DynamicFSM& graph) {
-  TransitionPtr t(graph[e]);
-  out << "[label=\"" << t->label() << "\"";
+  DynamicFSM::vertex_descriptor t = boost::target(e, graph);
+  TransitionPtr tran(graph[t]);
+  out << "[label=\"" << tran->label() << "\"";
   if (boost::out_degree(boost::source(e, graph), graph) > 1) {
     out << ", style=\"bold\"";
   }
-  if (boost::in_degree(boost::target(e, graph), graph) == 1) {
+  if (boost::in_degree(t, graph) == 1) {
     out << ", arrowhead=\"odot\"";
   }
   out << "]";

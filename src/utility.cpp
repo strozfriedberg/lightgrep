@@ -21,7 +21,7 @@ DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
         bool found = false;
         for (DynamicFSM::out_edge_iterator edgeIt(edgeRange.first); edgeIt != edgeRange.second; ++edgeIt) {
           edgeBits.reset();
-          Transition& trans(*(*g)[*edgeIt]);
+          Transition& trans(*(*g)[boost::target(*edgeIt, *g)]);
           trans.getBits(edgeBits);
           if (charBits == edgeBits && (trans.Label == 0xffffffff || trans.Label == keyIdx)) {
             target = boost::target(*edgeIt, *g);
@@ -34,10 +34,12 @@ DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
           if (i == kw->size() - 1) {
             TransitionPtr t(new LitState(b, keyIdx));
             t->IsMatch = true;
-            (*g)[boost::add_edge(source, target, *g).first] = t;
+            boost::add_edge(source, target, *g);
+            (*g)[target] = t;
           }
           else {
-            (*g)[boost::add_edge(source, target, *g).first].reset(new LitState(b));
+            boost::add_edge(source, target, *g);
+            (*g)[target].reset(new LitState(b));
           }
         }
         source = target;
@@ -93,10 +95,9 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
       continue;
     }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
-    InEdgeRange inRange(in_edges(v, graph));
-    if (inRange.first != inRange.second) {
-      TransitionPtr t(graph[*inRange.first]); // this assumes that all states have the same incoming transitions
-      Instruction i;
+    Instruction i;
+    TransitionPtr t(graph[v]);
+    if (t) {
       t->toInstruction(&i);
       *curOp++ = i;
       // std::cerr << "wrote " << i << std::endl;
@@ -143,7 +144,7 @@ ByteSet firstBytes(const DynamicFSM& graph) {
           tBits;
   for (DynamicFSM::out_edge_iterator curEdge(edgeRange.first); curEdge != edgeRange.second; ++curEdge) {
     tBits.reset();
-    graph[*curEdge]->getBits(tBits);
+    graph[boost::target(*curEdge, graph)]->getBits(tBits);
     ret |= tBits;
   }
   return ret;
@@ -163,8 +164,8 @@ std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicF
   ByteSet permitted;
   for (OutEdgeIt outIt(outRange.first); outIt != outRange.second; ++outIt) {
     permitted.reset();
-    graph[*outIt]->getBits(permitted);
     DynamicFSM::vertex_descriptor t = boost::target(*outIt, graph);
+    graph[t]->getBits(permitted);
     for (uint32 i = 0; i < 256; ++i) {
       if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), t) == ret[i].end()) {
         ret[i].push_back(t);
