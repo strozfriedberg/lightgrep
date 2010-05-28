@@ -44,14 +44,8 @@ void Parser::patch(const VList& sources, const VList& targets, DynamicFSM& fsm) 
   }
 }
 
-void Parser::addAtom(const Node& n) {
-  DynamicFSM& g(*Fsm);
-  DynamicFSM::vertex_descriptor v = boost::add_vertex(g);
-  g[v].reset(new LitState(n.Val));
-  VList in, out;
-  in.push_back(v);
-  out.push_back(v);
-  Stack.push(Fragment(in, n, out));
+void Parser::addAtom(const Node&) {
+  // don't really have to do anything here
 }
 
 void Parser::alternate(const Node& n) {
@@ -77,6 +71,20 @@ void Parser::concatenate(const Node& n) {
     patch(first.OutList, second.InList, *Fsm);
   }
   Stack.push(Fragment(first.InList, n, second.OutList));
+}
+
+void Parser::literal(const Node& n) {
+  DynamicFSM& g(*Fsm);
+  DynamicFSM::vertex_descriptor v = boost::add_vertex(g);
+  g[v].reset(new LitState(n.Val));
+  VList in, out;
+  in.push_back(v);
+  out.push_back(v);
+  Stack.push(Fragment(in, n, out));
+}
+
+void Parser::group(const Node&) {
+  // don't really have to do anything here
 }
 
 void Parser::finish(const Node&) {
@@ -110,6 +118,12 @@ void Parser::callback(const std::string&, Node n) {
       break;
     case ATOM:
       addAtom(n);
+      break;
+    case LITERAL:
+      literal(n);
+      break;
+    case GROUP:
+      group(n);
       break;
     default:
       break;

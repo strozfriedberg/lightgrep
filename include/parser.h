@@ -12,6 +12,7 @@ enum NodeType {
   ALTERNATION,
   CONCATENATION,
   ATOM,
+  GROUP,
   LITERAL
 };
 
@@ -74,6 +75,8 @@ public:
   void addAtom(const Node& n);
   void alternate(const Node& n);
   void concatenate(const Node& n);
+  void literal(const Node& n);
+  void group(const Node& n);
   void finish(const Node&);
 
   DynamicFSMPtr getFsm() const { return Fsm; }
