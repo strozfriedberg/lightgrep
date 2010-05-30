@@ -124,3 +124,22 @@ SCOPE_TEST(parseTwoQuestionMarks) {
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
   SCOPE_ASSERT_EQUAL(3u, boost::in_degree(4, fsm));
 }
+
+SCOPE_TEST(parseQuestionWithAlternation) {
+  Parser      p;
+  SyntaxTree  tree;
+  DynamicFSM& fsm(*p.getFsm());
+  SCOPE_ASSERT(parse("(a|b?)c", tree, boost::bind(&Parser::callback, &p, _1, _2)));
+  SCOPE_ASSERT_EQUAL(4u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(3u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::in_degree(0, fsm));
+  // a
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(1, fsm));
+  // b?
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(2, fsm));
+  // c
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(3u, boost::in_degree(3, fsm));
+}
