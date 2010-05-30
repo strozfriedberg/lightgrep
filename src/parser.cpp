@@ -93,6 +93,7 @@ void Parser::alternate(const Node& n) {
   // std::cout << "alternation, in " << second.InList << ", " << first.InList << ", out " << second.OutList << ", " << first.OutList << std::endl;
   first.merge(second);
   first.N = n;
+  first.Skippable = first.Skippable || second.Skippable;
   Stack.push(first);
 }
 
