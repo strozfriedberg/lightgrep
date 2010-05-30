@@ -96,3 +96,14 @@ SCOPE_FIXTURE_CTOR(abQuestionSearch, STest, STest("ab?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(1u, 1u, 0u), fixture.Hits[1]);
   SCOPE_ASSERT_EQUAL(SearchHit(1u, 2u, 0u), fixture.Hits[2]);
 }
+
+SCOPE_FIXTURE_CTOR(abQcQdSearch, STest, STest("ab?c?d")) {
+  //                               012345678901234
+  const byte* text = (const byte*)"ad abcd abd acd";
+  fixture.Grep.search(text, text+15, 0, fixture);
+  SCOPE_ASSERT_EQUAL(4u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0u, 2u, 0u), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(3u, 4u, 0u), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(8u, 3u, 0u), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(12u, 3u, 0u), fixture.Hits[3]);
+}
