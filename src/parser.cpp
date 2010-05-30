@@ -16,6 +16,11 @@ std::ostream& operator<<(std::ostream& out, const VList& list) {
   return out;
 }
 
+std::ostream& operator<<(std::ostream& out, const Fragment& f) {
+  out << "in " << f.InList << ", out " << f.OutList;
+  return out;
+}
+
 void Fragment::add(DynamicFSM::vertex_descriptor v, VList& list) {
   if (std::find(list.begin(), list.end(), v) == list.end()) {
     list.push_back(v);
@@ -24,24 +29,54 @@ void Fragment::add(DynamicFSM::vertex_descriptor v, VList& list) {
 
 void Fragment::merge(const Fragment& f) {
   // std::cout << "merge in " << InList << ", " << f.InList << ", out " << OutList << ", " << f.OutList << std::endl;
-  for (VList::const_iterator it(f.InList.begin()); it != f.InList.end(); ++it) {
-    add(*it, InList);
-  }
-  for (VList::const_iterator it(f.OutList.begin()); it != f.OutList.end(); ++it) {
-    add(*it, OutList);
-  }
+  mergeLists(InList, f.InList);
+  mergeLists(OutList, f.OutList);
   // std::cout << "merged in " << InList << ", out " << OutList << std::endl;
 }
 
+void Fragment::mergeLists(VList& l1, const VList& l2) {
+  for (VList::const_iterator it(l2.begin()); it != l2.end(); ++it) {
+    add(*it, l1);
+  }
+}
 
-void Parser::patch(const VList& sources, const VList& targets, DynamicFSM& fsm) {
+Parser::Parser()
+{
+  reset();
+}
+
+void Parser::reset() {
+  IsGood = false;
+  Fsm.reset(new DynamicFSM(1));
+  VList first;
+  first.push_back(0);
+  Stack.push(Fragment(first, Node(), first));
+}
+
+void Parser::patch(const VList& sources, const VList& targets) {
   // std::cout << "patch " << sources << "->" << targets << std::endl;
   for (VList::const_iterator srcIt(sources.begin()); srcIt != sources.end(); ++srcIt) {
     for (VList::const_iterator targetIt(targets.begin()); targetIt != targets.end(); ++targetIt) {
       // std::cout << "Making edge (" << *srcIt << ", " << *targetIt << ")" << std::endl;
-      boost::add_edge(*srcIt, *targetIt, fsm);
+      boost::add_edge(*srcIt, *targetIt, *Fsm);
     }
   }
+}
+
+Fragment Parser::patch(const Fragment& first, const Fragment& second, const Node& n) {
+  Fragment ret;
+  ret.N = n;
+  // std::cout << "patching states" << std::endl;
+  const VList* firstList = first.OutList.empty() ? &first.InList: &first.OutList;
+  patch(*firstList, second.InList);
+  ret.InList = first.InList;
+  ret.OutList = second.OutList;
+  if (second.Skippable) {
+    // std::cout << "patching skippable" << std::endl;
+    patch(*firstList, second.OutList);
+    Fragment::mergeLists(ret.OutList, first.OutList);
+  }
+  return ret;
 }
 
 void Parser::addAtom(const Node&) {
@@ -64,13 +99,7 @@ void Parser::concatenate(const Node& n) {
   Stack.pop();
   Fragment first = Stack.top();
   Stack.pop();
-  if (first.OutList.empty()) {
-    patch(first.InList, second.InList, *Fsm);
-  }
-  else {
-    patch(first.OutList, second.InList, *Fsm);
-  }
-  Stack.push(Fragment(first.InList, n, second.OutList));
+  Stack.push(patch(first, second, n));
 }
 
 void Parser::literal(const Node& n) {
@@ -87,25 +116,41 @@ void Parser::group(const Node&) {
   // don't really have to do anything here
 }
 
-void Parser::finish(const Node&) {
-  if (1 == Stack.size()) {
+void Parser::question(const Node&) {
+  Fragment& optional = Stack.top();
+  optional.Skippable = true;
+}
+
+void Parser::finish(const Node& n) {
+  if (2 == Stack.size()) {
     Fragment path = Stack.top();
     Stack.pop();
-    VList src;
-    src.push_back(0);
-    for (VList::const_iterator it(path.OutList.begin()); it != path.OutList.end(); ++it) {
-      // std::cerr << "marking " << *it << " as a match" << std::endl;
-      (*Fsm)[*it]->Label = 0;
+    Fragment start = Stack.top();
+    Stack.pop();
+    Fragment final = patch(start, path, n);    
+    for (VList::const_iterator it(final.OutList.begin()); it != final.OutList.end(); ++it) {
+      // std::cout << "marking " << *it << " as a match" << std::endl;
+      if (0 == *it) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
+        reset();
+        return;
+      }
+      else {
+        (*Fsm)[*it]->Label = 0;
+      }
     }
-    patch(src, path.InList, *Fsm);
+    // std::cout << "final is " << final << std::endl;
+    IsGood = true;
   }
   else {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT("Final parse stack size should be 1, was " << Stack.size());
+    reset();
+    return;
+    // THROW_RUNTIME_ERROR_WITH_OUTPUT("Final parse stack size should be 2, was " << Stack.size());
   }
 }
 
-void Parser::callback(const std::string&, Node n) {
+void Parser::callback(const std::string& type, Node n) {
   // std::cout << type << std::endl;
+  type.size();
   switch (n.Type) {
     case REGEXP:
       finish(n);
@@ -116,16 +161,23 @@ void Parser::callback(const std::string&, Node n) {
     case CONCATENATION:
       concatenate(n);
       break;
+    case GROUP:
+      group(n);
+      break;
+    case QUESTION:
+      question(n);
+      break;
     case ATOM:
       addAtom(n);
       break;
     case LITERAL:
       literal(n);
       break;
-    case GROUP:
-      group(n);
-      break;
     default:
       break;
   }
+  // std::cout << "Stack size is " << Stack.size() << std::endl;
+  // if (Stack.size() > 0) {
+  //   std::cout << "top is " << Stack.top() << std::endl;
+  // }
 }
