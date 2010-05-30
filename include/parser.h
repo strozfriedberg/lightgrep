@@ -11,8 +11,9 @@ enum NodeType {
   REGEXP,
   ALTERNATION,
   CONCATENATION,
-  ATOM,
   GROUP,
+  QUESTION,
+  ATOM,
   LITERAL
 };
 
@@ -44,13 +45,15 @@ typedef std::vector< DynamicFSM::vertex_descriptor > VList;
 std::ostream& operator<<(std::ostream& out, const VList& list);
 
 struct Fragment {
-  Fragment(VList in, const Node& n): InList(in), N(n) {}
-  Fragment(DynamicFSM::vertex_descriptor in, const Node& n): N(n) { InList.push_back(in); }
+  Fragment(): Skippable(false) {}
+  Fragment(VList in, const Node& n): InList(in), N(n), Skippable(false) {}
+  Fragment(DynamicFSM::vertex_descriptor in, const Node& n): N(n), Skippable(false) { InList.push_back(in); }
   Fragment(VList in, const Node& n, const VList& out):
-    InList(in), OutList(out), N(n) {}
+    InList(in), OutList(out), N(n), Skippable(false) {}
 
   std::vector< DynamicFSM::vertex_descriptor > InList, OutList;
   Node N;
+  bool Skippable;
 
   void addToOut(DynamicFSM::vertex_descriptor v) {
     add(v, OutList);
@@ -60,21 +63,29 @@ struct Fragment {
     add(v, InList);
   }
 
-  void add(DynamicFSM::vertex_descriptor v, VList& list);
   void merge(const Fragment& f);
+
+  static void add(DynamicFSM::vertex_descriptor v, VList& list);
+  static void mergeLists(VList& l1, const VList& l2);
 };
 
 class Parser {
 public:
-  Parser(): Fsm(new DynamicFSM(1)) {}
+  Parser();
+
+  bool good() const { return IsGood; }
+  
+  void reset();
 
   void callback(const std::string& type, Node n);
 
-  void patch(const VList& sources, const VList& targets, DynamicFSM& fsm);
+  Fragment patch(const Fragment& first, const Fragment& second, const Node& n);
+  void patch(const VList& sources, const VList& targets);
 
   void addAtom(const Node& n);
   void alternate(const Node& n);
   void concatenate(const Node& n);
+  void question(const Node& n);
   void literal(const Node& n);
   void group(const Node& n);
   void finish(const Node&);
@@ -82,6 +93,7 @@ public:
   DynamicFSMPtr getFsm() const { return Fsm; }
 
 private:
+  bool          IsGood;
   DynamicFSMPtr Fsm;
   std::stack< Fragment > Stack;
 };

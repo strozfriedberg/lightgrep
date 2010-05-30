@@ -4,10 +4,13 @@
 #include "utility.h"
 #include "vm.h"
 
+#include <iostream>
+
 #include <boost/bind.hpp>
 
 struct STest: public HitCallback {
   std::vector< SearchHit > Hits;
+  ProgramPtr Prog;
   Vm Grep;
 
   STest(const std::string& key) {
@@ -15,8 +18,8 @@ struct STest: public HitCallback {
     Parser      p;
     if (parse(key, tree, boost::bind(&Parser::callback, &p, _1, _2))) {
       DynamicFSMPtr fsm = p.getFsm();
-      ProgramPtr prog = createProgram(*fsm);
-      Grep.init(prog, firstBytes(*fsm), 1);
+      Prog = createProgram(*fsm);
+      Grep.init(Prog, firstBytes(*fsm), 1);
     }
     else {
       THROW_RUNTIME_ERROR_WITH_OUTPUT("couldn't parse " << key);
@@ -29,8 +32,8 @@ struct STest: public HitCallback {
       Parser      p;
       if (parse(std::string(keys[i]), tree, boost::bind(&Parser::callback, &p, _1, _2))) {
         DynamicFSMPtr fsm = p.getFsm();
-        ProgramPtr prog = createProgram(*fsm);
-        Grep.init(prog, firstBytes(*fsm), 1);
+        Prog = createProgram(*fsm);
+        Grep.init(Prog, firstBytes(*fsm), 1);
         break;
       }
       else {
@@ -82,4 +85,14 @@ SCOPE_FIXTURE_CTOR(aAndbOrcSearch, STest, STest("a(b|c)")) {
   SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0u, 2u, 0u), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2u, 2u, 0u), fixture.Hits[1]);
+}
+
+SCOPE_FIXTURE_CTOR(abQuestionSearch, STest, STest("ab?")) {
+  const byte* text = (const byte*)"aab";
+  // std::cout << *fixture.Prog;
+  fixture.Grep.search(text, text+3, 0, fixture);
+  SCOPE_ASSERT_EQUAL(3u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0u, 1u, 0u), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1u, 1u, 0u), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1u, 2u, 0u), fixture.Hits[2]);
 }
