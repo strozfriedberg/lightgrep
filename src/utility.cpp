@@ -4,6 +4,10 @@
 
 #include <deque>
 
+#include <boost/bind.hpp>
+#include <boost/graph/graphviz.hpp>
+
+
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
   DynamicFSMPtr g(new DynamicFSM(1));
   uint32 keyIdx = 0;
@@ -173,4 +177,30 @@ std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicF
     }
   }
   return ret;
+}
+
+void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  if (boost::in_degree(v, graph) == 0) {
+    out << "[style=\"filled\", fillcolor=\"lightgreen\"]";
+  }
+  else if (boost::out_degree(v, graph) == 0) {
+    out << "[style=\"filled\", fillcolor=\"tomato\", shape=\"doublecircle\"]";
+  }
+}
+
+void writeEdge(std::ostream& out, DynamicFSM::edge_descriptor e, const DynamicFSM& graph) {
+  DynamicFSM::vertex_descriptor t = boost::target(e, graph);
+  TransitionPtr tran(graph[t]);
+  out << "[label=\"" << tran->label() << "\"";
+  if (boost::out_degree(boost::source(e, graph), graph) > 1) {
+    out << ", style=\"bold\"";
+  }
+  if (boost::in_degree(t, graph) == 1) {
+    out << ", arrowhead=\"odot\"";
+  }
+  out << "]";
+}
+
+void writeGraphviz(std::ostream& out, const DynamicFSM& graph) {
+  boost::write_graphviz(std::cout, graph, boost::bind(&writeVertex, _1, _2, boost::cref(graph)), boost::bind(&writeEdge, _1, _2, boost::cref(graph)));
 }
