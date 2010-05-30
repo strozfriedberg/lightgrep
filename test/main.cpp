@@ -2,8 +2,6 @@
 
 #include <scope/testrunner.h>
 #include <boost/timer.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/bind.hpp>
 #include <fstream>
 
 #include "utility.h"
@@ -43,33 +41,11 @@ bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys)
   }
 }
 
-void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
-  if (boost::in_degree(v, graph) == 0) {
-    out << "[style=\"filled\", fillcolor=\"lightgreen\"]";
-  }
-  else if (boost::out_degree(v, graph) == 0) {
-    out << "[style=\"filled\", fillcolor=\"tomato\", shape=\"doublecircle\"]";
-  }
-}
-
-void writeEdge(std::ostream& out, DynamicFSM::edge_descriptor e, const DynamicFSM& graph) {
-  DynamicFSM::vertex_descriptor t = boost::target(e, graph);
-  TransitionPtr tran(graph[t]);
-  out << "[label=\"" << tran->label() << "\"";
-  if (boost::out_degree(boost::source(e, graph), graph) > 1) {
-    out << ", style=\"bold\"";
-  }
-  if (boost::in_degree(t, graph) == 1) {
-    out << ", arrowhead=\"odot\"";
-  }
-  out << "]";
-}
-
 void writeGraphviz(const std::string& keyFilePath) {
   std::vector<std::string> keys;
   if (readKeyFile(keyFilePath, keys)) {
     DynamicFSMPtr fsm = createDynamicFSM(keys);
-    boost::write_graphviz(std::cout, *fsm, boost::bind(&writeVertex, _1, _2, boost::cref(*fsm)), boost::bind(&writeEdge, _1, _2, boost::cref(*fsm)));
+    writeGraphviz(std::cout, *fsm);
   }
 }
 
