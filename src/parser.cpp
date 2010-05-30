@@ -67,13 +67,15 @@ Fragment Parser::patch(const Fragment& first, const Fragment& second, const Node
   Fragment ret;
   ret.N = n;
   // std::cout << "patching states" << std::endl;
-  const VList* firstList = first.OutList.empty() ? &first.InList: &first.OutList;
-  patch(*firstList, second.InList);
+  patch(first.OutList, second.InList);
   ret.InList = first.InList;
   ret.OutList = second.OutList;
+  if (first.Skippable) {
+    Fragment::mergeLists(ret.InList, second.InList);
+  }
   if (second.Skippable) {
     // std::cout << "patching skippable" << std::endl;
-    patch(*firstList, second.OutList);
+    patch(first.OutList, second.OutList);
     Fragment::mergeLists(ret.OutList, first.OutList);
   }
   return ret;
