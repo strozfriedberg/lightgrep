@@ -86,7 +86,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, Dyn
 
 ProgramPtr createProgram(const DynamicFSM& graph) {
   // std::cerr << "createProgram2" << std::endl;
-  ProgramPtr ret(new std::vector<Instruction>());
+  ProgramPtr ret(new Program);
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(graph)));
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
@@ -202,5 +202,5 @@ void writeEdge(std::ostream& out, DynamicFSM::edge_descriptor e, const DynamicFS
 }
 
 void writeGraphviz(std::ostream& out, const DynamicFSM& graph) {
-  boost::write_graphviz(std::cout, graph, boost::bind(&writeVertex, _1, _2, boost::cref(graph)), boost::bind(&writeEdge, _1, _2, boost::cref(graph)));
+  boost::write_graphviz(out, graph, boost::bind(&writeVertex, _1, _2, boost::cref(graph)), boost::bind(&writeEdge, _1, _2, boost::cref(graph)));
 }
