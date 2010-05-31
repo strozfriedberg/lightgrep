@@ -12,6 +12,7 @@ enum NodeType {
   ALTERNATION,
   CONCATENATION,
   GROUP,
+  PLUS,
   QUESTION,
   ATOM,
   LITERAL
@@ -85,6 +86,7 @@ public:
   void addAtom(const Node& n);
   void alternate(const Node& n);
   void concatenate(const Node& n);
+  void plus(const Node& n);
   void question(const Node& n);
   void literal(const Node& n);
   void group(const Node& n);

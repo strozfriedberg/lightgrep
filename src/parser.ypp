@@ -57,6 +57,10 @@ concat:
 
 rep:
 	atom
+| atom '+'
+	{
+		$$ = add("plus", Node(PLUS, $1, 0, 0));
+	}
 |	atom '?'
 	{
 		$$ = add("question", Node(QUESTION, $1, 0, 0));
@@ -89,6 +93,7 @@ namespace {
 				case '(':
 				case ')':
 				case '?':
+				case '+':
 					return c;
 				default:
 					yylval.c = c;
