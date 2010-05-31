@@ -90,7 +90,7 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(graph)));
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
-  
+  ret->NumChecked = cg->NumChecked;
   ret->resize(cg->Guard);
   for (DynamicFSM::vertex_descriptor v = 0; v < boost::num_vertices(graph); ++v) {
     // std::cerr << "on vertex " << v << " at " << cg->Snippets[v].first << std::endl;
@@ -113,12 +113,21 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
     OutEdgeRange outRange(out_edges(v, graph));
     if (outRange.first != outRange.second) {
       bool hasTargetAtNext = false;
+      DynamicFSM::vertex_descriptor nextTarget = 0;
       for (DynamicFSM::out_edge_iterator cur(outRange.first); cur != outRange.second; ++cur) {
         DynamicFSM::vertex_descriptor curTarget = boost::target(*cur, graph);
         // std::cerr << "targeting " << curTarget << " at " << cg->Snippets[curTarget].first << std::endl;
         if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget]) {
           DynamicFSM::out_edge_iterator next(cur);
           ++next;
+          if (cg->Snippets[curTarget].CheckIndex != UNALLOCATED) {
+            if (next == outRange.second && !hasTargetAtNext) {
+              *curOp++ = Instruction::makeCheckHalt(cg->Snippets[curTarget].CheckIndex);
+            }
+            else {
+              *curOp++ = Instruction::makeCheckBranch(cg->Snippets[curTarget].CheckIndex);
+            }
+          }
           if (next == outRange.second && !hasTargetAtNext) {
             *curOp++ = Instruction::makeJump(cg->Snippets[curTarget].Start);
             // std::cerr << "wrote " << Instruction::makeJump(cg->Snippets[curTarget].first) << std::endl;
@@ -130,8 +139,12 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
         }
         else {
           hasTargetAtNext = true;
+          nextTarget = curTarget;
           // std::cerr << "skipping because it's next" << std::endl;
         }
+      }
+      if (hasTargetAtNext && cg->Snippets[nextTarget].CheckIndex != UNALLOCATED) {
+        *curOp++ = Instruction::makeCheckHalt(cg->Snippets[nextTarget].CheckIndex);
       }
     }
     else {

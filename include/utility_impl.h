@@ -16,32 +16,38 @@ static const uint32 UNALLOCATED = 0xffffffff;
 struct StateLayoutInfo {
   uint32 Start,
          NumEval,
-         NumOther;
+         NumOther,
+         CheckIndex;
 
-  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED) {}
-  StateLayoutInfo(uint32 s, uint32 e, uint32 o): Start(s), NumEval(e), NumOther(o) {}
+  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED), CheckIndex(UNALLOCATED) {}
+  StateLayoutInfo(uint32 s, uint32 e, uint32 o): Start(s), NumEval(e), NumOther(o), CheckIndex(UNALLOCATED) {}
 
   uint32 numTotal() const { return NumEval + NumOther; }
 };
 
 struct CodeGenHelper {
-  CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, UNALLOCATED), Snippets(numStates), Guard(0), NumDiscovered(0) {}
+  CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, UNALLOCATED), Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
 
-  void discover(DynamicFSM::vertex_descriptor v) {
+  void discover(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
     DiscoverRanks[v] = NumDiscovered++;
+    if (boost::in_degree(v, graph) > 1) {
+      Snippets[v].CheckIndex = ++NumChecked;
+    }
   }
 
   void addSnippet(uint32 state, uint32 numEval, uint32 numOther) {
-    StateLayoutInfo info(Guard, numEval, numOther);
-    Snippets[state] = info;
+    StateLayoutInfo& info(Snippets[state]);
+    info.Start = Guard;
+    info.NumEval = numEval;
+    info.NumOther = numOther;
     Guard += info.numTotal();
   }
 
-  std::vector< Instruction > Program;
   std::vector< uint32 > DiscoverRanks;
   std::vector< StateLayoutInfo > Snippets;
   uint32 Guard,
-         NumDiscovered;
+         NumDiscovered,
+         NumChecked;
 };
 
 typedef DynamicFSM::in_edge_iterator InEdgeIt;
@@ -53,8 +59,8 @@ class CodeGenVisitor: public boost::default_bfs_visitor {
 public:
   CodeGenVisitor(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
 
-  void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM&) {
-    Helper->discover(v);
+  void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+    Helper->discover(v, graph);
   }
 
   void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
@@ -85,6 +91,9 @@ public:
       for (OutEdgeIt curOut(outRange.first); curOut != outRange.second; ++curOut) {
         // if a target state immediately follows the current state, then we don't need an instruction for it
         if (Helper->DiscoverRanks[v] + 1 != Helper->DiscoverRanks[target(*curOut, graph)]) {
+          ++outOps;
+        }
+        if (boost::in_degree(target(*curOut, graph), graph) > 1) {
           ++outOps;
         }
       }

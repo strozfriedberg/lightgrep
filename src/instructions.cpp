@@ -46,6 +46,9 @@ std::string Instruction::toString() const {
     case CHECK_BRANCH_OP:
       buf << "CheckBranch 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
+    case CHECK_HALT_OP:
+      buf << "CheckHalt 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
+      break;
     case MATCH_OP:
       buf << "Match " << Op.Offset;
       break;
@@ -123,6 +126,12 @@ Instruction Instruction::makeFork(uint32 index) {
 Instruction Instruction::makeCheckBranch(uint32 checkIndex) {
   Instruction i = makeJump(checkIndex);
   i.OpCode = CHECK_BRANCH_OP;
+  return i;
+}
+
+Instruction Instruction::makeCheckHalt(uint32 checkIndex) {
+  Instruction i = makeJump(checkIndex);
+  i.OpCode = CHECK_HALT_OP;
   return i;
 }
 

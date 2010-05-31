@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+static uint64 UNALLOCATED = 0xffffffffffffffff;
+
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"pc\":" << std::hex << t.PC << ", \"Label\":" << std::dec << t.Label << ", \"Start\":" << t.Start << ", \"End\":"
     << t.End << " }";
@@ -24,7 +26,7 @@ void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates) {
   }
   ++numPatterns;
   Matches.resize(numPatterns);
-  Matches.assign(numPatterns, std::pair<uint64, uint64>(0, 0));
+  Matches.assign(numPatterns, std::pair<uint64, uint64>(UNALLOCATED, 0));
 }
 
 bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
@@ -41,17 +43,26 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
         t.advance();
         next.push_back(t);
       }
+      else {
+        t.PC = 0;
+      }
       break;
     case EITHER_OP:
       if (*cur == t.PC->Op.Range.First || *cur == t.PC->Op.Range.Last) {
         t.advance();
         next.push_back(t);
        }
+       else {
+         t.PC = 0;
+       }
       break;
     case RANGE_OP:
       if (t.PC->Op.Range.First <= *cur && *cur <= t.PC->Op.Range.Last) {
         t.advance();
         next.push_back(t);
+      }
+      else {
+        t.PC = 0;
       }
       break;
     case JUMP_OP:
@@ -60,7 +71,12 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
       return true;
     case JUMP_TABLE_OP:
       nextT.fork(t, t.PC, 1 + *cur);
-      next.push_back(nextT);
+      if (nextT.PC->OpCode != HALT_OP) {
+        next.push_back(nextT);
+      }
+      else {
+        t.PC = 0;
+      }
       break;
     case FORK_OP:
       // std::cerr << "Fork " << t.PC->Op.Offset << std::endl;
@@ -78,6 +94,17 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
       }
       t.advance();
       return true;
+    case CHECK_HALT_OP:
+      if (checkStates[t.PC->Op.Offset]) {
+        t.PC = 0;
+        return false;
+      }
+      else {
+        checkStates[t.PC->Op.Offset] = true;
+        checkStates[0] = true;
+        t.advance();
+        return true;
+      }
     case MATCH_OP:
       // std::cerr << "at " << offset << ", " << *t.PC << std::endl;
       t.Label = t.PC->Op.Offset;
@@ -85,6 +112,7 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
       t.advance();
       return true;
     case HALT_OP:
+      t.PC = 0;
       return false;
   }
   return false;
@@ -117,12 +145,24 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
       }
       t.advance();
       return true;
+    case CHECK_HALT_OP:
+      if (checkStates[t.PC->Op.Offset]) {
+        t.PC = 0;
+        return false;
+      }
+      else {
+        checkStates[t.PC->Op.Offset] = true;
+        checkStates[0] = true;
+        t.advance();
+        return true;
+      }
     case MATCH_OP:
       t.Label = t.PC->Op.Offset;
       t.End = offset;
       t.advance();
       break;
     case HALT_OP:
+      t.PC = 0;
       return false;
   }
   return true;
@@ -132,27 +172,29 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
   const Instruction* base = &(*Prog)[0];
   SearchHit  hit;
   uint64     offset = startOffset;
+  ThreadList::iterator threadIt;
   for (const byte* cur = beg; cur != end; ++cur) {
     // std::cerr << "offset = " << offset << ", " << *cur << std::endl;
     if (First[*cur]) {
       Active.push_back(Thread(base, 0, offset, std::numeric_limits<uint64>::max()));
     }
-    for (ThreadList::iterator threadIt(Active.begin()); threadIt != Active.end(); ++threadIt) {
+    for (uint32 i = 0; i < Active.size(); ++i) {
+      threadIt = &Active[i];
       // std:: cout << i << " threadex " << *threadIt << std::endl;
       while (execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
-      // std::cerr << "finished thread" << std::endl;
+      // std::cerr << "finished " << *threadIt << std::endl;
       if (threadIt->End == offset) {
+        // std::cerr << "had a match" << std::endl;
         std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
-        if (lastHit.second <= threadIt->Start) {
-          if (lastHit.second > 0) {
-            hit.Offset = lastHit.first;
-            hit.Length = lastHit.second - lastHit.first;
-            hit.Label = threadIt->Label;
-            hitFn.collect(hit);
-          }
+        if (lastHit.first == UNALLOCATED || (lastHit.first == threadIt->Start && lastHit.second < threadIt->End)) {
           Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
         }
-        else if (lastHit.first == threadIt->Start && lastHit.second < threadIt->End) {
+        else if (lastHit.second <= threadIt->Start) {
+          hit.Offset = lastHit.first;
+          hit.Length = lastHit.second - lastHit.first;
+          hit.Label = threadIt->Label;
+          hitFn.collect(hit);
+          // std::cerr << "emitting hit " << hit << std::endl;
           Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
         }
       }
@@ -166,31 +208,30 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
   }
   // this flushes out last char matches
   // and leaves us only with comparison instructions (in next)
-  for (ThreadList::iterator threadIt(Active.begin()); threadIt != Active.end(); ++threadIt) {
+  for (uint32 i = 0; i < Active.size(); ++i) {
+    threadIt = &Active[i];
     while (executeEpsilons(base, *threadIt, CheckStates, Active, Next, offset)) ;
     if (threadIt->End == offset) {
       std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
-      if (lastHit.second <= threadIt->Start) {
-        if (lastHit.second > 0) {
-          hit.Offset = lastHit.first;
-          hit.Length = lastHit.second - lastHit.first;
-          hit.Label = threadIt->Label;
-          hitFn.collect(hit);
-        }
+      if (lastHit.first == UNALLOCATED || (lastHit.first == threadIt->Start && lastHit.second < threadIt->End)) {
         Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
       }
-      else if (lastHit.first == threadIt->Start && lastHit.second < threadIt->End) {
+      else if (lastHit.second <= threadIt->Start) {
+        hit.Offset = lastHit.first;
+        hit.Length = lastHit.second - lastHit.first;
+        hit.Label = threadIt->Label;
+        hitFn.collect(hit);
         Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
       }
     }
   }
   for (uint32 i = 0; i < Matches.size(); ++i) {
-    if (Matches[i].second) {
+    if (Matches[i].first < UNALLOCATED) {
       hit.Offset = Matches[i].first;
       hit.Length = Matches[i].second - hit.Offset;
       hit.Label = i;
       hitFn.collect(hit);
-      Matches[i] = std::make_pair(0ul, 0ul);
+      Matches[i] = std::make_pair(UNALLOCATED, 0ul);
     }
   }
   Active.clear();
