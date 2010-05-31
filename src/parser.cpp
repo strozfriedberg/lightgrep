@@ -119,6 +119,12 @@ void Parser::group(const Node&) {
   // don't really have to do anything here
 }
 
+void Parser::plus(const Node& n) {
+  Fragment& repeat = Stack.top();
+  repeat.N = n;
+  patch(repeat.OutList, repeat.InList); // back-edges
+}
+
 void Parser::question(const Node&) {
   Fragment& optional = Stack.top();
   optional.Skippable = true;
@@ -166,6 +172,9 @@ void Parser::callback(const std::string& type, Node n) {
       break;
     case GROUP:
       group(n);
+      break;
+    case PLUS:
+      plus(n);
       break;
     case QUESTION:
       question(n);
