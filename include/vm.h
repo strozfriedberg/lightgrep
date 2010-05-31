@@ -20,9 +20,10 @@ public:
 
 private:
   ByteSet    First;
-  ProgramPtr Program;
+  ProgramPtr Prog;
   ThreadList Active,
              Next;
 
   std::vector<bool> CheckStates;
+  std::vector< std::pair< uint64, uint64 > > Matches;
 };

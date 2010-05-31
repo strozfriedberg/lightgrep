@@ -5,6 +5,7 @@
 #include "vm.h"
 
 #include <iostream>
+#include <cstdlib>
 
 #include <boost/bind.hpp>
 
@@ -91,10 +92,9 @@ SCOPE_FIXTURE_CTOR(abQuestionSearch, STest, STest("ab?")) {
   const byte* text = (const byte*)"aab";
   // std::cout << *fixture.Prog;
   fixture.Grep.search(text, text+3, 0, fixture);
-  SCOPE_ASSERT_EQUAL(3u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0u, 1u, 0u), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1u, 1u, 0u), fixture.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1u, 2u, 0u), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1u, 2u, 0u), fixture.Hits[1]);
 }
 
 SCOPE_FIXTURE_CTOR(abQcQdSearch, STest, STest("ab?c?d")) {
@@ -106,4 +106,15 @@ SCOPE_FIXTURE_CTOR(abQcQdSearch, STest, STest("ab?c?d")) {
   SCOPE_ASSERT_EQUAL(SearchHit(3u, 4u, 0u), fixture.Hits[1]);
   SCOPE_ASSERT_EQUAL(SearchHit(8u, 3u, 0u), fixture.Hits[2]);
   SCOPE_ASSERT_EQUAL(SearchHit(12u, 3u, 0u), fixture.Hits[3]);
+}
+
+SCOPE_FIXTURE_CTOR(aOrbQcSearch, STest, STest("(a|b?)c")) {
+  //                               01234567890
+  const byte* text = (const byte*)"ac bc c abc";
+  fixture.Grep.search(text, text + std::strlen((const char*)text), 0, fixture);
+  SCOPE_ASSERT_EQUAL(4u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(3, 2, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(6, 1, 0), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(9, 2, 0), fixture.Hits[3]);
 }
