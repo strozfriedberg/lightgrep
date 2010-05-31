@@ -3,6 +3,7 @@
 #include "states.h"
 
 #include <deque>
+#include <stack>
 
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -216,4 +217,63 @@ void writeEdge(std::ostream& out, DynamicFSM::edge_descriptor e, const DynamicFS
 
 void writeGraphviz(std::ostream& out, const DynamicFSM& graph) {
   boost::write_graphviz(out, graph, boost::bind(&writeVertex, _1, _2, boost::cref(graph)), boost::bind(&writeEdge, _1, _2, boost::cref(graph)));
+}
+
+void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx) {
+
+  typedef std::pair< DynamicFSM::vertex_descriptor, DynamicFSM::vertex_descriptor > StatePair;
+
+  ByteSet tranBits,
+          edgeBits;
+
+  std::vector< DynamicFSM:: vertex_descriptor > stateMap(boost::num_vertices(addend), UNALLOCATED);
+
+  std::vector< bool >           visited(boost::num_vertices(addend), false);
+  DynamicFSM::vertex_descriptor oldSource,
+                                source,
+                                oldTarget,
+                                target;
+
+  std::stack< StatePair > states;
+  states.push(StatePair(0, 0));
+  while (!states.empty()) {
+    oldSource = states.top().first;
+    source    = states.top().second;
+    states.pop();
+    if (!visited[oldSource]) {
+      visited[oldSource] = true;
+
+      OutEdgeRange  outRange(boost::out_edges(source, fsm)),
+                    oldOutRange(boost::out_edges(oldSource, addend));
+      for (OutEdgeIt e(oldOutRange.first); e != oldOutRange.second; ++e) {
+        oldTarget = boost::target(*e, addend);
+        if (stateMap[oldTarget] == UNALLOCATED) {
+          TransitionPtr tran = fsm[oldTarget];
+          tran->getBits(tranBits);
+
+          bool found = false;
+
+          for (OutEdgeIt curEdge(outRange.first); curEdge != outRange.second; ++curEdge) {
+            target = boost::target(*curEdge, fsm);
+            TransitionPtr edgeTran = fsm[target];
+            edgeTran->getBits(edgeBits);
+            if (edgeBits == tranBits && (edgeTran->Label == UNALLOCATED || edgeTran->Label == keyIdx) && 1 == boost::in_degree(target, fsm)) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            target = boost::add_vertex(fsm);
+            fsm[target] = tran;
+          }
+          stateMap[oldTarget] = target;
+        }
+        else {
+          target = stateMap[oldTarget];
+        }
+        boost::add_edge(source, target, fsm);
+        states.push(StatePair(oldTarget, target));
+      }
+    }
+  }
 }

@@ -297,3 +297,30 @@ SCOPE_TEST(testPivotTransitions) {
     }
   }
 }
+
+SCOPE_TEST(testMerge) {
+  DynamicFSM fsm,
+             key(5);
+
+  // a(b|c)d+
+  edge(0, 1, key, new LitState('a'));
+  edge(1, 2, key, new LitState('b'));
+  edge(1, 3, key, new LitState('c'));
+  edge(2, 4, key, new LitState('d'));
+  edge(3, 4, key, new LitState('d'));
+  edge(4, 4, key, new LitState('d', 2));
+
+  edge(0, 1, fsm, new LitState('a'));
+  edge(1, 2, fsm, new LitState('c'));
+  edge(2, 3, fsm, new LitState('e', 0));
+  edge(0, 4, fsm, new LitState('z'));
+  edge(4, 5, fsm, new LitState('y', 1));
+  mergeIntoFSM(fsm, key, 2);
+  SCOPE_ASSERT_EQUAL(8u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(6, fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(7, fsm));
+  SCOPE_ASSERT_EQUAL(3u, boost::in_degree(7, fsm));
+}
