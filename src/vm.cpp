@@ -9,12 +9,22 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
 }
 
 void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates) {
-  Program = prog;
-  Active.resize(Program->size());
-  Next.resize(Program->size());
+  Prog = prog;
+  Active.resize(Prog->size());
+  Next.resize(Prog->size());
   First = firstBytes;
   CheckStates.resize(numCheckedStates);
   CheckStates.assign(numCheckedStates, false);
+  uint32 numPatterns = 0;
+  Program& p(*Prog);
+  for (uint32 i = 0; i < p.size(); ++i) {
+    if (p[i].OpCode == MATCH_OP && numPatterns < p[i].Op.Offset) {
+      numPatterns = p[i].Op.Offset;
+    }
+  }
+  ++numPatterns;
+  Matches.resize(numPatterns);
+  Matches.assign(numPatterns, std::pair<uint64, uint64>(0, 0));
 }
 
 bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
@@ -119,7 +129,7 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
 }
 
 bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
-  const Instruction* base = &(*Program)[0];
+  const Instruction* base = &(*Prog)[0];
   SearchHit  hit;
   uint64     offset = startOffset;
   for (const byte* cur = beg; cur != end; ++cur) {
@@ -132,10 +142,19 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
       while (execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
       // std::cerr << "finished thread" << std::endl;
       if (threadIt->End == offset) {
-        hit.Offset = threadIt->Start;
-        hit.Length = threadIt->End - threadIt->Start;
-        hit.Label = threadIt->Label;
-        hitFn.collect(hit);
+        std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
+        if (lastHit.second <= threadIt->Start) {
+          if (lastHit.second > 0) {
+            hit.Offset = lastHit.first;
+            hit.Length = lastHit.second - lastHit.first;
+            hit.Label = threadIt->Label;
+            hitFn.collect(hit);
+          }
+          Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+        }
+        else if (lastHit.first == threadIt->Start && lastHit.second < threadIt->End) {
+          Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+        }
       }
     }
     ++offset;
@@ -150,10 +169,28 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
   for (ThreadList::iterator threadIt(Active.begin()); threadIt != Active.end(); ++threadIt) {
     while (executeEpsilons(base, *threadIt, CheckStates, Active, Next, offset)) ;
     if (threadIt->End == offset) {
-      hit.Offset = threadIt->Start;
-      hit.Length = threadIt->End - threadIt->Start;
-      hit.Label = threadIt->Label;
+      std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
+      if (lastHit.second <= threadIt->Start) {
+        if (lastHit.second > 0) {
+          hit.Offset = lastHit.first;
+          hit.Length = lastHit.second - lastHit.first;
+          hit.Label = threadIt->Label;
+          hitFn.collect(hit);
+        }
+        Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+      }
+      else if (lastHit.first == threadIt->Start && lastHit.second < threadIt->End) {
+        Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+      }
+    }
+  }
+  for (uint32 i = 0; i < Matches.size(); ++i) {
+    if (Matches[i].second) {
+      hit.Offset = Matches[i].first;
+      hit.Length = Matches[i].second - hit.Offset;
+      hit.Label = i;
       hitFn.collect(hit);
+      Matches[i] = std::make_pair(0ul, 0ul);
     }
   }
   Active.clear();
