@@ -22,6 +22,7 @@ enum OpCodes {
   JUMP_OP,
   FORK_OP,
   CHECK_BRANCH_OP,
+  CHECK_HALT_OP,
   MATCH_OP,
   HALT_OP,
   ILLEGAL
@@ -61,11 +62,19 @@ struct Instruction {
   static Instruction makeMatch(uint32 label);
   static Instruction makeFork(uint32 index);
   static Instruction makeCheckBranch(uint32 checkIndex);
+  static Instruction makeCheckHalt(uint32 checkIndex);
   static Instruction makeHalt();
 };
 #pragma pack(pop)
 
-typedef std::vector<Instruction> Program;
+class Program: public std::vector<Instruction> {
+public:
+  Program(size_t num, const Instruction& val): std::vector<Instruction>(num, val) {}
+  Program(): std::vector<Instruction>() {}
+
+  uint32  NumChecked;
+};
+
 typedef boost::shared_ptr<Program> ProgramPtr;
 
 std::ostream& operator<<(std::ostream& out, const Instruction& instr);

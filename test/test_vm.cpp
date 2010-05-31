@@ -15,11 +15,13 @@ SCOPE_TEST(executeLit) {
   SCOPE_ASSERT_EQUAL(1u, next.size());
   SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);
   
+  cur.PC = &i;
   next.clear();
   b = 'c';
   SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(0u, next.size());
+  SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
 }
 
 SCOPE_TEST(executeEither) {
@@ -50,7 +52,7 @@ SCOPE_TEST(executeEither) {
   SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(0u, next.size());
-  SCOPE_ASSERT_EQUAL(&i, cur.PC);
+  SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
 }
 
 SCOPE_TEST(executeRange) {
@@ -93,19 +95,27 @@ SCOPE_TEST(executeJump) {
 SCOPE_TEST(executeJumpTable) {
   byte b;
   std::vector<bool> checkStates;
+  Program     prog(257, Instruction::makeHalt());
   Instruction instr = Instruction::makeJumpTable();
   Vm::ThreadList next,
                  active;
+  prog[0] = instr;
+  prog[66] = Instruction::makeJump(258);
   for (uint32 i = 0; i < 256; ++i) {
     b = i;
     next.clear();
     active.clear();
-    Thread cur(&instr, 0, 0, 0);
-    SCOPE_ASSERT(!Vm::execute(&instr, cur, checkStates, active, next, &b, 0));
+    Thread cur(&prog[0], 0, 0, 0);
+    SCOPE_ASSERT(!Vm::execute(&prog[0], cur, checkStates, active, next, &b, 0));
     SCOPE_ASSERT_EQUAL(0u, active.size());
-    SCOPE_ASSERT_EQUAL(1u, next.size());
-    SCOPE_ASSERT_EQUAL(&instr, cur.PC);
-    SCOPE_ASSERT_EQUAL(Thread(&instr + 1 + b, 0, 0, 0), next[0]);
+    if (i == 'A') {
+      SCOPE_ASSERT_EQUAL(1u, next.size());      
+      SCOPE_ASSERT_EQUAL(Thread(&prog[0] + 1 + b, 0, 0, 0), next[0]);
+    }
+    else {
+      SCOPE_ASSERT_EQUAL(0u, next.size());
+      SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
+    }
   }
 }
 
@@ -168,7 +178,7 @@ SCOPE_TEST(executeHalt) {
   SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 317));
   SCOPE_ASSERT_EQUAL(0u, active.size());
   SCOPE_ASSERT_EQUAL(0u, next.size());
-  SCOPE_ASSERT_EQUAL(Thread(&i, 0, 0, 0), cur);
+  SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
 }
 
 SCOPE_TEST(simpleLitMatch) {

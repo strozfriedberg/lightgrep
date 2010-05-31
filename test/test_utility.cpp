@@ -19,13 +19,15 @@ SCOPE_TEST(acOrbcProgram) {
   edge(2, 3, fsm, new LitState('c'));
   boost::shared_ptr< std::vector<Instruction> > program = createProgram(fsm);
   
-  SCOPE_ASSERT_EQUAL(6u, program->size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeFork(4), (*program)[0]);
+  SCOPE_ASSERT_EQUAL(8u, program->size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(5), (*program)[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), (*program)[1]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), (*program)[2]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), (*program)[3]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), (*program)[4]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeJump(2), (*program)[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), (*program)[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), (*program)[3]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), (*program)[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), (*program)[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), (*program)[6]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(3), (*program)[7]);
 }
 
 SCOPE_TEST(keywordLabels) {
@@ -238,6 +240,22 @@ SCOPE_TEST(betterLayout) {
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('t'), prog[16]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(1), prog[17]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[18]);
+}
+
+SCOPE_TEST(generateCheckHalt) {
+  DynamicFSM fsm(2);
+  edge(0, 1, fsm, new LitState('a', 0));
+  edge(1, 1, fsm, new LitState('a', 0));
+  ProgramPtr p = createProgram(fsm);
+  Program& prog(*p);
+  SCOPE_ASSERT_EQUAL(1u, prog.NumChecked);
+  // std::cout << prog;
+  SCOPE_ASSERT_EQUAL(5u, prog.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(0), prog[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[3]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(1), prog[4]);
 }
 
 SCOPE_TEST(testInitVM) {
