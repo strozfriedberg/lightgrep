@@ -23,3 +23,5 @@ boost::shared_ptr<Vm> initVM(const std::vector<std::string>& keywords, SearchInf
 std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicFSM::vertex_descriptor source, const DynamicFSM& graph);
 
 void writeGraphviz(std::ostream& out, const DynamicFSM& graph);
+
+void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx);
