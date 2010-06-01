@@ -3,6 +3,7 @@
 #include "instructions.h"
 
 #include <sstream>
+#include <cctype>
 
 bool   LitState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeLit(Lit);
@@ -45,12 +46,20 @@ bool   RangeState::toInstruction(Instruction* addr) const {
 }
 
 std::string RangeState::label() const {
-  std::string ret;
-  ret += '[';
-  ret += First;
-  ret += '-';
-  ret += Last;
-  ret += ']';
-  ret += printLabel(*this);
-  return ret;
+  std::stringstream buf;
+  if (std::isalnum(First)) {
+    buf << First;
+  }
+  else {
+    buf << (uint32)First;
+  }
+  buf << '-';
+  if (std::isalnum(First)) {
+    buf << Last;
+  }
+  else {
+    buf << (uint32)Last;
+  }
+  buf << printLabel(*this);
+  return buf.str();
 }

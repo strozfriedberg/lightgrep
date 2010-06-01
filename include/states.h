@@ -68,7 +68,7 @@ public:
 
   const byte* allowed(const byte* beg, const byte*) const { return First <= *beg && *beg <= Last ? beg+1: beg; }
 
-  void getBits(std::bitset<256>& bits) const { for (byte i = First; i <= Last; ++i) { bits.set(i); }; }
+  void getBits(std::bitset<256>& bits) const { for (uint32 i = First; i <= Last; ++i) { bits.set(i); }; }
 
   size_t objSize() const { return sizeof(*this); }
 

@@ -83,6 +83,10 @@ literal:
 	{
 		$$ = add("literal", Node(LITERAL, 0, 0, $1));
 	}
+|	'.'
+	{
+		$$ = add("dot", Node(DOT, 0, 0, '.'));
+	}
 
 %%
 
@@ -99,6 +103,7 @@ namespace {
 				case '?':
 				case '+':
 				case '*':
+				case '.':
 					return c;
 				default:
 					yylval.c = c;
