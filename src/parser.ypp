@@ -83,6 +83,13 @@ literal:
 	{
 		$$ = add("literal", Node(LITERAL, 0, 0, $1));
 	}
+| '#'
+	{
+		Node n;
+		n.Type = CHAR_CLASS;
+		n.range('0', '9');
+		$$ = add("class", n);
+	}
 |	'.'
 	{
 		$$ = add("dot", Node(DOT, 0, 0, '.'));
@@ -104,6 +111,7 @@ namespace {
 				case '+':
 				case '*':
 				case '.':
+				case '#':
 					return c;
 				default:
 					yylval.c = c;

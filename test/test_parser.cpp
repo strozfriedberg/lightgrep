@@ -185,3 +185,20 @@ SCOPE_TEST(parseDot) {
   fsm[1]->getBits(set);
   SCOPE_ASSERT_EQUAL(256u, set.count());
 }
+
+SCOPE_TEST(parsePound) {
+  Parser      p;
+  SyntaxTree  tree;
+  DynamicFSM& fsm(*p.getFsm());
+  SCOPE_ASSERT(parse("#", tree, boost::bind(&Parser::callback, &p, _1, _2)));
+  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  ByteSet set;
+  set.reset();
+  fsm[1]->getBits(set);
+  SCOPE_ASSERT_EQUAL(10u, set.count());
+  for (byte b = '0'; b <= '9'; ++b) {
+    SCOPE_ASSERT(set[b]);
+  }
+}
