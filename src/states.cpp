@@ -31,13 +31,21 @@ bool   EitherState::toInstruction(Instruction* addr) const {
 }
 
 std::string EitherState::label() const {
-  std::string ret;
-  ret += '[';
-  ret += Lit1;
-  ret += Lit2;
-  ret += ']';
-  ret += printLabel(*this);
-  return ret;
+  std::stringstream buf;
+  if (std::isalnum(Lit1)) {
+    buf << Lit1;
+  }
+  else {
+    buf << (uint32)Lit1;
+  }
+  if (std::isalnum(Lit2)) {
+    buf << Lit2;
+  }
+  else {
+    buf << (uint32)Lit2;
+  }
+  buf << printLabel(*this);
+  return buf.str();
 }
 
 bool   RangeState::toInstruction(Instruction* addr) const {
