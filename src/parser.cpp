@@ -120,6 +120,11 @@ void Parser::group(const Node&) {
   // don't really have to do anything here
 }
 
+void Parser::star(const Node& n) {
+  plus(n);
+  question(n);
+}
+
 void Parser::plus(const Node& n) {
   Fragment& repeat = Stack.top();
   repeat.N = n;
@@ -173,6 +178,9 @@ void Parser::callback(const std::string& type, Node n) {
       break;
     case GROUP:
       group(n);
+      break;
+    case STAR:
+      star(n);
       break;
     case PLUS:
       plus(n);
