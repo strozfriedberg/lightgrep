@@ -13,8 +13,17 @@ SyntaxTree* Tree;
 
 boost::function< void(std::string, Node) > Callback;
 
+std::string MyTextLabel("");
+std::stringstream MyBuf;
+
 	Node* add(const char* type, const Node& n) {
-		Callback(type, n);
+		if (!MyTextLabel.empty()) {
+			Callback(MyTextLabel, n);
+			MyTextLabel.clear();
+		}
+		else {
+			Callback(type, n);
+		}
 		return Tree->add(n);
 	}
 }
@@ -97,6 +106,9 @@ literal:
 	}
 	| '[' '^' charclass ']'
 		{
+			MyTextLabel = "^";
+			MyTextLabel += MyBuf.str();
+			MyBuf.str("");
 			Node n;
 			n.Type = CHAR_CLASS;
 			n.Bits = ~$3->Bits;
@@ -104,6 +116,8 @@ literal:
 		}
 | '[' charclass ']'
 	{
+		MyTextLabel = MyBuf.str();
+		MyBuf.str("");
 		Node n;
 		n.Type = CHAR_CLASS;
 		n.Bits = $2->Bits;
@@ -114,36 +128,42 @@ literal:
 charclass:
 	'#' charclass
 	{
+		MyBuf << '#';
 		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
 		$$->Bits = $2->Bits;
 		$$->range('0', '9');
 	}
 | CHAR '-' CHAR charclass
 	{
+		MyBuf << $1 << "-" << $3;
 		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
 		$$->Bits = $4->Bits;
 		$$->range($1, $3);
 	}
 | CHAR charclass
 	{
+		MyBuf << $1;
 		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
 		$$->Bits = $2->Bits;
 		$$->Bits.set($1);
 	}
 | CHAR '-' CHAR
 	{
+		MyBuf << $1 << "-" << $3;
 		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
 		$$->Bits.reset();
 		$$->range($1, $3);
 	}
 |	'#'
 	{
+		MyBuf << '#';
 		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
 		$$->Bits.reset();
 		$$->range('0', '9');
 	}
 |	CHAR
 	{
+		MyBuf << $1;
 		$$ = add("ignore", Node(IGNORE, 0, 0, $1));
 	}
 ;

@@ -287,29 +287,33 @@ void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx) {
 }
 
 void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  std::string l;
+  if (v != 0) {
+    l = graph[v]->label();
+  }
   if (boost::in_degree(v, graph) == 0) {
-    out << "[style=\"filled\", fillcolor=\"lightgreen\"]";
+    out << "[label=\"" << l << "\", style=\"filled\", fillcolor=\"lightgreen\"]";
   }
   else if (boost::out_degree(v, graph) == 0) {
-    out << "[style=\"filled\", fillcolor=\"tomato\", shape=\"doublecircle\"]";
+    out << "[label=\"" << l << "\", style=\"filled\", fillcolor=\"tomato\", shape=\"doublecircle\"]";
   }
   else if (graph[v]->Label < 0xffffffff) {
-    out << "[shape=\"doublecircle\"]";
+    out << "[label=\"" << l << "\", shape=\"doublecircle\"]";
+  }
+  else {
+    out << "[label=\"" << l << "\"]";
   }
 }
 
 void writeEdge(std::ostream& out, DynamicFSM::edge_descriptor e, const DynamicFSM& graph) {
   // std::cerr << "edge (" << boost::source(e, graph) << ", " << boost::target(e, graph) << ")" << std::endl;
-  DynamicFSM::vertex_descriptor t = boost::target(e, graph);
-  TransitionPtr tran(graph[t]);
-  out << "[label=\"" << tran->label() << "\"";
-  if (boost::out_degree(boost::source(e, graph), graph) > 1) {
-    out << ", style=\"bold\"";
-  }
-  if (boost::in_degree(t, graph) == 1) {
-    out << ", arrowhead=\"odot\"";
-  }
-  out << "]";
+  // DynamicFSM::vertex_descriptor t = boost::target(e, graph);
+  // if (boost::out_degree(boost::source(e, graph), graph) > 1) {
+  //   out << "[style=\"bold\"]";
+  // }
+  // if (boost::in_degree(t, graph) == 1) {
+  //   out << "[arrowhead=\"odot\"]";
+  // }
 }
 
 void writeGraphviz(std::ostream& out, const DynamicFSM& graph) {

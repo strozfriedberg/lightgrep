@@ -86,7 +86,7 @@ private:
 
 class CharClassState: public Transition {
 public:
-  CharClassState(ByteSet allowed): Allowed(allowed) {}
+  CharClassState(ByteSet allowed, const std::string& text): Label(text), Allowed(allowed)  {}
 
   const byte* allowed(const byte* beg, const byte*) const { return Allowed[*beg] ? beg+1: beg; }
 
@@ -95,13 +95,14 @@ public:
   size_t objSize() const { return sizeof(*this); }
 
   CharClassState* clone(void* buffer) const {
-    return new(buffer) CharClassState(Allowed);
+    return new(buffer) CharClassState(Allowed, Label);
   }
 
   virtual size_t numInstructions() const { return 9; }
   virtual bool   toInstruction(Instruction* addr) const;
   virtual std::string label() const;
 
-  ByteSet Allowed;
+  std::string Label;
+  ByteSet     Allowed;
 };
 #pragma pack(pop)
