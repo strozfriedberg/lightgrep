@@ -11,6 +11,7 @@
 
 struct STest: public HitCallback {
   std::vector< SearchHit > Hits;
+  DynamicFSMPtr Fsm;
   ProgramPtr Prog;
   Vm Grep;
 
@@ -18,29 +19,37 @@ struct STest: public HitCallback {
     SyntaxTree  tree;
     Parser      p;
     if (parse(key, tree, boost::bind(&Parser::callback, &p, _1, _2))) {
-      DynamicFSMPtr fsm = p.getFsm();
-      Prog = createProgram(*fsm);
-      Grep.init(Prog, firstBytes(*fsm), 1);
+      Fsm = p.getFsm();
+      Prog = createProgram(*Fsm);
+      Grep.init(Prog, firstBytes(*Fsm), 1);
     }
     else {
       THROW_RUNTIME_ERROR_WITH_OUTPUT("couldn't parse " << key);
     }
   }
 
-  STest(uint32 num, const char* keys[]) {
+  STest(uint32 num, const char** keys) {
+    Fsm.reset();
     for (uint32 i = 0; i < num; ++i) {
       SyntaxTree  tree;
       Parser      p;
+      p.setCurLabel(i);
       if (parse(std::string(keys[i]), tree, boost::bind(&Parser::callback, &p, _1, _2))) {
-        DynamicFSMPtr fsm = p.getFsm();
-        Prog = createProgram(*fsm);
-        Grep.init(Prog, firstBytes(*fsm), 1);
-        break;
+        // writeGraphviz(std::cout, *p.getFsm());
+        if (Fsm) {
+          mergeIntoFSM(*Fsm, *p.getFsm(), i);
+          // writeGraphviz(std::cout, *Fsm);
+        }
+        else {
+          Fsm = p.getFsm();
+        }
       }
       else {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("couldn't parse keys[" << i << "], " << keys[i]);
       }
     }
+    Prog = createProgram(*Fsm);
+    Grep.init(Prog, firstBytes(*Fsm), 1);
   }
   
   virtual void collect(const SearchHit& hit) {
@@ -125,4 +134,12 @@ SCOPE_FIXTURE_CTOR(aOrbPlusSearch, STest, STest("(a|b)+")) {
   fixture.Grep.search(text, text+10, 0, fixture);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(1, 8, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest(4, (const char*[]){"a(b|c)a", "ac+", "ab?a", "two"})) { //
+  // writeGraphviz(std::cout, *fixture.Fsm);
+  //                               01234567890123
+  const byte* text = (const byte*)"aba aa aca two";
+  fixture.Grep.search(text, text + 14, 0, fixture);
+  SCOPE_ASSERT_EQUAL(6u, fixture.Hits.size());
 }

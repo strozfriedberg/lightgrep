@@ -2,14 +2,25 @@
 
 #include "instructions.h"
 
+#include <sstream>
+
 bool   LitState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeLit(Lit);
   return true;
 }
 
+std::string printLabel(const Transition& t) {
+  std::stringstream buf;
+  if (t.Label != 0xffffffff) {
+    buf << "/" << t.Label;
+  }
+  return buf.str();
+}
+
 std::string LitState::label() const {
   std::string ret;
   ret += Lit;
+  ret += printLabel(*this);
   return ret;
 }
 
@@ -24,6 +35,7 @@ std::string EitherState::label() const {
   ret += Lit1;
   ret += Lit2;
   ret += ']';
+  ret += printLabel(*this);
   return ret;
 }
 
@@ -39,5 +51,6 @@ std::string RangeState::label() const {
   ret += '-';
   ret += Last;
   ret += ']';
+  ret += printLabel(*this);
   return ret;
 }
