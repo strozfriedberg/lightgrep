@@ -11,7 +11,7 @@
 #include <boost/graph/graphviz.hpp>
 
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
-  std::cerr << "createDynamicFSM" << std::endl;
+  // std::cerr << "createDynamicFSM" << std::endl;
   DynamicFSMPtr ret;
   uint32 keyIdx = 0;
   for (uint32 i = 0; i < keywords.size(); ++i) {
