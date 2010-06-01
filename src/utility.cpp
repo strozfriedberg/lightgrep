@@ -2,58 +2,86 @@
 
 #include "states.h"
 
+#include "parser.h"
+
 #include <deque>
 #include <stack>
 
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
-  DynamicFSMPtr g(new DynamicFSM(1));
+  std::cerr << "createDynamicFSM" << std::endl;
+  DynamicFSMPtr ret;
   uint32 keyIdx = 0;
-  ByteSet charBits,
-          edgeBits;
-  for (std::vector<std::string>::const_iterator kw(keywords.begin()); kw != keywords.end(); ++kw) {
-    if (!kw->empty()) {
-      DynamicFSM::vertex_descriptor source = 0;
-      for (uint32 i = 0; i < kw->size(); ++i) {
-        byte b = (*kw)[i];
-        charBits.reset();
-        charBits.set(b);
-        std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> edgeRange(boost::out_edges(source, *g));
-        DynamicFSM::vertex_descriptor target;
-        bool found = false;
-        for (DynamicFSM::out_edge_iterator edgeIt(edgeRange.first); edgeIt != edgeRange.second; ++edgeIt) {
-          edgeBits.reset();
-          Transition& trans(*(*g)[boost::target(*edgeIt, *g)]);
-          trans.getBits(edgeBits);
-          if (charBits == edgeBits && (trans.Label == 0xffffffff || trans.Label == keyIdx)) {
-            target = boost::target(*edgeIt, *g);
-            found = true;
-            break;
-          }
+  for (uint32 i = 0; i < keywords.size(); ++i) {
+    std::string kw = keywords[i];
+    if (!kw.empty()) {
+      Parser      p;
+      SyntaxTree  tree;
+      p.setCurLabel(keyIdx);
+      if (parse(kw, tree, boost::bind(&Parser::callback, &p, _1, _2))) {
+        if (ret) {
+          mergeIntoFSM(*ret, *p.getFsm(), keyIdx);
         }
-        if (!found) {
-          target = boost::add_vertex(*g);
-          if (i == kw->size() - 1) {
-            TransitionPtr t(new LitState(b, keyIdx));
-            t->IsMatch = true;
-            boost::add_edge(source, target, *g);
-            (*g)[target] = t;
-          }
-          else {
-            boost::add_edge(source, target, *g);
-            (*g)[target].reset(new LitState(b));
-          }
+        else {
+          ret = p.getFsm();
         }
-        source = target;
+        ++keyIdx;
       }
-      ++keyIdx;
+      else {
+        std::cerr << "Could not parse " << kw << std::endl;
+      }
     }
   }
-  return g;
+  return ret;
 }
+
+  // DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
+  // DynamicFSMPtr g(new DynamicFSM(1));
+  // uint32 keyIdx = 0;
+  // ByteSet charBits,
+  //         edgeBits;
+  // for (std::vector<std::string>::const_iterator kw(keywords.begin()); kw != keywords.end(); ++kw) {
+  //   if (!kw->empty()) {
+  //     DynamicFSM::vertex_descriptor source = 0;
+  //     for (uint32 i = 0; i < kw->size(); ++i) {
+  //       byte b = (*kw)[i];
+  //       charBits.reset();
+  //       charBits.set(b);
+  //       std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> edgeRange(boost::out_edges(source, *g));
+  //       DynamicFSM::vertex_descriptor target;
+  //       bool found = false;
+  //       for (DynamicFSM::out_edge_iterator edgeIt(edgeRange.first); edgeIt != edgeRange.second; ++edgeIt) {
+  //         edgeBits.reset();
+  //         Transition& trans(*(*g)[boost::target(*edgeIt, *g)]);
+  //         trans.getBits(edgeBits);
+  //         if (charBits == edgeBits && (trans.Label == 0xffffffff || trans.Label == keyIdx)) {
+  //           target = boost::target(*edgeIt, *g);
+  //           found = true;
+  //           break;
+  //         }
+  //       }
+  //       if (!found) {
+  //         target = boost::add_vertex(*g);
+  //         if (i == kw->size() - 1) {
+  //           TransitionPtr t(new LitState(b, keyIdx));
+  //           t->IsMatch = true;
+  //           boost::add_edge(source, target, *g);
+  //           (*g)[target] = t;
+  //         }
+  //         else {
+  //           boost::add_edge(source, target, *g);
+  //           (*g)[target].reset(new LitState(b));
+  //         }
+  //       }
+  //       source = target;
+  //     }
+  //     ++keyIdx;
+  //   }
+  // }
+  // return g;
+  // }
 
 // need a two-pass to get it to work with the bgl visitors
 //  discover_vertex: determine slot
