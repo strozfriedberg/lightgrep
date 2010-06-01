@@ -232,3 +232,23 @@ SCOPE_TEST(parseHexDotPlus) {
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::in_degree(4, fsm));
 }
+
+SCOPE_TEST(parseSimpleCharClass) {
+  Parser      p;
+  SyntaxTree  tree;
+  DynamicFSM& fsm(*p.getFsm());
+  SCOPE_ASSERT(parse("[AaBb]", tree, boost::bind(&Parser::callback, &p, _1, _2)));
+  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  ByteSet expected,
+          actual;
+  expected.reset();
+  actual.reset();
+  expected.set('A');
+  expected.set('a');
+  expected.set('B');
+  expected.set('b');
+  fsm[1]->getBits(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}

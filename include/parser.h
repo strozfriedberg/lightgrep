@@ -18,7 +18,8 @@ enum NodeType {
   ATOM,
   DOT,
   CHAR_CLASS,
-  LITERAL
+  LITERAL,
+  IGNORE
 };
 
 struct Node {

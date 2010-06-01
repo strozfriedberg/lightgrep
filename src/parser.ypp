@@ -28,7 +28,7 @@ boost::function< void(std::string, Node) > Callback;
 
 %token <c> CHAR
 
-%type <node> regexp alt concat rep atom literal
+%type <node> regexp alt concat rep atom literal charclass
 
 %start regexp
 
@@ -94,6 +94,26 @@ literal:
 	{
 		$$ = add("dot", Node(DOT, 0, 0, '.'));
 	}
+| '[' charclass ']'
+	{
+		Node n;
+		n.Type = CHAR_CLASS;
+		n.Bits = $2->Bits;
+		$$ = add("class", n);
+	}
+
+charclass:
+	CHAR
+	{
+		$$ = add("ignore", Node(IGNORE, 0, 0, $1));
+	}
+| charclass CHAR
+	{
+		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
+		$$->Bits = $1->Bits;
+		$$->Bits.set($2);
+	}
+;
 
 %%
 
@@ -179,6 +199,8 @@ namespace {
 				case '*':
 				case '.':
 				case '#':
+				case '[':
+				case ']':
 					return c;
 				case '\\':
 					return consumeEscape();
