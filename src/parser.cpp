@@ -166,6 +166,9 @@ void Parser::charClass(const Node& n) {
   if (num == n.Bits.count()) {
     (*Fsm)[v].reset(new RangeState(first, last));
   }
+  else {
+    (*Fsm)[v].reset(new CharClassState(n.Bits));
+  }
   VList in, out;
   in.push_back(v);
   out.push_back(v);
