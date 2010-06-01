@@ -77,7 +77,8 @@ public:
       Helper->addSnippet(v, 0, 257 + sizeIndirectTables);
       return;
     }
-    uint32 labels = 0;
+    uint32 labels = 0,
+           eval   = (v == 0 ? 0: graph[v]->numInstructions());
     if (graph[v] && graph[v]->Label < 0xffffffff) {
       ++labels;
     }
@@ -99,7 +100,7 @@ public:
       }
     }
     // std::cerr << "outOps = " << outOps << "; labels = " << labels << "; match = " << isMatch << std::endl;
-    Helper->addSnippet(v, (v == 0 ? 0: 1), outOps + labels);
+    Helper->addSnippet(v, eval, outOps + labels);
     // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
   }
 
