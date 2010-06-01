@@ -67,6 +67,13 @@ SCOPE_TEST(makeRange) {
   SCOPE_EXPECT(Instruction::makeRange('Z', 'A'), std::range_error);
 }
 
+SCOPE_TEST(makeBitVector) {
+  Instruction i = Instruction::makeBitVector();
+  SCOPE_ASSERT_EQUAL(BIT_VECTOR_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(9u, i.wordSize());
+  SCOPE_ASSERT_EQUAL("BitVector", i.toString());
+}
+
 SCOPE_TEST(makeFork) {
   Instruction i = Instruction::makeFork(1027);
   SCOPE_ASSERT_EQUAL(FORK_OP, i.OpCode);

@@ -18,6 +18,7 @@ enum OpCodes {
   LIT_OP,
   EITHER_OP,
   RANGE_OP,
+  BIT_VECTOR_OP,
   JUMP_TABLE_OP,
   JUMP_OP,
   FORK_OP,
@@ -57,6 +58,7 @@ struct Instruction {
   static Instruction makeLit(byte b);
   static Instruction makeEither(byte one, byte two);
   static Instruction makeRange(byte first, byte last);
+  static Instruction makeBitVector();
   static Instruction makeJump(uint32 relativeOffset);
   static Instruction makeJumpTable();
   static Instruction makeMatch(uint32 label);
