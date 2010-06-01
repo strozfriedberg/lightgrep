@@ -98,38 +98,36 @@ literal:
 %%
 
 namespace {
+	int parseHexChar(int c) {
+		int val = -1;
+		if ('0' <= c && c <= '9') {
+			val = (c - '0');
+		}
+		else if ('a' <= c && c <= 'f') {
+			val = (c - 'a' + 10);
+		}
+		else if ('A' <= c && c <= 'F') {
+			val = (c - 'A' + 10);
+		}
+		return val;
+	}
+
 	int consumeHexCode() {
 		if (Text + 1 < TextEnd) {
 			char one = *Text++,
 					 two = *Text++;
-			int val = 0;
-			if ('0' <= one <= '9') {
-				val += (one - '0');
+			int val = parseHexChar(one),
+					ret;
+			if (val < 0) {
+				return val;
 			}
-			else if ('a' <= one <= 'f') {
-				val += (one - 'a' + 10);
+			ret = val;
+			ret <<= 4;
+			val = parseHexChar(two);
+			if (val < 0) {
+				return val;
 			}
-			else if ('A' <= one <= 'F') {
-				val += (one - 'A' + 10);
-			}
-			else {
-				return -1;
-			}
-			val <<= 4;
-
-			if ('0' <= two <= '9') {
-				val += (two - '0');
-			}
-			else if ('a' <= two <= 'f') {
-				val += (two - 'a' + 10);
-			}
-			else if ('A' <= two <= 'F') {
-				val += (two - 'A' + 10);
-			}
-			else {
-				return -1;
-			}
-			yylval.c = val;
+			yylval.c = ret;
 			return CHAR;
 		}
 		return -1;
