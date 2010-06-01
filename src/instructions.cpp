@@ -34,6 +34,9 @@ std::string Instruction::toString() const {
     case RANGE_OP:
       buf << "Range 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
       break;
+    case BIT_VECTOR_OP:
+      buf << "BitVector";
+      break;
     case JUMP_OP:
       buf << "Jump 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
@@ -88,6 +91,13 @@ Instruction Instruction::makeRange(byte first, byte last) {
   i.Size = 0;
   i.Op.Range.First = first;
   i.Op.Range.Last = last;
+  return i;
+}
+
+Instruction Instruction::makeBitVector() {
+  Instruction i;
+  i.OpCode = BIT_VECTOR_OP;
+  i.Size = 3;
   return i;
 }
 
