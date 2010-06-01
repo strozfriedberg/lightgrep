@@ -97,7 +97,76 @@ literal:
 
 %%
 
-namespace {	
+namespace {
+	int consumeHexCode() {
+		if (Text + 1 < TextEnd) {
+			char one = *Text++,
+					 two = *Text++;
+			int val = 0;
+			if ('0' <= one <= '9') {
+				val += (one - '0');
+			}
+			else if ('a' <= one <= 'f') {
+				val += (one - 'a' + 10);
+			}
+			else if ('A' <= one <= 'F') {
+				val += (one - 'A' + 10);
+			}
+			else {
+				return -1;
+			}
+			val <<= 4;
+
+			if ('0' <= two <= '9') {
+				val += (two - '0');
+			}
+			else if ('a' <= two <= 'f') {
+				val += (two - 'a' + 10);
+			}
+			else if ('A' <= two <= 'F') {
+				val += (two - 'A' + 10);
+			}
+			else {
+				return -1;
+			}
+			yylval.c = val;
+			return CHAR;
+		}
+		return -1;
+	}
+
+	int consumeEscape() {
+		if (Text >= TextEnd) {
+			return -1;
+		}
+		int c = *Text++;
+		switch (c) {
+			case '|':
+			case '(':
+			case ')':
+			case '?':
+			case '+':
+			case '*':
+			case '.':
+			case '#':
+			case '\\':
+				yylval.c = c;
+				return CHAR;
+			case 'n':
+				yylval.c = '\n';
+				return CHAR;
+			case 'r':
+				yylval.c = '\r';
+				return CHAR;
+			case 't':
+				yylval.c = '\t';
+				return CHAR;
+			case 'x':
+				return consumeHexCode();
+		}
+		return -1;
+	}
+
 	int yylex(void) {
 		if (Text < TextEnd) {
 			int c = *Text++;
@@ -113,6 +182,8 @@ namespace {
 				case '.':
 				case '#':
 					return c;
+				case '\\':
+					return consumeEscape();
 				default:
 					yylval.c = c;
 					return CHAR;
