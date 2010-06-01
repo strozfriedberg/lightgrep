@@ -91,3 +91,24 @@ SCOPE_TEST(rangeAccept) {
   testClone(r, &ch);
   SCOPE_ASSERT_EQUAL("0-9", r.label());
 }
+
+SCOPE_TEST(charClassState) {
+  ByteSet set;
+  set.reset();
+  set.set('A');
+  set.set('a');
+  set.set('B');
+  set.set('b');
+  const CharClassState s(set);
+  ByteSet bits;
+  bits.reset();
+  s.getBits(bits);
+  SCOPE_ASSERT_EQUAL(set, bits);
+  SCOPE_ASSERT_EQUAL(9u, s.numInstructions());
+  Program p(9, Instruction::makeHalt());
+  SCOPE_ASSERT(s.toInstruction(&p[0]));
+  SCOPE_ASSERT_EQUAL(Instruction::makeBitVector(), p[0]);
+  ByteSet* setPtr = reinterpret_cast<ByteSet*>(&p[1]);
+  SCOPE_ASSERT_EQUAL(set, *setPtr);
+  SCOPE_ASSERT_EQUAL("0000000000000000000000060000000600000000000000000000000000000000", s.label());
+}
