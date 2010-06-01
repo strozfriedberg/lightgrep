@@ -128,11 +128,10 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
       continue;
     }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
-    Instruction i;
     TransitionPtr t(graph[v]);
     if (t) {
-      t->toInstruction(&i);
-      *curOp++ = i;
+      t->toInstruction(curOp);
+      curOp += t->numInstructions();
       // std::cerr << "wrote " << i << std::endl;
       if (t->Label < 0xffffffff) {
         *curOp++ = Instruction::makeMatch(t->Label); // also problematic

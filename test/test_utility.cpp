@@ -324,3 +324,23 @@ SCOPE_TEST(testMerge) {
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(7, fsm));
   SCOPE_ASSERT_EQUAL(3u, boost::in_degree(7, fsm));
 }
+
+SCOPE_TEST(testBitVectorGeneration) {
+  ByteSet    bits;
+  bits.reset();
+  bits.set('0');
+  bits.set('2');
+  bits.set('4');
+  bits.set('8');
+  DynamicFSM fsm(2);
+  edge(0, 1, fsm, new CharClassState(bits));
+  fsm[1]->Label = 0;
+
+  ProgramPtr p = createProgram(fsm);
+  Program& prog(*p);
+  SCOPE_ASSERT_EQUAL(11u, prog.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeBitVector(), prog[0]);
+  SCOPE_ASSERT_EQUAL(bits, *reinterpret_cast<ByteSet*>(&prog[1]));
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(0), prog[9]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[10]);
+}
