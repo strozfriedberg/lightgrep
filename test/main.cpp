@@ -29,8 +29,8 @@ bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys)
   keys.clear();
   if (keyFile) {
     while (keyFile) {
-      char line[1024];
-      keyFile.getline(line, 1024);
+      char line[8192];
+      keyFile.getline(line, 8192);
       std::string lineS(line);
       if (!lineS.empty()) {
         keys.push_back(lineS);
@@ -53,6 +53,16 @@ void writeGraphviz(const std::string& keyFilePath) {
   }
 }
 
+void writeProgram(const std::string& keyFilePath) {
+  std::vector<std::string> keys;
+  if (readKeyFile(keyFilePath, keys)) {
+    DynamicFSMPtr fsm = createDynamicFSM(keys);
+    ProgramPtr p = createProgram(*fsm);
+    std::cout << p->size() << " instructions" << std::endl;
+    std::cout << *p;
+  }
+}
+
 boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath) {
   std::vector<std::string> keys;
   readKeyFile(keyFilePath, keys);
@@ -71,7 +81,7 @@ boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath) {
   return ret;
 }
 
-static const unsigned int BLOCKSIZE = 1024 * 1024;
+static const unsigned int BLOCKSIZE = 10 * 1024 * 1024;
 
 int main(int argc, char** argv) {
   if (argc > 1) {
@@ -111,6 +121,9 @@ int main(int argc, char** argv) {
     }
     else if (argc > 2 && first == "gv") {
       writeGraphviz(argv[2]);
+    }
+    else if (argc > 2 && first == "prog") {
+      writeProgram(argv[2]);
     }
   }
   return 0;
