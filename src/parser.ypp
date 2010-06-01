@@ -69,6 +69,7 @@ rep:
 	{
 		$$ = add("question", Node(QUESTION, $1, 0, 0));
 	}
+;
 
 atom:
 	'(' alt ')'
@@ -94,6 +95,13 @@ literal:
 	{
 		$$ = add("dot", Node(DOT, 0, 0, '.'));
 	}
+	| '[' '^' charclass ']'
+		{
+			Node n;
+			n.Type = CHAR_CLASS;
+			n.Bits = ~$3->Bits;
+			$$ = add("class", n);
+		}
 | '[' charclass ']'
 	{
 		Node n;
@@ -101,17 +109,42 @@ literal:
 		n.Bits = $2->Bits;
 		$$ = add("class", n);
 	}
+;
 
 charclass:
-	CHAR
-	{
-		$$ = add("ignore", Node(IGNORE, 0, 0, $1));
-	}
-| charclass CHAR
+	'#' charclass
 	{
 		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
-		$$->Bits = $1->Bits;
-		$$->Bits.set($2);
+		$$->Bits = $2->Bits;
+		$$->range('0', '9');
+	}
+| CHAR '-' CHAR charclass
+	{
+		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
+		$$->Bits = $4->Bits;
+		$$->range($1, $3);
+	}
+| CHAR charclass
+	{
+		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
+		$$->Bits = $2->Bits;
+		$$->Bits.set($1);
+	}
+| CHAR '-' CHAR
+	{
+		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
+		$$->Bits.reset();
+		$$->range($1, $3);
+	}
+|	'#'
+	{
+		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
+		$$->Bits.reset();
+		$$->range('0', '9');
+	}
+|	CHAR
+	{
+		$$ = add("ignore", Node(IGNORE, 0, 0, $1));
 	}
 ;
 
@@ -167,6 +200,10 @@ namespace {
 			case '*':
 			case '.':
 			case '#':
+			case '[':
+			case ']':
+			case '^':
+			case '-':
 			case '\\':
 				yylval.c = c;
 				return CHAR;
@@ -201,6 +238,8 @@ namespace {
 				case '#':
 				case '[':
 				case ']':
+				case '^':
+				case '-':
 					return c;
 				case '\\':
 					return consumeEscape();

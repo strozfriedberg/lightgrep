@@ -252,3 +252,58 @@ SCOPE_TEST(parseSimpleCharClass) {
   fsm[1]->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
+
+SCOPE_TEST(parseNegatedClass) {
+  Parser      p;
+  SyntaxTree  tree;
+  DynamicFSM& fsm(*p.getFsm());
+  SCOPE_ASSERT(parse("[^#]", tree, boost::bind(&Parser::callback, &p, _1, _2)));
+  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  ByteSet expected,
+          actual;
+  expected.reset();
+  actual.reset();
+  expected.set('0');
+  expected.set('1');
+  expected.set('2');
+  expected.set('3');
+  expected.set('4');
+  expected.set('5');
+  expected.set('6');
+  expected.set('7');
+  expected.set('8');
+  expected.set('9');
+  expected = ~expected;
+  fsm[1]->getBits(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNegatedRanges) {
+  Parser      p;
+  SyntaxTree  tree;
+  DynamicFSM& fsm(*p.getFsm());
+  SCOPE_ASSERT(parse("[^a-zA-Z0-9]", tree, boost::bind(&Parser::callback, &p, _1, _2)));
+  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  ByteSet expected,
+          actual;
+  expected.reset();
+  actual.reset();
+  for (uint32 i = 0; i < 256; ++i) {
+    if (('a' <= i && i <= 'z')
+      || ('A' <= i && i <= 'Z')
+      || ('0' <= i && i <= '9')) 
+    {
+      expected.set(i, false);
+    }
+    else {
+      expected.set(i, true);
+    }
+  }
+  fsm[1]->getBits(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
