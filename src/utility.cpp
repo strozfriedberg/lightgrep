@@ -193,34 +193,7 @@ std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicF
   return ret;
 }
 
-void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
-  if (boost::in_degree(v, graph) == 0) {
-    out << "[style=\"filled\", fillcolor=\"lightgreen\"]";
-  }
-  else if (boost::out_degree(v, graph) == 0) {
-    out << "[style=\"filled\", fillcolor=\"tomato\", shape=\"doublecircle\"]";
-  }
-}
-
-void writeEdge(std::ostream& out, DynamicFSM::edge_descriptor e, const DynamicFSM& graph) {
-  DynamicFSM::vertex_descriptor t = boost::target(e, graph);
-  TransitionPtr tran(graph[t]);
-  out << "[label=\"" << tran->label() << "\"";
-  if (boost::out_degree(boost::source(e, graph), graph) > 1) {
-    out << ", style=\"bold\"";
-  }
-  if (boost::in_degree(t, graph) == 1) {
-    out << ", arrowhead=\"odot\"";
-  }
-  out << "]";
-}
-
-void writeGraphviz(std::ostream& out, const DynamicFSM& graph) {
-  boost::write_graphviz(out, graph, boost::bind(&writeVertex, _1, _2, boost::cref(graph)), boost::bind(&writeEdge, _1, _2, boost::cref(graph)));
-}
-
 void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx) {
-
   typedef std::pair< DynamicFSM::vertex_descriptor, DynamicFSM::vertex_descriptor > StatePair;
 
   ByteSet tranBits,
@@ -241,6 +214,7 @@ void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx) {
     source    = states.top().second;
     states.pop();
     if (!visited[oldSource]) {
+      // std::cerr << "on state pair " << oldSource << ", " << source << std::endl;
       visited[oldSource] = true;
 
       OutEdgeRange  outRange(boost::out_edges(source, fsm)),
@@ -248,22 +222,28 @@ void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx) {
       for (OutEdgeIt e(oldOutRange.first); e != oldOutRange.second; ++e) {
         oldTarget = boost::target(*e, addend);
         if (stateMap[oldTarget] == UNALLOCATED) {
-          TransitionPtr tran = fsm[oldTarget];
+          TransitionPtr tran = addend[oldTarget];
+          tranBits.reset();
           tran->getBits(tranBits);
+          // std::cerr << "oldTarget = " << oldTarget << " with transition " << tran->label() << std::endl;
 
           bool found = false;
 
           for (OutEdgeIt curEdge(outRange.first); curEdge != outRange.second; ++curEdge) {
             target = boost::target(*curEdge, fsm);
             TransitionPtr edgeTran = fsm[target];
+            edgeBits.reset();
             edgeTran->getBits(edgeBits);
-            if (edgeBits == tranBits && (edgeTran->Label == UNALLOCATED || edgeTran->Label == keyIdx) && 1 == boost::in_degree(target, fsm)) {
+            // std::cerr << "looking at merge state " << target << " with transition " << edgeTran->label() << std::endl;
+            if (edgeBits == tranBits && (edgeTran->Label == UNALLOCATED || edgeTran->Label == keyIdx) && 1 == boost::in_degree(target, fsm) && 2 > boost::in_degree(oldSource, addend) && 2 > boost::in_degree(oldTarget, addend)) {
+              // std::cerr << "found equivalent state " << target << std::endl;
               found = true;
               break;
             }
           }
           if (!found) {
             target = boost::add_vertex(fsm);
+            // std::cerr << "creating new state " << target << std::endl;
             fsm[target] = tran;
           }
           stateMap[oldTarget] = target;
@@ -271,9 +251,54 @@ void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx) {
         else {
           target = stateMap[oldTarget];
         }
+        // std::cerr << "target = " << target << std::endl;
         boost::add_edge(source, target, fsm);
         states.push(StatePair(oldTarget, target));
       }
     }
   }
+}
+
+void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  if (boost::in_degree(v, graph) == 0) {
+    out << "[style=\"filled\", fillcolor=\"lightgreen\"]";
+  }
+  else if (boost::out_degree(v, graph) == 0) {
+    out << "[style=\"filled\", fillcolor=\"tomato\", shape=\"doublecircle\"]";
+  }
+  else if (graph[v]->Label < 0xffffffff) {
+    out << "[shape=\"doublecircle\"]";
+  }
+}
+
+void writeEdge(std::ostream& out, DynamicFSM::edge_descriptor e, const DynamicFSM& graph) {
+  // std::cerr << "edge (" << boost::source(e, graph) << ", " << boost::target(e, graph) << ")" << std::endl;
+  DynamicFSM::vertex_descriptor t = boost::target(e, graph);
+  TransitionPtr tran(graph[t]);
+  out << "[label=\"" << tran->label() << "\"";
+  if (boost::out_degree(boost::source(e, graph), graph) > 1) {
+    out << ", style=\"bold\"";
+  }
+  if (boost::in_degree(t, graph) == 1) {
+    out << ", arrowhead=\"odot\"";
+  }
+  out << "]";
+}
+
+void writeGraphviz(std::ostream& out, const DynamicFSM& graph) {
+  out << "digraph G {" << std::endl;
+  for (uint32 i = 0; i < boost::num_vertices(graph); ++i) {
+    out << i;
+    writeVertex(out, i, graph);
+    out << ";" << std::endl;
+  }
+  for (uint32 i = 0; i < boost::num_vertices(graph); ++i) {
+    OutEdgeRange outRange(boost::out_edges(i, graph));
+    for (OutEdgeIt it(outRange.first); it != outRange.second; ++it) {
+      out << i << "->" << boost::target(*it, graph) << " ";
+      writeEdge(out, *it, graph);
+      out << ";" << std::endl;
+    }
+  }
+  out << "}" << std::endl;
 }

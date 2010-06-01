@@ -4,6 +4,9 @@
 #include <boost/timer.hpp>
 #include <fstream>
 
+#include <boost/graph/graphviz.hpp>
+#include <boost/bind.hpp>
+
 #include "utility.h"
 #include "vm.h"
 

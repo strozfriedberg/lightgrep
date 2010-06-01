@@ -40,7 +40,8 @@ void Fragment::mergeLists(VList& l1, const VList& l2) {
   }
 }
 
-Parser::Parser()
+Parser::Parser():
+  CurLabel(0)
 {
   reset();
 }
@@ -144,7 +145,7 @@ void Parser::finish(const Node& n) {
         return;
       }
       else {
-        (*Fsm)[*it]->Label = 0;
+        (*Fsm)[*it]->Label = CurLabel;
       }
     }
     // std::cout << "final is " << final << std::endl;

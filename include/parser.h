@@ -94,8 +94,11 @@ public:
 
   DynamicFSMPtr getFsm() const { return Fsm; }
 
+  void setCurLabel(uint32 lbl) { CurLabel = lbl; }
+
 private:
   bool          IsGood;
+  uint32        CurLabel;
   DynamicFSMPtr Fsm;
   std::stack< Fragment > Stack;
 };
