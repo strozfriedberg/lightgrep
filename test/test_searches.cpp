@@ -143,3 +143,13 @@ SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest(4, (const char*[]){"a(b|c)a", "a
   fixture.Grep.search(text, text + 14, 0, fixture);
   SCOPE_ASSERT_EQUAL(6u, fixture.Hits.size());
 }
+
+SCOPE_FIXTURE_CTOR(aOrbStarbPlusSearch, STest, STest("(a|b)*b+")) {
+  //                               01234567890
+  const byte* text = (const byte*)" abbaaaba b";
+  // std::cout << *fixture.Prog;
+  fixture.Grep.search(text, text+11, 0, fixture);
+  SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 7, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(10, 1, 0), fixture.Hits[1]);
+}
