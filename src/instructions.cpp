@@ -161,6 +161,13 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
 std::ostream& operator<<(std::ostream& out, const Program& prog) {
   for (uint32 i = 0; i < prog.size(); ++i) {
     out << std::setfill('0') << std::setw(7) << i << '\t' << prog[i] << '\n';
+    if (prog[i].OpCode == BIT_VECTOR_OP) {
+      for (uint32 j = 1; j < 9; ++j) {
+        out << std::dec << std::setfill('0') << std::setw(7) << i + j << '\t' << std::hex << std::setfill('0') << std::setw(8) << *(uint32*)(&prog[i]+j) << '\n';
+      }
+      out << std::dec;
+      i += 8;
+    }
   }
   return out;
 }
