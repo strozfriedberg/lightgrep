@@ -3,6 +3,8 @@
 #include "vm.h"
 #include "MockCallback.h"
 
+#include <iostream>
+
 SCOPE_TEST(executeLit) {
   byte b = 'a';
   std::vector<bool> checkStates;
@@ -130,6 +132,8 @@ SCOPE_TEST(executeBitVector) {
   setPtr->set('a');
   setPtr->set('B');
   setPtr->set('b');
+
+  // std::cout << prog;
 
   std::vector<bool> checkStates;
   Vm::ThreadList  next,
