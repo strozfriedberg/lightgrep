@@ -16,6 +16,7 @@ enum NodeType {
   STAR,
   QUESTION,
   ATOM,
+  DOT,
   LITERAL
 };
 
@@ -92,6 +93,7 @@ public:
   void question(const Node& n);
   void literal(const Node& n);
   void group(const Node& n);
+  void dot(const Node& n);
   void finish(const Node&);
 
   DynamicFSMPtr getFsm() const { return Fsm; }

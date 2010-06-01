@@ -136,6 +136,15 @@ void Parser::question(const Node&) {
   optional.Skippable = true;
 }
 
+void Parser::dot(const Node& n) {
+  DynamicFSM::vertex_descriptor v = boost::add_vertex(*Fsm);
+  (*Fsm)[v].reset(new RangeState(0, 255));
+  VList in, out;
+  in.push_back(v);
+  out.push_back(v);
+  Stack.push(Fragment(in, n, out));
+}
+
 void Parser::finish(const Node& n) {
   if (2 == Stack.size()) {
     Fragment path = Stack.top();
@@ -190,6 +199,9 @@ void Parser::callback(const std::string& type, Node n) {
       break;
     case ATOM:
       addAtom(n);
+      break;
+    case DOT:
+      dot(n);
       break;
     case LITERAL:
       literal(n);

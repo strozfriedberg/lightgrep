@@ -170,3 +170,18 @@ SCOPE_TEST(parseStar) {
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
   SCOPE_ASSERT_EQUAL(2u, boost::in_degree(3, fsm));
 }
+
+SCOPE_TEST(parseDot) {
+  Parser      p;
+  SyntaxTree  tree;
+  DynamicFSM& fsm(*p.getFsm());
+  SCOPE_ASSERT(parse(".+", tree, boost::bind(&Parser::callback, &p, _1, _2)));
+  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(2u, boost::in_degree(1, fsm));
+  ByteSet set;
+  set.reset();
+  fsm[1]->getBits(set);
+  SCOPE_ASSERT_EQUAL(256u, set.count());
+}
