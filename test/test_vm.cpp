@@ -119,6 +119,40 @@ SCOPE_TEST(executeJumpTable) {
   }
 }
 
+SCOPE_TEST(executeBitVector) {
+  SCOPE_ASSERT_EQUAL(32u, sizeof(ByteSet));
+
+  Program prog(9, Instruction::makeHalt());
+  prog[0] = Instruction::makeBitVector();
+  ByteSet *setPtr = reinterpret_cast<ByteSet*>(&prog[1]); // so evil, it hurts
+  setPtr->reset();
+  setPtr->set('A');
+  setPtr->set('a');
+  setPtr->set('B');
+  setPtr->set('b');
+
+  std::vector<bool> checkStates;
+  Vm::ThreadList  next,
+                  active;
+  byte b;
+  for (uint32 i = 0; i < 256; ++i) {
+    b = i;
+    next.clear();
+    active.clear();
+    Thread  cur(&prog[0], 0, 0, 0);
+    SCOPE_ASSERT(!Vm::execute(&prog[0], cur, checkStates, active, next, &b, 0));
+    SCOPE_ASSERT_EQUAL(0u, active.size());
+    if (i == 'A' || i == 'a' || i == 'B' || i == 'b') {
+      SCOPE_ASSERT_EQUAL(1u, next.size());
+      SCOPE_ASSERT_EQUAL(Thread(&prog[9], 0, 0, 0), next[0]);
+    }
+    else {
+      SCOPE_ASSERT_EQUAL(0u, next.size());
+      SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
+    }
+  }
+}
+
 SCOPE_TEST(executeMatch) {
   byte b;
   std::vector<bool> checkStates;

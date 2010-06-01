@@ -72,6 +72,7 @@ SCOPE_TEST(makeBitVector) {
   SCOPE_ASSERT_EQUAL(BIT_VECTOR_OP, i.OpCode);
   SCOPE_ASSERT_EQUAL(9u, i.wordSize());
   SCOPE_ASSERT_EQUAL("BitVector", i.toString());
+  SCOPE_ASSERT_EQUAL(32u, sizeof(ByteSet));
 }
 
 SCOPE_TEST(makeFork) {
