@@ -145,7 +145,7 @@ void Parser::dot(const Node& n) {
   Stack.push(Fragment(in, n, out));
 }
 
-void Parser::charClass(const Node& n) {
+void Parser::charClass(const Node& n, const std::string& lbl) {
   DynamicFSM::vertex_descriptor v = boost::add_vertex(*Fsm);
   uint32 num = 0;
   byte first = 0, last = 0;
@@ -167,7 +167,7 @@ void Parser::charClass(const Node& n) {
     (*Fsm)[v].reset(new RangeState(first, last));
   }
   else {
-    (*Fsm)[v].reset(new CharClassState(n.Bits));
+    (*Fsm)[v].reset(new CharClassState(n.Bits, lbl));
   }
   VList in, out;
   in.push_back(v);
@@ -234,7 +234,7 @@ void Parser::callback(const std::string& type, Node n) {
       dot(n);
       break;
     case CHAR_CLASS:
-      charClass(n);
+      charClass(n, type);
       break;
     case LITERAL:
       literal(n);

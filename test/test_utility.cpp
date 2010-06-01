@@ -333,7 +333,7 @@ SCOPE_TEST(testBitVectorGeneration) {
   bits.set('4');
   bits.set('8');
   DynamicFSM fsm(2);
-  edge(0, 1, fsm, new CharClassState(bits));
+  edge(0, 1, fsm, new CharClassState(bits, "0248"));
   fsm[1]->Label = 0;
 
   ProgramPtr p = createProgram(fsm);

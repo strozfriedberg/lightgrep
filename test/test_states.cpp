@@ -99,7 +99,7 @@ SCOPE_TEST(charClassState) {
   set.set('a');
   set.set('B');
   set.set('b');
-  const CharClassState s(set);
+  const CharClassState s(set, "AaBb");
   ByteSet bits;
   bits.reset();
   s.getBits(bits);
@@ -110,5 +110,5 @@ SCOPE_TEST(charClassState) {
   SCOPE_ASSERT_EQUAL(Instruction::makeBitVector(), p[0]);
   ByteSet* setPtr = reinterpret_cast<ByteSet*>(&p[1]);
   SCOPE_ASSERT_EQUAL(set, *setPtr);
-  SCOPE_ASSERT_EQUAL("0000000000000000000000060000000600000000000000000000000000000000", s.label());
+  SCOPE_ASSERT_EQUAL("AaBb", s.label());
 }

@@ -104,7 +104,7 @@ public:
   void group(const Node& n);
   void dot(const Node& n);
   void finish(const Node&);
-  void charClass(const Node& n);
+  void charClass(const Node& n, const std::string& lbl);
 
   DynamicFSMPtr getFsm() const { return Fsm; }
 
