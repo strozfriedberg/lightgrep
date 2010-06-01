@@ -83,4 +83,25 @@ public:
 private:
   byte First, Last;
 };
+
+class CharClassState: public Transition {
+public:
+  CharClassState(ByteSet allowed): Allowed(allowed) {}
+
+  const byte* allowed(const byte* beg, const byte*) const { return Allowed[*beg] ? beg+1: beg; }
+
+  void getBits(ByteSet& bits) const { bits = Allowed; }
+
+  size_t objSize() const { return sizeof(*this); }
+
+  CharClassState* clone(void* buffer) const {
+    return new(buffer) CharClassState(Allowed);
+  }
+
+  virtual size_t numInstructions() const { return 9; }
+  virtual bool   toInstruction(Instruction* addr) const;
+  virtual std::string label() const;
+
+  ByteSet Allowed;
+};
 #pragma pack(pop)

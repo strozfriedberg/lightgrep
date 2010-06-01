@@ -4,6 +4,7 @@
 
 #include <sstream>
 #include <cctype>
+#include <iomanip>
 
 bool   LitState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeLit(Lit);
@@ -69,5 +70,20 @@ std::string RangeState::label() const {
     buf << (uint32)Last;
   }
   buf << printLabel(*this);
+  return buf.str();
+}
+
+bool   CharClassState::toInstruction(Instruction* addr) const {
+  *addr = Instruction::makeBitVector();
+  ByteSet* setPtr = reinterpret_cast<ByteSet*>(addr+1);
+  *setPtr = Allowed;
+  return true;
+}
+
+std::string CharClassState::label() const {
+  std::stringstream buf;
+  for (uint32 i = 0; i < 8; ++i) {
+    buf << std::hex << std::setfill('0') << std::setw(8) << *((uint32*)(&Allowed)+i);
+  }
   return buf.str();
 }
