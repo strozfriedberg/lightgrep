@@ -145,6 +145,33 @@ void Parser::dot(const Node& n) {
   Stack.push(Fragment(in, n, out));
 }
 
+void Parser::charClass(const Node& n) {
+  DynamicFSM::vertex_descriptor v = boost::add_vertex(*Fsm);
+  uint32 num = 0;
+  byte first = 0, last;
+  for (uint32 i = 0; i < 256; ++i) {
+    if (n.Bits.test(i)) {
+      if (!num) {
+        first = i;
+      }
+      if (++num == n.Bits.count()) {
+        last = i;
+        break;
+      }
+    }
+    else {
+      num = 0;
+    }
+  }
+  if (num == n.Bits.count()) {
+    (*Fsm)[v].reset(new RangeState(first, last));
+  }
+  VList in, out;
+  in.push_back(v);
+  out.push_back(v);
+  Stack.push(Fragment(in, n, out));
+}
+
 void Parser::finish(const Node& n) {
   if (2 == Stack.size()) {
     Fragment path = Stack.top();
@@ -202,6 +229,9 @@ void Parser::callback(const std::string& type, Node n) {
       break;
     case DOT:
       dot(n);
+      break;
+    case CHAR_CLASS:
+      charClass(n);
       break;
     case LITERAL:
       literal(n);

@@ -17,6 +17,7 @@ enum NodeType {
   QUESTION,
   ATOM,
   DOT,
+  CHAR_CLASS,
   LITERAL
 };
 
@@ -25,10 +26,17 @@ struct Node {
   Node      *Left,
             *Right;
   int       Val;
+  ByteSet   Bits;
 
-  Node(): Type(LITERAL), Left(0), Right(0), Val(0) {}
+  Node(): Type(LITERAL), Left(0), Right(0), Val(0) { Bits.reset(); }
 
-  Node(NodeType t, Node* l, Node* r, int v): Type(t), Left(l), Right(r), Val(v) {}
+  Node(NodeType t, Node* l, Node* r, int v): Type(t), Left(l), Right(r), Val(v) { Bits.reset(); Bits.set(Val); }
+
+  void range(byte first, byte last) {
+    for (uint32 i = first; i <= last; ++i) {
+      Bits.set(i);
+    }
+  }
 };
 
 struct SyntaxTree {
@@ -95,6 +103,7 @@ public:
   void group(const Node& n);
   void dot(const Node& n);
   void finish(const Node&);
+  void charClass(const Node& n);
 
   DynamicFSMPtr getFsm() const { return Fsm; }
 
