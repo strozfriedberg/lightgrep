@@ -148,7 +148,7 @@ void Parser::dot(const Node& n) {
 void Parser::charClass(const Node& n) {
   DynamicFSM::vertex_descriptor v = boost::add_vertex(*Fsm);
   uint32 num = 0;
-  byte first = 0, last;
+  byte first = 0, last = 0;
   for (uint32 i = 0; i < 256; ++i) {
     if (n.Bits.test(i)) {
       if (!num) {

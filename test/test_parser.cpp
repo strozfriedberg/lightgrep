@@ -202,3 +202,18 @@ SCOPE_TEST(parsePound) {
     SCOPE_ASSERT(set[b]);
   }
 }
+
+SCOPE_TEST(parseHexCode) {
+  Parser      p;
+  SyntaxTree  tree;
+  DynamicFSM& fsm(*p.getFsm());
+  SCOPE_ASSERT(parse("\\x20", tree, boost::bind(&Parser::callback, &p, _1, _2)));
+  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  ByteSet set;
+  set.reset();
+  fsm[1]->getBits(set);
+  SCOPE_ASSERT_EQUAL(1u, set.count());
+  SCOPE_ASSERT(set[' ']);
+}
