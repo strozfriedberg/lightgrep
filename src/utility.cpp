@@ -102,9 +102,9 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, Dyn
     }
     else {
       *cur++ = Instruction::makeJump(indirectTbl - base);
-      for (std::vector< DynamicFSM::vertex_descriptor >::const_iterator it(tbl[i].begin()); it != tbl[i].end(); ++it) {
-        StateLayoutInfo info = cg->Snippets[*it];
-        *indirectTbl++ = Instruction::makeJump(info.Start + info.NumEval);
+      for (uint32 j = 0; j < tbl[i].size(); ++j) {
+        StateLayoutInfo info = cg->Snippets[tbl[i][j]];
+        *indirectTbl++ = (j + 1 == tbl[i].size() ? Instruction::makeJump(info.Start + info.NumEval): Instruction::makeFork(info.Start + info.NumEval));
       }
     }
   }
