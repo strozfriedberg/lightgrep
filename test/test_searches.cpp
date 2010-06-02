@@ -153,3 +153,10 @@ SCOPE_FIXTURE_CTOR(aOrbStarbPlusSearch, STest, STest("(a|b)*b+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(1, 7, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(10, 1, 0), fixture.Hits[1]);
 }
+
+SCOPE_FIXTURE_CTOR(dotPlusSearch, STest, STest(".+")) {
+  const byte* text = (const byte*)"whatever";
+  fixture.Grep.search(text, text + 8, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 8, 0), fixture.Hits[0]);
+}
