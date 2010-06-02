@@ -29,17 +29,18 @@ void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates) {
   Matches.assign(numPatterns, std::pair<uint64, uint64>(UNALLOCATED, 0));
 }
 
-bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
+inline bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
   // std::string instr;
   // std::cerr << t << std::endl;
   // instr = t.PC->toString(); // for some reason, toString() is corrupting the stack... maybe?
   // std::cerr << instr << std::endl;
   // std::cout << t << ": " << *t.PC << std::endl;
   Thread nextT;
-  switch (t.PC->OpCode) {
+  register Instruction instr = *t.PC;
+  switch (instr.OpCode) {
     case LIT_OP:
       // std::cerr << "Lit " << t.PC->Op.Literal << std::endl;
-      if (*cur == t.PC->Op.Literal) {
+      if (*cur == instr.Op.Literal) {
         t.advance();
         next.push_back(t);
       }
@@ -48,7 +49,7 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
       }
       break;
     case EITHER_OP:
-      if (*cur == t.PC->Op.Range.First || *cur == t.PC->Op.Range.Last) {
+      if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
         t.advance();
         next.push_back(t);
        }
@@ -57,7 +58,7 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
        }
       break;
     case RANGE_OP:
-      if (t.PC->Op.Range.First <= *cur && *cur <= t.PC->Op.Range.Last) {
+      if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         t.advance();
         next.push_back(t);
       }
@@ -88,38 +89,38 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
       break;
     case JUMP_OP:
       // std::cerr << "Jump " << t.PC->Op.Offset << std::endl;
-      t.jump(base, t.PC->Op.Offset);
+      t.jump(base, instr.Op.Offset);
       return true;
     case FORK_OP:
       // std::cerr << "Fork " << t.PC->Op.Offset << std::endl;
-      nextT.fork(t, base, t.PC->Op.Offset);
+      nextT.fork(t, base, instr.Op.Offset);
       active.push_back(nextT);
       t.advance();
       return true;
     case CHECK_BRANCH_OP:
-      if (checkStates[t.PC->Op.Offset]) {
+      if (checkStates[instr.Op.Offset]) {
         t.advance();
       }
       else {
-        checkStates[t.PC->Op.Offset] = true;
+        checkStates[instr.Op.Offset] = true;
         checkStates[0] = true;
       }
       t.advance();
       return true;
     case CHECK_HALT_OP:
-      if (checkStates[t.PC->Op.Offset]) {
+      if (checkStates[instr.Op.Offset]) {
         t.PC = 0;
         return false;
       }
       else {
-        checkStates[t.PC->Op.Offset] = true;
+        checkStates[instr.Op.Offset] = true;
         checkStates[0] = true;
         t.advance();
         return true;
       }
     case MATCH_OP:
       // std::cerr << "at " << offset << ", " << *t.PC << std::endl;
-      t.Label = t.PC->Op.Offset;
+      t.Label = instr.Op.Offset;
       t.End = offset;
       t.advance();
       return true;
@@ -132,7 +133,8 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
 
 bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& checkStates, Vm::ThreadList& active, Vm::ThreadList& next, uint64 offset) {
   Thread f;
-  switch (t.PC->OpCode) {
+  register Instruction instr = *t.PC;
+  switch (instr.OpCode) {
     case LIT_OP:
     case EITHER_OP:
     case RANGE_OP:
@@ -141,36 +143,36 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
       next.push_back(t);
       return false;
     case JUMP_OP:
-      t.jump(base, t.PC->Op.Offset);
+      t.jump(base, instr.Op.Offset);
       break;
     case FORK_OP:
-      f.fork(t, base, t.PC->Op.Offset);
+      f.fork(t, base, instr.Op.Offset);
       active.push_back(f);
       t.advance();
       break;
     case CHECK_BRANCH_OP:
-      if (checkStates[t.PC->Op.Offset]) {
+      if (checkStates[instr.Op.Offset]) {
         t.advance();
       }
       else {
-        checkStates[t.PC->Op.Offset] = true;
+        checkStates[instr.Op.Offset] = true;
         checkStates[0] = true;
       }
       t.advance();
       return true;
     case CHECK_HALT_OP:
-      if (checkStates[t.PC->Op.Offset]) {
+      if (checkStates[instr.Op.Offset]) {
         t.PC = 0;
         return false;
       }
       else {
-        checkStates[t.PC->Op.Offset] = true;
+        checkStates[instr.Op.Offset] = true;
         checkStates[0] = true;
         t.advance();
         return true;
       }
     case MATCH_OP:
-      t.Label = t.PC->Op.Offset;
+      t.Label = instr.Op.Offset;
       t.End = offset;
       t.advance();
       break;
@@ -181,12 +183,12 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
   return true;
 }
 
-bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
+bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   const Instruction* base = &(*Prog)[0];
   SearchHit  hit;
-  uint64     offset = startOffset;
-  ThreadList::iterator threadIt;
-  for (const byte* cur = beg; cur != end; ++cur) {
+  register uint64     offset = startOffset;
+  register ThreadList::iterator threadIt;
+  for (register const byte* cur = beg; cur != end; ++cur) {
     // std::cerr << "offset = " << offset << ", " << *cur << std::endl;
     if (First[*cur]) {
       Active.push_back(Thread(base, 0, offset, std::numeric_limits<uint64>::max()));
