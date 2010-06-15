@@ -75,8 +75,6 @@ Fragment Parser::patch(const Fragment& first, const Fragment& second, const Node
     Fragment::mergeLists(ret.InList, second.InList);
   }
   if (second.Skippable) {
-    // std::cout << "patching skippable" << std::endl;
-    patch(first.OutList, second.OutList);
     Fragment::mergeLists(ret.OutList, first.OutList);
   }
   return ret;
