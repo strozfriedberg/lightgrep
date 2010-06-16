@@ -2,6 +2,7 @@
 
 #include <scope/testrunner.h>
 #include <boost/timer.hpp>
+#include <boost/thread.hpp>
 #include <fstream>
 
 #include <boost/graph/graphviz.hpp>
@@ -83,6 +84,11 @@ boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath) {
 
 static const unsigned int BLOCKSIZE = 10 * 1024 * 1024;
 
+uint64 readNext(ifstream* file, byte* buf) {
+  file->read((char*)buf, BLOCKSIZE);
+  return file->gcount();
+}
+
 int main(int argc, char** argv) {
   if (argc > 1) {
     std::string first(argv[1]);
@@ -92,6 +98,7 @@ int main(int argc, char** argv) {
     else if (argc > 2 && first == "search") {
       std::ifstream file(argv[3], ios::in | ios::binary | ios::ate);
       if (file) {
+        file.rdbuf()->pubsetbuf(0, 0);
         boost::shared_ptr<Vm> search = initSearch(argv[2]);
 
         StdOutHits cb;
@@ -102,14 +109,34 @@ int main(int argc, char** argv) {
         {
           boost::timer searchClock;
           file.seekg(0, ios::beg);
-          while (size > BLOCKSIZE) {
+
+          if (size > BLOCKSIZE) {
+            byte* block2 = new byte[BLOCKSIZE],
+                * cur = block,
+                * next = block2;
+            uint64 blkSize = BLOCKSIZE;
             file.read((char*)block, BLOCKSIZE);
-            search->search(block, block + BLOCKSIZE, offset, cb);
-            size -= BLOCKSIZE;
-            offset += BLOCKSIZE;
+            do {
+              boost::packaged_task<uint64> task(boost::bind(&readNext, &file, next));
+              boost::unique_future<uint64> sizeFut = task.get_future();
+              boost::thread exec(boost::move(task));
+
+              search->search(cur, cur + blkSize, offset, cb);
+
+              size -= blkSize;
+              offset += blkSize;
+              blkSize = sizeFut.get();
+              std::swap(cur, next);
+            } while (size > BLOCKSIZE);
+            // assert: all data has been read, size - blkSize == 0
+            search->search(cur, cur + blkSize, offset, cb);
+            cur = next = 0;
+            delete [] block2;
           }
-          file.read((char*)block, size);
-          search->search(block, block + size, offset, cb);
+          else {
+            file.read((char*)block, size);
+            search->search(block, block + size, offset, cb);
+          }
           double t = searchClock.elapsed();
           std::cerr << t << " searchTime" << std::endl;
           std::cerr << cb.NumHits << " hits" << std::endl;
