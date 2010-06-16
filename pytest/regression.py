@@ -19,8 +19,8 @@ resultsDir = './pytest/results'
 tempDir = './tmp'
 
 def run(lightgrep, keypath, docpath, temppath):
-#  print(command)
-  results = os.open(temppath, os.O_CREAT | os.O_TRUNC)
+#  print(keypath)
+  results = os.open(temppath, os.O_CREAT)
   proc = subprocess.Popen(['time', lightgrep, 'search', keypath, docpath], stdout=results, stderr=subprocess.PIPE)
   cerr = proc.communicate()[1].splitlines()
   #print cerr
@@ -40,11 +40,10 @@ def run(lightgrep, keypath, docpath, temppath):
       else:
         key = atoms.pop()
         rec[key] = atoms.pop()
-  print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (docpath,
+  print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (docpath,
                                                     keypath,
                                                     rec['keywords'],
                                                     rec['vertices'],
-                                                    rec['edges'],
                                                     rec['instructions'],
                                                     rec['hits'],
                                                     rec['real'],
@@ -56,7 +55,7 @@ def main():
   keyfiles = os.listdir(keysDir)
   corpora = os.listdir(docsDir)
   lightgrep = p.abspath('./bin/test/test')
-  print("doc\tkeyfile\tkeywords\tvertices\tedges\tinstructions\thits\treal\tuser\tsys\tsearchTime")
+  print("doc\tkeyfile\tkeywords\tvertices\tinstructions\thits\treal\tuser\tsys\tsearchTime")
   if (p.exists(tempDir) == False):
     os.mkdir(tempDir)
   for doc in corpora:
