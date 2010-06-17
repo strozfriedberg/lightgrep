@@ -305,17 +305,6 @@ void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const Dynam
   }
 }
 
-void writeEdge(std::ostream& out, DynamicFSM::edge_descriptor e, const DynamicFSM& graph) {
-  // std::cerr << "edge (" << boost::source(e, graph) << ", " << boost::target(e, graph) << ")" << std::endl;
-  // DynamicFSM::vertex_descriptor t = boost::target(e, graph);
-  // if (boost::out_degree(boost::source(e, graph), graph) > 1) {
-  //   out << "[style=\"bold\"]";
-  // }
-  // if (boost::in_degree(t, graph) == 1) {
-  //   out << "[arrowhead=\"odot\"]";
-  // }
-}
-
 void writeGraphviz(std::ostream& out, const DynamicFSM& graph) {
   out << "digraph G {" << std::endl;
   for (uint32 i = 0; i < boost::num_vertices(graph); ++i) {
@@ -327,7 +316,6 @@ void writeGraphviz(std::ostream& out, const DynamicFSM& graph) {
     OutEdgeRange outRange(boost::out_edges(i, graph));
     for (OutEdgeIt it(outRange.first); it != outRange.second; ++it) {
       out << i << "->" << boost::target(*it, graph) << " ";
-      writeEdge(out, *it, graph);
       out << ";" << std::endl;
     }
   }
