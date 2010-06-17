@@ -10,6 +10,11 @@ struct Thread {
   Thread(const Instruction* pc, uint32 label, uint64 start, uint64 end): PC(pc), Label(label), Start(start), End(end) {}
   Thread(const Instruction* pc, const Thread& parent): PC(pc), Label(parent.Label), Start(parent.Start), End(parent.End) {}
 
+  void init(const Instruction* base, uint32 start) {
+    PC = base;
+    Start = start;
+  }
+
   void jump(const Instruction* base, uint32 offset) {
     PC = base;
     PC += offset;
