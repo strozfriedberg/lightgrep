@@ -19,6 +19,9 @@ public:
   bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
 
 private:
+  void doMatch();
+  void cleanup();
+
   ByteSet    First;
   ProgramPtr Prog;
   ThreadList Active,

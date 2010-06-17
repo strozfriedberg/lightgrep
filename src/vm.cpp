@@ -47,16 +47,16 @@ inline bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& c
       else {
         t.PC = 0;
       }
-      break;
+      return false;
     case EITHER_OP:
       if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
         t.advance();
         next.push_back(t);
-       }
-       else {
-         t.PC = 0;
-       }
-      break;
+      }
+      else {
+        t.PC = 0;
+      }
+      return false;
     case RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         t.advance();
@@ -65,7 +65,7 @@ inline bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& c
       else {
         t.PC = 0;
       }
-      break;
+      return false;
     case BIT_VECTOR_OP:
       {
         const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t.PC + 1);
@@ -77,7 +77,7 @@ inline bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& c
           t.PC = 0;
         }
       }
-      break;
+      return false;
     case JUMP_TABLE_OP:
       nextT.fork(t, t.PC, 1 + *cur);
       if (nextT.PC->OpCode != HALT_OP) {
@@ -86,7 +86,7 @@ inline bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& c
       else {
         t.PC = 0;
       }
-      break;
+      return false;
     case JUMP_OP:
       // std::cerr << "Jump " << t.PC->Op.Offset << std::endl;
       t.jump(base, instr.Op.Offset);
@@ -144,12 +144,12 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
       return false;
     case JUMP_OP:
       t.jump(base, instr.Op.Offset);
-      break;
+      return true;
     case FORK_OP:
       f.fork(t, base, instr.Op.Offset);
       active.push_back(f);
       t.advance();
-      break;
+      return true;
     case CHECK_BRANCH_OP:
       if (checkStates[instr.Op.Offset]) {
         t.advance();
@@ -175,12 +175,24 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
       t.Label = instr.Op.Offset;
       t.End = offset;
       t.advance();
-      break;
+      return true;
     case HALT_OP:
       t.PC = 0;
       return false;
   }
   return true;
+}
+
+void Vm::doMatch() {
+  
+}
+
+void Vm::cleanup() {
+  Active.swap(Next);
+  Next.clear();
+  if (CheckStates[0]) {
+    CheckStates.assign(CheckStates.size(), false);
+  }
 }
 
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
@@ -215,11 +227,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       }
     }
     ++offset;
-    Active.swap(Next);
-    Next.clear();
-    if (CheckStates[0]) {
-      CheckStates.assign(CheckStates.size(), false);
-    }
+    cleanup();
   }
   // this flushes out last char matches
   // and leaves us only with comparison instructions (in next)
@@ -227,17 +235,17 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     threadIt = &Active[i];
     while (executeEpsilons(base, *threadIt, CheckStates, Active, Next, offset)) ;
     if (threadIt->End == offset) {
-      std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
-      if (lastHit.first == UNALLOCATED || (lastHit.first == threadIt->Start && lastHit.second < threadIt->End)) {
-        Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
-      }
-      else if (lastHit.second <= threadIt->Start) {
-        hit.Offset = lastHit.first;
-        hit.Length = lastHit.second - lastHit.first;
-        hit.Label = threadIt->Label;
-        hitFn.collect(hit);
-        Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
-      }
+        std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
+        if (lastHit.first == UNALLOCATED || (lastHit.first == threadIt->Start && lastHit.second < threadIt->End)) {
+          Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+        }
+        else if (lastHit.second <= threadIt->Start) {
+          hit.Offset = lastHit.first;
+          hit.Length = lastHit.second - lastHit.first;
+          hit.Label = threadIt->Label;
+          hitFn.collect(hit);
+          Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+        }
     }
   }
   for (uint32 i = 0; i < Matches.size(); ++i) {
@@ -249,10 +257,6 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       Matches[i] = std::make_pair(UNALLOCATED, 0ul);
     }
   }
-  Active.clear();
-  Active.swap(Next);
-  if (CheckStates[0]) {
-    CheckStates.assign(CheckStates.size(), false);
-  }
+  cleanup();
   return Active.size() > 0; // potential hits, if there's more data
 }
