@@ -183,11 +183,24 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
   return true;
 }
 
-void Vm::doMatch() {
-  
+void Vm::doMatch(register ThreadList::iterator threadIt, HitCallback& hitFn) {
+  // std::cerr << "had a match" << std::endl;
+  SearchHit  hit;
+  std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
+  if (lastHit.first == UNALLOCATED || (lastHit.first == threadIt->Start && lastHit.second < threadIt->End)) {
+    Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+  }
+  else if (lastHit.second <= threadIt->Start) {
+    hit.Offset = lastHit.first;
+    hit.Length = lastHit.second - lastHit.first;
+    hit.Label = threadIt->Label;
+    hitFn.collect(hit);
+    // std::cerr << "emitting hit " << hit << std::endl;
+    Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+  }
 }
 
-void Vm::cleanup() {
+inline void Vm::cleanup() {
   Active.swap(Next);
   Next.clear();
   if (CheckStates[0]) {
@@ -197,55 +210,36 @@ void Vm::cleanup() {
 
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   const Instruction* base = &(*Prog)[0];
+  Thread     newThread;
   SearchHit  hit;
   register uint64     offset = startOffset;
   register ThreadList::iterator threadIt;
   for (register const byte* cur = beg; cur != end; ++cur) {
     // std::cerr << "offset = " << offset << ", " << *cur << std::endl;
     if (First[*cur]) {
-      Active.push_back(Thread(base, 0, offset, std::numeric_limits<uint64>::max()));
+      newThread.init(base, offset);
+      Active.push_back(newThread);
     }
-    for (uint32 i = 0; i < Active.size(); ++i) {
-      threadIt = &Active[i];
-      // std:: cout << i << " threadex " << *threadIt << std::endl;
-      while (execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
-      // std::cerr << "finished " << *threadIt << std::endl;
-      if (threadIt->End == offset) {
-        // std::cerr << "had a match" << std::endl;
-        std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
-        if (lastHit.first == UNALLOCATED || (lastHit.first == threadIt->Start && lastHit.second < threadIt->End)) {
-          Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+    if (!Active.empty()) {
+      threadIt = Active.begin();
+      do {
+        // std:: cout << (Active.end() - threadIt) - 1 << " threadex " << *threadIt << std::endl;
+        while (execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
+        // std::cerr << "finished " << *threadIt << std::endl;
+        if (threadIt->End == offset) {
+          doMatch(threadIt, hitFn);
         }
-        else if (lastHit.second <= threadIt->Start) {
-          hit.Offset = lastHit.first;
-          hit.Length = lastHit.second - lastHit.first;
-          hit.Label = threadIt->Label;
-          hitFn.collect(hit);
-          // std::cerr << "emitting hit " << hit << std::endl;
-          Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
-        }
-      }
+      } while (++threadIt != Active.end());
+      cleanup();
     }
     ++offset;
-    cleanup();
   }
   // this flushes out last char matches
   // and leaves us only with comparison instructions (in next)
-  for (uint32 i = 0; i < Active.size(); ++i) {
-    threadIt = &Active[i];
+  for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
     while (executeEpsilons(base, *threadIt, CheckStates, Active, Next, offset)) ;
     if (threadIt->End == offset) {
-        std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
-        if (lastHit.first == UNALLOCATED || (lastHit.first == threadIt->Start && lastHit.second < threadIt->End)) {
-          Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
-        }
-        else if (lastHit.second <= threadIt->Start) {
-          hit.Offset = lastHit.first;
-          hit.Length = lastHit.second - lastHit.first;
-          hit.Label = threadIt->Label;
-          hitFn.collect(hit);
-          Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
-        }
+      doMatch(threadIt, hitFn);
     }
   }
   for (uint32 i = 0; i < Matches.size(); ++i) {

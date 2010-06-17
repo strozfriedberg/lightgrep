@@ -19,7 +19,7 @@ public:
   bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
 
 private:
-  void doMatch();
+  void doMatch(ThreadList::iterator threadIt, HitCallback& hitFn);
   void cleanup();
 
   ByteSet    First;
