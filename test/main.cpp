@@ -71,7 +71,6 @@ boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath) {
   DynamicFSMPtr fsm = createDynamicFSM(keys);
 
   std::cerr << boost::num_vertices(*fsm) << " vertices" << '\n';
-  std::cerr << boost::num_edges(*fsm) << " edges" << std::endl;
 
   ProgramPtr p = createProgram(*fsm);
 
