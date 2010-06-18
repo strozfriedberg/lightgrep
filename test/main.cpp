@@ -20,7 +20,7 @@ public:
   StdOutHits(): NumHits(0) {}
 
   virtual void collect(const SearchHit& hit) {
-    std::cout << NumHits << '\t' << hit.Offset << '\t' << hit.Length << '\t' << hit.Label << '\n';
+    std::cout << hit.Offset << '\t' << hit.Length << '\t' << hit.Label << '\n';
     ++NumHits;
   }
 };
