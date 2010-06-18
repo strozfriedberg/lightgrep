@@ -6,6 +6,7 @@
 
 #include <deque>
 #include <stack>
+#include <algorithm>
 
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -216,6 +217,14 @@ std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicF
         ret[i].push_back(t);
       }
     }
+  }
+  return ret;
+}
+
+uint32 maxOutbound(const std::vector< std::vector< DynamicFSM::vertex_descriptor > >& tranTable) {
+  uint32 ret = 0;
+  for (std::vector< std::vector< DynamicFSM::vertex_descriptor > >::const_iterator it(tranTable.begin()); it != tranTable.end(); ++it) {
+    ret = it->size() > ret ? it->size(): ret;
   }
   return ret;
 }
