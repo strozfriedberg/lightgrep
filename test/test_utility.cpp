@@ -344,3 +344,13 @@ SCOPE_TEST(testBitVectorGeneration) {
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(0), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[10]);
 }
+
+SCOPE_TEST(testMaxOutbound) {
+  DynamicFSM fsm(5);
+  edge(0, 1, fsm, new LitState('a'));
+  edge(0, 2, fsm, new LitState('a'));
+  edge(0, 3, fsm, new LitState('b'));
+  edge(0, 4, fsm, new LitState('c'));
+  std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl = pivotStates(0, fsm);
+  SCOPE_ASSERT_EQUAL(2u, maxOutbound(tbl));
+}
