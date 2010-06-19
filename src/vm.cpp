@@ -221,12 +221,9 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   SearchHit  hit;
   register uint64     offset = startOffset;
   register ThreadList::iterator threadIt;
-  uint32   maxActive = 0;
-  double   total = 0;
+  // uint32   maxActive = 0;
+  // double   total = 0;
   for (register const byte* cur = beg; cur != end; ++cur) {
-    // if (offset > 27000) {
-    //   break;
-    // }
     if (First[*cur]) {
       newThread.init(base, offset);
       Active.push_back(newThread);
