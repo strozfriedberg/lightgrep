@@ -18,12 +18,18 @@ struct StateLayoutInfo {
          NumEval,
          NumOther,
          CheckIndex;
+  bool   HasChecks;
 
-  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED), CheckIndex(UNALLOCATED) {}
-  StateLayoutInfo(uint32 s, uint32 e, uint32 o): Start(s), NumEval(e), NumOther(o), CheckIndex(UNALLOCATED) {}
+  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED), CheckIndex(UNALLOCATED), HasChecks(false) {}
+  StateLayoutInfo(uint32 s, uint32 e, uint32 o): Start(s), NumEval(e), NumOther(o), CheckIndex(UNALLOCATED), HasChecks(false) {}
 
   uint32 numTotal() const { return NumEval + NumOther; }
 };
+
+typedef DynamicFSM::in_edge_iterator InEdgeIt;
+typedef std::pair<InEdgeIt, InEdgeIt> InEdgeRange;
+typedef DynamicFSM::out_edge_iterator OutEdgeIt;
+typedef std::pair< OutEdgeIt, OutEdgeIt > OutEdgeRange;
 
 struct CodeGenHelper {
   CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, UNALLOCATED), Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
@@ -32,6 +38,10 @@ struct CodeGenHelper {
     DiscoverRanks[v] = NumDiscovered++;
     if (boost::in_degree(v, graph) > 1) {
       Snippets[v].CheckIndex = ++NumChecked;
+      InEdgeRange in(boost::in_edges(v, graph));
+      for (InEdgeIt e(in.first); e != in.second; ++e) {
+        Snippets[boost::source(*e, graph)].HasChecks = true;
+      }
     }
   }
 
@@ -50,11 +60,6 @@ struct CodeGenHelper {
          NumChecked;
 };
 
-typedef DynamicFSM::in_edge_iterator InEdgeIt;
-typedef std::pair<InEdgeIt, InEdgeIt> InEdgeRange;
-typedef DynamicFSM::out_edge_iterator OutEdgeIt;
-typedef std::pair< OutEdgeIt, OutEdgeIt > OutEdgeRange;
-
 class CodeGenVisitor: public boost::default_bfs_visitor {
 public:
   CodeGenVisitor(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
@@ -65,7 +70,10 @@ public:
 
   void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
-    if (0 == v && out_degree(v, graph) > 10) { // hard-coded goodness, mm, mm
+    uint32 labels = 0,
+           eval   = (v == 0 ? 0: graph[v]->numInstructions()),
+           outDegree = out_degree(v, graph);
+    if ((0 == v && outDegree > 3) || (outDegree > 3 && graph[v]->Label == UNALLOCATED && !Helper->Snippets[v].HasChecks && maxOutbound(pivotStates(v, graph)) < outDegree)) {
       std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl(pivotStates(v, graph));
       uint32 sizeIndirectTables = 0;
       for (uint32 i = 0; i < 256; ++i) {
@@ -74,11 +82,9 @@ public:
           sizeIndirectTables += num;
         }
       }
-      Helper->addSnippet(v, 0, 257 + sizeIndirectTables);
+      Helper->addSnippet(v, eval, 257 + sizeIndirectTables);
       return;
     }
-    uint32 labels = 0,
-           eval   = (v == 0 ? 0: graph[v]->numInstructions());
     if (graph[v] && graph[v]->Label < 0xffffffff) {
       ++labels;
     }

@@ -88,7 +88,7 @@ DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
 //  discover_vertex: determine slot
 //  finish_vertex:   
 
-void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uint32 baseIndex, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
   Instruction* cur = base,
              * indirectTbl = base + 257;
   *cur++ = Instruction::makeJumpTable();
@@ -102,15 +102,15 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, Dyn
       *cur++ = Instruction::makeJump(info.Start + info.NumEval);
     }
     else {
-      *cur++ = Instruction::makeJump(indirectTbl - base);
+      *cur++ = Instruction::makeJump(baseIndex + (indirectTbl - base));
       for (uint32 j = 0; j < tbl[i].size(); ++j) {
         StateLayoutInfo info = cg->Snippets[tbl[i][j]];
         *indirectTbl++ = (j + 1 == tbl[i].size() ? Instruction::makeJump(info.Start + info.NumEval): Instruction::makeFork(info.Start + info.NumEval));
       }
     }
   }
-  if (indirectTbl - base != cg->Snippets[0].numTotal()) {
-    std::cerr << "whoa, big trouble in Little China... numTotal() == " + cg->Snippets[0].numTotal() << ", but diff is " << (indirectTbl - base) << std::endl;
+  if (indirectTbl - base != cg->Snippets[v].NumOther) {
+    std::cerr << "whoa, big trouble in Little China on " << v << "... NumOther == " << cg->Snippets[v].NumOther << ", but diff is " << (indirectTbl - base) << std::endl;
   }
 }
 
@@ -124,10 +124,6 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
   ret->resize(cg->Guard);
   for (DynamicFSM::vertex_descriptor v = 0; v < boost::num_vertices(graph); ++v) {
     // std::cerr << "on vertex " << v << " at " << cg->Snippets[v].first << std::endl;
-    if (0 == v && cg->Snippets[v].numTotal() > 256) {
-      createJumpTable(cg, &(*ret)[0], 0, graph);
-      continue;
-    }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
     TransitionPtr t(graph[v]);
     if (t) {
@@ -138,6 +134,10 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
         *curOp++ = Instruction::makeMatch(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
       }
+    }
+    if (cg->Snippets[v].numTotal() > 256) {
+      createJumpTable(cg, curOp, curOp - &(*ret)[0], v, graph);
+      continue;
     }
     OutEdgeRange outRange(out_edges(v, graph));
     if (outRange.first != outRange.second) {
