@@ -1,6 +1,9 @@
 #include "vm.h"
 
 #include <iostream>
+#include <algorithm>
+#include <cctype>
+#include <iomanip>
 
 static uint64 UNALLOCATED = 0xffffffffffffffff;
 
@@ -8,6 +11,10 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"pc\":" << std::hex << t.PC << ", \"Label\":" << std::dec << t.Label << ", \"Start\":" << t.Start << ", \"End\":"
     << t.End << " }";
   return out;
+}
+
+void Thread::output(std::ostream& out, const Instruction* base) const {
+  out << "{ \"pc\":" << PC - base << ", \"Label\":" << Label << ", \"Start\":" << Start << ", \"End\":" << End << " }";
 }
 
 void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates) {
@@ -214,18 +221,36 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   SearchHit  hit;
   register uint64     offset = startOffset;
   register ThreadList::iterator threadIt;
+  uint32   maxActive = 0;
+  double   total = 0;
   for (register const byte* cur = beg; cur != end; ++cur) {
-    // std::cerr << "offset = " << offset << ", " << *cur << std::endl;
+    // if (offset > 27000) {
+    //   break;
+    // }
     if (First[*cur]) {
       newThread.init(base, offset);
       Active.push_back(newThread);
     }
+
+    // std::cerr << "offset = " << offset << ", ";
+    // if (std::isprint(*cur)) {
+    //   std::cerr << *cur;
+    // }
+    // else {
+    //   std::cerr << std::hex << std::setfill('0') << std::setw(2) << (unsigned short)(*cur);
+    // }
+    // std::cerr << std::dec << ", " << Active.size() << " active threads" << std::endl;
+    // total += Active.size();
+
     if (!Active.empty()) {
+      // maxActive = std::max(maxActive, Active.size());
       threadIt = Active.begin();
       do {
-        // std:: cout << (Active.end() - threadIt) - 1 << " threadex " << *threadIt << std::endl;
-        while (execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
-        // std::cerr << "finished " << *threadIt << std::endl;
+        do {
+          // std::cerr << (Active.end() - threadIt) - 1 << " threadex ";
+          // threadIt->output(std::cerr, base);
+          // std::cerr << std::endl;
+        } while (execute(base, *threadIt, CheckStates, Active, Next, cur, offset));
         if (threadIt->End == offset) {
           doMatch(threadIt, hitFn);
         }
@@ -252,5 +277,6 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     }
   }
   cleanup();
+  // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
   return Active.size() > 0; // potential hits, if there's more data
 }
