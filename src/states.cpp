@@ -91,5 +91,5 @@ std::string CharClassState::label() const {
   //   buf << std::hex << std::setfill('0') << std::setw(8) << *((uint32*)(&Allowed)+i);
   // }
   // return buf.str();
-  return Label;
+  return Label + printLabel(*this);
 }
