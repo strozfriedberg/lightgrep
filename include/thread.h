@@ -38,6 +38,8 @@ struct Thread {
     return PC == x.PC && Label == x.Label && Start == x.Start && End == x.End;
   }
 
+
+  void output(std::ostream& out, const Instruction* base) const;
 };
 
 std::ostream& operator<<(std::ostream& out, const Thread& t);
