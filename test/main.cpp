@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <scope/testrunner.h>
+#include <boost/program_options.hpp>
 #include <boost/timer.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
@@ -12,6 +13,7 @@
 #include "vm.h"
 
 using namespace std;
+namespace po = boost::program_options;
 
 class StdOutHits: public HitCallback {
 public:
@@ -88,69 +90,104 @@ uint64 readNext(ifstream* file, byte* buf) {
   return file->gcount();
 }
 
+void printHelp(const po::options_description& desc) {
+  std::cout << "lightgrep, Copyright (c) 2010, Lightbox Technologies, Inc." << "\n\n"
+    << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
+    << desc << std::endl;
+}
+
+void search(const string& keyfile, const string& input) {
+  std::ifstream file(input.c_str(), ios::in | ios::binary | ios::ate);
+  if (file) {
+    file.rdbuf()->pubsetbuf(0, 0);
+    boost::shared_ptr<Vm> search = initSearch(keyfile);
+
+    StdOutHits cb;
+
+    uint64 size = file.tellg(),
+           offset = 0;
+    byte* block = new byte[BLOCKSIZE];
+    {
+      boost::timer searchClock;
+      file.seekg(0, ios::beg);
+
+      if (size > BLOCKSIZE) {
+        byte* block2 = new byte[BLOCKSIZE],
+            * cur = block,
+            * next = block2;
+        uint64 blkSize = BLOCKSIZE;
+        file.read((char*)block, BLOCKSIZE);
+        do {
+          boost::packaged_task<uint64> task(boost::bind(&readNext, &file, next));
+          boost::unique_future<uint64> sizeFut = task.get_future();
+          boost::thread exec(boost::move(task));
+
+          search->search(cur, cur + blkSize, offset, cb);
+
+          size -= blkSize;
+          offset += blkSize;
+          blkSize = sizeFut.get();
+          std::swap(cur, next);
+        } while (size > BLOCKSIZE);
+        // assert: all data has been read, size - blkSize == 0
+        search->search(cur, cur + blkSize, offset, cb);
+        cur = next = 0;
+        delete [] block2;
+      }
+      else {
+        file.read((char*)block, size);
+        search->search(block, block + size, offset, cb);
+      }
+      double t = searchClock.elapsed();
+      std::cerr << t << " searchTime" << std::endl;
+      std::cerr << cb.NumHits << " hits" << std::endl;
+    }
+    file.close();
+    delete [] block;
+    // delete [] argArray;
+  }  
+}
+
 int main(int argc, char** argv) {
-  if (argc > 1) {
-    std::string first(argv[1]);
-    if (first == "test") {
+  string cmd,
+         keyfile,
+         input;
+
+  po::options_description desc("Allowed Options");
+  po::positional_options_description posOpts;
+  posOpts.add("keywords", 1);
+  posOpts.add("input", 1);
+  desc.add_options()
+    ("help", "produce help message")
+    ("test", "run unit tests (same as test command)")
+    ("command,c", po::value< std::string >(&cmd)->default_value("search"), "command to perform [search|graph|prog|test]")
+    ("keywords,k", po::value< std::string >(&keyfile), "path to file containing keywords")
+    ("input,i", po::value< std::string >(&input)->default_value("-"), "file to search");
+  
+  po::variables_map opts;
+  try {
+    po::store(po::command_line_parser(argc, argv).options(desc).positional(posOpts).run(), opts);
+    po::notify(opts);
+    if (opts.count("help")) {
+      printHelp(desc);
+    }
+    else if (cmd == "test" || opts.count("test")) {
       return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
     }
-    else if (argc > 2 && first == "search") {
-      std::ifstream file(argv[3], ios::in | ios::binary | ios::ate);
-      if (file) {
-        file.rdbuf()->pubsetbuf(0, 0);
-        boost::shared_ptr<Vm> search = initSearch(argv[2]);
-
-        StdOutHits cb;
-
-        uint64 size = file.tellg(),
-               offset = 0;
-        byte* block = new byte[BLOCKSIZE];
-        {
-          boost::timer searchClock;
-          file.seekg(0, ios::beg);
-
-          if (size > BLOCKSIZE) {
-            byte* block2 = new byte[BLOCKSIZE],
-                * cur = block,
-                * next = block2;
-            uint64 blkSize = BLOCKSIZE;
-            file.read((char*)block, BLOCKSIZE);
-            do {
-              boost::packaged_task<uint64> task(boost::bind(&readNext, &file, next));
-              boost::unique_future<uint64> sizeFut = task.get_future();
-              boost::thread exec(boost::move(task));
-
-              search->search(cur, cur + blkSize, offset, cb);
-
-              size -= blkSize;
-              offset += blkSize;
-              blkSize = sizeFut.get();
-              std::swap(cur, next);
-            } while (size > BLOCKSIZE);
-            // assert: all data has been read, size - blkSize == 0
-            search->search(cur, cur + blkSize, offset, cb);
-            cur = next = 0;
-            delete [] block2;
-          }
-          else {
-            file.read((char*)block, size);
-            search->search(block, block + size, offset, cb);
-          }
-          double t = searchClock.elapsed();
-          std::cerr << t << " searchTime" << std::endl;
-          std::cerr << cb.NumHits << " hits" << std::endl;
-        }
-        file.close();
-        delete [] block;
-        // delete [] argArray;
-      }
+    else if (cmd == "search") {
+      search(keyfile, input);
     }
-    else if (argc > 2 && first == "gv") {
-      writeGraphviz(argv[2]);
+    else if (cmd == "graph") {
+      writeGraphviz(keyfile);
     }
-    else if (argc > 2 && first == "prog") {
-      writeProgram(argv[2]);
+    else if (cmd == "prog") {
+      writeProgram(keyfile);
     }
+  }
+  catch (std::exception& err) {
+    std::cerr << "Error: " << err.what() << "\n\n";
+    printHelp(desc);
+    return 1;
   }
   return 0;
 }
