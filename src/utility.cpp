@@ -301,7 +301,7 @@ void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const Dynam
     l = graph[v]->label();
   }
   if (boost::in_degree(v, graph) == 0) {
-    out << "[label=\"" << l << "\", style=\"filled\", fillcolor=\"lightgreen\"]";
+    out << "[label=\"" << (l.empty() ? "Start": l) << "\", style=\"filled\", fillcolor=\"green1\"]";
   }
   else if (boost::out_degree(v, graph) == 0) {
     out << "[label=\"" << l << "\", style=\"filled\", fillcolor=\"tomato\", shape=\"doublecircle\"]";
