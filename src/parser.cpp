@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include "states.h"
+#include "concrete_encodings.h"
 
 #include <iostream>
 
@@ -43,6 +44,7 @@ void Fragment::mergeLists(VList& l1, const VList& l2) {
 Parser::Parser():
   CurLabel(0)
 {
+  setEncoding(boost::shared_ptr<Encoding>(new Ascii));
   reset();
 }
 
@@ -52,6 +54,11 @@ void Parser::reset() {
   VList first;
   first.push_back(0);
   Stack.push(Fragment(first, Node(), first));
+}
+
+void Parser::setEncoding(const boost::shared_ptr<Encoding>& e) {
+  Enc = e;
+  TempBuf.reset(new byte[Enc->maxByteLength()]);
 }
 
 void Parser::patch(const VList& sources, const VList& targets) {
@@ -105,13 +112,28 @@ void Parser::concatenate(const Node& n) {
 }
 
 void Parser::literal(const Node& n) {
-  DynamicFSM& g(*Fsm);
-  DynamicFSM::vertex_descriptor v = boost::add_vertex(g);
-  g[v].reset(new LitState(n.Val));
-  VList in, out;
-  in.push_back(v);
-  out.push_back(v);
-  Stack.push(Fragment(in, n, out));
+  uint32 len = Enc->write(n.Val, TempBuf.get());
+  if (0 == len) {
+    // bad things
+  }
+  else {
+    DynamicFSM& g(*Fsm);
+    DynamicFSM::vertex_descriptor first,
+                                  prev,
+                                  last;
+    VList in, out;
+    first = prev = last = boost::add_vertex(g);
+    g[first].reset(new LitState(TempBuf[0]));
+    for (uint32 i = 1; i < len; ++i) {
+      last = boost::add_vertex(g);
+      boost::add_edge(prev, last, g);
+      g[last].reset(new LitState(TempBuf[i]));
+      prev = last;
+    }
+    in.push_back(first);
+    out.push_back(last);
+    Stack.push(Fragment(in, n, out));
+  }
 }
 
 void Parser::group(const Node&) {

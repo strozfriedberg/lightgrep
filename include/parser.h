@@ -2,6 +2,7 @@
 
 #include "basic.h"
 #include "dynamicFSM.h"
+#include "encoding.h"
 
 #include <boost/function.hpp>
 
@@ -91,6 +92,8 @@ public:
 
   void callback(const std::string& type, Node n);
 
+  void setEncoding(const boost::shared_ptr<Encoding>& e);
+
   Fragment patch(const Fragment& first, const Fragment& second, const Node& n);
   void patch(const VList& sources, const VList& targets);
 
@@ -113,8 +116,10 @@ public:
 private:
   bool          IsGood;
   uint32        CurLabel;
+  boost::shared_ptr<Encoding> Enc;
   DynamicFSMPtr Fsm;
   std::stack< Fragment > Stack;
+  boost::scoped_array<byte> TempBuf;
 };
 
 bool parse(const std::string& text, SyntaxTree& tree, boost::function< void(std::string, Node) > callback);
