@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "dynamicFSM.h"
 #include "utility.h"
+#include "concrete_encodings.h"
 
 #include <iostream>
 #include <stack>
@@ -273,6 +274,15 @@ SCOPE_TEST(parseHexDotPlus) {
   SCOPE_ASSERT_EQUAL(2u, boost::in_degree(3, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::in_degree(4, fsm));
+}
+
+SCOPE_TEST(parse2ByteUnicode) {
+  Parser      p;
+  SyntaxTree  tree;
+  DynamicFSM& fsm(*p.getFsm());
+  p.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
+  SCOPE_ASSERT(parse("ab", tree, boost::bind(&Parser::callback, &p, _1, _2)));
+  SCOPE_ASSERT_EQUAL(5u, boost::num_vertices(fsm));
 }
 
 SCOPE_TEST(parseHighHex) {
