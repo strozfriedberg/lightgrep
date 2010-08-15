@@ -51,6 +51,9 @@ Parser::Parser():
 void Parser::reset() {
   IsGood = false;
   Fsm.reset(new DynamicFSM(1));
+  while (!Stack.empty()) {
+    Stack.pop();
+  }
   VList first;
   first.push_back(0);
   Stack.push(Fragment(first, Node(), first));

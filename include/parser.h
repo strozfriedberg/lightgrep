@@ -51,6 +51,11 @@ struct SyntaxTree {
     Last = &Store[Store.size()-1];
     return Last;
   }
+
+  void reset() {
+    Store.clear();
+    Last = 0;
+  }
 };
 
 typedef std::vector< DynamicFSM::vertex_descriptor > VList;

@@ -3,6 +3,7 @@
 #include "states.h"
 
 #include "parser.h"
+#include "concrete_encodings.h"
 
 #include <deque>
 #include <stack>
@@ -11,29 +12,41 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
-  // std::cerr << "createDynamicFSM" << std::endl;
-  DynamicFSMPtr ret;
-  uint32 keyIdx = 0;
+void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, DynamicFSMPtr& fsm, uint32& keyIdx) {
+  SyntaxTree  tree;
+  Parser      p;
+  p.setEncoding(enc);
   for (uint32 i = 0; i < keywords.size(); ++i) {
     std::string kw = keywords[i];
     if (!kw.empty()) {
-      Parser      p;
-      SyntaxTree  tree;
       p.setCurLabel(keyIdx);
       if (parse(kw, tree, boost::bind(&Parser::callback, &p, _1, _2))) {
-        if (ret) {
-          mergeIntoFSM(*ret, *p.getFsm(), keyIdx);
+        if (fsm) {
+          mergeIntoFSM(*fsm, *p.getFsm(), keyIdx);
         }
         else {
-          ret = p.getFsm();
+          fsm = p.getFsm();
         }
         ++keyIdx;
       }
       else {
         std::cerr << "Could not parse " << kw << std::endl;
       }
+      tree.reset();
+      p.reset();
     }
+  }
+}
+
+DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, Encodings enc) {
+  // std::cerr << "createDynamicFSM" << std::endl;
+  DynamicFSMPtr ret;
+  uint32 keyIdx = 0;
+  if (enc & CP_ASCII) {
+    addKeys(keywords, boost::shared_ptr<Encoding>(new Ascii), ret, keyIdx);
+  }
+  if (enc & CP_UCS16) {
+    addKeys(keywords, boost::shared_ptr<Encoding>(new UCS16), ret, keyIdx);
   }
   return ret;
 }

@@ -12,7 +12,12 @@ struct SearchInfo {
   
 };
 
-DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords);
+enum Encodings {
+  CP_ASCII = 1,
+  CP_UCS16 = 2
+};
+
+DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, Encodings enc = CP_ASCII);
 
 ProgramPtr createProgram(const DynamicFSM& graph);
 
