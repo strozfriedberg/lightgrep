@@ -109,9 +109,8 @@ void Parser::alternate(const Node& n) {
 void Parser::concatenate(const Node& n) {
   Fragment second = Stack.top();
   Stack.pop();
-  Fragment first = Stack.top();
-  Stack.pop();
-  Stack.push(patch(first, second, n));
+  Fragment& first = Stack.top();
+  first = patch(first, second, n);
 }
 
 void Parser::literal(const Node& n) {
