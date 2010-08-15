@@ -56,6 +56,27 @@ SCOPE_TEST(twoFixedStrings) {
   // hmm... keeping things on the edges makes it shockingly hard to test
 }
 
+SCOPE_TEST(twoUnicode) {
+  std::vector< std::string > kws;
+  kws.push_back("aa");
+  kws.push_back("ab");
+  DynamicFSMPtr fsm = createDynamicFSM(kws, CP_UCS16);
+  SCOPE_ASSERT_EQUAL(7u, num_vertices(*fsm));
+  SCOPE_ASSERT_EQUAL(1u, out_degree(0, *fsm));
+  SCOPE_ASSERT_EQUAL(1u, in_degree(1, *fsm));
+  SCOPE_ASSERT_EQUAL(1u, out_degree(1, *fsm));
+  SCOPE_ASSERT_EQUAL(1u, in_degree(2, *fsm));
+  SCOPE_ASSERT_EQUAL(2u, out_degree(2, *fsm));
+  SCOPE_ASSERT_EQUAL(1u, in_degree(3, *fsm));
+  SCOPE_ASSERT_EQUAL(1u, out_degree(3, *fsm));
+  SCOPE_ASSERT_EQUAL(1u, in_degree(4, *fsm));
+  SCOPE_ASSERT_EQUAL(0u, out_degree(4, *fsm));
+  SCOPE_ASSERT_EQUAL(1u, in_degree(5, *fsm));
+  SCOPE_ASSERT_EQUAL(1u, out_degree(5, *fsm));
+  SCOPE_ASSERT_EQUAL(1u, in_degree(6, *fsm));
+  SCOPE_ASSERT_EQUAL(0u, out_degree(6, *fsm));
+}
+
 SCOPE_TEST(firstBitset) {
   DynamicFSM fsm(3);
   edge(0, 1, fsm, new LitState('A'));
