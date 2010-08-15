@@ -17,7 +17,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
   Parser      p;
   p.setEncoding(enc);
   for (uint32 i = 0; i < keywords.size(); ++i) {
-    std::string kw = keywords[i];
+    const std::string& kw(keywords[i]);
     if (!kw.empty()) {
       p.setCurLabel(keyIdx);
       if (parse(kw, tree, boost::bind(&Parser::callback, &p, _1, _2))) {
