@@ -38,7 +38,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
   }
 }
 
-DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, Encodings enc) {
+DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc) {
   // std::cerr << "createDynamicFSM" << std::endl;
   DynamicFSMPtr ret;
   uint32 keyIdx = 0;
