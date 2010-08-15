@@ -17,7 +17,7 @@ enum Encodings {
   CP_UCS16 = 2
 };
 
-DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, Encodings enc = CP_ASCII);
+DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII);
 
 ProgramPtr createProgram(const DynamicFSM& graph);
 
