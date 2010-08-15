@@ -124,18 +124,17 @@ void Parser::literal(const Node& n) {
     DynamicFSM::vertex_descriptor first,
                                   prev,
                                   last;
-    VList in, out;
     first = prev = last = boost::add_vertex(g);
     g[first].reset(new LitState(TempBuf[0]));
+    Fragment f(first, n);
     for (uint32 i = 1; i < len; ++i) {
       last = boost::add_vertex(g);
       boost::add_edge(prev, last, g);
       g[last].reset(new LitState(TempBuf[i]));
       prev = last;
     }
-    in.push_back(first);
-    out.push_back(last);
-    Stack.push(Fragment(in, n, out));
+    f.addToOut(last);
+    Stack.push(f);
   }
 }
 
