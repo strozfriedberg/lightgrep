@@ -13,7 +13,7 @@ const unsigned char* TextBegin;
 const unsigned char* TextEnd;
 SyntaxTree* Tree;
 
-boost::function< void(std::string, Node) > Callback;
+NodeHandler* Callback;
 
 std::string MyTextLabel("");
 std::stringstream MyBuf;
@@ -29,11 +29,11 @@ std::ostream& operator<<(std::ostream&, const Printer&);
 
 	Node* add(const char* type, const Node& n) {
 		if (!MyTextLabel.empty()) {
-			Callback(MyTextLabel, n);
+			Callback->callback(MyTextLabel, n);
 			MyTextLabel.clear();
 		}
 		else {
-			Callback(type, n);
+			Callback->callback(type, n);
 		}
 		return Tree->add(n);
 	}
@@ -298,12 +298,12 @@ namespace {
 	}
 }
 
-bool parse(const std::string& text, SyntaxTree& tree, boost::function< void(std::string, Node) > callback) {
+bool parse(const std::string& text, SyntaxTree& tree, NodeHandler& callback) {
 	Tree = &tree;
 	Text = (unsigned char*)text.c_str();
 	TextBegin = Text;
 	TextEnd = Text + text.size();
-	Callback = callback;
+	Callback = &callback;
 	int ret = yyparse();
   Text = 0;
 	Tree = 0;
