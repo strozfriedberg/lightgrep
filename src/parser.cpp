@@ -80,17 +80,21 @@ void Parser::patch(const VList& sources, const VList& targets) {
   }
 }
 
-Fragment Parser::patch(const Fragment& first, const Fragment& second, const Node& n) {
-  Fragment ret(first.InList, n, second.OutList);
+void Parser::patch(Fragment& first, const Fragment& second, const Node& n) {
+  // Fragment ret(first.InList, n, second.OutList);
   // std::cout << "patching states" << std::endl;
   patch(first.OutList, second.InList);
+  first.N = n;
   if (first.Skippable) {
-    Fragment::mergeLists(ret.InList, second.InList);
+    Fragment::mergeLists(first.InList, second.InList);
   }
   if (second.Skippable) {
-    Fragment::mergeLists(ret.OutList, first.OutList);
+    Fragment::mergeLists(first.OutList, second.OutList);
   }
-  return ret;
+  else {
+    first.OutList = second.OutList;
+  }
+  first.Skippable = false;
 }
 
 void Parser::addAtom(const Node&) {
@@ -113,7 +117,7 @@ void Parser::concatenate(const Node& n) {
   Fragment second = Stack.top();
   Stack.pop();
   Fragment& first = Stack.top();
-  first = patch(first, second, n);
+  patch(first, second, n);
 }
 
 void Parser::literal(const Node& n) {
@@ -205,10 +209,11 @@ void Parser::finish(const Node& n) {
     Stack.pop();
     Fragment start = Stack.top();
     Stack.pop();
-    Fragment final = patch(start, path, n);    
-    for (VList::const_iterator it(final.OutList.begin()); it != final.OutList.end(); ++it) {
+    patch(start, path, n);    
+    for (VList::const_iterator it(start.OutList.begin()); it != start.OutList.end(); ++it) {
       // std::cout << "marking " << *it << " as a match" << std::endl;
       if (0 == *it) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
+        std::cerr << "state 0 is not allowed as a final state of the NFA" << std::endl;
         reset();
         return;
       }
