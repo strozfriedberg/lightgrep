@@ -99,7 +99,7 @@ public:
 
   void setEncoding(const boost::shared_ptr<Encoding>& e);
 
-  Fragment patch(const Fragment& first, const Fragment& second, const Node& n);
+  void patch(Fragment& first, const Fragment& second, const Node& n);
   void patch(const VList& sources, const VList& targets);
 
   void addAtom(const Node& n);
