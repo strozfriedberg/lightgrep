@@ -26,6 +26,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
         }
         else {
           fsm = p.getFsm();
+          p.resetFsm();
         }
         ++keyIdx;
       }

@@ -115,6 +115,7 @@ public:
   void charClass(const Node& n, const std::string& lbl);
 
   DynamicFSMPtr getFsm() const { return Fsm; }
+  void resetFsm() { Fsm.reset(); }
 
   void setCurLabel(uint32 lbl) { CurLabel = lbl; }
 
