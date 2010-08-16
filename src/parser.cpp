@@ -50,7 +50,13 @@ Parser::Parser():
 
 void Parser::reset() {
   IsGood = false;
-  Fsm.reset(new DynamicFSM(1));
+  if (Fsm) {
+    Fsm->clear();
+    boost::add_vertex(*Fsm);
+  }
+  else {
+    Fsm.reset(new DynamicFSM(1));
+  }
   while (!Stack.empty()) {
     Stack.pop();
   }
@@ -75,12 +81,9 @@ void Parser::patch(const VList& sources, const VList& targets) {
 }
 
 Fragment Parser::patch(const Fragment& first, const Fragment& second, const Node& n) {
-  Fragment ret;
-  ret.N = n;
+  Fragment ret(first.InList, n, second.OutList);
   // std::cout << "patching states" << std::endl;
   patch(first.OutList, second.InList);
-  ret.InList = first.InList;
-  ret.OutList = second.OutList;
   if (first.Skippable) {
     Fragment::mergeLists(ret.InList, second.InList);
   }
