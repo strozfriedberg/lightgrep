@@ -87,7 +87,14 @@ struct Fragment {
   static void mergeLists(VList& l1, const VList& l2);
 };
 
-class Parser {
+class NodeHandler {
+public:
+  virtual ~NodeHandler() {}
+
+  virtual void callback(const std::string&, const Node&) = 0;
+};
+
+class Parser: public NodeHandler {
 public:
   Parser();
 
@@ -95,7 +102,7 @@ public:
   
   void reset();
 
-  void callback(const std::string& type, Node n);
+  virtual void callback(const std::string& type, const Node& n);
 
   void setEncoding(const boost::shared_ptr<Encoding>& e);
 
@@ -128,4 +135,4 @@ private:
   boost::scoped_array<byte> TempBuf;
 };
 
-bool parse(const std::string& text, SyntaxTree& tree, boost::function< void(std::string, Node) > callback);
+bool parse(const std::string& text, SyntaxTree& tree, NodeHandler& callback);

@@ -231,7 +231,7 @@ void Parser::finish(const Node& n) {
   }
 }
 
-void Parser::callback(const std::string& type, Node n) {
+void Parser::callback(const std::string& type, const Node& n) {
   // std::cout << type << std::endl;
   type.size();
   switch (n.Type) {

@@ -20,7 +20,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
     const std::string& kw(keywords[i]);
     if (!kw.empty()) {
       p.setCurLabel(keyIdx);
-      if (parse(kw, tree, boost::bind(&Parser::callback, &p, _1, _2))) {
+      if (parse(kw, tree, p)) {
         if (fsm) {
           mergeIntoFSM(*fsm, *p.getFsm(), keyIdx);
         }

@@ -18,7 +18,7 @@ struct STest: public HitCallback {
   STest(const std::string& key) {
     SyntaxTree  tree;
     Parser      p;
-    if (parse(key, tree, boost::bind(&Parser::callback, &p, _1, _2))) {
+    if (parse(key, tree, p)) {
       Fsm = p.getFsm();
       Prog = createProgram(*Fsm);
       Grep.init(Prog, firstBytes(*Fsm), 1);
@@ -34,7 +34,7 @@ struct STest: public HitCallback {
       SyntaxTree  tree;
       Parser      p;
       p.setCurLabel(i);
-      if (parse(std::string(keys[i]), tree, boost::bind(&Parser::callback, &p, _1, _2))) {
+      if (parse(std::string(keys[i]), tree, p)) {
         // writeGraphviz(std::cout, *p.getFsm());
         if (Fsm) {
           mergeIntoFSM(*Fsm, *p.getFsm(), i);
