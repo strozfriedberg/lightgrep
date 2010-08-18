@@ -18,7 +18,7 @@ def buildBoost(target, source, env):
     curDir = os.getcwd()
     os.chdir(str(source[0]))
     shellCall('./bootstrap.sh')
-    shellCall('./bjam --stagedir=%s --with-thread --with-program_options link=static variant=release threading=single stage' % curDir)
+    shellCall('./bjam --stagedir=%s --with-thread --with-program_options link=shared variant=release threading=multi stage' % curDir)
     os.chdir(curDir)
 
 scopeDir = 'vendors/scope'

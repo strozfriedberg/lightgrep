@@ -1,4 +1,4 @@
 Import('env')
 parser = env.Command('#/bin/src/parser.tab.cpp', 'parser.ypp', 'bison $SOURCE -o $TARGET')
-ret = env.Library('lightgrep', Glob('*.cpp'))
+ret = env.SharedLibrary('lightgrep', Glob('*.cpp'))
 Return('ret')
