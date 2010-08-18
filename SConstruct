@@ -1,4 +1,5 @@
 import os
+import platform
 import os.path as p
 
 def shellCall(cmd):
@@ -21,6 +22,9 @@ def buildBoost(target, source, env):
     shellCall('./bjam --stagedir=%s --with-thread --with-program_options link=shared variant=release threading=multi stage' % curDir)
     os.chdir(curDir)
 
+arch = platform.platform()
+print("System is %s" % arch)
+
 scopeDir = 'vendors/scope'
 boostDir = 'vendors/boost'
 
@@ -36,6 +40,9 @@ env = Environment(ENV=os.environ) # this builds in a dependency on the PATH, whi
 env.Replace(CPPPATH=['#/include'])
 env.Replace(CCFLAGS='-Wall -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir))
 env.Append(LIBPATH=['#/lib'])
+
+if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
+  print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
 libBoost = env.Command(['#/lib/*boost_thread*', '#/lib/*boost_program_options*'], boostDir, buildBoost)
 liblg = sub('src')
