@@ -19,7 +19,7 @@ def buildBoost(target, source, env):
     curDir = os.getcwd()
     os.chdir(str(source[0]))
     shellCall('./bootstrap.sh')
-    shellCall('./bjam --stagedir=%s --with-thread --with-program_options link=shared variant=release threading=multi stage' % curDir)
+    shellCall('./bjam --stagedir=%s --with-thread link=shared variant=release threading=multi stage' % curDir)
     os.chdir(curDir)
 
 arch = platform.platform()
@@ -44,7 +44,7 @@ env.Append(LIBPATH=['#/lib'])
 if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
-libBoost = env.Command(['#/lib/*boost_thread*', '#/lib/*boost_program_options*'], boostDir, buildBoost)
+libBoost = env.Command(['#/lib/*boost_thread*'], boostDir, buildBoost)
 liblg = sub('src')
 libDir = env.Install('lib', liblg)
 test = sub('test')
