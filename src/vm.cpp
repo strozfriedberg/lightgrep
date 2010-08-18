@@ -36,7 +36,7 @@ void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates) {
   Matches.assign(numPatterns, std::pair<uint64, uint64>(UNALLOCATED, 0));
 }
 
-inline bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
+inline bool _execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, Vm::ThreadList& active, Vm::ThreadList& next, const byte* cur, uint64 offset) {
   // std::string instr;
   // std::cerr << t << std::endl;
   // instr = t.PC->toString(); // for some reason, toString() is corrupting the stack... maybe?
@@ -138,7 +138,7 @@ inline bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& c
   return false;
 }
 
-bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& checkStates, Vm::ThreadList& active, Vm::ThreadList& next, uint64 offset) {
+inline bool _executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& checkStates, Vm::ThreadList& active, Vm::ThreadList& next, uint64 offset) {
   Thread f;
   register Instruction instr = *t.PC;
   switch (instr.OpCode) {
@@ -188,6 +188,10 @@ bool executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& chec
       return false;
   }
   return true;
+}
+
+bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
+  return _execute(base, t, checkStates, active, next, cur, offset);
 }
 
 void Vm::doMatch(register ThreadList::iterator threadIt, HitCallback& hitFn) {
@@ -247,7 +251,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
           // std::cerr << (Active.end() - threadIt) - 1 << " threadex ";
           // threadIt->output(std::cerr, base);
           // std::cerr << std::endl;
-        } while (execute(base, *threadIt, CheckStates, Active, Next, cur, offset));
+        } while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset));
         if (threadIt->End == offset) {
           doMatch(threadIt, hitFn);
         }
@@ -259,7 +263,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   // this flushes out last char matches
   // and leaves us only with comparison instructions (in next)
   for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
-    while (executeEpsilons(base, *threadIt, CheckStates, Active, Next, offset)) ;
+    while (_executeEpsilons(base, *threadIt, CheckStates, Active, Next, offset)) ;
     if (threadIt->End == offset) {
       doMatch(threadIt, hitFn);
     }
