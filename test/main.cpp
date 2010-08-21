@@ -11,21 +11,10 @@
 
 #include "utility.h"
 #include "vm.h"
+#include "hitwriter.h"
 
 using namespace std;
 namespace po = boost::program_options;
-
-class StdOutHits: public HitCallback {
-public:
-  uint64  NumHits;
-
-  StdOutHits(): NumHits(0) {}
-
-  virtual void collect(const SearchHit& hit) {
-    std::cout << hit.Offset << '\t' << hit.Length << '\t' << hit.Label << '\n';
-    ++NumHits;
-  }
-};
 
 bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys) {
   std::ifstream keyFile(keyFilePath.c_str(), ios::in);
@@ -102,7 +91,7 @@ void search(const string& keyfile, const string& input, uint32 enc) {
     file.rdbuf()->pubsetbuf(0, 0);
     boost::shared_ptr<Vm> search = initSearch(keyfile, enc);
 
-    StdOutHits cb;
+    HitWriter cb(std::cout);
 
     uint64 size = file.tellg(),
            offset = 0;
