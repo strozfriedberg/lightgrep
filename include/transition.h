@@ -4,6 +4,7 @@
 
 class Instruction;
 
+#pragma pack(push)
 #pragma pack(1)
 class Transition {
 public:

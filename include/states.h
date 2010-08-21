@@ -2,6 +2,7 @@
 
 #include "transition.h"
 
+#pragma pack(push)
 #pragma pack(1)
 // This gets the states to take up as little space as possible.
 // It is a relatively portable directive to the compiler to layout the class according to the minimum
