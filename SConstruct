@@ -34,7 +34,7 @@ if (debug == 'true'):
 elif (debug == 'profile'):
   flags = '-g -O1'
 else:
-  flags = '-O3'
+  flags = '-O1'
 
 env = Environment(ENV=os.environ) # this builds in a dependency on the PATH, which is useful for ccache
 env.Replace(CPPPATH=['#/include'])

@@ -1,4 +1,8 @@
 Import('env')
-parser = env.Command('#/bin/src/parser.tab.cpp', 'parser.ypp', 'bison $SOURCE -o $TARGET')
-ret = env.SharedLibrary('lightgrep', Glob('*.cpp'))
+myEnv = env
+flags = myEnv['CCFLAGS']
+if (flags.find('-O1') > -1 and flags.find('-g') < 0):
+  myEnv = env.Clone(CCFLAGS=flags.replace('-O1', '-O3'))
+parser = myEnv.Command('#/bin/src/parser.tab.cpp', 'parser.ypp', 'bison $SOURCE -o $TARGET')
+ret = myEnv.SharedLibrary('lightgrep', Glob('*.cpp'))
 Return('ret')
