@@ -2,17 +2,6 @@
 
 #include "basic.h"
 
-#pragma pack(1)
-struct ByteRange {
-  byte First, Last;
-};
-
-union Operand {
-  unsigned  Offset : 24;
-  ByteRange Range;
-  byte      Literal;
-};
-
 enum OpCodes {
   UNINITIALIZED = 0,
   LIT_OP,
@@ -27,6 +16,18 @@ enum OpCodes {
   MATCH_OP,
   HALT_OP,
   ILLEGAL
+};
+
+#pragma pack(push)
+#pragma pack(1)
+struct ByteRange {
+  byte First, Last;
+};
+
+union Operand {
+  unsigned  Offset : 24;
+  ByteRange Range;
+  byte      Literal;
 };
 
 struct Instruction {
