@@ -16,7 +16,7 @@ enum NodeType {
   PLUS,
   STAR,
   QUESTION,
-  ATOM,
+  ELEMENT,
   DOT,
   CHAR_CLASS,
   LITERAL,
@@ -109,7 +109,7 @@ public:
   void patch(Fragment& first, const Fragment& second, const Node& n);
   void patch(const VList& sources, const VList& targets);
 
-  void addAtom(const Node& n);
+  void addElement(const Node& n);
   void alternate(const Node& n);
   void concatenate(const Node& n);
   void star(const Node& n);

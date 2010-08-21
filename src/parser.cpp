@@ -97,7 +97,7 @@ void Parser::patch(Fragment& first, const Fragment& second, const Node& n) {
   first.Skippable = false;
 }
 
-void Parser::addAtom(const Node&) {
+void Parser::addElement(const Node&) {
   // don't really have to do anything here
 }
 
@@ -256,8 +256,8 @@ void Parser::callback(const std::string& type, const Node& n) {
     case QUESTION:
       question(n);
       break;
-    case ATOM:
-      addAtom(n);
+    case ELEMENT:
+      addElement(n);
       break;
     case DOT:
       dot(n);
