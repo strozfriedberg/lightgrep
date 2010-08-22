@@ -24,19 +24,27 @@ SCOPE_TEST(testUCS16) {
   UCS16 twofer;
   SCOPE_ASSERT_EQUAL(2u, twofer.maxByteLength());
   byte buf[2];
+  unsigned short val;
   uint32 len;
   for (uint32 i = 0; i < 70000; ++i) {
     len = twofer.write(i, buf);
+    val = buf[1];
+    val <<= 8;
+    val += buf[0];
     if (i < 65536) {
       SCOPE_ASSERT_EQUAL(2u, len);
-      SCOPE_ASSERT_EQUAL(i, *(uint32*)buf);
+      SCOPE_ASSERT_EQUAL(i, val);
     }
     else {
       SCOPE_ASSERT_EQUAL(0u, len);
-      SCOPE_ASSERT_EQUAL(65535, *(uint32*)buf);
+      SCOPE_ASSERT_EQUAL(65535, val);
     }
   }
   twofer.write(-1, buf);
+  val = buf[1];
+  val <<= 8;
+  val += buf[0];
   SCOPE_ASSERT_EQUAL(0u, len);
-  SCOPE_ASSERT_EQUAL(65535, *(uint32*)buf);
+  SCOPE_ASSERT_EQUAL(65535, val);
 }
+
