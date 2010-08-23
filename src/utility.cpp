@@ -52,6 +52,28 @@ DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 
   return ret;
 }
 
+DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc) {
+  DynamicFSMPtr ret;
+  uint32 keyIdx = 0;
+  if (enc & CP_ASCII) {
+    keyInfo.Encodings.push_back("ASCII");
+    uint32 encIdx = keyInfo.Encodings.size() - 1;
+    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new Ascii), ret, keyIdx);
+    for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
+      keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
+    }
+  }
+  if (enc & CP_UCS16) {
+    keyInfo.Encodings.push_back("UCS-16");
+    uint32 encIdx = keyInfo.Encodings.size() - 1;
+    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new UCS16), ret, keyIdx);
+    for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
+      keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
+    }
+  }
+  return ret;
+}
+
   // DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
   // DynamicFSMPtr g(new DynamicFSM(1));
   // uint32 keyIdx = 0;

@@ -4,6 +4,7 @@
 #include <exception>
 #include <sstream>
 #include <vector>
+#include <utility>
 #include <boost/smart_ptr.hpp>
 
 typedef unsigned char byte;

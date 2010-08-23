@@ -1,6 +1,8 @@
 #include "hitwriter.h"
 
 void HitWriter::collect(const SearchHit& hit) {
-  Out << hit.Offset << '\t' << hit.Length << '\t' << hit.Label << '\n';
+  std::pair< uint32, uint32 > info(Table[hit.Label]);
+  Out << hit.Offset << '\t' << hit.Length << '\t' << info.first << '\t'
+    << Keys[info.first] << '\t' << Encodings[info.second] << '\n';
   ++NumHits;
 }

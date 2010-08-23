@@ -17,7 +17,16 @@ enum Encodings {
   CP_UCS16 = 2
 };
 
+struct KwInfo {
+  typedef std::vector<std::string> StringVec;
+  
+  StringVec Keywords,
+            Encodings;
+  std::vector< std::pair<uint32, uint32> > PatternsTable;
+};
+
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII);
+DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc);
 
 ProgramPtr createProgram(const DynamicFSM& graph);
 

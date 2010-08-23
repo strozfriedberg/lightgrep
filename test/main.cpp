@@ -55,11 +55,10 @@ void writeProgram(const std::string& keyFilePath, uint32 enc) {
   }
 }
 
-boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath, uint32 enc) {
-  std::vector<std::string> keys;
-  readKeyFile(keyFilePath, keys);
-  std::cerr << keys.size() << " keywords"<< std::endl;
-  DynamicFSMPtr fsm = createDynamicFSM(keys, enc);
+boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath, KwInfo& keyInfo, uint32 enc) {
+  readKeyFile(keyFilePath, keyInfo.Keywords);
+  std::cerr << keyInfo.Keywords.size() << " keywords"<< std::endl;
+  DynamicFSMPtr fsm = createDynamicFSM(keyInfo, enc);
 
   std::cerr << boost::num_vertices(*fsm) << " vertices" << '\n';
 
@@ -89,9 +88,10 @@ void search(const string& keyfile, const string& input, uint32 enc) {
   std::ifstream file(input.c_str(), ios::in | ios::binary | ios::ate);
   if (file) {
     file.rdbuf()->pubsetbuf(0, 0);
-    boost::shared_ptr<Vm> search = initSearch(keyfile, enc);
+    KwInfo keyInfo;
+    boost::shared_ptr<Vm> search = initSearch(keyfile, keyInfo, enc);
 
-    HitWriter cb(std::cout);
+    HitWriter cb(std::cout, keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
 
     uint64 size = file.tellg(),
            offset = 0;
