@@ -21,6 +21,8 @@ namespace { // I am so bad
                 DebugEnd   = std::numeric_limits<uint64>::max();
 }
 
+void startup();
+
 bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys) {
   std::ifstream keyFile(keyFilePath.c_str(), ios::in);
   keys.clear();
@@ -171,7 +173,7 @@ int main(int argc, char** argv) {
     ("help", "produce help message")
     ("test", "run unit tests (same as test command)")
     ("encoding,e", po::value< std::string >(&encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
-    ("command,c", po::value< std::string >(&cmd)->default_value("search"), "command to perform [search|graph|prog|test]")
+    ("command,c", po::value< std::string >(&cmd)->default_value("search"), "command to perform [search|graph|prog|test|server]")
     ("keywords,k", po::value< std::string >(&keyfile), "path to file containing keywords")
     ("input,i", po::value< std::string >(&input)->default_value("-"), "file to search")
     #ifdef LBT_TRACE_ENABLED
@@ -205,6 +207,9 @@ int main(int argc, char** argv) {
     }
     else if (cmd == "prog") {
       writeProgram(keyfile, enc);
+    }
+    else if (cmd == "server") {
+      startup();
     }
   }
   catch (std::exception& err) {
