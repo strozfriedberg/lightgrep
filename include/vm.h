@@ -5,6 +5,7 @@
 #include "thread.h"
 #include "SearchHit.h"
 #include "staticvector.h"
+#include "skiptable.h"
 
 class Vm {
 public:
@@ -14,7 +15,7 @@ public:
   static bool execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset);
   
   // numCheckedStates should be equal to the number + 1 for the reserved bit
-  void init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates);
+  void init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates, boost::shared_ptr<SkipTable> skip);
 
   bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
 
@@ -23,6 +24,7 @@ private:
   void cleanup();
 
   ByteSet    First;
+  boost::shared_ptr<SkipTable> Skip;
   ProgramPtr Prog;
   ThreadList Active,
              Next;

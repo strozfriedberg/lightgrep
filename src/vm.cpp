@@ -17,8 +17,9 @@ void Thread::output(std::ostream& out, const Instruction* base) const {
   out << "{ \"pc\":" << PC - base << ", \"Label\":" << Label << ", \"Start\":" << Start << ", \"End\":" << End << " }";
 }
 
-void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates) {
+void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates, boost::shared_ptr<SkipTable> skip) {
   Prog = prog;
+  Skip = skip;
   Active.resize(Prog->size());
   Next.resize(Prog->size());
   First = firstBytes;

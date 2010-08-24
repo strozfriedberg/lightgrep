@@ -21,7 +21,7 @@ struct STest: public HitCallback {
     if (parse(key, tree, p)) {
       Fsm = p.getFsm();
       Prog = createProgram(*Fsm);
-      Grep.init(Prog, firstBytes(*Fsm), 1);
+      Grep.init(Prog, firstBytes(*Fsm), 1, calculateSkipTable(*Fsm));
     }
     else {
       THROW_RUNTIME_ERROR_WITH_OUTPUT("couldn't parse " << key);
@@ -49,7 +49,7 @@ struct STest: public HitCallback {
       }
     }
     Prog = createProgram(*Fsm);
-    Grep.init(Prog, firstBytes(*Fsm), 1);
+    Grep.init(Prog, firstBytes(*Fsm), 1, calculateSkipTable(*Fsm));
   }
   
   virtual void collect(const SearchHit& hit) {
