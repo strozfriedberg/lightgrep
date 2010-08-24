@@ -220,34 +220,57 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
   return ret;
 }
 
-class SkipTable {
-public:
-  SkipTable(uint32 numVertices): Distance(numVertices, std::numeric_limits<uint32>::max()), LMin(std::numeric_limits<uint32>::max()) { Distance[0] = 0; }
+SkipTable::SkipTable(uint32 numVertices):
+  Distance(numVertices, std::numeric_limits<uint32>::max()),
+  SkipVec(256, 256),
+  LMin(std::numeric_limits<uint32>::max())
+{
+  Distance[0] = 0;
+}
 
-  void relax(uint32 val) { LMin = std::min(val, LMin); }
-  void setDistance(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, const DynamicFSM& graph) {
-    uint32 srcDist = Distance[source];
-    if (srcDist == std::numeric_limits<uint32>::max()) {
-      Distance[target] = srcDist;
-    }
-    else {
-      Distance[target] = std::min(srcDist + 1, Distance[target]);
-    }
-    if (graph[target]->Label < std::numeric_limits<uint32>::max()) {
-      relax(Distance[target]);
+void SkipTable::relax(uint32 val) {
+  LMin = std::min(val, LMin);
+}
+
+void SkipTable::calculateTransitions(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  TempSet.reset();
+  nextBytes(TempSet, v, graph);
+  for (uint32 i = 0; i < 256; ++i) {
+    if (TempSet[i]) {
+      SkipVec[i] = std::min(Distance[v], SkipVec[i]);
     }
   }
+}
 
-  uint32 l_min() const { return LMin; }
+void SkipTable::finishSkipVec() {
+  uint32 l = l_min();
+  for (uint32 i = 0; i < 256; ++i) {
+    SkipVec[i] = std::min(l, SkipVec[i]);
+  }
+}
 
-private:
-  std::vector<uint32> Distance;
-  uint32 LMin;
-};
+void SkipTable::setDistance(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, const DynamicFSM& graph) {
+  uint32 srcDist = Distance[source];
+  uint32 tgtDist = 0;
+  if (srcDist == std::numeric_limits<uint32>::max()) {
+    tgtDist = srcDist;
+  }
+  else {
+    tgtDist = std::min(srcDist + 1, Distance[target]);
+  }
+  if (graph[target]->Label < std::numeric_limits<uint32>::max()) {
+    relax(tgtDist);
+  }
+  Distance[target] = tgtDist;
+}
 
 class SkipTblVisitor: public boost::default_bfs_visitor {
 public:
   SkipTblVisitor(boost::shared_ptr<SkipTable> skip): Skipper(skip) {}
+
+  void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+    Skipper->calculateTransitions(v, graph);
+  }
 
   void tree_edge(DynamicFSM::edge_descriptor e, const DynamicFSM& graph) const {
     Skipper->setDistance(boost::source(e, graph), boost::target(e, graph), graph);
@@ -258,10 +281,15 @@ private:
 };
 
 uint32 calculateLMin(const DynamicFSM& graph) {
+  return calculateSkipTable(graph)->l_min();
+}
+
+boost::shared_ptr<SkipTable> calculateSkipTable(const DynamicFSM& graph) {
   boost::shared_ptr<SkipTable> skip(new SkipTable(boost::num_vertices(graph)));
   SkipTblVisitor vis(skip);
   boost::breadth_first_search(graph, 0, boost::visitor(vis));
-  return skip->l_min();
+  skip->finishSkipVec();
+  return skip;
 }
 
 void nextBytes(ByteSet& set, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
