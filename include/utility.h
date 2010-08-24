@@ -25,26 +25,6 @@ struct KwInfo {
   std::vector< std::pair<uint32, uint32> > PatternsTable;
 };
 
-class SkipTable {
-public:
-  SkipTable(uint32 numVertices);
-
-  void relax(uint32 val);
-  void setDistance(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, const DynamicFSM& graph);
-  void calculateTransitions(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph);
-  void finishSkipVec();
-
-  uint32 l_min() const { return LMin; }
-
-  const std::vector<uint32>& skipVec() const { return SkipVec; } 
-
-private:
-  std::vector<uint32> Distance,
-                      SkipVec;
-  uint32 LMin;
-  ByteSet TempSet;
-};
-
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII);
 DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc);
 
