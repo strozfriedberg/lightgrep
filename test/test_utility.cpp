@@ -53,6 +53,7 @@ SCOPE_TEST(twoFixedStrings) {
   kws.push_back("two");
   DynamicFSMPtr fsm = createDynamicFSM(kws);
   SCOPE_ASSERT_EQUAL(7u, num_vertices(*fsm));
+  SCOPE_ASSERT_EQUAL(3u, calculateLMin(*fsm));
   // hmm... keeping things on the edges makes it shockingly hard to test
 }
 
@@ -75,6 +76,7 @@ SCOPE_TEST(twoUnicode) {
   SCOPE_ASSERT_EQUAL(1u, out_degree(5, *fsm));
   SCOPE_ASSERT_EQUAL(1u, in_degree(6, *fsm));
   SCOPE_ASSERT_EQUAL(0u, out_degree(6, *fsm));
+  SCOPE_ASSERT_EQUAL(4u, calculateLMin(*fsm));
 }
 
 SCOPE_TEST(firstBitset) {
@@ -103,6 +105,7 @@ SCOPE_TEST(simpleCollapse) {
   SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, *fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, *fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, *fsm));
+  SCOPE_ASSERT_EQUAL(2u, calculateLMin(*fsm));
 }
 
 SCOPE_TEST(codeGen2DiscoverVertex) {

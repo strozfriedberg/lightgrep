@@ -22,6 +22,7 @@ SCOPE_TEST(parseAorB) {
   SCOPE_ASSERT_EQUAL(2u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseAorBorC) {
@@ -34,6 +35,7 @@ SCOPE_TEST(parseAorBorC) {
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseAB) {
@@ -45,6 +47,7 @@ SCOPE_TEST(parseAB) {
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(2u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseAlternationAndConcatenation) {
@@ -57,6 +60,7 @@ SCOPE_TEST(parseAlternationAndConcatenation) {
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(2, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseGroup) {
@@ -69,6 +73,7 @@ SCOPE_TEST(parseGroup) {
   SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(2u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseQuestionMark) {
@@ -90,6 +95,7 @@ SCOPE_TEST(parseQuestionMark) {
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseQuestionMarkFirst) {
@@ -101,6 +107,7 @@ SCOPE_TEST(parseQuestionMarkFirst) {
   SCOPE_ASSERT_EQUAL(2u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseTwoQuestionMarks) {
@@ -123,6 +130,7 @@ SCOPE_TEST(parseTwoQuestionMarks) {
   // d
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
   SCOPE_ASSERT_EQUAL(3u, boost::in_degree(4, fsm));
+  SCOPE_ASSERT_EQUAL(2u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseQuestionWithAlternation) {
@@ -142,6 +150,7 @@ SCOPE_TEST(parseQuestionWithAlternation) {
   // c
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
   SCOPE_ASSERT_EQUAL(3u, boost::in_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseQuestionWithGrouping) {
@@ -163,6 +172,7 @@ SCOPE_TEST(parseQuestionWithGrouping) {
   // d
   SCOPE_ASSERT_EQUAL(2u, boost::in_degree(4, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
+  SCOPE_ASSERT_EQUAL(2u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parsePlus) {
@@ -176,6 +186,7 @@ SCOPE_TEST(parsePlus) {
   // a+
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(2u, boost::in_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseStar) {
@@ -190,6 +201,7 @@ SCOPE_TEST(parseStar) {
   SCOPE_ASSERT_EQUAL(2u, boost::in_degree(2, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
   SCOPE_ASSERT_EQUAL(2u, boost::in_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(2u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseStarWithGrouping) {
@@ -210,6 +222,7 @@ SCOPE_TEST(parseStarWithGrouping) {
   // d
   SCOPE_ASSERT_EQUAL(2u, boost::in_degree(4, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
+  SCOPE_ASSERT_EQUAL(2u, calculateLMin(fsm));
 }
 
 
@@ -222,6 +235,7 @@ SCOPE_TEST(parseDot) {
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(2u, boost::in_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet set;
   set.reset();
   fsm[1]->getBits(set);
@@ -236,6 +250,7 @@ SCOPE_TEST(parsePound) {
   SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet set;
   set.reset();
   fsm[1]->getBits(set);
@@ -253,6 +268,7 @@ SCOPE_TEST(parseHexCode) {
   SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet set;
   set.reset();
   fsm[1]->getBits(set);
@@ -273,6 +289,7 @@ SCOPE_TEST(parseHexDotPlus) {
   SCOPE_ASSERT_EQUAL(2u, boost::in_degree(3, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::in_degree(4, fsm));
+  SCOPE_ASSERT_EQUAL(4u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parse2ByteUnicode) {
@@ -282,6 +299,7 @@ SCOPE_TEST(parse2ByteUnicode) {
   p.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
   SCOPE_ASSERT(parse("ab", tree, p));
   SCOPE_ASSERT_EQUAL(5u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(4u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parseHighHex) {
@@ -290,6 +308,7 @@ SCOPE_TEST(parseHighHex) {
   DynamicFSM& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("\\xe5", tree, p));
   SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet expected,
           actual;
   expected.reset();
@@ -307,6 +326,7 @@ SCOPE_TEST(parseSimpleCharClass) {
   SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet expected,
           actual;
   expected.reset();
@@ -327,6 +347,7 @@ SCOPE_TEST(parseNegatedClass) {
   SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet expected,
           actual;
   expected.reset();
@@ -355,6 +376,7 @@ SCOPE_TEST(parseNegatedRanges) {
   SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
   SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet expected,
           actual;
   expected.reset();
