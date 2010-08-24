@@ -28,6 +28,8 @@ struct KwInfo {
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII);
 DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc);
 
+uint32 calculateLMin(const DynamicFSM& graph);
+
 ProgramPtr createProgram(const DynamicFSM& graph);
 
 ByteSet firstBytes(const DynamicFSM& graph);
