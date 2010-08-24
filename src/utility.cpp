@@ -220,15 +220,20 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
   return ret;
 }
 
-ByteSet firstBytes(const DynamicFSM& graph) {
-  std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> edgeRange(boost::out_edges(0, graph));
-  ByteSet ret,
-          tBits;
-  for (DynamicFSM::out_edge_iterator curEdge(edgeRange.first); curEdge != edgeRange.second; ++curEdge) {
+void nextBytes(ByteSet& set, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  OutEdgeRange edgeRange(boost::out_edges(v, graph));
+  ByteSet tBits;
+  for (OutEdgeIt cur(edgeRange.first); cur != edgeRange.second; ++cur) {
     tBits.reset();
-    graph[boost::target(*curEdge, graph)]->getBits(tBits);
-    ret |= tBits;
+    graph[boost::target(*cur, graph)]->getBits(tBits);
+    set |= tBits;
   }
+}
+
+ByteSet firstBytes(const DynamicFSM& graph) {
+  ByteSet ret;
+  ret.reset();
+  nextBytes(ret, 0, graph);
   return ret;
 }
 
