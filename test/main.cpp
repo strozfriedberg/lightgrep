@@ -16,6 +16,11 @@
 using namespace std;
 namespace po = boost::program_options;
 
+namespace { // I am so bad
+  static uint64 DebugBegin = std::numeric_limits<uint64>::max(),
+                DebugEnd   = std::numeric_limits<uint64>::max();
+}
+
 bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys) {
   std::ifstream keyFile(keyFilePath.c_str(), ios::in);
   keys.clear();
@@ -68,6 +73,7 @@ boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath, KwInfo& keyInfo
   
   boost::shared_ptr<Vm> ret(new Vm);
   ret->init(p, firstBytes(*fsm), 1, calculateSkipTable(*fsm));
+  ret->setDebugRange(DebugBegin, DebugEnd);
   return ret;
 }
 
@@ -153,7 +159,12 @@ int main(int argc, char** argv) {
     ("encoding,e", po::value< std::string >(&encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
     ("command,c", po::value< std::string >(&cmd)->default_value("search"), "command to perform [search|graph|prog|test]")
     ("keywords,k", po::value< std::string >(&keyfile), "path to file containing keywords")
-    ("input,i", po::value< std::string >(&input)->default_value("-"), "file to search");
+    ("input,i", po::value< std::string >(&input)->default_value("-"), "file to search")
+    #ifdef LBT_TRACE_ENABLED
+    ("begin-debug", po::value< uint64 >(&DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
+    ("end-debug", po::value< uint64 >(&DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
+    #endif
+    ;
   
   po::variables_map opts;
   try {
