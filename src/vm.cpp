@@ -5,7 +5,7 @@
 #include <cctype>
 #include <iomanip>
 
-static uint64 UNALLOCATED = 0xffffffffffffffff;
+static uint64 UNALLOCATED = std::numeric_limits<uint64>::max();
 
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"pc\":" << std::hex << t.PC << ", \"Label\":" << std::dec << t.Label << ", \"Start\":" << t.Start << ", \"End\":"
@@ -14,10 +14,10 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
 }
 
 void Thread::output(std::ostream& out, const Instruction* base) const {
-  out << "{ \"pc\":" << PC - base << ", \"Label\":" << Label << ", \"Start\":" << Start << ", \"End\":" << End << " }";
+  out << "{ \"pc\":" << (PC ? PC - base: -1) << ", \"Label\":" << Label << ", \"Start\":" << Start << ", \"End\":" << End << " }";
 }
 
-Vm::Vm() : SkipTblPtr(0) {}
+Vm::Vm() : SkipTblPtr(0), BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED) {}
 
 void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates, boost::shared_ptr<SkipTable> skip) {
   Prog = prog;
@@ -264,6 +264,18 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       } while (++threadIt != Active.end());
     }
     if (threadIt != Active.begin()) {
+      #ifdef LBT_TRACE_ENABLED
+      if (BeginDebug <= offset && offset < EndDebug) {
+        std::cerr << "{\"offset\":" << offset << ", \"num\":" << Active.size() << ", \"list\":[";
+        threadIt = Active.begin();
+        threadIt->output(std::cerr, base);
+        while (++threadIt != Active.end()) {
+          std::cerr << ", ";
+          threadIt->output(std::cerr, base);
+        }
+        std::cerr << "]}\n";
+      }
+      #endif
       cleanup();
     }
     ++offset;

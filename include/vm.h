@@ -21,6 +21,8 @@ public:
 
   bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
 
+  void setDebugRange(uint64 beg, uint64 end) { BeginDebug = beg; EndDebug = end; }
+
 private:
   void doMatch(ThreadList::iterator threadIt, HitCallback& hitFn);
   void cleanup();
@@ -34,4 +36,7 @@ private:
   std::vector<bool> CheckStates;
   std::vector< std::pair< uint64, uint64 > > Matches;
   boost::scoped_ptr< std::vector<uint32> > SkipTblPtr;
+
+  uint64 BeginDebug,
+         EndDebug;
 };
