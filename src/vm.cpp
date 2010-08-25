@@ -17,6 +17,8 @@ void Thread::output(std::ostream& out, const Instruction* base) const {
   out << "{ \"pc\":" << PC - base << ", \"Label\":" << Label << ", \"Start\":" << Start << ", \"End\":" << End << " }";
 }
 
+Vm::Vm() : SkipTblPtr(0) {}
+
 void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates, boost::shared_ptr<SkipTable> skip) {
   Prog = prog;
   Skip = skip;
@@ -226,14 +228,16 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   SearchHit  hit;
   register uint64     offset = startOffset;
   register ThreadList::iterator threadIt;
+  // uint32     lminOffset = Skip ? Skip->l_min() - 1: 0;
+  // std::vector<uint32>* skipTbl = Skip ? &Skip->skipVec(): SkipTblPtr.get();
+  // uint32     skipAmount;
+  // if (!skipTbl) {
+  //   SkipTblPtr.reset(new std::vector<uint32>(256, 0));
+  //   skipTbl = SkipTblPtr.get();
+  // }
   // uint32   maxActive = 0;
   // double   total = 0;
   for (register const byte* cur = beg; cur != end; ++cur) {
-    if (First[*cur]) {
-      newThread.init(base, offset);
-      Active.push_back(newThread);
-    }
-
     // std::cerr << "offset = " << offset << ", ";
     // if (std::isprint(*cur)) {
     //   std::cerr << *cur;
@@ -243,20 +247,23 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     // }
     // std::cerr << std::dec << ", " << Active.size() << " active threads" << std::endl;
     // total += Active.size();
-
-    if (!Active.empty()) {
-      // maxActive = std::max(maxActive, Active.size());
-      threadIt = Active.begin();
+    for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
+      while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
+      if (threadIt->End == offset) {
+        doMatch(threadIt, hitFn);
+      }
+    }
+    if (First[*cur]) {
+      newThread.init(base, offset);
+      Active.push_back(newThread);
       do {
-        do {
-          // std::cerr << (Active.end() - threadIt) - 1 << " threadex ";
-          // threadIt->output(std::cerr, base);
-          // std::cerr << std::endl;
-        } while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset));
+        while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
         if (threadIt->End == offset) {
           doMatch(threadIt, hitFn);
         }
       } while (++threadIt != Active.end());
+    }
+    if (threadIt != Active.begin()) {
       cleanup();
     }
     ++offset;
