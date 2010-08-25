@@ -11,6 +11,8 @@ class Vm {
 public:
 
   typedef StaticVector<Thread> ThreadList;
+
+  Vm();
   
   static bool execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset);
   
@@ -31,4 +33,5 @@ private:
 
   std::vector<bool> CheckStates;
   std::vector< std::pair< uint64, uint64 > > Matches;
+  boost::scoped_ptr< std::vector<uint32> > SkipTblPtr;
 };
