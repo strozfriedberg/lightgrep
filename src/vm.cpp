@@ -262,7 +262,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     }
 
     // if (First[*cur]) {
-    if (guard == cur) {
+    if (guard == cur && (*skipTbl)[*cur] == 0) {
       newThread.init(base, offset);
       Active.push_back(newThread);
       do {
