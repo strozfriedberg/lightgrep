@@ -228,16 +228,16 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   SearchHit  hit;
   register uint64     offset = startOffset;
   register ThreadList::iterator threadIt;
-  // uint32     lminOffset = Skip ? Skip->l_min() - 1: 0;
-  // std::vector<uint32>* skipTbl = Skip ? &Skip->skipVec(): SkipTblPtr.get();
-  // uint32     skipAmount;
-  // if (!skipTbl) {
-  //   SkipTblPtr.reset(new std::vector<uint32>(256, 0));
-  //   skipTbl = SkipTblPtr.get();
-  // }
+  uint32     lMin = Skip ? Skip->l_min(): 1;
+  const std::vector<uint32>* skipTbl = Skip ? &Skip->skipVec(): SkipTblPtr.get();
+  if (!skipTbl) {
+    SkipTblPtr.reset(new std::vector<uint32>(256, 0));
+    skipTbl = SkipTblPtr.get();
+  }
   // uint32   maxActive = 0;
   // double   total = 0;
-  for (register const byte* cur = beg; cur != end; ++cur) {
+  const byte* guard;
+  for (register const byte* cur = beg; cur < end; ++cur) {
     // std::cerr << "offset = " << offset << ", ";
     // if (std::isprint(*cur)) {
     //   std::cerr << *cur;
@@ -253,7 +253,11 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
         doMatch(threadIt, hitFn);
       }
     }
-    if (First[*cur]) {
+    guard = std::min(cur + lMin, end);
+    while ((*skipTbl)[*(--guard)] < guard - cur) ;
+
+    // if (First[*cur]) {
+    if (guard == cur) {
       newThread.init(base, offset);
       Active.push_back(newThread);
       do {
@@ -277,6 +281,10 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       }
       #endif
       cleanup();
+    }
+    else {
+      offset += (guard - cur);
+      cur = guard;
     }
     ++offset;
   }
