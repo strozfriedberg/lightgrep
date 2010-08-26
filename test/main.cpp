@@ -71,6 +71,20 @@ boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath, KwInfo& keyInfo
 
   std::cerr << p->size() << " instructions" << std::endl;
   
+  boost::shared_ptr<SkipTable> skip(calculateSkipTable(*fsm));
+  std::cerr << skip->l_min() << " lmin" << std::endl;
+  const std::vector<uint32>& skipVec(skip->skipVec());
+  uint32 numMax = 0;
+  double total = 0;
+  for (uint32 i = 0; i < 256; ++i) {
+    total += skipVec[i];
+    if (skipVec[i] == skip->l_min()) {
+      ++numMax;
+    }
+  }
+  std::cerr << numMax << " numMaxSkips" << std::endl;
+  std::cerr << (total/256) << " averageSkip" << std::endl;
+
   boost::shared_ptr<Vm> ret(new Vm);
   ret->init(p, firstBytes(*fsm), 1, calculateSkipTable(*fsm));
   ret->setDebugRange(DebugBegin, DebugEnd);
