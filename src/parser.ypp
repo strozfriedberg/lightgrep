@@ -137,26 +137,26 @@ literal:
 ;
 
 charclass:
-	'#' charclass
+	charclass '#' 
 	{
 		MyBuf << '#';
 		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
-		$$->Bits = $2->Bits;
+		$$->Bits = $1->Bits;
 		$$->range('0', '9');
 	}
-| CHAR_TOKEN '-' CHAR_TOKEN charclass
+| charclass CHAR_TOKEN '-' CHAR_TOKEN
 	{
-		MyBuf << Printer($1) << "-" << Printer($3);
+		MyBuf << Printer($2) << "-" << Printer($4);
 		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
-		$$->Bits = $4->Bits;
-		$$->range($1, $3);
+		$$->Bits = $1->Bits;
+		$$->range($2, $4);
 	}
-| CHAR_TOKEN charclass
+| charclass CHAR_TOKEN
 	{
-		MyBuf << Printer($1);
+		MyBuf << Printer($2);
 		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
-		$$->Bits = $2->Bits;
-		$$->Bits.set($1);
+		$$->Bits = $1->Bits;
+		$$->Bits.set($2);
 	}
 | CHAR_TOKEN '-' CHAR_TOKEN
 	{
