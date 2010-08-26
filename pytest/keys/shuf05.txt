@@ -1,0 +1,5 @@
+3(4|7)##[\x20\x2D]?######[\x20\x2D]?#####
+un((deniabl(e|y))|(couth))
+[\x2A\x2E]?START
+s((cary)|(pooky))\x20?pe((ople)|(rsons))
+[a-z][a-z_\-#]+\.[a-z][a-z_\-#]+\.[a-z][a-z][a-z][a-z]?([a-z][a-z][a-z]?[a-z]?)?
