@@ -228,7 +228,8 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   SearchHit  hit;
   register uint64     offset = startOffset;
   register ThreadList::iterator threadIt;
-  uint32     lMin = Skip ? Skip->l_min(): 1;
+  uint32     window = Skip ? Skip->l_min() - 1: 1;
+  uint32     curDiff;
   const std::vector<uint32>* skipTbl = Skip ? &Skip->skipVec(): SkipTblPtr.get();
   if (!skipTbl) {
     SkipTblPtr.reset(new std::vector<uint32>(256, 0));
@@ -253,8 +254,12 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
         doMatch(threadIt, hitFn);
       }
     }
-    guard = std::min(cur + lMin, end);
-    while ((*skipTbl)[*(--guard)] < guard - cur) ;
+    guard = cur + window >= end ? end - 1: cur + window;
+    curDiff = guard - cur;
+    while (curDiff > 0 && (*skipTbl)[*guard] <= curDiff) {
+      --guard;
+      --curDiff;
+    }
 
     // if (First[*cur]) {
     if (guard == cur) {
