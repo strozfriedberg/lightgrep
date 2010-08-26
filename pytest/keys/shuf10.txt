@@ -1,0 +1,10 @@
+3(4|7)##[\x20\x2D]?######[\x20\x2D]?#####
+un((deniabl(e|y))|(couth))
+[\x2A\x2E]?START
+s((cary)|(pooky))\x20?pe((ople)|(rsons))
+[a-z][a-z_\-#]+\.[a-z][a-z_\-#]+\.[a-z][a-z][a-z][a-z]?([a-z][a-z][a-z]?[a-z]?)?
+\x2E\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x10....................\x2E\x2E\x20\x20\x20\x20\x20\x20\x20\x20\x20\x10....................
+shines? through
+RIF[FX]
+\xE5.......jp(e|g).........\x00\x00....\xF9\xC0....
+osama[\x5F\x20\x2D]?bin[\x5F\x20\x2D]?laden
