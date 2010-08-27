@@ -230,9 +230,8 @@ SCOPE_TEST(simpleLitMatch) {
   byte text[] = {'a', 'b', 'c'};
   MockCallback cb;
   Vm v;
-  ByteSet fb;
-  fb.set('a');
-  v.init(p, fb, 1, boost::shared_ptr<SkipTable>());
+  prog.First.set('a');
+  v.init(p);
   SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
   SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(35, 2, 3), cb.Hits[0]);
@@ -258,10 +257,9 @@ SCOPE_TEST(threeKeywords) {
   byte text[] = {'c', 'a', 'b', 'c'};
   MockCallback cb;
   Vm v;
-  ByteSet fb;
-  fb.set('a');
-  fb.set('b');
-  v.init(p, fb, 1, boost::shared_ptr<SkipTable>());
+  p->First.set('a');
+  p->First.set('b');
+  v.init(p);
   SCOPE_ASSERT(!v.search(text, &text[4], 10, cb));
   SCOPE_ASSERT_EQUAL(3u, cb.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(11, 1, 0), cb.Hits[0]);
@@ -279,9 +277,8 @@ SCOPE_TEST(stitchedText) {
        text2[] = {'b', 'b'};
   MockCallback cb;
   Vm v;
-  ByteSet fb;
-  fb.set('a');
-  v.init(p, fb, 1, boost::shared_ptr<SkipTable>());
+  p->First.set('a');
+  v.init(p);
   SCOPE_ASSERT(v.search(text1, &text1[3], 0, cb));
   SCOPE_ASSERT_EQUAL(0u, cb.Hits.size());
   SCOPE_ASSERT(!v.search(text2, &text2[2], 3, cb));

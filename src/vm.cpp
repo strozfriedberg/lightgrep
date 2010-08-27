@@ -19,24 +19,27 @@ void Thread::output(std::ostream& out, const Instruction* base) const {
 
 Vm::Vm() : SkipTblPtr(0), BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED) {}
 
-void Vm::init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates, boost::shared_ptr<SkipTable> skip) {
+void Vm::init(ProgramPtr prog) {
   Prog = prog;
-  Skip = skip;
   Active.resize(Prog->size());
   Next.resize(Prog->size());
-  First = firstBytes;
-  CheckStates.resize(numCheckedStates);
-  CheckStates.assign(numCheckedStates, false);
-  uint32 numPatterns = 0;
+  uint32 numPatterns = 0,
+         numCheckedStates;
   Program& p(*Prog);
   for (uint32 i = 0; i < p.size(); ++i) {
     if (p[i].OpCode == MATCH_OP && numPatterns < p[i].Op.Offset) {
       numPatterns = p[i].Op.Offset;
     }
+    if (p[i].OpCode == CHECK_BRANCH_OP || p[i].OpCode == CHECK_HALT_OP) {
+      numCheckedStates = std::max(numCheckedStates, p[i].Op.Offset);
+    }
   }
   ++numPatterns;
+  numCheckedStates += 2; // bit 0 reserved for whether any bits were flipped
   Matches.resize(numPatterns);
   Matches.assign(numPatterns, std::pair<uint64, uint64>(UNALLOCATED, 0));
+  CheckStates.resize(numCheckedStates);
+  CheckStates.assign(numCheckedStates, false);
 }
 
 inline bool _execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, Vm::ThreadList& active, Vm::ThreadList& next, const byte* cur, uint64 offset) {

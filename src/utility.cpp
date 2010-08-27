@@ -269,7 +269,9 @@ boost::shared_ptr<Vm> initVM(const std::vector<std::string>& keywords, SearchInf
   boost::shared_ptr<Vm> vm(new Vm);
   DynamicFSMPtr fsm = createDynamicFSM(keywords);
   ProgramPtr prog = createProgram(*fsm);
-  vm->init(prog, firstBytes(*fsm), 1, calculateSkipTable(*fsm));
+  prog->Skip = calculateSkipTable(*fsm);
+  prog->First = firstBytes(*fsm);
+  vm->init(prog);
   return vm;
 }
 

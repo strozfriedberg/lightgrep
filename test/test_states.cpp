@@ -3,6 +3,7 @@
 
 #include "states.h"
 #include "instructions.h"
+#include "program.h"
 
 #include <iostream>
 

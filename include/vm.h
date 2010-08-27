@@ -1,7 +1,7 @@
 #pragma once
 
 #include "basic.h"
-#include "instructions.h"
+#include "program.h"
 #include "thread.h"
 #include "SearchHit.h"
 #include "staticvector.h"
@@ -17,7 +17,7 @@ public:
   static bool execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset);
   
   // numCheckedStates should be equal to the number + 1 for the reserved bit
-  void init(ProgramPtr prog, ByteSet firstBytes, uint32 numCheckedStates, boost::shared_ptr<SkipTable> skip);
+  void init(ProgramPtr prog);
 
   bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
 
@@ -27,7 +27,6 @@ private:
   void doMatch(ThreadList::iterator threadIt, HitCallback& hitFn);
   void cleanup();
 
-  ByteSet    First;
   boost::shared_ptr<SkipTable> Skip;
   ProgramPtr Prog;
   ThreadList Active,

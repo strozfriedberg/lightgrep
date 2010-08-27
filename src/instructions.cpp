@@ -1,5 +1,7 @@
 #include "instructions.h"
 
+#include "program.h"
+
 #include <stdexcept>
 #include <iomanip>
 
