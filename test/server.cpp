@@ -7,11 +7,15 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 
+#include "program.h"
+#include "vm.h"
+#include "utility.h"
+
 using boost::asio::ip::tcp;
 
 static const uint64 BUF_SIZE = 1024 * 1024;
 
-void processConn(tcp::socket* socketPtr) {
+void processConn(tcp::socket* socketPtr, const Program* prog, const KwInfo* kwInfo) {
   boost::scoped_array<byte> data(new byte[BUF_SIZE]);
   boost::shared_ptr<tcp::socket> sock(socketPtr);
   std::size_t len = 0;
@@ -38,7 +42,7 @@ void processConn(tcp::socket* socketPtr) {
   std::cout << "thread dying\n";
 }
 
-void startup() {
+void startup(ProgramPtr prog, const KwInfo& kwInfo) {
   try {
     boost::asio::io_service srv;
     std::cout << "Created service" << std::endl;
@@ -49,7 +53,7 @@ void startup() {
       std::cout << "Created socket" << std::endl;
       acceptor.accept(*socket);
       std::cout << "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << std::endl;
-      boost::thread spawned(boost::bind(processConn, socket.release())); // launches the thread, then detaches
+      boost::thread spawned(boost::bind(processConn, socket.release(), prog.get(), &kwInfo)); // launches the thread, then detaches
     }
   }
   catch (std::exception& e) {

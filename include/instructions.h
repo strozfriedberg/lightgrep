@@ -70,15 +70,4 @@ struct Instruction {
 };
 #pragma pack(pop)
 
-class Program: public std::vector<Instruction> {
-public:
-  Program(size_t num, const Instruction& val): std::vector<Instruction>(num, val) {}
-  Program(): std::vector<Instruction>() {}
-
-  uint32  NumChecked;
-};
-
-typedef boost::shared_ptr<Program> ProgramPtr;
-
 std::ostream& operator<<(std::ostream& out, const Instruction& instr);
-std::ostream& operator<<(std::ostream& out, const Program& prog);

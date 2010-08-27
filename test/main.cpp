@@ -21,7 +21,7 @@ namespace { // I am so bad
                 DebugEnd   = std::numeric_limits<uint64>::max();
 }
 
-void startup();
+void startup(ProgramPtr p, const KwInfo& keyInfo);
 
 bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys) {
   std::ifstream keyFile(keyFilePath.c_str(), ios::in);
@@ -62,16 +62,18 @@ void writeProgram(const std::string& keyFilePath, uint32 enc) {
   }
 }
 
-boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath, KwInfo& keyInfo, uint32 enc) {
+ProgramPtr initProgram(const std::string& keyFilePath, KwInfo& keyInfo, uint32 enc) {
   readKeyFile(keyFilePath, keyInfo.Keywords);
   std::cerr << keyInfo.Keywords.size() << " keywords"<< std::endl;
-  DynamicFSMPtr fsm = createDynamicFSM(keyInfo, enc);
 
+  DynamicFSMPtr fsm = createDynamicFSM(keyInfo, enc);
   std::cerr << boost::num_vertices(*fsm) << " vertices" << '\n';
 
   ProgramPtr p = createProgram(*fsm);
-
   std::cerr << p->size() << " instructions" << std::endl;
+
+  p->Skip = calculateSkipTable(*fsm);
+  p->First = firstBytes(*fsm);
   
   boost::shared_ptr<SkipTable> skip(calculateSkipTable(*fsm));
   std::cerr << skip->l_min() << " lmin" << std::endl;
@@ -86,9 +88,14 @@ boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath, KwInfo& keyInfo
   }
   std::cerr << numMax << " numMaxSkips" << std::endl;
   std::cerr << (total/256) << " averageSkip" << std::endl;
+  return p;
+}
+
+boost::shared_ptr<Vm> initSearch(const std::string& keyFilePath, KwInfo& keyInfo, uint32 enc) {
+  ProgramPtr p = initProgram(keyFilePath, keyInfo, enc);
 
   boost::shared_ptr<Vm> ret(new Vm);
-  ret->init(p, firstBytes(*fsm), 1, calculateSkipTable(*fsm));
+  ret->init(p);
   ret->setDebugRange(DebugBegin, DebugEnd);
   return ret;
 }
@@ -209,7 +216,9 @@ int main(int argc, char** argv) {
       writeProgram(keyfile, enc);
     }
     else if (cmd == "server") {
-      startup();
+      KwInfo keyInfo;
+      ProgramPtr p = initProgram(keyfile, keyInfo, enc);
+      startup(p, keyInfo);
     }
   }
   catch (std::exception& err) {
