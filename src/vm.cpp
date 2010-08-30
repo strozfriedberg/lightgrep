@@ -24,7 +24,7 @@ void Vm::init(ProgramPtr prog) {
   Active.resize(Prog->size());
   Next.resize(Prog->size());
   uint32 numPatterns = 0,
-         numCheckedStates;
+         numCheckedStates = 0;
   Program& p(*Prog);
   for (uint32 i = 0; i < p.size(); ++i) {
     if (p[i].OpCode == MATCH_OP && numPatterns < p[i].Op.Offset) {
@@ -231,9 +231,9 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   SearchHit  hit;
   register uint64     offset = startOffset;
   register ThreadList::iterator threadIt;
-  uint32     window = Skip ? Skip->l_min() - 1: 1;
+  uint32     window = Prog->Skip ? Prog->Skip->l_min() - 1: 1;
   uint32     curDiff;
-  const std::vector<uint32>* skipTbl = Skip ? &Skip->skipVec(): SkipTblPtr.get();
+  const std::vector<uint32>* skipTbl = Prog->Skip ? &Prog->Skip->skipVec(): SkipTblPtr.get();
   if (!skipTbl) {
     SkipTblPtr.reset(new std::vector<uint32>(256, 0));
     skipTbl = SkipTblPtr.get();

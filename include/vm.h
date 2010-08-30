@@ -27,7 +27,6 @@ private:
   void doMatch(ThreadList::iterator threadIt, HitCallback& hitFn);
   void cleanup();
 
-  boost::shared_ptr<SkipTable> Skip;
   ProgramPtr Prog;
   ThreadList Active,
              Next;
