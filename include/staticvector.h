@@ -46,6 +46,8 @@ public:
   void push_back(const T& x) { *(End++) = x; }
   void clear() { End = Begin; }
 
+  T& addBack() { return *(End++); }
+
   void swap(StaticVector<T>& x) {
     Array.swap(x.Array);
     unsigned int tempI = Capacity;

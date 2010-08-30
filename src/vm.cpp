@@ -227,30 +227,20 @@ inline void Vm::cleanup() {
 
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   const Instruction* base = &(*Prog)[0];
-  Thread     newThread;
+//  Thread     newThread;
   SearchHit  hit;
   register uint64     offset = startOffset;
   register ThreadList::iterator threadIt;
-  uint32     window = Prog->Skip ? Prog->Skip->l_min() - 1: 1;
-  uint32     curDiff;
+  register uint32     window = Prog->Skip ? Prog->Skip->l_min() - 1: 1;
+  register uint32     curDiff;
   const std::vector<uint32>* skipTbl = Prog->Skip ? &Prog->Skip->skipVec(): SkipTblPtr.get();
   if (!skipTbl) {
     SkipTblPtr.reset(new std::vector<uint32>(256, 0));
     skipTbl = SkipTblPtr.get();
   }
-  // uint32   maxActive = 0;
-  // double   total = 0;
-  const byte* guard;
+  register const byte* guard;
+  register byte value;
   for (register const byte* cur = beg; cur < end; ++cur) {
-    // std::cerr << "offset = " << offset << ", ";
-    // if (std::isprint(*cur)) {
-    //   std::cerr << *cur;
-    // }
-    // else {
-    //   std::cerr << std::hex << std::setfill('0') << std::setw(2) << (unsigned short)(*cur);
-    // }
-    // std::cerr << std::dec << ", " << Active.size() << " active threads" << std::endl;
-    // total += Active.size();
     for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
       while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
       if (threadIt->End == offset) {
@@ -259,15 +249,13 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     }
     guard = cur + window >= end ? end - 1: cur + window;
     curDiff = guard - cur;
-    while (curDiff > 0 && (*skipTbl)[*guard] <= curDiff) {
-      --guard;
+    value = *guard;
+    while (curDiff > 0 && (*skipTbl)[value] <= curDiff) {
       --curDiff;
+      value = *(--guard);
     }
-
-    // if (First[*cur]) {
-    if (guard == cur && (*skipTbl)[*cur] == 0) {
-      newThread.init(base, offset);
-      Active.push_back(newThread);
+    if (guard == cur && (*skipTbl)[value] == 0) {
+      Active.addBack().init(base, offset);
       do {
         while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
         if (threadIt->End == offset) {
