@@ -10,36 +10,47 @@
 #include "program.h"
 #include "vm.h"
 #include "utility.h"
+#include "hitwriter.h"
 
 using boost::asio::ip::tcp;
 
 static const uint64 BUF_SIZE = 1024 * 1024;
 
-void processConn(tcp::socket* socketPtr, const Program* prog, const KwInfo* kwInfo) {
-  boost::scoped_array<byte> data(new byte[BUF_SIZE]);
-  boost::shared_ptr<tcp::socket> sock(socketPtr);
+void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* kwInfo) {
+  boost::scoped_array<byte>      data(new byte[BUF_SIZE]);
+  boost::scoped_ptr<tcp::socket> sock(socketPtr);
+  boost::scoped_ptr<Vm>          search(new Vm);
+  search->init(prog);
+  HitWriter output(std::cout, kwInfo->PatternsTable, kwInfo->Keywords, kwInfo->Encodings);
+
   std::size_t len = 0;
-  uint64 totalRead = 0;
+  uint64 totalRead = 0,
+         numReads = 0;
   try {
     while (true) {
-      uint64 number = 0;
-      len = sock->read_some(boost::asio::buffer(&number, sizeof(number)));
-      if (len == sizeof(number)) {
-        uint64 toRead = number;
-        while (toRead > 0) {
-          len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE - 1, toRead)));
-          std::cout << "read " << len << " bytes\n";
-          toRead -= len;
+      uint64 toRead = 0;
+      if (boost::asio::read(*sock, boost::asio::buffer(&toRead, sizeof(toRead))) == sizeof(toRead)) {
+        ++numReads;
+        uint64 offset = 0;
+        while (offset < toRead) {
+          len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, toRead)));
+          ++numReads;
+          search->search(data.get(), data.get() + len, offset, output);
+          // std::cout << "read " << len << " bytes\n";
           totalRead += len;
+          offset += len;
         }
+      }
+      else {
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
       }
       // uint32 i = ntohl(*(uint32*)data);
     }
   }
   catch (std::exception& e) {
-    std::cout << "broke out of reading socket " << sock->remote_endpoint() << '\n';
+    std::cout << "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n';
   }
-  std::cout << "thread dying\n";
+  std::cout << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output.NumHits << " numHits\n";
 }
 
 void startup(ProgramPtr prog, const KwInfo& kwInfo) {
@@ -53,7 +64,7 @@ void startup(ProgramPtr prog, const KwInfo& kwInfo) {
       std::cout << "Created socket" << std::endl;
       acceptor.accept(*socket);
       std::cout << "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << std::endl;
-      boost::thread spawned(boost::bind(processConn, socket.release(), prog.get(), &kwInfo)); // launches the thread, then detaches
+      boost::thread spawned(boost::bind(processConn, socket.release(), prog, &kwInfo)); // launches the thread, then detaches
     }
   }
   catch (std::exception& e) {
