@@ -200,6 +200,17 @@ bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkSta
   return _execute(base, t, checkStates, active, next, cur, offset);
 }
 
+void printThreads(const Vm::ThreadList& list, uint64 offset, const Instruction* base) { // can only be called if list is not empty
+  std::cerr << "{\"offset\":" << offset << ", \"num\":" << list.size() << ", \"list\":[";
+  Vm::ThreadList::const_iterator threadIt = list.begin();
+  threadIt->output(std::cerr, base);
+  while (++threadIt != list.end()) {
+    std::cerr << ", ";
+    threadIt->output(std::cerr, base);
+  }
+  std::cerr << "]}\n";  
+}
+
 void Vm::doMatch(register ThreadList::iterator threadIt, HitCallback& hitFn) {
   // std::cerr << "had a match" << std::endl;
   SearchHit  hit;
@@ -227,10 +238,8 @@ inline void Vm::cleanup() {
 
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   const Instruction* base = &(*Prog)[0];
-//  Thread     newThread;
   SearchHit  hit;
   register uint64     offset = startOffset;
-  register ThreadList::iterator threadIt;
   register uint32     window = Prog->Skip ? Prog->Skip->l_min() - 1: 1;
   register uint32     curDiff;
   const std::vector<uint32>* skipTbl = Prog->Skip ? &Prog->Skip->skipVec(): SkipTblPtr.get();
@@ -240,16 +249,18 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   }
   register const byte* guard;
   register byte value;
+  register ThreadList::iterator threadIt = Active.begin();
   for (register const byte* cur = beg; cur < end; ++cur) {
-    for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
+    while (threadIt != Active.end()) {
       while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
       if (threadIt->End == offset) {
         doMatch(threadIt, hitFn);
       }
+      ++threadIt;
     }
-    guard = cur + window >= end ? end - 1: cur + window;
+    guard   = cur + window >= end ? end - 1: cur + window;
     curDiff = guard - cur;
-    value = *guard;
+    value   = *guard;
     while (curDiff > 0 && (*skipTbl)[value] <= curDiff) {
       --curDiff;
       value = *(--guard);
@@ -266,20 +277,14 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     if (threadIt != Active.begin()) {
       #ifdef LBT_TRACE_ENABLED
       if (BeginDebug <= offset && offset < EndDebug) {
-        std::cerr << "{\"offset\":" << offset << ", \"num\":" << Active.size() << ", \"list\":[";
-        threadIt = Active.begin();
-        threadIt->output(std::cerr, base);
-        while (++threadIt != Active.end()) {
-          std::cerr << ", ";
-          threadIt->output(std::cerr, base);
-        }
-        std::cerr << "]}\n";
+        printThreads(offset, base);
       }
       #endif
       cleanup();
+      threadIt = Active.begin();
     }
     else {
-      offset += (guard - cur);
+      offset += curDiff;
       cur = guard;
     }
     ++offset;
