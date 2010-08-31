@@ -16,12 +16,33 @@ using boost::asio::ip::tcp;
 
 static const uint64 BUF_SIZE = 1024 * 1024;
 
+class SocketWriter: public HitWriter {
+public:
+  SocketWriter(boost::shared_ptr<tcp::socket> sock, const KwInfo& kwInfo):
+    HitWriter(Output, kwInfo.PatternsTable, kwInfo.Keywords, kwInfo.Encodings),
+    Output(),
+    Socket(sock)
+  {
+  }
+
+  virtual void collect(const SearchHit& hit) {
+    HitWriter::collect(hit);
+    boost::asio::write(*Socket, boost::asio::buffer(Output.str()));
+    Output.str("");
+    Output.clear();
+  }
+
+private:
+  std::stringstream Output;
+  boost::shared_ptr<tcp::socket> Socket;
+};
+
 void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* kwInfo) {
   boost::scoped_array<byte>      data(new byte[BUF_SIZE]);
-  boost::scoped_ptr<tcp::socket> sock(socketPtr);
+  boost::shared_ptr<tcp::socket> sock(socketPtr);
   boost::scoped_ptr<Vm>          search(new Vm);
   search->init(prog);
-  HitWriter output(std::cout, kwInfo->PatternsTable, kwInfo->Keywords, kwInfo->Encodings);
+  SocketWriter output(sock, *kwInfo);
 
   std::size_t len = 0;
   uint64 totalRead = 0,
