@@ -135,15 +135,16 @@ void Parser::literal(const Node& n) {
                                   last;
     first = prev = last = boost::add_vertex(g);
     g[first] = LitFlyweights[TempBuf[0]];
-    Fragment f(first, n);
     for (uint32 i = 1; i < len; ++i) {
       last = boost::add_vertex(g);
       boost::add_edge(prev, last, g);
       g[last] = LitFlyweights[TempBuf[i]];
       prev = last;
     }
-    f.addToOut(last);
-    Stack.push(f);
+    TempFrag.reset(n);
+    TempFrag.addToIn(first);
+    TempFrag.addToOut(last);
+    Stack.push(TempFrag);
   }
 }
 
