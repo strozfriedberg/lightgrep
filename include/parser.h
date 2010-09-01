@@ -73,8 +73,9 @@ struct Fragment {
   Node N;
   bool Skippable;
 
-  Fragment& initPartial(DynamicFSM::vertex_descriptor in, const Node& n) { N = n; Skippable = false;  InList.resize(1, in); OutList.clear(); return *this; }
-  Fragment& initFull(DynamicFSM::vertex_descriptor in, const Node& n) { N = n; Skippable = false; InList.resize(1, in); OutList.resize(1, in); return *this; }
+  void initFull(DynamicFSM::vertex_descriptor in, const Node& n) { N = n; Skippable = false; InList.resize(1, in); OutList.resize(1, in); }
+  void initFull(DynamicFSM::vertex_descriptor in, DynamicFSM::vertex_descriptor out, const Node& n) { N = n; Skippable = false; InList.resize(1, in); OutList.resize(1, out); }
+  void reset(const Node& n) { Skippable = false; N = n; InList.clear(); OutList.clear(); }
 
   void addToOut(DynamicFSM::vertex_descriptor v) {
     add(v, OutList);
