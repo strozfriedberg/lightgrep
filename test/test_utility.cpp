@@ -5,6 +5,7 @@
 #include "utility_impl.h"
 #include "states.h"
 #include "MockCallback.h"
+#include "compiler.h"
 
 void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, Transition* tPtr) {
   boost::add_edge(source, target, fsm);
@@ -323,6 +324,7 @@ SCOPE_TEST(testPivotTransitions) {
 }
 
 SCOPE_TEST(testMerge) {
+  Compiler comp;
   DynamicFSM fsm,
              key(5);
 
@@ -339,7 +341,7 @@ SCOPE_TEST(testMerge) {
   edge(2, 3, fsm, new LitState('e', 0));
   edge(0, 4, fsm, new LitState('z'));
   edge(4, 5, fsm, new LitState('y', 1));
-  mergeIntoFSM(fsm, key, 2);
+  comp.mergeIntoFSM(fsm, key, 2);
   SCOPE_ASSERT_EQUAL(8u, boost::num_vertices(fsm));
   SCOPE_ASSERT_EQUAL(2u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, fsm));

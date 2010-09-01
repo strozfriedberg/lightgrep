@@ -25,6 +25,11 @@ struct KwInfo {
   std::vector< std::pair<uint32, uint32> > PatternsTable;
 };
 
+typedef DynamicFSM::in_edge_iterator InEdgeIt;
+typedef std::pair<InEdgeIt, InEdgeIt> InEdgeRange;
+typedef DynamicFSM::out_edge_iterator OutEdgeIt;
+typedef std::pair< OutEdgeIt, OutEdgeIt > OutEdgeRange;
+
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII);
 DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc);
 
@@ -44,5 +49,3 @@ std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicF
 uint32 maxOutbound(const std::vector< std::vector< DynamicFSM::vertex_descriptor > >& tranTable);
 
 void writeGraphviz(std::ostream& out, const DynamicFSM& graph);
-
-void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx);

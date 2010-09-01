@@ -4,6 +4,7 @@
 
 #include "parser.h"
 #include "concrete_encodings.h"
+#include "compiler.h"
 
 #include <deque>
 #include <stack>
@@ -14,6 +15,7 @@
 
 void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, DynamicFSMPtr& fsm, uint32& keyIdx) {
   SyntaxTree  tree;
+  Compiler    comp;
   Parser      p;
   p.setEncoding(enc);
   for (uint32 i = 0; i < keywords.size(); ++i) {
@@ -22,7 +24,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
       p.setCurLabel(keyIdx);
       if (parse(kw, tree, p)) {
         if (fsm) {
-          mergeIntoFSM(*fsm, *p.getFsm(), keyIdx);
+          comp.mergeIntoFSM(*fsm, *p.getFsm(), keyIdx);
         }
         else {
           fsm = p.getFsm();
@@ -298,72 +300,6 @@ uint32 maxOutbound(const std::vector< std::vector< DynamicFSM::vertex_descriptor
     ret = it->size() > ret ? it->size(): ret;
   }
   return ret;
-}
-
-void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx) {
-  typedef std::pair< DynamicFSM::vertex_descriptor, DynamicFSM::vertex_descriptor > StatePair;
-
-  ByteSet tranBits,
-          edgeBits;
-
-  std::vector< DynamicFSM:: vertex_descriptor > stateMap(boost::num_vertices(addend), UNALLOCATED);
-
-  std::vector< bool >           visited(boost::num_vertices(addend), false);
-  DynamicFSM::vertex_descriptor oldSource,
-                                source,
-                                oldTarget,
-                                target;
-
-  std::stack< StatePair > states;
-  states.push(StatePair(0, 0));
-  while (!states.empty()) {
-    oldSource = states.top().first;
-    source    = states.top().second;
-    states.pop();
-    if (!visited[oldSource]) {
-      // std::cerr << "on state pair " << oldSource << ", " << source << std::endl;
-      visited[oldSource] = true;
-
-      OutEdgeRange  outRange(boost::out_edges(source, fsm)),
-                    oldOutRange(boost::out_edges(oldSource, addend));
-      for (OutEdgeIt e(oldOutRange.first); e != oldOutRange.second; ++e) {
-        oldTarget = boost::target(*e, addend);
-        if (stateMap[oldTarget] == UNALLOCATED) {
-          TransitionPtr tran = addend[oldTarget];
-          tranBits.reset();
-          tran->getBits(tranBits);
-          // std::cerr << "oldTarget = " << oldTarget << " with transition " << tran->label() << std::endl;
-
-          bool found = false;
-
-          for (OutEdgeIt curEdge(outRange.first); curEdge != outRange.second; ++curEdge) {
-            target = boost::target(*curEdge, fsm);
-            TransitionPtr edgeTran = fsm[target];
-            edgeBits.reset();
-            edgeTran->getBits(edgeBits);
-            // std::cerr << "looking at merge state " << target << " with transition " << edgeTran->label() << std::endl;
-            if (edgeBits == tranBits && (edgeTran->Label == UNALLOCATED || edgeTran->Label == keyIdx) && 1 == boost::in_degree(target, fsm) && 2 > boost::in_degree(oldSource, addend) && 2 > boost::in_degree(oldTarget, addend)) {
-              // std::cerr << "found equivalent state " << target << std::endl;
-              found = true;
-              break;
-            }
-          }
-          if (!found) {
-            target = boost::add_vertex(fsm);
-            // std::cerr << "creating new state " << target << std::endl;
-            fsm[target] = tran;
-          }
-          stateMap[oldTarget] = target;
-        }
-        else {
-          target = stateMap[oldTarget];
-        }
-        // std::cerr << "target = " << target << std::endl;
-        boost::add_edge(source, target, fsm);
-        states.push(StatePair(oldTarget, target));
-      }
-    }
-  }
 }
 
 void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {

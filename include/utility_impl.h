@@ -26,11 +26,6 @@ struct StateLayoutInfo {
   uint32 numTotal() const { return NumEval + NumOther; }
 };
 
-typedef DynamicFSM::in_edge_iterator InEdgeIt;
-typedef std::pair<InEdgeIt, InEdgeIt> InEdgeRange;
-typedef DynamicFSM::out_edge_iterator OutEdgeIt;
-typedef std::pair< OutEdgeIt, OutEdgeIt > OutEdgeRange;
-
 struct CodeGenHelper {
   CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, UNALLOCATED), Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
 
