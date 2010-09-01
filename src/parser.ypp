@@ -28,13 +28,11 @@ public:
 std::ostream& operator<<(std::ostream&, const Printer&);
 
 	Node* add(const char* type, const Node& n) {
-		if (!MyTextLabel.empty()) {
-			Callback->callback(MyTextLabel, n);
-			MyTextLabel.clear();
+		if (MyTextLabel.empty()) {
+			MyTextLabel = type;
 		}
-		else {
-			Callback->callback(type, n);
-		}
+		Callback->callback(MyTextLabel, n);
+		MyTextLabel.clear();
 		return Tree->add(n);
 	}
 }

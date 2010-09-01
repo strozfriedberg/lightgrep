@@ -11,6 +11,10 @@ bool   LitState::toInstruction(Instruction* addr) const {
   return true;
 }
 
+LitState* LitState::clone(void* buffer) const {
+  return buffer == 0 ? new LitState(Lit): new(buffer) LitState(Lit);
+}
+
 std::string printLabel(const Transition& t) {
   std::stringstream buf;
   if (t.Label != 0xffffffff) {
@@ -36,6 +40,10 @@ bool   EitherState::toInstruction(Instruction* addr) const {
   return true;
 }
 
+EitherState* EitherState::clone(void* buffer) const {
+  return buffer == 0 ? new EitherState(Lit1, Lit2): new(buffer) EitherState(Lit1, Lit2);
+}
+
 std::string EitherState::label() const {
   std::stringstream buf;
   if (std::isalnum(Lit1)) {
@@ -57,6 +65,10 @@ std::string EitherState::label() const {
 bool   RangeState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeRange(First, Last);
   return true;
+}
+
+RangeState* RangeState::clone(void* buffer) const {
+  return 0 == buffer ? new RangeState(First, Last): new(buffer) RangeState(First, Last);
 }
 
 std::string RangeState::label() const {
@@ -83,6 +95,10 @@ bool   CharClassState::toInstruction(Instruction* addr) const {
   ByteSet* setPtr = reinterpret_cast<ByteSet*>(addr+1);
   *setPtr = Allowed;
   return true;
+}
+
+CharClassState* CharClassState::clone(void* buffer) const {
+  return 0 == buffer ? new CharClassState(Allowed, Label): new(buffer) CharClassState(Allowed, Label);
 }
 
 std::string CharClassState::label() const {

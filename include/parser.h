@@ -133,6 +133,7 @@ private:
   DynamicFSMPtr Fsm;
   std::stack< Fragment > Stack;
   boost::scoped_array<byte> TempBuf;
+  std::vector< TransitionPtr > LitFlyweights;
 };
 
 bool parse(const std::string& text, SyntaxTree& tree, NodeHandler& callback);
