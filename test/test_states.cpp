@@ -33,7 +33,6 @@ SCOPE_TEST(litAccept) {
   SCOPE_ASSERT(lit.toInstruction(&instr));
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), instr);
 
-  SCOPE_ASSERT_EQUAL(sizeof(Transition) + 1, lit.objSize());
   ch[0] = 'a';
   testClone(lit, ch);
   SCOPE_ASSERT_EQUAL("a", lit.label());
@@ -60,7 +59,6 @@ SCOPE_TEST(eitherAccept) {
   SCOPE_ASSERT(e.toInstruction(&instr));
   SCOPE_ASSERT_EQUAL(Instruction::makeEither('A', 'a'), instr);
 
-  SCOPE_ASSERT_EQUAL(sizeof(Transition) + 2, e.objSize());
   testClone(e, &ch);
   SCOPE_ASSERT_EQUAL("Aa", e.label());
 }
@@ -87,7 +85,6 @@ SCOPE_TEST(rangeAccept) {
   SCOPE_ASSERT(r.toInstruction(&instr));
   SCOPE_ASSERT_EQUAL(Instruction::makeRange('0', '9'), instr);
 
-  SCOPE_ASSERT_EQUAL(sizeof(Transition) + 2, r.objSize());
   ch = '1';
   testClone(r, &ch);
   SCOPE_ASSERT_EQUAL("0-9", r.label());
