@@ -73,6 +73,9 @@ struct Fragment {
   Node N;
   bool Skippable;
 
+  Fragment& initPartial(DynamicFSM::vertex_descriptor in, const Node& n) { N = n; Skippable = false;  InList.resize(1, in); OutList.clear(); return *this; }
+  Fragment& initFull(DynamicFSM::vertex_descriptor in, const Node& n) { N = n; Skippable = false; InList.resize(1, in); OutList.resize(1, in); return *this; }
+
   void addToOut(DynamicFSM::vertex_descriptor v) {
     add(v, OutList);
   }
@@ -134,6 +137,8 @@ private:
   std::stack< Fragment > Stack;
   boost::scoped_array<byte> TempBuf;
   std::vector< TransitionPtr > LitFlyweights;
+  
+  Fragment  TempFrag;
 };
 
 bool parse(const std::string& text, SyntaxTree& tree, NodeHandler& callback);
