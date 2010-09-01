@@ -25,9 +25,7 @@ public:
 
   size_t objSize() const { return sizeof(*this); }
   
-  LitState* clone(void* buffer) const {
-    return new(buffer) LitState(Lit);
-  }
+  LitState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 1; };
   virtual bool   toInstruction(Instruction* addr) const;
@@ -48,9 +46,7 @@ public:
 
   size_t objSize() const { return sizeof(*this); }
 
-  EitherState* clone(void* buffer) const {
-    return new(buffer) EitherState(Lit1, Lit2);
-  }
+  EitherState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 1; };
   virtual bool   toInstruction(Instruction* addr) const;
@@ -71,9 +67,7 @@ public:
 
   size_t objSize() const { return sizeof(*this); }
 
-  RangeState* clone(void* buffer) const {
-    return new(buffer) RangeState(First, Last);
-  }
+  RangeState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 1; };
   virtual bool   toInstruction(Instruction* addr) const;
@@ -93,9 +87,7 @@ public:
 
   size_t objSize() const { return sizeof(*this); }
 
-  CharClassState* clone(void* buffer) const {
-    return new(buffer) CharClassState(Allowed, Label);
-  }
+  CharClassState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 9; }
   virtual bool   toInstruction(Instruction* addr) const;

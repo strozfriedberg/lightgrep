@@ -44,6 +44,9 @@ void Fragment::mergeLists(VList& l1, const VList& l2) {
 Parser::Parser():
   CurLabel(0)
 {
+  for (unsigned int i = 0; i < 256; ++i) {
+    LitFlyweights.push_back(TransitionPtr(new LitState(i)));
+  }
   setEncoding(boost::shared_ptr<Encoding>(new Ascii));
   reset();
 }
@@ -131,12 +134,12 @@ void Parser::literal(const Node& n) {
                                   prev,
                                   last;
     first = prev = last = boost::add_vertex(g);
-    g[first].reset(new LitState(TempBuf[0]));
+    g[first] = LitFlyweights[TempBuf[0]];
     Fragment f(first, n);
     for (uint32 i = 1; i < len; ++i) {
       last = boost::add_vertex(g);
       boost::add_edge(prev, last, g);
-      g[last].reset(new LitState(TempBuf[i]));
+      g[last] = LitFlyweights[TempBuf[i]];
       prev = last;
     }
     f.addToOut(last);
@@ -218,6 +221,7 @@ void Parser::finish(const Node& n) {
         return;
       }
       else {
+        (*Fsm)[*it].reset((*Fsm)[*it]->clone());
         (*Fsm)[*it]->Label = CurLabel;
       }
     }
