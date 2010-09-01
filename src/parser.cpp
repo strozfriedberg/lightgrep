@@ -75,10 +75,15 @@ void Parser::setEncoding(const boost::shared_ptr<Encoding>& e) {
 
 void Parser::patch(const VList& sources, const VList& targets) {
   // std::cout << "patch " << sources << "->" << targets << std::endl;
-  for (VList::const_iterator srcIt(sources.begin()); srcIt != sources.end(); ++srcIt) {
-    for (VList::const_iterator targetIt(targets.begin()); targetIt != targets.end(); ++targetIt) {
-      // std::cout << "Making edge (" << *srcIt << ", " << *targetIt << ")" << std::endl;
-      boost::add_edge(*srcIt, *targetIt, *Fsm);
+  if (1 == sources.size() && 1 == targets.size()) {
+    boost::add_edge(sources[0], targets[0], *Fsm);
+  }
+  else {
+    for (VList::const_iterator srcIt(sources.begin()); srcIt != sources.end(); ++srcIt) {
+      for (VList::const_iterator targetIt(targets.begin()); targetIt != targets.end(); ++targetIt) {
+        // std::cout << "Making edge (" << *srcIt << ", " << *targetIt << ")" << std::endl;
+        boost::add_edge(*srcIt, *targetIt, *Fsm);
+      }
     }
   }
 }
