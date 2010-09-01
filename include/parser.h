@@ -60,35 +60,55 @@ struct SyntaxTree {
 
 typedef std::vector< DynamicFSM::vertex_descriptor > VList;
 
-std::ostream& operator<<(std::ostream& out, const VList& list);
+class FastVList {
+public:
+  friend std::ostream& operator<<(std::ostream& out, const FastVList& list);
+
+  FastVList();
+  FastVList(DynamicFSM::vertex_descriptor v);
+  FastVList(const FastVList& x);
+
+  FastVList& operator=(const FastVList& x);
+
+  DynamicFSM::vertex_descriptor operator[](unsigned int i) const;
+
+  size_t size() const;
+
+  void reset();
+  void reset(DynamicFSM::vertex_descriptor v);
+  void merge(const FastVList& x);
+  void add(DynamicFSM::vertex_descriptor v);
+
+  void patch(const FastVList& targets, DynamicFSM& fsm) const;
+
+private:
+  DynamicFSM::vertex_descriptor Single;
+  boost::scoped_ptr< VList > List;  
+};
+
+std::ostream& operator<<(std::ostream& out, const FastVList& list);
 
 struct Fragment {
   Fragment(): Skippable(false) {}
-  Fragment(VList in, const Node& n): InList(in), N(n), Skippable(false) {}
-  Fragment(DynamicFSM::vertex_descriptor in, const Node& n): N(n), Skippable(false) { InList.push_back(in); }
-  Fragment(VList in, const Node& n, const VList& out):
-    InList(in), OutList(out), N(n), Skippable(false) {}
+  Fragment(DynamicFSM::vertex_descriptor in, const Node& n): InList(in), N(n), Skippable(false) {}
 
-  std::vector< DynamicFSM::vertex_descriptor > InList, OutList;
+  FastVList InList, OutList;
   Node N;
   bool Skippable;
 
-  void initFull(DynamicFSM::vertex_descriptor in, const Node& n) { N = n; Skippable = false; InList.resize(1, in); OutList.resize(1, in); }
-  void initFull(DynamicFSM::vertex_descriptor in, DynamicFSM::vertex_descriptor out, const Node& n) { N = n; Skippable = false; InList.resize(1, in); OutList.resize(1, out); }
-  void reset(const Node& n) { Skippable = false; N = n; InList.clear(); OutList.clear(); }
+  void initFull(DynamicFSM::vertex_descriptor in, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(in); }
+  void initFull(DynamicFSM::vertex_descriptor in, DynamicFSM::vertex_descriptor out, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(out); }
+  void reset(const Node& n) { Skippable = false; N = n; InList.reset(); OutList.reset(); }
 
   void addToOut(DynamicFSM::vertex_descriptor v) {
-    add(v, OutList);
+    OutList.add(v);
   }
 
   void addToIn(DynamicFSM::vertex_descriptor v) {
-    add(v, InList);
+    InList.add(v);
   }
 
   void merge(const Fragment& f);
-
-  static void add(DynamicFSM::vertex_descriptor v, VList& list);
-  static void mergeLists(VList& l1, const VList& l2);
 };
 
 class NodeHandler {
@@ -111,7 +131,7 @@ public:
   void setEncoding(const boost::shared_ptr<Encoding>& e);
 
   void patch(Fragment& first, const Fragment& second, const Node& n);
-  void patch(const VList& sources, const VList& targets);
+  void patch(const FastVList& sources, const FastVList& targets);
 
   void addElement(const Node& n);
   void alternate(const Node& n);

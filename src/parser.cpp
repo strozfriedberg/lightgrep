@@ -5,13 +5,18 @@
 
 #include <iostream>
 
-std::ostream& operator<<(std::ostream& out, const VList& list) {
+std::ostream& operator<<(std::ostream& out, const FastVList& list) {
   out << '{';
-  for (VList::const_iterator it(list.begin()); it != list.end(); ++it) {
-    if (it != list.begin()) {
-      out << ", ";
+  if (list.List) {
+    for (VList::const_iterator it(list.List->begin()); it != list.List->end(); ++it) {
+      if (it != list.List->begin()) {
+        out << ", ";
+      }
+      out << *it;
     }
-    out << *it;
+  }
+  else if (list.Single != 0xffffffff) {
+    out << list.Single;
   }
   out << '}';
   return out;
@@ -22,23 +27,150 @@ std::ostream& operator<<(std::ostream& out, const Fragment& f) {
   return out;
 }
 
-void Fragment::add(DynamicFSM::vertex_descriptor v, VList& list) {
-  if (std::find(list.begin(), list.end(), v) == list.end()) {
-    list.push_back(v);
+FastVList::FastVList() {
+  Single = 0xffffffff;
+}
+
+FastVList::FastVList(DynamicFSM::vertex_descriptor v) {
+  Single = v;
+}
+
+FastVList::FastVList(const FastVList& x)
+{
+  if (x.Single != 0xffffffff) {
+    Single = x.Single;
+    if (x.List) {
+      List.reset(new VList(*x.List));
+    }
+  }
+}
+
+FastVList& FastVList::operator=(const FastVList& x) {
+  if (x.Single == 0xffffffff) {
+    Single = 0xffffffff;
+    List.reset();
+  }
+  else {
+    if (x.List) {
+      if (List) {
+        *List = *x.List;
+      }
+      else {
+        List.reset(new VList(*x.List));
+      }
+      Single = (*List)[0];
+    }
+    else {
+      Single = x.Single;
+      List.reset();
+    }
+  }
+  return *this;
+}
+
+size_t FastVList::size() const {
+  return Single == 0xffffffff ? 0: List ? List->size(): 1;
+}
+
+DynamicFSM::vertex_descriptor FastVList::operator[](unsigned int i) const {
+  return List ? (*List)[i]: Single;
+}
+
+void FastVList::reset() {
+  Single = 0xffffffff;
+  if (List) {
+    List.reset();
+  }
+}
+
+void FastVList::reset(DynamicFSM::vertex_descriptor v) {
+  Single = v;
+  if (List) {
+    List.reset();
+  }
+}
+
+void FastVList::add(DynamicFSM::vertex_descriptor v) {
+  if (Single == 0xffffffff) {
+    Single = v;
+  }
+  else {
+    if (!List) {
+      List.reset(new VList(1, Single));
+    }
+    if (std::find(List->begin(), List->end(), v) == List->end()) {
+      List->push_back(v);
+    }
+  }
+}
+
+void FastVList::merge(const FastVList& x) {
+  if (x.Single != 0xffffffff) {
+    if (x.List) {
+      if (!List) {
+        if (Single == 0xffffffff) {
+          List.reset(new VList(*x.List));
+          Single = (*List)[0];
+          return;
+        }
+        else {
+          List.reset(new VList(1, Single));
+        }
+      }
+      for (VList::const_iterator it(x.List->begin()); it != x.List->end(); ++it) {
+        if (std::find(List->begin(), List->end(), *it) == List->end()) {
+          List->push_back(*it);
+        }
+      }
+    }
+    else if (Single == 0xffffffff) {
+      Single = x.Single;
+    }
+    else {
+      if (!List) {
+        List.reset(new VList(1, Single));
+      }
+      if (std::find(List->begin(), List->end(), x.Single) == List->end()) {
+        List->push_back(x.Single);
+      }
+    }
+  }
+}
+
+void FastVList::patch(const FastVList& targets, DynamicFSM& fsm) const {
+  if (Single == 0xffffffff || targets.Single == 0xffffffff) {
+    return;
+  }
+  if (List) {
+    if (targets.List) {
+      for (VList::const_iterator srcIt(List->begin()); srcIt != List->end(); ++srcIt) {
+        for (VList::const_iterator targetIt(targets.List->begin()); targetIt != targets.List->end(); ++targetIt) {
+          // std::cout << "Making edge (" << *srcIt << ", " << *targetIt << ")" << std::endl;
+          boost::add_edge(*srcIt, *targetIt, fsm);
+        }
+      }
+    }
+    else {
+      for (VList::const_iterator srcIt(List->begin()); srcIt != List->end(); ++srcIt) {
+        boost::add_edge(*srcIt, targets.Single, fsm);
+      }
+    }
+  }
+  else if (targets.List) {
+    for (VList::const_iterator targetIt(targets.List->begin()); targetIt != targets.List->end(); ++targetIt) {
+      boost::add_edge(Single, *targetIt, fsm);
+    }
+  }
+  else {
+    boost::add_edge(Single, targets.Single, fsm);
   }
 }
 
 void Fragment::merge(const Fragment& f) {
   // std::cout << "merge in " << InList << ", " << f.InList << ", out " << OutList << ", " << f.OutList << std::endl;
-  mergeLists(InList, f.InList);
-  mergeLists(OutList, f.OutList);
+  InList.merge(f.InList);
+  OutList.merge(f.OutList);
   // std::cout << "merged in " << InList << ", out " << OutList << std::endl;
-}
-
-void Fragment::mergeLists(VList& l1, const VList& l2) {
-  for (VList::const_iterator it(l2.begin()); it != l2.end(); ++it) {
-    add(*it, l1);
-  }
 }
 
 Parser::Parser():
@@ -63,9 +195,8 @@ void Parser::reset() {
   while (!Stack.empty()) {
     Stack.pop();
   }
-  VList first;
-  first.push_back(0);
-  Stack.push(Fragment(first, Node(), first));
+  TempFrag.initFull(0, Node());
+  Stack.push(TempFrag);
 }
 
 void Parser::setEncoding(const boost::shared_ptr<Encoding>& e) {
@@ -73,19 +204,9 @@ void Parser::setEncoding(const boost::shared_ptr<Encoding>& e) {
   TempBuf.reset(new byte[Enc->maxByteLength()]);
 }
 
-void Parser::patch(const VList& sources, const VList& targets) {
+void Parser::patch(const FastVList& sources, const FastVList& targets) {
   // std::cout << "patch " << sources << "->" << targets << std::endl;
-  if (1 == sources.size() && 1 == targets.size()) {
-    boost::add_edge(sources[0], targets[0], *Fsm);
-  }
-  else {
-    for (VList::const_iterator srcIt(sources.begin()); srcIt != sources.end(); ++srcIt) {
-      for (VList::const_iterator targetIt(targets.begin()); targetIt != targets.end(); ++targetIt) {
-        // std::cout << "Making edge (" << *srcIt << ", " << *targetIt << ")" << std::endl;
-        boost::add_edge(*srcIt, *targetIt, *Fsm);
-      }
-    }
-  }
+  sources.patch(targets, *Fsm);
 }
 
 void Parser::patch(Fragment& first, const Fragment& second, const Node& n) {
@@ -94,10 +215,10 @@ void Parser::patch(Fragment& first, const Fragment& second, const Node& n) {
   patch(first.OutList, second.InList);
   first.N = n;
   if (first.Skippable) {
-    Fragment::mergeLists(first.InList, second.InList);
+    first.InList.merge(second.InList);
   }
   if (second.Skippable) {
-    Fragment::mergeLists(first.OutList, second.OutList);
+    first.OutList.merge(second.OutList);
   }
   else {
     first.OutList = second.OutList;
@@ -176,10 +297,8 @@ void Parser::question(const Node&) {
 void Parser::dot(const Node& n) {
   DynamicFSM::vertex_descriptor v = boost::add_vertex(*Fsm);
   (*Fsm)[v].reset(new RangeState(0, 255));
-  VList in, out;
-  in.push_back(v);
-  out.push_back(v);
-  Stack.push(Fragment(in, n, out));
+  TempFrag.initFull(v, n);
+  Stack.push(TempFrag);
 }
 
 void Parser::charClass(const Node& n, const std::string& lbl) {
@@ -206,10 +325,8 @@ void Parser::charClass(const Node& n, const std::string& lbl) {
   else {
     (*Fsm)[v].reset(new CharClassState(n.Bits, lbl));
   }
-  VList in, out;
-  in.push_back(v);
-  out.push_back(v);
-  Stack.push(Fragment(in, n, out));
+  TempFrag.initFull(v, n);
+  Stack.push(TempFrag);
 }
 
 void Parser::finish(const Node& n) {
@@ -218,16 +335,18 @@ void Parser::finish(const Node& n) {
     Stack.pop();
     Fragment& start(Stack.top());
     patch(start, TempFrag, n);
-    for (VList::const_iterator it(start.OutList.begin()); it != start.OutList.end(); ++it) {
+    uint32 numOut = start.OutList.size();
+    for (uint32 i = 0; i < numOut; ++i) {
       // std::cout << "marking " << *it << " as a match" << std::endl;
-      if (0 == *it) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
+      DynamicFSM::vertex_descriptor v = start.OutList[i];
+      if (0 == v) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
         std::cerr << "state 0 is not allowed as a final state of the NFA" << std::endl;
         reset();
         return;
       }
       else {
-        (*Fsm)[*it].reset((*Fsm)[*it]->clone());
-        (*Fsm)[*it]->Label = CurLabel;
+        (*Fsm)[v].reset((*Fsm)[v]->clone());
+        (*Fsm)[v]->Label = CurLabel;
       }
     }
     // std::cout << "final is " << final << std::endl;
