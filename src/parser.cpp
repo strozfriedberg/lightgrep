@@ -117,10 +117,10 @@ void Parser::alternate(const Node& n) {
 }
 
 void Parser::concatenate(const Node& n) {
-  Fragment second = Stack.top();
+  TempFrag = Stack.top();
   Stack.pop();
   Fragment& first = Stack.top();
-  patch(first, second, n);
+  patch(first, TempFrag, n);
 }
 
 void Parser::literal(const Node& n) {
