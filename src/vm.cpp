@@ -37,9 +37,15 @@ void Vm::init(ProgramPtr prog) {
   ++numPatterns;
   numCheckedStates += 2; // bit 0 reserved for whether any bits were flipped
   Matches.resize(numPatterns);
-  Matches.assign(numPatterns, std::pair<uint64, uint64>(UNALLOCATED, 0));
   CheckStates.resize(numCheckedStates);
-  CheckStates.assign(numCheckedStates, false);
+  reset();
+}
+
+void Vm::reset() {
+  Active.clear();
+  Next.clear();
+  CheckStates.assign(CheckStates.size(), false);
+  Matches.assign(Matches.size(), std::pair<uint64, uint64>(UNALLOCATED, 0));
 }
 
 inline bool _execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, Vm::ThreadList& active, Vm::ThreadList& next, const byte* cur, uint64 offset) {
