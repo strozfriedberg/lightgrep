@@ -4,8 +4,6 @@
 
 class Instruction;
 
-#pragma pack(push)
-#pragma pack(1)
 class Transition {
 public:
   Transition(): IsMatch(false), Label(0xffffffff) {}
@@ -23,4 +21,3 @@ public:
   bool   IsMatch;
   uint32 Label;
 };
-#pragma pack(pop)
