@@ -214,11 +214,10 @@ void Parser::charClass(const Node& n, const std::string& lbl) {
 
 void Parser::finish(const Node& n) {
   if (2 == Stack.size()) {
-    Fragment path = Stack.top();
+    TempFrag = Stack.top();
     Stack.pop();
-    Fragment start = Stack.top();
-    Stack.pop();
-    patch(start, path, n);    
+    Fragment& start(Stack.top());
+    patch(start, TempFrag, n);
     for (VList::const_iterator it(start.OutList.begin()); it != start.OutList.end(); ++it) {
       // std::cout << "marking " << *it << " as a match" << std::endl;
       if (0 == *it) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
@@ -233,6 +232,7 @@ void Parser::finish(const Node& n) {
     }
     // std::cout << "final is " << final << std::endl;
     IsGood = true;
+    Stack.pop();
   }
   else {
     reset();
