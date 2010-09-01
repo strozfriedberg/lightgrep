@@ -31,25 +31,11 @@ struct STest: public HitCallback {
   }
 
   STest(uint32 num, const char** keys) {
-    Fsm.reset();
-    for (uint32 i = 0; i < num; ++i) {
-      SyntaxTree  tree;
-      Parser      p;
-      p.setCurLabel(i);
-      if (parse(std::string(keys[i]), tree, p)) {
-        // writeGraphviz(std::cout, *p.getFsm());
-        if (Fsm) {
-          mergeIntoFSM(*Fsm, *p.getFsm(), i);
-          // writeGraphviz(std::cout, *Fsm);
-        }
-        else {
-          Fsm = p.getFsm();
-        }
-      }
-      else {
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("couldn't parse keys[" << i << "], " << keys[i]);
-      }
+    std::vector<std::string> kws(num);
+    for (unsigned int i = 0; i < num; ++i) {
+      kws[i] = keys[i];
     }
+    Fsm = createDynamicFSM(kws);
     Prog = createProgram(*Fsm);
     Prog->First = firstBytes(*Fsm);
     Prog->Skip = calculateSkipTable(*Fsm);
