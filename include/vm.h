@@ -20,6 +20,7 @@ public:
   void init(ProgramPtr prog);
 
   bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
+  void reset();
 
   void setDebugRange(uint64 beg, uint64 end) { BeginDebug = beg; EndDebug = end; }
 

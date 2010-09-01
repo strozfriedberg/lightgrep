@@ -65,6 +65,7 @@ void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* k
       else {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
       }
+      search->reset();
       // uint32 i = ntohl(*(uint32*)data);
     }
   }
