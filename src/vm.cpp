@@ -283,7 +283,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     if (threadIt != Active.begin()) {
       #ifdef LBT_TRACE_ENABLED
       if (BeginDebug <= offset && offset < EndDebug) {
-        printThreads(offset, base);
+        printThreads(Active, offset, base);
       }
       #endif
       cleanup();
