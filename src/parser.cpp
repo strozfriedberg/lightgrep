@@ -4,6 +4,7 @@
 #include "concrete_encodings.h"
 
 #include <iostream>
+#include <cctype>
 
 std::ostream& operator<<(std::ostream& out, const FastVList& list) {
   out << '{';
@@ -174,6 +175,7 @@ void Fragment::merge(const Fragment& f) {
 }
 
 Parser::Parser():
+  CaseSensitive(true),
   CurLabel(0)
 {
   for (unsigned int i = 0; i < 256; ++i) {
@@ -202,6 +204,10 @@ void Parser::reset() {
 void Parser::setEncoding(const boost::shared_ptr<Encoding>& e) {
   Enc = e;
   TempBuf.reset(new byte[Enc->maxByteLength()]);
+}
+
+void Parser::setCaseSensitive(bool caseSensitive) {
+  CaseSensitive = caseSensitive;
 }
 
 void Parser::patch(const FastVList& sources, const FastVList& targets) {
@@ -249,6 +255,15 @@ void Parser::concatenate(const Node& n) {
   patch(first, TempFrag, n);
 }
 
+void Parser::setLiteralTransition(TransitionPtr& state, byte val) {
+  if (CaseSensitive || !std::isalpha(val)) {
+    state = LitFlyweights[val];
+  }
+  else {
+    state.reset(new EitherState(std::toupper(val), std::tolower(val)));
+  }
+}
+
 void Parser::literal(const Node& n) {
   uint32 len = Enc->write(n.Val, TempBuf.get());
   if (0 == len) {
@@ -260,11 +275,11 @@ void Parser::literal(const Node& n) {
                                   prev,
                                   last;
     first = prev = last = boost::add_vertex(g);
-    g[first] = LitFlyweights[TempBuf[0]];
+    setLiteralTransition(g[first], TempBuf[0]);
     for (uint32 i = 1; i < len; ++i) {
       last = boost::add_vertex(g);
       boost::add_edge(prev, last, g);
-      g[last] = LitFlyweights[TempBuf[i]];
+      setLiteralTransition(g[last], TempBuf[i]);
       prev = last;
     }
     TempFrag.reset(n);

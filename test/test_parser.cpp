@@ -483,3 +483,23 @@ SCOPE_TEST(parseNegatedRanges) {
   fsm[1]->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
+
+SCOPE_TEST(parseCaseInsensitive) {
+  Parser      p;
+  SyntaxTree  tree;
+  DynamicFSM& fsm(*p.getFsm());
+  p.setCaseSensitive(false);
+  SCOPE_ASSERT(parse("ab", tree, p));
+  SCOPE_ASSERT_EQUAL(3u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::in_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  Instruction i;
+  SCOPE_ASSERT(fsm[1]->toInstruction(&i));
+  SCOPE_ASSERT_EQUAL(Instruction::makeEither('A', 'a'), i);
+  SCOPE_ASSERT(fsm[2]->toInstruction(&i));
+  SCOPE_ASSERT_EQUAL(Instruction::makeEither('B', 'b'), i);
+}

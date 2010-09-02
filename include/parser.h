@@ -129,6 +129,7 @@ public:
   virtual void callback(const std::string& type, const Node& n);
 
   void setEncoding(const boost::shared_ptr<Encoding>& e);
+  void setCaseSensitive(bool caseSensitive); // defaults to true
 
   void patch(Fragment& first, const Fragment& second, const Node& n);
   void patch(const FastVList& sources, const FastVList& targets);
@@ -151,7 +152,10 @@ public:
   void setCurLabel(uint32 lbl) { CurLabel = lbl; }
 
 private:
-  bool          IsGood;
+  void setLiteralTransition(TransitionPtr& state, byte val);
+
+  bool          IsGood,
+                CaseSensitive;
   uint32        CurLabel;
   boost::shared_ptr<Encoding> Enc;
   DynamicFSMPtr Fsm;
