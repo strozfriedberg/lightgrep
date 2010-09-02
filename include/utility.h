@@ -30,8 +30,8 @@ typedef std::pair<InEdgeIt, InEdgeIt> InEdgeRange;
 typedef DynamicFSM::out_edge_iterator OutEdgeIt;
 typedef std::pair< OutEdgeIt, OutEdgeIt > OutEdgeRange;
 
-DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII);
-DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc);
+DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII, bool caseSensitive = true);
+DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive);
 
 uint32 calculateLMin(const DynamicFSM& graph);
 

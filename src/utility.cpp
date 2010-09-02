@@ -13,7 +13,7 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, DynamicFSMPtr& fsm, uint32& keyIdx) {
+void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, DynamicFSMPtr& fsm, uint32& keyIdx) {
   SyntaxTree  tree;
   Compiler    comp;
   Parser      p;
@@ -22,6 +22,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
     const std::string& kw(keywords[i]);
     if (!kw.empty()) {
       p.setCurLabel(keyIdx);
+      p.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
       if (parse(kw, tree, p)) {
         if (fsm) {
           comp.mergeIntoFSM(*fsm, *p.getFsm(), keyIdx);
@@ -41,26 +42,26 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
   }
 }
 
-DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc) {
+DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive) {
   // std::cerr << "createDynamicFSM" << std::endl;
   DynamicFSMPtr ret;
   uint32 keyIdx = 0;
   if (enc & CP_ASCII) {
-    addKeys(keywords, boost::shared_ptr<Encoding>(new Ascii), ret, keyIdx);
+    addKeys(keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, ret, keyIdx);
   }
   if (enc & CP_UCS16) {
-    addKeys(keywords, boost::shared_ptr<Encoding>(new UCS16), ret, keyIdx);
+    addKeys(keywords, boost::shared_ptr<Encoding>(new UCS16), caseSensitive, ret, keyIdx);
   }
   return ret;
 }
 
-DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc) {
+DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive) {
   DynamicFSMPtr ret;
   uint32 keyIdx = 0;
   if (enc & CP_ASCII) {
     keyInfo.Encodings.push_back("ASCII");
     uint32 encIdx = keyInfo.Encodings.size() - 1;
-    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new Ascii), ret, keyIdx);
+    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, ret, keyIdx);
     for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
       keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
     }
@@ -68,7 +69,7 @@ DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc) {
   if (enc & CP_UCS16) {
     keyInfo.Encodings.push_back("UCS-16");
     uint32 encIdx = keyInfo.Encodings.size() - 1;
-    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new UCS16), ret, keyIdx);
+    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new UCS16), caseSensitive, ret, keyIdx);
     for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
       keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
     }
