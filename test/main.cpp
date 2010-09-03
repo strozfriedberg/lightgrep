@@ -13,15 +13,17 @@
 #include "vm.h"
 #include "hitwriter.h"
 
+
+// <magic_incantation>
+// this ridiculous piece of crap you see here is necessary to get
+// boost_thread static libraries to link on Windows using MinGW
+// found it in the boost issue tracker
 extern "C" void tss_cleanup_implemented() { }
+// </magic_incantation>
+
 
 using namespace std;
 namespace po = boost::program_options;
-
-namespace { // I am so bad
-  static uint64 DebugBegin = std::numeric_limits<uint64>::max(),
-                DebugEnd   = std::numeric_limits<uint64>::max();
-}
 
 struct Options {
   uint64  DebugBegin,
@@ -124,7 +126,7 @@ boost::shared_ptr<Vm> initSearch(const Options& opts, KwInfo& keyInfo) {
 
   boost::shared_ptr<Vm> ret(new Vm);
   ret->init(p);
-  ret->setDebugRange(DebugBegin, DebugEnd);
+  ret->setDebugRange(opts.DebugBegin, opts.DebugEnd);
   return ret;
 }
 
