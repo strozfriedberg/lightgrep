@@ -18,7 +18,6 @@ enum OpCodes {
   ILLEGAL
 };
 
-#pragma pack(push)
 #pragma pack(1)
 struct ByteRange {
   byte First, Last;
@@ -68,6 +67,6 @@ struct Instruction {
   static Instruction makeCheckHalt(uint32 checkIndex);
   static Instruction makeHalt();
 };
-#pragma pack(pop)
+#pragma pack()
 
 std::ostream& operator<<(std::ostream& out, const Instruction& instr);
