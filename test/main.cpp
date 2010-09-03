@@ -13,6 +13,8 @@
 #include "vm.h"
 #include "hitwriter.h"
 
+extern "C" void tss_cleanup_implemented() { }
+
 using namespace std;
 namespace po = boost::program_options;
 
