@@ -1,13 +1,17 @@
+import glob
 import os
 import platform
 import os.path as p
+import re
+
+isWindows = False
 
 def shellCall(cmd):
   print(cmd)
   os.system(cmd)
 
 def sub(src):
-  return env.SConscript(p.join(src, 'SConscript'), exports='env', variant_dir=p.join('bin', src), duplicate=0)
+  return env.SConscript(p.join(src, 'SConscript'), exports=['env', 'isWindows'], variant_dir=p.join('bin', src), duplicate=0)
 
 def buildBoost(target, source, env):
   shouldBuild = False
@@ -18,12 +22,31 @@ def buildBoost(target, source, env):
   if (shouldBuild):
     curDir = os.getcwd()
     os.chdir(str(source[0]))
-    shellCall('./bootstrap.sh')
-    shellCall('./bjam --stagedir=%s --with-thread --with-system link=shared variant=release threading=multi stage' % curDir)
+    if (isWindows == True):
+      shellCall('.\\bootstrap.bat')
+      shellCall('.\\bjam --stagedir=%s --with-thread --with-system '
+        'link=static variant=release threading=multi runtime-link=static toolset=gcc '
+        '-s BOOST_NO_RVALUE_REFERENCES stage' % curDir)
+    else:
+      shellCall('./bootstrap.sh')
+      shellCall('./bjam --stagedir=%s --with-thread --with-system link=shared variant=release threading=multi stage' % curDir)
     os.chdir(curDir)
+    if (isWindows):
+      libs = [str(x) for x in Glob('#/lib/libboost*')]
+      if len(libs) == 0:
+        print("GLOB DID NOT SUCCEED")
+      for lib in libs:
+        try:
+          newName = re.sub(r'-.*\.a', '.a', lib) #.replace('lib\\lib', 'lib\\', 1)
+          print("renaming %s to %s" % (lib, newName))
+          os.rename(lib, newName)
+        except:
+          print('had an error with the rename')
+
 
 arch = platform.platform()
 print("System is %s" % arch)
+isWindows = arch.find('Windows') > -1
 
 scopeDir = 'vendors/scope'
 boostDir = 'vendors/boost'
@@ -38,18 +61,23 @@ elif (debug == 'trace'):
 else:
   flags = '-O3'
 
-env = Environment(ENV=os.environ) # this builds in a dependency on the PATH, which is useful for ccache
+toolsList = []
+ccflags = '-Wall -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir)
+if (isWindows):
+  toolsList = ['mingw']
+#  ccflags = ccflags.replace('-Wextra', '')
+env = Environment(ENV=os.environ, tools=toolsList) # this builds in a dependency on the PATH, which is useful for ccache
 env.Replace(CPPPATH=['#/include'])
-env.Replace(CCFLAGS='-Wall -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir))
+env.Replace(CCFLAGS=ccflags)
 env.Append(LIBPATH=['#/lib'])
 
 if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
-libBoost = env.Command(['#/lib/*boost_thread*', '#lib/*boost_system*'], boostDir, buildBoost)
+libBoost = env.Command(['#/lib/*boost_thread*', '#/lib/*boost_system*'], boostDir, buildBoost)
 liblg = sub('src')
 libDir = env.Install('lib', liblg)
 test = sub('test')
 env.Depends(test, libBoost)
 env.Depends(test, libDir)
-env.Command('unittests', test, './$SOURCE --test')
+env.Command('unittests', test, '$SOURCE --test')
