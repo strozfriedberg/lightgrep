@@ -65,7 +65,7 @@ else:
 
 ccflags = '-Wall -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir)
 if (isWindows):
-  env = Environment(ENV=os.environ, tools='mingw') # this builds in a dependency on the PATH, which is useful for ccache
+  env = Environment(ENV=os.environ, tools=['mingw']) # this builds in a dependency on the PATH, which is useful for ccache
 else:
   env = Environment(ENV=os.environ)
 env.Replace(CPPPATH=['#/include'])
