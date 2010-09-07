@@ -5,13 +5,14 @@ import os.path as p
 import re
 
 isWindows = False
+isLinux = False
 
 def shellCall(cmd):
   print(cmd)
   os.system(cmd)
 
 def sub(src):
-  return env.SConscript(p.join(src, 'SConscript'), exports=['env', 'isWindows'], variant_dir=p.join('bin', src), duplicate=0)
+  return env.SConscript(p.join(src, 'SConscript'), exports=['env', 'isWindows', 'isLinux'], variant_dir=p.join('bin', src), duplicate=0)
 
 def buildBoost(target, source, env):
   shouldBuild = False
@@ -47,6 +48,7 @@ def buildBoost(target, source, env):
 arch = platform.platform()
 print("System is %s" % arch)
 isWindows = arch.find('Windows') > -1
+isLinux = arch.find('Linux') > -1
 
 scopeDir = 'vendors/scope'
 boostDir = 'vendors/boost'
