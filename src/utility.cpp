@@ -323,7 +323,7 @@ void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const Dynam
 }
 
 void writeGraphviz(std::ostream& out, const DynamicFSM& graph) {
-  out << "digraph G {" << std::endl;
+  out << "digraph G {\nrankdir=LR;\nranksep=equally;" << std::endl;
   for (uint32 i = 0; i < boost::num_vertices(graph); ++i) {
     out << i;
     writeVertex(out, i, graph);

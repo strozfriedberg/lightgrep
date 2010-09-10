@@ -6,6 +6,10 @@
 #include <cctype>
 #include <iomanip>
 
+void printHex(std::ostream& out, byte b) {
+  out << "0x" << std::hex << (uint32)b << std::dec;
+}
+
 bool   LitState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeLit(Lit);
   return true;
@@ -25,11 +29,11 @@ std::string printLabel(const Transition& t) {
 
 std::string LitState::label() const {
   std::stringstream buf;
-  if (std::isalnum(Lit)) {
+  if (std::isgraph(Lit)) {
     buf << Lit;
   }
   else {
-    buf << "0x" << std::hex << (uint32)Lit;
+    printHex(buf, Lit);
   }
   buf << printLabel(*this);
   return buf.str();
@@ -46,17 +50,17 @@ EitherState* EitherState::clone(void* buffer) const {
 
 std::string EitherState::label() const {
   std::stringstream buf;
-  if (std::isalnum(Lit1)) {
+  if (std::isgraph(Lit1)) {
     buf << Lit1;
   }
   else {
-    buf << (uint32)Lit1;
+    printHex(buf, Lit1);
   }
-  if (std::isalnum(Lit2)) {
+  if (std::isgraph(Lit2)) {
     buf << Lit2;
   }
   else {
-    buf << (uint32)Lit2;
+    printHex(buf, Lit2);
   }
   buf << printLabel(*this);
   return buf.str();
@@ -73,18 +77,18 @@ RangeState* RangeState::clone(void* buffer) const {
 
 std::string RangeState::label() const {
   std::stringstream buf;
-  if (std::isalnum(First)) {
+  if (std::isgraph(First)) {
     buf << First;
   }
   else {
-    buf << (uint32)First;
+    printHex(buf, First);
   }
   buf << '-';
-  if (std::isalnum(First)) {
+  if (std::isgraph(First)) {
     buf << Last;
   }
   else {
-    buf << (uint32)Last;
+    printHex(buf, Last);
   }
   buf << printLabel(*this);
   return buf.str();
