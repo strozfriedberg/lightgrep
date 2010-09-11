@@ -1,5 +1,7 @@
-Import('env', 'isWindows')
+Import('env', 'isWindows', 'isLinux')
 libs = ['lightgrep', 'boost_thread', 'boost_system']
+if (isLinux):
+  libs.append('pthread')
 if (isWindows):
   libs.append('ws2_32') # so stupid that I have to specify winsock
 ret = env.Program('test', Glob('*.cpp'), LIBS=libs)
