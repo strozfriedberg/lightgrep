@@ -5,13 +5,14 @@ import os.path as p
 import re
 
 isWindows = False
+isLinux = False
 
 def shellCall(cmd):
   print(cmd)
   os.system(cmd)
 
 def sub(src):
-  return env.SConscript(p.join(src, 'SConscript'), exports=['env', 'isWindows'], variant_dir=p.join('bin', src), duplicate=0)
+  return env.SConscript(p.join(src, 'SConscript'), exports=['env', 'isWindows', 'isLinux'], variant_dir=p.join('bin', src), duplicate=0)
 
 def buildBoost(target, source, env):
   shouldBuild = False
@@ -47,6 +48,7 @@ def buildBoost(target, source, env):
 arch = platform.platform()
 print("System is %s" % arch)
 isWindows = arch.find('Windows') > -1
+isLinux = arch.find('Linux') > -1
 
 scopeDir = 'vendors/scope'
 boostDir = 'vendors/boost'
@@ -63,7 +65,7 @@ else:
 
 ccflags = '-Wall -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir)
 if (isWindows):
-  env = Environment(ENV=os.environ, tools='mingw') # this builds in a dependency on the PATH, which is useful for ccache
+  env = Environment(ENV=os.environ, tools=['mingw']) # this builds in a dependency on the PATH, which is useful for ccache
 else:
   env = Environment(ENV=os.environ)
 env.Replace(CPPPATH=['#/include'])
