@@ -246,15 +246,16 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   const Instruction* base = &(*Prog)[0];
   SearchHit  hit;
   register uint64     offset = startOffset;
-  register uint32     window = Prog->Skip ? Prog->Skip->l_min() - 1: 1;
-  register uint32     curDiff;
-  const std::vector<uint32>* skipTbl = Prog->Skip ? &Prog->Skip->skipVec(): SkipTblPtr.get();
-  if (!skipTbl) {
-    SkipTblPtr.reset(new std::vector<uint32>(256, 0));
-    skipTbl = SkipTblPtr.get();
-  }
-  register const byte* guard;
-  register byte value;
+  // register uint32     window = Prog->Skip ? Prog->Skip->l_min() - 1: 1;
+  // register uint32     curDiff;
+  // const std::vector<uint32>* skipTbl = Prog->Skip ? &Prog->Skip->skipVec(): SkipTblPtr.get();
+  // if (!skipTbl) {
+  //   SkipTblPtr.reset(new std::vector<uint32>(256, 0));
+  //   skipTbl = SkipTblPtr.get();
+  // }
+  // register const byte* guard;
+  // register byte value;
+  ByteSet first = Prog->First;
   register ThreadList::iterator threadIt = Active.begin();
   for (register const byte* cur = beg; cur < end; ++cur) {
     while (threadIt != Active.end()) {
@@ -264,14 +265,15 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       }
       ++threadIt;
     }
-    guard   = cur + window >= end ? end - 1: cur + window;
-    curDiff = guard - cur;
-    value   = *guard;
-    while (curDiff > 0 && (*skipTbl)[value] <= curDiff) {
-      --curDiff;
-      value = *(--guard);
-    }
-    if (guard == cur && (*skipTbl)[value] == 0) {
+    // guard   = cur + window >= end ? end - 1: cur + window;
+    // curDiff = guard - cur;
+    // value   = *guard;
+    // while (curDiff > 0 && (*skipTbl)[value] <= curDiff) {
+    //   --curDiff;
+    //   value = *(--guard);
+    // }
+    // if (guard == cur && (*skipTbl)[value] == 0) {
+    if (first[*cur]) {
       Active.addBack().init(base, offset);
       do {
         while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
@@ -289,10 +291,10 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       cleanup();
       threadIt = Active.begin();
     }
-    else {
-      offset += curDiff;
-      cur = guard;
-    }
+    // else {
+    //   offset += curDiff;
+    //   cur = guard;
+    // }
     ++offset;
   }
   // this flushes out last char matches
