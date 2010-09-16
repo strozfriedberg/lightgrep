@@ -121,6 +121,38 @@ SCOPE_TEST(executeJumpTable) {
   }
 }
 
+SCOPE_TEST(executeJumpTableRange) {
+  byte b;
+  std::vector<bool> checkStates;
+  Program prog(3, Instruction::makeHalt());
+  Instruction instr = Instruction::makeJumpTableRange('a', 'b');
+  Vm::ThreadList next, active;
+  
+  prog[0] = instr;
+  prog[1] = Instruction::makeJump(3);
+  prog[2] = Instruction::makeJump(3);
+  for (uint32 i = 0; i < 256; ++i) {
+    b = i;
+    next.clear();
+    active.clear();
+    Thread cur(&prog[0], 0, 0, 0);
+    SCOPE_ASSERT(!Vm::execute(&prog[0], cur, checkStates, active, next, &b, 0));
+    SCOPE_ASSERT_EQUAL(0u, active.size());
+    if ('a' == i) {
+      SCOPE_ASSERT_EQUAL(1u, next.size());
+      SCOPE_ASSERT_EQUAL(Thread(&prog[0] + 1, 0, 0, 0), next[0]);
+    }
+    else if ('b' == i) {
+      SCOPE_ASSERT_EQUAL(1u, next.size());
+      SCOPE_ASSERT_EQUAL(Thread(&prog[0] + 2, 0, 0, 0), next[0]);
+    }
+    else {
+      SCOPE_ASSERT_EQUAL(0u, next.size());
+      SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
+    }
+  }
+}
+
 SCOPE_TEST(executeBitVector) {
   SCOPE_ASSERT_EQUAL(32u, sizeof(ByteSet));
 

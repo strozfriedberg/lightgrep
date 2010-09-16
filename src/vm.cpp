@@ -106,6 +106,15 @@ inline bool _execute(const Instruction* base, Thread& t, std::vector<bool>& chec
         t.PC = 0;
       }
       return false;
+    case JUMP_TABLE_RANGE_OP:
+      if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
+        nextT.fork(t, t.PC, 1 + (*cur - instr.Op.Range.First));
+        if (nextT.PC->OpCode != HALT_OP) {
+          next.push_back(nextT);
+        }
+      }
+      t.PC = 0;
+      return false;
     case JUMP_OP:
       // std::cerr << "Jump " << t.PC->Op.Offset << std::endl;
       t.jump(base, instr.Op.Offset);
@@ -159,6 +168,7 @@ inline bool _executeEpsilons(const Instruction* base, Thread& t, std::vector<boo
     case RANGE_OP:
     case BIT_VECTOR_OP:
     case JUMP_TABLE_OP:
+    case JUMP_TABLE_RANGE_OP:
       next.push_back(t);
       return false;
     case JUMP_OP:
