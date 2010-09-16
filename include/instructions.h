@@ -9,6 +9,7 @@ enum OpCodes {
   RANGE_OP,
   BIT_VECTOR_OP,
   JUMP_TABLE_OP,
+  JUMP_TABLE_RANGE_OP,
   JUMP_OP,
   FORK_OP,
   CHECK_BRANCH_OP,
@@ -61,6 +62,7 @@ struct Instruction {
   static Instruction makeBitVector();
   static Instruction makeJump(uint32 relativeOffset);
   static Instruction makeJumpTable();
+  static Instruction makeJumpTableRange(byte first, byte last);
   static Instruction makeMatch(uint32 label);
   static Instruction makeFork(uint32 index);
   static Instruction makeCheckBranch(uint32 checkIndex);

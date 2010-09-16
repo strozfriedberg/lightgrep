@@ -108,3 +108,13 @@ SCOPE_TEST(makeHalt) {
   SCOPE_ASSERT_EQUAL(0u, i.Op.Offset);
   SCOPE_ASSERT_EQUAL("Halt", i.toString());
 }
+
+SCOPE_TEST(makeJumpTableRange) {
+  Instruction i = Instruction::makeJumpTableRange(33, 45);
+  SCOPE_ASSERT_EQUAL(JUMP_TABLE_RANGE_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL(33u, i.Op.Range.First);
+  SCOPE_ASSERT_EQUAL(45u, i.Op.Range.Last);
+  SCOPE_ASSERT_EQUAL("JmpTblRange 0x21/'!'-0x2d/'-'", i.toString());
+  SCOPE_EXPECT(Instruction::makeJumpTableRange(1, 0), std::range_error);
+}
