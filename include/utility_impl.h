@@ -55,6 +55,8 @@ struct CodeGenHelper {
          NumChecked;
 };
 
+typedef std::vector< std::vector< DynamicFSM::vertex_descriptor > > TransitionTbl;
+
 class CodeGenVisitor: public boost::default_bfs_visitor {
 public:
   CodeGenVisitor(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
@@ -63,12 +65,37 @@ public:
     Helper->discover(v, graph);
   }
 
+  static bool shouldBeJumpTable(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph, uint32 outDegree, uint32& totalSize) {
+    if (outDegree > 3 && (v == 0 || graph[v]->Label == UNALLOCATED)) {
+      TransitionTbl tbl(pivotStates(v, graph));
+      if (maxOutbound(tbl) < outDegree) {
+        uint32 sizeIndirectTables = 0,
+                num;
+        for (uint32 i = 0; i < 256; ++i) {
+          num = tbl[i].size();
+          if (num > 1) {
+            sizeIndirectTables += num;
+          }
+        }
+        totalSize = 257 + sizeIndirectTables;
+        return true;
+      }
+    }
+    totalSize = 0;
+    return false;
+  }
+
   void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
     uint32 labels = 0,
            eval   = (v == 0 ? 0: graph[v]->numInstructions()),
-           outDegree = out_degree(v, graph);
-    if ((0 == v && outDegree > 3) || (outDegree > 3 && graph[v]->Label == UNALLOCATED && !Helper->Snippets[v].HasChecks && maxOutbound(pivotStates(v, graph)) < outDegree)) {
+           outDegree = out_degree(v, graph),
+           totalSize;
+    if (shouldBeJumpTable(v, graph, outDegree, totalSize)) {
+      Helper->addSnippet(v, eval, totalSize);
+      return;
+    }
+/*    if ((0 == v && outDegree > 3) || (outDegree > 3 && graph[v]->Label == UNALLOCATED && !Helper->Snippets[v].HasChecks && maxOutbound(pivotStates(v, graph)) < outDegree)) {
       std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl(pivotStates(v, graph));
       uint32 sizeIndirectTables = 0;
       for (uint32 i = 0; i < 256; ++i) {
@@ -79,7 +106,7 @@ public:
       }
       Helper->addSnippet(v, eval, 257 + sizeIndirectTables);
       return;
-    }
+    }*/
     if (graph[v] && graph[v]->Label < 0xffffffff) {
       ++labels;
     }
