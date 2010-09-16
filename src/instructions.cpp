@@ -45,6 +45,9 @@ std::string Instruction::toString() const {
     case JUMP_TABLE_OP:
       buf << "JumpTable";
       break;
+    case JUMP_TABLE_RANGE_OP:
+      buf << "JmpTblRange 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
+      break;
     case FORK_OP:
       buf << "Fork 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
@@ -120,6 +123,12 @@ Instruction Instruction::makeJumpTable() {
   Instruction i;
   i.OpCode = JUMP_TABLE_OP;
   i.Op.Offset = 0;
+  return i;
+}
+
+Instruction Instruction::makeJumpTableRange(byte first, byte last) {
+  Instruction i = makeRange(first, last);
+  i.OpCode = JUMP_TABLE_RANGE_OP;
   return i;
 }
 
