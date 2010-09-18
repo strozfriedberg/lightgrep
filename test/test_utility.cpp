@@ -12,23 +12,27 @@ void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor ta
   fsm[target].reset(tPtr);
 }
 
+std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
+  out << "(" << state.Start << ", " << state.NumEval << ", " << state.NumOther << ", " << state.CheckIndex << ")";
+  return out;
+}
+
 SCOPE_TEST(acOrbcProgram) {
   DynamicFSM fsm(4);
-  edge(0, 1, fsm, new LitState('a'));
+  edge(0, 1, fsm, new LitState('a')); // ac|bc
   edge(0, 2, fsm, new LitState('b'));
   edge(1, 3, fsm, new LitState('c'));
   edge(2, 3, fsm, new LitState('c'));
   boost::shared_ptr< std::vector<Instruction> > program = createProgram(fsm);
   
-  SCOPE_ASSERT_EQUAL(8u, program->size());
+  SCOPE_ASSERT_EQUAL(7u, program->size());
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(5), (*program)[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), (*program)[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), (*program)[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), (*program)[3]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), (*program)[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), (*program)[5]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), (*program)[6]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeJump(3), (*program)[7]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(2), (*program)[6]);
 }
 
 SCOPE_TEST(keywordLabels) {
@@ -186,6 +190,24 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[2].numTotal());
 }
 
+SCOPE_TEST(layoutWithCheckHalt) {
+  DynamicFSM fsm(3);
+  edge(0, 1, fsm, new LitState('a'));
+  edge(1, 2, fsm, new LitState('b'));
+  edge(2, 2, fsm, new LitState('b', 0));
+  
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+  CodeGenVisitor vis(cg);
+  specialVisit(fsm, 0, vis);
+
+  SCOPE_ASSERT_EQUAL(0u, cg->DiscoverRanks[0]);
+  SCOPE_ASSERT_EQUAL(1u, cg->DiscoverRanks[1]);
+  SCOPE_ASSERT_EQUAL(2u, cg->DiscoverRanks[2]);
+  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 0u, 0u, UNALLOCATED), cg->Snippets[0]);
+  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 1u, 0u, UNALLOCATED), cg->Snippets[1]);
+  SCOPE_ASSERT_EQUAL(StateLayoutInfo(1u, 2u, 2u, 1u), cg->Snippets[2]);
+}
+
 SCOPE_TEST(twoStateBetterLayout) {
   DynamicFSM fsm(2);
   edge(0, 1, fsm, new LitState('a'));
@@ -275,12 +297,11 @@ SCOPE_TEST(generateCheckHalt) {
   Program& prog(*p);
   SCOPE_ASSERT_EQUAL(1u, prog.NumChecked);
   // std::cout << prog;
-  SCOPE_ASSERT_EQUAL(5u, prog.size());
+  SCOPE_ASSERT_EQUAL(4u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(0), prog[2]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[3]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeJump(1), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(0), prog[3]);
 }
 
 SCOPE_TEST(testInitVM) {
