@@ -18,12 +18,15 @@ struct StateLayoutInfo {
          NumEval,
          NumOther,
          CheckIndex;
-  bool   HasChecks;
 
-  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED), CheckIndex(UNALLOCATED), HasChecks(false) {}
-  StateLayoutInfo(uint32 s, uint32 e, uint32 o): Start(s), NumEval(e), NumOther(o), CheckIndex(UNALLOCATED), HasChecks(false) {}
+  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED), CheckIndex(UNALLOCATED) {}
+  StateLayoutInfo(uint32 s, uint32 e, uint32 o, uint32 chk = UNALLOCATED): Start(s), NumEval(e), NumOther(o), CheckIndex(chk) {}
 
   uint32 numTotal() const { return NumEval + NumOther; }
+
+  bool operator==(const StateLayoutInfo& x) const {
+    return Start == x.Start && NumEval == x.NumEval && NumOther == x.NumOther && CheckIndex == x.CheckIndex;
+  }
 };
 
 struct CodeGenHelper {
@@ -33,10 +36,6 @@ struct CodeGenHelper {
     DiscoverRanks[v] = NumDiscovered++;
     if (boost::in_degree(v, graph) > 1) {
       Snippets[v].CheckIndex = ++NumChecked;
-      InEdgeRange in(boost::in_edges(v, graph));
-      for (InEdgeIt e(in.first); e != in.second; ++e) {
-        Snippets[boost::source(*e, graph)].HasChecks = true;
-      }
     }
   }
 
@@ -88,7 +87,7 @@ public:
   void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
     uint32 labels = 0,
-           eval   = (v == 0 ? 0: graph[v]->numInstructions()),
+           eval   = (v == 0 ? 0: graph[v]->numInstructions()) + (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1),
            outDegree = out_degree(v, graph),
            totalSize;
     if (shouldBeJumpTable(v, graph, outDegree, totalSize)) {
@@ -120,9 +119,6 @@ public:
       for (OutEdgeIt curOut(outRange.first); curOut != outRange.second; ++curOut) {
         // if a target state immediately follows the current state, then we don't need an instruction for it
         if (Helper->DiscoverRanks[v] + 1 != Helper->DiscoverRanks[target(*curOut, graph)]) {
-          ++outOps;
-        }
-        if (boost::in_degree(target(*curOut, graph), graph) > 1) {
           ++outOps;
         }
       }
