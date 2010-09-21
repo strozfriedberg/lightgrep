@@ -77,62 +77,39 @@ DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive) 
   return ret;
 }
 
-  // DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords) {
-  // DynamicFSMPtr g(new DynamicFSM(1));
-  // uint32 keyIdx = 0;
-  // ByteSet charBits,
-  //         edgeBits;
-  // for (std::vector<std::string>::const_iterator kw(keywords.begin()); kw != keywords.end(); ++kw) {
-  //   if (!kw->empty()) {
-  //     DynamicFSM::vertex_descriptor source = 0;
-  //     for (uint32 i = 0; i < kw->size(); ++i) {
-  //       byte b = (*kw)[i];
-  //       charBits.reset();
-  //       charBits.set(b);
-  //       std::pair<DynamicFSM::out_edge_iterator, DynamicFSM::out_edge_iterator> edgeRange(boost::out_edges(source, *g));
-  //       DynamicFSM::vertex_descriptor target;
-  //       bool found = false;
-  //       for (DynamicFSM::out_edge_iterator edgeIt(edgeRange.first); edgeIt != edgeRange.second; ++edgeIt) {
-  //         edgeBits.reset();
-  //         Transition& trans(*(*g)[boost::target(*edgeIt, *g)]);
-  //         trans.getBits(edgeBits);
-  //         if (charBits == edgeBits && (trans.Label == 0xffffffff || trans.Label == keyIdx)) {
-  //           target = boost::target(*edgeIt, *g);
-  //           found = true;
-  //           break;
-  //         }
-  //       }
-  //       if (!found) {
-  //         target = boost::add_vertex(*g);
-  //         if (i == kw->size() - 1) {
-  //           TransitionPtr t(new LitState(b, keyIdx));
-  //           t->IsMatch = true;
-  //           boost::add_edge(source, target, *g);
-  //           (*g)[target] = t;
-  //         }
-  //         else {
-  //           boost::add_edge(source, target, *g);
-  //           (*g)[target].reset(new LitState(b));
-  //         }
-  //       }
-  //       source = target;
-  //     }
-  //     ++keyIdx;
-  //   }
-  // }
-  // return g;
-  // }
-
 // need a two-pass to get it to work with the bgl visitors
 //  discover_vertex: determine slot
 //  finish_vertex:   
 
 void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uint32 baseIndex, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
   Instruction* cur = base,
-             * indirectTbl = base + 257;
-  *cur++ = Instruction::makeJumpTable();
+             * indirectTbl;
+
   std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl(pivotStates(v, graph));
-  for (uint32 i = 0; i < 256; ++i) {
+  uint32 first = 0,
+         last  = 255;
+
+  if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op) {
+    for (uint32 i = 0; i < 256; ++i) {
+      if (!tbl[i].empty()) {
+        first = i;
+        break;
+      }
+    }
+    for (uint32 i = 255; i > first; --i) {
+      if (!tbl[i].empty()) {
+        last = i;
+        break;
+      }
+    }
+    *cur++ = Instruction::makeJumpTableRange(first, last);
+    indirectTbl = base + 2 + (last - first);
+  }
+  else {
+    *cur++ = Instruction::makeJumpTable();
+    indirectTbl = base + 257;
+  }
+  for (uint32 i = first; i <= last; ++i) {
     if (tbl[i].empty()) {
       *cur++ = Instruction::makeHalt();
     }
@@ -177,7 +154,7 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
       }
     }
-    if (cg->Snippets[v].numTotal() > 256) {
+    if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op || JUMP_TABLE_OP == cg->Snippets[v].Op) {
       createJumpTable(cg, curOp, curOp - &(*ret)[0], v, graph);
       continue;
     }

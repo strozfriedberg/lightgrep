@@ -401,3 +401,39 @@ SCOPE_TEST(testMaxOutbound) {
   std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(2u, maxOutbound(tbl));
 }
+
+SCOPE_TEST(generateJumpTableRange) {
+  DynamicFSM fsm(7); // a(b|c|d|g)f
+  edge(0, 1, fsm, new LitState('a'));
+  edge(1, 2, fsm, new LitState('b'));
+  edge(1, 3, fsm, new LitState('c'));
+  edge(1, 4, fsm, new LitState('d'));
+  edge(1, 5, fsm, new LitState('g'));
+  edge(2, 6, fsm, new LitState('f'));
+  edge(3, 6, fsm, new LitState('f'));
+  edge(4, 6, fsm, new LitState('f'));
+  edge(5, 6, fsm, new LitState('f', 0));
+
+  ProgramPtr p = createProgram(fsm);
+  Program& prog(*p);
+  SCOPE_ASSERT_EQUAL(19, prog.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJumpTableRange('b', 'g'), prog[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(9), prog[2]); // b
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(14), prog[3]); // c
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(16), prog[4]); // d
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[5]); // e
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[6]); // f
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(18), prog[7]); // g
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[8]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[9]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('f'), prog[10]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(0), prog[11]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[12]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[13]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(9), prog[14]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('d'), prog[15]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(9), prog[16]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('g'), prog[17]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(9), prog[18]);
+}
