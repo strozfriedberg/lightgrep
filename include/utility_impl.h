@@ -18,9 +18,10 @@ struct StateLayoutInfo {
          NumEval,
          NumOther,
          CheckIndex;
+  OpCodes Op;
 
-  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED), CheckIndex(UNALLOCATED) {}
-  StateLayoutInfo(uint32 s, uint32 e, uint32 o, uint32 chk = UNALLOCATED): Start(s), NumEval(e), NumOther(o), CheckIndex(chk) {}
+  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED), CheckIndex(UNALLOCATED), Op(UNINITIALIZED) {}
+  StateLayoutInfo(uint32 s, uint32 e, uint32 o, uint32 chk = UNALLOCATED): Start(s), NumEval(e), NumOther(o), CheckIndex(chk), Op(UNINITIALIZED) {}
 
   uint32 numTotal() const { return NumEval + NumOther; }
 
@@ -64,19 +65,32 @@ public:
     Helper->discover(v, graph);
   }
 
-  static bool shouldBeJumpTable(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph, uint32 outDegree, uint32& totalSize) {
+  bool shouldBeJumpTable(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph, uint32 outDegree, uint32& totalSize) {
     if (outDegree > 3 && (v == 0 || graph[v]->Label == UNALLOCATED)) {
       TransitionTbl tbl(pivotStates(v, graph));
       if (maxOutbound(tbl) < outDegree) {
         uint32 sizeIndirectTables = 0,
-                num;
+                num,
+                first = 256,
+                last  = 0;
         for (uint32 i = 0; i < 256; ++i) {
           num = tbl[i].size();
           if (num > 1) {
             sizeIndirectTables += num;
           }
+          if (num) {
+            first = std::min(first, i);
+            last  = i;
+          }
         }
-        totalSize = 257 + sizeIndirectTables;
+        if (last - first < 128) {
+          totalSize = 2 + (last - first) + sizeIndirectTables; // JumpTableRange instr + inclusive number
+          Helper->Snippets[v].Op = JUMP_TABLE_RANGE_OP;
+        }
+        else {
+          Helper->Snippets[v].Op = JUMP_TABLE_OP;
+          totalSize = 257 + sizeIndirectTables;
+        }
         return true;
       }
     }
@@ -94,18 +108,6 @@ public:
       Helper->addSnippet(v, eval, totalSize);
       return;
     }
-/*    if ((0 == v && outDegree > 3) || (outDegree > 3 && graph[v]->Label == UNALLOCATED && !Helper->Snippets[v].HasChecks && maxOutbound(pivotStates(v, graph)) < outDegree)) {
-      std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl(pivotStates(v, graph));
-      uint32 sizeIndirectTables = 0;
-      for (uint32 i = 0; i < 256; ++i) {
-        uint32 num = tbl[i].size();
-        if (num > 1) {
-          sizeIndirectTables += num;
-        }
-      }
-      Helper->addSnippet(v, eval, 257 + sizeIndirectTables);
-      return;
-    }*/
     if (graph[v] && graph[v]->Label < 0xffffffff) {
       ++labels;
     }
