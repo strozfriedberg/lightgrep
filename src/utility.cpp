@@ -77,10 +77,17 @@ DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive) 
   return ret;
 }
 
-// need a two-pass to get it to work with the bgl visitors
-//  discover_vertex: determine slot
-//  finish_vertex:   
+// If the jump is to a state that has only a single out edge, and there's no match on the state, then jump forward directly to the out-edge state
+uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  if (1 == boost::out_degree(v, graph) && UNALLOCATED == graph[v]->Label) {
+    return cg->Snippets[*boost::adjacent_vertices(v, graph).first].Start;
+  }
+  else {
+    return cg->Snippets[v].Start + cg->Snippets[v].NumEval;
+  }
+}
 
+// JumpTables are either ranged, or full-size, and can have indirect tables at the end when there are multiple transitions out on a single byte value
 void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uint32 baseIndex, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
   Instruction* cur = base,
              * indirectTbl;
@@ -114,14 +121,13 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
       *cur++ = Instruction::makeHalt();
     }
     else if (1 == tbl[i].size()) {
-      StateLayoutInfo info = cg->Snippets[*tbl[i].begin()];
-      *cur++ = Instruction::makeJump(info.Start + info.NumEval);
+      *cur++ = Instruction::makeJump(figureOutLanding(cg, *tbl[i].begin(), graph));
     }
     else {
       *cur++ = Instruction::makeJump(baseIndex + (indirectTbl - base));
       for (uint32 j = 0; j < tbl[i].size(); ++j) {
-        StateLayoutInfo info = cg->Snippets[tbl[i][j]];
-        *indirectTbl++ = (j + 1 == tbl[i].size() ? Instruction::makeJump(info.Start + info.NumEval): Instruction::makeFork(info.Start + info.NumEval));
+        uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
+        *indirectTbl++ = (j + 1 == tbl[i].size() ? Instruction::makeJump(landing): Instruction::makeFork(landing));
       }
     }
   }
@@ -130,6 +136,9 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
   }
 }
 
+// need a two-pass to get it to work with the bgl visitors
+//  discover_vertex: determine slot
+//  finish_vertex:   
 ProgramPtr createProgram(const DynamicFSM& graph) {
   // std::cerr << "createProgram2" << std::endl;
   ProgramPtr ret(new Program);
