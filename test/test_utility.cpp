@@ -420,11 +420,11 @@ SCOPE_TEST(generateJumpTableRange) {
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJumpTableRange('b', 'g'), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(9), prog[2]); // b
-  SCOPE_ASSERT_EQUAL(Instruction::makeJump(14), prog[3]); // c
-  SCOPE_ASSERT_EQUAL(Instruction::makeJump(16), prog[4]); // d
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(9), prog[3]); // c
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(9), prog[4]); // d
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[5]); // e
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[6]); // f
-  SCOPE_ASSERT_EQUAL(Instruction::makeJump(18), prog[7]); // g
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(9), prog[7]); // g
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[8]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('f'), prog[10]);
