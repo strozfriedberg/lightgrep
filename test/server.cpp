@@ -16,25 +16,43 @@ using boost::asio::ip::tcp;
 
 static const uint64 BUF_SIZE = 1024 * 1024;
 
-class SocketWriter: public HitWriter {
+#pragma pack(1)
+struct HitInfo {
+  uint64 Offset,
+         Length;
+  uint32 Label,
+         Encoding;
+};
+#pragma pack()
+
+class SocketWriter: public HitCallback {
 public:
   SocketWriter(boost::shared_ptr<tcp::socket> sock, const KwInfo& kwInfo):
-    HitWriter(Output, kwInfo.PatternsTable, kwInfo.Keywords, kwInfo.Encodings),
-    Output(),
-    Socket(sock)
+    Socket(sock),
+    KeyInfo(kwInfo),
+    NumHits(0)
   {
   }
 
+  virtual ~SocketWriter() {}
+  
   virtual void collect(const SearchHit& hit) {
-    HitWriter::collect(hit);
-    boost::asio::write(*Socket, boost::asio::buffer(Output.str()));
-    Output.str("");
-    Output.clear();
+    Hit.Offset = hit.Offset;
+    Hit.Length = hit.Length;
+    const std::pair<uint32, uint32>& tuple(KeyInfo.PatternsTable[hit.Label]);
+    Hit.Label = tuple.first;
+    Hit.Encoding = tuple.second;
+    boost::asio::write(*Socket, boost::asio::buffer((void*)(&Hit), sizeof(HitInfo)));
+    ++NumHits;
   }
 
+  uint64 numHits() const { return NumHits; }
+  
 private:
-  std::stringstream Output;
   boost::shared_ptr<tcp::socket> Socket;
+  const KwInfo& KeyInfo;
+  HitInfo Hit;
+  uint64  NumHits;
 };
 
 void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* kwInfo) {
@@ -51,13 +69,16 @@ void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* k
     while (true) {
       uint64 toRead = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&toRead, sizeof(toRead))) == sizeof(toRead)) {
+		std::cout << "told to read " << toRead << " bytes\n";
         ++numReads;
         uint64 offset = 0;
         while (offset < toRead) {
           len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, toRead)));
           ++numReads;
           search->search(data.get(), data.get() + len, offset, output);
-          // std::cout << "read " << len << " bytes\n";
+          std::cout << "read " << len << " bytes\n";
+		  std::cout.write((const char*)data.get(), len);
+		  std::cout << '\n';
           totalRead += len;
           offset += len;
         }
@@ -72,7 +93,7 @@ void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* k
   catch (std::exception& e) {
     std::cout << "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n';
   }
-  std::cout << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output.NumHits << " numHits\n";
+  std::cout << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output.numHits() << " numHits\n";
 }
 
 void startup(ProgramPtr prog, const KwInfo& kwInfo) {
