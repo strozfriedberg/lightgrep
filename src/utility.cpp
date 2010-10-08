@@ -177,14 +177,6 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
         if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget]) {
           DynamicFSM::out_edge_iterator next(cur);
           ++next;
-          // if (cg->Snippets[curTarget].CheckIndex != UNALLOCATED) {
-          //   if (next == outRange.second && !hasTargetAtNext) {
-          //     *curOp++ = Instruction::makeCheckHalt(cg->Snippets[curTarget].CheckIndex);
-          //   }
-          //   else {
-          //     *curOp++ = Instruction::makeCheckBranch(cg->Snippets[curTarget].CheckIndex);
-          //   }
-          // }
           if (next == outRange.second && !hasTargetAtNext) {
             *curOp++ = Instruction::makeJump(cg->Snippets[curTarget].Start);
             // std::cerr << "wrote " << Instruction::makeJump(cg->Snippets[curTarget].first) << std::endl;
@@ -200,9 +192,6 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
           // std::cerr << "skipping because it's next" << std::endl;
         }
       }
-      // if (hasTargetAtNext && cg->Snippets[nextTarget].CheckIndex != UNALLOCATED) {
-      //   *curOp++ = Instruction::makeCheckHalt(cg->Snippets[nextTarget].CheckIndex);
-      // }
     }
     else {
       *curOp++ = Instruction::makeHalt();
