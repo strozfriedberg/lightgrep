@@ -36,6 +36,8 @@ struct Options {
               Encoding;
   bool    CaseSensitive;
 
+  mutable std::ofstream OutputFile;
+
   uint32 getEncoding() const {
     uint32 value = 0;
     if (Encoding == "ucs16") {
@@ -49,6 +51,20 @@ struct Options {
       value |= CP_ASCII;
     }
     return value;
+  }
+
+  std::ostream& openOutput() const {
+    if (Output == "-") {
+      return std::cout;
+    }
+    else {
+      OutputFile.clear();
+      OutputFile.open(Output.c_str(), ios::out);
+      if (!OutputFile) {
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file " << Output);
+      }
+      return OutputFile;
+    }
   }
 };
 
@@ -79,7 +95,7 @@ void writeGraphviz(const Options& opts) {
   std::vector<std::string> keys;
   if (readKeyFile(opts.KeyFile, keys)) {
     DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding());
-    writeGraphviz(std::cout, *fsm);
+    writeGraphviz(opts.openOutput(), *fsm);
   }
 }
 
@@ -88,8 +104,9 @@ void writeProgram(const Options& opts) {
   if (readKeyFile(opts.KeyFile, keys)) {
     DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding());
     ProgramPtr p = createProgram(*fsm);
-    std::cout << p->size() << " instructions" << std::endl;
-    std::cout << *p;
+    std::ostream& out(opts.openOutput());
+    out << p->size() << " instructions" << std::endl;
+    out << *p;
   }
 }
 
@@ -146,19 +163,12 @@ void printHelp(const po::options_description& desc) {
 
 void search(const Options& opts) {
   std::ifstream file(opts.Input.c_str(), ios::in | ios::binary | ios::ate);
-  std::ofstream output;
-  if (opts.Output != "-") {
-    output.open(opts.Output.c_str(), ios::out);
-    if (!output) {
-      THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file " << opts.Output);
-    }
-  }
   if (file) {
     file.rdbuf()->pubsetbuf(0, 0);
     KwInfo keyInfo;
     boost::shared_ptr<Vm> search = initSearch(opts, keyInfo);
 
-    HitWriter cb(opts.Output == "-" ? std::cout: output, keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
+    HitWriter cb(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
 
     uint64 size = file.tellg(),
            offset = 0;
