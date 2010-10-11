@@ -108,12 +108,10 @@ private:
   uint32                   Cur;
 };
 
-void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* kwInfo) {
+void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, boost::shared_ptr<ServerWriter> output) {
   boost::scoped_array<byte>      data(new byte[BUF_SIZE]);
-  boost::shared_ptr<tcp::socket> sock(socketPtr);
   boost::scoped_ptr<Vm>          search(new Vm);
   search->init(prog);
-  SocketWriter output(sock, *kwInfo);
 
   std::size_t len = 0;
   uint64 totalRead = 0,
@@ -128,10 +126,10 @@ void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* k
         while (offset < toRead) {
           len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, toRead)));
           ++numReads;
-          search->search(data.get(), data.get() + len, offset, output);
+          search->search(data.get(), data.get() + len, offset, *output);
           std::cout << "read " << len << " bytes\n";
-		      std::cout.write((const char*)data.get(), len);
-		      std::cout << '\n';
+          // std::cout.write((const char*)data.get(), len);
+          // std::cout << '\n';
           totalRead += len;
           offset += len;
         }
@@ -146,7 +144,7 @@ void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* k
   catch (std::exception& e) {
     std::cout << "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n';
   }
-  std::cout << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output.numHits() << " numHits\n";
+  std::cout << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n";
 }
 
 void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
@@ -160,7 +158,9 @@ void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
       std::cout << "Created socket" << std::endl;
       acceptor.accept(*socket);
       std::cout << "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << std::endl;
-      boost::thread spawned(boost::bind(processConn, socket.release(), prog, &kwInfo)); // launches the thread, then detaches
+      boost::shared_ptr<tcp::socket> s(socket.release());
+      boost::shared_ptr<ServerWriter> writer(new SocketWriter(s, kwInfo));
+      boost::thread spawned(boost::bind(processConn, s, prog, writer)); // launches the thread, then detaches
     }
   }
   catch (std::exception& e) {
