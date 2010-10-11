@@ -26,40 +26,57 @@ struct HitInfo {
 };
 #pragma pack()
 
-class SocketWriter: public HitCallback {
+class ServerWriter: public HitCallback {
+public:
+  ServerWriter(const KwInfo& kwInfo): KeyInfo(kwInfo), NumHits(0) {}
+  virtual ~ServerWriter() {}
+
+  virtual void collect(const SearchHit& hit) {
+    ++NumHits;
+    convert(hit, Hit);
+    write(Hit);
+  }
+
+  virtual void write(const HitInfo& hit) = 0;
+
+  void convert(const SearchHit& sh, HitInfo& hit) {
+    hit.Offset = sh.Offset;
+    hit.Length = sh.Length;
+    const std::pair<uint32, uint32>& tuple(KeyInfo.PatternsTable[sh.Label]);
+    hit.Label = tuple.first;
+    hit.Encoding = tuple.second;
+  }
+
+  uint64 numHits() const { return NumHits; }
+
+private:
+  const KwInfo& KeyInfo;
+  uint64 NumHits;
+  HitInfo Hit;
+};
+
+class SocketWriter: public ServerWriter {
 public:
   SocketWriter(boost::shared_ptr<tcp::socket> sock, const KwInfo& kwInfo):
-    Socket(sock),
-    KeyInfo(kwInfo),
-    NumHits(0)
+    ServerWriter(kwInfo),
+    Socket(sock)
   {
   }
 
   virtual ~SocketWriter() {}
   
-  virtual void collect(const SearchHit& hit) {
-    Hit.Offset = hit.Offset;
-    Hit.Length = hit.Length;
-    const std::pair<uint32, uint32>& tuple(KeyInfo.PatternsTable[hit.Label]);
-    Hit.Label = tuple.first;
-    Hit.Encoding = tuple.second;
-    boost::asio::write(*Socket, boost::asio::buffer((void*)(&Hit), sizeof(HitInfo)));
-    ++NumHits;
+  virtual void write(const HitInfo& hit) {
+    boost::asio::write(*Socket, boost::asio::buffer((void*)(&hit), sizeof(HitInfo)));
   }
-
-  uint64 numHits() const { return NumHits; }
   
 private:
   boost::shared_ptr<tcp::socket> Socket;
-  const KwInfo& KeyInfo;
-  HitInfo Hit;
-  uint64  NumHits;
 };
 
-class SafeFileWriter: public HitCallback {
+class SafeFileWriter: public ServerWriter {
 public:
   SafeFileWriter(boost::shared_ptr<std::ostream> output, boost::shared_ptr<boost::mutex> m, const KwInfo& kwInfo):
-    KeyInfo(kwInfo),
+    ServerWriter(kwInfo),
     Mutex(m),
     Output(output),
     Buffer(50),
@@ -69,7 +86,7 @@ public:
 
   virtual ~SafeFileWriter() {}
 
-  virtual void collect(const SearchHit& hit) {
+  virtual void write(const HitInfo& hit) {
     Buffer[Cur] = hit;
     if (++Cur == Buffer.size()) {
       flush();
@@ -79,17 +96,15 @@ public:
   void flush() {
     Cur = 0;
     boost::mutex::scoped_lock lock(*Mutex);
-    for (std::vector<SearchHit>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
-      *Output << it->Offset << '\t' << it->Length << '\t' << KeyInfo.PatternsTable[it->Label].first
-        << '\t' << KeyInfo.PatternsTable[it->Label].second << '\n';
+    for (std::vector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
+      *Output << it->Offset << '\t' << it->Length << '\t' << it->Label << '\t' << it->Encoding << '\n';
     }
   }
 
 private:
-  const KwInfo& KeyInfo;
   boost::shared_ptr<boost::mutex> Mutex;
   boost::shared_ptr<std::ostream> Output;
-  std::vector< SearchHit > Buffer;
+  std::vector< HitInfo > Buffer;
   uint32                   Cur;
 };
 
