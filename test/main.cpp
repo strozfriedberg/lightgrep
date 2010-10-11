@@ -32,6 +32,7 @@ struct Options {
   std::string KeyFile,
               Command,
               Input,
+              Output,
               Encoding;
   bool    CaseSensitive;
 
@@ -145,12 +146,19 @@ void printHelp(const po::options_description& desc) {
 
 void search(const Options& opts) {
   std::ifstream file(opts.Input.c_str(), ios::in | ios::binary | ios::ate);
+  std::ofstream output;
+  if (opts.Output != "-") {
+    output.open(opts.Output.c_str(), ios::out);
+    if (!output) {
+      THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file " << opts.Output);
+    }
+  }
   if (file) {
     file.rdbuf()->pubsetbuf(0, 0);
     KwInfo keyInfo;
     boost::shared_ptr<Vm> search = initSearch(opts, keyInfo);
 
-    HitWriter cb(std::cout, keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
+    HitWriter cb(opts.Output == "-" ? std::cout: output, keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
 
     uint64 size = file.tellg(),
            offset = 0;
@@ -210,6 +218,7 @@ int main(int argc, char** argv) {
     ("command,c", po::value< std::string >(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|test|server]")
     ("keywords,k", po::value< std::string >(&opts.KeyFile), "path to file containing keywords")
     ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
+    ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
     ("ignore-case,i", "file to search")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
@@ -228,7 +237,7 @@ int main(int argc, char** argv) {
     else if (opts.Command == "test" || optsMap.count("test")) {
       return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
     }
-    if (opts.Command == "search") {
+    if (opts.Command == "search" && optsMap.count("keywords")) {
       search(opts);
     }
     else if (opts.Command == "graph") {
@@ -241,6 +250,9 @@ int main(int argc, char** argv) {
       KwInfo keyInfo;
       ProgramPtr p = initProgram(opts, keyInfo);
       startup(p, keyInfo);
+    }
+    else {
+      std::cerr << "Unrecognized. Use --help for list of options." << std::endl;
     }
   }
   catch (std::exception& err) {
