@@ -12,6 +12,7 @@
 #include "utility.h"
 #include "vm.h"
 #include "hitwriter.h"
+#include "options.h"
 
 
 // <magic_incantation>
@@ -25,50 +26,7 @@ extern "C" void tss_cleanup_implemented() { }
 using namespace std;
 namespace po = boost::program_options;
 
-struct Options {
-  uint64  DebugBegin,
-          DebugEnd;
-          
-  std::string KeyFile,
-              Command,
-              Input,
-              Output,
-              Encoding;
-  bool    CaseSensitive;
-
-  mutable std::ofstream OutputFile;
-
-  uint32 getEncoding() const {
-    uint32 value = 0;
-    if (Encoding == "ucs16") {
-      value |= CP_UCS16;
-    }
-    else if (Encoding == "both") {
-      value |= CP_UCS16;
-      value |= CP_ASCII;
-    }
-    else if (Encoding == "ascii") {
-      value |= CP_ASCII;
-    }
-    return value;
-  }
-
-  std::ostream& openOutput() const {
-    if (Output == "-") {
-      return std::cout;
-    }
-    else {
-      OutputFile.clear();
-      OutputFile.open(Output.c_str(), ios::out);
-      if (!OutputFile) {
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file " << Output);
-      }
-      return OutputFile;
-    }
-  }
-};
-
-void startup(ProgramPtr p, const KwInfo& keyInfo);
+void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
 
 bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys) {
   std::ifstream keyFile(keyFilePath.c_str(), ios::in);
@@ -259,7 +217,7 @@ int main(int argc, char** argv) {
     else if (opts.Command == "server") {
       KwInfo keyInfo;
       ProgramPtr p = initProgram(opts, keyInfo);
-      startup(p, keyInfo);
+      startup(p, keyInfo, opts);
     }
     else {
       std::cerr << "Unrecognized. Use --help for list of options." << std::endl;

@@ -11,6 +11,7 @@
 #include "vm.h"
 #include "utility.h"
 #include "hitwriter.h"
+#include "options.h"
 
 using boost::asio::ip::tcp;
 
@@ -55,6 +56,43 @@ private:
   uint64  NumHits;
 };
 
+class SafeFileWriter: public HitCallback {
+public:
+  SafeFileWriter(boost::shared_ptr<std::ostream> output, boost::shared_ptr<boost::mutex> m, const KwInfo& kwInfo):
+    KeyInfo(kwInfo),
+    Mutex(m),
+    Output(output),
+    Buffer(50),
+    Cur(0)
+  {
+  }
+
+  virtual ~SafeFileWriter() {}
+
+  virtual void collect(const SearchHit& hit) {
+    Buffer[Cur] = hit;
+    if (++Cur == Buffer.size()) {
+      flush();
+    }
+  }
+
+  void flush() {
+    Cur = 0;
+    boost::mutex::scoped_lock lock(*Mutex);
+    for (std::vector<SearchHit>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
+      *Output << it->Offset << '\t' << it->Length << '\t' << KeyInfo.PatternsTable[it->Label].first
+        << '\t' << KeyInfo.PatternsTable[it->Label].second << '\n';
+    }
+  }
+
+private:
+  const KwInfo& KeyInfo;
+  boost::shared_ptr<boost::mutex> Mutex;
+  boost::shared_ptr<std::ostream> Output;
+  std::vector< SearchHit > Buffer;
+  uint32                   Cur;
+};
+
 void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* kwInfo) {
   boost::scoped_array<byte>      data(new byte[BUF_SIZE]);
   boost::shared_ptr<tcp::socket> sock(socketPtr);
@@ -69,7 +107,7 @@ void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* k
     while (true) {
       uint64 toRead = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&toRead, sizeof(toRead))) == sizeof(toRead)) {
-		std::cout << "told to read " << toRead << " bytes\n";
+		    std::cout << "told to read " << toRead << " bytes\n";
         ++numReads;
         uint64 offset = 0;
         while (offset < toRead) {
@@ -77,8 +115,8 @@ void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* k
           ++numReads;
           search->search(data.get(), data.get() + len, offset, output);
           std::cout << "read " << len << " bytes\n";
-		  std::cout.write((const char*)data.get(), len);
-		  std::cout << '\n';
+		      std::cout.write((const char*)data.get(), len);
+		      std::cout << '\n';
           totalRead += len;
           offset += len;
         }
@@ -96,7 +134,7 @@ void processConn(tcp::socket* socketPtr, const ProgramPtr& prog, const KwInfo* k
   std::cout << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output.numHits() << " numHits\n";
 }
 
-void startup(ProgramPtr prog, const KwInfo& kwInfo) {
+void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
   try {
     boost::asio::io_service srv;
     std::cout << "Created service" << std::endl;
