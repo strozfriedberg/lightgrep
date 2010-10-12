@@ -84,7 +84,7 @@ public:
   {
   }
 
-  virtual ~SafeFileWriter() {}
+  virtual ~SafeFileWriter() { flush(); }
 
   virtual void write(const HitInfo& hit) {
     Buffer[Cur] = hit;
@@ -153,13 +153,28 @@ void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
     std::cout << "Created service" << std::endl;
     tcp::acceptor acceptor(srv, tcp::endpoint(tcp::v4(), 12777));
     std::cout << "Created acceptor" << std::endl;
+    boost::shared_ptr<boost::mutex> fileMutex; // null
+    boost::shared_ptr<std::ostream> outFile;
+    if (opts.Output != "-") {
+      outFile.reset(new std::ofstream(opts.Output.c_str(), std::ios::out));
+      if (!*outFile) {
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file at " << opts.Output);
+      }
+      fileMutex.reset(new boost::mutex);
+    }
     while (true) {
       std::auto_ptr<tcp::socket> socket(new tcp::socket(srv));
       std::cout << "Created socket" << std::endl;
       acceptor.accept(*socket);
       std::cout << "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << std::endl;
       boost::shared_ptr<tcp::socket> s(socket.release());
-      boost::shared_ptr<ServerWriter> writer(new SocketWriter(s, kwInfo));
+      boost::shared_ptr<ServerWriter> writer;
+      if (outFile) {
+        writer.reset(new SafeFileWriter(outFile, fileMutex, kwInfo));
+      }
+      else {
+        writer.reset(new SocketWriter(s, kwInfo));
+      }
       boost::thread spawned(boost::bind(processConn, s, prog, writer)); // launches the thread, then detaches
     }
   }
