@@ -1,0 +1,217 @@
+#include <algorithm>
+#include <cstdio>
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include <boost/lexical_cast.hpp>
+
+std::string op_nquant(unsigned int n) {
+  return '{' + boost::lexical_cast<std::string>(n) + '}';
+}
+
+std::string op_nxquant(unsigned int n) {
+  return '{' + boost::lexical_cast<std::string>(n) + ",}";
+}
+
+std::string op_nmquant(unsigned int n, unsigned int m) {
+  return '{' + boost::lexical_cast<std::string>(n) + ','
+             + boost::lexical_cast<std::string>(m) + '}';
+}
+
+std::string op_class(const std::string& s) { return '[' + s + ']'; }
+std::string op_negclass(const std::string& s) { return "[^" + s + ']'; }
+
+std::string bits_to_string(unsigned int bits,
+                           const std::vector<std::string>& alpha) {
+  using namespace std;
+
+  string s;
+
+  for (vector<string>::const_iterator i(alpha.begin()); i != alpha.end(); ++i) {
+    if (bits & (1 << (i-alpha.begin()))) s += *i;
+  }
+
+  return s;
+}
+
+std::string instantiate(const std::vector<int>& inst,
+                        const std::string& form,
+                        const std::vector<std::string>& atoms,
+                        const std::vector<std::string>& quant)
+{
+  using namespace std;
+
+  string instance;
+
+  vector<int>::const_iterator i(inst.begin());
+  for (string::const_iterator f(form.begin()); f != form.end(); ++f) {
+    switch (*f) {
+    case 'a':
+      instance += atoms[*i];
+      ++i;
+      break;
+
+    case 'q':
+      instance += quant[-(*i+1)];
+      ++i;
+      break;
+
+    default:
+      instance += *f;
+      break;
+    }
+  }
+
+  return instance;
+}
+
+bool next_instance(std::vector<int>& inst,
+                   const std::vector<std::string>& atoms,
+                   const std::vector<std::string>& quant)
+{
+  using namespace std;
+
+  for (vector<int>::iterator i(inst.begin()); i != inst.end(); ++i) {
+    // increment this position
+    if (*i < 0) {
+      // remember that quants are negative
+      --(*i);
+
+      // check whether incrementing pushed us off the end of the quant list
+      if ((unsigned int)(-(*i+1)) != quant.size()) return true;
+
+      // otherwise zero and carry (remember that quant offset is -(x+1))
+      *i = -1;
+    }
+    else {
+      ++(*i);
+
+      // check whether incrementing pushed us off the end of the atoms list
+      if ((unsigned int)(*i) != atoms.size()) return true;
+
+      // otherwise zero and carry
+      *i = 0;
+    }
+  }
+
+  return false;
+}
+
+
+int main(int argc, char** argv)
+{
+  using namespace std;
+
+  typedef unsigned int uint;
+
+  //
+  // Get the alphabet from the command line
+  //
+  const vector<string> alpha(argv+1, argv+argc);
+
+  //
+  // Build all the quantifiers
+  //
+
+  const char* q[] = { "*", "+", "?", "*?", "+?", "??" };
+  vector<string> quant(q, q+sizeof(q)/sizeof(q[0]));
+
+  // Add {n}, {n}? quantifiers from 1 to 3
+  for (uint n = 1; n < 4; ++n) {
+    quant.push_back(op_nquant(n));
+    quant.push_back(op_nquant(n) + '?');
+  }
+
+  // Add {n,}, {n,}? quantifiers from 0 to 3
+  for (uint n = 0; n < 4; ++n) {
+    quant.push_back(op_nxquant(n));
+    quant.push_back(op_nxquant(n) + '?');
+  }
+
+  // Add {n,m}, {n,m}? quantifiers from {0,1} to {3,3}
+  for (uint n = 0; n < 4; ++n) {
+    for (uint m = n; m < 4; ++m) {
+      // Don't generate useless {0,0}
+      if ((n == m) && (m == 0)) continue;
+
+      quant.push_back(op_nmquant(n, m));
+      quant.push_back(op_nmquant(n, m) + '?');
+    }
+  }
+
+  //
+  // Build all the atoms
+  //
+
+  // Each character in the alphabet is an atom
+  vector<string> atoms(alpha.begin(), alpha.end());
+  
+  // Dot is an atom
+  atoms.push_back(".");
+
+  // Each ordering of each nonempty subset of the alphabet defines a
+  // character class and a negated character class.
+  const uint abitsmax = 1 << alpha.size();
+  
+  for (uint abits = 1; abits < abitsmax; ++abits) {
+    // get the base character class string
+    string s(bits_to_string(abits, alpha));
+
+    // try all the (internal) insertion points for the range marker
+    const uint rbitsmax = 1 << (s.length()-1);
+
+    for (uint rbits = 1; rbits < rbitsmax; ++rbits) {
+      // skip rbits which have adjacent range markers; [a-b-c] is illegal
+      // X & (X >> 1) > 0 iff X has two consecutive 1s somewhere
+      if (rbits & (rbits >> 1)) continue;
+
+      string r(s);
+
+      for (uint p = s.length()-1; p > 0; --p) {
+        if (rbits & (1 << (p-1))) r.insert(p, "-");
+      }
+
+      atoms.push_back(op_class(r));
+      atoms.push_back(op_negclass(r));
+    }
+
+    // try all the permutations
+    while (next_permutation(s.begin(), s.end())) {
+      atoms.push_back(op_class(s));
+      atoms.push_back(op_negclass(s));
+    }
+  }
+
+  //
+  // Concretize forms
+  //
+
+  string form;
+  while (cin >> form) {
+    // Build the instance vector for the atoms and quantifiers
+    vector<int> concr;
+    
+    for (string::const_iterator i(form.begin()); i != form.end(); ++i) {
+      switch (*i) {
+      case 'a':
+        concr.push_back(0);
+        break;
+
+      case 'q':
+        concr.push_back(-1);
+        break;
+
+      default:
+        // skip chars which are neither atoms nor quantifiers;
+        // these are already concrete
+        break;
+      }
+    }
+
+    // Iterate through all instantiations of the form
+    do {
+      cout << instantiate(concr, form, atoms, quant) << "\n";
+    } while (next_instance(concr, atoms, quant));
+  }
+}
