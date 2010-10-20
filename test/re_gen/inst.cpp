@@ -200,6 +200,7 @@ int main(int argc, char** argv)
   const uint abitsmax = 1 << alpha.size();
   
   for (uint abits = 1; abits < abitsmax; ++abits) {
+// FIXME: this does not handle multi-char alphabet elements correctly!
     // get the base character class string
     string s(bits_to_string(abits, alpha));
 
