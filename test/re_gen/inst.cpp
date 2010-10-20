@@ -207,6 +207,7 @@ int main(int argc, char** argv)
     vector<string> v(bits_to_vector(abits, alpha));
 
     // try all the (internal) insertion points for the range marker
+    // in the (sorted) range
     const uint rbitsmax = 1 << (v.size()-1);
 
     for (uint rbits = 1; rbits < rbitsmax; ++rbits) {
