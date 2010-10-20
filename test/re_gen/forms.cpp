@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstring>
 #include <functional>
 #include <iostream>
 #include <iterator>
@@ -47,6 +48,34 @@ template<class InputIteratorL, class InputIteratorR,
   }
 }
 
+char* help_short() {
+  return
+    "Usage: forms n\n"
+    "Try `forms --help' for more information.";
+}
+
+char* help_long() {
+  return
+    "Usage: forms n\n"
+    "Creates regular expression forms in n stages.\n"
+    "Example: `forms 1' gives the following output:\n"
+    "\n"
+    "\ta\n"
+    "\t(a)\n"
+    "\taa\n"
+    "\taq\n"
+    "\ta|a\n"
+    "\n"
+    "where `a' is a variable ranging over atoms, and `q' is a variable\n"
+    "ranging over quantifiers.\n"
+    "\n"
+    "Note that the algorightm runs in O(n^(2n)), where n is the number of\n"
+    "stages. This is not because we're being inefficient, but because we're\n"
+    "generating a finite fragment of an infinite language very rapidly. You\n"
+    "might not have enough RAM to run with n = 4. There might not be enough\n"
+    "RAM in the universe to run with n = 10.\n";
+}
+
 int main(int argc, char** argv)
 {
   using namespace boost;
@@ -54,13 +83,63 @@ int main(int argc, char** argv)
 
   typedef unsigned int uint;
 
-  typedef vector<string>::iterator vsit;
-  typedef vector<string>::const_iterator cvsit;
+  //
+  // Parse the arguments
+  //
 
-  typedef set<string>::iterator ssit;
-  typedef set<string>::const_iterator cssit;
+  if (argc < 2) {
+    cerr << "unspecified number of stages!" << "\n"
+         << help_short() << endl;
+    return 1;
+  }
 
-  const uint N = lexical_cast<uint>(argv[1]);
+  if (argc > 2) {
+    cerr << "too many arguments!" << "\n"
+         << help_short() << endl;
+    return 1;
+  }
+
+  if (!strcmp(argv[1], "-h")) {
+    // -h prints the short help
+    cerr << help_short() << endl;
+    return 0;
+  } 
+  else if (!strcmp(argv[1], "--help")) {
+    // --help prints the long help
+    cerr << help_long() << endl;
+    return 0;
+  }
+
+  uint u;
+  try {
+    u = lexical_cast<uint>(argv[1]);
+  }
+  catch (bad_lexical_cast &) {
+    cerr << "`" << argv[1]
+         << "' isn't a natural number we've heard of!" << "\n"
+         << help_short() << endl;
+    return 1;
+  }
+
+  if (u > 3) {
+    // If the number of stages is too high, it's likely that the program
+    // will exhaust the machine's RAM rather quickly. Prompt the user for
+    // confirmation of large n.
+    cerr << "Number of stages = " << argv[1] << ". Are you sure? [y/N]" << endl;
+    char reply;
+    cin >> reply;
+    if (reply != 'y') {
+      cerr << "Aborting." << endl;
+      return 0;
+    }
+  }
+
+  //
+  // Start generating forms
+  //
+
+  // N is the number of rounds to run
+  const uint N = u;
 
   set<string> oform;
   set<string> cform;
@@ -71,7 +150,6 @@ int main(int argc, char** argv)
 
   // Print base generation
   copy(csing.begin(), csing.end(), ostream_iterator<string>(cout, "\n"));
-  cout << endl;
 
   for (uint i = 0; i < N; ++i) {
     //
