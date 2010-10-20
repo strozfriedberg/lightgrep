@@ -82,6 +82,7 @@ bool next_instance(std::vector<int>& inst,
       if ((unsigned int)(-(*i+1)) != quant.size()) return true;
 
       // otherwise zero and carry (remember that quant offset is -(x+1))
+      // so here, "zero" is actually -1.
       *i = -1;
     }
     else {
