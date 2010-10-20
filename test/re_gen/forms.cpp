@@ -257,12 +257,5 @@ int main(int argc, char** argv)
     //
     copy(csing.begin(), csing.end(), ostream_iterator<string>(cout, "\n"));
     copy(cform.begin(), cform.end(), ostream_iterator<string>(cout, "\n"));
-//    cout << endl;
   }
- 
-  // print all generated forms
-//  copy(oform.begin(), oform.end(), ostream_iterator<string>(cout, "\n"));
-//  copy(csing.begin(), csing.end(), ostream_iterator<string>(cout, "\n"));
-//  copy(cform.begin(), cform.end(), ostream_iterator<string>(cout, "\n"));
 }
-
