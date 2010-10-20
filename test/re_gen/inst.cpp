@@ -98,12 +98,56 @@ bool next_instance(std::vector<int>& inst,
   return false;
 }
 
+char* help_short() {
+  return
+    "Usage: inst a [b [c]]...\n"
+    "Try `inst --help' for more information.";
+}
+
+char* help_long() {
+  return
+    "Usage: inst a [b [c]]...\n"
+    "Instantiates regular expression forms with the given alphabet.\n"
+    "Regex forms are read from standard input, one per line.\n"
+    "Example: `echo aq | inst x' gives the following (partial) output:\n"
+    "\n"
+    "x*\n"
+    ".*\n"
+    "x+\n"
+    ".+\n"
+    "x?\n"
+    ".?\n"
+    "\n"
+    "Note that the (optimal!) runtime for producing all instantiations for a\n"
+    "given regex form is O(m^n), where m is the size of the alphabet and n is\n"
+    "the number of atomic variables (`a') in the form.\n";
+}
 
 int main(int argc, char** argv)
 {
   using namespace std;
 
   typedef unsigned int uint;
+
+  //
+  // Parse the arguments
+  //
+
+  // NB: No arguments means that we're using the empty alphabet. That's
+  // ok, we just don't need to check for the help options in this case.
+
+  if (argc > 1) {
+    if (!strcmp(argv[1], "-h")) {
+      // -h prints the short help
+      cerr << help_short() << endl;
+      return 0;
+    } 
+    else if (!strcmp(argv[1], "--help")) {
+      // --help prints the long help
+      cerr << help_long() << endl;
+      return 0;
+    }   
+  }
 
   //
   // Get the alphabet from the command line
