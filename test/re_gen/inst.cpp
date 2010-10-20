@@ -235,7 +235,11 @@ int main(int argc, char** argv)
 
   string form;
   while (cin >> form) {
-    // Build the instance vector for the atoms and quantifiers
+    // Build the instance vector for the atoms and quantifiers. Elements
+    // which are nonnegative indicate indices into the atom vector, elements
+    // which are negative indicate indices into the quantifier vector. (For
+    // quantifiers, x -> -(x+1) is the mapping to offsets in the quantifier
+    // vector. Yes, this is fiddly, but it's a small program.)
     vector<int> concr;
     
     for (string::const_iterator i(form.begin()); i != form.end(); ++i) {
