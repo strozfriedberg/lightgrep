@@ -67,7 +67,7 @@ char* help_long() {
     "\ta|a\n"
     "\n"
     "where `a' is a variable ranging over atoms, and `q' is a variable\n"
-    "ranging over quantifiers. This output is intended to be fed to concr,\n"
+    "ranging over quantifiers. This output is intended to be fed to inst,\n"
     "which will instantiate each form to a concrete regular expression.\n"
     "\n"
     "Note that the algorightm runs in O(n^(2n)), where n is the number of\n"
