@@ -6,17 +6,7 @@
 #include <vector>
 
 #include <boost/lexical_cast.hpp>
-
-struct appender : public std::unary_function<std::string&, void>
-{
-  std::string& _s;
-
-  appender(std::string& s) : _s(s) {}
-    
-  void operator()(const std::string& tail) {
-    _s += tail;
-  }
-};
+#include <boost/algorithm/string/join.hpp>
 
 std::string op_nquant(unsigned int n) {
   return '{' + boost::lexical_cast<std::string>(n) + '}';
@@ -138,6 +128,7 @@ char* help_long() {
 
 int main(int argc, char** argv)
 {
+  using namespace boost::algorithm;
   using namespace std;
 
   typedef unsigned int uint;
@@ -237,8 +228,7 @@ int main(int argc, char** argv)
 
     // try all the permutations of the elements of the character class
     while (next_permutation(v.begin(), v.end())) {
-      string s;
-      for_each(v.begin(), v.end(), appender(s));
+      string s(join(v, ""));
 
       atoms.push_back(op_class(s));
       atoms.push_back(op_negclass(s));
