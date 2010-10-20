@@ -1,10 +1,22 @@
 #include <algorithm>
 #include <cstdio>
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <vector>
 
 #include <boost/lexical_cast.hpp>
+
+struct appender : public std::unary_function<std::string&, void>
+{
+  std::string& _s;
+
+  appender(std::string& s) : _s(s) {}
+    
+  void operator()(const std::string& tail) {
+    _s += tail;
+  }
+};
 
 std::string op_nquant(unsigned int n) {
   return '{' + boost::lexical_cast<std::string>(n) + '}';
@@ -22,17 +34,17 @@ std::string op_nmquant(unsigned int n, unsigned int m) {
 std::string op_class(const std::string& s) { return '[' + s + ']'; }
 std::string op_negclass(const std::string& s) { return "[^" + s + ']'; }
 
-std::string bits_to_string(unsigned int bits,
-                           const std::vector<std::string>& alpha) {
+std::vector<std::string> bits_to_vector(unsigned int bits,
+                                        const std::vector<std::string>& alpha) {
   using namespace std;
-
-  string s;
+  
+  vector<string> v;
 
   for (vector<string>::const_iterator i(alpha.begin()); i != alpha.end(); ++i) {
-    if (bits & (1 << (i-alpha.begin()))) s += *i;
-  }
-
-  return s;
+    if (bits & (1 << (i-alpha.begin()))) v.push_back(*i);
+  } 
+  
+  return v;
 }
 
 std::string instantiate(const std::vector<int>& inst,
@@ -200,30 +212,34 @@ int main(int argc, char** argv)
   const uint abitsmax = 1 << alpha.size();
   
   for (uint abits = 1; abits < abitsmax; ++abits) {
-// FIXME: this does not handle multi-char alphabet elements correctly!
-    // get the base character class string
-    string s(bits_to_string(abits, alpha));
+    // get the base character class corresponding to this bit vector
+    vector<string> v(bits_to_vector(abits, alpha));
 
     // try all the (internal) insertion points for the range marker
-    const uint rbitsmax = 1 << (s.length()-1);
+    const uint rbitsmax = 1 << (v.size()-1);
 
     for (uint rbits = 1; rbits < rbitsmax; ++rbits) {
       // skip rbits which have adjacent range markers; [a-b-c] is illegal
       // X & (X >> 1) > 0 iff X has two consecutive 1s somewhere
       if (rbits & (rbits >> 1)) continue;
 
-      string r(s);
+      string r;
 
-      for (uint p = s.length()-1; p > 0; --p) {
-        if (rbits & (1 << (p-1))) r.insert(p, "-");
+      // put range markers in the locations indicated by rbits
+      for (vector<string>::const_iterator i(v.begin()); i != v.end(); ++i) {
+        r += *i;
+        if (rbits & (1 << (i-v.begin()))) r += '-';
       }
 
       atoms.push_back(op_class(r));
       atoms.push_back(op_negclass(r));
     }
 
-    // try all the permutations
-    while (next_permutation(s.begin(), s.end())) {
+    // try all the permutations of the elements of the character class
+    while (next_permutation(v.begin(), v.end())) {
+      string s;
+      for_each(v.begin(), v.end(), appender(s));
+
       atoms.push_back(op_class(s));
       atoms.push_back(op_negclass(s));
     }
