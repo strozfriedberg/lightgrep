@@ -8,11 +8,8 @@
 #include <iterator>
 #include <vector>
 
-#include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <boost/ref.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/iterator/transform_iterator.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 
 char esc_to_char(char* esc)
