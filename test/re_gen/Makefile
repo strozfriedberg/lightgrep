@@ -1,14 +1,15 @@
 CXX=g++
-CPPFLAGS=-c -O -g -pg -W -Wall -pedantic
+#CPPFLAGS=-c -O -g -pg -W -Wall -pedantic
+CPPFLAGS=-c -O3 -W -Wall -pedantic
 LDFLAGS=-lstdc++
 
-all: forms inst monkey 
+all: debruijn forms inst
+
+debruijn: debruijn.o
 
 forms: forms.o
 
 inst: inst.o
-
-monkey: monkey.o
 
 clean:
 	+rm -f *.o
