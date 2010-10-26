@@ -65,14 +65,8 @@ unsigned int match(
 {
   const Regex re(pattern);
 
-  //
-  // Match the text against the pattern
-  //
-  const unsigned int ovector_size = 3000;
-  const unsigned int wspace_size = 1000;
-
+  const unsigned int ovector_size = 3;
   int ovector[ovector_size];
-  int wspace[wspace_size];
 
   unsigned int offset = 0;
   unsigned int total = 0;
@@ -80,80 +74,40 @@ unsigned int match(
   int matches;
 
   do {
-    matches = pcre_dfa_exec(
-      re.re, 
+    matches = pcre_exec( 
+      re.re,
       re.extra,
       text,
       text_len,
       offset,
-      PCRE_DFA_SHORTEST,
+      0,
       ovector,
-      ovector_size,
-      wspace,
-      wspace_size
+      ovector_size
     );
 
-    if (matches == PCRE_ERROR_NOMATCH) break;
+    if (matches == PCRE_ERROR_NOMATCH) return total;
 
     if (matches == 0) {
-      std::ostringstream ss;
-      ss << "match vector too small!";
-    
-      throw std::runtime_error(ss.str());
+      // this should never happen, because PCRE_NO_AUTO_CAPTURE
+      // is set for the pattern
+      throw std::runtime_error("ovector is too small!");
     }
-
+    
     if (matches < 0) {
       std::ostringstream ss;
-      ss << "pcre_dfa_exec: " << matches;
+      ss << "pcre_exec: " << matches;
 
       throw std::runtime_error(ss.str());
     }
 
-    // run the callback for each match
-    for (unsigned int i = 0; i < (unsigned int) matches; ++i) {
-      callback(ovector[2*i], ovector[2*i+1] - ovector[2*i],
-               patnum, pattern, charset);
-    }
-    
-    total += matches;
-    offset = ovector[0]+1;
+    // run the callback for this match
+    callback(ovector[0], ovector[1]-ovector[0], patnum, pattern, charset);
 
-  } while (matches > 0);
+    total += matches;
+    offset = ovector[1];
+  } while (offset < text_len); 
 
   return total;
-
-/*
-  const unsigned int ovector_size = 3000;
-  int ovector[ovector_size];
-
-  int matches = pcre_exec( 
-    re.re,
-    re.extra,
-    text,
-    text_len,
-    0,
-    0,
-    ovector,
-    ovector_size
-  );
-
-  if (matches == PCRE_ERROR_NOMATCH) return 0;
-
-  if (matches < 0) {
-    std::ostringstream ss;
-    ss << "pcre_exec: " << matches;
-
-    throw std::runtime_error(ss.str());
-  }
-
-  // run the callback for each match
-  for (unsigned int i = 0; i < (unsigned int) matches; ++i) {
-    callback(ovector[2*i], ovector[2*i+1] - ovector[2*i],
-             patnum, pattern, charset);
-  }
-
-  return matches;
-*/
 }
 
 void match_printer(int mpos, int mlen, unsigned int patnum,
