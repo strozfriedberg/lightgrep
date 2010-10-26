@@ -101,13 +101,13 @@ bool next_instance(std::vector<int>& inst,
   return false;
 }
 
-char* help_short() {
+const char* help_short() {
   return
     "Usage: inst a [b [c]]...\n"
     "Try `inst --help' for more information.";
 }
 
-char* help_long() {
+const char* help_long() {
   return
     "Usage: inst a [b [c]]...\n"
     "Instantiates regular expression forms with the given alphabet.\n"

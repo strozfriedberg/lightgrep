@@ -48,13 +48,13 @@ template<class InputIteratorL, class InputIteratorR,
   }
 }
 
-char* help_short() {
+const char* help_short() {
   return
     "Usage: forms n\n"
     "Try `forms --help' for more information.";
 }
 
-char* help_long() {
+const char* help_long() {
   return
     "Usage: forms n\n"
     "Creates regular expression forms in n stages.\n"

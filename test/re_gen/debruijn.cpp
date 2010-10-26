@@ -100,14 +100,14 @@ struct seq_printer {
   }
 };
 
-char* help_short()
+const char* help_short()
 {
   return
     "Usage: debruijn n a [b [c]]...\n"
     "Try `debruijn --help' for more information.";
 }
 
-char* help_long()
+const char* help_long()
 {
   return
     "Usage: debruijn n a [b [c]]...\n"
