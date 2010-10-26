@@ -86,7 +86,7 @@ unsigned int match(
       text,
       text_len,
       offset,
-      0,
+      PCRE_DFA_SHORTEST,
       ovector,
       ovector_size,
       wspace,
@@ -94,6 +94,13 @@ unsigned int match(
     );
 
     if (matches == PCRE_ERROR_NOMATCH) break;
+
+    if (matches == 0) {
+      std::ostringstream ss;
+      ss << "match vector too small!";
+    
+      throw std::runtime_error(ss.str());
+    }
 
     if (matches < 0) {
       std::ostringstream ss;
@@ -109,11 +116,44 @@ unsigned int match(
     }
     
     total += matches;
-    offset = ovector[2*matches-1];
+    offset = ovector[0]+1;
 
   } while (matches > 0);
 
   return total;
+
+/*
+  const unsigned int ovector_size = 3000;
+  int ovector[ovector_size];
+
+  int matches = pcre_exec( 
+    re.re,
+    re.extra,
+    text,
+    text_len,
+    0,
+    0,
+    ovector,
+    ovector_size
+  );
+
+  if (matches == PCRE_ERROR_NOMATCH) return 0;
+
+  if (matches < 0) {
+    std::ostringstream ss;
+    ss << "pcre_exec: " << matches;
+
+    throw std::runtime_error(ss.str());
+  }
+
+  // run the callback for each match
+  for (unsigned int i = 0; i < (unsigned int) matches; ++i) {
+    callback(ovector[2*i], ovector[2*i+1] - ovector[2*i],
+             patnum, pattern, charset);
+  }
+
+  return matches;
+*/
 }
 
 void match_printer(int mpos, int mlen, unsigned int patnum,
@@ -185,6 +225,7 @@ int main(int argc, char** argv)
     return errno;
   }
 
+  // get the file size
   struct stat st;
   if (fstat(fd, &st) == -1) {
     cerr << "stat: " << strerror(errno) << endl;
@@ -225,7 +266,7 @@ int main(int argc, char** argv)
 
   while (!ifs.eof()) {
     getline(ifs, pattern);
-    if (pattern.empty()) break; // last line of the file 
+    if (pattern.empty()) continue; // skip empty lines 
 
     //
     // Match, shitgrep! Match!
