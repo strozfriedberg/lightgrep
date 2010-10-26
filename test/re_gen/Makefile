@@ -1,8 +1,11 @@
 CXX=g++
-CPPFLAGS=-c -O -g -pg -W -Wall -pedantic
+#CPPFLAGS=-c -O -g -pg -W -Wall -pedantic
+CPPFLAGS=-c -O3 -W -Wall -pedantic
 LDFLAGS=-lstdc++
 
-all: forms inst shitgrep 
+all: debruijn forms inst shitgrep 
+
+debruijn: debruijn.o
 
 forms: forms.o
 
