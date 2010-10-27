@@ -68,8 +68,6 @@ void debruijn(unsigned int t,
               unsigned int* a,
               boost::function<void (unsigned int*,unsigned int*)> callback)
 {
-  using namespace std;
-
   if (t > n) {
     // we want only necklaces, not pre-necklaces or Lyndon words
     if (n % p == 0) {
