@@ -104,7 +104,10 @@ unsigned int match(
     callback(ovector[0], ovector[1]-ovector[0], patnum, pattern, charset);
 
     total += matches;
-    offset = ovector[1];
+
+    // advance to match end, but at least one char
+    offset = std::max(ovector[0]+1, ovector[1]);
+
   } while (offset < text_len); 
 
   return total;
