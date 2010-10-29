@@ -58,6 +58,39 @@ public:
   pcre_extra *extra;
 };
 
+int do_one_match(
+  const Regex& re,
+  const char* text, const size_t text_len, const unsigned int offset,
+  int* ovector, const unsigned int ovector_size)
+{
+  int matches = pcre_exec( 
+    re.re,
+    re.extra,
+    text,
+    text_len,
+    offset,
+    0,
+    ovector,
+    ovector_size
+  );
+
+  if (matches == PCRE_ERROR_NOMATCH) return 0;
+
+  if (matches == 0) {
+    // this should never happen, because PCRE_NO_AUTO_CAPTURE
+    // is set for the pattern
+    throw std::runtime_error("ovector is too small!");
+  }
+    
+  if (matches < 0) {
+    std::ostringstream ss;
+    ss << "pcre_exec: " << matches;
+    throw std::runtime_error(ss.str());
+  }
+
+  return matches;
+}
+
 unsigned int match(
   const char* pattern, unsigned int patnum,
   const char* text, size_t text_len, const char* charset,
@@ -73,32 +106,20 @@ unsigned int match(
 
   int matches;
 
+  // check for a match on the empty string
+  const char* empty = "";
+  if (do_one_match(re, empty, 0, 0, ovector, ovector_size) > 0) {
+    // lightgrep rejects patterns which match the empty string, so
+    // reject this patern with the same error message as lightgrep
+    std::cerr << "state 0 is not allowed as a final state of the NFA"
+              << std::endl;
+    return 0; 
+  }
+
   do {
-    matches = pcre_exec( 
-      re.re,
-      re.extra,
-      text,
-      text_len,
-      offset,
-      0,
-      ovector,
-      ovector_size
-    );
+    matches = do_one_match(re, text, text_len, offset, ovector, ovector_size);
 
-    if (matches == PCRE_ERROR_NOMATCH) return total;
-
-    if (matches == 0) {
-      // this should never happen, because PCRE_NO_AUTO_CAPTURE
-      // is set for the pattern
-      throw std::runtime_error("ovector is too small!");
-    }
-    
-    if (matches < 0) {
-      std::ostringstream ss;
-      ss << "pcre_exec: " << matches;
-
-      throw std::runtime_error(ss.str());
-    }
+    if (matches == 0) return total;
 
     // run the callback for this match
     callback(ovector[0], ovector[1]-ovector[0], patnum, pattern, charset);
