@@ -1,25 +1,13 @@
 #include <algorithm>
-#include <cstdio>
 #include <iostream>
 #include <iterator>
 #include <string>
 #include <vector>
 
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/join.hpp>
 
-std::string op_nquant(unsigned int n) {
-  return '{' + boost::lexical_cast<std::string>(n) + '}';
-}
-
-std::string op_nxquant(unsigned int n) {
-  return '{' + boost::lexical_cast<std::string>(n) + ",}";
-}
-
-std::string op_nmquant(unsigned int n, unsigned int m) {
-  return '{' + boost::lexical_cast<std::string>(n) + ','
-             + boost::lexical_cast<std::string>(m) + '}';
-}
+#include "alphabet_parser.h"
+#include "quantifier_parser.h"
 
 std::string op_class(const std::string& s) { return '[' + s + ']'; }
 std::string op_negclass(const std::string& s) { return "[^" + s + ']'; }
@@ -103,23 +91,21 @@ bool next_instance(std::vector<int>& inst,
 
 const char* help_short() {
   return
-    "Usage: inst a [b [c]]...\n"
+    "Usage: inst a[b[c]]... [q [q [q]]]...\n"
     "Try `inst --help' for more information.";
 }
 
 const char* help_long() {
   return
-    "Usage: inst a [b [c]]...\n"
+    "Usage: inst a[b[c]]... [q [q [q]]]...\n"
     "Instantiates regular expression forms with the given alphabet.\n"
     "Regex forms are read from standard input, one per line.\n"
-    "Example: `echo aq | inst x' gives the following (partial) output:\n"
+    "Example: `echo aq | inst x +' gives the following output:\n"
     "\n"
-    "x*\n"
-    ".*\n"
     "x+\n"
     ".+\n"
-    "x?\n"
-    ".?\n"
+    "[x]+\n"
+    "[^x]+\n"
     "\n"
     "Note that the (optimal!) runtime for producing all instantiations for a\n"
     "given regex form is O(m^n), where m is the size of the alphabet and n is\n"
@@ -137,55 +123,37 @@ int main(int argc, char** argv)
   // Parse the arguments
   //
 
-  // NB: No arguments means that we're using the empty alphabet. That's
-  // ok, we just don't need to check for the help options in this case.
-
-  if (argc > 1) {
-    if (!strcmp(argv[1], "-h")) {
-      // -h prints the short help
-      cerr << help_short() << endl;
-      return 0;
-    } 
-    else if (!strcmp(argv[1], "--help")) {
-      // --help prints the long help
-      cerr << help_long() << endl;
-      return 0;
-    }   
+  if (argc < 2) {
+    cerr << "too few arguments!\n"
+         << help_short() << endl;
+    return 1;
   }
+
+  if (!strcmp(argv[1], "-h")) {
+    // -h prints the short help
+    cerr << help_short() << endl;
+    return 0;
+  } 
+  else if (!strcmp(argv[1], "--help")) {
+    // --help prints the long help
+    cerr << help_long() << endl;
+    return 0;
+  }   
 
   //
   // Get the alphabet from the command line
   //
-  const vector<string> alpha(argv+1, argv+argc);
+
+  vector<string> alpha;
+  alphabet_parser(argv[1], argv[1]+strlen(argv[1]), back_inserter(alpha));
 
   //
-  // Build all the quantifiers
-  //
+  // Get the quantifiers from the command line
+  // 
 
-  const char* q[] = { "*", "+", "?", "*?", "+?", "??" };
-  vector<string> quant(q, q+sizeof(q)/sizeof(q[0]));
-
-  // Add {n}, {n}? quantifiers from 1 to 3
-  for (uint n = 1; n < 4; ++n) {
-    quant.push_back(op_nquant(n));
-    quant.push_back(op_nquant(n) + '?');
-  }
-
-  // Add {n,}, {n,}? quantifiers from 0 to 3
-  for (uint n = 0; n < 4; ++n) {
-    quant.push_back(op_nxquant(n));
-    quant.push_back(op_nxquant(n) + '?');
-  }
-
-  // Add {n,m}, {n,m}? quantifiers from {0,1} to {3,3}
-  for (uint n = 0; n < 4; ++n) {
-    for (uint m = n; m < 4; ++m) {
-      // Don't generate useless {0,0}
-      if ((n == m) && (m == 0)) continue;
-
-      quant.push_back(op_nmquant(n, m));
-      quant.push_back(op_nmquant(n, m) + '?');
-    }
+  vector<string> quant;
+  for (unsigned int i = 2; i < (unsigned int) argc; ++i) {
+    quantifier_parser(argv[i], argv[i]+strlen(argv[i]), back_inserter(quant));
   }
 
   //
