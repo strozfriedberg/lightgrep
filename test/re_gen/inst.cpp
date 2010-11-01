@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
 #include <iterator>
 #include <string>
@@ -8,6 +9,16 @@
 
 #include "alphabet_parser.h"
 #include "quantifier_parser.h"
+
+void first_quant(std::vector<int>& concr, const std::string&) {
+  concr.push_back(-1);
+}
+
+void throw_quant(std::vector<int>&, const std::string& form) {
+  std::cerr << "No quantifiers specified, but saw pattern: " << form
+            << std::endl;
+  exit(1);
+}
 
 std::string op_class(const std::string& s) { return '[' + s + ']'; }
 std::string op_negclass(const std::string& s) { return "[^" + s + ']'; }
@@ -208,6 +219,9 @@ int main(int argc, char** argv)
   // Concretize forms
   //
 
+  void (* const quant_init)(vector<int>&,const string&) =
+    quant.empty() ? &throw_quant : &first_quant; 
+
   string form;
   while (cin >> form) {
     // Build the instance vector for the atoms and quantifiers. Elements
@@ -224,13 +238,13 @@ int main(int argc, char** argv)
         break;
 
       case 'q':
-        concr.push_back(-1);
+        quant_init(concr, form);
         break;
 
       default:
         // skip chars which are neither atoms nor quantifiers;
         // these are already concrete
-        break;
+      break;
       }
     }
 
