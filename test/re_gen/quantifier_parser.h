@@ -313,7 +313,7 @@ void quantifier_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
     
       // this is the {n,m} case 
       for (unsigned int j = n0; j <= n1; ++j) {
-        for (unsigned int k = m0; k <= m1; ++k) {
+        for (unsigned int k = std::max(j, m0); k <= m1; ++k) {
           *(o++) = op_nmquant(j,k) + (greedy ? "" : "?");
         }
       }
