@@ -246,6 +246,8 @@ int main(int argc, char** argv)
     getline(ifs, pattern);
     if (pattern.empty()) continue; // skip empty lines 
 
+    cerr << patnum << endl;
+
     //
     // Match, shitgrep! Match!
     //
