@@ -209,7 +209,6 @@ int main(int argc, char** argv)
     // try all the permutations of the elements of the character class
     do {
       string s(join(v, ""));
-
       atoms.push_back(op_class(s));
       atoms.push_back(op_negclass(s));
     } while (next_permutation(v.begin(), v.end()));
