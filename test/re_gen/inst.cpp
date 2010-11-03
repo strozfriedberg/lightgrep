@@ -10,16 +10,6 @@
 #include "alphabet_parser.h"
 #include "quantifier_parser.h"
 
-void first_quant(std::vector<int>& concr, const std::string&) {
-  concr.push_back(-1);
-}
-
-void throw_quant(std::vector<int>&, const std::string& form) {
-  std::cerr << "No quantifiers specified, but saw pattern: " << form
-            << std::endl;
-  exit(1);
-}
-
 std::string op_class(const std::string& s) { return '[' + s + ']'; }
 std::string op_negclass(const std::string& s) { return "[^" + s + ']'; }
 
@@ -36,26 +26,27 @@ std::vector<std::string> bits_to_vector(unsigned int bits,
   return v;
 }
 
-std::string instantiate(const std::vector<int>& inst,
-                        const std::string& form,
+std::string instantiate(const std::string& form,
                         const std::vector<std::string>& atoms,
-                        const std::vector<std::string>& quant)
+                        const std::vector<unsigned int>& aslots,
+                        const std::vector<std::string>& quant,
+                        const std::vector<unsigned int>& qslots)
 {
   using namespace std;
 
   string instance;
 
-  vector<int>::const_iterator i(inst.begin());
+  vector<unsigned int>::const_iterator a(aslots.begin());
+  vector<unsigned int>::const_iterator q(qslots.begin());
+
   for (string::const_iterator f(form.begin()); f != form.end(); ++f) {
     switch (*f) {
     case 'a':
-      instance += atoms[*i];
-      ++i;
+      instance += atoms[*(a++)];
       break;
 
     case 'q':
-      instance += quant[-(*i+1)];
-      ++i;
+      instance += quant[*(q++)];
       break;
 
     default:
@@ -67,37 +58,78 @@ std::string instantiate(const std::vector<int>& inst,
   return instance;
 }
 
-bool next_instance(std::vector<int>& inst,
-                   const std::vector<std::string>& atoms,
-                   const std::vector<std::string>& quant)
-{
+void make_slots(const std::string& form,
+                const bool have_quant,
+                std::vector<unsigned int>& aslots,
+                std::vector<unsigned int>& qslots) {
+  for (std::string::const_iterator i(form.begin()); i != form.end(); ++i) {
+    switch (*i) {
+    case 'a':
+      aslots.push_back(0);
+      break;
+
+    case 'q':
+      if (!have_quant) {
+        std::cerr << "No quantifiers specified, but saw pattern: " << form
+             << std::endl;
+        exit(1);
+      }
+      qslots.push_back(0);
+      break;
+
+    default:
+      // skip chars which are neither atoms nor quantifiers;
+      // these are already concrete
+      break;
+    }
+  }
+}
+
+bool skip(const std::vector<unsigned int>& aslots,
+          const unsigned int asize) {
   using namespace std;
 
-  for (vector<int>::iterator i(inst.begin()); i != inst.end(); ++i) {
-    // increment this position
-    if (*i < 0) {
-      // remember that quants are negative
-      --(*i);
-
-      // check whether incrementing pushed us off the end of the quant list
-      if ((unsigned int)(-(*i+1)) != quant.size()) return true;
-
-      // otherwise zero and carry (remember that quant offset is -(x+1))
-      // so here, "zero" is actually -1.
-      *i = -1;
-    }
-    else {
-      ++(*i);
-
-      // check whether incrementing pushed us off the end of the atoms list
-      if ((unsigned int)(*i) != atoms.size()) return true;
-
-      // otherwise zero and carry
-      *i = 0;
-    }
+  vector<unsigned int>::const_iterator i = aslots.begin();
+  vector<unsigned int>::const_iterator j;
+  for (unsigned int x = 0; x < asize; ++x) {
+    j = find(aslots.begin(), aslots.end(), x);
+    if (j < i) return true;
+    i = j;
   }
 
   return false;
+}
+
+bool increment_vector(std::vector<unsigned int>& v, const unsigned int vlim) {
+  for (std::vector<unsigned int>::iterator i(v.begin()); i != v.end(); ++i) {
+    // check whether incrementing pushed us past the digit limit
+    if (++(*i) < vlim) return true;
+    // otherwise zero and carry
+    *i = 0;
+  }
+  return false;
+}
+
+bool next_instance(std::vector<unsigned int>& aslots,
+                   const unsigned int asize,
+                   std::vector<unsigned int>& qslots,
+                   const unsigned int qsize)
+{
+  return increment_vector(aslots, asize) || increment_vector(qslots, qsize);
+}
+
+bool next_instance_noniso(std::vector<unsigned int>& aslots,
+                          const unsigned int asize,
+                          std::vector<unsigned int>& qslots,
+                          const unsigned int qsize)
+{
+  // FIXME: There should be a way to iterate over these directly,
+  // without skipping.
+  while (increment_vector(aslots, asize)) {
+    if (!skip(aslots, asize)) return true;
+  }
+
+  return increment_vector(qslots, qsize);
 }
 
 const char* help_short() {
@@ -218,38 +250,24 @@ int main(int argc, char** argv)
   // Concretize forms
   //
 
-  void (* const quant_init)(vector<int>&,const string&) =
-    quant.empty() ? &throw_quant : &first_quant; 
+  bool (* const next)(vector<unsigned int>&, const unsigned int,
+                      vector<unsigned int>&, const unsigned int) =
+    &next_instance;
 
   string form;
   while (cin >> form) {
-    // Build the instance vector for the atoms and quantifiers. Elements
-    // which are nonnegative indicate indices into the atom vector, elements
-    // which are negative indicate indices into the quantifier vector. (For
-    // quantifiers, x -> -(x+1) is the mapping to offsets in the quantifier
-    // vector. Yes, this is fiddly, but it's a small program.)
-    vector<int> concr;
-    
-    for (string::const_iterator i(form.begin()); i != form.end(); ++i) {
-      switch (*i) {
-      case 'a':
-        concr.push_back(0);
-        break;
 
-      case 'q':
-        quant_init(concr, form);
-        break;
+    vector<unsigned int> aslots;
+    vector<unsigned int> qslots;
+  
+    make_slots(form, !quant.empty(), aslots, qslots);
 
-      default:
-        // skip chars which are neither atoms nor quantifiers;
-        // these are already concrete
-      break;
-      }
-    }
+    const unsigned int asize = aslots.size();
+    const unsigned int qsize = qslots.size();
 
     // Iterate through all instantiations of the form
     do {
-      cout << instantiate(concr, form, atoms, quant) << "\n";
-    } while (next_instance(concr, atoms, quant));
+      cout << instantiate(form, atoms, aslots, quant, qslots) << "\n";
+    } while (next(aslots, asize, qslots, qsize));
   }
 }
