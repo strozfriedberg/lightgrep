@@ -139,9 +139,6 @@ struct next_instance_iso {
       // The alphabet is the first alphasize indices; we care about
       // generating only the lexicographically least representative
       // of each isomorphism equivalence class over the alphabet.
-
-// XXX: Shit, this doesn't work: echo aaq | ./inst abc + '*'
-
       if (!skip(aslots, _alphasize)) return true;
     }
 
