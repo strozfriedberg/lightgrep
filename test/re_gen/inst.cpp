@@ -146,6 +146,50 @@ struct next_instance_iso {
   }
 };
 
+void make_character_classes(const std::vector<std::string>& alpha,
+                            std::vector<std::string>& atoms)
+{
+  using namespace std;
+  using namespace boost::algorithm;
+
+  // Each ordering of each nonempty subset of the alphabet defines a
+  // character class and a negated character class.
+  const uint abitsmax = 1 << alpha.size();
+  
+  for (uint abits = 1; abits < abitsmax; ++abits) {
+    // get the base character class corresponding to this bit vector
+    vector<string> v(bits_to_vector(abits, alpha));
+
+    // try all the (internal) insertion points for the range marker
+    // in the (sorted) range
+    const uint rbitsmax = 1 << (v.size()-1);
+
+    for (uint rbits = 1; rbits < rbitsmax; ++rbits) {
+      // skip rbits which have adjacent range markers; [a-b-c] is illegal
+      // X & (X >> 1) > 0 iff X has two consecutive 1s somewhere
+      if (rbits & (rbits >> 1)) continue;
+
+      string r;
+
+      // put range markers in the locations indicated by rbits
+      for (vector<string>::const_iterator i(v.begin()); i != v.end(); ++i) {
+        r += *i;
+        if (rbits & (1 << (i-v.begin()))) r += '-';
+      }
+
+      atoms.push_back(op_class(r));
+      atoms.push_back(op_negclass(r));
+    }
+
+    // try all the permutations of the elements of the character class
+    do {
+      string s(join(v, ""));
+      atoms.push_back(op_class(s));
+      atoms.push_back(op_negclass(s));
+    } while (next_permutation(v.begin(), v.end()));
+  }
+}
+
 const char* help_short() {
   return
     "Usage: inst a[b[c]]... [q [q [q]]]...\n"
@@ -172,7 +216,6 @@ const char* help_long() {
 int main(int argc, char** argv)
 {
   using namespace boost;
-  using namespace boost::algorithm;
   using namespace std;
 
   typedef unsigned int uint;
@@ -224,42 +267,9 @@ int main(int argc, char** argv)
   // Dot is an atom
   atoms.push_back(".");
 
-  // Each ordering of each nonempty subset of the alphabet defines a
-  // character class and a negated character class.
-  const uint abitsmax = 1 << alpha.size();
-  
-  for (uint abits = 1; abits < abitsmax; ++abits) {
-    // get the base character class corresponding to this bit vector
-    vector<string> v(bits_to_vector(abits, alpha));
+  // Build the character classes
+  make_character_classes(atoms, alpha);
 
-    // try all the (internal) insertion points for the range marker
-    // in the (sorted) range
-    const uint rbitsmax = 1 << (v.size()-1);
-
-    for (uint rbits = 1; rbits < rbitsmax; ++rbits) {
-      // skip rbits which have adjacent range markers; [a-b-c] is illegal
-      // X & (X >> 1) > 0 iff X has two consecutive 1s somewhere
-      if (rbits & (rbits >> 1)) continue;
-
-      string r;
-
-      // put range markers in the locations indicated by rbits
-      for (vector<string>::const_iterator i(v.begin()); i != v.end(); ++i) {
-        r += *i;
-        if (rbits & (1 << (i-v.begin()))) r += '-';
-      }
-
-      atoms.push_back(op_class(r));
-      atoms.push_back(op_negclass(r));
-    }
-
-    // try all the permutations of the elements of the character class
-    do {
-      string s(join(v, ""));
-      atoms.push_back(op_class(s));
-      atoms.push_back(op_negclass(s));
-    } while (next_permutation(v.begin(), v.end()));
-  }
 
   //
   // Concretize forms
