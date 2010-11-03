@@ -152,6 +152,8 @@ void make_character_classes(const std::vector<std::string>& alpha,
   using namespace std;
   using namespace boost::algorithm;
 
+// TODO: Don't create isomorphic character classes...
+
   // Each ordering of each nonempty subset of the alphabet defines a
   // character class and a negated character class.
   const uint abitsmax = 1 << alpha.size();
