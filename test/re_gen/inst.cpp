@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include <boost/function.hpp>
 #include <boost/algorithm/string/join.hpp>
 
 #include "alphabet_parser.h"
@@ -85,6 +86,26 @@ void make_slots(const std::string& form,
   }
 }
 
+bool increment_vector(std::vector<unsigned int>& v, const unsigned int vlim) {
+  for (std::vector<unsigned int>::iterator i(v.begin()); i != v.end(); ++i) {
+    // check whether incrementing pushed us past the digit limit
+    if (++(*i) < vlim) return true;
+    // otherwise zero and carry
+    *i = 0;
+  }
+  return false;
+}
+
+struct next_instance {
+  bool operator() (std::vector<unsigned int>& aslots,
+                   const unsigned int asize,
+                   std::vector<unsigned int>& qslots,
+                   const unsigned int qsize)
+  {
+    return increment_vector(aslots, asize) || increment_vector(qslots, qsize);
+  }
+};
+
 bool skip(const std::vector<unsigned int>& aslots,
           const unsigned int asize) {
   using namespace std;
@@ -100,37 +121,33 @@ bool skip(const std::vector<unsigned int>& aslots,
   return false;
 }
 
-bool increment_vector(std::vector<unsigned int>& v, const unsigned int vlim) {
-  for (std::vector<unsigned int>::iterator i(v.begin()); i != v.end(); ++i) {
-    // check whether incrementing pushed us past the digit limit
-    if (++(*i) < vlim) return true;
-    // otherwise zero and carry
-    *i = 0;
-  }
-  return false;
-}
+struct next_instance_iso {
+  const unsigned int _alphasize;
 
-bool next_instance(std::vector<unsigned int>& aslots,
+  next_instance_iso(const unsigned int alphasize) : _alphasize(alphasize) {}
+
+  bool operator() (std::vector<unsigned int>& aslots,
                    const unsigned int asize,
                    std::vector<unsigned int>& qslots,
                    const unsigned int qsize)
-{
-  return increment_vector(aslots, asize) || increment_vector(qslots, qsize);
-}
+  {
+    if (increment_vector(qslots, qsize)) return true;
 
-bool next_instance_noniso(std::vector<unsigned int>& aslots,
-                          const unsigned int asize,
-                          std::vector<unsigned int>& qslots,
-                          const unsigned int qsize)
-{
-  // FIXME: There should be a way to iterate over these directly,
-  // without skipping.
-  while (increment_vector(aslots, asize)) {
-    if (!skip(aslots, asize)) return true;
+    // FIXME: There should be a way to iterate over these directly,
+    // without skipping.
+    while (increment_vector(aslots, asize)) {
+      // The alphabet is the first alphasize indices; we care about
+      // generating only the lexicographically least representative
+      // of each isomorphism equivalence class over the alphabet.
+
+// XXX: Shit, this doesn't work: echo aaq | ./inst abc + '*'
+
+      if (!skip(aslots, _alphasize)) return true;
+    }
+
+    return false;
   }
-
-  return increment_vector(qslots, qsize);
-}
+};
 
 const char* help_short() {
   return
@@ -157,6 +174,7 @@ const char* help_long() {
 
 int main(int argc, char** argv)
 {
+  using namespace boost;
   using namespace boost::algorithm;
   using namespace std;
 
@@ -250,9 +268,10 @@ int main(int argc, char** argv)
   // Concretize forms
   //
 
-  bool (* const next)(vector<unsigned int>&, const unsigned int,
-                      vector<unsigned int>&, const unsigned int) =
-    &next_instance;
+  const function<bool (vector<unsigned int>&, const unsigned int,
+                       vector<unsigned int>&, const unsigned int)> next =
+    next_instance_iso(alpha.size());
+//    next_instance();
 
   string form;
   while (cin >> form) {
@@ -262,8 +281,8 @@ int main(int argc, char** argv)
   
     make_slots(form, !quant.empty(), aslots, qslots);
 
-    const unsigned int asize = aslots.size();
-    const unsigned int qsize = qslots.size();
+    const unsigned int asize = atoms.size();
+    const unsigned int qsize = quant.size();
 
     // Iterate through all instantiations of the form
     do {
