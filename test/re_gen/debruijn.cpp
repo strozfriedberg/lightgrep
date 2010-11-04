@@ -10,56 +10,8 @@
 
 #include <boost/function.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/numeric/conversion/cast.hpp>
 
-char esc_to_char(char* esc)
-{
-  if (strlen(esc) == 1) {
-    // these are the single-character escapes
-
-    switch (esc[0]) {
-    // these escape sequences are just themselves
-    case '?':
-    case '"':
-    case '\'':
-    case '\\':
-      return esc[0];
-
-    // these escape sequences need to be translated
-    case '0':  return '\0';
-    case 'a':  return '\a';
-    case 'b':  return '\b';
-    case 'f':  return '\f';
-    case 'n':  return '\n';
-    case 'r':  return '\r';
-    case 't':  return '\t';
-    case 'v':  return '\v';
-  
-    // everything else is junk
-    default:
-      throw std::exception(); 
-    }
-  }
-  else {
-    unsigned long v;
-
-    if (esc[0] == 'x') {
-      // this is a hexadecimal escape
-      v = strtoul(esc+1, NULL, 16);
-    }
-    else {
-      // this is an octal escape
-      v = strtoul(esc, NULL, 8);
-    }
-
-    if (errno) {
-      // conversion failed
-      throw std::exception();
-    }
-
-    return boost::numeric_cast<unsigned char>(v);
-  }
-}
+#include "escape_translator.h"
 
 void debruijn(unsigned int t,
               unsigned int p,
@@ -101,18 +53,18 @@ struct seq_printer {
 const char* help_short()
 {
   return
-    "Usage: debruijn n a [b [c]]...\n"
+    "Usage: debruijn n a[b[c]]...\n"
     "Try `debruijn --help' for more information.";
 }
 
 const char* help_long()
 {
   return
-    "Usage: debruijn n a [b [c]]...\n"
+    "Usage: debruijn n a[b[c]]...\n"
     "Generates the lexicographically least de Bruijn sequence B(k,n), where\n"
     "k is the size of the alphabet and n is the sequence length. Arguments\n"
     "after the first are characters in the alphabet.\n"
-    "Example: `debruijn 2 a b' gives the following output:\n"
+    "Example: `debruijn 2 ab' gives the following output:\n"
     "\n"
     "aabba\n"
     "\n"
@@ -163,22 +115,7 @@ int main(int argc, char** argv)
   //
 
   vector<char> alpha;
-
-  for (uint i = 2; i < (uint) argc; ++i) {
-    if (strlen(argv[i]) == 1) {
-      // this is a printable literal
-      alpha.push_back(argv[i][0]);
-    }
-    else if (argv[i][0] == '\\') {
-      // this is an escape sequence, decode it
-      alpha.push_back(esc_to_char(argv[i]+1));
-    }
-    else {
-      cerr << '`' << argv[i] << "' is not a character"
-           << help_short() << endl;
-      return 1;
-    }
-  }
+  escape_translator(argv[2], argv[2]+strlen(argv[2]), back_inserter(alpha));
 
   //
   // Generate B(|A|,N), the lexicographically least de Bruijn sequence
