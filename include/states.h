@@ -2,18 +2,6 @@
 
 #include "transition.h"
 
-// This gets the states to take up as little space as possible.
-// It is a relatively portable directive to the compiler to layout the class according to the minimum
-// byte alignment. A class using inheritance typically has hidden overhead of a single pointer (to its
-// virtual function table) in addition to the total size of its members. If packing wasn't turned on,
-// then the structure would probably be word-aligned. So, on a 64 bit platform, the size of LitState
-// would normally be 16 bytes, 8 bytes for the hidden pointer and 8 bytes as the minimum space for the
-// object's members. #pragma pack(1) takes the size down to 9 bytes.
-//
-// Byte packing like this can often have a negative performance impact. But since we're going to have
-// many of these objects in a contiguous buffer, it makes sense to pack them to reap the benefits of
-// L1 cache.
-
 class LitState: public Transition {
 public:
   LitState(byte lit): Transition(), Lit(lit) {}
