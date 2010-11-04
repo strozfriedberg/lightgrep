@@ -18,8 +18,16 @@ using boost::asio::ip::tcp;
 static const uint64 BUF_SIZE = 1024 * 1024;
 
 #pragma pack(1)
+struct FileHeader {
+  FileHeader(): ID(0), Length(0) {}
+
+  uint64 ID,
+         Length;
+};
+
 struct HitInfo {
-  uint64 Offset,
+  uint64 ID,
+         Offset,
          Length;
   uint32 Label,
          Encoding;
@@ -38,8 +46,10 @@ public:
   }
 
   virtual void write(const HitInfo& hit) = 0;
+  virtual void flush() {}
 
   void convert(const SearchHit& sh, HitInfo& hit) {
+    hit.ID = CurID;
     hit.Offset = sh.Offset;
     hit.Length = sh.Length;
     const std::pair<uint32, uint32>& tuple(KeyInfo.PatternsTable[sh.Label]);
@@ -47,11 +57,23 @@ public:
     hit.Encoding = tuple.second;
   }
 
+  void writeEndHit() {
+    Hit.Offset = std::numeric_limits<uint64>::max();
+    Hit.Length = 0;
+    Hit.Label = std::numeric_limits<uint32>::max();
+    Hit.Encoding = 0;
+    write(Hit);
+    flush();
+  }
+
+  void setCurID(uint64 id) { CurID = id; }
+
   uint64 numHits() const { return NumHits; }
 
 private:
   const KwInfo& KeyInfo;
-  uint64 NumHits;
+  uint64 NumHits,
+         CurID;
   HitInfo Hit;
 };
 
@@ -84,7 +106,13 @@ public:
   {
   }
 
-  virtual ~SafeFileWriter() { flush(); }
+  virtual ~SafeFileWriter() {
+    flush();
+    {
+      boost::mutex::scoped_lock lock(*Mutex);
+      Output->flush(); // sync the ostream to disk
+    }
+  }
 
   virtual void write(const HitInfo& hit) {
     Buffer[Cur] = hit;
@@ -93,12 +121,15 @@ public:
     }
   }
 
-  void flush() {
-    Cur = 0;
-    boost::mutex::scoped_lock lock(*Mutex);
-    for (std::vector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
-      *Output << it->Offset << '\t' << it->Length << '\t' << it->Label << '\t' << it->Encoding << '\n';
+  virtual void flush() {
+    {
+      boost::mutex::scoped_lock lock(*Mutex);
+      for (uint32 i = 0; i < Cur; ++i) {
+        const HitInfo& hit(Buffer[i]);
+        *Output << hit.ID << '\t' << hit.Offset << '\t' << hit.Length << '\t' << hit.Label << '\t' << hit.Encoding << '\n';
+      }
     }
+    Cur = 0;
   }
 
 private:
@@ -118,13 +149,14 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
          numReads = 0;
   try {
     while (true) {
-      uint64 toRead = 0;
-      if (boost::asio::read(*sock, boost::asio::buffer(&toRead, sizeof(toRead))) == sizeof(toRead)) {
-		    std::cout << "told to read " << toRead << " bytes\n";
+      FileHeader hdr;
+      if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
+        // std::cout << "told to read " << hdr.Length << " bytes\n";
+        output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
         ++numReads;
         uint64 offset = 0;
-        while (offset < toRead) {
-          len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, toRead)));
+        while (offset < hdr.Length) {
+          len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length)));
           ++numReads;
           search->search(data.get(), data.get() + len, offset, *output);
           std::cout << "read " << len << " bytes\n";
@@ -138,6 +170,7 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
       }
       search->reset();
+      output->writeEndHit();
       // uint32 i = ntohl(*(uint32*)data);
     }
   }
