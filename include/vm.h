@@ -13,8 +13,10 @@ public:
   typedef StaticVector<Thread> ThreadList;
 
   Vm();
-  
-  static bool execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset);
+  Vm(ProgramPtr prog);
+
+  bool execute(Thread& t, const byte* cur, uint64 offset);
+  bool executeEpsilon(Thread& t, uint64 offset);
   
   // numCheckedStates should be equal to the number + 1 for the reserved bit
   void init(ProgramPtr prog);
@@ -24,9 +26,18 @@ public:
 
   void setDebugRange(uint64 beg, uint64 end) { BeginDebug = beg; EndDebug = end; }
 
+  const ThreadList& active() const { return Active; }
+  const ThreadList& next() const { return Next; }
+
+  unsigned int numActive() const { return Active.size(); }
+  unsigned int numNext() const { return Next.size(); }
+
 private:
   void doMatch(ThreadList::iterator threadIt, HitCallback& hitFn);
   void cleanup();
+
+  bool _execute(Thread& t, const byte* cur, uint64 offset);
+  bool _executeEpsilon(Thread& t, uint64 offset);
 
   ProgramPtr Prog;
   ThreadList Active,
@@ -34,7 +45,6 @@ private:
 
   std::vector<bool> CheckStates;
   std::vector< std::pair< uint64, uint64 > > Matches;
-  boost::scoped_ptr< std::vector<uint32> > SkipTblPtr;
 
   uint64 BeginDebug,
          EndDebug;

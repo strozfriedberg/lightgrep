@@ -17,7 +17,13 @@ void Thread::output(std::ostream& out, const Instruction* base) const {
   out << "{ \"pc\":" << (PC ? PC - base: -1) << ", \"Label\":" << Label << ", \"Start\":" << Start << ", \"End\":" << End << " }";
 }
 
-Vm::Vm() : SkipTblPtr(0), BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED) {}
+Vm::Vm() : BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED) {}
+
+Vm::Vm(ProgramPtr prog): 
+  BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED)
+{
+  init(prog);
+}
 
 void Vm::init(ProgramPtr prog) {
   Prog = prog;
@@ -212,8 +218,13 @@ inline bool _executeEpsilons(const Instruction* base, Thread& t, std::vector<boo
   return true;
 }
 
-bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
-  return _execute(base, t, checkStates, active, next, cur, offset);
+bool Vm::execute(Thread& t, const byte* cur, uint64 offset) {
+  return true;
+//  return _execute(base, t, checkStates, active, next, cur, offset);
+}
+
+bool Vm::executeEpsilon(Thread& t, uint64 offset) {
+  return true;
 }
 
 void printThreads(const Vm::ThreadList& list, uint64 offset, const Instruction* base) { // can only be called if list is not empty
@@ -252,6 +263,14 @@ inline void Vm::cleanup() {
   }
 }
 
+inline bool Vm::_execute(Thread&, const byte*, uint64) {
+  return false;
+}
+
+inline bool Vm::_executeEpsilon(Thread&, uint64) {
+  return false;
+}
+
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   const Instruction* base = &(*Prog)[0];
   SearchHit  hit;
@@ -269,7 +288,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   register ThreadList::iterator threadIt = Active.begin();
   for (register const byte* cur = beg; cur < end; ++cur) {
     while (threadIt != Active.end()) {
-      while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
+      while (_execute(*threadIt, cur, offset)) ;
       if (threadIt->End == offset) {
         doMatch(threadIt, hitFn);
       }
@@ -286,7 +305,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     if (first[*cur]) {
       Active.addBack().init(base, offset);
       do {
-        while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
+        while (_execute(*threadIt, cur, offset)) ;
         if (threadIt->End == offset) {
           doMatch(threadIt, hitFn);
         }
