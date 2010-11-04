@@ -7,115 +7,102 @@
 
 SCOPE_TEST(executeLit) {
   byte b = 'a';
-  std::vector<bool> checkStates;
-  Instruction i = Instruction::makeLit('a');
-  Thread      cur(&i, 0, 0, 0);
-  Vm::ThreadList  next,
-              active;
-  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
-  SCOPE_ASSERT_EQUAL(0u, active.size());
-  SCOPE_ASSERT_EQUAL(1u, next.size());
-  SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);
-  
-  cur.PC = &i;
-  next.clear();
+  ProgramPtr p(new Program(1, Instruction::makeLit('a')));
+  Vm         s(p);
+  Thread     cur(&(*p)[0], 0, 0, 0);
+  SCOPE_ASSERT(!s.execute(cur, &b, 0));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT_EQUAL(1u, s.numNext());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[1], 0, 0, 0), s.next()[0]);
+
+  cur.PC = &(*p)[0];
+  s.reset();
   b = 'c';
-  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
-  SCOPE_ASSERT_EQUAL(0u, active.size());
-  SCOPE_ASSERT_EQUAL(0u, next.size());
+  SCOPE_ASSERT(!s.execute(cur, &b, 0));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
 }
 
 SCOPE_TEST(executeEither) {
   byte b = 'z';
-  std::vector<bool> checkStates;
-  Instruction i = Instruction::makeEither('z', '3');
-  Thread      cur(&i, 0, 0, 0);
-  Vm::ThreadList  next,
-              active;
-  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
-  SCOPE_ASSERT_EQUAL(0u, active.size());
-  SCOPE_ASSERT_EQUAL(1u, next.size());
-  SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);
-  SCOPE_ASSERT_EQUAL(&i+1, cur.PC);
+  ProgramPtr p(new Program(1, Instruction::makeEither('z', '3')));
+  Vm         s(p);
+  Thread     cur(&(*p)[0], 0, 0, 0);
+  SCOPE_ASSERT(!s.execute(cur, &b, 0));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT_EQUAL(1u, s.numNext());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[1], 0, 0, 0), s.next()[0]);
+  SCOPE_ASSERT_EQUAL(&(*p)[1], cur.PC);
 
-  next.clear();
+  s.reset();
   b = '3';
-  cur.PC = &i;
-  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
-  SCOPE_ASSERT_EQUAL(0u, active.size());
-  SCOPE_ASSERT_EQUAL(1u, next.size());
-  SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);
-  SCOPE_ASSERT_EQUAL(&i+1, cur.PC);
+  cur.PC = &(*p)[0];
+  SCOPE_ASSERT(!s.execute(cur, &b, 0));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT_EQUAL(1u, s.numNext());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[1], 0, 0, 0), s.next()[0]);
+  SCOPE_ASSERT_EQUAL(&(*p)[1], cur.PC);
 
-  next.clear();
+  s.reset();
   b = '4';
-  cur.PC = &i;
-  SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
-  SCOPE_ASSERT_EQUAL(0u, active.size());
-  SCOPE_ASSERT_EQUAL(0u, next.size());
+  cur.PC = &(*p)[0];
+  SCOPE_ASSERT(!s.execute(cur, &b, 0));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
 }
 
 SCOPE_TEST(executeRange) {
-  Instruction i = Instruction::makeRange('c', 't');
-  std::vector<bool> checkStates;
-  Thread      cur(&i, 0, 0, 0);
-  Vm::ThreadList  next,
-              active;
+  ProgramPtr p(new Program(1, Instruction::makeRange('c', 't')));
+  Vm         s(p);
+  Thread     cur(&(*p)[0], 0, 0, 0);
   for (uint32 j = 0; j < 256; ++j) {
-    next.clear();
+    s.reset();
     byte b = j;
-    cur.PC = &i;
-    SCOPE_ASSERT(!Vm::execute(&i, cur, checkStates, active, next, &b, 0));
+    cur.PC = &(*p)[0];
+    SCOPE_ASSERT(!s.execute(cur, &b, 0));
     if ('c' <= j && j <= 't') {
-      SCOPE_ASSERT_EQUAL(0u, active.size());
-      SCOPE_ASSERT_EQUAL(1u, next.size());
-      SCOPE_ASSERT_EQUAL(Thread(&i+1, 0, 0, 0), next[0]);      
-      SCOPE_ASSERT_EQUAL(&i+1, cur.PC);
+      SCOPE_ASSERT_EQUAL(0u, s.numActive());
+      SCOPE_ASSERT_EQUAL(1u, s.numNext());
+      SCOPE_ASSERT_EQUAL(Thread(&(*p)[1], 0, 0, 0), s.next()[0]);      
+      SCOPE_ASSERT_EQUAL(&(*p)[1], cur.PC);
     }
     else {
-      SCOPE_ASSERT_EQUAL(0u, next.size());
-      SCOPE_ASSERT_EQUAL(0u, active.size());
+      SCOPE_ASSERT_EQUAL(0u, s.numActive());
+      SCOPE_ASSERT_EQUAL(0u, s.numNext());
     }
   }
 }
 
 SCOPE_TEST(executeJump) {
-  byte b;
-  std::vector<bool> checkStates;
-  Instruction i = Instruction::makeJump(18);
-  Thread      cur(&i, 0, 0, 0);
-  Vm::ThreadList  next,
-              active;
-  SCOPE_ASSERT(Vm::execute(&i, cur, checkStates, active, next, &b, 0));
-  SCOPE_ASSERT_EQUAL(0u, active.size());
-  SCOPE_ASSERT_EQUAL(0u, next.size());
-  SCOPE_ASSERT_EQUAL(&i+18, cur.PC);
+  ProgramPtr p(new Program(1, Instruction::makeJump(18)));
+  Vm         s(p);
+  Thread     cur(&(*p)[0], 0, 0, 0);
+  SCOPE_ASSERT(s.executeEpsilon(cur, 0));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT_EQUAL(0u, s.numNext());
+  SCOPE_ASSERT_EQUAL(&(*p)[18], cur.PC);
 }
 
 SCOPE_TEST(executeJumpTable) {
   byte b;
-  std::vector<bool> checkStates;
-  Program     prog(257, Instruction::makeHalt());
-  Instruction instr = Instruction::makeJumpTable();
-  Vm::ThreadList next,
-                 active;
-  prog[0] = instr;
-  prog[66] = Instruction::makeJump(258);
+  ProgramPtr  prog(new Program(257, Instruction::makeHalt());
+  *prog[0]  = Instruction::makeJumpTable();
+  *prog[66] = Instruction::makeJump(258);
+  Vm  s(p);
   for (uint32 i = 0; i < 256; ++i) {
     b = i;
-    next.clear();
-    active.clear();
-    Thread cur(&prog[0], 0, 0, 0);
-    SCOPE_ASSERT(!Vm::execute(&prog[0], cur, checkStates, active, next, &b, 0));
-    SCOPE_ASSERT_EQUAL(0u, active.size());
+    s.reset();
+    Thread cur(prog.get(), 0, 0, 0);
+    SCOPE_ASSERT(!s.execute(cur, &b, 0));
+    SCOPE_ASSERT_EQUAL(0u, s.numActive());
     if (i == 'A') {
-      SCOPE_ASSERT_EQUAL(1u, next.size());      
-      SCOPE_ASSERT_EQUAL(Thread(&prog[0] + 1 + b, 0, 0, 0), next[0]);
+      SCOPE_ASSERT_EQUAL(1u, s.numNext());
+      SCOPE_ASSERT_EQUAL(Thread(&(*prog)[0] + 1 + b, 0, 0, 0), s.next()[0]);
     }
     else {
-      SCOPE_ASSERT_EQUAL(0u, next.size());
+      SCOPE_ASSERT_EQUAL(0u, s.numNext());
       SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
     }
   }
