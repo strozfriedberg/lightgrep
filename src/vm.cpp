@@ -17,6 +17,20 @@ void Thread::output(std::ostream& out, const Instruction* base) const {
   out << "{ \"pc\":" << (PC ? PC - base: -1) << ", \"Label\":" << Label << ", \"Start\":" << Start << ", \"End\":" << End << " }";
 }
 
+void printThreads(const Vm::ThreadList& list, uint64 offset, const Instruction* base) { // can only be called if list is not empty
+  std::cerr << "{\"offset\":" << offset << ", \"num\":" << list.size() << ", \"list\":[";
+  Vm::ThreadList::const_iterator threadIt = list.begin();
+  threadIt->output(std::cerr, base);
+  while (++threadIt != list.end()) {
+    std::cerr << ", ";
+    threadIt->output(std::cerr, base);
+  }
+  std::cerr << "]}\n";  
+}
+
+
+
+
 Vm::Vm() : BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED) {}
 
 Vm::Vm(ProgramPtr prog): 
@@ -67,61 +81,46 @@ inline bool Vm::_execute(Thread& t, const byte* cur) {
       // std::cerr << "Lit " << t.PC->Op.Literal << std::endl;
       if (*cur == instr.Op.Literal) {
         t.advance();
-        Next.push_back(t);
+        return true;
       }
-      else {
-        t.PC = 0;
-      }
-      return false;
+      break;
     case EITHER_OP:
       if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
         t.advance();
-        Next.push_back(t);
+        return true;
       }
-      else {
-        t.PC = 0;
-      }
-      return false;
+      break;
     case RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         t.advance();
-        Next.push_back(t);
+        return true;
       }
-      else {
-        t.PC = 0;
-      }
-      return false;
+      break;
     case BIT_VECTOR_OP:
       {
         const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t.PC + 1);
         if ((*setPtr)[*cur]) {
           t.advance();
-          Next.push_back(t);
-        }
-        else {
-          t.PC = 0;
+          return true;
         }
       }
-      return false;
+      break;
     case JUMP_TABLE_OP:
-      nextT.fork(t, t.PC, 1 + *cur);
-      if (nextT.PC->OpCode != HALT_OP) {
-        Next.push_back(nextT);
+      t.jump(t.PC, 1 + *cur);
+      if (t.PC->OpCode != HALT_OP) {
+        return true;
       }
-      else {
-        t.PC = 0;
-      }
-      return false;
+      break;
     case JUMP_TABLE_RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
-        nextT.fork(t, t.PC, 1 + (*cur - instr.Op.Range.First));
-        if (nextT.PC->OpCode != HALT_OP) {
-          Next.push_back(nextT);
+        t.jump(t.PC, 1 + (*cur - instr.Op.Range.First));
+        if (t.PC->OpCode != HALT_OP) {
+          return true;
         }
       }
-      t.PC = 0;
-      return false;
+      break;
   }
+  t.PC = 0;
   return false;
 }
 
@@ -130,14 +129,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
   Thread f;
   register Instruction instr = *t.PC;
   switch (instr.OpCode) {
-    case LIT_OP:
-    case EITHER_OP:
-    case RANGE_OP:
-    case BIT_VECTOR_OP:
-    case JUMP_TABLE_OP:
-    case JUMP_TABLE_RANGE_OP:
-      Next.push_back(t);
-      return false;
     case JUMP_OP:
       t.jump(base, instr.Op.Offset);
       return true;
@@ -165,8 +156,33 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
     case HALT_OP:
       t.PC = 0;
       return false;
+    default:
+      Next.push_back(t);
+      return false;
   }
-  return true;
+}
+
+inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset, HitCallback& hitFn) {
+  while (threadIt != Active.end()) {
+    if (_execute(*threadIt, cur)) {
+      while (_executeEpsilon(base, *threadIt, offset)) ;
+      if (threadIt->End == offset) {
+        doMatch(threadIt, hitFn);
+      }
+    }
+    ++threadIt;
+  }
+  if (first[*cur]) {
+    Active.addBack().init(base, offset);
+    do {
+      if (_execute(*threadIt, cur)) {
+        while (_executeEpsilon(base, *threadIt, offset)) ;
+        if (threadIt->End == offset) {
+          doMatch(threadIt, hitFn);
+        }
+      }
+    } while (++threadIt != Active.end());
+  }
 }
 
 bool Vm::execute(Thread& t, const byte* cur) {
@@ -177,15 +193,9 @@ bool Vm::executeEpsilon(Thread& t, uint64 offset) {
   return _executeEpsilon(&(*Prog)[0], t, offset);
 }
 
-void printThreads(const Vm::ThreadList& list, uint64 offset, const Instruction* base) { // can only be called if list is not empty
-  std::cerr << "{\"offset\":" << offset << ", \"num\":" << list.size() << ", \"list\":[";
-  Vm::ThreadList::const_iterator threadIt = list.begin();
-  threadIt->output(std::cerr, base);
-  while (++threadIt != list.end()) {
-    std::cerr << ", ";
-    threadIt->output(std::cerr, base);
-  }
-  std::cerr << "]}\n";  
+void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
+  ThreadList::iterator threadIt = Active.begin();
+  _executeFrame(Prog->First, threadIt, &(*Prog)[0], cur, offset, hitFn);
 }
 
 void Vm::doMatch(register ThreadList::iterator threadIt, HitCallback& hitFn) {
