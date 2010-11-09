@@ -133,6 +133,7 @@ SCOPE_TEST(executeJumpTableRange) {
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
       SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
     }
+    s.reset();
   }
 }
 
@@ -165,6 +166,7 @@ SCOPE_TEST(executeBitVector) {
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
       SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
     }
+    s.reset();
   }
 }
 
