@@ -15,7 +15,7 @@ public:
   Vm();
   Vm(ProgramPtr prog);
 
-  bool execute(Thread& t, const byte* cur, uint64 offset);
+  bool execute(Thread& t, const byte* cur);
   bool executeEpsilon(Thread& t, uint64 offset);
   
   // numCheckedStates should be equal to the number + 1 for the reserved bit
@@ -36,8 +36,8 @@ private:
   void doMatch(ThreadList::iterator threadIt, HitCallback& hitFn);
   void cleanup();
 
-  bool _execute(Thread& t, const byte* cur, uint64 offset);
-  bool _executeEpsilon(Thread& t, uint64 offset);
+  bool _execute(Thread& t, const byte* cur);
+  bool _executeEpsilon(const Instruction* base, Thread& t, uint64 offset);
 
   ProgramPtr Prog;
   ThreadList Active,
