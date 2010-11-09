@@ -15,14 +15,16 @@ public:
   Vm();
   Vm(ProgramPtr prog);
 
-  bool execute(Thread& t, const byte* cur);
-  bool executeEpsilon(Thread& t, uint64 offset);
-  
   // numCheckedStates should be equal to the number + 1 for the reserved bit
   void init(ProgramPtr prog);
 
   bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
   void reset();
+
+
+  bool execute(Thread& t, const byte* cur);
+  bool executeEpsilon(Thread& t, uint64 offset);
+  void executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn);
 
   void setDebugRange(uint64 beg, uint64 end) { BeginDebug = beg; EndDebug = end; }
 
@@ -38,6 +40,7 @@ private:
 
   bool _execute(Thread& t, const byte* cur);
   bool _executeEpsilon(const Instruction* base, Thread& t, uint64 offset);
+  void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset, HitCallback& hitFn);
 
   ProgramPtr Prog;
   ThreadList Active,
