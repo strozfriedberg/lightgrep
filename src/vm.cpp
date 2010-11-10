@@ -214,7 +214,7 @@ void Vm::doMatch(const Thread& t) {
   }
   else if (lastHit.second <= t.Start) {
     hit.Offset = lastHit.first;
-    hit.Length = lastHit.second - lastHit.first;
+    hit.Length = lastHit.second - lastHit.first + 1;
     hit.Label = t.Label;
     if (CurHitFn) {
       CurHitFn->collect(hit);
@@ -236,43 +236,11 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];
   SearchHit  hit;
-  register uint64     offset = startOffset;
-  // register uint32     window = Prog->Skip ? Prog->Skip->l_min() - 1: 1;
-  // register uint32     curDiff;
-  // const std::vector<uint32>* skipTbl = Prog->Skip ? &Prog->Skip->skipVec(): SkipTblPtr.get();
-  // if (!skipTbl) {
-  //   SkipTblPtr.reset(new std::vector<uint32>(256, 0));
-  //   skipTbl = SkipTblPtr.get();
-  // }
-  // register const byte* guard;
-  // register byte value;
-  ByteSet first = Prog->First;
-  register ThreadList::iterator threadIt = Active.begin();
+  ByteSet    first = Prog->First;
+  register   uint64     offset = startOffset;
+  ThreadList::iterator threadIt = Active.begin();
   for (register const byte* cur = beg; cur < end; ++cur) {
-    while (threadIt != Active.end()) {
-      while (_execute(*threadIt, cur)) ;
-      if (threadIt->End == offset) {
-        doMatch(*threadIt);
-      }
-      ++threadIt;
-    }
-    // guard   = cur + window >= end ? end - 1: cur + window;
-    // curDiff = guard - cur;
-    // value   = *guard;
-    // while (curDiff > 0 && (*skipTbl)[value] <= curDiff) {
-    //   --curDiff;
-    //   value = *(--guard);
-    // }
-    // if (guard == cur && (*skipTbl)[value] == 0) {
-    if (first[*cur]) {
-      Active.addBack().init(base, offset);
-      do {
-        while (_execute(*threadIt, cur)) ;
-        if (threadIt->End == offset) {
-          doMatch(*threadIt);
-        }
-      } while (++threadIt != Active.end());
-    }
+    _executeFrame(first, threadIt, base, cur, offset);
     if (threadIt != Active.begin()) {
       #ifdef LBT_TRACE_ENABLED
       if (BeginDebug <= offset && offset < EndDebug) {
@@ -282,24 +250,21 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       cleanup();
       threadIt = Active.begin();
     }
-    // else {
-    //   offset += curDiff;
-    //   cur = guard;
-    // }
     ++offset;
   }
   // this flushes out last char matches
   // and leaves us only with comparison instructions (in next)
+/*
   for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
     while (_executeEpsilon(base, *threadIt, offset)) ;
     if (threadIt->End == offset) {
       doMatch(*threadIt);
     }
-  }
+  }*/
   for (uint32 i = 0; i < Matches.size(); ++i) {
     if (Matches[i].first < UNALLOCATED) {
       hit.Offset = Matches[i].first;
-      hit.Length = Matches[i].second - hit.Offset;
+      hit.Length = Matches[i].second - hit.Offset + 1;
       hit.Label = i;
       hitFn.collect(hit);
       Matches[i] = std::make_pair(UNALLOCATED, 0ul);
