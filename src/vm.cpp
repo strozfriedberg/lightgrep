@@ -270,7 +270,6 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       Matches[i] = std::make_pair(UNALLOCATED, 0ul);
     }
   }
-  cleanup();
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
   return Active.size() > 0; // potential hits, if there's more data
 }
