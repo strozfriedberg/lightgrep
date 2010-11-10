@@ -6,7 +6,7 @@
 
 #include "instructions.h"
 #include "dynamicFSM.h"
-#include "vm.h"
+#include "vm_interface.h"
 
 struct SearchInfo {
   
@@ -42,7 +42,7 @@ ProgramPtr createProgram(const DynamicFSM& graph);
 ByteSet firstBytes(const DynamicFSM& graph);
 void nextBytes(ByteSet& set, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph);
 
-boost::shared_ptr<Vm> initVM(const std::vector<std::string>& keywords, SearchInfo& info);
+boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, SearchInfo& info);
 
 std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicFSM::vertex_descriptor source, const DynamicFSM& graph);
 

@@ -246,8 +246,8 @@ ByteSet firstBytes(const DynamicFSM& graph) {
   return ret;
 }
 
-boost::shared_ptr<Vm> initVM(const std::vector<std::string>& keywords, SearchInfo&) {
-  boost::shared_ptr<Vm> vm(new Vm);
+boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, SearchInfo&) {
+  boost::shared_ptr<VmInterface> vm = VmInterface::create();
   DynamicFSMPtr fsm = createDynamicFSM(keywords);
   ProgramPtr prog = createProgram(*fsm);
   prog->Skip = calculateSkipTable(*fsm);

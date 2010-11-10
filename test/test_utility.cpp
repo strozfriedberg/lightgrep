@@ -309,7 +309,7 @@ SCOPE_TEST(testInitVM) {
   SearchInfo info;
   keys.push_back("one");
   keys.push_back("two");
-  boost::shared_ptr<Vm> search = initVM(keys, info);
+  boost::shared_ptr<VmInterface> search = initVM(keys, info);
                //012345678901234
   byte text[] = "a onetwothree";
   MockCallback cb;

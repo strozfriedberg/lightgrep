@@ -10,7 +10,7 @@
 #include <boost/bind.hpp>
 
 #include "utility.h"
-#include "vm.h"
+#include "vm_interface.h"
 #include "hitwriter.h"
 #include "options.h"
 
@@ -76,10 +76,10 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
   return p;
 }
 
-boost::shared_ptr<Vm> initSearch(const Options& opts, KwInfo& keyInfo) {
+boost::shared_ptr<VmInterface> initSearch(const Options& opts, KwInfo& keyInfo) {
   ProgramPtr p = initProgram(opts, keyInfo);
 
-  boost::shared_ptr<Vm> ret(new Vm);
+  boost::shared_ptr<VmInterface> ret = VmInterface::create();
   ret->init(p);
   ret->setDebugRange(opts.DebugBegin, opts.DebugEnd);
   return ret;
@@ -103,7 +103,7 @@ void search(const Options& opts) {
   if (file) {
     file.rdbuf()->pubsetbuf(0, 0);
     KwInfo keyInfo;
-    boost::shared_ptr<Vm> search = initSearch(opts, keyInfo);
+    boost::shared_ptr<VmInterface> search = initSearch(opts, keyInfo);
 
     HitWriter cb(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
 

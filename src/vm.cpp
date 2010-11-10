@@ -29,7 +29,9 @@ void printThreads(const Vm::ThreadList& list, uint64 offset, const Instruction* 
 }
 
 
-
+boost::shared_ptr<VmInterface> VmInterface::create() {
+  return boost::shared_ptr<VmInterface>(new Vm);
+}
 
 Vm::Vm() : BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED) {}
 
