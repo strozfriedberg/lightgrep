@@ -1,13 +1,10 @@
 #pragma once
 
-#include "basic.h"
-#include "program.h"
-#include "thread.h"
-#include "SearchHit.h"
+#include "vm_interface.h"
 #include "staticvector.h"
 #include "skiptable.h"
 
-class Vm {
+class Vm: public VmInterface {
 public:
 
   typedef StaticVector<Thread> ThreadList;
@@ -21,12 +18,12 @@ public:
   bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
   void reset();
 
+  void setDebugRange(uint64 beg, uint64 end) { BeginDebug = beg; EndDebug = end; }
 
   bool execute(Thread& t, const byte* cur);
   bool executeEpsilon(Thread& t, uint64 offset);
   void executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn);
 
-  void setDebugRange(uint64 beg, uint64 end) { BeginDebug = beg; EndDebug = end; }
 
   const ThreadList& active() const { return Active; }
   const ThreadList& next() const { return Next; }
