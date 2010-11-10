@@ -128,16 +128,19 @@ inline bool Vm::_execute(Thread& t, const byte* cur) {
 
 // while base is always == &Program[0], we pass it in because it then should get inlined away
 inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offset) {
-  Thread f;
   register Instruction instr = *t.PC;
   switch (instr.OpCode) {
+    case FORK_OP:
+      {
+        Thread f = t;
+        t.advance();
+        // recurse to keep going in sequence
+        _executeEpSequence(base, t, offset);
+        // now back up to the fork, and fall through to handle it as a jump
+        t = f;
+      }
     case JUMP_OP:
       t.jump(base, instr.Op.Offset);
-      return true;
-    case FORK_OP:
-      f.fork(t, base, instr.Op.Offset);
-      Active.push_back(f);
-      t.advance();
       return true;
     case CHECK_HALT_OP:
       if (CheckStates[instr.Op.Offset]) {
@@ -164,13 +167,17 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
   }
 }
 
-inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset, HitCallback& hitFn) {
+inline void Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 offset) {
+  while (_executeEpsilon(base, t, offset)) ;
+  if (t.End == offset) {
+    doMatch(t);
+  }
+}
+
+inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset) {
   while (threadIt != Active.end()) {
     if (_execute(*threadIt, cur)) {
-      while (_executeEpsilon(base, *threadIt, offset)) ;
-      if (threadIt->End == offset) {
-        doMatch(threadIt, hitFn);
-      }
+      _executeEpSequence(base, *threadIt, offset);
     }
     ++threadIt;
   }
@@ -178,10 +185,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
     Active.addBack().init(base, offset);
     do {
       if (_execute(*threadIt, cur)) {
-        while (_executeEpsilon(base, *threadIt, offset)) ;
-        if (threadIt->End == offset) {
-          doMatch(threadIt, hitFn);
-        }
+        _executeEpSequence(base, *threadIt, offset);
       }
     } while (++threadIt != Active.end());
   }
@@ -196,24 +200,27 @@ bool Vm::executeEpsilon(Thread& t, uint64 offset) {
 }
 
 void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
+  CurHitFn = &hitFn;
   ThreadList::iterator threadIt = Active.begin();
-  _executeFrame(Prog->First, threadIt, &(*Prog)[0], cur, offset, hitFn);
+  _executeFrame(Prog->First, threadIt, &(*Prog)[0], cur, offset);
 }
 
-void Vm::doMatch(register ThreadList::iterator threadIt, HitCallback& hitFn) {
+void Vm::doMatch(const Thread& t) {
   // std::cerr << "had a match" << std::endl;
   SearchHit  hit;
-  std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
-  if (lastHit.first == UNALLOCATED || (lastHit.first == threadIt->Start && lastHit.second < threadIt->End)) {
-    Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+  std::pair< uint64, uint64 > lastHit = Matches[t.Label];
+  if (lastHit.first == UNALLOCATED || (lastHit.first == t.Start && lastHit.second < t.End)) {
+    Matches[t.Label] = std::make_pair(t.Start, t.End);
   }
-  else if (lastHit.second <= threadIt->Start) {
+  else if (lastHit.second <= t.Start) {
     hit.Offset = lastHit.first;
     hit.Length = lastHit.second - lastHit.first;
-    hit.Label = threadIt->Label;
-    hitFn.collect(hit);
+    hit.Label = t.Label;
+    if (CurHitFn) {
+      CurHitFn->collect(hit);
+    }
     // std::cerr << "emitting hit " << hit << std::endl;
-    Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+    Matches[t.Label] = std::make_pair(t.Start, t.End);
   }
 }
 
@@ -226,6 +233,7 @@ inline void Vm::cleanup() {
 }
 
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
+  CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];
   SearchHit  hit;
   register uint64     offset = startOffset;
@@ -244,7 +252,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     while (threadIt != Active.end()) {
       while (_execute(*threadIt, cur)) ;
       if (threadIt->End == offset) {
-        doMatch(threadIt, hitFn);
+        doMatch(*threadIt);
       }
       ++threadIt;
     }
@@ -261,7 +269,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       do {
         while (_execute(*threadIt, cur)) ;
         if (threadIt->End == offset) {
-          doMatch(threadIt, hitFn);
+          doMatch(*threadIt);
         }
       } while (++threadIt != Active.end());
     }
@@ -285,7 +293,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
     while (_executeEpsilon(base, *threadIt, offset)) ;
     if (threadIt->End == offset) {
-      doMatch(threadIt, hitFn);
+      doMatch(*threadIt);
     }
   }
   for (uint32 i = 0; i < Matches.size(); ++i) {

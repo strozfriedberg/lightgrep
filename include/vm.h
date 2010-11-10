@@ -32,12 +32,13 @@ public:
   unsigned int numNext() const { return Next.size(); }
 
 private:
-  void doMatch(ThreadList::iterator threadIt, HitCallback& hitFn);
+  void doMatch(const Thread& t);
   void cleanup();
 
   bool _execute(Thread& t, const byte* cur);
   bool _executeEpsilon(const Instruction* base, Thread& t, uint64 offset);
-  void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset, HitCallback& hitFn);
+  void _executeEpSequence(const Instruction* base, Thread& t, uint64 offset);
+  void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset);
 
   ProgramPtr Prog;
   ThreadList Active,
@@ -48,4 +49,6 @@ private:
 
   uint64 BeginDebug,
          EndDebug;
+
+  HitCallback* CurHitFn;
 };

@@ -179,14 +179,15 @@ SCOPE_TEST(executeMatch) {
 }
 
 SCOPE_TEST(executeFork) {
-  ProgramPtr p(new Program(1, Instruction::makeFork(237)));
+  ProgramPtr p(new Program(3, Instruction::makeLit('a')));
+  (*p)[0] = Instruction::makeFork(2);
   Vm s(p);
   Thread      cur(&(*p)[0], 0, 0, 0);
   SCOPE_ASSERT(s.executeEpsilon(cur, 47));
-  SCOPE_ASSERT_EQUAL(1u, s.numActive()); // cha-ching!
-  SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(&(*p)[1], cur.PC);
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[237], 0, 0, 0), s.active()[0]);
+  SCOPE_ASSERT_EQUAL(0u, s.numActive()); // cha-ching!
+  SCOPE_ASSERT_EQUAL(1u, s.numNext());
+  SCOPE_ASSERT_EQUAL(&(*p)[1], s.next()[0].PC);
+  SCOPE_ASSERT_EQUAL(&(*p)[2], cur.PC);
 }
 
 SCOPE_TEST(executeCheckHalt) {
@@ -237,10 +238,10 @@ SCOPE_TEST(runFrame) {
   Vm s(p);
   byte b = 'a';
   s.executeFrame(&b, 0, cb);
-  SCOPE_ASSERT_EQUAL(2u, s.numActive());
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(2u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(&prog[3], 1, 0, 1), s.next()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&prog[4], unalloc, 0, unalloc), s.next()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&prog[3], 1, 0, 0), s.next()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&prog[4], 0, 0, unalloc), s.next()[1]);
 }
 
 SCOPE_TEST(simpleLitMatch) {
