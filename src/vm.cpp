@@ -52,7 +52,7 @@ void Vm::init(ProgramPtr prog) {
     if (p[i].OpCode == MATCH_OP && numPatterns < p[i].Op.Offset) {
       numPatterns = p[i].Op.Offset;
     }
-    if (p[i].OpCode == CHECK_BRANCH_OP || p[i].OpCode == CHECK_HALT_OP) {
+    if (p[i].OpCode == CHECK_HALT_OP) {
       numCheckedStates = std::max(numCheckedStates, p[i].Op.Offset);
     }
   }
