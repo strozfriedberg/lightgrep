@@ -33,10 +33,10 @@ boost::shared_ptr<VmInterface> VmInterface::create() {
   return boost::shared_ptr<VmInterface>(new Vm);
 }
 
-Vm::Vm() : BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED) {}
+Vm::Vm() : BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED), CurHitFn(0) {}
 
 Vm::Vm(ProgramPtr prog): 
-  BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED)
+  BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED), CurHitFn(0)
 {
   init(prog);
 }
@@ -60,6 +60,14 @@ void Vm::init(ProgramPtr prog) {
   numCheckedStates += 2; // bit 0 reserved for whether any bits were flipped
   Matches.resize(numPatterns);
   CheckStates.resize(numCheckedStates);
+  Thread s0(&(*Prog)[0]);
+  if (_executeEpSequence(&(*Prog)[0], s0, 0)) {
+    Next.push_back(s0);
+  }
+  First.resize(Next.size());
+  for (uint32 i = 0; i < Next.size(); ++i) {
+    First.push_back(Next[i]);
+  }
   reset();
 }
 
@@ -68,6 +76,7 @@ void Vm::reset() {
   Next.clear();
   CheckStates.assign(CheckStates.size(), false);
   Matches.assign(Matches.size(), std::pair<uint64, uint64>(UNALLOCATED, 0));
+  CurHitFn = 0;
 }
 
 inline bool Vm::_execute(Thread& t, const byte* cur) {

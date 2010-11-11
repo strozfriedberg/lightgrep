@@ -244,6 +244,32 @@ SCOPE_TEST(runFrame) {
   SCOPE_ASSERT_EQUAL(Thread(&prog[4], 0, 0, unalloc), s.next()[1]);
 }
 
+SCOPE_TEST(testInit) {
+  ProgramPtr p(new Program);
+  Program& prog(*p);
+  prog.push_back(Instruction::makeFork(4));   // 0
+  prog.push_back(Instruction::makeFork(3));   // 1
+  prog.push_back(Instruction::makeJump(6));   // 2
+  prog.push_back(Instruction::makeLit('a'));  // 3
+  prog.push_back(Instruction::makeFork(7));   // 4
+  prog.push_back(Instruction::makeJump(8));   // 5
+  prog.push_back(Instruction::makeLit('b'));  // 6
+  prog.push_back(Instruction::makeLit('c'));  // 7
+  prog.push_back(Instruction::makeLit('d'));  // 8
+  prog.First.set('a');
+  prog.First.set('b');
+  prog.First.set('c');
+  prog.First.set('d');
+
+  Vm s;
+  s.init(p);
+  SCOPE_ASSERT_EQUAL(4u, s.first().size());
+  SCOPE_ASSERT_EQUAL(&prog[6], s.first()[0].PC);
+  SCOPE_ASSERT_EQUAL(&prog[3], s.first()[1].PC);
+  SCOPE_ASSERT_EQUAL(&prog[8], s.first()[2].PC);
+  SCOPE_ASSERT_EQUAL(&prog[7], s.first()[3].PC);
+}
+
 SCOPE_TEST(simpleLitMatch) {
   ProgramPtr p(new Program());
   Program& prog(*p);
