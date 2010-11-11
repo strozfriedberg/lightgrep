@@ -227,11 +227,12 @@ SCOPE_TEST(runFrame) {
   ProgramPtr p(new Program());
   Program&   prog(*p);
   // not a complete program, but good enough for executing a frame
-  prog.push_back(Instruction::makeLit('a')); // 0
-  prog.push_back(Instruction::makeFork(4));  // 1
-  prog.push_back(Instruction::makeMatch(1)); // 2
-  prog.push_back(Instruction::makeLit('b')); // 3
-  prog.push_back(Instruction::makeLit('c')); // 4
+  prog.push_back(Instruction::makeJump(1));  // 0
+  prog.push_back(Instruction::makeLit('a')); // 1
+  prog.push_back(Instruction::makeFork(5));  // 2
+  prog.push_back(Instruction::makeMatch(1)); // 3
+  prog.push_back(Instruction::makeLit('b')); // 4
+  prog.push_back(Instruction::makeLit('c')); // 5
   prog.First.set('a');
 
   const uint64 unalloc = std::numeric_limits<uint64>::max();
@@ -240,8 +241,8 @@ SCOPE_TEST(runFrame) {
   s.executeFrame(&b, 0, cb);
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(2u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(&prog[3], 1, 0, 0), s.next()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&prog[4], 0, 0, unalloc), s.next()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&prog[4], 1, 0, 0), s.next()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&prog[5], 0, 0, unalloc), s.next()[1]);
 }
 
 SCOPE_TEST(testInit) {

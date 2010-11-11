@@ -198,7 +198,10 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
     ++threadIt;
   }
   if (first[*cur]) {
-    Active.addBack().init(base, offset);
+    for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
+      Active.addBack().init(it->PC, offset);
+    }
+//    Active.addBack().init(base, offset);
     do {
       _executeThread(base, *threadIt, cur, offset);
     } while (++threadIt != Active.end());
