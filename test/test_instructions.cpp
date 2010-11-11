@@ -84,15 +84,6 @@ SCOPE_TEST(makeFork) {
   SCOPE_EXPECT(Instruction::makeFork(1 << 24), std::overflow_error);
 }
 
-SCOPE_TEST(makeCheckedFork) {
-  Instruction i = Instruction::makeCheckBranch(3);
-  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL(CHECK_BRANCH_OP, i.OpCode);
-  SCOPE_ASSERT_EQUAL(3u, i.Op.Offset);
-  SCOPE_ASSERT_EQUAL("CheckBranch 0x00000003/3", i.toString());
-  SCOPE_EXPECT(Instruction::makeCheckBranch(1 << 24), std::overflow_error);
-}
-
 SCOPE_TEST(makeJumpTable) {
   Instruction i = Instruction::makeJumpTable();
   SCOPE_ASSERT_EQUAL(JUMP_TABLE_OP, i.OpCode);
