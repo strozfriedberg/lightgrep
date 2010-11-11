@@ -269,14 +269,14 @@ SCOPE_TEST(threeKeywords) {
   p->push_back(Instruction::makeFork(2));       // 0
   p->push_back(Instruction::makeJump(5));       // 1
   p->push_back(Instruction::makeLit('a'));      // 2
-  p->push_back(Instruction::makeMatch(0));       // 3
+  p->push_back(Instruction::makeMatch(0));      // 3
   p->push_back(Instruction::makeHalt());        // 4
   p->push_back(Instruction::makeLit('b'));      // 5
-  p->push_back(Instruction::makeFork(9));      // 6
-  p->push_back(Instruction::makeMatch(1));       // 7
+  p->push_back(Instruction::makeFork(9));       // 6
+  p->push_back(Instruction::makeMatch(1));      // 7
   p->push_back(Instruction::makeHalt());        // 8
   p->push_back(Instruction::makeLit('c'));      // 9
-  p->push_back(Instruction::makeMatch(2));       // 10
+  p->push_back(Instruction::makeMatch(2));      // 10
   p->push_back(Instruction::makeHalt());        // 11
 
   byte text[] = {'c', 'a', 'b', 'c'};

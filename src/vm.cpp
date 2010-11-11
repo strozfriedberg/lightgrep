@@ -135,7 +135,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
         Thread f = t;
         t.advance();
         // recurse to keep going in sequence
-        _executeEpSequence(base, t, offset);
+        if (_executeEpSequence(base, t, offset)) {
+          Next.push_back(t);
+        }
+//        _executeThread(base, t, cur, offset);
         // now back up to the fork, and fall through to handle it as a jump
         t = f;
       }
@@ -160,33 +163,35 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
       return true;
     case HALT_OP:
       t.PC = 0;
-      return false;
     default:
-      Next.push_back(t);
+      // Next.push_back(t);
       return false;
   }
 }
 
-inline void Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 offset) {
+inline void Vm::_executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset) {
+  if (_execute(t, cur) && _executeEpSequence(base, t, offset)) {
+    Next.push_back(t);
+  }
+}
+
+inline bool Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 offset) {
   while (_executeEpsilon(base, t, offset)) ;
   if (t.End == offset) {
     doMatch(t);
   }
+  return t.PC;
 }
 
 inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset) {
   while (threadIt != Active.end()) {
-    if (_execute(*threadIt, cur)) {
-      _executeEpSequence(base, *threadIt, offset);
-    }
+    _executeThread(base, *threadIt, cur, offset);
     ++threadIt;
   }
   if (first[*cur]) {
     Active.addBack().init(base, offset);
     do {
-      if (_execute(*threadIt, cur)) {
-        _executeEpSequence(base, *threadIt, offset);
-      }
+      _executeThread(base, *threadIt, cur, offset);
     } while (++threadIt != Active.end());
   }
 }
@@ -254,11 +259,11 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   }
   // this flushes out last char matches
   // and leaves us only with comparison instructions (in next)
-/*
-  for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
-    while (_executeEpsilon(base, *threadIt, offset)) ;
-    if (threadIt->End == offset) {
-      doMatch(*threadIt);
+
+  // is this a good idea? -- since FORK can execute the whole thread, isn't this very bad?
+/*  for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
+    if (_executeEpSequence(base, *threadIt, cur, offset)) {
+      Next.push_back(*threadIt);
     }
   }*/
   for (uint32 i = 0; i < Matches.size(); ++i) {
@@ -270,6 +275,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       Matches[i] = std::make_pair(UNALLOCATED, 0ul);
     }
   }
+//  cleanup();
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
   return Active.size() > 0; // potential hits, if there's more data
 }
