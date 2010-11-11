@@ -24,7 +24,7 @@ public:
   bool executeEpsilon(Thread& t, uint64 offset);
   void executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn);
 
-
+  const ThreadList& first() const { return First; }
   const ThreadList& active() const { return Active; }
   const ThreadList& next() const { return Next; }
 
@@ -42,7 +42,8 @@ private:
   void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset);
 
   ProgramPtr Prog;
-  ThreadList Active,
+  ThreadList First,
+             Active,
              Next;
 
   std::vector<bool> CheckStates;
