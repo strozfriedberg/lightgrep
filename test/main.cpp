@@ -28,38 +28,17 @@ namespace po = boost::program_options;
 
 void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
 
-bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys) {
-  std::ifstream keyFile(keyFilePath.c_str(), ios::in);
-  keys.clear();
-  if (keyFile) {
-    while (keyFile) {
-      char line[8192];
-      keyFile.getline(line, 8192);
-      std::string lineS(line);
-      if (!lineS.empty()) {
-        keys.push_back(lineS);
-        // std::cerr << "read " << lineS << std::endl;
-      }
-    }
-    return !keys.empty();
-  }
-  else {
-    std::cerr << "Could not open file" << std::endl;
-    return false;
-  }
-}
-
 void writeGraphviz(const Options& opts) {
-  std::vector<std::string> keys;
-  if (readKeyFile(opts.KeyFile, keys)) {
+  std::vector<std::string> keys = opts.getKeys();
+  if (!keys.empty()) {
     DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding());
     writeGraphviz(opts.openOutput(), *fsm);
   }
 }
 
 void writeProgram(const Options& opts) {
-  std::vector<std::string> keys;
-  if (readKeyFile(opts.KeyFile, keys)) {
+  std::vector<std::string> keys = opts.getKeys();
+  if (!keys.empty()) {
     DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding());
     ProgramPtr p = createProgram(*fsm);
     std::ostream& out(opts.openOutput());
@@ -69,7 +48,7 @@ void writeProgram(const Options& opts) {
 }
 
 ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
-  readKeyFile(opts.KeyFile, keyInfo.Keywords);
+  keyInfo.Keywords = opts.getKeys();
   std::cerr << keyInfo.Keywords.size() << " keywords"<< std::endl;
 
   DynamicFSMPtr fsm = createDynamicFSM(keyInfo, opts.getEncoding(), opts.CaseSensitive);
@@ -188,6 +167,7 @@ int main(int argc, char** argv) {
     ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
     ("ignore-case,i", "file to search")
+    ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value< uint64 >(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
