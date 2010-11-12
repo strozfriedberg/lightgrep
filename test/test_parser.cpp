@@ -503,3 +503,10 @@ SCOPE_TEST(parseCaseInsensitive) {
   SCOPE_ASSERT(fsm[2]->toInstruction(&i));
   SCOPE_ASSERT_EQUAL(Instruction::makeEither('B', 'b'), i);
 }
+
+SCOPE_TEST(parseSZeroMatchState) {
+  Parser      p;
+  SyntaxTree  tree;
+  SCOPE_ASSERT(parse("a?", tree, p));
+  SCOPE_ASSERT(!p.good());
+}

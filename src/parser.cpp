@@ -355,7 +355,6 @@ void Parser::finish(const Node& n) {
       // std::cout << "marking " << *it << " as a match" << std::endl;
       DynamicFSM::vertex_descriptor v = start.OutList[i];
       if (0 == v) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
-        std::cerr << "state 0 is not allowed as a final state of the NFA" << std::endl;
         reset();
         return;
       }

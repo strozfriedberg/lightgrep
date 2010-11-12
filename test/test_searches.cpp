@@ -18,7 +18,7 @@ struct STest: public HitCallback {
   STest(const std::string& key) {
     SyntaxTree  tree;
     Parser      p;
-    if (parse(key, tree, p)) {
+    if (parse(key, tree, p) && p.good()) {
       Fsm = p.getFsm();
       Prog = createProgram(*Fsm);
       Prog->First = firstBytes(*Fsm);
@@ -169,4 +169,12 @@ SCOPE_FIXTURE_CTOR(zeroDotStarZeroSearch, STest, STest("0.*0")) {
   fixture.search(text, text + 5, 0, fixture);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 5, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(aDotaPlusSearch, STest, STest("a.a+")) {
+  const byte* text = (const byte*)"aaabaaa";
+  fixture.search(text, text + 7, 0, fixture);
+  SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(4, 3, 0), fixture.Hits[1]);
 }
