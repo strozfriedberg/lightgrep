@@ -185,7 +185,7 @@ int main(int argc, char** argv) {
     else if (opts.Command == "test" || optsMap.count("test")) {
       return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
     }
-    if (opts.Command == "search" && optsMap.count("keywords")) {
+    if (opts.Command == "search" && (optsMap.count("keywords") || optsMap.count("pattern"))) {
       search(opts);
     }
     else if (opts.Command == "graph") {
