@@ -147,7 +147,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
         if (_executeEpSequence(base, t, offset)) {
           Next.push_back(t);
         }
-//        _executeThread(base, t, cur, offset);
         // now back up to the fork, and fall through to handle it as a jump
         t = f;
       }
@@ -269,15 +268,7 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     }
     ++offset;
   }
-  // this flushes out last char matches
-  // and leaves us only with comparison instructions (in next)
-
-  // is this a good idea? -- since FORK can execute the whole thread, isn't this very bad?
-/*  for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
-    if (_executeEpSequence(base, *threadIt, cur, offset)) {
-      Next.push_back(*threadIt);
-    }
-  }*/
+  // output the last existing matches
   for (uint32 i = 0; i < Matches.size(); ++i) {
     if (Matches[i].first < UNALLOCATED) {
       hit.Offset = Matches[i].first;
@@ -287,7 +278,6 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       Matches[i] = std::make_pair(UNALLOCATED, 0ul);
     }
   }
-//  cleanup();
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
   return Active.size() > 0; // potential hits, if there's more data
 }
