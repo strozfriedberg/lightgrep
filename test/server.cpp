@@ -9,7 +9,7 @@
 #include <boost/thread.hpp>
 
 #include "program.h"
-#include "vm.h"
+#include "vm_interface.h"
 #include "utility.h"
 #include "hitwriter.h"
 #include "options.h"
@@ -142,7 +142,7 @@ private:
 
 void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, boost::shared_ptr<ServerWriter> output) {
   boost::scoped_array<byte>      data(new byte[BUF_SIZE]);
-  boost::scoped_ptr<Vm>          search(new Vm);
+  boost::shared_ptr<VmInterface> search = VmInterface::create();
   search->init(prog);
 
   std::size_t len = 0;
