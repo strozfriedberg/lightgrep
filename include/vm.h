@@ -1,21 +1,17 @@
 #pragma once
 
-#include "basic.h"
-#include "program.h"
-#include "thread.h"
-#include "SearchHit.h"
+#include "vm_interface.h"
 #include "staticvector.h"
 #include "skiptable.h"
 
-class Vm {
+class Vm: public VmInterface {
 public:
 
   typedef StaticVector<Thread> ThreadList;
 
   Vm();
-  
-  static bool execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset);
-  
+  Vm(ProgramPtr prog);
+
   // numCheckedStates should be equal to the number + 1 for the reserved bit
   void init(ProgramPtr prog);
 
@@ -24,18 +20,37 @@ public:
 
   void setDebugRange(uint64 beg, uint64 end) { BeginDebug = beg; EndDebug = end; }
 
+  bool execute(Thread& t, const byte* cur);
+  bool executeEpsilon(Thread& t, uint64 offset);
+  void executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn);
+
+  const ThreadList& first() const { return First; }
+  const ThreadList& active() const { return Active; }
+  const ThreadList& next() const { return Next; }
+
+  unsigned int numActive() const { return Active.size(); }
+  unsigned int numNext() const { return Next.size(); }
+
 private:
-  void doMatch(ThreadList::iterator threadIt, HitCallback& hitFn);
+  void doMatch(const Thread& t);
   void cleanup();
 
+  bool _execute(Thread& t, const byte* cur);
+  bool _executeEpsilon(const Instruction* base, Thread& t, uint64 offset);
+  bool _executeEpSequence(const Instruction* base, Thread& t, uint64 offset);
+  void _executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset);
+  void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset);
+
   ProgramPtr Prog;
-  ThreadList Active,
+  ThreadList First,
+             Active,
              Next;
 
   std::vector<bool> CheckStates;
   std::vector< std::pair< uint64, uint64 > > Matches;
-  boost::scoped_ptr< std::vector<uint32> > SkipTblPtr;
 
   uint64 BeginDebug,
          EndDebug;
+
+  HitCallback* CurHitFn;
 };
