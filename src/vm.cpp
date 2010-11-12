@@ -229,7 +229,7 @@ void Vm::doMatch(const Thread& t) {
   if (lastHit.first == UNALLOCATED || (lastHit.first == t.Start && lastHit.second < t.End)) {
     Matches[t.Label] = std::make_pair(t.Start, t.End);
   }
-  else if (lastHit.second <= t.Start) {
+  else if (lastHit.second < t.Start) {
     hit.Offset = lastHit.first;
     hit.Length = lastHit.second - lastHit.first + 1;
     hit.Label = t.Label;
