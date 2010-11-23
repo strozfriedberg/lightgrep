@@ -1,15 +1,20 @@
 #include <scope/test.h>
 
 #include <iostream>
+#include <fstream>
 
 #include "utility_impl.h"
 #include "states.h"
 #include "MockCallback.h"
 #include "compiler.h"
 
-void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, Transition* tPtr) {
+void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, TransitionPtr tPtr) {
   boost::add_edge(source, target, fsm);
-  fsm[target].reset(tPtr);
+  fsm[target] = tPtr;
+}
+
+void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, Transition* tPtr) {
+  edge(source, target, fsm, TransitionPtr(tPtr));
 }
 
 std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
@@ -353,16 +358,20 @@ SCOPE_TEST(testMerge) {
   edge(0, 1, key, new LitState('a'));
   edge(1, 2, key, new LitState('b'));
   edge(1, 3, key, new LitState('c'));
-  edge(2, 4, key, new LitState('d'));
-  edge(3, 4, key, new LitState('d'));
-  edge(4, 4, key, new LitState('d', 2));
+  boost::shared_ptr<LitState> d(new LitState('d', 2));
+  edge(2, 4, key, d);
+  edge(3, 4, key, d);
+  edge(4, 4, key, d);
 
+  // ace
+  // azy
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('c'));
   edge(2, 3, fsm, new LitState('e', 0));
   edge(0, 4, fsm, new LitState('z'));
   edge(4, 5, fsm, new LitState('y', 1));
   comp.mergeIntoFSM(fsm, key, 2);
+
   SCOPE_ASSERT_EQUAL(8u, boost::num_vertices(fsm));
   SCOPE_ASSERT_EQUAL(2u, boost::out_degree(0, fsm));
   SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, fsm));

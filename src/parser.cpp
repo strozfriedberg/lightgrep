@@ -2,6 +2,7 @@
 
 #include "states.h"
 #include "concrete_encodings.h"
+#include "utility.h"
 
 #include <iostream>
 #include <cctype>
@@ -147,23 +148,23 @@ void FastVList::patch(const FastVList& targets, DynamicFSM& fsm) const {
       for (VList::const_iterator srcIt(List->begin()); srcIt != List->end(); ++srcIt) {
         for (VList::const_iterator targetIt(targets.List->begin()); targetIt != targets.List->end(); ++targetIt) {
           // std::cout << "Making edge (" << *srcIt << ", " << *targetIt << ")" << std::endl;
-          boost::add_edge(*srcIt, *targetIt, fsm);
+          addNewEdge(*srcIt, *targetIt, fsm);
         }
       }
     }
     else {
       for (VList::const_iterator srcIt(List->begin()); srcIt != List->end(); ++srcIt) {
-        boost::add_edge(*srcIt, targets.Single, fsm);
+        addNewEdge(*srcIt, targets.Single, fsm);
       }
     }
   }
   else if (targets.List) {
     for (VList::const_iterator targetIt(targets.List->begin()); targetIt != targets.List->end(); ++targetIt) {
-      boost::add_edge(Single, *targetIt, fsm);
+      addNewEdge(Single, *targetIt, fsm);
     }
   }
   else {
-    boost::add_edge(Single, targets.Single, fsm);
+    addNewEdge(Single, targets.Single, fsm);
   }
 }
 
@@ -278,7 +279,7 @@ void Parser::literal(const Node& n) {
     setLiteralTransition(g[first], TempBuf[0]);
     for (uint32 i = 1; i < len; ++i) {
       last = boost::add_vertex(g);
-      boost::add_edge(prev, last, g);
+      addNewEdge(prev, last, g);
       setLiteralTransition(g[last], TempBuf[i]);
       prev = last;
     }
