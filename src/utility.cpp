@@ -13,6 +13,16 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
+void addNewEdge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm) {
+  std::pair<DynamicFSM::adjacency_iterator, DynamicFSM::adjacency_iterator> nextStates(adjacent_vertices(source, fsm));
+  for (DynamicFSM::adjacency_iterator it(nextStates.first); it != nextStates.second; ++it) {
+    if (target == *it) {
+      return;
+    }
+  }
+  boost::add_edge(source, target, fsm);
+}
+
 void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, DynamicFSMPtr& fsm, uint32& keyIdx) {
   SyntaxTree  tree;
   Compiler    comp;
