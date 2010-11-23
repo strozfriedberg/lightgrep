@@ -48,6 +48,14 @@ SCOPE_TEST(makeMatch) {
   SCOPE_ASSERT_EQUAL("Match 4", i.toString());
 }
 
+SCOPE_TEST(makeLabel) {
+  Instruction i = Instruction::makeLabel(8);
+  SCOPE_ASSERT_EQUAL(LABEL_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(8u, i.Op.Offset);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL("Label 8", i.toString());
+}
+
 SCOPE_TEST(makeEither) {
   Instruction i = Instruction::makeEither('a', 'B');
   SCOPE_ASSERT_EQUAL(EITHER_OP, i.OpCode);
