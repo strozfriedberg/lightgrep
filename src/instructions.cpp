@@ -54,6 +54,9 @@ std::string Instruction::toString() const {
     case CHECK_HALT_OP:
       buf << "CheckHalt 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
+    case LABEL_OP:
+      buf << "Label " << Op.Offset;
+      break;
     case MATCH_OP:
       buf << "Match " << Op.Offset;
       break;
@@ -126,6 +129,12 @@ Instruction Instruction::makeJumpTable() {
 Instruction Instruction::makeJumpTableRange(byte first, byte last) {
   Instruction i = makeRange(first, last);
   i.OpCode = JUMP_TABLE_RANGE_OP;
+  return i;
+}
+
+Instruction Instruction::makeLabel(uint32 label) {
+  Instruction i = makeJump(label);
+  i.OpCode = LABEL_OP;
   return i;
 }
 
