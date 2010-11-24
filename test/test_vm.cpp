@@ -168,6 +168,16 @@ SCOPE_TEST(executeBitVector) {
   }
 }
 
+SCOPE_TEST(executeLabel) {
+  ProgramPtr p(new Program(1, Instruction::makeLabel(34)));
+  Vm s(p);
+  Thread      cur(&(*p)[0], 0, 0, 0);
+  SCOPE_ASSERT(s.executeEpsilon(cur, 57));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT_EQUAL(0u, s.numNext());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[1], 34, 0, 0), cur);
+}
+
 SCOPE_TEST(executeMatch) {
   ProgramPtr p(new Program(1, Instruction::makeMatch(3)));
   Vm s(p);
