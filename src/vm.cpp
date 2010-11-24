@@ -164,6 +164,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
         t.advance();
         return true;
       }
+    case LABEL_OP:
+      t.Label = instr.Op.Offset;
+      t.advance();
+      return true;
     case MATCH_OP:
       t.Label = instr.Op.Offset;
       t.End = offset;
