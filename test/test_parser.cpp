@@ -23,6 +23,8 @@ SCOPE_TEST(parseAorB) {
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
   SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
+  SCOPE_ASSERT(fsm[1]->IsMatch);
+  SCOPE_ASSERT(fsm[2]->IsMatch);
 }
 
 SCOPE_TEST(parseAorBorC) {
@@ -36,6 +38,9 @@ SCOPE_TEST(parseAorBorC) {
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
   SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
   SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
+  SCOPE_ASSERT(fsm[1]->IsMatch);
+  SCOPE_ASSERT(fsm[2]->IsMatch);
+  SCOPE_ASSERT(fsm[3]->IsMatch);
 }
 
 SCOPE_TEST(parseAB) {
@@ -53,6 +58,8 @@ SCOPE_TEST(parseAB) {
   skip['a'] = 0;
   skip['b'] = 1;
   SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
+  SCOPE_ASSERT(!fsm[1]->IsMatch);
+  SCOPE_ASSERT(fsm[2]->IsMatch);
 }
 
 SCOPE_TEST(parseAlternationAndConcatenation) {
@@ -71,6 +78,9 @@ SCOPE_TEST(parseAlternationAndConcatenation) {
   skip['a'] = 0;
   skip['b'] = 0;
   SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
+  SCOPE_ASSERT(fsm[1]->IsMatch);
+  SCOPE_ASSERT(!fsm[2]->IsMatch);
+  SCOPE_ASSERT(fsm[3]->IsMatch);
 }
 
 SCOPE_TEST(parseGroup) {

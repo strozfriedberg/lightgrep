@@ -360,8 +360,10 @@ void Parser::finish(const Node& n) {
         return;
       }
       else {
-        (*Fsm)[v].reset((*Fsm)[v]->clone());
-        (*Fsm)[v]->Label = CurLabel;
+        TransitionPtr final((*Fsm)[v]->clone()); // this is to make sure the transition isn't shared amongst other states
+        final->Label = CurLabel;
+        final->IsMatch = true;
+        (*Fsm)[v] = final;
       }
     }
     // std::cout << "final is " << final << std::endl;
