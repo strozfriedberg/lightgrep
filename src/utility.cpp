@@ -169,8 +169,11 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
       curOp += t->numInstructions();
       // std::cerr << "wrote " << i << std::endl;
       if (t->Label < 0xffffffff) {
-        *curOp++ = Instruction::makeMatch(t->Label); // also problematic
+        *curOp++ = Instruction::makeLabel(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
+      }
+      if (t->IsMatch) {
+        *curOp++ = Instruction::makeMatch();
       }
     }
     if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op || JUMP_TABLE_OP == cg->Snippets[v].Op) {
