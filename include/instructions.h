@@ -64,7 +64,7 @@ struct Instruction {
   static Instruction makeJumpTable();
   static Instruction makeJumpTableRange(byte first, byte last);
   static Instruction makeLabel(uint32 label);
-  static Instruction makeMatch(uint32 label);
+  static Instruction makeMatch();
   static Instruction makeFork(uint32 index);
   static Instruction makeCheckHalt(uint32 checkIndex);
   static Instruction makeHalt();
