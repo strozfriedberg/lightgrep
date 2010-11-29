@@ -170,6 +170,9 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
       return true;
     case MATCH_OP:
       t.End = offset;
+      if (t.Label == std::numeric_limits<uint32>::max()) {
+        t.Label = 0;
+      }
       t.advance();
       return true;
     case HALT_OP:
