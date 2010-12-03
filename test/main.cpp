@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <time.h>
 #include <scope/testrunner.h>
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
@@ -93,8 +94,9 @@ uint64 readNext(ifstream* file, byte* buf) {
 }
 
 void printHelp(const po::options_description& desc) {
-  std::cout << "lightgrep, Copyright (c) 2010, Lightbox Technologies, Inc." << "\n\n"
+  std::cout << "lightgrep, Copyright (c) 2010, Lightbox Technologies, Inc." << "\nCreated December 3, 2010\n\n"
     << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
+    << "This copy provided EXCLUSIVELY to the U.S. Army, CCIU, DFRB\n\n"
     << desc << std::endl;
 }
 
@@ -151,6 +153,11 @@ void search(const Options& opts) {
   }  
 }
 
+void expired() {
+  std::cerr << "* Your copy of lightgrep has expired. *" << std::endl;
+  exit(1);
+}
+
 int main(int argc, char** argv) {
   Options opts;
 
@@ -177,6 +184,13 @@ int main(int argc, char** argv) {
   po::variables_map optsMap;
   try {
     po::store(po::command_line_parser(argc, argv).options(desc).positional(posOpts).run(), optsMap);
+    std::time_t t;
+    tm* timeObj;
+    t = std::time(0);
+    timeObj = std::gmtime(&t);
+    if (!(timeObj->tm_mon > 10 && timeObj->tm_year == 110) || (timeObj->tm_mon < 3 && timeObj->tm_year == 111)) {
+      expired();
+    }
     po::notify(optsMap);
     opts.CaseSensitive = optsMap.count("ignore-case") == 0;
     if (optsMap.count("help")) {
