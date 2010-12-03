@@ -2,6 +2,13 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
+
+#include <boost/bind.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <boost/graph/properties.hpp>
+#include <boost/property_map/dynamic_property_map.hpp>
 
 #include "utility_impl.h"
 #include "states.h"
@@ -20,6 +27,58 @@ void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor ta
   edge(source, target, fsm, TransitionPtr(tPtr));
 }
 
+/*
+std::ostream& operator<<(std::ostream& os, const boost::shared_ptr<TransitionPtr>& p) {
+  return os;
+}
+*/
+
+bool buildNFA(DynamicFSM& fsm, const std::string& dot) {
+  std::istringstream is(dot);
+
+  // Vertex properties
+  typedef boost::property<boost::vertex_name_t, std::string> vertex_p;
+  // Edge properties
+  typedef boost::property<boost::edge_name_t, std::string> edge_p;
+  // adjacency_list-based type
+  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
+                                vertex_p, edge_p> graph_t;
+
+  // Construct an empty graph and prepare the dynamic_property_maps
+  graph_t src(0);
+  boost::dynamic_properties dp;
+
+  boost::property_map<graph_t, boost::vertex_name_t>::type node_label =
+    get(boost::vertex_name, src);
+  dp.property("node_id", node_label);
+
+  boost::property_map<graph_t, boost::edge_name_t>::type edge_label =
+    get(boost::edge_name, src);
+  dp.property("label", edge_label);
+  
+  if (!boost::read_graphviz(is, src, dp, "node_id")) return false;
+
+  // Convert this graph to a DynamicFSM (annoying!)
+  
+  typedef typename boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
+  typedef typename boost::graph_traits<graph_t>::edge_iterator edge_iterator;
+
+  edge_iterator e, e_end;
+  for (boost::tie(e, e_end) = boost::edges(src); e != e_end; ++e) {
+    const unsigned int u = boost::lexical_cast<unsigned int>(
+      boost::get(node_label, boost::source(*e, src)));
+
+    const unsigned int v = boost::lexical_cast<unsigned int>(
+      boost::get(node_label, boost::target(*e, src)));
+
+    const char lit = boost::lexical_cast<char>(boost::get(edge_label, *e));
+
+    edge(u, v, fsm, new LitState(lit));
+  }
+
+  return true;
+}
+
 std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
   out << "(" << state.Start << ", " << state.NumEval << ", " << state.NumOther << ", " << state.CheckIndex << ")";
   return out;
@@ -27,10 +86,23 @@ std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
 
 SCOPE_TEST(acOrbcProgram) {
   DynamicFSM fsm(4);
+
+  buildNFA(
+    fsm,
+    "digraph {"
+    "  0 -> 1 [label=a];"
+    "  0 -> 2 [label=b];"
+    "  1 -> 3 [label=c];"
+    "  2 -> 3 [label=c];"
+    "}"
+  );
+
+/*
   edge(0, 1, fsm, new LitState('a')); // ac|bc
   edge(0, 2, fsm, new LitState('b'));
   edge(1, 3, fsm, new LitState('c'));
   edge(2, 3, fsm, new LitState('c'));
+*/
   boost::shared_ptr< std::vector<Instruction> > program = createProgram(fsm);
   
   SCOPE_ASSERT_EQUAL(7u, program->size());

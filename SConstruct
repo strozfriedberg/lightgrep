@@ -25,12 +25,12 @@ def buildBoost(target, source, env):
     os.chdir(str(source[0]))
     if (isWindows == True):
       shellCall('.\\bootstrap.bat')
-      shellCall('.\\bjam --stagedir=%s --with-thread --with-system '
+      shellCall('.\\bjam --stagedir=%s --with-graph --with-regex --with-system --with-system '
         'link=static variant=release threading=multi runtime-link=static toolset=gcc '
         '-s BOOST_NO_RVALUE_REFERENCES stage' % curDir)
     else:
       shellCall('./bootstrap.sh')
-      shellCall('./bjam --stagedir=%s --with-thread --with-system link=shared variant=release threading=multi stage' % curDir)
+      shellCall('./bjam --stagedir=%s --with-graph --with-regex --with-system --with-thread link=shared variant=release threading=multi stage' % curDir)
     os.chdir(curDir)
     if (isWindows):
       libs = [str(x) for x in Glob('#/lib/libboost*')]
@@ -75,7 +75,7 @@ env.Append(LIBPATH=['#/lib'])
 if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
-libBoost = env.Command(['#/lib/*boost_thread*', '#/lib/*boost_system*'], boostDir, buildBoost)
+libBoost = env.Command(['#/lib/*boost_graph*', '#/lib/*boost_regex*', '#/lib/*boost_system*', '#/lib/*boost_thread*'], boostDir, buildBoost)
 liblg = sub('src')
 libDir = env.Install('lib', liblg)
 test = sub('test')
