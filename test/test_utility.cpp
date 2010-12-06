@@ -15,6 +15,22 @@
 #include "MockCallback.h"
 #include "compiler.h"
 
+void ASSERT_EQUAL_GRAPHS(const DynamicFSM& a, const DynamicFSM& b) {
+  SCOPE_ASSERT_EQUAL(boost::num_vertices(a), boost::num_vertices(b));
+
+  // exp and dst have the same edges
+  EdgeIt a_e, a_end;
+  tie(a_e, a_end) = boost::edges(a);
+
+  EdgeIt b_e, b_end;
+  tie(b_e, b_end) = boost::edges(b);
+
+  for ( ; a_e != a_end && b_e != b_end; ++a_e, ++b_e) {
+    SCOPE_ASSERT_EQUAL(boost::source(*a_e, a), boost::source(*b_e, b));
+    SCOPE_ASSERT_EQUAL(boost::target(*a_e, a), boost::target(*b_e, b));
+  }
+}
+
 void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, TransitionPtr tPtr) {
   boost::add_edge(source, target, fsm);
   fsm[target] = tPtr;
@@ -483,19 +499,7 @@ SCOPE_TEST(testMergeLabels) {
   edge(1, 2, exp, new LitState('c', 1));
   edge(1, 3, exp, new LitState('b', 2));
 
-  SCOPE_ASSERT_EQUAL(boost::num_vertices(exp), boost::num_vertices(dst));
-
-  // exp and dst have the same edges
-  EdgeIt dst_e, dst_end;
-  tie(dst_e, dst_end) = boost::edges(dst);
-
-  EdgeIt exp_e, exp_end;
-  tie(exp_e, exp_end) = boost::edges(exp);
-
-  for ( ; dst_e != dst_end && exp_e != exp_end; ++dst_e, ++exp_e) {
-    SCOPE_ASSERT_EQUAL(boost::source(*exp_e, exp), boost::source(*dst_e, dst));
-    SCOPE_ASSERT_EQUAL(boost::target(*exp_e, exp), boost::target(*dst_e, dst));
-  }
+  ASSERT_EQUAL_GRAPHS(exp, dst);
 }
 
 SCOPE_TEST(testBitVectorGeneration) {
