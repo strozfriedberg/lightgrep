@@ -18,7 +18,7 @@
 void ASSERT_EQUAL_GRAPHS(const DynamicFSM& a, const DynamicFSM& b) {
   SCOPE_ASSERT_EQUAL(boost::num_vertices(a), boost::num_vertices(b));
 
-  // exp and dst have the same edges
+  // a and b have the same edges
   EdgeIt a_e, a_end;
   tie(a_e, a_end) = boost::edges(a);
 
@@ -480,7 +480,7 @@ SCOPE_TEST(testMerge) {
   SCOPE_ASSERT_EQUAL(3u, boost::in_degree(7, fsm));
 }
 
-SCOPE_TEST(testMergeLabels) {
+SCOPE_TEST(testMergeLabelsSimple) {
   Compiler c;
   DynamicFSM src, dst, exp;
 
@@ -500,6 +500,11 @@ SCOPE_TEST(testMergeLabels) {
   edge(1, 3, exp, new LitState('b', 2));
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
+
+  SCOPE_ASSERT(!dst[0]);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[1]->Label);
+  SCOPE_ASSERT_EQUAL(1, dst[2]->Label);
+  SCOPE_ASSERT_EQUAL(0, dst[3]->Label);
 }
 
 SCOPE_TEST(testBitVectorGeneration) {
