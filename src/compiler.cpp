@@ -48,17 +48,26 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
             edgeBits.reset();
             edgeTran->getBits(edgeBits);
             // std::cerr << "    looking at merge state " << target << " with transition " << edgeTran->label() << std::endl;
-            if (edgeBits == tranBits && (edgeTran->Label == UNALLOCATED || edgeTran->Label == keyIdx) && 1 == boost::in_degree(target, fsm) && 2 > boost::in_degree(oldSource, addend) && 2 > boost::in_degree(oldTarget, addend)) {
+            if (edgeBits == tranBits &&
+                (edgeTran->Label == UNALLOCATED || edgeTran->Label == keyIdx) &&
+                1 == boost::in_degree(target, fsm) &&
+                2 > boost::in_degree(oldSource, addend) &&
+                2 > boost::in_degree(oldTarget, addend)) {
               // std::cerr << "    found equivalent state " << target << std::endl;
               found = true;
               break;
             }
           }
+
           if (!found) {
+            // the target NFA and the source NFA have diverged; copy
+            // add this vertex from the source to the target
+
             target = boost::add_vertex(fsm);
             // std::cerr << "  creating new state " << target << std::endl;
             fsm[target] = tran;
           }
+
           StateMap[oldTarget] = target;
         }
         else {
