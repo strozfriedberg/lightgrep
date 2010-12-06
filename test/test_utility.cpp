@@ -464,6 +464,40 @@ SCOPE_TEST(testMerge) {
   SCOPE_ASSERT_EQUAL(3u, boost::in_degree(7, fsm));
 }
 
+SCOPE_TEST(testMergeLabels) {
+  Compiler c;
+  DynamicFSM src, dst, exp;
+
+  // ab
+  edge(0, 1, src, new LitState('a'));
+  edge(1, 2, src, new LitState('b', 0));
+
+  // ac
+  edge(0, 1, dst, new LitState('a'));
+  edge(1, 2, dst, new LitState('c', 1));
+
+  c.mergeIntoFSM(dst, src, 1);  // XXX: wtf does '1' do?
+  
+  // ab + ac
+  edge(0, 1, exp, new LitState('a'));
+  edge(1, 2, exp, new LitState('c', 1));
+  edge(1, 3, exp, new LitState('b', 2));
+
+  SCOPE_ASSERT_EQUAL(boost::num_vertices(exp), boost::num_vertices(dst));
+
+  // exp and dst have the same edges
+  EdgeIt dst_e, dst_end;
+  tie(dst_e, dst_end) = boost::edges(dst);
+
+  EdgeIt exp_e, exp_end;
+  tie(exp_e, exp_end) = boost::edges(exp);
+
+  for ( ; dst_e != dst_end && exp_e != exp_end; ++dst_e, ++exp_e) {
+    SCOPE_ASSERT_EQUAL(boost::source(*exp_e, exp), boost::source(*dst_e, dst));
+    SCOPE_ASSERT_EQUAL(boost::target(*exp_e, exp), boost::target(*dst_e, dst));
+  }
+}
+
 SCOPE_TEST(testBitVectorGeneration) {
   ByteSet    bits;
   bits.reset();
