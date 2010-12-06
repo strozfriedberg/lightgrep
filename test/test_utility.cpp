@@ -503,8 +503,41 @@ SCOPE_TEST(testMergeLabelsSimple) {
 
   SCOPE_ASSERT(!dst[0]);
   SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[1]->Label);
-  SCOPE_ASSERT_EQUAL(1, dst[2]->Label);
-  SCOPE_ASSERT_EQUAL(0, dst[3]->Label);
+  SCOPE_ASSERT_EQUAL(1,           dst[2]->Label);
+  SCOPE_ASSERT_EQUAL(0,           dst[3]->Label);
+}
+
+SCOPE_TEST(testMergeLabelsComplex) {
+  Compiler c;
+  DynamicFSM src, dst, exp;
+
+  // abd
+  edge(0, 1, src, new LitState('a'));
+  edge(1, 2, src, new LitState('b'));
+  edge(2, 3, src, new LitState('d', 0));
+
+  // acd
+  edge(0, 1, dst, new LitState('a'));
+  edge(1, 2, dst, new LitState('c'));
+  edge(2, 3, dst, new LitState('d', 1));
+
+  c.mergeIntoFSM(dst, src, 1);  // XXX: wtf does '1' do?
+  
+  // abd + acd
+  edge(0, 1, exp, new LitState('a'));
+  edge(1, 2, exp, new LitState('c'));
+  edge(2, 3, exp, new LitState('d', 1));
+  edge(1, 4, exp, new LitState('b'));
+  edge(4, 5, exp, new LitState('d', 0));
+
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+
+  SCOPE_ASSERT(!dst[0]);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[1]->Label);
+  SCOPE_ASSERT_EQUAL(1,           dst[2]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[3]->Label);
+  SCOPE_ASSERT_EQUAL(0,           dst[4]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[5]->Label);
 }
 
 SCOPE_TEST(testBitVectorGeneration) {
