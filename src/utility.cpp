@@ -13,6 +13,16 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
+void addNewEdge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm) {
+  std::pair<DynamicFSM::adjacency_iterator, DynamicFSM::adjacency_iterator> nextStates(adjacent_vertices(source, fsm));
+  for (DynamicFSM::adjacency_iterator it(nextStates.first); it != nextStates.second; ++it) {
+    if (target == *it) {
+      return;
+    }
+  }
+  boost::add_edge(source, target, fsm);
+}
+
 void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, DynamicFSMPtr& fsm, uint32& keyIdx) {
   SyntaxTree  tree;
   Compiler    comp;
@@ -23,7 +33,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
     if (!kw.empty()) {
       p.setCurLabel(keyIdx);
       p.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
-      if (parse(kw, tree, p)) {
+      if (parse(kw, tree, p) && p.good()) {
         if (fsm) {
           comp.mergeIntoFSM(*fsm, *p.getFsm(), keyIdx);
         }
@@ -159,8 +169,11 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
       curOp += t->numInstructions();
       // std::cerr << "wrote " << i << std::endl;
       if (t->Label < 0xffffffff) {
-        *curOp++ = Instruction::makeMatch(t->Label); // also problematic
+        *curOp++ = Instruction::makeLabel(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
+      }
+      if (t->IsMatch) {
+        *curOp++ = Instruction::makeMatch();
       }
     }
     if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op || JUMP_TABLE_OP == cg->Snippets[v].Op) {
@@ -246,8 +259,8 @@ ByteSet firstBytes(const DynamicFSM& graph) {
   return ret;
 }
 
-boost::shared_ptr<Vm> initVM(const std::vector<std::string>& keywords, SearchInfo&) {
-  boost::shared_ptr<Vm> vm(new Vm);
+boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, SearchInfo&) {
+  boost::shared_ptr<VmInterface> vm = VmInterface::create();
   DynamicFSMPtr fsm = createDynamicFSM(keywords);
   ProgramPtr prog = createProgram(*fsm);
   prog->Skip = calculateSkipTable(*fsm);

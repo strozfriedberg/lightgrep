@@ -6,7 +6,7 @@
 
 #include "instructions.h"
 #include "dynamicFSM.h"
-#include "vm.h"
+#include "vm_interface.h"
 
 struct SearchInfo {
   
@@ -30,6 +30,8 @@ typedef std::pair<InEdgeIt, InEdgeIt> InEdgeRange;
 typedef DynamicFSM::out_edge_iterator OutEdgeIt;
 typedef std::pair< OutEdgeIt, OutEdgeIt > OutEdgeRange;
 
+void addNewEdge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm);
+
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII, bool caseSensitive = true);
 DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive);
 
@@ -42,7 +44,7 @@ ProgramPtr createProgram(const DynamicFSM& graph);
 ByteSet firstBytes(const DynamicFSM& graph);
 void nextBytes(ByteSet& set, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph);
 
-boost::shared_ptr<Vm> initVM(const std::vector<std::string>& keywords, SearchInfo& info);
+boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, SearchInfo& info);
 
 std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicFSM::vertex_descriptor source, const DynamicFSM& graph);
 
