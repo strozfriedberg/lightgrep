@@ -505,10 +505,16 @@ SCOPE_TEST(testMergeLabelsComplex) {
   edge(1, 2, src, new LitState('b'));
   edge(2, 3, src, new LitState('d', 0));
 
+  src[1]->Label = 0;
+  src[3]->IsMatch = true;
+
   // acd
   edge(0, 1, dst, new LitState('a'));
   edge(1, 2, dst, new LitState('c'));
   edge(2, 3, dst, new LitState('d', 1));
+
+  dst[1]->Label = 1;
+  dst[3]->IsMatch = true;
 
   c.mergeIntoFSM(dst, src, 1);  // XXX: wtf does '1' do?
   
@@ -522,11 +528,18 @@ SCOPE_TEST(testMergeLabelsComplex) {
   ASSERT_EQUAL_GRAPHS(exp, dst);
 
   SCOPE_ASSERT(!dst[0]);
+
   SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[1]->Label);
   SCOPE_ASSERT_EQUAL(1,           dst[2]->Label);
   SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[3]->Label);
   SCOPE_ASSERT_EQUAL(0,           dst[4]->Label);
   SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[5]->Label);
+
+  SCOPE_ASSERT(!dst[1]->IsMatch);
+  SCOPE_ASSERT(!dst[2]->IsMatch);
+  SCOPE_ASSERT(dst[3]->IsMatch);
+  SCOPE_ASSERT(!dst[4]->IsMatch);
+  SCOPE_ASSERT(dst[5]->IsMatch);
 }
 
 SCOPE_TEST(testBitVectorGeneration) {
