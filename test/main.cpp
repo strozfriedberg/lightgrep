@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <time.h>
 #include <scope/testrunner.h>
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
@@ -10,7 +11,7 @@
 #include <boost/bind.hpp>
 
 #include "utility.h"
-#include "vm.h"
+#include "vm_interface.h"
 #include "hitwriter.h"
 #include "options.h"
 
@@ -28,38 +29,17 @@ namespace po = boost::program_options;
 
 void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
 
-bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys) {
-  std::ifstream keyFile(keyFilePath.c_str(), ios::in);
-  keys.clear();
-  if (keyFile) {
-    while (keyFile) {
-      char line[8192];
-      keyFile.getline(line, 8192);
-      std::string lineS(line);
-      if (!lineS.empty()) {
-        keys.push_back(lineS);
-        // std::cerr << "read " << lineS << std::endl;
-      }
-    }
-    return !keys.empty();
-  }
-  else {
-    std::cerr << "Could not open file" << std::endl;
-    return false;
-  }
-}
-
 void writeGraphviz(const Options& opts) {
-  std::vector<std::string> keys;
-  if (readKeyFile(opts.KeyFile, keys)) {
+  std::vector<std::string> keys = opts.getKeys();
+  if (!keys.empty()) {
     DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding());
     writeGraphviz(opts.openOutput(), *fsm);
   }
 }
 
 void writeProgram(const Options& opts) {
-  std::vector<std::string> keys;
-  if (readKeyFile(opts.KeyFile, keys)) {
+  std::vector<std::string> keys = opts.getKeys();
+  if (!keys.empty()) {
     DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding());
     ProgramPtr p = createProgram(*fsm);
     std::ostream& out(opts.openOutput());
@@ -69,7 +49,7 @@ void writeProgram(const Options& opts) {
 }
 
 ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
-  readKeyFile(opts.KeyFile, keyInfo.Keywords);
+  keyInfo.Keywords = opts.getKeys();
   std::cerr << keyInfo.Keywords.size() << " keywords"<< std::endl;
 
   DynamicFSMPtr fsm = createDynamicFSM(keyInfo, opts.getEncoding(), opts.CaseSensitive);
@@ -97,10 +77,10 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
   return p;
 }
 
-boost::shared_ptr<Vm> initSearch(const Options& opts, KwInfo& keyInfo) {
+boost::shared_ptr<VmInterface> initSearch(const Options& opts, KwInfo& keyInfo) {
   ProgramPtr p = initProgram(opts, keyInfo);
 
-  boost::shared_ptr<Vm> ret(new Vm);
+  boost::shared_ptr<VmInterface> ret = VmInterface::create();
   ret->init(p);
   ret->setDebugRange(opts.DebugBegin, opts.DebugEnd);
   return ret;
@@ -114,8 +94,9 @@ uint64 readNext(ifstream* file, byte* buf) {
 }
 
 void printHelp(const po::options_description& desc) {
-  std::cout << "lightgrep, Copyright (c) 2010, Lightbox Technologies, Inc." << "\n\n"
+  std::cout << "lightgrep, Copyright (c) 2010, Lightbox Technologies, Inc." << "\nCreated December 3, 2010\n\n"
     << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
+    << "This copy provided EXCLUSIVELY to the U.S. Army, CCIU, DFRB\n\n"
     << desc << std::endl;
 }
 
@@ -124,7 +105,7 @@ void search(const Options& opts) {
   if (file) {
     file.rdbuf()->pubsetbuf(0, 0);
     KwInfo keyInfo;
-    boost::shared_ptr<Vm> search = initSearch(opts, keyInfo);
+    boost::shared_ptr<VmInterface> search = initSearch(opts, keyInfo);
 
     HitWriter cb(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
 
@@ -172,6 +153,11 @@ void search(const Options& opts) {
   }  
 }
 
+void expired() {
+  std::cerr << "* Your copy of lightgrep has expired. *" << std::endl;
+  exit(1);
+}
+
 int main(int argc, char** argv) {
   Options opts;
 
@@ -188,6 +174,7 @@ int main(int argc, char** argv) {
     ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
     ("ignore-case,i", "file to search")
+    ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value< uint64 >(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
@@ -197,6 +184,13 @@ int main(int argc, char** argv) {
   po::variables_map optsMap;
   try {
     po::store(po::command_line_parser(argc, argv).options(desc).positional(posOpts).run(), optsMap);
+    std::time_t t;
+    tm* timeObj;
+    t = std::time(0);
+    timeObj = std::gmtime(&t);
+    if (!(timeObj->tm_mon > 10 && timeObj->tm_year == 110) || (timeObj->tm_mon < 3 && timeObj->tm_year == 111)) {
+      expired();
+    }
     po::notify(optsMap);
     opts.CaseSensitive = optsMap.count("ignore-case") == 0;
     if (optsMap.count("help")) {
@@ -205,7 +199,7 @@ int main(int argc, char** argv) {
     else if (opts.Command == "test" || optsMap.count("test")) {
       return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
     }
-    if (opts.Command == "search" && optsMap.count("keywords")) {
+    if (opts.Command == "search" && (optsMap.count("keywords") || optsMap.count("pattern"))) {
       search(opts);
     }
     else if (opts.Command == "graph") {

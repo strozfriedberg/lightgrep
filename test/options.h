@@ -1,8 +1,12 @@
 #pragma once
 
-#include <fstream>
+// must include <fstream> before this header, because of <iosfwd> usage
 
-struct Options {
+#include "basic.h"
+#include <iosfwd>
+
+class Options {
+public:
   uint64  DebugBegin,
           DebugEnd;
           
@@ -10,37 +14,15 @@ struct Options {
               Command,
               Input,
               Output,
-              Encoding;
+              Encoding,
+              Pattern;
   bool    CaseSensitive;
 
   mutable std::ofstream OutputFile;
 
-  uint32 getEncoding() const {
-    uint32 value = 0;
-    if (Encoding == "ucs16") {
-      value |= CP_UCS16;
-    }
-    else if (Encoding == "both") {
-      value |= CP_UCS16;
-      value |= CP_ASCII;
-    }
-    else if (Encoding == "ascii") {
-      value |= CP_ASCII;
-    }
-    return value;
-  }
+  uint32 getEncoding() const;
 
-  std::ostream& openOutput() const {
-    if (Output == "-") {
-      return std::cout;
-    }
-    else {
-      OutputFile.clear();
-      OutputFile.open(Output.c_str(), std::ios::out);
-      if (!OutputFile) {
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file " << Output);
-      }
-      return OutputFile;
-    }
-  }
+  std::ostream& openOutput() const;
+
+  std::vector< std::string > getKeys() const;
 };

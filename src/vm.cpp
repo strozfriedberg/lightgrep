@@ -17,7 +17,29 @@ void Thread::output(std::ostream& out, const Instruction* base) const {
   out << "{ \"pc\":" << (PC ? PC - base: -1) << ", \"Label\":" << Label << ", \"Start\":" << Start << ", \"End\":" << End << " }";
 }
 
-Vm::Vm() : SkipTblPtr(0), BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED) {}
+void printThreads(const Vm::ThreadList& list, uint64 offset, const Instruction* base) { // can only be called if list is not empty
+  std::cerr << "{\"offset\":" << offset << ", \"num\":" << list.size() << ", \"list\":[";
+  Vm::ThreadList::const_iterator threadIt = list.begin();
+  threadIt->output(std::cerr, base);
+  while (++threadIt != list.end()) {
+    std::cerr << ", ";
+    threadIt->output(std::cerr, base);
+  }
+  std::cerr << "]}\n";  
+}
+
+
+boost::shared_ptr<VmInterface> VmInterface::create() {
+  return boost::shared_ptr<VmInterface>(new Vm);
+}
+
+Vm::Vm() : BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED), CurHitFn(0) {}
+
+Vm::Vm(ProgramPtr prog): 
+  BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED), CurHitFn(0)
+{
+  init(prog);
+}
 
 void Vm::init(ProgramPtr prog) {
   Prog = prog;
@@ -27,10 +49,10 @@ void Vm::init(ProgramPtr prog) {
          numCheckedStates = 0;
   Program& p(*Prog);
   for (uint32 i = 0; i < p.size(); ++i) {
-    if (p[i].OpCode == MATCH_OP && numPatterns < p[i].Op.Offset) {
+    if (p[i].OpCode == LABEL_OP && numPatterns < p[i].Op.Offset) {
       numPatterns = p[i].Op.Offset;
     }
-    if (p[i].OpCode == CHECK_BRANCH_OP || p[i].OpCode == CHECK_HALT_OP) {
+    if (p[i].OpCode == CHECK_HALT_OP) {
       numCheckedStates = std::max(numCheckedStates, p[i].Op.Offset);
     }
   }
@@ -38,6 +60,14 @@ void Vm::init(ProgramPtr prog) {
   numCheckedStates += 2; // bit 0 reserved for whether any bits were flipped
   Matches.resize(numPatterns);
   CheckStates.resize(numCheckedStates);
+  Thread s0(&(*Prog)[0]);
+  if (_executeEpSequence(&(*Prog)[0], s0, 0)) {
+    Next.push_back(s0);
+  }
+  First.resize(Next.size());
+  for (uint32 i = 0; i < Next.size(); ++i) {
+    First.push_back(Next[i]);
+  }
   reset();
 }
 
@@ -46,9 +76,10 @@ void Vm::reset() {
   Next.clear();
   CheckStates.assign(CheckStates.size(), false);
   Matches.assign(Matches.size(), std::pair<uint64, uint64>(UNALLOCATED, 0));
+  CurHitFn = 0;
 }
 
-inline bool _execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, Vm::ThreadList& active, Vm::ThreadList& next, const byte* cur, uint64 offset) {
+inline bool Vm::_execute(Thread& t, const byte* cur) {
   // std::string instr;
   // std::cerr << t << std::endl;
   // instr = t.PC->toString(); // for some reason, toString() is corrupting the stack... maybe?
@@ -61,186 +92,154 @@ inline bool _execute(const Instruction* base, Thread& t, std::vector<bool>& chec
       // std::cerr << "Lit " << t.PC->Op.Literal << std::endl;
       if (*cur == instr.Op.Literal) {
         t.advance();
-        next.push_back(t);
+        return true;
       }
-      else {
-        t.PC = 0;
-      }
-      return false;
+      break;
     case EITHER_OP:
       if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
         t.advance();
-        next.push_back(t);
+        return true;
       }
-      else {
-        t.PC = 0;
-      }
-      return false;
+      break;
     case RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         t.advance();
-        next.push_back(t);
+        return true;
       }
-      else {
-        t.PC = 0;
-      }
-      return false;
+      break;
     case BIT_VECTOR_OP:
       {
         const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t.PC + 1);
         if ((*setPtr)[*cur]) {
           t.advance();
-          next.push_back(t);
-        }
-        else {
-          t.PC = 0;
+          return true;
         }
       }
-      return false;
+      break;
     case JUMP_TABLE_OP:
-      nextT.fork(t, t.PC, 1 + *cur);
-      if (nextT.PC->OpCode != HALT_OP) {
-        next.push_back(nextT);
-      }
-      else {
-        t.PC = 0;
-      }
-      return false;
-    case JUMP_TABLE_RANGE_OP:
-      if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
-        nextT.fork(t, t.PC, 1 + (*cur - instr.Op.Range.First));
-        if (nextT.PC->OpCode != HALT_OP) {
-          next.push_back(nextT);
-        }
-      }
-      t.PC = 0;
-      return false;
-    case JUMP_OP:
-      // std::cerr << "Jump " << t.PC->Op.Offset << std::endl;
-      t.jump(base, instr.Op.Offset);
-      return true;
-    case FORK_OP:
-      // std::cerr << "Fork " << t.PC->Op.Offset << std::endl;
-      nextT.fork(t, base, instr.Op.Offset);
-      active.push_back(nextT);
-      t.advance();
-      return true;
-    case CHECK_BRANCH_OP:
-      if (checkStates[instr.Op.Offset]) {
-        t.advance();
-      }
-      else {
-        checkStates[instr.Op.Offset] = true;
-        checkStates[0] = true;
-      }
-      t.advance();
-      return true;
-    case CHECK_HALT_OP:
-      if (checkStates[instr.Op.Offset]) {
-        t.PC = 0;
-        return false;
-      }
-      else {
-        checkStates[instr.Op.Offset] = true;
-        checkStates[0] = true;
-        t.advance();
+      t.jump(t.PC, 1 + *cur);
+      if (t.PC->OpCode != HALT_OP) {
         return true;
       }
-    case MATCH_OP:
-      // std::cerr << "at " << offset << ", " << *t.PC << std::endl;
-      t.Label = instr.Op.Offset;
-      t.End = offset;
-      t.advance();
-      return true;
-    case HALT_OP:
-      t.PC = 0;
-      return false;
+      break;
+    case JUMP_TABLE_RANGE_OP:
+      if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
+        t.jump(t.PC, 1 + (*cur - instr.Op.Range.First));
+        if (t.PC->OpCode != HALT_OP) {
+          return true;
+        }
+      }
+      break;
   }
+  t.PC = 0;
   return false;
 }
 
-inline bool _executeEpsilons(const Instruction* base, Thread& t, std::vector<bool>& checkStates, Vm::ThreadList& active, Vm::ThreadList& next, uint64 offset) {
-  Thread f;
+// while base is always == &Program[0], we pass it in because it then should get inlined away
+inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offset) {
   register Instruction instr = *t.PC;
   switch (instr.OpCode) {
-    case LIT_OP:
-    case EITHER_OP:
-    case RANGE_OP:
-    case BIT_VECTOR_OP:
-    case JUMP_TABLE_OP:
-    case JUMP_TABLE_RANGE_OP:
-      next.push_back(t);
-      return false;
+    case FORK_OP:
+      {
+        Thread f = t;
+        t.advance();
+        // recurse to keep going in sequence
+        if (_executeEpSequence(base, t, offset)) {
+          Next.push_back(t);
+        }
+        // now back up to the fork, and fall through to handle it as a jump
+        t = f;
+      }
     case JUMP_OP:
       t.jump(base, instr.Op.Offset);
       return true;
-    case FORK_OP:
-      f.fork(t, base, instr.Op.Offset);
-      active.push_back(f);
-      t.advance();
-      return true;
-    case CHECK_BRANCH_OP:
-      if (checkStates[instr.Op.Offset]) {
-        t.advance();
-      }
-      else {
-        checkStates[instr.Op.Offset] = true;
-        checkStates[0] = true;
-      }
-      t.advance();
-      return true;
     case CHECK_HALT_OP:
-      if (checkStates[instr.Op.Offset]) {
+      if (CheckStates[instr.Op.Offset]) {
         t.PC = 0;
         return false;
       }
       else {
-        checkStates[instr.Op.Offset] = true;
-        checkStates[0] = true;
+        CheckStates[instr.Op.Offset] = true;
+        CheckStates[0] = true;
         t.advance();
         return true;
       }
-    case MATCH_OP:
+    case LABEL_OP:
       t.Label = instr.Op.Offset;
+      t.advance();
+      return true;
+    case MATCH_OP:
       t.End = offset;
       t.advance();
       return true;
     case HALT_OP:
       t.PC = 0;
+    default:
+      // Next.push_back(t);
       return false;
   }
-  return true;
 }
 
-bool Vm::execute(const Instruction* base, Thread& t, std::vector<bool>& checkStates, ThreadList& active, ThreadList& next, const byte* cur, uint64 offset) {
-  return _execute(base, t, checkStates, active, next, cur, offset);
-}
-
-void printThreads(const Vm::ThreadList& list, uint64 offset, const Instruction* base) { // can only be called if list is not empty
-  std::cerr << "{\"offset\":" << offset << ", \"num\":" << list.size() << ", \"list\":[";
-  Vm::ThreadList::const_iterator threadIt = list.begin();
-  threadIt->output(std::cerr, base);
-  while (++threadIt != list.end()) {
-    std::cerr << ", ";
-    threadIt->output(std::cerr, base);
+inline void Vm::_executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset) {
+  if (_execute(t, cur) && _executeEpSequence(base, t, offset)) {
+    Next.push_back(t);
   }
-  std::cerr << "]}\n";  
 }
 
-void Vm::doMatch(register ThreadList::iterator threadIt, HitCallback& hitFn) {
+inline bool Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 offset) {
+  while (_executeEpsilon(base, t, offset)) ;
+  if (t.End == offset) {
+    doMatch(t);
+  }
+  return t.PC;
+}
+
+inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset) {
+  while (threadIt != Active.end()) {
+    _executeThread(base, *threadIt, cur, offset);
+    ++threadIt;
+  }
+  if (first[*cur]) {
+    for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
+      Active.addBack().init(it->PC, offset);
+    }
+//    Active.addBack().init(base, offset);
+    do {
+      _executeThread(base, *threadIt, cur, offset);
+    } while (++threadIt != Active.end());
+  }
+}
+
+bool Vm::execute(Thread& t, const byte* cur) {
+  return _execute(t, cur);
+}
+
+bool Vm::executeEpsilon(Thread& t, uint64 offset) {
+  return _executeEpsilon(&(*Prog)[0], t, offset);
+}
+
+void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
+  CurHitFn = &hitFn;
+  ThreadList::iterator threadIt = Active.begin();
+  _executeFrame(Prog->First, threadIt, &(*Prog)[0], cur, offset);
+}
+
+void Vm::doMatch(const Thread& t) {
   // std::cerr << "had a match" << std::endl;
   SearchHit  hit;
-  std::pair< uint64, uint64 > lastHit = Matches[threadIt->Label];
-  if (lastHit.first == UNALLOCATED || (lastHit.first == threadIt->Start && lastHit.second < threadIt->End)) {
-    Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+  std::pair< uint64, uint64 > lastHit = Matches[t.Label];
+  if (lastHit.first == UNALLOCATED || (lastHit.first == t.Start && lastHit.second < t.End)) {
+    Matches[t.Label] = std::make_pair(t.Start, t.End);
   }
-  else if (lastHit.second <= threadIt->Start) {
+  else if (lastHit.second < t.Start) {
     hit.Offset = lastHit.first;
-    hit.Length = lastHit.second - lastHit.first;
-    hit.Label = threadIt->Label;
-    hitFn.collect(hit);
+    hit.Length = lastHit.second - lastHit.first + 1;
+    hit.Label = t.Label;
+    if (CurHitFn) {
+      CurHitFn->collect(hit);
+    }
     // std::cerr << "emitting hit " << hit << std::endl;
-    Matches[threadIt->Label] = std::make_pair(threadIt->Start, threadIt->End);
+    Matches[t.Label] = std::make_pair(t.Start, t.End);
   }
 }
 
@@ -253,45 +252,14 @@ inline void Vm::cleanup() {
 }
 
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
+  CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];
   SearchHit  hit;
-  register uint64     offset = startOffset;
-  // register uint32     window = Prog->Skip ? Prog->Skip->l_min() - 1: 1;
-  // register uint32     curDiff;
-  // const std::vector<uint32>* skipTbl = Prog->Skip ? &Prog->Skip->skipVec(): SkipTblPtr.get();
-  // if (!skipTbl) {
-  //   SkipTblPtr.reset(new std::vector<uint32>(256, 0));
-  //   skipTbl = SkipTblPtr.get();
-  // }
-  // register const byte* guard;
-  // register byte value;
-  ByteSet first = Prog->First;
-  register ThreadList::iterator threadIt = Active.begin();
+  ByteSet    first = Prog->First;
+  register   uint64     offset = startOffset;
+  ThreadList::iterator threadIt = Active.begin();
   for (register const byte* cur = beg; cur < end; ++cur) {
-    while (threadIt != Active.end()) {
-      while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
-      if (threadIt->End == offset) {
-        doMatch(threadIt, hitFn);
-      }
-      ++threadIt;
-    }
-    // guard   = cur + window >= end ? end - 1: cur + window;
-    // curDiff = guard - cur;
-    // value   = *guard;
-    // while (curDiff > 0 && (*skipTbl)[value] <= curDiff) {
-    //   --curDiff;
-    //   value = *(--guard);
-    // }
-    // if (guard == cur && (*skipTbl)[value] == 0) {
-    if (first[*cur]) {
-      Active.addBack().init(base, offset);
-      do {
-        while (_execute(base, *threadIt, CheckStates, Active, Next, cur, offset)) ;
-        if (threadIt->End == offset) {
-          doMatch(threadIt, hitFn);
-        }
-      } while (++threadIt != Active.end());
-    }
+    _executeFrame(first, threadIt, base, cur, offset);
     if (threadIt != Active.begin()) {
       #ifdef LBT_TRACE_ENABLED
       if (BeginDebug <= offset && offset < EndDebug) {
@@ -301,30 +269,18 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
       cleanup();
       threadIt = Active.begin();
     }
-    // else {
-    //   offset += curDiff;
-    //   cur = guard;
-    // }
     ++offset;
   }
-  // this flushes out last char matches
-  // and leaves us only with comparison instructions (in next)
-  for (threadIt = Active.begin(); threadIt != Active.end(); ++threadIt) {
-    while (_executeEpsilons(base, *threadIt, CheckStates, Active, Next, offset)) ;
-    if (threadIt->End == offset) {
-      doMatch(threadIt, hitFn);
-    }
-  }
+  // output the last existing matches
   for (uint32 i = 0; i < Matches.size(); ++i) {
     if (Matches[i].first < UNALLOCATED) {
       hit.Offset = Matches[i].first;
-      hit.Length = Matches[i].second - hit.Offset;
+      hit.Length = Matches[i].second - hit.Offset + 1;
       hit.Label = i;
       hitFn.collect(hit);
       Matches[i] = std::make_pair(UNALLOCATED, 0ul);
     }
   }
-  cleanup();
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
   return Active.size() > 0; // potential hits, if there's more data
 }

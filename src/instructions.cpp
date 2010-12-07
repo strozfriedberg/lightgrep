@@ -51,14 +51,14 @@ std::string Instruction::toString() const {
     case FORK_OP:
       buf << "Fork 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
-    case CHECK_BRANCH_OP:
-      buf << "CheckBranch 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
-      break;
     case CHECK_HALT_OP:
       buf << "CheckHalt 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
+    case LABEL_OP:
+      buf << "Label " << Op.Offset;
+      break;
     case MATCH_OP:
-      buf << "Match " << Op.Offset;
+      buf << "Match";
       break;
     case HALT_OP:
       buf << "Halt";
@@ -132,8 +132,14 @@ Instruction Instruction::makeJumpTableRange(byte first, byte last) {
   return i;
 }
 
-Instruction Instruction::makeMatch(uint32 label) {
+Instruction Instruction::makeLabel(uint32 label) {
   Instruction i = makeJump(label);
+  i.OpCode = LABEL_OP;
+  return i;
+}
+
+Instruction Instruction::makeMatch() {
+  Instruction i = makeJump(0);
   i.OpCode = MATCH_OP;
   return i;
 }
@@ -141,12 +147,6 @@ Instruction Instruction::makeMatch(uint32 label) {
 Instruction Instruction::makeFork(uint32 index) {
   Instruction i = makeJump(index);
   i.OpCode = FORK_OP;
-  return i;
-}
-
-Instruction Instruction::makeCheckBranch(uint32 checkIndex) {
-  Instruction i = makeJump(checkIndex);
-  i.OpCode = CHECK_BRANCH_OP;
   return i;
 }
 
