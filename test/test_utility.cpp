@@ -505,7 +505,6 @@ SCOPE_TEST(testMergeLabelsComplex) {
   edge(1, 2, src, new LitState('b'));
   edge(2, 3, src, new LitState('d', 0));
 
-  src[1]->Label = 0;
   src[3]->IsMatch = true;
 
   // acd
@@ -513,11 +512,11 @@ SCOPE_TEST(testMergeLabelsComplex) {
   edge(1, 2, dst, new LitState('c'));
   edge(2, 3, dst, new LitState('d', 1));
 
-  dst[1]->Label = 1;
   dst[3]->IsMatch = true;
 
-  c.mergeIntoFSM(dst, src, 1);  // XXX: wtf does '1' do?
-  
+  c.mergeIntoFSM(dst, src, 1);
+  c.labelGuardStates(dst); 
+ 
   // abd + acd
   edge(0, 1, exp, new LitState('a'));
   edge(1, 2, exp, new LitState('c'));
@@ -531,9 +530,9 @@ SCOPE_TEST(testMergeLabelsComplex) {
 
   SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[1]->Label);
   SCOPE_ASSERT_EQUAL(1,           dst[2]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[3]->Label);
+  SCOPE_ASSERT_EQUAL(1,           dst[3]->Label);
   SCOPE_ASSERT_EQUAL(0,           dst[4]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[5]->Label);
+  SCOPE_ASSERT_EQUAL(0,           dst[5]->Label);
 
   SCOPE_ASSERT(!dst[1]->IsMatch);
   SCOPE_ASSERT(!dst[2]->IsMatch);
