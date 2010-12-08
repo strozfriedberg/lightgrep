@@ -4,6 +4,8 @@
 #include <stack>
 #include <iostream>
 
+#include <boost/bind.hpp>
+
 static const DynamicFSM::vertex_descriptor UNALLOCATED = 0xffffffff;
 
 void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx) {
@@ -30,7 +32,7 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
       // std::cerr << "on state pair " << oldSource << ", " << source << std::endl;
       Visited[oldSource] = true;
 
-      OutEdgeRange  oldOutRange(boost::out_edges(oldSource, addend));
+      OutEdgeRange oldOutRange(boost::out_edges(oldSource, addend));
       for (OutEdgeIt e(oldOutRange.first); e != oldOutRange.second; ++e) {
         oldTarget = boost::target(*e, addend);
         if (StateMap[oldTarget] == UNALLOCATED) {
@@ -60,12 +62,33 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
           }
 
           if (!found) {
-            // the target NFA and the source NFA have diverged; copy
-            // add this vertex from the source to the target
+            // The destination NFA and the source NFA have diverged.
+/*          
+            // If the head node in the target NFA had a guard label,
+            // advance it to that node's children.
+            if (fsm[source] && !fsm[source]->IsMatch && 
+                fsm[source]->Label != UNALLOCATED) {
+              OutEdgeRange oer(boost::out_edges(source, fsm));
+              for (OutEdgeIt oe(oer.first); oe != oer.second; ++oe) {
+                fsm[boost::target(*oe, fsm)]->Label = fsm[source]->Label;
+              }
+              fsm[source]->Label = UNALLOCATED;
+            }
+*/
 
+            // Copy the tail node from the source to the destination
             target = boost::add_vertex(fsm);
             // std::cerr << "  creating new state " << target << std::endl;
             fsm[target] = tran;
+
+/*
+            // If the head node in the addend NFA had a guard label,
+            // advance it to the new node in the target NFA.
+            if (addend[oldSource] && !addend[oldSource]->IsMatch &&
+                addend[oldSource]->Label != UNALLOCATED) {
+              fsm[target]->Label = keyIdx; 
+            }
+*/
           }
 
           StateMap[oldTarget] = target;
@@ -79,5 +102,84 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
         States.push(StatePair(oldTarget, target));
       }
     }
+  }
+}
+
+void Compiler::labelGuardStates(DynamicFSM& fsm) {
+  using namespace boost;
+
+  std::vector<bool> visited(num_vertices(fsm));
+
+  DynamicFSM::vertex_iterator mi, mi_end;
+  for (tie(mi, mi_end) = vertices(fsm); mi != mi_end; ++mi) {
+    DynamicFSM::vertex_descriptor m = *mi;
+
+    // skip non-match vertices
+    if (!fsm[m] || !fsm[m]->IsMatch) continue;
+
+    const unsigned int label = fsm[m]->Label;
+    
+    // walk guard label(s) back from this match state
+    std::stack<DynamicFSM::vertex_descriptor,
+               std::vector<DynamicFSM::vertex_descriptor> > next;
+    
+    visited.assign(num_vertices(fsm), false);
+
+    next.push(m);
+    while (!next.empty()) {
+      DynamicFSM::vertex_descriptor t = next.top();
+      next.pop();
+      visited[t] = true;
+
+      bool unmark = true;
+      DynamicFSM::in_edge_iterator ie, ie_end;
+      for (tie(ie, ie_end) = in_edges(t, fsm); ie != ie_end; ++ie) {
+        DynamicFSM::vertex_descriptor h = source(*ie, fsm);
+
+        // skip head if we've already seen it
+        if (visited[h]) continue;
+          
+        if (!fsm[h]) {
+          // head is the initial state
+          unmark = false;
+        }
+        else if (fsm[h]->Label == UNALLOCATED) {
+          // mark head with our label 
+          fsm[h]->Label = label;
+
+          // visit head next
+          next.push(h);
+        }
+        else if (fsm[h]->Label == label) {
+          // head has our own label, do nothing
+        }
+        else {
+          // head has a different label
+
+          // unlabel head
+          const unsigned int hlabel = fsm[h]->Label;
+          fsm[h]->Label = UNALLOCATED;
+
+          // advance head's label to all of its children except tail
+          DynamicFSM::out_edge_iterator oe, oe_end;
+          for (tie(oe, oe_end) = out_edges(h, fsm); oe != oe_end; ++oe) {
+            DynamicFSM::vertex_descriptor c = target(*oe, fsm);
+            if (c == t) continue;
+            fsm[c]->Label = hlabel; 
+          }
+
+          unmark = false;
+        }
+      }
+
+      if (unmark) {
+        // Every head is now marked with the label, so we may safely
+        // unmark tail.
+        fsm[t]->Label = UNALLOCATED;
+      }
+    }
+
+    // Relabel match state in case the search unlabeled it
+    fsm[m]->Label = label; 
   }
 }
