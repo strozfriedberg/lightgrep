@@ -43,7 +43,7 @@ std::string Instruction::toString() const {
       buf << "Jump 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
     case LONGJUMP_OP:
-      buf << "LongJump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+2)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+2));
+      buf << "LongJump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
       break;
     case JUMP_TABLE_OP:
       buf << "JumpTable";
@@ -55,7 +55,7 @@ std::string Instruction::toString() const {
       buf << "Fork 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
     case LONGFORK_OP:
-      buf << "LongFork 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+2)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+2));
+      buf << "LongFork 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
       break;
     case CHECK_HALT_OP:
       buf << "CheckHalt 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
@@ -129,7 +129,7 @@ Instruction Instruction::makeLongJump(Instruction* ptr, uint32 relativeOffset) {
   i.OpCode = LONGJUMP_OP;
   i.Size = 1;
   i.Op.Offset = 0;
-  *reinterpret_cast<uint32*>(ptr+1) = relativeOffset;
+  *reinterpret_cast<uint32*>(ptr) = relativeOffset;
   return i;
 }
 
