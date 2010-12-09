@@ -13,6 +13,7 @@ enum OpCodes {
   JUMP_OP,
   LONGJUMP_OP,
   FORK_OP,
+  LONGFORK_OP,
   CHECK_HALT_OP,
   LABEL_OP,
   MATCH_OP,
@@ -68,6 +69,7 @@ struct Instruction {
   static Instruction makeLabel(uint32 label);
   static Instruction makeMatch(uint32 label);
   static Instruction makeFork(uint32 index);
+  static Instruction makeLongFork(Instruction* ptr, uint32 relativeOffset);
   static Instruction makeCheckHalt(uint32 checkIndex);
   static Instruction makeHalt();
 };
