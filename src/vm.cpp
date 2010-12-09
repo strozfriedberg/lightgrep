@@ -153,6 +153,20 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
     case JUMP_OP:
       t.jump(base, instr.Op.Offset);
       return true;
+    case LONGFORK_OP:
+      {
+        Thread f = t;
+        t.advance();
+        // recurse to keep going in sequence
+        if (_executeEpSequence(base, t, offset)) {
+          Next.push_back(t);
+        }
+        // now back up to the fork, and fall through to handle it as a longjump
+        t = f;
+      }
+    case LONGJUMP_OP:
+      t.jump(base, *reinterpret_cast<const uint32*>(t.PC+1));
+      return true;
     case CHECK_HALT_OP:
       if (CheckStates[instr.Op.Offset]) {
         t.PC = 0;

@@ -83,6 +83,17 @@ SCOPE_TEST(executeJump) {
   SCOPE_ASSERT_EQUAL(&(*p)[18], cur.PC);
 }
 
+SCOPE_TEST(executeLongJump) {
+  ProgramPtr p(new Program(2, Instruction()));
+  (*p)[0] = Instruction::makeLongJump(&(*p)[1], 18);
+  Vm s(p);
+  Thread cur(&(*p)[0], 0, 0, 0);
+  SCOPE_ASSERT(s.executeEpsilon(cur, 0));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT_EQUAL(0u, s.numNext());
+  SCOPE_ASSERT_EQUAL(&(*p)[18], cur.PC);
+}
+
 SCOPE_TEST(executeJumpTable) {
   byte b;
   ProgramPtr  p(new Program(257, Instruction::makeHalt()));
@@ -198,6 +209,20 @@ SCOPE_TEST(executeFork) {
   SCOPE_ASSERT_EQUAL(1u, s.numNext());
   SCOPE_ASSERT_EQUAL(&(*p)[1], s.next()[0].PC);
   SCOPE_ASSERT_EQUAL(&(*p)[2], cur.PC);
+}
+
+SCOPE_TEST(executeLongFork) {
+  ProgramPtr p(new Program(4, Instruction()));
+  (*p)[0] = Instruction::makeLongFork(&(*p)[1], 3);
+  (*p)[2] = Instruction::makeLit('a');
+  (*p)[3] = Instruction::makeLit('a');
+  Vm s(p);
+  Thread cur(&(*p)[0], 0, 0, 0);
+  SCOPE_ASSERT(s.executeEpsilon(cur, 47));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive()); // cha-ching!
+  SCOPE_ASSERT_EQUAL(1u, s.numNext());
+  SCOPE_ASSERT_EQUAL(&(*p)[2], s.next()[0].PC);
+  SCOPE_ASSERT_EQUAL(&(*p)[3], cur.PC);
 }
 
 SCOPE_TEST(executeCheckHalt) {
