@@ -11,6 +11,7 @@ enum OpCodes {
   JUMP_TABLE_OP,
   JUMP_TABLE_RANGE_OP,
   JUMP_OP,
+  LONGJUMP_OP,
   FORK_OP,
   CHECK_HALT_OP,
   LABEL_OP,
@@ -61,6 +62,7 @@ struct Instruction {
   static Instruction makeRange(byte first, byte last);
   static Instruction makeBitVector();
   static Instruction makeJump(uint32 relativeOffset);
+  static Instruction makeLongJump(Instruction* ptr, uint32 relativeOffset);
   static Instruction makeJumpTable();
   static Instruction makeJumpTableRange(byte first, byte last);
   static Instruction makeLabel(uint32 label);
