@@ -42,6 +42,10 @@ std::string Instruction::toString() const {
     case JUMP_OP:
       buf << "Jump 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
+    case LONGJUMP_OP:
+      buf << "LongJump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+2)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+2));
+      break;
+
     case JUMP_TABLE_OP:
       buf << "JumpTable";
       break;
@@ -107,8 +111,7 @@ Instruction Instruction::makeBitVector() {
 }
 
 Instruction Instruction::makeJump(uint32 relativeOffset) {
-  // we should have a two-word version for if relativeOffset >= 2^24
-  // for now, we'll just throw a runtime error
+  // Use makeLongJump if relativeOffset >= 2^24
   if (relativeOffset >= (1 << 24)) {
     THROW_WITH_OUTPUT(std::overflow_error, "jump offsets are 24 bit; specified offset was " << relativeOffset);
   }
@@ -116,6 +119,15 @@ Instruction Instruction::makeJump(uint32 relativeOffset) {
   i.OpCode = JUMP_OP;
   i.Size = 0;
   i.Op.Offset = relativeOffset;
+  return i;
+}
+
+Instruction Instruction::makeLongJump(Instruction* ptr, uint32 relativeOffset) {
+  Instruction i;
+  i.OpCode = LONGJUMP_OP;
+  i.Size = 1;
+  i.Op.Offset = 0;
+  *reinterpret_cast<uint32*>(ptr+1) = relativeOffset;
   return i;
 }
 
