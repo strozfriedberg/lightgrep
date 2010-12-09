@@ -102,6 +102,16 @@ SCOPE_TEST(makeFork) {
   SCOPE_EXPECT(Instruction::makeFork(1 << 24), std::overflow_error);
 }
 
+SCOPE_TEST(makeLongFork) {
+  Instruction i[3];
+  i[0] = Instruction::makeLongFork(i+1, 16777216);
+  SCOPE_ASSERT_EQUAL(LONGFORK_OP, i[0].OpCode);
+  SCOPE_ASSERT_EQUAL(2u, i[0].wordSize());
+  SCOPE_ASSERT_EQUAL(0u, i[0].Op.Offset);
+  SCOPE_ASSERT_EQUAL(16777216u, *reinterpret_cast<uint32*>(i+2));
+  SCOPE_ASSERT_EQUAL("LongFork 0x01000000/16777216", i[0].toString());
+}
+
 SCOPE_TEST(makeJumpTable) {
   Instruction i = Instruction::makeJumpTable();
   SCOPE_ASSERT_EQUAL(JUMP_TABLE_OP, i.OpCode);
