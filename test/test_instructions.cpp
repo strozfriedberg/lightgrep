@@ -40,6 +40,16 @@ SCOPE_TEST(makeJump) {
   SCOPE_EXPECT(Instruction::makeJump(1 << 24), std::overflow_error);
 }
 
+SCOPE_TEST(makeLongJump) {
+  Instruction i[3];
+  i[0] = Instruction::makeLongJump(i+1, 16777216);
+  SCOPE_ASSERT_EQUAL(LONGJUMP_OP, i[0].OpCode);
+  SCOPE_ASSERT_EQUAL(2u, i[0].wordSize());
+  SCOPE_ASSERT_EQUAL(0u, i[0].Op.Offset);
+  SCOPE_ASSERT_EQUAL(16777216u, *reinterpret_cast<uint32*>(i+2));
+  SCOPE_ASSERT_EQUAL("LongJump 0x01000000/16777216", i[0].toString());
+}
+
 SCOPE_TEST(makeMatch) {
   Instruction i = Instruction::makeMatch();
   SCOPE_ASSERT_EQUAL(MATCH_OP, i.OpCode);
