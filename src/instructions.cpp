@@ -45,7 +45,6 @@ std::string Instruction::toString() const {
     case LONGJUMP_OP:
       buf << "LongJump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+2)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+2));
       break;
-
     case JUMP_TABLE_OP:
       buf << "JumpTable";
       break;
@@ -54,6 +53,9 @@ std::string Instruction::toString() const {
       break;
     case FORK_OP:
       buf << "Fork 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
+      break;
+    case LONGFORK_OP:
+      buf << "LongFork 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+2)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+2));
       break;
     case CHECK_HALT_OP:
       buf << "CheckHalt 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
@@ -159,6 +161,12 @@ Instruction Instruction::makeMatch() {
 Instruction Instruction::makeFork(uint32 index) {
   Instruction i = makeJump(index);
   i.OpCode = FORK_OP;
+  return i;
+}
+
+Instruction Instruction::makeLongFork(Instruction* ptr, uint32 relativeOffset) {
+  Instruction i = makeLongJump(ptr, relativeOffset);
+  i.OpCode = LONGFORK_OP;
   return i;
 }
 
