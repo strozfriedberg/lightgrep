@@ -157,16 +157,15 @@ void specialVisit(const DynamicFSM& graph, DynamicFSM::vertex_descriptor startVe
     vis.discover_vertex(v, graph);
     inOrder.push_back(v);
 
-    uint32 numOut = boost::out_degree(v, graph);
+    const uint32 numOut = boost::out_degree(v, graph);
     OutEdgeRange outRange = boost::out_edges(v, graph);
-    // InEdgeRange  inRange  = boost::in_edges(v, graph);
-    bool front = numOut < 2;// && boost::in_degree(v, graph) == 1 && boost::out_degree(boost::source(*inRange.first, graph), graph) == 1;
+    const bool nobranch = numOut < 2;
     for (OutEdgeIt curOut(outRange.first); curOut != outRange.second; ++curOut) {
       DynamicFSM::vertex_descriptor t = boost::target(*curOut, graph);
       if (!discovered[t]) {
         discovered[t].flip();
         // vis.discover_vertex(t, graph);
-        if (front) {
+        if (nobranch) {
           statesToVisit.push_front(t);
         }
         else {
