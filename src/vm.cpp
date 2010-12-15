@@ -117,15 +117,15 @@ inline bool Vm::_execute(Thread& t, const byte* cur) {
       }
       break;
     case JUMP_TABLE_OP:
-      t.jump(t.PC, 1 + *cur);
-      if (t.PC->OpCode != HALT_OP) {
+      if (*(uint32*)(t.PC + 1 + *cur) != 0xffffffff) {
+        t.jump(t.PC, *(uint32*)(t.PC + 1 + *cur));
         return true;
       }
       break;
     case JUMP_TABLE_RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
-        t.jump(t.PC, 1 + (*cur - instr.Op.Range.First));
-        if (t.PC->OpCode != HALT_OP) {
+        if (*(uint32*)(t.PC + 1 + (*cur - instr.Op.Range.First)) != 0xffffffff) {
+          t.jump(t.PC, *(uint32*)(t.PC + 1 + (*cur - instr.Op.Range.First)));
           return true;
         }
       }

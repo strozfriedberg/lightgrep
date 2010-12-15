@@ -128,7 +128,7 @@ public:
       for (OutEdgeIt curOut(outRange.first); curOut != outRange.second; ++curOut) {
         // if a target state immediately follows the current state, then we don't need an instruction for it
         if (Helper->DiscoverRanks[v] + 1 != Helper->DiscoverRanks[target(*curOut, graph)]) {
-          ++outOps;
+          outOps += 2;
         }
       }
     }
