@@ -255,14 +255,14 @@ SCOPE_TEST(codeGen2FinishVertex) {
 
   vis.finish_vertex(2, fsm);
   SCOPE_ASSERT_EQUAL(1u, cg->Snippets[2].Start);
-  SCOPE_ASSERT_EQUAL(2u, cg->Snippets[2].numTotal());
+  SCOPE_ASSERT_EQUAL(3u, cg->Snippets[2].numTotal());
 
   vis.finish_vertex(3, fsm);
-  SCOPE_ASSERT_EQUAL(3u, cg->Snippets[3].Start);
+  SCOPE_ASSERT_EQUAL(4u, cg->Snippets[3].Start);
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[3].numTotal());
   
   vis.finish_vertex(4, fsm);
-  SCOPE_ASSERT_EQUAL(5u, cg->Snippets[4].Start);
+  SCOPE_ASSERT_EQUAL(6u, cg->Snippets[4].Start);
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[4].numTotal());
 }
 
@@ -280,10 +280,10 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
 
   vis.finish_vertex(0, fsm);
   SCOPE_ASSERT_EQUAL(0u, cg->Snippets[0].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[0].numTotal());
+  SCOPE_ASSERT_EQUAL(2u, cg->Snippets[0].numTotal());
   
   vis.finish_vertex(1, fsm);
-  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[1].Start);
+  SCOPE_ASSERT_EQUAL(2u, cg->Snippets[1].Start);
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[1].numTotal());
   
   vis.finish_vertex(2, fsm);
