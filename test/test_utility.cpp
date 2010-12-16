@@ -279,7 +279,7 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[1].numTotal());
   
   vis.finish_vertex(2, fsm);
-  SCOPE_ASSERT_EQUAL(3u, cg->Snippets[2].Start);
+  SCOPE_ASSERT_EQUAL(4u, cg->Snippets[2].Start);
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[2].numTotal());
 }
 
