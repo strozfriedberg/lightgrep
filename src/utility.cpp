@@ -140,14 +140,15 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
       *cur++ = *reinterpret_cast<const Instruction*>(&addr);
       for (uint32 j = 0; j < tbl[i].size(); ++j) {
         uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
-/*
+
         *indirectTbl = (j + 1 == tbl[i].size() ?
           Instruction::makeLongJump(indirectTbl+1, landing) :
           Instruction::makeLongFork(indirectTbl+1, landing));
         indirectTbl += 2;
-*/
+/*
         *indirectTbl++ = (j + 1 == tbl[i].size() ?
           Instruction::makeJump(landing) : Instruction::makeFork(landing));
+*/
       }
     }
   }
