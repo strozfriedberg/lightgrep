@@ -83,6 +83,8 @@ public:
             last  = i;
           }
         }
+        sizeIndirectTables *= 2;
+
         if (last - first < 128) {
           totalSize = 2 + (last - first) + sizeIndirectTables; // JumpTableRange instr + inclusive number
           Helper->Snippets[v].Op = JUMP_TABLE_RANGE_OP;
