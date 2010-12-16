@@ -113,7 +113,7 @@ SCOPE_TEST(executeJumpTable) {
     Thread cur(&p[0], 0, 0, 0);
     if (i == 'A') {
       SCOPE_ASSERT(s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(Thread(&p[0] + 1 + b, 0, 0, 0), cur);
+      SCOPE_ASSERT_EQUAL(Thread(&p[0] + 258, 0, 0, 0), cur);
     }
     else {
       SCOPE_ASSERT(!s.execute(cur, &b));
@@ -138,11 +138,11 @@ SCOPE_TEST(executeJumpTableRange) {
     Thread cur(&(*p)[0], 0, 0, 0);
     if ('a' == i) {
       SCOPE_ASSERT(s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 1, 0, 0, 0), cur);
+      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 3, 0, 0, 0), cur);
     }
     else if ('b' == i) {
       SCOPE_ASSERT(s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 2, 0, 0, 0), cur);
+      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 3, 0, 0, 0), cur);
     }
     else {
       SCOPE_ASSERT(!s.execute(cur, &b));
