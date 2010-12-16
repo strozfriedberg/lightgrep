@@ -96,17 +96,24 @@ SCOPE_TEST(executeLongJump) {
 
 SCOPE_TEST(executeJumpTable) {
   byte b;
-  ProgramPtr  p(new Program(257, Instruction::makeHalt()));
-  (*p)[0]  = Instruction::makeJumpTable();
-  (*p)[66] = Instruction::makeJump(258);
-  Vm  s(p);
+  ProgramPtr pp(new Program(257, Instruction::makeHalt()));
+  Program& p = *pp;
+  p[0]  = Instruction::makeJumpTable();
+
+  for (uint32 i = 1; i < 257; ++i) {
+    *(uint32*)&(p[i]) = 0xffffffff;
+  }
+
+  *(uint32*)&(p[66]) = 258;
+
+  Vm s(pp);
   for (uint32 i = 0; i < 256; ++i) {
     b = i;
     s.reset();
-    Thread cur(&(*p)[0], 0, 0, 0);
+    Thread cur(&p[0], 0, 0, 0);
     if (i == 'A') {
       SCOPE_ASSERT(s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 1 + b, 0, 0, 0), cur);
+      SCOPE_ASSERT_EQUAL(Thread(&p[0] + 1 + b, 0, 0, 0), cur);
     }
     else {
       SCOPE_ASSERT(!s.execute(cur, &b));
@@ -122,8 +129,9 @@ SCOPE_TEST(executeJumpTableRange) {
   std::vector<bool> checkStates;
   ProgramPtr p(new Program(3, Instruction::makeHalt()));
   (*p)[0] = Instruction::makeJumpTableRange('a', 'b');
-  (*p)[1] = Instruction::makeJump(3);
-  (*p)[2] = Instruction::makeJump(3);
+  *(uint32*)&((*p)[1]) = 3;
+  *(uint32*)&((*p)[2]) = 3;
+
   Vm s(p);
   for (uint32 i = 0; i < 256; ++i) {
     b = i;
