@@ -54,14 +54,14 @@ std::ostream& operator<<(std::ostream&, const Printer&);
 
 regexp: alt
 	{
-		$$ = add("regexp", Node(REGEXP, $1, 0, 0));
+		$$ = add("regexp", Node(Node::REGEXP, $1, 0, 0));
 	}
 
 alt:
 	concat
 |	alt '|' concat
 	{
-		$$ = add("alt", Node(ALTERNATION, $1, $3, 0));
+		$$ = add("alt", Node(Node::ALTERNATION, $1, $3, 0));
 	}
 ;
 
@@ -69,7 +69,7 @@ concat:
 	rep
 | concat rep
 	{
-		$$ = add("concat", Node(CONCATENATION, $1, $2, 0));
+		$$ = add("concat", Node(Node::CONCATENATION, $1, $2, 0));
 	}
 ;
 
@@ -77,22 +77,22 @@ rep:
 	atom
 | atom '*'
 	{
-		$$ = add("star", Node(STAR, $1, 0, 0));
+		$$ = add("star", Node(Node::STAR, $1, 0, 0));
 	}
 | atom '+'
 	{
-		$$ = add("plus", Node(PLUS, $1, 0, 0));
+		$$ = add("plus", Node(Node::PLUS, $1, 0, 0));
 	}
 |	atom '?'
 	{
-		$$ = add("question", Node(QUESTION, $1, 0, 0));
+		$$ = add("question", Node(Node::QUESTION, $1, 0, 0));
 	}
 ;
 
 atom:
 	'(' alt ')'
 	{
-		$$ = add("group", Node(GROUP, $2, 0, 0));
+		$$ = add("group", Node(Node::GROUP, $2, 0, 0));
 	}
 |	literal
 ;
@@ -100,18 +100,18 @@ atom:
 literal:
 	CHAR_TOKEN
 	{
-		$$ = add("literal", Node(LITERAL, 0, 0, $1));
+		$$ = add("literal", Node(Node::LITERAL, 0, 0, $1));
 	}
 | '#'
 	{
 		Node n;
-		n.Type = CHAR_CLASS;
+		n.Type = Node::CHAR_CLASS;
 		n.range('0', '9');
 		$$ = add("class", n);
 	}
 |	'.'
 	{
-		$$ = add("dot", Node(DOT, 0, 0, '.'));
+		$$ = add("dot", Node(Node::DOT, 0, 0, '.'));
 	}
 	| '[' '^' charclass ']'
 		{
@@ -119,7 +119,7 @@ literal:
 			MyTextLabel += MyBuf.str();
 			MyBuf.str("");
 			Node n;
-			n.Type = CHAR_CLASS;
+			n.Type = Node::CHAR_CLASS;
 			n.Bits = ~$3->Bits;
 			$$ = add("class", n);
 		}
@@ -128,7 +128,7 @@ literal:
 		MyTextLabel = MyBuf.str();
 		MyBuf.str("");
 		Node n;
-		n.Type = CHAR_CLASS;
+		n.Type = Node::CHAR_CLASS;
 		n.Bits = $2->Bits;
 		$$ = add("class", n);
 	}
@@ -138,42 +138,42 @@ charclass:
 	charclass '#' 
 	{
 		MyBuf << '#';
-		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
 		$$->Bits = $1->Bits;
 		$$->range('0', '9');
 	}
 | charclass CHAR_TOKEN '-' CHAR_TOKEN
 	{
 		MyBuf << Printer($2) << "-" << Printer($4);
-		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
 		$$->Bits = $1->Bits;
 		$$->range($2, $4);
 	}
 | charclass CHAR_TOKEN
 	{
 		MyBuf << Printer($2);
-		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
 		$$->Bits = $1->Bits;
 		$$->Bits.set($2);
 	}
 | CHAR_TOKEN '-' CHAR_TOKEN
 	{
 		MyBuf << Printer($1) << "-" << Printer($3);
-		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
 		$$->Bits.reset();
 		$$->range($1, $3);
 	}
 |	'#'
 	{
 		MyBuf << '#';
-		$$ = add("ignore", Node(IGNORE, 0, 0, 0));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
 		$$->Bits.reset();
 		$$->range('0', '9');
 	}
 |	CHAR_TOKEN
 	{
 		MyBuf << Printer($1);
-		$$ = add("ignore", Node(IGNORE, 0, 0, $1));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, $1));
 	}
 ;
 

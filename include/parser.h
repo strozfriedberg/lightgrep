@@ -8,22 +8,22 @@
 
 #include <stack>
 
-enum NodeType {
-  REGEXP,
-  ALTERNATION,
-  CONCATENATION,
-  GROUP,
-  PLUS,
-  STAR,
-  QUESTION,
-  ELEMENT,
-  DOT,
-  CHAR_CLASS,
-  LITERAL,
-  IGNORE
-};
-
 struct Node {
+  enum NodeType {
+    REGEXP,
+    ALTERNATION,
+    CONCATENATION,
+    GROUP,
+    PLUS,
+    STAR,
+    QUESTION,
+    ELEMENT,
+    DOT,
+    CHAR_CLASS,
+    LITERAL,
+    IGNORE
+  };
+
   NodeType  Type;
   Node      *Left,
             *Right;
