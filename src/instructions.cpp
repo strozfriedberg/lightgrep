@@ -189,15 +189,36 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
   return out;
 }
 
+std::ostream& printIndex(std::ostream& out, uint32 i) {
+  out << std::setfill('0') << std::setw(7) << i << '\t';
+  return out;
+}
+
 std::ostream& operator<<(std::ostream& out, const Program& prog) {
   for (uint32 i = 0; i < prog.size(); ++i) {
-    out << std::setfill('0') << std::setw(7) << i << '\t' << prog[i] << '\n';
+    printIndex(out, i) << prog[i] << '\n';
     if (prog[i].OpCode == BIT_VECTOR_OP) {
       for (uint32 j = 1; j < 9; ++j) {
         out << std::dec << std::setfill('0') << std::setw(7) << i + j << '\t' << std::hex << std::setfill('0') << std::setw(8) << *(uint32*)(&prog[i]+j) << '\n';
       }
       out << std::dec;
       i += 8;
+    }
+    else if (prog[i].OpCode == JUMP_TABLE_OP || prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
+      uint32 start = 0,
+             end = 255;
+      if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
+        start = prog[i].Op.Range.First;
+        end = prog[i].Op.Range.Last;
+      }
+      for (uint32 j = start; j <= end; ++j) {
+        ++i;
+        printIndex(out, i) << std::setfill(' ') << std::setw(3) << j << ": " << *reinterpret_cast<const uint32*>(&prog[i]) << '\n';
+      }
+    }
+    else if (prog[i].OpCode == LONGJUMP_OP || prog[i].OpCode == LONGFORK_OP) {
+      ++i;
+      printIndex(out, i) << *reinterpret_cast<const uint32*>(&prog[i]) << '\n';
     }
   }
   return out;
