@@ -1,6 +1,6 @@
 #include <iostream>
+#include <cstdio>
 
-#include <time.h>
 #include <scope/testrunner.h>
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
@@ -32,7 +32,7 @@ void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
 void writeGraphviz(const Options& opts) {
   std::vector<std::string> keys = opts.getKeys();
   if (!keys.empty()) {
-    DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding());
+    DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
     writeGraphviz(opts.openOutput(), *fsm);
   }
 }
@@ -40,7 +40,7 @@ void writeGraphviz(const Options& opts) {
 void writeProgram(const Options& opts) {
   std::vector<std::string> keys = opts.getKeys();
   if (!keys.empty()) {
-    DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding());
+    DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
     ProgramPtr p = createProgram(*fsm);
     std::ostream& out(opts.openOutput());
     out << p->size() << " instructions" << std::endl;
@@ -52,7 +52,7 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
   keyInfo.Keywords = opts.getKeys();
   std::cerr << keyInfo.Keywords.size() << " keywords"<< std::endl;
 
-  DynamicFSMPtr fsm = createDynamicFSM(keyInfo, opts.getEncoding(), opts.CaseSensitive);
+  DynamicFSMPtr fsm = createDynamicFSM(keyInfo, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
   std::cerr << boost::num_vertices(*fsm) << " vertices" << '\n';
 
   ProgramPtr p = createProgram(*fsm);
@@ -86,76 +86,74 @@ boost::shared_ptr<VmInterface> initSearch(const Options& opts, KwInfo& keyInfo) 
   return ret;
 }
 
-static const unsigned int BLOCKSIZE = 10 * 1024 * 1024;
+static const unsigned int BLOCKSIZE = 8 * 1024 * 1024;
 
-uint64 readNext(ifstream* file, byte* buf) {
-  file->read((char*)buf, BLOCKSIZE);
-  return file->gcount();
+uint64 readNext(FILE* file, byte* buf) {
+  return fread((void*)buf, 1, BLOCKSIZE, file);
 }
 
 void printHelp(const po::options_description& desc) {
-  std::cout << "lightgrep, Copyright (c) 2010, Lightbox Technologies, Inc." << "\nCreated December 3, 2010\n\n"
+  std::cout << "lightgrep, Copyright (c) 2010, Lightbox Technologies, Inc." << "\nCreated December 6, 2010\n\n"
     << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
     << "This copy provided EXCLUSIVELY to the U.S. Army, CCIU, DFRB\n\n"
     << desc << std::endl;
 }
 
 void search(const Options& opts) {
-  std::ifstream file(opts.Input.c_str(), ios::in | ios::binary | ios::ate);
+  FILE *file = fopen(opts.Input.c_str(), "rb");
   if (file) {
-    file.rdbuf()->pubsetbuf(0, 0);
+    setbuf(file, 0); // unbuffered, bitte
     KwInfo keyInfo;
     boost::shared_ptr<VmInterface> search = initSearch(opts, keyInfo);
 
+    double lastTime = 0.0;
+    boost::timer searchClock;
     HitWriter cb(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
 
-    uint64 size = file.tellg(),
+    byte* cur  = new byte[BLOCKSIZE];
+    uint64 blkSize = 0,
            offset = 0;
-    byte* block = new byte[BLOCKSIZE];
-    {
-      boost::timer searchClock;
-      file.seekg(0, ios::beg);
 
-      if (size > BLOCKSIZE) {
-        byte* block2 = new byte[BLOCKSIZE],
-            * cur = block,
-            * next = block2;
-        uint64 blkSize = BLOCKSIZE;
-        file.read((char*)block, BLOCKSIZE);
-        do {
-          boost::packaged_task<uint64> task(boost::bind(&readNext, &file, next));
-          boost::unique_future<uint64> sizeFut = task.get_future();
-          boost::thread exec(boost::move(task));
-
-          search->search(cur, cur + blkSize, offset, cb);
-
-          size -= blkSize;
-          offset += blkSize;
-          blkSize = sizeFut.get();
-          std::swap(cur, next);
-        } while (size > BLOCKSIZE);
-        // assert: all data has been read, size - blkSize == 0
-        search->search(cur, cur + blkSize, offset, cb);
-        cur = next = 0;
-        delete [] block2;
-      }
-      else {
-        file.read((char*)block, size);
-        search->search(block, block + size, offset, cb);
-      }
-      double t = searchClock.elapsed();
-      std::cerr << t << " searchTime" << std::endl;
-      std::cerr << cb.NumHits << " hits" << std::endl;
+    blkSize = readNext(file, cur);
+    if (!feof(file)) {
+      byte* next = new byte[BLOCKSIZE];
+      do {
+        // read the next block on a separate thread
+        boost::packaged_task<uint64> task(boost::bind(&readNext, file, next));
+        boost::unique_future<uint64> sizeFut = task.get_future();
+        boost::thread exec(boost::move(task));
+        
+        search->search(cur, cur + blkSize, offset, cb); // search cur block
+        
+        offset += blkSize;
+        if (offset % (1024 * 1024 * 1024) == 0) { // should happen every 128 blocks
+          lastTime = searchClock.elapsed();
+          uint64 units = offset >> 20;
+          double bw = (double)units / lastTime;
+          units >>= 10;
+          std::cerr << units << " GB searched in " << lastTime << " seconds, " << bw << " MB/s avg" << std::endl;
+        }
+        blkSize = sizeFut.get(); // block on i/o thread completion
+        std::swap(cur, next);
+      } while (!feof(file)); // note file is shared btwn threads, but safely
+      delete [] next;
     }
-    file.close();
-    delete [] block;
-    // delete [] argArray;
-  }  
-}
+    // assert: all data has been read, offset + blkSize == file size, cur is last block
+    search->search(cur, cur + blkSize, offset, cb);
 
-void expired() {
-  std::cerr << "* Your copy of lightgrep has expired. *" << std::endl;
-  exit(1);
+    lastTime = searchClock.elapsed();
+    std::cerr << (offset + blkSize) << " bytes" << std::endl;
+    std::cerr << lastTime << " searchTime" << std::endl;
+    std::cerr << (double)(offset >> 20) / lastTime << " MB/s avg" << std::endl;
+    std::cerr << cb.NumHits << " hits" << std::endl;
+
+    fclose(file);
+    delete [] cur;
+    // delete [] argArray;
+  }
+  else {
+    std::cerr << "Could not open file " << opts.Input << std::endl;
+  }
 }
 
 int main(int argc, char** argv) {
@@ -174,6 +172,7 @@ int main(int argc, char** argv) {
     ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
     ("ignore-case,i", "file to search")
+    ("fixed-strings,F", "interpret patterns as fixed strings")
     ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
@@ -184,15 +183,9 @@ int main(int argc, char** argv) {
   po::variables_map optsMap;
   try {
     po::store(po::command_line_parser(argc, argv).options(desc).positional(posOpts).run(), optsMap);
-    std::time_t t;
-    tm* timeObj;
-    t = std::time(0);
-    timeObj = std::gmtime(&t);
-    if (!(timeObj->tm_mon > 10 && timeObj->tm_year == 110) || (timeObj->tm_mon < 3 && timeObj->tm_year == 111)) {
-      expired();
-    }
     po::notify(optsMap);
     opts.CaseSensitive = optsMap.count("ignore-case") == 0;
+    opts.LiteralMode = optsMap.count("fixed-strings") > 0;
     if (optsMap.count("help")) {
       printHelp(desc);
     }

@@ -253,7 +253,7 @@ SCOPE_TEST(runFrame) {
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(2u, s.numNext());
   SCOPE_ASSERT_EQUAL(Thread(&prog[5], 1, 0, 0), s.next()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&prog[6], 0, 0, unalloc), s.next()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&prog[6], std::numeric_limits<uint32>::max(), 0, unalloc), s.next()[1]);
 }
 
 SCOPE_TEST(testInit) {
@@ -338,6 +338,7 @@ SCOPE_TEST(stitchedText) {
   ProgramPtr p(new Program);
   p->push_back(Instruction::makeLit('a'));
   p->push_back(Instruction::makeLit('b'));
+  p->push_back(Instruction::makeLabel(0));
   p->push_back(Instruction::makeMatch());
   p->push_back(Instruction::makeHalt());
   byte text1[] = {'a', 'c', 'a'},
