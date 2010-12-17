@@ -126,6 +126,7 @@ Instruction Instruction::makeJump(uint32 relativeOffset) {
 
 Instruction Instruction::makeLongJump(Instruction* ptr, uint32 relativeOffset) {
   // "24 bits ought to be enough for anybody." --Jon Stewart
+  // I once implemented a 24-bit VM in Java for a class; that sucked ass -- JLS
   Instruction i;
   i.OpCode = LONGJUMP_OP;
   i.Size = 1;
