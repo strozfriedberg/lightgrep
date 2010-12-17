@@ -124,7 +124,8 @@ Instruction Instruction::makeJump(uint32 relativeOffset) {
   return i;
 }
 
-Instruction Instruction::makeLongJump(Instruction* ptr, uint32 relativeOffset) {
+Instruction Instruction::makeLongJump(Instruction* ptr, uint32 relativeOffset) 
+  // "24 bits ought to be enough for anybody." --Jon Stewart
   Instruction i;
   i.OpCode = LONGJUMP_OP;
   i.Size = 1;
