@@ -76,8 +76,8 @@ bool buildNFA(DynamicFSM& fsm, const std::string& dot) {
 
   // Convert this graph to a DynamicFSM (annoying!)
   
-  typedef typename boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
-  typedef typename boost::graph_traits<graph_t>::edge_iterator edge_iterator;
+  typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
+  typedef boost::graph_traits<graph_t>::edge_iterator edge_iterator;
 
   edge_iterator e, e_end;
   for (boost::tie(e, e_end) = boost::edges(src); e != e_end; ++e) {
