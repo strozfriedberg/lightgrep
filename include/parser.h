@@ -166,4 +166,4 @@ private:
   Fragment  TempFrag;
 };
 
-bool parse(const std::string& text, SyntaxTree& tree, NodeHandler& callback);
+bool parse(const std::string& text, bool litMode, SyntaxTree& tree, NodeHandler& callback);

@@ -3,3 +3,8 @@
 deps/*
 *~
 tmp
+DesignTimeResolveAssemblyReferencesInput.cache
+*.exe
+*.pdb
+*.exe.manifest
+*.FileListAbsolute.txt
