@@ -14,6 +14,7 @@ const unsigned char* TextEnd;
 SyntaxTree* Tree;
 
 NodeHandler* Callback;
+bool         LiteralMode;
 
 std::string MyTextLabel("");
 std::stringstream MyBuf;
@@ -255,28 +256,34 @@ namespace {
 	int yylex(void) {
 		if (Text < TextEnd) {
 			unsigned int c = *Text++;
-			switch (c) {
-				case 0:
-					return -1;
-				case '|':
-				case '(':
-				case ')':
-				case '?':
-				case '+':
-				case '*':
-				case '.':
-				case '#':
-				case '[':
-				case ']':
-				case '^':
-				case '-':
-					return c;
-				case '\\':
-					return consumeEscape();
-				default:
-					yylval.c = c;
-					return CHAR_TOKEN;
-			}
+      if (LiteralMode) {
+        yylval.c = c;
+        return CHAR_TOKEN;
+      }
+      else {
+        switch (c) {
+          case 0:
+            return -1;
+          case '|':
+          case '(':
+          case ')':
+          case '?':
+          case '+':
+          case '*':
+          case '.':
+          case '#':
+          case '[':
+          case ']':
+          case '^':
+          case '-':
+            return c;
+          case '\\':
+            return consumeEscape();
+          default:
+            yylval.c = c;
+            return CHAR_TOKEN;
+        }
+      }
 		}
 		return -1;
 	}
@@ -296,7 +303,8 @@ namespace {
 	}
 }
 
-bool parse(const std::string& text, SyntaxTree& tree, NodeHandler& callback) {
+bool parse(const std::string& text, bool litMode, SyntaxTree& tree, NodeHandler& callback) {
+  LiteralMode = litMode;
 	Tree = &tree;
 	Text = (unsigned char*)text.c_str();
 	TextBegin = Text;
