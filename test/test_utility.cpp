@@ -306,7 +306,7 @@ SCOPE_TEST(layoutWithCheckHalt) {
   SCOPE_ASSERT_EQUAL(2u, cg->DiscoverRanks[2]);
   SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 0u, 0u, UNALLOCATED), cg->Snippets[0]);
   SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 1u, 0u, UNALLOCATED), cg->Snippets[1]);
-  SCOPE_ASSERT_EQUAL(StateLayoutInfo(1u, 2u, 3u, 1u), cg->Snippets[2]);
+  SCOPE_ASSERT_EQUAL(StateLayoutInfo(1u, 2u, 4u, 1u), cg->Snippets[2]);
 }
 
 SCOPE_TEST(twoStateBetterLayout) {
