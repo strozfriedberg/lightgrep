@@ -23,7 +23,7 @@ void addNewEdge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descrip
   boost::add_edge(source, target, fsm);
 }
 
-void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, DynamicFSMPtr& fsm, uint32& keyIdx) {
+void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, bool litMode, DynamicFSMPtr& fsm, uint32& keyIdx) {
   SyntaxTree  tree;
   Compiler    comp;
   Parser      p;
@@ -31,47 +31,54 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
   for (uint32 i = 0; i < keywords.size(); ++i) {
     const std::string& kw(keywords[i]);
     if (!kw.empty()) {
-      p.setCurLabel(keyIdx);
-      p.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
-      if (parse(kw, tree, p) && p.good()) {
-        if (fsm) {
-          comp.mergeIntoFSM(*fsm, *p.getFsm(), keyIdx);
+      try {
+        p.setCurLabel(keyIdx);
+        p.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
+        if (parse(kw, litMode, tree, p) && p.good()) {
+          if (fsm) {
+            comp.mergeIntoFSM(*fsm, *p.getFsm(), keyIdx);
+          }
+          else {
+            fsm = p.getFsm();
+            p.resetFsm();
+          }
+          ++keyIdx;
         }
         else {
-          fsm = p.getFsm();
-          p.resetFsm();
+          std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
         }
-        ++keyIdx;
+        tree.reset();
+        p.reset();
       }
-      else {
-        std::cerr << "Could not parse " << kw << std::endl;
+      catch (std::exception& e) {
+        std::cerr << "Exception on keyword " << i << ": " << e.what() << std::endl;
+        std::cerr << "Currently " << boost::num_vertices(*fsm) << " vertices" << std::endl;
+        throw e;
       }
-      tree.reset();
-      p.reset();
     }
   }
 }
 
-DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive) {
+DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode) {
   // std::cerr << "createDynamicFSM" << std::endl;
   DynamicFSMPtr ret;
   uint32 keyIdx = 0;
   if (enc & CP_ASCII) {
-    addKeys(keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, ret, keyIdx);
+    addKeys(keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, litMode, ret, keyIdx);
   }
   if (enc & CP_UCS16) {
-    addKeys(keywords, boost::shared_ptr<Encoding>(new UCS16), caseSensitive, ret, keyIdx);
+    addKeys(keywords, boost::shared_ptr<Encoding>(new UCS16), caseSensitive, litMode, ret, keyIdx);
   }
   return ret;
 }
 
-DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive) {
+DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode) {
   DynamicFSMPtr ret;
   uint32 keyIdx = 0;
   if (enc & CP_ASCII) {
     keyInfo.Encodings.push_back("ASCII");
     uint32 encIdx = keyInfo.Encodings.size() - 1;
-    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, ret, keyIdx);
+    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, litMode, ret, keyIdx);
     for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
       keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
     }
@@ -79,7 +86,7 @@ DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive) 
   if (enc & CP_UCS16) {
     keyInfo.Encodings.push_back("UCS-16");
     uint32 encIdx = keyInfo.Encodings.size() - 1;
-    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new UCS16), caseSensitive, ret, keyIdx);
+    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new UCS16), caseSensitive, litMode, ret, keyIdx);
     for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
       keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
     }
@@ -180,8 +187,11 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
       curOp += t->numInstructions();
       // std::cerr << "wrote " << i << std::endl;
       if (t->Label < 0xffffffff) {
-        *curOp++ = Instruction::makeMatch(t->Label); // also problematic
+        *curOp++ = Instruction::makeLabel(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
+      }
+      if (t->IsMatch) {
+        *curOp++ = Instruction::makeMatch();
       }
     }
     if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op || JUMP_TABLE_OP == cg->Snippets[v].Op) {

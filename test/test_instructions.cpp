@@ -51,11 +51,11 @@ SCOPE_TEST(makeLongJump) {
 }
 
 SCOPE_TEST(makeMatch) {
-  Instruction i = Instruction::makeMatch(4);
+  Instruction i = Instruction::makeMatch();
   SCOPE_ASSERT_EQUAL(MATCH_OP, i.OpCode);
-  SCOPE_ASSERT_EQUAL(4u, i.Op.Offset);
+  SCOPE_ASSERT_EQUAL(0u, i.Op.Offset);
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL("Match 4", i.toString());
+  SCOPE_ASSERT_EQUAL("Match", i.toString());
 }
 
 SCOPE_TEST(makeLabel) {

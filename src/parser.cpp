@@ -360,8 +360,10 @@ void Parser::finish(const Node& n) {
         return;
       }
       else {
-        (*Fsm)[v].reset((*Fsm)[v]->clone());
-        (*Fsm)[v]->Label = CurLabel;
+        TransitionPtr final((*Fsm)[v]->clone()); // this is to make sure the transition isn't shared amongst other states
+        final->Label = CurLabel;
+        final->IsMatch = true;
+        (*Fsm)[v] = final;
       }
     }
     // std::cout << "final is " << final << std::endl;
@@ -379,37 +381,37 @@ void Parser::callback(const std::string& type, const Node& n) {
   // std::cout << type << std::endl;
   type.size();
   switch (n.Type) {
-    case REGEXP:
+    case Node::REGEXP:
       finish(n);
       break;
-    case ALTERNATION:
+    case Node::ALTERNATION:
       alternate(n);
       break;
-    case CONCATENATION:
+    case Node::CONCATENATION:
       concatenate(n);
       break;
-    case GROUP:
+    case Node::GROUP:
       group(n);
       break;
-    case STAR:
+    case Node::STAR:
       star(n);
       break;
-    case PLUS:
+    case Node::PLUS:
       plus(n);
       break;
-    case QUESTION:
+    case Node::QUESTION:
       question(n);
       break;
-    case ELEMENT:
+    case Node::ELEMENT:
       addElement(n);
       break;
-    case DOT:
+    case Node::DOT:
       dot(n);
       break;
-    case CHAR_CLASS:
+    case Node::CHAR_CLASS:
       charClass(n, type);
       break;
-    case LITERAL:
+    case Node::LITERAL:
       literal(n);
       break;
     default:
