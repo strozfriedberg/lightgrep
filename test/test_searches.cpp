@@ -18,7 +18,7 @@ struct STest: public HitCallback {
   STest(const std::string& key) {
     SyntaxTree  tree;
     Parser      p;
-    if (parse(key, tree, p) && p.good()) {
+    if (parse(key, false, tree, p) && p.good()) {
       Fsm = p.getFsm();
       Prog = createProgram(*Fsm);
       Prog->First = firstBytes(*Fsm);

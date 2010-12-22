@@ -102,6 +102,7 @@ public:
 
   void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
+    bool   match = false;
     uint32 labels = 0,
            eval   = (v == 0 ? 0: graph[v]->numInstructions()) + (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1),
            outDegree = out_degree(v, graph),
@@ -110,8 +111,14 @@ public:
       Helper->addSnippet(v, eval, totalSize);
       return;
     }
-    if (graph[v] && graph[v]->Label < 0xffffffff) {
-      ++labels;
+    TransitionPtr t = graph[v];
+    if (t) {
+      if (t->Label < 0xffffffff) {
+        ++labels;
+      }
+      if (t->IsMatch) {
+        match = true;
+      }
     }
     uint32 outOps = 0;
     OutEdgeRange outRange(out_edges(v, graph));
@@ -128,7 +135,7 @@ public:
       }
     }
     // std::cerr << "outOps = " << outOps << "; labels = " << labels << "; match = " << isMatch << std::endl;
-    Helper->addSnippet(v, eval, outOps + labels);
+    Helper->addSnippet(v, eval, outOps + labels + (match ? 1: 0));
     // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
   }
 

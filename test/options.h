@@ -16,7 +16,8 @@ public:
               Output,
               Encoding,
               Pattern;
-  bool    CaseSensitive;
+  bool    CaseSensitive,
+          LiteralMode;
 
   mutable std::ofstream OutputFile;
 

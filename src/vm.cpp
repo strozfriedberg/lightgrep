@@ -49,7 +49,7 @@ void Vm::init(ProgramPtr prog) {
          numCheckedStates = 0;
   Program& p(*Prog);
   for (uint32 i = 0; i < p.size(); ++i) {
-    if (p[i].OpCode == MATCH_OP && numPatterns < p[i].Op.Offset) {
+    if (p[i].OpCode == LABEL_OP && numPatterns < p[i].Op.Offset) {
       numPatterns = p[i].Op.Offset;
     }
     if (p[i].OpCode == CHECK_HALT_OP) {
@@ -184,8 +184,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
       t.advance();
       return true;
     case MATCH_OP:
-      t.Label = instr.Op.Offset;
       t.End = offset;
+      if (t.Label == std::numeric_limits<uint32>::max()) {
+        t.Label = 0;
+      }
       t.advance();
       return true;
     case HALT_OP:

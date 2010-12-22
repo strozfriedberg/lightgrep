@@ -64,7 +64,7 @@ std::string Instruction::toString() const {
       buf << "Label " << Op.Offset;
       break;
     case MATCH_OP:
-      buf << "Match " << Op.Offset;
+      buf << "Match";
       break;
     case HALT_OP:
       buf << "Halt";
@@ -154,8 +154,8 @@ Instruction Instruction::makeLabel(uint32 label) {
   return i;
 }
 
-Instruction Instruction::makeMatch(uint32 label) {
-  Instruction i = makeJump(label);
+Instruction Instruction::makeMatch() {
+  Instruction i = makeJump(0);
   i.OpCode = MATCH_OP;
   return i;
 }
