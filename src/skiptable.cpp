@@ -40,7 +40,8 @@ void SkipTable::setDistance(DynamicFSM::vertex_descriptor source, DynamicFSM::ve
   else {
     tgtDist = std::min(srcDist + 1, Distance[target]);
   }
-  if (graph[target]->Label < std::numeric_limits<uint32>::max()) {
+
+  if (graph[target]->IsMatch) {
     relax(tgtDist);
   }
   Distance[target] = tgtDist;
