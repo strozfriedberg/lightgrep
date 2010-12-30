@@ -15,20 +15,21 @@
 #include "MockCallback.h"
 #include "compiler.h"
 
-void ASSERT_EQUAL_GRAPHS(const DynamicFSM& a, const DynamicFSM& b) {
-  SCOPE_ASSERT_EQUAL(boost::num_vertices(a), boost::num_vertices(b));
-
-  // a and b have the same edges
+void ASSERT_SUPERGRAPH(const DynamicFSM& a, const DynamicFSM& b) {
   EdgeIt a_e, a_end;
   tie(a_e, a_end) = boost::edges(a);
 
-  EdgeIt b_e, b_end;
-  tie(b_e, b_end) = boost::edges(b);
-
-  for ( ; a_e != a_end && b_e != b_end; ++a_e, ++b_e) {
-    SCOPE_ASSERT_EQUAL(boost::source(*a_e, a), boost::source(*b_e, b));
-    SCOPE_ASSERT_EQUAL(boost::target(*a_e, a), boost::target(*b_e, b));
+  for ( ; a_e != a_end ; ++a_e) {
+    DynamicFSM::vertex_descriptor ah = boost::source(*a_e, a);
+    DynamicFSM::vertex_descriptor at = boost::target(*a_e, a);
+    SCOPE_ASSERT(boost::edge(ah, at, b).second);
   }
+}
+
+void ASSERT_EQUAL_GRAPHS(const DynamicFSM& a, const DynamicFSM& b) {
+  SCOPE_ASSERT_EQUAL(boost::num_vertices(a), boost::num_vertices(b));
+  ASSERT_SUPERGRAPH(a, b);
+  ASSERT_SUPERGRAPH(b, a);
 }
 
 void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, TransitionPtr tPtr) {
@@ -546,6 +547,86 @@ SCOPE_TEST(testMergeLabelsComplex) {
   SCOPE_ASSERT(dst[3]->IsMatch);
   SCOPE_ASSERT(!dst[4]->IsMatch);
   SCOPE_ASSERT(dst[5]->IsMatch);
+}
+
+SCOPE_TEST(testGuardLabelsFourKeys) {
+  Compiler comp;
+  DynamicFSM key[4], exp;
+
+  // a(b|c)a
+  edge(0, 1, key[0], new LitState('a'));
+  edge(1, 2, key[0], new LitState('b'));
+  edge(1, 3, key[0], new LitState('c'));
+  boost::shared_ptr<LitState> a(new LitState('a', 0));
+  edge(2, 4, key[0], a);
+  edge(3, 4, key[0], a);
+  key[0][4]->IsMatch = true;
+
+  // ac+
+  edge(0, 1, key[1], new LitState('a'));
+  boost::shared_ptr<LitState> c(new LitState('c', 1));
+  edge(1, 2, key[1], c);
+  edge(2, 2, key[1], c);
+  key[1][2]->IsMatch = true;
+
+  // ab?a
+  edge(0, 1, key[2], new LitState('a'));
+  edge(1, 2, key[2], new LitState('b'));
+  boost::shared_ptr<LitState> a2(new LitState('a', 2));
+  edge(1, 3, key[2], a2);
+  edge(2, 3, key[2], a2);
+  key[2][3]->IsMatch = true;
+  
+  // two
+  edge(0, 1, key[3], new LitState('t'));
+  edge(1, 2, key[3], new LitState('w'));
+  edge(2, 3, key[3], new LitState('o', 3));
+  key[3][3]->IsMatch = true;
+
+  // merge
+  for (uint32 i = 1; i < 4; ++i) {
+    comp.mergeIntoFSM(key[0], key[i], i);
+  }
+
+  comp.labelGuardStates(key[0]);
+
+  // expected merged NFA
+  edge(0, 1, exp, new LitState('a'));
+  edge(1, 2, exp, new LitState('b'));
+  edge(1, 3, exp, new LitState('c'));
+  boost::shared_ptr<LitState> ae(new LitState('a', 0));
+  edge(2, 4, exp, ae);
+  edge(3, 4, exp, ae);
+  exp[4]->IsMatch = true;
+
+  boost::shared_ptr<LitState> ce(new LitState('c', 1));
+  edge(1, 5, exp, ce);
+  edge(5, 5, exp, ce);
+  exp[5]->IsMatch = true;
+
+  boost::shared_ptr<LitState> a2e(new LitState('a', 2));
+  edge(2, 6, exp, a2e);
+  edge(1, 6, exp, a2e);
+  exp[6]->IsMatch = true;
+  
+  edge(0, 7, exp, new LitState('t'));
+  edge(7, 8, exp, new LitState('w'));
+  edge(8, 9, exp, new LitState('o', 3));
+  exp[9]->IsMatch = true;
+
+  ASSERT_EQUAL_GRAPHS(exp, key[0]);
+
+  SCOPE_ASSERT(!key[0][0]);
+
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, key[0][1]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, key[0][2]->Label);
+  SCOPE_ASSERT_EQUAL(0,           key[0][3]->Label);
+  SCOPE_ASSERT_EQUAL(0,           key[0][4]->Label);
+  SCOPE_ASSERT_EQUAL(1,           key[0][5]->Label);
+  SCOPE_ASSERT_EQUAL(2,           key[0][6]->Label);
+  SCOPE_ASSERT_EQUAL(3,           key[0][7]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, key[0][8]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, key[0][9]->Label);
 }
 
 SCOPE_TEST(testBitVectorGeneration) {
