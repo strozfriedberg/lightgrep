@@ -316,19 +316,21 @@ uint32 maxOutbound(const std::vector< std::vector< DynamicFSM::vertex_descriptor
 
 void writeVertex(std::ostream& out, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
   std::string l;
+
   if (v != 0) {
     l = graph[v]->label();
   }
-  if (boost::in_degree(v, graph) == 0) {
+
+  if (!graph[v]) { // initial state
     out << "[label=\"" << (l.empty() ? "Start": l) << "\", style=\"filled\", fillcolor=\"green1\"]";
   }
-  else if (boost::out_degree(v, graph) == 0) {
+  else if (graph[v]->IsMatch) { // match state
     out << "[label=\"" << l << "\", style=\"filled\", fillcolor=\"tomato\", shape=\"doublecircle\"]";
   }
-  else if (graph[v]->Label < 0xffffffff) {
+  else if (graph[v]->Label < 0xffffffff) { // guard state
     out << "[label=\"" << l << "\", shape=\"doublecircle\"]";
   }
-  else {
+  else { // all other states
     out << "[label=\"" << l << "\"]";
   }
 }
