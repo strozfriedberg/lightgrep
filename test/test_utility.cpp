@@ -502,6 +502,10 @@ SCOPE_TEST(testMergeLabelsSimple) {
   SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[1]->Label);
   SCOPE_ASSERT_EQUAL(1,           dst[2]->Label);
   SCOPE_ASSERT_EQUAL(0,           dst[3]->Label);
+
+  SCOPE_ASSERT(!dst[1]->IsMatch);
+  SCOPE_ASSERT(dst[2]->IsMatch);
+  SCOPE_ASSERT(dst[3]->IsMatch);
 }
 
 SCOPE_TEST(testMergeLabelsComplex) {
@@ -538,9 +542,9 @@ SCOPE_TEST(testMergeLabelsComplex) {
 
   SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[1]->Label);
   SCOPE_ASSERT_EQUAL(1,           dst[2]->Label);
-  SCOPE_ASSERT_EQUAL(1,           dst[3]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[3]->Label);
   SCOPE_ASSERT_EQUAL(0,           dst[4]->Label);
-  SCOPE_ASSERT_EQUAL(0,           dst[5]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[5]->Label);
 
   SCOPE_ASSERT(!dst[1]->IsMatch);
   SCOPE_ASSERT(!dst[2]->IsMatch);
@@ -627,6 +631,16 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   SCOPE_ASSERT_EQUAL(3,           key[0][7]->Label);
   SCOPE_ASSERT_EQUAL(UNALLOCATED, key[0][8]->Label);
   SCOPE_ASSERT_EQUAL(UNALLOCATED, key[0][9]->Label);
+
+  SCOPE_ASSERT(!key[0][1]->IsMatch);
+  SCOPE_ASSERT(!key[0][2]->IsMatch);
+  SCOPE_ASSERT(!key[0][3]->IsMatch);
+  SCOPE_ASSERT(key[0][4]->IsMatch);
+  SCOPE_ASSERT(key[0][5]->IsMatch);
+  SCOPE_ASSERT(key[0][6]->IsMatch);
+  SCOPE_ASSERT(!key[0][7]->IsMatch);
+  SCOPE_ASSERT(!key[0][8]->IsMatch);
+  SCOPE_ASSERT(key[0][9]->IsMatch);
 }
 
 SCOPE_TEST(testBitVectorGeneration) {
