@@ -57,6 +57,8 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
       }
     }
   }
+
+  comp.labelGuardStates(*fsm);
 }
 
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode) {
