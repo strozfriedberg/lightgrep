@@ -7,6 +7,7 @@
 #include <boost/bind.hpp>
 
 static const DynamicFSM::vertex_descriptor UNALLOCATED = 0xffffffff;
+static const DynamicFSM::vertex_descriptor UNLABELABLE = 0xfffffffe;
 
 void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx) {
   ByteSet tranBits,
@@ -63,32 +64,10 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
 
           if (!found) {
             // The destination NFA and the source NFA have diverged.
-/*          
-            // If the head node in the target NFA had a guard label,
-            // advance it to that node's children.
-            if (fsm[source] && !fsm[source]->IsMatch && 
-                fsm[source]->Label != UNALLOCATED) {
-              OutEdgeRange oer(boost::out_edges(source, fsm));
-              for (OutEdgeIt oe(oer.first); oe != oer.second; ++oe) {
-                fsm[boost::target(*oe, fsm)]->Label = fsm[source]->Label;
-              }
-              fsm[source]->Label = UNALLOCATED;
-            }
-*/
-
-            // Copy the tail node from the source to the destination
+            // Copy the tail node from the source to the destination.
             target = boost::add_vertex(fsm);
             // std::cerr << "  creating new state " << target << std::endl;
             fsm[target] = tran;
-
-/*
-            // If the head node in the addend NFA had a guard label,
-            // advance it to the new node in the target NFA.
-            if (addend[oldSource] && !addend[oldSource]->IsMatch &&
-                addend[oldSource]->Label != UNALLOCATED) {
-              fsm[target]->Label = keyIdx; 
-            }
-*/
           }
 
           StateMap[oldTarget] = target;
@@ -153,6 +132,10 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
         else if (fsm[h]->Label == label) {
           // head has our own label, do nothing
         }
+        else if (fsm[h]->Label == UNLABELABLE) {
+          // head has already been backtracked from
+          unmark = false;
+        }
         else {
           // head has a different label
 
@@ -160,15 +143,19 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
           const unsigned int hlabel = fsm[h]->Label;
           fsm[h]->Label = UNALLOCATED;
 
-          // advance head's label to all of its children except tail
+          // advance head's label to all of its unlabeled children except tail
           DynamicFSM::out_edge_iterator oe, oe_end;
           for (tie(oe, oe_end) = out_edges(h, fsm); oe != oe_end; ++oe) {
             DynamicFSM::vertex_descriptor c = target(*oe, fsm);
-            if (c == t) continue;
-            fsm[c]->Label = hlabel; 
+            if (c != t && fsm[c]->Label == UNALLOCATED) {
+              fsm[c]->Label = hlabel;
+            }
           }
 
           unmark = false;
+
+          // mark head as unlabelable
+          fsm[h]->Label = UNLABELABLE;
         }
       }
 
@@ -178,8 +165,13 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
         fsm[t]->Label = UNALLOCATED;
       }
     }
+  }
 
-    // Relabel match state in case the search unlabeled it
-    fsm[m]->Label = label; 
+  // mark every UNLABELABLE vertex as UNALLOCATED
+  for (tie(mi, mi_end) = vertices(fsm); mi != mi_end; ++mi) {
+    DynamicFSM::vertex_descriptor m = *mi;
+    if (fsm[m] && fsm[m]->Label == UNLABELABLE) {
+      fsm[m]->Label = UNALLOCATED;
+    }
   }
 }
