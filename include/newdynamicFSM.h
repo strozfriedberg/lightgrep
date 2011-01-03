@@ -30,10 +30,12 @@ public:
           return 0;
         case ONE:
           return 1;
-        case MANY:
+        default:
           return V.List->size();
       }
     }
+
+    vertex_descriptor operator[](size_t i) const { return Flags & ONE ? V.Single: (*V.List)[i]; }
 
     void add(vertex_descriptor v) {
       switch (Flags) {
@@ -75,7 +77,9 @@ public:
   uint32 numVertices() const { return Vertices.size(); }
   uint32 capacity() const { return Vertices.capacity(); }
 
-  NewDynamicFSM::vertex_descriptor addVertex();
+  vertex_descriptor addVertex();
+
+  void addEdge(const vertex_descriptor source, const vertex_descriptor target);
 
   const AdjacentList& inVertices(const vertex_descriptor v) const { return Vertices[v].In; }
   const AdjacentList& outVertices(const vertex_descriptor v) const { return Vertices[v].Out; }
