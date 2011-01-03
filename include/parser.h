@@ -130,6 +130,7 @@ public:
 
   void setEncoding(const boost::shared_ptr<Encoding>& e);
   void setCaseSensitive(bool caseSensitive); // defaults to true
+  void setSizeHint(uint64 reserveSize);
 
   void patch(Fragment& first, const Fragment& second, const Node& n);
   void patch(const FastVList& sources, const FastVList& targets);
@@ -157,6 +158,7 @@ private:
   bool          IsGood,
                 CaseSensitive;
   uint32        CurLabel;
+  uint64        ReserveSize;
   boost::shared_ptr<Encoding> Enc;
   DynamicFSMPtr Fsm;
   std::stack< Fragment > Stack;

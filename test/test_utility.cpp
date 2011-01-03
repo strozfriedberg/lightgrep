@@ -484,7 +484,7 @@ SCOPE_TEST(testMerge) {
 
 SCOPE_TEST(testMergeLabelsSimple) {
   Compiler c;
-  DynamicFSM src, dst, exp;
+  DynamicFSM src(3), dst(3), exp(4);
 
   // ab
   edge(0, 1, src, new LitState('a'));
@@ -511,7 +511,7 @@ SCOPE_TEST(testMergeLabelsSimple) {
 
 SCOPE_TEST(testMergeLabelsComplex) {
   Compiler c;
-  DynamicFSM src, dst, exp;
+  DynamicFSM src(4), dst(4), exp(6);
 
   // abd
   edge(0, 1, src, new LitState('a'));
