@@ -191,7 +191,7 @@ void Parser::reset() {
   IsGood = false;
   if (Fsm) {
     Fsm->clear();
-    boost::add_vertex(*Fsm);
+    Fsm->addVertex();
   }
   else {
     Fsm.reset(new DynamicFSM(1));
@@ -281,10 +281,10 @@ void Parser::literal(const Node& n) {
     DynamicFSM::vertex_descriptor first,
                                   prev,
                                   last;
-    first = prev = last = boost::add_vertex(g);
+    first = prev = last = g.addVertex();
     setLiteralTransition(g[first], TempBuf[0]);
     for (uint32 i = 1; i < len; ++i) {
-      last = boost::add_vertex(g);
+      last = g.addVertex();
       addNewEdge(prev, last, g);
       setLiteralTransition(g[last], TempBuf[i]);
       prev = last;
@@ -317,14 +317,14 @@ void Parser::question(const Node&) {
 }
 
 void Parser::dot(const Node& n) {
-  DynamicFSM::vertex_descriptor v = boost::add_vertex(*Fsm);
+  DynamicFSM::vertex_descriptor v = Fsm->addVertex();
   (*Fsm)[v].reset(new RangeState(0, 255));
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
 
 void Parser::charClass(const Node& n, const std::string& lbl) {
-  DynamicFSM::vertex_descriptor v = boost::add_vertex(*Fsm);
+  DynamicFSM::vertex_descriptor v = Fsm->addVertex();
   uint32 num = 0;
   byte first = 0, last = 0;
   for (uint32 i = 0; i < 256; ++i) {

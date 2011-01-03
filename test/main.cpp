@@ -53,7 +53,7 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
   std::cerr << keyInfo.Keywords.size() << " keywords"<< std::endl;
 
   DynamicFSMPtr fsm = createDynamicFSM(keyInfo, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
-  std::cerr << boost::num_vertices(*fsm) << " vertices" << '\n';
+  std::cerr << fsm->numVertices() << " vertices" << '\n';
 
   ProgramPtr p = createProgram(*fsm);
   std::cerr << p->size() << " instructions" << std::endl;

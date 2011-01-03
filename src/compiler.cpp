@@ -16,8 +16,9 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
   while (!States.empty()) {
     States.pop();
   }
-  StateMap.assign(boost::num_vertices(addend), UNALLOCATED);
-  Visited.assign(boost::num_vertices(addend), false);
+  uint32 numVs = addend.numVertices();
+  StateMap.assign(numVs, UNALLOCATED);
+  Visited.assign(numVs, false);
 
   DynamicFSM::vertex_descriptor oldSource,
                                 source,
@@ -33,9 +34,9 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
       // std::cerr << "on state pair " << oldSource << ", " << source << std::endl;
       Visited[oldSource] = true;
 
-      OutEdgeRange oldOutRange(boost::out_edges(oldSource, addend));
-      for (OutEdgeIt e(oldOutRange.first); e != oldOutRange.second; ++e) {
-        oldTarget = boost::target(*e, addend);
+      const DynamicFSM::AdjacentList& oldOutVs(addend.outVertices(oldSource));
+      for (DynamicFSM::const_iterator it(oldOutVs.begin()); it != oldOutVs.end(); ++it) {
+        oldTarget = *it;
         if (StateMap[oldTarget] == UNALLOCATED) {
           TransitionPtr tran = addend[oldTarget];
           tranBits.reset();
@@ -44,18 +45,18 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
 
           bool found = false;
 
-          OutEdgeRange outRange(boost::out_edges(source, fsm)); // done every time to avoid iterator invalidation
-          for (OutEdgeIt curEdge(outRange.first); curEdge != outRange.second; ++curEdge) {
-            target = boost::target(*curEdge, fsm);
+          const DynamicFSM::AdjacentList& outVs(fsm.outVertices(source));
+          for (DynamicFSM::const_iterator curEdge(outVs.begin()); curEdge != outVs.end(); ++curEdge) {
+            target = *curEdge;
             TransitionPtr edgeTran = fsm[target];
             edgeBits.reset();
             edgeTran->getBits(edgeBits);
             // std::cerr << "    looking at merge state " << target << " with transition " << edgeTran->label() << std::endl;
             if (edgeBits == tranBits &&
                 (edgeTran->Label == UNALLOCATED || edgeTran->Label == keyIdx) &&
-                1 == boost::in_degree(target, fsm) &&
-                2 > boost::in_degree(oldSource, addend) &&
-                2 > boost::in_degree(oldTarget, addend)) {
+                1 == fsm.inDegree(target) &&
+                2 > addend.inDegree(oldSource) &&
+                2 > addend.inDegree(oldTarget)) {
               // std::cerr << "    found equivalent state " << target << std::endl;
               found = true;
               break;
@@ -64,12 +65,11 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
 
           if (!found) {
             // The destination NFA and the source NFA have diverged.
-            // Copy the tail node from the source to the destination.
-            target = boost::add_vertex(fsm);
+            // Copy the tail node from the source to the destination
+            target = fsm.addVertex();
             // std::cerr << "  creating new state " << target << std::endl;
             fsm[target] = tran;
           }
-
           StateMap[oldTarget] = target;
         }
         else {
@@ -87,10 +87,11 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
 void Compiler::labelGuardStates(DynamicFSM& fsm) {
   using namespace boost;
 
-  std::vector<bool> visited(num_vertices(fsm));
+  std::vector<bool> visited(fsm.numVertices());
 
-  DynamicFSM::vertex_iterator mi, mi_end;
-  for (tie(mi, mi_end) = vertices(fsm); mi != mi_end; ++mi) {
+  
+  DynamicFSM::const_iterator mi_end = fsm.end();
+  for (DynamicFSM::const_iterator mi = fsm.begin(); mi != mi_end; ++mi) {
     DynamicFSM::vertex_descriptor m = *mi;
 
     // skip non-match vertices
@@ -102,7 +103,7 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
     std::stack<DynamicFSM::vertex_descriptor,
                std::vector<DynamicFSM::vertex_descriptor> > next;
     
-    visited.assign(num_vertices(fsm), false);
+    visited.assign(fsm.numVertices(), false);
 
     next.push(m);
     while (!next.empty()) {
@@ -111,9 +112,9 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
       visited[t] = true;
 
       bool unmark = true;
-      DynamicFSM::in_edge_iterator ie, ie_end;
-      for (tie(ie, ie_end) = in_edges(t, fsm); ie != ie_end; ++ie) {
-        DynamicFSM::vertex_descriptor h = source(*ie, fsm);
+      DynamicFSM::const_iterator ie_end(fsm.inVertices(t).end());
+      for (DynamicFSM::const_iterator ie = fsm.inVertices(t).begin(); ie != ie_end; ++ie) {
+        DynamicFSM::vertex_descriptor h = *ie;
 
         // skip head if we've already seen it
         if (visited[h]) continue;
@@ -144,9 +145,9 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
           fsm[h]->Label = UNALLOCATED;
 
           // advance head's label to all of its unlabeled children except tail
-          DynamicFSM::out_edge_iterator oe, oe_end;
-          for (tie(oe, oe_end) = out_edges(h, fsm); oe != oe_end; ++oe) {
-            DynamicFSM::vertex_descriptor c = target(*oe, fsm);
+          DynamicFSM::const_iterator oe_end(fsm.outVertices(h).end());
+          for (DynamicFSM::const_iterator oe = fsm.outVertices(h).begin(); oe != oe_end; ++oe) {
+            DynamicFSM::vertex_descriptor c = *oe;
             if (c != t && fsm[c]->Label == UNALLOCATED) {
               fsm[c]->Label = hlabel;
             }
@@ -168,7 +169,7 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
   }
 
   // mark every UNLABELABLE vertex as UNALLOCATED
-  for (tie(mi, mi_end) = vertices(fsm); mi != mi_end; ++mi) {
+  for (DynamicFSM::const_iterator mi = fsm.begin(); mi != mi_end; ++mi) {
     DynamicFSM::vertex_descriptor m = *mi;
     if (fsm[m] && fsm[m]->Label == UNLABELABLE) {
       fsm[m]->Label = UNALLOCATED;
