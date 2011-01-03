@@ -35,7 +35,7 @@ struct CodeGenHelper {
 
   void discover(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
     DiscoverRanks[v] = NumDiscovered++;
-    if (boost::in_degree(v, graph) > 1) {
+    if (graph.inDegree(v) > 1) {
       Snippets[v].CheckIndex = ++NumChecked;
     }
   }
@@ -105,7 +105,7 @@ public:
     bool   match = false;
     uint32 labels = 0,
            eval   = (v == 0 ? 0: graph[v]->numInstructions()) + (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1),
-           outDegree = out_degree(v, graph),
+           outDegree = graph.outDegree(v),
            totalSize;
     if (shouldBeJumpTable(v, graph, outDegree, totalSize)) {
       Helper->addSnippet(v, eval, totalSize);
@@ -121,15 +121,16 @@ public:
       }
     }
     uint32 outOps = 0;
-    OutEdgeRange outRange(out_edges(v, graph));
-    if (outRange.first == outRange.second) {
+    DynamicFSM::const_iterator  ov(graph.outVertices(v).begin()),
+                                ov_end(graph.outVertices(v).end());
+    if (ov == ov_end) {
       // std::cerr << "no out edges, so a halt" << std::endl;
       outOps = 1; // HALT instruction
     }
     else {
-      for (OutEdgeIt curOut(outRange.first); curOut != outRange.second; ++curOut) {
+      for (; ov != ov_end; ++ov) {
         // if a target state immediately follows the current state, then we don't need an instruction for it
-        if (Helper->DiscoverRanks[v] + 1 != Helper->DiscoverRanks[target(*curOut, graph)]) {
+        if (Helper->DiscoverRanks[v] + 1 != Helper->DiscoverRanks[*ov]) {
           outOps += 2;
         }
       }
@@ -147,7 +148,7 @@ template<class VisitorT>
 void specialVisit(const DynamicFSM& graph, DynamicFSM::vertex_descriptor startVertex, VisitorT& vis) {
   std::deque< DynamicFSM::vertex_descriptor > statesToVisit;
   std::vector< DynamicFSM::vertex_descriptor > inOrder;
-  std::vector< bool > discovered(boost::num_vertices(graph), false);
+  std::vector< bool > discovered(graph.numVertices(), false);
 
   discovered[startVertex].flip();
   // vis.discover_vertex(startVertex, graph);
@@ -159,11 +160,13 @@ void specialVisit(const DynamicFSM& graph, DynamicFSM::vertex_descriptor startVe
     vis.discover_vertex(v, graph);
     inOrder.push_back(v);
 
-    const uint32 numOut = boost::out_degree(v, graph);
-    OutEdgeRange outRange = boost::out_edges(v, graph);
+    const uint32 numOut = graph.outDegree(v);
+
+    DynamicFSM::const_iterator  ov(graph.outVertices(v).begin()),
+                                ov_end(graph.outVertices(v).end());
     const bool nobranch = numOut < 2;
-    for (OutEdgeIt curOut(outRange.first); curOut != outRange.second; ++curOut) {
-      DynamicFSM::vertex_descriptor t = boost::target(*curOut, graph);
+    for (; ov != ov_end; ++ov) {
+      DynamicFSM::vertex_descriptor t = *ov;
       if (!discovered[t]) {
         discovered[t].flip();
         // vis.discover_vertex(t, graph);

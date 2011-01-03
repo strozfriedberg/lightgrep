@@ -16,24 +16,26 @@
 #include "compiler.h"
 
 void ASSERT_SUPERGRAPH(const DynamicFSM& a, const DynamicFSM& b) {
-  EdgeIt a_e, a_end;
-  tie(a_e, a_end) = boost::edges(a);
+  for (DynamicFSM::const_iterator av(a.begin()); av != a.end(); ++av) {
+    SCOPE_ASSERT(*av < b.numVertices());
 
-  for ( ; a_e != a_end ; ++a_e) {
-    DynamicFSM::vertex_descriptor ah = boost::source(*a_e, a);
-    DynamicFSM::vertex_descriptor at = boost::target(*a_e, a);
-    SCOPE_ASSERT(boost::edge(ah, at, b).second);
+    DynamicFSM::const_iterator a_ov(a.outVertices(*av).begin()),
+                               a_ov_end(a.outVertices(*av).end());
+    for (; a_ov != a_ov_end; ++a_ov) {
+      SCOPE_ASSERT(*a_ov < b.numVertices());
+      SCOPE_ASSERT(b.edgeExists(*av, *a_ov));
+    }
   }
 }
 
 void ASSERT_EQUAL_GRAPHS(const DynamicFSM& a, const DynamicFSM& b) {
-  SCOPE_ASSERT_EQUAL(boost::num_vertices(a), boost::num_vertices(b));
+  SCOPE_ASSERT_EQUAL(a.numVertices(), b.numVertices());
   ASSERT_SUPERGRAPH(a, b);
   ASSERT_SUPERGRAPH(b, a);
 }
 
 void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, TransitionPtr tPtr) {
-  boost::add_edge(source, target, fsm);
+  fsm.addEdge(source, target);
   fsm[target] = tPtr;
   if (tPtr->Label != UNALLOCATED) {
     tPtr->IsMatch = true;
@@ -147,7 +149,7 @@ SCOPE_TEST(twoFixedStrings) {
   kws.push_back("one");
   kws.push_back("two");
   DynamicFSMPtr fsm = createDynamicFSM(kws);
-  SCOPE_ASSERT_EQUAL(7u, num_vertices(*fsm));
+  SCOPE_ASSERT_EQUAL(7u, fsm->numVertices());
   SCOPE_ASSERT_EQUAL(3u, calculateLMin(*fsm));
 }
 
@@ -156,20 +158,20 @@ SCOPE_TEST(twoUnicode) {
   kws.push_back("aa");
   kws.push_back("ab");
   DynamicFSMPtr fsm = createDynamicFSM(kws, CP_UCS16);
-  SCOPE_ASSERT_EQUAL(7u, num_vertices(*fsm));
-  SCOPE_ASSERT_EQUAL(1u, out_degree(0, *fsm));
-  SCOPE_ASSERT_EQUAL(1u, in_degree(1, *fsm));
-  SCOPE_ASSERT_EQUAL(1u, out_degree(1, *fsm));
-  SCOPE_ASSERT_EQUAL(1u, in_degree(2, *fsm));
-  SCOPE_ASSERT_EQUAL(2u, out_degree(2, *fsm));
-  SCOPE_ASSERT_EQUAL(1u, in_degree(3, *fsm));
-  SCOPE_ASSERT_EQUAL(1u, out_degree(3, *fsm));
-  SCOPE_ASSERT_EQUAL(1u, in_degree(4, *fsm));
-  SCOPE_ASSERT_EQUAL(0u, out_degree(4, *fsm));
-  SCOPE_ASSERT_EQUAL(1u, in_degree(5, *fsm));
-  SCOPE_ASSERT_EQUAL(1u, out_degree(5, *fsm));
-  SCOPE_ASSERT_EQUAL(1u, in_degree(6, *fsm));
-  SCOPE_ASSERT_EQUAL(0u, out_degree(6, *fsm));
+  SCOPE_ASSERT_EQUAL(7u, fsm->numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(2));
+  SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(3));
+  SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(3));
+  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(4));
+  SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(4));
+  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(5));
+  SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(5));
+  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(6));
+  SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(6));
   SCOPE_ASSERT_EQUAL(4u, calculateLMin(*fsm));
 }
 
@@ -194,18 +196,18 @@ SCOPE_TEST(simpleCollapse) {
   kws.push_back("ab");
   kws.push_back("ac");
   DynamicFSMPtr fsm = createDynamicFSM(kws);
-  SCOPE_ASSERT_EQUAL(4u, boost::num_vertices(*fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, *fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, *fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, *fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, *fsm));
+  SCOPE_ASSERT_EQUAL(4u, fsm->numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
+  SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(2));
+  SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(3));
   SCOPE_ASSERT_EQUAL(2u, calculateLMin(*fsm));
 }
 
 SCOPE_TEST(codeGen2DiscoverVertex) {
   DynamicFSM fsm(2);
   edge(0, 1, fsm, new LitState('a'));
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
   CodeGenVisitor vis(cg);
 
   vis.discover_vertex(1, fsm);
@@ -223,7 +225,7 @@ SCOPE_TEST(codeGen2FinishVertex) {
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 3, fsm, new LitState('c'));
   edge(2, 4, fsm, new LitState('d'));
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
   CodeGenVisitor vis(cg);
 
   cg->NumDiscovered = 3;
@@ -258,7 +260,7 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
   DynamicFSM fsm(3);
   edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('b'));
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
   CodeGenVisitor vis(cg);
   
   cg->NumDiscovered = 3;
@@ -285,7 +287,7 @@ SCOPE_TEST(layoutWithCheckHalt) {
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 2, fsm, new LitState('b', 0));
   
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(boost::num_vertices(fsm)));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
   CodeGenVisitor vis(cg);
   specialVisit(fsm, 0, vis);
 
@@ -463,13 +465,13 @@ SCOPE_TEST(testMerge) {
   edge(4, 5, fsm, new LitState('y', 1));
   comp.mergeIntoFSM(fsm, key, 2);
 
-  SCOPE_ASSERT_EQUAL(8u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(6, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(7, fsm));
-  SCOPE_ASSERT_EQUAL(3u, boost::in_degree(7, fsm));
+  SCOPE_ASSERT_EQUAL(8u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, (fsm).outDegree(0));
+  SCOPE_ASSERT_EQUAL(2u, (fsm).outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, (fsm).outDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, (fsm).outDegree(6));
+  SCOPE_ASSERT_EQUAL(1u, (fsm).outDegree(7));
+  SCOPE_ASSERT_EQUAL(3u, (fsm).inDegree(7));
 }
 
 SCOPE_TEST(testMergeLabelsSimple) {

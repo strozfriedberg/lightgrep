@@ -25,15 +25,19 @@ struct KwInfo {
   std::vector< std::pair<uint32, uint32> > PatternsTable;
 };
 
-typedef DynamicFSM::in_edge_iterator InEdgeIt;
-typedef std::pair<InEdgeIt, InEdgeIt> InEdgeRange;
-typedef DynamicFSM::out_edge_iterator OutEdgeIt;
-typedef std::pair< OutEdgeIt, OutEdgeIt > OutEdgeRange;
-
 void addNewEdge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm);
 
 DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII, bool caseSensitive = true, bool litMode = false);
 DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode);
+
+class Visitor {
+public:
+  void discoverVertex(DynamicFSM::vertex_descriptor, const DynamicFSM&) const {}
+ 
+  void treeEdge(DynamicFSM::vertex_descriptor, DynamicFSM::vertex_descriptor, const DynamicFSM&) const {}
+};
+
+void bfs(const DynamicFSM& graph, DynamicFSM::vertex_descriptor start, Visitor visitor);
 
 uint32 calculateLMin(const DynamicFSM& graph);
 
