@@ -21,13 +21,23 @@ SCOPE_TEST(fsmAddVertex) {
 }
 
 SCOPE_TEST(fsmInEdges) {
-  NewDynamicFSM g(1);
-  SCOPE_ASSERT_EQUAL(0 , g.inVertices(0).size());
+  NewDynamicFSM g(2);
+  SCOPE_ASSERT_EQUAL(0, g.inVertices(0).size());
+  SCOPE_ASSERT_EQUAL(0, g.inVertices(1).size());
+  g.addEdge(0, 1);
+  SCOPE_ASSERT_EQUAL(0, g.inVertices(0).size());
+  SCOPE_ASSERT_EQUAL(1, g.inVertices(1).size());
+  SCOPE_ASSERT_EQUAL(0, g.inVertices(1)[0]);
 }
 
 SCOPE_TEST(fsmOutEdges) {
-  NewDynamicFSM g(1);
-  SCOPE_ASSERT_EQUAL(0 , g.outVertices(0).size());
+  NewDynamicFSM g(2);
+  SCOPE_ASSERT_EQUAL(0, g.outVertices(0).size());
+  SCOPE_ASSERT_EQUAL(0, g.outVertices(0).size());
+  g.addEdge(0, 1);
+  SCOPE_ASSERT_EQUAL(1, g.outVertices(0).size());
+  SCOPE_ASSERT_EQUAL(0, g.outVertices(1).size());
+  SCOPE_ASSERT_EQUAL(1, g.outVertices(0)[0]);
 }
 
 SCOPE_TEST(fsmVertexSize) {

@@ -14,6 +14,11 @@ NewDynamicFSM::vertex_descriptor NewDynamicFSM::addVertex() {
   return Vertices.size() - 1;
 }
 
+void NewDynamicFSM::addEdge(const vertex_descriptor source, const vertex_descriptor target) {
+  Vertices[source].Out.add(target);
+  Vertices[target].In.add(source);
+}
+
 namespace boost {
   uint32 num_vertices(const NewDynamicFSM& g) {
     return g.numVertices();
