@@ -177,7 +177,8 @@ void Fragment::merge(const Fragment& f) {
 
 Parser::Parser():
   CaseSensitive(true),
-  CurLabel(0)
+  CurLabel(0),
+  ReserveSize(0)
 {
   for (unsigned int i = 0; i < 256; ++i) {
     LitFlyweights.push_back(TransitionPtr(new LitState(i)));
@@ -194,6 +195,7 @@ void Parser::reset() {
   }
   else {
     Fsm.reset(new DynamicFSM(1));
+//    Fsm.reset(new DynamicFSM(1, ReserveSize));
   }
   while (!Stack.empty()) {
     Stack.pop();
@@ -209,6 +211,10 @@ void Parser::setEncoding(const boost::shared_ptr<Encoding>& e) {
 
 void Parser::setCaseSensitive(bool caseSensitive) {
   CaseSensitive = caseSensitive;
+}
+
+void Parser::setSizeHint(uint64 reserveSize) {
+  ReserveSize = reserveSize;
 }
 
 void Parser::patch(const FastVList& sources, const FastVList& targets) {
