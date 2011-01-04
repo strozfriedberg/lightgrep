@@ -61,14 +61,12 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
   p->Skip = calculateSkipTable(*fsm);
   p->First = firstBytes(*fsm);
   
-  boost::shared_ptr<SkipTable> skip(calculateSkipTable(*fsm));
-  std::cerr << skip->l_min() << " lmin" << std::endl;
-  const std::vector<uint32>& skipVec(skip->skipVec());
+  std::cerr << p->Skip->l_min() << " lmin" << std::endl;
   uint32 numMax = 0;
   double total = 0;
   for (uint32 i = 0; i < 256; ++i) {
-    total += skipVec[i];
-    if (skipVec[i] == skip->l_min()) {
+    total += p->Skip->skipVec()[i];
+    if (p->Skip->skipVec()[i] == p->Skip->l_min()) {
       ++numMax;
     }
   }
