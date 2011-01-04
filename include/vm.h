@@ -35,7 +35,7 @@ private:
   void doMatch(const Thread& t);
   void cleanup();
 
-  bool _execute(Thread& t, const byte* cur);
+  bool _execute(const Instruction* base, Thread& t, const byte* cur);
   bool _executeEpsilon(const Instruction* base, Thread& t, uint64 offset);
   bool _executeEpSequence(const Instruction* base, Thread& t, uint64 offset);
   void _executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset);

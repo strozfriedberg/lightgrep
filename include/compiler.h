@@ -11,6 +11,8 @@ public:
 
   void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx);
   
+  void labelGuardStates(DynamicFSM& fsm); 
+ 
 private:
   std::vector< DynamicFSM::vertex_descriptor > StateMap;
   std::stack< StatePair, std::vector<StatePair> > States;
