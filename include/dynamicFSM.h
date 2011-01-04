@@ -11,8 +11,6 @@ class DynamicFSM {
 public:
   typedef uint32 vertex_descriptor;
 
-  std::vector< std::vector< vertex_descriptor > > AdjLists;
-
   enum FlagType {
     ZERO = 0,
     ONE  = 1,
@@ -134,7 +132,11 @@ public:
 private:
   void _add(AdjacentList& l, vertex_descriptor v);
 
+  AdjacentList::Itr _adjbegin(const AdjacentList& l) const;
+  AdjacentList::Itr _adjend(const AdjacentList& l) const;
+
   std::vector< Vertex > Vertices;
+  std::vector< std::vector< vertex_descriptor > > AdjLists;
 };
 
 typedef boost::shared_ptr<DynamicFSM> DynamicFSMPtr;
