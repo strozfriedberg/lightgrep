@@ -235,6 +235,15 @@ SCOPE_TEST(fsmOutItrPostOutcrement) {
   SCOPE_ASSERT(eo2 == bo2);
 }
 
+SCOPE_TEST(fsmClear) {
+  DynamicFSM g(1);
+  g.addEdge(0, 0);
+ 
+  SCOPE_ASSERT_EQUAL(1, g.numVertices());
+  g.clear();
+  SCOPE_ASSERT_EQUAL(0, g.numVertices());
+}
+
 SCOPE_TEST(fsmVertexSize) {
   SCOPE_ASSERT_EQUAL(16, sizeof(TransitionPtr));
   SCOPE_ASSERT_EQUAL(34, sizeof(DynamicFSM::Vertex));
