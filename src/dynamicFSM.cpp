@@ -108,20 +108,15 @@ DynamicFSM::AdjacentList::Itr DynamicFSM::_adjend(const AdjacentList& l) const {
   }
 }
 
-DynamicFSM::AdjacentList::Itr DynamicFSM::inVerticesBegin(DynamicFSM::vertex_descriptor v) const {
-  return _adjbegin(Vertices[v].In);
-}
-
-DynamicFSM::AdjacentList::Itr DynamicFSM::inVerticesEnd(DynamicFSM::vertex_descriptor v) const {
-  return _adjend(Vertices[v].In);
-}
-
-DynamicFSM::AdjacentList::Itr DynamicFSM::outVerticesBegin(DynamicFSM::vertex_descriptor v) const {
-  return _adjbegin(Vertices[v].Out);
-}
-
-DynamicFSM::AdjacentList::Itr DynamicFSM::outVerticesEnd(DynamicFSM::vertex_descriptor v) const {
-  return _adjend(Vertices[v].Out);
+uint32 DynamicFSM::_degree(const AdjacentList& l) const {
+  switch (l.Flags) {
+  case ZERO:
+    return 0;
+  case ONE:
+    return 1;
+  default:
+    return AdjLists[l.What].size();
+  }
 }
 
 void DynamicFSM::_add(AdjacentList& l, vertex_descriptor v) {
