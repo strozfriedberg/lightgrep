@@ -35,6 +35,10 @@ void ASSERT_EQUAL_GRAPHS(const DynamicFSM& a, const DynamicFSM& b) {
 }
 
 void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, TransitionPtr tPtr) {
+
+  while (source >= fsm.numVertices()) fsm.addVertex();
+  while (target >= fsm.numVertices()) fsm.addVertex();
+
   fsm.addEdge(source, target);
   fsm[target] = tPtr;
   if (tPtr->Label != UNALLOCATED) {
