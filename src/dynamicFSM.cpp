@@ -128,15 +128,9 @@ void DynamicFSM::_add(AdjacentList& l, vertex_descriptor v) {
     case ONE:
       if (v != l.What) {
         l.Flags = MANY;
-        vertex_descriptor temp = l.What;
-        AdjLists.push_back(std::vector<DynamicFSM::vertex_descriptor>());
+        vertex_descriptor tmp[2] = { l.What, v };
+        AdjLists.push_back(std::vector<vertex_descriptor>(&tmp[0], &tmp[2]));
         l.What = AdjLists.size() - 1;
-        AdjLists[l.What].push_back(temp);
-        AdjLists[l.What].push_back(v);
-        // l_descriptor tempArray[2];
-        // tempArray[0] = V.Single;
-        // tempArray[1] = v;
-        // V.List = new std::vector<l_descriptor>(&tempArray[0], &tempArray[2]);
       }
       break;
     case MANY:
