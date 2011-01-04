@@ -9,7 +9,7 @@ class DynamicFSM {
 public:
   typedef uint32 vertex_descriptor;
 
-// #pragma pack(1)
+#pragma pack(1)
   class AdjacentList {
   private:
     // union {
@@ -87,7 +87,7 @@ public:
     AdjacentList In,
                   Out;
   };
-// #pragma pack()
+#pragma pack()
 
   typedef AdjacentList::iterator iterator;
   typedef AdjacentList::const_iterator const_iterator;
