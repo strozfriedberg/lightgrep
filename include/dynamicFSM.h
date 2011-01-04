@@ -80,6 +80,7 @@ public:
   vertex_descriptor addVertex();
 
   bool edgeExists(const vertex_descriptor source, const vertex_descriptor target) const;
+
   void addEdge(const vertex_descriptor source, const vertex_descriptor target);
 
   const AdjacentList& inVertices(const vertex_descriptor v) const {
@@ -90,32 +91,28 @@ public:
     return Vertices[v].Out;
   }
 
-  iterator inVerticesBegin(vertex_descriptor v) const;
-  iterator inVerticesEnd(vertex_descriptor v) const;
+  iterator inVerticesBegin(vertex_descriptor v) const {
+    return _adjbegin(Vertices[v].In);
+  }
+  
+  iterator inVerticesEnd(vertex_descriptor v) const {
+    return _adjend(Vertices[v].In);
+  }
 
-  iterator outVerticesBegin(vertex_descriptor v) const;
-  iterator outVerticesEnd(vertex_descriptor v) const;
+  iterator outVerticesBegin(vertex_descriptor v) const {
+    return _adjbegin(Vertices[v].Out);
+  }
+
+  iterator outVerticesEnd(vertex_descriptor v) const {
+    return _adjend(Vertices[v].Out);
+  }
 
   uint32 inDegree(const vertex_descriptor v) const {
-    switch (Vertices[v].In.Flags) {
-      case ZERO:
-        return 0;
-      case ONE:
-        return 1;
-      default:
-        return AdjLists[Vertices[v].In.What].size();
-    }
+    return _degree(Vertices[v].In);
   }
 
   uint32 outDegree(const vertex_descriptor v) const {
-    switch (Vertices[v].Out.Flags) {
-      case ZERO:
-        return 0;
-      case ONE:
-        return 1;
-      default:
-        return AdjLists[Vertices[v].Out.What].size();
-    }
+    return _degree(Vertices[v].Out);
   }
 
   const TransitionPtr operator[](vertex_descriptor v) const {
@@ -131,6 +128,8 @@ public:
 
 private:
   void _add(AdjacentList& l, vertex_descriptor v);
+
+  uint32 _degree(const AdjacentList& l) const;
 
   AdjacentList::Itr _adjbegin(const AdjacentList& l) const;
   AdjacentList::Itr _adjend(const AdjacentList& l) const;
