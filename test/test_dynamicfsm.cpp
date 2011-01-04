@@ -245,6 +245,5 @@ SCOPE_TEST(fsmClear) {
 }
 
 SCOPE_TEST(fsmVertexSize) {
-  SCOPE_ASSERT_EQUAL(16, sizeof(TransitionPtr));
-  SCOPE_ASSERT_EQUAL(34, sizeof(DynamicFSM::Vertex));
+  SCOPE_ASSERT_EQUAL(26, sizeof(DynamicFSM::Vertex));
 }
