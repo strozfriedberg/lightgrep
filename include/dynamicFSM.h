@@ -8,7 +8,6 @@ typedef boost::shared_ptr<Transition> TransitionPtr;
 class DynamicFSM {
 public:
   typedef uint32 vertex_descriptor;
-  typedef std::pair<vertex_descriptor, vertex_descriptor> edge_descriptor;
 
 // #pragma pack(1)
   class AdjacentList {
@@ -104,13 +103,25 @@ public:
   bool edgeExists(const vertex_descriptor source, const vertex_descriptor target) const;
   void addEdge(const vertex_descriptor source, const vertex_descriptor target);
 
-  const AdjacentList& inVertices(const vertex_descriptor v) const { return Vertices[v].In; }
-  const AdjacentList& outVertices(const vertex_descriptor v) const { return Vertices[v].Out; }
+  const AdjacentList& inVertices(const vertex_descriptor v) const {
+    return Vertices[v].In;
+  }
+  
+  const AdjacentList& outVertices(const vertex_descriptor v) const {
+    return Vertices[v].Out;
+  }
 
-  uint32 inDegree(const vertex_descriptor v) const { return Vertices[v].In.size(); }
-  uint32 outDegree(const vertex_descriptor v) const { return Vertices[v].Out.size(); }
+  uint32 inDegree(const vertex_descriptor v) const {
+    return Vertices[v].In.size();
+  }
 
-  const TransitionPtr operator[](vertex_descriptor v) const { return Vertices[v].Tran; }
+  uint32 outDegree(const vertex_descriptor v) const {
+    return Vertices[v].Out.size();
+  }
+
+  const TransitionPtr operator[](vertex_descriptor v) const {
+    return Vertices[v].Tran; 
+  }
   
   TransitionPtr& operator[](vertex_descriptor v) { return Vertices[v].Tran; }
   

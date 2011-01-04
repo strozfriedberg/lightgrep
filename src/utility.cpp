@@ -6,9 +6,8 @@
 #include "concrete_encodings.h"
 #include "compiler.h"
 
-#include <deque>
-#include <stack>
 #include <algorithm>
+#include <queue>
 
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -243,34 +242,19 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
   return ret;
 }
 
-/*
-class SkipTblVisitor: public boost::default_bfs_visitor {
-public:
-  SkipTblVisitor(boost::shared_ptr<SkipTable> skip): Skipper(skip) {}
-
-  void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
-    Skipper->calculateTransitions(v, graph);
-  }
-
-  void tree_edge(DynamicFSM::edge_descriptor e, const DynamicFSM& graph) const {
-    Skipper->setDistance(e.first, e.second, graph);
-  }
-
-private:
-  boost::shared_ptr<SkipTable> Skipper;
-};
-*/
-
 class SkipTblVisitor: public Visitor {
 public:
   SkipTblVisitor(boost::shared_ptr<SkipTable> skip): Skipper(skip) {}
   
-  void discoverVertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) const {
+  void discoverVertex(DynamicFSM::vertex_descriptor v,
+                      const DynamicFSM& graph) const {
     Skipper->calculateTransitions(v, graph);
   }
  
-  void treeEdge(DynamicFSM::vertex_descriptor s, DynamicFSM::vertex_descriptor t, const DynamicFSM& graph) const {
-    Skipper->setDistance(s, t, graph);
+  void treeEdge(DynamicFSM::vertex_descriptor h,
+                DynamicFSM::vertex_descriptor t,
+                const DynamicFSM& graph) const {
+    Skipper->setDistance(h, t, graph);
   }
 
 private:
@@ -284,33 +268,34 @@ uint32 calculateLMin(const DynamicFSM& graph) {
 boost::shared_ptr<SkipTable> calculateSkipTable(const DynamicFSM& graph) {
   boost::shared_ptr<SkipTable> skip(new SkipTable(graph.numVertices()));
   SkipTblVisitor vis(skip);
-//  boost::breadth_first_search(graph, 0, boost::visitor(vis));
   bfs(graph, 0, vis);
   skip->finishSkipVec();
   return skip;
 }
 
-void bfs(const DynamicFSM& graph, DynamicFSM::vertex_descriptor start, Visitor visitor) {
-  std::vector<bool> visited(graph.numVertices());
-  
-  std::stack<DynamicFSM::vertex_descriptor,
-             std::vector<DynamicFSM::vertex_descriptor> > next;
+void bfs(const DynamicFSM& graph, DynamicFSM::vertex_descriptor start, Visitor& visitor) {
+  std::vector<bool> seen(graph.numVertices());
+  std::queue<DynamicFSM::vertex_descriptor> next;
+
+  visitor.discoverVertex(start, graph);
   next.push(start);
+  seen[start] = true;
   
   while (!next.empty()) {
-    DynamicFSM::vertex_descriptor v = next.top();
+    DynamicFSM::vertex_descriptor h = next.front();
     next.pop();
-    visited[v] = true;
-    
-    visitor.discoverVertex(v, graph);
-    
-    DynamicFSM::const_iterator ov(graph.outVertices(v).begin()),
-                               ov_end(graph.outVertices(v).end());
+  
+    DynamicFSM::const_iterator ov(graph.outVertices(h).begin()),
+                               ov_end(graph.outVertices(h).end());
     for ( ; ov != ov_end; ++ov) {
-      visitor.treeEdge(v, *ov, graph);
-      
-      if (!visited[*ov]) {
-        next.push(*ov);
+      DynamicFSM::vertex_descriptor t = *ov;
+      if (!seen[t]) {
+        // One might think that we discover a vertex at the tail of an
+        // edge first, but one would be wrong...
+        visitor.treeEdge(h, t, graph);
+        visitor.discoverVertex(t, graph);
+        next.push(t);
+        seen[t] = true;
       }
     }
   }

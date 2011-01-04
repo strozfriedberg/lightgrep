@@ -32,12 +32,15 @@ DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive, 
 
 class Visitor {
 public:
-  void discoverVertex(DynamicFSM::vertex_descriptor, const DynamicFSM&) const {}
+  virtual void discoverVertex(DynamicFSM::vertex_descriptor,
+                              const DynamicFSM&) const {}
  
-  void treeEdge(DynamicFSM::vertex_descriptor, DynamicFSM::vertex_descriptor, const DynamicFSM&) const {}
+  virtual void treeEdge(DynamicFSM::vertex_descriptor,
+                        DynamicFSM::vertex_descriptor,
+                        const DynamicFSM&) const {}
 };
 
-void bfs(const DynamicFSM& graph, DynamicFSM::vertex_descriptor start, Visitor visitor);
+void bfs(const DynamicFSM& graph, DynamicFSM::vertex_descriptor start, Visitor& visitor);
 
 uint32 calculateLMin(const DynamicFSM& graph);
 
