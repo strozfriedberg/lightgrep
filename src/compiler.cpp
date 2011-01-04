@@ -86,7 +86,7 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
   using namespace boost;
 
   std::vector<bool> visited(fsm.numVertices());
-
+  uint32 i = 0;
   
   DynamicFSM::const_iterator mi_end = fsm.end();
   for (DynamicFSM::const_iterator mi = fsm.begin(); mi != mi_end; ++mi) {
@@ -95,6 +95,9 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
     // skip non-match vertices
     if (!fsm[m] || !fsm[m]->IsMatch) continue;
 
+    if (++i % 10000 == 0) {
+      std::cerr << "handled " << i << " labeled vertices" << std::endl;
+    }
     const unsigned int label = fsm[m]->Label;
     
     // walk guard label(s) back from this match state
