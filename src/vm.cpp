@@ -79,7 +79,7 @@ void Vm::reset() {
   CurHitFn = 0;
 }
 
-inline bool Vm::_execute(Thread& t, const byte* cur) {
+inline bool Vm::_execute(const Instruction* base, Thread& t, const byte* cur) {
   // std::string instr;
   // std::cerr << t << std::endl;
   // instr = t.PC->toString(); // for some reason, toString() is corrupting the stack... maybe?
@@ -117,15 +117,16 @@ inline bool Vm::_execute(Thread& t, const byte* cur) {
       }
       break;
     case JUMP_TABLE_OP:
-      t.jump(t.PC, 1 + *cur);
-      if (t.PC->OpCode != HALT_OP) {
+      if (*(uint32*)(t.PC + 1 + *cur) != 0xffffffff) {
+        t.jump(base, *reinterpret_cast<const uint32*>(t.PC + 1 + *cur));
         return true;
       }
       break;
     case JUMP_TABLE_RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
-        t.jump(t.PC, 1 + (*cur - instr.Op.Range.First));
-        if (t.PC->OpCode != HALT_OP) {
+        const uint32 addr = *reinterpret_cast<const uint32*>(t.PC + 1 + (*cur - instr.Op.Range.First));
+        if (addr != 0xffffffff) {
+          t.jump(base, addr);
           return true;
         }
       }
@@ -153,6 +154,20 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
     case JUMP_OP:
       t.jump(base, instr.Op.Offset);
       return true;
+    case LONGFORK_OP:
+      {
+        Thread f = t;
+        t.advance();
+        // recurse to keep going in sequence
+        if (_executeEpSequence(base, t, offset)) {
+          Next.push_back(t);
+        }
+        // now back up to the fork, and fall through to handle it as a longjump
+        t = f;
+      }
+    case LONGJUMP_OP:
+      t.jump(base, *reinterpret_cast<const uint32*>(t.PC+1));
+      return true;
     case CHECK_HALT_OP:
       if (CheckStates[instr.Op.Offset]) {
         t.PC = 0;
@@ -170,6 +185,9 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
       return true;
     case MATCH_OP:
       t.End = offset;
+      if (t.Label == std::numeric_limits<uint32>::max()) {
+        t.Label = 0;
+      }
       t.advance();
       return true;
     case HALT_OP:
@@ -181,7 +199,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
 }
 
 inline void Vm::_executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset) {
-  if (_execute(t, cur) && _executeEpSequence(base, t, offset)) {
+  if (_execute(base, t, cur) && _executeEpSequence(base, t, offset)) {
     Next.push_back(t);
   }
 }
@@ -211,7 +229,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
 }
 
 bool Vm::execute(Thread& t, const byte* cur) {
-  return _execute(t, cur);
+  return _execute(&(*Prog)[0], t, cur);
 }
 
 bool Vm::executeEpsilon(Thread& t, uint64 offset) {

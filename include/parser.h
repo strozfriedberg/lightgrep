@@ -8,22 +8,22 @@
 
 #include <stack>
 
-enum NodeType {
-  REGEXP,
-  ALTERNATION,
-  CONCATENATION,
-  GROUP,
-  PLUS,
-  STAR,
-  QUESTION,
-  ELEMENT,
-  DOT,
-  CHAR_CLASS,
-  LITERAL,
-  IGNORE
-};
-
 struct Node {
+  enum NodeType {
+    REGEXP,
+    ALTERNATION,
+    CONCATENATION,
+    GROUP,
+    PLUS,
+    STAR,
+    QUESTION,
+    ELEMENT,
+    DOT,
+    CHAR_CLASS,
+    LITERAL,
+    IGNORE
+  };
+
   NodeType  Type;
   Node      *Left,
             *Right;
@@ -166,4 +166,4 @@ private:
   Fragment  TempFrag;
 };
 
-bool parse(const std::string& text, SyntaxTree& tree, NodeHandler& callback);
+bool parse(const std::string& text, bool litMode, SyntaxTree& tree, NodeHandler& callback);
