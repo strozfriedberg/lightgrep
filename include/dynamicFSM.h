@@ -11,12 +11,14 @@ class DynamicFSM {
 public:
   typedef uint32 vertex_descriptor;
 
+private:
   enum FlagType {
     ZERO = 0,
     ONE  = 1,
     MANY = ONE << 1
   };
     
+public:
 #pragma pack(1)
   struct AdjacentList {
   
