@@ -81,48 +81,47 @@ private:
   vertex_descriptor V;
 };
 
-DynamicFSM::AdjacentList::Itr DynamicFSM::inVerticesBegin(DynamicFSM::vertex_descriptor v) const {
-  switch (Vertices[v].In.Flags) {
+DynamicFSM::AdjacentList::Itr DynamicFSM::_adjbegin(const AdjacentList& l) const
+{
+  using namespace boost;
+
+  switch (l.Flags) {
     case ZERO:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
+      return iterator(shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
     case ONE:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new OneItr(&Vertices[v].In.What)));
+      return iterator(shared_ptr<AdjacentList::ItrBase>(new OneItr(&l.What)));
     default:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[Vertices[v].In.What].begin())));
+      return iterator(shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[l.What].begin())));
   }
+}
+
+DynamicFSM::AdjacentList::Itr DynamicFSM::_adjend(const AdjacentList& l) const {
+  using namespace boost;
+
+  switch (l.Flags) {
+    case ZERO:
+      return iterator(shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
+    case ONE:
+      return iterator(shared_ptr<AdjacentList::ItrBase>(new OneItr(0)));
+    default:
+      return iterator(shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[l.What].end())));
+  }
+}
+
+DynamicFSM::AdjacentList::Itr DynamicFSM::inVerticesBegin(DynamicFSM::vertex_descriptor v) const {
+  return _adjbegin(Vertices[v].In);
 }
 
 DynamicFSM::AdjacentList::Itr DynamicFSM::inVerticesEnd(DynamicFSM::vertex_descriptor v) const {
-  switch (Vertices[v].In.Flags) {
-    case ZERO:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
-    case ONE:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new OneItr(0)));
-    default:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[Vertices[v].In.What].end())));
-  }
+  return _adjend(Vertices[v].In);
 }
 
 DynamicFSM::AdjacentList::Itr DynamicFSM::outVerticesBegin(DynamicFSM::vertex_descriptor v) const {
-  switch (Vertices[v].Out.Flags) {
-    case ZERO:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
-    case ONE:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new OneItr(&Vertices[v].Out.What)));
-    default:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[Vertices[v].Out.What].begin())));
-  }
+  return _adjbegin(Vertices[v].Out);
 }
 
 DynamicFSM::AdjacentList::Itr DynamicFSM::outVerticesEnd(DynamicFSM::vertex_descriptor v) const {
-  switch (Vertices[v].Out.Flags) {
-    case ZERO:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
-    case ONE:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new OneItr(0)));
-    default:
-      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[Vertices[v].Out.What].end())));
-  }
+  return _adjend(Vertices[v].Out);
 }
 
 void DynamicFSM::_add(AdjacentList& l, vertex_descriptor v) {
