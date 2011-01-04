@@ -124,7 +124,10 @@ public:
   iterator begin() const;
   iterator end() const;
 
-  void clear() { Vertices.clear(); }
+  void clear() {
+    Vertices.clear();
+    AdjLists.clear();
+  }
 
 private:
   void _add(AdjacentList& l, vertex_descriptor v);
