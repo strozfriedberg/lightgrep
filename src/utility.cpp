@@ -53,7 +53,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
       }
     }
   }
-
+  std::cerr << "Parsed " << keywords.size() << "keywords, beginning labeling" << std::endl;
   comp.labelGuardStates(*fsm);
 }
 
@@ -166,16 +166,20 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
 //  discover_vertex: determine slot
 //  finish_vertex:   
 ProgramPtr createProgram(const DynamicFSM& graph) {
-  // std::cerr << "createProgram2" << std::endl;
+  std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
   uint32 numVs = graph.numVertices();
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
+  std:: cerr << "Determined order in first pass" << std::endl;
   ret->NumChecked = cg->NumChecked;
   ret->resize(cg->Guard);
+  uint32 i = 0;
   for (DynamicFSM::vertex_descriptor v = 0; v < numVs; ++v) {
-    // std::cerr << "on vertex " << v << " at " << cg->Snippets[v].first << std::endl;
+    if (++i % 10000 == 0) {
+      std::cerr << "have compiled " << i << " states so far" << std::endl;
+    }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
     if (cg->Snippets[v].CheckIndex != UNALLOCATED) {
       *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
@@ -266,6 +270,7 @@ uint32 calculateLMin(const DynamicFSM& graph) {
 }
 
 boost::shared_ptr<SkipTable> calculateSkipTable(const DynamicFSM& graph) {
+  std::cerr << "calculating skiptable and l-min" << std::endl;
   boost::shared_ptr<SkipTable> skip(new SkipTable(graph.numVertices()));
   SkipTblVisitor vis(skip);
   bfs(graph, 0, vis);
