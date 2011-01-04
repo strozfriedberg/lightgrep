@@ -81,58 +81,80 @@ private:
   vertex_descriptor V;
 };
 
-DynamicFSM::AdjacentList::Itr DynamicFSM::AdjacentList::begin() const {
-  switch (Flags) {
+DynamicFSM::AdjacentList::Itr DynamicFSM::inVerticesBegin(DynamicFSM::vertex_descriptor v) const {
+  switch (Vertices[v].In.Flags) {
     case ZERO:
-      return Itr(boost::shared_ptr<ItrBase>(new ZeroItr));
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
     case ONE:
-      return Itr(boost::shared_ptr<ItrBase>(new OneItr(&V.Single)));
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new OneItr(&Vertices[v].In.What)));
     default:
-      return Itr(boost::shared_ptr<ItrBase>(new ManyItr(V.List.begin())));
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[Vertices[v].In.What].begin())));
   }
 }
 
-DynamicFSM::AdjacentList::Itr DynamicFSM::AdjacentList::end() const {
-  switch (Flags) {
+DynamicFSM::AdjacentList::Itr DynamicFSM::inVerticesEnd(DynamicFSM::vertex_descriptor v) const {
+  switch (Vertices[v].In.Flags) {
     case ZERO:
-      return Itr(boost::shared_ptr<ItrBase>(new ZeroItr));
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
     case ONE:
-      return Itr(boost::shared_ptr<ItrBase>(new OneItr(0)));
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new OneItr(0)));
     default:
-      return Itr(boost::shared_ptr<ItrBase>(new ManyItr(V.List.end())));
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[Vertices[v].In.What].end())));
   }
 }
 
-void DynamicFSM::AdjacentList::add(vertex_descriptor v) {
-  switch (Flags) {
+DynamicFSM::AdjacentList::Itr DynamicFSM::outVerticesBegin(DynamicFSM::vertex_descriptor v) const {
+  switch (Vertices[v].Out.Flags) {
     case ZERO:
-      Flags = ONE;
-      V.Single = v;
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
+    case ONE:
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new OneItr(&Vertices[v].Out.What)));
+    default:
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[Vertices[v].Out.What].begin())));
+  }
+}
+
+DynamicFSM::AdjacentList::Itr DynamicFSM::outVerticesEnd(DynamicFSM::vertex_descriptor v) const {
+  switch (Vertices[v].Out.Flags) {
+    case ZERO:
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
+    case ONE:
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new OneItr(0)));
+    default:
+      return iterator(boost::shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[Vertices[v].Out.What].end())));
+  }
+}
+
+void DynamicFSM::_add(AdjacentList& l, vertex_descriptor v) {
+  switch (l.Flags) {
+    case ZERO:
+      l.Flags = ONE;
+      l.What = v;
       break;
     case ONE:
-      if (v != V.Single) {
-        Flags = MANY;
-        vertex_descriptor temp = V.Single;
-        // V.List = new std::vector<vertex_descriptor>();
-        V.List.push_back(temp);
-        V.List.push_back(v);
-        // vertex_descriptor tempArray[2];
+      if (v != l.What) {
+        l.Flags = MANY;
+        vertex_descriptor temp = l.What;
+        AdjLists.push_back(std::vector<DynamicFSM::vertex_descriptor>());
+        l.What = AdjLists.size() - 1;
+        AdjLists[l.What].push_back(temp);
+        AdjLists[l.What].push_back(v);
+        // l_descriptor tempArray[2];
         // tempArray[0] = V.Single;
         // tempArray[1] = v;
-        // V.List = new std::vector<vertex_descriptor>(&tempArray[0], &tempArray[2]);
+        // V.List = new std::vector<l_descriptor>(&tempArray[0], &tempArray[2]);
       }
       break;
     case MANY:
-      for (std::vector<vertex_descriptor>::const_iterator it(V.List.begin()); it != V.List.end(); ++it) {
+      for (std::vector<vertex_descriptor>::const_iterator it(AdjLists[l.What].begin()); it != AdjLists[l.What].end(); ++it) {
         if (*it == v) {
           return;
         }
       }
-      V.List.push_back(v);
+      AdjLists[l.What].push_back(v);
       break;
   }
 }
-
 
 DynamicFSM::DynamicFSM(uint32 numVs, uint32 reserveSize): Vertices(numVs, Vertex())
 {
@@ -149,8 +171,8 @@ DynamicFSM::vertex_descriptor DynamicFSM::addVertex() {
 }
 
 bool DynamicFSM::edgeExists(const vertex_descriptor source, const vertex_descriptor target) const {
-  DynamicFSM::const_iterator ov(outVertices(source).begin()),
-                             ov_end(outVertices(source).end());
+  DynamicFSM::const_iterator ov(outVerticesBegin(source)),
+                             ov_end(outVerticesEnd(source));
 
   for (; ov != ov_end; ++ov) {
     if (*ov == target) {
@@ -164,8 +186,8 @@ void DynamicFSM::addEdge(const vertex_descriptor source, const vertex_descriptor
   if (source >= Vertices.size() || target >= Vertices.size()) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT("out of bounds, source = " << source << ", target = " << target << ", but size = " << Vertices.size());
   }
-  Vertices[source].Out.add(target);
-  Vertices[target].In.add(source);
+  _add(Vertices[source].Out, target);
+  _add(Vertices[target].In, source);
 }
 
 DynamicFSM::iterator DynamicFSM::begin() const {

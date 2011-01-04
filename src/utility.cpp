@@ -95,7 +95,7 @@ DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive, 
 // If the jump is to a state that has only a single out edge, and there's no match on the state, then jump forward directly to the out-edge state
 uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
   if (1 == graph.outDegree(v) && UNALLOCATED == graph[v]->Label) {
-    return cg->Snippets[*graph.outVertices(v).begin()].Start;
+    return cg->Snippets[*graph.outVerticesBegin(v)].Start;
   }
   else {
     return cg->Snippets[v].Start + cg->Snippets[v].NumEval;
@@ -197,8 +197,8 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
       createJumpTable(cg, curOp, curOp - &(*ret)[0], v, graph);
       continue;
     }
-    DynamicFSM::const_iterator ov(graph.outVertices(v).begin()),
-                               ov_end(graph.outVertices(v).end());
+    DynamicFSM::const_iterator ov(graph.outVerticesBegin(v)),
+                               ov_end(graph.outVerticesEnd(v));
     if (ov != ov_end) {
       bool hasTargetAtNext = false;
       DynamicFSM::vertex_descriptor nextTarget = 0;
@@ -285,8 +285,8 @@ void bfs(const DynamicFSM& graph, DynamicFSM::vertex_descriptor start, Visitor& 
     DynamicFSM::vertex_descriptor h = next.front();
     next.pop();
   
-    DynamicFSM::const_iterator ov(graph.outVertices(h).begin()),
-                               ov_end(graph.outVertices(h).end());
+    DynamicFSM::const_iterator ov(graph.outVerticesBegin(h)),
+                               ov_end(graph.outVerticesEnd(h));
     for ( ; ov != ov_end; ++ov) {
       DynamicFSM::vertex_descriptor t = *ov;
       if (!seen[t]) {
@@ -303,8 +303,8 @@ void bfs(const DynamicFSM& graph, DynamicFSM::vertex_descriptor start, Visitor& 
 
 void nextBytes(ByteSet& set, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
   ByteSet tBits;
-  DynamicFSM::const_iterator ov(graph.outVertices(v).begin()),
-                             ov_end(graph.outVertices(v).end());
+  DynamicFSM::const_iterator ov(graph.outVerticesBegin(v)),
+                             ov_end(graph.outVerticesEnd(v));
   for ( ; ov != ov_end; ++ov) {
     tBits.reset();
     graph[*ov]->getBits(tBits);
@@ -332,8 +332,8 @@ boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, 
 std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicFSM::vertex_descriptor source, const DynamicFSM& graph) {
   std::vector< std::vector< DynamicFSM::vertex_descriptor > > ret(256);  
   ByteSet permitted;
-  DynamicFSM::const_iterator ov(graph.outVertices(source).begin()),
-                             ov_end(graph.outVertices(source).end());
+  DynamicFSM::const_iterator ov(graph.outVerticesBegin(source)),
+                             ov_end(graph.outVerticesEnd(source));
   for ( ; ov != ov_end; ++ov) {
     permitted.reset();
     graph[*ov]->getBits(permitted);
@@ -383,8 +383,8 @@ void writeGraphviz(std::ostream& out, const DynamicFSM& graph) {
     out << ";" << std::endl;
   }
   for (uint32 i = 0; i < graph.numVertices(); ++i) {
-    DynamicFSM::const_iterator ov(graph.outVertices(i).begin()),
-                               ov_end(graph.outVertices(i).end());
+    DynamicFSM::const_iterator ov(graph.outVerticesBegin(i)),
+                               ov_end(graph.outVerticesEnd(i));
     for ( ; ov != ov_end; ++ov) {
       out << i << "->" << *ov << " ";
       out << ";" << std::endl;
