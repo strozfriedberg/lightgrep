@@ -60,8 +60,6 @@ public:
     typedef Itr const_iterator; // so, so evil
 
     AdjacentList(): Flags(ZERO) { What = 0xFFFFFFFF; }
-
-    void add(vertex_descriptor v);
   };
 
   struct Vertex {
