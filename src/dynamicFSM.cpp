@@ -121,26 +121,26 @@ uint32 DynamicFSM::_degree(const AdjacentList& l) const {
 
 void DynamicFSM::_add(AdjacentList& l, vertex_descriptor v) {
   switch (l.Flags) {
-    case ZERO:
-      l.Flags = ONE;
-      l.What = v;
-      break;
-    case ONE:
-      if (v != l.What) {
-        l.Flags = MANY;
-        vertex_descriptor tmp[2] = { l.What, v };
-        AdjLists.push_back(std::vector<vertex_descriptor>(&tmp[0], &tmp[2]));
-        l.What = AdjLists.size() - 1;
+  case ZERO:
+    l.Flags = ONE;
+    l.What = v;
+    break;
+  case ONE:
+    if (v != l.What) {
+      l.Flags = MANY;
+      const vertex_descriptor tmp[2] = { l.What, v };
+      AdjLists.push_back(std::vector<vertex_descriptor>(&tmp[0], &tmp[2]));
+      l.What = AdjLists.size() - 1;
+    }
+    break;
+  case MANY:
+    for (std::vector<vertex_descriptor>::const_iterator it(AdjLists[l.What].begin()); it != AdjLists[l.What].end(); ++it) {
+      if (*it == v) {
+        return;
       }
-      break;
-    case MANY:
-      for (std::vector<vertex_descriptor>::const_iterator it(AdjLists[l.What].begin()); it != AdjLists[l.What].end(); ++it) {
-        if (*it == v) {
-          return;
-        }
-      }
-      AdjLists[l.What].push_back(v);
-      break;
+    }
+    AdjLists[l.What].push_back(v);
+    break;
   }
 }
 
