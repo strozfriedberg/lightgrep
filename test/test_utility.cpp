@@ -19,8 +19,8 @@ void ASSERT_SUPERGRAPH(const DynamicFSM& a, const DynamicFSM& b) {
   for (DynamicFSM::const_iterator av(a.begin()); av != a.end(); ++av) {
     SCOPE_ASSERT(*av < b.numVertices());
 
-    DynamicFSM::const_iterator a_ov(a.outVertices(*av).begin()),
-                               a_ov_end(a.outVertices(*av).end());
+    DynamicFSM::const_iterator a_ov(a.outVerticesBegin(*av)),
+                               a_ov_end(a.outVerticesEnd(*av));
     for (; a_ov != a_ov_end; ++a_ov) {
       SCOPE_ASSERT(*a_ov < b.numVertices());
       SCOPE_ASSERT(b.edgeExists(*av, *a_ov));

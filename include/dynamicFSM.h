@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "transition.h"
 
 typedef boost::shared_ptr<Transition> TransitionPtr;
@@ -9,22 +11,19 @@ class DynamicFSM {
 public:
   typedef uint32 vertex_descriptor;
 
-#pragma pack(1)
-  class AdjacentList {
-  private:
-    // union {
-    struct {
-      vertex_descriptor Single;
-      std::vector< vertex_descriptor > List;
-    } V;
-    byte Flags;
+  std::vector< std::vector< vertex_descriptor > > AdjLists;
+
+  enum FlagType {
+    ZERO = 0,
+    ONE  = 1,
+    MANY = ONE << 1
+  };
     
-  public:
-    enum {
-      ZERO = 0,
-      ONE  = 1,
-      MANY = ONE << 1
-    };
+#pragma pack(1)
+  struct AdjacentList {
+  
+    uint32 What;
+    byte Flags;
     
     class ItrBase {
     public:
@@ -60,32 +59,14 @@ public:
     typedef Itr iterator;
     typedef Itr const_iterator; // so, so evil
 
-    AdjacentList(): Flags(ZERO) { V.Single = 0xFFFFFFFF; }
-//    ~AdjacentList() { if (Flags & MANY) delete V.List; }
-
-    size_t size() const {
-      switch (Flags) {
-        case ZERO:
-          return 0;
-        case ONE:
-          return 1;
-        default:
-          return V.List.size();
-      }
-    }
-
-    vertex_descriptor operator[](size_t i) const { return Flags & ONE ? V.Single: (V.List)[i]; }
-
-    Itr begin() const;
-    Itr end() const;
+    AdjacentList(): Flags(ZERO) { What = 0xFFFFFFFF; }
 
     void add(vertex_descriptor v);
   };
 
   struct Vertex {
     TransitionPtr Tran;
-    AdjacentList In,
-                  Out;
+    AdjacentList In, Out;
   };
 #pragma pack()
 
@@ -111,12 +92,32 @@ public:
     return Vertices[v].Out;
   }
 
+  iterator inVerticesBegin(vertex_descriptor v) const;
+  iterator inVerticesEnd(vertex_descriptor v) const;
+
+  iterator outVerticesBegin(vertex_descriptor v) const;
+  iterator outVerticesEnd(vertex_descriptor v) const;
+
   uint32 inDegree(const vertex_descriptor v) const {
-    return Vertices[v].In.size();
+    switch (Vertices[v].In.Flags) {
+      case ZERO:
+        return 0;
+      case ONE:
+        return 1;
+      default:
+        return AdjLists[Vertices[v].In.What].size();
+    }
   }
 
   uint32 outDegree(const vertex_descriptor v) const {
-    return Vertices[v].Out.size();
+    switch (Vertices[v].Out.Flags) {
+      case ZERO:
+        return 0;
+      case ONE:
+        return 1;
+      default:
+        return AdjLists[Vertices[v].Out.What].size();
+    }
   }
 
   const TransitionPtr operator[](vertex_descriptor v) const {
@@ -131,6 +132,8 @@ public:
   void clear() { Vertices.clear(); }
 
 private:
+  void _add(AdjacentList& l, vertex_descriptor v);
+
   std::vector< Vertex > Vertices;
 };
 

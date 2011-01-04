@@ -121,8 +121,8 @@ public:
       }
     }
     uint32 outOps = 0;
-    DynamicFSM::const_iterator  ov(graph.outVertices(v).begin()),
-                                ov_end(graph.outVertices(v).end());
+    DynamicFSM::const_iterator  ov(graph.outVerticesBegin(v)),
+                                ov_end(graph.outVerticesEnd(v));
     if (ov == ov_end) {
       // std::cerr << "no out edges, so a halt" << std::endl;
       outOps = 1; // HALT instruction
@@ -162,8 +162,8 @@ void specialVisit(const DynamicFSM& graph, DynamicFSM::vertex_descriptor startVe
 
     const uint32 numOut = graph.outDegree(v);
 
-    DynamicFSM::const_iterator  ov(graph.outVertices(v).begin()),
-                                ov_end(graph.outVertices(v).end());
+    DynamicFSM::const_iterator  ov(graph.outVerticesBegin(v)),
+                                ov_end(graph.outVerticesEnd(v));
     const bool nobranch = numOut < 2;
     for (; ov != ov_end; ++ov) {
       DynamicFSM::vertex_descriptor t = *ov;

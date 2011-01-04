@@ -34,8 +34,7 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
       // std::cerr << "on state pair " << oldSource << ", " << source << std::endl;
       Visited[oldSource] = true;
 
-      const DynamicFSM::AdjacentList& oldOutVs(addend.outVertices(oldSource));
-      for (DynamicFSM::const_iterator it(oldOutVs.begin()); it != oldOutVs.end(); ++it) {
+      for (DynamicFSM::const_iterator it(addend.outVerticesBegin(oldSource)); it != addend.outVerticesEnd(oldSource); ++it) {
         oldTarget = *it;
         if (StateMap[oldTarget] == UNALLOCATED) {
           TransitionPtr tran = addend[oldTarget];
@@ -45,8 +44,7 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
 
           bool found = false;
 
-          const DynamicFSM::AdjacentList& outVs(fsm.outVertices(source));
-          for (DynamicFSM::const_iterator curEdge(outVs.begin()); curEdge != outVs.end(); ++curEdge) {
+          for (DynamicFSM::const_iterator curEdge(fsm.outVerticesBegin(source)); curEdge != fsm.outVerticesEnd(source); ++curEdge) {
             target = *curEdge;
             TransitionPtr edgeTran = fsm[target];
             edgeBits.reset();
@@ -112,8 +110,8 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
       visited[t] = true;
 
       bool unmark = true;
-      DynamicFSM::const_iterator ie_end(fsm.inVertices(t).end());
-      for (DynamicFSM::const_iterator ie = fsm.inVertices(t).begin(); ie != ie_end; ++ie) {
+      DynamicFSM::const_iterator ie_end(fsm.inVerticesEnd(t));
+      for (DynamicFSM::const_iterator ie = fsm.inVerticesBegin(t); ie != ie_end; ++ie) {
         DynamicFSM::vertex_descriptor h = *ie;
 
         // skip head if we've already seen it
@@ -145,8 +143,8 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
           fsm[h]->Label = UNALLOCATED;
 
           // advance head's label to all of its unlabeled children except tail
-          DynamicFSM::const_iterator oe_end(fsm.outVertices(h).end());
-          for (DynamicFSM::const_iterator oe = fsm.outVertices(h).begin(); oe != oe_end; ++oe) {
+          DynamicFSM::const_iterator oe_end(fsm.outVerticesEnd(h));
+          for (DynamicFSM::const_iterator oe = fsm.outVerticesBegin(h); oe != oe_end; ++oe) {
             DynamicFSM::vertex_descriptor c = *oe;
             if (c != t && fsm[c]->Label == UNALLOCATED) {
               fsm[c]->Label = hlabel;
