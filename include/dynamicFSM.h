@@ -11,6 +11,8 @@ class DynamicFSM {
 public:
   typedef uint32 vertex_descriptor;
 
+  static const vertex_descriptor BAD;
+
 private:
   enum FlagType {
     ZERO = 0,

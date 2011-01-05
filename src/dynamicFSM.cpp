@@ -4,9 +4,7 @@
 
 typedef DynamicFSM::vertex_descriptor vertex_descriptor;
 
-namespace {
-  static const vertex_descriptor BAD = 0xffffffff;
-}
+const DynamicFSM::vertex_descriptor DynamicFSM::BAD = 0xFFFFFFFF;
 
 class ZeroItr: public DynamicFSM::AdjacentList::ItrBase {
 public:
@@ -14,7 +12,7 @@ public:
 
   virtual bool isEqual(const ItrBase&) const { return true; }
   virtual void advance() {}
-  virtual const vertex_descriptor& get() const { return BAD; }
+  virtual const vertex_descriptor& get() const { return DynamicFSM::BAD; }
   virtual ZeroItr* clone() const { return new ZeroItr; }
 };
 
