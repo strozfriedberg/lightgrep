@@ -6,8 +6,6 @@
 #include <stack>
 #include <vector>
 
-#include <boost/bind.hpp>
-
 static const DynamicFSM::vertex_descriptor UNALLOCATED = 0xffffffff;
 static const DynamicFSM::vertex_descriptor UNLABELABLE = 0xfffffffe;
 
@@ -196,6 +194,7 @@ void Compiler::removeNonMinimalLabels(DynamicFSM& fsm) {
       if (visited[t] || !fsm[t]) continue; 
 
       if (fsm[t]->Label == UNLABELABLE) {
+        fsm[t]->Label = UNALLOCATED;
         next.push(t);
       }
       else {
@@ -206,12 +205,28 @@ void Compiler::removeNonMinimalLabels(DynamicFSM& fsm) {
     }
   }
 
-  // Unlabel every node not in heads
-  DynamicFSM::const_iterator vi_end(fsm.end());
-  for (DynamicFSM::const_iterator vi(fsm.begin()); vi != vi_end; ++vi) {
-    DynamicFSM::vertex_descriptor v = *vi;
-    if (fsm[v] && heads.find(v) == heads.end()) {
-      fsm[v]->Label = UNALLOCATED;
+  // Push all of the minimal guard states we found back onto the stack.
+  for (std::set<DynamicFSM::vertex_descriptor>::const_iterator vi(heads.begin()); vi != heads.end(); ++vi) {
+    next.push(*vi);
+  }
+
+  // Unlabel every remaining node not in heads.
+  while (!next.empty()) {
+    DynamicFSM::vertex_descriptor h = next.top();
+    next.pop();
+
+    DynamicFSM::const_iterator vi(fsm.outVerticesBegin(h));
+    DynamicFSM::const_iterator vi_end(fsm.outVerticesEnd(h));
+    for ( ; vi != vi_end; ++vi) {
+      DynamicFSM::vertex_descriptor t = *vi;
+
+      if (visited[t] || !fsm[t]) continue; 
+
+      // NB: Any node which should be labeled, we've already visited,
+      // so we can unlabel everything we reach this way.
+      fsm[t]->Label = UNALLOCATED;
+      next.push(t);
+      visited[t] = true;
     }
   }
 }
