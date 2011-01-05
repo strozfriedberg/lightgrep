@@ -60,6 +60,9 @@ if (debug == 'true'):
 elif (debug == 'profile'):
   flags = '-g -pg -O'
   ldflags = '-pg'
+elif (debug == 'coverage'):
+  flags = '-g -O0 -fprofile-arcs -ftest-coverage -fbranch-probabilities'
+  ldflags = '--coverage'
 elif (debug == 'trace'):
   flags = '-O3 -D LBT_TRACE_ENABLED'
   ldflags = ''
