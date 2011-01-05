@@ -7,7 +7,7 @@
 typedef boost::shared_ptr<Transition> TransitionPtr;
 
 // new hotness
-class DynamicFSM {
+class Graph {
 public:
   typedef uint32 vertex_descriptor;
 
@@ -73,8 +73,8 @@ public:
   typedef AdjacentList::iterator iterator;
   typedef AdjacentList::const_iterator const_iterator;
 
-  DynamicFSM(uint32 numVs, uint32 reserveSize);
-  DynamicFSM(uint32 numVs = 0);
+  Graph(uint32 numVs, uint32 reserveSize);
+  Graph(uint32 numVs = 0);
 
   uint32 numVertices() const { return Vertices.size(); }
   uint32 capacity() const { return Vertices.capacity(); }
@@ -143,4 +143,4 @@ private:
   std::vector< std::vector< vertex_descriptor > > AdjLists;
 };
 
-typedef boost::shared_ptr<DynamicFSM> DynamicFSMPtr;
+typedef boost::shared_ptr<Graph> GraphPtr;

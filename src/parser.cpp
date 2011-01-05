@@ -33,7 +33,7 @@ FastVList::FastVList() {
   Single = 0xffffffff;
 }
 
-FastVList::FastVList(DynamicFSM::vertex_descriptor v) {
+FastVList::FastVList(Graph::vertex_descriptor v) {
   Single = v;
 }
 
@@ -74,7 +74,7 @@ size_t FastVList::size() const {
   return Single == 0xffffffff ? 0: List ? List->size(): 1;
 }
 
-DynamicFSM::vertex_descriptor FastVList::operator[](unsigned int i) const {
+Graph::vertex_descriptor FastVList::operator[](unsigned int i) const {
   return List ? (*List)[i]: Single;
 }
 
@@ -85,14 +85,14 @@ void FastVList::reset() {
   }
 }
 
-void FastVList::reset(DynamicFSM::vertex_descriptor v) {
+void FastVList::reset(Graph::vertex_descriptor v) {
   Single = v;
   if (List) {
     List.reset();
   }
 }
 
-void FastVList::add(DynamicFSM::vertex_descriptor v) {
+void FastVList::add(Graph::vertex_descriptor v) {
   if (Single == 0xffffffff) {
     Single = v;
   }
@@ -139,7 +139,7 @@ void FastVList::merge(const FastVList& x) {
   }
 }
 
-void FastVList::patch(const FastVList& targets, DynamicFSM& fsm) const {
+void FastVList::patch(const FastVList& targets, Graph& fsm) const {
   if (Single == 0xffffffff || targets.Single == 0xffffffff) {
     return;
   }
@@ -194,8 +194,8 @@ void Parser::reset() {
     Fsm->addVertex();
   }
   else {
-    Fsm.reset(new DynamicFSM(1));
-//    Fsm.reset(new DynamicFSM(1, ReserveSize));
+    Fsm.reset(new Graph(1));
+//    Fsm.reset(new Graph(1, ReserveSize));
   }
   while (!Stack.empty()) {
     Stack.pop();
@@ -277,8 +277,8 @@ void Parser::literal(const Node& n) {
     // bad things
   }
   else {
-    DynamicFSM& g(*Fsm);
-    DynamicFSM::vertex_descriptor first,
+    Graph& g(*Fsm);
+    Graph::vertex_descriptor first,
                                   prev,
                                   last;
     first = prev = last = g.addVertex();
@@ -317,14 +317,14 @@ void Parser::question(const Node&) {
 }
 
 void Parser::dot(const Node& n) {
-  DynamicFSM::vertex_descriptor v = Fsm->addVertex();
+  Graph::vertex_descriptor v = Fsm->addVertex();
   (*Fsm)[v].reset(new RangeState(0, 255));
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
 
 void Parser::charClass(const Node& n, const std::string& lbl) {
-  DynamicFSM::vertex_descriptor v = Fsm->addVertex();
+  Graph::vertex_descriptor v = Fsm->addVertex();
   uint32 num = 0;
   byte first = 0, last = 0;
   for (uint32 i = 0; i < 256; ++i) {
@@ -360,7 +360,7 @@ void Parser::finish(const Node& n) {
     uint32 numOut = start.OutList.size();
     for (uint32 i = 0; i < numOut; ++i) {
       // std::cout << "marking " << *it << " as a match" << std::endl;
-      DynamicFSM::vertex_descriptor v = start.OutList[i];
+      Graph::vertex_descriptor v = start.OutList[i];
       if (0 == v) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
         reset();
         return;

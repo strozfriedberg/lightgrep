@@ -15,11 +15,11 @@
 #include "MockCallback.h"
 #include "compiler.h"
 
-void ASSERT_SUPERGRAPH(const DynamicFSM& a, const DynamicFSM& b) {
-  for (DynamicFSM::const_iterator av(a.begin()); av != a.end(); ++av) {
+void ASSERT_SUPERGRAPH(const Graph& a, const Graph& b) {
+  for (Graph::const_iterator av(a.begin()); av != a.end(); ++av) {
     SCOPE_ASSERT(*av < b.numVertices());
 
-    DynamicFSM::const_iterator a_ov(a.outVerticesBegin(*av)),
+    Graph::const_iterator a_ov(a.outVerticesBegin(*av)),
                                a_ov_end(a.outVerticesEnd(*av));
     for (; a_ov != a_ov_end; ++a_ov) {
       SCOPE_ASSERT(*a_ov < b.numVertices());
@@ -28,13 +28,13 @@ void ASSERT_SUPERGRAPH(const DynamicFSM& a, const DynamicFSM& b) {
   }
 }
 
-void ASSERT_EQUAL_GRAPHS(const DynamicFSM& a, const DynamicFSM& b) {
+void ASSERT_EQUAL_GRAPHS(const Graph& a, const Graph& b) {
   SCOPE_ASSERT_EQUAL(a.numVertices(), b.numVertices());
   ASSERT_SUPERGRAPH(a, b);
   ASSERT_SUPERGRAPH(b, a);
 }
 
-void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, TransitionPtr tPtr) {
+void edge(Graph::vertex_descriptor source, Graph::vertex_descriptor target, Graph& fsm, TransitionPtr tPtr) {
 
   while (source >= fsm.numVertices()) fsm.addVertex();
   while (target >= fsm.numVertices()) fsm.addVertex();
@@ -46,7 +46,7 @@ void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor ta
   }
 }
 
-void edge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm, Transition* tPtr) {
+void edge(Graph::vertex_descriptor source, Graph::vertex_descriptor target, Graph& fsm, Transition* tPtr) {
   edge(source, target, fsm, TransitionPtr(tPtr));
 }
 
@@ -56,7 +56,7 @@ std::ostream& operator<<(std::ostream& os, const boost::shared_ptr<TransitionPtr
 }
 */
 
-bool buildNFA(DynamicFSM& fsm, const std::string& dot) {
+bool buildNFA(Graph& fsm, const std::string& dot) {
   std::istringstream is(dot);
 
   // Vertex properties
@@ -81,7 +81,7 @@ bool buildNFA(DynamicFSM& fsm, const std::string& dot) {
   
   if (!boost::read_graphviz(is, src, dp, "node_id")) return false;
 
-  // Convert this graph to a DynamicFSM (annoying!)
+  // Convert this graph to a Graph (annoying!)
   
   typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
   typedef boost::graph_traits<graph_t>::edge_iterator edge_iterator;
@@ -108,7 +108,7 @@ std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
 }
 
 SCOPE_TEST(acOrbcProgram) {
-  DynamicFSM fsm(4);
+  Graph fsm(4);
 
   edge(0, 1, fsm, new LitState('a')); // ac|bc
   edge(0, 2, fsm, new LitState('b'));
@@ -128,7 +128,7 @@ SCOPE_TEST(acOrbcProgram) {
 }
 
 SCOPE_TEST(keywordLabels) {
-  DynamicFSM fsm(4);
+  Graph fsm(4);
   edge(0, 1, fsm, new LitState('a', 0));
   edge(0, 2, fsm, new LitState('b'));
   edge(2, 3, fsm, new LitState('c', 1));
@@ -152,7 +152,7 @@ SCOPE_TEST(twoFixedStrings) {
   std::vector< std::string > kws;
   kws.push_back("one");
   kws.push_back("two");
-  DynamicFSMPtr fsm = createDynamicFSM(kws);
+  GraphPtr fsm = createGraph(kws);
   SCOPE_ASSERT_EQUAL(7u, fsm->numVertices());
   SCOPE_ASSERT_EQUAL(3u, calculateLMin(*fsm));
 }
@@ -161,7 +161,7 @@ SCOPE_TEST(twoUnicode) {
   std::vector< std::string > kws;
   kws.push_back("aa");
   kws.push_back("ab");
-  DynamicFSMPtr fsm = createDynamicFSM(kws, CP_UCS16);
+  GraphPtr fsm = createGraph(kws, CP_UCS16);
   SCOPE_ASSERT_EQUAL(7u, fsm->numVertices());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(1));
@@ -180,7 +180,7 @@ SCOPE_TEST(twoUnicode) {
 }
 
 SCOPE_TEST(firstBitset) {
-  DynamicFSM fsm(3);
+  Graph fsm(3);
   edge(0, 1, fsm, new LitState('A'));
   edge(0, 2, fsm, new LitState('B'));
 
@@ -199,7 +199,7 @@ SCOPE_TEST(simpleCollapse) {
   std::vector< std::string > kws;
   kws.push_back("ab");
   kws.push_back("ac");
-  DynamicFSMPtr fsm = createDynamicFSM(kws);
+  GraphPtr fsm = createGraph(kws);
   SCOPE_ASSERT_EQUAL(4u, fsm->numVertices());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
@@ -209,7 +209,7 @@ SCOPE_TEST(simpleCollapse) {
 }
 
 SCOPE_TEST(codeGen2DiscoverVertex) {
-  DynamicFSM fsm(2);
+  Graph fsm(2);
   edge(0, 1, fsm, new LitState('a'));
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
   CodeGenVisitor vis(cg);
@@ -224,7 +224,7 @@ SCOPE_TEST(codeGen2DiscoverVertex) {
 }
 
 SCOPE_TEST(codeGen2FinishVertex) {
-  DynamicFSM fsm(5);
+  Graph fsm(5);
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 3, fsm, new LitState('c'));
@@ -261,7 +261,7 @@ SCOPE_TEST(codeGen2FinishVertex) {
 }
 
 SCOPE_TEST(alternationCodeGen2FinishVertex) {
-  DynamicFSM fsm(3);
+  Graph fsm(3);
   edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('b'));
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
@@ -286,7 +286,7 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
 }
 
 SCOPE_TEST(layoutWithCheckHalt) {
-  DynamicFSM fsm(3);
+  Graph fsm(3);
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 2, fsm, new LitState('b', 0));
@@ -304,7 +304,7 @@ SCOPE_TEST(layoutWithCheckHalt) {
 }
 
 SCOPE_TEST(twoStateBetterLayout) {
-  DynamicFSM fsm(2);
+  Graph fsm(2);
   edge(0, 1, fsm, new LitState('a'));
   
   ProgramPtr p = createProgram(fsm);
@@ -315,7 +315,7 @@ SCOPE_TEST(twoStateBetterLayout) {
 }
 
 SCOPE_TEST(alternationBetterLayout) {
-  DynamicFSM fsm(3);
+  Graph fsm(3);
   Transition* t1(new LitState('a', 0)),
             * t2(new LitState('b', 0));
   edge(0, 1, fsm, t1);
@@ -336,7 +336,7 @@ SCOPE_TEST(alternationBetterLayout) {
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[9]);  
 }
 
-void createTrie(DynamicFSM& fsm) {
+void createTrie(Graph& fsm) {
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 3, fsm, new LitState('l'));
@@ -357,7 +357,7 @@ SCOPE_TEST(betterLayout) {
   // b
   //  ite
 
-  DynamicFSM fsm(11);
+  Graph fsm(11);
   createTrie(fsm);
 
   ProgramPtr p = createProgram(fsm);
@@ -390,7 +390,7 @@ SCOPE_TEST(betterLayout) {
 }
 
 SCOPE_TEST(generateCheckHalt) {
-  DynamicFSM fsm(2);
+  Graph fsm(2);
   edge(0, 1, fsm, new LitState('a', 0));
   edge(1, 1, fsm, new LitState('a', 0));
   ProgramPtr p = createProgram(fsm);
@@ -422,12 +422,12 @@ SCOPE_TEST(testInitVM) {
 }
 
 SCOPE_TEST(testPivotTransitions) {
-  DynamicFSM fsm(5);
+  Graph fsm(5);
   edge(0, 1, fsm, new LitState('a', 0));
   edge(0, 2, fsm, new LitState('a', 1));
   edge(0, 3, fsm, new LitState('z'));
   edge(0, 4, fsm, new LitState('z'));
-  std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl = pivotStates(0, fsm);
+  std::vector< std::vector< Graph::vertex_descriptor > > tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(256u, tbl.size());
   for (uint32 i = 0; i < 256; ++i) {
     if (i == 'a') {
@@ -448,7 +448,7 @@ SCOPE_TEST(testPivotTransitions) {
 
 SCOPE_TEST(testMerge) {
   Compiler comp;
-  DynamicFSM fsm,
+  Graph fsm,
              key(5);
 
   // a(b|c)d+
@@ -480,7 +480,7 @@ SCOPE_TEST(testMerge) {
 
 SCOPE_TEST(testMergeLabelsSimple) {
   Compiler c;
-  DynamicFSM src(3), dst(3), exp(4);
+  Graph src(3), dst(3), exp(4);
 
   // ab
   edge(0, 1, src, new LitState('a'));
@@ -511,7 +511,7 @@ SCOPE_TEST(testMergeLabelsSimple) {
 
 SCOPE_TEST(testMergeLabelsComplex) {
   Compiler c;
-  DynamicFSM src(4), dst(4), exp(6);
+  Graph src(4), dst(4), exp(6);
 
   // abd
   edge(0, 1, src, new LitState('a'));
@@ -556,7 +556,7 @@ SCOPE_TEST(testMergeLabelsComplex) {
 
 SCOPE_TEST(testGuardLabelsFourKeys) {
   Compiler comp;
-  DynamicFSM key[4], exp;
+  Graph key[4], exp;
 
   // a(b|c)a
   edge(0, 1, key[0], new LitState('a'));
@@ -651,7 +651,7 @@ SCOPE_TEST(testBitVectorGeneration) {
   bits.set('2');
   bits.set('4');
   bits.set('8');
-  DynamicFSM fsm(2);
+  Graph fsm(2);
   edge(0, 1, fsm, new CharClassState(bits, "0248"));
   fsm[1]->Label = 0;
   fsm[1]->IsMatch = true;
@@ -667,17 +667,17 @@ SCOPE_TEST(testBitVectorGeneration) {
 }
 
 SCOPE_TEST(testMaxOutbound) {
-  DynamicFSM fsm(5);
+  Graph fsm(5);
   edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('a'));
   edge(0, 3, fsm, new LitState('b'));
   edge(0, 4, fsm, new LitState('c'));
-  std::vector< std::vector< DynamicFSM::vertex_descriptor > > tbl = pivotStates(0, fsm);
+  std::vector< std::vector< Graph::vertex_descriptor > > tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(2u, maxOutbound(tbl));
 }
 
 SCOPE_TEST(generateJumpTableRange) {
-  DynamicFSM fsm(7); // a(b|c|d|g)f
+  Graph fsm(7); // a(b|c|d|g)f
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(1, 3, fsm, new LitState('c'));

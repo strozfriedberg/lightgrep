@@ -1,15 +1,15 @@
 #pragma once
 
 #include "basic.h"
-#include "dynamicFSM.h"
+#include "graph.h"
 
 class SkipTable {
 public:
   SkipTable(uint32 numVertices);
 
   void relax(uint32 val);
-  void setDistance(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, const DynamicFSM& graph);
-  void calculateTransitions(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph);
+  void setDistance(Graph::vertex_descriptor source, Graph::vertex_descriptor target, const Graph& graph);
+  void calculateTransitions(Graph::vertex_descriptor v, const Graph& graph);
   void finishSkipVec();
 
   uint32 l_min() const { return LMin; }

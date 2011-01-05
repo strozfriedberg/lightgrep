@@ -1,7 +1,7 @@
 #pragma once
 
 #include "basic.h"
-#include "dynamicFSM.h"
+#include "graph.h"
 #include "encoding.h"
 
 #include <boost/function.hpp>
@@ -58,31 +58,31 @@ struct SyntaxTree {
   }
 };
 
-typedef std::vector< DynamicFSM::vertex_descriptor > VList;
+typedef std::vector< Graph::vertex_descriptor > VList;
 
 class FastVList {
 public:
   friend std::ostream& operator<<(std::ostream& out, const FastVList& list);
 
   FastVList();
-  FastVList(DynamicFSM::vertex_descriptor v);
+  FastVList(Graph::vertex_descriptor v);
   FastVList(const FastVList& x);
 
   FastVList& operator=(const FastVList& x);
 
-  DynamicFSM::vertex_descriptor operator[](unsigned int i) const;
+  Graph::vertex_descriptor operator[](unsigned int i) const;
 
   size_t size() const;
 
   void reset();
-  void reset(DynamicFSM::vertex_descriptor v);
+  void reset(Graph::vertex_descriptor v);
   void merge(const FastVList& x);
-  void add(DynamicFSM::vertex_descriptor v);
+  void add(Graph::vertex_descriptor v);
 
-  void patch(const FastVList& targets, DynamicFSM& fsm) const;
+  void patch(const FastVList& targets, Graph& fsm) const;
 
 private:
-  DynamicFSM::vertex_descriptor Single;
+  Graph::vertex_descriptor Single;
   boost::scoped_ptr< VList > List;  
 };
 
@@ -90,21 +90,21 @@ std::ostream& operator<<(std::ostream& out, const FastVList& list);
 
 struct Fragment {
   Fragment(): Skippable(false) {}
-  Fragment(DynamicFSM::vertex_descriptor in, const Node& n): InList(in), N(n), Skippable(false) {}
+  Fragment(Graph::vertex_descriptor in, const Node& n): InList(in), N(n), Skippable(false) {}
 
   FastVList InList, OutList;
   Node N;
   bool Skippable;
 
-  void initFull(DynamicFSM::vertex_descriptor in, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(in); }
-  void initFull(DynamicFSM::vertex_descriptor in, DynamicFSM::vertex_descriptor out, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(out); }
+  void initFull(Graph::vertex_descriptor in, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(in); }
+  void initFull(Graph::vertex_descriptor in, Graph::vertex_descriptor out, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(out); }
   void reset(const Node& n) { Skippable = false; N = n; InList.reset(); OutList.reset(); }
 
-  void addToOut(DynamicFSM::vertex_descriptor v) {
+  void addToOut(Graph::vertex_descriptor v) {
     OutList.add(v);
   }
 
-  void addToIn(DynamicFSM::vertex_descriptor v) {
+  void addToIn(Graph::vertex_descriptor v) {
     InList.add(v);
   }
 
@@ -147,7 +147,7 @@ public:
   void finish(const Node&);
   void charClass(const Node& n, const std::string& lbl);
 
-  DynamicFSMPtr getFsm() const { return Fsm; }
+  GraphPtr getFsm() const { return Fsm; }
   void resetFsm() { Fsm.reset(); }
 
   void setCurLabel(uint32 lbl) { CurLabel = lbl; }
@@ -160,7 +160,7 @@ private:
   uint32        CurLabel;
   uint64        ReserveSize;
   boost::shared_ptr<Encoding> Enc;
-  DynamicFSMPtr Fsm;
+  GraphPtr Fsm;
   std::stack< Fragment > Stack;
   boost::scoped_array<byte> TempBuf;
   std::vector< TransitionPtr > LitFlyweights;

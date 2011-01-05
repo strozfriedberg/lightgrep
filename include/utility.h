@@ -5,7 +5,7 @@
 #include <set>
 
 #include "instructions.h"
-#include "dynamicFSM.h"
+#include "graph.h"
 #include "vm_interface.h"
 
 struct SearchInfo {
@@ -25,36 +25,36 @@ struct KwInfo {
   std::vector< std::pair<uint32, uint32> > PatternsTable;
 };
 
-void addNewEdge(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, DynamicFSM& fsm);
+void addNewEdge(Graph::vertex_descriptor source, Graph::vertex_descriptor target, Graph& fsm);
 
-DynamicFSMPtr createDynamicFSM(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII, bool caseSensitive = true, bool litMode = false);
-DynamicFSMPtr createDynamicFSM(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode);
+GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII, bool caseSensitive = true, bool litMode = false);
+GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode);
 
 class Visitor {
 public:
-  virtual void discoverVertex(DynamicFSM::vertex_descriptor,
-                              const DynamicFSM&) const {}
+  virtual void discoverVertex(Graph::vertex_descriptor,
+                              const Graph&) const {}
  
-  virtual void treeEdge(DynamicFSM::vertex_descriptor,
-                        DynamicFSM::vertex_descriptor,
-                        const DynamicFSM&) const {}
+  virtual void treeEdge(Graph::vertex_descriptor,
+                        Graph::vertex_descriptor,
+                        const Graph&) const {}
 };
 
-void bfs(const DynamicFSM& graph, DynamicFSM::vertex_descriptor start, Visitor& visitor);
+void bfs(const Graph& graph, Graph::vertex_descriptor start, Visitor& visitor);
 
-uint32 calculateLMin(const DynamicFSM& graph);
+uint32 calculateLMin(const Graph& graph);
 
-boost::shared_ptr<SkipTable> calculateSkipTable(const DynamicFSM& graph);
+boost::shared_ptr<SkipTable> calculateSkipTable(const Graph& graph);
 
-ProgramPtr createProgram(const DynamicFSM& graph);
+ProgramPtr createProgram(const Graph& graph);
 
-ByteSet firstBytes(const DynamicFSM& graph);
-void nextBytes(ByteSet& set, DynamicFSM::vertex_descriptor v, const DynamicFSM& graph);
+ByteSet firstBytes(const Graph& graph);
+void nextBytes(ByteSet& set, Graph::vertex_descriptor v, const Graph& graph);
 
 boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, SearchInfo& info);
 
-std::vector< std::vector< DynamicFSM::vertex_descriptor > > pivotStates(DynamicFSM::vertex_descriptor source, const DynamicFSM& graph);
+std::vector< std::vector< Graph::vertex_descriptor > > pivotStates(Graph::vertex_descriptor source, const Graph& graph);
 
-uint32 maxOutbound(const std::vector< std::vector< DynamicFSM::vertex_descriptor > >& tranTable);
+uint32 maxOutbound(const std::vector< std::vector< Graph::vertex_descriptor > >& tranTable);
 
-void writeGraphviz(std::ostream& out, const DynamicFSM& graph);
+void writeGraphviz(std::ostream& out, const Graph& graph);

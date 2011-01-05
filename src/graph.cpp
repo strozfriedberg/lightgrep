@@ -1,22 +1,22 @@
-#include "dynamicFSM.h"
+#include "graph.h"
 
 #include <algorithm>
 
-typedef DynamicFSM::vertex_descriptor vertex_descriptor;
+typedef Graph::vertex_descriptor vertex_descriptor;
 
-const DynamicFSM::vertex_descriptor DynamicFSM::BAD = 0xFFFFFFFF;
+const Graph::vertex_descriptor Graph::BAD = 0xFFFFFFFF;
 
-class ZeroItr: public DynamicFSM::AdjacentList::ItrBase {
+class ZeroItr: public Graph::AdjacentList::ItrBase {
 public:
   virtual ~ZeroItr() {}
 
   virtual bool isEqual(const ItrBase&) const { return true; }
   virtual void advance() {}
-  virtual const vertex_descriptor& get() const { return DynamicFSM::BAD; }
+  virtual const vertex_descriptor& get() const { return Graph::BAD; }
   virtual ZeroItr* clone() const { return new ZeroItr; }
 };
 
-class OneItr: public DynamicFSM::AdjacentList::ItrBase {
+class OneItr: public Graph::AdjacentList::ItrBase {
 public:
   OneItr(const vertex_descriptor* vPtr): VPtr(vPtr) {}
 
@@ -37,7 +37,7 @@ private:
   const vertex_descriptor* VPtr;
 };
 
-class ManyItr: public DynamicFSM::AdjacentList::ItrBase {
+class ManyItr: public Graph::AdjacentList::ItrBase {
 public:
   ManyItr(const std::vector<vertex_descriptor>::const_iterator &it): It(it) {}
 
@@ -58,7 +58,7 @@ private:
   std::vector<vertex_descriptor>::const_iterator It;
 };
 
-class VertexItr: public DynamicFSM::AdjacentList::ItrBase {
+class VertexItr: public Graph::AdjacentList::ItrBase {
 public:
   VertexItr(vertex_descriptor v): V(v) {}
 
@@ -79,7 +79,7 @@ private:
   vertex_descriptor V;
 };
 
-DynamicFSM::AdjacentList::Itr DynamicFSM::_adjbegin(const AdjacentList& l) const
+Graph::AdjacentList::Itr Graph::_adjbegin(const AdjacentList& l) const
 {
   using namespace boost;
 
@@ -93,7 +93,7 @@ DynamicFSM::AdjacentList::Itr DynamicFSM::_adjbegin(const AdjacentList& l) const
   }
 }
 
-DynamicFSM::AdjacentList::Itr DynamicFSM::_adjend(const AdjacentList& l) const {
+Graph::AdjacentList::Itr Graph::_adjend(const AdjacentList& l) const {
   using namespace boost;
 
   switch (l.Flags) {
@@ -106,7 +106,7 @@ DynamicFSM::AdjacentList::Itr DynamicFSM::_adjend(const AdjacentList& l) const {
   }
 }
 
-uint32 DynamicFSM::_degree(const AdjacentList& l) const {
+uint32 Graph::_degree(const AdjacentList& l) const {
   switch (l.Flags) {
   case ZERO:
     return 0;
@@ -117,7 +117,7 @@ uint32 DynamicFSM::_degree(const AdjacentList& l) const {
   }
 }
 
-void DynamicFSM::_add(AdjacentList& l, vertex_descriptor v) {
+void Graph::_add(AdjacentList& l, vertex_descriptor v) {
   switch (l.Flags) {
   case ZERO:
     l.Flags = ONE;
@@ -142,22 +142,22 @@ void DynamicFSM::_add(AdjacentList& l, vertex_descriptor v) {
   }
 }
 
-DynamicFSM::DynamicFSM(uint32 numVs, uint32 reserveSize): Vertices(numVs, Vertex())
+Graph::Graph(uint32 numVs, uint32 reserveSize): Vertices(numVs, Vertex())
 {
   Vertices.reserve(reserveSize);
 }
 
-DynamicFSM::DynamicFSM(uint32 numVs): Vertices(numVs, Vertex())
+Graph::Graph(uint32 numVs): Vertices(numVs, Vertex())
 {
 }
 
-DynamicFSM::vertex_descriptor DynamicFSM::addVertex() {
+Graph::vertex_descriptor Graph::addVertex() {
   Vertices.push_back(Vertex());
   return Vertices.size() - 1;
 }
 
-bool DynamicFSM::edgeExists(const vertex_descriptor source, const vertex_descriptor target) const {
-  DynamicFSM::const_iterator ov(outVerticesBegin(source)),
+bool Graph::edgeExists(const vertex_descriptor source, const vertex_descriptor target) const {
+  Graph::const_iterator ov(outVerticesBegin(source)),
                              ov_end(outVerticesEnd(source));
 
   for (; ov != ov_end; ++ov) {
@@ -168,7 +168,7 @@ bool DynamicFSM::edgeExists(const vertex_descriptor source, const vertex_descrip
   return false;
 }
 
-void DynamicFSM::addEdge(const vertex_descriptor source, const vertex_descriptor target) {
+void Graph::addEdge(const vertex_descriptor source, const vertex_descriptor target) {
   if (source >= Vertices.size() || target >= Vertices.size()) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT("out of bounds, source = " << source << ", target = " << target << ", but size = " << Vertices.size());
   }
@@ -176,10 +176,10 @@ void DynamicFSM::addEdge(const vertex_descriptor source, const vertex_descriptor
   _add(Vertices[target].In, source);
 }
 
-DynamicFSM::iterator DynamicFSM::begin() const {
-  return iterator(boost::shared_ptr<DynamicFSM::AdjacentList::ItrBase>(new VertexItr(0)));
+Graph::iterator Graph::begin() const {
+  return iterator(boost::shared_ptr<Graph::AdjacentList::ItrBase>(new VertexItr(0)));
 }
 
-DynamicFSM::iterator DynamicFSM::end() const {
-  return iterator(boost::shared_ptr<DynamicFSM::AdjacentList::ItrBase>(new VertexItr(numVertices())));
+Graph::iterator Graph::end() const {
+  return iterator(boost::shared_ptr<Graph::AdjacentList::ItrBase>(new VertexItr(numVertices())));
 }
