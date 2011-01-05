@@ -6,8 +6,8 @@
 #include <stack>
 #include <vector>
 
-static const Graph::vertex UNALLOCATED = 0xffffffff;
-static const Graph::vertex UNLABELABLE = 0xfffffffe;
+static const Graph::vertex UNALLOCATED = 0xFFFFFFFF;
+static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
 void Compiler::mergeIntoFSM(Graph& fsm, const Graph& addend, uint32 keyIdx) {
   ByteSet tranBits,
@@ -20,10 +20,7 @@ void Compiler::mergeIntoFSM(Graph& fsm, const Graph& addend, uint32 keyIdx) {
   StateMap.assign(numVs, UNALLOCATED);
   Visited.assign(numVs, false);
 
-  Graph::vertex oldSource,
-                                source,
-                                oldTarget,
-                                target = Graph::BAD;
+  Graph::vertex oldSource, source, oldTarget, target = 0xFFFFFFFF;
 
   States.push(StatePair(0, 0));
   while (!States.empty()) {
@@ -34,8 +31,9 @@ void Compiler::mergeIntoFSM(Graph& fsm, const Graph& addend, uint32 keyIdx) {
       // std::cerr << "on state pair " << oldSource << ", " << source << std::endl;
       Visited[oldSource] = true;
 
-      for (Graph::const_iterator it(addend.outVerticesBegin(oldSource)); it != addend.outVerticesEnd(oldSource); ++it) {
-        oldTarget = *it;
+      for (uint32 i = 0; i < addend.outDegree(oldSource); ++i) {
+        oldTarget = addend.outVertex(oldSource, i);
+
         if (StateMap[oldTarget] == UNALLOCATED) {
           TransitionPtr tran = addend[oldTarget];
           tranBits.reset();
@@ -44,8 +42,8 @@ void Compiler::mergeIntoFSM(Graph& fsm, const Graph& addend, uint32 keyIdx) {
 
           bool found = false;
 
-          for (Graph::const_iterator curEdge(fsm.outVerticesBegin(source)); curEdge != fsm.outVerticesEnd(source); ++curEdge) {
-            target = *curEdge;
+          for (uint32 j = 0; j < fsm.outDegree(source); ++j) {
+            target = fsm.outVertex(source, j);
             TransitionPtr edgeTran = fsm[target];
             edgeBits.reset();
             edgeTran->getBits(edgeBits);
@@ -90,10 +88,7 @@ void Compiler::labelGuardStates(Graph& fsm) {
 void Compiler::propagateMatchLabels(Graph& fsm) {
   uint32 i = 0;
 
-  Graph::const_iterator mi_end(fsm.end());
-  for (Graph::const_iterator mi(fsm.begin()); mi != mi_end; ++mi) {
-    Graph::vertex m = *mi;
-
+  for (Graph::vertex m = 0; m < fsm.numVertices(); ++m) {
     // skip non-match vertices
     if (!fsm[m] || !fsm[m]->IsMatch) continue;
 
@@ -116,10 +111,8 @@ void Compiler::propagateMatchLabels(Graph& fsm) {
       next.pop();
       
       // check each parent of the current state
-      Graph::const_iterator ie(fsm.inVerticesBegin(t));
-      Graph::const_iterator ie_end(fsm.inVerticesEnd(t));
-      for ( ; ie != ie_end; ++ie) {
-        Graph::vertex h = *ie;
+      for (uint32 i = 0; i < fsm.inDegree(t); ++i) {
+        Graph::vertex h = fsm.inVertex(t, i);
         
         if (!fsm[h]) {
           // Skip the initial state.
@@ -153,10 +146,8 @@ void Compiler::propagateMatchLabels(Graph& fsm) {
 
             fsm[u]->Label = UNLABELABLE;
 
-            Graph::const_iterator ue(fsm.inVerticesBegin(u));
-            Graph::const_iterator ue_end(fsm.inVerticesEnd(u));
-            for ( ; ue != ue_end; ++ue) {
-              Graph::vertex uh = *ue;
+            for (uint32 j = 0; j < fsm.inDegree(u); ++j) {
+              Graph::vertex uh = fsm.inVertex(u, j);
               if (fsm[uh] && fsm[uh]->Label != UNLABELABLE) {
                 // Walking on all nodes not already marked unlabelable
                 unext.push(uh);
@@ -186,10 +177,8 @@ void Compiler::removeNonMinimalLabels(Graph& fsm) {
     Graph::vertex h = next.top();
     next.pop();
 
-    Graph::const_iterator vi(fsm.outVerticesBegin(h));
-    Graph::const_iterator vi_end(fsm.outVerticesEnd(h));
-    for ( ; vi != vi_end; ++vi) {
-      Graph::vertex t = *vi;
+    for (uint32 i = 0; i < fsm.outDegree(h); ++i) {
+      Graph::vertex t = fsm.outVertex(h, i);
 
       if (visited[t] || !fsm[t]) continue; 
 
@@ -215,10 +204,8 @@ void Compiler::removeNonMinimalLabels(Graph& fsm) {
     Graph::vertex h = next.top();
     next.pop();
 
-    Graph::const_iterator vi(fsm.outVerticesBegin(h));
-    Graph::const_iterator vi_end(fsm.outVerticesEnd(h));
-    for ( ; vi != vi_end; ++vi) {
-      Graph::vertex t = *vi;
+    for (uint32 i = 0; i < fsm.outDegree(h); ++i) {
+      Graph::vertex t = fsm.outVertex(h, i);
 
       if (visited[t] || !fsm[t]) continue; 
 

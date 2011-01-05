@@ -95,7 +95,7 @@ GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMo
 // If the jump is to a state that has only a single out edge, and there's no match on the state, then jump forward directly to the out-edge state
 uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {
   if (1 == graph.outDegree(v) && UNALLOCATED == graph[v]->Label) {
-    return cg->Snippets[*graph.outVerticesBegin(v)].Start;
+    return cg->Snippets[graph.outVertex(v, 0)].Start;
   }
   else {
     return cg->Snippets[v].Start + cg->Snippets[v].NumEval;
@@ -197,31 +197,21 @@ ProgramPtr createProgram(const Graph& graph) {
         *curOp++ = Instruction::makeMatch();
       }
     }
-    if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op || JUMP_TABLE_OP == cg->Snippets[v].Op) {
+
+    if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op ||
+        JUMP_TABLE_OP == cg->Snippets[v].Op) {
       createJumpTable(cg, curOp, curOp - &(*ret)[0], v, graph);
       continue;
     }
-    Graph::const_iterator ov(graph.outVerticesBegin(v)),
-                               ov_end(graph.outVerticesEnd(v));
-    if (ov != ov_end) {
+
+    if (graph.outDegree(v) > 0) {
       bool hasTargetAtNext = false;
       Graph::vertex nextTarget = 0;
-      for (; ov != ov_end; ++ov) {
-        Graph::vertex curTarget = *ov;
+      for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
+        Graph::vertex curTarget = graph.outVertex(v, ov);
         // std::cerr << "targeting " << curTarget << " at " << cg->Snippets[curTarget].first << std::endl;
         if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget]) {
-
-
-
-
-          Graph::const_iterator nextov(ov);
-          nextov.Base.reset(ov.Base->clone());
-          ++nextov;
-
-
-
-
-          if (nextov == ov_end && !hasTargetAtNext) {
+          if (ov + 1 == graph.outDegree(v) && !hasTargetAtNext) {
             *curOp = Instruction::makeLongJump(curOp+1, cg->Snippets[curTarget].Start);
             // std::cerr << "wrote " << Instruction::makeJump(cg->Snippets[curTarget].first) << std::endl;
           }
@@ -289,11 +279,9 @@ void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor) {
   while (!next.empty()) {
     Graph::vertex h = next.front();
     next.pop();
-  
-    Graph::const_iterator ov(graph.outVerticesBegin(h)),
-                               ov_end(graph.outVerticesEnd(h));
-    for ( ; ov != ov_end; ++ov) {
-      Graph::vertex t = *ov;
+ 
+    for (uint32 ov = 0; ov < graph.outDegree(h); ++ov) { 
+      Graph::vertex t = graph.outVertex(h, ov);
       if (!seen[t]) {
         // One might think that we discover a vertex at the tail of an
         // edge first, but one would be wrong...
@@ -308,11 +296,9 @@ void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor) {
 
 void nextBytes(ByteSet& set, Graph::vertex v, const Graph& graph) {
   ByteSet tBits;
-  Graph::const_iterator ov(graph.outVerticesBegin(v)),
-                             ov_end(graph.outVerticesEnd(v));
-  for ( ; ov != ov_end; ++ov) {
+  for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
     tBits.reset();
-    graph[*ov]->getBits(tBits);
+    graph[graph.outVertex(v, ov)]->getBits(tBits);
     set |= tBits;
   }
 }
@@ -337,14 +323,15 @@ boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, 
 std::vector< std::vector< Graph::vertex > > pivotStates(Graph::vertex source, const Graph& graph) {
   std::vector< std::vector< Graph::vertex > > ret(256);  
   ByteSet permitted;
-  Graph::const_iterator ov(graph.outVerticesBegin(source)),
-                             ov_end(graph.outVerticesEnd(source));
-  for ( ; ov != ov_end; ++ov) {
+
+  for (uint32 i = 0; i < graph.outDegree(source); ++i) {
+    Graph::vertex ov = graph.outVertex(source, i);
+
     permitted.reset();
-    graph[*ov]->getBits(permitted);
+    graph[ov]->getBits(permitted);
     for (uint32 i = 0; i < 256; ++i) {
-      if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), *ov) == ret[i].end()) {
-        ret[i].push_back(*ov);
+      if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
+        ret[i].push_back(ov);
       }
     }
   }
@@ -382,16 +369,16 @@ void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
 
 void writeGraphviz(std::ostream& out, const Graph& graph) {
   out << "digraph G {\nrankdir=LR;\nranksep=equally;" << std::endl;
+
   for (uint32 i = 0; i < graph.numVertices(); ++i) {
     out << i;
     writeVertex(out, i, graph);
     out << ";" << std::endl;
   }
+
   for (uint32 i = 0; i < graph.numVertices(); ++i) {
-    Graph::const_iterator ov(graph.outVerticesBegin(i)),
-                               ov_end(graph.outVerticesEnd(i));
-    for ( ; ov != ov_end; ++ov) {
-      out << i << "->" << *ov << " ";
+    for (uint32 j = 0; j < graph.outDegree(i); ++j) {
+      out << i << "->" << graph.outVertex(i, j) << " ";
       out << ";" << std::endl;
     }
   }
