@@ -102,15 +102,18 @@ public:
 
   void finish_vertex(Graph::vertex v, const Graph& graph) {
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
+
     bool   match = false;
     uint32 labels = 0,
            eval   = (v == 0 ? 0: graph[v]->numInstructions()) + (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1),
            outDegree = graph.outDegree(v),
            totalSize;
+
     if (shouldBeJumpTable(v, graph, outDegree, totalSize)) {
       Helper->addSnippet(v, eval, totalSize);
       return;
     }
+
     TransitionPtr t = graph[v];
     if (t) {
       if (t->Label < 0xffffffff) {
@@ -121,20 +124,21 @@ public:
       }
     }
     uint32 outOps = 0;
-    Graph::const_iterator  ov(graph.outVerticesBegin(v)),
-                                ov_end(graph.outVerticesEnd(v));
-    if (ov == ov_end) {
+
+    if (graph.outDegree(v) == 0) {
       // std::cerr << "no out edges, so a halt" << std::endl;
       outOps = 1; // HALT instruction
     }
     else {
-      for (; ov != ov_end; ++ov) {
+      for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
         // if a target state immediately follows the current state, then we don't need an instruction for it
-        if (Helper->DiscoverRanks[v] + 1 != Helper->DiscoverRanks[*ov]) {
+        if (Helper->DiscoverRanks[v] + 1 !=
+            Helper->DiscoverRanks[graph.outVertex(v, ov)]) {
           outOps += 2;
         }
       }
     }
+
     // std::cerr << "outOps = " << outOps << "; labels = " << labels << "; match = " << isMatch << std::endl;
     Helper->addSnippet(v, eval, outOps + labels + (match ? 1: 0));
     // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
@@ -161,12 +165,10 @@ void specialVisit(const Graph& graph, Graph::vertex startVertex, VisitorT& vis) 
     inOrder.push_back(v);
 
     const uint32 numOut = graph.outDegree(v);
-
-    Graph::const_iterator  ov(graph.outVerticesBegin(v)),
-                                ov_end(graph.outVerticesEnd(v));
     const bool nobranch = numOut < 2;
-    for (; ov != ov_end; ++ov) {
-      Graph::vertex t = *ov;
+
+    for (uint32 i = 0; i < numOut; ++i) {
+      Graph::vertex t = graph.outVertex(v, i);
       if (!discovered[t]) {
         discovered[t].flip();
         // vis.discover_vertex(t, graph);
@@ -180,6 +182,7 @@ void specialVisit(const Graph& graph, Graph::vertex startVertex, VisitorT& vis) 
     }
     // vis.finish_vertex(v, graph);
   }
+
   for (uint32 i = 0; i < inOrder.size(); ++i) {
     vis.finish_vertex(inOrder[i], graph);
   }

@@ -16,14 +16,12 @@
 #include "compiler.h"
 
 void ASSERT_SUPERGRAPH(const Graph& a, const Graph& b) {
-  for (Graph::const_iterator av(a.begin()); av != a.end(); ++av) {
-    SCOPE_ASSERT(*av < b.numVertices());
+  for (uint32 av = 0; av < a.numVertices(); ++av) {
+    SCOPE_ASSERT(av < b.numVertices());
 
-    Graph::const_iterator a_ov(a.outVerticesBegin(*av)),
-                               a_ov_end(a.outVerticesEnd(*av));
-    for (; a_ov != a_ov_end; ++a_ov) {
-      SCOPE_ASSERT(*a_ov < b.numVertices());
-      SCOPE_ASSERT(b.edgeExists(*av, *a_ov));
+    for (uint32 a_ov = 0; a_ov < a.outDegree(av); ++a_ov) {
+      SCOPE_ASSERT(a.outVertex(av, a_ov) < b.numVertices());
+      SCOPE_ASSERT(b.edgeExists(av, a.outVertex(av, a_ov)));
     }
   }
 }

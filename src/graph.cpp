@@ -1,108 +1,24 @@
 #include "graph.h"
 
-#include <algorithm>
-
 typedef Graph::vertex vertex;
 
-const Graph::vertex Graph::BAD = 0xFFFFFFFF;
-
-class ZeroItr: public Graph::AdjacentList::ItrBase {
-public:
-  virtual ~ZeroItr() {}
-
-  virtual bool isEqual(const ItrBase&) const { return true; }
-  virtual void advance() {}
-  virtual const vertex& get() const { return Graph::BAD; }
-  virtual ZeroItr* clone() const { return new ZeroItr; }
-};
-
-class OneItr: public Graph::AdjacentList::ItrBase {
-public:
-  OneItr(const vertex* vPtr): VPtr(vPtr) {}
-
-  virtual ~OneItr() {}
-  
-  virtual bool isEqual(const ItrBase& x) const {
-    const OneItr* xPtr = dynamic_cast<const OneItr*>(&x);
-    return xPtr && xPtr->VPtr == VPtr;
-  }
-
-  virtual void advance() { VPtr = 0; }
-  
-  virtual const vertex& get() const { return *VPtr; }
-  
-  virtual OneItr* clone() const { return new OneItr(VPtr); }
-
-private:
-  const vertex* VPtr;
-};
-
-class ManyItr: public Graph::AdjacentList::ItrBase {
-public:
-  ManyItr(const std::vector<vertex>::const_iterator &it): It(it) {}
-
-  virtual ~ManyItr() {}
-
-  virtual bool isEqual(const ItrBase& x) const {
-    const ManyItr* xPtr = dynamic_cast<const ManyItr*>(&x);
-    return xPtr && xPtr->It == It;
-  }
-
-  virtual void advance() { ++It; }
-
-  virtual const vertex& get() const { return *It; } // ugh
-  
-  virtual ManyItr* clone() const { return new ManyItr(It); }
-
-private:
-  std::vector<vertex>::const_iterator It;
-};
-
-class VertexItr: public Graph::AdjacentList::ItrBase {
-public:
-  VertexItr(vertex v): V(v) {}
-
-  virtual ~VertexItr() {}
-
-  virtual bool isEqual(const ItrBase& x) const {
-    const VertexItr* xPtr = dynamic_cast<const VertexItr*>(&x);
-    return xPtr && xPtr->V == V;
-  }
-
-  virtual void advance() { ++V; }
-
-  virtual const vertex& get() const { return V; }
-  
-  virtual VertexItr* clone() const { return new VertexItr(V); }
-
-private:
-  vertex V;
-};
-
-Graph::AdjacentList::Itr Graph::_adjbegin(const AdjacentList& l) const
-{
-  using namespace boost;
-
+Graph::vertex Graph::_adjacent(const AdjacentList& l, size_t i) const {
   switch (l.Flags) {
-    case ZERO:
-      return iterator(shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
-    case ONE:
-      return iterator(shared_ptr<AdjacentList::ItrBase>(new OneItr(&l.What)));
-    default:
-      return iterator(shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[l.What].begin())));
+  case ZERO:
+  case ONE:
+    return l.What;
+  default:
+    return AdjLists[l.What][i];
   }
 }
 
-Graph::AdjacentList::Itr Graph::_adjend(const AdjacentList& l) const {
-  using namespace boost;
-
+Graph::vertex& Graph::_adjacent(AdjacentList& l, size_t i) {
   switch (l.Flags) {
-    case ZERO:
-      return iterator(shared_ptr<AdjacentList::ItrBase>(new ZeroItr));
-    case ONE:
-      return iterator(shared_ptr<AdjacentList::ItrBase>(new OneItr(0)));
-    default:
-      return iterator(shared_ptr<AdjacentList::ItrBase>(new ManyItr(AdjLists[l.What].end())));
+  case ZERO:
+  case ONE:
+    return *static_cast<vertex*>(&l.What);
+  default:
+    return AdjLists[l.What][i];
   }
 }
 
@@ -157,11 +73,8 @@ Graph::vertex Graph::addVertex() {
 }
 
 bool Graph::edgeExists(const vertex source, const vertex target) const {
-  Graph::const_iterator ov(outVerticesBegin(source)),
-                             ov_end(outVerticesEnd(source));
-
-  for (; ov != ov_end; ++ov) {
-    if (*ov == target) {
+  for (uint32 ov = 0; ov < outDegree(source); ++ov) {
+    if (outVertex(source, ov) == target) {
       return true;
     }
   }
@@ -176,6 +89,7 @@ void Graph::addEdge(const vertex source, const vertex target) {
   _add(Vertices[target].In, source);
 }
 
+/*
 Graph::iterator Graph::begin() const {
   return iterator(boost::shared_ptr<Graph::AdjacentList::ItrBase>(new VertexItr(0)));
 }
@@ -183,3 +97,4 @@ Graph::iterator Graph::begin() const {
 Graph::iterator Graph::end() const {
   return iterator(boost::shared_ptr<Graph::AdjacentList::ItrBase>(new VertexItr(numVertices())));
 }
+*/
