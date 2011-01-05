@@ -3,13 +3,12 @@
 #include "utility.h"
 #include "instructions.h"
 
-#include <vector>
-#include <iostream>
-#include <cstring>
-#include <exception>
 #include <algorithm>
-
-#include <boost/graph/breadth_first_search.hpp>
+#include <cstring>
+#include <deque>
+#include <exception>
+#include <iostream>
+#include <vector>
 
 static const uint32 UNALLOCATED = 0xffffffff;
 
@@ -57,7 +56,7 @@ struct CodeGenHelper {
 
 typedef std::vector< std::vector< Graph::vertex > > TransitionTbl;
 
-class CodeGenVisitor: public boost::default_bfs_visitor {
+class CodeGenVisitor {
 public:
   CodeGenVisitor(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
 
@@ -154,9 +153,11 @@ void specialVisit(const Graph& graph, Graph::vertex startVertex, VisitorT& vis) 
   std::vector< Graph::vertex > inOrder;
   std::vector< bool > discovered(graph.numVertices(), false);
 
+  inOrder.reserve(graph.numVertices());
+
   discovered[startVertex].flip();
-  // vis.discover_vertex(startVertex, graph);
   statesToVisit.push_back(startVertex);
+
   while (!statesToVisit.empty()) {
     Graph::vertex v = statesToVisit.front();
     statesToVisit.pop_front();
@@ -171,7 +172,7 @@ void specialVisit(const Graph& graph, Graph::vertex startVertex, VisitorT& vis) 
       Graph::vertex t = graph.outVertex(v, i);
       if (!discovered[t]) {
         discovered[t].flip();
-        // vis.discover_vertex(t, graph);
+
         if (nobranch) {
           statesToVisit.push_front(t);
         }
@@ -180,7 +181,6 @@ void specialVisit(const Graph& graph, Graph::vertex startVertex, VisitorT& vis) 
         }
       }
     }
-    // vis.finish_vertex(v, graph);
   }
 
   for (uint32 i = 0; i < inOrder.size(); ++i) {
