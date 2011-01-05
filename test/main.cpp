@@ -32,7 +32,7 @@ void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
 void writeGraphviz(const Options& opts) {
   std::vector<std::string> keys = opts.getKeys();
   if (!keys.empty()) {
-    DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
+    GraphPtr fsm = createGraph(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
     writeGraphviz(opts.openOutput(), *fsm);
   }
 }
@@ -40,7 +40,7 @@ void writeGraphviz(const Options& opts) {
 void writeProgram(const Options& opts) {
   std::vector<std::string> keys = opts.getKeys();
   if (!keys.empty()) {
-    DynamicFSMPtr fsm = createDynamicFSM(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
+    GraphPtr fsm = createGraph(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
     ProgramPtr p = createProgram(*fsm);
     std::ostream& out(opts.openOutput());
     out << p->size() << " instructions" << std::endl;
@@ -52,7 +52,7 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
   keyInfo.Keywords = opts.getKeys();
   std::cerr << keyInfo.Keywords.size() << " keywords"<< std::endl;
 
-  DynamicFSMPtr fsm = createDynamicFSM(keyInfo, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
+  GraphPtr fsm = createGraph(keyInfo, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
   std::cerr << fsm->numVertices() << " vertices" << '\n';
 
   ProgramPtr p = createProgram(*fsm);

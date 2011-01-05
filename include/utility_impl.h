@@ -33,7 +33,7 @@ struct StateLayoutInfo {
 struct CodeGenHelper {
   CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, UNALLOCATED), Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
 
-  void discover(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  void discover(Graph::vertex_descriptor v, const Graph& graph) {
     DiscoverRanks[v] = NumDiscovered++;
     if (graph.inDegree(v) > 1) {
       Snippets[v].CheckIndex = ++NumChecked;
@@ -55,17 +55,17 @@ struct CodeGenHelper {
          NumChecked;
 };
 
-typedef std::vector< std::vector< DynamicFSM::vertex_descriptor > > TransitionTbl;
+typedef std::vector< std::vector< Graph::vertex_descriptor > > TransitionTbl;
 
 class CodeGenVisitor: public boost::default_bfs_visitor {
 public:
   CodeGenVisitor(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
 
-  void discover_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  void discover_vertex(Graph::vertex_descriptor v, const Graph& graph) {
     Helper->discover(v, graph);
   }
 
-  bool shouldBeJumpTable(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph, uint32 outDegree, uint32& totalSize) {
+  bool shouldBeJumpTable(Graph::vertex_descriptor v, const Graph& graph, uint32 outDegree, uint32& totalSize) {
     if (outDegree > 3 && (v == 0 || graph[v]->Label == UNALLOCATED)) {
       TransitionTbl tbl(pivotStates(v, graph));
       if (maxOutbound(tbl) < outDegree) {
@@ -100,7 +100,7 @@ public:
     return false;
   }
 
-  void finish_vertex(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+  void finish_vertex(Graph::vertex_descriptor v, const Graph& graph) {
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
     bool   match = false;
     uint32 labels = 0,
@@ -121,7 +121,7 @@ public:
       }
     }
     uint32 outOps = 0;
-    DynamicFSM::const_iterator  ov(graph.outVerticesBegin(v)),
+    Graph::const_iterator  ov(graph.outVerticesBegin(v)),
                                 ov_end(graph.outVerticesEnd(v));
     if (ov == ov_end) {
       // std::cerr << "no out edges, so a halt" << std::endl;
@@ -145,16 +145,16 @@ private:
 };
 
 template<class VisitorT>
-void specialVisit(const DynamicFSM& graph, DynamicFSM::vertex_descriptor startVertex, VisitorT& vis) {
-  std::deque< DynamicFSM::vertex_descriptor > statesToVisit;
-  std::vector< DynamicFSM::vertex_descriptor > inOrder;
+void specialVisit(const Graph& graph, Graph::vertex_descriptor startVertex, VisitorT& vis) {
+  std::deque< Graph::vertex_descriptor > statesToVisit;
+  std::vector< Graph::vertex_descriptor > inOrder;
   std::vector< bool > discovered(graph.numVertices(), false);
 
   discovered[startVertex].flip();
   // vis.discover_vertex(startVertex, graph);
   statesToVisit.push_back(startVertex);
   while (!statesToVisit.empty()) {
-    DynamicFSM::vertex_descriptor v = statesToVisit.front();
+    Graph::vertex_descriptor v = statesToVisit.front();
     statesToVisit.pop_front();
 
     vis.discover_vertex(v, graph);
@@ -162,11 +162,11 @@ void specialVisit(const DynamicFSM& graph, DynamicFSM::vertex_descriptor startVe
 
     const uint32 numOut = graph.outDegree(v);
 
-    DynamicFSM::const_iterator  ov(graph.outVerticesBegin(v)),
+    Graph::const_iterator  ov(graph.outVerticesBegin(v)),
                                 ov_end(graph.outVerticesEnd(v));
     const bool nobranch = numOut < 2;
     for (; ov != ov_end; ++ov) {
-      DynamicFSM::vertex_descriptor t = *ov;
+      Graph::vertex_descriptor t = *ov;
       if (!discovered[t]) {
         discovered[t].flip();
         // vis.discover_vertex(t, graph);

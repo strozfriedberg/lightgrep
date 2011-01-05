@@ -6,10 +6,10 @@
 #include <stack>
 #include <vector>
 
-static const DynamicFSM::vertex_descriptor UNALLOCATED = 0xffffffff;
-static const DynamicFSM::vertex_descriptor UNLABELABLE = 0xfffffffe;
+static const Graph::vertex_descriptor UNALLOCATED = 0xffffffff;
+static const Graph::vertex_descriptor UNLABELABLE = 0xfffffffe;
 
-void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx) {
+void Compiler::mergeIntoFSM(Graph& fsm, const Graph& addend, uint32 keyIdx) {
   ByteSet tranBits,
           edgeBits;
 
@@ -20,10 +20,10 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
   StateMap.assign(numVs, UNALLOCATED);
   Visited.assign(numVs, false);
 
-  DynamicFSM::vertex_descriptor oldSource,
+  Graph::vertex_descriptor oldSource,
                                 source,
                                 oldTarget,
-                                target = DynamicFSM::BAD;
+                                target = Graph::BAD;
 
   States.push(StatePair(0, 0));
   while (!States.empty()) {
@@ -34,7 +34,7 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
       // std::cerr << "on state pair " << oldSource << ", " << source << std::endl;
       Visited[oldSource] = true;
 
-      for (DynamicFSM::const_iterator it(addend.outVerticesBegin(oldSource)); it != addend.outVerticesEnd(oldSource); ++it) {
+      for (Graph::const_iterator it(addend.outVerticesBegin(oldSource)); it != addend.outVerticesEnd(oldSource); ++it) {
         oldTarget = *it;
         if (StateMap[oldTarget] == UNALLOCATED) {
           TransitionPtr tran = addend[oldTarget];
@@ -44,7 +44,7 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
 
           bool found = false;
 
-          for (DynamicFSM::const_iterator curEdge(fsm.outVerticesBegin(source)); curEdge != fsm.outVerticesEnd(source); ++curEdge) {
+          for (Graph::const_iterator curEdge(fsm.outVerticesBegin(source)); curEdge != fsm.outVerticesEnd(source); ++curEdge) {
             target = *curEdge;
             TransitionPtr edgeTran = fsm[target];
             edgeBits.reset();
@@ -82,17 +82,17 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
   }
 }
 
-void Compiler::labelGuardStates(DynamicFSM& fsm) {
+void Compiler::labelGuardStates(Graph& fsm) {
   propagateMatchLabels(fsm);
   removeNonMinimalLabels(fsm);
 }
 
-void Compiler::propagateMatchLabels(DynamicFSM& fsm) {
+void Compiler::propagateMatchLabels(Graph& fsm) {
   uint32 i = 0;
 
-  DynamicFSM::const_iterator mi_end(fsm.end());
-  for (DynamicFSM::const_iterator mi(fsm.begin()); mi != mi_end; ++mi) {
-    DynamicFSM::vertex_descriptor m = *mi;
+  Graph::const_iterator mi_end(fsm.end());
+  for (Graph::const_iterator mi(fsm.begin()); mi != mi_end; ++mi) {
+    Graph::vertex_descriptor m = *mi;
 
     // skip non-match vertices
     if (!fsm[m] || !fsm[m]->IsMatch) continue;
@@ -106,20 +106,20 @@ void Compiler::propagateMatchLabels(DynamicFSM& fsm) {
     // walk label back from this match state to all of its ancestors
     // which have no other match-state descendants
 
-    std::stack<DynamicFSM::vertex_descriptor,
-               std::vector<DynamicFSM::vertex_descriptor> > next;
+    std::stack<Graph::vertex_descriptor,
+               std::vector<Graph::vertex_descriptor> > next;
     
     next.push(m);
 
     while (!next.empty()) {
-      DynamicFSM::vertex_descriptor t = next.top();
+      Graph::vertex_descriptor t = next.top();
       next.pop();
       
       // check each parent of the current state
-      DynamicFSM::const_iterator ie(fsm.inVerticesBegin(t));
-      DynamicFSM::const_iterator ie_end(fsm.inVerticesEnd(t));
+      Graph::const_iterator ie(fsm.inVerticesBegin(t));
+      Graph::const_iterator ie_end(fsm.inVerticesEnd(t));
       for ( ; ie != ie_end; ++ie) {
-        DynamicFSM::vertex_descriptor h = *ie;
+        Graph::vertex_descriptor h = *ie;
         
         if (!fsm[h]) {
           // Skip the initial state.
@@ -142,21 +142,21 @@ void Compiler::propagateMatchLabels(DynamicFSM& fsm) {
         else {
           // This parent has the label of some other match state. Mark it
           // and all of its ancestors unlabelable.
-          std::stack<DynamicFSM::vertex_descriptor,
-               std::vector<DynamicFSM::vertex_descriptor> > unext;
+          std::stack<Graph::vertex_descriptor,
+               std::vector<Graph::vertex_descriptor> > unext;
 
           unext.push(h);
 
           while (!unext.empty()) {
-            DynamicFSM::vertex_descriptor u = unext.top();
+            Graph::vertex_descriptor u = unext.top();
             unext.pop();
 
             fsm[u]->Label = UNLABELABLE;
 
-            DynamicFSM::const_iterator ue(fsm.inVerticesBegin(u));
-            DynamicFSM::const_iterator ue_end(fsm.inVerticesEnd(u));
+            Graph::const_iterator ue(fsm.inVerticesBegin(u));
+            Graph::const_iterator ue_end(fsm.inVerticesEnd(u));
             for ( ; ue != ue_end; ++ue) {
-              DynamicFSM::vertex_descriptor uh = *ue;
+              Graph::vertex_descriptor uh = *ue;
               if (fsm[uh] && fsm[uh]->Label != UNLABELABLE) {
                 // Walking on all nodes not already marked unlabelable
                 unext.push(uh);
@@ -169,27 +169,27 @@ void Compiler::propagateMatchLabels(DynamicFSM& fsm) {
   }
 }
 
-void Compiler::removeNonMinimalLabels(DynamicFSM& fsm) {
+void Compiler::removeNonMinimalLabels(Graph& fsm) {
   // Make a list of all tails of edges where the head is an ancestor of
   // multiple match states, but the tail is an ancestor of only one.
   std::vector<bool> visited(fsm.numVertices());
 
-  std::set<DynamicFSM::vertex_descriptor> heads;
+  std::set<Graph::vertex_descriptor> heads;
 
-  std::stack<DynamicFSM::vertex_descriptor,
-             std::vector<DynamicFSM::vertex_descriptor> > next;
+  std::stack<Graph::vertex_descriptor,
+             std::vector<Graph::vertex_descriptor> > next;
 
   next.push(0);
   visited[0] = true;
 
   while (!next.empty()) {
-    DynamicFSM::vertex_descriptor h = next.top();
+    Graph::vertex_descriptor h = next.top();
     next.pop();
 
-    DynamicFSM::const_iterator vi(fsm.outVerticesBegin(h));
-    DynamicFSM::const_iterator vi_end(fsm.outVerticesEnd(h));
+    Graph::const_iterator vi(fsm.outVerticesBegin(h));
+    Graph::const_iterator vi_end(fsm.outVerticesEnd(h));
     for ( ; vi != vi_end; ++vi) {
-      DynamicFSM::vertex_descriptor t = *vi;
+      Graph::vertex_descriptor t = *vi;
 
       if (visited[t] || !fsm[t]) continue; 
 
@@ -206,19 +206,19 @@ void Compiler::removeNonMinimalLabels(DynamicFSM& fsm) {
   }
 
   // Push all of the minimal guard states we found back onto the stack.
-  for (std::set<DynamicFSM::vertex_descriptor>::const_iterator vi(heads.begin()); vi != heads.end(); ++vi) {
+  for (std::set<Graph::vertex_descriptor>::const_iterator vi(heads.begin()); vi != heads.end(); ++vi) {
     next.push(*vi);
   }
 
   // Unlabel every remaining node not in heads.
   while (!next.empty()) {
-    DynamicFSM::vertex_descriptor h = next.top();
+    Graph::vertex_descriptor h = next.top();
     next.pop();
 
-    DynamicFSM::const_iterator vi(fsm.outVerticesBegin(h));
-    DynamicFSM::const_iterator vi_end(fsm.outVerticesEnd(h));
+    Graph::const_iterator vi(fsm.outVerticesBegin(h));
+    Graph::const_iterator vi_end(fsm.outVerticesEnd(h));
     for ( ; vi != vi_end; ++vi) {
-      DynamicFSM::vertex_descriptor t = *vi;
+      Graph::vertex_descriptor t = *vi;
 
       if (visited[t] || !fsm[t]) continue; 
 

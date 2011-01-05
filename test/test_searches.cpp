@@ -11,7 +11,7 @@
 
 struct STest: public HitCallback {
   std::vector< SearchHit > Hits;
-  DynamicFSMPtr Fsm;
+  GraphPtr Fsm;
   ProgramPtr Prog;
   boost::shared_ptr<VmInterface> Grep;
 
@@ -36,7 +36,7 @@ struct STest: public HitCallback {
     for (unsigned int i = 0; i < num; ++i) {
       kws[i] = keys[i];
     }
-    Fsm = createDynamicFSM(kws);
+    Fsm = createGraph(kws);
     Prog = createProgram(*Fsm);
     Prog->First = firstBytes(*Fsm);
     Prog->Skip = calculateSkipTable(*Fsm);
