@@ -56,21 +56,27 @@ boostDir = 'vendors/boost'
 debug = ARGUMENTS.get('debug', 'false')
 if (debug == 'true'):
   flags = '-g -fstack-protector-all -D LBT_TRACE_ENABLED'
+  ldflags = ''
 elif (debug == 'profile'):
-  flags = '-g -O1'
+  flags = '-g -pg -O'
+  ldflags = '-pg'
 elif (debug == 'trace'):
   flags = '-O3 -D LBT_TRACE_ENABLED'
+  ldflags = ''
 else:
   flags = '-O3'
+  ldflags = ''
 
 ccflags = '-Wall -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir)
 if (isWindows):
   env = Environment(ENV=os.environ, tools=['mingw']) # this builds in a dependency on the PATH, which is useful for ccache
 else:
   env = Environment(ENV=os.environ)
+
 env.Replace(CPPPATH=['#/include'])
 env.Replace(CCFLAGS=ccflags)
 env.Append(LIBPATH=['#/lib'])
+env.Append(LINKFLAGS=ldflags)
 
 if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
