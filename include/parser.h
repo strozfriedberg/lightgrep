@@ -58,31 +58,31 @@ struct SyntaxTree {
   }
 };
 
-typedef std::vector< Graph::vertex_descriptor > VList;
+typedef std::vector< Graph::vertex > VList;
 
 class FastVList {
 public:
   friend std::ostream& operator<<(std::ostream& out, const FastVList& list);
 
   FastVList();
-  FastVList(Graph::vertex_descriptor v);
+  FastVList(Graph::vertex v);
   FastVList(const FastVList& x);
 
   FastVList& operator=(const FastVList& x);
 
-  Graph::vertex_descriptor operator[](unsigned int i) const;
+  Graph::vertex operator[](unsigned int i) const;
 
   size_t size() const;
 
   void reset();
-  void reset(Graph::vertex_descriptor v);
+  void reset(Graph::vertex v);
   void merge(const FastVList& x);
-  void add(Graph::vertex_descriptor v);
+  void add(Graph::vertex v);
 
   void patch(const FastVList& targets, Graph& fsm) const;
 
 private:
-  Graph::vertex_descriptor Single;
+  Graph::vertex Single;
   boost::scoped_ptr< VList > List;  
 };
 
@@ -90,21 +90,21 @@ std::ostream& operator<<(std::ostream& out, const FastVList& list);
 
 struct Fragment {
   Fragment(): Skippable(false) {}
-  Fragment(Graph::vertex_descriptor in, const Node& n): InList(in), N(n), Skippable(false) {}
+  Fragment(Graph::vertex in, const Node& n): InList(in), N(n), Skippable(false) {}
 
   FastVList InList, OutList;
   Node N;
   bool Skippable;
 
-  void initFull(Graph::vertex_descriptor in, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(in); }
-  void initFull(Graph::vertex_descriptor in, Graph::vertex_descriptor out, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(out); }
+  void initFull(Graph::vertex in, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(in); }
+  void initFull(Graph::vertex in, Graph::vertex out, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(out); }
   void reset(const Node& n) { Skippable = false; N = n; InList.reset(); OutList.reset(); }
 
-  void addToOut(Graph::vertex_descriptor v) {
+  void addToOut(Graph::vertex v) {
     OutList.add(v);
   }
 
-  void addToIn(Graph::vertex_descriptor v) {
+  void addToIn(Graph::vertex v) {
     InList.add(v);
   }
 

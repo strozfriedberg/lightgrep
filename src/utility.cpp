@@ -12,7 +12,7 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-void addNewEdge(Graph::vertex_descriptor source, Graph::vertex_descriptor target, Graph& fsm) {
+void addNewEdge(Graph::vertex source, Graph::vertex target, Graph& fsm) {
   fsm.addEdge(source, target);
 }
 
@@ -93,7 +93,7 @@ GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMo
 }
 
 // If the jump is to a state that has only a single out edge, and there's no match on the state, then jump forward directly to the out-edge state
-uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex_descriptor v, const Graph& graph) {
+uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {
   if (1 == graph.outDegree(v) && UNALLOCATED == graph[v]->Label) {
     return cg->Snippets[*graph.outVerticesBegin(v)].Start;
   }
@@ -103,11 +103,11 @@ uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex_descr
 }
 
 // JumpTables are either ranged, or full-size, and can have indirect tables at the end when there are multiple transitions out on a single byte value
-void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uint32 baseIndex, Graph::vertex_descriptor v, const Graph& graph) {
+void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uint32 baseIndex, Graph::vertex v, const Graph& graph) {
   Instruction* cur = base,
              * indirectTbl;
 
-  std::vector< std::vector< Graph::vertex_descriptor > > tbl(pivotStates(v, graph));
+  std::vector< std::vector< Graph::vertex > > tbl(pivotStates(v, graph));
   uint32 first = 0,
          last  = 255;
 
@@ -176,7 +176,7 @@ ProgramPtr createProgram(const Graph& graph) {
   ret->NumChecked = cg->NumChecked;
   ret->resize(cg->Guard);
   uint32 i = 0;
-  for (Graph::vertex_descriptor v = 0; v < numVs; ++v) {
+  for (Graph::vertex v = 0; v < numVs; ++v) {
     if (++i % 10000 == 0) {
       std::cerr << "have compiled " << i << " states so far" << std::endl;
     }
@@ -205,9 +205,9 @@ ProgramPtr createProgram(const Graph& graph) {
                                ov_end(graph.outVerticesEnd(v));
     if (ov != ov_end) {
       bool hasTargetAtNext = false;
-      Graph::vertex_descriptor nextTarget = 0;
+      Graph::vertex nextTarget = 0;
       for (; ov != ov_end; ++ov) {
-        Graph::vertex_descriptor curTarget = *ov;
+        Graph::vertex curTarget = *ov;
         // std::cerr << "targeting " << curTarget << " at " << cg->Snippets[curTarget].first << std::endl;
         if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget]) {
 
@@ -250,13 +250,13 @@ class SkipTblVisitor: public Visitor {
 public:
   SkipTblVisitor(boost::shared_ptr<SkipTable> skip): Skipper(skip) {}
   
-  void discoverVertex(Graph::vertex_descriptor v,
+  void discoverVertex(Graph::vertex v,
                       const Graph& graph) const {
     Skipper->calculateTransitions(v, graph);
   }
  
-  void treeEdge(Graph::vertex_descriptor h,
-                Graph::vertex_descriptor t,
+  void treeEdge(Graph::vertex h,
+                Graph::vertex t,
                 const Graph& graph) const {
     Skipper->setDistance(h, t, graph);
   }
@@ -278,22 +278,22 @@ boost::shared_ptr<SkipTable> calculateSkipTable(const Graph& graph) {
   return skip;
 }
 
-void bfs(const Graph& graph, Graph::vertex_descriptor start, Visitor& visitor) {
+void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor) {
   std::vector<bool> seen(graph.numVertices());
-  std::queue<Graph::vertex_descriptor> next;
+  std::queue<Graph::vertex> next;
 
   visitor.discoverVertex(start, graph);
   next.push(start);
   seen[start] = true;
   
   while (!next.empty()) {
-    Graph::vertex_descriptor h = next.front();
+    Graph::vertex h = next.front();
     next.pop();
   
     Graph::const_iterator ov(graph.outVerticesBegin(h)),
                                ov_end(graph.outVerticesEnd(h));
     for ( ; ov != ov_end; ++ov) {
-      Graph::vertex_descriptor t = *ov;
+      Graph::vertex t = *ov;
       if (!seen[t]) {
         // One might think that we discover a vertex at the tail of an
         // edge first, but one would be wrong...
@@ -306,7 +306,7 @@ void bfs(const Graph& graph, Graph::vertex_descriptor start, Visitor& visitor) {
   }
 }
 
-void nextBytes(ByteSet& set, Graph::vertex_descriptor v, const Graph& graph) {
+void nextBytes(ByteSet& set, Graph::vertex v, const Graph& graph) {
   ByteSet tBits;
   Graph::const_iterator ov(graph.outVerticesBegin(v)),
                              ov_end(graph.outVerticesEnd(v));
@@ -334,8 +334,8 @@ boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, 
   return vm;
 }
 
-std::vector< std::vector< Graph::vertex_descriptor > > pivotStates(Graph::vertex_descriptor source, const Graph& graph) {
-  std::vector< std::vector< Graph::vertex_descriptor > > ret(256);  
+std::vector< std::vector< Graph::vertex > > pivotStates(Graph::vertex source, const Graph& graph) {
+  std::vector< std::vector< Graph::vertex > > ret(256);  
   ByteSet permitted;
   Graph::const_iterator ov(graph.outVerticesBegin(source)),
                              ov_end(graph.outVerticesEnd(source));
@@ -351,15 +351,15 @@ std::vector< std::vector< Graph::vertex_descriptor > > pivotStates(Graph::vertex
   return ret;
 }
 
-uint32 maxOutbound(const std::vector< std::vector< Graph::vertex_descriptor > >& tranTable) {
+uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable) {
   uint32 ret = 0;
-  for (std::vector< std::vector< Graph::vertex_descriptor > >::const_iterator it(tranTable.begin()); it != tranTable.end(); ++it) {
+  for (std::vector< std::vector< Graph::vertex > >::const_iterator it(tranTable.begin()); it != tranTable.end(); ++it) {
     ret = it->size() > ret ? it->size(): ret;
   }
   return ret;
 }
 
-void writeVertex(std::ostream& out, Graph::vertex_descriptor v, const Graph& graph) {
+void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
   std::string l;
 
   if (v != 0) {

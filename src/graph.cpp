@@ -2,9 +2,9 @@
 
 #include <algorithm>
 
-typedef Graph::vertex_descriptor vertex_descriptor;
+typedef Graph::vertex vertex;
 
-const Graph::vertex_descriptor Graph::BAD = 0xFFFFFFFF;
+const Graph::vertex Graph::BAD = 0xFFFFFFFF;
 
 class ZeroItr: public Graph::AdjacentList::ItrBase {
 public:
@@ -12,13 +12,13 @@ public:
 
   virtual bool isEqual(const ItrBase&) const { return true; }
   virtual void advance() {}
-  virtual const vertex_descriptor& get() const { return Graph::BAD; }
+  virtual const vertex& get() const { return Graph::BAD; }
   virtual ZeroItr* clone() const { return new ZeroItr; }
 };
 
 class OneItr: public Graph::AdjacentList::ItrBase {
 public:
-  OneItr(const vertex_descriptor* vPtr): VPtr(vPtr) {}
+  OneItr(const vertex* vPtr): VPtr(vPtr) {}
 
   virtual ~OneItr() {}
   
@@ -29,17 +29,17 @@ public:
 
   virtual void advance() { VPtr = 0; }
   
-  virtual const vertex_descriptor& get() const { return *VPtr; }
+  virtual const vertex& get() const { return *VPtr; }
   
   virtual OneItr* clone() const { return new OneItr(VPtr); }
 
 private:
-  const vertex_descriptor* VPtr;
+  const vertex* VPtr;
 };
 
 class ManyItr: public Graph::AdjacentList::ItrBase {
 public:
-  ManyItr(const std::vector<vertex_descriptor>::const_iterator &it): It(it) {}
+  ManyItr(const std::vector<vertex>::const_iterator &it): It(it) {}
 
   virtual ~ManyItr() {}
 
@@ -50,17 +50,17 @@ public:
 
   virtual void advance() { ++It; }
 
-  virtual const vertex_descriptor& get() const { return *It; } // ugh
+  virtual const vertex& get() const { return *It; } // ugh
   
   virtual ManyItr* clone() const { return new ManyItr(It); }
 
 private:
-  std::vector<vertex_descriptor>::const_iterator It;
+  std::vector<vertex>::const_iterator It;
 };
 
 class VertexItr: public Graph::AdjacentList::ItrBase {
 public:
-  VertexItr(vertex_descriptor v): V(v) {}
+  VertexItr(vertex v): V(v) {}
 
   virtual ~VertexItr() {}
 
@@ -71,12 +71,12 @@ public:
 
   virtual void advance() { ++V; }
 
-  virtual const vertex_descriptor& get() const { return V; }
+  virtual const vertex& get() const { return V; }
   
   virtual VertexItr* clone() const { return new VertexItr(V); }
 
 private:
-  vertex_descriptor V;
+  vertex V;
 };
 
 Graph::AdjacentList::Itr Graph::_adjbegin(const AdjacentList& l) const
@@ -117,7 +117,7 @@ uint32 Graph::_degree(const AdjacentList& l) const {
   }
 }
 
-void Graph::_add(AdjacentList& l, vertex_descriptor v) {
+void Graph::_add(AdjacentList& l, vertex v) {
   switch (l.Flags) {
   case ZERO:
     l.Flags = ONE;
@@ -126,13 +126,13 @@ void Graph::_add(AdjacentList& l, vertex_descriptor v) {
   case ONE:
     if (v != l.What) {
       l.Flags = MANY;
-      const vertex_descriptor tmp[2] = { l.What, v };
-      AdjLists.push_back(std::vector<vertex_descriptor>(&tmp[0], &tmp[2]));
+      const vertex tmp[2] = { l.What, v };
+      AdjLists.push_back(std::vector<vertex>(&tmp[0], &tmp[2]));
       l.What = AdjLists.size() - 1;
     }
     break;
   case MANY:
-    for (std::vector<vertex_descriptor>::const_iterator it(AdjLists[l.What].begin()); it != AdjLists[l.What].end(); ++it) {
+    for (std::vector<vertex>::const_iterator it(AdjLists[l.What].begin()); it != AdjLists[l.What].end(); ++it) {
       if (*it == v) {
         return;
       }
@@ -151,12 +151,12 @@ Graph::Graph(uint32 numVs): Vertices(numVs, Vertex())
 {
 }
 
-Graph::vertex_descriptor Graph::addVertex() {
+Graph::vertex Graph::addVertex() {
   Vertices.push_back(Vertex());
   return Vertices.size() - 1;
 }
 
-bool Graph::edgeExists(const vertex_descriptor source, const vertex_descriptor target) const {
+bool Graph::edgeExists(const vertex source, const vertex target) const {
   Graph::const_iterator ov(outVerticesBegin(source)),
                              ov_end(outVerticesEnd(source));
 
@@ -168,7 +168,7 @@ bool Graph::edgeExists(const vertex_descriptor source, const vertex_descriptor t
   return false;
 }
 
-void Graph::addEdge(const vertex_descriptor source, const vertex_descriptor target) {
+void Graph::addEdge(const vertex source, const vertex target) {
   if (source >= Vertices.size() || target >= Vertices.size()) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT("out of bounds, source = " << source << ", target = " << target << ", but size = " << Vertices.size());
   }

@@ -9,9 +9,9 @@ typedef boost::shared_ptr<Transition> TransitionPtr;
 // new hotness
 class Graph {
 public:
-  typedef uint32 vertex_descriptor;
+  typedef uint32 vertex;
 
-  static const vertex_descriptor BAD;
+  static const vertex BAD;
 
 private:
   enum FlagType {
@@ -32,7 +32,7 @@ public:
       virtual ~ItrBase() {}
       virtual bool isEqual(const ItrBase& x) const = 0;
       virtual void advance() = 0;
-      virtual const vertex_descriptor& get() const = 0;
+      virtual const vertex& get() const = 0;
       virtual ItrBase* clone() const = 0;
     };
 
@@ -55,7 +55,7 @@ public:
         return copy;
       }
   
-      const vertex_descriptor& operator*() const { return Base->get(); } 
+      const vertex& operator*() const { return Base->get(); } 
     };
 
     typedef Itr iterator;
@@ -79,49 +79,49 @@ public:
   uint32 numVertices() const { return Vertices.size(); }
   uint32 capacity() const { return Vertices.capacity(); }
 
-  vertex_descriptor addVertex();
+  vertex addVertex();
 
-  bool edgeExists(const vertex_descriptor source, const vertex_descriptor target) const;
+  bool edgeExists(const vertex source, const vertex target) const;
 
-  void addEdge(const vertex_descriptor source, const vertex_descriptor target);
+  void addEdge(const vertex source, const vertex target);
 
-  const AdjacentList& inVertices(const vertex_descriptor v) const {
+  const AdjacentList& inVertices(const vertex v) const {
     return Vertices[v].In;
   }
   
-  const AdjacentList& outVertices(const vertex_descriptor v) const {
+  const AdjacentList& outVertices(const vertex v) const {
     return Vertices[v].Out;
   }
 
-  iterator inVerticesBegin(vertex_descriptor v) const {
+  iterator inVerticesBegin(vertex v) const {
     return _adjbegin(Vertices[v].In);
   }
   
-  iterator inVerticesEnd(vertex_descriptor v) const {
+  iterator inVerticesEnd(vertex v) const {
     return _adjend(Vertices[v].In);
   }
 
-  iterator outVerticesBegin(vertex_descriptor v) const {
+  iterator outVerticesBegin(vertex v) const {
     return _adjbegin(Vertices[v].Out);
   }
 
-  iterator outVerticesEnd(vertex_descriptor v) const {
+  iterator outVerticesEnd(vertex v) const {
     return _adjend(Vertices[v].Out);
   }
 
-  uint32 inDegree(const vertex_descriptor v) const {
+  uint32 inDegree(const vertex v) const {
     return _degree(Vertices[v].In);
   }
 
-  uint32 outDegree(const vertex_descriptor v) const {
+  uint32 outDegree(const vertex v) const {
     return _degree(Vertices[v].Out);
   }
 
-  const TransitionPtr operator[](vertex_descriptor v) const {
+  const TransitionPtr operator[](vertex v) const {
     return Vertices[v].Tran; 
   }
   
-  TransitionPtr& operator[](vertex_descriptor v) { return Vertices[v].Tran; }
+  TransitionPtr& operator[](vertex v) { return Vertices[v].Tran; }
   
   iterator begin() const;
   iterator end() const;
@@ -132,7 +132,7 @@ public:
   }
 
 private:
-  void _add(AdjacentList& l, vertex_descriptor v);
+  void _add(AdjacentList& l, vertex v);
 
   uint32 _degree(const AdjacentList& l) const;
 
@@ -140,7 +140,7 @@ private:
   AdjacentList::Itr _adjend(const AdjacentList& l) const;
 
   std::vector< Vertex > Vertices;
-  std::vector< std::vector< vertex_descriptor > > AdjLists;
+  std::vector< std::vector< vertex > > AdjLists;
 };
 
 typedef boost::shared_ptr<Graph> GraphPtr;
