@@ -53,7 +53,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
       }
     }
   }
-  std::cerr << "Parsed " << keywords.size() << "keywords, beginning labeling" << std::endl;
+  std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
   comp.labelGuardStates(*fsm);
 }
 
