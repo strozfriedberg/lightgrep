@@ -360,20 +360,20 @@ SCOPE_TEST(parseHexDotPlus) {
   SyntaxTree  tree;
   Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("\\x20\\xFF.+\\x20", false, tree, p));
-/*  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(3));
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(4));
-  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(4));*/
-/*  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(4));
+  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(4u, tbl->l_min());
   std::vector<uint32> skip(256, 2);
   skip[0x20] = 0;
   skip[0xff] = 1;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());*/
+  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parse2ByteUnicode) {
