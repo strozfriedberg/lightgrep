@@ -23,7 +23,7 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
   DynamicFSM::vertex_descriptor oldSource,
                                 source,
                                 oldTarget,
-                                target;
+                                target = DynamicFSM::BAD;
 
   States.push(StatePair(0, 0));
   while (!States.empty()) {
