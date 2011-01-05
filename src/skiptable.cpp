@@ -14,7 +14,7 @@ void SkipTable::relax(uint32 val) {
   LMin = std::min(val, LMin);
 }
 
-void SkipTable::calculateTransitions(Graph::vertex_descriptor v, const Graph& graph) {
+void SkipTable::calculateTransitions(Graph::vertex v, const Graph& graph) {
   TempSet.reset();
   nextBytes(TempSet, v, graph);
   for (uint32 i = 0; i < 256; ++i) {
@@ -31,7 +31,7 @@ void SkipTable::finishSkipVec() {
   }
 }
 
-void SkipTable::setDistance(Graph::vertex_descriptor source, Graph::vertex_descriptor target, const Graph& graph) {
+void SkipTable::setDistance(Graph::vertex source, Graph::vertex target, const Graph& graph) {
   uint32 srcDist = Distance[source];
   uint32 tgtDist = 0;
   if (srcDist == std::numeric_limits<uint32>::max()) {

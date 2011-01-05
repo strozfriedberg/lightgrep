@@ -6,8 +6,8 @@
 #include <stack>
 #include <vector>
 
-static const Graph::vertex_descriptor UNALLOCATED = 0xffffffff;
-static const Graph::vertex_descriptor UNLABELABLE = 0xfffffffe;
+static const Graph::vertex UNALLOCATED = 0xffffffff;
+static const Graph::vertex UNLABELABLE = 0xfffffffe;
 
 void Compiler::mergeIntoFSM(Graph& fsm, const Graph& addend, uint32 keyIdx) {
   ByteSet tranBits,
@@ -20,7 +20,7 @@ void Compiler::mergeIntoFSM(Graph& fsm, const Graph& addend, uint32 keyIdx) {
   StateMap.assign(numVs, UNALLOCATED);
   Visited.assign(numVs, false);
 
-  Graph::vertex_descriptor oldSource,
+  Graph::vertex oldSource,
                                 source,
                                 oldTarget,
                                 target = Graph::BAD;
@@ -92,7 +92,7 @@ void Compiler::propagateMatchLabels(Graph& fsm) {
 
   Graph::const_iterator mi_end(fsm.end());
   for (Graph::const_iterator mi(fsm.begin()); mi != mi_end; ++mi) {
-    Graph::vertex_descriptor m = *mi;
+    Graph::vertex m = *mi;
 
     // skip non-match vertices
     if (!fsm[m] || !fsm[m]->IsMatch) continue;
@@ -106,20 +106,20 @@ void Compiler::propagateMatchLabels(Graph& fsm) {
     // walk label back from this match state to all of its ancestors
     // which have no other match-state descendants
 
-    std::stack<Graph::vertex_descriptor,
-               std::vector<Graph::vertex_descriptor> > next;
+    std::stack<Graph::vertex,
+               std::vector<Graph::vertex> > next;
     
     next.push(m);
 
     while (!next.empty()) {
-      Graph::vertex_descriptor t = next.top();
+      Graph::vertex t = next.top();
       next.pop();
       
       // check each parent of the current state
       Graph::const_iterator ie(fsm.inVerticesBegin(t));
       Graph::const_iterator ie_end(fsm.inVerticesEnd(t));
       for ( ; ie != ie_end; ++ie) {
-        Graph::vertex_descriptor h = *ie;
+        Graph::vertex h = *ie;
         
         if (!fsm[h]) {
           // Skip the initial state.
@@ -142,13 +142,13 @@ void Compiler::propagateMatchLabels(Graph& fsm) {
         else {
           // This parent has the label of some other match state. Mark it
           // and all of its ancestors unlabelable.
-          std::stack<Graph::vertex_descriptor,
-               std::vector<Graph::vertex_descriptor> > unext;
+          std::stack<Graph::vertex,
+               std::vector<Graph::vertex> > unext;
 
           unext.push(h);
 
           while (!unext.empty()) {
-            Graph::vertex_descriptor u = unext.top();
+            Graph::vertex u = unext.top();
             unext.pop();
 
             fsm[u]->Label = UNLABELABLE;
@@ -156,7 +156,7 @@ void Compiler::propagateMatchLabels(Graph& fsm) {
             Graph::const_iterator ue(fsm.inVerticesBegin(u));
             Graph::const_iterator ue_end(fsm.inVerticesEnd(u));
             for ( ; ue != ue_end; ++ue) {
-              Graph::vertex_descriptor uh = *ue;
+              Graph::vertex uh = *ue;
               if (fsm[uh] && fsm[uh]->Label != UNLABELABLE) {
                 // Walking on all nodes not already marked unlabelable
                 unext.push(uh);
@@ -174,22 +174,22 @@ void Compiler::removeNonMinimalLabels(Graph& fsm) {
   // multiple match states, but the tail is an ancestor of only one.
   std::vector<bool> visited(fsm.numVertices());
 
-  std::set<Graph::vertex_descriptor> heads;
+  std::set<Graph::vertex> heads;
 
-  std::stack<Graph::vertex_descriptor,
-             std::vector<Graph::vertex_descriptor> > next;
+  std::stack<Graph::vertex,
+             std::vector<Graph::vertex> > next;
 
   next.push(0);
   visited[0] = true;
 
   while (!next.empty()) {
-    Graph::vertex_descriptor h = next.top();
+    Graph::vertex h = next.top();
     next.pop();
 
     Graph::const_iterator vi(fsm.outVerticesBegin(h));
     Graph::const_iterator vi_end(fsm.outVerticesEnd(h));
     for ( ; vi != vi_end; ++vi) {
-      Graph::vertex_descriptor t = *vi;
+      Graph::vertex t = *vi;
 
       if (visited[t] || !fsm[t]) continue; 
 
@@ -206,19 +206,19 @@ void Compiler::removeNonMinimalLabels(Graph& fsm) {
   }
 
   // Push all of the minimal guard states we found back onto the stack.
-  for (std::set<Graph::vertex_descriptor>::const_iterator vi(heads.begin()); vi != heads.end(); ++vi) {
+  for (std::set<Graph::vertex>::const_iterator vi(heads.begin()); vi != heads.end(); ++vi) {
     next.push(*vi);
   }
 
   // Unlabel every remaining node not in heads.
   while (!next.empty()) {
-    Graph::vertex_descriptor h = next.top();
+    Graph::vertex h = next.top();
     next.pop();
 
     Graph::const_iterator vi(fsm.outVerticesBegin(h));
     Graph::const_iterator vi_end(fsm.outVerticesEnd(h));
     for ( ; vi != vi_end; ++vi) {
-      Graph::vertex_descriptor t = *vi;
+      Graph::vertex t = *vi;
 
       if (visited[t] || !fsm[t]) continue; 
 

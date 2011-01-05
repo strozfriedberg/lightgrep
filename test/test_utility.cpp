@@ -34,7 +34,7 @@ void ASSERT_EQUAL_GRAPHS(const Graph& a, const Graph& b) {
   ASSERT_SUPERGRAPH(b, a);
 }
 
-void edge(Graph::vertex_descriptor source, Graph::vertex_descriptor target, Graph& fsm, TransitionPtr tPtr) {
+void edge(Graph::vertex source, Graph::vertex target, Graph& fsm, TransitionPtr tPtr) {
 
   while (source >= fsm.numVertices()) fsm.addVertex();
   while (target >= fsm.numVertices()) fsm.addVertex();
@@ -46,7 +46,7 @@ void edge(Graph::vertex_descriptor source, Graph::vertex_descriptor target, Grap
   }
 }
 
-void edge(Graph::vertex_descriptor source, Graph::vertex_descriptor target, Graph& fsm, Transition* tPtr) {
+void edge(Graph::vertex source, Graph::vertex target, Graph& fsm, Transition* tPtr) {
   edge(source, target, fsm, TransitionPtr(tPtr));
 }
 
@@ -56,6 +56,7 @@ std::ostream& operator<<(std::ostream& os, const boost::shared_ptr<TransitionPtr
 }
 */
 
+/*
 bool buildNFA(Graph& fsm, const std::string& dot) {
   std::istringstream is(dot);
 
@@ -83,7 +84,7 @@ bool buildNFA(Graph& fsm, const std::string& dot) {
 
   // Convert this graph to a Graph (annoying!)
   
-  typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
+  typedef boost::graph_traits<graph_t>::vertex vertex_t;
   typedef boost::graph_traits<graph_t>::edge_iterator edge_iterator;
 
   edge_iterator e, e_end;
@@ -101,6 +102,7 @@ bool buildNFA(Graph& fsm, const std::string& dot) {
 
   return true;
 }
+*/
 
 std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
   out << "(" << state.Start << ", " << state.NumEval << ", " << state.NumOther << ", " << state.CheckIndex << ")";
@@ -427,7 +429,7 @@ SCOPE_TEST(testPivotTransitions) {
   edge(0, 2, fsm, new LitState('a', 1));
   edge(0, 3, fsm, new LitState('z'));
   edge(0, 4, fsm, new LitState('z'));
-  std::vector< std::vector< Graph::vertex_descriptor > > tbl = pivotStates(0, fsm);
+  std::vector< std::vector< Graph::vertex > > tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(256u, tbl.size());
   for (uint32 i = 0; i < 256; ++i) {
     if (i == 'a') {
@@ -672,7 +674,7 @@ SCOPE_TEST(testMaxOutbound) {
   edge(0, 2, fsm, new LitState('a'));
   edge(0, 3, fsm, new LitState('b'));
   edge(0, 4, fsm, new LitState('c'));
-  std::vector< std::vector< Graph::vertex_descriptor > > tbl = pivotStates(0, fsm);
+  std::vector< std::vector< Graph::vertex > > tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(2u, maxOutbound(tbl));
 }
 

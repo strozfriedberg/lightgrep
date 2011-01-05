@@ -33,7 +33,7 @@ FastVList::FastVList() {
   Single = 0xffffffff;
 }
 
-FastVList::FastVList(Graph::vertex_descriptor v) {
+FastVList::FastVList(Graph::vertex v) {
   Single = v;
 }
 
@@ -74,7 +74,7 @@ size_t FastVList::size() const {
   return Single == 0xffffffff ? 0: List ? List->size(): 1;
 }
 
-Graph::vertex_descriptor FastVList::operator[](unsigned int i) const {
+Graph::vertex FastVList::operator[](unsigned int i) const {
   return List ? (*List)[i]: Single;
 }
 
@@ -85,14 +85,14 @@ void FastVList::reset() {
   }
 }
 
-void FastVList::reset(Graph::vertex_descriptor v) {
+void FastVList::reset(Graph::vertex v) {
   Single = v;
   if (List) {
     List.reset();
   }
 }
 
-void FastVList::add(Graph::vertex_descriptor v) {
+void FastVList::add(Graph::vertex v) {
   if (Single == 0xffffffff) {
     Single = v;
   }
@@ -278,7 +278,7 @@ void Parser::literal(const Node& n) {
   }
   else {
     Graph& g(*Fsm);
-    Graph::vertex_descriptor first,
+    Graph::vertex first,
                                   prev,
                                   last;
     first = prev = last = g.addVertex();
@@ -317,14 +317,14 @@ void Parser::question(const Node&) {
 }
 
 void Parser::dot(const Node& n) {
-  Graph::vertex_descriptor v = Fsm->addVertex();
+  Graph::vertex v = Fsm->addVertex();
   (*Fsm)[v].reset(new RangeState(0, 255));
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
 
 void Parser::charClass(const Node& n, const std::string& lbl) {
-  Graph::vertex_descriptor v = Fsm->addVertex();
+  Graph::vertex v = Fsm->addVertex();
   uint32 num = 0;
   byte first = 0, last = 0;
   for (uint32 i = 0; i < 256; ++i) {
@@ -360,7 +360,7 @@ void Parser::finish(const Node& n) {
     uint32 numOut = start.OutList.size();
     for (uint32 i = 0; i < numOut; ++i) {
       // std::cout << "marking " << *it << " as a match" << std::endl;
-      Graph::vertex_descriptor v = start.OutList[i];
+      Graph::vertex v = start.OutList[i];
       if (0 == v) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
         reset();
         return;
