@@ -17,4 +17,7 @@ private:
   std::vector< DynamicFSM::vertex_descriptor > StateMap;
   std::stack< StatePair, std::vector<StatePair> > States;
   std::vector< bool > Visited;
+
+  void propagateMatchLabels(DynamicFSM& fsm);
+  void removeNonMinimalLabels(DynamicFSM& fsm);
 };

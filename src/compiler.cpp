@@ -85,10 +85,13 @@ void Compiler::mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 ke
 }
 
 void Compiler::labelGuardStates(DynamicFSM& fsm) {
-  using namespace boost;
+  propagateMatchLabels(fsm);
+  removeNonMinimalLabels(fsm);
+}
 
+void Compiler::propagateMatchLabels(DynamicFSM& fsm) {
   uint32 i = 0;
-  
+
   DynamicFSM::const_iterator mi_end(fsm.end());
   for (DynamicFSM::const_iterator mi(fsm.begin()); mi != mi_end; ++mi) {
     DynamicFSM::vertex_descriptor m = *mi;
@@ -102,7 +105,9 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
 
     const unsigned int label = fsm[m]->Label;
     
-    // walk guard label(s) back from this match state
+    // walk label back from this match state to all of its ancestors
+    // which have no other match-state descendants
+
     std::stack<DynamicFSM::vertex_descriptor,
                std::vector<DynamicFSM::vertex_descriptor> > next;
     
@@ -155,6 +160,7 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
             for ( ; ue != ue_end; ++ue) {
               DynamicFSM::vertex_descriptor uh = *ue;
               if (fsm[uh] && fsm[uh]->Label != UNLABELABLE) {
+                // Walking on all nodes not already marked unlabelable
                 unext.push(uh);
               }
             }
@@ -163,7 +169,9 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
       }
     }
   }
- 
+}
+
+void Compiler::removeNonMinimalLabels(DynamicFSM& fsm) {
   // Make a list of all tails of edges where the head is an ancestor of
   // multiple match states, but the tail is an ancestor of only one.
   std::vector<bool> visited(fsm.numVertices());
@@ -206,76 +214,4 @@ void Compiler::labelGuardStates(DynamicFSM& fsm) {
       fsm[v]->Label = UNALLOCATED;
     }
   }
-
-/*
-    while (!next.empty()) {
-      DynamicFSM::vertex_descriptor t = next.top();
-      next.pop();
-      visited[t] = true;
-
-      bool unmark = true;
-      DynamicFSM::const_iterator ie_end(fsm.inVerticesEnd(t));
-      for (DynamicFSM::const_iterator ie = fsm.inVerticesBegin(t); ie != ie_end; ++ie) {
-        DynamicFSM::vertex_descriptor h = *ie;
-
-        // skip head if we've already seen it
-        if (visited[h]) continue;
-          
-        if (!fsm[h]) {
-          // head is the initial state
-          unmark = false;
-        }
-        else if (fsm[h]->Label == UNALLOCATED) {
-          // mark head with our label 
-          fsm[h]->Label = label;
-
-          // visit head next
-          next.push(h);
-        }
-        else if (fsm[h]->Label == label) {
-          // head has our own label, do nothing
-        }
-        else if (fsm[h]->Label == UNLABELABLE) {
-          // head has already been backtracked from
-          unmark = false;
-        }
-        else {
-          // head has a different label
-
-          // unlabel head
-          const unsigned int hlabel = fsm[h]->Label;
-          fsm[h]->Label = UNALLOCATED;
-
-          // advance head's label to all of its unlabeled children except tail
-          DynamicFSM::const_iterator oe_end(fsm.outVerticesEnd(h));
-          for (DynamicFSM::const_iterator oe = fsm.outVerticesBegin(h); oe != oe_end; ++oe) {
-            DynamicFSM::vertex_descriptor c = *oe;
-            if (c != t && fsm[c]->Label == UNALLOCATED) {
-              fsm[c]->Label = hlabel;
-            }
-          }
-
-          unmark = false;
-
-          // mark head as unlabelable
-          fsm[h]->Label = UNLABELABLE;
-        }
-      }
-
-      if (unmark) {
-        // Every head is now marked with the label, so we may safely
-        // unmark tail.
-        fsm[t]->Label = UNALLOCATED;
-      }
-    }
-  }
-
-  // mark every UNLABELABLE vertex as UNALLOCATED
-  for (DynamicFSM::const_iterator mi = fsm.begin(); mi != mi_end; ++mi) {
-    DynamicFSM::vertex_descriptor m = *mi;
-    if (fsm[m] && fsm[m]->Label == UNLABELABLE) {
-      fsm[m]->Label = UNALLOCATED;
-    }
-  }
-*/
 }
