@@ -36,3 +36,23 @@ void ASSERT_EQUAL_GRAPHS(const Graph& a, const Graph& b) {
   ASSERT_SUPERGRAPH(a, b);
   ASSERT_SUPERGRAPH(b, a);
 }
+
+void ASSERT_EQUAL_LABELS(const Graph& a, const Graph& b) {
+  SCOPE_ASSERT_EQUAL(a.numVertices(), b.numVertices());
+  for (uint32 v = 0; v < a.numVertices(); ++v) {
+    SCOPE_ASSERT((!a[v] && !b[v]) || (a[v] && b[v]));
+    if (a[v] && b[v]) {
+      SCOPE_ASSERT_EQUAL(a[v]->Label, b[v]->Label);
+    }
+  }
+}
+
+void ASSERT_EQUAL_MATCHES(const Graph& a, const Graph& b) {
+  SCOPE_ASSERT_EQUAL(a.numVertices(), b.numVertices());
+  for (uint32 v = 0; v < a.numVertices(); ++v) {
+    SCOPE_ASSERT((!a[v] && !b[v]) || (a[v] && b[v]));
+    if (a[v] && b[v]) {
+      SCOPE_ASSERT_EQUAL(a[v]->IsMatch, b[v]->IsMatch);
+    }
+  }
+}
