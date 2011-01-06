@@ -127,7 +127,7 @@ void search(const Options& opts) {
         if (offset % (1024 * 1024 * 1024) == 0) { // should happen every 128 blocks
           lastTime = searchClock.elapsed();
           uint64 units = offset >> 20;
-          double bw = (double)units / lastTime;
+          double bw = units / lastTime;
           units >>= 10;
           std::cerr << units << " GB searched in " << lastTime << " seconds, " << bw << " MB/s avg" << std::endl;
         }
@@ -139,11 +139,13 @@ void search(const Options& opts) {
     // assert: all data has been read, offset + blkSize == file size, cur is last block
     search->search(cur, cur + blkSize, offset, cb);
 
+
+    offset += blkSize;  // be sure to count the last block
     lastTime = searchClock.elapsed();
-    std::cerr << (offset + blkSize) << " bytes" << std::endl;
+    std::cerr << offset << " bytes" << std::endl;
     std::cerr << lastTime << " searchTime" << std::endl;
-    if (lastTime > 0) {
-      std::cerr << (double)(offset >> 20) / lastTime;
+    if (lastTime > 0.0) {
+      std::cerr << offset/lastTime/(1 << 20);
     }
     else {
       std::cerr << "+inf";
