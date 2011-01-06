@@ -82,23 +82,23 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   }
 }
 
-void Compiler::labelGuardStates(Graph& fsm) {
-  propagateMatchLabels(fsm);
-  removeNonMinimalLabels(fsm);
+void Compiler::labelGuardStates(Graph& g) {
+  propagateMatchLabels(g);
+  removeNonMinimalLabels(g);
 }
 
-void Compiler::propagateMatchLabels(Graph& fsm) {
+void Compiler::propagateMatchLabels(Graph& g) {
   uint32 i = 0;
 
-  for (Graph::vertex m = 0; m < fsm.numVertices(); ++m) {
+  for (Graph::vertex m = 0; m < g.numVertices(); ++m) {
     // skip non-match vertices
-    if (!fsm[m] || !fsm[m]->IsMatch) continue;
+    if (!g[m] || !g[m]->IsMatch) continue;
 
     if (++i % 10000 == 0) {
       std::cerr << "handled " << i << " labeled vertices" << std::endl;
     }
 
-    const unsigned int label = fsm[m]->Label;
+    const unsigned int label = g[m]->Label;
     
     // walk label back from this match state to all of its ancestors
     // which have no other match-state descendants
@@ -113,24 +113,24 @@ void Compiler::propagateMatchLabels(Graph& fsm) {
       next.pop();
       
       // check each parent of the current state
-      for (uint32 i = 0; i < fsm.inDegree(t); ++i) {
-        Graph::vertex h = fsm.inVertex(t, i);
+      for (uint32 i = 0; i < g.inDegree(t); ++i) {
+        Graph::vertex h = g.inVertex(t, i);
         
-        if (!fsm[h]) {
+        if (!g[h]) {
           // Skip the initial state.
           continue;
         }
-        else if (fsm[h]->Label == UNALLOCATED) {
+        else if (g[h]->Label == UNALLOCATED) {
           // Mark unmarked parents with our label and walk back to them.
-          fsm[h]->Label = label;
+          g[h]->Label = label;
           next.push(h);
         }
-        else if (fsm[h]->Label == UNLABELABLE) {
+        else if (g[h]->Label == UNLABELABLE) {
           // This parent is already marked as an ancestor of multiple match
           // states; all paths from it back to the root are already marked
           // as unlabelable, so we don't need to walk back from it.
         }
-        else if (fsm[h]->Label == label) {
+        else if (g[h]->Label == label) {
           // This parent has our label, which means we've already walked
           // back through it.
         }
@@ -146,11 +146,11 @@ void Compiler::propagateMatchLabels(Graph& fsm) {
             Graph::vertex u = unext.top();
             unext.pop();
 
-            fsm[u]->Label = UNLABELABLE;
+            g[u]->Label = UNLABELABLE;
 
-            for (uint32 j = 0; j < fsm.inDegree(u); ++j) {
-              Graph::vertex uh = fsm.inVertex(u, j);
-              if (fsm[uh] && fsm[uh]->Label != UNLABELABLE) {
+            for (uint32 j = 0; j < g.inDegree(u); ++j) {
+              Graph::vertex uh = g.inVertex(u, j);
+              if (g[uh] && g[uh]->Label != UNLABELABLE) {
                 // Walking on all nodes not already marked unlabelable
                 unext.push(uh);
               }
@@ -162,10 +162,10 @@ void Compiler::propagateMatchLabels(Graph& fsm) {
   }
 }
 
-void Compiler::removeNonMinimalLabels(Graph& fsm) {
+void Compiler::removeNonMinimalLabels(Graph& g) {
   // Make a list of all tails of edges where the head is an ancestor of
   // multiple match states, but the tail is an ancestor of only one.
-  std::vector<bool> visited(fsm.numVertices());
+  std::vector<bool> visited(g.numVertices());
 
   std::set<Graph::vertex> heads;
 
@@ -179,13 +179,13 @@ void Compiler::removeNonMinimalLabels(Graph& fsm) {
     Graph::vertex h = next.top();
     next.pop();
 
-    for (uint32 i = 0; i < fsm.outDegree(h); ++i) {
-      Graph::vertex t = fsm.outVertex(h, i);
+    for (uint32 i = 0; i < g.outDegree(h); ++i) {
+      Graph::vertex t = g.outVertex(h, i);
 
-      if (visited[t] || !fsm[t]) continue; 
+      if (visited[t] || !g[t]) continue; 
 
-      if (fsm[t]->Label == UNLABELABLE) {
-        fsm[t]->Label = UNALLOCATED;
+      if (g[t]->Label == UNLABELABLE) {
+        g[t]->Label = UNALLOCATED;
         next.push(t);
       }
       else {
@@ -206,14 +206,14 @@ void Compiler::removeNonMinimalLabels(Graph& fsm) {
     Graph::vertex h = next.top();
     next.pop();
 
-    for (uint32 i = 0; i < fsm.outDegree(h); ++i) {
-      Graph::vertex t = fsm.outVertex(h, i);
+    for (uint32 i = 0; i < g.outDegree(h); ++i) {
+      Graph::vertex t = g.outVertex(h, i);
 
-      if (visited[t] || !fsm[t]) continue; 
+      if (visited[t] || !g[t]) continue; 
 
       // NB: Any node which should be labeled, we've already visited,
       // so we can unlabel everything we reach this way.
-      fsm[t]->Label = UNALLOCATED;
+      g[t]->Label = UNALLOCATED;
       next.push(t);
       visited[t] = true;
     }
