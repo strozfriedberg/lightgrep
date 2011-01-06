@@ -11,6 +11,13 @@ struct Thread {
   Thread(const Instruction* pc, const Thread& parent): PC(pc), Label(parent.Label), Start(parent.Start), End(parent.End) {}
   Thread(const Instruction* pc): PC(pc), Label(std::numeric_limits<uint32>::max()), Start(0), End(std::numeric_limits<uint64>::max()) {}
 
+  void init(const Instruction* pc, uint32 label, uint64 start, uint64 end) {
+    PC = pc;
+    Label = label;
+    Start = start;
+    End = end;
+  }
+
   void init(const Instruction* base, uint64 start) {
     PC = base;
     Start = start;

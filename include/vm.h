@@ -27,13 +27,13 @@ public:
   const ThreadList& first() const { return First; }
   const ThreadList& active() const { return Active; }
   const ThreadList& next() const { return Next; }
+  void cleanup();
 
   unsigned int numActive() const { return Active.size(); }
   unsigned int numNext() const { return Next.size(); }
 
 private:
   void doMatch(const Thread& t);
-  void cleanup();
 
   bool _execute(const Instruction* base, Thread& t, const byte* cur);
   bool _executeEpsilon(const Instruction* base, Thread& t, uint64 offset);
