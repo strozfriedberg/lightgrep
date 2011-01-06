@@ -9,7 +9,7 @@ class Compiler {
 public:
   typedef std::pair< Graph::vertex, Graph::vertex > StatePair;
 
-  void mergeIntoFSM(Graph& fsm, const Graph& addend, uint32 keyIdx);
+  void mergeIntoFSM(Graph& dst, const Graph& src);
   
   void labelGuardStates(Graph& fsm); 
  

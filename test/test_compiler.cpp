@@ -27,7 +27,7 @@ SCOPE_TEST(testMerge) {
   edge(2, 3, fsm, new LitState('e', 0));
   edge(0, 4, fsm, new LitState('z'));
   edge(4, 5, fsm, new LitState('y', 1));
-  comp.mergeIntoFSM(fsm, key, 2);
+  comp.mergeIntoFSM(fsm, key);
 
   SCOPE_ASSERT_EQUAL(8u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(2u, (fsm).outDegree(0));
@@ -50,7 +50,7 @@ SCOPE_TEST(testMergeLabelsSimple) {
   edge(0, 1, dst, new LitState('a'));
   edge(1, 2, dst, new LitState('c', 1));
 
-  c.mergeIntoFSM(dst, src, 1);  // XXX: wtf does '1' do?
+  c.mergeIntoFSM(dst, src);
   
   // ab + ac
   edge(0, 1, exp, new LitState('a'));
@@ -87,7 +87,7 @@ SCOPE_TEST(testMergeLabelsComplex) {
 
   dst[3]->IsMatch = true;
 
-  c.mergeIntoFSM(dst, src, 1);
+  c.mergeIntoFSM(dst, src);
   c.labelGuardStates(dst); 
  
   // abd + acd
@@ -147,7 +147,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
 
   // merge
   for (uint32 i = 1; i < 4; ++i) {
-    comp.mergeIntoFSM(key[0], key[i], i);
+    comp.mergeIntoFSM(key[0], key[i]);
   }
 
   comp.labelGuardStates(key[0]);
@@ -205,7 +205,7 @@ SCOPE_TEST(testSubstringKey) {
   k1[1]->IsMatch = true;
 
   // merge
-  comp.mergeIntoFSM(k0, k1, 1);
+  comp.mergeIntoFSM(k0, k1);
   comp.labelGuardStates(k0);
 
   // expected merged NFA
