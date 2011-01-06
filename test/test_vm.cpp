@@ -336,6 +336,39 @@ SCOPE_TEST(simpleLitMatch) {
   SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
 }
 
+SCOPE_TEST(newThreadInit) {
+  ProgramPtr p(new Program);
+  p->push_back(Instruction::makeJumpTableRange('a', 'b')); // 0
+  p->push_back(Instruction::makeJump(4));              // 1
+  p->push_back(Instruction::makeJump(8));              // 2
+  p->push_back(Instruction::makeLit('a'));             // 3
+  p->push_back(Instruction::makeLabel(1)); // nonzero     4
+  p->push_back(Instruction::makeMatch());              // 5
+  p->push_back(Instruction::makeHalt());               // 6
+  p->push_back(Instruction::makeLit('b'));             // 7
+  p->push_back(Instruction::makeLit('c'));             // 8
+  p->push_back(Instruction::makeLabel(0));
+  p->push_back(Instruction::makeMatch());
+  p->push_back(Instruction::makeHalt());
+  byte text[] = {'a', 'a', 'b', 'c'};
+  MockCallback cb;
+  Vm v;
+  p->First.set('a');
+  p->First.set('b');
+  v.init(p);
+  v.executeFrame(&text[0], 13, cb); // should result in hit, empty active
+  v.cleanup();
+  v.executeFrame(&text[1], 14, cb);
+  v.cleanup();
+//  SCOPE_ASSERT(v.active().empty());
+//  SCOPE_ASSERT_EQUAL(1, cb.Hits.size());
+//  SCOPE_ASSERT_EQUAL(SearchHit(13, 1, 1), cb.Hits[0]);
+  v.executeFrame(&text[2], 15, cb);
+  v.cleanup();
+  SCOPE_ASSERT_EQUAL(1, v.active().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], std::numeric_limits<uint32>::max(), 15, std::numeric_limits<uint64>::max()), v.active()[0]);
+}
+
 SCOPE_TEST(threeKeywords) {
   ProgramPtr p(new Program); // (a)|(b)|(bc)
   p->push_back(Instruction::makeFork(2));       // 0
