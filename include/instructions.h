@@ -72,6 +72,7 @@ struct Instruction {
   static Instruction makeLongFork(Instruction* ptr, uint32 relativeOffset);
   static Instruction makeCheckHalt(uint32 checkIndex);
   static Instruction makeHalt();
+  static Instruction makeRaw(uint32 val);
 };
 #pragma pack()
 

@@ -186,6 +186,12 @@ Instruction Instruction::makeHalt() {
   return i;
 }
 
+Instruction Instruction::makeRaw(uint32 val) {
+  Instruction i;
+  *reinterpret_cast<uint32*>(&i) = val;
+  return i;
+}
+
 std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
   out << instr.toString();
   return out;
