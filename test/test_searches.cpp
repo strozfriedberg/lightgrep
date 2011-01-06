@@ -187,7 +187,7 @@ SCOPE_FIXTURE_CTOR(aDotaPlusSearch, STest, STest("a.a+")) {
 }
 
 SCOPE_FIXTURE_CTOR(badLabelingSearch, STest,
-                   STest(3, (const char*[]){"xxx", "xxx", "antiseptic"})) {
+                   STest(3, (const char*[]){"x", "x", "antiseptic"})) {
   const byte* text = (const byte*)"antiseptic";
   fixture.search(text, text+10, 0, fixture);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
