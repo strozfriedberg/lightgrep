@@ -9,3 +9,7 @@ void edge(Graph::vertex source, Graph::vertex target, Graph& fsm, Transition* tP
 void ASSERT_SUPERGRAPH(const Graph& a, const Graph& b);
 
 void ASSERT_EQUAL_GRAPHS(const Graph& a, const Graph& b);
+
+void ASSERT_EQUAL_LABELS(const Graph& a, const Graph& b);
+
+void ASSERT_EQUAL_MATCHES(const Graph& a, const Graph& b);

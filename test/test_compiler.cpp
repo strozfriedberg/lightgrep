@@ -57,16 +57,16 @@ SCOPE_TEST(testMergeLabelsSimple) {
   edge(1, 2, exp, new LitState('c', 1));
   edge(1, 3, exp, new LitState('b', 2));
 
+  exp[1]->Label = UNALLOCATED;
+  exp[2]->Label = 1;
+  exp[3]->Label = 0; 
+
+  exp[2]->IsMatch = true;
+  exp[3]->IsMatch = true;
+
   ASSERT_EQUAL_GRAPHS(exp, dst);
-
-  SCOPE_ASSERT(!dst[0]);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[1]->Label);
-  SCOPE_ASSERT_EQUAL(1,           dst[2]->Label);
-  SCOPE_ASSERT_EQUAL(0,           dst[3]->Label);
-
-  SCOPE_ASSERT(!dst[1]->IsMatch);
-  SCOPE_ASSERT(dst[2]->IsMatch);
-  SCOPE_ASSERT(dst[3]->IsMatch);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
 }
 
 SCOPE_TEST(testMergeLabelsComplex) {
@@ -97,21 +97,18 @@ SCOPE_TEST(testMergeLabelsComplex) {
   edge(1, 4, exp, new LitState('b'));
   edge(4, 5, exp, new LitState('d', 0));
 
+  exp[1]->Label = UNALLOCATED;
+  exp[2]->Label = 1;
+  exp[3]->Label = UNALLOCATED;
+  exp[4]->Label = 0; 
+  exp[5]->Label = UNALLOCATED;
+
+  exp[3]->IsMatch = true;
+  exp[5]->IsMatch = true;
+
   ASSERT_EQUAL_GRAPHS(exp, dst);
-
-  SCOPE_ASSERT(!dst[0]);
-
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[1]->Label);
-  SCOPE_ASSERT_EQUAL(1,           dst[2]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[3]->Label);
-  SCOPE_ASSERT_EQUAL(0,           dst[4]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, dst[5]->Label);
-
-  SCOPE_ASSERT(!dst[1]->IsMatch);
-  SCOPE_ASSERT(!dst[2]->IsMatch);
-  SCOPE_ASSERT(dst[3]->IsMatch);
-  SCOPE_ASSERT(!dst[4]->IsMatch);
-  SCOPE_ASSERT(dst[5]->IsMatch);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
 }
 
 SCOPE_TEST(testGuardLabelsFourKeys) {
@@ -179,27 +176,58 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   edge(8, 9, exp, new LitState('o', 3));
   exp[9]->IsMatch = true;
 
+  exp[1]->Label = UNALLOCATED;
+  exp[2]->Label = UNALLOCATED;
+  exp[3]->Label = 0;
+  exp[4]->Label = 0;
+  exp[5]->Label = 1;
+  exp[6]->Label = 2;
+  exp[7]->Label = 3;
+  exp[8]->Label = UNALLOCATED;
+  exp[9]->Label = UNALLOCATED;
+  
   ASSERT_EQUAL_GRAPHS(exp, key[0]);
+  ASSERT_EQUAL_LABELS(exp, key[0]);
+  ASSERT_EQUAL_MATCHES(exp, key[0]);
+}
 
-  SCOPE_ASSERT(!key[0][0]);
+SCOPE_TEST(testSubstringKey) {
+/*
+  Compiler comp;
+  Graph k0, k1, exp;
 
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, key[0][1]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, key[0][2]->Label);
-  SCOPE_ASSERT_EQUAL(0,           key[0][3]->Label);
-  SCOPE_ASSERT_EQUAL(0,           key[0][4]->Label);
-  SCOPE_ASSERT_EQUAL(1,           key[0][5]->Label);
-  SCOPE_ASSERT_EQUAL(2,           key[0][6]->Label);
-  SCOPE_ASSERT_EQUAL(3,           key[0][7]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, key[0][8]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, key[0][9]->Label);
+  // an
+  edge(0, 1, k0, new LitState('a'));
+  edge(1, 2, k0, new LitState('n', 0));
+  k0[2]->IsMatch = true;
 
-  SCOPE_ASSERT(!key[0][1]->IsMatch);
-  SCOPE_ASSERT(!key[0][2]->IsMatch);
-  SCOPE_ASSERT(!key[0][3]->IsMatch);
-  SCOPE_ASSERT(key[0][4]->IsMatch);
-  SCOPE_ASSERT(key[0][5]->IsMatch);
-  SCOPE_ASSERT(key[0][6]->IsMatch);
-  SCOPE_ASSERT(!key[0][7]->IsMatch);
-  SCOPE_ASSERT(!key[0][8]->IsMatch);
-  SCOPE_ASSERT(key[0][9]->IsMatch);
+  // a
+  edge(0, 1, k0, new LitState('a', 1));
+  k1[1]->IsMatch = true;
+
+  // merge
+  comp.mergeIntoFSM(k0, k1, 1);
+  comp.labelGuardStates(k0);
+
+  // expected merged NFA
+  edge(0, 1, exp, new LitState('a'));
+  edge(1, 2, exp, new LitState('n', 0));
+  exp[2]->IsMatch = true;
+
+  edge(0, 3, exp, new LitState('a', 1));
+  exp[3]->IsMatch = true;
+
+  ASSERT_EQUAL_GRAPHS(exp, k0);
+  ASSERT_EQUAL_LABELS(exp, k0);
+  ASSERT_EQUAL_MATCHES(exp, k0);
+
+  SCOPE_ASSERT(!k0[0]);
+  SCOPE_ASSERT_EQUAL(0, k0[1]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, k0[2]->Label);
+  SCOPE_ASSERT_EQUAL(1, k0[3]->Label);
+
+  SCOPE_ASSERT(!k0[1]->IsMatch);
+  SCOPE_ASSERT(!k0[2]->IsMatch);
+  SCOPE_ASSERT(!k0[3]->IsMatch);
+*/
 }
