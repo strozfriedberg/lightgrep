@@ -132,7 +132,8 @@ SCOPE_FIXTURE_CTOR(aOrbPlusSearch, STest, STest("(a|b)+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(1, 8, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest(4, (const char*[]){"a(b|c)a", "ac+", "ab?a", "two"})) { //
+SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest(4, (const char*[]){"a(b|c)a", "ac+", "ab?a", "two"})) {
+  //
   // writeGraphviz(std::cout, *fixture.Fsm);
   //                               01234567890123
   const byte* text = (const byte*)"aba aa aca two";
@@ -183,4 +184,12 @@ SCOPE_FIXTURE_CTOR(aDotaPlusSearch, STest, STest("a.a+")) {
   SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 3, 0), fixture.Hits[1]);
+}
+
+SCOPE_FIXTURE_CTOR(badLabelingSearch, STest,
+                   STest(3, (const char*[]){"xxx", "xxx", "antiseptic"})) {
+  const byte* text = (const byte*)"antiseptic";
+  fixture.search(text, text+10, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 10, 1), fixture.Hits[0]);
 }
