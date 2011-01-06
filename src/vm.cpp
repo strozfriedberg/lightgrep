@@ -261,14 +261,6 @@ void Vm::doMatch(const Thread& t) {
   }
 }
 
-inline void Vm::cleanup() {
-  Active.swap(Next);
-  Next.clear();
-  if (CheckStates[0]) {
-    CheckStates.assign(CheckStates.size(), false);
-  }
-}
-
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];

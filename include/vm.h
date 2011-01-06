@@ -27,7 +27,14 @@ public:
   const ThreadList& first() const { return First; }
   const ThreadList& active() const { return Active; }
   const ThreadList& next() const { return Next; }
-  void cleanup();
+
+  inline void cleanup() {
+    Active.swap(Next);
+    Next.clear();
+    if (CheckStates[0]) {
+      CheckStates.assign(CheckStates.size(), false);
+    }
+  }
 
   unsigned int numActive() const { return Active.size(); }
   unsigned int numNext() const { return Next.size(); }
