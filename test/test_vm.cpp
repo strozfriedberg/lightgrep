@@ -339,8 +339,8 @@ SCOPE_TEST(simpleLitMatch) {
 SCOPE_TEST(newThreadInit) {
   ProgramPtr p(new Program);
   p->push_back(Instruction::makeJumpTableRange('a', 'b')); // 0
-  p->push_back(Instruction::makeJump(4));              // 1
-  p->push_back(Instruction::makeJump(8));              // 2
+  p->push_back(Instruction::makeRaw(4));               // 1
+  p->push_back(Instruction::makeRaw(8));               // 2
   p->push_back(Instruction::makeLit('a'));             // 3
   p->push_back(Instruction::makeLabel(1)); // nonzero     4
   p->push_back(Instruction::makeMatch());              // 5
