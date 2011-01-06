@@ -90,6 +90,8 @@ void Compiler::labelGuardStates(Graph& g) {
 void Compiler::propagateMatchLabels(Graph& g) {
   uint32 i = 0;
 
+  std::stack<Graph::vertex, std::vector<Graph::vertex> > next, unext;
+
   for (Graph::vertex m = 0; m < g.numVertices(); ++m) {
     // skip non-match vertices
     if (!g[m] || !g[m]->IsMatch) continue;
@@ -102,10 +104,7 @@ void Compiler::propagateMatchLabels(Graph& g) {
     
     // walk label back from this match state to all of its ancestors
     // which have no other match-state descendants
-
-    std::stack<Graph::vertex,
-               std::vector<Graph::vertex> > next;
-    
+   
     next.push(m);
 
     while (!next.empty()) {
@@ -137,8 +136,6 @@ void Compiler::propagateMatchLabels(Graph& g) {
         else {
           // This parent has the label of some other match state. Mark it
           // and all of its ancestors unlabelable.
-          std::stack<Graph::vertex,
-               std::vector<Graph::vertex> > unext;
 
           unext.push(h);
 
