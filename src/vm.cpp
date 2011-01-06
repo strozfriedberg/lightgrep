@@ -191,7 +191,7 @@ inline void Vm::_executeThread(const Instruction* base, Thread& t, const byte* c
 
 inline bool Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 offset) {
   while (_executeEpsilon(base, t, offset)) ;
-  if (t.End == offset) {
+  if (t.End == offset) { // this could be bad at offset 2^32-1, dummy -- JLS
     doMatch(t);
   }
   return t.PC;
@@ -204,7 +204,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
   }
   if (first[*cur]) {
     for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
-      Active.addBack().init(it->PC, offset);
+      Active.addBack().init(it->PC, std::numeric_limits<uint32>::max(), offset, std::numeric_limits<uint64>::max());
     }
 //    Active.addBack().init(base, offset);
     do {
