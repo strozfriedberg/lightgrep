@@ -9,72 +9,73 @@
 static const Graph::vertex UNALLOCATED = 0xFFFFFFFF;
 static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
-void Compiler::mergeIntoFSM(Graph& fsm, const Graph& addend, uint32 keyIdx) {
+void Compiler::mergeIntoFSM(Graph& dst, const Graph& src, uint32 keyIdx) {
   ByteSet tranBits,
           edgeBits;
 
   while (!States.empty()) {
     States.pop();
   }
-  uint32 numVs = addend.numVertices();
+
+  uint32 numVs = src.numVertices();
   StateMap.assign(numVs, UNALLOCATED);
   Visited.assign(numVs, false);
 
-  Graph::vertex oldSource, source, oldTarget, target = 0xFFFFFFFF;
+  Graph::vertex dstHead, srcHead, dstTarget, srcTarget = 0xFFFFFFFF;
 
   States.push(StatePair(0, 0));
   while (!States.empty()) {
-    oldSource = States.top().first;
-    source    = States.top().second;
+    dstHead = States.top().first;
+    srcHead    = States.top().second;
     States.pop();
-    if (!Visited[oldSource]) {
-      // std::cerr << "on state pair " << oldSource << ", " << source << std::endl;
-      Visited[oldSource] = true;
+    if (!Visited[dstHead]) {
+      // std::cerr << "on state pair " << dstHead << ", " << srcHead << std::endl;
+      Visited[dstHead] = true;
 
-      for (uint32 i = 0; i < addend.outDegree(oldSource); ++i) {
-        oldTarget = addend.outVertex(oldSource, i);
+      for (uint32 i = 0; i < src.outDegree(dstHead); ++i) {
+        dstTarget = src.outVertex(dstHead, i);
 
-        if (StateMap[oldTarget] == UNALLOCATED) {
-          TransitionPtr tran = addend[oldTarget];
+        if (StateMap[dstTarget] == UNALLOCATED) {
+          TransitionPtr tran = src[dstTarget];
           tranBits.reset();
           tran->getBits(tranBits);
-          // std::cerr << "  oldTarget = " << oldTarget << " with transition " << tran->label() << std::endl;
+          // std::cerr << "  dstTarget = " << dstTarget << " with transition " << tran->label() << std::endl;
 
           bool found = false;
 
-          for (uint32 j = 0; j < fsm.outDegree(source); ++j) {
-            target = fsm.outVertex(source, j);
-            TransitionPtr edgeTran = fsm[target];
+          for (uint32 j = 0; j < dst.outDegree(srcHead); ++j) {
+            srcTarget = dst.outVertex(srcHead, j);
+            TransitionPtr edgeTran = dst[srcTarget];
             edgeBits.reset();
             edgeTran->getBits(edgeBits);
-            // std::cerr << "    looking at merge state " << target << " with transition " << edgeTran->label() << std::endl;
+            // std::cerr << "    looking at merge state " << srcTarget << " with transition " << edgeTran->label() << std::endl;
             if (edgeBits == tranBits &&
                 (edgeTran->Label == UNALLOCATED || edgeTran->Label == keyIdx) &&
-                1 == fsm.inDegree(target) &&
-                2 > addend.inDegree(oldSource) &&
-                2 > addend.inDegree(oldTarget)) {
-              // std::cerr << "    found equivalent state " << target << std::endl;
+                1 == dst.inDegree(srcTarget) &&
+                2 > src.inDegree(dstHead) &&
+                2 > src.inDegree(dstTarget)) {
+              // std::cerr << "    found equivalent state " << srcTarget << std::endl;
               found = true;
               break;
             }
           }
 
           if (!found) {
-            // The destination NFA and the source NFA have diverged.
-            // Copy the tail node from the source to the destination
-            target = fsm.addVertex();
-            // std::cerr << "  creating new state " << target << std::endl;
-            fsm[target] = tran;
+            // The destination NFA and the srcHead NFA have diverged.
+            // Copy the tail node from the srcHead to the destination
+            srcTarget = dst.addVertex();
+            // std::cerr << "  creating new state " << srcTarget << std::endl;
+            dst[srcTarget] = tran;
           }
-          StateMap[oldTarget] = target;
+          StateMap[dstTarget] = srcTarget;
         }
         else {
-          target = StateMap[oldTarget];
+          srcTarget = StateMap[dstTarget];
         }
-        // std::cerr << "  target = " << target << std::endl;
+        // std::cerr << "  srcTarget = " << srcTarget << std::endl;
         
-        addNewEdge(source, target, fsm);
-        States.push(StatePair(oldTarget, target));
+        addNewEdge(srcHead, srcTarget, dst);
+        States.push(StatePair(dstTarget, srcTarget));
       }
     }
   }
