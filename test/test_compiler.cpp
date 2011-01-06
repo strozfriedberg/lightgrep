@@ -192,7 +192,6 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
 }
 
 SCOPE_TEST(testSubstringKey) {
-/*
   Compiler comp;
   Graph k0, k1, exp;
 
@@ -202,7 +201,7 @@ SCOPE_TEST(testSubstringKey) {
   k0[2]->IsMatch = true;
 
   // a
-  edge(0, 1, k0, new LitState('a', 1));
+  edge(0, 1, k1, new LitState('a', 1));
   k1[1]->IsMatch = true;
 
   // merge
@@ -212,22 +211,16 @@ SCOPE_TEST(testSubstringKey) {
   // expected merged NFA
   edge(0, 1, exp, new LitState('a'));
   edge(1, 2, exp, new LitState('n', 0));
-  exp[2]->IsMatch = true;
-
   edge(0, 3, exp, new LitState('a', 1));
+ 
+  exp[1]->Label = 0;
+  exp[2]->Label = UNALLOCATED;
+  exp[3]->Label = 1;
+ 
+  exp[2]->IsMatch = true;
   exp[3]->IsMatch = true;
 
   ASSERT_EQUAL_GRAPHS(exp, k0);
   ASSERT_EQUAL_LABELS(exp, k0);
   ASSERT_EQUAL_MATCHES(exp, k0);
-
-  SCOPE_ASSERT(!k0[0]);
-  SCOPE_ASSERT_EQUAL(0, k0[1]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, k0[2]->Label);
-  SCOPE_ASSERT_EQUAL(1, k0[3]->Label);
-
-  SCOPE_ASSERT(!k0[1]->IsMatch);
-  SCOPE_ASSERT(!k0[2]->IsMatch);
-  SCOPE_ASSERT(!k0[3]->IsMatch);
-*/
 }
