@@ -135,16 +135,27 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
   }
   for (uint32 i = first; i <= last; ++i) {
     if (tbl[i].empty()) {
-      *cur++ = Instruction::makeHalt();
+      const uint32 addr = 0xffffffff;
+      *cur++ = *reinterpret_cast<const Instruction*>(&addr);
     }
     else if (1 == tbl[i].size()) {
-      *cur++ = Instruction::makeJump(figureOutLanding(cg, *tbl[i].begin(), graph));
+      const uint32 addr = figureOutLanding(cg, *tbl[i].begin(), graph);
+      *cur++ = *reinterpret_cast<const Instruction*>(&addr);
     }
     else {
-      *cur++ = Instruction::makeJump(baseIndex + (indirectTbl - base));
+      const uint32 addr = baseIndex + (indirectTbl - base);
+      *cur++ = *reinterpret_cast<const Instruction*>(&addr);
       for (uint32 j = 0; j < tbl[i].size(); ++j) {
         uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
-        *indirectTbl++ = (j + 1 == tbl[i].size() ? Instruction::makeJump(landing): Instruction::makeFork(landing));
+
+        *indirectTbl = (j + 1 == tbl[i].size() ?
+          Instruction::makeLongJump(indirectTbl+1, landing) :
+          Instruction::makeLongFork(indirectTbl+1, landing));
+        indirectTbl += 2;
+/*
+        *indirectTbl++ = (j + 1 == tbl[i].size() ?
+          Instruction::makeJump(landing) : Instruction::makeFork(landing));
+*/
       }
     }
   }
@@ -198,11 +209,13 @@ ProgramPtr createProgram(const DynamicFSM& graph) {
           DynamicFSM::out_edge_iterator next(cur);
           ++next;
           if (next == outRange.second && !hasTargetAtNext) {
-            *curOp++ = Instruction::makeJump(cg->Snippets[curTarget].Start);
+            *curOp = Instruction::makeLongJump(curOp+1, cg->Snippets[curTarget].Start);
+            curOp += 2;
             // std::cerr << "wrote " << Instruction::makeJump(cg->Snippets[curTarget].first) << std::endl;
           }
           else {
-            *curOp++ = Instruction::makeFork(cg->Snippets[curTarget].Start);
+            *curOp = Instruction::makeLongFork(curOp+1, cg->Snippets[curTarget].Start);
+            curOp += 2;
             // std::cerr << "wrote " << Instruction::makeFork(cg->Snippets[curTarget].first) << std::endl;
           }
         }

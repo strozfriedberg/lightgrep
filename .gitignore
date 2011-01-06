@@ -3,6 +3,8 @@
 deps/*
 *~
 tmp
+lib/*
+bin/*
 DesignTimeResolveAssemblyReferencesInput.cache
 *.exe
 *.pdb
