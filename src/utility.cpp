@@ -29,7 +29,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
         p.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
         if (parse(kw, litMode, tree, p) && p.good()) {
           if (fsm) {
-            comp.mergeIntoFSM(*fsm, *p.getFsm(), keyIdx);
+            comp.mergeIntoFSM(*fsm, *p.getFsm());
           }
           else {
             fsm = p.getFsm();

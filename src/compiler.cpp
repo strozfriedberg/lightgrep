@@ -9,7 +9,7 @@
 static const Graph::vertex UNALLOCATED = 0xFFFFFFFF;
 static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
-void Compiler::mergeIntoFSM(Graph& dst, const Graph& src, uint32 keyIdx) {
+void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   ByteSet srcBits,
           dstBits;
 
@@ -51,7 +51,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src, uint32 keyIdx) {
             dstTran->getBits(dstBits);
             // std::cerr << "    looking at merge state " << srcTarget << " with transition " << dstTran->label() << std::endl;
             if (dstBits == srcBits &&
-                (dstTran->Label == UNALLOCATED || dstTran->Label == keyIdx) &&
+                dstTran->Label == srcTran->Label &&
                 1 == dst.inDegree(srcTarget) &&
                 2 > src.inDegree(dstHead) &&
                 2 > src.inDegree(dstTarget)) {
