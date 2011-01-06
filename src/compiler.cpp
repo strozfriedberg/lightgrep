@@ -10,8 +10,8 @@ static const Graph::vertex UNALLOCATED = 0xFFFFFFFF;
 static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
 void Compiler::mergeIntoFSM(Graph& dst, const Graph& src, uint32 keyIdx) {
-  ByteSet tranBits,
-          edgeBits;
+  ByteSet srcBits,
+          dstBits;
 
   while (!States.empty()) {
     States.pop();
@@ -26,8 +26,9 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src, uint32 keyIdx) {
   States.push(StatePair(0, 0));
   while (!States.empty()) {
     dstHead = States.top().first;
-    srcHead    = States.top().second;
+    srcHead = States.top().second;
     States.pop();
+
     if (!Visited[dstHead]) {
       // std::cerr << "on state pair " << dstHead << ", " << srcHead << std::endl;
       Visited[dstHead] = true;
@@ -36,21 +37,21 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src, uint32 keyIdx) {
         dstTarget = src.outVertex(dstHead, i);
 
         if (StateMap[dstTarget] == UNALLOCATED) {
-          TransitionPtr tran = src[dstTarget];
-          tranBits.reset();
-          tran->getBits(tranBits);
+          TransitionPtr srcTran = src[dstTarget];
+          srcBits.reset();
+          srcTran->getBits(srcBits);
           // std::cerr << "  dstTarget = " << dstTarget << " with transition " << tran->label() << std::endl;
 
           bool found = false;
 
           for (uint32 j = 0; j < dst.outDegree(srcHead); ++j) {
             srcTarget = dst.outVertex(srcHead, j);
-            TransitionPtr edgeTran = dst[srcTarget];
-            edgeBits.reset();
-            edgeTran->getBits(edgeBits);
-            // std::cerr << "    looking at merge state " << srcTarget << " with transition " << edgeTran->label() << std::endl;
-            if (edgeBits == tranBits &&
-                (edgeTran->Label == UNALLOCATED || edgeTran->Label == keyIdx) &&
+            TransitionPtr dstTran = dst[srcTarget];
+            dstBits.reset();
+            dstTran->getBits(dstBits);
+            // std::cerr << "    looking at merge state " << srcTarget << " with transition " << dstTran->label() << std::endl;
+            if (dstBits == srcBits &&
+                (dstTran->Label == UNALLOCATED || dstTran->Label == keyIdx) &&
                 1 == dst.inDegree(srcTarget) &&
                 2 > src.inDegree(dstHead) &&
                 2 > src.inDegree(dstTarget)) {
@@ -65,7 +66,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src, uint32 keyIdx) {
             // Copy the tail node from the srcHead to the destination
             srcTarget = dst.addVertex();
             // std::cerr << "  creating new state " << srcTarget << std::endl;
-            dst[srcTarget] = tran;
+            dst[srcTarget] = srcTran;
           }
           StateMap[dstTarget] = srcTarget;
         }
