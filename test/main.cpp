@@ -142,7 +142,13 @@ void search(const Options& opts) {
     lastTime = searchClock.elapsed();
     std::cerr << (offset + blkSize) << " bytes" << std::endl;
     std::cerr << lastTime << " searchTime" << std::endl;
-    std::cerr << (double)(offset >> 20) / lastTime << " MB/s avg" << std::endl;
+    if (lastTime > 0) {
+      std::cerr << (double)(offset >> 20) / lastTime;
+    }
+    else {
+      std::cerr << "+inf";
+    }
+    std::cerr << " MB/s avg" << std::endl;
     std::cerr << cb.NumHits << " hits" << std::endl;
 
     fclose(file);
