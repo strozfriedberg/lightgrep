@@ -179,7 +179,7 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
     for (uint32 i = 0; i < g.outDegree(h); ++i) {
       Graph::vertex t = g.outVertex(h, i);
 
-      if (visited[t] || !g[t]) continue; 
+      if (visited[t]) continue; 
 
       if (g[t]->Label == UNLABELABLE) {
         g[t]->Label = UNALLOCATED;
@@ -206,7 +206,7 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
     for (uint32 i = 0; i < g.outDegree(h); ++i) {
       Graph::vertex t = g.outVertex(h, i);
 
-      if (visited[t] || !g[t]) continue; 
+      if (visited[t]) continue; 
 
       // NB: Any node which should be labeled, we've already visited,
       // so we can unlabel everything we reach this way.
