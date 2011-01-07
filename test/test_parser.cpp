@@ -1,13 +1,15 @@
 
 #include <scope/test.h>
 
-#include "parser.h"
-#include "graph.h"
-#include "utility.h"
 #include "concrete_encodings.h"
+#include "graph.h"
+#include "parser.h"
+#include "states.h"
+#include "utility.h"
+
+#include "test_helper.h"
 
 #include <iostream>
-#include <stack>
 
 void parseOutput(std::string type, Node n) {
   std::cout << type << ": " << n.Val << std::endl;
@@ -470,7 +472,6 @@ SCOPE_TEST(parseNegatedRanges) {
   SyntaxTree  tree;
   Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("[^a-zA-Z0-9]", false, tree, p));
-  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
