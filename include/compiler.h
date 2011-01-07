@@ -11,13 +11,13 @@ public:
 
   void mergeIntoFSM(Graph& dst, const Graph& src);
   
-  void labelGuardStates(Graph& fsm); 
- 
+  void labelGuardStates(Graph& g); 
+
+  void propagateMatchLabels(Graph& g);
+  void removeNonMinimalLabels(Graph& g);
+
 private:
   std::vector< Graph::vertex > StateMap;
   std::stack< StatePair, std::vector<StatePair> > States;
   std::vector< bool > Visited;
-
-  void propagateMatchLabels(Graph& fsm);
-  void removeNonMinimalLabels(Graph& fsm);
 };
