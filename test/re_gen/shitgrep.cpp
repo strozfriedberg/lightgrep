@@ -9,6 +9,7 @@
 #include <cerrno>
 #include <cstring>
 #include <fstream>
+#include <istream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -158,7 +159,45 @@ const char* help_long() {
     "\n"
     "shitgrep is a state-of-the-art search tool which supports single-\n"
     "threaded, non-distributed searching, and offers search times which\n"
-    "rival looking for matches by hand.\n";
+    "rival looking for matches by hand.\n"
+    "\n"
+    "Allowed options:\n"
+    "  --help\t\tprint this help message\n"
+    "  -p arg\t\tspecify a single keyword instead of a pattern file\n"
+    "\n";
+}
+
+void do_matches(std::istream& is, const char* text, size_t text_len) {
+  using namespace std;
+
+  //
+  // Iterate over the pattern file
+  //
+  unsigned int matches = 0;
+  unsigned int patnum = 0;
+
+  string pattern;
+
+  while (!is.eof()) {
+    getline(is, pattern);
+    if (pattern.empty()) continue; // skip empty lines 
+
+    cerr << patnum << endl;
+
+    //
+    // Match, shitgrep! Match!
+    //
+    matches += match(
+      pattern.c_str(),
+      patnum++,
+      text,
+      text_len,
+      "ASCII",
+      match_printer
+    );
+  }
+
+  cerr << matches << " matches" << endl;
 }
 
 int main(int argc, char** argv)
@@ -187,17 +226,33 @@ int main(int argc, char** argv)
          << help_short() << endl;
     return 1;
   }
-  
-  if (argc > 3) {
+
+  const char* text_filename;
+  const char* pat;
+  bool use_pfile;
+
+  if (argc == 4 && !strcmp(argv[1], "-p")) {
+    // get pattern from command line
+    use_pfile = false;
+    pat = argv[2];
+    text_filename = argv[3];
+  }
+  else if (argc > 3) {
     cerr << "too many arguments!\n"
          << help_short() << endl;
     return 1;
+  }
+  else {
+    // get patterns from pattern file  
+    use_pfile = true;
+    pat = argv[1];
+    text_filename = argv[2];
   }
 
   //
   // Memory-map the text
   //
-  int fd = open(argv[2], O_RDWR);
+  int fd = open(text_filename, O_RDWR);
   if (fd == -1) {
     cerr << "open: " << strerror(errno) << endl;
     return errno;
@@ -231,37 +286,20 @@ int main(int argc, char** argv)
   //
   // Iterate over the pattern file
   //
-  ifstream ifs(argv[1], ios::in | ios::binary);
-  if (!ifs.is_open()) {
-    cerr << "failed to open " << argv[1] << ": " << strerror(errno) << endl;
-    return errno;
+  if (use_pfile) {
+    ifstream ifs(pat, ios::in | ios::binary);
+  
+    if (!ifs.is_open()) {
+      cerr << "failed to open " << argv[1] << ": " << strerror(errno) << endl;
+      return errno;
+    }
+
+    do_matches(ifs, text, text_len);
   }
-
-  unsigned int matches = 0;
-  unsigned int patnum = 0;
-
-  string pattern;
-
-  while (!ifs.eof()) {
-    getline(ifs, pattern);
-    if (pattern.empty()) continue; // skip empty lines 
-
-    cerr << patnum << endl;
-
-    //
-    // Match, shitgrep! Match!
-    //
-    matches += match(
-      pattern.c_str(),
-      patnum++,
-      text,
-      text_len,
-      "ASCII",
-      match_printer
-    );
+  else {
+    stringstream ss(pat, ios::in | ios::binary);
+    do_matches(ss, text, text_len);
   }
-
-  cerr << matches << " matches" << endl;
 
   //
   // Cleanup
