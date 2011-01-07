@@ -1,57 +1,8 @@
 #include <scope/test.h>
 
-#include "parser.h"
-#include "utility.h"
-#include "vm_interface.h"
-
 #include <iostream>
-#include <cstdlib>
 
-#include <boost/bind.hpp>
-
-struct STest: public HitCallback {
-  std::vector< SearchHit > Hits;
-  GraphPtr Fsm;
-  ProgramPtr Prog;
-  boost::shared_ptr<VmInterface> Grep;
-
-  STest(const std::string& key) {
-    SyntaxTree  tree;
-    Parser      p;
-    if (parse(key, false, tree, p) && p.good()) {
-      Fsm = p.getFsm();
-      Prog = createProgram(*Fsm);
-      Prog->First = firstBytes(*Fsm);
-      Prog->Skip = calculateSkipTable(*Fsm);
-      Grep = VmInterface::create();
-      Grep->init(Prog);
-    }
-    else {
-      THROW_RUNTIME_ERROR_WITH_OUTPUT("couldn't parse " << key);
-    }
-  }
-
-  STest(uint32 num, const char** keys) {
-    std::vector<std::string> kws(num);
-    for (unsigned int i = 0; i < num; ++i) {
-      kws[i] = keys[i];
-    }
-    Fsm = createGraph(kws);
-    Prog = createProgram(*Fsm);
-    Prog->First = firstBytes(*Fsm);
-    Prog->Skip = calculateSkipTable(*Fsm);
-    Grep = VmInterface::create();
-    Grep->init(Prog);
-  }
-
-  bool search(const byte* begin, const byte* end, uint64 offset, HitCallback& cb) {
-    return Grep->search(begin, end, offset, cb);
-  }
-  
-  virtual void collect(const SearchHit& hit) {
-    Hits.push_back(hit);
-  }
-};
+#include "test_helper.h"
 
 SCOPE_FIXTURE_CTOR(abSearch, STest, STest("ab")) {
   const byte* text = (const byte*)"abc";
