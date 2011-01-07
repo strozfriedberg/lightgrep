@@ -264,7 +264,12 @@ void Parser::concatenate(const Node& n) {
 
 void Parser::setLiteralTransition(TransitionPtr& state, byte val) {
   if (CaseSensitive || !std::isalpha(val)) {
-    state = LitFlyweights[val];
+// FIXME: Labeled vertices can't be shared. We don't know which will be
+// labeled (permanently) until after walking back labels. If the memory
+// we were saving this way was really important, we need to figure out
+// something else to do here.
+//    state = LitFlyweights[val];
+    state = TransitionPtr(new LitState(val));
   }
   else {
     state.reset(new EitherState(std::toupper(val), std::tolower(val)));
