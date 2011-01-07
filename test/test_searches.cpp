@@ -1,7 +1,5 @@
 #include <scope/test.h>
 
-#include <iostream>
-
 #include "test_helper.h"
 
 SCOPE_FIXTURE_CTOR(abSearch, STest, STest("ab")) {
