@@ -191,6 +191,70 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   ASSERT_EQUAL_MATCHES(exp, key[0]);
 }
 
+SCOPE_TEST(testPropagateMatchLabels) {
+  Compiler comp;
+  Graph g;
+
+  edge(0, 1, g, new LitState('x', 0));  
+  edge(0, 2, g, new LitState('x', 1));
+  edge(0, 3, g, new LitState('y'));
+  edge(3, 4, g, new LitState('y'));
+  edge(4, 5, g, new LitState('y', 2));
+
+  comp.propagateMatchLabels(g);  
+
+  SCOPE_ASSERT_EQUAL(0, g[1]->Label);
+  SCOPE_ASSERT_EQUAL(1, g[2]->Label);
+  SCOPE_ASSERT_EQUAL(2, g[3]->Label);
+  SCOPE_ASSERT_EQUAL(2, g[4]->Label);
+  SCOPE_ASSERT_EQUAL(2, g[5]->Label);
+}
+
+SCOPE_TEST(testRemoveNonMinimalLabels) {
+  Compiler comp;
+  Graph g;
+
+  edge(0, 1, g, new LitState('x', 0));  
+  edge(0, 2, g, new LitState('x', 1));
+  edge(0, 3, g, new LitState('y'));
+  edge(3, 4, g, new LitState('y'));
+  edge(4, 5, g, new LitState('y', 2));
+
+  g[1]->Label = 0;
+  g[2]->Label = 1;
+  g[3]->Label = 2;
+  g[4]->Label = 2;
+  g[5]->Label = 2;
+
+  comp.removeNonMinimalLabels(g);
+
+  SCOPE_ASSERT_EQUAL(0, g[1]->Label);
+  SCOPE_ASSERT_EQUAL(1, g[2]->Label);
+  SCOPE_ASSERT_EQUAL(2, g[3]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[4]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[5]->Label);
+}
+
+SCOPE_TEST(testLabelGuardStates) {
+  Compiler comp;
+  Graph g;
+
+  edge(0, 1, g, new LitState('x', 0));  
+  edge(0, 2, g, new LitState('x', 1));
+  edge(0, 3, g, new LitState('y'));
+  edge(3, 4, g, new LitState('y'));
+  edge(4, 5, g, new LitState('y', 2));
+
+  comp.propagateMatchLabels(g);  
+  comp.removeNonMinimalLabels(g);
+
+  SCOPE_ASSERT_EQUAL(0, g[1]->Label);
+  SCOPE_ASSERT_EQUAL(1, g[2]->Label);
+  SCOPE_ASSERT_EQUAL(2, g[3]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[4]->Label);
+  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[5]->Label); 
+}
+
 SCOPE_TEST(testSubstringKey) {
   Compiler comp;
   Graph k0, k1, exp;
