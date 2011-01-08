@@ -236,7 +236,7 @@ void Parser::patch(Fragment& first, const Fragment& second, const Node& n) {
   else {
     first.OutList = second.OutList;
   }
-  first.Skippable = false;
+  first.Skippable = first.Skippable && second.Skippable;
 }
 
 void Parser::addElement(const Node&) {
@@ -390,7 +390,6 @@ void Parser::finish(const Node& n) {
 
 void Parser::callback(const std::string& type, const Node& n) {
   // std::cout << type << std::endl;
-  type.size();
   switch (n.Type) {
     case Node::REGEXP:
       finish(n);
