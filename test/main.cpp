@@ -198,6 +198,15 @@ int main(int argc, char** argv) {
     else if (opts.Command == "test" || optsMap.count("test")) {
       return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
     }
+
+    // If a pattern is given on the command line, interpret the first
+    // non-option argument as the input file instead of the pattern file.
+    if (!opts.Pattern.empty() && opts.Input == "-"
+                              && optsMap.count("keywords") == 1) {
+      opts.Input = opts.KeyFile;
+      opts.KeyFile = "";
+    }
+
     if (opts.Command == "search" && (optsMap.count("keywords") || optsMap.count("pattern"))) {
       search(opts);
     }

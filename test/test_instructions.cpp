@@ -42,7 +42,7 @@ SCOPE_TEST(makeJump) {
 
 SCOPE_TEST(makeLongJump) {
   Instruction i[2];
-  i[0] = Instruction::makeLongJump(i+1, 16777216);
+  i[0] = Instruction::makeLongJump(i, 16777216);
   SCOPE_ASSERT_EQUAL(LONGJUMP_OP, i[0].OpCode);
   SCOPE_ASSERT_EQUAL(2u, i[0].wordSize());
   SCOPE_ASSERT_EQUAL(0u, i[0].Op.Offset);
@@ -104,7 +104,7 @@ SCOPE_TEST(makeFork) {
 
 SCOPE_TEST(makeLongFork) {
   Instruction i[2];
-  i[0] = Instruction::makeLongFork(i+1, 16777216);
+  i[0] = Instruction::makeLongFork(i, 16777216);
   SCOPE_ASSERT_EQUAL(LONGFORK_OP, i[0].OpCode);
   SCOPE_ASSERT_EQUAL(2u, i[0].wordSize());
   SCOPE_ASSERT_EQUAL(0u, i[0].Op.Offset);
