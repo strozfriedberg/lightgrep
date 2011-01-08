@@ -521,3 +521,28 @@ SCOPE_TEST(parseSZeroMatchState) {
   SCOPE_ASSERT(parse("a?", false, tree, p));
   SCOPE_ASSERT(!p.good());
 }
+
+SCOPE_TEST(parseRepeatedSkippables) {
+  // we'll simulate a?b*
+  Parser      p;
+  SyntaxTree  tree;
+  SCOPE_ASSERT_EQUAL(1, p.stack().size());
+  p.callback("", Node(Node::LITERAL, 0, 0, 'a'));
+  SCOPE_ASSERT_EQUAL(2, p.stack().size());
+  SCOPE_ASSERT(!p.stack().top().Skippable);
+  p.callback("", Node(Node::QUESTION, 0, 0, 0));
+  SCOPE_ASSERT_EQUAL(2, p.stack().size());
+  SCOPE_ASSERT(p.stack().top().Skippable);
+  p.callback("", Node(Node::LITERAL, 0, 0, 'b'));
+  SCOPE_ASSERT_EQUAL(3, p.stack().size());
+  SCOPE_ASSERT(!p.stack().top().Skippable);
+  p.callback("", Node(Node::STAR, 0, 0, 0));
+  SCOPE_ASSERT_EQUAL(3, p.stack().size());
+  SCOPE_ASSERT(p.stack().top().Skippable);
+  p.callback("", Node(Node::CONCATENATION, 0, 0, 0));
+  SCOPE_ASSERT_EQUAL(2, p.stack().size());
+  SCOPE_ASSERT(p.stack().top().Skippable);
+  p.callback("", Node(Node::CONCATENATION, 0, 0, 0));
+  SCOPE_ASSERT_EQUAL(1, p.stack().size());
+  SCOPE_ASSERT(!p.stack().top().Skippable);
+}
