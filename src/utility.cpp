@@ -147,8 +147,8 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
         uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
 
         *indirectTbl = (j + 1 == tbl[i].size() ?
-          Instruction::makeLongJump(indirectTbl+1, landing) :
-          Instruction::makeLongFork(indirectTbl+1, landing));
+          Instruction::makeLongJump(indirectTbl, landing) :
+          Instruction::makeLongFork(indirectTbl, landing));
         indirectTbl += 2;
 /*
         *indirectTbl++ = (j + 1 == tbl[i].size() ?
@@ -212,11 +212,11 @@ ProgramPtr createProgram(const Graph& graph) {
         // std::cerr << "targeting " << curTarget << " at " << cg->Snippets[curTarget].first << std::endl;
         if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget]) {
           if (ov + 1 == graph.outDegree(v) && !hasTargetAtNext) {
-            *curOp = Instruction::makeLongJump(curOp+1, cg->Snippets[curTarget].Start);
+            *curOp = Instruction::makeLongJump(curOp, cg->Snippets[curTarget].Start);
             // std::cerr << "wrote " << Instruction::makeJump(cg->Snippets[curTarget].first) << std::endl;
           }
           else {
-            *curOp = Instruction::makeLongFork(curOp+1, cg->Snippets[curTarget].Start);
+            *curOp = Instruction::makeLongFork(curOp, cg->Snippets[curTarget].Start);
             // std::cerr << "wrote " << Instruction::makeFork(cg->Snippets[curTarget].first) << std::endl;
           }
           curOp += 2;
