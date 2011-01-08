@@ -99,5 +99,5 @@ SCOPE_TEST(fsmClear) {
 }
 
 SCOPE_TEST(fsmVertexSize) {
-  SCOPE_ASSERT_EQUAL(26, sizeof(Graph::Vertex));
+  SCOPE_ASSERT(sizeof(Graph::Vertex) <= 32);
 }
