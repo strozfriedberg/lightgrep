@@ -202,6 +202,12 @@ inline void Vm::_executeThread(const Instruction* base, Thread& t, const byte* c
   if (_execute(base, t, cur) && _executeEpSequence(base, t, offset)) {
     Next.push_back(t);
   }
+
+  #ifdef LBT_TRACE_ENABLED
+  if (BeginDebug <= offset && offset < EndDebug) {
+    t.output(std::cerr, base);
+  }
+  #endif  
 }
 
 inline bool Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 offset) {
@@ -214,15 +220,28 @@ inline bool Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 of
 
 inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset) {
   while (threadIt != Active.end()) {
+    #ifdef LBT_TRACE_ENABLED
+    if (BeginDebug <= offset && offset < EndDebug) {
+      if (threadIt != Active.begin()) std::cerr << ", ";
+    }
+    #endif  
+
     _executeThread(base, *threadIt, cur, offset);
     ++threadIt;
   }
+
   if (first[*cur]) {
     for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
       Active.addBack().init(it->PC, std::numeric_limits<uint32>::max(), offset, std::numeric_limits<uint64>::max());
     }
 //    Active.addBack().init(base, offset);
     do {
+      #ifdef LBT_TRACE_ENABLED
+      if (BeginDebug <= offset && offset < EndDebug) {
+        if (threadIt != Active.begin()) std::cerr << ", ";
+      }
+      #endif
+
       _executeThread(base, *threadIt, cur, offset);
     } while (++threadIt != Active.end());
   }
@@ -264,23 +283,34 @@ void Vm::doMatch(const Thread& t) {
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];
-  SearchHit  hit;
-  ByteSet    first = Prog->First;
-  register   uint64     offset = startOffset;
+  SearchHit hit;
+  ByteSet first = Prog->First;
+  register uint64 offset = startOffset;
   ThreadList::iterator threadIt = Active.begin();
   for (register const byte* cur = beg; cur < end; ++cur) {
+    #ifdef LBT_TRACE_ENABLED
+    if (BeginDebug <= offset && offset < EndDebug) {
+      std::cerr << "{\"offset\":" << offset << ", \"num\":"
+                << Active.size() << ", \"list\":[";
+    }
+    #endif
+
     _executeFrame(first, threadIt, base, cur, offset);
+
+    #ifdef LBT_TRACE_ENABLED
+    if (BeginDebug <= offset && offset < EndDebug) {
+      std::cerr << "]}" << std::endl;
+    }
+    #endif
+    
     if (threadIt != Active.begin()) {
-      #ifdef LBT_TRACE_ENABLED
-      if (BeginDebug <= offset && offset < EndDebug) {
-        printThreads(Active, offset, base);
-      }
-      #endif
       cleanup();
       threadIt = Active.begin();
     }
+
     ++offset;
   }
+
   // output the last existing matches
   for (uint32 i = 0; i < Matches.size(); ++i) {
     if (Matches[i].first < UNALLOCATED) {
