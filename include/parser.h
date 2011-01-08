@@ -152,6 +152,8 @@ public:
 
   void setCurLabel(uint32 lbl) { CurLabel = lbl; }
 
+  std::stack< Fragment >& stack() { return Stack; }
+  
 private:
   void setLiteralTransition(TransitionPtr& state, byte val);
 
