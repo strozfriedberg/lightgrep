@@ -85,7 +85,7 @@ SCOPE_TEST(executeJump) {
 
 SCOPE_TEST(executeLongJump) {
   ProgramPtr p(new Program(2, Instruction()));
-  (*p)[0] = Instruction::makeLongJump(&(*p)[1], 18);
+  (*p)[0] = Instruction::makeLongJump(&(*p)[0], 18);
   Vm s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
   SCOPE_ASSERT(s.executeEpsilon(cur, 0));
@@ -221,7 +221,7 @@ SCOPE_TEST(executeFork) {
 
 SCOPE_TEST(executeLongFork) {
   ProgramPtr p(new Program(4, Instruction()));
-  (*p)[0] = Instruction::makeLongFork(&(*p)[1], 3);
+  (*p)[0] = Instruction::makeLongFork(&(*p)[0], 3);
   (*p)[2] = Instruction::makeLit('a');
   (*p)[3] = Instruction::makeLit('a');
   Vm s(p);
