@@ -181,14 +181,14 @@ ProgramPtr createProgram(const Graph& graph) {
       std::cerr << "have compiled " << i << " states so far" << std::endl;
     }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
-    if (cg->Snippets[v].CheckIndex != UNALLOCATED) {
-      *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
-    }
     TransitionPtr t(graph[v]);
     if (t) {
       t->toInstruction(curOp);
       curOp += t->numInstructions();
       // std::cerr << "wrote " << i << std::endl;
+      if (cg->Snippets[v].CheckIndex != UNALLOCATED) {
+        *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
+      }
       if (t->Label < 0xffffffff) {
         *curOp++ = Instruction::makeLabel(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
