@@ -28,14 +28,21 @@ public:
   const ThreadList& active() const { return Active; }
   const ThreadList& next() const { return Next; }
 
+  inline void cleanup() {
+    Active.swap(Next);
+    Next.clear();
+    if (CheckStates[0]) {
+      CheckStates.assign(CheckStates.size(), false);
+    }
+  }
+
   unsigned int numActive() const { return Active.size(); }
   unsigned int numNext() const { return Next.size(); }
 
 private:
   void doMatch(const Thread& t);
-  void cleanup();
 
-  bool _execute(Thread& t, const byte* cur);
+  bool _execute(const Instruction* base, Thread& t, const byte* cur);
   bool _executeEpsilon(const Instruction* base, Thread& t, uint64 offset);
   bool _executeEpSequence(const Instruction* base, Thread& t, uint64 offset);
   void _executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset);

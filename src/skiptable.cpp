@@ -14,7 +14,7 @@ void SkipTable::relax(uint32 val) {
   LMin = std::min(val, LMin);
 }
 
-void SkipTable::calculateTransitions(DynamicFSM::vertex_descriptor v, const DynamicFSM& graph) {
+void SkipTable::calculateTransitions(Graph::vertex v, const Graph& graph) {
   TempSet.reset();
   nextBytes(TempSet, v, graph);
   for (uint32 i = 0; i < 256; ++i) {
@@ -31,7 +31,7 @@ void SkipTable::finishSkipVec() {
   }
 }
 
-void SkipTable::setDistance(DynamicFSM::vertex_descriptor source, DynamicFSM::vertex_descriptor target, const DynamicFSM& graph) {
+void SkipTable::setDistance(Graph::vertex source, Graph::vertex target, const Graph& graph) {
   uint32 srcDist = Distance[source];
   uint32 tgtDist = 0;
   if (srcDist == std::numeric_limits<uint32>::max()) {
@@ -40,7 +40,8 @@ void SkipTable::setDistance(DynamicFSM::vertex_descriptor source, DynamicFSM::ve
   else {
     tgtDist = std::min(srcDist + 1, Distance[target]);
   }
-  if (graph[target]->Label < std::numeric_limits<uint32>::max()) {
+
+  if (graph[target]->IsMatch) {
     relax(tgtDist);
   }
   Distance[target] = tgtDist;

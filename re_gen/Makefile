@@ -1,7 +1,7 @@
 CXX=g++
 #CPPFLAGS=-c -O -g -pg -W -Wall -pedantic
 CPPFLAGS=-c -O3 -W -Wall -pedantic
-LDFLAGS=-lstdc++
+LDFLAGS=-lstdc++ -lpcre
 
 all: debruijn forms inst shitgrep 
 

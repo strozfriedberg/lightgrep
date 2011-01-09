@@ -1,18 +1,23 @@
 #pragma once
 
 #include "basic.h"
-#include "dynamicFSM.h"
+#include "graph.h"
 
 #include <stack>
 
 class Compiler {
 public:
-  typedef std::pair< DynamicFSM::vertex_descriptor, DynamicFSM::vertex_descriptor > StatePair;
+  typedef std::pair< Graph::vertex, Graph::vertex > StatePair;
 
-  void mergeIntoFSM(DynamicFSM& fsm, const DynamicFSM& addend, uint32 keyIdx);
+  void mergeIntoFSM(Graph& dst, const Graph& src);
   
+  void labelGuardStates(Graph& g); 
+
+  void propagateMatchLabels(Graph& g);
+  void removeNonMinimalLabels(Graph& g);
+
 private:
-  std::vector< DynamicFSM::vertex_descriptor > StateMap;
+  std::vector< Graph::vertex > StateMap;
   std::stack< StatePair, std::vector<StatePair> > States;
   std::vector< bool > Visited;
 };
