@@ -17,16 +17,20 @@ def sub(src):
 def buildBoost(target, source, env):
   shouldBuild = False
   for t in target:
+#	print("Looking for %s" % t)
     if (len(env.Glob(str(t))) == 1):
+#	  print("Couldn't find ist... need to build")
       shouldBuild = True
       break
   if (shouldBuild):
+    print("building")
     curDir = os.getcwd()
     os.chdir(str(source[0]))
     if (isWindows == True):
       shellCall('.\\bootstrap.bat')
-      shellCall('.\\bjam --stagedir=%s --with-graph --with-regex --with-system --with-system '
+      shellCall('.\\bjam --stagedir=%s --with-graph --with-regex --with-system --with-system --with-thread '
         'link=static variant=release threading=multi runtime-link=static toolset=gcc '
+		'address-model=64 define=BOOST_USE_WINDOWS_H '
         '-s BOOST_NO_RVALUE_REFERENCES stage' % curDir)
     else:
       shellCall('./bootstrap.sh')
@@ -46,7 +50,7 @@ def buildBoost(target, source, env):
 
 
 arch = platform.platform()
-print("System is %s" % arch)
+print("System is %s, %s" % (arch, platform.machine()))
 isWindows = arch.find('Windows') > -1
 isLinux = arch.find('Linux') > -1
 

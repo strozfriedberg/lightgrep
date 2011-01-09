@@ -4,7 +4,6 @@
 #include <scope/testrunner.h>
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
-#include <boost/thread.hpp>
 #include <fstream>
 
 #include <boost/graph/graphviz.hpp>
@@ -15,6 +14,8 @@
 #include "hitwriter.h"
 #include "options.h"
 
+#define BOOST_USE_WINDOWS_H
+#include <boost/thread.hpp>
 
 // <magic_incantation>
 // this ridiculous piece of crap you see here is necessary to get

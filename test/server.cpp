@@ -5,6 +5,9 @@
 #include <memory>
 #include <algorithm>
 #include <boost/bind.hpp>
+
+#define BOOST_USE_WINDOWS_H
+
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 
