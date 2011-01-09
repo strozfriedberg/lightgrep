@@ -353,8 +353,7 @@ void Vm::doMatch(const Thread& t) {
   }
 }
 
-// FIXME: beg is a register, but used only once!
-bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
+bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];
   SearchHit hit;
