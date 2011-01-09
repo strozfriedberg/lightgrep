@@ -40,6 +40,12 @@ public:
   iterator end() { return End; }
   const_iterator end() const { return End; }
 
+  T& front() { return *Begin; }
+  const T& front() const { return *Begin; }
+  
+  T& back() { return *(End - 1); }
+  const T& back() const { return *(End - 1); }
+
   unsigned int size() const { return End - Begin; }
   bool empty() const { return Begin == End; }
   

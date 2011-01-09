@@ -15,18 +15,21 @@ public:
   // numCheckedStates should be equal to the number + 1 for the reserved bit
   void init(ProgramPtr prog);
 
-  bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
-  void reset();
+  virtual bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
+  virtual void closeOut(HitCallback& hitFn);
+  virtual void reset();
 
   void setDebugRange(uint64 beg, uint64 end) { BeginDebug = beg; EndDebug = end; }
 
-  bool execute(Thread& t, const byte* cur);
-  bool executeEpsilon(Thread& t, uint64 offset);
+  bool execute(ThreadList::iterator t, const byte* cur);
+  bool executeEpsilon(ThreadList::iterator t, uint64 offset);
   void executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn);
 
   const ThreadList& first() const { return First; }
   const ThreadList& active() const { return Active; }
   const ThreadList& next() const { return Next; }
+
+  Thread& add(const Thread& t) { return (Active.addBack() = t); }
 
   inline void cleanup() {
     Active.swap(Next);
@@ -42,10 +45,10 @@ public:
 private:
   void doMatch(const Thread& t);
 
-  bool _execute(const Instruction* base, Thread& t, const byte* cur);
-  bool _executeEpsilon(const Instruction* base, Thread& t, uint64 offset);
-  bool _executeEpSequence(const Instruction* base, Thread& t, uint64 offset);
-  void _executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset);
+  bool _execute(const Instruction* base, ThreadList::iterator t, const byte* cur);
+  bool _executeEpsilon(const Instruction* base, ThreadList::iterator t, uint64 offset);
+  bool _executeEpSequence(const Instruction* base, ThreadList::iterator t, uint64 offset);
+  void _executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, uint64 offset);
   void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset);
 
   #ifdef LBT_TRACE_ENABLED
