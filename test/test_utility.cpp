@@ -89,8 +89,8 @@ SCOPE_TEST(acOrbcProgram) {
   SCOPE_ASSERT_EQUAL(9u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[0], 5), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[3]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[3]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[7], 2), prog[7]);
@@ -269,7 +269,7 @@ SCOPE_TEST(layoutWithCheckHalt) {
   SCOPE_ASSERT_EQUAL(2u, cg->DiscoverRanks[2]);
   SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 0u, 0u, UNALLOCATED), cg->Snippets[0]);
   SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 1u, 0u, UNALLOCATED), cg->Snippets[1]);
-  SCOPE_ASSERT_EQUAL(StateLayoutInfo(1u, 2u, 4u, 1u), cg->Snippets[2]);
+  SCOPE_ASSERT_EQUAL(StateLayoutInfo(1u, 1u, 5u, 1u), cg->Snippets[2]);
 }
 
 SCOPE_TEST(twoStateBetterLayout) {
@@ -368,8 +368,8 @@ SCOPE_TEST(generateCheckHalt) {
 
   // std::cout << prog;
   SCOPE_ASSERT_EQUAL(6u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[0]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[3]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[4], 0), prog[4]);
@@ -385,6 +385,7 @@ SCOPE_TEST(testInitVM) {
   byte text[] = "a onetwothree";
   MockCallback cb;
   SCOPE_ASSERT(!search->search(&text[0], &text[15], 0, cb));
+  search->closeOut(cb);
   SCOPE_ASSERT_EQUAL(2u, cb.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), cb.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(5, 3, 1), cb.Hits[1]);
@@ -471,8 +472,8 @@ SCOPE_TEST(generateJumpTableRange) {
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[6]); // f
   SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[7]); // g
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[8]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[9]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('f'), prog[10]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('f'), prog[9]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[10]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[11]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[12]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[13]);
