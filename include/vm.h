@@ -48,6 +48,23 @@ private:
   void _executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset);
   void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset);
 
+  #ifdef LBT_TRACE_ENABLED
+  void open_frame_json(std::ostream& out, uint64 offset, const byte* cur);
+  void close_frame_json(std::ostream& out, uint64 offset) const;
+  void thread_json(std::ostream& out, uint64 offset,
+                   const Thread& t, const Instruction* base);
+  void new_thread_json(std::ostream& out, uint64 offset, const Thread& t,
+                       const Instruction* base);
+  void run_thread_json(std::ostream& out, uint64 offset, const Thread& t,
+                       const Instruction* base);
+  void kill_thread_json(std::ostream& out, uint64 offset, const Thread& t,
+                        const Instruction* base);
+  void thread_json(std::ostream& out, uint64 offset, const Thread& t,
+                   const Instruction* base, Thread::ThreadLife state);
+
+  bool first_thread_json;
+  #endif
+
   ProgramPtr Prog;
   ThreadList First,
              Active,
