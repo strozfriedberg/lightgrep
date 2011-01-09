@@ -40,9 +40,14 @@ void Vm::kill_thread_json(std::ostream& out, uint64 offset,
   thread_json(out, offset, t, base, Thread::DEAD);
 }
 
-void Vm::run_thread_json(std::ostream& out, uint64 offset,
-                         const Thread& t, const Instruction* base) {
-  thread_json(out, offset, t, base, Thread::RUNNING);
+void Vm::pre_run_thread_json(std::ostream& out, uint64 offset,
+                             const Thread& t, const Instruction* base) {
+  thread_json(out, offset, t, base, Thread::PRERUN);
+}
+
+void Vm::post_run_thread_json(std::ostream& out, uint64 offset,
+                              const Thread& t, const Instruction* base) {
+  thread_json(out, offset, t, base, Thread::POSTRUN);
 }
 
 void Vm::thread_json(std::ostream& out, uint64 offset,
@@ -257,19 +262,29 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
 
 inline void Vm::_executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset) {
   #ifdef LBT_TRACE_ENABLED
-  run_thread_json(std::cerr, offset, t, base);
-  #endif
-
+  pre_run_thread_json(std::cerr, offset, t, base);
+  const bool ex = _execute(base, t, cur);
+  post_run_thread_json(std::cerr, offset, t, base);
+  if (ex && _executeEpSequence(base, t, offset)) {
+    Next.push_back(t);
+  }
+  #else
   if (_execute(base, t, cur) && _executeEpSequence(base, t, offset)) {
     Next.push_back(t);
   }
+  #endif
 }
 
 inline bool Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 offset) {
   #ifdef LBT_TRACE_ENABLED
+  bool ex;
   do {
-    run_thread_json(std::cerr, offset, t, base);
-  } while (_executeEpsilon(base, t, offset));
+    const uint64 id = t.Id; // t can change on a fork, we want the original
+    pre_run_thread_json(std::cerr, offset, t, base);
+    ex = _executeEpsilon(base, t, offset);
+    const Thread& x = t.Id == id ? t : Next[Next.size()-1];
+    post_run_thread_json(std::cerr, offset, x, base);
+  } while (ex);
   #else
   while (_executeEpsilon(base, t, offset));
   #endif
