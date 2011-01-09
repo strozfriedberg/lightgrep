@@ -43,6 +43,7 @@ Vm::Vm(ProgramPtr prog):
 
 void Vm::init(ProgramPtr prog) {
   Prog = prog;
+  Prog->push_back(Instruction::makeHalt()); // a special halt; killed threads will be set to here
   Active.resize(Prog->size());
   Next.resize(Prog->size());
   uint32 numPatterns = 0,
@@ -61,7 +62,8 @@ void Vm::init(ProgramPtr prog) {
   Matches.resize(numPatterns);
   CheckStates.resize(numCheckedStates);
   Thread s0(&(*Prog)[0]);
-  if (_executeEpSequence(&(*Prog)[0], s0, 0)) {
+  ThreadList::iterator t = &s0;
+  if (_executeEpSequence(&(*Prog)[0], t, 0)) {
     Next.push_back(s0);
   }
   First.resize(Next.size());
@@ -79,160 +81,168 @@ void Vm::reset() {
   CurHitFn = 0;
 }
 
-inline bool Vm::_execute(const Instruction* base, Thread& t, const byte* cur) {
-  // std::string instr;
-  // std::cerr << t << std::endl;
-  // instr = t.PC->toString(); // for some reason, toString() is corrupting the stack... maybe?
-  // std::cerr << instr << std::endl;
-  // std::cout << t << ": " << *t.PC << std::endl;
+inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const byte* cur) {
   Thread nextT;
-  register Instruction instr = *t.PC;
+  register Instruction instr = *t->PC;
   switch (instr.OpCode) {
     case LIT_OP:
-      // std::cerr << "Lit " << t.PC->Op.Literal << std::endl;
+      // std::cerr << "Lit " << t->PC->Op.Literal << std::endl;
       if (*cur == instr.Op.Literal) {
-        t.advance();
+        t->advance();
         return true;
       }
       break;
     case EITHER_OP:
       if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
-        t.advance();
+        t->advance();
         return true;
       }
       break;
     case RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
-        t.advance();
+        t->advance();
         return true;
       }
       break;
     case BIT_VECTOR_OP:
       {
-        const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t.PC + 1);
+        const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t->PC + 1);
         if ((*setPtr)[*cur]) {
-          t.advance();
+          t->advance();
           return true;
         }
       }
       break;
     case JUMP_TABLE_OP:
-      if (*(uint32*)(t.PC + 1 + *cur) != 0xffffffff) {
-        t.jump(base, *reinterpret_cast<const uint32*>(t.PC + 1 + *cur));
+      if (*(uint32*)(t->PC + 1 + *cur) != 0xffffffff) {
+        t->jump(base, *reinterpret_cast<const uint32*>(t->PC + 1 + *cur));
         return true;
       }
       break;
     case JUMP_TABLE_RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
-        const uint32 addr = *reinterpret_cast<const uint32*>(t.PC + 1 + (*cur - instr.Op.Range.First));
+        const uint32 addr = *reinterpret_cast<const uint32*>(t->PC + 1 + (*cur - instr.Op.Range.First));
         if (addr != 0xffffffff) {
-          t.jump(base, addr);
+          t->jump(base, addr);
           return true;
         }
       }
       break;
   }
-  t.PC = 0;
+  t->PC = &Prog->back();
   return false;
 }
 
 // while base is always == &Program[0], we pass it in because it then should get inlined away
-inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offset) {
-  register Instruction instr = *t.PC;
+inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t, uint64 offset) {
+  register Instruction instr = *t->PC;
   switch (instr.OpCode) {
     case FORK_OP:
       {
-        Thread f = t;
-        t.advance();
+        Thread f = *t;
+        t->advance();
         // recurse to keep going in sequence
         if (_executeEpSequence(base, t, offset)) {
-          Next.push_back(t);
+          Next.push_back(*t);
         }
         // now back up to the fork, and fall through to handle it as a jump
-        t = f;
+        *t = f;
       }
     case JUMP_OP:
-      t.jump(base, instr.Op.Offset);
+      t->jump(base, instr.Op.Offset);
       return true;
     case LONGFORK_OP:
       {
-        Thread f = t;
-        t.advance();
+        Thread f = *t;
+        t->advance();
         // recurse to keep going in sequence
         if (_executeEpSequence(base, t, offset)) {
-          Next.push_back(t);
+          Next.push_back(*t);
         }
         // now back up to the fork, and fall through to handle it as a longjump
-        t = f;
+        *t = f;
       }
     case LONGJUMP_OP:
-      t.jump(base, *reinterpret_cast<const uint32*>(t.PC+1));
+      t->jump(base, *reinterpret_cast<const uint32*>(t->PC+1));
       return true;
     case CHECK_HALT_OP:
-      if (CheckStates[instr.Op.Offset]) {
-        t.PC = 0;
+      if (CheckStates[instr.Op.Offset]) { // read sync point
+        t->PC = 0;
         return false;
       }
       else {
-        CheckStates[instr.Op.Offset] = true;
+        CheckStates[instr.Op.Offset] = true; // write sync point
         CheckStates[0] = true;
-        t.advance();
+        t->advance();
         return true;
       }
     case LABEL_OP:
-      t.Label = instr.Op.Offset;
-      t.advance();
-      return true;
-    case MATCH_OP:
-      t.End = offset;
-      if (t.Label == std::numeric_limits<uint32>::max()) {
-        t.Label = 0;
+      {
+        std::pair<uint64, uint64> lastHit(Matches[instr.Op.Offset]);
+        if (lastHit.first == UNALLOCATED ||
+    			lastHit.first == t->Start ||
+    			lastHit.second < t->Start)
+    		{
+          t->Label = instr.Op.Offset;
+          t->advance();
+          return true;
+        }
+        else {
+          t->PC = 0;
+          return false;
+        }
       }
-      t.advance();
+    case MATCH_OP:
+      t->End = offset;
+      doMatch(*t);
+      t->advance();
+      for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
+        if (it->Label == t->Label) {
+          it->End = UNALLOCATED;
+          it->PC = &Prog->back(); // DIE. Last instruction is always a halt
+        }
+      }
       return true;
     case HALT_OP:
-      t.PC = 0;
+      t->PC = 0;
     default:
       // Next.push_back(t);
       return false;
   }
 }
 
-inline void Vm::_executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset) {
-  if (_execute(base, t, cur) && _executeEpSequence(base, t, offset)) {
-    Next.push_back(t);
+inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, uint64 offset) {
+  _execute(base, t, cur);
+  if (_executeEpSequence(base, t, offset)) {
+    Next.push_back(*t);
   }
 }
 
-inline bool Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 offset) {
+inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator t, uint64 offset) {
   while (_executeEpsilon(base, t, offset)) ;
-  if (t.End == offset) { // this could be bad at offset 2^32-1, dummy -- JLS
-    doMatch(t);
-  }
-  return t.PC;
+  return t->PC;
 }
 
 inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset) {
   while (threadIt != Active.end()) {
-    _executeThread(base, *threadIt, cur, offset);
+    _executeThread(base, threadIt, cur, offset);
     ++threadIt;
   }
   if (first[*cur]) {
     for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
       Active.addBack().init(it->PC, std::numeric_limits<uint32>::max(), offset, std::numeric_limits<uint64>::max());
     }
-//    Active.addBack().init(base, offset);
     do {
-      _executeThread(base, *threadIt, cur, offset);
+      _executeThread(base, threadIt, cur, offset);
     } while (++threadIt != Active.end());
   }
 }
 
-bool Vm::execute(Thread& t, const byte* cur) {
+bool Vm::execute(ThreadList::iterator t, const byte* cur) {
   return _execute(&(*Prog)[0], t, cur);
 }
 
-bool Vm::executeEpsilon(Thread& t, uint64 offset) {
+bool Vm::executeEpsilon(ThreadList::iterator t, uint64 offset) {
   return _executeEpsilon(&(*Prog)[0], t, offset);
 }
 
@@ -244,27 +254,26 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 
 void Vm::doMatch(const Thread& t) {
   // std::cerr << "had a match" << std::endl;
-  SearchHit  hit;
   std::pair< uint64, uint64 > lastHit = Matches[t.Label];
-  if (lastHit.first == UNALLOCATED || (lastHit.first == t.Start && lastHit.second < t.End)) {
-    Matches[t.Label] = std::make_pair(t.Start, t.End);
-  }
-  else if (lastHit.second < t.Start) {
-    hit.Offset = lastHit.first;
-    hit.Length = lastHit.second - lastHit.first + 1;
-    hit.Label = t.Label;
+  
+  if (lastHit.first != UNALLOCATED && lastHit.second < t.Start) {
+    SearchHit  hit(lastHit.first, lastHit.second - lastHit.first + 1, t.Label);
     if (CurHitFn) {
       CurHitFn->collect(hit);
     }
-    // std::cerr << "emitting hit " << hit << std::endl;
-    Matches[t.Label] = std::make_pair(t.Start, t.End);
   }
+  Matches[t.Label] = std::make_pair(t.Start, t.End);
+  #ifdef LBT_TRACE_ENABLED
+  if (lastHit.first < t.Start && t.Start <= lastHit.second) {
+    std::cerr << "** Replaced overlapping hit! (" << lastHit.first
+      << ", " << lastHit.second << "), thread: " << t << std::endl;
+  }
+  #endif
 }
 
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];
-  SearchHit  hit;
   ByteSet    first = Prog->First;
   register   uint64     offset = startOffset;
   ThreadList::iterator threadIt = Active.begin();
@@ -281,16 +290,22 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
     }
     ++offset;
   }
-  // output the last existing matches
-  for (uint32 i = 0; i < Matches.size(); ++i) {
-    if (Matches[i].first < UNALLOCATED) {
-      hit.Offset = Matches[i].first;
-      hit.Length = Matches[i].second - hit.Offset + 1;
-      hit.Label = i;
-      hitFn.collect(hit);
-      Matches[i] = std::make_pair(UNALLOCATED, 0ul);
-    }
-  }
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
   return Active.size() > 0; // potential hits, if there's more data
+}
+
+void Vm::closeOut(HitCallback& hitFn) {
+  CurHitFn = &hitFn;
+  SearchHit hit;
+  if (CurHitFn) {
+    for (uint32 i = 0; i < Matches.size(); ++i) {
+      std::pair<uint64, uint64> lastHit = Matches[i];
+      if (lastHit.first != UNALLOCATED) {
+        hit.Offset = lastHit.first;
+        hit.Length = lastHit.second - lastHit.first + 1;
+        hit.Label  = i;
+        CurHitFn->collect(hit);
+      }
+    }
+  }
 }
