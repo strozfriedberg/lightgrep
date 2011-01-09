@@ -48,7 +48,8 @@ struct Thread {
 
   enum ThreadLife {
     BORN,
-    RUNNING,
+    PRERUN,
+    POSTRUN,
     DEAD
   };
 
