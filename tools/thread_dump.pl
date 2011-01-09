@@ -3,8 +3,8 @@
 use JSON;
 
 printf(
-  "\n%-16s %-16s %-8s  %-16s %-16s\n",
-  'offset',
+  "\n %-16s %-16s %-8s  %-16s %-16s\n",
+  'id',
   'pc',
   'label',
   'start',
@@ -16,19 +16,43 @@ while (<>) {
   print_frame($_); 
 }
 
+sub readabilify {
+  my $byte = $_[0];
+  my $c = chr($byte);
+  return ($c =~ /[[:print:]]/) ? "'$c'" : sprintf('0x%02x', $byte);
+}
+
 sub print_frame {
   my $frame = decode_json $_[0];
 
-  print "\n";
+  printf(
+    "\n%016x <- %s\n\n",
+    $frame->{'offset'},
+    readabilify($frame->{'byte'})
+  );
 
   foreach $thread (@{$frame->{'list'}}) {
+    if ($thread->{'state'} == 0) {
+      # thread birth is green
+      print "\33[1;32m";
+    }
+    elsif ($thread->{'state'} == 2) {
+      # thread death is red
+      print "\33[1;31m";
+    }
+
     printf(
-      "%016x %016x %08x [%016x,%016x)\n",
-      $frame->{'offset'},
-      $thread->{'pc'},
+      " %016x %016x %08x [%016x,%016x)\n",
+      $thread->{'Id'},
+      $thread->{'PC'},
       $thread->{'Label'},
       $thread->{'Start'},
       $thread->{'End'}
     );
+
+    if ($thread->{'state'} != 1) {
+      # switch back to regular text color 
+      print "\33[0m";
+    }
   }
 }

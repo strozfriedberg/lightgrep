@@ -13,21 +13,64 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
   return out;
 }
 
-void Thread::output(std::ostream& out, const Instruction* base) const {
-  out << "{ \"pc\":" << (PC ? PC - base: -1) << ", \"Label\":" << Label << ", \"Start\":" << Start << ", \"End\":" << End << " }";
-}
+#ifdef LBT_TRACE_ENABLED
+uint64 Thread::NextId = 0;
 
-void printThreads(const Vm::ThreadList& list, uint64 offset, const Instruction* base) { // can only be called if list is not empty
-  std::cerr << "{\"offset\":" << offset << ", \"num\":" << list.size() << ", \"list\":[";
-  Vm::ThreadList::const_iterator threadIt = list.begin();
-  threadIt->output(std::cerr, base);
-  while (++threadIt != list.end()) {
-    std::cerr << ", ";
-    threadIt->output(std::cerr, base);
+void Vm::open_frame_json(std::ostream& out, uint64 offset, const byte* cur) {
+  if (BeginDebug <= offset && offset < EndDebug) {
+    out << "{\"offset\":" << offset << ", \"byte\":" << (uint32) *cur
+        << ", \"num\":" << Active.size() << ", \"list\":[";
+    first_thread_json = true;
   }
-  std::cerr << "]}\n";  
 }
 
+void Vm::close_frame_json(std::ostream& out, uint64 offset) const {
+  if (BeginDebug <= offset && offset < EndDebug) {
+    out << "]}" << std::endl;
+  }
+}
+
+void Vm::new_thread_json(std::ostream& out, uint64 offset,
+                         const Thread& t, const Instruction* base) {
+  thread_json(out, offset, t, base, Thread::BORN);
+}
+
+void Vm::kill_thread_json(std::ostream& out, uint64 offset,
+                         const Thread& t, const Instruction* base) {
+  thread_json(out, offset, t, base, Thread::DEAD);
+}
+
+void Vm::run_thread_json(std::ostream& out, uint64 offset,
+                         const Thread& t, const Instruction* base) {
+  thread_json(out, offset, t, base, Thread::RUNNING);
+}
+
+void Vm::thread_json(std::ostream& out, uint64 offset,
+                     const Thread& t, const Instruction* base,
+                     Thread::ThreadLife state) {
+  if (BeginDebug <= offset && offset < EndDebug) {
+    // put commas between consecutive threads
+    if (first_thread_json) {
+      first_thread_json = false;
+    }
+    else {
+      out << ", ";
+    }
+
+    t.output_json(out, base, state);
+  }
+}
+
+void Thread::output_json(std::ostream& out, const Instruction* base, Thread::ThreadLife state) const {
+  out << "{ \"Id\":" << Id
+      << ", \"PC\":" << (PC ? PC - base: -1)
+      << ", \"Label\":" << Label
+      << ", \"Start\":" << Start 
+      << ", \"End\":" << End
+      << ", \"state\":" << state
+      << " }";
+}
+#endif
 
 boost::shared_ptr<VmInterface> VmInterface::create() {
   return boost::shared_ptr<VmInterface>(new Vm);
@@ -150,6 +193,11 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
         }
         // now back up to the fork, and fall through to handle it as a jump
         t = f;
+
+        #ifdef LBT_TRACE_ENABLED
+        t.Id = Thread::NextId++;
+        new_thread_json(std::cerr, offset, t, base);
+        #endif
       }
     case JUMP_OP:
       t.jump(base, instr.Op.Offset);
@@ -164,6 +212,11 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
         }
         // now back up to the fork, and fall through to handle it as a longjump
         t = f;
+
+        #ifdef LBT_TRACE_ENABLED
+        t.Id = Thread::NextId++;
+        new_thread_json(std::cerr, offset, t, base);
+        #endif
       }
     case LONGJUMP_OP:
       t.jump(base, *reinterpret_cast<const uint32*>(t.PC+1));
@@ -192,6 +245,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
       return true;
     case HALT_OP:
       t.PC = 0;
+
+      #ifdef LBT_TRACE_ENABLED
+      kill_thread_json(std::cerr, offset, t, base);
+      #endif
     default:
       // Next.push_back(t);
       return false;
@@ -199,19 +256,24 @@ inline bool Vm::_executeEpsilon(const Instruction* base, Thread& t, uint64 offse
 }
 
 inline void Vm::_executeThread(const Instruction* base, Thread& t, const byte* cur, uint64 offset) {
+  #ifdef LBT_TRACE_ENABLED
+  run_thread_json(std::cerr, offset, t, base);
+  #endif
+
   if (_execute(base, t, cur) && _executeEpSequence(base, t, offset)) {
     Next.push_back(t);
   }
-
-  #ifdef LBT_TRACE_ENABLED
-  if (BeginDebug <= offset && offset < EndDebug) {
-    t.output(std::cerr, base);
-  }
-  #endif  
 }
 
 inline bool Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 offset) {
-  while (_executeEpsilon(base, t, offset)) ;
+  #ifdef LBT_TRACE_ENABLED
+  do {
+    run_thread_json(std::cerr, offset, t, base);
+  } while (_executeEpsilon(base, t, offset));
+  #else
+  while (_executeEpsilon(base, t, offset));
+  #endif
+  
   if (t.End == offset) { // this could be bad at offset 2^32-1, dummy -- JLS
     doMatch(t);
   }
@@ -219,29 +281,25 @@ inline bool Vm::_executeEpSequence(const Instruction* base, Thread& t, uint64 of
 }
 
 inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset) {
+  // run old threads at this offset
   while (threadIt != Active.end()) {
-    #ifdef LBT_TRACE_ENABLED
-    if (BeginDebug <= offset && offset < EndDebug) {
-      if (threadIt != Active.begin()) std::cerr << ", ";
-    }
-    #endif  
-
     _executeThread(base, *threadIt, cur, offset);
     ++threadIt;
   }
 
+  // create new threads at this offset
   if (first[*cur]) {
     for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
       Active.addBack().init(it->PC, std::numeric_limits<uint32>::max(), offset, std::numeric_limits<uint64>::max());
+
+      #ifdef LBT_TRACE_ENABLED
+      Active[Active.size()-1].Id = Thread::NextId++;
+      new_thread_json(std::cerr, offset, Active[Active.size()-1], base);
+      #endif
     }
 //    Active.addBack().init(base, offset);
-    do {
-      #ifdef LBT_TRACE_ENABLED
-      if (BeginDebug <= offset && offset < EndDebug) {
-        if (threadIt != Active.begin()) std::cerr << ", ";
-      }
-      #endif
 
+    do {
       _executeThread(base, *threadIt, cur, offset);
     } while (++threadIt != Active.end());
   }
@@ -280,6 +338,7 @@ void Vm::doMatch(const Thread& t) {
   }
 }
 
+// FIXME: beg is a register, but used only once!
 bool Vm::search(register const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];
@@ -289,18 +348,13 @@ bool Vm::search(register const byte* beg, register const byte* end, uint64 start
   ThreadList::iterator threadIt = Active.begin();
   for (register const byte* cur = beg; cur < end; ++cur) {
     #ifdef LBT_TRACE_ENABLED
-    if (BeginDebug <= offset && offset < EndDebug) {
-      std::cerr << "{\"offset\":" << offset << ", \"num\":"
-                << Active.size() << ", \"list\":[";
-    }
+    open_frame_json(std::cerr, offset, cur);
     #endif
 
     _executeFrame(first, threadIt, base, cur, offset);
 
     #ifdef LBT_TRACE_ENABLED
-    if (BeginDebug <= offset && offset < EndDebug) {
-      std::cerr << "]}" << std::endl;
-    }
+    close_frame_json(std::cerr, offset);
     #endif
     
     if (threadIt != Active.begin()) {
