@@ -129,6 +129,7 @@ SCOPE_FIXTURE_CTOR(zeroDotStarZeroSearch, STest, STest("0.*0")) {
 
 SCOPE_FIXTURE_CTOR(aDotaPlusSearch, STest, STest("a.a+")) {
   const byte* text = (const byte*)"aaabaaa";
+  std::cout << *fixture.Prog;
   fixture.search(text, text + 7, 0, fixture);
   SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
