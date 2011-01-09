@@ -1,13 +1,15 @@
 
 #include <scope/test.h>
 
-#include "parser.h"
-#include "dynamicFSM.h"
-#include "utility.h"
 #include "concrete_encodings.h"
+#include "graph.h"
+#include "parser.h"
+#include "states.h"
+#include "utility.h"
+
+#include "test_helper.h"
 
 #include <iostream>
-#include <stack>
 
 void parseOutput(std::string type, Node n) {
   std::cout << type << ": " << n.Val << std::endl;
@@ -16,12 +18,12 @@ void parseOutput(std::string type, Node n) {
 SCOPE_TEST(parseAorB) {
   Parser     p;
   SyntaxTree tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("a|b", false, tree, p));
-  SCOPE_ASSERT_EQUAL(3u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(3u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   SCOPE_ASSERT(fsm[1]->IsMatch);
   SCOPE_ASSERT(fsm[2]->IsMatch);
@@ -30,13 +32,13 @@ SCOPE_TEST(parseAorB) {
 SCOPE_TEST(parseAorBorC) {
   Parser     p;
   SyntaxTree tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("a|b|c", false, tree, p));
-  SCOPE_ASSERT_EQUAL(4u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(3u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(4u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
   SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   SCOPE_ASSERT(fsm[1]->IsMatch);
   SCOPE_ASSERT(fsm[2]->IsMatch);
@@ -46,12 +48,12 @@ SCOPE_TEST(parseAorBorC) {
 SCOPE_TEST(parseAB) {
   Parser     p;
   SyntaxTree tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("ab", false, tree, p));
-  SCOPE_ASSERT_EQUAL(3u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(3u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
   std::vector<uint32> skip(256, 2);
@@ -65,13 +67,13 @@ SCOPE_TEST(parseAB) {
 SCOPE_TEST(parseAlternationAndConcatenation) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("a|bc", false, tree, p));
-  SCOPE_ASSERT_EQUAL(4u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(4u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
   std::vector<uint32> skip(256, 1);
@@ -86,13 +88,13 @@ SCOPE_TEST(parseAlternationAndConcatenation) {
 SCOPE_TEST(parseGroup) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("a(b|c)", false, tree, p));
-  SCOPE_ASSERT_EQUAL(4u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(4u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
   std::vector<uint32> skip(256, 2);
@@ -111,16 +113,16 @@ SCOPE_TEST(parseQuestionMark) {
   // SCOPE_ASSERT(!p.good());
   // tree.Store.clear();
   SCOPE_ASSERT(parse("ab?", false, tree, p));
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
 
   // both s1 and s2 should be match states... it appears that there's an edge duplication???
   // writeGraphviz(std::cerr, fsm);
 
-  SCOPE_ASSERT_EQUAL(3u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(3u, fsm.numVertices());
   // get really invasive with testing here
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
   std::vector<uint32> skip(256, 1);
@@ -131,12 +133,12 @@ SCOPE_TEST(parseQuestionMark) {
 SCOPE_TEST(parseQuestionMarkFirst) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("a?b", false, tree, p));
-  SCOPE_ASSERT_EQUAL(3u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(3u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
@@ -149,23 +151,23 @@ SCOPE_TEST(parseQuestionMarkFirst) {
 SCOPE_TEST(parseTwoQuestionMarks) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("ab?c?d", false, tree, p));
-  SCOPE_ASSERT_EQUAL(5u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::in_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
   // a
-  SCOPE_ASSERT_EQUAL(3u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(3u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
   // b?
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(2));
   // c?
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(3, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::in_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(3));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(3));
   // d
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
-  SCOPE_ASSERT_EQUAL(3u, boost::in_degree(4, fsm));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(4));
+  SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(4));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
   std::vector<uint32> skip(256, 2);
@@ -179,20 +181,20 @@ SCOPE_TEST(parseTwoQuestionMarks) {
 SCOPE_TEST(parseQuestionWithAlternation) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("(a|b?)c", false, tree, p));
-  SCOPE_ASSERT_EQUAL(4u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(3u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::in_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(4u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
   // a
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
   // b?
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(2));
   // c
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
-  SCOPE_ASSERT_EQUAL(3u, boost::in_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
+  SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(3));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
   std::vector<uint32> skip(256, 1);
@@ -205,36 +207,36 @@ SCOPE_TEST(parseQuestionWithAlternation) {
 SCOPE_TEST(parseQuestionWithGrouping) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("a(bc)?d", false, tree, p));
-  SCOPE_ASSERT_EQUAL(5u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   // a
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(1));
   // b
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
   // c
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(3, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(3));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(3));
   // d
-  SCOPE_ASSERT_EQUAL(2u, boost::in_degree(4, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(4));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(4));
   SCOPE_ASSERT_EQUAL(2u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parsePlus) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("a+", false, tree, p));
-  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::in_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
   // a+
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::in_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(1));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
   std::vector<uint32> skip(256, 1);
@@ -245,15 +247,15 @@ SCOPE_TEST(parsePlus) {
 SCOPE_TEST(parseStar) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("ab*c", false, tree, p));
-  SCOPE_ASSERT_EQUAL(4u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::in_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(3, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::in_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(4u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(2));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(3));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
   std::vector<uint32> skip(256, 2);
@@ -266,21 +268,21 @@ SCOPE_TEST(parseStar) {
 SCOPE_TEST(parseStarWithGrouping) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("a(bc)*d", false, tree, p));
-  SCOPE_ASSERT_EQUAL(5u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
+  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   // a
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(1));
   // b
-  SCOPE_ASSERT_EQUAL(2u, boost::in_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
   // c
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(3, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(3, fsm));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(3));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(3));
   // d
-  SCOPE_ASSERT_EQUAL(2u, boost::in_degree(4, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(4));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(4));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
   std::vector<uint32> skip(256, 2);
@@ -295,12 +297,12 @@ SCOPE_TEST(parseStarWithGrouping) {
 SCOPE_TEST(parseDot) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse(".+", false, tree, p));
-  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::in_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(1));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
   std::vector<uint32> skip(256, 0);
@@ -314,11 +316,11 @@ SCOPE_TEST(parseDot) {
 SCOPE_TEST(parsePound) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("#", false, tree, p));
-  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
   std::vector<uint32> skip(256, 1);
@@ -338,11 +340,11 @@ SCOPE_TEST(parsePound) {
 SCOPE_TEST(parseHexCode) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("\\x20", false, tree, p));
-  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
   std::vector<uint32> skip(256, 1);
@@ -358,16 +360,16 @@ SCOPE_TEST(parseHexCode) {
 SCOPE_TEST(parseHexDotPlus) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("\\x20\\xFF.+\\x20", false, tree, p));
-  SCOPE_ASSERT_EQUAL(5u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::out_degree(3, fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::in_degree(3, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(4, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(4, fsm));
+  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(3));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(3));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(4));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(4));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(4u, tbl->l_min());
   std::vector<uint32> skip(256, 2);
@@ -379,10 +381,10 @@ SCOPE_TEST(parseHexDotPlus) {
 SCOPE_TEST(parse2ByteUnicode) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   p.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
   SCOPE_ASSERT(parse("ab", false, tree, p));
-  SCOPE_ASSERT_EQUAL(5u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(4u, calculateLMin(fsm));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(4u, tbl->l_min());
@@ -396,9 +398,9 @@ SCOPE_TEST(parse2ByteUnicode) {
 SCOPE_TEST(parseHighHex) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("\\xe5", false, tree, p));
-  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet expected,
           actual;
@@ -412,11 +414,11 @@ SCOPE_TEST(parseHighHex) {
 SCOPE_TEST(parseSimpleCharClass) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("[AaBb]", false, tree, p));
-  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
   SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
   std::vector<uint32> skip(256, 1);
@@ -440,11 +442,11 @@ SCOPE_TEST(parseSimpleCharClass) {
 SCOPE_TEST(parseNegatedClass) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("[^#]", false, tree, p));
-  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet expected,
           actual;
@@ -468,12 +470,11 @@ SCOPE_TEST(parseNegatedClass) {
 SCOPE_TEST(parseNegatedRanges) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   SCOPE_ASSERT(parse("[^a-zA-Z0-9]", false, tree, p));
-  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(2u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(1, fsm));
+  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet expected,
           actual;
@@ -497,16 +498,16 @@ SCOPE_TEST(parseNegatedRanges) {
 SCOPE_TEST(parseCaseInsensitive) {
   Parser      p;
   SyntaxTree  tree;
-  DynamicFSM& fsm(*p.getFsm());
+  Graph& fsm(*p.getFsm());
   p.setCaseSensitive(false);
   SCOPE_ASSERT(parse("ab", false, tree, p));
-  SCOPE_ASSERT_EQUAL(3u, boost::num_vertices(fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::in_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(0, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::out_degree(1, fsm));
-  SCOPE_ASSERT_EQUAL(1u, boost::in_degree(2, fsm));
-  SCOPE_ASSERT_EQUAL(0u, boost::out_degree(2, fsm));
+  SCOPE_ASSERT_EQUAL(3u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(2));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   Instruction i;
   SCOPE_ASSERT(fsm[1]->toInstruction(&i));
   SCOPE_ASSERT_EQUAL(Instruction::makeEither('A', 'a'), i);
@@ -519,4 +520,29 @@ SCOPE_TEST(parseSZeroMatchState) {
   SyntaxTree  tree;
   SCOPE_ASSERT(parse("a?", false, tree, p));
   SCOPE_ASSERT(!p.good());
+}
+
+SCOPE_TEST(parseRepeatedSkippables) {
+  // we'll simulate a?b*
+  Parser      p;
+  SyntaxTree  tree;
+  SCOPE_ASSERT_EQUAL(1, p.stack().size());
+  p.callback("", Node(Node::LITERAL, 0, 0, 'a'));
+  SCOPE_ASSERT_EQUAL(2, p.stack().size());
+  SCOPE_ASSERT(!p.stack().top().Skippable);
+  p.callback("", Node(Node::QUESTION, 0, 0, 0));
+  SCOPE_ASSERT_EQUAL(2, p.stack().size());
+  SCOPE_ASSERT(p.stack().top().Skippable);
+  p.callback("", Node(Node::LITERAL, 0, 0, 'b'));
+  SCOPE_ASSERT_EQUAL(3, p.stack().size());
+  SCOPE_ASSERT(!p.stack().top().Skippable);
+  p.callback("", Node(Node::STAR, 0, 0, 0));
+  SCOPE_ASSERT_EQUAL(3, p.stack().size());
+  SCOPE_ASSERT(p.stack().top().Skippable);
+  p.callback("", Node(Node::CONCATENATION, 0, 0, 0));
+  SCOPE_ASSERT_EQUAL(2, p.stack().size());
+  SCOPE_ASSERT(p.stack().top().Skippable);
+  p.callback("", Node(Node::CONCATENATION, 0, 0, 0));
+  SCOPE_ASSERT_EQUAL(1, p.stack().size());
+  SCOPE_ASSERT(!p.stack().top().Skippable);
 }

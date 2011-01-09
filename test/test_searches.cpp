@@ -1,57 +1,6 @@
 #include <scope/test.h>
 
-#include "parser.h"
-#include "utility.h"
-#include "vm_interface.h"
-
-#include <iostream>
-#include <cstdlib>
-
-#include <boost/bind.hpp>
-
-struct STest: public HitCallback {
-  std::vector< SearchHit > Hits;
-  DynamicFSMPtr Fsm;
-  ProgramPtr Prog;
-  boost::shared_ptr<VmInterface> Grep;
-
-  STest(const std::string& key) {
-    SyntaxTree  tree;
-    Parser      p;
-    if (parse(key, false, tree, p) && p.good()) {
-      Fsm = p.getFsm();
-      Prog = createProgram(*Fsm);
-      Prog->First = firstBytes(*Fsm);
-      Prog->Skip = calculateSkipTable(*Fsm);
-      Grep = VmInterface::create();
-      Grep->init(Prog);
-    }
-    else {
-      THROW_RUNTIME_ERROR_WITH_OUTPUT("couldn't parse " << key);
-    }
-  }
-
-  STest(uint32 num, const char** keys) {
-    std::vector<std::string> kws(num);
-    for (unsigned int i = 0; i < num; ++i) {
-      kws[i] = keys[i];
-    }
-    Fsm = createDynamicFSM(kws);
-    Prog = createProgram(*Fsm);
-    Prog->First = firstBytes(*Fsm);
-    Prog->Skip = calculateSkipTable(*Fsm);
-    Grep = VmInterface::create();
-    Grep->init(Prog);
-  }
-
-  bool search(const byte* begin, const byte* end, uint64 offset, HitCallback& cb) {
-    return Grep->search(begin, end, offset, cb);
-  }
-  
-  virtual void collect(const SearchHit& hit) {
-    Hits.push_back(hit);
-  }
-};
+#include "test_helper.h"
 
 SCOPE_FIXTURE_CTOR(abSearch, STest, STest("ab")) {
   const byte* text = (const byte*)"abc";
@@ -132,12 +81,19 @@ SCOPE_FIXTURE_CTOR(aOrbPlusSearch, STest, STest("(a|b)+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(1, 8, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest(4, (const char*[]){"a(b|c)a", "ac+", "ab?a", "two"})) { //
+SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest(4, (const char*[]){"a(b|c)a", "ac+", "ab?a", "two"})) {
+  //
   // writeGraphviz(std::cout, *fixture.Fsm);
   //                               01234567890123
   const byte* text = (const byte*)"aba aa aca two";
   fixture.search(text, text + 14, 0, fixture);
   SCOPE_ASSERT_EQUAL(6u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(7, 3, 0), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(7, 2, 1), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(4, 2, 2), fixture.Hits[4]);
+  SCOPE_ASSERT_EQUAL(SearchHit(11, 3, 3), fixture.Hits[5]);
 }
 
 SCOPE_FIXTURE_CTOR(aOrbStarbPlusSearch, STest, STest("(a|b)*b+")) {
@@ -177,4 +133,12 @@ SCOPE_FIXTURE_CTOR(aDotaPlusSearch, STest, STest("a.a+")) {
   SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 3, 0), fixture.Hits[1]);
+}
+
+SCOPE_FIXTURE_CTOR(badLabelingSearch, STest,
+                   STest(3, (const char*[]){"x", "x", "yyy"})) {
+  const byte* text = (const byte*)"yyy";
+  fixture.search(text, text+3, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[0]);
 }

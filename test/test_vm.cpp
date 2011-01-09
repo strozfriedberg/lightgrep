@@ -83,19 +83,37 @@ SCOPE_TEST(executeJump) {
   SCOPE_ASSERT_EQUAL(&(*p)[18], cur.PC);
 }
 
+SCOPE_TEST(executeLongJump) {
+  ProgramPtr p(new Program(2, Instruction()));
+  (*p)[0] = Instruction::makeLongJump(&(*p)[1], 18);
+  Vm s(p);
+  Thread cur(&(*p)[0], 0, 0, 0);
+  SCOPE_ASSERT(s.executeEpsilon(cur, 0));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT_EQUAL(0u, s.numNext());
+  SCOPE_ASSERT_EQUAL(&(*p)[18], cur.PC);
+}
+
 SCOPE_TEST(executeJumpTable) {
   byte b;
-  ProgramPtr  p(new Program(257, Instruction::makeHalt()));
-  (*p)[0]  = Instruction::makeJumpTable();
-  (*p)[66] = Instruction::makeJump(258);
-  Vm  s(p);
+  ProgramPtr pp(new Program(257, Instruction::makeHalt()));
+  Program& p = *pp;
+  p[0]  = Instruction::makeJumpTable();
+
+  for (uint32 i = 1; i < 257; ++i) {
+    *(uint32*)&(p[i]) = 0xffffffff;
+  }
+
+  *(uint32*)&(p[66]) = 258;
+
+  Vm s(pp);
   for (uint32 i = 0; i < 256; ++i) {
     b = i;
     s.reset();
-    Thread cur(&(*p)[0], 0, 0, 0);
+    Thread cur(&p[0], 0, 0, 0);
     if (i == 'A') {
       SCOPE_ASSERT(s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 1 + b, 0, 0, 0), cur);
+      SCOPE_ASSERT_EQUAL(Thread(&p[0] + 258, 0, 0, 0), cur);
     }
     else {
       SCOPE_ASSERT(!s.execute(cur, &b));
@@ -111,19 +129,20 @@ SCOPE_TEST(executeJumpTableRange) {
   std::vector<bool> checkStates;
   ProgramPtr p(new Program(3, Instruction::makeHalt()));
   (*p)[0] = Instruction::makeJumpTableRange('a', 'b');
-  (*p)[1] = Instruction::makeJump(3);
-  (*p)[2] = Instruction::makeJump(3);
+  *(uint32*)&((*p)[1]) = 3;
+  *(uint32*)&((*p)[2]) = 3;
+
   Vm s(p);
   for (uint32 i = 0; i < 256; ++i) {
     b = i;
     Thread cur(&(*p)[0], 0, 0, 0);
     if ('a' == i) {
       SCOPE_ASSERT(s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 1, 0, 0, 0), cur);
+      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 3, 0, 0, 0), cur);
     }
     else if ('b' == i) {
       SCOPE_ASSERT(s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 2, 0, 0, 0), cur);
+      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 3, 0, 0, 0), cur);
     }
     else {
       SCOPE_ASSERT(!s.execute(cur, &b));
@@ -198,6 +217,20 @@ SCOPE_TEST(executeFork) {
   SCOPE_ASSERT_EQUAL(1u, s.numNext());
   SCOPE_ASSERT_EQUAL(&(*p)[1], s.next()[0].PC);
   SCOPE_ASSERT_EQUAL(&(*p)[2], cur.PC);
+}
+
+SCOPE_TEST(executeLongFork) {
+  ProgramPtr p(new Program(4, Instruction()));
+  (*p)[0] = Instruction::makeLongFork(&(*p)[1], 3);
+  (*p)[2] = Instruction::makeLit('a');
+  (*p)[3] = Instruction::makeLit('a');
+  Vm s(p);
+  Thread cur(&(*p)[0], 0, 0, 0);
+  SCOPE_ASSERT(s.executeEpsilon(cur, 47));
+  SCOPE_ASSERT_EQUAL(0u, s.numActive()); // cha-ching!
+  SCOPE_ASSERT_EQUAL(1u, s.numNext());
+  SCOPE_ASSERT_EQUAL(&(*p)[2], s.next()[0].PC);
+  SCOPE_ASSERT_EQUAL(&(*p)[3], cur.PC);
 }
 
 SCOPE_TEST(executeCheckHalt) {
@@ -301,6 +334,39 @@ SCOPE_TEST(simpleLitMatch) {
   SCOPE_ASSERT_EQUAL(SearchHit(35, 2, 3), cb.Hits[0]);
   text[1] = 'c';
   SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
+}
+
+SCOPE_TEST(newThreadInit) {
+  ProgramPtr p(new Program);
+  p->push_back(Instruction::makeJumpTableRange('a', 'b')); // 0
+  p->push_back(Instruction::makeRaw(4));               // 1
+  p->push_back(Instruction::makeRaw(8));               // 2
+  p->push_back(Instruction::makeLit('a'));             // 3
+  p->push_back(Instruction::makeLabel(1)); // nonzero     4
+  p->push_back(Instruction::makeMatch());              // 5
+  p->push_back(Instruction::makeHalt());               // 6
+  p->push_back(Instruction::makeLit('b'));             // 7
+  p->push_back(Instruction::makeLit('c'));             // 8
+  p->push_back(Instruction::makeLabel(0));
+  p->push_back(Instruction::makeMatch());
+  p->push_back(Instruction::makeHalt());
+  byte text[] = {'a', 'a', 'b', 'c'};
+  MockCallback cb;
+  Vm v;
+  p->First.set('a');
+  p->First.set('b');
+  v.init(p);
+  v.executeFrame(&text[0], 13, cb); // should result in hit, empty active
+  v.cleanup();
+  v.executeFrame(&text[1], 14, cb);
+  v.cleanup();
+//  SCOPE_ASSERT(v.active().empty());
+//  SCOPE_ASSERT_EQUAL(1, cb.Hits.size());
+//  SCOPE_ASSERT_EQUAL(SearchHit(13, 1, 1), cb.Hits[0]);
+  v.executeFrame(&text[2], 15, cb);
+  v.cleanup();
+  SCOPE_ASSERT_EQUAL(1, v.active().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], std::numeric_limits<uint32>::max(), 15, std::numeric_limits<uint64>::max()), v.active()[0]);
 }
 
 SCOPE_TEST(threeKeywords) {

@@ -6,7 +6,7 @@
 
 namespace {
 static int yylex(void);
-static void yyerror(char*);
+static void yyerror(const char*);
 
 const unsigned char* Text;
 const unsigned char* TextBegin;
@@ -288,7 +288,7 @@ namespace {
 		return -1;
 	}
 
-	void yyerror(char* msg) {
+	void yyerror(const char* msg) {
 		THROW_RUNTIME_ERROR_WITH_OUTPUT(msg);
 	}
 

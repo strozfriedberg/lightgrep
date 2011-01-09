@@ -1,6 +1,7 @@
 // must include <fstrea> before options.h, because of <iosfwd> usage
 #include <iostream>
 #include <fstream>
+#include <stdexcept>
 
 #include "options.h"
 #include "utility.h"

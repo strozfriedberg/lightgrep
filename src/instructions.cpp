@@ -42,6 +42,9 @@ std::string Instruction::toString() const {
     case JUMP_OP:
       buf << "Jump 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
       break;
+    case LONGJUMP_OP:
+      buf << "LongJump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
+      break;
     case JUMP_TABLE_OP:
       buf << "JumpTable";
       break;
@@ -50,6 +53,9 @@ std::string Instruction::toString() const {
       break;
     case FORK_OP:
       buf << "Fork 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
+      break;
+    case LONGFORK_OP:
+      buf << "LongFork 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
       break;
     case CHECK_HALT_OP:
       buf << "CheckHalt 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
@@ -107,8 +113,7 @@ Instruction Instruction::makeBitVector() {
 }
 
 Instruction Instruction::makeJump(uint32 relativeOffset) {
-  // we should have a two-word version for if relativeOffset >= 2^24
-  // for now, we'll just throw a runtime error
+  // Use makeLongJump if relativeOffset >= 2^24
   if (relativeOffset >= (1 << 24)) {
     THROW_WITH_OUTPUT(std::overflow_error, "jump offsets are 24 bit; specified offset was " << relativeOffset);
   }
@@ -116,6 +121,17 @@ Instruction Instruction::makeJump(uint32 relativeOffset) {
   i.OpCode = JUMP_OP;
   i.Size = 0;
   i.Op.Offset = relativeOffset;
+  return i;
+}
+
+Instruction Instruction::makeLongJump(Instruction* ptr, uint32 relativeOffset) {
+  // "24 bits ought to be enough for anybody." --Jon Stewart
+  // I once implemented a 24-bit VM in Java for a class; that sucked ass -- JLS
+  Instruction i;
+  i.OpCode = LONGJUMP_OP;
+  i.Size = 1;
+  i.Op.Offset = 0;
+  *reinterpret_cast<uint32*>(ptr) = relativeOffset;
   return i;
 }
 
@@ -150,6 +166,12 @@ Instruction Instruction::makeFork(uint32 index) {
   return i;
 }
 
+Instruction Instruction::makeLongFork(Instruction* ptr, uint32 relativeOffset) {
+  Instruction i = makeLongJump(ptr, relativeOffset);
+  i.OpCode = LONGFORK_OP;
+  return i;
+}
+
 Instruction Instruction::makeCheckHalt(uint32 checkIndex) {
   Instruction i = makeJump(checkIndex);
   i.OpCode = CHECK_HALT_OP;
@@ -164,20 +186,47 @@ Instruction Instruction::makeHalt() {
   return i;
 }
 
+Instruction Instruction::makeRaw(uint32 val) {
+  Instruction i;
+  *reinterpret_cast<uint32*>(&i) = val;
+  return i;
+}
+
 std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
   out << instr.toString();
   return out;
 }
 
+std::ostream& printIndex(std::ostream& out, uint32 i) {
+  out << std::setfill('0') << std::setw(7) << i << '\t';
+  return out;
+}
+
 std::ostream& operator<<(std::ostream& out, const Program& prog) {
   for (uint32 i = 0; i < prog.size(); ++i) {
-    out << std::setfill('0') << std::setw(7) << i << '\t' << prog[i] << '\n';
+    printIndex(out, i) << prog[i] << '\n';
     if (prog[i].OpCode == BIT_VECTOR_OP) {
       for (uint32 j = 1; j < 9; ++j) {
         out << std::dec << std::setfill('0') << std::setw(7) << i + j << '\t' << std::hex << std::setfill('0') << std::setw(8) << *(uint32*)(&prog[i]+j) << '\n';
       }
       out << std::dec;
       i += 8;
+    }
+    else if (prog[i].OpCode == JUMP_TABLE_OP || prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
+      uint32 start = 0,
+             end = 255;
+      if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
+        start = prog[i].Op.Range.First;
+        end = prog[i].Op.Range.Last;
+      }
+      for (uint32 j = start; j <= end; ++j) {
+        ++i;
+        printIndex(out, i) << std::setfill(' ') << std::setw(3) << j << ": " << *reinterpret_cast<const uint32*>(&prog[i]) << '\n';
+      }
+    }
+    else if (prog[i].OpCode == LONGJUMP_OP || prog[i].OpCode == LONGFORK_OP) {
+      ++i;
+      printIndex(out, i) << *reinterpret_cast<const uint32*>(&prog[i]) << '\n';
     }
   }
   return out;

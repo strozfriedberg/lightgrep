@@ -1,7 +1,7 @@
 #pragma once
 
 #include <bitset>
-#include <exception>
+#include <stdexcept>
 #include <sstream>
 #include <vector>
 #include <utility>
