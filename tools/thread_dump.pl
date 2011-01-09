@@ -34,11 +34,19 @@ sub print_frame {
   foreach $thread (@{$frame->{'list'}}) {
     if ($thread->{'state'} == 0) {
       # thread birth is green
-      print "\33[1;32m";
+      print " \33[1;32m";
+    }
+    elsif ($thread->{'state'} == 1) {
+      # pre-run
+      print '-';
     }
     elsif ($thread->{'state'} == 2) {
+      # post-run
+      print '+';
+    }
+    elsif ($thread->{'state'} == 3) {
       # thread death is red
-      print "\33[1;31m";
+      print "+\33[1;31m";
     }
 
     printf(
@@ -50,7 +58,7 @@ sub print_frame {
       $thread->{'End'}
     );
 
-    if ($thread->{'state'} != 1) {
+    if ($thread->{'state'} == 0 || $thread->{'state'} == 3) {
       # switch back to regular text color 
       print "\33[0m";
     }

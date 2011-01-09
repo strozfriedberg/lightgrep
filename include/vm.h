@@ -55,8 +55,10 @@ private:
                    const Thread& t, const Instruction* base);
   void new_thread_json(std::ostream& out, uint64 offset, const Thread& t,
                        const Instruction* base);
-  void run_thread_json(std::ostream& out, uint64 offset, const Thread& t,
-                       const Instruction* base);
+  void pre_run_thread_json(std::ostream& out, uint64 offset, const Thread& t,
+                           const Instruction* base);
+  void post_run_thread_json(std::ostream& out, uint64 offset, const Thread& t,
+                            const Instruction* base);
   void kill_thread_json(std::ostream& out, uint64 offset, const Thread& t,
                         const Instruction* base);
   void thread_json(std::ostream& out, uint64 offset, const Thread& t,
