@@ -16,6 +16,8 @@ while (<>) {
   print_frame($_); 
 }
 
+print "\n";
+
 sub readabilify {
   my $byte = $_[0];
   my $c = chr($byte);
