@@ -547,7 +547,7 @@ SCOPE_TEST(parseRepeatedSkippables) {
   SCOPE_ASSERT(!p.stack().top().Skippable);
 }
 
-SCOPE_TEST(validateEdgeOrderZeroDotStarZero) {
+SCOPE_TEST(verifyEdgeOrderZeroDotStarZero) {
   Parser      p;
   SyntaxTree  tree;
   Graph& g(*p.getFsm());
