@@ -362,6 +362,10 @@ SCOPE_TEST(generateCheckHalt) {
   Graph fsm(2);
   edge(0, 1, fsm, new LitState('a', 0));
   edge(1, 1, fsm, new LitState('a', 0));
+
+  fsm[1]->Label = 0;
+  fsm[1]->IsMatch = true;
+
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
   SCOPE_ASSERT_EQUAL(1u, prog.NumChecked);
