@@ -48,11 +48,11 @@ sub print_frame {
     }
     elsif ($thread->{'state'} == 3) {
       # thread death is red
-      print "+\33[1;31m";
+      print " \33[1;31m";
     }
 
     printf(
-      " %016x %016x %08x [%016x,%016x)\n",
+      " %016x %016x %08x [%016x,%016x]\n",
       $thread->{'Id'},
       $thread->{'PC'},
       $thread->{'Label'},
