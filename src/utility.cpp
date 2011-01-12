@@ -207,11 +207,11 @@ ProgramPtr createProgram(const Graph& graph) {
     if (graph.outDegree(v) > 0) {
       bool hasTargetAtNext = false;
       Graph::vertex nextTarget = 0;
-      for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
-        Graph::vertex curTarget = graph.outVertex(v, ov);
+      for (uint32 i = 0; i < graph.outDegree(v); ++i) {
+        Graph::vertex curTarget = graph.outVertex(v, graph.outDegree(v)-i-1);
         // std::cerr << "targeting " << curTarget << " at " << cg->Snippets[curTarget].first << std::endl;
         if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget]) {
-          if (ov + 1 == graph.outDegree(v) && !hasTargetAtNext) {
+          if (i + 1 == graph.outDegree(v) && !hasTargetAtNext) {
             *curOp = Instruction::makeLongJump(curOp, cg->Snippets[curTarget].Start);
             // std::cerr << "wrote " << Instruction::makeJump(cg->Snippets[curTarget].first) << std::endl;
           }
