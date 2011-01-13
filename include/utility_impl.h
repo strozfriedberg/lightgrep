@@ -115,7 +115,7 @@ public:
 
     TransitionPtr t = graph[v];
     if (t) {
-      if (t->Label < UNALLOCATED) {
+      if (t->Label != UNALLOCATED) {
         ++labels;
       }
       if (t->IsMatch) {
