@@ -259,7 +259,10 @@ SCOPE_TEST(layoutWithCheckHalt) {
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 2, fsm, new LitState('b', 0));
-  
+ 
+  fsm[2]->Label = 0;
+  fsm[2]->IsMatch = true;
+ 
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
   CodeGenVisitor vis(cg);
   specialVisit(fsm, 0, vis);
