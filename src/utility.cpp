@@ -189,7 +189,7 @@ ProgramPtr createProgram(const Graph& graph) {
       if (cg->Snippets[v].CheckIndex != UNALLOCATED) {
         *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
       }
-      if (t->Label < 0xffffffff) {
+      if (t->Label != UNALLOCATED) {
         *curOp++ = Instruction::makeLabel(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
       }
