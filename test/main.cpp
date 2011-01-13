@@ -158,6 +158,7 @@ void search(const Options& opts) {
     // delete [] argArray;
   }
   else {
+// FIXME: bin/test/test -c prog 'a(b|c|d|g)f' gives confusing message
     std::cerr << "Could not open file " << opts.Input << std::endl;
   }
 }
