@@ -98,9 +98,15 @@ SCOPE_TEST(acOrbcProgram) {
 
 SCOPE_TEST(keywordLabels) {
   Graph fsm(4);
-  edge(0, 1, fsm, new LitState('a', 0));
+  edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('b'));
-  edge(2, 3, fsm, new LitState('c', 1));
+  edge(2, 3, fsm, new LitState('c'));
+  
+  fsm[1]->Label = 0;
+  fsm[2]->Label = 1;
+  fsm[1]->IsMatch = true;
+  fsm[3]->IsMatch = true;
+
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
 
@@ -111,8 +117,8 @@ SCOPE_TEST(keywordLabels) {
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[6]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[7]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(1), prog[8]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(1), prog[7]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[8]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[10]);
 }
