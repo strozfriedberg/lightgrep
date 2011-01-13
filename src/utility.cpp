@@ -240,14 +240,11 @@ class SkipTblVisitor: public Visitor {
 public:
   SkipTblVisitor(boost::shared_ptr<SkipTable> skip): Skipper(skip) {}
   
-  void discoverVertex(Graph::vertex v,
-                      const Graph& graph) const {
+  void discoverVertex(Graph::vertex v, const Graph& graph) const {
     Skipper->calculateTransitions(v, graph);
   }
  
-  void treeEdge(Graph::vertex h,
-                Graph::vertex t,
-                const Graph& graph) const {
+  void treeEdge(Graph::vertex h, Graph::vertex t, const Graph& graph) const {
     Skipper->setDistance(h, t, graph);
   }
 
