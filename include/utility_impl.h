@@ -65,7 +65,7 @@ public:
   }
 
   bool shouldBeJumpTable(Graph::vertex v, const Graph& graph, uint32 outDegree, uint32& totalSize) {
-    if (outDegree > 3 && (v == 0 || graph[v]->Label == UNALLOCATED)) {
+    if (outDegree > 3) {
       TransitionTbl tbl(pivotStates(v, graph));
       if (maxOutbound(tbl) < outDegree) {
         uint32 sizeIndirectTables = 0,
@@ -105,13 +105,9 @@ public:
     bool   match = false;
     uint32 labels = 0,
            eval   = (v == 0 ? 0: graph[v]->numInstructions()),
-           outDegree = graph.outDegree(v),
            totalSize;
 
-    if (shouldBeJumpTable(v, graph, outDegree, totalSize)) {
-      Helper->addSnippet(v, eval, totalSize);
-      return;
-    }
+    const uint32 outDegree = graph.outDegree(v);
 
     TransitionPtr t = graph[v];
     if (t) {
@@ -122,24 +118,35 @@ public:
         match = true;
       }
     }
+
     uint32 outOps = 0;
 
-    if (graph.outDegree(v) == 0) {
+    if (outDegree == 0) {
       // std::cerr << "no out edges, so a halt" << std::endl;
       outOps = 1; // HALT instruction
+      totalSize = outOps + labels + (match ? 1: 0) +
+                  (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1);
     }
-    else {
-      for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
-        // if a target state immediately follows the current state, then we don't need an instruction for it
+    else if (outDegree < 4) {
+      for (uint32 ov = 0; ov < outDegree; ++ov) {
+        // if a target state immediately follows the current state,
+        // then we don't need an instruction for it
         if (Helper->DiscoverRanks[v] + 1 !=
             Helper->DiscoverRanks[graph.outVertex(v, ov)]) {
           outOps += 2;
         }
       }
+
+      totalSize = outOps + labels + (match ? 1: 0) +
+                  (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1);
+    }
+    else {
+      shouldBeJumpTable(v, graph, outDegree, totalSize);
     }
 
+    Helper->addSnippet(v, eval, totalSize);
+
     // std::cerr << "outOps = " << outOps << "; labels = " << labels << "; match = " << isMatch << std::endl;
-    Helper->addSnippet(v, eval, outOps + labels + (match ? 1: 0) + (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1));
     // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
   }
 
