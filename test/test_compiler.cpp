@@ -46,15 +46,9 @@ SCOPE_TEST(testMergeLabelsSimple) {
   edge(0, 1, src, new LitState('a'));
   edge(1, 2, src, new LitState('b', 0));
 
-  src[2]->Label = 1; 
-  src[2]->IsMatch = true;
-
   // ac
   edge(0, 1, dst, new LitState('a'));
   edge(1, 2, dst, new LitState('c', 1));
-
-  dst[2]->Label = 0; 
-  dst[2]->IsMatch = true;
 
   c.mergeIntoFSM(dst, src);
   
@@ -64,8 +58,8 @@ SCOPE_TEST(testMergeLabelsSimple) {
   edge(1, 3, exp, new LitState('b', 2));
 
   exp[1]->Label = UNALLOCATED;
-  exp[2]->Label = 0;
-  exp[3]->Label = 1; 
+  exp[2]->Label = 1;
+  exp[3]->Label = 0; 
 
   exp[2]->IsMatch = true;
   exp[3]->IsMatch = true;
