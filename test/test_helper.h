@@ -24,19 +24,9 @@ struct STest: public HitCallback {
   boost::shared_ptr<VmInterface> Grep;
 
   STest(const std::string& key) {
-    SyntaxTree  tree;
-    Parser      p;
-    if (parse(key, false, tree, p) && p.good()) {
-      Fsm = p.getFsm();
-      Prog = createProgram(*Fsm);
-      Prog->First = firstBytes(*Fsm);
-      Prog->Skip = calculateSkipTable(*Fsm);
-      Grep = VmInterface::create();
-      Grep->init(Prog);
-    }
-    else {
-      THROW_RUNTIME_ERROR_WITH_OUTPUT("couldn't parse " << key);
-    }
+    std::vector<std::string> kws;
+    kws.push_back(key);
+    init(kws);
   }
 
   STest(uint32 num, const char** keys) {
@@ -44,6 +34,10 @@ struct STest: public HitCallback {
     for (unsigned int i = 0; i < num; ++i) {
       kws[i] = keys[i];
     }
+    init(kws);
+  }
+
+  void init(const std::vector<std::string>& kws) {
     Fsm = createGraph(kws);
     Prog = createProgram(*Fsm);
     Prog->First = firstBytes(*Fsm);
@@ -52,9 +46,9 @@ struct STest: public HitCallback {
     Grep->init(Prog);
   }
 
-  bool search(const byte* begin, const byte* end, uint64 offset, HitCallback& cb
-) {
-    return Grep->search(begin, end, offset, cb);
+  void search(const byte* begin, const byte* end, uint64 offset, HitCallback& cb) {
+    Grep->search(begin, end, offset, cb);
+    Grep->closeOut(cb);
   }
 
   virtual void collect(const SearchHit& hit) {
