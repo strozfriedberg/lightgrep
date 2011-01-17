@@ -96,25 +96,27 @@ SCOPE_TEST(acOrbcProgram) {
   SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[7], 2), prog[7]);
 }
 
-SCOPE_TEST(keywordLabels) {
+SCOPE_TEST(keywordLabelsProgram) {
   Graph fsm(4);
-  edge(0, 1, fsm, new LitState('a', 0));
+  edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('b'));
-  edge(2, 3, fsm, new LitState('c', 1));
+  edge(2, 3, fsm, new LitState('c'));
+
+  fsm[1]->Label = 0;
+  fsm[3]->Label = 1;
+
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
 
-  SCOPE_ASSERT_EQUAL(11u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[0], 6), prog[0]);
+  SCOPE_ASSERT_EQUAL(9u, prog.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[0], 5), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[3]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[4]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[5]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[6]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[7]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(1), prog[8]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[9]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[10]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[6]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(1), prog[7]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[8]);
 }
 
 SCOPE_TEST(twoFixedStrings) {
@@ -258,8 +260,11 @@ SCOPE_TEST(layoutWithCheckHalt) {
   Graph fsm(3);
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
-  edge(2, 2, fsm, new LitState('b', 0));
-  
+  edge(2, 2, fsm, new LitState('b'));
+ 
+  fsm[2]->Label = 0;
+  fsm[2]->IsMatch = true;
+ 
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
   CodeGenVisitor vis(cg);
   specialVisit(fsm, 0, vis);
@@ -283,39 +288,76 @@ SCOPE_TEST(twoStateBetterLayout) {
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[1]);
 }
 
+SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
+  Graph g(4);
+  edge(0, 1, g, new LitState('a'));
+  edge(0, 2, g, new LitState('b'));
+  edge(0, 3, g, new LitState('c'));
+  edge(0, 4, g, new LitState('e')); 
+ 
+  boost::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.numVertices()));
+  CodeGenVisitor vis(cgh);
+  uint32 totalSize;
+
+  SCOPE_ASSERT(vis.shouldBeJumpTable(0, g, g.outDegree(0), totalSize));
+  SCOPE_ASSERT_EQUAL(JUMP_TABLE_RANGE_OP, cgh->Snippets[0].Op);
+  SCOPE_ASSERT_EQUAL(6, totalSize);
+  SCOPE_ASSERT(!vis.shouldBeJumpTable(1, g, g.outDegree(1), totalSize));
+  SCOPE_ASSERT(!vis.shouldBeJumpTable(2, g, g.outDegree(2), totalSize));
+  SCOPE_ASSERT(!vis.shouldBeJumpTable(3, g, g.outDegree(3), totalSize));
+}
+
+SCOPE_TEST(testCodeGenVisitorShouldBeJumpTable) {
+  Graph g(4);
+  edge(0, 1, g, new LitState(0x00));
+  edge(0, 2, g, new LitState('b'));
+  edge(0, 3, g, new LitState('c'));
+  edge(0, 4, g, new LitState(0xFF));
+
+  boost::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.numVertices()));
+  CodeGenVisitor vis(cgh);
+  uint32 totalSize;
+
+  SCOPE_ASSERT(vis.shouldBeJumpTable(0, g, g.outDegree(0), totalSize));
+  SCOPE_ASSERT_EQUAL(JUMP_TABLE_OP, cgh->Snippets[0].Op);
+  SCOPE_ASSERT_EQUAL(257, totalSize);
+  SCOPE_ASSERT(!vis.shouldBeJumpTable(1, g, g.outDegree(1), totalSize));
+  SCOPE_ASSERT(!vis.shouldBeJumpTable(2, g, g.outDegree(2), totalSize));
+  SCOPE_ASSERT(!vis.shouldBeJumpTable(3, g, g.outDegree(3), totalSize));
+}
+
 SCOPE_TEST(alternationBetterLayout) {
   Graph fsm(3);
-  Transition* t1(new LitState('a', 0)),
-            * t2(new LitState('b', 0));
-  edge(0, 1, fsm, t1);
-  edge(0, 2, fsm, t2);
+  edge(0, 1, fsm, new LitState('a'));
+  edge(0, 2, fsm, new LitState('b'));
+
+  fsm[1]->Label = 0;
+  fsm[2]->Label = 0;
+
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
   
-  // std::cout << "alternationBetterLayout" << '\n' << prog;
-  SCOPE_ASSERT_EQUAL(10u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[0], 6), prog[0]);
+  SCOPE_ASSERT_EQUAL(8u, prog.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[0], 5), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[3]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[4]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[5]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[6]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[7]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[8]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[9]);  
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[6]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[7]);
 }
 
 void createTrie(Graph& fsm) {
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 3, fsm, new LitState('l'));
-  edge(3, 4, fsm, new LitState('e', 0));
+  edge(3, 4, fsm, new LitState('e'));
   edge(2, 5, fsm, new LitState('e'));
-  edge(5, 6, fsm, new LitState('t', 1));
+  edge(5, 6, fsm, new LitState('t'));
   edge(0, 7, fsm, new LitState('b'));
   edge(7, 8, fsm, new LitState('i'));
   edge(8, 9, fsm, new LitState('t'));
-  edge(9, 10, fsm, new LitState('e', 2));
+  edge(9, 10, fsm, new LitState('e'));
 }
 
 SCOPE_TEST(betterLayout) {
@@ -332,36 +374,33 @@ SCOPE_TEST(betterLayout) {
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
 
-  // std::cout << "betterLayout\n" << prog;
-  SCOPE_ASSERT_EQUAL(25u, prog.size());
+  SCOPE_ASSERT_EQUAL(19u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[0], 8), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[3]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[4], 15), prog[4]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[6], 20), prog[6]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[4], 13), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[6], 16), prog[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[8]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('i'), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('t'), prog[10]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('e'), prog[11]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(2), prog[12]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[13]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[14]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('l'), prog[15]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[12]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('l'), prog[13]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('e'), prog[14]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[15]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('e'), prog[16]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[17]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[18]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[19]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('e'), prog[20]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('t'), prog[21]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(1), prog[22]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[23]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[24]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('t'), prog[17]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[18]);
 }
 
 SCOPE_TEST(generateCheckHalt) {
   Graph fsm(2);
-  edge(0, 1, fsm, new LitState('a', 0));
-  edge(1, 1, fsm, new LitState('a', 0));
+  edge(0, 1, fsm, new LitState('a'));
+  edge(1, 1, fsm, new LitState('a'));
+
+  fsm[1]->Label = 0;
+  fsm[1]->IsMatch = true;
+
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
   SCOPE_ASSERT_EQUAL(1u, prog.NumChecked);
@@ -455,34 +494,32 @@ SCOPE_TEST(generateJumpTableRange) {
   edge(1, 3, fsm, new LitState('c'));
   edge(1, 4, fsm, new LitState('d'));
   edge(1, 5, fsm, new LitState('g'));
-  edge(2, 6, fsm, new LitState('f'));
-  edge(3, 6, fsm, new LitState('f'));
-  edge(4, 6, fsm, new LitState('f'));
-  edge(5, 6, fsm, new LitState('f', 0));
+  boost::shared_ptr<LitState> f(new LitState('f'));
+  edge(2, 6, fsm, f);
+  edge(3, 6, fsm, f);
+  edge(4, 6, fsm, f);
+  edge(5, 6, fsm, f);
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
-  SCOPE_ASSERT_EQUAL(23, prog.size());
+  SCOPE_ASSERT_EQUAL(19u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJumpTableRange('b', 'g'), prog[1]);
-  SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[2]); // b
-  SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[3]); // c
-  SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[4]); // d
+  SCOPE_ASSERT_EQUAL(8, *(uint32*) &prog[2]); // b
+  SCOPE_ASSERT_EQUAL(11, *(uint32*) &prog[3]); // c
+  SCOPE_ASSERT_EQUAL(14, *(uint32*) &prog[4]); // d
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[5]); // e
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[6]); // f
-  SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[7]); // g
+  SCOPE_ASSERT_EQUAL(17, *(uint32*) &prog[7]); // g
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[8]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('f'), prog[9]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[10]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[11]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[12]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[13]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[14]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[10]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[11]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[12], 9), prog[12]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('d'), prog[14]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[15], 9), prog[15]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('d'), prog[17]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLit('g'), prog[17]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[18], 9), prog[18]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('g'), prog[20]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[21], 9), prog[21]);
 }
 
 SCOPE_TEST(testCreateXXYYY) {
