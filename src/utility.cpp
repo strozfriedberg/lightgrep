@@ -94,7 +94,7 @@ GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMo
 
 // If the jump is to a state that has only a single out edge, and there's no match on the state, then jump forward directly to the out-edge state
 uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {
-  if (1 == graph.outDegree(v) && UNALLOCATED == graph[v]->Label) {
+  if (1 == graph.outDegree(v) && !graph[v]->IsMatch) {
     return cg->Snippets[graph.outVertex(v, 0)].Start;
   }
   else {
@@ -112,6 +112,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
          last  = 255;
 
   if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op) {
+// FIXME: Blech, change these to use std::find?
     for (uint32 i = 0; i < 256; ++i) {
       if (!tbl[i].empty()) {
         first = i;
@@ -131,6 +132,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
     *cur++ = Instruction::makeJumpTable();
     indirectTbl = base + 257;
   }
+
   for (uint32 i = first; i <= last; ++i) {
     if (tbl[i].empty()) {
       const uint32 addr = 0xffffffff;
