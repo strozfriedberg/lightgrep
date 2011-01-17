@@ -97,7 +97,7 @@ public:
 
         if (last - first < 128) {
           // JumpTableRange instr + inclusive number
-          totalSize = 2 + (last - first) + 1 + sizeIndirectTables;
+          totalSize = 2 + (last - first) + sizeIndirectTables;
           Helper->Snippets[v].Op = JUMP_TABLE_RANGE_OP;
         }
         else {
@@ -136,8 +136,6 @@ public:
     if (outDegree == 0) {
       // std::cerr << "no out edges, so a halt" << std::endl;
       outOps = 1; // HALT instruction
-      totalSize = outOps + labels + (match ? 1: 0) +
-                  (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1);
     }
     else if (outDegree < 4) {
       for (uint32 ov = 0; ov < outDegree; ++ov) {
@@ -148,13 +146,13 @@ public:
           outOps += 2;
         }
       }
-
-      totalSize = outOps + labels + (match ? 1: 0) +
-                  (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1);
     }
     else {
-      shouldBeJumpTable(v, graph, outDegree, totalSize);
+      shouldBeJumpTable(v, graph, outDegree, outOps);
     }
+
+    totalSize = outOps + labels + (match ? 1: 0) +
+                (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1);
 
     Helper->addSnippet(v, eval, totalSize);
 
