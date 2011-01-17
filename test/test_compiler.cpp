@@ -251,15 +251,6 @@ SCOPE_TEST(testLabelGuardStates) {
   edge(3, 4, g, new LitState('y'));
   edge(4, 5, g, new LitState('y', 2));
 
-  g[1]->Label = 0;
-  g[1]->IsMatch = true;
-
-  g[2]->Label = 1;
-  g[2]->IsMatch = true;
-
-  g[5]->Label = 2;
-  g[5]->IsMatch = true;
-
   comp.propagateMatchLabels(g);  
   comp.removeNonMinimalLabels(g);
 
