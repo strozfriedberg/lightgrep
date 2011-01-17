@@ -285,14 +285,10 @@ SCOPE_TEST(twoStateBetterLayout) {
 
 SCOPE_TEST(alternationBetterLayout) {
   Graph fsm(3);
-  edge(0, 1, fsm, new LitState('a', 0));
-  edge(0, 2, fsm, new LitState('b', 0));
-  
-  fsm[1]->Label = 0;
-  fsm[2]->Label = 0;
-  fsm[1]->IsMatch = true;
-  fsm[2]->IsMatch = true;
-
+  Transition* t1(new LitState('a', 0)),
+            * t2(new LitState('b', 0));
+  edge(0, 1, fsm, t1);
+  edge(0, 2, fsm, t2);
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
   
