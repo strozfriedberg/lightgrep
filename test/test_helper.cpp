@@ -5,11 +5,15 @@
 #include "test_helper.h"
 
 void edge(Graph::vertex source, Graph::vertex target, Graph& fsm, TransitionPtr tPtr) {
+
   while (source >= fsm.numVertices()) fsm.addVertex();
   while (target >= fsm.numVertices()) fsm.addVertex();
 
   fsm.addEdge(source, target);
   fsm[target] = tPtr;
+  if (tPtr->Label != UNALLOCATED) {
+    tPtr->IsMatch = true;
+  }
 }
 
 void edge(Graph::vertex source, Graph::vertex target, Graph& fsm, Transition* tPtr) {
