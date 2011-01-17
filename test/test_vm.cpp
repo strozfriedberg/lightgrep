@@ -9,65 +9,65 @@ SCOPE_TEST(executeLit) {
   byte b = 'a';
   ProgramPtr p(new Program(1, Instruction::makeLit('a')));
   Vm         s(p);
-  Thread     cur(&(*p)[0]);
-  SCOPE_ASSERT(s.execute(cur, &b));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  Thread& cur(s.add(Thread(&(*p)[0])));
+  SCOPE_ASSERT(s.execute(&cur, &b));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(&(*p)[1], cur.PC);
 
   cur.PC = &(*p)[0];
   s.reset();
   b = 'c';
-  SCOPE_ASSERT(!s.execute(cur, &b));
+  SCOPE_ASSERT(!s.execute(&cur, &b));
   SCOPE_ASSERT_EQUAL(0u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(), cur);
+  SCOPE_ASSERT_EQUAL(Thread(&p->back()), cur);
 }
 
 SCOPE_TEST(executeEither) {
   byte b = 'z';
   ProgramPtr p(new Program(1, Instruction::makeEither('z', '3')));
   Vm         s(p);
-  Thread     cur(&(*p)[0], 0, 0, 0);
-  SCOPE_ASSERT(s.execute(cur, &b));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
+  SCOPE_ASSERT(s.execute(&cur, &b));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(&(*p)[1], cur.PC);
 
   s.reset();
+  s.add(Thread(&(*p)[0]));
   b = '3';
-  cur.PC = &(*p)[0];
-  SCOPE_ASSERT(s.execute(cur, &b));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT(s.execute(&cur, &b));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(&(*p)[1], cur.PC);
 
   s.reset();
+  s.add(Thread(&(*p)[0]));
   b = '4';
-  cur.PC = &(*p)[0];
-  SCOPE_ASSERT(!s.execute(cur, &b));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT(!s.execute(&cur, &b));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
+  SCOPE_ASSERT_EQUAL(Thread(&p->back()), cur);
 }
 
 SCOPE_TEST(executeRange) {
   ProgramPtr p(new Program(1, Instruction::makeRange('c', 't')));
   Vm         s(p);
-  Thread     cur(&(*p)[0], 0, 0, 0);
+  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
   for (uint32 j = 0; j < 256; ++j) {
     s.reset();
+    s.add(Thread(&(*p)[0]));
     byte b = j;
-    cur.PC = &(*p)[0];
     if ('c' <= j && j <= 't') {
-      SCOPE_ASSERT(s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(0u, s.numActive());
+      SCOPE_ASSERT(s.execute(&cur, &b));
+      SCOPE_ASSERT_EQUAL(1u, s.numActive());
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
       SCOPE_ASSERT_EQUAL(&(*p)[1], cur.PC);
     }
     else {
-      SCOPE_ASSERT(!s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(0u, s.numActive());
+      SCOPE_ASSERT(!s.execute(&cur, &b));
+      SCOPE_ASSERT_EQUAL(1u, s.numActive());
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
     }
   }
@@ -76,20 +76,20 @@ SCOPE_TEST(executeRange) {
 SCOPE_TEST(executeJump) {
   ProgramPtr p(new Program(1, Instruction::makeJump(18)));
   Vm         s(p);
-  Thread     cur(&(*p)[0], 0, 0, 0);
-  SCOPE_ASSERT(s.executeEpsilon(cur, 0));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
+  SCOPE_ASSERT(s.executeEpsilon(&cur, 0));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(&(*p)[18], cur.PC);
 }
 
 SCOPE_TEST(executeLongJump) {
   ProgramPtr p(new Program(2, Instruction()));
-  (*p)[0] = Instruction::makeLongJump(&(*p)[1], 18);
+  (*p)[0] = Instruction::makeLongJump(&(*p)[0], 18);
   Vm s(p);
-  Thread cur(&(*p)[0], 0, 0, 0);
-  SCOPE_ASSERT(s.executeEpsilon(cur, 0));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
+  SCOPE_ASSERT(s.executeEpsilon(&cur, 0));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(&(*p)[18], cur.PC);
 }
@@ -110,16 +110,16 @@ SCOPE_TEST(executeJumpTable) {
   for (uint32 i = 0; i < 256; ++i) {
     b = i;
     s.reset();
-    Thread cur(&p[0], 0, 0, 0);
+    Thread& cur(s.add(Thread(&p[0], 0, 0, 0)));
     if (i == 'A') {
-      SCOPE_ASSERT(s.execute(cur, &b));
+      SCOPE_ASSERT(s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(Thread(&p[0] + 258, 0, 0, 0), cur);
     }
     else {
-      SCOPE_ASSERT(!s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
+      SCOPE_ASSERT(!s.execute(&cur, &b));
+      SCOPE_ASSERT_EQUAL(Thread(&p.back(), 0, 0, 0), cur);
     }
-    SCOPE_ASSERT_EQUAL(0u, s.numActive());
+    SCOPE_ASSERT_EQUAL(1u, s.numActive());
     SCOPE_ASSERT_EQUAL(0u, s.numNext());
   }
 }
@@ -135,20 +135,20 @@ SCOPE_TEST(executeJumpTableRange) {
   Vm s(p);
   for (uint32 i = 0; i < 256; ++i) {
     b = i;
-    Thread cur(&(*p)[0], 0, 0, 0);
+    Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
     if ('a' == i) {
-      SCOPE_ASSERT(s.execute(cur, &b));
+      SCOPE_ASSERT(s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 3, 0, 0, 0), cur);
     }
     else if ('b' == i) {
-      SCOPE_ASSERT(s.execute(cur, &b));
+      SCOPE_ASSERT(s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(Thread(&(*p)[0] + 3, 0, 0, 0), cur);
     }
     else {
-      SCOPE_ASSERT(!s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
+      SCOPE_ASSERT(!s.execute(&cur, &b));
+      SCOPE_ASSERT_EQUAL(Thread(&p->back(), 0, 0, 0), cur);
     }
-    SCOPE_ASSERT_EQUAL(0u, s.numActive());
+    SCOPE_ASSERT_EQUAL(1u, s.numActive());
     SCOPE_ASSERT_EQUAL(0u, s.numNext());
     s.reset();
   }
@@ -172,17 +172,17 @@ SCOPE_TEST(executeBitVector) {
   byte b;
   for (uint32 i = 0; i < 256; ++i) {
     b = i;
-    Thread  cur(&(*p)[0], 0, 0, 0);
+    Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
     if (i == 'A' || i == 'a' || i == 'B' || i == 'b') {
-      SCOPE_ASSERT(s.execute(cur, &b));
+      SCOPE_ASSERT(s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(Thread(&(*p)[9], 0, 0, 0), cur);
     }
     else {
-      SCOPE_ASSERT(!s.execute(cur, &b));
-      SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
+      SCOPE_ASSERT(!s.execute(&cur, &b));
+      SCOPE_ASSERT_EQUAL(Thread(&p->back(), 0, 0, 0), cur);
     }
     SCOPE_ASSERT_EQUAL(0u, s.numNext());
-    SCOPE_ASSERT_EQUAL(0u, s.numActive());
+    SCOPE_ASSERT_EQUAL(1u, s.numActive());
     s.reset();
   }
 }
@@ -190,30 +190,31 @@ SCOPE_TEST(executeBitVector) {
 SCOPE_TEST(executeLabel) {
   ProgramPtr p(new Program(1, Instruction::makeLabel(34)));
   Vm s(p);
-  Thread      cur(&(*p)[0], 0, 0, 0);
-  SCOPE_ASSERT(s.executeEpsilon(cur, 57));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
+  SCOPE_ASSERT(s.executeEpsilon(&cur, 57));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(Thread(&(*p)[1], 34, 0, 0), cur);
 }
 
 SCOPE_TEST(executeMatch) {
-  ProgramPtr p(new Program(1, Instruction::makeMatch()));
+  ProgramPtr p(new Program(2, Instruction::makeMatch()));
+  (*p)[0] = Instruction::makeLit('a'); // just to keep Vm::init() from executing the match
   Vm s(p);
-  Thread      cur(&(*p)[0], 0, 0, 0);
-  SCOPE_ASSERT(s.executeEpsilon(cur, 57));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  Thread& cur(s.add(Thread(&(*p)[1], 0, 0, std::numeric_limits<uint64>::max())));
+  SCOPE_ASSERT(s.executeEpsilon(&cur, 57));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[1], 0, 0, 57), cur);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[2], 0, 0, 57), cur);
 }
 
 SCOPE_TEST(executeFork) {
   ProgramPtr p(new Program(3, Instruction::makeLit('a')));
   (*p)[0] = Instruction::makeFork(2);
   Vm s(p);
-  Thread      cur(&(*p)[0], 0, 0, 0);
-  SCOPE_ASSERT(s.executeEpsilon(cur, 47));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive()); // cha-ching!
+  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
+  SCOPE_ASSERT(s.executeEpsilon(&cur, 47));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive()); // cha-ching!
   SCOPE_ASSERT_EQUAL(1u, s.numNext());
   SCOPE_ASSERT_EQUAL(&(*p)[1], s.next()[0].PC);
   SCOPE_ASSERT_EQUAL(&(*p)[2], cur.PC);
@@ -221,13 +222,13 @@ SCOPE_TEST(executeFork) {
 
 SCOPE_TEST(executeLongFork) {
   ProgramPtr p(new Program(4, Instruction()));
-  (*p)[0] = Instruction::makeLongFork(&(*p)[1], 3);
+  (*p)[0] = Instruction::makeLongFork(&(*p)[0], 3);
   (*p)[2] = Instruction::makeLit('a');
   (*p)[3] = Instruction::makeLit('a');
   Vm s(p);
-  Thread cur(&(*p)[0], 0, 0, 0);
-  SCOPE_ASSERT(s.executeEpsilon(cur, 47));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive()); // cha-ching!
+  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
+  SCOPE_ASSERT(s.executeEpsilon(&cur, 47));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive()); // cha-ching!
   SCOPE_ASSERT_EQUAL(1u, s.numNext());
   SCOPE_ASSERT_EQUAL(&(*p)[2], s.next()[0].PC);
   SCOPE_ASSERT_EQUAL(&(*p)[3], cur.PC);
@@ -237,9 +238,9 @@ SCOPE_TEST(executeCheckHalt) {
   ProgramPtr p(new Program(2, Instruction::makeCheckHalt(5)));
   (*p)[1] = Instruction::makeJump(3019);
   Vm         s(p);
-  Thread     cur(&(*p)[0], 0, 0, 0);
-  SCOPE_ASSERT(s.executeEpsilon(cur, 231));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
+  SCOPE_ASSERT(s.executeEpsilon(&cur, 231));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(Thread(&(*p)[1], 0, 0, 0), cur);
 
@@ -249,8 +250,8 @@ SCOPE_TEST(executeCheckHalt) {
 //  SCOPE_ASSERT(checkStates[0]); // this bit is reserved specially to see whether we need to clear the set
 
   cur.PC = &(*p)[0];
-  SCOPE_ASSERT(!s.executeEpsilon(cur, 231));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  SCOPE_ASSERT(!s.executeEpsilon(&cur, 231));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur); // thread died because the state was set
 }
@@ -258,9 +259,9 @@ SCOPE_TEST(executeCheckHalt) {
 SCOPE_TEST(executeHalt) {
   ProgramPtr p(new Program(1, Instruction::makeHalt()));
   Vm         s(p);
-  Thread cur(&(*p)[0], 0, 0, 0);
-  SCOPE_ASSERT(!s.executeEpsilon(cur, 317));
-  SCOPE_ASSERT_EQUAL(0u, s.numActive());
+  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
+  SCOPE_ASSERT(!s.executeEpsilon(&cur, 317));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
   SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), cur);
 }
@@ -330,6 +331,7 @@ SCOPE_TEST(simpleLitMatch) {
   prog.First.set('a');
   v.init(p);
   SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
+  v.closeOut(cb);
   SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(35, 2, 3), cb.Hits[0]);
   text[1] = 'c';
@@ -394,6 +396,7 @@ SCOPE_TEST(threeKeywords) {
   p->First.set('b');
   v.init(p);
   SCOPE_ASSERT(!v.search(text, &text[4], 10, cb));
+  v.closeOut(cb);
   SCOPE_ASSERT_EQUAL(3u, cb.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(11, 1, 0), cb.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(12, 1, 1), cb.Hits[1]);
@@ -416,6 +419,7 @@ SCOPE_TEST(stitchedText) {
   SCOPE_ASSERT(v.search(text1, &text1[3], 0, cb));
   SCOPE_ASSERT_EQUAL(0u, cb.Hits.size());
   SCOPE_ASSERT(!v.search(text2, &text2[2], 3, cb));
+  v.closeOut(cb);
   SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 2, 0), cb.Hits[0]);
 }

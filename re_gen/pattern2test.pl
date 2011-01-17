@@ -78,3 +78,5 @@ TEST
 
 # cleanup
 unlink $text_file or die "$!\n";
+unlink 'sg.stdout' or die "$!\n";
+unlink 'sg.stderr' or die "$!\n";

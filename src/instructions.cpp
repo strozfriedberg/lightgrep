@@ -131,7 +131,7 @@ Instruction Instruction::makeLongJump(Instruction* ptr, uint32 relativeOffset) {
   i.OpCode = LONGJUMP_OP;
   i.Size = 1;
   i.Op.Offset = 0;
-  *reinterpret_cast<uint32*>(ptr) = relativeOffset;
+  *reinterpret_cast<uint32*>(ptr+1) = relativeOffset;
   return i;
 }
 

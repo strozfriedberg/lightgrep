@@ -104,7 +104,7 @@ public:
 
     bool   match = false;
     uint32 labels = 0,
-           eval   = (v == 0 ? 0: graph[v]->numInstructions()) + (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1),
+           eval   = (v == 0 ? 0: graph[v]->numInstructions()),
            outDegree = graph.outDegree(v),
            totalSize;
 
@@ -139,7 +139,7 @@ public:
     }
 
     // std::cerr << "outOps = " << outOps << "; labels = " << labels << "; match = " << isMatch << std::endl;
-    Helper->addSnippet(v, eval, outOps + labels + (match ? 1: 0));
+    Helper->addSnippet(v, eval, outOps + labels + (match ? 1: 0) + (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1));
     // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
   }
 
