@@ -22,7 +22,7 @@ bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys)
     return !keys.empty();
   }
   else {
-    std::cerr << "Could not open file" << std::endl;
+    std::cerr << "Could not open keywords file " <<  keyFilePath << std::endl;
     return false;
   }
 }
