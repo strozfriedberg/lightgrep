@@ -29,6 +29,17 @@ struct StateLayoutInfo {
   }
 };
 
+/*
+std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& info) {
+  out << "Start == " << info.Start 
+      << ", NumEval == " << info.NumEval
+      << ", NumOther == " << info.NumOther
+      << ", CheckIndex == " << info.CheckIndex
+      << ", Op == " << info.Op;
+  return out;
+}
+*/
+
 struct CodeGenHelper {
   CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, UNALLOCATED), Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
 
@@ -85,7 +96,8 @@ public:
         sizeIndirectTables *= 2;
 
         if (last - first < 128) {
-          totalSize = 2 + (last - first) + sizeIndirectTables; // JumpTableRange instr + inclusive number
+          // JumpTableRange instr + inclusive number
+          totalSize = 2 + (last - first) + 1 + sizeIndirectTables;
           Helper->Snippets[v].Op = JUMP_TABLE_RANGE_OP;
         }
         else {
