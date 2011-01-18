@@ -7,7 +7,8 @@
 #include <iomanip>
 
 void printHex(std::ostream& out, byte b) {
-  out << "0x" << std::hex << (uint32)b << std::dec;
+  out << "0x" << std::setfill('0') << std::setw(2) << std::hex
+      << (uint32)b << std::dec;
 }
 
 bool   LitState::toInstruction(Instruction* addr) const {
