@@ -347,13 +347,13 @@ uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable)
 
 void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
   if (!graph[v]) { // initial state
-    out << "[label=\"\", shape=\"none\"]";
+    out << "[label=\"\",shape=none]";
   }
   else if (graph[v]->IsMatch) { // match state
-    out << "[label=\"" << graph[v]->label() << "\", shape=\"doublecircle\"]";
+    out << "[label=\"" << graph[v]->label() << "\",peripheries=2]";
   }
   else { // all other states
-    out << "[label=\"" << graph[v]->label() << "\", shape=\"circle\"]";
+    out << "[label=\"" << graph[v]->label() << "\"]";
   }
 }
 
