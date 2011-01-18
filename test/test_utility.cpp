@@ -297,14 +297,12 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
  
   boost::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.numVertices()));
   CodeGenVisitor vis(cgh);
-  uint32 totalSize;
 
-  SCOPE_ASSERT(vis.shouldBeJumpTable(0, g, g.outDegree(0), totalSize));
+  SCOPE_ASSERT_EQUAL(6, vis.calcJumpTableSize(0, g, g.outDegree(0)));
   SCOPE_ASSERT_EQUAL(JUMP_TABLE_RANGE_OP, cgh->Snippets[0].Op);
-  SCOPE_ASSERT_EQUAL(6, totalSize);
-  SCOPE_ASSERT(!vis.shouldBeJumpTable(1, g, g.outDegree(1), totalSize));
-  SCOPE_ASSERT(!vis.shouldBeJumpTable(2, g, g.outDegree(2), totalSize));
-  SCOPE_ASSERT(!vis.shouldBeJumpTable(3, g, g.outDegree(3), totalSize));
+  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(1, g, g.outDegree(1)));
+  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(2, g, g.outDegree(2)));
+  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(3, g, g.outDegree(3)));
 }
 
 SCOPE_TEST(testCodeGenVisitorShouldBeJumpTable) {
@@ -316,14 +314,12 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTable) {
 
   boost::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.numVertices()));
   CodeGenVisitor vis(cgh);
-  uint32 totalSize;
 
-  SCOPE_ASSERT(vis.shouldBeJumpTable(0, g, g.outDegree(0), totalSize));
+  SCOPE_ASSERT_EQUAL(257, vis.calcJumpTableSize(0, g, g.outDegree(0)));
   SCOPE_ASSERT_EQUAL(JUMP_TABLE_OP, cgh->Snippets[0].Op);
-  SCOPE_ASSERT_EQUAL(257, totalSize);
-  SCOPE_ASSERT(!vis.shouldBeJumpTable(1, g, g.outDegree(1), totalSize));
-  SCOPE_ASSERT(!vis.shouldBeJumpTable(2, g, g.outDegree(2), totalSize));
-  SCOPE_ASSERT(!vis.shouldBeJumpTable(3, g, g.outDegree(3), totalSize));
+  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(1, g, g.outDegree(1)));
+  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(2, g, g.outDegree(2)));
+  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(3, g, g.outDegree(3)));
 }
 
 SCOPE_TEST(alternationBetterLayout) {
