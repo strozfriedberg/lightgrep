@@ -75,7 +75,7 @@ public:
     Helper->discover(v, graph);
   }
 
-  bool shouldBeJumpTable(Graph::vertex v, const Graph& graph, uint32 outDegree, uint32& totalSize) {
+  uint32 calcJumpTableSize(Graph::vertex v, const Graph& graph, uint32 outDegree) {
     if (outDegree > 3) {
       TransitionTbl tbl(pivotStates(v, graph));
       if (maxOutbound(tbl) < outDegree) {
@@ -95,6 +95,8 @@ public:
         }
         sizeIndirectTables *= 2;
 
+        uint32 totalSize;
+
         if (last - first < 128) {
           // JumpTableRange instr + inclusive number
           totalSize = 2 + (last - first) + sizeIndirectTables;
@@ -104,11 +106,11 @@ public:
           Helper->Snippets[v].Op = JUMP_TABLE_OP;
           totalSize = 257 + sizeIndirectTables;
         }
-        return true;
+
+        return totalSize;
       }
     }
-    totalSize = 0;
-    return false;
+    return 0;
   }
 
   void finish_vertex(Graph::vertex v, const Graph& graph) {
@@ -148,7 +150,7 @@ public:
       }
     }
     else {
-      shouldBeJumpTable(v, graph, outDegree, outOps);
+      outOps = calcJumpTableSize(v, graph, outDegree);
     }
 
     totalSize = outOps + labels + (match ? 1: 0) +
