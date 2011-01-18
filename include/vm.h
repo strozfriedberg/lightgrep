@@ -54,20 +54,15 @@ private:
   #ifdef LBT_TRACE_ENABLED
   void open_frame_json(std::ostream& out, uint64 offset, const byte* cur);
   void close_frame_json(std::ostream& out, uint64 offset) const;
-  void thread_json(std::ostream& out, uint64 offset,
-                   const Thread& t, const Instruction* base);
-  void new_thread_json(std::ostream& out, uint64 offset, const Thread& t,
-                       const Instruction* base);
   void pre_run_thread_json(std::ostream& out, uint64 offset, const Thread& t,
                            const Instruction* base);
   void post_run_thread_json(std::ostream& out, uint64 offset, const Thread& t,
                             const Instruction* base);
-  void kill_thread_json(std::ostream& out, uint64 offset, const Thread& t,
-                        const Instruction* base);
   void thread_json(std::ostream& out, uint64 offset, const Thread& t,
-                   const Instruction* base, Thread::ThreadLife state);
+                   const Instruction* base, byte state);
 
   bool first_thread_json;
+  bool new_thread_json;
   #endif
 
   ProgramPtr Prog;

@@ -47,13 +47,13 @@ struct Thread {
   uint64 Id;
 
   enum ThreadLife {
-    BORN,
-    PRERUN,
-    POSTRUN,
-    DEAD
+    BORN = 1,
+    PRERUN = 2,
+    POSTRUN = 4,
+    DIED = 8
   };
 
-  void output_json(std::ostream& out, const Instruction* base, ThreadLife state) const;
+  void output_json(std::ostream& out, const Instruction* base, byte state) const;
   #endif
 
   bool operator==(const Thread& x) const {

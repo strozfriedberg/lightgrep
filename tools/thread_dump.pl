@@ -2,6 +2,13 @@
 
 use JSON;
 
+use constant {
+  BORN => 1,
+  PRERUN => 2,
+  POSTRUN => 4,
+  DIED => 8
+};
+
 printf(
   "\n  %-16s %-16s %-8s  %-16s %-16s\n",
   'id',
@@ -34,21 +41,22 @@ sub print_frame {
   );
 
   foreach $thread (@{$frame->{'list'}}) {
-    if ($thread->{'state'} == 0) {
+    if ($thread->{'state'} & BORN) {
       # thread birth is green
-      print " \33[1;32m";
+      print "\33[1;32m";
     }
-    elsif ($thread->{'state'} == 1) {
+    elsif ($thread->{'state'} & DIED) {
+      # thread death is red
+      print "\33[1;31m";
+    }
+    
+    if ($thread->{'state'} & PRERUN) {
       # pre-run
       print '-';
     }
-    elsif ($thread->{'state'} == 2) {
+    else {
       # post-run
       print '+';
-    }
-    elsif ($thread->{'state'} == 3) {
-      # thread death is red
-      print " \33[1;31m";
     }
 
     printf(
@@ -60,7 +68,7 @@ sub print_frame {
       $thread->{'End'}
     );
 
-    if ($thread->{'state'} == 0 || $thread->{'state'} == 3) {
+    if ($thread->{'state'} & (BORN | DIED)) {
       # switch back to regular text color 
       print "\33[0m";
     }
