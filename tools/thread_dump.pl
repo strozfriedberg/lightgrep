@@ -3,7 +3,7 @@
 use JSON;
 
 printf(
-  "\n %-16s %-16s %-8s  %-16s %-16s\n",
+  "\n  %-16s %-16s %-8s  %-16s %-16s\n",
   'id',
   'pc',
   'label',
