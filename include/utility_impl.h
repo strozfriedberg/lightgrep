@@ -140,13 +140,13 @@ public:
       outOps = 1; // HALT instruction
     }
     else if (outDegree < 4) {
-      for (uint32 ov = 0; ov < outDegree; ++ov) {
-        // if a target state immediately follows the current state,
-        // then we don't need an instruction for it
-        if (Helper->DiscoverRanks[v] + 1 !=
-            Helper->DiscoverRanks[graph.outVertex(v, ov)]) {
-          outOps += 2;
-        }
+      // count each of the non-initial children
+      outOps += 2*(outDegree-1);
+
+      // count the first child only if it needs a jump
+      if (Helper->DiscoverRanks[v] + 1 != 
+          Helper->DiscoverRanks[graph.outVertex(v, 0)]) {
+        outOps += 2;
       }
     }
     else {
