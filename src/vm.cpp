@@ -30,49 +30,51 @@ void Vm::close_frame_json(std::ostream& out, uint64 offset) const {
   }
 }
 
-void Vm::new_thread_json(std::ostream& out, uint64 offset,
-                         const Thread& t, const Instruction* base) {
-  thread_json(out, offset, t, base, Thread::BORN);
-}
-
-void Vm::kill_thread_json(std::ostream& out, uint64 offset,
-                         const Thread& t, const Instruction* base) {
-  thread_json(out, offset, t, base, Thread::DEAD);
-}
-
 void Vm::pre_run_thread_json(std::ostream& out, uint64 offset,
                              const Thread& t, const Instruction* base) {
-  thread_json(out, offset, t, base, Thread::PRERUN);
+  if (BeginDebug <= offset && offset < EndDebug) {
+    byte state = Thread::PRERUN;
+    if (new_thread_json) {
+      state |= Thread::BORN;
+      new_thread_json = false;
+    }
+
+    thread_json(out, offset, t, base, state);
+  }
 }
 
 void Vm::post_run_thread_json(std::ostream& out, uint64 offset,
                               const Thread& t, const Instruction* base) {
-  thread_json(out, offset, t, base, Thread::POSTRUN);
-}
-
-void Vm::thread_json(std::ostream& out, uint64 offset,
-                     const Thread& t, const Instruction* base,
-                     Thread::ThreadLife state) {
   if (BeginDebug <= offset && offset < EndDebug) {
-    // put commas between consecutive threads
-    if (first_thread_json) {
-      first_thread_json = false;
-    }
-    else {
-      out << ", ";
+    byte state = Thread::POSTRUN;
+    if (!t.PC)  {
+      state |= Thread::DIED;
     }
 
-    t.output_json(out, base, state);
+    thread_json(out, offset, t, base, state);
   }
 }
 
-void Thread::output_json(std::ostream& out, const Instruction* base, Thread::ThreadLife state) const {
+void Vm::thread_json(std::ostream& out, uint64 offset,
+                     const Thread& t, const Instruction* base, byte state) {
+  // put commas between consecutive threads
+  if (first_thread_json) {
+    first_thread_json = false;
+  }
+  else {
+    out << ", ";
+  }
+
+  t.output_json(out, base, state);
+}
+
+void Thread::output_json(std::ostream& out, const Instruction* base, byte state) const {
   out << "{ \"Id\":" << Id
-      << ", \"PC\":" << (PC ? PC - base: -1)
+      << ", \"PC\":" << (PC ? PC - base : -1)
       << ", \"Label\":" << Label
       << ", \"Start\":" << Start 
       << ", \"End\":" << End
-      << ", \"state\":" << state
+      << ", \"state\":" << (uint32) state
       << " }";
 }
 #endif
@@ -198,7 +200,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 
         #ifdef LBT_TRACE_ENABLED
         t->Id = Thread::NextId++;
-        new_thread_json(std::cerr, offset, *t, base);
+        new_thread_json = true;
         #endif
       }
     case JUMP_OP:
@@ -217,7 +219,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 
         #ifdef LBT_TRACE_ENABLED
         t->Id = Thread::NextId++;
-        new_thread_json(std::cerr, offset, *t, base);
+        new_thread_json = true;
         #endif
       }
     case LONGJUMP_OP:
@@ -263,10 +265,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       return true;
     case HALT_OP:
       t->PC = 0;
-
-      #ifdef LBT_TRACE_ENABLED
-      kill_thread_json(std::cerr, offset, *t, base);
-      #endif
     default:
       // Next.push_back(t);
       return false;
@@ -317,7 +315,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
 
       #ifdef LBT_TRACE_ENABLED
       Active[Active.size()-1].Id = Thread::NextId++;
-      new_thread_json(std::cerr, offset, Active[Active.size()-1], base);
+      new_thread_json = true;
       #endif
     }
 
