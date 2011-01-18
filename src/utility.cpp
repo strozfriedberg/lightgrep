@@ -206,28 +206,22 @@ ProgramPtr createProgram(const Graph& graph) {
       continue;
     }
 
-    if (graph.outDegree(v) > 0) {
-      bool hasTargetAtNext = false;
-      Graph::vertex nextTarget = 0;
-      for (uint32 i = 0; i < graph.outDegree(v); ++i) {
-        Graph::vertex curTarget = graph.outVertex(v, graph.outDegree(v)-i-1);
-        // std::cerr << "targeting " << curTarget << " at " << cg->Snippets[curTarget].first << std::endl;
-        if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget]) {
-          if (i + 1 == graph.outDegree(v) && !hasTargetAtNext) {
-            *curOp = Instruction::makeLongJump(curOp, cg->Snippets[curTarget].Start);
-            // std::cerr << "wrote " << Instruction::makeJump(cg->Snippets[curTarget].first) << std::endl;
-          }
-          else {
-            *curOp = Instruction::makeLongFork(curOp, cg->Snippets[curTarget].Start);
-            // std::cerr << "wrote " << Instruction::makeFork(cg->Snippets[curTarget].first) << std::endl;
-          }
-          curOp += 2;
-        }
-        else {
-          hasTargetAtNext = true;
-          nextTarget = curTarget;
-          // std::cerr << "skipping because it's next" << std::endl;
-        }
+    const uint32 v_odeg = graph.outDegree(v);
+    if (v_odeg > 0) {
+      Graph::vertex curTarget;
+
+      // layout non-initial children in reverse order
+      for (uint32 i = v_odeg-1; i > 0; --i) {
+        curTarget = graph.outVertex(v, i);
+        *curOp = Instruction::makeLongFork(curOp, cg->Snippets[curTarget].Start);
+        curOp += 2;
+      }
+
+      // layout first child, falling through if possible
+      curTarget = graph.outVertex(v, 0);
+      if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget] ) {
+        *curOp = Instruction::makeLongJump(curOp, cg->Snippets[curTarget].Start);
+        curOp += 2;
       }
     }
     else {
