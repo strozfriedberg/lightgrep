@@ -580,33 +580,12 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[31]);
 }
 
-SCOPE_TEST(testCreateXXYYY) {
-  std::vector<std::string> kws;
-  kws.push_back("x");
-  kws.push_back("x");
-  kws.push_back("yyy");
+SCOPE_TEST(testFirstChildNext) {
 
-  GraphPtr gp(createGraph(kws, CP_ASCII, true, false));
-  Graph& g = *gp;
 
-  Graph exp;
-  edge(0, 1, exp, new LitState('x', 0));  
-  edge(0, 2, exp, new LitState('x', 1));
-  edge(0, 3, exp, new LitState('y'));
-  edge(3, 4, exp, new LitState('y'));
-  edge(4, 5, exp, new LitState('y', 2));
-  
-  exp[1]->Label = 0;
-  exp[2]->Label = 1;
-  exp[3]->Label = 2;
-  exp[4]->Label = UNALLOCATED; 
-  exp[5]->Label = UNALLOCATED;
-
-  exp[1]->IsMatch = true;
-  exp[2]->IsMatch = true;
-  exp[5]->IsMatch = true;
-
-  ASSERT_EQUAL_GRAPHS(exp, g);
-  ASSERT_EQUAL_LABELS(exp, g);
-  ASSERT_EQUAL_MATCHES(exp, g);  
 }
+
+SCOPE_TEST(testFirstChildPrev) {
+
+}
+
