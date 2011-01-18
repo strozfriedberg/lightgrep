@@ -169,12 +169,13 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
           totalRead += len;
           offset += len;
         }
+        search->closeOut(*output);
+        search->reset();
+        output->writeEndHit();
       }
       else {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
       }
-      search->reset();
-      output->writeEndHit();
       // uint32 i = ntohl(*(uint32*)data);
     }
   }
