@@ -148,7 +148,7 @@ void search(const Options& opts) {
     }
     // assert: all data has been read, offset + blkSize == file size, cur is last block
     search->search(cur, cur + blkSize, offset, cb);
-
+    search->closeOut(cb);
 
     offset += blkSize;  // be sure to count the last block
     lastTime = searchClock.elapsed();
