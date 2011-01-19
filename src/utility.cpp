@@ -92,9 +92,10 @@ GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMo
   return ret;
 }
 
-// If the jump is to a state that has only a single out edge, and there's no match on the state, then jump forward directly to the out-edge state
 uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {
-  if (1 == graph.outDegree(v) && !graph[v]->IsMatch) {
+  // If the jump is to a state that has only a single out edge, and there's
+  // no label on the state, then jump forward directly to the out-edge state.
+  if (1 == graph.outDegree(v) && UNALLOCATED == graph[v]->Label) {
     return cg->Snippets[graph.outVertex(v, 0)].Start;
   }
   else {
