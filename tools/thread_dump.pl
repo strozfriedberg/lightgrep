@@ -10,7 +10,7 @@ use constant {
 };
 
 printf(
-  "\n  %-16s %-16s %-8s  %-16s %-16s\n",
+  "\n  %-16s %-8s %-8s  %-16s %-16s\n",
   'id',
   'pc',
   'label',
@@ -60,9 +60,9 @@ sub print_frame {
     }
 
     printf(
-      " %016x %016x %08x [%016x,%016x]\n",
+      " %016x %08x %08x [%016x,%016x]\n",
       $thread->{'Id'},
-      $thread->{'PC'},
+      $thread->{'PC'} & 0xFFFFFFFF,
       $thread->{'Label'},
       $thread->{'Start'},
       $thread->{'End'}
