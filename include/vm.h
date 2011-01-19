@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef LBT_TRACE_ENABLED
+#include <set>
+#endif
+
 #include "vm_interface.h"
 #include "staticvector.h"
 #include "skiptable.h"
@@ -62,7 +66,7 @@ private:
                    const Instruction* base, byte state);
 
   bool first_thread_json;
-  bool new_thread_json;
+  std::set<uint64> new_thread_json;
   #endif
 
   ProgramPtr Prog;
