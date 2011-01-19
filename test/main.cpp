@@ -97,7 +97,7 @@ uint64 readNext(FILE* file, byte* buf) {
 }
 
 void printHelp(const po::options_description& desc) {
-  std::cout << "lightgrep, Copyright (c) 2010, Lightbox Technologies, Inc." << "\nCreated January 9, 2011\n\n"
+  std::cout << "lightgrep, Copyright (c) 2010, Lightbox Technologies, Inc." << "\nCreated " << __DATE__ << "\n\n"
     << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
     << "This copy provided EXCLUSIVELY to the U.S. Army, CCIU, DFRB\n\n"
     << desc << std::endl;
@@ -168,6 +168,7 @@ void search(const Options& opts) {
     // delete [] argArray;
   }
   else {
+// FIXME: bin/test/test -c prog 'a(b|c|d|g)f' gives confusing message
     std::cerr << "Could not open file " << opts.Input << std::endl;
   }
 }
