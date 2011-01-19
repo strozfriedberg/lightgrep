@@ -144,7 +144,6 @@ SCOPE_FIXTURE_CTOR(badLabelingSearch, STest,
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[0]);
 }
 
-// FIXME: '00' on '0000' isn't emititng the last match from command line
 SCOPE_FIXTURE_CTOR(zeroZeroSearch, STest, STest("00")) {
   const byte* text = (const byte*)"0000";
   fixture.search(text, text+4, 0, fixture);
