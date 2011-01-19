@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef LBT_TRACE_ENABLED
+#include <set>
+#endif
+
 #include "vm_interface.h"
 #include "staticvector.h"
 #include "skiptable.h"
@@ -50,6 +54,20 @@ private:
   bool _executeEpSequence(const Instruction* base, ThreadList::iterator t, uint64 offset);
   void _executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, uint64 offset);
   void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset);
+
+  #ifdef LBT_TRACE_ENABLED
+  void open_frame_json(std::ostream& out, uint64 offset, const byte* cur);
+  void close_frame_json(std::ostream& out, uint64 offset) const;
+  void pre_run_thread_json(std::ostream& out, uint64 offset, const Thread& t,
+                           const Instruction* base);
+  void post_run_thread_json(std::ostream& out, uint64 offset, const Thread& t,
+                            const Instruction* base);
+  void thread_json(std::ostream& out, uint64 offset, const Thread& t,
+                   const Instruction* base, byte state);
+
+  bool first_thread_json;
+  std::set<uint64> new_thread_json;
+  #endif
 
   ProgramPtr Prog;
   ThreadList First,

@@ -92,8 +92,9 @@ GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMo
   return ret;
 }
 
-// If the jump is to a state that has only a single out edge, and there's no match on the state, then jump forward directly to the out-edge state
 uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {
+  // If the jump is to a state that has only a single out edge, and there's
+  // no label on the state, then jump forward directly to the out-edge state.
   if (1 == graph.outDegree(v) && UNALLOCATED == graph[v]->Label) {
     return cg->Snippets[graph.outVertex(v, 0)].Start;
   }
@@ -112,6 +113,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
          last  = 255;
 
   if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op) {
+// FIXME: Blech, change these to use std::find?
     for (uint32 i = 0; i < 256; ++i) {
       if (!tbl[i].empty()) {
         first = i;
@@ -131,6 +133,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
     *cur++ = Instruction::makeJumpTable();
     indirectTbl = base + 257;
   }
+
   for (uint32 i = first; i <= last; ++i) {
     if (tbl[i].empty()) {
       const uint32 addr = 0xffffffff;
@@ -189,7 +192,7 @@ ProgramPtr createProgram(const Graph& graph) {
       if (cg->Snippets[v].CheckIndex != UNALLOCATED) {
         *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
       }
-      if (t->Label < 0xffffffff) {
+      if (t->Label != UNALLOCATED) {
         *curOp++ = Instruction::makeLabel(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
       }
@@ -204,28 +207,22 @@ ProgramPtr createProgram(const Graph& graph) {
       continue;
     }
 
-    if (graph.outDegree(v) > 0) {
-      bool hasTargetAtNext = false;
-      Graph::vertex nextTarget = 0;
-      for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
-        Graph::vertex curTarget = graph.outVertex(v, ov);
-        // std::cerr << "targeting " << curTarget << " at " << cg->Snippets[curTarget].first << std::endl;
-        if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget]) {
-          if (ov + 1 == graph.outDegree(v) && !hasTargetAtNext) {
-            *curOp = Instruction::makeLongJump(curOp, cg->Snippets[curTarget].Start);
-            // std::cerr << "wrote " << Instruction::makeJump(cg->Snippets[curTarget].first) << std::endl;
-          }
-          else {
-            *curOp = Instruction::makeLongFork(curOp, cg->Snippets[curTarget].Start);
-            // std::cerr << "wrote " << Instruction::makeFork(cg->Snippets[curTarget].first) << std::endl;
-          }
-          curOp += 2;
-        }
-        else {
-          hasTargetAtNext = true;
-          nextTarget = curTarget;
-          // std::cerr << "skipping because it's next" << std::endl;
-        }
+    const uint32 v_odeg = graph.outDegree(v);
+    if (v_odeg > 0) {
+      Graph::vertex curTarget;
+
+      // layout non-initial children in reverse order
+      for (uint32 i = v_odeg-1; i > 0; --i) {
+        curTarget = graph.outVertex(v, i);
+        *curOp = Instruction::makeLongFork(curOp, cg->Snippets[curTarget].Start);
+        curOp += 2;
+      }
+
+      // layout first child, falling through if possible
+      curTarget = graph.outVertex(v, 0);
+      if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget] ) {
+        *curOp = Instruction::makeLongJump(curOp, cg->Snippets[curTarget].Start);
+        curOp += 2;
       }
     }
     else {
@@ -240,14 +237,11 @@ class SkipTblVisitor: public Visitor {
 public:
   SkipTblVisitor(boost::shared_ptr<SkipTable> skip): Skipper(skip) {}
   
-  void discoverVertex(Graph::vertex v,
-                      const Graph& graph) const {
+  void discoverVertex(Graph::vertex v, const Graph& graph) const {
     Skipper->calculateTransitions(v, graph);
   }
  
-  void treeEdge(Graph::vertex h,
-                Graph::vertex t,
-                const Graph& graph) const {
+  void treeEdge(Graph::vertex h, Graph::vertex t, const Graph& graph) const {
     Skipper->setDistance(h, t, graph);
   }
 
@@ -347,23 +341,14 @@ uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable)
 }
 
 void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
-  std::string l;
-
-  if (v != 0) {
-    l = graph[v]->label();
-  }
-
   if (!graph[v]) { // initial state
-    out << "[label=\"" << (l.empty() ? "Start": l) << "\", style=\"filled\", fillcolor=\"green1\"]";
+    out << "[label=\"\",shape=none]";
   }
   else if (graph[v]->IsMatch) { // match state
-    out << "[label=\"" << l << "\", style=\"filled\", fillcolor=\"tomato\", shape=\"doublecircle\"]";
-  }
-  else if (graph[v]->Label < 0xffffffff) { // guard state
-    out << "[label=\"" << l << "\", shape=\"doublecircle\"]";
+    out << "[label=\"" << graph[v]->label() << "\",peripheries=2]";
   }
   else { // all other states
-    out << "[label=\"" << l << "\"]";
+    out << "[label=\"" << graph[v]->label() << "\"]";
   }
 }
 

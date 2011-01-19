@@ -112,26 +112,27 @@ Instruction Instruction::makeBitVector() {
   return i;
 }
 
-Instruction Instruction::makeJump(uint32 relativeOffset) {
-  // Use makeLongJump if relativeOffset >= 2^24
-  if (relativeOffset >= (1 << 24)) {
-    THROW_WITH_OUTPUT(std::overflow_error, "jump offsets are 24 bit; specified offset was " << relativeOffset);
+Instruction Instruction::makeJump(uint32 offset) {
+  // Use makeLongJump if offset >= 2^24
+  if (offset >= (1 << 24)) {
+    THROW_WITH_OUTPUT(std::overflow_error, "jump offsets are 24 bit; specified offset was " << offset);
   }
+
   Instruction i;
   i.OpCode = JUMP_OP;
   i.Size = 0;
-  i.Op.Offset = relativeOffset;
+  i.Op.Offset = offset;
   return i;
 }
 
-Instruction Instruction::makeLongJump(Instruction* ptr, uint32 relativeOffset) {
+Instruction Instruction::makeLongJump(Instruction* ptr, uint32 offset) {
   // "24 bits ought to be enough for anybody." --Jon Stewart
   // I once implemented a 24-bit VM in Java for a class; that sucked ass -- JLS
   Instruction i;
   i.OpCode = LONGJUMP_OP;
   i.Size = 1;
   i.Op.Offset = 0;
-  *reinterpret_cast<uint32*>(ptr+1) = relativeOffset;
+  *reinterpret_cast<uint32*>(ptr+1) = offset;
   return i;
 }
 
@@ -160,14 +161,14 @@ Instruction Instruction::makeMatch() {
   return i;
 }
 
-Instruction Instruction::makeFork(uint32 index) {
-  Instruction i = makeJump(index);
+Instruction Instruction::makeFork(uint32 offset) {
+  Instruction i = makeJump(offset);
   i.OpCode = FORK_OP;
   return i;
 }
 
-Instruction Instruction::makeLongFork(Instruction* ptr, uint32 relativeOffset) {
-  Instruction i = makeLongJump(ptr, relativeOffset);
+Instruction Instruction::makeLongFork(Instruction* ptr, uint32 offset) {
+  Instruction i = makeLongJump(ptr, offset);
   i.OpCode = LONGFORK_OP;
   return i;
 }

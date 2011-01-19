@@ -62,14 +62,14 @@ struct Instruction {
   static Instruction makeEither(byte one, byte two);
   static Instruction makeRange(byte first, byte last);
   static Instruction makeBitVector();
-  static Instruction makeJump(uint32 relativeOffset);
-  static Instruction makeLongJump(Instruction* ptr, uint32 relativeOffset);
+  static Instruction makeJump(uint32 offset);
+  static Instruction makeLongJump(Instruction* ptr, uint32 offset);
   static Instruction makeJumpTable();
   static Instruction makeJumpTableRange(byte first, byte last);
   static Instruction makeLabel(uint32 label);
   static Instruction makeMatch();
-  static Instruction makeFork(uint32 index);
-  static Instruction makeLongFork(Instruction* ptr, uint32 relativeOffset);
+  static Instruction makeFork(uint32 offset);
+  static Instruction makeLongFork(Instruction* ptr, uint32 offset);
   static Instruction makeCheckHalt(uint32 checkIndex);
   static Instruction makeHalt();
   static Instruction makeRaw(uint32 val);
