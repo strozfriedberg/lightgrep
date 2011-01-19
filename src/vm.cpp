@@ -1,9 +1,9 @@
 #include "vm.h"
 
-#include <iostream>
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
+#include <iostream>
 
 static uint64 UNALLOCATED = std::numeric_limits<uint64>::max();
 
@@ -15,6 +15,8 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
 
 #ifdef LBT_TRACE_ENABLED
 uint64 Thread::NextId = 0;
+
+std::set<uint64> new_thread_json;
 
 void Vm::open_frame_json(std::ostream& out, uint64 offset, const byte* cur) {
   if (BeginDebug <= offset && offset < EndDebug) {
@@ -34,9 +36,9 @@ void Vm::pre_run_thread_json(std::ostream& out, uint64 offset,
                              const Thread& t, const Instruction* base) {
   if (BeginDebug <= offset && offset < EndDebug) {
     byte state = Thread::PRERUN;
-    if (new_thread_json) {
+
+    if (new_thread_json.erase(t.Id)) {
       state |= Thread::BORN;
-      new_thread_json = false;
     }
 
     thread_json(out, offset, t, base, state);
@@ -199,8 +201,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         *t = f;
 
         #ifdef LBT_TRACE_ENABLED
-        t->Id = Thread::NextId++;
-        new_thread_json = true;
+        new_thread_json.insert(t->Id = Thread::NextId++);
         #endif
       }
     case JUMP_OP:
@@ -218,8 +219,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         *t = f;
 
         #ifdef LBT_TRACE_ENABLED
-        t->Id = Thread::NextId++;
-        new_thread_json = true;
+        new_thread_json.insert(t->Id = Thread::NextId++);
         #endif
       }
     case LONGJUMP_OP:
@@ -314,8 +314,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
       Active.addBack().init(it->PC, std::numeric_limits<uint32>::max(), offset, std::numeric_limits<uint64>::max());
 
       #ifdef LBT_TRACE_ENABLED
-      Active[Active.size()-1].Id = Thread::NextId++;
-      new_thread_json = true;
+      new_thread_json.insert(Active[Active.size()-1].Id = Thread::NextId++);
       #endif
     }
 
