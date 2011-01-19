@@ -151,3 +151,10 @@ SCOPE_FIXTURE_CTOR(zeroZeroSearch, STest, STest("00")) {
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 2, 0), fixture.Hits[1]);
 }
+
+SCOPE_FIXTURE_CTOR(aaaOraSearch, STest, STest("aaa|a")) {
+  const byte* text = (const byte*)"aaa";
+  fixture.search(text, text + 3, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+}
