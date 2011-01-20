@@ -299,6 +299,8 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       t->End = offset;
       doMatch(*t);
       t->advance();
+
+      // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
         if (it->Label == t->Label) {
           it->End = NONE;
@@ -382,16 +384,18 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 }
 
 void Vm::doMatch(const Thread& t) {
-  // std::cerr << "had a match" << std::endl;
+//  std::cerr << "had a match" << std::endl;
   std::pair< uint64, uint64 > lastHit = Matches[t.Label];
   
   if (lastHit.first != NONE && lastHit.second < t.Start) {
-    SearchHit  hit(lastHit.first, lastHit.second - lastHit.first + 1, t.Label);
     if (CurHitFn) {
+      SearchHit hit(lastHit.first, lastHit.second - lastHit.first + 1, t.Label);
       CurHitFn->collect(hit);
     }
   }
+
   Matches[t.Label] = std::make_pair(t.Start, t.End);
+
   #ifdef LBT_TRACE_ENABLED
   if (lastHit.first < t.Start && t.Start <= lastHit.second) {
     std::cerr << "** Replaced overlapping hit! (" << lastHit.first
