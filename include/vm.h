@@ -23,7 +23,12 @@ public:
   virtual void closeOut(HitCallback& hitFn);
   virtual void reset();
 
-  void setDebugRange(uint64 beg, uint64 end) { BeginDebug = beg; EndDebug = end; }
+  #ifdef LBT_TRACE_ENABLED
+  void setDebugRange(uint64 beg, uint64 end) {
+    BeginDebug = beg;
+    EndDebug = end;
+  }
+  #endif
 
   bool execute(ThreadList::iterator t, const byte* cur);
   bool executeEpsilon(ThreadList::iterator t, uint64 offset);
@@ -71,6 +76,8 @@ private:
 
   bool first_thread_json;
   std::set<uint64> new_thread_json;
+
+  uint64 BeginDebug, EndDebug;
   #endif
 
   ProgramPtr Prog;
@@ -80,9 +87,6 @@ private:
 
   std::vector<bool> CheckStates;
   std::vector< std::pair< uint64, uint64 > > Matches;
-
-  uint64 BeginDebug,
-         EndDebug;
 
   HitCallback* CurHitFn;
 };
