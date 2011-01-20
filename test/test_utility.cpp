@@ -272,8 +272,8 @@ SCOPE_TEST(layoutWithCheckHalt) {
   SCOPE_ASSERT_EQUAL(0u, cg->DiscoverRanks[0]);
   SCOPE_ASSERT_EQUAL(1u, cg->DiscoverRanks[1]);
   SCOPE_ASSERT_EQUAL(2u, cg->DiscoverRanks[2]);
-  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 0u, 0u, UNALLOCATED), cg->Snippets[0]);
-  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 1u, 0u, UNALLOCATED), cg->Snippets[1]);
+  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 0u, 0u, NONE), cg->Snippets[0]);
+  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 1u, 0u, NONE), cg->Snippets[1]);
   SCOPE_ASSERT_EQUAL(StateLayoutInfo(1u, 1u, 5u, 1u), cg->Snippets[2]);
 }
 

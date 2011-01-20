@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 
-static const uint32 UNALLOCATED = 0xffffffff;
+static const uint32 NONE = std::numeric_limits<uint32>::max();
 
 struct StateLayoutInfo {
   uint32 Start,
@@ -19,8 +19,8 @@ struct StateLayoutInfo {
          CheckIndex;
   OpCodes Op;
 
-  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED), CheckIndex(UNALLOCATED), Op(UNINITIALIZED) {}
-  StateLayoutInfo(uint32 s, uint32 e, uint32 o, uint32 chk = UNALLOCATED): Start(s), NumEval(e), NumOther(o), CheckIndex(chk), Op(UNINITIALIZED) {}
+  StateLayoutInfo(): Start(NONE), NumEval(NONE), NumOther(NONE), CheckIndex(NONE), Op(UNINITIALIZED) {}
+  StateLayoutInfo(uint32 s, uint32 e, uint32 o, uint32 chk = NONE): Start(s), NumEval(e), NumOther(o), CheckIndex(chk), Op(UNINITIALIZED) {}
 
   uint32 numTotal() const { return NumEval + NumOther; }
 
@@ -41,7 +41,7 @@ std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& info) {
 */
 
 struct CodeGenHelper {
-  CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, UNALLOCATED), Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
+  CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, NONE), Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
 
   void discover(Graph::vertex v, const Graph& graph) {
     DiscoverRanks[v] = NumDiscovered++;
@@ -125,7 +125,7 @@ public:
 
     TransitionPtr t = graph[v];
     if (t) {
-      if (t->Label != UNALLOCATED) {
+      if (t->Label != NONE) {
         ++labels;
       }
       if (t->IsMatch) {
@@ -154,7 +154,7 @@ public:
     }
 
     totalSize = outOps + labels + (match ? 1: 0) +
-                (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1);
+                (Helper->Snippets[v].CheckIndex == NONE ? 0: 1);
 
     Helper->addSnippet(v, eval, totalSize);
 

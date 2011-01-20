@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <iostream>
 
-static uint64 UNALLOCATED = std::numeric_limits<uint64>::max();
+static uint64 NONE = std::numeric_limits<uint64>::max();
 
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"pc\":" << std::hex << t.PC << ", \"Label\":" << std::dec << t.Label << ", \"Start\":" << t.Start << ", \"End\":"
@@ -111,10 +111,10 @@ boost::shared_ptr<VmInterface> VmInterface::create() {
   return boost::shared_ptr<VmInterface>(new Vm);
 }
 
-Vm::Vm() : BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED), CurHitFn(0) {}
+Vm::Vm() : BeginDebug(NONE), EndDebug(NONE), CurHitFn(0) {}
 
 Vm::Vm(ProgramPtr prog): 
-  BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED), CurHitFn(0)
+  BeginDebug(NONE), EndDebug(NONE), CurHitFn(0)
 {
   init(prog);
 }
@@ -172,7 +172,7 @@ void Vm::reset() {
   Active.clear();
   Next.clear();
   CheckStates.assign(CheckStates.size(), false);
-  Matches.assign(Matches.size(), std::pair<uint64, uint64>(UNALLOCATED, 0));
+  Matches.assign(Matches.size(), std::pair<uint64, uint64>(NONE, 0));
   CurHitFn = 0;
 }
 
@@ -282,7 +282,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
     case LABEL_OP:
       {
         std::pair<uint64, uint64> lastHit(Matches[instr.Op.Offset]);
-        if (lastHit.first == UNALLOCATED ||
+        if (lastHit.first == NONE ||
     			lastHit.first == t->Start ||
     			lastHit.second < t->Start)
     		{
@@ -301,7 +301,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       t->advance();
       for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
         if (it->Label == t->Label) {
-          it->End = UNALLOCATED;
+          it->End = NONE;
           it->PC = &Prog->back(); // DIE. Last instruction is always a halt
         }
       }
@@ -385,7 +385,7 @@ void Vm::doMatch(const Thread& t) {
   // std::cerr << "had a match" << std::endl;
   std::pair< uint64, uint64 > lastHit = Matches[t.Label];
   
-  if (lastHit.first != UNALLOCATED && lastHit.second < t.Start) {
+  if (lastHit.first != NONE && lastHit.second < t.Start) {
     SearchHit  hit(lastHit.first, lastHit.second - lastHit.first + 1, t.Label);
     if (CurHitFn) {
       CurHitFn->collect(hit);
@@ -434,7 +434,7 @@ void Vm::closeOut(HitCallback& hitFn) {
   if (CurHitFn) {
     for (uint32 i = 0; i < Matches.size(); ++i) {
       std::pair<uint64, uint64> lastHit = Matches[i];
-      if (lastHit.first != UNALLOCATED) {
+      if (lastHit.first != NONE) {
         hit.Offset = lastHit.first;
         hit.Length = lastHit.second - lastHit.first + 1;
         hit.Label  = i;
