@@ -111,10 +111,17 @@ boost::shared_ptr<VmInterface> VmInterface::create() {
   return boost::shared_ptr<VmInterface>(new Vm);
 }
 
-Vm::Vm() : BeginDebug(NONE), EndDebug(NONE), CurHitFn(0) {}
+Vm::Vm() :
+  #ifdef LBT_TRACE_ENABLED
+  BeginDebug(NONE), EndDebug(NONE),
+  #endif
+  CurHitFn(0) {}
 
 Vm::Vm(ProgramPtr prog): 
-  BeginDebug(NONE), EndDebug(NONE), CurHitFn(0)
+  #ifdef LBT_TRACE_ENABLED
+  BeginDebug(NONE), EndDebug(NONE),
+  #endif
+  CurHitFn(0)
 {
   init(prog);
 }
