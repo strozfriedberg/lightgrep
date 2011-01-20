@@ -79,8 +79,8 @@ boost::shared_ptr<VmInterface> initSearch(const Options& opts, KwInfo& keyInfo) 
   ProgramPtr p = initProgram(opts, keyInfo);
 
   boost::shared_ptr<VmInterface> ret = VmInterface::create();
-  ret->init(p);
   ret->setDebugRange(opts.DebugBegin, opts.DebugEnd);
+  ret->init(p);
   return ret;
 }
 

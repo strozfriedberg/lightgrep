@@ -18,6 +18,17 @@ uint64 Thread::NextId = 0;
 
 std::set<uint64> new_thread_json;
 
+void Vm::open_init_epsilon_json(std::ostream& out) {
+  if (BeginDebug == 0) {
+    out << "{\"offset\":-1, \"byte\":0, \"num\":0, \"list\":[";
+    first_thread_json = true;
+  }
+}
+
+void Vm::close_init_epsilon_json(std::ostream& out) const {
+  close_frame_json(out, 0);
+}
+
 void Vm::open_frame_json(std::ostream& out, uint64 offset, const byte* cur) {
   if (BeginDebug <= offset && offset < EndDebug) {
     out << "{\"offset\":" << offset << ", \"byte\":" << (uint32) *cur
@@ -41,7 +52,7 @@ void Vm::pre_run_thread_json(std::ostream& out, uint64 offset,
       state |= Thread::BORN;
     }
 
-    thread_json(out, offset, t, base, state);
+    thread_json(out, t, base, state);
   }
 }
 
@@ -53,12 +64,12 @@ void Vm::post_run_thread_json(std::ostream& out, uint64 offset,
       state |= Thread::DIED;
     }
 
-    thread_json(out, offset, t, base, state);
+    thread_json(out, t, base, state);
   }
 }
 
-void Vm::thread_json(std::ostream& out, uint64 offset,
-                     const Thread& t, const Instruction* base, byte state) {
+void Vm::thread_json(std::ostream& out, const Thread& t,
+                     const Instruction* base, byte state) {
   // put commas between consecutive threads
   if (first_thread_json) {
     first_thread_json = false;
@@ -78,6 +89,21 @@ void Thread::output_json(std::ostream& out, const Instruction* base, byte state)
       << ", \"End\":" << End
       << ", \"state\":" << (uint32) state
       << " }";
+}
+
+bool Vm::atEpsilon(const Thread& t) const {
+  switch (t.PC->OpCode) {
+    case FORK_OP:
+    case JUMP_OP:
+    case LONGFORK_OP:
+    case LONGJUMP_OP:
+    case CHECK_HALT_OP:
+    case MATCH_OP:
+    case HALT_OP:
+      return true;
+    default:
+      return false;
+  }
 }
 #endif
 
@@ -113,15 +139,32 @@ void Vm::init(ProgramPtr prog) {
   numCheckedStates += 2; // bit 0 reserved for whether any bits were flipped
   Matches.resize(numPatterns);
   CheckStates.resize(numCheckedStates);
+
   Thread s0(&(*Prog)[0]);
   ThreadList::iterator t = &s0;
+
+  #ifdef LBT_TRACE_ENABLED
+  if (atEpsilon(s0)) {
+    open_init_epsilon_json(std::cerr);
+    new_thread_json.insert(s0.Id = 0);
+    pre_run_thread_json(std::cerr, 0, s0, &(*Prog)[0]);
+  }
+  #endif
+
   if (_executeEpSequence(&(*Prog)[0], t, 0)) {
     Next.push_back(s0);
+
+    #ifdef LBT_TRACE_ENABLED
+    post_run_thread_json(std::cerr, 0, s0, &(*Prog)[0]);
+    close_init_epsilon_json(std::cerr);
+    #endif
   }
+
   First.resize(Next.size());
   for (uint32 i = 0; i < Next.size(); ++i) {
     First.push_back(Next[i]);
   }
+
   reset();
 }
 
