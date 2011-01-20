@@ -6,7 +6,7 @@
 #include <stack>
 #include <vector>
 
-static const Graph::vertex UNALLOCATED = 0xFFFFFFFF;
+static const Graph::vertex NONE = 0xFFFFFFFF;
 static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
 void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
@@ -18,7 +18,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   }
 
   uint32 numVs = src.numVertices();
-  StateMap.assign(numVs, UNALLOCATED);
+  StateMap.assign(numVs, NONE);
   Visited.assign(numVs, false);
 
   Graph::vertex dstHead, srcHead, dstTarget, srcTarget = 0xFFFFFFFF;
@@ -36,7 +36,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       for (uint32 i = 0; i < src.outDegree(dstHead); ++i) {
         dstTarget = src.outVertex(dstHead, i);
 
-        if (StateMap[dstTarget] == UNALLOCATED) {
+        if (StateMap[dstTarget] == NONE) {
           TransitionPtr srcTran = src[dstTarget];
           srcBits.reset();
           srcTran->getBits(srcBits);
@@ -119,7 +119,7 @@ void Compiler::propagateMatchLabels(Graph& g) {
           // Skip the initial state.
           continue;
         }
-        else if (g[h]->Label == UNALLOCATED) {
+        else if (g[h]->Label == NONE) {
           // Mark unmarked parents with our label and walk back to them.
           g[h]->Label = label;
           next.push(h);
@@ -182,7 +182,7 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
       if (visited[t]) continue; 
 
       if (g[t]->Label == UNLABELABLE) {
-        g[t]->Label = UNALLOCATED;
+        g[t]->Label = NONE;
         next.push(t);
       }
       else {
@@ -210,7 +210,7 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
 
       // NB: Any node which should be labeled, we've already visited,
       // so we can unlabel everything we reach this way.
-      g[t]->Label = UNALLOCATED;
+      g[t]->Label = NONE;
       next.push(t);
       visited[t] = true;
     }
