@@ -114,7 +114,6 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
          last  = 255;
 
   if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op) {
-// FIXME: Blech, change these to use std::find?
     for (uint32 i = 0; i < 256; ++i) {
       if (!tbl[i].empty()) {
         first = i;
