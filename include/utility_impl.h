@@ -116,23 +116,21 @@ public:
   void finish_vertex(Graph::vertex v, const Graph& graph) {
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
 
-    bool   match = false;
-    uint32 labels = 0,
-           eval   = (v == 0 ? 0: graph[v]->numInstructions()),
-           totalSize;
-
-    const uint32 outDegree = graph.outDegree(v);
+    uint32 label = 0,
+           match = 0,
+           eval  = (v == 0 ? 0 : graph[v]->numInstructions());
 
     TransitionPtr t = graph[v];
     if (t) {
       if (t->Label != NONE) {
-        ++labels;
+        label = 1;
       }
       if (t->IsMatch) {
-        match = true;
+        match = 1;
       }
     }
 
+    const uint32 outDegree = graph.outDegree(v);
     uint32 outOps = 0;
 
     if (outDegree == 0) {
@@ -153,8 +151,8 @@ public:
       outOps = calcJumpTableSize(v, graph, outDegree);
     }
 
-    totalSize = outOps + labels + (match ? 1: 0) +
-                (Helper->Snippets[v].CheckIndex == NONE ? 0: 1);
+    const uint32 totalSize = outOps + label + match +
+                             (Helper->Snippets[v].CheckIndex == NONE ? 0: 1);
 
     Helper->addSnippet(v, eval, totalSize);
 
