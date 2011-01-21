@@ -160,6 +160,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
       }
     }
   }
+
   if (indirectTbl - base != cg->Snippets[v].NumOther) {
     std::cerr << "whoa, big trouble in Little China on " << v << "... NumOther == " << cg->Snippets[v].NumOther << ", but diff is " << (indirectTbl - base) << std::endl;
   }
