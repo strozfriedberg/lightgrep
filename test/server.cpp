@@ -5,6 +5,9 @@
 #include <memory>
 #include <algorithm>
 #include <boost/bind.hpp>
+
+#define BOOST_USE_WINDOWS_H
+
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 
@@ -13,6 +16,7 @@
 #include "utility.h"
 #include "hitwriter.h"
 #include "options.h"
+#include "staticvector.h"
 
 using boost::asio::ip::tcp;
 
@@ -42,21 +46,15 @@ public:
 
   virtual void collect(const SearchHit& hit) {
     ++NumHits;
-    convert(hit, Hit);
+    Hit.Offset = hit.Offset;
+    Hit.Length = hit.Length;
+    Hit.Label  = KeyInfo.PatternsTable[hit.Label].first;
+    Hit.Encoding = KeyInfo.PatternsTable[hit.Label].second;
     write(Hit);
   }
 
   virtual void write(const HitInfo& hit) = 0;
   virtual void flush() {}
-
-  void convert(const SearchHit& sh, HitInfo& hit) {
-    hit.ID = CurID;
-    hit.Offset = sh.Offset;
-    hit.Length = sh.Length;
-    const std::pair<uint32, uint32>& tuple(KeyInfo.PatternsTable[sh.Label]);
-    hit.Label = tuple.first;
-    hit.Encoding = tuple.second;
-  }
 
   void writeEndHit() {
     Hit.Offset = std::numeric_limits<uint64>::max();
@@ -64,17 +62,16 @@ public:
     Hit.Label = std::numeric_limits<uint32>::max();
     Hit.Encoding = 0;
     write(Hit);
-    flush();
+    Hit.ID = std::numeric_limits<uint64>::max();
   }
 
-  void setCurID(uint64 id) { CurID = id; }
+  void setCurID(uint64 id) { Hit.ID = id; }
 
   uint64 numHits() const { return NumHits; }
 
 private:
   const KwInfo& KeyInfo;
-  uint64 NumHits,
-         CurID;
+  uint64 NumHits;
   HitInfo Hit;
 };
 
@@ -102,22 +99,17 @@ public:
     ServerWriter(kwInfo),
     Mutex(m),
     Output(output),
-    Buffer(50),
-    Cur(0)
+    Buffer(1000)
   {
   }
 
   virtual ~SafeFileWriter() {
     flush();
-    {
-      boost::mutex::scoped_lock lock(*Mutex);
-      Output->flush(); // sync the ostream to disk
-    }
   }
 
   virtual void write(const HitInfo& hit) {
-    Buffer[Cur] = hit;
-    if (++Cur == Buffer.size()) {
+    Buffer.push_back(hit);
+    if (Buffer.full()) {
       flush();
     }
   }
@@ -125,19 +117,18 @@ public:
   virtual void flush() {
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      for (uint32 i = 0; i < Cur; ++i) {
-        const HitInfo& hit(Buffer[i]);
-        *Output << hit.ID << '\t' << hit.Offset << '\t' << hit.Length << '\t' << hit.Label << '\t' << hit.Encoding << '\n';
+      for (StaticVector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
+        *Output << it->ID << '\t' << it->Offset << '\t' << it->Length << '\t' << it->Label << '\t' << it->Encoding << '\n';
       }
+      Output->flush();
     }
-    Cur = 0;
+    Buffer.clear();
   }
 
 private:
   boost::shared_ptr<boost::mutex> Mutex;
   boost::shared_ptr<std::ostream> Output;
-  std::vector< HitInfo > Buffer;
-  uint32                   Cur;
+  StaticVector<HitInfo>    Buffer;
 };
 
 void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, boost::shared_ptr<ServerWriter> output) {
@@ -151,8 +142,10 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
   try {
     while (true) {
       FileHeader hdr;
+      hdr.ID = 0;
+      hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
-        // std::cout << "told to read " << hdr.Length << " bytes\n";
+        std::cout << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
         output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
         ++numReads;
         uint64 offset = 0;
@@ -160,18 +153,19 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
           len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length)));
           ++numReads;
           search->search(data.get(), data.get() + len, offset, *output);
-          std::cout << "read " << len << " bytes\n";
+          // std::cout << "read " << len << " bytes\n";
           // std::cout.write((const char*)data.get(), len);
           // std::cout << '\n';
           totalRead += len;
           offset += len;
         }
+        search->closeOut(*output);
+        search->reset();
+        output->writeEndHit();
       }
       else {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
       }
-      search->reset();
-      output->writeEndHit();
       // uint32 i = ntohl(*(uint32*)data);
     }
   }

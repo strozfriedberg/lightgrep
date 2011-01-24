@@ -4,7 +4,6 @@
 #include <scope/testrunner.h>
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
-#include <boost/thread.hpp>
 #include <fstream>
 
 #include <boost/graph/graphviz.hpp>
@@ -15,6 +14,8 @@
 #include "hitwriter.h"
 #include "options.h"
 
+#define BOOST_USE_WINDOWS_H
+#include <boost/thread.hpp>
 
 // <magic_incantation>
 // this ridiculous piece of crap you see here is necessary to get
@@ -49,13 +50,16 @@ void writeProgram(const Options& opts) {
 }
 
 ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
+  ProgramPtr p;
   keyInfo.Keywords = opts.getKeys();
   std::cerr << keyInfo.Keywords.size() << " keywords"<< std::endl;
-
+  if (keyInfo.Keywords.empty()) {
+    return p;
+  }
   GraphPtr fsm = createGraph(keyInfo, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
   std::cerr << fsm->numVertices() << " vertices" << '\n';
 
-  ProgramPtr p = createProgram(*fsm);
+  p = createProgram(*fsm);
   std::cerr << p->size() << " instructions" << std::endl;
 
   p->Skip = calculateSkipTable(*fsm);
@@ -77,7 +81,9 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
 
 boost::shared_ptr<VmInterface> initSearch(const Options& opts, KwInfo& keyInfo) {
   ProgramPtr p = initProgram(opts, keyInfo);
-
+  if (!p) {
+    return boost::shared_ptr<VmInterface>();
+  }
   boost::shared_ptr<VmInterface> ret = VmInterface::create();
   #ifdef LBT_TRACE_ENABLED
   ret->setDebugRange(opts.DebugBegin, opts.DebugEnd);
@@ -105,7 +111,11 @@ void search(const Options& opts) {
     setbuf(file, 0); // unbuffered, bitte
     KwInfo keyInfo;
     boost::shared_ptr<VmInterface> search = initSearch(opts, keyInfo);
-
+    if (!search) {
+      std::cerr << "could not initialize search engine" << std::endl;
+      return;
+    }
+    
     double lastTime = 0.0;
     boost::timer searchClock;
     HitWriter cb(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
@@ -222,6 +232,10 @@ int main(int argc, char** argv) {
     else if (opts.Command == "server") {
       KwInfo keyInfo;
       ProgramPtr p = initProgram(opts, keyInfo);
+      if (!p) {
+        std::cerr << "Could not initialize search engine for server mode" << std::endl;
+        return 1;
+      }
       startup(p, keyInfo, opts);
     }
     else {
