@@ -26,10 +26,10 @@ while 1:
 
   if not data: break
 
-  data = data[16+size:]
+#  data = data[16+size:]
 
-#  for j in range(0, size):
-#    print struct.unpack('B', data[16+j])
-#  data = data[size:]
+  for j in range(0, size):
+    print struct.unpack('B', data[16+j])
+  data = data[16+size:]
 
 sock.close()
