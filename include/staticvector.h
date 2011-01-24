@@ -48,6 +48,7 @@ public:
 
   unsigned int size() const { return End - Begin; }
   bool empty() const { return Begin == End; }
+  bool full() const { return size() == Capacity; }
   
   void push_back(const T& x) { *(End++) = x; }
   void clear() { End = Begin; }
