@@ -150,10 +150,10 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
         ++numReads;
         uint64 offset = 0;
         while (offset < hdr.Length) {
-          len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length)));
+          len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length-offset)));
           ++numReads;
           search->search(data.get(), data.get() + len, offset, *output);
-          // std::cout << "read " << len << " bytes\n";
+          //std::cout << "read " << len << " bytes\n";
           // std::cout.write((const char*)data.get(), len);
           // std::cout << '\n';
           totalRead += len;
