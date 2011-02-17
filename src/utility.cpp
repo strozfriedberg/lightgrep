@@ -105,8 +105,9 @@ uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, co
 }
 
 // JumpTables are either ranged, or full-size, and can have indirect tables at the end when there are multiple transitions out on a single byte value
-void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uint32 baseIndex, Graph::vertex v, const Graph& graph) {
-  Instruction* cur = base,
+void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* const base, Instruction* const start, Graph::vertex v, const Graph& graph) {
+  const uint32 startIndex = start - base;
+  Instruction* cur = start,
              * indirectTbl;
 
   std::vector< std::vector< Graph::vertex > > tbl(pivotStates(v, graph));
@@ -127,11 +128,11 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
       }
     }
     *cur++ = Instruction::makeJumpTableRange(first, last);
-    indirectTbl = base + 2 + (last - first);
+    indirectTbl = start + 2 + (last - first);
   }
   else {
     *cur++ = Instruction::makeJumpTable();
-    indirectTbl = base + 257;
+    indirectTbl = start + 257;
   }
 
   for (uint32 i = first; i <= last; ++i) {
@@ -144,7 +145,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
       *cur++ = *reinterpret_cast<const Instruction*>(&addr);
     }
     else {
-      const uint32 addr = baseIndex + (indirectTbl - base);
+      const uint32 addr = startIndex + (indirectTbl - start);
       *cur++ = *reinterpret_cast<const Instruction*>(&addr);
       for (uint32 j = 0; j < tbl[i].size(); ++j) {
         uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
@@ -161,8 +162,11 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
     }
   }
 
-  if (indirectTbl - base != cg->Snippets[v].NumOther) {
-    std::cerr << "whoa, big trouble in Little China on " << v << "... NumOther == " << cg->Snippets[v].NumOther << ", but diff is " << (indirectTbl - base) << std::endl;
+  if (indirectTbl - base != cg->Snippets[v].end()) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("whoa, big trouble in Little China on " << v << "... Start = "
+      << cg->Snippets[v].Start << ", NumEval = " << cg->Snippets[v].NumEval
+      << ", NumOther = " << cg->Snippets[v].NumOther << ", but indirectTbl is at " << (indirectTbl - base) << std::endl
+    );
   }
 }
 
@@ -204,7 +208,7 @@ ProgramPtr createProgram(const Graph& graph) {
 
     if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op ||
         JUMP_TABLE_OP == cg->Snippets[v].Op) {
-      createJumpTable(cg, curOp, curOp - &(*ret)[0], v, graph);
+      createJumpTable(cg, &(*ret)[0], curOp, v, graph);
       continue;
     }
 
