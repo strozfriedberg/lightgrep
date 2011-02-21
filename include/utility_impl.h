@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 
-static const uint32 UNALLOCATED = 0xffffffff;
+static const uint32 NONE = std::numeric_limits<uint32>::max();
 
 struct StateLayoutInfo {
   uint32 Start,
@@ -19,18 +19,31 @@ struct StateLayoutInfo {
          CheckIndex;
   OpCodes Op;
 
-  StateLayoutInfo(): Start(UNALLOCATED), NumEval(UNALLOCATED), NumOther(UNALLOCATED), CheckIndex(UNALLOCATED), Op(UNINITIALIZED) {}
-  StateLayoutInfo(uint32 s, uint32 e, uint32 o, uint32 chk = UNALLOCATED): Start(s), NumEval(e), NumOther(o), CheckIndex(chk), Op(UNINITIALIZED) {}
+  StateLayoutInfo(): Start(NONE), NumEval(NONE), NumOther(NONE), CheckIndex(NONE), Op(UNINITIALIZED) {}
+  StateLayoutInfo(uint32 s, uint32 e, uint32 o, uint32 chk = NONE): Start(s), NumEval(e), NumOther(o), CheckIndex(chk), Op(UNINITIALIZED) {}
 
   uint32 numTotal() const { return NumEval + NumOther; }
+
+  uint32 end() const { return Start + numTotal(); }
 
   bool operator==(const StateLayoutInfo& x) const {
     return Start == x.Start && NumEval == x.NumEval && NumOther == x.NumOther && CheckIndex == x.CheckIndex;
   }
 };
 
+/*
+std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& info) {
+  out << "Start == " << info.Start 
+      << ", NumEval == " << info.NumEval
+      << ", NumOther == " << info.NumOther
+      << ", CheckIndex == " << info.CheckIndex
+      << ", Op == " << info.Op;
+  return out;
+}
+*/
+
 struct CodeGenHelper {
-  CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, UNALLOCATED), Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
+  CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, NONE), Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
 
   void discover(Graph::vertex v, const Graph& graph) {
     DiscoverRanks[v] = NumDiscovered++;
@@ -64,8 +77,8 @@ public:
     Helper->discover(v, graph);
   }
 
-  bool shouldBeJumpTable(Graph::vertex v, const Graph& graph, uint32 outDegree, uint32& totalSize) {
-    if (outDegree > 3 && (v == 0 || graph[v]->Label == UNALLOCATED)) {
+  uint32 calcJumpTableSize(Graph::vertex v, const Graph& graph, uint32 outDegree) {
+    if (outDegree > 3) {
       TransitionTbl tbl(pivotStates(v, graph));
       if (maxOutbound(tbl) < outDegree) {
         uint32 sizeIndirectTables = 0,
@@ -84,62 +97,68 @@ public:
         }
         sizeIndirectTables *= 2;
 
+        uint32 totalSize;
+
         if (last - first < 128) {
-          totalSize = 2 + (last - first) + sizeIndirectTables; // JumpTableRange instr + inclusive number
+          // JumpTableRange instr + inclusive number
+          totalSize = 2 + (last - first) + sizeIndirectTables;
           Helper->Snippets[v].Op = JUMP_TABLE_RANGE_OP;
         }
         else {
           Helper->Snippets[v].Op = JUMP_TABLE_OP;
           totalSize = 257 + sizeIndirectTables;
         }
-        return true;
+
+        return totalSize;
       }
     }
-    totalSize = 0;
-    return false;
+    return 0;
   }
 
   void finish_vertex(Graph::vertex v, const Graph& graph) {
     // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
 
-    bool   match = false;
-    uint32 labels = 0,
-           eval   = (v == 0 ? 0: graph[v]->numInstructions()),
-           outDegree = graph.outDegree(v),
-           totalSize;
-
-    if (shouldBeJumpTable(v, graph, outDegree, totalSize)) {
-      Helper->addSnippet(v, eval, totalSize);
-      return;
-    }
+    uint32 label = 0,
+           match = 0,
+           eval  = (v == 0 ? 0 : graph[v]->numInstructions());
 
     TransitionPtr t = graph[v];
     if (t) {
-      if (t->Label < 0xffffffff) {
-        ++labels;
+      if (t->Label != NONE) {
+        label = 1;
       }
       if (t->IsMatch) {
-        match = true;
+        match = 1;
       }
     }
+
+    const uint32 outDegree = graph.outDegree(v);
     uint32 outOps = 0;
 
-    if (graph.outDegree(v) == 0) {
+    if (outDegree == 0) {
       // std::cerr << "no out edges, so a halt" << std::endl;
       outOps = 1; // HALT instruction
     }
-    else {
-      for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
-        // if a target state immediately follows the current state, then we don't need an instruction for it
-        if (Helper->DiscoverRanks[v] + 1 !=
-            Helper->DiscoverRanks[graph.outVertex(v, ov)]) {
-          outOps += 2;
-        }
+    else if (outDegree < 4) {
+      // count each of the non-initial children
+      outOps += 2*(outDegree-1);
+
+      // count the first child only if it needs a jump
+      if (Helper->DiscoverRanks[v] + 1 != 
+          Helper->DiscoverRanks[graph.outVertex(v, 0)]) {
+        outOps += 2;
       }
     }
+    else {
+      outOps = calcJumpTableSize(v, graph, outDegree);
+    }
+
+    const uint32 totalSize = outOps + label + match +
+                             (Helper->Snippets[v].CheckIndex == NONE ? 0: 1);
+
+    Helper->addSnippet(v, eval, totalSize);
 
     // std::cerr << "outOps = " << outOps << "; labels = " << labels << "; match = " << isMatch << std::endl;
-    Helper->addSnippet(v, eval, outOps + labels + (match ? 1: 0) + (Helper->Snippets[v].CheckIndex == UNALLOCATED ? 0: 1));
     // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
   }
 

@@ -546,3 +546,33 @@ SCOPE_TEST(parseRepeatedSkippables) {
   SCOPE_ASSERT_EQUAL(1, p.stack().size());
   SCOPE_ASSERT(!p.stack().top().Skippable);
 }
+
+SCOPE_TEST(verifyEdgeOrderZeroDotStarZero) {
+  Parser      p;
+  SyntaxTree  tree;
+  Graph& g(*p.getFsm());
+  SCOPE_ASSERT(parse("0.*0", false, tree, p));
+  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(3, g.outVertex(1, 1));
+
+  SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(2, g.inVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(1, g.inVertex(2, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(3, g.outVertex(2, 1));
+
+  SCOPE_ASSERT_EQUAL(2u, g.inDegree(3));
+  SCOPE_ASSERT_EQUAL(1, g.inVertex(3, 0));
+  SCOPE_ASSERT_EQUAL(2, g.inVertex(3, 1));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));  
+}

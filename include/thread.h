@@ -41,13 +41,24 @@ struct Thread {
   uint32             Label;
   uint64             Start,
                      End;
+  
+  #ifdef LBT_TRACE_ENABLED
+  static uint64 NextId;
+  uint64 Id;
+
+  enum ThreadLife {
+    BORN = 1,
+    PRERUN = 2,
+    POSTRUN = 4,
+    DIED = 8
+  };
+
+  void output_json(std::ostream& out, const Instruction* base, byte state) const;
+  #endif
 
   bool operator==(const Thread& x) const {
     return PC == x.PC && Label == x.Label && Start == x.Start && End == x.End;
   }
-
-
-  void output(std::ostream& out, const Instruction* base) const;
 };
 
 std::ostream& operator<<(std::ostream& out, const Thread& t);

@@ -11,9 +11,6 @@ void edge(Graph::vertex source, Graph::vertex target, Graph& fsm, TransitionPtr 
 
   fsm.addEdge(source, target);
   fsm[target] = tPtr;
-  if (tPtr->Label != UNALLOCATED) {
-    tPtr->IsMatch = true;
-  }
 }
 
 void edge(Graph::vertex source, Graph::vertex target, Graph& fsm, Transition* tPtr) {
