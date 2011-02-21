@@ -44,22 +44,28 @@ SCOPE_TEST(testMergeLabelsSimple) {
 
   // ab
   edge(0, 1, src, new LitState('a'));
-  edge(1, 2, src, new LitState('b', 0));
+  edge(1, 2, src, new LitState('b'));
+
+  src[2]->Label = 1;
+  src[2]->IsMatch = true;
 
   // ac
   edge(0, 1, dst, new LitState('a'));
-  edge(1, 2, dst, new LitState('c', 1));
+  edge(1, 2, dst, new LitState('c'));
+
+  dst[2]->Label = 0;
+  dst[2]->IsMatch = true;
 
   c.mergeIntoFSM(dst, src);
   
   // ab + ac
   edge(0, 1, exp, new LitState('a'));
-  edge(1, 2, exp, new LitState('c', 1));
-  edge(1, 3, exp, new LitState('b', 2));
+  edge(1, 2, exp, new LitState('c'));
+  edge(1, 3, exp, new LitState('b'));
 
-  exp[1]->Label = UNALLOCATED;
-  exp[2]->Label = 1;
-  exp[3]->Label = 0; 
+  exp[1]->Label = NONE;
+  exp[2]->Label = 0;
+  exp[3]->Label = 1; 
 
   exp[2]->IsMatch = true;
   exp[3]->IsMatch = true;
@@ -76,15 +82,17 @@ SCOPE_TEST(testMergeLabelsComplex) {
   // abd
   edge(0, 1, src, new LitState('a'));
   edge(1, 2, src, new LitState('b'));
-  edge(2, 3, src, new LitState('d', 0));
+  edge(2, 3, src, new LitState('d'));
 
+  src[3]->Label = 0;
   src[3]->IsMatch = true;
 
   // acd
   edge(0, 1, dst, new LitState('a'));
   edge(1, 2, dst, new LitState('c'));
-  edge(2, 3, dst, new LitState('d', 1));
+  edge(2, 3, dst, new LitState('d'));
 
+  dst[3]->Label = 1;
   dst[3]->IsMatch = true;
 
   c.mergeIntoFSM(dst, src);
@@ -93,15 +101,15 @@ SCOPE_TEST(testMergeLabelsComplex) {
   // abd + acd
   edge(0, 1, exp, new LitState('a'));
   edge(1, 2, exp, new LitState('c'));
-  edge(2, 3, exp, new LitState('d', 1));
+  edge(2, 3, exp, new LitState('d'));
   edge(1, 4, exp, new LitState('b'));
-  edge(4, 5, exp, new LitState('d', 0));
+  edge(4, 5, exp, new LitState('d'));
 
-  exp[1]->Label = UNALLOCATED;
+  exp[1]->Label = NONE;
   exp[2]->Label = 1;
-  exp[3]->Label = UNALLOCATED;
+  exp[3]->Label = NONE;
   exp[4]->Label = 0; 
-  exp[5]->Label = UNALLOCATED;
+  exp[5]->Label = NONE;
 
   exp[3]->IsMatch = true;
   exp[5]->IsMatch = true;
@@ -119,30 +127,38 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   edge(0, 1, key[0], new LitState('a'));
   edge(1, 2, key[0], new LitState('b'));
   edge(1, 3, key[0], new LitState('c'));
-  boost::shared_ptr<LitState> a(new LitState('a', 0));
+  boost::shared_ptr<LitState> a(new LitState('a'));
   edge(2, 4, key[0], a);
   edge(3, 4, key[0], a);
+
+  key[0][4]->Label = 0;
   key[0][4]->IsMatch = true;
 
   // ac+
   edge(0, 1, key[1], new LitState('a'));
-  boost::shared_ptr<LitState> c(new LitState('c', 1));
+  boost::shared_ptr<LitState> c(new LitState('c'));
   edge(1, 2, key[1], c);
   edge(2, 2, key[1], c);
+  
+  key[1][2]->Label = 1;
   key[1][2]->IsMatch = true;
 
   // ab?a
   edge(0, 1, key[2], new LitState('a'));
   edge(1, 2, key[2], new LitState('b'));
-  boost::shared_ptr<LitState> a2(new LitState('a', 2));
+  boost::shared_ptr<LitState> a2(new LitState('a'));
   edge(1, 3, key[2], a2);
   edge(2, 3, key[2], a2);
+
+  key[2][3]->Label = 2;
   key[2][3]->IsMatch = true;
   
   // two
   edge(0, 1, key[3], new LitState('t'));
   edge(1, 2, key[3], new LitState('w'));
   edge(2, 3, key[3], new LitState('o', 3));
+
+  key[3][3]->Label = 3;
   key[3][3]->IsMatch = true;
 
   // merge
@@ -156,35 +172,43 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   edge(0, 1, exp, new LitState('a'));
   edge(1, 2, exp, new LitState('b'));
   edge(1, 3, exp, new LitState('c'));
-  boost::shared_ptr<LitState> ae(new LitState('a', 0));
+  boost::shared_ptr<LitState> ae(new LitState('a'));
   edge(2, 4, exp, ae);
   edge(3, 4, exp, ae);
+
+  exp[4]->Label = 0;
   exp[4]->IsMatch = true;
 
-  boost::shared_ptr<LitState> ce(new LitState('c', 1));
+  boost::shared_ptr<LitState> ce(new LitState('c'));
   edge(1, 5, exp, ce);
   edge(5, 5, exp, ce);
+
+  exp[5]->Label = 1;
   exp[5]->IsMatch = true;
 
-  boost::shared_ptr<LitState> a2e(new LitState('a', 2));
+  boost::shared_ptr<LitState> a2e(new LitState('a'));
   edge(2, 6, exp, a2e);
   edge(1, 6, exp, a2e);
+
+  exp[6]->Label = 2;
   exp[6]->IsMatch = true;
   
   edge(0, 7, exp, new LitState('t'));
   edge(7, 8, exp, new LitState('w'));
-  edge(8, 9, exp, new LitState('o', 3));
+  edge(8, 9, exp, new LitState('o'));
+
+  exp[9]->Label = 3;
   exp[9]->IsMatch = true;
 
-  exp[1]->Label = UNALLOCATED;
-  exp[2]->Label = UNALLOCATED;
+  exp[1]->Label = NONE;
+  exp[2]->Label = NONE;
   exp[3]->Label = 0;
   exp[4]->Label = 0;
   exp[5]->Label = 1;
   exp[6]->Label = 2;
   exp[7]->Label = 3;
-  exp[8]->Label = UNALLOCATED;
-  exp[9]->Label = UNALLOCATED;
+  exp[8]->Label = NONE;
+  exp[9]->Label = NONE;
   
   ASSERT_EQUAL_GRAPHS(exp, key[0]);
   ASSERT_EQUAL_LABELS(exp, key[0]);
@@ -195,11 +219,19 @@ SCOPE_TEST(testPropagateMatchLabels) {
   Compiler comp;
   Graph g;
 
-  edge(0, 1, g, new LitState('x', 0));  
-  edge(0, 2, g, new LitState('x', 1));
+  edge(0, 1, g, new LitState('x'));  
+  edge(0, 2, g, new LitState('x'));
   edge(0, 3, g, new LitState('y'));
   edge(3, 4, g, new LitState('y'));
-  edge(4, 5, g, new LitState('y', 2));
+  edge(4, 5, g, new LitState('y'));
+
+  g[1]->Label = 0;
+  g[2]->Label = 1;
+  g[5]->Label = 2;
+
+  g[1]->IsMatch = true;
+  g[2]->IsMatch = true;
+  g[5]->IsMatch = true;
 
   comp.propagateMatchLabels(g);  
 
@@ -214,11 +246,11 @@ SCOPE_TEST(testRemoveNonMinimalLabels) {
   Compiler comp;
   Graph g;
 
-  edge(0, 1, g, new LitState('x', 0));  
-  edge(0, 2, g, new LitState('x', 1));
+  edge(0, 1, g, new LitState('x'));  
+  edge(0, 2, g, new LitState('x'));
   edge(0, 3, g, new LitState('y'));
   edge(3, 4, g, new LitState('y'));
-  edge(4, 5, g, new LitState('y', 2));
+  edge(4, 5, g, new LitState('y'));
 
   g[1]->Label = 0;
   g[2]->Label = 1;
@@ -226,24 +258,37 @@ SCOPE_TEST(testRemoveNonMinimalLabels) {
   g[4]->Label = 2;
   g[5]->Label = 2;
 
+  g[1]->IsMatch = true;
+  g[2]->IsMatch = true;
+  g[5]->IsMatch = true;
+
   comp.removeNonMinimalLabels(g);
 
   SCOPE_ASSERT_EQUAL(0, g[1]->Label);
   SCOPE_ASSERT_EQUAL(1, g[2]->Label);
   SCOPE_ASSERT_EQUAL(2, g[3]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[4]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[5]->Label);
+  SCOPE_ASSERT_EQUAL(NONE, g[4]->Label);
+  SCOPE_ASSERT_EQUAL(NONE, g[5]->Label);
 }
 
 SCOPE_TEST(testLabelGuardStates) {
   Compiler comp;
   Graph g;
 
-  edge(0, 1, g, new LitState('x', 0));  
-  edge(0, 2, g, new LitState('x', 1));
+  edge(0, 1, g, new LitState('x'));  
+  edge(0, 2, g, new LitState('x'));
   edge(0, 3, g, new LitState('y'));
   edge(3, 4, g, new LitState('y'));
-  edge(4, 5, g, new LitState('y', 2));
+  edge(4, 5, g, new LitState('y'));
+
+  g[1]->Label = 0;
+  g[1]->IsMatch = true;
+
+  g[2]->Label = 1;
+  g[2]->IsMatch = true;
+
+  g[5]->Label = 2;
+  g[5]->IsMatch = true;
 
   comp.propagateMatchLabels(g);  
   comp.removeNonMinimalLabels(g);
@@ -251,8 +296,8 @@ SCOPE_TEST(testLabelGuardStates) {
   SCOPE_ASSERT_EQUAL(0, g[1]->Label);
   SCOPE_ASSERT_EQUAL(1, g[2]->Label);
   SCOPE_ASSERT_EQUAL(2, g[3]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[4]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[5]->Label); 
+  SCOPE_ASSERT_EQUAL(NONE, g[4]->Label);
+  SCOPE_ASSERT_EQUAL(NONE, g[5]->Label); 
 }
 
 SCOPE_TEST(testSubstringKey) {
@@ -278,7 +323,7 @@ SCOPE_TEST(testSubstringKey) {
   edge(0, 3, exp, new LitState('a', 1));
  
   exp[1]->Label = 0;
-  exp[2]->Label = UNALLOCATED;
+  exp[2]->Label = NONE;
   exp[3]->Label = 1;
  
   exp[2]->IsMatch = true;
@@ -287,4 +332,35 @@ SCOPE_TEST(testSubstringKey) {
   ASSERT_EQUAL_GRAPHS(exp, k0);
   ASSERT_EQUAL_LABELS(exp, k0);
   ASSERT_EQUAL_MATCHES(exp, k0);
+}
+
+SCOPE_TEST(testCreateXXYYY) {
+  std::vector<std::string> kws;
+  kws.push_back("x");
+  kws.push_back("x");
+  kws.push_back("yyy");
+
+  GraphPtr gp(createGraph(kws, CP_ASCII, true, false));
+  Graph& g = *gp;
+
+  Graph exp;
+  edge(0, 1, exp, new LitState('x', 0));  
+  edge(0, 2, exp, new LitState('x', 1));
+  edge(0, 3, exp, new LitState('y'));
+  edge(3, 4, exp, new LitState('y'));
+  edge(4, 5, exp, new LitState('y', 2));
+  
+  exp[1]->Label = 0;
+  exp[2]->Label = 1;
+  exp[3]->Label = 2;
+  exp[4]->Label = NONE; 
+  exp[5]->Label = NONE;
+
+  exp[1]->IsMatch = true;
+  exp[2]->IsMatch = true;
+  exp[5]->IsMatch = true;
+
+  ASSERT_EQUAL_GRAPHS(exp, g);
+  ASSERT_EQUAL_LABELS(exp, g);
+  ASSERT_EQUAL_MATCHES(exp, g);  
 }
