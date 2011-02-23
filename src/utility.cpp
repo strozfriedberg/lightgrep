@@ -48,12 +48,12 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
         std::cerr << "Currently " << fsm->numVertices() << " vertices" << std::endl;
         throw;
       }
-      if (i && i % 10000 == 0) {
-        std::cerr << "Parsed " << i << " keywords" << std::endl;
-      }
+      // if (i && i % 10000 == 0) {
+      //   std::cerr << "Parsed " << i << " keywords" << std::endl;
+      // }
     }
   }
-  std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
+  // std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
   comp.labelGuardStates(*fsm);
 }
 
@@ -95,7 +95,8 @@ GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMo
 uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
-  if (1 == graph.outDegree(v) && UNALLOCATED == graph[v]->Label) {
+  if (1 == graph.outDegree(v) &&
+      NONE == graph[v]->Label && !graph[v]->IsMatch) {
     return cg->Snippets[graph.outVertex(v, 0)].Start;
   }
   else {
@@ -104,8 +105,9 @@ uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, co
 }
 
 // JumpTables are either ranged, or full-size, and can have indirect tables at the end when there are multiple transitions out on a single byte value
-void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uint32 baseIndex, Graph::vertex v, const Graph& graph) {
-  Instruction* cur = base,
+void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* const base, Instruction* const start, Graph::vertex v, const Graph& graph) {
+  const uint32 startIndex = start - base;
+  Instruction* cur = start,
              * indirectTbl;
 
   std::vector< std::vector< Graph::vertex > > tbl(pivotStates(v, graph));
@@ -113,7 +115,6 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
          last  = 255;
 
   if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op) {
-// FIXME: Blech, change these to use std::find?
     for (uint32 i = 0; i < 256; ++i) {
       if (!tbl[i].empty()) {
         first = i;
@@ -127,11 +128,11 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
       }
     }
     *cur++ = Instruction::makeJumpTableRange(first, last);
-    indirectTbl = base + 2 + (last - first);
+    indirectTbl = start + 2 + (last - first);
   }
   else {
     *cur++ = Instruction::makeJumpTable();
-    indirectTbl = base + 257;
+    indirectTbl = start + 257;
   }
 
   for (uint32 i = first; i <= last; ++i) {
@@ -144,7 +145,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
       *cur++ = *reinterpret_cast<const Instruction*>(&addr);
     }
     else {
-      const uint32 addr = baseIndex + (indirectTbl - base);
+      const uint32 addr = startIndex + (indirectTbl - start);
       *cur++ = *reinterpret_cast<const Instruction*>(&addr);
       for (uint32 j = 0; j < tbl[i].size(); ++j) {
         uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
@@ -160,8 +161,12 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
       }
     }
   }
-  if (indirectTbl - base != cg->Snippets[v].NumOther) {
-    std::cerr << "whoa, big trouble in Little China on " << v << "... NumOther == " << cg->Snippets[v].NumOther << ", but diff is " << (indirectTbl - base) << std::endl;
+
+  if (indirectTbl - base != cg->Snippets[v].end()) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("whoa, big trouble in Little China on " << v << "... Start = "
+      << cg->Snippets[v].Start << ", NumEval = " << cg->Snippets[v].NumEval
+      << ", NumOther = " << cg->Snippets[v].NumOther << ", but indirectTbl is at " << (indirectTbl - base) << std::endl
+    );
   }
 }
 
@@ -169,30 +174,30 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction* base, uin
 //  discover_vertex: determine slot
 //  finish_vertex:   
 ProgramPtr createProgram(const Graph& graph) {
-  std::cerr << "Compiling to byte code" << std::endl;
+  // std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
   uint32 numVs = graph.numVertices();
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
-  std:: cerr << "Determined order in first pass" << std::endl;
+  // std::cerr << "Determined order in first pass" << std::endl;
   ret->NumChecked = cg->NumChecked;
   ret->resize(cg->Guard);
   uint32 i = 0;
   for (Graph::vertex v = 0; v < numVs; ++v) {
-    if (++i % 10000 == 0) {
-      std::cerr << "have compiled " << i << " states so far" << std::endl;
-    }
+    // if (++i % 10000 == 0) {
+    //   std::cerr << "have compiled " << i << " states so far" << std::endl;
+    // }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
     TransitionPtr t(graph[v]);
     if (t) {
       t->toInstruction(curOp);
       curOp += t->numInstructions();
       // std::cerr << "wrote " << i << std::endl;
-      if (cg->Snippets[v].CheckIndex != UNALLOCATED) {
+      if (cg->Snippets[v].CheckIndex != NONE) {
         *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
       }
-      if (t->Label != UNALLOCATED) {
+      if (t->Label != NONE) {
         *curOp++ = Instruction::makeLabel(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
       }
@@ -203,7 +208,7 @@ ProgramPtr createProgram(const Graph& graph) {
 
     if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op ||
         JUMP_TABLE_OP == cg->Snippets[v].Op) {
-      createJumpTable(cg, curOp, curOp - &(*ret)[0], v, graph);
+      createJumpTable(cg, &(*ret)[0], curOp, v, graph);
       continue;
     }
 
@@ -254,7 +259,7 @@ uint32 calculateLMin(const Graph& graph) {
 }
 
 boost::shared_ptr<SkipTable> calculateSkipTable(const Graph& graph) {
-  std::cerr << "calculating skiptable and l-min" << std::endl;
+  // std::cerr << "calculating skiptable and l-min" << std::endl;
   boost::shared_ptr<SkipTable> skip(new SkipTable(graph.numVertices()));
   SkipTblVisitor vis(skip);
   bfs(graph, 0, vis);

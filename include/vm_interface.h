@@ -16,7 +16,9 @@ public:
   virtual void closeOut(HitCallback& hitFn) = 0;
   virtual void reset() = 0;
 
+  #ifdef LBT_TRACE_ENABLED
   virtual void setDebugRange(uint64 beg, uint64 end) = 0;
+  #endif
 
   static boost::shared_ptr<VmInterface> create();
 };

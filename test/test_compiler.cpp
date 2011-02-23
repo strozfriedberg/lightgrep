@@ -63,7 +63,7 @@ SCOPE_TEST(testMergeLabelsSimple) {
   edge(1, 2, exp, new LitState('c'));
   edge(1, 3, exp, new LitState('b'));
 
-  exp[1]->Label = UNALLOCATED;
+  exp[1]->Label = NONE;
   exp[2]->Label = 0;
   exp[3]->Label = 1; 
 
@@ -105,11 +105,11 @@ SCOPE_TEST(testMergeLabelsComplex) {
   edge(1, 4, exp, new LitState('b'));
   edge(4, 5, exp, new LitState('d'));
 
-  exp[1]->Label = UNALLOCATED;
+  exp[1]->Label = NONE;
   exp[2]->Label = 1;
-  exp[3]->Label = UNALLOCATED;
+  exp[3]->Label = NONE;
   exp[4]->Label = 0; 
-  exp[5]->Label = UNALLOCATED;
+  exp[5]->Label = NONE;
 
   exp[3]->IsMatch = true;
   exp[5]->IsMatch = true;
@@ -200,15 +200,15 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   exp[9]->Label = 3;
   exp[9]->IsMatch = true;
 
-  exp[1]->Label = UNALLOCATED;
-  exp[2]->Label = UNALLOCATED;
+  exp[1]->Label = NONE;
+  exp[2]->Label = NONE;
   exp[3]->Label = 0;
   exp[4]->Label = 0;
   exp[5]->Label = 1;
   exp[6]->Label = 2;
   exp[7]->Label = 3;
-  exp[8]->Label = UNALLOCATED;
-  exp[9]->Label = UNALLOCATED;
+  exp[8]->Label = NONE;
+  exp[9]->Label = NONE;
   
   ASSERT_EQUAL_GRAPHS(exp, key[0]);
   ASSERT_EQUAL_LABELS(exp, key[0]);
@@ -267,8 +267,8 @@ SCOPE_TEST(testRemoveNonMinimalLabels) {
   SCOPE_ASSERT_EQUAL(0, g[1]->Label);
   SCOPE_ASSERT_EQUAL(1, g[2]->Label);
   SCOPE_ASSERT_EQUAL(2, g[3]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[4]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[5]->Label);
+  SCOPE_ASSERT_EQUAL(NONE, g[4]->Label);
+  SCOPE_ASSERT_EQUAL(NONE, g[5]->Label);
 }
 
 SCOPE_TEST(testLabelGuardStates) {
@@ -296,8 +296,8 @@ SCOPE_TEST(testLabelGuardStates) {
   SCOPE_ASSERT_EQUAL(0, g[1]->Label);
   SCOPE_ASSERT_EQUAL(1, g[2]->Label);
   SCOPE_ASSERT_EQUAL(2, g[3]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[4]->Label);
-  SCOPE_ASSERT_EQUAL(UNALLOCATED, g[5]->Label); 
+  SCOPE_ASSERT_EQUAL(NONE, g[4]->Label);
+  SCOPE_ASSERT_EQUAL(NONE, g[5]->Label); 
 }
 
 SCOPE_TEST(testSubstringKey) {
@@ -323,7 +323,7 @@ SCOPE_TEST(testSubstringKey) {
   edge(0, 3, exp, new LitState('a', 1));
  
   exp[1]->Label = 0;
-  exp[2]->Label = UNALLOCATED;
+  exp[2]->Label = NONE;
   exp[3]->Label = 1;
  
   exp[2]->IsMatch = true;
@@ -353,8 +353,8 @@ SCOPE_TEST(testCreateXXYYY) {
   exp[1]->Label = 0;
   exp[2]->Label = 1;
   exp[3]->Label = 2;
-  exp[4]->Label = UNALLOCATED; 
-  exp[5]->Label = UNALLOCATED;
+  exp[4]->Label = NONE; 
+  exp[5]->Label = NONE;
 
   exp[1]->IsMatch = true;
   exp[2]->IsMatch = true;

@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <iostream>
 
-static uint64 UNALLOCATED = std::numeric_limits<uint64>::max();
+static uint64 NONE = std::numeric_limits<uint64>::max();
 
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"pc\":" << std::hex << t.PC << ", \"Label\":" << std::dec << t.Label << ", \"Start\":" << t.Start << ", \"End\":"
@@ -17,6 +17,17 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
 uint64 Thread::NextId = 0;
 
 std::set<uint64> new_thread_json;
+
+void Vm::open_init_epsilon_json(std::ostream& out) {
+  if (BeginDebug == 0) {
+    out << "{\"offset\":-1, \"byte\":0, \"num\":0, \"list\":[";
+    first_thread_json = true;
+  }
+}
+
+void Vm::close_init_epsilon_json(std::ostream& out) const {
+  close_frame_json(out, 0);
+}
 
 void Vm::open_frame_json(std::ostream& out, uint64 offset, const byte* cur) {
   if (BeginDebug <= offset && offset < EndDebug) {
@@ -41,7 +52,7 @@ void Vm::pre_run_thread_json(std::ostream& out, uint64 offset,
       state |= Thread::BORN;
     }
 
-    thread_json(out, offset, t, base, state);
+    thread_json(out, t, base, state);
   }
 }
 
@@ -53,12 +64,12 @@ void Vm::post_run_thread_json(std::ostream& out, uint64 offset,
       state |= Thread::DIED;
     }
 
-    thread_json(out, offset, t, base, state);
+    thread_json(out, t, base, state);
   }
 }
 
-void Vm::thread_json(std::ostream& out, uint64 offset,
-                     const Thread& t, const Instruction* base, byte state) {
+void Vm::thread_json(std::ostream& out, const Thread& t,
+                     const Instruction* base, byte state) {
   // put commas between consecutive threads
   if (first_thread_json) {
     first_thread_json = false;
@@ -79,16 +90,38 @@ void Thread::output_json(std::ostream& out, const Instruction* base, byte state)
       << ", \"state\":" << (uint32) state
       << " }";
 }
+
+bool Vm::atEpsilon(const Thread& t) const {
+  switch (t.PC->OpCode) {
+    case FORK_OP:
+    case JUMP_OP:
+    case LONGFORK_OP:
+    case LONGJUMP_OP:
+    case CHECK_HALT_OP:
+    case MATCH_OP:
+    case HALT_OP:
+      return true;
+    default:
+      return false;
+  }
+}
 #endif
 
 boost::shared_ptr<VmInterface> VmInterface::create() {
   return boost::shared_ptr<VmInterface>(new Vm);
 }
 
-Vm::Vm() : BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED), CurHitFn(0) {}
+Vm::Vm() :
+  #ifdef LBT_TRACE_ENABLED
+  BeginDebug(NONE), EndDebug(NONE),
+  #endif
+  CurHitFn(0) {}
 
 Vm::Vm(ProgramPtr prog): 
-  BeginDebug(UNALLOCATED), EndDebug(UNALLOCATED), CurHitFn(0)
+  #ifdef LBT_TRACE_ENABLED
+  BeginDebug(NONE), EndDebug(NONE),
+  #endif
+  CurHitFn(0)
 {
   init(prog);
 }
@@ -113,15 +146,32 @@ void Vm::init(ProgramPtr prog) {
   numCheckedStates += 2; // bit 0 reserved for whether any bits were flipped
   Matches.resize(numPatterns);
   CheckStates.resize(numCheckedStates);
+
   Thread s0(&(*Prog)[0]);
   ThreadList::iterator t = &s0;
+
+  #ifdef LBT_TRACE_ENABLED
+  if (atEpsilon(s0)) {
+    open_init_epsilon_json(std::cerr);
+    new_thread_json.insert(s0.Id = 0);
+    pre_run_thread_json(std::cerr, 0, s0, &(*Prog)[0]);
+  }
+  #endif
+
   if (_executeEpSequence(&(*Prog)[0], t, 0)) {
     Next.push_back(s0);
+
+    #ifdef LBT_TRACE_ENABLED
+    post_run_thread_json(std::cerr, 0, s0, &(*Prog)[0]);
+    close_init_epsilon_json(std::cerr);
+    #endif
   }
+
   First.resize(Next.size());
   for (uint32 i = 0; i < Next.size(); ++i) {
     First.push_back(Next[i]);
   }
+
   reset();
 }
 
@@ -129,7 +179,7 @@ void Vm::reset() {
   Active.clear();
   Next.clear();
   CheckStates.assign(CheckStates.size(), false);
-  Matches.assign(Matches.size(), std::pair<uint64, uint64>(UNALLOCATED, 0));
+  Matches.assign(Matches.size(), std::pair<uint64, uint64>(NONE, 0));
   CurHitFn = 0;
 }
 
@@ -239,7 +289,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
     case LABEL_OP:
       {
         std::pair<uint64, uint64> lastHit(Matches[instr.Op.Offset]);
-        if (lastHit.first == UNALLOCATED ||
+        if (lastHit.first == NONE ||
     			lastHit.first == t->Start ||
     			lastHit.second < t->Start)
     		{
@@ -256,9 +306,11 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       t->End = offset;
       doMatch(*t);
       t->advance();
+
+      // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
         if (it->Label == t->Label) {
-          it->End = UNALLOCATED;
+          it->End = NONE;
           it->PC = &Prog->back(); // DIE. Last instruction is always a halt
         }
       }
@@ -342,13 +394,15 @@ void Vm::doMatch(const Thread& t) {
   // std::cerr << "had a match" << std::endl;
   std::pair< uint64, uint64 > lastHit = Matches[t.Label];
   
-  if (lastHit.first != UNALLOCATED && lastHit.second < t.Start) {
-    SearchHit  hit(lastHit.first, lastHit.second - lastHit.first + 1, t.Label);
+  if (lastHit.first != NONE && lastHit.second < t.Start) {
     if (CurHitFn) {
+      SearchHit hit(lastHit.first, lastHit.second - lastHit.first + 1, t.Label);
       CurHitFn->collect(hit);
     }
   }
+
   Matches[t.Label] = std::make_pair(t.Start, t.End);
+
   #ifdef LBT_TRACE_ENABLED
   if (lastHit.first < t.Start && t.Start <= lastHit.second) {
     std::cerr << "** Replaced overlapping hit! (" << lastHit.first
@@ -391,7 +445,7 @@ void Vm::closeOut(HitCallback& hitFn) {
   if (CurHitFn) {
     for (uint32 i = 0; i < Matches.size(); ++i) {
       std::pair<uint64, uint64> lastHit = Matches[i];
-      if (lastHit.first != UNALLOCATED) {
+      if (lastHit.first != NONE) {
         hit.Offset = lastHit.first;
         hit.Length = lastHit.second - lastHit.first + 1;
         hit.Label  = i;
