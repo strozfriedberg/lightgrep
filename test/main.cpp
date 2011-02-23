@@ -85,8 +85,10 @@ boost::shared_ptr<VmInterface> initSearch(const Options& opts, KwInfo& keyInfo) 
     return boost::shared_ptr<VmInterface>();
   }
   boost::shared_ptr<VmInterface> ret = VmInterface::create();
-  ret->init(p);
+  #ifdef LBT_TRACE_ENABLED
   ret->setDebugRange(opts.DebugBegin, opts.DebugEnd);
+  #endif
+  ret->init(p);
   return ret;
 }
 

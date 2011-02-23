@@ -145,15 +145,15 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
       hdr.ID = 0;
       hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
-        // std::cout << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
+        std::cout << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
         output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
         ++numReads;
         uint64 offset = 0;
         while (offset < hdr.Length) {
-          len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length)));
+          len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length-offset)));
           ++numReads;
           search->search(data.get(), data.get() + len, offset, *output);
-          // std::cout << "read " << len << " bytes\n";
+          //std::cout << "read " << len << " bytes\n";
           // std::cout.write((const char*)data.get(), len);
           // std::cout << '\n';
           totalRead += len;
