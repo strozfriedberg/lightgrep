@@ -48,12 +48,12 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
         std::cerr << "Currently " << fsm->numVertices() << " vertices" << std::endl;
         throw;
       }
-      if (i && i % 10000 == 0) {
-        std::cerr << "Parsed " << i << " keywords" << std::endl;
-      }
+      // if (i && i % 10000 == 0) {
+      //   std::cerr << "Parsed " << i << " keywords" << std::endl;
+      // }
     }
   }
-  std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
+  // std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
   comp.labelGuardStates(*fsm);
 }
 
@@ -174,20 +174,20 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
 //  discover_vertex: determine slot
 //  finish_vertex:   
 ProgramPtr createProgram(const Graph& graph) {
-  std::cerr << "Compiling to byte code" << std::endl;
+  // std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
   uint32 numVs = graph.numVertices();
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
-  std:: cerr << "Determined order in first pass" << std::endl;
+  // std::cerr << "Determined order in first pass" << std::endl;
   ret->NumChecked = cg->NumChecked;
   ret->resize(cg->Guard);
   uint32 i = 0;
   for (Graph::vertex v = 0; v < numVs; ++v) {
-    if (++i % 10000 == 0) {
-      std::cerr << "have compiled " << i << " states so far" << std::endl;
-    }
+    // if (++i % 10000 == 0) {
+    //   std::cerr << "have compiled " << i << " states so far" << std::endl;
+    // }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
     TransitionPtr t(graph[v]);
     if (t) {
@@ -259,7 +259,7 @@ uint32 calculateLMin(const Graph& graph) {
 }
 
 boost::shared_ptr<SkipTable> calculateSkipTable(const Graph& graph) {
-  std::cerr << "calculating skiptable and l-min" << std::endl;
+  // std::cerr << "calculating skiptable and l-min" << std::endl;
   boost::shared_ptr<SkipTable> skip(new SkipTable(graph.numVertices()));
   SkipTblVisitor vis(skip);
   bfs(graph, 0, vis);
