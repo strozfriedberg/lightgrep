@@ -1,0 +1,4 @@
+Import('env', 'isWindows', 'isLinux')
+libs = ['lightgrep']
+ret = env.Program('c_example', Glob('*.c'), LIBS=libs)
+Return('ret')
