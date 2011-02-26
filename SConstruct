@@ -6,6 +6,7 @@ import re
 
 isWindows = False
 isLinux = False
+bits = '32'
 
 def shellCall(cmd):
   print(cmd)
@@ -19,22 +20,23 @@ def buildBoost(target, source, env):
   for t in target:
 #	print("Looking for %s" % t)
     if (len(env.Glob(str(t))) == 1):
-#	  print("Couldn't find ist... need to build")
+#	  print("Couldn't find %s... need to build" % str(t))
       shouldBuild = True
       break
   if (shouldBuild):
     print("building")
     curDir = os.getcwd()
     os.chdir(str(source[0]))
+    libsToBuild = '--with-program_options --with-system --with-thread'
     if (isWindows == True):
       shellCall('.\\bootstrap.bat')
-      shellCall('.\\bjam --stagedir=%s --with-graph --with-regex --with-system --with-system --with-thread '
+      shellCall('.\\bjam --stagedir=%s %s '
         'link=static variant=release threading=multi runtime-link=static toolset=gcc '
-		'address-model=64 define=BOOST_USE_WINDOWS_H '
-        '-s BOOST_NO_RVALUE_REFERENCES stage' % curDir)
+        'address-model=%s define=BOOST_USE_WINDOWS_H '
+        '-s BOOST_NO_RVALUE_REFERENCES stage' % (curDir, libsToBuild, bits))
     else:
       shellCall('./bootstrap.sh')
-      shellCall('./bjam --stagedir=%s --with-graph --with-regex --with-system --with-thread link=shared variant=release threading=multi stage' % curDir)
+      shellCall('./bjam --stagedir=%s %s link=shared variant=release threading=multi stage' % (curDir, libsToBuild))
     os.chdir(curDir)
     if (isWindows):
       libs = [str(x) for x in Glob('#/lib/libboost*')]
@@ -42,7 +44,7 @@ def buildBoost(target, source, env):
         print("GLOB DID NOT SUCCEED")
       for lib in libs:
         try:
-          newName = re.sub(r'-.*\.a', '.a', lib) #.replace('lib\\lib', 'lib\\', 1)
+          newName = re.sub(r'-.*\.(a|dll)', r'.\g<1>', lib) # Boost tacks on version/MT options, which this gets rid of
           print("renaming %s to %s" % (lib, newName))
           os.rename(lib, newName)
         except:
@@ -51,6 +53,9 @@ def buildBoost(target, source, env):
 
 arch = platform.platform()
 print("System is %s, %s" % (arch, platform.machine()))
+if (platform.machine().find('64') > -1):
+  bits = '64'
+
 isWindows = arch.find('Windows') > -1
 isLinux = arch.find('Linux') > -1
 
@@ -88,7 +93,7 @@ env.Append(LINKFLAGS=ldflags)
 if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
-libBoost = env.Command(['#/lib/*boost_graph*', '#/lib/*boost_regex*', '#/lib/*boost_system*', '#/lib/*boost_thread*'], boostDir, buildBoost)
+libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options'], boostDir, buildBoost)
 liblg = sub('src')
 c_example = sub('c_example')
 libDir = env.Install('lib', liblg)
