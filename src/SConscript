@@ -4,7 +4,7 @@ myEnv = env
 flags = myEnv['CCFLAGS']
 parser = myEnv.Command('#/bin/src/parser.tab.cpp', 'parser.ypp', 'bison $SOURCE -o $TARGET')
 if (isWindows):
-  ret = myEnv.Library('lightgrep', Glob('*.cpp'))
+  ret = myEnv.Library('lightgrep', Glob('*.cpp'), LINKFLAGS='-static-libgcc')
 else:
   ret = myEnv.SharedLibrary('lightgrep', Glob('*.cpp'))
 Return('ret')
