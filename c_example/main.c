@@ -5,8 +5,9 @@
 #include <string.h>
 
 // callback function that receives the search hit
-void getHit(const LG_SearchHit* const hit) {
-  printf("hit: (%llu, %llu, %u)\n", hit->Offset, hit->Length, hit->KeywordIndex);
+void getHit(void* userData, const LG_SearchHit* const hit) {
+  // my printf() doesn't like printing out 64-bit uints, hence the unfortunate casts
+  printf("userData: %p, hit: (%u, %u, %u)\n", userData, (unsigned int)hit->Start, (unsigned int)hit->End, hit->KeywordIndex);
 }
 
 static const uint32 NUM_KEYS = 3;
@@ -21,18 +22,20 @@ void searchText(char** textArray, unsigned int numStrings, LG_HCONTEXT searcher)
   unsigned int i;
   for (i = 0; i < numStrings; ++i) {
     len = strlen(textArray[i]);
-    lg_search(searcher, textArray[i], textArray[i] + len, offset, getHit);
+    lg_search(searcher, textArray[i], textArray[i] + len, offset, (void*)17, getHit);
     offset += len;
   }
   // flush any remaining hits -- done once at end of file
-  lg_closeout_search(searcher, getHit);
+  lg_closeout_search(searcher, (void*)17, getHit);
 }
 
 int main() {
   // create a parser
   LG_HPARSER    parser = lg_create_parser(0);
   LG_KeyOptions keyOpts;
-  char *keys[] = {"Mary", "lamb", "[a-z]+"};
+  keyOpts.CaseInsensitive = 1;
+  keyOpts.FixedString = 0;
+  char *keys[] = {"mary", "lamb", "[a-z]+"};
   const char* errString = "";
 
   // add the keywords to the parser one at a time

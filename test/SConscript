@@ -1,5 +1,5 @@
 Import('env', 'isWindows', 'isLinux')
-libs = ['lightgrep', 'boost_graph', 'boost_system', 'boost_thread']
+libs = ['lightgrep', 'boost_system', 'boost_thread', 'boost_program_options']
 if (isLinux):
   libs.append('pthread')
 if (isWindows):

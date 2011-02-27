@@ -19,17 +19,18 @@ struct ParseContext {
 
 class HitHandler: public HitCallback {
 public:
-  HitHandler(LG_HITCALLBACK_FN fn): Fn(fn) {}
+  HitHandler(LG_HITCALLBACK_FN fn, void* userData): Fn(fn), UserData(userData) {}
 
   virtual void collect(const SearchHit& hit) {
-    Hit.Offset = hit.Offset;
-    Hit.Length = hit.Length;
+    Hit.Start = hit.Offset;
+    Hit.End = hit.Offset + hit.Length;
     Hit.KeywordIndex = hit.Label;
-    (*Fn)(&Hit);
+    (*Fn)(UserData, &Hit);
   }
 
 private:
   LG_HITCALLBACK_FN Fn;
+  void* UserData;
   LG_SearchHit Hit;
 };
 
@@ -51,11 +52,11 @@ int lg_add_keyword(LG_HPARSER hParser,
   pc->P.reset();
   pc->Tree.reset();
   pc->P.setCurLabel(keyIndex);
-  pc->P.setCaseSensitive(true);
+  pc->P.setCaseSensitive(options->CaseInsensitive == 0);
   std::string k(keyword);
   SyntaxTree tree;
   try {
-    if (parse(k, false, pc->Tree, pc->P) && pc->P.good()) {
+    if (parse(k, options->FixedString != 0, pc->Tree, pc->P) && pc->P.good()) {
       if (pc->Fsm) {
         pc->Comp.mergeIntoFSM(*pc->Fsm, *pc->P.getFsm());
       }
@@ -87,8 +88,8 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
   ProgramPtr *prog = new ProgramPtr;
   *prog = createProgram(*pc->Fsm);
   (*prog)->First = firstBytes(*pc->Fsm);
-  std::cerr << "program size is " << (*prog)->size() << std::endl;
-  std::cerr << **prog;
+//  std::cerr << "program size is " << (*prog)->size() << std::endl;
+//  std::cerr << **prog;
   return prog;
 }
 
@@ -116,15 +117,17 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
                          const char* bufStart,
                          const char* bufEnd,
                          uint64 startOffset,
+                         void* userData,
                          LG_HITCALLBACK_FN callbackFn)
 {
-  HitHandler cb(callbackFn);
+  HitHandler cb(callbackFn, userData);
   return (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->search((const byte*)bufStart, (const byte*)bufEnd, startOffset, cb);
 }
 
 void lg_closeout_search(LG_HCONTEXT hCtx,
-                          LG_HITCALLBACK_FN callbackFn)
+                        void* userData,
+                        LG_HITCALLBACK_FN callbackFn)
 {
-  HitHandler cb(callbackFn);
+  HitHandler cb(callbackFn, userData);
   (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->closeOut(cb);
 }
