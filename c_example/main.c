@@ -6,8 +6,10 @@
 
 // callback function that receives the search hit
 void getHit(const LG_SearchHit* const hit) {
-  printf("hit: (%llu, %llu, %u)\n", hit->Offset, hit->Length, hit->KeywordIndex);
+  // my printf() doesn't like printing out 64-bit uints, hence the unfortunate casts
+  printf("hit: (%u, %u, %u)\n", (unsigned int)hit->Start, (unsigned int)hit->End, hit->KeywordIndex);
 }
+
 
 static const uint32 NUM_KEYS = 3;
 
@@ -32,7 +34,9 @@ int main() {
   // create a parser
   LG_HPARSER    parser = lg_create_parser(0);
   LG_KeyOptions keyOpts;
-  char *keys[] = {"Mary", "lamb", "[a-z]+"};
+  keyOpts.CaseInsensitive = 1;
+  keyOpts.FixedString = 0;
+  char *keys[] = {"mary", "lamb", "[a-z]+"};
   const char* errString = "";
 
   // add the keywords to the parser one at a time
