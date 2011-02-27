@@ -15,7 +15,8 @@ extern "C" {
   typedef void* LG_HCONTEXT;
 
   typedef struct {
-    char c;
+    char CaseInsensitive; // 0 => case sensitive, non-zero => case-insensitive
+    char FixedString;     // 0 => grep, non-zero => fixed-string
   } LG_KeyOptions;
   
   typedef struct {
@@ -23,14 +24,14 @@ extern "C" {
   } LG_ProgramOptions;
 
   typedef struct {
-    uint64  Offset,
-            Length;
-    uint32  KeywordIndex;
+    uint64  Start,        // starting offset of the hit
+            End;          // one past the hit, i.e., End - Start = Length
+    uint32  KeywordIndex; // index of keyword that hit
   } LG_SearchHit;
 
   // function you specify to handle the search hit, e.g.,
   // void gotASearchHit(const LG_SearchHit const* hit) {
-  //   print("hit at %d, length %d, on keyword %d", hit->Offset, hit->Length, hit->KeywordIndex);
+  //   print("hit at %d, ending %d, on keyword %d", hit->Start, hit->End, hit->KeywordIndex);
   // }
   typedef void (*LG_HITCALLBACK_FN)(const LG_SearchHit* const hit);
   
@@ -72,7 +73,7 @@ extern "C" {
 
   // Search a buffer. It assumes it's picking up where it left off, so you can call this in a loop.
   // When a hit is identified, the callback function will be called, on the same stackframe, giving you
-  // the starting byte offset of the hit, its length (in bytes), and the keyword index of the associated keyword.
+  // the starting byte offset of the hit, the end offset, and the keyword index of the associated keyword.
   // The context does not store or otherwise remember the buffer data you pass it after this function returns,
   // so do whatever you'd like with your buffers after lg_search() returns.
   // Search hits will be generated in increasing byte offset order BY KEYWORD INDEX. Search hits pertaining to different
@@ -80,7 +81,7 @@ extern "C" {
   // the entire byte stream has been searched...
   unsigned int lg_search(LG_HCONTEXT hCtx,
                          const char* bufStart,
-                         const char* bufEnd,   // pointer past the end of the buffer, i.e. bufStart + length == bufEnd
+                         const char* bufEnd,   // pointer past the end of the buffer, i.e. bufEnd - bufStart == length of buffer
                          uint64 startOffset,   // Increment this with each call, by the length of the previous buffer. i.e., startOffset += bufEnd - bufStart;
                          LG_HITCALLBACK_FN callbackFn);
 

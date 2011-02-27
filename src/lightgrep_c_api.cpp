@@ -22,8 +22,8 @@ public:
   HitHandler(LG_HITCALLBACK_FN fn): Fn(fn) {}
 
   virtual void collect(const SearchHit& hit) {
-    Hit.Offset = hit.Offset;
-    Hit.Length = hit.Length;
+    Hit.Start = hit.Offset;
+    Hit.End = hit.Offset + hit.Length;
     Hit.KeywordIndex = hit.Label;
     (*Fn)(&Hit);
   }
@@ -51,11 +51,11 @@ int lg_add_keyword(LG_HPARSER hParser,
   pc->P.reset();
   pc->Tree.reset();
   pc->P.setCurLabel(keyIndex);
-  pc->P.setCaseSensitive(true);
+  pc->P.setCaseSensitive(options->CaseInsensitive == 0);
   std::string k(keyword);
   SyntaxTree tree;
   try {
-    if (parse(k, false, pc->Tree, pc->P) && pc->P.good()) {
+    if (parse(k, options->FixedString != 0, pc->Tree, pc->P) && pc->P.good()) {
       if (pc->Fsm) {
         pc->Comp.mergeIntoFSM(*pc->Fsm, *pc->P.getFsm());
       }
@@ -87,8 +87,8 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
   ProgramPtr *prog = new ProgramPtr;
   *prog = createProgram(*pc->Fsm);
   (*prog)->First = firstBytes(*pc->Fsm);
-  std::cerr << "program size is " << (*prog)->size() << std::endl;
-  std::cerr << **prog;
+//  std::cerr << "program size is " << (*prog)->size() << std::endl;
+//  std::cerr << **prog;
   return prog;
 }
 

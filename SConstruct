@@ -20,7 +20,7 @@ def buildBoost(target, source, env):
   for t in target:
 #	print("Looking for %s" % t)
     if (len(env.Glob(str(t))) == 1):
-#	  print("Couldn't find %s... need to build" % str(t))
+      print("Couldn't find %s... need to build" % str(t))
       shouldBuild = True
       break
   if (shouldBuild):
@@ -93,7 +93,7 @@ env.Append(LINKFLAGS=ldflags)
 if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
-libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options'], boostDir, buildBoost)
+libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options*'], boostDir, buildBoost)
 liblg = sub('src')
 c_example = sub('c_example')
 libDir = env.Install('lib', liblg)
