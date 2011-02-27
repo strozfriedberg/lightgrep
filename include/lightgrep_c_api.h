@@ -33,7 +33,7 @@ extern "C" {
   // void gotASearchHit(const LG_SearchHit const* hit) {
   //   print("hit at %d, ending %d, on keyword %d", hit->Start, hit->End, hit->KeywordIndex);
   // }
-  typedef void (*LG_HITCALLBACK_FN)(const LG_SearchHit* const hit);
+  typedef void (*LG_HITCALLBACK_FN)(void* userData, const LG_SearchHit* const hit);
   
   // Returns a handle to a parser for assembling all the keywords you'd like to search for
   // The parameter lets you pass a hint as to the size of the finite state machine that will be created
@@ -83,11 +83,13 @@ extern "C" {
                          const char* bufStart,
                          const char* bufEnd,   // pointer past the end of the buffer, i.e. bufEnd - bufStart == length of buffer
                          uint64 startOffset,   // Increment this with each call, by the length of the previous buffer. i.e., startOffset += bufEnd - bufStart;
+                         void* userData,       // pass in what you like, it will be passed through to the callback function
                          LG_HITCALLBACK_FN callbackFn);
 
   // ...which is why it's important you call lg_closeout_search() when finished searching a byte stream.
   // This will flush out any remaining search hits.
   void lg_closeout_search(LG_HCONTEXT hCtx,
+                          void* userData,
                           LG_HITCALLBACK_FN callbackFn);
 
 #ifdef __cplusplus

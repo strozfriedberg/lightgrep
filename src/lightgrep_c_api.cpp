@@ -19,17 +19,18 @@ struct ParseContext {
 
 class HitHandler: public HitCallback {
 public:
-  HitHandler(LG_HITCALLBACK_FN fn): Fn(fn) {}
+  HitHandler(LG_HITCALLBACK_FN fn, void* userData): Fn(fn), UserData(userData) {}
 
   virtual void collect(const SearchHit& hit) {
     Hit.Start = hit.Offset;
     Hit.End = hit.Offset + hit.Length;
     Hit.KeywordIndex = hit.Label;
-    (*Fn)(&Hit);
+    (*Fn)(UserData, &Hit);
   }
 
 private:
   LG_HITCALLBACK_FN Fn;
+  void* UserData;
   LG_SearchHit Hit;
 };
 
@@ -116,15 +117,17 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
                          const char* bufStart,
                          const char* bufEnd,
                          uint64 startOffset,
+                         void* userData,
                          LG_HITCALLBACK_FN callbackFn)
 {
-  HitHandler cb(callbackFn);
+  HitHandler cb(callbackFn, userData);
   return (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->search((const byte*)bufStart, (const byte*)bufEnd, startOffset, cb);
 }
 
 void lg_closeout_search(LG_HCONTEXT hCtx,
-                          LG_HITCALLBACK_FN callbackFn)
+                        void* userData,
+                        LG_HITCALLBACK_FN callbackFn)
 {
-  HitHandler cb(callbackFn);
+  HitHandler cb(callbackFn, userData);
   (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->closeOut(cb);
 }
