@@ -24,6 +24,8 @@ struct StateLayoutInfo {
 
   uint32 numTotal() const { return NumEval + NumOther; }
 
+  uint32 end() const { return Start + numTotal(); }
+
   bool operator==(const StateLayoutInfo& x) const {
     return Start == x.Start && NumEval == x.NumEval && NumOther == x.NumOther && CheckIndex == x.CheckIndex;
   }
