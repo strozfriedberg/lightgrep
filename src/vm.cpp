@@ -391,7 +391,7 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 }
 
 void Vm::doMatch(const Thread& t) {
-//  std::cerr << "had a match" << std::endl;
+  // std::cerr << "had a match" << std::endl;
   std::pair< uint64, uint64 > lastHit = Matches[t.Label];
   
   if (lastHit.first != NONE && lastHit.second < t.Start) {

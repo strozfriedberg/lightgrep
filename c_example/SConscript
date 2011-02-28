@@ -1,0 +1,4 @@
+Import('env', 'isWindows', 'isLinux')
+libs = ['lightgrep', 'libstdc++']
+ret = env.Program('c_example', Glob('*.c'), LIBS=libs, LINKFLAGS='-static-libgcc')
+Return('ret')
