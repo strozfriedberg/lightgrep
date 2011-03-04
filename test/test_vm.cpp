@@ -286,8 +286,8 @@ SCOPE_TEST(runFrame) {
   s.executeFrame(&b, 0, cb);
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(2u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(&prog[5], 1, 0, 0, 0), s.next()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&prog[6], std::numeric_limits<uint32>::max(), 1, 0, unalloc), s.next()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&prog[5], 1, 1, 0, 0), s.next()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&prog[6], std::numeric_limits<uint32>::max(), 2, 0, unalloc), s.next()[1]);
 }
 
 SCOPE_TEST(testInit) {
@@ -368,7 +368,7 @@ SCOPE_TEST(newThreadInit) {
   v.executeFrame(&text[2], 15, cb);
   v.cleanup();
   SCOPE_ASSERT_EQUAL(1, v.active().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], std::numeric_limits<uint32>::max(), 2, 15, std::numeric_limits<uint64>::max()), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], std::numeric_limits<uint32>::max(), 3, 15, std::numeric_limits<uint64>::max()), v.active()[0]);
 }
 
 SCOPE_TEST(threeKeywords) {

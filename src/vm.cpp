@@ -146,7 +146,12 @@ void Vm::init(ProgramPtr prog) {
   }
   ++numPatterns;
   numCheckedStates += 2; // bit 0 reserved for whether any bits were flipped
+
   Matches.resize(numPatterns);
+  boost::tuple<uint64,uint64,uint64> nomatch(NONE, NONE, 0);
+  Matches.assign(Matches.size(),
+                 std::vector< boost::tuple<uint64,uint64,uint64> >(1, nomatch));
+
   CheckStates.resize(numCheckedStates);
 
   Thread s0(&(*Prog)[0]);
@@ -181,8 +186,13 @@ void Vm::reset() {
   Active.clear();
   Next.clear();
   CheckStates.assign(CheckStates.size(), false);
-  Matches.assign(Matches.size(), boost::make_tuple(NONE, NONE, 0));
+//  Matches.assign(Matches.size(), boost::make_tuple(NONE, NONE, 0));
+  boost::tuple<uint64,uint64,uint64> nomatch(NONE, NONE, 0);
+  Matches.assign(Matches.size(),
+                 std::vector< boost::tuple<uint64,uint64,uint64> >(1, nomatch));
+
   CurHitFn = 0;
+  NextId = 1;
 }
 
 inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const byte* cur) {
@@ -292,7 +302,8 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       }
     case LABEL_OP:
       {
-        boost::tuple<uint64,uint64,uint64> lastHit(Matches[instr.Op.Offset]);
+        
+        boost::tuple<uint64,uint64,uint64> lastHit(Matches[instr.Op.Offset].back());
         if (lastHit.get<1>() == NONE ||
     			lastHit.get<1>() == t->Start ||
     			lastHit.get<2>() < t->Start)
@@ -416,9 +427,10 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 
 void Vm::doMatch(const Thread& t) {
   // std::cerr << "had a match" << std::endl;
-  boost::tuple<uint64,uint64,uint64> lastHit = Matches[t.Label];
+  boost::tuple<uint64,uint64,uint64> lastHit = Matches[t.Label].back();
   
-  if (lastHit.get<1>() != NONE && lastHit.get<2>() < t.Start) {
+  if (lastHit.get<0>() < t.Id &&
+      lastHit.get<1>() != NONE && lastHit.get<2>() < t.Start) {
     if (CurHitFn) {
       SearchHit hit(lastHit.get<1>(),
                     lastHit.get<2>() - lastHit.get<1>() + 1, t.Label);
@@ -426,7 +438,7 @@ void Vm::doMatch(const Thread& t) {
     }
   }
 
-  Matches[t.Label] = boost::make_tuple(t.Id, t.Start, t.End);
+  Matches[t.Label].push_back(boost::make_tuple(t.Id, t.Start, t.End));
 
   #ifdef LBT_TRACE_ENABLED
   if (lastHit.get<1>() < t.Start && t.Start <= lastHit.get<2>()) {
@@ -469,7 +481,7 @@ void Vm::closeOut(HitCallback& hitFn) {
   SearchHit hit;
   if (CurHitFn) {
     for (uint32 i = 0; i < Matches.size(); ++i) {
-      boost::tuple<uint64,uint64,uint64> lastHit = Matches[i];
+      boost::tuple<uint64,uint64,uint64> lastHit = Matches[i].back();
       if (lastHit.get<1>() != NONE) {
         hit.Offset = lastHit.get<1>();
         hit.Length = lastHit.get<2>() - lastHit.get<1>() + 1;
