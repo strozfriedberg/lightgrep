@@ -90,7 +90,7 @@ private:
   uint64 NextId;
 
   std::vector<bool> CheckStates;
-  std::vector< boost::tuple<uint64,uint64,uint64> > Matches;
+  std::vector< std::vector< boost::tuple<uint64,uint64,uint64> > > Matches;
   std::vector< std::pair<uint64,uint32> > Kill;
 
   HitCallback* CurHitFn;
