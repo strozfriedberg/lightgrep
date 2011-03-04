@@ -33,7 +33,7 @@ SCOPE_TEST(threadJump) {
 }
 
 SCOPE_TEST(threadFork) {
-  Thread parent(0, 5, 123, std::numeric_limits<uint64>::max()),
+  Thread parent(0, 5, 0, 123, std::numeric_limits<uint64>::max()),
          child;
   child.fork(parent, 0, 4);
   SCOPE_ASSERT_EQUAL(reinterpret_cast<Instruction*>(16), child.PC);

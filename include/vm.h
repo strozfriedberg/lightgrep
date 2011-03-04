@@ -85,8 +85,11 @@ private:
              Active,
              Next;
 
+  uint64 NextId;
+
   std::vector<bool> CheckStates;
   std::vector< std::pair< uint64, uint64 > > Matches;
+  std::vector< std::pair< ThreadList::iterator, uint32 > > Kill;
 
   HitCallback* CurHitFn;
 };

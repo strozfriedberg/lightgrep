@@ -5,17 +5,19 @@
 #include <iomanip>
 #include <iostream>
 
+static uint32 NOLABEL = std::numeric_limits<uint32>::max();
 static uint64 NONE = std::numeric_limits<uint64>::max();
 
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
-  out << "{ \"pc\":" << std::hex << t.PC << ", \"Label\":" << std::dec << t.Label << ", \"Start\":" << t.Start << ", \"End\":"
-    << t.End << " }";
+  out << "{ \"pc\":" << std::hex << t.PC
+      << ", \"Label\":" << std::dec << t.Label
+      << ", \"Id\":" << t.Id
+      << ", \"Start\":" << t.Start
+      << ", \"End\":" << t.End << " }";
   return out;
 }
 
 #ifdef LBT_TRACE_ENABLED
-uint64 Thread::NextId = 0;
-
 std::set<uint64> new_thread_json;
 
 void Vm::open_init_epsilon_json(std::ostream& out) {
@@ -115,13 +117,13 @@ Vm::Vm() :
   #ifdef LBT_TRACE_ENABLED
   BeginDebug(NONE), EndDebug(NONE),
   #endif
-  CurHitFn(0) {}
+  NextId(0), CurHitFn(0) {}
 
 Vm::Vm(ProgramPtr prog): 
   #ifdef LBT_TRACE_ENABLED
   BeginDebug(NONE), EndDebug(NONE),
   #endif
-  CurHitFn(0)
+  NextId(0), CurHitFn(0)
 {
   init(prog);
 }
@@ -249,6 +251,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         }
         // now back up to the fork, and fall through to handle it as a jump
         *t = f;
+        t->Id = NextId++;
 
         #ifdef LBT_TRACE_ENABLED
         new_thread_json.insert(t->Id = Thread::NextId++);
@@ -267,6 +270,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         }
         // now back up to the fork, and fall through to handle it as a longjump
         *t = f;
+        t->Id = NextId++;
 
         #ifdef LBT_TRACE_ENABLED
         new_thread_json.insert(t->Id = Thread::NextId++);
@@ -306,6 +310,9 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       t->End = offset;
       doMatch(*t);
       t->advance();
+
+      // makr same-labeled threads after us for death, due to overlap
+//      Kill.push_back(std::make_pair(t+1, t->Label));
 
       // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
@@ -363,7 +370,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
   // create new threads at this offset
   if (first[*cur]) {
     for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
-      Active.addBack().init(it->PC, std::numeric_limits<uint32>::max(), offset, std::numeric_limits<uint64>::max());
+      Active.addBack().init(it->PC, NOLABEL, NextId++, offset, NONE);
 
       #ifdef LBT_TRACE_ENABLED
       new_thread_json.insert(Active[Active.size()-1].Id = Thread::NextId++);
@@ -374,6 +381,20 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
       _executeThread(base, threadIt, cur, offset);
     } while (++threadIt != Active.end());
   }
+
+/*
+  // kill threads overlapping higher-priority matchers
+  for (std::vector< std::pair< ThreadList::iterator, uint32 > >::iterator i(Kill.begin()); i != Kill.end(); ++i) {
+    for (ThreadList::iterator it(i->first); it != Active.end(); ++it) {
+      if (it->Label == i->second) {
+        it->End = NONE;
+        it->PC = &Prog->back(); // DIE. Last instruction is always a halt
+      }
+    }
+  }
+
+  Kill.clear();
+*/
 }
 
 bool Vm::execute(ThreadList::iterator t, const byte* cur) {

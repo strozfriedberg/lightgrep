@@ -6,13 +6,39 @@
 #include "instructions.h"
 
 struct Thread {
-  Thread(): PC(0), Label(std::numeric_limits<uint32>::max()), Start(0), End(std::numeric_limits<uint64>::max()) {}
-  Thread(const Instruction* pc, uint32 label, uint64 start, uint64 end): PC(pc), Label(label), Start(start), End(end) {}
-  Thread(const Instruction* pc, const Thread& parent): PC(pc), Label(parent.Label), Start(parent.Start), End(parent.End) {}
-  Thread(const Instruction* pc): PC(pc), Label(std::numeric_limits<uint32>::max()), Start(0), End(std::numeric_limits<uint64>::max()) {}
+  Thread():
+    PC(0),
+    Label(std::numeric_limits<uint32>::max()),
+    Id(0),
+    Start(0),
+    End(std::numeric_limits<uint64>::max()) {}
 
-  void init(const Instruction* pc, uint32 label, uint64 start, uint64 end) {
+  Thread(const Instruction* pc, uint32 label,
+         uint64 id, uint64 start, uint64 end):
+    PC(pc),
+    Label(label),
+    Id(id),
+    Start(start),
+    End(end) {}
+
+  Thread(const Instruction* pc, const Thread& parent):
+    PC(pc),
+    Label(parent.Label),
+    Id(parent.Id),
+    Start(parent.Start),
+    End(parent.End) {}
+
+  Thread(const Instruction* pc):
+    PC(pc),
+    Label(std::numeric_limits<uint32>::max()),
+    Id(0),
+    Start(0),
+    End(std::numeric_limits<uint64>::max()) {}
+
+  void init(const Instruction* pc, uint32 label,
+            uint64 id, uint64 start, uint64 end) {
     PC = pc;
+    Id = id;
     Label = label;
     Start = start;
     End = end;
@@ -39,13 +65,11 @@ struct Thread {
 
   const Instruction* PC;
   uint32             Label;
-  uint64             Start,
+  uint64             Id,
+                     Start,
                      End;
-  
-  #ifdef LBT_TRACE_ENABLED
-  static uint64 NextId;
-  uint64 Id;
 
+  #ifdef LBT_TRACE_ENABLED
   enum ThreadLife {
     BORN = 1,
     PRERUN = 2,
@@ -57,7 +81,8 @@ struct Thread {
   #endif
 
   bool operator==(const Thread& x) const {
-    return PC == x.PC && Label == x.Label && Start == x.Start && End == x.End;
+    return Id == x.Id && PC == x.PC && Label == x.Label &&
+           Start == x.Start && End == x.End;
   }
 };
 
