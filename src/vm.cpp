@@ -181,7 +181,7 @@ void Vm::reset() {
   Active.clear();
   Next.clear();
   CheckStates.assign(CheckStates.size(), false);
-  Matches.assign(Matches.size(), std::pair<uint64, uint64>(NONE, 0));
+  Matches.assign(Matches.size(), boost::make_tuple(NONE, NONE, 0));
   CurHitFn = 0;
 }
 
@@ -292,10 +292,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       }
     case LABEL_OP:
       {
-        std::pair<uint64, uint64> lastHit(Matches[instr.Op.Offset]);
-        if (lastHit.first == NONE ||
-    			lastHit.first == t->Start ||
-    			lastHit.second < t->Start)
+        boost::tuple<uint64,uint64,uint64> lastHit(Matches[instr.Op.Offset]);
+        if (lastHit.get<1>() == NONE ||
+    			lastHit.get<1>() == t->Start ||
+    			lastHit.get<2>() < t->Start)
     		{
           t->Label = instr.Op.Offset;
           t->advance();
@@ -311,8 +311,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       doMatch(*t);
       t->advance();
 
-      // makr same-labeled threads after us for death, due to overlap
-//      Kill.push_back(std::make_pair(t+1, t->Label));
+/*
+      // mark same-labeled threads after us for death, due to overlap
+      Kill.push_back(std::make_pair(t->Id, t->Label));
+*/
 
       // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
@@ -321,6 +323,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           it->PC = &Prog->back(); // DIE. Last instruction is always a halt
         }
       }
+
       return true;
     case HALT_OP:
       t->PC = 0;
@@ -384,9 +387,9 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
 
 /*
   // kill threads overlapping higher-priority matchers
-  for (std::vector< std::pair< ThreadList::iterator, uint32 > >::iterator i(Kill.begin()); i != Kill.end(); ++i) {
-    for (ThreadList::iterator it(i->first); it != Active.end(); ++it) {
-      if (it->Label == i->second) {
+  for (std::vector< std::pair<uint64,uint32> >::iterator i(Kill.begin()); i != Kill.end(); ++i) {
+    for (ThreadList::iterator it(Next.begin()); it != Next.end(); ++it) {
+      if (it->Id > i->first && it->Label == i->second) {
         it->End = NONE;
         it->PC = &Prog->back(); // DIE. Last instruction is always a halt
       }
@@ -413,21 +416,22 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 
 void Vm::doMatch(const Thread& t) {
   // std::cerr << "had a match" << std::endl;
-  std::pair< uint64, uint64 > lastHit = Matches[t.Label];
+  boost::tuple<uint64,uint64,uint64> lastHit = Matches[t.Label];
   
-  if (lastHit.first != NONE && lastHit.second < t.Start) {
+  if (lastHit.get<1>() != NONE && lastHit.get<2>() < t.Start) {
     if (CurHitFn) {
-      SearchHit hit(lastHit.first, lastHit.second - lastHit.first + 1, t.Label);
+      SearchHit hit(lastHit.get<1>(),
+                    lastHit.get<2>() - lastHit.get<1>() + 1, t.Label);
       CurHitFn->collect(hit);
     }
   }
 
-  Matches[t.Label] = std::make_pair(t.Start, t.End);
+  Matches[t.Label] = boost::make_tuple(t.Id, t.Start, t.End);
 
   #ifdef LBT_TRACE_ENABLED
-  if (lastHit.first < t.Start && t.Start <= lastHit.second) {
-    std::cerr << "** Replaced overlapping hit! (" << lastHit.first
-      << ", " << lastHit.second << "), thread: " << t << std::endl;
+  if (lastHit.get<1>() < t.Start && t.Start <= lastHit.get<2>()) {
+    std::cerr << "** Replaced overlapping hit! (" << lastHit.get<1>()
+      << ", " << lastHit.get<2>() << "), thread: " << t << std::endl;
   }
   #endif
 }
@@ -465,10 +469,10 @@ void Vm::closeOut(HitCallback& hitFn) {
   SearchHit hit;
   if (CurHitFn) {
     for (uint32 i = 0; i < Matches.size(); ++i) {
-      std::pair<uint64, uint64> lastHit = Matches[i];
-      if (lastHit.first != NONE) {
-        hit.Offset = lastHit.first;
-        hit.Length = lastHit.second - lastHit.first + 1;
+      boost::tuple<uint64,uint64,uint64> lastHit = Matches[i];
+      if (lastHit.get<1>() != NONE) {
+        hit.Offset = lastHit.get<1>();
+        hit.Length = lastHit.get<2>() - lastHit.get<1>() + 1;
         hit.Label  = i;
         CurHitFn->collect(hit);
       }
