@@ -35,6 +35,13 @@ struct Thread {
     Start(0),
     End(std::numeric_limits<uint64>::max()) {}
 
+  Thread(const Thread& t):
+    PC(t.PC),
+    Label(t.Label),
+    Id(t.Id),
+    Start(t.Start),
+    End(t.End) {}
+
   void init(const Instruction* pc, uint32 label,
             uint64 id, uint64 start, uint64 end) {
     PC = pc;
