@@ -92,21 +92,6 @@ void Thread::output_json(std::ostream& out, const Instruction* base, byte state)
       << ", \"state\":" << (uint32) state
       << " }";
 }
-
-bool Vm::atEpsilon(const Thread& t) const {
-  switch (t.PC->OpCode) {
-    case FORK_OP:
-    case JUMP_OP:
-    case LONGFORK_OP:
-    case LONGJUMP_OP:
-    case CHECK_HALT_OP:
-    case MATCH_OP:
-    case HALT_OP:
-      return true;
-    default:
-      return false;
-  }
-}
 #endif
 
 boost::shared_ptr<VmInterface> VmInterface::create() {
@@ -157,21 +142,19 @@ void Vm::init(ProgramPtr prog) {
   ThreadList::iterator t = &s0;
 
   #ifdef LBT_TRACE_ENABLED
-  if (atEpsilon(s0)) {
-    open_init_epsilon_json(std::cerr);
-    new_thread_json.insert(s0.Id = 0);
-    pre_run_thread_json(std::cerr, 0, s0, &(*Prog)[0]);
-  }
+  open_init_epsilon_json(std::cerr);
+  new_thread_json.insert(s0.Id);
+  pre_run_thread_json(std::cerr, 0, s0, &(*Prog)[0]);
   #endif
 
   if (_executeEpSequence(&(*Prog)[0], t, 0)) {
     Next.push_back(s0);
-
-    #ifdef LBT_TRACE_ENABLED
-    post_run_thread_json(std::cerr, 0, s0, &(*Prog)[0]);
-    close_init_epsilon_json(std::cerr);
-    #endif
   }
+
+  #ifdef LBT_TRACE_ENABLED
+  post_run_thread_json(std::cerr, 0, s0, &(*Prog)[0]);
+  close_init_epsilon_json(std::cerr);
+  #endif
 
   First.resize(Next.size());
   for (uint32 i = 0; i < Next.size(); ++i) {

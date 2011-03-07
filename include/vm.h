@@ -66,8 +66,6 @@ private:
   void thread_json(std::ostream& out, const Thread& t,
                    const Instruction* base, byte state);
 
-  bool atEpsilon(const Thread& t) const;
-
   bool first_thread_json;
   std::set<uint64> new_thread_json;
 
