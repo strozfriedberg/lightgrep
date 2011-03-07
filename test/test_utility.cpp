@@ -502,8 +502,6 @@ SCOPE_TEST(generateJumpTableRange) {
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
 
-  std::cerr << prog << std::endl;
-
   SCOPE_ASSERT_EQUAL(23u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
