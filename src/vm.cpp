@@ -397,6 +397,16 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
   Kill.clear();
 }
 
+inline void Vm::_cleanup() {
+  Active.swap(Next);
+  Next.clear();
+  if (CheckStates[0]) {
+    CheckStates.assign(CheckStates.size(), false);
+  }
+}
+
+void Vm::cleanup() { _cleanup(); }
+
 bool Vm::execute(ThreadList::iterator t, const byte* cur) {
   return _execute(&(*Prog)[0], t, cur);
 }
@@ -451,7 +461,7 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
     #endif
     
     if (threadIt != Active.begin()) {
-      cleanup();
+      _cleanup();
       threadIt = Active.begin();
     }
 
