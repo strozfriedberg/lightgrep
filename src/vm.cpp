@@ -417,6 +417,57 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 }
 
 void Vm::doMatch(const Thread& t) {
+
+//std::cerr << t << std::endl; 
+
+  if (Matches[t.Label].front().Start == NONE) {
+    // we are the first match, clear that placeholder
+    Matches[t.Label].clear();
+  }
+
+  // check whether any higher-priority threads block us
+  bool blocked = false;
+  for (ThreadList::iterator it = Next.begin(); it != Next.end() && it->Id < t.Id; ++it) {
+    if (t.Start <= it->End && (it->Label == NONE || it->Label == t.Label)) {
+      blocked = true;
+      break;
+    }
+  }
+
+  if (blocked) {
+    // we are blocked
+
+    std::vector<Match> m;
+
+    // check whether we replace any already-recorded matches
+    for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
+      if (im->Id < t.Id) {
+        m.push_back(*im);
+      }
+    }
+
+    Matches[t.Label] = m;
+  }
+  else {
+    // we are not blocked
+
+    // emit all matches which aren't replaced by this one
+    for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
+      if (im->Id < t.Id) {
+        if (CurHitFn) {
+          SearchHit hit(im->Start, im->End - im->Start + 1, t.Label);
+          CurHitFn->collect(hit);
+        }
+      }
+    }
+
+    Matches[t.Label].clear();
+  }
+
+  // store this match
+  Matches[t.Label].push_back(Match(t.Id, t.Start, t.End));
+
+/*
   // std::cerr << "had a match" << std::endl;
   Match lastHit(Matches[t.Label].back());
   
@@ -436,6 +487,7 @@ void Vm::doMatch(const Thread& t) {
       << ", " << lastHit.End << "), thread: " << t << std::endl;
   }
   #endif
+*/
 }
 
 bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
@@ -469,6 +521,23 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
 void Vm::closeOut(HitCallback& hitFn) {
   CurHitFn = &hitFn;
   SearchHit hit;
+
+  if (CurHitFn) {
+    for (uint32 i = 0; i < Matches.size(); ++i) {
+      for (std::vector<Match>::const_iterator j(Matches[i].begin()); j != Matches[i].end(); ++j) {
+        if (j->Start != NONE) {
+          hit.Offset = j->Start;
+          hit.Length = j->End - j->Start + 1;
+          hit.Label  = i;
+          CurHitFn->collect(hit);
+        }
+      }
+    }
+  }
+
+/*
+  CurHitFn = &hitFn;
+  SearchHit hit;
   if (CurHitFn) {
     for (uint32 i = 0; i < Matches.size(); ++i) {
       Match lastHit(Matches[i].back());
@@ -480,4 +549,5 @@ void Vm::closeOut(HitCallback& hitFn) {
       }
     }
   }
+*/
 }
