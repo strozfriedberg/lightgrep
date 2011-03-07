@@ -427,7 +427,7 @@ void Vm::doMatch(const Thread& t) {
 
   // check whether any higher-priority threads block us
   bool blocked = false;
-  for (ThreadList::iterator it = Next.begin(); it != Next.end() && it->Id < t.Id; ++it) {
+  for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
     if (t.Start <= it->End && (it->Label == NONE || it->Label == t.Label)) {
       blocked = true;
       break;
@@ -441,7 +441,7 @@ void Vm::doMatch(const Thread& t) {
 
     // check whether we replace any already-recorded matches
     for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
-      if (im->Id < t.Id) {
+      if (im->Start > t.End || t.Start > im->End) {
         m.push_back(*im);
       }
     }
@@ -453,7 +453,7 @@ void Vm::doMatch(const Thread& t) {
 
     // emit all matches which aren't replaced by this one
     for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
-      if (im->Id < t.Id) {
+      if (im->Start > t.End || t.Start > im->End) {
         if (CurHitFn) {
           SearchHit hit(im->Start, im->End - im->Start + 1, t.Label);
           CurHitFn->collect(hit);
@@ -466,28 +466,6 @@ void Vm::doMatch(const Thread& t) {
 
   // store this match
   Matches[t.Label].push_back(Match(t.Id, t.Start, t.End));
-
-/*
-  // std::cerr << "had a match" << std::endl;
-  Match lastHit(Matches[t.Label].back());
-  
-  if (lastHit.Id < t.Id &&
-      lastHit.Start != NONE && lastHit.End < t.Start) {
-    if (CurHitFn) {
-      SearchHit hit(lastHit.Start, lastHit.End - lastHit.Start + 1, t.Label);
-      CurHitFn->collect(hit);
-    }
-  }
-
-  Matches[t.Label].push_back(Match(t.Id, t.Start, t.End));
-
-  #ifdef LBT_TRACE_ENABLED
-  if (lastHit.Start < t.Start && t.Start <= lastHit.End) {
-    std::cerr << "** Replaced overlapping hit! (" << lastHit.Start
-      << ", " << lastHit.End << "), thread: " << t << std::endl;
-  }
-  #endif
-*/
 }
 
 bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
