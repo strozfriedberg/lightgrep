@@ -4,8 +4,6 @@
 #include <set>
 #endif
 
-#include <boost/tuple/tuple.hpp>
-
 #include "vm_interface.h"
 #include "staticvector.h"
 #include "skiptable.h"
@@ -90,7 +88,15 @@ private:
   uint64 NextId;
 
   std::vector<bool> CheckStates;
-  std::vector< std::vector< boost::tuple<uint64,uint64,uint64> > > Matches;
+
+  struct Match {
+    uint64 Id, Start, End;
+
+    Match(uint64 id, uint64 start, uint64 end):
+      Id(id), Start(start), End(end) {}
+  };
+
+  std::vector< std::vector<Match> > Matches;
   std::vector< std::pair<uint64,uint32> > Kill;
 
   HitCallback* CurHitFn;
