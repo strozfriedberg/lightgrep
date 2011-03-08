@@ -69,7 +69,7 @@ const char* help_long()
     "aabba\n"
     "\n"
     "Note that all such sequences have length k^n, and hence the runtime of\n"
-    "this program is O(k^n). You probably have neitehr the time to wait for\n"
+    "this program is O(k^n). You probably have neither the time to wait for\n"
     "nor enough space to store the output from any but small k and n.\n";
 }
 
