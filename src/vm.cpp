@@ -285,8 +285,8 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       {
         Match lastHit(Matches[instr.Op.Offset].back());
         if (lastHit.Start == NONE ||
-    			lastHit.Start == t->Start ||
-    			lastHit.End < t->Start)
+              ((lastHit.Start == t->Start || lastHit.End < t->Start) &&
+               Kill.find(instr.Op.Offset) == Kill.end()))
     		{
           t->Label = instr.Op.Offset;
           t->advance();
@@ -302,11 +302,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       doMatch(*t);
       t->advance();
 
-/*
-      // mark same-labeled threads after us for death, due to overlap
-      Kill.push_back(std::make_pair(t->Id, t->Label));
-*/
-
       // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
         if (it->Label == t->Label) {
@@ -314,6 +309,9 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           it->PC = &Prog->back(); // DIE. Last instruction is always a halt
         }
       }
+
+      // also kill any thread receiving this label later in the frame
+      Kill.insert(t->Label);
 
       return true;
     case HALT_OP:
@@ -376,20 +374,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
     } while (++threadIt != Active.end());
   }
 
-/*
-  // kill threads overlapping higher-priority matchers
-  for (std::vector< std::pair<uint64,uint32> >::iterator i(Kill.begin()); i != Kill.end(); ++i) {
-    for (ThreadList::iterator it(Next.begin()); it != Next.end(); ++it) {
-      if (it->Id > i->first && it->Label == i->second) {
-        it->End = NONE;
-        it->PC = &Prog->back(); // DIE. Last instruction is always a halt
-      }
-    }
-  }
-
   Kill.clear();
-*/
-
 }
 
 inline void Vm::_cleanup() {
