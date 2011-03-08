@@ -289,7 +289,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       {
         Match lastHit(Matches[instr.Op.Offset].back());
         if (lastHit.Start == NONE ||
-              ((lastHit.Start == t->Start || lastHit.End < t->Start) &&
+              ((t->Start <= lastHit.Start || lastHit.End < t->Start) &&
                Kill.find(instr.Op.Offset) == Kill.end()))
     		{
           t->Label = instr.Op.Offset;
