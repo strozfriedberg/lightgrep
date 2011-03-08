@@ -497,20 +497,4 @@ void Vm::closeOut(HitCallback& hitFn) {
       }
     }
   }
-
-/*
-  CurHitFn = &hitFn;
-  SearchHit hit;
-  if (CurHitFn) {
-    for (uint32 i = 0; i < Matches.size(); ++i) {
-      Match lastHit(Matches[i].back());
-      if (lastHit.Start != NONE) {
-        hit.Offset = lastHit.Start;
-        hit.Length = lastHit.End - lastHit.Start + 1;
-        hit.Label  = i;
-        CurHitFn->collect(hit);
-      }
-    }
-  }
-*/
 }
