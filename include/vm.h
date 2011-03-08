@@ -4,6 +4,8 @@
 #include <set>
 #endif
 
+#include <set>
+
 #include "vm_interface.h"
 #include "staticvector.h"
 #include "skiptable.h"
@@ -89,7 +91,7 @@ private:
   };
 
   std::vector< std::vector<Match> > Matches;
-  std::vector< std::pair<uint64,uint32> > Kill;
+  std::set<uint32> Kill;
 
   HitCallback* CurHitFn;
 };
