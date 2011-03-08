@@ -255,11 +255,15 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       {
         Thread f = *t;
         t->advance();
+
         // recurse to keep going in sequence
         if (_executeEpSequence(base, t, offset)) {
           Next.push_back(*t);
         }
-        // now back up to the fork, and fall through to handle it as a longjump
+
+        // Now back up to the fork, fall through to handle it as a longjump.
+        // Note that the forked child is taking the parent's place in Active.
+        // This is ESSENTIAL for maintaining correct thread priority order.
         *t = f;
         t->Id = NextId++;
 
@@ -310,6 +314,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         }
       }
 
+// FIXME: should Kill be a bitset instead of a set?
       // also kill any thread receiving this label later in the frame
       Kill.insert(t->Label);
 
