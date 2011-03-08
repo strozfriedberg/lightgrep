@@ -1,13 +1,10 @@
 #!/usr/bin/perl -w
 
-my $text = pop @ARGV;
+#
+# pat2test expects tab-separated pattern-text pairs, one per line, on STDIN.
+#
 
-# write the text to a temporary file
-$text_file = 'text.tmp';
-!-f $text_file or die "error: $text_file already exists!\n";
-open(TEXT, ">$text_file") or die "$!\n";
-print TEXT $text;
-close TEXT;
+use String::ShellQuote qw(shell_quote);
 
 # print head stuff
 print <<HEAD;
@@ -22,10 +19,20 @@ my $patnum = 0;
 # read the patterns
 while (<>) {
   chomp;
-  $pat = $_;
+  my ($pat, $text) = split /\t/, $_, 2;
+
+  # write the text to a temporary file
+  $text_file = 'text.tmp';
+  !-f $text_file or die "error: $text_file already exists!\n";
+  open(TEXT, ">$text_file") or die "$!\n";
+  print TEXT $text;
+  close TEXT;
+
+  # make sure that the pattern is properly quoted
+  $pat = shell_quote($pat);
 
   # get matches from shitgrep
-  system("./shitgrep -p '$pat' $text_file 1>sg.stdout 2>sg.stderr");
+  system("./shitgrep -p $pat $text_file 1>sg.stdout 2>sg.stderr");
 
   open(SGERR, '<sg.stderr') or die "$!\n";
   my $sgerr = join '', <SGERR>;
@@ -74,9 +81,10 @@ TEST
   }
 
   ++$patnum;
+
+  unlink $text_file or die "$!\n";
 }
 
 # cleanup
-unlink $text_file or die "$!\n";
 unlink 'sg.stdout' or die "$!\n";
 unlink 'sg.stderr' or die "$!\n";
