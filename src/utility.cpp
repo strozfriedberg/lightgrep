@@ -183,7 +183,6 @@ ProgramPtr createProgram(const Graph& graph) {
   // std::cerr << "Determined order in first pass" << std::endl;
   ret->NumChecked = cg->NumChecked;
   ret->resize(cg->Guard);
-  uint32 i = 0;
   for (Graph::vertex v = 0; v < numVs; ++v) {
     // if (++i % 10000 == 0) {
     //   std::cerr << "have compiled " << i << " states so far" << std::endl;
