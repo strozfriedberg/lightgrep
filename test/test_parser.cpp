@@ -293,7 +293,6 @@ SCOPE_TEST(parseStarWithGrouping) {
   SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
-
 SCOPE_TEST(parseDot) {
   Parser      p;
   SyntaxTree  tree;
