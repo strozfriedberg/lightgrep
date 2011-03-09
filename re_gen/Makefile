@@ -14,5 +14,5 @@ inst: inst.o
 shitgrep: shitgrep.o
 
 clean:
-	+rm -f *.o
+	+rm -f *.o debruijn forms inst shitgrep
 
