@@ -245,7 +245,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         t->Id = NextId++;
 
         #ifdef LBT_TRACE_ENABLED
-        new_thread_json.insert(t->Id = Thread::NextId++);
+        new_thread_json.insert(t->Id);
         #endif
       }
     case JUMP_OP:
@@ -268,7 +268,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         t->Id = NextId++;
 
         #ifdef LBT_TRACE_ENABLED
-        new_thread_json.insert(t->Id = Thread::NextId++);
+        new_thread_json.insert(t->Id);
         #endif
       }
     case LONGJUMP_OP:
@@ -370,7 +370,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
       Active.addBack().init(it->PC, NOLABEL, NextId++, offset, NONE);
 
       #ifdef LBT_TRACE_ENABLED
-      new_thread_json.insert(Active[Active.size()-1].Id = Thread::NextId++);
+      new_thread_json.insert(Active[Active.size()-1].Id);
       #endif
     }
 
