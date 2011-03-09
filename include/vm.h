@@ -84,10 +84,9 @@ private:
   std::vector<bool> CheckStates;
 
   struct Match {
-    uint64 Id, Start, End;
+    uint64 Start, End;
 
-    Match(uint64 id, uint64 start, uint64 end):
-      Id(id), Start(start), End(end) {}
+    Match(uint64 start, uint64 end): Start(start), End(end) {}
   };
 
   std::vector< std::vector<Match> > Matches;

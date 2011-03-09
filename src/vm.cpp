@@ -133,7 +133,7 @@ void Vm::init(ProgramPtr prog) {
   numCheckedStates += 2; // bit 0 reserved for whether any bits were flipped
 
   Matches.resize(numPatterns);
-  Match nomatch(NONE, NONE, 0);
+  Match nomatch(NONE, 0);
   Matches.assign(Matches.size(), std::vector<Match>(1, nomatch));
 
   CheckStates.resize(numCheckedStates);
@@ -169,7 +169,7 @@ void Vm::reset() {
   Next.clear();
   CheckStates.assign(CheckStates.size(), false);
 
-  Match nomatch(NONE, NONE, 0);
+  Match nomatch(NONE, 0);
   Matches.assign(Matches.size(), std::vector<Match>(1, nomatch));
 
   CurHitFn = 0;
@@ -455,7 +455,7 @@ void Vm::doMatch(const Thread& t) {
   }
 
   // store this match
-  Matches[t.Label].push_back(Match(t.Id, t.Start, t.End));
+  Matches[t.Label].push_back(Match(t.Start, t.End));
 }
 
 bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
