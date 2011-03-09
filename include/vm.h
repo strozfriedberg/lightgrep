@@ -4,6 +4,8 @@
 #include <set>
 #endif
 
+#include <set>
+
 #include "vm_interface.h"
 #include "staticvector.h"
 #include "skiptable.h"
@@ -33,20 +35,13 @@ public:
   bool execute(ThreadList::iterator t, const byte* cur);
   bool executeEpsilon(ThreadList::iterator t, uint64 offset);
   void executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn);
+  void cleanup();
 
   const ThreadList& first() const { return First; }
   const ThreadList& active() const { return Active; }
   const ThreadList& next() const { return Next; }
 
   Thread& add(const Thread& t) { return (Active.addBack() = t); }
-
-  inline void cleanup() {
-    Active.swap(Next);
-    Next.clear();
-    if (CheckStates[0]) {
-      CheckStates.assign(CheckStates.size(), false);
-    }
-  }
 
   unsigned int numActive() const { return Active.size(); }
   unsigned int numNext() const { return Next.size(); }
@@ -59,6 +54,7 @@ private:
   bool _executeEpSequence(const Instruction* base, ThreadList::iterator t, uint64 offset);
   void _executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, uint64 offset);
   void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset);
+  void _cleanup();
 
   #ifdef LBT_TRACE_ENABLED
   void open_init_epsilon_json(std::ostream& out);
@@ -72,12 +68,11 @@ private:
   void thread_json(std::ostream& out, const Thread& t,
                    const Instruction* base, byte state);
 
-  bool atEpsilon(const Thread& t) const;
-
   bool first_thread_json;
   std::set<uint64> new_thread_json;
 
   uint64 BeginDebug, EndDebug;
+  uint64 NextId;
   #endif
 
   ProgramPtr Prog;
@@ -86,7 +81,15 @@ private:
              Next;
 
   std::vector<bool> CheckStates;
-  std::vector< std::pair< uint64, uint64 > > Matches;
+
+  struct Match {
+    uint64 Start, End;
+
+    Match(uint64 start, uint64 end): Start(start), End(end) {}
+  };
+
+  std::vector< std::vector<Match> > Matches;
+  std::set<uint32> Kill;
 
   HitCallback* CurHitFn;
 };
