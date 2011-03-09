@@ -241,24 +241,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       {
         Thread f = *t;
         t->advance();
-        // recurse to keep going in sequence
-        if (_executeEpSequence(base, t, offset)) {
-          Next.push_back(*t);
-        }
-        // now back up to the fork, and fall through to handle it as a jump
-        *t = f;
-  
-        #ifdef LBT_TRACE_ENABLED
-        new_thread_json.insert(t->Id = NextId++);
-        #endif
-      }
-    case JUMP_OP:
-      t->jump(base, instr.Op.Offset);
-      return true;
-    case LONGFORK_OP:
-      {
-        Thread f = *t;
-        t->advance();
 
         // recurse to keep going in sequence
         if (_executeEpSequence(base, t, offset)) {
@@ -274,7 +256,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         new_thread_json.insert(t->Id = NextId++);
         #endif
       }
-    case LONGJUMP_OP:
+    case JUMP_OP:
       t->jump(base, *reinterpret_cast<const uint32*>(t->PC+1));
       return true;
     case CHECK_HALT_OP:
