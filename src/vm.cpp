@@ -11,7 +11,9 @@ static uint64 NONE = std::numeric_limits<uint64>::max();
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"pc\":" << std::hex << t.PC
       << ", \"Label\":" << std::dec << t.Label
+      #ifdef LBT_TRACE_ENABLED
       << ", \"Id\":" << t.Id
+      #endif
       << ", \"Start\":" << t.Start
       << ", \"End\":" << t.End << " }";
   return out;
@@ -100,15 +102,15 @@ boost::shared_ptr<VmInterface> VmInterface::create() {
 
 Vm::Vm() :
   #ifdef LBT_TRACE_ENABLED
-  BeginDebug(NONE), EndDebug(NONE),
+  BeginDebug(NONE), EndDebug(NONE), NextId(0),
   #endif
-  NextId(0), CurHitFn(0) {}
+  CurHitFn(0) {}
 
 Vm::Vm(ProgramPtr prog): 
   #ifdef LBT_TRACE_ENABLED
-  BeginDebug(NONE), EndDebug(NONE),
+  BeginDebug(NONE), EndDebug(NONE), NextId(0),
   #endif
-  NextId(0), CurHitFn(0)
+  CurHitFn(0)
 {
   init(prog);
 }
@@ -173,7 +175,10 @@ void Vm::reset() {
   Matches.assign(Matches.size(), std::vector<Match>(1, nomatch));
 
   CurHitFn = 0;
+
+  #ifdef LBT_TRACE_ENABLED
   NextId = 1;
+  #endif
 }
 
 inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const byte* cur) {
@@ -242,10 +247,9 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         }
         // now back up to the fork, and fall through to handle it as a jump
         *t = f;
-        t->Id = NextId++;
-
+  
         #ifdef LBT_TRACE_ENABLED
-        new_thread_json.insert(t->Id);
+        new_thread_json.insert(t->Id = NextId++);
         #endif
       }
     case JUMP_OP:
@@ -265,10 +269,9 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         // Note that the forked child is taking the parent's place in Active.
         // This is ESSENTIAL for maintaining correct thread priority order.
         *t = f;
-        t->Id = NextId++;
 
         #ifdef LBT_TRACE_ENABLED
-        new_thread_json.insert(t->Id);
+        new_thread_json.insert(t->Id = NextId++);
         #endif
       }
     case LONGJUMP_OP:
@@ -367,7 +370,11 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
   // create new threads at this offset
   if (first[*cur]) {
     for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
+      #ifdef LBT_TRACE_ENABLED
       Active.addBack().init(it->PC, NOLABEL, NextId++, offset, NONE);
+      #else
+      Active.addBack().init(it->PC, NOLABEL, offset, NONE);
+      #endif
 
       #ifdef LBT_TRACE_ENABLED
       new_thread_json.insert(Active[Active.size()-1].Id);
