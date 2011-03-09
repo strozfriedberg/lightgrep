@@ -31,11 +31,11 @@ while (<>) {
   chomp;
   $pat = $_;
 
-  # make sure that the pattern is properly quoted
-  $pat = shell_quote($pat);
+  # make sure that the pattern is properly quoted for the shell
+  $sqpat = shell_quote($pat);
 
   # get matches from shitgrep
-  system("./shitgrep -p $pat $text_file 1>sg.stdout 2>sg.stderr");
+  system("./shitgrep -p $sqpat $text_file 1>sg.stdout 2>sg.stderr");
 
   open(SGERR, '<sg.stderr') or die "$!\n";
   my $sgerr = join '', <SGERR>;
