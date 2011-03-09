@@ -72,14 +72,13 @@ private:
   std::set<uint64> new_thread_json;
 
   uint64 BeginDebug, EndDebug;
+  uint64 NextId;
   #endif
 
   ProgramPtr Prog;
   ThreadList First,
              Active,
              Next;
-
-  uint64 NextId;
 
   std::vector<bool> CheckStates;
 
