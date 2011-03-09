@@ -144,13 +144,7 @@ void Vm::init(ProgramPtr prog) {
   }
   ++numPatterns;
   numCheckedStates += 2; // bit 0 reserved for whether any bits were flipped
-//  Matches.resize(numPatterns);
-
   Matches.resize(numPatterns);
-  std::pair<uint64, uint64> nomatch(NONE, 0);
-  Matches.assign(Matches.size(),
-                 std::vector< std::pair<uint64, uint64> >(1, nomatch));
-
   CheckStates.resize(numCheckedStates);
 
   Thread s0(&(*Prog)[0]);
@@ -185,10 +179,7 @@ void Vm::reset() {
   Active.clear();
   Next.clear();
   CheckStates.assign(CheckStates.size(), false);
-//  Matches.assign(Matches.size(), std::pair<uint64, uint64>(NONE, 0));
-  std::pair<uint64, uint64> nomatch(NONE, 0);
-  Matches.assign(Matches.size(),
-                 std::vector< std::pair<uint64, uint64> >(1, nomatch));
+  Matches.assign(Matches.size(), std::pair<uint64, uint64>(NONE, 0));
   CurHitFn = 0;
 }
 
@@ -297,16 +288,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       }
     case LABEL_OP:
       {
-//        std::pair<uint64, uint64> lastHit(Matches[instr.Op.Offset]);
-
-/*
-        std::pair<uint64, uint64> lastHit(Matches[instr.Op.Offset][0]);
-        if (lastHit.first == NONE ||
-    			lastHit.first == t->Start ||
-    			lastHit.second < t->Start)
-*/
-              
-        std::pair<uint64, uint64> lastHit(Matches[instr.Op.Offset].back());
+        std::pair<uint64, uint64> lastHit(Matches[instr.Op.Offset]);
         if (lastHit.first == NONE ||
     			lastHit.first == t->Start ||
     			lastHit.second < t->Start)
@@ -409,83 +391,9 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 }
 
 void Vm::doMatch(const Thread& t) {
-
-//  std::pair<uint64,uint64> lastHit(Matches[t.Label].front());
-
-//std::cerr << '[' << t.Start << ',' << t.End << "] [" << lastHit.first << ',' << lastHit.second << ']' << std::endl;
-
-
-/*
-  if (Matches[t.Label].front().first == NONE) {
-    // we are the first match, do nothing 
-  }
-  else if (Matches[t.Label].front().second < t.Start) {
-    if (CurHitFn) {
-      SearchHit hit(Matches[t.Label].front().first,  Matches[t.Label].front().second - Matches[t.Label].front().first + 1, t.Label);
-      CurHitFn->collect(hit);
-    }
-  }
-
-  Matches[t.Label].clear();
-  Matches[t.Label].push_back(std::make_pair(t.Start, t.End));
-*/
-
-  if (Matches[t.Label].front().first == NONE) {
-    // we are the first match, clear that placeholder
-    Matches[t.Label].clear();
-  }
-
-  // check whether any higher-priority threads block us
-  bool blocked = false;
-  for (ThreadList::iterator it = Active.begin(); it != &t; ++it) {
-    if (t.Start <= it->End && (it->Label == NONE || it->Label == t.Label)) {
-      blocked = true;
-      break;
-    }
-  }
-
-  if (blocked) {
-    // we are blocked
-
-    // check whether we replace any already-recorded matches
-    for (std::vector< std::pair<uint64,uint64> >::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
-      if (im->first == t.Start) {
-        Matches[t.Label].erase(im, Matches[t.Label].end());
-        break; 
-      }
-    }
-
-    // store this match
-    Matches[t.Label].push_back(std::make_pair(t.Start, t.End));
-  }
-  else {
-    // we are not blocked
-
-    // emit all matches which aren't replaced by this one
-    for (std::vector< std::pair<uint64,uint64> >::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
-      if (im->second < t.Start) {
-        if (CurHitFn) {
-          SearchHit hit(im->first, im->second - im->first + 1, t.Label);
-          CurHitFn->collect(hit);
-        }
-      }
-      else {
-        break;
-      }
-    }
-
-    Matches[t.Label].clear();
-
-    // store this match
-    Matches[t.Label].push_back(std::make_pair(t.Start, t.End));
-  }
-
-/*
   // std::cerr << "had a match" << std::endl;
-  std::pair< uint64, uint64 > lastHit(Matches[t.Label][0]);
+  std::pair< uint64, uint64 > lastHit = Matches[t.Label];
   
-//std::cerr << lastHit.first << ',' << lastHit.second << ' ' << t.Start << ',' << t.End << std::endl;
-
   if (lastHit.first != NONE && lastHit.second < t.Start) {
     if (CurHitFn) {
       SearchHit hit(lastHit.first, lastHit.second - lastHit.first + 1, t.Label);
@@ -493,7 +401,7 @@ void Vm::doMatch(const Thread& t) {
     }
   }
 
-  Matches[t.Label][0] = std::make_pair(t.Start, t.End);
+  Matches[t.Label] = std::make_pair(t.Start, t.End);
 
   #ifdef LBT_TRACE_ENABLED
   if (lastHit.first < t.Start && t.Start <= lastHit.second) {
@@ -501,7 +409,6 @@ void Vm::doMatch(const Thread& t) {
       << ", " << lastHit.second << "), thread: " << t << std::endl;
   }
   #endif
-*/
 }
 
 bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
@@ -537,23 +444,13 @@ void Vm::closeOut(HitCallback& hitFn) {
   SearchHit hit;
   if (CurHitFn) {
     for (uint32 i = 0; i < Matches.size(); ++i) {
-      for (std::vector< std::pair<uint64,uint64> >::const_iterator j(Matches[i].begin()); j != Matches[i].end(); ++j) {
-        if (j->first != NONE) {
-          hit.Offset = j->first;
-          hit.Length = j->second - j->first + 1;
-          hit.Label  = i;
-          CurHitFn->collect(hit);
-        }
-      }
-/*
-      std::pair<uint64, uint64> lastHit(Matches[i][0]);
+      std::pair<uint64, uint64> lastHit = Matches[i];
       if (lastHit.first != NONE) {
         hit.Offset = lastHit.first;
         hit.Length = lastHit.second - lastHit.first + 1;
         hit.Label  = i;
         CurHitFn->collect(hit);
       }
-*/
     }
   }
 }
