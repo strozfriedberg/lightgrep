@@ -86,8 +86,7 @@ private:
              Next;
 
   std::vector<bool> CheckStates;
-//  std::vector< std::pair< uint64, uint64 > > Matches;
-  std::vector< std::vector< std::pair< uint64, uint64 > > > Matches;
+  std::vector< std::pair< uint64, uint64 > > Matches;
 
   HitCallback* CurHitFn;
 };
