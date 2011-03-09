@@ -151,8 +151,8 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
         uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
 
         *indirectTbl = (j + 1 == tbl[i].size() ?
-          Instruction::makeLongJump(indirectTbl, landing) :
-          Instruction::makeLongFork(indirectTbl, landing));
+          Instruction::makeJump(indirectTbl, landing) :
+          Instruction::makeFork(indirectTbl, landing));
         indirectTbl += 2;
 /*
         *indirectTbl++ = (j + 1 == tbl[i].size() ?
@@ -219,14 +219,14 @@ ProgramPtr createProgram(const Graph& graph) {
       // layout non-initial children in reverse order
       for (uint32 i = v_odeg-1; i > 0; --i) {
         curTarget = graph.outVertex(v, i);
-        *curOp = Instruction::makeLongFork(curOp, cg->Snippets[curTarget].Start);
+        *curOp = Instruction::makeFork(curOp, cg->Snippets[curTarget].Start);
         curOp += 2;
       }
 
       // layout first child, falling through if possible
       curTarget = graph.outVertex(v, 0);
       if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget] ) {
-        *curOp = Instruction::makeLongJump(curOp, cg->Snippets[curTarget].Start);
+        *curOp = Instruction::makeJump(curOp, cg->Snippets[curTarget].Start);
         curOp += 2;
       }
     }

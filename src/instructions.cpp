@@ -40,10 +40,7 @@ std::string Instruction::toString() const {
       buf << "BitVector";
       break;
     case JUMP_OP:
-      buf << "Jump 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
-      break;
-    case LONGJUMP_OP:
-      buf << "LongJump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
+      buf << "Jump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
       break;
     case JUMP_TABLE_OP:
       buf << "JumpTable";
@@ -52,10 +49,7 @@ std::string Instruction::toString() const {
       buf << "JmpTblRange 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
       break;
     case FORK_OP:
-      buf << "Fork 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
-      break;
-    case LONGFORK_OP:
-      buf << "LongFork 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
+      buf << "Fork 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
       break;
     case CHECK_HALT_OP:
       buf << "CheckHalt 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
@@ -112,24 +106,11 @@ Instruction Instruction::makeBitVector() {
   return i;
 }
 
-Instruction Instruction::makeJump(uint32 offset) {
-  // Use makeLongJump if offset >= 2^24
-  if (offset >= (1 << 24)) {
-    THROW_WITH_OUTPUT(std::overflow_error, "jump offsets are 24 bit; specified offset was " << offset);
-  }
-
-  Instruction i;
-  i.OpCode = JUMP_OP;
-  i.Size = 0;
-  i.Op.Offset = offset;
-  return i;
-}
-
-Instruction Instruction::makeLongJump(Instruction* ptr, uint32 offset) {
+Instruction Instruction::makeJump(Instruction* ptr, uint32 offset) {
   // "24 bits ought to be enough for anybody." --Jon Stewart
   // I once implemented a 24-bit VM in Java for a class; that sucked ass -- JLS
   Instruction i;
-  i.OpCode = LONGJUMP_OP;
+  i.OpCode = JUMP_OP;
   i.Size = 1;
   i.Op.Offset = 0;
   *reinterpret_cast<uint32*>(ptr+1) = offset;
@@ -149,32 +130,40 @@ Instruction Instruction::makeJumpTableRange(byte first, byte last) {
   return i;
 }
 
+Instruction Instruction::makeRaw24(uint32 val) {
+  if (val >= (1 << 24)) {
+    THROW_WITH_OUTPUT(
+      std::overflow_error,
+      "raw values are 24 bit; specified value was " << val
+    );
+  }
+
+  Instruction i;
+  i.Size = 0;
+  i.Op.Offset = val;
+  return i;
+}
+
 Instruction Instruction::makeLabel(uint32 label) {
-  Instruction i = makeJump(label);
+  Instruction i = makeRaw24(label);
   i.OpCode = LABEL_OP;
   return i;
 }
 
 Instruction Instruction::makeMatch() {
-  Instruction i = makeJump(0);
+  Instruction i = makeRaw24(0);
   i.OpCode = MATCH_OP;
   return i;
 }
 
-Instruction Instruction::makeFork(uint32 offset) {
-  Instruction i = makeJump(offset);
+Instruction Instruction::makeFork(Instruction* ptr, uint32 offset) {
+  Instruction i = makeJump(ptr, offset);
   i.OpCode = FORK_OP;
   return i;
 }
 
-Instruction Instruction::makeLongFork(Instruction* ptr, uint32 offset) {
-  Instruction i = makeLongJump(ptr, offset);
-  i.OpCode = LONGFORK_OP;
-  return i;
-}
-
 Instruction Instruction::makeCheckHalt(uint32 checkIndex) {
-  Instruction i = makeJump(checkIndex);
+  Instruction i = makeRaw24(checkIndex);
   i.OpCode = CHECK_HALT_OP;
   return i;
 }
@@ -187,7 +176,7 @@ Instruction Instruction::makeHalt() {
   return i;
 }
 
-Instruction Instruction::makeRaw(uint32 val) {
+Instruction Instruction::makeRaw32(uint32 val) {
   Instruction i;
   *reinterpret_cast<uint32*>(&i) = val;
   return i;
@@ -225,7 +214,7 @@ std::ostream& operator<<(std::ostream& out, const Program& prog) {
         printIndex(out, i) << std::setfill(' ') << std::setw(3) << j << ": " << *reinterpret_cast<const uint32*>(&prog[i]) << '\n';
       }
     }
-    else if (prog[i].OpCode == LONGJUMP_OP || prog[i].OpCode == LONGFORK_OP) {
+    else if (prog[i].OpCode == JUMP_OP || prog[i].OpCode == FORK_OP) {
       ++i;
       printIndex(out, i) << *reinterpret_cast<const uint32*>(&prog[i]) << '\n';
     }
