@@ -100,11 +100,13 @@ Graph::iterator Graph::end() const {
 */
 
 std::ostream& operator<<(std::ostream& out, const Graph& g) {
-  out << "|g| = " << g.numVertices() << std::endl;
+  out << "|g| = " << g.numVertices() << '\n';
 
   for (uint32 v = 0; v < g.numVertices(); ++v) {
     for (uint32 i = 0; i < g.outDegree(v); ++i) {
-      out << v << " -> " << g.outVertex(v, i) << std::endl;
+      out << v << " -> " << g.outVertex(v, i) << '\n';
     }
   }
+
+  return out;
 }
