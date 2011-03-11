@@ -98,3 +98,13 @@ Graph::iterator Graph::end() const {
   return iterator(boost::shared_ptr<Graph::AdjacentList::ItrBase>(new VertexItr(numVertices())));
 }
 */
+
+std::ostream& operator<<(std::ostream& out, const Graph& g) {
+  out << "|g| = " << g.numVertices() << std::endl;
+
+  for (uint32 v = 0; v < g.numVertices(); ++v) {
+    for (uint32 i = 0; i < g.outDegree(v); ++i) {
+      out << v << " -> " << g.outVertex(v, i) << std::endl;
+    }
+  }
+}

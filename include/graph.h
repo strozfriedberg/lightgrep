@@ -8,6 +8,8 @@ typedef boost::shared_ptr<Transition> TransitionPtr;
 
 class Graph {
 public:
+  friend std::ostream& operator<<(std::ostream& out, const Graph& g);
+
   typedef uint32 vertex;
 
 private:

@@ -345,31 +345,34 @@ uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable)
 }
 
 void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
-  if (!graph[v]) { // initial state
-    out << "[label=\"\",shape=none]";
+  out << "\t" << v << " [label=\"" << v << "\"";
+ 
+  if (graph[v] && graph[v]->IsMatch) {
+    // double ring for match states
+    out << ",peripheries=2";
   }
-  else if (graph[v]->IsMatch) { // match state
-    out << "[label=\"" << graph[v]->label() << "\",peripheries=2]";
-  }
-  else { // all other states
-    out << "[label=\"" << graph[v]->label() << "\"]";
-  }
+
+  out << "];\n";
+}
+
+void writeEdge(std::ostream& out,
+               Graph::vertex v, Graph::vertex u, const Graph& graph) {
+  out << "\t" << v << " -> " << u
+      << " [label=\"" << graph[u]->label() << "\"];\n";
 }
 
 void writeGraphviz(std::ostream& out, const Graph& graph) {
-  out << "digraph G {\nrankdir=LR;\nranksep=equally;" << std::endl;
+  out << "digraph G {\n\trankdir=LR;\n\tranksep=equally;" << std::endl;
 
   for (uint32 i = 0; i < graph.numVertices(); ++i) {
-    out << i;
     writeVertex(out, i, graph);
-    out << ";" << std::endl;
   }
 
   for (uint32 i = 0; i < graph.numVertices(); ++i) {
     for (uint32 j = 0; j < graph.outDegree(i); ++j) {
-      out << i << "->" << graph.outVertex(i, j) << " ";
-      out << ";" << std::endl;
+      writeEdge(out, i, graph.outVertex(i, j), graph);
     }
   }
+
   out << "}" << std::endl;
 }
