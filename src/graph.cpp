@@ -100,8 +100,10 @@ Graph::iterator Graph::end() const {
 */
 
 std::ostream& operator<<(std::ostream& out, const Graph& g) {
+  // print graph size
   out << "|g| = " << g.numVertices() << '\n';
 
+  // print out edges for each vertex
   for (uint32 v = 0; v < g.numVertices(); ++v) {
     for (uint32 i = 0; i < g.outDegree(v); ++i) {
       out << v << " -> " << g.outVertex(v, i) << '\n';
