@@ -345,7 +345,7 @@ uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable)
 }
 
 void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
-  out << "\t" << v << " [label=\"" << v << "\"";
+  out << "\t" << v << " [shape=\"circle\", label=\"" << v << "\"";
  
   if (graph[v] && graph[v]->IsMatch) {
     // double ring for match states
@@ -355,10 +355,11 @@ void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
   out << "];\n";
 }
 
-void writeEdge(std::ostream& out,
-               Graph::vertex v, Graph::vertex u, const Graph& graph) {
-  out << "\t" << v << " -> " << u
-      << " [label=\"" << graph[u]->label() << "\"];\n";
+void writeEdge(std::ostream& out, Graph::vertex v, Graph::vertex u,
+               uint32 priority, const Graph& graph) {
+  out << "\t" << v << " -> " << u << " ["
+      << "label=\"" << graph[u]->label() << "\", "
+      << "taillabel=\"" << priority << "\"];\n";
 }
 
 void writeGraphviz(std::ostream& out, const Graph& graph) {
@@ -370,7 +371,7 @@ void writeGraphviz(std::ostream& out, const Graph& graph) {
 
   for (uint32 i = 0; i < graph.numVertices(); ++i) {
     for (uint32 j = 0; j < graph.outDegree(i); ++j) {
-      writeEdge(out, i, graph.outVertex(i, j), graph);
+      writeEdge(out, i, graph.outVertex(i, j), j, graph);
     }
   }
 
