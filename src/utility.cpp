@@ -349,7 +349,7 @@ void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
  
   if (graph[v] && graph[v]->IsMatch) {
     // double ring for match states
-    out << ",peripheries=2";
+    out << ", peripheries=2";
   }
 
   out << "];\n";
