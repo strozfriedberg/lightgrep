@@ -76,7 +76,6 @@ std::string Instruction::toString() const {
 Instruction Instruction::makeLit(byte b) {
   Instruction i;
   i.OpCode = LIT_OP;
-  i.Size = 0;
   i.Op.Literal = b;
   return i;
 }
@@ -84,7 +83,6 @@ Instruction Instruction::makeLit(byte b) {
 Instruction Instruction::makeEither(byte one, byte two) {
   Instruction i;
   i.OpCode = EITHER_OP;
-  i.Size = 0;
   i.Op.Range.First = one;
   i.Op.Range.Last = two;
   return i;
@@ -96,7 +94,6 @@ Instruction Instruction::makeRange(byte first, byte last) {
   }
   Instruction i;
   i.OpCode = RANGE_OP;
-  i.Size = 0;
   i.Op.Range.First = first;
   i.Op.Range.Last = last;
   return i;
@@ -106,14 +103,12 @@ Instruction Instruction::makeAny() {
   Instruction i;
   i.OpCode = ANY_OP;
   i.Op.Offset = 0;
-  i.Size = 0;
   return i;
 }
 
 Instruction Instruction::makeBitVector() {
   Instruction i;
   i.OpCode = BIT_VECTOR_OP;
-  i.Size = 3;
   return i;
 }
 
@@ -122,7 +117,6 @@ Instruction Instruction::makeJump(Instruction* ptr, uint32 offset) {
   // I once implemented a 24-bit VM in Java for a class; that sucked ass -- JLS
   Instruction i;
   i.OpCode = JUMP_OP;
-  i.Size = 1;
   i.Op.Offset = 0;
   *reinterpret_cast<uint32*>(ptr+1) = offset;
   return i;
@@ -150,7 +144,6 @@ Instruction Instruction::makeRaw24(uint32 val) {
   }
 
   Instruction i;
-  i.Size = 0;
   i.Op.Offset = val;
   return i;
 }
@@ -182,7 +175,6 @@ Instruction Instruction::makeCheckHalt(uint32 checkIndex) {
 Instruction Instruction::makeHalt() {
   Instruction i;
   i.OpCode = HALT_OP;
-  i.Size = 0;
   i.Op.Offset = 0;
   return i;
 }
