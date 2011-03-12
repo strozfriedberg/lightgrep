@@ -20,6 +20,17 @@ enum OpCodes {
   ILLEGAL
 };
 
+template<int OPCODE>
+struct InstructionSize {
+  enum {
+    VAL = 1
+  };
+};
+
+template<> struct InstructionSize<BIT_VECTOR_OP> { enum { VAL = 9 }; };
+template<> struct InstructionSize<JUMP_OP> { enum { VAL = 2 }; };
+template<> struct InstructionSize<FORK_OP> { enum { VAL = 2 }; };
+
 #pragma pack(1)
 struct ByteRange {
   byte First, Last;
@@ -32,22 +43,21 @@ union Operand {
 };
 
 struct Instruction {
-  signed   OpCode : 6;
-  unsigned Size   : 2;
+  unsigned char OpCode;
   Operand  Op;
 
-  Instruction(): OpCode(ILLEGAL), Size(0) { Op.Offset = 0; }
+  Instruction(): OpCode(ILLEGAL) { Op.Offset = 0; }
 
   byte wordSize() const {
-    switch (Size) {
-      case 1:
-        return 2; // 4 bytes of data after this instruction
-      case 2:
-        return 5; // 16 bytes of data after this instruction
-      case 3:
-        return 9; // 32 bytes of data after this instruction
+    switch (OpCode) {
+      case BIT_VECTOR_OP:
+        return InstructionSize<BIT_VECTOR_OP>::VAL;
+      case JUMP_OP:
+        return InstructionSize<JUMP_OP>::VAL;
+      case FORK_OP:
+        return InstructionSize<FORK_OP>::VAL;
       default:
-        return 1; // no additional data after this instruction
+        return InstructionSize<UNINITIALIZED>::VAL;
     }
   }
 
