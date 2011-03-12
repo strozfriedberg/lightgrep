@@ -5,8 +5,8 @@
 #include <iomanip>
 #include <iostream>
 
-static uint32 NOLABEL = std::numeric_limits<uint32>::max();
-static uint64 NONE = std::numeric_limits<uint64>::max();
+static const uint32 NOLABEL = std::numeric_limits<uint32>::max();
+static const uint64 NONE = std::numeric_limits<uint64>::max();
 
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"pc\":" << std::hex << t.PC
@@ -20,7 +20,6 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
 }
 
 #ifdef LBT_TRACE_ENABLED
-std::set<uint64> new_thread_json;
 
 void Vm::open_init_epsilon_json(std::ostream& out) {
   if (BeginDebug == 0) {
@@ -163,7 +162,6 @@ void Vm::init(ProgramPtr prog) {
   for (uint32 i = 0; i < Next.size(); ++i) {
     First.push_back(Next[i]);
   }
-
   reset();
 }
 
@@ -247,7 +245,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         if (_executeEpSequence(base, t, offset)) {
           Next.push_back(*t);
         }
-
         // Now back up to the fork, fall through to handle it as a longjump.
         // Note that the forked child is taking the parent's place in Active.
         // This is ESSENTIAL for maintaining correct thread priority order.
@@ -290,7 +287,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       t->End = offset;
       doMatch(*t);
       t->advance();
-
       // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
         if (it->Label == t->Label) {
@@ -298,16 +294,12 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           it->PC = &Prog->back(); // DIE. Last instruction is always a halt
         }
       }
-
-// FIXME: should Kill be a bitset instead of a set?
       // also kill any thread receiving this label later in the frame
       Kill.insert(t->Label);
-
       return true;
     case HALT_OP:
       t->PC = 0;
     default:
-      // Next.push_back(t);
       return false;
   }
 }
@@ -316,10 +308,13 @@ inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, 
   #ifdef LBT_TRACE_ENABLED
   pre_run_thread_json(std::cerr, offset, *t, base);
   #endif
+
   _execute(base, t, cur);
+
   #ifdef LBT_TRACE_ENABLED
   post_run_thread_json(std::cerr, offset, *t, base);
   #endif
+
   if (_executeEpSequence(base, t, offset)) {
     Next.push_back(*t);
   }
@@ -362,12 +357,10 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
       new_thread_json.insert(Active[Active.size()-1].Id);
       #endif
     }
-
     do {
       _executeThread(base, threadIt, cur, offset);
     } while (++threadIt != Active.end());
   }
-
   Kill.clear();
 }
 
@@ -394,14 +387,10 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 }
 
 void Vm::doMatch(const Thread& t) {
-
-//std::cerr << t << std::endl; 
-
+  //std::cerr << t << std::endl; 
   if (Matches[t.Label].front().Start == NONE) {
-    // we are the first match, clear that placeholder
-    Matches[t.Label].clear();
+    Matches[t.Label].clear(); // we are the first match, clear that placeholder
   }
-
   // check whether any higher-priority threads block us
   bool blocked = false;
   for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
@@ -410,24 +399,18 @@ void Vm::doMatch(const Thread& t) {
       break;
     }
   }
-
   if (blocked) {
-    // we are blocked
-
     std::vector<Match> m;
-
     // check whether we replace any already-recorded matches
+    // Maybe we can iterate existing vec and clip it if we find an overlap? -- JLS
     for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
       if (im->Start > t.End || t.Start > im->End) {
         m.push_back(*im);
       }
     }
-
     Matches[t.Label] = m;
   }
   else {
-    // we are not blocked
-
     // emit all matches which aren't replaced by this one
     for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
       if (im->Start > t.End || t.Start > im->End) {
@@ -437,10 +420,8 @@ void Vm::doMatch(const Thread& t) {
         }
       }
     }
-
     Matches[t.Label].clear();
   }
-
   // store this match
   Matches[t.Label].push_back(Match(t.Start, t.End));
 }
@@ -466,7 +447,6 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
       _cleanup();
       threadIt = Active.begin();
     }
-
     ++offset;
   }
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
