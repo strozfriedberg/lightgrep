@@ -80,7 +80,8 @@ private:
              Active,
              Next;
 
-  std::vector<bool> CheckStates;
+  SparseSet  CheckStates,
+             Kill;
 
   struct Match {
     uint64 Start, End;
@@ -89,7 +90,6 @@ private:
   };
 
   std::vector< std::vector<Match> > Matches;
-  SparseSet Kill;
 
   HitCallback* CurHitFn;
 };

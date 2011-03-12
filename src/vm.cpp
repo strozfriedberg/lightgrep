@@ -132,11 +132,12 @@ void Vm::init(ProgramPtr prog) {
     }
   }
   ++numPatterns;
-  numCheckedStates += 2; // bit 0 reserved for whether any bits were flipped
+  ++numCheckedStates;
 
   Matches.resize(numPatterns);
   Match nomatch(NONE, 0);
   Matches.assign(Matches.size(), std::vector<Match>(1, nomatch));
+  Kill.resize(numPatterns);
 
   CheckStates.resize(numCheckedStates);
 
@@ -169,7 +170,7 @@ void Vm::init(ProgramPtr prog) {
 void Vm::reset() {
   Active.clear();
   Next.clear();
-  CheckStates.assign(CheckStates.size(), false);
+  CheckStates.clear();
 
   Match nomatch(NONE, 0);
   Matches.assign(Matches.size(), std::vector<Match>(1, nomatch));
@@ -260,13 +261,12 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       t->jump(base, *reinterpret_cast<const uint32*>(t->PC+1));
       return true;
     case CHECK_HALT_OP:
-      if (CheckStates[instr.Op.Offset]) { // read sync point
+      if (CheckStates.find(instr.Op.Offset)) { // read sync point
         t->PC = 0;
         return false;
       }
       else {
-        CheckStates[instr.Op.Offset] = true; // write sync point
-        CheckStates[0] = true;
+        CheckStates.insert(instr.Op.Offset); // write sync point
         t->advance();
         return true;
       }
@@ -374,9 +374,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
 inline void Vm::_cleanup() {
   Active.swap(Next);
   Next.clear();
-  if (CheckStates[0]) {
-    CheckStates.assign(CheckStates.size(), false);
-  }
+  CheckStates.clear();
 }
 
 void Vm::cleanup() { _cleanup(); }
