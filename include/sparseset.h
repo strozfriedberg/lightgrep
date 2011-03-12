@@ -7,12 +7,7 @@
 // low-part of array is non-sparse, high-part is dense
 class SparseSet {
 public:
-  SparseSet(uint32 maxSize): Data(new uint32[2 * maxSize]), End(maxSize), Max(maxSize) {
-    // we don't have to do this, but it'll make things like valgrind happy
-    for (uint32 i = 0; i < maxSize; ++i) {
-      Data[i] = 0;
-    }
-  }
+  SparseSet(uint32 maxSize = 0) { resize(maxSize); }
 
   uint32 size() const { return End - Max; }
 
@@ -31,6 +26,15 @@ public:
 
   void clear() {
     End = Max;
+  }
+
+  void resize(uint32 maxSize) {
+    Data.reset(new uint32[2 * maxSize]);
+    End = Max = maxSize;
+    // we don't have to do this, but it'll make things like valgrind happy
+    for (uint32 i = 0; i < maxSize; ++i) {
+      Data[i] = 0;
+    }
   }
 
 private:
