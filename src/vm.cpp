@@ -275,7 +275,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         Match lastHit(Matches[instr.Op.Offset].back());
         if (lastHit.Start == NONE ||
               ((t->Start <= lastHit.Start || lastHit.End < t->Start) &&
-               Kill.find(instr.Op.Offset) == Kill.end()))
+               !Kill.find(instr.Op.Offset)))
     		{
           t->Label = instr.Op.Offset;
           t->advance();
@@ -336,7 +336,7 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
     post_run_thread_json(std::cerr, offset, x, base);
   } while (ex);
   #else
-  while (_executeEpsilon(base, t, offset));
+  while (_executeEpsilon(base, t, offset)) ;
   #endif
   
   return t->PC;
