@@ -4,7 +4,7 @@
 #include <set>
 #endif
 
-#include <set>
+#include "sparseset.h"
 
 #include "vm_interface.h"
 #include "staticvector.h"
@@ -89,7 +89,7 @@ private:
   };
 
   std::vector< std::vector<Match> > Matches;
-  std::set<uint32> Kill;
+  SparseSet Kill;
 
   HitCallback* CurHitFn;
 };
