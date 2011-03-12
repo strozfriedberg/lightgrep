@@ -203,6 +203,9 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
         return true;
       }
       break;
+    case ANY_OP:
+      t->advance();
+      return true;
     case BIT_VECTOR_OP:
       {
         const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t->PC + 1);
