@@ -17,16 +17,20 @@ public:
   uint32 size() const { return End - Max; }
 
   // e had damn well better be less than Max, because we don't check
-  void add(uint32 e) {
-    Data[End] = e;
-    Data[e] = End;
-    ++End;
+  bool find(uint32 e) const {
+    uint32 i = Data[e] + Max;
+    return i < End && Data[i] == e;
   }
 
   // e had damn well better be less than Max, because we don't check
-  bool find(uint32 e) const {
-    uint32 i = Data[e];
-    return i < End && Data[i] == e;
+  void insert(uint32 e) {
+    Data[End] = e;
+    Data[e] = End - Max;
+    ++End;
+  }
+
+  void clear() {
+    End = Max;
   }
 
 private:
