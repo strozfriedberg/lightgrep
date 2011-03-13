@@ -187,30 +187,30 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
     case LIT_OP:
       // std::cerr << "Lit " << t->PC->Op.Literal << std::endl;
       if (*cur == instr.Op.Literal) {
-        t->advance();
+        t->advance(InstructionSize<LIT_OP>::VAL);
         return true;
       }
       break;
     case EITHER_OP:
       if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
-        t->advance();
+        t->advance(InstructionSize<EITHER_OP>::VAL);
         return true;
       }
       break;
     case RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
-        t->advance();
+        t->advance(InstructionSize<RANGE_OP>::VAL);
         return true;
       }
       break;
     case ANY_OP:
-      t->advance();
+      t->advance(InstructionSize<ANY_OP>::VAL);
       return true;
     case BIT_VECTOR_OP:
       {
         const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t->PC + 1);
         if ((*setPtr)[*cur]) {
-          t->advance();
+          t->advance(InstructionSize<BIT_VECTOR_OP>::VAL);
           return true;
         }
       }
@@ -242,7 +242,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
     case FORK_OP:
       {
         Thread f = *t;
-        t->advance();
+        t->advance(InstructionSize<FORK_OP>::VAL);
 
         // recurse to keep going in sequence
         if (_executeEpSequence(base, t, offset)) {
@@ -267,7 +267,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       }
       else {
         CheckStates.insert(instr.Op.Offset); // write sync point
-        t->advance();
+        t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
         return true;
       }
     case LABEL_OP:
@@ -278,7 +278,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
                !Kill.find(instr.Op.Offset)))
     		{
           t->Label = instr.Op.Offset;
-          t->advance();
+          t->advance(InstructionSize<LABEL_OP>::VAL);
           return true;
         }
         else {
@@ -289,7 +289,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
     case MATCH_OP:
       t->End = offset;
       doMatch(*t);
-      t->advance();
+      t->advance(InstructionSize<MATCH_OP>::VAL);
       // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
         if (it->Label == t->Label) {
