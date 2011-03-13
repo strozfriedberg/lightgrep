@@ -91,6 +91,10 @@ struct Thread {
     jump(base, offset);
   }
 
+  void advance(uint32 size) {
+    PC += size;
+  }
+
   void advance() {
     PC += PC->wordSize();
   }
