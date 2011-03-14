@@ -281,6 +281,9 @@ std::cerr << "second.OutList: " << second.OutList << std::endl << std::endl;
       break;
 
     case NonGreedySkip:
+      patch(first.OutList, second.InList);
+      first.OutList = second.OutList;
+      first.Skippable = NonGreedySkip;
       break;
 
     case GreedySkip:

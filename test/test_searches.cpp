@@ -176,3 +176,11 @@ SCOPE_FIXTURE_CTOR(aQuestionQuestionbSearch, STest, STest("a??b")) {
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 1, 0), fixture.Hits[1]);
 }
+
+SCOPE_FIXTURE_CTOR(aQQbQQcSearch, STest, STest("a??b??c")) {
+  const byte* text = (const byte*)"abcbc";
+  fixture.search(text, text + 5, 0, fixture);
+  SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(4, 1, 0), fixture.Hits[1]);
+}
