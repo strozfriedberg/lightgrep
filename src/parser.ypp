@@ -76,6 +76,18 @@ concat:
 
 rep:
 	atom
+| atom '*' '?'
+	{
+		$$ = add("star_ng", Node(Node::STAR_NG, $1, 0, 0));
+	}
+| atom '+' '?'
+	{
+		$$ = add("plus_ng", Node(Node::PLUS_NG, $1, 0, 0));
+	}
+|	atom '?' '?'
+	{
+		$$ = add("question_ng", Node(Node::QUESTION_NG, $1, 0, 0));
+	}
 | atom '*'
 	{
 		$$ = add("star", Node(Node::STAR, $1, 0, 0));
