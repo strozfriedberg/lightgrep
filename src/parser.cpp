@@ -287,6 +287,14 @@ std::cerr << "second.OutList: " << second.OutList << std::endl << std::endl;
       break;
 
     case GreedySkip:
+      {
+        FastVList tmp(second.InList);
+        patch(first.OutList, second.InList);
+        tmp.merge(first.InList);
+        first.InList = tmp;
+        first.OutList = second.OutList;
+        first.Skippable = GreedySkip;
+      }
       break;
     }
 
