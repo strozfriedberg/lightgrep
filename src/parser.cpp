@@ -106,6 +106,7 @@ void FastVList::add(Graph::vertex v) {
   }
 }
 
+// Appends elements from x not in this list to this list.
 void FastVList::merge(const FastVList& x) {
   if (x.Single != 0xffffffff) {
     if (x.List) {
@@ -139,6 +140,8 @@ void FastVList::merge(const FastVList& x) {
   }
 }
 
+// Makes an edge from every element in this list to every element in
+// the target list.
 void FastVList::patch(const FastVList& targets, Graph& fsm) const {
   if (Single == 0xffffffff || targets.Single == 0xffffffff) {
     return;
@@ -223,20 +226,111 @@ void Parser::patch(const FastVList& sources, const FastVList& targets) {
 }
 
 void Parser::patch(Fragment& first, const Fragment& second, const Node& n) {
+
+std::cerr << "first.Skippable: " << first.Skippable << std::endl;
+std::cerr << "first.InList: " << first.InList << std::endl;
+std::cerr << "first.OutList: " << first.OutList << std::endl;
+std::cerr << "second.Skippable: " << second.Skippable << std::endl;
+std::cerr << "second.InList: " << second.InList << std::endl;
+std::cerr << "second.OutList: " << second.OutList << std::endl << std::endl;
+
+
+  switch (first.Skippable) {
+  case NoSkip:
+
+    switch (second.Skippable) {
+    case NoSkip:
+      patch(first.OutList, second.InList);
+      first.OutList = second.OutList;
+      first.Skippable = NoSkip;
+      break;
+
+    case NonGreedySkip:
+/*
+      {
+        FastVList tmp(second.OutList);
+        patch(first.OutList, second.InList);
+        tmp.merge(first.OutList);
+        first.OutList = tmp;
+        first.Skippable = NoSkip;
+      }
+*/
+      break;
+
+    case GreedySkip:
+      patch(first.OutList, second.InList);
+      first.OutList.merge(second.OutList);
+      first.Skippable = NoSkip;
+      break;
+    }
+
+    break;
+
+  case NonGreedySkip:
+
+    switch (second.Skippable) {
+    case NoSkip:
+      {
+        FastVList tmp(second.InList);
+        patch(first.OutList, second.InList);
+        tmp.merge(first.InList);
+        first.InList = tmp;
+        first.OutList = second.OutList;
+        first.Skippable = NoSkip;
+      }
+      break;
+
+    case NonGreedySkip:
+      break;
+
+    case GreedySkip:
+      break;
+    }
+
+    break;
+
+  case GreedySkip:
+
+    switch (second.Skippable) {
+    case NoSkip:
+      patch(first.OutList, second.InList);
+      first.InList.merge(second.InList);
+      first.OutList = second.OutList;
+      first.Skippable = NoSkip;
+      break;
+
+    case NonGreedySkip:
+      break;
+
+    case GreedySkip:
+      patch(first.OutList, second.InList);
+      first.InList.merge(second.InList);
+      first.OutList.merge(second.OutList);
+      first.Skippable = GreedySkip;
+      break;
+    }
+
+    break;
+  }
+
+  first.N = n;
+
+/*
   // Fragment ret(first.InList, n, second.OutList);
   // std::cout << "patching states" << std::endl;
   patch(first.OutList, second.InList);
   first.N = n;
-  if (first.Skippable) {
+  if (first.Skippable == GreedySkip) {
     first.InList.merge(second.InList);
   }
-  if (second.Skippable) {
+  if (second.Skippable == GreedySkip) {
     first.OutList.merge(second.OutList);
   }
   else {
     first.OutList = second.OutList;
   }
-  first.Skippable = first.Skippable && second.Skippable;
+  first.Skippable = first.Skippable == GreedySkip && second.Skippable == GreedySkip ? GreedySkip : NoSkip;
+*/
 }
 
 void Parser::addElement(const Node&) {
@@ -251,7 +345,7 @@ void Parser::alternate(const Node& n) {
   // std::cout << "alternation, in " << second.InList << ", " << first.InList << ", out " << second.OutList << ", " << first.OutList << std::endl;
   first.merge(second);
   first.N = n;
-  first.Skippable = first.Skippable || second.Skippable;
+  first.Skippable = first.Skippable == GreedySkip || second.Skippable == GreedySkip ? GreedySkip : NoSkip;
   Stack.push(first);
 }
 
@@ -318,7 +412,18 @@ void Parser::plus(const Node& n) {
 
 void Parser::question(const Node&) {
   Fragment& optional = Stack.top();
-  optional.Skippable = true;
+  optional.Skippable = GreedySkip;
+}
+
+void Parser::star_ng(const Node& n) {
+}
+
+void Parser::plus_ng(const Node& n) {
+}
+
+void Parser::question_ng(const Node&) {
+  Fragment& optional = Stack.top();
+  optional.Skippable = NonGreedySkip;
 }
 
 void Parser::dot(const Node& n) {
@@ -411,6 +516,15 @@ void Parser::callback(const std::string& type, const Node& n) {
       break;
     case Node::QUESTION:
       question(n);
+      break;
+    case Node::STAR_NG:
+      star_ng(n);
+      break;
+    case Node::PLUS_NG:
+      plus_ng(n);
+      break;
+    case Node::QUESTION_NG:
+      question_ng(n);
       break;
     case Node::ELEMENT:
       addElement(n);

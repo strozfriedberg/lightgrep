@@ -17,6 +17,9 @@ struct Node {
     PLUS,
     STAR,
     QUESTION,
+    PLUS_NG,
+    STAR_NG,
+    QUESTION_NG,
     ELEMENT,
     DOT,
     CHAR_CLASS,
@@ -88,17 +91,25 @@ private:
 
 std::ostream& operator<<(std::ostream& out, const FastVList& list);
 
-struct Fragment {
-  Fragment(): Skippable(false) {}
-  Fragment(Graph::vertex in, const Node& n): InList(in), N(n), Skippable(false) {}
+enum SkipType { NoSkip = 0, NonGreedySkip = 1, GreedySkip = 2 };
 
+struct Fragment {
+  Fragment(): Skippable(NoSkip) {}
+  Fragment(Graph::vertex in, const Node& n): InList(in), N(n), Skippable(NoSkip) {}
+
+  /*
+   * InList is the list of vertices in this fragment which have incoming
+   * edges from outside the fragment. OutList is the is the list of vertices
+   * in this fragment which have edges leaving the fragment.
+   */ 
   FastVList InList, OutList;
   Node N;
-  bool Skippable;
 
-  void initFull(Graph::vertex in, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(in); }
-  void initFull(Graph::vertex in, Graph::vertex out, const Node& n) { N = n; Skippable = false; InList.reset(in); OutList.reset(out); }
-  void reset(const Node& n) { Skippable = false; N = n; InList.reset(); OutList.reset(); }
+  SkipType Skippable;
+
+  void initFull(Graph::vertex in, const Node& n) { N = n; Skippable = NoSkip; InList.reset(in); OutList.reset(in); }
+  void initFull(Graph::vertex in, Graph::vertex out, const Node& n) { N = n; Skippable = NoSkip; InList.reset(in); OutList.reset(out); }
+  void reset(const Node& n) { Skippable = NoSkip; N = n; InList.reset(); OutList.reset(); }
 
   void addToOut(Graph::vertex v) {
     OutList.add(v);
@@ -141,6 +152,9 @@ public:
   void star(const Node& n);
   void plus(const Node& n);
   void question(const Node& n);
+  void star_ng(const Node& n);
+  void plus_ng(const Node& n);
+  void question_ng(const Node& n);
   void literal(const Node& n);
   void group(const Node& n);
   void dot(const Node& n);
