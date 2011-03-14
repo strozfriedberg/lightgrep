@@ -293,7 +293,7 @@ SCOPE_TEST(parseStarWithGrouping) {
   SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
-SCOPE_TEST(parse_aQuestionQuestionb) {
+SCOPE_TEST(parseaQuestionQuestionb) {
   Parser p;
   SyntaxTree tree;
   Graph& g(*p.getFsm());
@@ -317,6 +317,37 @@ SCOPE_TEST(parse_aQuestionQuestionb) {
   SCOPE_ASSERT(!g[0]);
   SCOPE_ASSERT(!g[1]->IsMatch);
   SCOPE_ASSERT(g[2]->IsMatch);
+}
+
+SCOPE_TEST(parseaQuestionQuestionbQuestionQuestionc) {
+  Parser p;
+  SyntaxTree tree;
+  Graph& g(*p.getFsm());
+
+  SCOPE_ASSERT(parse("a??b??c", false, tree, p));
+
+  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(3, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
+  SCOPE_ASSERT(g.edgeExists(1, 2));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
+  SCOPE_ASSERT(g.edgeExists(2, 3));
+
+  SCOPE_ASSERT_EQUAL(2u, g.inDegree(3));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
+
+  SCOPE_ASSERT(!g[0]);
+  SCOPE_ASSERT(!g[1]->IsMatch);
+  SCOPE_ASSERT(!g[2]->IsMatch);
+  SCOPE_ASSERT(g[3]->IsMatch);
 }
 
 /*
