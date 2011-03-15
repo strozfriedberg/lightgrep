@@ -363,7 +363,7 @@ void writeEdge(std::ostream& out, Graph::vertex v, Graph::vertex u,
 }
 
 void writeGraphviz(std::ostream& out, const Graph& graph) {
-  out << "digraph G {\n\  rankdir=LR;\n  ranksep=equally;" << std::endl;
+  out << "digraph G {\n  rankdir=LR;\n  ranksep=equally;" << std::endl;
 
   for (uint32 i = 0; i < graph.numVertices(); ++i) {
     writeVertex(out, i, graph);
