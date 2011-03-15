@@ -445,6 +445,7 @@ SCOPE_TEST(parseaOrbQQa) {
   SCOPE_ASSERT(!g[2]->IsMatch);
   SCOPE_ASSERT(g[3]->IsMatch);
 }
+
 /*
 SCOPE_TEST(parseStarQuestion) {
   Parser p;
