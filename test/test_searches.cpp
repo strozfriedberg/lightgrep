@@ -193,3 +193,10 @@ SCOPE_FIXTURE_CTOR(aQQbQcSearch, STest, STest("a??b?c")) {
   SCOPE_ASSERT_EQUAL(SearchHit(3, 2, 0), fixture.Hits[1]);
   SCOPE_ASSERT_EQUAL(SearchHit(5, 1, 0), fixture.Hits[2]);
 }
+
+SCOPE_FIXTURE_CTOR(aQQOrBQQcSearch, STest, STest("(a??|b??)c")) {
+  const byte* text = (const byte*) "c";
+  fixture.search(text, text + 1, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+}

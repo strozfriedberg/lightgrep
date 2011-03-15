@@ -246,15 +246,6 @@ std::cerr << "second.OutList: " << second.OutList << std::endl << std::endl;
       break;
 
     case NonGreedySkip:
-/*
-      {
-        FastVList tmp(second.OutList);
-        patch(first.OutList, second.InList);
-        tmp.merge(first.OutList);
-        first.OutList = tmp;
-        first.Skippable = NoSkip;
-      }
-*/
       break;
 
     case GreedySkip:
@@ -356,7 +347,17 @@ void Parser::alternate(const Node& n) {
   // std::cout << "alternation, in " << second.InList << ", " << first.InList << ", out " << second.OutList << ", " << first.OutList << std::endl;
   first.merge(second);
   first.N = n;
-  first.Skippable = first.Skippable == GreedySkip || second.Skippable == GreedySkip ? GreedySkip : NoSkip;
+
+  if (first.Skippable == NonGreedySkip || second.Skippable == NonGreedySkip) {
+    first.Skippable = NonGreedySkip; 
+  }
+  else if (first.Skippable == GreedySkip || second.Skippable == GreedySkip) {
+    first.Skippable = GreedySkip;
+  }
+  else {
+    first.Skippable = NoSkip;
+  }
+
   Stack.push(first);
 }
 
