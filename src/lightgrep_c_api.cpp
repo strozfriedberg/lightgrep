@@ -113,6 +113,17 @@ void lg_reset_context(LG_HCONTEXT hCtx) {
   (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->reset();
 }
 
+void lg_starts_with(LG_HCONTEXT hCtx,
+                   const char* bufStart,
+                   const char* bufEnd,
+                   uint64 startOffset,
+                   void* userData,
+                   LG_HITCALLBACK_FN callbackFn)
+{
+  HitHandler cb(callbackFn, userData);
+  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->startsWith((const byte*)bufStart, (const byte*)bufEnd, startOffset, cb);
+}
+
 unsigned int lg_search(LG_HCONTEXT hCtx,
                          const char* bufStart,
                          const char* bufEnd,
