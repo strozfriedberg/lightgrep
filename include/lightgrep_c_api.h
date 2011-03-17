@@ -68,6 +68,17 @@ extern "C" {
   LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg);
   void lg_destroy_context(LG_HCONTEXT hCtx);
 
+  // Finds matches beginning at the first byte. It works like lg_search(), but neither lg_closeout_search() nor lg_reset()
+  // need to be called (these are done automatically). Consequently, this function cannot be called in succession
+  // for searching large streams. However, if there are multiple matches beginning at byte 0, it will report on all of them.
+  // The function can return early, without examining the entire buffer, if it gets to a point where no further matches are possible.
+  void lg_starts_with(LG_HCONTEXT hCtx,
+                      const char* bufStart,
+                      const char* bufEnd,
+                      uint64 startOffset,
+                      void* userData,
+                      LG_HITCALLBACK_FN callbackFn);
+
   // Reset the context to its initial state. Call this before searching a new file.
   void lg_reset_context(LG_HCONTEXT hCtx);
 
