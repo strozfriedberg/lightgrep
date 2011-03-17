@@ -429,6 +429,35 @@ void Vm::doMatch(const Thread& t) {
   Matches[t.Label].push_back(Match(t.Start, t.End));
 }
 
+void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
+  CurHitFn = &hitFn;
+  const Instruction* base = &(*Prog)[0];
+  ByteSet first = Prog->First;
+  register uint64 offset = startOffset;
+  if (first[*beg]) {
+    for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
+      Active.addBack().init(it->PC, NOLABEL, offset, NONE);
+    }
+    ThreadList::iterator threadIt = Active.begin();
+    for (register const byte* cur = beg; cur < end; ++cur) {
+      while (threadIt != Active.end()) {
+        _executeThread(base, threadIt, cur, offset);
+        ++threadIt;
+      }
+      Kill.clear();
+    
+      cleanup();
+      threadIt = Active.begin();
+      if (threadIt == Active.end()) { // early exit if threads die out
+        break;
+      }
+      ++offset;
+    }
+  }
+  closeOut(hitFn);
+  reset();
+}
+
 bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
   CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];
