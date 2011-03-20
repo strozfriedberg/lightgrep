@@ -5,24 +5,6 @@
 
 #include <stdexcept>
 
-SCOPE_TEST(instructionSizes) {
-  SCOPE_ASSERT_EQUAL(4u, sizeof(Instruction));
-
-  Instruction i;
-  i.Size = 0;
-  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL(4u, i.byteSize());
-  i.Size = 1;
-  SCOPE_ASSERT_EQUAL(2u, i.wordSize());
-  SCOPE_ASSERT_EQUAL(8u, i.byteSize());
-  i.Size = 2;
-  SCOPE_ASSERT_EQUAL(5u, i.wordSize());
-  SCOPE_ASSERT_EQUAL(20u, i.byteSize());
-  i.Size = 3;
-  SCOPE_ASSERT_EQUAL(9u, i.wordSize());
-  SCOPE_ASSERT_EQUAL(36u, i.byteSize());
-}
-
 SCOPE_TEST(makeLit) {
   Instruction i = Instruction::makeLit('a');
   SCOPE_ASSERT_EQUAL(LIT_OP, i.OpCode);
@@ -32,22 +14,13 @@ SCOPE_TEST(makeLit) {
 }
 
 SCOPE_TEST(makeJump) {
-  Instruction i = Instruction::makeJump(11);
-  SCOPE_ASSERT_EQUAL(JUMP_OP, i.OpCode);
-  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL(11u, i.Op.Offset);
-  SCOPE_ASSERT_EQUAL("Jump 0x0000000b/11", i.toString());
-  SCOPE_EXPECT(Instruction::makeJump(1 << 24), std::overflow_error);
-}
-
-SCOPE_TEST(makeLongJump) {
   Instruction i[2];
-  i[0] = Instruction::makeLongJump(i, 16777216);
-  SCOPE_ASSERT_EQUAL(LONGJUMP_OP, i[0].OpCode);
+  i[0] = Instruction::makeJump(i, 16777216);
+  SCOPE_ASSERT_EQUAL(JUMP_OP, i[0].OpCode);
   SCOPE_ASSERT_EQUAL(2u, i[0].wordSize());
   SCOPE_ASSERT_EQUAL(0u, i[0].Op.Offset);
   SCOPE_ASSERT_EQUAL(16777216u, *reinterpret_cast<uint32*>(i+1));
-  SCOPE_ASSERT_EQUAL("LongJump 0x01000000/16777216", i[0].toString());
+  SCOPE_ASSERT_EQUAL("Jump 0x01000000/16777216", i[0].toString());
 }
 
 SCOPE_TEST(makeMatch) {
@@ -94,22 +67,13 @@ SCOPE_TEST(makeBitVector) {
 }
 
 SCOPE_TEST(makeFork) {
-  Instruction i = Instruction::makeFork(1027);
-  SCOPE_ASSERT_EQUAL(FORK_OP, i.OpCode);
-  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL(1027u, i.Op.Offset);
-  SCOPE_ASSERT_EQUAL("Fork 0x00000403/1027", i.toString());
-  SCOPE_EXPECT(Instruction::makeFork(1 << 24), std::overflow_error);
-}
-
-SCOPE_TEST(makeLongFork) {
   Instruction i[2];
-  i[0] = Instruction::makeLongFork(i, 16777216);
-  SCOPE_ASSERT_EQUAL(LONGFORK_OP, i[0].OpCode);
+  i[0] = Instruction::makeFork(i, 16777216);
+  SCOPE_ASSERT_EQUAL(FORK_OP, i[0].OpCode);
   SCOPE_ASSERT_EQUAL(2u, i[0].wordSize());
   SCOPE_ASSERT_EQUAL(0u, i[0].Op.Offset);
   SCOPE_ASSERT_EQUAL(16777216u, *reinterpret_cast<uint32*>(i+1));
-  SCOPE_ASSERT_EQUAL("LongFork 0x01000000/16777216", i[0].toString());
+  SCOPE_ASSERT_EQUAL("Fork 0x01000000/16777216", i[0].toString());
 }
 
 SCOPE_TEST(makeJumpTable) {
@@ -136,4 +100,12 @@ SCOPE_TEST(makeJumpTableRange) {
   SCOPE_ASSERT_EQUAL(45u, i.Op.Range.Last);
   SCOPE_ASSERT_EQUAL("JmpTblRange 0x21/'!'-0x2d/'-'", i.toString());
   SCOPE_EXPECT(Instruction::makeJumpTableRange(1, 0), std::range_error);
+}
+
+SCOPE_TEST(makeAny) {
+  Instruction i = Instruction::makeAny();
+  SCOPE_ASSERT_EQUAL(ANY_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL(0u, i.Op.Offset);
+  SCOPE_ASSERT_EQUAL("Any", i.toString());
 }

@@ -44,7 +44,6 @@ SCOPE_FIXTURE_CTOR(aAndbOrcSearch, STest, STest("a(b|c)")) {
 
 SCOPE_FIXTURE_CTOR(abQuestionSearch, STest, STest("ab?")) {
   const byte* text = (const byte*)"aab";
-  // std::cout << *fixture.Prog;
   fixture.search(text, text+3, 0, fixture);
   SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0u, 1u, 0u), fixture.Hits[0]);
@@ -75,7 +74,6 @@ SCOPE_FIXTURE_CTOR(aOrbQcSearch, STest, STest("(a|b?)c")) {
 
 SCOPE_FIXTURE_CTOR(aOrbPlusSearch, STest, STest("(a|b)+")) {
   const byte* text = (const byte*)" abbaaaba ";
-  // std::cout << *fixture.Prog;
   fixture.search(text, text+10, 0, fixture);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(1, 8, 0), fixture.Hits[0]);
@@ -99,7 +97,6 @@ SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest(4, (const char*[]){"a(b|c)a", "a
 SCOPE_FIXTURE_CTOR(aOrbStarbPlusSearch, STest, STest("(a|b)*b+")) {
   //                               01234567890
   const byte* text = (const byte*)" abbaaaba b";
-  // std::cout << *fixture.Prog;
   fixture.search(text, text+11, 0, fixture);
   SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(1, 7, 0), fixture.Hits[0]);
@@ -129,7 +126,6 @@ SCOPE_FIXTURE_CTOR(zeroDotStarZeroSearch, STest, STest("0.*0")) {
 
 SCOPE_FIXTURE_CTOR(aDotaPlusSearch, STest, STest("a.a+")) {
   const byte* text = (const byte*)"aaabaaa";
-  std::cout << *fixture.Prog;
   fixture.search(text, text + 7, 0, fixture);
   SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
@@ -157,4 +153,26 @@ SCOPE_FIXTURE_CTOR(aaaOraSearch, STest, STest("aaa|a")) {
   fixture.search(text, text + 3, 0, fixture);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(aPlusbOraSearch, STest, STest("a+b|a")) {
+  const byte* text = (const byte*)"aaab";
+  fixture.search(text, text + 4, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(aPlusOrabSearch, STest, STest("a+|ab")) {
+  const byte* text = (const byte*)"cab";
+  fixture.search(text, text + 3, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(startsWithTest, STest, STest(3, (const char*[]){"ab..ef", "c[a-z][a-z]", "[aA][bc][bc]"})) {
+  const byte* text = (const byte*)"abcdefghijklmnop";
+  fixture.startsWith(text, text + 16, 0, fixture);
+  SCOPE_ASSERT_EQUAL(2, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 6, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[1]);
 }

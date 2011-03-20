@@ -73,19 +73,24 @@ SCOPE_TEST(executeRange) {
   }
 }
 
-SCOPE_TEST(executeJump) {
-  ProgramPtr p(new Program(1, Instruction::makeJump(18)));
+SCOPE_TEST(executeAny) {
+  ProgramPtr p(new Program(1, Instruction::makeAny()));
   Vm         s(p);
   Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
-  SCOPE_ASSERT(s.executeEpsilon(&cur, 0));
-  SCOPE_ASSERT_EQUAL(1u, s.numActive());
-  SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(&(*p)[18], cur.PC);
+  for (uint32 i = 0; i < 256; ++i) {
+    s.reset();
+    s.add(Thread(&(*p)[0]));
+    byte b = i;
+    SCOPE_ASSERT(s.execute(&cur, &b));
+    SCOPE_ASSERT_EQUAL(1u, s.numActive());
+    SCOPE_ASSERT_EQUAL(0u, s.numNext());
+    SCOPE_ASSERT_EQUAL(&(*p)[1], cur.PC);
+  }
 }
 
-SCOPE_TEST(executeLongJump) {
+SCOPE_TEST(executeJump) {
   ProgramPtr p(new Program(2, Instruction()));
-  (*p)[0] = Instruction::makeLongJump(&(*p)[0], 18);
+  (*p)[0] = Instruction::makeJump(&(*p)[0], 18);
   Vm s(p);
   Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
   SCOPE_ASSERT(s.executeEpsilon(&cur, 0));
@@ -209,20 +214,8 @@ SCOPE_TEST(executeMatch) {
 }
 
 SCOPE_TEST(executeFork) {
-  ProgramPtr p(new Program(3, Instruction::makeLit('a')));
-  (*p)[0] = Instruction::makeFork(2);
-  Vm s(p);
-  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
-  SCOPE_ASSERT(s.executeEpsilon(&cur, 47));
-  SCOPE_ASSERT_EQUAL(1u, s.numActive()); // cha-ching!
-  SCOPE_ASSERT_EQUAL(1u, s.numNext());
-  SCOPE_ASSERT_EQUAL(&(*p)[1], s.next()[0].PC);
-  SCOPE_ASSERT_EQUAL(&(*p)[2], cur.PC);
-}
-
-SCOPE_TEST(executeLongFork) {
   ProgramPtr p(new Program(4, Instruction()));
-  (*p)[0] = Instruction::makeLongFork(&(*p)[0], 3);
+  (*p)[0] = Instruction::makeFork(&(*p)[0], 3);
   (*p)[2] = Instruction::makeLit('a');
   (*p)[3] = Instruction::makeLit('a');
   Vm s(p);
@@ -236,7 +229,7 @@ SCOPE_TEST(executeLongFork) {
 
 SCOPE_TEST(executeCheckHalt) {
   ProgramPtr p(new Program(2, Instruction::makeCheckHalt(5)));
-  (*p)[1] = Instruction::makeJump(3019);
+  (*p)[1] = Instruction::makeRaw24(3019);
   Vm         s(p);
   Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
   SCOPE_ASSERT(s.executeEpsilon(&cur, 231));
@@ -268,16 +261,16 @@ SCOPE_TEST(executeHalt) {
 
 SCOPE_TEST(runFrame) {
   MockCallback cb;
-  ProgramPtr p(new Program());
+  ProgramPtr p(new Program(9, Instruction::makeRaw32(0)));
   Program&   prog(*p);
   // not a complete program, but good enough for executing a frame
-  prog.push_back(Instruction::makeJump(1));  // 0
-  prog.push_back(Instruction::makeLit('a')); // 1
-  prog.push_back(Instruction::makeFork(6));  // 2
-  prog.push_back(Instruction::makeLabel(1)); // 3
-  prog.push_back(Instruction::makeMatch());  // 4 
-  prog.push_back(Instruction::makeLit('b')); // 5
-  prog.push_back(Instruction::makeLit('c')); // 6
+  prog[0] = Instruction::makeJump(&prog[0], 2);
+  prog[2] = Instruction::makeLit('a');
+  prog[3] = Instruction::makeFork(&prog[3], 8);
+  prog[5] = Instruction::makeLabel(1);
+  prog[6] = Instruction::makeMatch();
+  prog[7] = Instruction::makeLit('b');
+  prog[8] = Instruction::makeLit('c');
   prog.First.set('a');
 
   const uint64 unalloc = std::numeric_limits<uint64>::max();
@@ -286,22 +279,22 @@ SCOPE_TEST(runFrame) {
   s.executeFrame(&b, 0, cb);
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(2u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(&prog[5], 1, 0, 0), s.next()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&prog[6], std::numeric_limits<uint32>::max(), 0, unalloc), s.next()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&prog[7], 1, 0, 0), s.next()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&prog[8], std::numeric_limits<uint32>::max(), 0, unalloc), s.next()[1]);
 }
 
 SCOPE_TEST(testInit) {
-  ProgramPtr p(new Program);
+  ProgramPtr p(new Program(14, Instruction::makeRaw32(0)));
   Program& prog(*p);
-  prog.push_back(Instruction::makeFork(4));   // 0
-  prog.push_back(Instruction::makeFork(3));   // 1
-  prog.push_back(Instruction::makeJump(6));   // 2
-  prog.push_back(Instruction::makeLit('a'));  // 3
-  prog.push_back(Instruction::makeFork(7));   // 4
-  prog.push_back(Instruction::makeJump(8));   // 5
-  prog.push_back(Instruction::makeLit('b'));  // 6
-  prog.push_back(Instruction::makeLit('c'));  // 7
-  prog.push_back(Instruction::makeLit('d'));  // 8
+  prog[0]  = Instruction::makeFork(&prog[0], 7);   // 0
+  prog[2]  = Instruction::makeFork(&prog[2], 6);   // 1
+  prog[4]  = Instruction::makeJump(&prog[4], 11);   // 2
+  prog[6]  = Instruction::makeLit('a');  // 3
+  prog[7]  = Instruction::makeFork(&prog[7], 12);   // 4
+  prog[9]  = Instruction::makeJump(&prog[9], 13);   // 5
+  prog[11] = Instruction::makeLit('b');  // 6
+  prog[12] = Instruction::makeLit('c');  // 7
+  prog[13] = Instruction::makeLit('d');  // 8
   prog.First.set('a');
   prog.First.set('b');
   prog.First.set('c');
@@ -310,10 +303,10 @@ SCOPE_TEST(testInit) {
   Vm s;
   s.init(p);
   SCOPE_ASSERT_EQUAL(4u, s.first().size());
-  SCOPE_ASSERT_EQUAL(&prog[6], s.first()[0].PC);
-  SCOPE_ASSERT_EQUAL(&prog[3], s.first()[1].PC);
-  SCOPE_ASSERT_EQUAL(&prog[8], s.first()[2].PC);
-  SCOPE_ASSERT_EQUAL(&prog[7], s.first()[3].PC);
+  SCOPE_ASSERT_EQUAL(&prog[11], s.first()[0].PC);
+  SCOPE_ASSERT_EQUAL(&prog[6], s.first()[1].PC);
+  SCOPE_ASSERT_EQUAL(&prog[13], s.first()[2].PC);
+  SCOPE_ASSERT_EQUAL(&prog[12], s.first()[3].PC);
 }
 
 SCOPE_TEST(simpleLitMatch) {
@@ -341,14 +334,14 @@ SCOPE_TEST(simpleLitMatch) {
 SCOPE_TEST(newThreadInit) {
   ProgramPtr p(new Program);
   p->push_back(Instruction::makeJumpTableRange('a', 'b')); // 0
-  p->push_back(Instruction::makeRaw(4));               // 1
-  p->push_back(Instruction::makeRaw(8));               // 2
-  p->push_back(Instruction::makeLit('a'));             // 3
-  p->push_back(Instruction::makeLabel(1)); // nonzero     4
-  p->push_back(Instruction::makeMatch());              // 5
-  p->push_back(Instruction::makeHalt());               // 6
-  p->push_back(Instruction::makeLit('b'));             // 7
-  p->push_back(Instruction::makeLit('c'));             // 8
+  p->push_back(Instruction::makeRaw32(4));                 // 1
+  p->push_back(Instruction::makeRaw32(8));                 // 2
+  p->push_back(Instruction::makeLit('a'));                 // 3
+  p->push_back(Instruction::makeLabel(1)); // nonzero         4
+  p->push_back(Instruction::makeMatch());                  // 5
+  p->push_back(Instruction::makeHalt());                   // 6
+  p->push_back(Instruction::makeLit('b'));                 // 7
+  p->push_back(Instruction::makeLit('c'));                 // 8
   p->push_back(Instruction::makeLabel(0));
   p->push_back(Instruction::makeMatch());
   p->push_back(Instruction::makeHalt());
@@ -372,22 +365,24 @@ SCOPE_TEST(newThreadInit) {
 }
 
 SCOPE_TEST(threeKeywords) {
-  ProgramPtr p(new Program); // (a)|(b)|(bc)
-  p->push_back(Instruction::makeFork(2));       // 0
-  p->push_back(Instruction::makeJump(6));       // 1
-  p->push_back(Instruction::makeLit('a'));      // 2
-  p->push_back(Instruction::makeLabel(0));      // 3
-  p->push_back(Instruction::makeMatch());       // 4
-  p->push_back(Instruction::makeHalt());        // 5
-  p->push_back(Instruction::makeLit('b'));      // 6
-  p->push_back(Instruction::makeFork(11));      // 7
-  p->push_back(Instruction::makeLabel(1));      // 8
-  p->push_back(Instruction::makeMatch());       // 9
-  p->push_back(Instruction::makeHalt());        // 10
-  p->push_back(Instruction::makeLit('c'));      // 11
-  p->push_back(Instruction::makeLabel(2));      // 12
-  p->push_back(Instruction::makeMatch());       // 13
-  p->push_back(Instruction::makeHalt());        // 14
+  ProgramPtr p(new Program(18, Instruction::makeRaw32(0))); // (a)|(b)|(bc)
+  Program& prog(*p);
+
+  prog[0]  = Instruction::makeFork(&prog[0], 4);       // 0
+  prog[2]  = Instruction::makeJump(&prog[2], 8);       // 1
+  prog[4]  = Instruction::makeLit('a');      // 2
+  prog[5]  = Instruction::makeLabel(0);      // 3
+  prog[6]  = Instruction::makeMatch();       // 4
+  prog[7]  = Instruction::makeHalt();        // 5
+  prog[8]  = Instruction::makeLit('b');      // 6
+  prog[9]  = Instruction::makeFork(&prog[9], 14);      // 7
+  prog[11] = Instruction::makeLabel(1);      // 8
+  prog[12] = Instruction::makeMatch();       // 9
+  prog[13] = Instruction::makeHalt();        // 10
+  prog[14] = Instruction::makeLit('c');      // 11
+  prog[15] = Instruction::makeLabel(2);      // 12
+  prog[16] = Instruction::makeMatch();       // 13
+  prog[17] = Instruction::makeHalt();        // 14
 
   byte text[] = {'c', 'a', 'b', 'c'};
   MockCallback cb;

@@ -1,4 +1,4 @@
-#!/usr/python
+#!/usr/bin/python
 
 import struct
 import socket
