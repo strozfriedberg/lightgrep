@@ -87,13 +87,13 @@ SCOPE_TEST(acOrbcProgram) {
   Program& prog(*p);
   
   SCOPE_ASSERT_EQUAL(9u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[0], 5), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[0], 5), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[3]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[6]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[7], 2), prog[7]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[7], 2), prog[7]);
 }
 
 SCOPE_TEST(keywordLabelsProgram) {
@@ -109,7 +109,7 @@ SCOPE_TEST(keywordLabelsProgram) {
   Program& prog(*p);
 
   SCOPE_ASSERT_EQUAL(9u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[0], 5), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[0], 5), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[3]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[4]);
@@ -334,7 +334,7 @@ SCOPE_TEST(alternationBetterLayout) {
   Program& prog(*p);
   
   SCOPE_ASSERT_EQUAL(8u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[0], 5), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[0], 5), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[3]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[4]);
@@ -371,11 +371,11 @@ SCOPE_TEST(betterLayout) {
   Program& prog(*p);
 
   SCOPE_ASSERT_EQUAL(19u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[0], 8), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[0], 8), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[3]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[4], 13), prog[4]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[6], 16), prog[6]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[4], 13), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[6], 16), prog[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[8]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('i'), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('t'), prog[10]);
@@ -407,7 +407,7 @@ SCOPE_TEST(generateCheckHalt) {
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[3]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[4], 0), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[4], 0), prog[4]);
 }
 
 SCOPE_TEST(testInitVM) {
@@ -502,8 +502,6 @@ SCOPE_TEST(generateJumpTableRange) {
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
 
-  std::cerr << prog << std::endl;
-
   SCOPE_ASSERT_EQUAL(23u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
@@ -522,11 +520,11 @@ SCOPE_TEST(generateJumpTableRange) {
 // From here on, this is garbage---maybe don't even test this?
 /*
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[13]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[14], 9), prog[14]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[14], 9), prog[14]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('d'), prog[14]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[15], 9), prog[15]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[15], 9), prog[15]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('g'), prog[17]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[18], 9), prog[18]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[18], 9), prog[18]);
 */
 }
 
@@ -565,8 +563,8 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
 //  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[8]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('f'), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[10]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[11], 28), prog[11]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[13], 24), prog[13]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[11], 28), prog[11]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[13], 24), prog[13]);
 // intervening crap
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('g'), prog[24]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[25]);
@@ -595,7 +593,7 @@ SCOPE_TEST(testFirstChildNext) {
   SCOPE_ASSERT_EQUAL(9u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[2], 5), prog[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[2], 5), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[6]);
@@ -622,11 +620,11 @@ SCOPE_TEST(testFirstChildPrev) {
   SCOPE_ASSERT_EQUAL(14u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[2], 10), prog[2]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeRange(0, 255), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[2], 10), prog[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeAny(), prog[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[5]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongFork(&prog[6], 10), prog[6]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLongJump(&prog[8], 4), prog[8]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[6], 10), prog[6]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[8], 4), prog[8]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[10]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(2), prog[11]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[12]);

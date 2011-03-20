@@ -1,5 +1,12 @@
 #!/usr/bin/perl -w
 
+#
+# pat2test-regen expects the text as the first argument, and the patterns
+# one per line on STDIN.
+#
+
+use String::ShellQuote qw(shell_quote);
+
 my $text = pop @ARGV;
 
 # write the text to a temporary file
@@ -24,8 +31,11 @@ while (<>) {
   chomp;
   $pat = $_;
 
+  # make sure that the pattern is properly quoted for the shell
+  $sqpat = shell_quote($pat);
+
   # get matches from shitgrep
-  system("./shitgrep -p '$pat' $text_file 1>sg.stdout 2>sg.stderr");
+  system("./shitgrep -p $sqpat $text_file 1>sg.stdout 2>sg.stderr");
 
   open(SGERR, '<sg.stderr') or die "$!\n";
   my $sgerr = join '', <SGERR>;

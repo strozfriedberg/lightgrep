@@ -60,6 +60,13 @@ int main() {
     // create a search context
     LG_HCONTEXT searcher = lg_create_context(prog);
 
+    char filesigText[] = "lambs love mary.";
+    printf("using startsWith\n");
+    
+    lg_starts_with(searcher, filesigText, filesigText + 16, 0, (void*)23, getHit);
+    
+    printf("done with startsWith\n");
+
     printf("beginning search\n");
 
     // search texts as if they were a contiguous array
