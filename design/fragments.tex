@@ -21,7 +21,7 @@
 
 \section{Fragments}
 
-Figure~\ref{fig:arbitrary} shows an arbitrary fragment $A$. Along the left edge of the fragment is its in list $i_0,\dots,i_{n-1}$, a list of $n$ vertices by which the fragment may be entered; along the right edge is the fragment's out list $\langle o_0,s_0\rangle,\dots,\langle o_{m-1},s_{m-1}\rangle$, a list of $m$ pairs where the $o_i$ is a vertex from which the fragment may be exited and $s_i$ is the position in $o_i$'s outgoing edge list where new edges should be inserted. $k$ is the position in the fragment's in list where edges skipping the fragment should be inserted. For nonskippable fragments, $k = \emptyset$. For skippable fragments, $0 \le k \le n$. The order of outgoing edges for any vertex is clockwise, starting from the top.
+Figure~\ref{fig:arbitrary} shows an arbitrary fragment $A$. Along the left edge of the fragment is its in list $i_0,\dots,i_{n-1}$, a list of $n$ vertices by which the fragment may be entered; along the right edge is the fragment's out list $\langle o_0,s_0\rangle,\dots,\langle o_{m-1},s_{m-1}\rangle$, a list of $m$ pairs where the $o_i$ is a vertex from which the fragment may be exited and $s_i$ is the position in $o_i$'s outgoing edge list where new edges should be inserted. $k$ is the position in the fragment's in list where edges skipping the fragment should be inserted. For nonskippable fragments, $k = \emptyset$. (Note that $\emptyset \ne 0$; rather, it is intended to mean ``none''. Zero is a valid insertion point in a list, $\emptyset$ is not.) For skippable fragments, $0 \le k \le n$. The order of outgoing edges for any vertex is clockwise, starting from the top.
 
 \begin{figure}[h]
 \centering
