@@ -73,7 +73,7 @@ Figure~\ref{fig:atom} shows an atomic fragment, i.e., a fragment consisting of a
 
 \section{Repetition}
 
-Figure~\ref{fig:srep} shows how $A$ is converted to $A?$ or $A??$. In the greedy case, $A?.k = \min(A.k,A.n)$ (where $\emptyset$ is treated like $+\infty$), while in the nongreedy case $A??.k = 0$. In both cases $A?.\In = A??.\In = A.\In$, $A?.\Out = A??.\Out = A.\Out$.
+Figure~\ref{fig:srep} shows how $A$ is converted to $A?$ or $A??$. In the greedy case, $A?.k = \min(A.k,\lvert A.\In\rvert)$ (where $\emptyset$ is treated like $+\infty$), while in the nongreedy case $A??.k = 0$. In both cases $A?.\In = A??.\In = A.\In$, $A?.\Out = A??.\Out = A.\Out$.
 
 \begin{figure}[h]
 \centering
