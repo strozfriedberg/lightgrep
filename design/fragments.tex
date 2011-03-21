@@ -73,28 +73,30 @@ Figure~\ref{fig:atom} shows an atomic fragment, i.e., a fragment consisting of a
 
 \section{Repetition}
 
-Figure~\ref{fig:srep} shows how $A$ is converted to $A?$ or $A??$. In the former case, $A?.k = n$, while in the latter $A??.k = 0$. In both cases $A?.\In = A??.\In = A.\In$, $A?.\Out = A??.\Out = A.\Out$.
+Figure~\ref{fig:srep} shows how $A$ is converted to $A?$ or $A??$. In the greedy case, $A?.k = \min(A.k,A.n)$ (where $\emptyset$ is treated like $+\infty$), while in the nongreedy case $A??.k = 0$. In both cases $A?.\In = A??.\In = A.\In$, $A?.\Out = A??.\Out = A.\Out$.
 
-\begin{figure}
+\begin{figure}[h]
 \centering
 \subfigure[Greedy]{%
 \begin{tikzpicture}
 
   \matrix [matrix of math nodes,column sep=0.5cm,ampersand replacement=\&] {
     |(Ato_i_0)| \phantom{x} \& |(Ai_0)| i_0 \& |(Ao_0)| \langle o_0, s_0 \rangle \& |(Afrom_o_0)| \phantom{x} \\
-    \& \vdots \& \vdots \& \\
+    |(A_k)| k \& \vdots \& \vdots \& \\
     |(Ato_i_n-1)| \phantom{x} \& |(Ai_n-1)| i_{n-1} \& |(Ao_m-1)| \langle o_{m-1}, s_{m-1} \rangle \& |(Afrom_o_m-1)| \phantom{x} \\[0.25cm]
-    |(A_k)| n \& |(Abot)| \&\& |(A_skip)| \phantom{x} \\
+    \& |(Abot)| \&\& |(A_skip)| \phantom{x} \\
   };
 
   \node [draw,rectangle,fit=(Ai_0) (Ai_n-1) (Ao_0) (Ao_m-1),label={[name=Alab]above:$A$}] (A) {};
 
   \path [draw,thick,->,>=stealth',overlay]
-    (A_k)       edge (A_skip)
     (Ato_i_0)   edge (Ai_0)
     (Ato_i_n-1) edge (Ai_n-1)
     (Ao_0)      edge (Afrom_o_0)
     (Ao_m-1)    edge (Afrom_o_m-1);
+
+  \path [draw,thick,->,>=stealth',overlay]
+    (A_k) .. controls +(-10:3cm) and +($(A_skip) + (170:6cm)$) ..  (A_skip);
 
   \node [draw,rectangle,fit=(A) (Alab) (Abot),label={[name=Alab]above:$A?$}] {};
 
@@ -124,12 +126,12 @@ Figure~\ref{fig:srep} shows how $A$ is converted to $A?$ or $A??$. In the former
 
 \end{tikzpicture}%
 }
-\caption{$[0,1]$ repetition\label{fig:srep}}
+\caption{Single repetition\label{fig:srep}}
 \end{figure}
 
-Figure~\ref{fig:plus} shows how $A$ is converted to $A+$ or $A+?$. $k = ??$. Out edges are added from each $o_i$ to each $i_j$. In the greedy case, the out edges are prepended to each $o_i$'s edge list; in the nongreedy case, the out edges are appended.
+Figure~\ref{fig:plus} shows how $A$ is converted to $A+$ or $A+?$. $k = ??$. Out edges are added from each $o_i$ to each $i_j$ to create the necessary loops. Adding a plus does not affect the skippability of $A$, due to the fact that matching the empty string once is the same as matching the empty string any greater number of times; hence $A?.k = A??.k = A.k$.
 
-\begin{figure}
+\begin{figure}[h]
 \centering
 \subfigure[Greedy]{%
 \begin{tikzpicture}
@@ -182,71 +184,10 @@ Figure~\ref{fig:plus} shows how $A$ is converted to $A+$ or $A+?$. $k = ??$. Out
 
 \end{tikzpicture}%
 }
-\caption{$[1,\infty]$ repetition\label{fig:plus}}
+\caption{Unbounded repetition\label{fig:plus}}
 \end{figure}
 
-Figure~\ref{fig:star} shows how $A$ is converted to $A*$ or $A*?$. In addition to setting $k$, out edges are added from each $o_i$ to each $i_j$. In the greedy case, the out edges are prepended to each $o_i$'s edge list; in the nongreedy case, the out edges are appended.
-
-\begin{figure}
-\centering
-\subfigure[Greedy]{%
-\begin{tikzpicture}
-
-  \matrix [matrix of math nodes,column sep=0.5cm,ampersand replacement=\&] {
-    |(Ato_i_0)| \phantom{x} \& |(Ai_0)| i_0 \& |(Ao_0)| \langle o_0, s_0 \rangle \& |(Afrom_o_0)| \phantom{x} \\
-    \& \vdots \& \vdots \& \\
-    |(Ato_i_n-1)| \phantom{x} \& |(Ai_n-1)| i_{n-1} \& |(Ao_m-1)| \langle o_{m-1}, s_{m-1} \rangle \& |(Afrom_o_m-1)| \phantom{x} \\[0.25cm]
-    |(A_k)| n \& |(Abot)| \&\& |(A_skip)| \phantom{x} \\
-  };
-
-  \node [draw,rectangle,fit=(Ai_0) (Ai_n-1) (Ao_0) (Ao_m-1),label={[name=Alab]above:$A$}] (A) {};
-
-  \path [draw,thick,->,>=stealth',overlay]
-    (A_k)       edge (A_skip)
-    (Ato_i_0)   edge (Ai_0)
-    (Ato_i_n-1) edge (Ai_n-1)
-    (Ao_0)      edge [out=90] (Ai_0)
-    (Ao_0)      edge [out=45] (Ai_n-1)
-    (Ao_m-1)    edge (Ai_0)
-    (Ao_m-1)    edge [out=95] (Ai_n-1)
-    (Ao_0)      edge (Afrom_o_0)
-    (Ao_m-1)    edge (Afrom_o_m-1);
-
-  \node [draw,rectangle,fit=(A) (Alab) (Abot),label={[name=Alab]above:$A*$}] {};
-
-\end{tikzpicture}%
-}
-\subfigure[Nongreedy]{%
-\begin{tikzpicture}
-
-  \matrix [matrix of math nodes,column sep=0.5cm,ampersand replacement=\&] {
-    \& |(Atop)| \&\& \\[-0.2cm]
-    |(A_k)| 0 \&\&\& |(A_skip)| \phantom{x} \\[0.6cm]
-    |(Ato_i_0)| \phantom{x} \& |(Ai_0)| i_0 \& |(Ao_0)| \langle o_0, s_0 \rangle \& |(Afrom_o_0)| \phantom{x} \\
-    \& \vdots \& \vdots \& \\
-    |(Ato_i_n-1)| \phantom{x} \& |(Ai_n-1)| i_{n-1} \& |(Ao_m-1)| \langle o_{m-1}, s_{m-1} \rangle \& |(Afrom_o_m-1)| \phantom{x} \\
-  };
-
-  \node [draw,rectangle,fit=(Ai_0) (Ai_n-1) (Ao_0) (Ao_m-1),label={[name=Alab]above:$A$}] (A) {};
-
-  \path [draw,thick,->,>=stealth',overlay]
-    (A_k)       edge (A_skip)
-    (Ato_i_0)   edge (Ai_0)
-    (Ato_i_n-1) edge (Ai_n-1)
-    (Ao_0)      edge [out=-45,in=0] (Ai_0)
-    (Ao_0)      edge [out=-90,in=90] (Ai_n-1)
-    (Ao_m-1)    edge [out=-45,in=-90] (Ai_0)
-    (Ao_m-1)    edge [out=-90,in=-20] (Ai_n-1)
-
-    (Ao_0)      edge (Afrom_o_0)
-    (Ao_m-1)    edge (Afrom_o_m-1);
-
-  \node [draw,rectangle,fit=(A) (Alab) (Atop),label={[name=Alab]above:$A*?$}] {};
-
-\end{tikzpicture}%
-}
-\caption{$[0,\infty]$ repetition\label{fig:star}}
-\end{figure}
+No diagrams are given for the conversion of $A$ to $A*$ or $A*?$, as these are equivalent to $(A+)?$ and $(A+?)??$, respectively, so can be constructed from the above. 
 
 \section{Alternation}
 
