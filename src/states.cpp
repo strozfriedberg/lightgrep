@@ -68,7 +68,7 @@ std::string EitherState::label() const {
 }
 
 bool   RangeState::toInstruction(Instruction* addr) const {
-  *addr = Instruction::makeRange(First, Last);
+  *addr = (First == 0 && Last == 255) ? Instruction::makeAny(): Instruction::makeRange(First, Last);
   return true;
 }
 

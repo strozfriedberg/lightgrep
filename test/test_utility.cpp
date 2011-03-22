@@ -621,7 +621,7 @@ SCOPE_TEST(testFirstChildPrev) {
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[2], 10), prog[2]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeRange(0, 255), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeAny(), prog[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[6], 10), prog[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[8], 4), prog[8]);
