@@ -4,7 +4,7 @@
 #include <set>
 #endif
 
-#include <set>
+#include "sparseset.h"
 
 #include "vm_interface.h"
 #include "staticvector.h"
@@ -21,6 +21,7 @@ public:
   // numCheckedStates should be equal to the number + 1 for the reserved bit
   void init(ProgramPtr prog);
 
+  virtual void startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
   virtual bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
   virtual void closeOut(HitCallback& hitFn);
   virtual void reset();
@@ -80,7 +81,8 @@ private:
              Active,
              Next;
 
-  std::vector<bool> CheckStates;
+  SparseSet  CheckStates,
+             Kill;
 
   struct Match {
     uint64 Start, End;
@@ -89,7 +91,6 @@ private:
   };
 
   std::vector< std::vector<Match> > Matches;
-  std::set<uint32> Kill;
 
   HitCallback* CurHitFn;
 };
