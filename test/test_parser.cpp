@@ -293,7 +293,7 @@ SCOPE_TEST(parseStarWithGrouping) {
   SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
-SCOPE_TEST(parseaQuestionQuestionb) {
+SCOPE_TEST(parseaQQb) {
   Parser p;
   SyntaxTree tree;
   Graph& g(*p.getFsm());
@@ -319,7 +319,7 @@ SCOPE_TEST(parseaQuestionQuestionb) {
   SCOPE_ASSERT(g[2]->IsMatch);
 }
 
-SCOPE_TEST(parseaQuestionQuestionbQuestionQuestionc) {
+SCOPE_TEST(parseaQQbQQc) {
   Parser p;
   SyntaxTree tree;
   Graph& g(*p.getFsm());
@@ -362,18 +362,19 @@ SCOPE_TEST(parseaQQbQc) {
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
   SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(0, 2));
+  SCOPE_ASSERT_EQUAL(3, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 2));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT(g.edgeExists(1, 2));
+  SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(3, g.outVertex(1, 1));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
   SCOPE_ASSERT(g.edgeExists(2, 3));
 
-  SCOPE_ASSERT_EQUAL(2u, g.inDegree(3));
+  SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
   SCOPE_ASSERT(!g[0]);
@@ -749,22 +750,22 @@ SCOPE_TEST(parseRepeatedSkippables) {
   SCOPE_ASSERT_EQUAL(1, p.stack().size());
   p.callback("", Node(Node::LITERAL, 0, 0, 'a'));
   SCOPE_ASSERT_EQUAL(2, p.stack().size());
-  SCOPE_ASSERT(!p.stack().top().Skippable);
+  SCOPE_ASSERT_EQUAL(NOSKIP, p.stack().top().Skippable);
   p.callback("", Node(Node::QUESTION, 0, 0, 0));
   SCOPE_ASSERT_EQUAL(2, p.stack().size());
-  SCOPE_ASSERT(p.stack().top().Skippable);
+  SCOPE_ASSERT_EQUAL(1, p.stack().top().Skippable);
   p.callback("", Node(Node::LITERAL, 0, 0, 'b'));
   SCOPE_ASSERT_EQUAL(3, p.stack().size());
-  SCOPE_ASSERT(!p.stack().top().Skippable);
+  SCOPE_ASSERT_EQUAL(NOSKIP, p.stack().top().Skippable);
   p.callback("", Node(Node::STAR, 0, 0, 0));
   SCOPE_ASSERT_EQUAL(3, p.stack().size());
-  SCOPE_ASSERT(p.stack().top().Skippable);
+  SCOPE_ASSERT_EQUAL(1, p.stack().top().Skippable);
   p.callback("", Node(Node::CONCATENATION, 0, 0, 0));
   SCOPE_ASSERT_EQUAL(2, p.stack().size());
-  SCOPE_ASSERT(p.stack().top().Skippable);
+  SCOPE_ASSERT_EQUAL(2, p.stack().top().Skippable);
   p.callback("", Node(Node::CONCATENATION, 0, 0, 0));
   SCOPE_ASSERT_EQUAL(1, p.stack().size());
-  SCOPE_ASSERT(!p.stack().top().Skippable);
+  SCOPE_ASSERT_EQUAL(NOSKIP, p.stack().top().Skippable);
 }
 
 SCOPE_TEST(verifyEdgeOrderZeroDotStarZero) {
