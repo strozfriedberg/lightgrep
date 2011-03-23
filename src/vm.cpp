@@ -394,6 +394,7 @@ void Vm::doMatch(const Thread& t) {
   if (Matches[t.Label].front().Start == NONE) {
     Matches[t.Label].clear(); // we are the first match, clear that placeholder
   }
+
   // check whether any higher-priority threads block us
   bool blocked = false;
   for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
@@ -402,16 +403,15 @@ void Vm::doMatch(const Thread& t) {
       break;
     }
   }
+
   if (blocked) {
-    std::vector<Match> m;
     // check whether we replace any already-recorded matches
-    // Maybe we can iterate existing vec and clip it if we find an overlap? -- JLS
     for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
-      if (im->Start > t.End || t.Start > im->End) {
-        m.push_back(*im);
+      if (im->Start <= t.End && t.Start <= im->End) {
+        Matches[t.Label].erase(im, Matches[t.Label].end());
+        break;
       }
     }
-    Matches[t.Label] = m;
   }
   else {
     // emit all matches which aren't replaced by this one
@@ -425,6 +425,7 @@ void Vm::doMatch(const Thread& t) {
     }
     Matches[t.Label].clear();
   }
+
   // store this match
   Matches[t.Label].push_back(Match(t.Start, t.End));
 }
