@@ -244,6 +244,41 @@ SCOPE_TEST(parsePlus) {
   SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
+SCOPE_TEST(parseaPQb) {
+  Parser      p;
+  SyntaxTree  tree;
+  Graph& g(*p.getFsm());
+
+  SCOPE_ASSERT(parse("a+?b", false, tree, p));
+  SCOPE_ASSERT_EQUAL(3u, g.numVertices());
+
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+ 
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(2u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(1, 1));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
+
+  SCOPE_ASSERT(!g[0]);
+  SCOPE_ASSERT(!g[1]->IsMatch);
+  SCOPE_ASSERT(g[2]->IsMatch);
+ 
+  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(g);
+  SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
+  std::vector<uint32> skip(256, 2);
+  skip['a'] = 0;
+  skip['b'] = 1;
+  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
+}
+
 SCOPE_TEST(parseStar) {
   Parser      p;
   SyntaxTree  tree;
@@ -481,41 +516,40 @@ SCOPE_TEST(parseaOrbQQa) {
   SCOPE_ASSERT(g[3]->IsMatch);
 }
 
-/*
-SCOPE_TEST(parseStarQuestion) {
+SCOPE_TEST(parseaSQb) {
   Parser p;
   SyntaxTree tree;
   Graph& g(*p.getFsm());
   
-  SCOPE_ASSERT(parse("ab*?c", false, tree, p));
-  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+  SCOPE_ASSERT(parse("a*?b", false, tree, p));
+  SCOPE_ASSERT_EQUAL(3u, g.numVertices());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT(g.edgeExists(0, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
 
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
-  SCOPE_ASSERT(g.edgeExists(1, 2));
-  SCOPE_ASSERT(g.edgeExists(1, 3));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(1, 1));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
-  SCOPE_ASSERT_EQUAL(2u, g.outDegree(2));
-  SCOPE_ASSERT(g.edgeExists(2, 3));
-  SCOPE_ASSERT(g.edgeExists(2, 2));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
 
-  SCOPE_ASSERT_EQUAL(2u, g.inDegree(3));
-  SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
-
+  SCOPE_ASSERT(!g[0]);
+  SCOPE_ASSERT(!g[1]->IsMatch);
+  SCOPE_ASSERT(g[2]->IsMatch);
+ 
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(g);
-  SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
-  std::vector<uint32> skip(256, 2);
+  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
+  std::vector<uint32> skip(256, 1);
   skip['a'] = 0;
-  skip['b'] = 1;
-  skip['c'] = 1;
+  skip['b'] = 0;
   SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
-*/
+
+
 
 SCOPE_TEST(parseDot) {
   Parser      p;
