@@ -220,9 +220,9 @@ int main(int argc, char** argv) {
     else if (opts.Command == "test" || optsMap.count("test")) {
       return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
     }
-    if (optsMap.count("no-output")) {
-      opts.NoOutput = true;
-    }
+
+    opts.NoOutput = optsMap.count("no-output") > 0;
+
     // If a pattern is given on the command line, interpret the first
     // non-option argument as the input file instead of the pattern file.
     if (!opts.Pattern.empty() && opts.Input == "-"
