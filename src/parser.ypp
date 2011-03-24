@@ -5,29 +5,29 @@
 #include <iomanip>
 
 namespace {
-static int yylex(void);
-static void yyerror(const char*);
-
-const unsigned char* Text;
-const unsigned char* TextBegin;
-const unsigned char* TextEnd;
-SyntaxTree* Tree;
-
-NodeHandler* Callback;
-bool         LiteralMode;
-
-std::string MyTextLabel("");
-std::stringstream MyBuf;
-
-class Printer {
-public:
-	Printer(int i): Val(i) {}
-
-	int Val;
-};
-
-std::ostream& operator<<(std::ostream&, const Printer&);
-
+	static int yylex(void);
+	static void yyerror(const char*);
+	
+	const unsigned char* Text;
+	const unsigned char* TextBegin;
+	const unsigned char* TextEnd;
+	SyntaxTree* Tree;
+	
+	NodeHandler* Callback;
+	bool         LiteralMode;
+	
+	std::string MyTextLabel("");
+	std::stringstream MyBuf;
+	
+	class Printer {
+	public:
+		Printer(int i): Val(i) {}
+	
+		int Val;
+	};
+	
+	std::ostream& operator<<(std::ostream&, const Printer&);
+	
 	Node* add(const char* type, const Node& n) {
 		if (MyTextLabel.empty()) {
 			MyTextLabel = type;
