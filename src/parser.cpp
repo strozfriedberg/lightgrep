@@ -4,9 +4,8 @@
 #include "concrete_encodings.h"
 #include "utility.h"
 
-#include <algorithm>
 #include <iostream>
-#include <cctype>
+#include <utility>
 
 std::ostream& operator<<(std::ostream& out, const InListT& list) {
   out << '[';
