@@ -4,178 +4,38 @@
 #include "concrete_encodings.h"
 #include "utility.h"
 
+#include <algorithm>
 #include <iostream>
 #include <cctype>
 
-std::ostream& operator<<(std::ostream& out, const FastVList& list) {
-  out << '{';
-  if (list.List) {
-    for (VList::const_iterator it(list.List->begin()); it != list.List->end(); ++it) {
-      if (it != list.List->begin()) {
-        out << ", ";
-      }
-      out << *it;
+std::ostream& operator<<(std::ostream& out, const std::vector<Graph::vertex>& list) {
+  out << '[';
+  for (std::vector<Graph::vertex>::const_iterator it(list.begin()); it != list.end(); ++it) {
+    if (it != list.begin()) {
+      out << ", ";
     }
+    out << *it;
   }
-  else if (list.Single != 0xffffffff) {
-    out << list.Single;
+  out << ']';
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const std::vector< std::pair<Graph::vertex, uint32> > list) {
+  out << '[';
+  for (std::vector< std::pair<Graph::vertex, uint32> >::const_iterator i(list.begin()); i != list.end(); ++i) {
+    if (i != list.begin()) {
+      out << ", ";
+    }
+
+    out << '(' << i->first << ',' << i->second << ')';
   }
-  out << '}';
+  out << ']';
   return out;
 }
 
 std::ostream& operator<<(std::ostream& out, const Fragment& f) {
   out << "in " << f.InList << ", out " << f.OutList;
   return out;
-}
-
-FastVList::FastVList() {
-  Single = 0xffffffff;
-}
-
-FastVList::FastVList(Graph::vertex v) {
-  Single = v;
-}
-
-FastVList::FastVList(const FastVList& x)
-{
-  if (x.Single != 0xffffffff) {
-    Single = x.Single;
-    if (x.List) {
-      List.reset(new VList(*x.List));
-    }
-  }
-}
-
-FastVList& FastVList::operator=(const FastVList& x) {
-  if (x.Single == 0xffffffff) {
-    Single = 0xffffffff;
-    List.reset();
-  }
-  else {
-    if (x.List) {
-      if (List) {
-        *List = *x.List;
-      }
-      else {
-        List.reset(new VList(*x.List));
-      }
-      Single = (*List)[0];
-    }
-    else {
-      Single = x.Single;
-      List.reset();
-    }
-  }
-  return *this;
-}
-
-size_t FastVList::size() const {
-  return Single == 0xffffffff ? 0: List ? List->size(): 1;
-}
-
-Graph::vertex FastVList::operator[](unsigned int i) const {
-  return List ? (*List)[i]: Single;
-}
-
-void FastVList::reset() {
-  Single = 0xffffffff;
-  if (List) {
-    List.reset();
-  }
-}
-
-void FastVList::reset(Graph::vertex v) {
-  Single = v;
-  if (List) {
-    List.reset();
-  }
-}
-
-void FastVList::add(Graph::vertex v) {
-  if (Single == 0xffffffff) {
-    Single = v;
-  }
-  else {
-    if (!List) {
-      List.reset(new VList(1, Single));
-    }
-    if (std::find(List->begin(), List->end(), v) == List->end()) {
-      List->push_back(v);
-    }
-  }
-}
-
-// Appends elements from x not in this list to this list.
-void FastVList::merge(const FastVList& x) {
-  if (x.Single != 0xffffffff) {
-    if (x.List) {
-      if (!List) {
-        if (Single == 0xffffffff) {
-          List.reset(new VList(*x.List));
-          Single = (*List)[0];
-          return;
-        }
-        else {
-          List.reset(new VList(1, Single));
-        }
-      }
-      for (VList::const_iterator it(x.List->begin()); it != x.List->end(); ++it) {
-        if (std::find(List->begin(), List->end(), *it) == List->end()) {
-          List->push_back(*it);
-        }
-      }
-    }
-    else if (Single == 0xffffffff) {
-      Single = x.Single;
-    }
-    else {
-      if (!List) {
-        List.reset(new VList(1, Single));
-      }
-      if (std::find(List->begin(), List->end(), x.Single) == List->end()) {
-        List->push_back(x.Single);
-      }
-    }
-  }
-}
-
-// Makes an edge from every element in this list to every element in
-// the target list.
-void FastVList::patch(const FastVList& targets, Graph& fsm) const {
-  if (Single == 0xffffffff || targets.Single == 0xffffffff) {
-    return;
-  }
-  if (List) {
-    if (targets.List) {
-      for (VList::const_iterator srcIt(List->begin()); srcIt != List->end(); ++srcIt) {
-        for (VList::const_iterator targetIt(targets.List->begin()); targetIt != targets.List->end(); ++targetIt) {
-          // std::cout << "Making edge (" << *srcIt << ", " << *targetIt << ")" << std::endl;
-          addNewEdge(*srcIt, *targetIt, fsm);
-        }
-      }
-    }
-    else {
-      for (VList::const_iterator srcIt(List->begin()); srcIt != List->end(); ++srcIt) {
-        addNewEdge(*srcIt, targets.Single, fsm);
-      }
-    }
-  }
-  else if (targets.List) {
-    for (VList::const_iterator targetIt(targets.List->begin()); targetIt != targets.List->end(); ++targetIt) {
-      addNewEdge(Single, *targetIt, fsm);
-    }
-  }
-  else {
-    addNewEdge(Single, targets.Single, fsm);
-  }
-}
-
-void Fragment::merge(const Fragment& f) {
-  // std::cout << "merge in " << InList << ", " << f.InList << ", out " << OutList << ", " << f.OutList << std::endl;
-  InList.merge(f.InList);
-  OutList.merge(f.OutList);
-  // std::cout << "merged in " << InList << ", out " << OutList << std::endl;
 }
 
 Parser::Parser():
@@ -220,152 +80,8 @@ void Parser::setSizeHint(uint64 reserveSize) {
   ReserveSize = reserveSize;
 }
 
-void Parser::patch(const FastVList& sources, const FastVList& targets) {
-  // std::cout << "patch " << sources << "->" << targets << std::endl;
-  sources.patch(targets, *Fsm);
-}
-
-void Parser::patch(Fragment& first, const Fragment& second, const Node& n) {
-
-std::cerr << "first.Skippable: " << first.Skippable << std::endl;
-std::cerr << "first.InList: " << first.InList << std::endl;
-std::cerr << "first.OutList: " << first.OutList << std::endl;
-std::cerr << "second.Skippable: " << second.Skippable << std::endl;
-std::cerr << "second.InList: " << second.InList << std::endl;
-std::cerr << "second.OutList: " << second.OutList << std::endl << std::endl;
-
-
-  switch (first.Skippable) {
-  case NoSkip:
-
-    switch (second.Skippable) {
-    case NoSkip:
-      patch(first.OutList, second.InList);
-      first.OutList = second.OutList;
-      first.Skippable = NoSkip;
-      break;
-
-    case NonGreedySkip:
-      break;
-
-    case GreedySkip:
-      patch(first.OutList, second.InList);
-      first.OutList.merge(second.OutList);
-      first.Skippable = NoSkip;
-      break;
-    }
-
-    break;
-
-  case NonGreedySkip:
-
-    switch (second.Skippable) {
-    case NoSkip:
-      {
-        FastVList tmp(second.InList);
-        patch(first.OutList, second.InList);
-        tmp.merge(first.InList);
-        first.InList = tmp;
-        first.OutList = second.OutList;
-        first.Skippable = NoSkip;
-      }
-      break;
-
-    case NonGreedySkip:
-      patch(first.OutList, second.InList);
-      first.OutList = second.OutList;
-      first.Skippable = NonGreedySkip;
-      break;
-
-    case GreedySkip:
-      {
-        FastVList tmp(second.InList);
-        patch(first.OutList, second.InList);
-        tmp.merge(first.InList);
-        first.InList = tmp;
-        first.OutList = second.OutList;
-        first.Skippable = GreedySkip;
-      }
-      break;
-    }
-
-    break;
-
-  case GreedySkip:
-
-    switch (second.Skippable) {
-    case NoSkip:
-      patch(first.OutList, second.InList);
-      first.InList.merge(second.InList);
-      first.OutList = second.OutList;
-      first.Skippable = NoSkip;
-      break;
-
-    case NonGreedySkip:
-      break;
-
-    case GreedySkip:
-      patch(first.OutList, second.InList);
-      first.InList.merge(second.InList);
-      first.OutList.merge(second.OutList);
-      first.Skippable = GreedySkip;
-      break;
-    }
-
-    break;
-  }
-
-  first.N = n;
-
-/*
-  // Fragment ret(first.InList, n, second.OutList);
-  // std::cout << "patching states" << std::endl;
-  patch(first.OutList, second.InList);
-  first.N = n;
-  if (first.Skippable == GreedySkip) {
-    first.InList.merge(second.InList);
-  }
-  if (second.Skippable == GreedySkip) {
-    first.OutList.merge(second.OutList);
-  }
-  else {
-    first.OutList = second.OutList;
-  }
-  first.Skippable = first.Skippable == GreedySkip && second.Skippable == GreedySkip ? GreedySkip : NoSkip;
-*/
-}
-
 void Parser::addElement(const Node&) {
   // don't really have to do anything here
-}
-
-void Parser::alternate(const Node& n) {
-  Fragment second = Stack.top();
-  Stack.pop();
-  Fragment first = Stack.top();
-  Stack.pop();
-  // std::cout << "alternation, in " << second.InList << ", " << first.InList << ", out " << second.OutList << ", " << first.OutList << std::endl;
-  first.merge(second);
-  first.N = n;
-
-  if (first.Skippable == NonGreedySkip || second.Skippable == NonGreedySkip) {
-    first.Skippable = NonGreedySkip; 
-  }
-  else if (first.Skippable == GreedySkip || second.Skippable == GreedySkip) {
-    first.Skippable = GreedySkip;
-  }
-  else {
-    first.Skippable = NoSkip;
-  }
-
-  Stack.push(first);
-}
-
-void Parser::concatenate(const Node& n) {
-  TempFrag = Stack.top();
-  Stack.pop();
-  Fragment& first = Stack.top();
-  patch(first, TempFrag, n);
 }
 
 void Parser::setLiteralTransition(TransitionPtr& state, byte val) {
@@ -382,6 +98,32 @@ void Parser::setLiteralTransition(TransitionPtr& state, byte val) {
   }
 }
 
+void Parser::patch_pre(std::vector< std::pair<Graph::vertex, uint32> >& src,
+                       const std::vector<Graph::vertex>& dst)
+{
+  // make an edge from each vertex in src to each vertex in dst, putting
+  // these edges before the src vertex insertion points
+  for (std::vector< std::pair<Graph::vertex, uint32> >::iterator oi(src.begin()); oi != src.end(); ++oi) {
+    uint32 pos = oi->second;
+    for (std::vector<Graph::vertex>::const_iterator ii(dst.begin()); ii != dst.end(); ++ii) {
+      Fsm->addEdgeAt(oi->first, *ii, pos++);
+    }
+    *oi = std::make_pair(oi->first, pos);
+  }
+}
+
+void Parser::patch_post(const std::vector< std::pair<Graph::vertex, uint32> >& src, const std::vector<Graph::vertex>& dst)
+{
+  // make an edge from each vertex in src to each vertex in dst, putting
+  // these edges after the src vertex insertion points
+  for (std::vector< std::pair<Graph::vertex, uint32> >::const_iterator oi(src.begin()); oi != src.end(); ++oi) {
+    uint32 pos = oi->second;
+    for (std::vector<Graph::vertex>::const_iterator ii(dst.begin()); ii != dst.end(); ++ii) {
+      Fsm->addEdgeAt(oi->first, *ii, pos++);
+    }
+  }
+}
+
 void Parser::literal(const Node& n) {
   uint32 len = Enc->write(n.Val, TempBuf.get());
   if (0 == len) {
@@ -389,9 +131,7 @@ void Parser::literal(const Node& n) {
   }
   else {
     Graph& g(*Fsm);
-    Graph::vertex first,
-                                  prev,
-                                  last;
+    Graph::vertex first, prev, last;
     first = prev = last = g.addVertex();
     setLiteralTransition(g[first], TempBuf[0]);
     for (uint32 i = 1; i < len; ++i) {
@@ -401,41 +141,10 @@ void Parser::literal(const Node& n) {
       prev = last;
     }
     TempFrag.reset(n);
-    TempFrag.addToIn(first);
-    TempFrag.addToOut(last);
+    TempFrag.InList.push_back(first);
+    TempFrag.OutList.push_back(std::make_pair(last, 0));
     Stack.push(TempFrag);
   }
-}
-
-void Parser::group(const Node&) {
-  // don't really have to do anything here
-}
-
-void Parser::star(const Node& n) {
-  plus(n);
-  question(n);
-}
-
-void Parser::plus(const Node& n) {
-  Fragment& repeat = Stack.top();
-  repeat.N = n;
-  patch(repeat.OutList, repeat.InList); // back-edges
-}
-
-void Parser::question(const Node&) {
-  Fragment& optional = Stack.top();
-  optional.Skippable = GreedySkip;
-}
-
-void Parser::star_ng(const Node& n) {
-}
-
-void Parser::plus_ng(const Node& n) {
-}
-
-void Parser::question_ng(const Node&) {
-  Fragment& optional = Stack.top();
-  optional.Skippable = NonGreedySkip;
 }
 
 void Parser::dot(const Node& n) {
@@ -473,16 +182,135 @@ void Parser::charClass(const Node& n, const std::string& lbl) {
   Stack.push(TempFrag);
 }
 
+void Parser::question(const Node&) {
+  Fragment& optional = Stack.top();
+  if (optional.Skippable > optional.InList.size()) {
+    optional.Skippable = optional.InList.size(); 
+  }
+}
+
+void Parser::question_ng(const Node&) {
+  Fragment& optional = Stack.top();
+  optional.Skippable = 0;
+}
+
+void Parser::plus(const Node& n) {
+  Fragment& repeat = Stack.top();
+  repeat.N = n;
+  
+  // make back edges
+  patch_pre(repeat.OutList, repeat.InList);
+/*
+  for (std::vector< std::pair<Graph::vertex, uint32> >::iterator oi(repeat.OutList.begin()); oi != repeat.OutList.end(); ++oi) {
+    uint32 pos = oi->second;
+    for (std::vector<Graph::vertex>::const_iterator ii(repeat.InList.begin()); ii != repeat.InList.end(); ++ii) {
+      Fsm->addEdgeAt(oi->first, *ii, pos++);
+    }
+    *oi = std::make_pair(oi->first, pos);
+  }
+*/
+}
+
+void Parser::plus_ng(const Node& n) {
+  Fragment& repeat = Stack.top();
+  repeat.N = n;
+
+  // make back edges
+  patch_post(repeat.OutList, repeat.InList);
+/*
+  for (std::vector< std::pair<Graph::vertex, uint32> >::const_iterator oi(repeat.OutList.begin()); oi != repeat.OutList.end(); ++oi) {
+    uint32 pos = oi->second;
+    for (std::vector<Graph::vertex>::const_iterator ii(repeat.InList.begin()); ii != repeat.InList.end(); ++ii) {
+      Fsm->addEdgeAt(oi->first, *ii, pos++);
+    }    
+  }
+*/
+}
+
+void Parser::star(const Node& n) {
+  plus(n);
+  question(n);
+}
+
+void Parser::star_ng(const Node& n) {
+  plus_ng(n);
+  question_ng(n);
+}
+
+void Parser::group(const Node&) {
+  // nothing to do here
+}
+
+void Parser::alternate(const Node& n) {
+  Fragment second = Stack.top();
+  Stack.pop();
+  Fragment first = Stack.top();
+  Stack.pop();
+
+  if (first.Skippable != NOSKIP) {
+    // leave first.Skippable unchanged
+  }
+  else if (second.Skippable != NOSKIP) {
+    first.Skippable = first.InList.size() + second.Skippable;
+  }
+  else {
+    first.Skippable = NOSKIP;
+  }
+
+  first.InList.insert(first.InList.end(),
+                      second.InList.begin(), second.InList.end());
+  first.OutList.insert(first.OutList.end(),
+                       second.OutList.begin(), second.OutList.end()); 
+
+  first.N = n;
+
+  Stack.push(first);
+}
+
+void Parser::concatenate(const Node& n) {
+  TempFrag = Stack.top();
+  Stack.pop();
+  Fragment& first = Stack.top();
+
+  // patch left out to right in
+  if (first.Skippable == NOSKIP || first.Skippable < TempFrag.Skippable) {
+    patch_pre(first.OutList, TempFrag.InList);
+  }
+  else {
+    patch_post(first.OutList, TempFrag.InList);
+  }
+
+  // build new in list
+  if (first.Skippable != NOSKIP) {
+    first.InList.insert(first.InList.begin() + first.Skippable,
+                        TempFrag.InList.begin(), TempFrag.InList.end());
+  }
+
+  // build new out list
+  if (TempFrag.Skippable != NOSKIP) {
+    first.OutList.insert(first.OutList.end(),
+                         TempFrag.OutList.begin(), TempFrag.OutList.end()); 
+  }
+  else {
+    first.OutList = TempFrag.OutList;
+  }
+
+  // set new skippable
+  first.Skippable = first.Skippable == NOSKIP || TempFrag.Skippable == NOSKIP
+    ? NOSKIP : first.Skippable + TempFrag.Skippable;
+
+  first.N = n;
+}
+
 void Parser::finish(const Node& n) {
   if (2 == Stack.size()) {
-    TempFrag = Stack.top();
-    Stack.pop();
+    concatenate(n);
     Fragment& start(Stack.top());
-    patch(start, TempFrag, n);
-    uint32 numOut = start.OutList.size();
+
+    const uint32 numOut = start.OutList.size();
     for (uint32 i = 0; i < numOut; ++i) {
       // std::cout << "marking " << *it << " as a match" << std::endl;
-      Graph::vertex v = start.OutList[i];
+      Graph::vertex v = start.OutList[i].first;
       if (0 == v) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
         reset();
         return;

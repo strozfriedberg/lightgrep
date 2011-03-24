@@ -61,65 +61,38 @@ struct SyntaxTree {
   }
 };
 
-typedef std::vector< Graph::vertex > VList;
-
-class FastVList {
-public:
-  friend std::ostream& operator<<(std::ostream& out, const FastVList& list);
-
-  FastVList();
-  FastVList(Graph::vertex v);
-  FastVList(const FastVList& x);
-
-  FastVList& operator=(const FastVList& x);
-
-  Graph::vertex operator[](unsigned int i) const;
-
-  size_t size() const;
-
-  void reset();
-  void reset(Graph::vertex v);
-  void merge(const FastVList& x);
-  void add(Graph::vertex v);
-
-  void patch(const FastVList& targets, Graph& fsm) const;
-
-private:
-  Graph::vertex Single;
-  boost::scoped_ptr< VList > List;  
-};
-
-std::ostream& operator<<(std::ostream& out, const FastVList& list);
-
-enum SkipType { NoSkip = 0, NonGreedySkip = 1, GreedySkip = 2 };
+static const uint32 NOSKIP = std::numeric_limits<uint32>::max();
 
 struct Fragment {
-  Fragment(): Skippable(NoSkip) {}
-  Fragment(Graph::vertex in, const Node& n): InList(in), N(n), Skippable(NoSkip) {}
+  Fragment(): Skippable(NOSKIP) {}
+  Fragment(Graph::vertex in, const Node& n): InList(1, in), N(n), Skippable(NOSKIP) {}
 
   /*
    * InList is the list of vertices in this fragment which have incoming
    * edges from outside the fragment. OutList is the is the list of vertices
    * in this fragment which have edges leaving the fragment.
    */ 
-  FastVList InList, OutList;
+  std::vector<Graph::vertex> InList;
+  std::vector< std::pair<Graph::vertex, uint32> > OutList;
   Node N;
 
-  SkipType Skippable;
+  uint32 Skippable;
 
-  void initFull(Graph::vertex in, const Node& n) { N = n; Skippable = NoSkip; InList.reset(in); OutList.reset(in); }
-  void initFull(Graph::vertex in, Graph::vertex out, const Node& n) { N = n; Skippable = NoSkip; InList.reset(in); OutList.reset(out); }
-  void reset(const Node& n) { Skippable = NoSkip; N = n; InList.reset(); OutList.reset(); }
-
-  void addToOut(Graph::vertex v) {
-    OutList.add(v);
+  void initFull(Graph::vertex in, const Node& n) {
+    N = n;
+    Skippable = NOSKIP;
+    InList.clear();
+    InList.push_back(in);
+    OutList.clear();
+    OutList.push_back(std::make_pair(in, 0));
   }
 
-  void addToIn(Graph::vertex v) {
-    InList.add(v);
+  void reset(const Node& n) {
+    N = n;
+    Skippable = NOSKIP;
+    InList.clear(); 
+    OutList.clear();
   }
-
-  void merge(const Fragment& f);
 };
 
 class NodeHandler {
@@ -143,9 +116,6 @@ public:
   void setCaseSensitive(bool caseSensitive); // defaults to true
   void setSizeHint(uint64 reserveSize);
 
-  void patch(Fragment& first, const Fragment& second, const Node& n);
-  void patch(const FastVList& sources, const FastVList& targets);
-
   void addElement(const Node& n);
   void alternate(const Node& n);
   void concatenate(const Node& n);
@@ -166,10 +136,14 @@ public:
 
   void setCurLabel(uint32 lbl) { CurLabel = lbl; }
 
-  std::stack< Fragment >& stack() { return Stack; }
+  std::stack<Fragment>& stack() { return Stack; }
   
 private:
   void setLiteralTransition(TransitionPtr& state, byte val);
+
+  void patch_pre(std::vector< std::pair<Graph::vertex, uint32> >& src,
+                 const std::vector<Graph::vertex>& dst);
+  void patch_post(const std::vector< std::pair<Graph::vertex, uint32> >& src, const std::vector<Graph::vertex>& dst);
 
   bool          IsGood,
                 CaseSensitive;
@@ -177,9 +151,9 @@ private:
   uint64        ReserveSize;
   boost::shared_ptr<Encoding> Enc;
   GraphPtr Fsm;
-  std::stack< Fragment > Stack;
+  std::stack<Fragment> Stack;
   boost::scoped_array<byte> TempBuf;
-  std::vector< TransitionPtr > LitFlyweights;
+  std::vector<TransitionPtr> LitFlyweights;
   
   Fragment  TempFrag;
 };
