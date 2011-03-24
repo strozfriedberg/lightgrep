@@ -58,6 +58,37 @@ void Graph::_add(AdjacentList& l, vertex v) {
   }
 }
 
+void Graph::_add(AdjacentList& l, vertex v, size_t i) {
+  switch (l.Flags) {
+  case ZERO:
+    l.Flags = ONE;
+    l.What = v;
+    break;
+  case ONE:
+    if (v != l.What) {
+      l.Flags = MANY;
+
+      vertex tmp[2];
+      if (i == 0) {
+        tmp[0] = v;
+        tmp[1] = l.What;
+      }
+      else {
+        tmp[0] = l.What;
+        tmp[1] = v;
+      }
+
+      AdjLists.push_back(std::vector<vertex>(&tmp[0], &tmp[2]));
+      l.What = AdjLists.size() - 1;
+    }
+    break;
+  case MANY:
+    std::vector<vertex>::iterator it(AdjLists[l.What].begin() + i);
+    AdjLists[l.What].insert(it, v);
+    break;
+  }
+}
+
 Graph::Graph(uint32 numVs, uint32 reserveSize): Vertices(numVs, Vertex())
 {
   Vertices.reserve(reserveSize);
@@ -86,6 +117,14 @@ void Graph::addEdge(const vertex source, const vertex target) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT("out of bounds, source = " << source << ", target = " << target << ", but size = " << Vertices.size());
   }
   _add(Vertices[source].Out, target);
+  _add(Vertices[target].In, source);
+}
+
+void Graph::addEdgeAt(const vertex source, const vertex target, size_t i) {
+  if (source >= Vertices.size() || target >= Vertices.size()) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("out of bounds, source = " << source << ", target = " << target << ", but size = " << Vertices.size());
+  }
+  _add(Vertices[source].Out, target, i);
   _add(Vertices[target].In, source);
 }
 
