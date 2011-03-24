@@ -4,8 +4,7 @@
 #include "graph.h"
 #include "encoding.h"
 
-#include <boost/function.hpp>
-
+#include <limits>
 #include <stack>
 
 struct Node {
