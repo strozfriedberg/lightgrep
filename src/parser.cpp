@@ -327,20 +327,20 @@ void Parser::callback(const std::string& type, const Node& n) {
     case Node::GROUP:
       group(n);
       break;
-    case Node::STAR:
-      star(n);
-      break;
     case Node::PLUS:
       plus(n);
+      break;
+    case Node::STAR:
+      star(n);
       break;
     case Node::QUESTION:
       question(n);
       break;
-    case Node::STAR_NG:
-      star_ng(n);
-      break;
     case Node::PLUS_NG:
       plus_ng(n);
+      break;
+    case Node::STAR_NG:
+      star_ng(n);
       break;
     case Node::QUESTION_NG:
       question_ng(n);
