@@ -8,9 +8,9 @@
 #include <iostream>
 #include <cctype>
 
-std::ostream& operator<<(std::ostream& out, const std::vector<Graph::vertex>& list) {
+std::ostream& operator<<(std::ostream& out, const InListT& list) {
   out << '[';
-  for (std::vector<Graph::vertex>::const_iterator it(list.begin()); it != list.end(); ++it) {
+  for (InListT::const_iterator it(list.begin()); it != list.end(); ++it) {
     if (it != list.begin()) {
       out << ", ";
     }
@@ -20,9 +20,9 @@ std::ostream& operator<<(std::ostream& out, const std::vector<Graph::vertex>& li
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const std::vector< std::pair<Graph::vertex, uint32> > list) {
+std::ostream& operator<<(std::ostream& out, const OutListT& list) {
   out << '[';
-  for (std::vector< std::pair<Graph::vertex, uint32> >::const_iterator i(list.begin()); i != list.end(); ++i) {
+  for (OutListT::const_iterator i(list.begin()); i != list.end(); ++i) {
     if (i != list.begin()) {
       out << ", ";
     }
@@ -98,27 +98,24 @@ void Parser::setLiteralTransition(TransitionPtr& state, byte val) {
   }
 }
 
-void Parser::patch_pre(std::vector< std::pair<Graph::vertex, uint32> >& src,
-                       const std::vector<Graph::vertex>& dst)
-{
+void Parser::patch_pre(OutListT& src, const InListT& dst) {
   // make an edge from each vertex in src to each vertex in dst, putting
   // these edges before the src vertex insertion points
-  for (std::vector< std::pair<Graph::vertex, uint32> >::iterator oi(src.begin()); oi != src.end(); ++oi) {
+  for (OutListT::iterator oi(src.begin()); oi != src.end(); ++oi) {
     uint32 pos = oi->second;
-    for (std::vector<Graph::vertex>::const_iterator ii(dst.begin()); ii != dst.end(); ++ii) {
+    for (InListT::const_iterator ii(dst.begin()); ii != dst.end(); ++ii) {
       Fsm->addEdgeAt(oi->first, *ii, pos++);
     }
     *oi = std::make_pair(oi->first, pos);
   }
 }
 
-void Parser::patch_post(const std::vector< std::pair<Graph::vertex, uint32> >& src, const std::vector<Graph::vertex>& dst)
-{
+void Parser::patch_post(const OutListT& src, const InListT& dst) {
   // make an edge from each vertex in src to each vertex in dst, putting
   // these edges after the src vertex insertion points
-  for (std::vector< std::pair<Graph::vertex, uint32> >::const_iterator oi(src.begin()); oi != src.end(); ++oi) {
+  for (OutListT::const_iterator oi(src.begin()); oi != src.end(); ++oi) {
     uint32 pos = oi->second;
-    for (std::vector<Graph::vertex>::const_iterator ii(dst.begin()); ii != dst.end(); ++ii) {
+    for (InListT::const_iterator ii(dst.begin()); ii != dst.end(); ++ii) {
       Fsm->addEdgeAt(oi->first, *ii, pos++);
     }
   }
@@ -200,15 +197,6 @@ void Parser::plus(const Node& n) {
   
   // make back edges
   patch_pre(repeat.OutList, repeat.InList);
-/*
-  for (std::vector< std::pair<Graph::vertex, uint32> >::iterator oi(repeat.OutList.begin()); oi != repeat.OutList.end(); ++oi) {
-    uint32 pos = oi->second;
-    for (std::vector<Graph::vertex>::const_iterator ii(repeat.InList.begin()); ii != repeat.InList.end(); ++ii) {
-      Fsm->addEdgeAt(oi->first, *ii, pos++);
-    }
-    *oi = std::make_pair(oi->first, pos);
-  }
-*/
 }
 
 void Parser::plus_ng(const Node& n) {
@@ -217,14 +205,6 @@ void Parser::plus_ng(const Node& n) {
 
   // make back edges
   patch_post(repeat.OutList, repeat.InList);
-/*
-  for (std::vector< std::pair<Graph::vertex, uint32> >::const_iterator oi(repeat.OutList.begin()); oi != repeat.OutList.end(); ++oi) {
-    uint32 pos = oi->second;
-    for (std::vector<Graph::vertex>::const_iterator ii(repeat.InList.begin()); ii != repeat.InList.end(); ++ii) {
-      Fsm->addEdgeAt(oi->first, *ii, pos++);
-    }    
-  }
-*/
 }
 
 void Parser::star(const Node& n) {
