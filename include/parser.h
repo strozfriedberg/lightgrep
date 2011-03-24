@@ -61,6 +61,9 @@ struct SyntaxTree {
   }
 };
 
+typedef std::vector<Graph::vertex> InListT;
+typedef std::vector< std::pair<Graph::vertex, uint32> > OutListT;
+
 static const uint32 NOSKIP = std::numeric_limits<uint32>::max();
 
 struct Fragment {
@@ -72,8 +75,8 @@ struct Fragment {
    * edges from outside the fragment. OutList is the is the list of vertices
    * in this fragment which have edges leaving the fragment.
    */ 
-  std::vector<Graph::vertex> InList;
-  std::vector< std::pair<Graph::vertex, uint32> > OutList;
+  InListT InList;
+  OutListT OutList;
   Node N;
 
   uint32 Skippable;
@@ -141,9 +144,8 @@ public:
 private:
   void setLiteralTransition(TransitionPtr& state, byte val);
 
-  void patch_pre(std::vector< std::pair<Graph::vertex, uint32> >& src,
-                 const std::vector<Graph::vertex>& dst);
-  void patch_post(const std::vector< std::pair<Graph::vertex, uint32> >& src, const std::vector<Graph::vertex>& dst);
+  void patch_pre(OutListT& src, const InListT& dst);
+  void patch_post(const OutListT& src, const InListT& dst);
 
   bool          IsGood,
                 CaseSensitive;
