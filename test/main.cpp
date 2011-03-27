@@ -92,7 +92,7 @@ boost::shared_ptr<VmInterface> initSearch(const Options& opts, KwInfo& keyInfo) 
   return ret;
 }
 
-static const unsigned int BLOCKSIZE = 8 * 1024 * 1024;
+static unsigned int BLOCKSIZE = 8 * 1024 * 1024;
 
 uint64 readNext(FILE* file, byte* buf) {
   return fread((void*)buf, 1, BLOCKSIZE, file);
@@ -117,7 +117,6 @@ void search(const Options& opts) {
     }
     
     double lastTime = 0.0;
-    boost::timer searchClock;
     HitWriter    output(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
     NullWriter   devNull;
     HitCounter*  cb = 0;
@@ -133,6 +132,7 @@ void search(const Options& opts) {
            offset = 0;
 
     blkSize = readNext(file, cur);
+    boost::timer searchClock;
     if (!feof(file)) {
       byte* next = new byte[BLOCKSIZE];
       do {
@@ -202,6 +202,7 @@ int main(int argc, char** argv) {
     ("ignore-case,i", "file to search")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
+    ("block-size", po::value< unsigned int >(&BLOCKSIZE)->default_value(8 * 1024 * 1024))
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value< uint64 >(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
