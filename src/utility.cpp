@@ -2,9 +2,11 @@
 
 #include "states.h"
 
-#include "parser.h"
 #include "concrete_encodings.h"
 #include "compiler.h"
+#include "nfabuilder.h"
+#include "parser.h"
+#include "rewriter.h"
 
 #include <algorithm>
 #include <queue>
@@ -17,31 +19,42 @@ void addNewEdge(Graph::vertex source, Graph::vertex target, Graph& fsm) {
 }
 
 void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, bool litMode, GraphPtr& fsm, uint32& keyIdx) {
-  SyntaxTree  tree;
   Compiler    comp;
-  Parser      p;
-  p.setEncoding(enc);
+  ParseTree   tree;
+  NFABuilder  nfab;
+  nfab.setEncoding(enc);
+
   for (uint32 i = 0; i < keywords.size(); ++i) {
     const std::string& kw(keywords[i]);
     if (!kw.empty()) {
       try {
-        p.setCurLabel(keyIdx);
-        p.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
-        if (parse(kw, litMode, tree, p) && p.good()) {
-          if (fsm) {
-            comp.mergeIntoFSM(*fsm, *p.getFsm());
+        nfab.setCurLabel(keyIdx);
+        nfab.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
+
+        if (parse(kw, litMode, tree)) {
+          if (kw.find('?',1) != std::string::npos) {
+            prune_tree(tree.Root);
+          }
+
+          if (nfab.build(tree)) {
+            if (fsm) {
+              comp.mergeIntoFSM(*fsm, *nfab.getFsm());
+            }
+            else {
+              fsm = nfab.getFsm();
+              nfab.resetFsm();
+            }
+            ++keyIdx;
           }
           else {
-            fsm = p.getFsm();
-            p.resetFsm();
+            std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
           }
-          ++keyIdx;
         }
         else {
           std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
         }
-        tree.reset();
-        p.reset();
+
+        nfab.reset();
       }
       catch (std::exception& e) {
         std::cerr << "Exception on keyword \"" << kw <<  "\" (" << i << "): " << e.what() << std::endl;
