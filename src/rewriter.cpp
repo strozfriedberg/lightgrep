@@ -15,6 +15,8 @@ void dfs(Node *root, boost::function<void (Node*,std::stack<Node*>&)> visitor) {
   }
 }
 
+// FIXME: This is certainly wrong now that we have ParseTree holding
+// the nodes in a vector.
 void cleanup_tree(Node *n, std::stack<Node*>& stack) {
   if (n->Left != 0) {
     if (n->Right != 0) {
@@ -26,6 +28,8 @@ void cleanup_tree(Node *n, std::stack<Node*>& stack) {
   delete n;
 }
 
+// FIXME: This is certainly wrong now that we have ParseTree holding
+// the nodes in a vector.
 void splice_out_parent(Node* node, std::stack<Node*>& branch) {
   Node* parent = branch.top();
   branch.pop();
