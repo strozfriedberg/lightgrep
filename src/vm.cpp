@@ -334,7 +334,7 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
     post_run_thread_json(std::cerr, offset, x, base);
   } while (ex);
   #else
-  while (_executeEpsilon(base, t, offset)) ;
+  while (_executeEpsilon(base, t, offset));
   #endif
   
   return t->PC;
