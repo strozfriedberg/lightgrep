@@ -118,7 +118,15 @@ void search(const Options& opts) {
     
     double lastTime = 0.0;
     boost::timer searchClock;
-    HitWriter cb(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
+    HitWriter    output(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
+    NullWriter   devNull;
+    HitCounter*  cb = 0;
+    if (opts.NoOutput) {
+      cb = &devNull;
+    }
+    else {
+      cb = &output;
+    }
 
     byte* cur  = new byte[BLOCKSIZE];
     uint64 blkSize = 0,
@@ -133,7 +141,7 @@ void search(const Options& opts) {
         boost::unique_future<uint64> sizeFut = task.get_future();
         boost::thread exec(boost::move(task));
         
-        search->search(cur, cur + blkSize, offset, cb); // search cur block
+        search->search(cur, cur + blkSize, offset, *cb); // search cur block
         
         offset += blkSize;
         if (offset % (1024 * 1024 * 1024) == 0) { // should happen every 128 blocks
@@ -149,8 +157,8 @@ void search(const Options& opts) {
       delete [] next;
     }
     // assert: all data has been read, offset + blkSize == file size, cur is last block
-    search->search(cur, cur + blkSize, offset, cb);
-    search->closeOut(cb);
+    search->search(cur, cur + blkSize, offset, *cb);
+    search->closeOut(*cb);
 
     offset += blkSize;  // be sure to count the last block
     lastTime = searchClock.elapsed();
@@ -163,7 +171,7 @@ void search(const Options& opts) {
       std::cerr << "+inf";
     }
     std::cerr << " MB/s avg" << std::endl;
-    std::cerr << cb.NumHits << " hits" << std::endl;
+    std::cerr << cb->NumHits << " hits" << std::endl;
 
     fclose(file);
     delete [] cur;
@@ -190,6 +198,7 @@ int main(int argc, char** argv) {
     ("keywords,k", po::value< std::string >(&opts.KeyFile), "path to file containing keywords")
     ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
+    ("no-output", "do not output hits (good for profiling)")
     ("ignore-case,i", "file to search")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
@@ -211,7 +220,9 @@ int main(int argc, char** argv) {
     else if (opts.Command == "test" || optsMap.count("test")) {
       return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
     }
-
+    if (optsMap.count("no-output")) {
+      opts.NoOutput = true;
+    }
     // If a pattern is given on the command line, interpret the first
     // non-option argument as the input file instead of the pattern file.
     if (!opts.Pattern.empty() && opts.Input == "-"

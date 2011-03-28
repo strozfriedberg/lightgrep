@@ -73,6 +73,21 @@ SCOPE_TEST(executeRange) {
   }
 }
 
+SCOPE_TEST(executeAny) {
+  ProgramPtr p(new Program(1, Instruction::makeAny()));
+  Vm         s(p);
+  Thread& cur(s.add(Thread(&(*p)[0], 0, 0, 0)));
+  for (uint32 i = 0; i < 256; ++i) {
+    s.reset();
+    s.add(Thread(&(*p)[0]));
+    byte b = i;
+    SCOPE_ASSERT(s.execute(&cur, &b));
+    SCOPE_ASSERT_EQUAL(1u, s.numActive());
+    SCOPE_ASSERT_EQUAL(0u, s.numNext());
+    SCOPE_ASSERT_EQUAL(&(*p)[1], cur.PC);
+  }
+}
+
 SCOPE_TEST(executeJump) {
   ProgramPtr p(new Program(2, Instruction()));
   (*p)[0] = Instruction::makeJump(&(*p)[0], 18);

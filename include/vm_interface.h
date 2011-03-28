@@ -12,6 +12,7 @@ public:
   // In prog, numCheckedStates should be equal to the number + 1 for the reserved bit
   virtual void init(ProgramPtr prog) = 0;
 
+  virtual void startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) = 0;
   virtual bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) = 0;
   virtual void closeOut(HitCallback& hitFn) = 0;
   virtual void reset() = 0;
