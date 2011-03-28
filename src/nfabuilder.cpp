@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "nfabuilder.h"
 
 #include "states.h"
 #include "concrete_encodings.h"
@@ -37,7 +37,7 @@ std::ostream& operator<<(std::ostream& out, const Fragment& f) {
   return out;
 }
 
-Parser::Parser():
+NFABuilder::NFABuilder():
   CaseSensitive(true),
   CurLabel(0),
   ReserveSize(0)
@@ -49,7 +49,7 @@ Parser::Parser():
   reset();
 }
 
-void Parser::reset() {
+void NFABuilder::reset() {
   IsGood = false;
   if (Fsm) {
     Fsm->clear();
@@ -66,24 +66,20 @@ void Parser::reset() {
   Stack.push(TempFrag);
 }
 
-void Parser::setEncoding(const boost::shared_ptr<Encoding>& e) {
+void NFABuilder::setEncoding(const boost::shared_ptr<Encoding>& e) {
   Enc = e;
   TempBuf.reset(new byte[Enc->maxByteLength()]);
 }
 
-void Parser::setCaseSensitive(bool caseSensitive) {
+void NFABuilder::setCaseSensitive(bool caseSensitive) {
   CaseSensitive = caseSensitive;
 }
 
-void Parser::setSizeHint(uint64 reserveSize) {
+void NFABuilder::setSizeHint(uint64 reserveSize) {
   ReserveSize = reserveSize;
 }
 
-void Parser::addElement(const Node&) {
-  // don't really have to do anything here
-}
-
-void Parser::setLiteralTransition(TransitionPtr& state, byte val) {
+void NFABuilder::setLiteralTransition(TransitionPtr& state, byte val) {
   if (CaseSensitive || !std::isalpha(val)) {
 // FIXME: Labeled vertices can't be shared. We don't know which will be
 // labeled (permanently) until after walking back labels. If the memory
@@ -97,7 +93,7 @@ void Parser::setLiteralTransition(TransitionPtr& state, byte val) {
   }
 }
 
-void Parser::patch_pre(OutListT& src, const InListT& dst) {
+void NFABuilder::patch_pre(OutListT& src, const InListT& dst) {
   // make an edge from each vertex in src to each vertex in dst, putting
   // these edges before the src vertex insertion points
   for (OutListT::iterator oi(src.begin()); oi != src.end(); ++oi) {
@@ -109,7 +105,7 @@ void Parser::patch_pre(OutListT& src, const InListT& dst) {
   }
 }
 
-void Parser::patch_post(const OutListT& src, const InListT& dst) {
+void NFABuilder::patch_post(const OutListT& src, const InListT& dst) {
   // make an edge from each vertex in src to each vertex in dst, putting
   // these edges after the src vertex insertion points
   for (OutListT::const_iterator oi(src.begin()); oi != src.end(); ++oi) {
@@ -120,7 +116,7 @@ void Parser::patch_post(const OutListT& src, const InListT& dst) {
   }
 }
 
-void Parser::literal(const Node& n) {
+void NFABuilder::literal(const Node& n) {
   uint32 len = Enc->write(n.Val, TempBuf.get());
   if (0 == len) {
     // bad things
@@ -143,14 +139,14 @@ void Parser::literal(const Node& n) {
   }
 }
 
-void Parser::dot(const Node& n) {
+void NFABuilder::dot(const Node& n) {
   Graph::vertex v = Fsm->addVertex();
   (*Fsm)[v].reset(new RangeState(0, 255));
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
 
-void Parser::charClass(const Node& n, const std::string& lbl) {
+void NFABuilder::charClass(const Node& n, const std::string& lbl) {
   Graph::vertex v = Fsm->addVertex();
   uint32 num = 0;
   byte first = 0, last = 0;
@@ -178,19 +174,19 @@ void Parser::charClass(const Node& n, const std::string& lbl) {
   Stack.push(TempFrag);
 }
 
-void Parser::question(const Node&) {
+void NFABuilder::question(const Node&) {
   Fragment& optional = Stack.top();
   if (optional.Skippable > optional.InList.size()) {
     optional.Skippable = optional.InList.size(); 
   }
 }
 
-void Parser::question_ng(const Node&) {
+void NFABuilder::question_ng(const Node&) {
   Fragment& optional = Stack.top();
   optional.Skippable = 0;
 }
 
-void Parser::plus(const Node& n) {
+void NFABuilder::plus(const Node& n) {
   Fragment& repeat = Stack.top();
   repeat.N = n;
   
@@ -198,7 +194,7 @@ void Parser::plus(const Node& n) {
   patch_pre(repeat.OutList, repeat.InList);
 }
 
-void Parser::plus_ng(const Node& n) {
+void NFABuilder::plus_ng(const Node& n) {
   Fragment& repeat = Stack.top();
   repeat.N = n;
 
@@ -206,21 +202,17 @@ void Parser::plus_ng(const Node& n) {
   patch_post(repeat.OutList, repeat.InList);
 }
 
-void Parser::star(const Node& n) {
+void NFABuilder::star(const Node& n) {
   plus(n);
   question(n);
 }
 
-void Parser::star_ng(const Node& n) {
+void NFABuilder::star_ng(const Node& n) {
   plus_ng(n);
   question_ng(n);
 }
 
-void Parser::group(const Node&) {
-  // nothing to do here
-}
-
-void Parser::alternate(const Node& n) {
+void NFABuilder::alternate(const Node& n) {
   Fragment second = Stack.top();
   Stack.pop();
   Fragment first = Stack.top();
@@ -246,7 +238,7 @@ void Parser::alternate(const Node& n) {
   Stack.push(first);
 }
 
-void Parser::concatenate(const Node& n) {
+void NFABuilder::concatenate(const Node& n) {
   TempFrag = Stack.top();
   Stack.pop();
   Fragment& first = Stack.top();
@@ -281,7 +273,7 @@ void Parser::concatenate(const Node& n) {
   first.N = n;
 }
 
-void Parser::finish(const Node& n) {
+void NFABuilder::finish(const Node& n) {
   if (2 == Stack.size()) {
     concatenate(n);
     Fragment& start(Stack.top());
@@ -312,7 +304,27 @@ void Parser::finish(const Node& n) {
   }
 }
 
-void Parser::callback(const std::string& type, const Node& n) {
+void NFABuilder::traverse(Node* n) {
+
+  if (n->Left) {
+    // this node has a left child
+    traverse(n->Left);
+  }
+
+  if (n->Right) {
+    // this node has a right child
+    traverse(n->Right);
+  }
+
+  callback("", *n);
+}
+
+bool NFABuilder::build(const ParseTree& tree) {
+  traverse(tree.Root);
+  return IsGood;
+}
+
+void NFABuilder::callback(const std::string& type, const Node& n) {
   // std::cout << type << std::endl;
   switch (n.Type) {
     case Node::REGEXP:
@@ -323,9 +335,6 @@ void Parser::callback(const std::string& type, const Node& n) {
       break;
     case Node::CONCATENATION:
       concatenate(n);
-      break;
-    case Node::GROUP:
-      group(n);
       break;
     case Node::PLUS:
       plus(n);
@@ -344,9 +353,6 @@ void Parser::callback(const std::string& type, const Node& n) {
       break;
     case Node::QUESTION_NG:
       question_ng(n);
-      break;
-    case Node::ELEMENT:
-      addElement(n);
       break;
     case Node::DOT:
       dot(n);
