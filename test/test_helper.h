@@ -51,6 +51,10 @@ struct STest: public HitCallback {
     Grep->closeOut(cb);
   }
 
+  void startsWith(const byte* begin, const byte* end, uint64 offset, HitCallback& cb) {
+    Grep->startsWith(begin, end, offset, cb);
+  }
+
   virtual void collect(const SearchHit& hit) {
     Hits.push_back(hit);
   }
