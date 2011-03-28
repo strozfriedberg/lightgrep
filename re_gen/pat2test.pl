@@ -10,6 +10,9 @@ use String::ShellQuote qw(shell_quote);
 print <<HEAD;
 #include <scope/test.h>
 
+#include "nfabuilder.h"
+#include "parsetree.h"
+
 #include "test_helper.h"
 
 HEAD
@@ -43,10 +46,10 @@ while (<>) {
     # test this pattern for zero-length matches
     print <<TEST;
 SCOPE_TEST(autoPatternTest$patnum) {
-  Parser p;
-  SyntaxTree tree;
-  SCOPE_ASSERT(parse("$pat", false, tree, p));
-  SCOPE_ASSERT(!p.good());
+  NFABuilder nfab;
+  ParseTree tree;
+  SCOPE_ASSERT(parse("$pat", false, tree));
+  SCOPE_ASSERT(!nfab.build(tree));
 }
 
 TEST

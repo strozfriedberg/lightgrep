@@ -3,16 +3,18 @@
 #include "lightgrep_c_api.h"
 
 #include "graph.h"
-#include "parser.h"
 #include "compiler.h"
+#include "nfabuilder.h"
+#include "parser.h"
+#include "parsetree.h"
 #include "utility.h"
 #include "vm_interface.h"
 
 #include <iostream>
 
 struct ParseContext {
-  SyntaxTree  Tree;
-  Parser      P;
+  ParseTree   Tree;
+  NFABuilder  Nfab;
   Compiler    Comp;
   GraphPtr    Fsm;
 };
@@ -49,20 +51,18 @@ int lg_add_keyword(LG_HPARSER hParser,
                       const char** error)
 {
   ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
-  pc->P.reset();
-  pc->Tree.reset();
-  pc->P.setCurLabel(keyIndex);
-  pc->P.setCaseSensitive(options->CaseInsensitive == 0);
+  pc->Nfab.reset();
+  pc->Nfab.setCurLabel(keyIndex);
+  pc->Nfab.setCaseSensitive(options->CaseInsensitive == 0);
   std::string k(keyword);
-  SyntaxTree tree;
   try {
-    if (parse(k, options->FixedString != 0, pc->Tree, pc->P) && pc->P.good()) {
+    if (parse(k, options->FixedString != 0, pc->Tree) && pc->Nfab.build(pc->Tree)) {
       if (pc->Fsm) {
-        pc->Comp.mergeIntoFSM(*pc->Fsm, *pc->P.getFsm());
+        pc->Comp.mergeIntoFSM(*pc->Fsm, *pc->Nfab.getFsm());
       }
       else {
-        pc->Fsm = pc->P.getFsm();
-        pc->P.resetFsm();
+        pc->Fsm = pc->Nfab.getFsm();
+        pc->Nfab.resetFsm();
       }
       return 1;
     }
