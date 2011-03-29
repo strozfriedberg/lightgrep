@@ -4,17 +4,6 @@
 #include <stack>
 #include <boost/function.hpp>
 
-void dfs(Node *root, boost::function<void (Node*,std::stack<Node*>&)> visitor) {
-  std::stack<Node*> stack;
-  stack.push(root);
-
-  while (!stack.empty()) {
-    Node* n = stack.top();
-    stack.pop();
-    visitor(n, stack);
-  }
-}
-
 void splice_out_parent(Node* node, std::stack<Node*>& branch) {
   Node* parent = branch.top();
   branch.pop();
