@@ -15,21 +15,6 @@ void dfs(Node *root, boost::function<void (Node*,std::stack<Node*>&)> visitor) {
   }
 }
 
-// FIXME: This is certainly wrong now that we have ParseTree holding
-// the nodes in a vector.
-void cleanup_tree(Node *n, std::stack<Node*>& stack) {
-  if (n->Left != 0) {
-    if (n->Right != 0) {
-      stack.push(n->Right);
-    }
-    stack.push(n->Left);
-  }
-
-  delete n;
-}
-
-// FIXME: This is certainly wrong now that we have ParseTree holding
-// the nodes in a vector.
 void splice_out_parent(Node* node, std::stack<Node*>& branch) {
   Node* parent = branch.top();
   branch.pop();
@@ -41,8 +26,6 @@ void splice_out_parent(Node* node, std::stack<Node*>& branch) {
   else {
     gparent->Right = node;
   }
-
-  delete parent;
 }
 
 void prune_tree(Node *root, std::stack<Node*> branch) {
@@ -71,7 +54,6 @@ void prune_tree(Node *root, std::stack<Node*> branch) {
             branch.pop();
           }
 
-          dfs(n->Left, &cleanup_tree);
           n->Left = 0; 
         }
         else {
@@ -107,7 +89,6 @@ void prune_tree(Node *root, std::stack<Node*> branch) {
           switch (parent->Type) {
           case Node::REGEXP:
             // delete subtree rooted at op
-            dfs(op, &cleanup_tree);
             op = 0;
             
             parent->Left = 0; 
@@ -116,15 +97,13 @@ void prune_tree(Node *root, std::stack<Node*> branch) {
 
           case Node::ALTERNATION:
             {
+              // delete subtree rooted at op
               if (parent->Left == op) {
                 parent->Left = 0;
               }
               else {
                 parent->Right = 0;
               }            
-
-              // delete subtree rooted at op
-              dfs(op, &cleanup_tree);
 
               // check whether we have alternations back to the root
               Node* x = branch.top();
@@ -134,8 +113,6 @@ void prune_tree(Node *root, std::stack<Node*> branch) {
               }
 
               if (x->Type == Node::REGEXP) {
-                Node* other = parent->Left == 0 ? parent->Right : parent->Left;
-                dfs(other, &cleanup_tree);
                 parent->Left = parent->Right = 0;
               }
 
@@ -145,7 +122,6 @@ void prune_tree(Node *root, std::stack<Node*> branch) {
           case Node::CONCATENATION:
             {
               // delete subtree rooted at op
-              dfs(op, &cleanup_tree);
               op = 0;
       
               splice_out_parent(parent->Left, branch);
