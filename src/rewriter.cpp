@@ -2,7 +2,6 @@
 #include "rewriter.h"
 
 #include <stack>
-#include <boost/function.hpp>
 
 void splice_out_parent(Node* node, std::stack<Node*>& branch) {
   Node* parent = branch.top();
