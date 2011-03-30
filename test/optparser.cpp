@@ -3,16 +3,44 @@
 #include "basic.h"
 #include "optparser.h"
 
-#include <iostream>
 #include <string>
 #include <vector>
 
 namespace po = boost::program_options;
 
+/*
+std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
+  std::vector<po::option> result;
+  
+  std::vector<std::string>::const_iterator i(args.begin());
+  if (i != args.end() && *i == "--") {
+    for (++i; i != args.end(); ++i) {
+      po::option opt;
+      opt.string_key = "pargs";
+      opt.original_tokens.push_back(*i);
+      result.push_back(opt);
+    }
+
+    args.clear();
+  }
+  
+  return result;
+}
+*/
+
 void parse_opts(int argc, char** argv,
                 po::options_description& desc, Options& opts) {
 
-  //  std::vector<std::string> final_args;
+  // Hide the '--' option and everything after it from boost::program_options.
+  // This is irritating, as boost::program_options really should understand
+  // how to handle '--' properly.
+  const uint32 orig_argc = argc;
+  for (uint32 i = 0; i < (uint32) argc; ++i) {
+    if (!strcmp(argv[i], "--")) {
+      argc = i;
+      break;
+    }
+  }
 
   po::positional_options_description posOpts;
   posOpts.add("pargs", -1);
@@ -37,7 +65,6 @@ void parse_opts(int argc, char** argv,
     ("ignore-case,i", "file to search")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
-//    (",-", po::value< std::vector<std::string> >(&final_args)->multitoken(), "end of options")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value< uint64 >(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
@@ -51,34 +78,18 @@ void parse_opts(int argc, char** argv,
   po::store(
     po::command_line_parser(argc, argv).options(allOpts)
                                        .positional(posOpts)
+//                                       .extra_style_parser(&end_of_opts_parser)
                                        .run(),
     optsMap
   );
   po::notify(optsMap);
 
-/*
-std::cout << "final_args.size() == " << final_args.size() << std::endl;
-
-    // Handle arguments trailing the end-of-options option '--'
-    switch (final_args.size()) {
-    case 0:
-      // no args trailing the --, nothing to do
-      break;
-    case 2:
-      if (opts.Input != "-" || !opts.Pattern.empty()) {
-        throw po::too_many_positional_options_error();
-      }
-      opts.Input = final_args[1];
-    case 1:
-      if (!opts.KeyFile.empty()) {
-        throw po::too_many_positional_options_error();
-      }
-      opts.KeyFile = final_args[0];
-      break;  
-    default:
-      throw po::too_many_positional_options_error();
+  // append any positional args following the '--' option
+  if (argc != orig_argc) {
+    for (uint32 i = argc + 1; i < orig_argc; ++i) {
+      pargs.push_back(argv[i]);
     }
-*/
+  }
 
   // convert test and help options to commands
   if (optsMap.count("help")) {
@@ -131,7 +142,7 @@ std::cout << "final_args.size() == " << final_args.size() << std::endl;
       }
       else {
         // input from stdin
-        opts.Input = "";
+        opts.Input = "-";
       }
     }
     
