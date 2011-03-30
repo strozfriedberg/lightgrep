@@ -107,81 +107,80 @@ void printHelp(const po::options_description& desc) {
 
 void search(const Options& opts) {
   FILE *file = opts.Input == "-" ? stdin : fopen(opts.Input.c_str(), "rb");
-  if (file) {
-    setbuf(file, 0); // unbuffered, bitte
-    KwInfo keyInfo;
-    boost::shared_ptr<VmInterface> search = initSearch(opts, keyInfo);
-    if (!search) {
-      std::cerr << "could not initialize search engine" << std::endl;
-      return;
-    }
-    
-    double lastTime = 0.0;
-    boost::timer searchClock;
-    HitWriter output(opts.openOutput(), keyInfo.PatternsTable,
-                     keyInfo.Keywords, keyInfo.Encodings);
-    NullWriter   devNull;
-    HitCounter*  cb = 0;
-    if (opts.NoOutput) {
-      cb = &devNull;
-    }
-    else {
-      cb = &output;
-    }
+  if (!file) {
+    std::cerr << "Could not open file " << opts.Input << std::endl;
+    return;
+  }
 
-    byte* cur  = new byte[BLOCKSIZE];
-    uint64 blkSize = 0,
-           offset = 0;
-
-    blkSize = readNext(file, cur);
-    if (!feof(file)) {
-      byte* next = new byte[BLOCKSIZE];
-      do {
-        // read the next block on a separate thread
-        boost::packaged_task<uint64> task(boost::bind(&readNext, file, next));
-        boost::unique_future<uint64> sizeFut = task.get_future();
-        boost::thread exec(boost::move(task));
-        
-        search->search(cur, cur + blkSize, offset, *cb); // search cur block
-        
-        offset += blkSize;
-        if (offset % (1024 * 1024 * 1024) == 0) { // should happen every 128 blocks
-          lastTime = searchClock.elapsed();
-          uint64 units = offset >> 20;
-          double bw = units / lastTime;
-          units >>= 10;
-          std::cerr << units << " GB searched in " << lastTime << " seconds, " << bw << " MB/s avg" << std::endl;
-        }
-        blkSize = sizeFut.get(); // block on i/o thread completion
-        std::swap(cur, next);
-      } while (!feof(file)); // note file is shared btwn threads, but safely
-      delete [] next;
-    }
-    // assert: all data has been read, offset + blkSize == file size, cur is last block
-    search->search(cur, cur + blkSize, offset, *cb);
-    search->closeOut(*cb);
-
-    offset += blkSize;  // be sure to count the last block
-    lastTime = searchClock.elapsed();
-    std::cerr << offset << " bytes" << std::endl;
-    std::cerr << lastTime << " searchTime" << std::endl;
-    if (lastTime > 0.0) {
-      std::cerr << offset/lastTime/(1 << 20);
-    }
-    else {
-      std::cerr << "+inf";
-    }
-    std::cerr << " MB/s avg" << std::endl;
-    std::cerr << cb->NumHits << " hits" << std::endl;
-
-    fclose(file);
-    delete [] cur;
-    // delete [] argArray;
+  setbuf(file, 0); // unbuffered, bitte
+  KwInfo keyInfo;
+  boost::shared_ptr<VmInterface> search = initSearch(opts, keyInfo);
+  if (!search) {
+    std::cerr << "could not initialize search engine" << std::endl;
+    return;
+  }
+  
+  double lastTime = 0.0;
+  boost::timer searchClock;
+  HitWriter output(opts.openOutput(), keyInfo.PatternsTable,
+                   keyInfo.Keywords, keyInfo.Encodings);
+  NullWriter   devNull;
+  HitCounter*  cb = 0;
+  if (opts.NoOutput) {
+    cb = &devNull;
   }
   else {
-// FIXME: bin/test/test -c prog 'a(b|c|d|g)f' gives confusing message
-    std::cerr << "Could not open file " << opts.Input << std::endl;
+    cb = &output;
   }
+
+  byte* cur  = new byte[BLOCKSIZE];
+  uint64 blkSize = 0,
+         offset = 0;
+
+  blkSize = readNext(file, cur);
+  if (!feof(file)) {
+    byte* next = new byte[BLOCKSIZE];
+    do {
+      // read the next block on a separate thread
+      boost::packaged_task<uint64> task(boost::bind(&readNext, file, next));
+      boost::unique_future<uint64> sizeFut = task.get_future();
+      boost::thread exec(boost::move(task));
+
+      search->search(cur, cur + blkSize, offset, *cb); // search cur block
+
+      offset += blkSize;
+      if (offset % (1024 * 1024 * 1024) == 0) { // should happen every 128 blocks
+        lastTime = searchClock.elapsed();
+        uint64 units = offset >> 20;
+        double bw = units / lastTime;
+        units >>= 10;
+        std::cerr << units << " GB searched in " << lastTime << " seconds, " << bw << " MB/s avg" << std::endl;
+      }
+      blkSize = sizeFut.get(); // block on i/o thread completion
+      std::swap(cur, next);
+    } while (!feof(file)); // note file is shared btwn threads, but safely
+    delete [] next;
+  }
+  // assert: all data has been read, offset + blkSize == file size, cur is last block
+  search->search(cur, cur + blkSize, offset, *cb);
+  search->closeOut(*cb);
+
+  offset += blkSize;  // be sure to count the last block
+  lastTime = searchClock.elapsed();
+  std::cerr << offset << " bytes" << std::endl;
+  std::cerr << lastTime << " searchTime" << std::endl;
+  if (lastTime > 0.0) {
+    std::cerr << offset/lastTime/(1 << 20);
+  }
+  else {
+    std::cerr << "+inf";
+  }
+  std::cerr << " MB/s avg" << std::endl;
+  std::cerr << cb->NumHits << " hits" << std::endl;
+
+  fclose(file);
+  delete [] cur;
+  // delete [] argArray;
 }
 
 int main(int argc, char** argv) {
