@@ -1,10 +1,10 @@
-#include <iostream>
 #include <cstdio>
+#include <fstream>
+#include <iostream>
 
 #include <scope/testrunner.h>
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
-#include <fstream>
 
 #include <boost/graph/graphviz.hpp>
 #include <boost/bind.hpp>
@@ -13,6 +13,7 @@
 #include "vm_interface.h"
 #include "hitwriter.h"
 #include "options.h"
+#include "optparser.h"
 
 #define BOOST_USE_WINDOWS_H
 #include <boost/thread.hpp>
@@ -25,7 +26,6 @@ extern "C" void tss_cleanup_implemented() { }
 // </magic_incantation>
 
 
-using namespace std;
 namespace po = boost::program_options;
 
 void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
@@ -99,14 +99,14 @@ uint64 readNext(FILE* file, byte* buf) {
 }
 
 void printHelp(const po::options_description& desc) {
-  std::cout << "lightgrep, Copyright (c) 2010, Lightbox Technologies, Inc." << "\nCreated " << __DATE__ << "\n\n"
+  std::cout << "lightgrep, Copyright (c) 2010-2011, Lightbox Technologies, Inc." << "\nCreated " << __DATE__ << "\n\n"
     << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
     << "This copy provided EXCLUSIVELY to the U.S. Army, CCIU, DFRB\n\n"
     << desc << std::endl;
 }
 
 void search(const Options& opts) {
-  FILE *file = fopen(opts.Input.c_str(), "rb");
+  FILE *file = opts.Input == "-" ? stdin : fopen(opts.Input.c_str(), "rb");
   if (file) {
     setbuf(file, 0); // unbuffered, bitte
     KwInfo keyInfo;
@@ -118,7 +118,8 @@ void search(const Options& opts) {
     
     double lastTime = 0.0;
     boost::timer searchClock;
-    HitWriter    output(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
+    HitWriter output(opts.openOutput(), keyInfo.PatternsTable,
+                     keyInfo.Keywords, keyInfo.Encodings);
     NullWriter   devNull;
     HitCounter*  cb = 0;
     if (opts.NoOutput) {
@@ -185,60 +186,16 @@ void search(const Options& opts) {
 
 int main(int argc, char** argv) {
   Options opts;
-
   po::options_description desc("Allowed Options");
-  po::positional_options_description posOpts;
-  posOpts.add("keywords", 1);
-  posOpts.add("input", 1);
-  desc.add_options()
-    ("help", "produce help message")
-    ("test", "run unit tests (same as test command)")
-    ("encoding,e", po::value< std::string >(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
-    ("command,c", po::value< std::string >(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|test|server]")
-    ("keywords,k", po::value< std::string >(&opts.KeyFile), "path to file containing keywords")
-    ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
-    ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
-    ("no-output", "do not output hits (good for profiling)")
-    ("ignore-case,i", "file to search")
-    ("fixed-strings,F", "interpret patterns as fixed strings")
-    ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
-    #ifdef LBT_TRACE_ENABLED
-    ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
-    ("end-debug", po::value< uint64 >(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
-    #endif
-    ;
-  
-  po::variables_map optsMap;
+
   try {
-    po::store(po::command_line_parser(argc, argv).options(desc).positional(posOpts).run(), optsMap);
-    po::notify(optsMap);
-    opts.CaseSensitive = optsMap.count("ignore-case") == 0;
-    opts.LiteralMode = optsMap.count("fixed-strings") > 0;
-    if (optsMap.count("help")) {
-      printHelp(desc);
-    }
-    else if (opts.Command == "test" || optsMap.count("test")) {
-      return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
-    }
+    parse_opts(argc, argv, desc, opts);
 
-    opts.NoOutput = optsMap.count("no-output") > 0;
-
-    // If a pattern is given on the command line, interpret the first
-    // non-option argument as the input file instead of the pattern file.
-    if (!opts.Pattern.empty() && opts.Input == "-"
-                              && optsMap.count("keywords") == 1) {
-      opts.Input = opts.KeyFile;
-      opts.KeyFile = "";
-    }
-
-    if (opts.Command == "search" && (optsMap.count("keywords") || optsMap.count("pattern"))) {
+    if (opts.Command == "search") {
       search(opts);
     }
-    else if (opts.Command == "graph") {
-      writeGraphviz(opts);
-    }
-    else if (opts.Command == "prog") {
-      writeProgram(opts);
+    else if (opts.Command == "test") {
+      return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
     }
     else if (opts.Command == "server") {
       KwInfo keyInfo;
@@ -249,9 +206,21 @@ int main(int argc, char** argv) {
       }
       startup(p, keyInfo, opts);
     }
-    else {
-      std::cerr << "Unrecognized. Use --help for list of options." << std::endl;
+    else if (opts.Command == "help") {
+      printHelp(desc);
     }
+    else if (opts.Command == "graph") {
+      writeGraphviz(opts);
+    }
+    else if (opts.Command == "prog") {
+      writeProgram(opts);
+    }
+    else {
+      // this should be impossible
+      std::cerr << "Unrecognized command. Use --help for list of options."
+                << std::endl;
+      return 1;
+    } 
   }
   catch (std::exception& err) {
     std::cerr << "Error: " << err.what() << "\n\n";
