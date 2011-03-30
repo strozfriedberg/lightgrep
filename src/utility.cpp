@@ -358,7 +358,7 @@ uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable)
 }
 
 void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
-  out << "  " << v << " [shape=\"circle\", label=\"" << v << "\"";
+  out << "  " << v << " [label=\"" << v << "\"";
  
   if (graph[v] && graph[v]->IsMatch) {
     // double ring for match states
@@ -376,7 +376,7 @@ void writeEdge(std::ostream& out, Graph::vertex v, Graph::vertex u,
 }
 
 void writeGraphviz(std::ostream& out, const Graph& graph) {
-  out << "digraph G {\n  rankdir=LR;\n  ranksep=equally;" << std::endl;
+  out << "digraph G {\n  rankdir=LR;\n  ranksep=equally;\n  node [shape=\"circle\"];" << std::endl;
 
   for (uint32 i = 0; i < graph.numVertices(); ++i) {
     writeVertex(out, i, graph);
