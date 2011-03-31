@@ -34,8 +34,8 @@ void parse_opts(int argc, char** argv,
   // Hide the '--' option and everything after it from boost::program_options.
   // This is irritating, as boost::program_options really should understand
   // how to handle '--' properly.
-  const uint32 orig_argc = argc;
-  for (uint32 i = 0; i < (uint32) argc; ++i) {
+  const int orig_argc = argc;
+  for (int i = 0; i < argc; ++i) {
     if (!strcmp(argv[i], "--")) {
       argc = i;
       break;
@@ -86,7 +86,7 @@ void parse_opts(int argc, char** argv,
 
   // append any positional args following the '--' option
   if (argc != orig_argc) {
-    for (uint32 i = argc + 1; i < orig_argc; ++i) {
+    for (int i = argc + 1; i < orig_argc; ++i) {
       pargs.push_back(argv[i]);
     }
   }
