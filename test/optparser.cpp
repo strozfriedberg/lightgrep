@@ -52,7 +52,7 @@ void parse_opts(int argc, char** argv,
     ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
     ("no-output", "do not output hits (good for profiling)")
-    ("ignore-case,i", "file to search")
+    ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
     #ifdef LBT_TRACE_ENABLED
