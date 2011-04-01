@@ -8,39 +8,29 @@
 
 namespace po = boost::program_options;
 
-/*
+// This is a special parser which puts all options after '--' into "pargs"
 std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
   std::vector<po::option> result;
   
   std::vector<std::string>::const_iterator i(args.begin());
   if (i != args.end() && *i == "--") {
+    po::option opt;
+    opt.string_key = "pargs";
+
     for (++i; i != args.end(); ++i) {
-      po::option opt;
-      opt.string_key = "pargs";
+      opt.value.push_back(*i);
       opt.original_tokens.push_back(*i);
-      result.push_back(opt);
     }
 
+    result.push_back(opt);
     args.clear();
   }
   
   return result;
 }
-*/
 
 void parse_opts(int argc, char** argv,
                 po::options_description& desc, Options& opts) {
-
-  // Hide the '--' option and everything after it from boost::program_options.
-  // This is irritating, as boost::program_options really should understand
-  // how to handle '--' properly.
-  const int orig_argc = argc;
-  for (int i = 0; i < argc; ++i) {
-    if (!strcmp(argv[i], "--")) {
-      argc = i;
-      break;
-    }
-  }
 
   po::positional_options_description posOpts;
   posOpts.add("pargs", -1);
@@ -51,7 +41,7 @@ void parse_opts(int argc, char** argv,
   
   po::options_description hidden;
   hidden.add_options()
-    ("pargs", po::value< std::vector<std::string> >(&pargs), "positional arguments"); 
+    ("pargs", po::value< std::vector<std::string> >(&pargs)->multitoken(), "positional arguments"); 
   
   desc.add_options()
     ("help", "produce help message")
@@ -78,18 +68,11 @@ void parse_opts(int argc, char** argv,
   po::store(
     po::command_line_parser(argc, argv).options(allOpts)
                                        .positional(posOpts)
-//                                       .extra_style_parser(&end_of_opts_parser)
+                                       .extra_style_parser(&end_of_opts_parser)
                                        .run(),
     optsMap
   );
   po::notify(optsMap);
-
-  // append any positional args following the '--' option
-  if (argc != orig_argc) {
-    for (int i = argc + 1; i < orig_argc; ++i) {
-      pargs.push_back(argv[i]);
-    }
-  }
 
   // convert test and help options to commands
   if (optsMap.count("help")) {
