@@ -134,8 +134,6 @@ void Vm::init(ProgramPtr prog) {
   ++numCheckedStates;
 
   Matches.resize(numPatterns);
-  Match nomatch(NONE, 0);
-  Matches.assign(Matches.size(), std::vector<Match>(1, nomatch));
   Kill.resize(numPatterns);
 
   CheckStates.resize(numCheckedStates);
@@ -166,13 +164,14 @@ void Vm::init(ProgramPtr prog) {
 }
 
 void Vm::reset() {
+  MaxMatches = 0;
   Active.clear();
   Next.clear();
   CheckStates.clear();
 
-  Match nomatch(NONE, 0);
-  Matches.assign(Matches.size(), std::vector<Match>(1, nomatch));
-
+  for (std::vector< std::vector< Match > >::iterator matchIt = Matches.begin(); matchIt != Matches.end(); ++matchIt) {
+    matchIt->clear();
+  }
   CurHitFn = 0;
 
   #ifdef LBT_TRACE_ENABLED
@@ -272,10 +271,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       }
     case LABEL_OP:
       {
-        Match lastHit(Matches[instr.Op.Offset].back());
-        if (lastHit.Start == NONE ||
-              ((t->Start <= lastHit.Start || lastHit.End < t->Start) &&
-               !Kill.find(instr.Op.Offset)))
+        std::vector< Match >& lblMatches(Matches[instr.Op.Offset]);
+        if (lblMatches.empty() ||
+          ((t->Start <= lblMatches.back().Start || lblMatches.back().End < t->Start) &&
+          !Kill.find(instr.Op.Offset)))
     		{
           t->Label = instr.Op.Offset;
           t->advance(InstructionSize<LABEL_OP>::VAL);
@@ -391,14 +390,12 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 
 void Vm::doMatch(const Thread& t) {
   //std::cerr << t << std::endl; 
-  if (Matches[t.Label].front().Start == NONE) {
-    Matches[t.Label].clear(); // we are the first match, clear that placeholder
-  }
 
   // check whether any higher-priority threads block us
   bool blocked = false;
   for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
-    if (t.Start <= it->End && (it->Label == NONE || it->Label == t.Label)) {
+    // if (t.Start <= it->End && (it->Label == NONE || it->Label == t.Label)) {
+    if (it->Label == NONE || it->Label == t.Label) {
       blocked = true;
       break;
     }
@@ -414,18 +411,24 @@ void Vm::doMatch(const Thread& t) {
     }
   }
   else {
-    // emit all matches which aren't replaced by this one
-    for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
-      if (im->Start > t.End || t.Start > im->End) {
-        if (CurHitFn) {
-          SearchHit hit(im->Start, im->End - im->Start + 1, t.Label);
+    if (CurHitFn) {
+      SearchHit hit;
+      if (Matches[t.Label].size() > MaxMatches) {
+        MaxMatches = Matches[t.Label].size();
+      }
+      for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
+        if (im->Start > t.End || t.Start > im->End) {
+          hit.set(im->Start, im->End - im->Start + 1, t.Label);
           CurHitFn->collect(hit);
+        }
+        else {
+          break;
         }
       }
     }
+    // emit all matches which aren't replaced by this one
     Matches[t.Label].clear();
   }
-
   // store this match
   Matches[t.Label].push_back(Match(t.Start, t.End));
 }
@@ -492,6 +495,9 @@ void Vm::closeOut(HitCallback& hitFn) {
 
   if (CurHitFn) {
     for (uint32 i = 0; i < Matches.size(); ++i) {
+      if (Matches[i].size() > MaxMatches) {
+        MaxMatches = Matches[i].size();
+      }
       for (std::vector<Match>::const_iterator j(Matches[i].begin()); j != Matches[i].end(); ++j) {
         if (j->Start != NONE) {
           hit.Offset = j->Start;
@@ -502,4 +508,5 @@ void Vm::closeOut(HitCallback& hitFn) {
       }
     }
   }
+  // std::cerr << "MaxMatches = " << MaxMatches << std::endl;
 }
