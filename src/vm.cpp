@@ -333,7 +333,7 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
     post_run_thread_json(std::cerr, offset, x, base);
   } while (ex);
   #else
-  while (_executeEpsilon(base, t, offset)) ;
+  while (_executeEpsilon(base, t, offset));
   #endif
   
   return t->PC;
@@ -390,7 +390,6 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 
 void Vm::doMatch(const Thread& t) {
   //std::cerr << t << std::endl; 
-
   // check whether any higher-priority threads block us
   bool blocked = false;
   for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
@@ -429,6 +428,7 @@ void Vm::doMatch(const Thread& t) {
     // emit all matches which aren't replaced by this one
     Matches[t.Label].clear();
   }
+
   // store this match
   Matches[t.Label].push_back(Match(t.Start, t.End));
 }

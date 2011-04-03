@@ -1,47 +1,46 @@
-
 %{
-#include "parser.h"
-#include <cctype>
+#include "node.h"
+#include "parsetree.h"
+
 #include <iomanip>
 
 namespace {
-static int yylex(void);
-static void yyerror(const char*);
+	static int yylex(void);
+	static void yyerror(const char*);
+	
+	const unsigned char* Text;
+	const unsigned char* TextBegin;
+	const unsigned char* TextEnd;
+  
+  ParseTree* Tree;
 
-const unsigned char* Text;
-const unsigned char* TextBegin;
-const unsigned char* TextEnd;
-SyntaxTree* Tree;
+	bool LiteralMode;
 
-NodeHandler* Callback;
-bool         LiteralMode;
+// FIXME: What does the textlabel stuff do?
+	std::string MyTextLabel("");
+	std::stringstream MyBuf;
+	
+	class Printer {
+	public:
+		Printer(int i): Val(i) {}
+	
+		int Val;
+	};
+	
+	std::ostream& operator<<(std::ostream&, const Printer&);
+	
+	Node* add(const char* type, Node* n) {
 
-std::string MyTextLabel("");
-std::stringstream MyBuf;
-
-class Printer {
-public:
-	Printer(int i): Val(i) {}
-
-	int Val;
-};
-
-std::ostream& operator<<(std::ostream&, const Printer&);
-
-	Node* add(const char* type, const Node& n) {
-		if (MyTextLabel.empty()) {
-			MyTextLabel = type;
-		}
-		Callback->callback(MyTextLabel, n);
 		MyTextLabel.clear();
-		return Tree->add(n);
+
+		return n;
 	}
 }
 
 %}
 
 %union {
-	unsigned int	c;
+	unsigned int c;
 	Node* node;
 }
 
@@ -55,14 +54,14 @@ std::ostream& operator<<(std::ostream&, const Printer&);
 
 regexp: alt
 	{
-		$$ = add("regexp", Node(Node::REGEXP, $1, 0, 0));
+		Tree->Root = $$ = add("regexp", new Node(Node::REGEXP, $1, 0, 0));
 	}
 
 alt:
 	concat
 |	alt '|' concat
 	{
-		$$ = add("alt", Node(Node::ALTERNATION, $1, $3, 0));
+		$$ = add("alt", new Node(Node::ALTERNATION, $1, $3, 0));
 	}
 ;
 
@@ -70,30 +69,42 @@ concat:
 	rep
 | concat rep
 	{
-		$$ = add("concat", Node(Node::CONCATENATION, $1, $2, 0));
+		$$ = add("concat", new Node(Node::CONCATENATION, $1, $2, 0));
 	}
 ;
 
 rep:
 	atom
+| atom '*' '?'
+	{
+		$$ = add("star_ng", new Node(Node::STAR_NG, $1, 0, 0));
+	}
+| atom '+' '?'
+	{
+		$$ = add("plus_ng", new Node(Node::PLUS_NG, $1, 0, 0));
+	}
+|	atom '?' '?'
+	{
+		$$ = add("question_ng", new Node(Node::QUESTION_NG, $1, 0, 0));
+	}
 | atom '*'
 	{
-		$$ = add("star", Node(Node::STAR, $1, 0, 0));
+		$$ = add("star", new Node(Node::STAR, $1, 0, 0));
 	}
 | atom '+'
 	{
-		$$ = add("plus", Node(Node::PLUS, $1, 0, 0));
+		$$ = add("plus", new Node(Node::PLUS, $1, 0, 0));
 	}
 |	atom '?'
 	{
-		$$ = add("question", Node(Node::QUESTION, $1, 0, 0));
+		$$ = add("question", new Node(Node::QUESTION, $1, 0, 0));
 	}
 ;
 
 atom:
 	'(' alt ')'
 	{
-		$$ = add("group", Node(Node::GROUP, $2, 0, 0));
+		$$ = $2; 
 	}
 |	literal
 ;
@@ -101,37 +112,28 @@ atom:
 literal:
 	CHAR_TOKEN
 	{
-		$$ = add("literal", Node(Node::LITERAL, 0, 0, $1));
+		$$ = add("literal", new Node(Node::LITERAL, 0, 0, $1));
 	}
 | '#'
 	{
-		Node n;
-		n.Type = Node::CHAR_CLASS;
-		n.range('0', '9');
-		$$ = add("class", n);
+		$$ = add("class", new Node(Node::CHAR_CLASS, 0, 0, '0', '9'));
 	}
 |	'.'
 	{
-		$$ = add("dot", Node(Node::DOT, 0, 0, '.'));
+		$$ = add("dot", new Node(Node::DOT, 0, 0, '.'));
 	}
 	| '[' '^' charclass ']'
 		{
 			MyTextLabel = "^";
 			MyTextLabel += MyBuf.str();
 			MyBuf.str("");
-			Node n;
-			n.Type = Node::CHAR_CLASS;
-			n.Bits = ~$3->Bits;
-			$$ = add("class", n);
+			$$ = add("class", new Node(Node::CHAR_CLASS, 0, 0, 0, ~$3->Bits));
 		}
 | '[' charclass ']'
 	{
 		MyTextLabel = MyBuf.str();
 		MyBuf.str("");
-		Node n;
-		n.Type = Node::CHAR_CLASS;
-		n.Bits = $2->Bits;
-		$$ = add("class", n);
+		$$ = add("class", new Node(Node::CHAR_CLASS, 0, 0, 0, $2->Bits));
 	}
 ;
 
@@ -139,42 +141,36 @@ charclass:
 	charclass '#' 
 	{
 		MyBuf << '#';
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
+		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, 0));
 		$$->Bits = $1->Bits;
 		$$->range('0', '9');
 	}
 | charclass CHAR_TOKEN '-' CHAR_TOKEN
 	{
 		MyBuf << Printer($2) << "-" << Printer($4);
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
-		$$->Bits = $1->Bits;
+		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, 0, $1->Bits));
 		$$->range($2, $4);
 	}
 | charclass CHAR_TOKEN
 	{
 		MyBuf << Printer($2);
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
-		$$->Bits = $1->Bits;
+		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, 0, $1->Bits));
 		$$->Bits.set($2);
 	}
 | CHAR_TOKEN '-' CHAR_TOKEN
 	{
 		MyBuf << Printer($1) << "-" << Printer($3);
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
-		$$->Bits.reset();
-		$$->range($1, $3);
+		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, $1, $3));
 	}
 |	'#'
 	{
 		MyBuf << '#';
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
-		$$->Bits.reset();
-		$$->range('0', '9');
+		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, '0', '9'));
 	}
 |	CHAR_TOKEN
 	{
 		MyBuf << Printer($1);
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, $1));
+		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, $1));
 	}
 ;
 
@@ -303,15 +299,19 @@ namespace {
 	}
 }
 
-bool parse(const std::string& text, bool litMode, SyntaxTree& tree, NodeHandler& callback) {
+bool parse(const std::string& text, bool litMode, ParseTree& tree) {
   LiteralMode = litMode;
-	Tree = &tree;
+
 	Text = (unsigned char*)text.c_str();
 	TextBegin = Text;
 	TextEnd = Text + text.size();
-	Callback = &callback;
-	int ret = yyparse();
+
+  Tree = &tree;
+  Tree->init(text.size());
+
+	const int ret = yyparse();
+
   Text = 0;
-	Tree = 0;
-	return ret == 0 ? true: false;
+  Tree = 0;
+	return ret == 0;
 }

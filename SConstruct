@@ -79,7 +79,7 @@ else:
   flags = '-O3'
   ldflags = ''
 
-ccflags = '-Wall -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir)
+ccflags = '-Wall -Wno-trigraphs -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir)
 if (isWindows):
   env = Environment(ENV=os.environ, tools=['mingw']) # this builds in a dependency on the PATH, which is useful for ccache
 else:
