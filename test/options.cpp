@@ -1,4 +1,4 @@
-// must include <fstrea> before options.h, because of <iosfwd> usage
+// must include <fstream> before options.h, because of <iosfwd> usage
 #include <iostream>
 #include <fstream>
 #include <stdexcept>

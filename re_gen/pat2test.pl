@@ -10,6 +10,9 @@ use String::ShellQuote qw(shell_quote);
 print <<HEAD;
 #include <scope/test.h>
 
+#include "nfabuilder.h"
+#include "parsetree.h"
+
 #include "test_helper.h"
 
 HEAD
@@ -29,10 +32,10 @@ while (<>) {
   close TEXT;
 
   # make sure that the pattern is properly quoted
-  $pat = shell_quote($pat);
+  $qpat = shell_quote($pat);
 
   # get matches from shitgrep
-  system("./shitgrep -p $pat $text_file 1>sg.stdout 2>sg.stderr");
+  system("./shitgrep -p $qpat $text_file 1>sg.stdout 2>sg.stderr");
 
   open(SGERR, '<sg.stderr') or die "$!\n";
   my $sgerr = join '', <SGERR>;
@@ -43,10 +46,10 @@ while (<>) {
     # test this pattern for zero-length matches
     print <<TEST;
 SCOPE_TEST(autoPatternTest$patnum) {
-  Parser p;
-  SyntaxTree tree;
-  SCOPE_ASSERT(parse("$pat", false, tree, p));
-  SCOPE_ASSERT(!p.good());
+  NFABuilder nfab;
+  ParseTree tree;
+  SCOPE_ASSERT(parse("$pat", false, tree));
+  SCOPE_ASSERT(!nfab.build(tree));
 }
 
 TEST
