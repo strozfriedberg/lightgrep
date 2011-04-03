@@ -92,10 +92,8 @@ boost::shared_ptr<VmInterface> initSearch(const Options& opts, KwInfo& keyInfo) 
   return ret;
 }
 
-static unsigned int BLOCKSIZE = 8 * 1024 * 1024;
-
-uint64 readNext(FILE* file, byte* buf) {
-  return fread((void*)buf, 1, BLOCKSIZE, file);
+uint64 readNext(FILE* file, byte* buf, unsigned int blockSize) {
+  return fread((void*)buf, 1, blockSize, file);
 }
 
 void printHelp(const po::options_description& desc) {
@@ -132,23 +130,23 @@ void search(const Options& opts) {
     cb = &output;
   }
 
-  byte* cur  = new byte[BLOCKSIZE];
+  byte* cur  = new byte[opts.BlockSize];
   uint64 blkSize = 0,
          offset = 0;
 
-  blkSize = readNext(file, cur);
+  blkSize = readNext(file, cur, opts.BlockSize);
   if (!feof(file)) {
-    byte* next = new byte[BLOCKSIZE];
+    byte* next = new byte[opts.BlockSize];
     do {
       // read the next block on a separate thread
-      boost::packaged_task<uint64> task(boost::bind(&readNext, file, next));
+      boost::packaged_task<uint64> task(boost::bind(&readNext, file, next, opts.BlockSize));
       boost::unique_future<uint64> sizeFut = task.get_future();
       boost::thread exec(boost::move(task));
 
       search->search(cur, cur + blkSize, offset, *cb); // search cur block
 
       offset += blkSize;
-      if (offset % (1024 * 1024 * 1024) == 0) { // should happen every 128 blocks
+      if (offset % (1024 * 1024 * 1024) == 0) { // should change this due to the block size being variable
         lastTime = searchClock.elapsed();
         uint64 units = offset >> 20;
         double bw = units / lastTime;

@@ -55,6 +55,7 @@ void parse_opts(int argc, char** argv,
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
+    ("block-size", po::value< unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value< uint64 >(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
