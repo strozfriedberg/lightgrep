@@ -116,7 +116,7 @@ Vm::Vm(ProgramPtr prog):
 
 void Vm::init(ProgramPtr prog) {
   Prog = prog;
-  Prog->push_back(Instruction::makeHalt()); // a special halt; killed threads will be set to here
+  // Prog->push_back(Instruction::makeHalt()); // a special halt; killed threads will be set to here
   Active.resize(Prog->size());
   Next.resize(Prog->size());
   uint32 numPatterns = 0,
