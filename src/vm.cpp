@@ -1,3 +1,4 @@
+#include "container_out.h"
 #include "vm.h"
 
 #include <algorithm>
@@ -17,6 +18,10 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
       << ", \"Start\":" << t.Start
       << ", \"End\":" << t.End << " }";
   return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const Vm::Match& m) {
+  return out << '(' << m.Start << ',' << m.End << ')';
 }
 
 #ifdef LBT_TRACE_ENABLED
