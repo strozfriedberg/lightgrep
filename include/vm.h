@@ -90,6 +90,8 @@ private:
     Match(uint64 start, uint64 end): Start(start), End(end) {}
   };
 
+  friend std::ostream& operator<<(std::ostream& out, const Match& m);
+
   std::vector< std::vector<Match> > Matches;
 
   HitCallback* CurHitFn;
