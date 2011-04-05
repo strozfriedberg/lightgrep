@@ -254,7 +254,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 
           // kill the child if the label is in the kill list
           // FIXME: overzealously kills threads for (a|b)+ on ab
-          if(f.Label != NOLABEL && Kill.find(f.Label)) {
+          if (f.Label != NOLABEL && Kill.find(f.Label)) {
             f.PC = 0;
             return false;
           }
