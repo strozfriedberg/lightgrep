@@ -399,8 +399,8 @@ bool Vm::executeEpsilon(ThreadList::iterator t, uint64 offset) {
 
 void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
   CurHitFn = &hitFn;
-  ThreadList::iterator threadIt = Active.begin();
-  _executeFrame(Prog->First, threadIt, &(*Prog)[0], cur, offset);
+  ThreadList::iterator t = Active.begin();
+  _executeFrame(Prog->First, t, &(*Prog)[0], cur, offset);
 }
 
 void Vm::doMatch(const Thread& t) {
@@ -459,17 +459,17 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
     for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
       Active.addBack().init(it->PC, NOLABEL, offset, NONE);
     }
-    ThreadList::iterator threadIt = Active.begin();
+    ThreadList::iterator t = Active.begin();
     for (register const byte* cur = beg; cur < end; ++cur) {
-      while (threadIt != Active.end()) {
-        _executeThread(base, threadIt, cur, offset);
-        ++threadIt;
+      while (t != Active.end()) {
+        _executeThread(base, t, cur, offset);
+        ++t;
       }
       Kill.clear();
     
       cleanup();
-      threadIt = Active.begin();
-      if (threadIt == Active.end()) { // early exit if threads die out
+      t = Active.begin();
+      if (t == Active.end()) { // early exit if threads die out
         break;
       }
       ++offset;
@@ -484,21 +484,21 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
   const Instruction* base = &(*Prog)[0];
   ByteSet first = Prog->First;
   register uint64 offset = startOffset;
-  ThreadList::iterator threadIt = Active.begin();
+  ThreadList::iterator t = Active.begin();
   for (register const byte* cur = beg; cur < end; ++cur) {
     #ifdef LBT_TRACE_ENABLED
     open_frame_json(std::cerr, offset, cur);
     #endif
 
-    _executeFrame(first, threadIt, base, cur, offset);
+    _executeFrame(first, t, base, cur, offset);
 
     #ifdef LBT_TRACE_ENABLED
     close_frame_json(std::cerr, offset);
     #endif
     
-    if (threadIt != Active.begin()) {
+    if (t != Active.begin()) {
       _cleanup();
-      threadIt = Active.begin();
+      t = Active.begin();
     }
     ++offset;
   }
