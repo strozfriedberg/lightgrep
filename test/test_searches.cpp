@@ -81,6 +81,20 @@ SCOPE_FIXTURE_CTOR(aOrbPlusSearch, STest, STest("(a|b)+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(1, 8, 0), fixture.Hits[0]);
 }
 
+SCOPE_FIXTURE_CTOR(aOrbPlusShorterSearch, STest, STest("(a|b)+")) {
+  const byte* text = (const byte*)"ab";
+  fixture.search(text, text+2, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(aOrbPlusShorterSearch2, STest, STest("(a|b)+c")) {
+  const byte* text = (const byte*)"abc";
+  fixture.search(text, text+3, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+}
+
 SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest(4, (const char*[]){"a(b|c)a", "ac+", "ab?a", "two"})) {
   //
   // writeGraphviz(std::cout, *fixture.Fsm);
