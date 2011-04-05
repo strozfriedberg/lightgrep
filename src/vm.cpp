@@ -409,7 +409,6 @@ void Vm::doMatch(const Thread& t) {
   // check whether any higher-priority threads block us
   bool blocked = false;
   for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
-    // if (t.Start <= it->End && (it->Label == NONE || it->Label == t.Label)) {
     if (it->Label == NONE || it->Label == t.Label) {
       blocked = true;
       break;
@@ -427,10 +426,12 @@ void Vm::doMatch(const Thread& t) {
   }
   else {
     if (CurHitFn) {
+      // emit all matches which aren't replaced by this one
       SearchHit hit;
       if (Matches[t.Label].size() > MaxMatches) {
         MaxMatches = Matches[t.Label].size();
       }
+
       for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
         if (im->Start > t.End || t.Start > im->End) {
           hit.set(im->Start, im->End - im->Start + 1, t.Label);
@@ -441,7 +442,7 @@ void Vm::doMatch(const Thread& t) {
         }
       }
     }
-    // emit all matches which aren't replaced by this one
+
     Matches[t.Label].clear();
   }
 
