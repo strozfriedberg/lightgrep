@@ -354,11 +354,11 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
   return t->PC;
 }
 
-inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset) {
+inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& t, const Instruction* base, const byte* cur, uint64 offset) {
   // run old threads at this offset
-  while (threadIt != Active.end()) {
-    _executeThread(base, threadIt, cur, offset);
-    ++threadIt;
+  while (t != Active.end()) {
+    _executeThread(base, t, cur, offset);
+    ++t;
   }
 
   // create new threads at this offset
@@ -375,8 +375,8 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
       #endif
     }
     do {
-      _executeThread(base, threadIt, cur, offset);
-    } while (++threadIt != Active.end());
+      _executeThread(base, t, cur, offset);
+    } while (++t != Active.end());
   }
   Kill.clear();
 }
