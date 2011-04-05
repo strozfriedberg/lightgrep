@@ -252,7 +252,15 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         // recurse to keep going in sequence
         if (_executeEpSequence(base, t, offset)) {
           Next.push_back(*t);
+
+          // kill the child if the label is in the kill list
+          // FIXME: overzealously kills threads for (a|b)+ on ab
+          if(f.Label != NOLABEL && Kill.find(f.Label)) {
+            f.PC = 0;
+            return false;
+          }
         }
+
         // Now back up to the fork, fall through to handle it as a longjump.
         // Note that the forked child is taking the parent's place in Active.
         // This is ESSENTIAL for maintaining correct thread priority order.
@@ -295,6 +303,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       t->End = offset;
       doMatch(*t);
       t->advance(InstructionSize<MATCH_OP>::VAL);
+
       // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
         if (it->Label == t->Label) {
@@ -302,6 +311,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           it->PC = &Prog->back(); // DIE. Last instruction is always a halt
         }
       }
+
       // also kill any thread receiving this label later in the frame
       Kill.insert(t->Label);
       return true;
@@ -395,10 +405,13 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 }
 
 void Vm::doMatch(const Thread& t) {
-  //std::cerr << t << std::endl; 
+
   if (Matches[t.Label].front().Start == NONE) {
     Matches[t.Label].clear(); // we are the first match, clear that placeholder
   }
+
+std::cerr << t << std::endl; 
+std::cerr << Matches[t.Label] << std::endl;
 
   // check whether any higher-priority threads block us
   bool blocked = false;
@@ -433,6 +446,8 @@ void Vm::doMatch(const Thread& t) {
 
   // store this match
   Matches[t.Label].push_back(Match(t.Start, t.End));
+
+std::cerr << Matches[t.Label] << std::endl;
 }
 
 void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
