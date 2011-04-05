@@ -11,6 +11,8 @@ public:
   SearchHit(): Offset(0), Length(0), Label(0) {}
   SearchHit(uint64 o, uint64 len, uint32 lbl): Offset(o), Length(len), Label(lbl) {}
 
+  void set(uint64 o, uint64 len, uint32 lbl) { Offset = o; Length = len; Label = lbl; }
+
   bool operator==(const SearchHit& x) const { return x.Offset == Offset && x.Length == Length && x.Label == Label; }
 };
 
