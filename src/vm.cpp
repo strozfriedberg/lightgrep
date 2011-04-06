@@ -185,7 +185,6 @@ void Vm::reset() {
 }
 
 inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const byte* cur) {
-  Thread nextT;
   register Instruction instr = *t->PC;
   switch (instr.OpCode) {
     case LIT_OP:
