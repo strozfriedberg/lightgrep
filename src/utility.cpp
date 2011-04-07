@@ -34,6 +34,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
         if (parse(kw, litMode, tree)) {
           if (kw.find('?',1) != std::string::npos) {
             prune_tree(tree.Root);
+            reduce_trailing_zero_length(tree.Root);
           }
 
           if (nfab.build(tree)) {

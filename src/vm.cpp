@@ -165,6 +165,7 @@ void Vm::init(ProgramPtr prog) {
   for (uint32 i = 0; i < Next.size(); ++i) {
     First.push_back(Next[i]);
   }
+
   reset();
 }
 
@@ -234,6 +235,7 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
       }
       break;
   }
+
   t->PC = &Prog->back();
   return false;
 }
@@ -250,13 +252,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         // recurse to keep going in sequence
         if (_executeEpSequence(base, t, offset)) {
           Next.push_back(*t);
-
-          // kill the child if the label is in the kill list
-          // FIXME: overzealously kills threads for (a|b)+ on ab
-          if (f.Label != NOLABEL && Kill.find(f.Label)) {
-            f.PC = 0;
-            return false;
-          }
         }
 
         // Now back up to the fork, fall through to handle it as a longjump.
@@ -377,6 +372,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& t, con
       _executeThread(base, t, cur, offset);
     } while (++t != Active.end());
   }
+
   Kill.clear();
 }
 
