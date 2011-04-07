@@ -9,16 +9,21 @@ bool is_binary(const Node* n) {
   return n->Type == Node::ALTERNATION || n->Type == Node::CONCATENATION;
 }
 
+//
+// Parentheses are necessary when:
+// 
+// * a unary operator is the parent of a binary operator
+// * concatenation is the parent of an alternation
+//
+
 void open_paren(const Node* n, std::stringstream& ss) {
-  // parentheses are necessary only when unary operators are the
-  // parents of binary operators
-  if (is_binary(n->Left)) {
+  if (!is_binary(n) && is_binary(n->Left)) {
     ss << '(';
   }
 } 
 
 void close_paren(const Node *n, std::stringstream& ss) {
-  if (is_binary(n->Left)) {
+  if (!is_binary(n) && is_binary(n->Left)) {
     ss << ')';
   }
 } 
