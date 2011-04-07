@@ -36,8 +36,23 @@ void unparse(const Node* n, std::stringstream& ss) {
     break;
 
   case Node::CONCATENATION:
-    unparse(n->Left, ss);
-    unparse(n->Right, ss);
+    if (n->Left->Type == Node::ALTERNATION) {
+      ss << '(';
+      unparse(n->Left, ss);
+      ss << ')';
+    }
+    else {
+      unparse(n->Left, ss);
+    }
+
+    if (n->Right->Type == Node::ALTERNATION) {
+      ss << '(';
+      unparse(n->Right, ss);
+      ss << ')';
+    }
+    else {
+      unparse(n->Right, ss);
+    }
     break;
 
   case Node::PLUS:
