@@ -3,6 +3,8 @@
 
 #include <stack>
 
+#include <boost/lexical_cast.hpp>
+
 void splice_out_parent(Node* node, std::stack<Node*>& branch) {
   Node* parent = branch.top();
   branch.pop();
@@ -13,6 +15,77 @@ void splice_out_parent(Node* node, std::stack<Node*>& branch) {
   }
   else {
     gparent->Right = node;
+  }
+}
+
+bool has_zero_length_match(const Node *n) {
+  switch (n->Type) {
+  case Node::REGEXP:
+  case Node::PLUS:
+  case Node::PLUS_NG:
+    return has_zero_length_match(n->Left);  
+
+  case Node::STAR:
+  case Node::QUESTION:
+  case Node::STAR_NG:
+  case Node::QUESTION_NG:
+    return true;
+
+  case Node::ALTERNATION:
+    return has_zero_length_match(n->Left) || has_zero_length_match(n->Right);
+
+  case Node::CONCATENATION:
+    return has_zero_length_match(n->Left) && has_zero_length_match(n->Right);
+
+  case Node::DOT:
+  case Node::CHAR_CLASS:
+  case Node::LITERAL:
+    return false;
+
+  default:
+    // WTF?
+    throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
+    return false;
+  }
+}
+
+void reduce_trailing_zero_length(Node *root) {
+  Node* n = root;
+
+  // Look for S+?T along trailing branches, where T admits zero-length
+  // matches.
+
+  while (n) {
+    switch (n->Type) {
+    case Node::REGEXP:
+    case Node::PLUS:
+    case Node::STAR:
+    case Node::QUESTION:
+    case Node::ALTERNATION:
+    case Node::PLUS_NG:
+    case Node::STAR_NG:
+    case Node::QUESTION_NG:
+      // these are not the nodes you're looking for
+      break;
+
+    case Node::CONCATENATION:
+      if (n->Left->Type == Node::PLUS_NG && has_zero_length_match(n->Right)) {
+        n->Left = n->Left->Left;
+        return;
+      }
+      break;
+
+    case Node::DOT:
+    case Node::CHAR_CLASS:
+    case Node::LITERAL:
+      // branch finished
+      break;
+    default:
+      // WTF?
+      break;
+    }
+
+    n = n->Right ? n->Right : n->Left;
   }
 }
 
