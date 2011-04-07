@@ -31,6 +31,10 @@ void close_paren(const Node *n, std::stringstream& ss) {
 void unparse(const Node* n, std::stringstream& ss) {
   switch (n->Type) {
   case Node::REGEXP:
+    if (!n->Left) {
+      return;
+    }
+
     unparse(n->Left, ss);
     break;
 
