@@ -1,6 +1,7 @@
 
 #include "unparser.h"
 
+#include <algorithm>
 #include <cctype>
 #include <iomanip>
 #include <sstream>
@@ -70,15 +71,47 @@ std::string byteToCharacterString(uint32 i) {
  */
 
 std::string byteSetToCharacterClass(const ByteSet& bs) {
-  std::stringstream ss;
+
+  // check relative size of 0 and 1 ranges 
+  int sizediff = -1; // negated has a 1-char disadvantage due to the '^'
+  uint32 left = 0;
   
+  bool hasBoth = false;  
+
+  for (uint32 i = 1; i < 257; ++i) {
+    if (i < 256 && bs[i] ^ bs[0]) {
+      hasBoth = true;
+    }
+    
+    if (i == 256 || bs[i-1] ^ bs[i]) {
+      const uint32 len = std::min(i - left, (uint32) 3);
+      sizediff += bs[i-1] ? len : -len;
+      left = i;
+    }  
+  }
+
+  // is this a full or empty character class?
+  if (!hasBoth) {
+    return bs[0] ? "\\x00-\\xFF" : "^\\x00-\\xFF";
+  }
+
+  // will char class will be shorter if negated?
+  const bool invert = sizediff > 0;
+
+  std::stringstream ss;
+ 
+  if (invert) {
+    ss << '^';
+  }
+ 
   bool first = true;
   bool caret = false;
   bool hyphen = false;
-  uint32 left = 256;
+  
+  left = 256;
 
   for (uint32 i = 0; i < 257; ++i) {
-    if (i < 256 && bs[i]) {
+    if (i < 256 && (invert ^ bs[i])) {
       if (left > 0xFF) {
         // start a new range
         left = i;
@@ -107,7 +140,7 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
       }
   
       // shrink initial range so that the caret is not the start
-      if (first && left == '^') {
+      if ((first || hyphen) && left == '^') {
         caret = true;
 
         if (left == right) {
@@ -163,11 +196,23 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
 
   // if there was a hyphen, put it at the end
   if (hyphen) {
-    ss << byteToCharacterString('-');
+std::cerr << hyphen << ' ' << caret << std::endl;
+ 
+    if (caret) {
+      // if we haven't written anything, reverse the hyphen and caret
+      if (ss.tellp() == 0) {
+        ss << byteToCharacterString('-') << byteToCharacterString('^');
+      }
+      else {
+        ss << byteToCharacterString('^') << byteToCharacterString('-');
+      }
+    }
+    else {
+      ss << byteToCharacterString('-');
+    }
   }
-
   // if there was a caret, put it at the end
-  if (caret) {
+  else if (caret) {
     // if we haven't written anything, escape the caret
     if (ss.tellp() == 0) {
       ss << '\\';
