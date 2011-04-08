@@ -2,8 +2,6 @@
 #include "node.h"
 #include "parsetree.h"
 
-#include <iomanip>
-
 namespace {
 	static int yylex(void);
 	static void yyerror(const char*);
@@ -16,23 +14,7 @@ namespace {
 
 	bool LiteralMode;
 
-// FIXME: What does the textlabel stuff do?
-	std::string MyTextLabel("");
-	std::stringstream MyBuf;
-	
-	class Printer {
-	public:
-		Printer(int i): Val(i) {}
-	
-		int Val;
-	};
-	
-	std::ostream& operator<<(std::ostream&, const Printer&);
-	
 	Node* add(const char* type, Node* n) {
-
-		MyTextLabel.clear();
-
 		return n;
 	}
 }
@@ -124,15 +106,10 @@ literal:
 	}
 	| '[' '^' charclass ']'
 		{
-			MyTextLabel = "^";
-			MyTextLabel += MyBuf.str();
-			MyBuf.str("");
 			$$ = add("class", new Node(Node::CHAR_CLASS, 0, 0, 0, ~$3->Bits));
 		}
 | '[' charclass ']'
 	{
-		MyTextLabel = MyBuf.str();
-		MyBuf.str("");
 		$$ = add("class", new Node(Node::CHAR_CLASS, 0, 0, 0, $2->Bits));
 	}
 ;
@@ -140,36 +117,30 @@ literal:
 charclass:
 	charclass '#' 
 	{
-		MyBuf << '#';
 		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, 0));
 		$$->Bits = $1->Bits;
 		$$->range('0', '9');
 	}
 | charclass CHAR_TOKEN '-' CHAR_TOKEN
 	{
-		MyBuf << Printer($2) << "-" << Printer($4);
 		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, 0, $1->Bits));
 		$$->range($2, $4);
 	}
 | charclass CHAR_TOKEN
 	{
-		MyBuf << Printer($2);
 		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, 0, $1->Bits));
 		$$->Bits.set($2);
 	}
 | CHAR_TOKEN '-' CHAR_TOKEN
 	{
-		MyBuf << Printer($1) << "-" << Printer($3);
 		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, $1, $3));
 	}
 |	'#'
 	{
-		MyBuf << '#';
 		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, '0', '9'));
 	}
 |	CHAR_TOKEN
 	{
-		MyBuf << Printer($1);
 		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, $1));
 	}
 ;
@@ -286,16 +257,6 @@ namespace {
 
 	void yyerror(const char* msg) {
 		THROW_RUNTIME_ERROR_WITH_OUTPUT(msg);
-	}
-
-	std::ostream& operator<<(std::ostream& out, const Printer& p) {
-		if (std::isprint(p.Val)) {
-			out << (char)p.Val;
-		}
-		else {
-			out << "0x" << std::hex << std::setfill('0') << std::setw(2) << p.Val << std::dec;
-		}
-		return out;
 	}
 }
 
