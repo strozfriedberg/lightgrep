@@ -196,8 +196,6 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
 
   // if there was a hyphen, put it at the end
   if (hyphen) {
-std::cerr << hyphen << ' ' << caret << std::endl;
- 
     if (caret) {
       // if we haven't written anything, reverse the hyphen and caret
       if (ss.tellp() == 0) {
