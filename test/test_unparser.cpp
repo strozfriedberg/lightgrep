@@ -1,5 +1,7 @@
 #include <scope/test.h>
 
+#include <iomanip>
+
 #include "parser.h"
 #include "parsetree.h"
 #include "unparser.h"
@@ -71,4 +73,158 @@ SCOPE_TEST(parseUnparseTest) {
 
   SCOPE_ASSERT(parse("a|b|c", false, tree));
   SCOPE_ASSERT_EQUAL("a|b|c", unparse(tree));
+
+  SCOPE_ASSERT(parse("[a]", false, tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
+
+  SCOPE_ASSERT(parse("[abc]", false, tree));
+  SCOPE_ASSERT_EQUAL("[abc]", unparse(tree));
+
+  SCOPE_ASSERT(parse("[abcd]", false, tree));
+  SCOPE_ASSERT_EQUAL("[a-d]", unparse(tree));
+
+  SCOPE_ASSERT(parse("[dcba]", false, tree));
+  SCOPE_ASSERT_EQUAL("[a-d]", unparse(tree));
+}
+
+SCOPE_TEST(byteToCharacterString) {
+  std::stringstream ss;
+
+  for (uint32 i = 0; i < 256; ++i) {
+    std::string actual = byteToCharacterString(i);
+
+    switch (i) {
+    case '\a': SCOPE_ASSERT_EQUAL("\\a", actual); break;
+    case '\b': SCOPE_ASSERT_EQUAL("\\b", actual); break;
+    case '\t': SCOPE_ASSERT_EQUAL("\\t", actual); break;
+    case '\f': SCOPE_ASSERT_EQUAL("\\f", actual); break;
+    case '\r': SCOPE_ASSERT_EQUAL("\\r", actual); break;
+    case 0x1B: SCOPE_ASSERT_EQUAL("\\e", actual); break;
+    case '\\': SCOPE_ASSERT_EQUAL("\\\\", actual); break;
+    default:
+      if (0x20 <= i && i <= 0x7E) {
+        SCOPE_ASSERT_EQUAL(std::string(1, (char) i), actual);
+      }
+      else {
+        ss << "\\x" << std::hex << std::uppercase
+                    << std::setfill('0') << std::setw(2) << i;
+        SCOPE_ASSERT_EQUAL(ss.str(), actual);
+        ss.str("");
+      }
+    } 
+  }
+}
+
+SCOPE_TEST(byteSetToCharacterClassTest) {
+  ByteSet bs;
+
+  bs['n'] = true;
+  SCOPE_ASSERT_EQUAL("n", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs['\a'] = true;
+  SCOPE_ASSERT_EQUAL("\\a", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs[0] = true;
+  SCOPE_ASSERT_EQUAL("\\x00", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs['\t'] = true;
+  SCOPE_ASSERT_EQUAL("\\t", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs[' '] = true;
+  SCOPE_ASSERT_EQUAL(" ", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs['-'] = true;
+  SCOPE_ASSERT_EQUAL("-", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs['^'] = true;
+  SCOPE_ASSERT_EQUAL("\\^", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs['^'] = bs['-'] = true;
+  SCOPE_ASSERT_EQUAL("^-", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs['\\'] = true;
+  SCOPE_ASSERT_EQUAL("\\\\", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs[']'] = true;
+  SCOPE_ASSERT_EQUAL("]", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs['a'] = bs['d'] = bs['n'] = true;
+  SCOPE_ASSERT_EQUAL("adn", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs['a'] = bs['b'] = bs['c'] = true;
+  SCOPE_ASSERT_EQUAL("abc", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs['a'] = bs['b'] = bs['c'] = bs['d'] = true;
+  SCOPE_ASSERT_EQUAL("a-d", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs.set();
+  SCOPE_ASSERT_EQUAL("\\x00-\\xFF", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = '0'; i < '9' + 1; ++i) bs[i] = true;
+  for (uint32 i = 'A'; i < 'Z' + 1; ++i) bs[i] = true;
+  for (uint32 i = 'a'; i < 'z' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL("0-9A-Za-z", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = '-'; i < '0' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL("./0-", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = '-'; i < '1' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL(".-1-", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = '*'; i < '-' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL("*+,-", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = ')'; i < '-' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL(")-,-", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = '+'; i < '-' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL("+,-", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = ','; i < '.' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL(",-.", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = '+'; i < '-' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL("+,-", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = '^'; i < 'a' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL("_`a^", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = '^'; i < 'b' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL("_-b^", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  bs['A'] = bs[']'] = true;
+  SCOPE_ASSERT_EQUAL("A\\]", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = 'A'; i < ']' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL("A-\\]", byteSetToCharacterClass(bs));
+  bs.reset();
+
+  for (uint32 i = ']'; i < 'a' + 1; ++i) bs[i] = true;
+  SCOPE_ASSERT_EQUAL("]-a", byteSetToCharacterClass(bs));
+  bs.reset();
 }

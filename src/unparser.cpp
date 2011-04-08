@@ -1,6 +1,8 @@
 
 #include "unparser.h"
 
+#include <cctype>
+#include <iomanip>
 #include <sstream>
 
 #include <boost/lexical_cast.hpp>
@@ -27,6 +29,154 @@ void close_paren(const Node *n, std::stringstream& ss) {
     ss << ')';
   }
 } 
+
+std::string byteToCharacterString(uint32 i) {
+  // all the characters fit to print unescaped
+  if (i == '\\') {
+    return "\\\\";
+  }
+  else if (0x20 <= i && i <= 0x7E) {
+    return std::string(1, (char) i);
+  }
+  else {
+    switch (i) {
+    // all of the named single-character escapes
+    case 0x07: return "\\a";
+    case 0x08: return "\\b";
+    case 0x09: return "\\t";
+    case 0x0C: return "\\f";
+    case 0x0D: return "\\r";
+    case 0x1B: return "\\e";
+    // otherwise, print the hex code
+    default:  
+      {
+        std::stringstream ss;
+        ss << "\\x" << std::hex << std::uppercase 
+                    << std::setfill('0') << std::setw(2) << i;
+        return ss.str();
+      }
+    }
+  }
+}
+
+/*
+ * Rules for escaping inside character classes:
+ *
+ * ']' must be escaped unless it is first, or immediately follows a negation
+ * '^' must be escaped if it is first
+ * '-' must be escaped if it would form an unwanted range
+ * '\' must be escaped 
+ *
+ */
+
+std::string byteSetToCharacterClass(const ByteSet& bs) {
+  std::stringstream ss;
+  
+  bool first = true;
+  bool caret = false;
+  bool hyphen = false;
+  uint32 left = 256;
+
+  for (uint32 i = 0; i < 257; ++i) {
+    if (i < 256 && bs[i]) {
+      if (left > 0xFF) {
+        // start a new range
+        left = i;
+      }
+    }
+    else if (left <= 0xFF) {
+      // write a completed range
+      uint32 right = i-1;
+
+      // shrink ranges so that the hyphen is neither endpoint
+      if (left == '-') {
+        hyphen = true;
+
+        if (left == right) {
+          // hyphen is the whole range
+          left = 256;
+          first = false; 
+          continue;
+        }
+
+        ++left;
+      }
+      else if (right == '-') {
+        hyphen = true;
+        --right;
+      }
+  
+      // shrink initial range so that the caret is not the start
+      if (first && left == '^') {
+        caret = true;
+
+        if (left == right) {
+          // caret is the whole range
+          left = 256;
+          first = false; 
+          continue;
+        }
+
+        ++left;
+      }
+
+      if (right - left + 1 < 4) {
+        // enumerate small ranges
+        for (uint32 j = left; j <= right; ++j) {
+          if (j == ']') {
+            if (first) {
+              first = false;
+            }
+            else {
+              ss << '\\';
+            }
+          }
+
+          ss << byteToCharacterString(j);
+        }
+      }
+      else {
+        // use '-' for large ranges
+
+        if (left == ']') {
+          if (first) {
+            first = false;
+          }
+          else {
+            ss << '\\';
+          }
+        }
+
+        ss << byteToCharacterString(left) << '-';
+
+        if (right == ']') {
+          ss << '\\';
+        }
+
+        ss << byteToCharacterString(right);
+      }
+
+      left = 256;
+      first = false;
+    }
+  }
+
+  // if there was a hyphen, put it at the end
+  if (hyphen) {
+    ss << byteToCharacterString('-');
+  }
+
+  // if there was a caret, put it at the end
+  if (caret) {
+    // if we haven't written anything, escape the caret
+    if (ss.tellp() == 0) {
+      ss << '\\';
+    }
+    ss << byteToCharacterString('^');  
+  } 
+
+  return ss.str();
+}
 
 void unparse(const Node* n, std::stringstream& ss) {
   switch (n->Type) {
@@ -111,9 +261,7 @@ void unparse(const Node* n, std::stringstream& ss) {
     break;
 
   case Node::CHAR_CLASS:
-    ss << '[';
-    // FXIME: what do do here???
-    ss << ']';
+    ss << '[' << byteSetToCharacterClass(n->Bits) << ']';
     break;
 
   case Node::LITERAL:
