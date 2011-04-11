@@ -106,29 +106,31 @@ literal:
 	}
 	| '[' '^' charclass ']'
 		{
-			$$ = add("class", Node(Node::CHAR_CLASS, 0, 0, 0, ~$3->Bits));
+      $$ = $3;
+      $$->Type = Node::CHAR_CLASS;
+      $$->Bits.flip();
 		}
 | '[' charclass ']'
 	{
-		$$ = add("class", Node(Node::CHAR_CLASS, 0, 0, 0, $2->Bits));
+		$$ = $2;
+    $$->Type = Node::CHAR_CLASS;
 	}
 ;
 
 charclass:
 	charclass '#' 
 	{
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
-		$$->Bits = $1->Bits;
+		$$ = $1;
 		$$->range('0', '9');
 	}
 | charclass CHAR_TOKEN '-' CHAR_TOKEN
 	{
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0, $1->Bits));
+		$$ = $1; 
 		$$->range($2, $4);
 	}
 | charclass CHAR_TOKEN
 	{
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0, $1->Bits));
+    $$ = $1;
 		$$->Bits.set($2);
 	}
 | CHAR_TOKEN '-' CHAR_TOKEN
