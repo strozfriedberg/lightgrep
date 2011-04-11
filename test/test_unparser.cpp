@@ -14,6 +14,30 @@ SCOPE_TEST(unparseEmptyTest) {
   SCOPE_ASSERT_EQUAL("", unparse(tree));
 }
 
+SCOPE_TEST(parseUnparse_comma_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse(",", false, tree));
+  SCOPE_ASSERT_EQUAL(",", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_hyphen_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("-", false, tree));
+  SCOPE_ASSERT_EQUAL("-", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_LC_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("{", false, tree));
+  SCOPE_ASSERT_EQUAL("{", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_RC_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("}", false, tree));
+  SCOPE_ASSERT_EQUAL("}", unparse(tree));
+}
+
 SCOPE_TEST(parseUnparse_a_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("a", false, tree));
@@ -162,6 +186,12 @@ SCOPE_TEST(parseUnparse_a3_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("a{3}", false, tree));
   SCOPE_ASSERT_EQUAL("a{3}", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a42_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a{42}", false, tree));
+  SCOPE_ASSERT_EQUAL("a{42}", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_a0_7_Test) {
