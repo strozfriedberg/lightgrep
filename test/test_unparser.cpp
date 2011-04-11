@@ -74,6 +74,9 @@ SCOPE_TEST(parseUnparseTest) {
   SCOPE_ASSERT(parse("a|b|c", false, tree));
   SCOPE_ASSERT_EQUAL("a|b|c", unparse(tree));
 
+  SCOPE_ASSERT(parse("ab|cd", false, tree));
+  SCOPE_ASSERT_EQUAL("ab|cd", unparse(tree));
+
   SCOPE_ASSERT(parse("[a]", false, tree));
   SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
 
