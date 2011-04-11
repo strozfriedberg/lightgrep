@@ -14,8 +14,8 @@ namespace {
 
 	bool LiteralMode;
 
-	Node* add(const char* type, Node* n) {
-		return n;
+	Node* add(const char* type, const Node& n) {
+		return Tree->add(n);
 	}
 }
 
@@ -36,14 +36,14 @@ namespace {
 
 regexp: alt
 	{
-		Tree->Root = $$ = add("regexp", new Node(Node::REGEXP, $1, 0, 0));
+		Tree->Root = $$ = add("regexp", Node(Node::REGEXP, $1, 0, 0));
 	}
 
 alt:
 	concat
 |	alt '|' concat
 	{
-		$$ = add("alt", new Node(Node::ALTERNATION, $1, $3, 0));
+		$$ = add("alt", Node(Node::ALTERNATION, $1, $3, 0));
 	}
 ;
 
@@ -51,7 +51,7 @@ concat:
 	rep
 | concat rep
 	{
-		$$ = add("concat", new Node(Node::CONCATENATION, $1, $2, 0));
+		$$ = add("concat", Node(Node::CONCATENATION, $1, $2, 0));
 	}
 ;
 
@@ -59,27 +59,27 @@ rep:
 	atom
 | atom '*' '?'
 	{
-		$$ = add("star_ng", new Node(Node::STAR_NG, $1, 0, 0));
+		$$ = add("star_ng", Node(Node::STAR_NG, $1, 0, 0));
 	}
 | atom '+' '?'
 	{
-		$$ = add("plus_ng", new Node(Node::PLUS_NG, $1, 0, 0));
+		$$ = add("plus_ng", Node(Node::PLUS_NG, $1, 0, 0));
 	}
 |	atom '?' '?'
 	{
-		$$ = add("question_ng", new Node(Node::QUESTION_NG, $1, 0, 0));
+		$$ = add("question_ng", Node(Node::QUESTION_NG, $1, 0, 0));
 	}
 | atom '*'
 	{
-		$$ = add("star", new Node(Node::STAR, $1, 0, 0));
+		$$ = add("star", Node(Node::STAR, $1, 0, 0));
 	}
 | atom '+'
 	{
-		$$ = add("plus", new Node(Node::PLUS, $1, 0, 0));
+		$$ = add("plus", Node(Node::PLUS, $1, 0, 0));
 	}
 |	atom '?'
 	{
-		$$ = add("question", new Node(Node::QUESTION, $1, 0, 0));
+		$$ = add("question", Node(Node::QUESTION, $1, 0, 0));
 	}
 ;
 
@@ -94,54 +94,54 @@ atom:
 literal:
 	CHAR_TOKEN
 	{
-		$$ = add("literal", new Node(Node::LITERAL, 0, 0, $1));
+		$$ = add("literal", Node(Node::LITERAL, 0, 0, $1));
 	}
 | '#'
 	{
-		$$ = add("class", new Node(Node::CHAR_CLASS, 0, 0, '0', '9'));
+		$$ = add("class", Node(Node::CHAR_CLASS, 0, 0, '0', '9'));
 	}
 |	'.'
 	{
-		$$ = add("dot", new Node(Node::DOT, 0, 0, '.'));
+		$$ = add("dot", Node(Node::DOT, 0, 0, '.'));
 	}
 	| '[' '^' charclass ']'
 		{
-			$$ = add("class", new Node(Node::CHAR_CLASS, 0, 0, 0, ~$3->Bits));
+			$$ = add("class", Node(Node::CHAR_CLASS, 0, 0, 0, ~$3->Bits));
 		}
 | '[' charclass ']'
 	{
-		$$ = add("class", new Node(Node::CHAR_CLASS, 0, 0, 0, $2->Bits));
+		$$ = add("class", Node(Node::CHAR_CLASS, 0, 0, 0, $2->Bits));
 	}
 ;
 
 charclass:
 	charclass '#' 
 	{
-		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, 0));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0));
 		$$->Bits = $1->Bits;
 		$$->range('0', '9');
 	}
 | charclass CHAR_TOKEN '-' CHAR_TOKEN
 	{
-		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, 0, $1->Bits));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0, $1->Bits));
 		$$->range($2, $4);
 	}
 | charclass CHAR_TOKEN
 	{
-		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, 0, $1->Bits));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, 0, $1->Bits));
 		$$->Bits.set($2);
 	}
 | CHAR_TOKEN '-' CHAR_TOKEN
 	{
-		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, $1, $3));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, $1, $3));
 	}
 |	'#'
 	{
-		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, '0', '9'));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, '0', '9'));
 	}
 |	CHAR_TOKEN
 	{
-		$$ = add("ignore", new Node(Node::IGNORE, 0, 0, $1));
+		$$ = add("ignore", Node(Node::IGNORE, 0, 0, $1));
 	}
 ;
 
