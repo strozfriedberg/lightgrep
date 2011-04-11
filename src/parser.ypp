@@ -26,9 +26,11 @@ namespace {
   Node* node;
 }
 
-%token <c> CHAR_TOKEN
+%token <c> CHAR
+%token <c> DIGIT
 
-%type <node> regexp alt concat rep atom literal charclass
+%type <node> regexp alt concat rep range number atom literal charclass
+%type <c>    character
 
 %start regexp
 
@@ -41,7 +43,7 @@ regexp: alt
 
 alt:
   concat
-|  alt '|' concat
+| alt '|' concat
   {
     $$ = add("alt", Node(Node::ALTERNATION, $1, $3, 0));
   }
@@ -69,6 +71,11 @@ rep:
   {
     $$ = add("question_ng", Node(Node::QUESTION_NG, $1, 0, 0));
   }
+| atom '{' range '}' '?'
+  {
+    $$ = add("repeat_ng", Node(Node::REPEAT_NG, $1, 0, 0));
+    $$->Val = $3->Val;
+  }
 | atom '*'
   {
     $$ = add("star", Node(Node::STAR, $1, 0, 0));
@@ -77,9 +84,44 @@ rep:
   {
     $$ = add("plus", Node(Node::PLUS, $1, 0, 0));
   }
-|  atom '?'
+| atom '?'
   {
     $$ = add("question", Node(Node::QUESTION, $1, 0, 0));
+  }
+| atom '{' range '}'
+  {
+    $$ = add("repeat", Node(Node::REPEAT, $1, 0, 0));
+    $$->Val = $3->Val;
+  }
+;
+
+range:
+  number ',' number
+  {
+    $$ = $1;
+    $$->Val |= $3->Val << 16;
+  }
+| number ','
+  {
+    $$ = $1;
+    $$->Val |= 0xFFFF0000;
+  }
+| number
+  {
+    $$ = $1;
+    $$->Val |= $$->Val << 16;
+  }
+;
+
+number:
+  DIGIT
+  {
+    $$ = add("ignore", Node(Node::IGNORE, 0, 0, $1 - 48));
+  }
+| number DIGIT
+  {
+    $$ = $1;
+    $$->Val = $$->Val*10 + ($2 - 48);
   }
 ;
 
@@ -88,11 +130,11 @@ atom:
   {
     $$ = $2;
   }
-|  literal
+| literal
 ;
 
 literal:
-  CHAR_TOKEN
+  character
   {
     $$ = add("literal", Node(Node::LITERAL, 0, 0, $1));
   }
@@ -100,7 +142,7 @@ literal:
   {
     $$ = add("class", Node(Node::CHAR_CLASS, 0, 0, '0', '9'));
   }
-|  '.'
+| '.'
   {
     $$ = add("dot", Node(Node::DOT, 0, 0, '.'));
   }
@@ -123,27 +165,48 @@ charclass:
     $$ = $1;
     $$->range('0', '9');
   }
-| charclass CHAR_TOKEN '-' CHAR_TOKEN
+| charclass character '-' character
   {
     $$ = $1;
     $$->range($2, $4);
   }
-| charclass CHAR_TOKEN
+| charclass character
   {
     $$ = $1;
     $$->Bits.set($2);
   }
-| CHAR_TOKEN '-' CHAR_TOKEN
+| character '-' character
   {
     $$ = add("ignore", Node(Node::IGNORE, 0, 0, $1, $3));
   }
-|  '#'
+| '#'
   {
     $$ = add("ignore", Node(Node::IGNORE, 0, 0, '0', '9'));
   }
-|  CHAR_TOKEN
+| character
   {
     $$ = add("ignore", Node(Node::IGNORE, 0, 0, $1));
+  }
+;
+
+character:
+  CHAR
+| DIGIT
+| ','
+  {
+    $$ = ',';
+  }
+| '-'
+  {
+    $$ = '-';
+  }
+| '{'
+  {
+    $$ = '{';
+  }
+| '}'
+  {
+    $$ = '}';
   }
 ;
 
@@ -181,7 +244,7 @@ namespace {
       }
       ret += val;
       yylval.c = ret;
-      return CHAR_TOKEN;
+      return CHAR;
     }
     return -1;
   }
@@ -204,18 +267,20 @@ namespace {
       case ']':
       case '^':
       case '-':
+      case '{':
+      case '}':
       case '\\':
         yylval.c = c;
-        return CHAR_TOKEN;
+        return CHAR;
       case 'n':
         yylval.c = '\n';
-        return CHAR_TOKEN;
+        return CHAR;
       case 'r':
         yylval.c = '\r';
-        return CHAR_TOKEN;
+        return CHAR;
       case 't':
         yylval.c = '\t';
-        return CHAR_TOKEN;
+        return CHAR;
       case 'x':
         return consumeHexCode();
     }
@@ -227,7 +292,7 @@ namespace {
       unsigned int c = *Text++;
       if (LiteralMode) {
         yylval.c = c;
-        return CHAR_TOKEN;
+        return CHAR;
       }
       else {
         switch (c) {
@@ -245,12 +310,27 @@ namespace {
           case ']':
           case '^':
           case '-':
+          case '{':
+          case '}':
+          case ',':
             return c;
           case '\\':
             return consumeEscape();
+          case '0':
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9':
+            yylval.c = c;
+            return DIGIT;
           default:
             yylval.c = c;
-            return CHAR_TOKEN;
+            return CHAR;
         }
       }
     }
