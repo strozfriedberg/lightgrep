@@ -140,56 +140,6 @@ bool reduce_trailing_nongreedy_then_empty(Node *root) {
   return false;
 }
 
-void prune_subtree(Node *n, std::stack<Node*>& branch) {
-  if (n->Type == Node::REGEXP) {
-    n->Left = 0;
-    branch.push(n);
-    return;
-  }
-
-  Node* p = branch.top();
-
-  switch (p->Type) {
-  case Node::REGEXP:
-    // the whole pattern has been pruned!
-    p->Left = 0;
-    break;
-
-  case Node::ALTERNATION:
-  case Node::CONCATENATION:
-    // replace the parent node with the sibling node
-    {
-      Node* sibling = p->Left == n ? p->Right : p->Left;
-
-      branch.pop();
-      Node* gp = branch.top();
-
-      if (gp->Left == p) {
-        gp->Left = sibling;
-      }
-      else {
-        gp->Right = sibling;
-      }
-    }
-    break;
-
-  case Node::PLUS:
-  case Node::STAR:
-  case Node::QUESTION:
-  case Node::PLUS_NG:
-  case Node::STAR_NG:
-  case Node::QUESTION_NG:
-    // prune the parent node
-    branch.pop();
-    prune_subtree(p, branch);
-    break;
-
-  default:
-    // WTF?
-    throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
-  }
-}
-
 bool reduce_trailing_nongreedy(Node* n, std::stack<Node*>& branch) {
   switch (n->Type) {
   case Node::REGEXP:
