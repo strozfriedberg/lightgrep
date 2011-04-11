@@ -19,17 +19,33 @@ bool is_binary(const Node* n) {
 // * concatenation is the parent of an alternation
 //
 
-void open_paren(const Node* n, std::stringstream& ss) {
+void open_paren(const Node* n, std::ostream& out) {
   if (!is_binary(n) && is_binary(n->Left)) {
-    ss << '(';
+    out << '(';
   }
-} 
+}
 
-void close_paren(const Node *n, std::stringstream& ss) {
+void close_paren(const Node *n, std::ostream& out) {
   if (!is_binary(n) && is_binary(n->Left)) {
-    ss << ')';
+    out << ')';
   }
-} 
+}
+
+void range(uint32 r, std::ostream& out) {
+  const uint32 min = r & 0x0000FFFF;
+  const uint32 max = (r & 0xFFFF0000) >> 16;
+
+  out << '{' << min;
+
+  if (max != min) {
+    out << ',';
+    if (max != 0xFFFF) {
+      out << max; 
+    }
+  }
+
+  out << '}';
+}
 
 std::string byteToCharacterString(uint32 i) {
   // all the characters fit to print unescaped
@@ -278,6 +294,13 @@ void unparse(const Node* n, std::stringstream& ss) {
     ss << '?';
     break;
 
+  case Node::REPEAT:
+    open_paren(n, ss);
+    unparse(n->Left, ss);
+    close_paren(n, ss);
+    range(n->Val, ss);
+    break;
+
   case Node::PLUS_NG:
     open_paren(n, ss);
     unparse(n->Left, ss);
@@ -297,6 +320,14 @@ void unparse(const Node* n, std::stringstream& ss) {
     unparse(n->Left, ss);
     close_paren(n, ss);
     ss << "??";
+    break;
+
+  case Node::REPEAT_NG:
+    open_paren(n, ss);
+    unparse(n->Left, ss);
+    close_paren(n, ss);
+    range(n->Val, ss);
+    ss << '?';
     break;
 
   case Node::DOT:
