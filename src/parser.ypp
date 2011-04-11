@@ -3,27 +3,27 @@
 #include "parsetree.h"
 
 namespace {
-	static int yylex(void);
-	static void yyerror(const char*);
-	
-	const unsigned char* Text;
-	const unsigned char* TextBegin;
-	const unsigned char* TextEnd;
-  
+  static int yylex(void);
+  static void yyerror(const char*);
+
+  const unsigned char* Text;
+  const unsigned char* TextBegin;
+  const unsigned char* TextEnd;
+
   ParseTree* Tree;
 
-	bool LiteralMode;
+  bool LiteralMode;
 
-	Node* add(const char* type, const Node& n) {
-		return Tree->add(n);
-	}
+  Node* add(const char* type, const Node& n) {
+    return Tree->add(n);
+  }
 }
 
 %}
 
 %union {
-	unsigned int c;
-	Node* node;
+  unsigned int c;
+  Node* node;
 }
 
 %token <c> CHAR_TOKEN
@@ -35,196 +35,196 @@ namespace {
 %%
 
 regexp: alt
-	{
-		Tree->Root = $$ = add("regexp", Node(Node::REGEXP, $1, 0, 0));
-	}
+  {
+    Tree->Root = $$ = add("regexp", Node(Node::REGEXP, $1, 0, 0));
+  }
 
 alt:
-	concat
-|	alt '|' concat
-	{
-		$$ = add("alt", Node(Node::ALTERNATION, $1, $3, 0));
-	}
+  concat
+|  alt '|' concat
+  {
+    $$ = add("alt", Node(Node::ALTERNATION, $1, $3, 0));
+  }
 ;
 
 concat:
-	rep
+  rep
 | concat rep
-	{
-		$$ = add("concat", Node(Node::CONCATENATION, $1, $2, 0));
-	}
+  {
+    $$ = add("concat", Node(Node::CONCATENATION, $1, $2, 0));
+  }
 ;
 
 rep:
-	atom
+  atom
 | atom '*' '?'
-	{
-		$$ = add("star_ng", Node(Node::STAR_NG, $1, 0, 0));
-	}
+  {
+    $$ = add("star_ng", Node(Node::STAR_NG, $1, 0, 0));
+  }
 | atom '+' '?'
-	{
-		$$ = add("plus_ng", Node(Node::PLUS_NG, $1, 0, 0));
-	}
-|	atom '?' '?'
-	{
-		$$ = add("question_ng", Node(Node::QUESTION_NG, $1, 0, 0));
-	}
+  {
+    $$ = add("plus_ng", Node(Node::PLUS_NG, $1, 0, 0));
+  }
+| atom '?' '?'
+  {
+    $$ = add("question_ng", Node(Node::QUESTION_NG, $1, 0, 0));
+  }
 | atom '*'
-	{
-		$$ = add("star", Node(Node::STAR, $1, 0, 0));
-	}
+  {
+    $$ = add("star", Node(Node::STAR, $1, 0, 0));
+  }
 | atom '+'
-	{
-		$$ = add("plus", Node(Node::PLUS, $1, 0, 0));
-	}
-|	atom '?'
-	{
-		$$ = add("question", Node(Node::QUESTION, $1, 0, 0));
-	}
+  {
+    $$ = add("plus", Node(Node::PLUS, $1, 0, 0));
+  }
+|  atom '?'
+  {
+    $$ = add("question", Node(Node::QUESTION, $1, 0, 0));
+  }
 ;
 
 atom:
-	'(' alt ')'
-	{
-		$$ = $2; 
-	}
-|	literal
+  '(' alt ')'
+  {
+    $$ = $2;
+  }
+|  literal
 ;
 
 literal:
-	CHAR_TOKEN
-	{
-		$$ = add("literal", Node(Node::LITERAL, 0, 0, $1));
-	}
+  CHAR_TOKEN
+  {
+    $$ = add("literal", Node(Node::LITERAL, 0, 0, $1));
+  }
 | '#'
-	{
-		$$ = add("class", Node(Node::CHAR_CLASS, 0, 0, '0', '9'));
-	}
-|	'.'
-	{
-		$$ = add("dot", Node(Node::DOT, 0, 0, '.'));
-	}
-	| '[' '^' charclass ']'
-		{
-      $$ = $3;
-      $$->Type = Node::CHAR_CLASS;
-      $$->Bits.flip();
-		}
-| '[' charclass ']'
-	{
-		$$ = $2;
+  {
+    $$ = add("class", Node(Node::CHAR_CLASS, 0, 0, '0', '9'));
+  }
+|  '.'
+  {
+    $$ = add("dot", Node(Node::DOT, 0, 0, '.'));
+  }
+| '[' '^' charclass ']'
+  {
+    $$ = $3;
     $$->Type = Node::CHAR_CLASS;
-	}
+    $$->Bits.flip();
+  }
+| '[' charclass ']'
+  {
+    $$ = $2;
+    $$->Type = Node::CHAR_CLASS;
+  }
 ;
 
 charclass:
-	charclass '#' 
-	{
-		$$ = $1;
-		$$->range('0', '9');
-	}
-| charclass CHAR_TOKEN '-' CHAR_TOKEN
-	{
-		$$ = $1; 
-		$$->range($2, $4);
-	}
-| charclass CHAR_TOKEN
-	{
+  charclass '#'
+  {
     $$ = $1;
-		$$->Bits.set($2);
-	}
+    $$->range('0', '9');
+  }
+| charclass CHAR_TOKEN '-' CHAR_TOKEN
+  {
+    $$ = $1;
+    $$->range($2, $4);
+  }
+| charclass CHAR_TOKEN
+  {
+    $$ = $1;
+    $$->Bits.set($2);
+  }
 | CHAR_TOKEN '-' CHAR_TOKEN
-	{
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, $1, $3));
-	}
-|	'#'
-	{
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, '0', '9'));
-	}
-|	CHAR_TOKEN
-	{
-		$$ = add("ignore", Node(Node::IGNORE, 0, 0, $1));
-	}
+  {
+    $$ = add("ignore", Node(Node::IGNORE, 0, 0, $1, $3));
+  }
+|  '#'
+  {
+    $$ = add("ignore", Node(Node::IGNORE, 0, 0, '0', '9'));
+  }
+|  CHAR_TOKEN
+  {
+    $$ = add("ignore", Node(Node::IGNORE, 0, 0, $1));
+  }
 ;
 
 %%
 
 namespace {
-	int parseHexChar(unsigned int c) {
-		int val = -1;
-		if ('0' <= c && c <= '9') {
-			val = (c - '0');
-		}
-		else if ('a' <= c && c <= 'f') {
-			val = (c - 'a' + 10);
-		}
-		else if ('A' <= c && c <= 'F') {
-			val = (c - 'A' + 10);
-		}
-		return val;
-	}
+  int parseHexChar(unsigned int c) {
+    int val = -1;
+    if ('0' <= c && c <= '9') {
+      val = (c - '0');
+    }
+    else if ('a' <= c && c <= 'f') {
+      val = (c - 'a' + 10);
+    }
+    else if ('A' <= c && c <= 'F') {
+      val = (c - 'A' + 10);
+    }
+    return val;
+  }
 
-	int consumeHexCode() {
-		if (Text + 1 < TextEnd) {
-			unsigned char one = *Text++,
-					 					two = *Text++;
-			int val = parseHexChar(one),
-					ret;
-			if (val < 0) {
-				return val;
-			}
-			ret = val;
-			ret <<= 4;
-			val = parseHexChar(two);
-			if (val < 0) {
-				return val;
-			}
-			ret += val;
-			yylval.c = ret;
-			return CHAR_TOKEN;
-		}
-		return -1;
-	}
+  int consumeHexCode() {
+    if (Text + 1 < TextEnd) {
+      unsigned char one = *Text++,
+                    two = *Text++;
+      int val = parseHexChar(one),
+          ret;
+      if (val < 0) {
+        return val;
+      }
+      ret = val;
+      ret <<= 4;
+      val = parseHexChar(two);
+      if (val < 0) {
+        return val;
+      }
+      ret += val;
+      yylval.c = ret;
+      return CHAR_TOKEN;
+    }
+    return -1;
+  }
 
-	int consumeEscape() {
-		if (Text >= TextEnd) {
-			return -1;
-		}
-		unsigned int c = *Text++;
-		switch (c) {
-			case '|':
-			case '(':
-			case ')':
-			case '?':
-			case '+':
-			case '*':
-			case '.':
-			case '#':
-			case '[':
-			case ']':
-			case '^':
-			case '-':
-			case '\\':
-				yylval.c = c;
-				return CHAR_TOKEN;
-			case 'n':
-				yylval.c = '\n';
-				return CHAR_TOKEN;
-			case 'r':
-				yylval.c = '\r';
-				return CHAR_TOKEN;
-			case 't':
-				yylval.c = '\t';
-				return CHAR_TOKEN;
-			case 'x':
-				return consumeHexCode();
-		}
-		return -1;
-	}
+  int consumeEscape() {
+    if (Text >= TextEnd) {
+      return -1;
+    }
+    unsigned int c = *Text++;
+    switch (c) {
+      case '|':
+      case '(':
+      case ')':
+      case '?':
+      case '+':
+      case '*':
+      case '.':
+      case '#':
+      case '[':
+      case ']':
+      case '^':
+      case '-':
+      case '\\':
+        yylval.c = c;
+        return CHAR_TOKEN;
+      case 'n':
+        yylval.c = '\n';
+        return CHAR_TOKEN;
+      case 'r':
+        yylval.c = '\r';
+        return CHAR_TOKEN;
+      case 't':
+        yylval.c = '\t';
+        return CHAR_TOKEN;
+      case 'x':
+        return consumeHexCode();
+    }
+    return -1;
+  }
 
-	int yylex(void) {
-		if (Text < TextEnd) {
-			unsigned int c = *Text++;
+  int yylex(void) {
+    if (Text < TextEnd) {
+      unsigned int c = *Text++;
       if (LiteralMode) {
         yylval.c = c;
         return CHAR_TOKEN;
@@ -253,28 +253,28 @@ namespace {
             return CHAR_TOKEN;
         }
       }
-		}
-		return -1;
-	}
+    }
+    return -1;
+  }
 
-	void yyerror(const char* msg) {
-		THROW_RUNTIME_ERROR_WITH_OUTPUT(msg);
-	}
+  void yyerror(const char* msg) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(msg);
+  }
 }
 
 bool parse(const std::string& text, bool litMode, ParseTree& tree) {
   LiteralMode = litMode;
 
-	Text = (unsigned char*)text.c_str();
-	TextBegin = Text;
-	TextEnd = Text + text.size();
+  Text = (unsigned char*)text.c_str();
+  TextBegin = Text;
+  TextEnd = Text + text.size();
 
   Tree = &tree;
   Tree->init(text.size());
 
-	const int ret = yyparse();
+  const int ret = yyparse();
 
   Text = 0;
   Tree = 0;
-	return ret == 0;
+  return ret == 0;
 }
