@@ -350,16 +350,9 @@ bool reduce_trailing_nongreedy(Node* n, std::stack<Node*>& branch) {
 
   case Node::REPEAT_NG:
     if (n->Val & 0x0000FFFF) {
-      // strip out {}?
-      Node* p = branch.top();
-
-      if (p->Left == n) {
-        p->Left = n->Left;
-      }
-      else {
-        p->Right = n->Left;
-      }
-
+      // convert to {n}
+      n->Type = Node::REPEAT;
+      n->Val = ((n->Val & 0x0000FFFF) << 16) | (n->Val & 0x0000FFFF);
       reduce_trailing_nongreedy(n->Left, branch);
     }
     else {
