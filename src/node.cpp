@@ -23,6 +23,10 @@ std::ostream& operator<<(std::ostream& out, const Node& n) {
   case Node::QUESTION:
     out << '?';
     break;
+  case Node::REPEAT:
+    out << '{' << (n.Val & 0x0000FFFF) << ','
+               << ((n.Val & 0xFFFF0000) >> 16) << '}';
+    break;
   case Node::PLUS_NG:
     out << "+?";
     break;
@@ -31,6 +35,10 @@ std::ostream& operator<<(std::ostream& out, const Node& n) {
     break;
   case Node::QUESTION_NG:
     out << "??";
+    break;
+  case Node::REPEAT_NG:
+    out << '{' << (n.Val & 0x0000FFFF) << ','
+               << ((n.Val & 0xFFFF0000) >> 16) << "}?";
     break;
   case Node::ELEMENT:
     out << "ELEMENT";
