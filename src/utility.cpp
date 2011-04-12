@@ -59,7 +59,9 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
       }
       catch (std::exception& e) {
         std::cerr << "Exception on keyword \"" << kw <<  "\" (" << i << "): " << e.what() << std::endl;
-        std::cerr << "Currently " << fsm->numVertices() << " vertices" << std::endl;
+        if (fsm) {
+          std::cerr << "Currently " << fsm->numVertices() << " vertices" << std::endl;
+        }
         throw;
       }
       // if (i && i % 10000 == 0) {
