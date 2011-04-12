@@ -586,8 +586,6 @@ SCOPE_TEST(parseaSQb) {
   SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
-
-
 SCOPE_TEST(parseDot) {
   NFABuilder nfab;
   ParseTree tree;
@@ -891,3 +889,140 @@ SCOPE_TEST(parseZeroDotStarZero) {
   SCOPE_ASSERT_EQUAL(2, g.inVertex(3, 1));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));  
 }
+
+#define TEST_REPETITION_N(pattern, n) \
+  std::stringstream ss; \
+  ss << pattern << '{' << n << '}'; \
+\
+  NFABuilder nfab; \
+  Graph& g(*nfab.getFsm()); \
+  ParseTree tree; \
+  SCOPE_ASSERT(parse(ss.str(), false, tree)); \
+  SCOPE_ASSERT(nfab.build(tree)); \
+\
+  SCOPE_ASSERT_EQUAL(n + 1, g.numVertices()); \
+\
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0)); \
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0)); \
+\
+  for (uint32 i = 1; i < n; ++i) { \
+    SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
+    SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
+    SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
+    SCOPE_ASSERT(!g[i]->IsMatch); \
+  } \
+\
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(n)); \
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(n)); \
+  SCOPE_ASSERT(g[n]->IsMatch);
+
+SCOPE_TEST(parse_aLCnRC) {
+  for (uint c = 1; c < 100; ++c) {
+    TEST_REPETITION_N("a", c);
+  }
+}
+
+#define TEST_REPETITION_N_U(pattern, n) \
+  std::stringstream ss; \
+  ss << pattern << '{' << n << ",}"; \
+\
+  NFABuilder nfab; \
+  Graph& g(*nfab.getFsm()); \
+  ParseTree tree; \
+  SCOPE_ASSERT(parse(ss.str(), false, tree)); \
+  SCOPE_ASSERT(nfab.build(tree)); \
+\
+  SCOPE_ASSERT_EQUAL(n + 1, g.numVertices()); \
+\
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0)); \
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0)); \
+\
+  for (uint32 i = 1; i < n; ++i) { \
+    SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
+    SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
+    SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
+    SCOPE_ASSERT(!g[i]->IsMatch); \
+  } \
+\
+  SCOPE_ASSERT_EQUAL(2u, g.inDegree(n)); \
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(n)); \
+  SCOPE_ASSERT_EQUAL(n, g.outVertex(n, 0)); \
+  SCOPE_ASSERT(g[n]->IsMatch);
+
+SCOPE_TEST(parse_aLCn_RC) {
+  for (uint n = 1; n < 100; ++n) {
+    TEST_REPETITION_N_U("a", n);
+  }
+}
+
+SCOPE_TEST(parse_xa0_) {
+  NFABuilder nfab;
+  Graph& g(*nfab.getFsm());
+  ParseTree tree;
+  SCOPE_ASSERT(parse("xa{0,}", false, tree));
+  SCOPE_ASSERT(nfab.build(tree));
+  
+  SCOPE_ASSERT_EQUAL(3u, g.numVertices());
+
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+
+  SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(2, 0));
+
+  SCOPE_ASSERT(g[1]->IsMatch);
+  SCOPE_ASSERT(g[2]->IsMatch);
+}
+
+#define TEST_REPETITION_N_M(pattern, n, m) \
+  std::stringstream ss; \
+  ss << pattern << '{' << n << ',' << m << '}'; \
+\
+  NFABuilder nfab; \
+  Graph& g(*nfab.getFsm()); \
+  ParseTree tree; \
+  SCOPE_ASSERT(parse(ss.str(), false, tree)); \
+  SCOPE_ASSERT(nfab.build(tree)); \
+\
+  SCOPE_ASSERT_EQUAL(m + 1, g.numVertices()); \
+\
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0)); \
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0)); \
+\
+  for (uint32 i = 1; i < n; ++i) { \
+    SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
+    SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
+    SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
+    SCOPE_ASSERT(!g[i]->IsMatch); \
+  } \
+\
+  for (uint32 i = n; i < m; ++i) { \
+    SCOPE_ASSERT_EQUAL(i == n ? 1 : i-n, g.inDegree(i)); \
+    SCOPE_ASSERT_EQUAL(m-i, g.outDegree(i)); \
+    for (uint32 j = 0; j < m-i; ++j) { \
+      SCOPE_ASSERT_EQUAL(i+j+1, g.outVertex(i, j)); \
+    } \
+    SCOPE_ASSERT(g[i]->IsMatch); \
+  } \
+\
+  SCOPE_ASSERT_EQUAL(m == n ? 1 : m-n, g.inDegree(m)); \
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(m)); \
+  SCOPE_ASSERT(g[m]->IsMatch);
+
+SCOPE_TEST(parse_aLCn_mRC) {
+  for (uint n = 1; n < 5; ++n) {
+    for (uint m = n; m < 5; ++m) { 
+      TEST_REPETITION_N_M("a", n, m);
+    }
+  }
+}
+
