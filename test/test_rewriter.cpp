@@ -536,7 +536,7 @@ SCOPE_TEST(reduceTrailingNongreedyThenEmptyTest) {
 
   SCOPE_ASSERT(parse("a{1,5}?b{0,1}", false, tree));
   SCOPE_ASSERT(reduce_trailing_nongreedy_then_empty(tree.Root));
-  SCOPE_ASSERT_EQUAL("ab{0,1}", unparse(tree));
+  SCOPE_ASSERT_EQUAL("a{1}b{0,1}", unparse(tree));
 }
 
 SCOPE_TEST(reduceEmptyRepetitionsTest) {
@@ -569,4 +569,24 @@ SCOPE_TEST(reduceEmptyRepetitionsTest) {
   SCOPE_ASSERT(parse("a{1,2}", false, tree));
   SCOPE_ASSERT(!reduce_empty_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("a{1,2}", unparse(tree));
+}
+
+SCOPE_TEST(reduceExactNongreedyRepetitionsTest) {
+  ParseTree tree;
+
+  SCOPE_ASSERT(parse("a", false, tree));
+  SCOPE_ASSERT(!reduce_exact_nongreedy_repetitions(tree.Root));
+  SCOPE_ASSERT_EQUAL("a", unparse(tree));
+
+  SCOPE_ASSERT(parse("a{1}", false, tree));
+  SCOPE_ASSERT(!reduce_exact_nongreedy_repetitions(tree.Root));
+  SCOPE_ASSERT_EQUAL("a{1}", unparse(tree));
+
+  SCOPE_ASSERT(parse("a{1}?", false, tree));
+  SCOPE_ASSERT(reduce_exact_nongreedy_repetitions(tree.Root));
+  SCOPE_ASSERT_EQUAL("a{1}", unparse(tree));
+
+  SCOPE_ASSERT(parse("a{1,2}?", false, tree));
+  SCOPE_ASSERT(!reduce_exact_nongreedy_repetitions(tree.Root));
+  SCOPE_ASSERT_EQUAL("a{1,2}?", unparse(tree));
 }
