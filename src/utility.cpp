@@ -68,7 +68,10 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
     }
   }
   // std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
-  comp.labelGuardStates(*fsm);
+
+  if (fsm) {
+    comp.labelGuardStates(*fsm);
+  }
 }
 
 GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode) {
