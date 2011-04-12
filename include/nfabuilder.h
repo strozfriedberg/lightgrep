@@ -64,9 +64,11 @@ public:
   void star(const Node& n);
   void plus(const Node& n);
   void question(const Node& n);
+  void repeat(const Node& n);
   void star_ng(const Node& n);
   void plus_ng(const Node& n);
   void question_ng(const Node& n);
+  void repeat_ng(const Node& n);
   void literal(const Node& n);
   void dot(const Node& n);
   void charClass(const Node& n, const std::string& lbl);

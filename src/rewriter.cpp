@@ -56,6 +56,10 @@ bool has_zero_length_match(const Node *n) {
   case Node::CONCATENATION:
     return has_zero_length_match(n->Left) && has_zero_length_match(n->Right);
 
+  case Node::REPEAT:
+  case Node::REPEAT_NG:
+    return (n->Val & 0x0000FFFF) == 0 || has_zero_length_match(n->Left);
+   
   case Node::DOT:
   case Node::CHAR_CLASS:
   case Node::LITERAL:
@@ -99,7 +103,121 @@ bool prefers_zero_length_match(const Node* n) {
   }
 }
 
-bool reduce_trailing_nongreedy_then_empty(Node *root) {
+/*
+bool expand_counted_repetition(Node *n) {
+  switch (n->Type) {
+  case Node::REGEXP:
+  case Node::PLUS:
+  case Node::STAR:
+  case Node::QUESTION:
+  case Node::PLUS_NG:
+  case Node::STAR_NG:
+  case Node::QUESTION_NG:
+    // these are not the nodes you're looking for
+    return expand_counted_repetition(n->Left);
+
+  case Node::ALTERNATION:
+  case Node::CONCATENATION:
+    bool ret = expand_counted_repetition(n->Left);
+    ret |= expand_counted_repetition(n->Right);
+    return ret;
+
+  case Node::REPEAT:
+    {
+      const uint32 min = n->Val & 0x0000FFFF;
+      const uint32 max = (n->Val & 0xFFFF0000) >> 16;
+      
+      
+
+
+    }
+
+  case Node::REPEAT_NG:
+
+  case Node::DOT:
+  case Node::CHAR_CLASS:
+  case Node::LITERAL:
+    // branch finished
+    return false;
+
+  default:
+    // WTF?
+    throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
+  }
+
+  return false;
+}
+*/
+
+bool reduce_empty_repetitions(Node* n, std::stack<Node*>& branch) {
+  switch (n->Type) {
+  case Node::REGEXP:
+    if (!n->Left) {
+      return false;
+    }
+  case Node::PLUS:
+  case Node::STAR:
+  case Node::QUESTION:
+  case Node::PLUS_NG:
+  case Node::STAR_NG:
+  case Node::QUESTION_NG:
+    // these are not the nodes you're looking for
+    branch.push(n);
+    return reduce_empty_repetitions(n->Left, branch);
+
+  case Node::ALTERNATION:
+  case Node::CONCATENATION:
+    {
+      branch.push(n);
+      std::stack<Node*> orig_branch(branch);
+
+      const bool lreduce = reduce_empty_repetitions(n->Left, branch);
+
+      if (n->Left) {
+        // The left alternative wasn't pruned away, so we have to traverse
+        // the subtree of the right alternative ourselves.
+        return reduce_empty_repetitions(n->Right, orig_branch) || lreduce;
+      }
+      else {
+        // The left alternative was pruned away, so the right alternative
+        // was moved up the tree and has already been traversed.
+        return lreduce;
+      }
+    }
+
+  case Node::REPEAT:
+  case Node::REPEAT_NG:
+    {
+      const uint32 min = n->Val & 0x0000FFFF;
+      const uint32 max = (n->Val & 0xFFFF0000) >> 16;
+
+      if (min == 0 && max == 0) {
+        // prune this subtree 
+        prune_subtree(n, branch);
+        n = branch.top();
+        branch.pop();
+        reduce_empty_repetitions(n, branch);
+        return true;
+      }
+    }
+
+  case Node::DOT:
+  case Node::CHAR_CLASS:
+  case Node::LITERAL:
+    // branch finished
+    return false;
+  default:
+    // WTF?
+    throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
+  }
+}
+
+bool reduce_empty_repetitions(Node* root) {
+  std::stack<Node*> branch;
+  return reduce_empty_repetitions(root, branch);
+}
+
+bool reduce_trailing_nongreedy_then_empty(Node* root) {
   // Look for S+?T along trailing branches, where T admits zero-length
   // matches.
 
@@ -110,15 +228,19 @@ bool reduce_trailing_nongreedy_then_empty(Node *root) {
     case Node::PLUS:
     case Node::STAR:
     case Node::QUESTION:
+    case Node::REPEAT:
     case Node::ALTERNATION:
     case Node::PLUS_NG:
     case Node::STAR_NG:
     case Node::QUESTION_NG:
+    case Node::REPEAT_NG:
       // these are not the nodes you're looking for
       break;
 
     case Node::CONCATENATION:
-      if (n->Left->Type == Node::PLUS_NG && has_zero_length_match(n->Right)) {
+      if ((n->Left->Type == Node::PLUS_NG ||
+           (n->Left->Type == Node::REPEAT_NG && (n->Left->Val & 0x0000FFFF)))
+          && has_zero_length_match(n->Right)) {
         n->Left = n->Left->Left;
         return true;
       }
@@ -199,6 +321,7 @@ bool reduce_trailing_nongreedy(Node* n, std::stack<Node*>& branch) {
   case Node::PLUS:
   case Node::STAR:
   case Node::QUESTION:
+  case Node::REPEAT:
     branch.push(n);
     return reduce_trailing_nongreedy(n->Left, branch);
 
@@ -224,6 +347,29 @@ bool reduce_trailing_nongreedy(Node* n, std::stack<Node*>& branch) {
         return lreduce;
       }
     }
+
+  case Node::REPEAT_NG:
+    if (n->Val & 0x0000FFFF) {
+      // strip out {}?
+      Node* p = branch.top();
+
+      if (p->Left == n) {
+        p->Left = n->Left;
+      }
+      else {
+        p->Right = n->Left;
+      }
+
+      reduce_trailing_nongreedy(n->Left, branch);
+    }
+    else {
+      // prune this subtree
+      prune_subtree(n, branch);
+      n = branch.top();
+      branch.pop();
+      reduce_trailing_nongreedy(n, branch);
+    } 
+    return true;
 
   case Node::PLUS_NG:
     // strip out +?

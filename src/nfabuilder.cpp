@@ -212,6 +212,23 @@ void NFABuilder::star_ng(const Node& n) {
   question_ng(n);
 }
 
+void NFABuilder::repeat(const Node& n) {
+/*
+  const uint32 min = n.Val & 0x0000FFFF;
+  const uint32 max = (n.Val & 0xFFFF0000) >> 16;
+  
+  Fragment& repeat = Stack.top();
+  for (uint32 i = 0; i < min; ++i) {
+    
+
+  }
+*/
+}
+
+void NFABuilder::repeat_ng(const Node& n) {
+
+}
+
 void NFABuilder::alternate(const Node& n) {
   Fragment second = Stack.top();
   Stack.pop();
@@ -304,11 +321,138 @@ void NFABuilder::finish(const Node& n) {
   }
 }
 
+void printTree(std::ostream& out, const Node& n) {
+  if (n.Left) {
+    printTree(out, *n.Left);
+  }
+  
+  if (n.Right) {
+    printTree(out, *n.Right);
+  }
+
+  out << n << '\n';
+}
+
 void NFABuilder::traverse(const Node* n) {
 
   if (n->Left) {
     // this node has a left child
-    traverse(n->Left);
+    
+    if (n->Type == Node::REPEAT) {
+      const uint32 min = n->Val & 0x0000FFFF;
+      const uint32 max = (n->Val & 0xFFFF0000) >> 16;
+
+      //
+      // T{n} = T...T 
+      //          ^
+      //        n times
+      //
+      // T{n,} = T...TT*
+      //           ^
+      //         n times
+      //
+      // T{n,m} = T...TT?...T?
+      //            ^     ^
+      //       n times   m-n times
+      //
+
+      if (min == 0 && max == 1) {
+        Node question(Node::QUESTION, n->Left, 0, 0);
+        traverse(&question);
+      }
+      else if (min == 1 && max == 1) {
+        // nothing to do for {1} and {1,1}
+        traverse(n->Left);
+      }
+      else if (min == 0 && max == 0x0000FFFF) {
+        Node star(Node::STAR, n->Left, 0, 0);
+        traverse(&star); 
+      }
+      else if (min == 1 && max == 0x0000FFFF) {
+        Node plus(Node::PLUS, n->Left, 0, 0);
+        traverse(&plus); 
+      }
+      else {
+        // determine the size of the repetition tree
+        uint32 size; 
+                 
+        if (min == max) {
+          size = min - 1;
+        }
+        else if (max == 0xFFFF) {
+          size = min + 1;
+        }
+        else {
+          size = 2*max - min - 1;
+        }
+
+        ParseTree rep;
+        rep.init(size);
+
+        rep.Root = rep.add(Node(Node::CONCATENATION, 0, 0, 0));
+        Node* parent = rep.Root;
+
+        if (min > 0) {
+          // build the mandatory part (1 to min)
+          parent->Left = n->Left;
+
+          for (uint32 i = 1; i < min - 1; ++i) {
+            Node* con = rep.add(Node(Node::CONCATENATION, n->Left, 0, 0));
+            parent->Right = con;
+            parent = con;
+          }
+        }
+
+        if (min == max) {
+          parent->Right = n->Left;
+        }
+        else if (max == 0xFFFF) {
+          // build the unbounded optional part 
+          Node* plus = rep.add(Node(Node::PLUS, n->Left, 0, 0));
+          parent->Right = plus;
+        }
+        else {
+          // build the bounded optional part (min+1 to max)
+
+          if (min == 0) {
+            Node* question = rep.add(Node(Node::QUESTION, n->Left, 0, 0));
+            parent->Left = question;
+
+            for (uint32 i = 0; i < max - min - 2; ++i) {
+              Node* question = rep.add(Node(Node::QUESTION, n->Left, 0, 0));
+              Node* con = rep.add(Node(Node::CONCATENATION, question, 0, 0));
+              parent->Right = con;
+              parent = con;
+            }
+          }
+          else {
+            if (min == 1) {
+
+            }
+            else {
+              Node* con = rep.add(Node(Node::CONCATENATION, n->Left, 0, 0));
+              parent->Right = con;
+              parent = con;
+            }
+
+            for (uint32 i = 0; i < max - min - 1; ++i) {
+              Node* question = rep.add(Node(Node::QUESTION, n->Left, 0, 0));
+              Node* con = rep.add(Node(Node::CONCATENATION, question, 0, 0));
+              parent->Right = con;
+              parent = con;
+            }
+          }
+
+          Node* question = rep.add(Node(Node::QUESTION, n->Left, 0, 0));
+          parent->Right = question;
+        } 
+
+        traverse(rep.Root);
+      }
+    }
+    else {
+      traverse(n->Left);
+    }
   }
 
   if (n->Right) {
@@ -345,6 +489,9 @@ void NFABuilder::callback(const std::string& type, const Node& n) {
     case Node::QUESTION:
       question(n);
       break;
+    case Node::REPEAT:
+      repeat(n);
+      break;
     case Node::PLUS_NG:
       plus_ng(n);
       break;
@@ -353,6 +500,9 @@ void NFABuilder::callback(const std::string& type, const Node& n) {
       break;
     case Node::QUESTION_NG:
       question_ng(n);
+      break;
+    case Node::REPEAT_NG:
+      repeat_ng(n);
       break;
     case Node::DOT:
       dot(n);
