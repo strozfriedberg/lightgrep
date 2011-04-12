@@ -338,7 +338,8 @@ void NFABuilder::traverse(const Node* n) {
   if (n->Left) {
     // this node has a left child
     
-    if (n->Type == Node::REPEAT) {
+    if (n->Type == Node::REPEAT || n->Type == Node::REPEAT_NG) {
+      const bool ng = n->Type == Node::REPEAT_NG;
       const uint32 min = n->Val & 0x0000FFFF;
       const uint32 max = (n->Val & 0xFFFF0000) >> 16;
 
@@ -357,7 +358,7 @@ void NFABuilder::traverse(const Node* n) {
       //
 
       if (min == 0 && max == 1) {
-        Node question(Node::QUESTION, n->Left, 0, 0);
+        Node question(ng ? Node::QUESTION_NG : Node::QUESTION, n->Left, 0, 0);
         traverse(&question);
       }
       else if (min == 1 && max == 1) {
@@ -365,11 +366,11 @@ void NFABuilder::traverse(const Node* n) {
         traverse(n->Left);
       }
       else if (min == 0 && max == 0x0000FFFF) {
-        Node star(Node::STAR, n->Left, 0, 0);
+        Node star(ng ? Node::STAR_NG : Node::STAR, n->Left, 0, 0);
         traverse(&star); 
       }
       else if (min == 1 && max == 0x0000FFFF) {
-        Node plus(Node::PLUS, n->Left, 0, 0);
+        Node plus(ng ? Node::PLUS_NG : Node::PLUS, n->Left, 0, 0);
         traverse(&plus); 
       }
       else {
@@ -408,18 +409,18 @@ void NFABuilder::traverse(const Node* n) {
         }
         else if (max == 0xFFFF) {
           // build the unbounded optional part 
-          Node* plus = rep.add(Node(Node::PLUS, n->Left, 0, 0));
+          Node* plus = rep.add(Node(ng ? Node::PLUS_NG : Node::PLUS, n->Left, 0, 0));
           parent->Right = plus;
         }
         else {
           // build the bounded optional part (min+1 to max)
 
           if (min == 0) {
-            Node* question = rep.add(Node(Node::QUESTION, n->Left, 0, 0));
+            Node* question = rep.add(Node(ng ? Node::QUESTION_NG : Node::QUESTION, n->Left, 0, 0));
             parent->Left = question;
 
             for (uint32 i = 0; i < max - min - 2; ++i) {
-              Node* question = rep.add(Node(Node::QUESTION, n->Left, 0, 0));
+              Node* question = rep.add(Node(ng ? Node::QUESTION_NG : Node::QUESTION, n->Left, 0, 0));
               Node* con = rep.add(Node(Node::CONCATENATION, question, 0, 0));
               parent->Right = con;
               parent = con;
@@ -436,14 +437,14 @@ void NFABuilder::traverse(const Node* n) {
             }
 
             for (uint32 i = 0; i < max - min - 1; ++i) {
-              Node* question = rep.add(Node(Node::QUESTION, n->Left, 0, 0));
+              Node* question = rep.add(Node(ng ? Node::QUESTION_NG : Node::QUESTION, n->Left, 0, 0));
               Node* con = rep.add(Node(Node::CONCATENATION, question, 0, 0));
               parent->Right = con;
               parent = con;
             }
           }
 
-          Node* question = rep.add(Node(Node::QUESTION, n->Left, 0, 0));
+          Node* question = rep.add(Node(ng ? Node::QUESTION_NG : Node::QUESTION, n->Left, 0, 0));
           parent->Right = question;
         } 
 
