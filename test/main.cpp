@@ -34,7 +34,9 @@ void writeGraphviz(const Options& opts) {
   std::vector<std::string> keys = opts.getKeys();
   if (!keys.empty()) {
     GraphPtr fsm = createGraph(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
-    writeGraphviz(opts.openOutput(), *fsm);
+    if (fsm) {
+      writeGraphviz(opts.openOutput(), *fsm);
+    }
   }
 }
 
@@ -42,10 +44,12 @@ void writeProgram(const Options& opts) {
   std::vector<std::string> keys = opts.getKeys();
   if (!keys.empty()) {
     GraphPtr fsm = createGraph(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
-    ProgramPtr p = createProgram(*fsm);
-    std::ostream& out(opts.openOutput());
-    out << p->size() << " instructions" << std::endl;
-    out << *p;
+    if (fsm) {
+      ProgramPtr p = createProgram(*fsm);
+      std::ostream& out(opts.openOutput());
+      out << p->size() << " instructions" << std::endl;
+      out << *p;
+    }
   }
 }
 
