@@ -37,6 +37,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
           }
 
           if (kw.find('?',1) != std::string::npos) {
+            reduce_exact_nongreedy_repetitions(tree.Root);
             reduce_trailing_nongreedy(tree.Root);
             reduce_trailing_nongreedy_then_empty(tree.Root);
           }
