@@ -276,7 +276,7 @@ SCOPE_TEST(reduceTrailingNongreedyTest) {
 
   SCOPE_ASSERT(parse("a{1}?", false, tree));
   SCOPE_ASSERT(reduce_trailing_nongreedy(tree.Root));
-  SCOPE_ASSERT_EQUAL("a", unparse(tree));
+  SCOPE_ASSERT_EQUAL("a{1}", unparse(tree));
 
   SCOPE_ASSERT(parse("a{0,1}?", false, tree));
   SCOPE_ASSERT(reduce_trailing_nongreedy(tree.Root));
@@ -288,15 +288,15 @@ SCOPE_TEST(reduceTrailingNongreedyTest) {
 
   SCOPE_ASSERT(parse("a{1,}?", false, tree));
   SCOPE_ASSERT(reduce_trailing_nongreedy(tree.Root));
-  SCOPE_ASSERT_EQUAL("a", unparse(tree));
+  SCOPE_ASSERT_EQUAL("a{1}", unparse(tree));
 
   SCOPE_ASSERT(parse("a{1,1}?", false, tree));
   SCOPE_ASSERT(reduce_trailing_nongreedy(tree.Root));
-  SCOPE_ASSERT_EQUAL("a", unparse(tree));
+  SCOPE_ASSERT_EQUAL("a{1}", unparse(tree));
 
   SCOPE_ASSERT(parse("a{1,2}?", false, tree));
   SCOPE_ASSERT(reduce_trailing_nongreedy(tree.Root));
-  SCOPE_ASSERT_EQUAL("a", unparse(tree));
+  SCOPE_ASSERT_EQUAL("a{1}", unparse(tree));
 
   SCOPE_ASSERT(parse("ab", false, tree));
   SCOPE_ASSERT(!reduce_trailing_nongreedy(tree.Root));
