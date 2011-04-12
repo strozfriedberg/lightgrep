@@ -5,7 +5,7 @@
 template <class InputIterator> 
 void throw_unrecognized_alpha(InputIterator i_beg, InputIterator i_end) {
   std::ostringstream ss;
-  ss << "unrecognized quantifier: " << std::string(i_beg, i_end);
+  ss << "unrecognized alpha: " << std::string(i_beg, i_end);
   throw std::runtime_error(ss.str());
 }
 
