@@ -304,7 +304,7 @@ void NFABuilder::finish(const Node& n) {
   }
 }
 
-void NFABuilder::traverse(Node* n) {
+void NFABuilder::traverse(const Node* n) {
 
   if (n->Left) {
     // this node has a left child
