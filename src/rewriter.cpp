@@ -212,6 +212,59 @@ bool reduce_empty_repetitions(Node* n, std::stack<Node*>& branch) {
   }
 }
 
+bool reduce_exact_nongreedy_repetitions(Node* root) {
+  std::stack<Node*> stack;
+  stack.push(root);
+  bool changed = false;
+
+  while (!stack.empty()) {
+    Node* n = stack.top();
+    stack.pop();
+
+    switch (n->Type) {
+    case Node::REGEXP:
+      if (!n->Left) {
+        return changed;
+      }
+    case Node::PLUS:
+    case Node::STAR:
+    case Node::QUESTION:
+    case Node::REPEAT:
+    case Node::PLUS_NG:
+    case Node::STAR_NG:
+    case Node::QUESTION_NG:
+      // these are not the nodes you're looking for
+      stack.push(n->Left);
+      break;
+
+    case Node::REPEAT_NG:
+      if (((n->Val & 0xFFFF0000) >> 16) == (n->Val & 0x0000FFFF)) {
+        n->Type = Node::REPEAT;
+        changed = true;
+      }
+      stack.push(n->Left);
+      break;
+
+    case Node::ALTERNATION:
+    case Node::CONCATENATION:
+      stack.push(n->Left);
+      stack.push(n->Right);
+      break;
+
+    case Node::DOT:
+    case Node::CHAR_CLASS:
+    case Node::LITERAL:
+      // branch finished
+      break;
+    default:
+      // WTF?
+      throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
+    }
+  }
+
+  return changed;
+}
+
 bool reduce_empty_repetitions(Node* root) {
   std::stack<Node*> branch;
   return reduce_empty_repetitions(root, branch);
@@ -238,10 +291,16 @@ bool reduce_trailing_nongreedy_then_empty(Node* root) {
       break;
 
     case Node::CONCATENATION:
-      if ((n->Left->Type == Node::PLUS_NG ||
-           (n->Left->Type == Node::REPEAT_NG && (n->Left->Val & 0x0000FFFF)))
-          && has_zero_length_match(n->Right)) {
+      if (n->Left->Type == Node::PLUS_NG && has_zero_length_match(n->Right)) {
+        // replace +? with its operand
         n->Left = n->Left->Left;
+        return true;
+      }
+      else if (n->Left->Type == Node::REPEAT_NG &&
+               (n->Left->Val & 0x0000FFFF) && has_zero_length_match(n->Right)) {
+        // replace {n,m}? with {n}
+        n->Left->Type = Node::REPEAT;
+        n->Left->Val = ((n->Left->Val & 0x0000FFFF) << 16) | (n->Left->Val & 0x0000FFFF);
         return true;
       }
       break;
