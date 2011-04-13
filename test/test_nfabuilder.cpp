@@ -918,7 +918,7 @@ SCOPE_TEST(parseZeroDotStarZero) {
   SCOPE_ASSERT(g[n]->IsMatch);
 
 SCOPE_TEST(parse_aLCnRC) {
-  for (uint c = 1; c < 100; ++c) {
+  for (uint32 c = 1; c < 100; ++c) {
     TEST_REPETITION_N("a", c);
   }
 }
@@ -952,7 +952,7 @@ SCOPE_TEST(parse_aLCnRC) {
   SCOPE_ASSERT(g[n]->IsMatch);
 
 SCOPE_TEST(parse_aLCn_RC) {
-  for (uint n = 1; n < 100; ++n) {
+  for (uint32 n = 1; n < 100; ++n) {
     TEST_REPETITION_N_U("a", n);
   }
 }
@@ -1016,7 +1016,7 @@ SCOPE_TEST(parse_aLC0_RCQb) {
   SCOPE_ASSERT(g[n]->IsMatch);
 
 SCOPE_TEST(parse_aLCn_RCQb) {
-  for (uint n = 1; n < 100; ++n) {
+  for (uint32 n = 1; n < 100; ++n) {
     TEST_REPETITION_N_U("a", n);
   }
 }
@@ -1081,8 +1081,8 @@ SCOPE_TEST(parse_xa0_) {
   SCOPE_ASSERT(g[m]->IsMatch);
 
 SCOPE_TEST(parse_aLCn_mRC) {
-  for (uint n = 1; n < 5; ++n) {
-    for (uint m = n; m < 5; ++m) {
+  for (uint32 n = 1; n < 5; ++n) {
+    for (uint32 m = n; m < 5; ++m) {
       TEST_REPETITION_N_M("a", n, m);
     }
   }
