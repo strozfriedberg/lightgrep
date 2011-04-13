@@ -1006,21 +1006,19 @@ SCOPE_TEST(parse_xa0_) {
   } \
 \
   for (uint32 i = n; i < m; ++i) { \
-    SCOPE_ASSERT_EQUAL(i == n ? 1 : i-n, g.inDegree(i)); \
-    SCOPE_ASSERT_EQUAL(m-i, g.outDegree(i)); \
-    for (uint32 j = 0; j < m-i; ++j) { \
-      SCOPE_ASSERT_EQUAL(i+j+1, g.outVertex(i, j)); \
-    } \
+    SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
+    SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
+    SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
     SCOPE_ASSERT(g[i]->IsMatch); \
   } \
 \
-  SCOPE_ASSERT_EQUAL(m == n ? 1 : m-n, g.inDegree(m)); \
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(m)); \
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(m)); \
   SCOPE_ASSERT(g[m]->IsMatch);
 
 SCOPE_TEST(parse_aLCn_mRC) {
   for (uint n = 1; n < 5; ++n) {
-    for (uint m = n; m < 5; ++m) { 
+    for (uint m = n; m < 5; ++m) {
       TEST_REPETITION_N_M("a", n, m);
     }
   }
