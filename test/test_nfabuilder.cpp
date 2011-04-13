@@ -1088,11 +1088,11 @@ SCOPE_TEST(parse_aLCn_mRC) {
   }
 }
 
-SCOPE_TEST(parse_aLC1_2RCQb) {
+SCOPE_TEST(parse_aaQQb) {
   NFABuilder nfab;
   Graph& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("a{1,2}?b", false, tree));
+  SCOPE_ASSERT(parse("aa??b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
   
   SCOPE_ASSERT_EQUAL(4u, g.numVertices());
