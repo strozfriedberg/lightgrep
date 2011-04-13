@@ -1088,3 +1088,33 @@ SCOPE_TEST(parse_aLCn_mRC) {
   }
 }
 
+SCOPE_TEST(parse_aLC1_2RCQb) {
+  NFABuilder nfab;
+  Graph& g(*nfab.getFsm());
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a{1,2}?b", false, tree));
+  SCOPE_ASSERT(nfab.build(tree));
+  
+  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(3, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 1));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(3, g.outVertex(2, 0));
+
+  SCOPE_ASSERT_EQUAL(2u, g.inDegree(3));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
+
+  SCOPE_ASSERT(!g[1]->IsMatch);
+  SCOPE_ASSERT(!g[2]->IsMatch);
+  SCOPE_ASSERT(g[3]->IsMatch);
+}
+
