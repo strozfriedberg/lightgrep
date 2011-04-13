@@ -1,64 +1,63 @@
 #include "node.h"
 
+void repetition(std::ostream& out, uint32 min, uint32 max) {
+  if (min == 0) {
+    if (max == 1) {
+      // ? is {0,1}
+      out << '?';
+      return;
+    }
+    else if (max == UNBOUNDED) {
+      // * is {0,}
+      out << '*';
+      return;
+    }
+  }
+  else if (min == 1 && max == UNBOUNDED) {
+    // + is {1,}
+    out << '+';
+    return;
+  }
+
+  out << '{' << min;
+
+  if (max == UNBOUNDED) {
+    out << ',';
+  }
+  else if (max != min) {
+    out << ',' << max;
+  }
+
+  out << '}';
+}
+
 std::ostream& operator<<(std::ostream& out, const Node& n) {
   switch (n.Type) {
   case Node::REGEXP:
-    out << "REGEXP";
-    break;
+    return out << "REGEXP";
   case Node::ALTERNATION:
-    out << '|';
-    break;
+    return out << '|';
   case Node::CONCATENATION:
-    out << '&';
-    break;
+    return out << '&';
   case Node::GROUP:
-    out << '(';
-    break;
-  case Node::PLUS:
-    out << '+';
-    break;
-  case Node::STAR:
-    out << '*';
-    break;
-  case Node::QUESTION:
-    out << '?';
-    break;
-  case Node::REPEAT:
-    out << '{' << (n.Val & 0x0000FFFF) << ','
-               << ((n.Val & 0xFFFF0000) >> 16) << '}';
-    break;
-  case Node::PLUS_NG:
-    out << "+?";
-    break;
-  case Node::STAR_NG:
-    out << "*?";
-    break;
-  case Node::QUESTION_NG:
-    out << "??";
-    break;
-  case Node::REPEAT_NG:
-    out << '{' << (n.Val & 0x0000FFFF) << ','
-               << ((n.Val & 0xFFFF0000) >> 16) << "}?";
-    break;
+    return out << '(';
+  case Node::REPETITION:
+    repetition(out, n.Min, n.Max);
+    return out;
+  case Node::REPETITION_NG:
+    repetition(out, n.Min, n.Max);
+    return out << '?';
   case Node::ELEMENT:
-    out << "ELEMENT";
-    break;
+    return out << "ELEMENT";
   case Node::DOT:
-    out << '.';
-    break;
+    return out << '.';
   case Node::CHAR_CLASS:
-    out << n.Bits;
-    break;
+    return out << n.Bits;
   case Node::LITERAL:
-    out << (char) n.Val;
-    break;
+    return out << (char) n.Val;
   case Node::IGNORE:
-    out << "IGNORE";
-    break;
+    return out << "IGNORE";
   default:
-    out << "WTF";
-    break;
+    return out << "WTF";
   }
-
-  return out;
 }
