@@ -394,13 +394,19 @@ void NFABuilder::traverse(const Node* n) {
         uint32 size; 
                    
         if (n->Min == n->Max) {
+          // n-1 contatenations in the mandatory part
           size = n->Min - 1;
         }
         else if (n->Max == UNBOUNDED) {
+          // n-1 concatenations in the mandatory part
+          // followed by 1 concatenation and 1 star
           size = n->Min + 1;
         }
         else {
-          size = 3*(n->Max - n->Min) - 1;
+          // n-1 concatenations in the mandatory part
+          // joined by 1 concatenation with the optional part
+          // consisting of m-n questions and m-n-1 concatenations
+          size = 2*n->Max - n->Min - 1;
         }
   
         ParseTree rep;
