@@ -5,7 +5,6 @@
 #include "utility.h"
 
 #include <iostream>
-#include <stdexcept>
 #include <utility>
 
 std::ostream& operator<<(std::ostream& out, const InListT& list) {
