@@ -841,13 +841,13 @@ SCOPE_TEST(parseRepeatedSkippables) {
   nfab.callback("", Node(Node::LITERAL, 0, 0, 'a'));
   SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
-  nfab.callback("", Node(Node::QUESTION, 0, 0, 0));
+  nfab.callback("", Node(Node::REPETITION, 0, 0, 1));
   SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(1, nfab.stack().top().Skippable);
   nfab.callback("", Node(Node::LITERAL, 0, 0, 'b'));
   SCOPE_ASSERT_EQUAL(3, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
-  nfab.callback("", Node(Node::STAR, 0, 0, 0));
+  nfab.callback("", Node(Node::REPETITION, 0, 0, UNBOUNDED));
   SCOPE_ASSERT_EQUAL(3, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(1, nfab.stack().top().Skippable);
   nfab.callback("", Node(Node::CONCATENATION, 0, 0, 0));

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
-#include <sstream>
+#include <ostream>
 
 #include <boost/lexical_cast.hpp>
 
@@ -13,38 +13,22 @@ bool is_binary(const Node* n) {
 }
 
 //
-// Parentheses are necessary when:
+// Parentheses are neceoutary when:
 // 
 // * a unary operator is the parent of a binary operator
 // * concatenation is the parent of an alternation
 //
 
-void open_paren(const Node* n, std::ostream& out) {
+void open_paren(std::ostream& out, const Node* n) {
   if (!is_binary(n) && is_binary(n->Left)) {
     out << '(';
   }
 }
 
-void close_paren(const Node *n, std::ostream& out) {
+void close_paren(std::ostream& out, const Node* n) {
   if (!is_binary(n) && is_binary(n->Left)) {
     out << ')';
   }
-}
-
-void range(uint32 r, std::ostream& out) {
-  const uint32 min = r & 0x0000FFFF;
-  const uint32 max = (r & 0xFFFF0000) >> 16;
-
-  out << '{' << min;
-
-  if (max != min) {
-    out << ',';
-    if (max != 0xFFFF) {
-      out << max; 
-    }
-  }
-
-  out << '}';
 }
 
 std::string byteToCharacterString(uint32 i) {
@@ -237,109 +221,67 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
   return ss.str();
 }
 
-void unparse(const Node* n, std::stringstream& ss) {
+void unparse(std::ostream& out, const Node* n) {
   switch (n->Type) {
   case Node::REGEXP:
     if (!n->Left) {
       return;
     }
 
-    unparse(n->Left, ss);
+    unparse(out, n->Left);
     break;
 
   case Node::ALTERNATION:
-    unparse(n->Left, ss);
-    ss << '|';
-    unparse(n->Right, ss);
+    unparse(out, n->Left);
+    out << '|';
+    unparse(out, n->Right);
     break;
 
   case Node::CONCATENATION:
     if (n->Left->Type == Node::ALTERNATION) {
-      ss << '(';
-      unparse(n->Left, ss);
-      ss << ')';
+      out << '(';
+      unparse(out, n->Left);
+      out << ')';
     }
     else {
-      unparse(n->Left, ss);
+      unparse(out, n->Left);
     }
 
     if (n->Right->Type == Node::ALTERNATION) {
-      ss << '(';
-      unparse(n->Right, ss);
-      ss << ')';
+      out << '(';
+      unparse(out, n->Right);
+      out << ')';
     }
     else {
-      unparse(n->Right, ss);
+      unparse(out, n->Right);
     }
     break;
 
-  case Node::PLUS:
-    open_paren(n, ss);
-    unparse(n->Left, ss);
-    close_paren(n, ss);
-    ss << '+';
+  case Node::REPETITION:
+    open_paren(out, n);
+    unparse(out, n->Left);
+    close_paren(out, n);
+    repetition(out, n->Min, n->Max);
     break;
 
-  case Node::STAR:
-    open_paren(n, ss);
-    unparse(n->Left, ss);
-    close_paren(n, ss);
-    ss << '*';
-    break;
-
-  case Node::QUESTION:
-    open_paren(n, ss);
-    unparse(n->Left, ss);
-    close_paren(n, ss);
-    ss << '?';
-    break;
-
-  case Node::REPEAT:
-    open_paren(n, ss);
-    unparse(n->Left, ss);
-    close_paren(n, ss);
-    range(n->Val, ss);
-    break;
-
-  case Node::PLUS_NG:
-    open_paren(n, ss);
-    unparse(n->Left, ss);
-    close_paren(n, ss);
-    ss << "+?";
-    break;
-
-  case Node::STAR_NG:
-    open_paren(n, ss);
-    unparse(n->Left, ss);
-    close_paren(n, ss);
-    ss << "*?";
-    break;
-
-  case Node::QUESTION_NG:
-    open_paren(n, ss);
-    unparse(n->Left, ss);
-    close_paren(n, ss);
-    ss << "??";
-    break;
-
-  case Node::REPEAT_NG:
-    open_paren(n, ss);
-    unparse(n->Left, ss);
-    close_paren(n, ss);
-    range(n->Val, ss);
-    ss << '?';
+  case Node::REPETITION_NG:
+    open_paren(out, n);
+    unparse(out, n->Left);
+    close_paren(out, n);
+    repetition(out, n->Min, n->Max);
+    out << '?';
     break;
 
   case Node::DOT:
-    ss << '.';
+    out << '.';
     break;
 
   case Node::CHAR_CLASS:
-    ss << '[' << byteSetToCharacterClass(n->Bits) << ']';
+    out << '[' << byteSetToCharacterClass(n->Bits) << ']';
     break;
 
   case Node::LITERAL:
-    ss << (char) n->Val;
+    out << (char) n->Val;
     break;
 
   default:
@@ -350,7 +292,7 @@ void unparse(const Node* n, std::stringstream& ss) {
 
 std::string unparse(const ParseTree& tree) {
   std::stringstream ss;
-  unparse(tree.Root, ss);
+  unparse(ss, tree.Root);
   return ss.str();
 }
 
