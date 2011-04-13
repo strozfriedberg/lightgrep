@@ -381,9 +381,13 @@ void NFABuilder::traverse(const Node* n) {
         //           ^
         //         n times
         //
-        // T{n,m} = T...TT?...T?
+        // T{n,m} = T...TT?...T? = T...T(T(T...)?)?
         //            ^     ^
         //       n times   m-n times
+        //
+        // Note that the latter equivalence for T{n,m} produces
+        // a graph with outdegree 2, while the former produces
+        // one with outdegree m-n.
         //
   
         // determine the size of the repetition tree
@@ -396,72 +400,62 @@ void NFABuilder::traverse(const Node* n) {
           size = n->Min + 1;
         }
         else {
-          size = 2*n->Max - n->Min - 1;
+          size = 3*(n->Max - n->Min) - 1;
         }
   
         ParseTree rep;
         rep.init(size);
   
+        Node root;
+
         Node* none = 0;
-  
-        rep.Root = rep.add(Node(Node::CONCATENATION, none, none));
-        Node* parent = rep.Root;
-  
+        Node* parent = &root;
+
         if (n->Min > 0) {
-          // build the mandatory part (1 to n->Min)
-          parent->Left = n->Left;
-  
-          for (uint32 i = 1; i < n->Min - 1; ++i) {
+          // build the mandatory part 
+          for (uint32 i = 1; i < n->Min; ++i) {
             Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
             parent->Right = con;
             parent = con;
           }
         }
-  
+
         if (n->Min == n->Max) {
+          // finish the mandatory part
           parent->Right = n->Left;
         }
         else if (n->Max == UNBOUNDED) {
           // build the unbounded optional part 
-          Node* plus = rep.add(Node(n->Type, n->Left, 1, UNBOUNDED));
-          parent->Right = plus;
-        }
-        else {
-          // build the bounded optional part (n->Min+1 to n->Max)
-  
           if (n->Min == 0) {
-            Node* question = rep.add(Node(n->Type, n->Left, 0, 1));
-            parent->Left = question;
-  
-            for (uint32 i = 0; i < n->Max - n->Min - 2; ++i) {
-              Node* question = rep.add(Node(n->Type, n->Left, 0, 1));
-              Node* con = rep.add(Node(Node::CONCATENATION, question, none));
-              parent->Right = con;
-              parent = con;
-            }
+            Node* star = rep.add(Node(n->Type, n->Left, 0, UNBOUNDED));
+            parent->Right = star;
           }
           else {
-            if (n->Min == 1) {
-  
-            }
-            else {
-              Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
-              parent->Right = con;
-              parent = con;
-            }
-  
-            for (uint32 i = 0; i < n->Max - n->Min - 1; ++i) {
-              Node* question = rep.add(Node(n->Type, n->Left, 0, 1));
-              Node* con = rep.add(Node(Node::CONCATENATION, question, none));
-              parent->Right = con;
-              parent = con;
-            }
+            Node* plus = rep.add(Node(n->Type, n->Left, 1, UNBOUNDED));
+            parent->Right = plus;
           }
-  
+        }
+        else {
+          if (n->Min > 0) {
+            // finish the mandatory part
+            Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
+            parent->Right = con;
+            parent = con;
+          }
+
+          // build the bounded optional part 
+          for (uint32 i = 1; i < n->Max - n->Min; ++i) {
+            Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
+            Node* question = rep.add(Node(n->Type, con, 0, 1));
+            parent->Right = question;
+            parent = con;
+          }
+ 
           Node* question = rep.add(Node(n->Type, n->Left, 0, 1));
           parent->Right = question;
-        } 
-  
+        }
+
+        rep.Root = root.Right;
         traverse(rep.Root);
       }
     }
