@@ -461,8 +461,7 @@ void NFABuilder::traverse(const Node* n) {
           parent->Right = question;
         }
 
-        rep.Root = root.Right;
-        traverse(rep.Root);
+        traverse(root.Right);
       }
     }
     else {
