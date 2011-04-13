@@ -16,6 +16,9 @@ public:
               Output,
               Encoding,
               Pattern;
+
+  unsigned int BlockSize;
+
   bool    CaseSensitive,
           LiteralMode,
           NoOutput;

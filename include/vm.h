@@ -76,6 +76,17 @@ private:
   uint64 NextId;
   #endif
 
+  struct Match {
+    uint64 Start, End;
+
+    Match(uint64 start, uint64 end): Start(start), End(end) {}
+  };
+
+  friend std::ostream& operator<<(std::ostream& out, const Match& m);
+
+  std::vector< std::vector<Match> > Matches;
+  uint64 MaxMatches;
+
   ProgramPtr Prog;
   ThreadList First,
              Active,
@@ -83,14 +94,6 @@ private:
 
   SparseSet  CheckStates,
              Kill;
-
-  struct Match {
-    uint64 Start, End;
-
-    Match(uint64 start, uint64 end): Start(start), End(end) {}
-  };
-
-  std::vector< std::vector<Match> > Matches;
 
   HitCallback* CurHitFn;
 };

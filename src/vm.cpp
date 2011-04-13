@@ -1,3 +1,4 @@
+#include "container_out.h"
 #include "vm.h"
 
 #include <algorithm>
@@ -17,6 +18,10 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
       << ", \"Start\":" << t.Start
       << ", \"End\":" << t.End << " }";
   return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const Vm::Match& m) {
+  return out << '(' << m.Start << ',' << m.End << ')';
 }
 
 #ifdef LBT_TRACE_ENABLED
@@ -116,7 +121,7 @@ Vm::Vm(ProgramPtr prog):
 
 void Vm::init(ProgramPtr prog) {
   Prog = prog;
-  Prog->push_back(Instruction::makeHalt()); // a special halt; killed threads will be set to here
+  // Prog->push_back(Instruction::makeHalt()); // a special halt; killed threads will be set to here
   Active.resize(Prog->size());
   Next.resize(Prog->size());
   uint32 numPatterns = 0,
@@ -134,8 +139,6 @@ void Vm::init(ProgramPtr prog) {
   ++numCheckedStates;
 
   Matches.resize(numPatterns);
-  Match nomatch(NONE, 0);
-  Matches.assign(Matches.size(), std::vector<Match>(1, nomatch));
   Kill.resize(numPatterns);
 
   CheckStates.resize(numCheckedStates);
@@ -162,17 +165,19 @@ void Vm::init(ProgramPtr prog) {
   for (uint32 i = 0; i < Next.size(); ++i) {
     First.push_back(Next[i]);
   }
+
   reset();
 }
 
 void Vm::reset() {
+  MaxMatches = 0;
   Active.clear();
   Next.clear();
   CheckStates.clear();
 
-  Match nomatch(NONE, 0);
-  Matches.assign(Matches.size(), std::vector<Match>(1, nomatch));
-
+  for (std::vector< std::vector< Match > >::iterator matchIt = Matches.begin(); matchIt != Matches.end(); ++matchIt) {
+    matchIt->clear();
+  }
   CurHitFn = 0;
 
   #ifdef LBT_TRACE_ENABLED
@@ -181,7 +186,6 @@ void Vm::reset() {
 }
 
 inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const byte* cur) {
-  Thread nextT;
   register Instruction instr = *t->PC;
   switch (instr.OpCode) {
     case LIT_OP:
@@ -231,6 +235,7 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
       }
       break;
   }
+
   t->PC = &Prog->back();
   return false;
 }
@@ -248,6 +253,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         if (_executeEpSequence(base, t, offset)) {
           Next.push_back(*t);
         }
+
         // Now back up to the fork, fall through to handle it as a longjump.
         // Note that the forked child is taking the parent's place in Active.
         // This is ESSENTIAL for maintaining correct thread priority order.
@@ -272,10 +278,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       }
     case LABEL_OP:
       {
-        Match lastHit(Matches[instr.Op.Offset].back());
-        if (lastHit.Start == NONE ||
-              ((t->Start <= lastHit.Start || lastHit.End < t->Start) &&
-               !Kill.find(instr.Op.Offset)))
+        std::vector< Match >& lblMatches(Matches[instr.Op.Offset]);
+        if (lblMatches.empty() ||
+          ((t->Start <= lblMatches.back().Start || lblMatches.back().End < t->Start) &&
+          !Kill.find(instr.Op.Offset)))
     		{
           t->Label = instr.Op.Offset;
           t->advance(InstructionSize<LABEL_OP>::VAL);
@@ -290,6 +296,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       t->End = offset;
       doMatch(*t);
       t->advance(InstructionSize<MATCH_OP>::VAL);
+
       // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it = t+1; it != Active.end(); ++it) {
         if (it->Label == t->Label) {
@@ -297,6 +304,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           it->PC = &Prog->back(); // DIE. Last instruction is always a halt
         }
       }
+
       // also kill any thread receiving this label later in the frame
       Kill.insert(t->Label);
       return true;
@@ -340,11 +348,11 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
   return t->PC;
 }
 
-inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset) {
+inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& t, const Instruction* base, const byte* cur, uint64 offset) {
   // run old threads at this offset
-  while (threadIt != Active.end()) {
-    _executeThread(base, threadIt, cur, offset);
-    ++threadIt;
+  while (t != Active.end()) {
+    _executeThread(base, t, cur, offset);
+    ++t;
   }
 
   // create new threads at this offset
@@ -361,9 +369,10 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator& thread
       #endif
     }
     do {
-      _executeThread(base, threadIt, cur, offset);
-    } while (++threadIt != Active.end());
+      _executeThread(base, t, cur, offset);
+    } while (++t != Active.end());
   }
+
   Kill.clear();
 }
 
@@ -385,46 +394,53 @@ bool Vm::executeEpsilon(ThreadList::iterator t, uint64 offset) {
 
 void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
   CurHitFn = &hitFn;
-  ThreadList::iterator threadIt = Active.begin();
-  _executeFrame(Prog->First, threadIt, &(*Prog)[0], cur, offset);
+  ThreadList::iterator t = Active.begin();
+  _executeFrame(Prog->First, t, &(*Prog)[0], cur, offset);
 }
 
 void Vm::doMatch(const Thread& t) {
   //std::cerr << t << std::endl; 
-  if (Matches[t.Label].front().Start == NONE) {
-    Matches[t.Label].clear(); // we are the first match, clear that placeholder
-  }
+
   // check whether any higher-priority threads block us
   bool blocked = false;
   for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
-    if (t.Start <= it->End && (it->Label == NONE || it->Label == t.Label)) {
+    if (it->Label == NONE || it->Label == t.Label) {
       blocked = true;
       break;
     }
   }
+
   if (blocked) {
-    std::vector<Match> m;
     // check whether we replace any already-recorded matches
-    // Maybe we can iterate existing vec and clip it if we find an overlap? -- JLS
     for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
-      if (im->Start > t.End || t.Start > im->End) {
-        m.push_back(*im);
+      if (im->Start <= t.End && t.Start <= im->End) {
+        Matches[t.Label].erase(im, Matches[t.Label].end());
+        break;
       }
     }
-    Matches[t.Label] = m;
   }
   else {
-    // emit all matches which aren't replaced by this one
-    for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
-      if (im->Start > t.End || t.Start > im->End) {
-        if (CurHitFn) {
-          SearchHit hit(im->Start, im->End - im->Start + 1, t.Label);
+    if (CurHitFn) {
+      // emit all matches which aren't replaced by this one
+      SearchHit hit;
+      if (Matches[t.Label].size() > MaxMatches) {
+        MaxMatches = Matches[t.Label].size();
+      }
+
+      for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
+        if (im->Start > t.End || t.Start > im->End) {
+          hit.set(im->Start, im->End - im->Start + 1, t.Label);
           CurHitFn->collect(hit);
+        }
+        else {
+          break;
         }
       }
     }
+
     Matches[t.Label].clear();
   }
+
   // store this match
   Matches[t.Label].push_back(Match(t.Start, t.End));
 }
@@ -438,17 +454,17 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
     for (ThreadList::const_iterator it(First.begin()); it != First.end(); ++it) {
       Active.addBack().init(it->PC, NOLABEL, offset, NONE);
     }
-    ThreadList::iterator threadIt = Active.begin();
+    ThreadList::iterator t = Active.begin();
     for (register const byte* cur = beg; cur < end; ++cur) {
-      while (threadIt != Active.end()) {
-        _executeThread(base, threadIt, cur, offset);
-        ++threadIt;
+      while (t != Active.end()) {
+        _executeThread(base, t, cur, offset);
+        ++t;
       }
       Kill.clear();
     
       cleanup();
-      threadIt = Active.begin();
-      if (threadIt == Active.end()) { // early exit if threads die out
+      t = Active.begin();
+      if (t == Active.end()) { // early exit if threads die out
         break;
       }
       ++offset;
@@ -463,21 +479,21 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
   const Instruction* base = &(*Prog)[0];
   ByteSet first = Prog->First;
   register uint64 offset = startOffset;
-  ThreadList::iterator threadIt = Active.begin();
+  ThreadList::iterator t = Active.begin();
   for (register const byte* cur = beg; cur < end; ++cur) {
     #ifdef LBT_TRACE_ENABLED
     open_frame_json(std::cerr, offset, cur);
     #endif
 
-    _executeFrame(first, threadIt, base, cur, offset);
+    _executeFrame(first, t, base, cur, offset);
 
     #ifdef LBT_TRACE_ENABLED
     close_frame_json(std::cerr, offset);
     #endif
     
-    if (threadIt != Active.begin()) {
+    if (t != Active.begin()) {
       _cleanup();
-      threadIt = Active.begin();
+      t = Active.begin();
     }
     ++offset;
   }
@@ -491,6 +507,9 @@ void Vm::closeOut(HitCallback& hitFn) {
 
   if (CurHitFn) {
     for (uint32 i = 0; i < Matches.size(); ++i) {
+      if (Matches[i].size() > MaxMatches) {
+        MaxMatches = Matches[i].size();
+      }
       for (std::vector<Match>::const_iterator j(Matches[i].begin()); j != Matches[i].end(); ++j) {
         if (j->Start != NONE) {
           hit.Offset = j->Start;
@@ -501,4 +520,5 @@ void Vm::closeOut(HitCallback& hitFn) {
       }
     }
   }
+  // std::cerr << "MaxMatches = " << MaxMatches << std::endl;
 }

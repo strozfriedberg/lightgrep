@@ -2,9 +2,11 @@
 
 #include "states.h"
 
-#include "parser.h"
 #include "concrete_encodings.h"
 #include "compiler.h"
+#include "nfabuilder.h"
+#include "parser.h"
+#include "rewriter.h"
 
 #include <algorithm>
 #include <queue>
@@ -17,35 +19,53 @@ void addNewEdge(Graph::vertex source, Graph::vertex target, Graph& fsm) {
 }
 
 void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, bool litMode, GraphPtr& fsm, uint32& keyIdx) {
-  SyntaxTree  tree;
   Compiler    comp;
-  Parser      p;
-  p.setEncoding(enc);
+  ParseTree   tree;
+  NFABuilder  nfab;
+  nfab.setEncoding(enc);
+
   for (uint32 i = 0; i < keywords.size(); ++i) {
     const std::string& kw(keywords[i]);
     if (!kw.empty()) {
       try {
-        p.setCurLabel(keyIdx);
-        p.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
-        if (parse(kw, litMode, tree, p) && p.good()) {
-          if (fsm) {
-            comp.mergeIntoFSM(*fsm, *p.getFsm());
+        nfab.setCurLabel(keyIdx);
+        nfab.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
+
+        if (parse(kw, litMode, tree)) {
+          if (kw.find('{',1) != std::string::npos) {
+            reduce_useless_repetitions(tree.Root);
+          }
+
+          if (kw.find('?',1) != std::string::npos) {
+            reduce_trailing_nongreedy(tree.Root);
+            reduce_trailing_nongreedy_then_empty(tree.Root);
+          }
+
+          if (nfab.build(tree)) {
+            if (fsm) {
+              comp.mergeIntoFSM(*fsm, *nfab.getFsm());
+            }
+            else {
+              fsm = nfab.getFsm();
+              nfab.resetFsm();
+            }
+            ++keyIdx;
           }
           else {
-            fsm = p.getFsm();
-            p.resetFsm();
+            std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
           }
-          ++keyIdx;
         }
         else {
           std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
         }
-        tree.reset();
-        p.reset();
+
+        nfab.reset();
       }
       catch (std::exception& e) {
         std::cerr << "Exception on keyword \"" << kw <<  "\" (" << i << "): " << e.what() << std::endl;
-        std::cerr << "Currently " << fsm->numVertices() << " vertices" << std::endl;
+        if (fsm) {
+          std::cerr << "Currently " << fsm->numVertices() << " vertices" << std::endl;
+        }
         throw;
       }
       // if (i && i % 10000 == 0) {
@@ -54,7 +74,10 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
     }
   }
   // std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
-  comp.labelGuardStates(*fsm);
+
+  if (fsm) {
+    comp.labelGuardStates(*fsm);
+  }
 }
 
 GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode) {
@@ -234,6 +257,9 @@ ProgramPtr createProgram(const Graph& graph) {
       // std::cerr << "wrote " << Instruction::makeHalt() << std::endl;
     }
   }
+  if (!(Instruction::makeHalt() == ret->back())) {
+    ret->push_back(Instruction::makeHalt()); // last instruction will always be Halt, so Vm can jump there
+  }
   return ret;
 }
 
@@ -345,31 +371,35 @@ uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable)
 }
 
 void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
-  if (!graph[v]) { // initial state
-    out << "[label=\"\",shape=none]";
+  out << "  " << v << " [label=\"" << v << "\"";
+ 
+  if (graph[v] && graph[v]->IsMatch) {
+    // double ring for match states
+    out << ", peripheries=2";
   }
-  else if (graph[v]->IsMatch) { // match state
-    out << "[label=\"" << graph[v]->label() << "\",peripheries=2]";
-  }
-  else { // all other states
-    out << "[label=\"" << graph[v]->label() << "\"]";
-  }
+
+  out << "];\n";
+}
+
+void writeEdge(std::ostream& out, Graph::vertex v, Graph::vertex u,
+               uint32 priority, const Graph& graph) {
+  out << "  " << v << " -> " << u << " ["
+      << "label=\"" << graph[u]->label() << "\", "
+      << "taillabel=\"" << priority << "\"];\n";
 }
 
 void writeGraphviz(std::ostream& out, const Graph& graph) {
-  out << "digraph G {\nrankdir=LR;\nranksep=equally;" << std::endl;
+  out << "digraph G {\n  rankdir=LR;\n  ranksep=equally;\n  node [shape=\"circle\"];" << std::endl;
 
   for (uint32 i = 0; i < graph.numVertices(); ++i) {
-    out << i;
     writeVertex(out, i, graph);
-    out << ";" << std::endl;
   }
 
   for (uint32 i = 0; i < graph.numVertices(); ++i) {
     for (uint32 j = 0; j < graph.outDegree(i); ++j) {
-      out << i << "->" << graph.outVertex(i, j) << " ";
-      out << ";" << std::endl;
+      writeEdge(out, i, graph.outVertex(i, j), j, graph);
     }
   }
+
   out << "}" << std::endl;
 }
