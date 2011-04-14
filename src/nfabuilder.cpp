@@ -94,27 +94,43 @@ void NFABuilder::setLiteralTransition(TransitionPtr& state, byte val) {
   }
 }
 
-void NFABuilder::patch_pre(OutListT& src, const InListT& dst) {
-  // make an edge from each vertex in src to each vertex in dst, putting
-  // these edges before the src vertex insertion points
+void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
+  // Make an edge from each vertex in src to each vertex in dst. Edges
+  // to vertices in dst before dstskip go before the insertion point in
+  // src, edges to vertices in dst after dstskip go after the insertion
+  // point in src.
   for (OutListT::iterator oi(src.begin()); oi != src.end(); ++oi) {
     uint32 pos = oi->second;
-    for (InListT::const_iterator ii(dst.begin()); ii != dst.end(); ++ii) {
+
+    const InListT::const_iterator skip_stop(dst.begin() + dstskip);
+    InListT::const_iterator ii(dst.begin());
+
+    // make edges before dstskip, inserting before src insertion point
+    for ( ; ii != dst.end() && ii < skip_stop; ++ii) {
       Fsm->addEdgeAt(oi->first, *ii, pos++);
     }
-    *oi = std::make_pair(oi->first, pos);
+
+    // save the new insertion point for dst
+    const uint32 spos = pos;
+
+    // make edges after dstskip, inserting after src insertion point
+    for ( ; ii != dst.end(); ++ii) {
+      Fsm->addEdgeAt(oi->first, *ii, pos++);
+    }
+  
+    // set the new insertion point for dst
+    *oi = std::make_pair(oi->first, spos);
   }
 }
 
-void NFABuilder::patch_post(const OutListT& src, const InListT& dst) {
-  // make an edge from each vertex in src to each vertex in dst, putting
-  // these edges after the src vertex insertion points
-  for (OutListT::const_iterator oi(src.begin()); oi != src.end(); ++oi) {
-    uint32 pos = oi->second;
-    for (InListT::const_iterator ii(dst.begin()); ii != dst.end(); ++ii) {
-      Fsm->addEdgeAt(oi->first, *ii, pos++);
-    }
-  }
+void NFABuilder::patch_pre(OutListT& src, const InListT& dst) {
+  // Put all new edges before dst's insertion point.
+  patch_mid(src, dst, dst.size());
+}
+
+void NFABuilder::patch_post(OutListT& src, const InListT& dst) {
+  // Put all new edges after dst's insertion point.
+  patch_mid(src, dst, 0);
 }
 
 void NFABuilder::literal(const Node& n) {
@@ -285,9 +301,8 @@ void NFABuilder::concatenate(const Node& n) {
   Fragment& first = Stack.top();
 
   // patch left out to right in
-  if ((first.Skippable == NOSKIP && TempFrag.Skippable > 0) ||
-      first.Skippable < TempFrag.Skippable) {
-    patch_pre(first.OutList, TempFrag.InList);
+  if (first.Skippable == NOSKIP || first.Skippable < TempFrag.Skippable) {
+    patch_mid(first.OutList, TempFrag.InList, TempFrag.Skippable);
   }
   else {
     patch_post(first.OutList, TempFrag.InList);
