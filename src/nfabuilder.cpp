@@ -482,13 +482,12 @@ void NFABuilder::traverse(const Node* n) {
 }
 
 bool NFABuilder::build(const ParseTree& tree) {
-//printTree(std::cerr, *tree.Root);
   traverse(tree.Root);
   return IsGood;
 }
 
 void NFABuilder::callback(const std::string& type, const Node& n) {
-  // std::cout << type << std::endl;
+//  std::cerr << n << std::endl;
   switch (n.Type) {
     case Node::REGEXP:
       finish(n);
@@ -517,8 +516,11 @@ void NFABuilder::callback(const std::string& type, const Node& n) {
     default:
       break;
   }
-  // std::cout << "Stack size is " << Stack.size() << std::endl;
-  // if (Stack.size() > 0) {
-  //   std::cout << "top is " << Stack.top() << std::endl;
-  // }
+
+/*
+  std::cerr << "Stack size is " << Stack.size() << std::endl;
+  if (Stack.size() > 0) {
+     std::cerr << "top is " << Stack.top() << std::endl;
+  }
+*/
 }
