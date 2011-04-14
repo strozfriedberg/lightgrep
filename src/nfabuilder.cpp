@@ -285,7 +285,8 @@ void NFABuilder::concatenate(const Node& n) {
   Fragment& first = Stack.top();
 
   // patch left out to right in
-  if (first.Skippable == NOSKIP || first.Skippable < TempFrag.Skippable) {
+  if ((first.Skippable == NOSKIP && TempFrag.Skippable > 0) ||
+      first.Skippable < TempFrag.Skippable) {
     patch_pre(first.OutList, TempFrag.InList);
   }
   else {
