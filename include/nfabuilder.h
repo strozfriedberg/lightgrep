@@ -87,8 +87,9 @@ public:
 private:
   void setLiteralTransition(TransitionPtr& state, byte val);
 
+  void patch_mid(OutListT& src, const InListT& dst, uint32 dstskip);
   void patch_pre(OutListT& src, const InListT& dst);
-  void patch_post(const OutListT& src, const InListT& dst);
+  void patch_post(OutListT& src, const InListT& dst);
 
   void traverse(const Node* n);
 
