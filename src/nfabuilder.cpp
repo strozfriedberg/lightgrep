@@ -33,7 +33,8 @@ std::ostream& operator<<(std::ostream& out, const OutListT& list) {
 }
 
 std::ostream& operator<<(std::ostream& out, const Fragment& f) {
-  out << "in " << f.InList << ", out " << f.OutList;
+  out << "in " << f.InList << ", out " << f.OutList
+      << ", skip " << f.Skippable;
   return out;
 }
 
