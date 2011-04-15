@@ -14,7 +14,7 @@ public:
 
   uint32 l_min() const { return LMin; }
 
-  const std::vector<uint32>& skipVec() const { return SkipVec; } 
+  const std::vector<uint32>& skipVec() const { return SkipVec; }
 
 private:
   std::vector<uint32> Distance,

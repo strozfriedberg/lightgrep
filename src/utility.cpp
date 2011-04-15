@@ -195,7 +195,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
 
 // need a two-pass to get it to work with the bgl visitors
 //  discover_vertex: determine slot
-//  finish_vertex:   
+//  finish_vertex:
 ProgramPtr createProgram(const Graph& graph) {
   // std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
@@ -266,11 +266,11 @@ ProgramPtr createProgram(const Graph& graph) {
 class SkipTblVisitor: public Visitor {
 public:
   SkipTblVisitor(boost::shared_ptr<SkipTable> skip): Skipper(skip) {}
-  
+
   void discoverVertex(Graph::vertex v, const Graph& graph) const {
     Skipper->calculateTransitions(v, graph);
   }
- 
+
   void treeEdge(Graph::vertex h, Graph::vertex t, const Graph& graph) const {
     Skipper->setDistance(h, t, graph);
   }
@@ -299,12 +299,12 @@ void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor) {
   visitor.discoverVertex(start, graph);
   next.push(start);
   seen[start] = true;
-  
+
   while (!next.empty()) {
     Graph::vertex h = next.front();
     next.pop();
- 
-    for (uint32 ov = 0; ov < graph.outDegree(h); ++ov) { 
+
+    for (uint32 ov = 0; ov < graph.outDegree(h); ++ov) {
       Graph::vertex t = graph.outVertex(h, ov);
       if (!seen[t]) {
         // One might think that we discover a vertex at the tail of an
@@ -345,7 +345,7 @@ boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, 
 }
 
 std::vector< std::vector< Graph::vertex > > pivotStates(Graph::vertex source, const Graph& graph) {
-  std::vector< std::vector< Graph::vertex > > ret(256);  
+  std::vector< std::vector< Graph::vertex > > ret(256);
   ByteSet permitted;
 
   for (uint32 i = 0; i < graph.outDegree(source); ++i) {
@@ -372,7 +372,7 @@ uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable)
 
 void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
   out << "  " << v << " [label=\"" << v << "\"";
- 
+
   if (graph[v] && graph[v]->IsMatch) {
     // double ring for match states
     out << ", peripheries=2";

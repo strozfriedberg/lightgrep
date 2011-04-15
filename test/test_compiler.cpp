@@ -57,7 +57,7 @@ SCOPE_TEST(testMergeLabelsSimple) {
   dst[2]->IsMatch = true;
 
   c.mergeIntoFSM(dst, src);
-  
+
   // ab + ac
   edge(0, 1, exp, new LitState('a'));
   edge(1, 2, exp, new LitState('c'));
@@ -65,7 +65,7 @@ SCOPE_TEST(testMergeLabelsSimple) {
 
   exp[1]->Label = NONE;
   exp[2]->Label = 0;
-  exp[3]->Label = 1; 
+  exp[3]->Label = 1;
 
   exp[2]->IsMatch = true;
   exp[3]->IsMatch = true;
@@ -96,8 +96,8 @@ SCOPE_TEST(testMergeLabelsComplex) {
   dst[3]->IsMatch = true;
 
   c.mergeIntoFSM(dst, src);
-  c.labelGuardStates(dst); 
- 
+  c.labelGuardStates(dst);
+
   // abd + acd
   edge(0, 1, exp, new LitState('a'));
   edge(1, 2, exp, new LitState('c'));
@@ -108,7 +108,7 @@ SCOPE_TEST(testMergeLabelsComplex) {
   exp[1]->Label = NONE;
   exp[2]->Label = 1;
   exp[3]->Label = NONE;
-  exp[4]->Label = 0; 
+  exp[4]->Label = 0;
   exp[5]->Label = NONE;
 
   exp[3]->IsMatch = true;
@@ -139,7 +139,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   boost::shared_ptr<LitState> c(new LitState('c'));
   edge(1, 2, key[1], c);
   edge(2, 2, key[1], c);
-  
+
   key[1][2]->Label = 1;
   key[1][2]->IsMatch = true;
 
@@ -152,7 +152,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
 
   key[2][3]->Label = 2;
   key[2][3]->IsMatch = true;
-  
+
   // two
   edge(0, 1, key[3], new LitState('t'));
   edge(1, 2, key[3], new LitState('w'));
@@ -192,7 +192,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
 
   exp[6]->Label = 2;
   exp[6]->IsMatch = true;
-  
+
   edge(0, 7, exp, new LitState('t'));
   edge(7, 8, exp, new LitState('w'));
   edge(8, 9, exp, new LitState('o'));
@@ -209,7 +209,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   exp[7]->Label = 3;
   exp[8]->Label = NONE;
   exp[9]->Label = NONE;
-  
+
   ASSERT_EQUAL_GRAPHS(exp, key[0]);
   ASSERT_EQUAL_LABELS(exp, key[0]);
   ASSERT_EQUAL_MATCHES(exp, key[0]);
@@ -219,7 +219,7 @@ SCOPE_TEST(testPropagateMatchLabels) {
   Compiler comp;
   Graph g;
 
-  edge(0, 1, g, new LitState('x'));  
+  edge(0, 1, g, new LitState('x'));
   edge(0, 2, g, new LitState('x'));
   edge(0, 3, g, new LitState('y'));
   edge(3, 4, g, new LitState('y'));
@@ -233,7 +233,7 @@ SCOPE_TEST(testPropagateMatchLabels) {
   g[2]->IsMatch = true;
   g[5]->IsMatch = true;
 
-  comp.propagateMatchLabels(g);  
+  comp.propagateMatchLabels(g);
 
   SCOPE_ASSERT_EQUAL(0, g[1]->Label);
   SCOPE_ASSERT_EQUAL(1, g[2]->Label);
@@ -246,7 +246,7 @@ SCOPE_TEST(testRemoveNonMinimalLabels) {
   Compiler comp;
   Graph g;
 
-  edge(0, 1, g, new LitState('x'));  
+  edge(0, 1, g, new LitState('x'));
   edge(0, 2, g, new LitState('x'));
   edge(0, 3, g, new LitState('y'));
   edge(3, 4, g, new LitState('y'));
@@ -275,7 +275,7 @@ SCOPE_TEST(testLabelGuardStates) {
   Compiler comp;
   Graph g;
 
-  edge(0, 1, g, new LitState('x'));  
+  edge(0, 1, g, new LitState('x'));
   edge(0, 2, g, new LitState('x'));
   edge(0, 3, g, new LitState('y'));
   edge(3, 4, g, new LitState('y'));
@@ -290,14 +290,14 @@ SCOPE_TEST(testLabelGuardStates) {
   g[5]->Label = 2;
   g[5]->IsMatch = true;
 
-  comp.propagateMatchLabels(g);  
+  comp.propagateMatchLabels(g);
   comp.removeNonMinimalLabels(g);
 
   SCOPE_ASSERT_EQUAL(0, g[1]->Label);
   SCOPE_ASSERT_EQUAL(1, g[2]->Label);
   SCOPE_ASSERT_EQUAL(2, g[3]->Label);
   SCOPE_ASSERT_EQUAL(NONE, g[4]->Label);
-  SCOPE_ASSERT_EQUAL(NONE, g[5]->Label); 
+  SCOPE_ASSERT_EQUAL(NONE, g[5]->Label);
 }
 
 SCOPE_TEST(testSubstringKey) {
@@ -321,11 +321,11 @@ SCOPE_TEST(testSubstringKey) {
   edge(0, 1, exp, new LitState('a'));
   edge(1, 2, exp, new LitState('n', 0));
   edge(0, 3, exp, new LitState('a', 1));
- 
+
   exp[1]->Label = 0;
   exp[2]->Label = NONE;
   exp[3]->Label = 1;
- 
+
   exp[2]->IsMatch = true;
   exp[3]->IsMatch = true;
 
@@ -344,16 +344,16 @@ SCOPE_TEST(testCreateXXYYY) {
   Graph& g = *gp;
 
   Graph exp;
-  edge(0, 1, exp, new LitState('x', 0));  
+  edge(0, 1, exp, new LitState('x', 0));
   edge(0, 2, exp, new LitState('x', 1));
   edge(0, 3, exp, new LitState('y'));
   edge(3, 4, exp, new LitState('y'));
   edge(4, 5, exp, new LitState('y', 2));
-  
+
   exp[1]->Label = 0;
   exp[2]->Label = 1;
   exp[3]->Label = 2;
-  exp[4]->Label = NONE; 
+  exp[4]->Label = NONE;
   exp[5]->Label = NONE;
 
   exp[1]->IsMatch = true;
@@ -362,5 +362,5 @@ SCOPE_TEST(testCreateXXYYY) {
 
   ASSERT_EQUAL_GRAPHS(exp, g);
   ASSERT_EQUAL_LABELS(exp, g);
-  ASSERT_EQUAL_MATCHES(exp, g);  
+  ASSERT_EQUAL_MATCHES(exp, g);
 }

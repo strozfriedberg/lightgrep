@@ -33,7 +33,7 @@ namespace po = boost::program_options;
 void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
 
 void longTest(const Options& opts) {
-  longTest(); 
+  longTest();
 }
 
 void writeGraphviz(const Options& opts) {
@@ -74,7 +74,7 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
 
   p->Skip = calculateSkipTable(*fsm);
   p->First = firstBytes(*fsm);
-  
+
   std::cerr << p->Skip->l_min() << " lmin" << std::endl;
   uint32 numMax = 0;
   double total = 0;
@@ -126,7 +126,7 @@ void search(const Options& opts) {
     std::cerr << "could not initialize search engine" << std::endl;
     return;
   }
-  
+
   double lastTime = 0.0;
   boost::timer searchClock;
   HitWriter output(opts.openOutput(), keyInfo.PatternsTable,
@@ -228,7 +228,7 @@ int main(int argc, char** argv) {
       std::cerr << "Unrecognized command. Use --help for list of options."
                 << std::endl;
       return 1;
-    } 
+    }
   }
   catch (std::exception& err) {
     std::cerr << "Error: " << err.what() << "\n\n";

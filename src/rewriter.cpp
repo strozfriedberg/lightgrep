@@ -40,7 +40,7 @@ void print_branch(std::ostream& out, std::stack<Node*>& branch) {
 bool has_zero_length_match(const Node *n) {
   switch (n->Type) {
   case Node::REGEXP:
-    return has_zero_length_match(n->Left);  
+    return has_zero_length_match(n->Left);
 
   case Node::ALTERNATION:
     return has_zero_length_match(n->Left) || has_zero_length_match(n->Right);
@@ -51,7 +51,7 @@ bool has_zero_length_match(const Node *n) {
   case Node::REPETITION:
   case Node::REPETITION_NG:
     return n->Min == 0 || has_zero_length_match(n->Left);
-   
+
   case Node::DOT:
   case Node::CHAR_CLASS:
   case Node::LITERAL:
@@ -116,8 +116,8 @@ bool expand_counted_repetition(Node *n) {
     {
       const uint32 min = n->Val & 0x0000FFFF;
       const uint32 max = (n->Val & 0xFFFF0000) >> 16;
-      
-      
+
+
 
 
     }
@@ -171,7 +171,7 @@ bool reduce_useless_repetitions(Node* n, std::stack<Node*>& branch) {
   case Node::REPETITION:
   case Node::REPETITION_NG:
     if (n->Min == 0 && n->Max == 0) {
-      // prune this subtree 
+      // prune this subtree
       prune_subtree(n, branch);
       n = branch.top();
       branch.pop();
@@ -237,7 +237,7 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
         // strip out {1,m}?
         n->Left = n->Left->Left;
       }
-      else { 
+      else {
         // replace {n,m}? with {n}
         n->Left->Type = Node::REPETITION;
         n->Left->Max = n->Left->Min;
