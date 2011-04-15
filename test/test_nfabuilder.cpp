@@ -4,6 +4,7 @@
 #include "concrete_encodings.h"
 #include "graph.h"
 #include "nfabuilder.h"
+#include "parser.h"
 #include "parsetree.h"
 #include "states.h"
 #include "utility.h"
