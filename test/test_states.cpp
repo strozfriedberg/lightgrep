@@ -46,7 +46,7 @@ SCOPE_TEST(eitherAccept) {
   SCOPE_ASSERT_EQUAL(&ch, e.allowed(&ch, &ch+1));
   ch = 'A';
   SCOPE_ASSERT_EQUAL(&ch+1, e.allowed(&ch, &ch+1));
-  
+
   std::bitset<256> bits(0);
   e.getBits(bits);
   SCOPE_ASSERT_EQUAL(2u, bits.count());

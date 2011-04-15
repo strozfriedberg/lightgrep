@@ -121,7 +121,7 @@ SCOPE_TEST(parseUnparse_aOrbS_Test) {
   SCOPE_ASSERT(parse("a|b*", false, tree));
   SCOPE_ASSERT_EQUAL("a|b*", unparse(tree));
 }
-  
+
 SCOPE_TEST(parseUnparse_aSOrbS_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("a*|b*", false, tree));
@@ -248,7 +248,7 @@ SCOPE_TEST(byteToCharacterString) {
         SCOPE_ASSERT_EQUAL(ss.str(), actual);
         ss.str("");
       }
-    } 
+    }
   }
 }
 

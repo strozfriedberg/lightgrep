@@ -33,7 +33,7 @@ struct StateLayoutInfo {
 
 /*
 std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& info) {
-  out << "Start == " << info.Start 
+  out << "Start == " << info.Start
       << ", NumEval == " << info.NumEval
       << ", NumOther == " << info.NumOther
       << ", CheckIndex == " << info.CheckIndex
@@ -144,7 +144,7 @@ public:
       outOps += 2*(outDegree-1);
 
       // count the first child only if it needs a jump
-      if (Helper->DiscoverRanks[v] + 1 != 
+      if (Helper->DiscoverRanks[v] + 1 !=
           Helper->DiscoverRanks[graph.outVertex(v, 0)]) {
         outOps += 2;
       }

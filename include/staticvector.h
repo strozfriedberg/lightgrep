@@ -8,7 +8,7 @@ class StaticVector {
 public:
   typedef T* iterator;
   typedef const T* const_iterator;
-  
+
   // StaticVector(): Array(0), Capacity(0), Begin(0), End(0) {}
   StaticVector(unsigned int capacity = 10): Array(new T[capacity]), Capacity(capacity), Begin(&Array[0]), End(&Array[0]) {}
 
@@ -42,14 +42,14 @@ public:
 
   T& front() { return *Begin; }
   const T& front() const { return *Begin; }
-  
+
   T& back() { return *(End - 1); }
   const T& back() const { return *(End - 1); }
 
   unsigned int size() const { return End - Begin; }
   bool empty() const { return Begin == End; }
   bool full() const { return size() == Capacity; }
-  
+
   void push_back(const T& x) { *(End++) = x; }
   void clear() { End = Begin; }
 

@@ -10,8 +10,8 @@ public:
   typedef std::pair< Graph::vertex, Graph::vertex > StatePair;
 
   void mergeIntoFSM(Graph& dst, const Graph& src);
-  
-  void labelGuardStates(Graph& g); 
+
+  void labelGuardStates(Graph& g);
 
   void propagateMatchLabels(Graph& g);
   void removeNonMinimalLabels(Graph& g);

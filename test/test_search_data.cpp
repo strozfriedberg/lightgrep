@@ -36,7 +36,7 @@ void longTest() {
     STest test(pattern);
     const byte* text_ptr = (const byte*) text.data();
     test.search(text_ptr, text_ptr + text.length(), 0, test);
-    
+
     std::vector<SearchHit>& actual = test.Hits;
 
     std::sort(expected.begin(), expected.end());
@@ -45,7 +45,7 @@ void longTest() {
 /*
     std::copy(expected.begin(), expected.end(),
               std::ostream_iterator<SearchHit>(std::cout, " "));
- 
+
     std::cout << '\n';
 
     std::copy(actual.begin(), actual.end(),
@@ -58,15 +58,15 @@ void longTest() {
     else {
       // Houston, we have a problem
       std::cout << "failed!\n";
-   
+
       std::cout << "missing: ";
- 
+
       std::set_difference(
         expected.begin(), expected.end(),
         actual.begin(), actual.end(),
         std::ostream_iterator<SearchHit>(std::cout, " ")
       );
- 
+
       std::cout << '\n';
       std::cout << "extra: ";
 

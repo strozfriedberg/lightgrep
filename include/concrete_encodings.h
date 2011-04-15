@@ -8,7 +8,7 @@ public:
   virtual uint32 maxByteLength() const;
   virtual uint32 write(int ch, byte buf[]) const;
 
-  virtual ~Ascii() {}  
+  virtual ~Ascii() {}
 };
 
 class UCS16: public Encoding {
@@ -16,5 +16,5 @@ public:
   virtual uint32 maxByteLength() const;
   virtual uint32 write(int ch, byte buf[]) const;
 
-  virtual ~UCS16() {}  
+  virtual ~UCS16() {}
 };

@@ -9,7 +9,7 @@
 #include "vm_interface.h"
 
 struct SearchInfo {
-  
+
 };
 
 enum Encodings {
@@ -19,7 +19,7 @@ enum Encodings {
 
 struct KwInfo {
   typedef std::vector<std::string> StringVec;
-  
+
   StringVec Keywords,
             Encodings;
   std::vector< std::pair<uint32, uint32> > PatternsTable;
@@ -34,7 +34,7 @@ class Visitor {
 public:
   virtual void discoverVertex(Graph::vertex,
                               const Graph&) const {}
- 
+
   virtual void treeEdge(Graph::vertex,
                         Graph::vertex,
                         const Graph&) const {}
