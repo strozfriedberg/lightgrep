@@ -3,7 +3,7 @@
 #include "nfabuilder.h"
 #include "parsetree.h"
 
-#include "test_helper.h"
+#include "stest.h"
 
 SCOPE_FIXTURE_CTOR(autoPatternTest0, STest, STest("a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
