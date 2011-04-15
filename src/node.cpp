@@ -61,3 +61,15 @@ std::ostream& operator<<(std::ostream& out, const Node& n) {
     return out << "WTF";
   }
 }
+
+void printTree(std::ostream& out, const Node& n) {
+  if (n.Left) {
+    printTree(out, *n.Left);
+  }
+
+  if (n.Right) {
+    printTree(out, *n.Right);
+  }
+
+  out << n << '\n';
+}

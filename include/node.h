@@ -70,4 +70,6 @@ struct Node {
 
 std::ostream& operator<<(std::ostream& out, const Node& n);
 
+void printTree(std::ostream& out, const Node& n);
 void repetition(std::ostream& out, uint32 min, uint32 max);
+

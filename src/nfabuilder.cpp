@@ -361,18 +361,6 @@ void NFABuilder::finish(const Node& n) {
   }
 }
 
-void printTree(std::ostream& out, const Node& n) {
-  if (n.Left) {
-    printTree(out, *n.Left);
-  }
-
-  if (n.Right) {
-    printTree(out, *n.Right);
-  }
-
-  out << n << '\n';
-}
-
 void NFABuilder::traverse(const Node* n) {
 
   if (n->Left) {
