@@ -2,7 +2,7 @@
 
 #include <cstring>
 
-#include "test_helper.h"
+#include "stest.h"
 
 SCOPE_FIXTURE_CTOR(abSearch, STest, STest("ab")) {
   const byte* text = (const byte*)"abc";
