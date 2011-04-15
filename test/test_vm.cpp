@@ -1,7 +1,7 @@
 #include <scope/test.h>
 
 #include "vm.h"
-#include "MockCallback.h"
+#include "mockcallback.h"
 
 #include <iostream>
 
