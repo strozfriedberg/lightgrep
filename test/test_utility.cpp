@@ -13,7 +13,7 @@
 #include "compiler.h"
 #include "utility_impl.h"
 #include "states.h"
-#include "MockCallback.h"
+#include "mockcallback.h"
 
 #include "test_helper.h"
 
