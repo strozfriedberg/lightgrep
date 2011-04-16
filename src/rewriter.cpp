@@ -215,11 +215,16 @@ bool reduce_useless_repetitions(Node* root) {
 }
 
 bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
-  // Look for S+?T along trailing branches, where T admits zero-length
-  // matches.
+  // As as postfix, S+?T = ST, when T admits zero-length matches.
+  //
+  // Nodes from adjacen subpatterns have only concatenations between
+  // them and their common ancestor.
 
   switch (n->Type) {
   case Node::REGEXP:
+    if (!n->Left) {
+      return false;
+    }
   case Node::REPETITION:
   case Node::REPETITION_NG:
     // these are not the nodes you're looking for
@@ -231,6 +236,10 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
     return reduce_trailing_nongreedy_then_empty(n->Right, branch);
 
   case Node::CONCATENATION:
+
+/
+// FIXME: very convoluted, refactor this 
+
     if (n->Left->Type == Node::REPETITION_NG &&
         n->Left->Min > 0 && has_zero_length_match(n->Right)) {
       if (n->Left->Min == 1) {
@@ -245,8 +254,37 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
       return true;
     }
     else {
+      bool ret = false;
+      std::stack<Node*> orig_branch(branch);
+  
+      if (branch.top()->Type != Node::CONCATENATION) {
+        branch.push(n);
+        ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
+      }
+      else {
+        if (n->Right->Type == Node::REPETITION_NG &&
+            n->Right->Min > 0 &&
+            n == branch.top()->Left &&
+            has_zero_length_match(branch.top()->Right)) {
+  
+          if (n->Right->Min == 1) {
+            // strip out {1,m}?
+            n->Right = n->Right->Left;
+          }
+          else {
+            // replace {n,m}? with {n}
+            n->Right->Type = Node::REPETITION;
+            n->Right->Max = n->Right->Min;
+          }
+            
+          ret = true;
+        }
+      }
+  
+      branch = orig_branch;
+  
       branch.push(n);
-      return reduce_trailing_nongreedy_then_empty(n->Right, branch);
+      return reduce_trailing_nongreedy_then_empty(n->Right, branch) || ret;
     }
 
   case Node::DOT:
