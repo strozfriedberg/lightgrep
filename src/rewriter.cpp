@@ -197,55 +197,58 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
     return reduce_trailing_nongreedy_then_empty(n->Left, branch);
 
   case Node::ALTERNATION:
-    branch.push(n);
-    return reduce_trailing_nongreedy_then_empty(n->Right, branch);
+    {
+      branch.push(n);
+      std::stack<Node*> orig_branch(branch);
+      const bool lreduce = reduce_trailing_nongreedy_then_empty(n->Left, branch);
+      return reduce_trailing_nongreedy_then_empty(n->Right, orig_branch) || lreduce;
+    }
 
   case Node::CONCATENATION:
 
-// FIXME: very convoluted, refactor this 
-
-    if (n->Left->Type == Node::REPETITION_NG &&
-        n->Left->Min > 0 && has_zero_length_match(n->Right)) {
-      if (n->Left->Min == 1) {
-        // strip out {1,m}?
-        n->Left = n->Left->Left;
-      }
-      else {
-        // replace {n,m}? with {n}
-        n->Left->Type = Node::REPETITION;
-        n->Left->Max = n->Left->Min;
-      }
-      return true;
-    }
-    else {
+    {
       bool ret = false;
-      std::stack<Node*> orig_branch(branch);
-  
-      if (branch.top()->Type != Node::CONCATENATION) {
-        branch.push(n);
-        ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
+
+      if (n->Left->Type == Node::REPETITION_NG &&
+          n->Left->Min > 0 && has_zero_length_match(n->Right)) {
+        if (n->Left->Min == 1) {
+          // strip out {1,m}?
+          n->Left = n->Left->Left;
+        }
+        else {
+         // replace {n,m}? with {n}
+          n->Left->Type = Node::REPETITION;
+          n->Left->Max = n->Left->Min;
+        }
+        ret = true;
       }
       else {
-        if (n->Right->Type == Node::REPETITION_NG &&
-            n->Right->Min > 0 &&
-            n == branch.top()->Left &&
-            has_zero_length_match(branch.top()->Right)) {
-  
-          if (n->Right->Min == 1) {
-            // strip out {1,m}?
-            n->Right = n->Right->Left;
-          }
-          else {
-            // replace {n,m}? with {n}
-            n->Right->Type = Node::REPETITION;
-            n->Right->Max = n->Right->Min;
-          }
-            
-          ret = true;
+        if (branch.top()->Type != Node::CONCATENATION) {
+          std::stack<Node*> orig_branch(branch);
+          branch.push(n);
+          ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
+          branch = orig_branch;
         }
-      }
-  
-      branch = orig_branch;
+        else {
+          if (n->Right->Type == Node::REPETITION_NG &&
+              n->Right->Min > 0 &&
+              n == branch.top()->Left &&
+              has_zero_length_match(branch.top()->Right)) {
+ 
+            if (n->Right->Min == 1) {
+              // strip out {1,m}?
+              n->Right = n->Right->Left;
+            }
+            else {
+              // replace {n,m}? with {n}
+              n->Right->Type = Node::REPETITION;
+              n->Right->Max = n->Right->Min;
+            }
+
+            ret = true;
+          }
+        }
+      }  
   
       branch.push(n);
       return reduce_trailing_nongreedy_then_empty(n->Right, branch) || ret;
