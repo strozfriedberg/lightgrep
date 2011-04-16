@@ -93,52 +93,6 @@ bool prefers_zero_length_match(const Node* n) {
   }
 }
 
-/*
-bool expand_counted_repetition(Node *n) {
-  switch (n->Type) {
-  case Node::REGEXP:
-  case Node::PLUS:
-  case Node::STAR:
-  case Node::QUESTION:
-  case Node::PLUS_NG:
-  case Node::STAR_NG:
-  case Node::QUESTION_NG:
-    // these are not the nodes you're looking for
-    return expand_counted_repetition(n->Left);
-
-  case Node::ALTERNATION:
-  case Node::CONCATENATION:
-    bool ret = expand_counted_repetition(n->Left);
-    ret |= expand_counted_repetition(n->Right);
-    return ret;
-
-  case Node::REPEAT:
-    {
-      const uint32 min = n->Val & 0x0000FFFF;
-      const uint32 max = (n->Val & 0xFFFF0000) >> 16;
-
-
-
-
-    }
-
-  case Node::REPEAT_NG:
-
-  case Node::DOT:
-  case Node::CHAR_CLASS:
-  case Node::LITERAL:
-    // branch finished
-    return false;
-
-  default:
-    // WTF?
-    throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
-  }
-
-  return false;
-}
-*/
-
 bool reduce_useless_repetitions(Node* n, std::stack<Node*>& branch) {
   switch (n->Type) {
   case Node::REGEXP:
