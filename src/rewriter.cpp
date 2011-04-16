@@ -169,20 +169,21 @@ bool reduce_useless_repetitions(Node* root) {
 }
 
 bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
-  // As as postfix, S+?T = ST, when T admits zero-length matches.
-  //
-  // In the tree, the adjacency can show up as either S+? and T being
-  // children of the same concatenation, or as T being the right uncle
-  // of S+?:
-  //
-  //     &            &
-  //    / \    OR    / \
-  //   +? T         &   T
-  //    |          / \    
-  //    S            +?
-  //                  |
-  //                  S 
-  //
+  /*
+     As as postfix, S+?T = ST, when T admits zero-length matches.
+    
+     In the tree, the adjacency can show up as either S+? and T being
+     children of the same concatenation, or as T being the right uncle
+     of S+?:
+    
+         &            &
+        / \    OR    / \
+       +?  T        &   T
+        |          / \
+        S            +?
+                      |
+                      S
+  */
 
   switch (n->Type) {
   case Node::REGEXP:
@@ -201,7 +202,6 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
 
   case Node::CONCATENATION:
 
-/
 // FIXME: very convoluted, refactor this 
 
     if (n->Left->Type == Node::REPETITION_NG &&
