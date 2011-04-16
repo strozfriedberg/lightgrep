@@ -185,6 +185,9 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
                       S
   */
 
+  bool ret = false;
+  branch.push(n);
+
   switch (n->Type) {
   case Node::REGEXP:
     if (!n->Left) {
@@ -193,77 +196,67 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
   case Node::REPETITION:
   case Node::REPETITION_NG:
     // these are not the nodes you're looking for
-    branch.push(n);
-    return reduce_trailing_nongreedy_then_empty(n->Left, branch);
+    ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
+    break;
 
   case Node::ALTERNATION:
-    {
-      branch.push(n);
-      std::stack<Node*> orig_branch(branch);
-      const bool lreduce = reduce_trailing_nongreedy_then_empty(n->Left, branch);
-      return reduce_trailing_nongreedy_then_empty(n->Right, orig_branch) || lreduce;
-    }
+    ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
+    ret |= reduce_trailing_nongreedy_then_empty(n->Right, branch);
+    break;
 
   case Node::CONCATENATION:
 
-    {
-      bool ret = false;
-
-      if (n->Left->Type == Node::REPETITION_NG &&
-          n->Left->Min > 0 && has_zero_length_match(n->Right)) {
+    if (has_zero_length_match(n->Right)) {
+      // check whether the left child is {n,m}?, n > 0
+      if (n->Left->Type == Node::REPETITION_NG && n->Left->Min > 0) {
         if (n->Left->Min == 1) {
           // strip out {1,m}?
           n->Left = n->Left->Left;
         }
         else {
-         // replace {n,m}? with {n}
+          // replace {n,m}? with {n}
           n->Left->Type = Node::REPETITION;
           n->Left->Max = n->Left->Min;
         }
         ret = true;
       }
-      else {
-        if (branch.top()->Type != Node::CONCATENATION) {
-          std::stack<Node*> orig_branch(branch);
-          branch.push(n);
-          ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
-          branch = orig_branch;
+      // check whether the left nephew is {n,m}?, n > 0
+      else if (n->Left->Type == Node::CONCATENATION &&
+               n->Left->Right->Type == Node::REPETITION_NG &&
+               n->Left->Right->Min > 0) { 
+        if (n->Left->Right->Min == 1) {
+          // strip out {1,m}?
+          n->Left->Right = n->Left->Right->Left;
         }
         else {
-          if (n->Right->Type == Node::REPETITION_NG &&
-              n->Right->Min > 0 &&
-              n == branch.top()->Left &&
-              has_zero_length_match(branch.top()->Right)) {
- 
-            if (n->Right->Min == 1) {
-              // strip out {1,m}?
-              n->Right = n->Right->Left;
-            }
-            else {
-              // replace {n,m}? with {n}
-              n->Right->Type = Node::REPETITION;
-              n->Right->Max = n->Right->Min;
-            }
-
-            ret = true;
-          }
+          // replace {n,m}? with {n}
+          n->Left->Right->Type = Node::REPETITION;
+          n->Left->Right->Max = n->Left->Right->Min;
         }
-      }  
-  
-      branch.push(n);
-      return reduce_trailing_nongreedy_then_empty(n->Right, branch) || ret;
+        ret = true;
+      }
     }
+
+    if (!ret) {
+      ret = reduce_trailing_nongreedy_then_empty(n->Right, branch);
+    }
+
+    break;
 
   case Node::DOT:
   case Node::CHAR_CLASS:
   case Node::LITERAL:
     // branch finished
-    return false;
+    ret = false;
+    break;
 
   default:
     // WTF?
     throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
   }
+
+  branch.pop();
+  return ret;
 }
 
 bool reduce_trailing_nongreedy_then_empty(Node* root) {
