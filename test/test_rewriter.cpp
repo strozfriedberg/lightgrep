@@ -543,46 +543,80 @@ SCOPE_TEST(reduceTrailingNongreedyThenEmptyTest) {
   SCOPE_ASSERT_EQUAL("aa.a*", unparse(tree));
 }
 
-SCOPE_TEST(reduceUselessRepetitionsTest) {
+SCOPE_TEST(reduceUselessRepetitions_a_Test) {
   ParseTree tree;
-
   SCOPE_ASSERT(parse("a", false, tree));
   SCOPE_ASSERT(!reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("a", unparse(tree));
+}
 
+SCOPE_TEST(reduceUselessRepetitions_a0_Test) {
+  ParseTree tree;
   SCOPE_ASSERT(parse("a{0}", false, tree));
   SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("", unparse(tree));
+}
 
+SCOPE_TEST(reduceUselessRepetitions_a1_Test) {
+  ParseTree tree;
   SCOPE_ASSERT(parse("a{1}", false, tree));
   SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("a", unparse(tree));
+}
 
+SCOPE_TEST(reduceUselessRepetitions_a0b_Test) {
+  ParseTree tree;
   SCOPE_ASSERT(parse("a{0}b", false, tree));
   SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("b", unparse(tree));
+}
 
+SCOPE_TEST(reduceUselessRepetitions_a0_0_Test) {
+  ParseTree tree;
   SCOPE_ASSERT(parse("a{0,0}", false, tree));
   SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("", unparse(tree));
+}
 
+SCOPE_TEST(reduceUselessRepetitions_a1_1_Test) {
+  ParseTree tree;
   SCOPE_ASSERT(parse("a{1,1}", false, tree));
   SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("a", unparse(tree));
+}
 
+SCOPE_TEST(reduceUselessRepetitions_a1_2_Test) {
+  ParseTree tree;
   SCOPE_ASSERT(parse("a{1,2}", false, tree));
   SCOPE_ASSERT(!reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("a{1,2}", unparse(tree));
+}
 
+SCOPE_TEST(reduceUselessRepetitions_a1Q_Test) {
+  ParseTree tree;
   SCOPE_ASSERT(parse("a{1}?", false, tree));
   SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("a", unparse(tree));
+}
 
+SCOPE_TEST(reduceUselessRepetitions_a2Q_Test) {
+  ParseTree tree;
   SCOPE_ASSERT(parse("a{2}?", false, tree));
   SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("a{2}", unparse(tree));
+}
 
+SCOPE_TEST(reduceUselessRepetitions_a1_2Q_Test) {
+  ParseTree tree;
   SCOPE_ASSERT(parse("a{1,2}?", false, tree));
   SCOPE_ASSERT(!reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("a{1,2}?", unparse(tree));
 }
+
+SCOPE_TEST(reduceUselessRepetitions_aLPa0OraRP_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a(a{0}|a)", false, tree));
+  SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
+  SCOPE_ASSERT_EQUAL("a", unparse(tree));
+}
+
