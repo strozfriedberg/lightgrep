@@ -82,9 +82,10 @@ public:
       TransitionTbl tbl(pivotStates(v, graph));
       if (maxOutbound(tbl) < outDegree) {
         uint32 sizeIndirectTables = 0,
-                num,
-                first = 256,
-                last  = 0;
+               num,
+               first = 256,
+               last  = 0;
+
         for (uint32 i = 0; i < 256; ++i) {
           num = tbl[i].size();
           if (num > 1) {
@@ -139,18 +140,19 @@ public:
       // std::cerr << "no out edges, so a halt" << std::endl;
       outOps = 1; // HALT instruction
     }
-    else if (outDegree < 4) {
-      // count each of the non-initial children
-      outOps += 2*(outDegree-1);
-
-      // count the first child only if it needs a jump
-      if (Helper->DiscoverRanks[v] + 1 !=
-          Helper->DiscoverRanks[graph.outVertex(v, 0)]) {
-        outOps += 2;
-      }
-    }
     else {
       outOps = calcJumpTableSize(v, graph, outDegree);
+
+      if (outDegree < 4 || outOps == 0) {
+        // count each of the non-initial children
+        outOps += 2*(outDegree-1);
+
+        // count the first child only if it needs a jump
+        if (Helper->DiscoverRanks[v] + 1 !=
+            Helper->DiscoverRanks[graph.outVertex(v, 0)]) {
+          outOps += 2;
+        }
+      }
     }
 
     const uint32 totalSize = outOps + label + match +
