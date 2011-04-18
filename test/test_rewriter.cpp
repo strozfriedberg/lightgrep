@@ -550,32 +550,11 @@ SCOPE_TEST(reduceUselessRepetitions_a_Test) {
   SCOPE_ASSERT_EQUAL("a", unparse(tree));
 }
 
-SCOPE_TEST(reduceUselessRepetitions_a0_Test) {
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a{0}", false, tree));
-  SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
-  SCOPE_ASSERT_EQUAL("", unparse(tree));
-}
-
 SCOPE_TEST(reduceUselessRepetitions_a1_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("a{1}", false, tree));
   SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("a", unparse(tree));
-}
-
-SCOPE_TEST(reduceUselessRepetitions_a0b_Test) {
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a{0}b", false, tree));
-  SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
-  SCOPE_ASSERT_EQUAL("b", unparse(tree));
-}
-
-SCOPE_TEST(reduceUselessRepetitions_a0_0_Test) {
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a{0,0}", false, tree));
-  SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
-  SCOPE_ASSERT_EQUAL("", unparse(tree));
 }
 
 SCOPE_TEST(reduceUselessRepetitions_a1_1_Test) {
@@ -613,10 +592,51 @@ SCOPE_TEST(reduceUselessRepetitions_a1_2Q_Test) {
   SCOPE_ASSERT_EQUAL("a{1,2}?", unparse(tree));
 }
 
-SCOPE_TEST(reduceUselessRepetitions_aLPa0OraRP_Test) {
+SCOPE_TEST(reduceEmptySubtrees_a_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a(a{0}|a)", false, tree));
-  SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
+  SCOPE_ASSERT(parse("a", false, tree));
+  SCOPE_ASSERT(!reduce_empty_subtrees(tree.Root));
   SCOPE_ASSERT_EQUAL("a", unparse(tree));
 }
 
+SCOPE_TEST(reduceEmptySubtrees_a0_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a{0}", false, tree));
+  SCOPE_ASSERT(reduce_empty_subtrees(tree.Root));
+  SCOPE_ASSERT_EQUAL("", unparse(tree));
+}
+
+SCOPE_TEST(reduceEmptySubtrees_a0b0_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a{0}b{0}", false, tree));
+  SCOPE_ASSERT(reduce_empty_subtrees(tree.Root));
+  SCOPE_ASSERT_EQUAL("", unparse(tree));
+}
+
+SCOPE_TEST(reduceEmptySubtrees_a0b_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a{0}b", false, tree));
+  SCOPE_ASSERT(reduce_empty_subtrees(tree.Root));
+  SCOPE_ASSERT_EQUAL("b", unparse(tree));
+}
+
+SCOPE_TEST(reduceEmptySubtrees_ba0_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("ba{0}", false, tree));
+  SCOPE_ASSERT(reduce_empty_subtrees(tree.Root));
+  SCOPE_ASSERT_EQUAL("b", unparse(tree));
+}
+
+SCOPE_TEST(reduceEmptySubtrees_aLPa0OraRP_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a(a{0}|a)", false, tree));
+  SCOPE_ASSERT(reduce_empty_subtrees(tree.Root));
+  SCOPE_ASSERT_EQUAL("a", unparse(tree));
+}
+
+SCOPE_TEST(reduceEmptySubtrees_aLPaOra0RP_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a(a|a{0})", false, tree));
+  SCOPE_ASSERT(reduce_empty_subtrees(tree.Root));
+  SCOPE_ASSERT_EQUAL("aa", unparse(tree));
+}
