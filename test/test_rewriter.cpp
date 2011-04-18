@@ -638,5 +638,5 @@ SCOPE_TEST(reduceEmptySubtrees_aLPaOra0RP_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("a(a|a{0})", false, tree));
   SCOPE_ASSERT(reduce_empty_subtrees(tree.Root));
-  SCOPE_ASSERT_EQUAL("aa", unparse(tree));
+  SCOPE_ASSERT_EQUAL("aa?", unparse(tree));
 }
