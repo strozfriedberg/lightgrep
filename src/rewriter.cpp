@@ -148,16 +148,34 @@ bool reduce_empty_subtrees(Node* n, std::stack<Node*>& branch) {
     break;
 
   case Node::ALTERNATION:
-    // We don't check the left alternative for preferring zero-length
-    // matches here because if it did, then the whole alternation would,
-    // so we would already have pruned it away.
+    // We don't check the left alternative for zero-length matches only
+    // here because if it did, then the whole alternation would, so we
+    // would already have pruned it away.
 
     if (has_only_zero_length_match(n->Right)) {
+      Node* l = n->Left;
+      Node* old = n->Right;
+
       // prune away right alternative
       prune_subtree(n->Right, branch);
       n = branch.top();
-      branch.pop(); 
-      reduce_empty_subtrees(n, branch);
+      branch.pop();
+
+      // insert a ? as the parent of the left alternative,
+      // reusing a pruned node
+      old->Type = Node::REPETITION;
+      old->Min = 0;
+      old->Max = 1;
+      old->Left = l;
+
+      if (l == n->Left) {
+        n->Left = old;
+      }
+      else {
+        n->Right = old;
+      }
+
+      reduce_empty_subtrees(old, branch);
       ret = true;
     }
     else {
@@ -172,7 +190,7 @@ bool reduce_empty_subtrees(Node* n, std::stack<Node*>& branch) {
       // prune away left conjunct
       prune_subtree(n->Left, branch);
       n = branch.top();
-      branch.pop(); 
+      branch.pop();
       reduce_empty_subtrees(n, branch);
       ret = true;
     }
