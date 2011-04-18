@@ -69,8 +69,8 @@ bool prefers_zero_length_match(const Node* n) {
     return prefers_zero_length_match(n->Left);
 
   case Node::ALTERNATION:
-    return prefers_zero_length_match(n->Left) ||
-           prefers_zero_length_match(n->Right);
+    // Left has priority, so we don't need to check right.
+    return prefers_zero_length_match(n->Left);
 
   case Node::CONCATENATION:
     return prefers_zero_length_match(n->Left) &&
@@ -93,74 +93,190 @@ bool prefers_zero_length_match(const Node* n) {
   }
 }
 
-bool reduce_useless_repetitions(Node* n, std::stack<Node*>& branch) {
+bool has_only_zero_length_match(const Node* n) {
   switch (n->Type) {
   case Node::REGEXP:
-    if (!n->Left) {
-      return false;
-    }
-    branch.push(n);
-    return reduce_useless_repetitions(n->Left, branch);
+    return has_only_zero_length_match(n->Left);
 
   case Node::ALTERNATION:
+    // Left has priority, so we don't need to check right.
+    return has_only_zero_length_match(n->Left);
+
   case Node::CONCATENATION:
-    {
-      branch.push(n);
-      std::stack<Node*> orig_branch(branch);
-
-      const bool lreduce = reduce_useless_repetitions(n->Left, branch);
-
-      if (n->Left) {
-        // The left alternative wasn't pruned away, so we have to traverse
-        // the subtree of the right alternative ourselves.
-        return reduce_useless_repetitions(n->Right, orig_branch) || lreduce;
-      }
-      else {
-        // The left alternative was pruned away, so the right alternative
-        // was moved up the tree and has already been traversed.
-        return lreduce;
-      }
-    }
+    return has_only_zero_length_match(n->Left) &&
+           has_only_zero_length_match(n->Right);
 
   case Node::REPETITION:
   case Node::REPETITION_NG:
-    if (n->Min == 0 && n->Max == 0) {
-      // prune this subtree
-      prune_subtree(n, branch);
-      n = branch.top();
-      branch.pop();
-      reduce_useless_repetitions(n, branch);
-      return true;
+    return (n->Min == 0 && n->Max == 0) || has_only_zero_length_match(n->Left);
+
+  case Node::DOT:
+  case Node::CHAR_CLASS:
+  case Node::LITERAL:
+    return false;
+
+  default:
+    // WTF?
+    throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
+  }
+}
+
+bool reduce_empty_subtrees(Node* n, std::stack<Node*>& branch) {
+  
+  // ST{0}Q = ST{0}?Q = T{0}QS = T{0}?Q = S
+  // R(S{0}Q|T) = (S{0}Q|T)R = R
+  // (R|S{0}Q|T) = R?
+ 
+  bool ret = false;
+  branch.push(n);
+
+  switch (n->Type) {
+  case Node::REGEXP:
+    if (!n->Left) {
+      return ret;
     }
-    else if (n->Min == 1 && n->Max == 1) {
-      // remove {1,1}, {1,1}?
-      Node* p = branch.top();
+    
+    if (has_only_zero_length_match(n->Left)) {
+      // prune away the whole tree 
+      n->Left = 0;
+      ret = true;
+    }
+    else {
+      ret = reduce_empty_subtrees(n->Left, branch);
+    }
+    branch.pop();
+    break;
+
+  case Node::ALTERNATION:
+    // We don't check the left alternative for preferring zero-length
+    // matches here because if it did, then the whole alternation would,
+    // so we would already have pruned it away.
+
+    if (has_only_zero_length_match(n->Right)) {
+      // prune away right alternative
+      prune_subtree(n->Right, branch);
+      n = branch.top();
+      branch.pop(); 
+      reduce_empty_subtrees(n, branch);
+      ret = true;
+    }
+    else {
+      ret = reduce_empty_subtrees(n->Left, branch);
+      ret |= reduce_empty_subtrees(n->Right, branch);
       branch.pop();
-      p->Left = n->Left;
+    }
+    break;
+
+  case Node::CONCATENATION:
+    if (has_only_zero_length_match(n->Left)) {
+      // prune away left conjunct
+      prune_subtree(n->Left, branch);
+      n = branch.top();
+      branch.pop(); 
+      reduce_empty_subtrees(n, branch);
+      ret = true;
+    }
+    else if (has_only_zero_length_match(n->Right)) {
+      // prune away right conjunct
+      prune_subtree(n->Right, branch);
+      n = branch.top();
+      branch.pop(); 
+      reduce_empty_subtrees(n, branch);
+      ret = true;
+    }
+    else {
+      ret = reduce_empty_subtrees(n->Left, branch);
+      ret |= reduce_empty_subtrees(n->Right, branch);
+      branch.pop();
+    }
+    break;
+
+  case Node::REPETITION:
+  case Node::REPETITION_NG:
+  case Node::DOT:
+  case Node::CHAR_CLASS:
+  case Node::LITERAL:
+    // branch finished
+    ret = false;
+    branch.pop();
+    break;
+
+  default:
+    // WTF?
+    throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
+  }
+
+  return ret;
+}
+
+bool reduce_empty_subtrees(Node* root) {
+  std::stack<Node*> branch;
+  return reduce_empty_subtrees(root, branch);
+}
+
+bool reduce_useless_repetitions(Node* n, std::stack<Node*>& branch) {
+  // T{1} = T{1}? = T
+  // T{n}? = T{n}
+ 
+  bool ret = false;
+  branch.push(n);
+
+  switch (n->Type) {
+  case Node::REGEXP:
+    if (!n->Left) {
+      return ret;
+    }
+    ret = reduce_useless_repetitions(n->Left, branch);
+    break;
+
+  case Node::ALTERNATION:
+  case Node::CONCATENATION:
+    ret = reduce_useless_repetitions(n->Left, branch);
+    ret |= reduce_useless_repetitions(n->Right, branch);
+    break;
+
+  case Node::REPETITION:
+  case Node::REPETITION_NG:
+    if (n->Min == 1 && n->Max == 1) {
+      // remove {1,1}, {1,1}?
+      branch.pop();
+      Node* parent = branch.top();
+      if (n == parent->Left) {
+        parent->Left = n->Left;
+      }
+      else {
+        parent->Right = n->Left;
+      }
+
       reduce_useless_repetitions(n->Left, branch);
-      return true;
+      ret = true;
     }
     else if (n->Min == n->Max && n->Type == Node::REPETITION_NG) {
       // reduce {n}? to {n}
       n->Type = Node::REPETITION;
-      branch.push(n);
       reduce_useless_repetitions(n->Left, branch);
-      return true;
+      ret = true;
     }
     else {
-      branch.push(n);
-      return reduce_useless_repetitions(n->Left, branch);
+      ret = reduce_useless_repetitions(n->Left, branch);
     }
+
+    break;
 
   case Node::DOT:
   case Node::CHAR_CLASS:
   case Node::LITERAL:
     // branch finished
-    return false;
+    ret = false;
+    break;
+
   default:
     // WTF?
     throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
   }
+
+  branch.pop();
+  return ret;
 }
 
 bool reduce_useless_repetitions(Node* root) {
@@ -191,7 +307,7 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
   switch (n->Type) {
   case Node::REGEXP:
     if (!n->Left) {
-      return false;
+      return ret;
     }
   case Node::REPETITION:
   case Node::REPETITION_NG:
