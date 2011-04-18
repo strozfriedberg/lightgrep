@@ -366,7 +366,7 @@ std::vector< std::vector< Graph::vertex > > pivotStates(Graph::vertex source, co
 uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable) {
   uint32 ret = 0;
   for (std::vector< std::vector< Graph::vertex > >::const_iterator it(tranTable.begin()); it != tranTable.end(); ++it) {
-    ret = it->size() > ret ? it->size(): ret;
+    ret = it->size() > ret ? it->size() : ret;
   }
   return ret;
 }
