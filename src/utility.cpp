@@ -32,14 +32,15 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
         nfab.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
 
         if (parse(kw, litMode, tree)) {
-          if (kw.find('{',1) != std::string::npos) {
-            reduce_empty_subtrees(tree.Root);
-            reduce_useless_repetitions(tree.Root);
+
+          bool rewritten = false;
+          if (kw.find('?',1) != std::string::npos) {
+            rewritten |= reduce_trailing_nongreedy_then_empty(tree.Root);
           }
 
-          if (kw.find('?',1) != std::string::npos) {
-            reduce_trailing_nongreedy(tree.Root);
-            reduce_trailing_nongreedy_then_empty(tree.Root);
+          if (rewritten || kw.find('{',1) != std::string::npos) {
+            reduce_empty_subtrees(tree.Root);
+            reduce_useless_repetitions(tree.Root);
           }
 
           if (nfab.build(tree)) {

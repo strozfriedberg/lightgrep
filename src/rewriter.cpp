@@ -232,6 +232,28 @@ bool reduce_empty_subtrees(Node* root) {
   return reduce_empty_subtrees(root, branch);
 }
 
+bool prune_useless_repetitions(Node* n, const std::stack<Node*>& branch) {
+  if ((n->Type == Node::REPETITION || n->Type == Node::REPETITION_NG) &&
+       n->Min == 1 && n->Max == 1) {
+    // remove {1,1}, {1,1}?
+    Node* parent = branch.top();
+    if (n == parent->Left) {
+      parent->Left = n->Left;
+    }
+    else {
+      parent->Right = n->Left;
+    }
+    return true;
+  }
+  else if (n->Type == Node::REPETITION_NG && n->Min == n->Max) {
+    // reduce {n}? to {n}
+    n->Type = Node::REPETITION;
+    return true;
+  }
+
+  return false;
+}
+
 bool reduce_useless_repetitions(Node* n, std::stack<Node*>& branch) {
   // T{1} = T{1}? = T
   // T{n}? = T{n}
@@ -244,41 +266,21 @@ bool reduce_useless_repetitions(Node* n, std::stack<Node*>& branch) {
     if (!n->Left) {
       return ret;
     }
-    ret = reduce_useless_repetitions(n->Left, branch);
+    ret = prune_useless_repetitions(n->Left, branch);
+    ret |= reduce_useless_repetitions(n->Left, branch);
     break;
 
   case Node::ALTERNATION:
   case Node::CONCATENATION:
-    ret = reduce_useless_repetitions(n->Left, branch);
+    ret = prune_useless_repetitions(n->Left, branch);
+    ret |= reduce_useless_repetitions(n->Left, branch);
+    ret |= prune_useless_repetitions(n->Right, branch);
     ret |= reduce_useless_repetitions(n->Right, branch);
     break;
 
   case Node::REPETITION:
   case Node::REPETITION_NG:
-    if (n->Min == 1 && n->Max == 1) {
-      // remove {1,1}, {1,1}?
-      branch.pop();
-      Node* parent = branch.top();
-      if (n == parent->Left) {
-        parent->Left = n->Left;
-      }
-      else {
-        parent->Right = n->Left;
-      }
-
-      reduce_useless_repetitions(n->Left, branch);
-      ret = true;
-    }
-    else if (n->Min == n->Max && n->Type == Node::REPETITION_NG) {
-      // reduce {n}? to {n}
-      n->Type = Node::REPETITION;
-      reduce_useless_repetitions(n->Left, branch);
-      ret = true;
-    }
-    else {
-      ret = reduce_useless_repetitions(n->Left, branch);
-    }
-
+    ret = reduce_useless_repetitions(n->Left, branch);
     break;
 
   case Node::DOT:
@@ -304,11 +306,11 @@ bool reduce_useless_repetitions(Node* root) {
 
 bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
   /*
-     As as postfix, S+?T = ST, when T admits zero-length matches.
+     As a postfix, S{n,m}?T = S{n}T, when T admits zero-length matches.
     
-     In the tree, the adjacency can show up as either S+? and T being
+     In the tree, the adjacency can show up as either S{n,m}? and T as
      children of the same concatenation, or as T being the right uncle
-     of S+?:
+     of S{n,m}?:
     
          &            &
         / \    OR    / \
@@ -317,6 +319,9 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
         S            +?
                       |
                       S
+
+     As a postfix, S{n,m}? = S{n}. This is a special case of the above,
+     letting T = R{0}.
   */
 
   bool ret = false;
@@ -328,9 +333,14 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
       return ret;
     }
   case Node::REPETITION:
-  case Node::REPETITION_NG:
-    // these are not the nodes you're looking for
     ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
+    break;
+
+  case Node::REPETITION_NG:
+    // replace S{n,m}? with S{n}
+    n->Type = Node::REPETITION;
+    n->Max = n->Min;
+    ret = true;
     break;
 
   case Node::ALTERNATION:
@@ -339,42 +349,29 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
     break;
 
   case Node::CONCATENATION:
-
     if (has_zero_length_match(n->Right)) {
-      // check whether the left child is {n,m}?, n > 0
-      if (n->Left->Type == Node::REPETITION_NG && n->Left->Min > 0) {
-        if (n->Left->Min == 1) {
-          // strip out {1,m}?
-          n->Left = n->Left->Left;
-        }
-        else {
-          // replace {n,m}? with {n}
-          n->Left->Type = Node::REPETITION;
-          n->Left->Max = n->Left->Min;
-        }
+      if (n->Left->Type == Node::REPETITION_NG) {
+        // the left child is S{n,m}?, the right child is T
+
+        // replace S{n,m}? with S{n}
+        n->Left->Type = Node::REPETITION;
+        n->Left->Max = n->Left->Min;
+
         ret = true;
       }
-      // check whether the left nephew is {n,m}?, n > 0
       else if (n->Left->Type == Node::CONCATENATION &&
-               n->Left->Right->Type == Node::REPETITION_NG &&
-               n->Left->Right->Min > 0) { 
-        if (n->Left->Right->Min == 1) {
-          // strip out {1,m}?
-          n->Left->Right = n->Left->Right->Left;
-        }
-        else {
-          // replace {n,m}? with {n}
-          n->Left->Right->Type = Node::REPETITION;
-          n->Left->Right->Max = n->Left->Right->Min;
-        }
+               n->Left->Right->Type == Node::REPETITION_NG) {
+        // the right grandchild is S{n,m}?, the right child is T
+
+        // replace S{n,m}? with S{n}
+        n->Left->Right->Type = Node::REPETITION;
+        n->Left->Right->Max = n->Left->Right->Min;
+
         ret = true;
       }
     }
-
-    if (!ret) {
-      ret = reduce_trailing_nongreedy_then_empty(n->Right, branch);
-    }
-
+    
+    ret |= reduce_trailing_nongreedy_then_empty(n->Right, branch);
     break;
 
   case Node::DOT:
@@ -442,84 +439,4 @@ void prune_subtree(Node *n, std::stack<Node*>& branch) {
     // WTF?
     throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
   }
-}
-
-bool reduce_trailing_nongreedy(Node* n, std::stack<Node*>& branch) {
-  switch (n->Type) {
-  case Node::REGEXP:
-    if (!n->Left) {
-      return false;
-    }
-  case Node::REPETITION:
-    branch.push(n);
-    return reduce_trailing_nongreedy(n->Left, branch);
-
-  case Node::CONCATENATION:
-    branch.push(n);
-    return reduce_trailing_nongreedy(n->Right, branch);
-
-  case Node::ALTERNATION:
-    {
-      branch.push(n);
-      std::stack<Node*> orig_branch(branch);
-
-      const bool lreduce = reduce_trailing_nongreedy(n->Left, branch);
-
-      if (n->Left) {
-        // The left alternative wasn't pruned away, so we have to traverse
-        // the subtree of the right alternative ourselves.
-        return reduce_trailing_nongreedy(n->Right, orig_branch) || lreduce;
-      }
-      else {
-        // The left alternative was pruned away, so the right alternative
-        // was moved up the tree and has already been traversed.
-        return lreduce;
-      }
-    }
-
-  case Node::REPETITION_NG:
-    if (n->Min > 0) {
-      if (n->Min == 1) {
-        // strip out {1,m}?
-        Node* p = branch.top();
-
-        if (p->Left == n) {
-          p->Left = n->Left;
-        }
-        else {
-          p->Right = n->Left;
-        }
-      }
-      else {
-        // convert {n,m}? to {n}
-        n->Type = Node::REPETITION;
-        n->Max = n->Min;
-      }
-
-      reduce_trailing_nongreedy(n->Left, branch);
-    }
-    else {
-      // prune this subtree
-      prune_subtree(n, branch);
-      n = branch.top();
-      branch.pop();
-      reduce_trailing_nongreedy(n, branch);
-    }
-    return true;
-
-  case Node::DOT:
-  case Node::CHAR_CLASS:
-  case Node::LITERAL:
-    // branch finished
-    return false;
-
-  default:
-    // WTF?
-    throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
-  }
-}
-
-bool reduce_trailing_nongreedy(Node* root) {
-  std::stack<Node*> branch;
-  return reduce_trailing_nongreedy(root, branch);
 }
