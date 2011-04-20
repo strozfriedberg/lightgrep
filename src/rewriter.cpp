@@ -373,8 +373,10 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
 
         ret = true;
 
-        // check the left, it is trailed by an empty-matching subpattern
-        reduce_trailing_nongreedy_then_empty(n->Left->Left, branch);
+        // check the left left, if trailed by an empty-matching subpattern
+        if (has_zero_length_match(n->Left->Right)) {
+          reduce_trailing_nongreedy_then_empty(n->Left->Left, branch);
+        }
       }
       else {
         // check the left, it is trailed by an empty-matching subpattern
