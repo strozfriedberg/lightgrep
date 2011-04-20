@@ -243,6 +243,9 @@ bool prune_useless_repetitions(Node* n, const std::stack<Node*>& branch) {
     else {
       parent->Right = n->Left;
     }
+
+    // recurse, to handle nested repetitions
+    prune_useless_repetitions(n->Left, branch);
     return true;
   }
   else if (n->Type == Node::REPETITION_NG && n->Min == n->Max) {
