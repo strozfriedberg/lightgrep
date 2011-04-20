@@ -301,12 +301,7 @@ void NFABuilder::concatenate(const Node& n) {
   Fragment& first = Stack.top();
 
   // patch left out to right in
-  if (first.Skippable == NOSKIP || first.Skippable <= TempFrag.Skippable) {
-    patch_mid(first.OutList, TempFrag.InList, TempFrag.Skippable);
-  }
-  else {
-    patch_post(first.OutList, TempFrag.InList);
-  }
+  patch_mid(first.OutList, TempFrag.InList, TempFrag.Skippable);
 
   // build new in list
   if (first.Skippable != NOSKIP) {
