@@ -73,3 +73,17 @@ void printTree(std::ostream& out, const Node& n) {
 
   out << n << '\n';
 }
+
+void printTreeDetails(std::ostream& out, const Node& n) {
+  if (n.Right) {
+    printTreeDetails(out, *n.Right);
+  }
+
+  if (n.Left) {
+    printTreeDetails(out, *n.Left);
+  }
+
+  out << &n << ' ' << n.Type << ' ' << n.Left << ' ' << n.Right << ' '
+      << n.Val << ' ' << n.Min << ' ' << n.Max << '\n';
+}
+
