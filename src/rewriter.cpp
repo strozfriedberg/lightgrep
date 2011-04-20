@@ -368,6 +368,13 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
         n->Left->Right->Max = n->Left->Right->Min;
 
         ret = true;
+
+        // check the left, it is trailed by an empty-matching subpattern
+        reduce_trailing_nongreedy_then_empty(n->Left->Left, branch);
+      }
+      else {
+        // check the left, it is trailed by an empty-matching subpattern
+        ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
       }
     }
     

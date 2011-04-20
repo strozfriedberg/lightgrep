@@ -211,6 +211,7 @@ SCOPE_TEST(pruneSubtreeRightBinaryParentTest) {
   SCOPE_ASSERT_EQUAL(na, tree.Root->Left);
 }
 
+// FIXME: Split this into multiple tests.
 SCOPE_TEST(reduceTrailingNongreedyThenEmptyTest) {
   ParseTree tree;
 
@@ -361,6 +362,13 @@ SCOPE_TEST(reduceTrailingNongreedyThenEmptyTest) {
   SCOPE_ASSERT(parse("a.*?a*", false, tree));
   SCOPE_ASSERT(reduce_trailing_nongreedy_then_empty(tree.Root));
   SCOPE_ASSERT_EQUAL("a.{0}a*", unparse(tree));
+}
+
+SCOPE_TEST(reduceTrailingNongreedyThenEmpty_aPQdotQQaSQ_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a+?.??a*?", false, tree));
+  SCOPE_ASSERT(reduce_trailing_nongreedy_then_empty(tree.Root));
+  SCOPE_ASSERT_EQUAL("a{1}.{0}a{0}", unparse(tree));
 }
 
 SCOPE_TEST(reduceUselessRepetitions_a_Test) {
