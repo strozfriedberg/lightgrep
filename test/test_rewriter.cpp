@@ -371,6 +371,13 @@ SCOPE_TEST(reduceTrailingNongreedyThenEmpty_aPQdotQQaSQ_Test) {
   SCOPE_ASSERT_EQUAL("a{1}.{0}a{0}", unparse(tree));
 }
 
+SCOPE_TEST(reduceTrailingNongreedyThenEmpty_PLaPQRPPQ_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("(a+?)+?", false, tree));
+  SCOPE_ASSERT(reduce_trailing_nongreedy_then_empty(tree.Root));
+  SCOPE_ASSERT_EQUAL("(a{1}){1}", unparse(tree));
+}
+
 SCOPE_TEST(reduceUselessRepetitions_a_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("a", false, tree));

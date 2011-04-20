@@ -340,6 +340,7 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
     // replace S{n,m}? with S{n}
     n->Type = Node::REPETITION;
     n->Max = n->Min;
+    reduce_trailing_nongreedy_then_empty(n->Left, branch);
     ret = true;
     break;
 
