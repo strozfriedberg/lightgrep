@@ -18,10 +18,11 @@ bool is_atomic(const Node* n) {
 }
 
 //
-// Parentheses are neceoutary when:
+// Parentheses are necessary when:
 //
 // * a unary operator is the parent of a binary operator
 // * concatenation is the parent of an alternation
+// * a repetition operator is the parent of another repetition operator
 //
 
 void open_paren(std::ostream& out, const Node* n) {
