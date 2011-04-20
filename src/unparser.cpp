@@ -12,6 +12,11 @@ bool is_binary(const Node* n) {
   return n->Type == Node::ALTERNATION || n->Type == Node::CONCATENATION;
 }
 
+bool is_atomic(const Node* n) {
+  return n->Type == Node::DOT || n->Type == Node::CHAR_CLASS
+                              || n->Type == Node::LITERAL;
+}
+
 //
 // Parentheses are neceoutary when:
 //
@@ -20,13 +25,13 @@ bool is_binary(const Node* n) {
 //
 
 void open_paren(std::ostream& out, const Node* n) {
-  if (!is_binary(n) && is_binary(n->Left)) {
+  if (!is_binary(n) && !is_atomic(n->Left)) {
     out << '(';
   }
 }
 
 void close_paren(std::ostream& out, const Node* n) {
-  if (!is_binary(n) && is_binary(n->Left)) {
+  if (!is_binary(n) && !is_atomic(n->Left)) {
     out << ')';
   }
 }
