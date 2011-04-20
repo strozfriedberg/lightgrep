@@ -11,6 +11,7 @@
 #include "stest.h"
 
 void longTest() {
+  uint32 count = 0;
 
   uint32 len;
   while (std::cin.peek() != -1) {
@@ -78,5 +79,11 @@ void longTest() {
 
       std::cout << '\n';
     }
+
+    if (++count % 1000 == 0) {
+      std::cerr << count << std::endl;
+    }
   }
+
+  std::cerr << count << std::endl;
 }
