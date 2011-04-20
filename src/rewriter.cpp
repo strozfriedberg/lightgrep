@@ -135,7 +135,7 @@ bool reduce_empty_subtrees(Node* n, std::stack<Node*>& branch) {
     if (!n->Left) {
       return ret;
     }
-    
+
     if (has_only_zero_length_match(n->Left)) {
       // prune away the whole tree 
       n->Left = 0;
@@ -167,6 +167,7 @@ bool reduce_empty_subtrees(Node* n, std::stack<Node*>& branch) {
       old->Min = 0;
       old->Max = 1;
       old->Left = l;
+      old->Right = 0;
 
       if (l == n->Left) {
         n->Left = old;
@@ -211,6 +212,10 @@ bool reduce_empty_subtrees(Node* n, std::stack<Node*>& branch) {
 
   case Node::REPETITION:
   case Node::REPETITION_NG:
+    ret = reduce_empty_subtrees(n->Left, branch);
+    branch.pop();
+    break;
+
   case Node::DOT:
   case Node::CHAR_CLASS:
   case Node::LITERAL:
