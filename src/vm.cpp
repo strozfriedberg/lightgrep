@@ -93,7 +93,7 @@ void Thread::output_json(std::ostream& out, const Instruction* base, byte state)
   out << "{ \"Id\":" << Id
       << ", \"PC\":" << (PC ? PC - base : -1)
       << ", \"Label\":" << Label
-      << ", \"Start\":" << Start 
+      << ", \"Start\":" << Start
       << ", \"End\":" << End
       << ", \"state\":" << (uint32) state
       << " }";
@@ -110,7 +110,7 @@ Vm::Vm() :
   #endif
   CurHitFn(0) {}
 
-Vm::Vm(ProgramPtr prog): 
+Vm::Vm(ProgramPtr prog):
   #ifdef LBT_TRACE_ENABLED
   BeginDebug(NONE), EndDebug(NONE), NextId(0),
   #endif
@@ -344,7 +344,7 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
   #else
   while (_executeEpsilon(base, t, offset)) ;
   #endif
-  
+
   return t->PC;
 }
 
@@ -399,7 +399,7 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 }
 
 void Vm::doMatch(const Thread& t) {
-  //std::cerr << t << std::endl; 
+  //std::cerr << t << std::endl;
 
   // check whether any higher-priority threads block us
   bool blocked = false;
@@ -461,7 +461,7 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
         ++t;
       }
       Kill.clear();
-    
+
       cleanup();
       t = Active.begin();
       if (t == Active.end()) { // early exit if threads die out
@@ -490,7 +490,7 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
     #ifdef LBT_TRACE_ENABLED
     close_frame_json(std::cerr, offset);
     #endif
-    
+
     if (t != Active.begin()) {
       _cleanup();
       t = Active.begin();

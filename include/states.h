@@ -6,13 +6,13 @@ class LitState: public Transition {
 public:
   LitState(byte lit): Transition(), Lit(lit) {}
   LitState(byte lit, uint32 label): Transition(label), Lit(lit) {}
-  
+
   const byte* allowed(const byte* beg, const byte*) const { return *beg == Lit ? beg+1: beg; }
 
   void getBits(std::bitset<256>& bits) const { bits.set(Lit); }
 
   size_t objSize() const { return sizeof(*this); }
-  
+
   LitState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 1; };

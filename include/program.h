@@ -10,7 +10,7 @@ public:
   Program(): std::vector<Instruction>() {}
 
   uint32  NumChecked;
-  
+
   boost::shared_ptr<SkipTable> Skip;
   ByteSet First;
 };

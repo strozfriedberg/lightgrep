@@ -121,7 +121,7 @@ SCOPE_TEST(parseUnparse_aOrbS_Test) {
   SCOPE_ASSERT(parse("a|b*", false, tree));
   SCOPE_ASSERT_EQUAL("a|b*", unparse(tree));
 }
-  
+
 SCOPE_TEST(parseUnparse_aSOrbS_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("a*|b*", false, tree));
@@ -224,6 +224,12 @@ SCOPE_TEST(parseUnparse_LPabRP42__Test) {
   SCOPE_ASSERT_EQUAL("(ab){42,}", unparse(tree));
 }
 
+SCOPE_TEST(parseUnparse_LPa1RP1__Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("(a{1}){1}", false, tree));
+  SCOPE_ASSERT_EQUAL("(a{1}){1}", unparse(tree));
+}
+
 SCOPE_TEST(byteToCharacterString) {
   std::stringstream ss;
 
@@ -248,7 +254,7 @@ SCOPE_TEST(byteToCharacterString) {
         SCOPE_ASSERT_EQUAL(ss.str(), actual);
         ss.str("");
       }
-    } 
+    }
   }
 }
 

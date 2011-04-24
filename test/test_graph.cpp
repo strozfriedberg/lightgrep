@@ -92,7 +92,7 @@ SCOPE_TEST(fsmManyInZeroOutItr) {
 SCOPE_TEST(fsmClear) {
   Graph g(1);
   g.addEdge(0, 0);
- 
+
   SCOPE_ASSERT_EQUAL(1, g.numVertices());
   g.clear();
   SCOPE_ASSERT_EQUAL(0, g.numVertices());

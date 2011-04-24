@@ -84,7 +84,7 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
 {
   ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
   pc->Comp.labelGuardStates(*pc->Fsm);
-  
+
   ProgramPtr *prog = new ProgramPtr;
   *prog = createProgram(*pc->Fsm);
   (*prog)->First = firstBytes(*pc->Fsm);

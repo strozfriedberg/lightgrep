@@ -74,7 +74,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
           srcTarget = StateMap[dstTarget];
         }
         // std::cerr << "  srcTarget = " << srcTarget << std::endl;
-        
+
         addNewEdge(srcHead, srcTarget, dst);
         States.push(StatePair(dstTarget, srcTarget));
       }
@@ -101,20 +101,20 @@ void Compiler::propagateMatchLabels(Graph& g) {
     }
 
     const unsigned int label = g[m]->Label;
-    
+
     // walk label back from this match state to all of its ancestors
     // which have no other match-state descendants
-   
+
     next.push(m);
 
     while (!next.empty()) {
       Graph::vertex t = next.top();
       next.pop();
-      
+
       // check each parent of the current state
       for (uint32 i = 0; i < g.inDegree(t); ++i) {
         Graph::vertex h = g.inVertex(t, i);
-        
+
         if (!g[h]) {
           // Skip the initial state.
           continue;
@@ -179,7 +179,7 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
     for (uint32 i = 0; i < g.outDegree(h); ++i) {
       Graph::vertex t = g.outVertex(h, i);
 
-      if (visited[t]) continue; 
+      if (visited[t]) continue;
 
       if (g[t]->Label == UNLABELABLE) {
         g[t]->Label = NONE;
@@ -206,7 +206,7 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
     for (uint32 i = 0; i < g.outDegree(h); ++i) {
       Graph::vertex t = g.outVertex(h, i);
 
-      if (visited[t]) continue; 
+      if (visited[t]) continue;
 
       // NB: Any node which should be labeled, we've already visited,
       // so we can unlabel everything we reach this way.

@@ -4,6 +4,7 @@
 #include "concrete_encodings.h"
 #include "graph.h"
 #include "nfabuilder.h"
+#include "parser.h"
 #include "parsetree.h"
 #include "states.h"
 #include "utility.h"
@@ -279,7 +280,7 @@ SCOPE_TEST(parseaPQb) {
 
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
- 
+
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
   SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
@@ -295,7 +296,7 @@ SCOPE_TEST(parseaPQb) {
   SCOPE_ASSERT(!g[0]);
   SCOPE_ASSERT(!g[1]->IsMatch);
   SCOPE_ASSERT(g[2]->IsMatch);
- 
+
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(g);
   SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
   std::vector<uint32> skip(256, 2);
@@ -361,7 +362,7 @@ SCOPE_TEST(parseaQQb) {
   NFABuilder nfab;
   ParseTree tree;
   Graph& g(*nfab.getFsm());
- 
+
   SCOPE_ASSERT(parse("a??b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
@@ -456,7 +457,7 @@ SCOPE_TEST(parseaQQOrbQQc) {
   NFABuilder nfab;
   ParseTree tree;
   Graph& g(*nfab.getFsm());
- 
+
   SCOPE_ASSERT(parse("(a??|b??)c", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
@@ -489,7 +490,7 @@ SCOPE_TEST(parseaOrbQa) {
   NFABuilder nfab;
   ParseTree tree;
   Graph& g(*nfab.getFsm());
- 
+
   SCOPE_ASSERT(parse("(a|b?)a", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
@@ -522,7 +523,7 @@ SCOPE_TEST(parseaOrbQQa) {
   NFABuilder nfab;
   ParseTree tree;
   Graph& g(*nfab.getFsm());
- 
+
   SCOPE_ASSERT(parse("(a|b??)a", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
@@ -555,7 +556,7 @@ SCOPE_TEST(parseaSQb) {
   NFABuilder nfab;
   ParseTree tree;
   Graph& g(*nfab.getFsm());
-  
+
   SCOPE_ASSERT(parse("a*?b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
@@ -577,7 +578,7 @@ SCOPE_TEST(parseaSQb) {
   SCOPE_ASSERT(!g[0]);
   SCOPE_ASSERT(!g[1]->IsMatch);
   SCOPE_ASSERT(g[2]->IsMatch);
- 
+
   boost::shared_ptr<SkipTable> tbl = calculateSkipTable(g);
   SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
   std::vector<uint32> skip(256, 1);
@@ -793,7 +794,7 @@ SCOPE_TEST(parseNegatedRanges) {
   for (uint32 i = 0; i < 256; ++i) {
     if (('a' <= i && i <= 'z')
       || ('A' <= i && i <= 'Z')
-      || ('0' <= i && i <= '9')) 
+      || ('0' <= i && i <= '9'))
     {
       expected.set(i, false);
     }
@@ -887,7 +888,7 @@ SCOPE_TEST(parseZeroDotStarZero) {
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(1, g.inVertex(3, 0));
   SCOPE_ASSERT_EQUAL(2, g.inVertex(3, 1));
-  SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));  
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 }
 
 #define TEST_REPETITION_N(pattern, n) \
@@ -976,7 +977,7 @@ SCOPE_TEST(parse_aLC0_RCQb) {
   SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
   SCOPE_ASSERT_EQUAL(1, g.outVertex(1, 1));
   SCOPE_ASSERT(!g[1]->IsMatch);
-  
+
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
   SCOPE_ASSERT(g[2]->IsMatch);
@@ -1027,7 +1028,7 @@ SCOPE_TEST(parse_xa0_) {
   ParseTree tree;
   SCOPE_ASSERT(parse("xa{0,}", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
-  
+
   SCOPE_ASSERT_EQUAL(3u, g.numVertices());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
@@ -1088,13 +1089,13 @@ SCOPE_TEST(parse_aLCn_mRC) {
   }
 }
 
-SCOPE_TEST(parse_aLC1_2RCQb) {
+SCOPE_TEST(parse_aaQQb) {
   NFABuilder nfab;
   Graph& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("a{1,2}?b", false, tree));
+  SCOPE_ASSERT(parse("aa??b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
-  
+
   SCOPE_ASSERT_EQUAL(4u, g.numVertices());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
@@ -1118,3 +1119,38 @@ SCOPE_TEST(parse_aLC1_2RCQb) {
   SCOPE_ASSERT(g[3]->IsMatch);
 }
 
+SCOPE_TEST(parse_xLPaORaQQRPy) {
+  NFABuilder nfab;
+  Graph& g(*nfab.getFsm());
+  ParseTree tree;
+  SCOPE_ASSERT(parse("x(a|a??)y", false, tree));
+  SCOPE_ASSERT(nfab.build(tree));
+
+  SCOPE_ASSERT_EQUAL(5u, g.numVertices());
+
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(3u, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(4, g.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(3, g.outVertex(1, 2));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(4, g.outVertex(2, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(3));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(3));
+  SCOPE_ASSERT_EQUAL(4, g.outVertex(3, 0));
+
+  SCOPE_ASSERT_EQUAL(3u, g.inDegree(4));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(4));
+
+  SCOPE_ASSERT(!g[1]->IsMatch);
+  SCOPE_ASSERT(!g[2]->IsMatch);
+  SCOPE_ASSERT(!g[3]->IsMatch);
+  SCOPE_ASSERT(g[4]->IsMatch);
+}

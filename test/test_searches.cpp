@@ -2,7 +2,7 @@
 
 #include <cstring>
 
-#include "test_helper.h"
+#include "stest.h"
 
 SCOPE_FIXTURE_CTOR(abSearch, STest, STest("ab")) {
   const byte* text = (const byte*)"abc";
@@ -269,6 +269,50 @@ SCOPE_FIXTURE_CTOR(aPQbSSearch, STest, STest("a+?b*")) {
   SCOPE_ASSERT_EQUAL(2, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
+}
+
+SCOPE_FIXTURE_CTOR(aOrDotOraOraSearch, STest, STest("a|.|a|a")) {
+  const byte* text = (const byte*) "b";
+  fixture.search(text, text + 1, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(aLPaOra0RPSearch, STest, STest("a(a|a{0})")) {
+  const byte* text = (const byte*) "ab";
+  fixture.search(text, text + 1, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(aQaSaSearch, STest, STest("a?a*a")) {
+  const byte* text = (const byte*) "aaa";
+  fixture.search(text, text + 3, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(aPQdotQQaSQSearch, STest, STest("a+?.??a*?")) {
+  const byte* text = (const byte*) "aaa";
+  fixture.search(text, text + 3, 0, fixture);
+  SCOPE_ASSERT_EQUAL(3, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 0), fixture.Hits[2]);
+}
+
+SCOPE_FIXTURE_CTOR(aadotPQaPQaSSearch, STest, STest("aa.+?a+?a*")) {
+  const byte* text = (const byte*) "aaaba";
+  fixture.search(text, text + 5, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 5, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(aSdotQaSaSearch, STest, STest("a*.?a*a")) {
+  const byte* text = (const byte*) "aaabaa";
+  fixture.search(text, text + 6, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 6, 0), fixture.Hits[0]);
 }
 
 SCOPE_FIXTURE_CTOR(startsWithTest, STest, STest(3, (const char*[]){"ab..ef", "c[a-z][a-z]", "[aA][bc][bc]"})) {

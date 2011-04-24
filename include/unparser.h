@@ -5,8 +5,8 @@
 
 #include <string>
 
-std::string byteToCharacterString(uint32 i); 
+std::string byteToCharacterString(uint32 i);
 std::string byteSetToCharacterClass(const ByteSet& bs);
 
-std::string unparse(const ParseTree& tree); 
+std::string unparse(const ParseTree& tree);
 

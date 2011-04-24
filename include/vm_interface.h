@@ -3,7 +3,7 @@
 #include "basic.h"
 #include "program.h"
 #include "thread.h"
-#include "SearchHit.h"
+#include "searchhit.h"
 
 class VmInterface {
 public:
