@@ -23,7 +23,7 @@ struct Fragment {
    * InList is the list of vertices in this fragment which have incoming
    * edges from outside the fragment. OutList is the is the list of vertices
    * in this fragment which have edges leaving the fragment.
-   */ 
+   */
   InListT InList;
   OutListT OutList;
   Node N;
@@ -42,7 +42,7 @@ struct Fragment {
   void reset(const Node& n) {
     N = n;
     Skippable = NOSKIP;
-    InList.clear(); 
+    InList.clear();
     OutList.clear();
   }
 };
@@ -81,14 +81,15 @@ public:
   void setCurLabel(uint32 lbl) { CurLabel = lbl; }
 
   std::stack<Fragment>& stack() { return Stack; }
- 
+
   bool build(const ParseTree& tree);
- 
+
 private:
   void setLiteralTransition(TransitionPtr& state, byte val);
 
+  void patch_mid(OutListT& src, const InListT& dst, uint32 dstskip);
   void patch_pre(OutListT& src, const InListT& dst);
-  void patch_post(const OutListT& src, const InListT& dst);
+  void patch_post(OutListT& src, const InListT& dst);
 
   void traverse(const Node* n);
 
@@ -100,6 +101,6 @@ private:
   std::stack<Fragment> Stack;
   boost::scoped_array<byte> TempBuf;
   std::vector<TransitionPtr> LitFlyweights;
-  
+
   Fragment  TempFrag;
 };

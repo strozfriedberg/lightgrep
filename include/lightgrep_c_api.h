@@ -18,7 +18,7 @@ extern "C" {
     char CaseInsensitive; // 0 => case sensitive, non-zero => case-insensitive
     char FixedString;     // 0 => grep, non-zero => fixed-string
   } LG_KeyOptions;
-  
+
   typedef struct {
     char c;
   } LG_ProgramOptions;
@@ -34,14 +34,14 @@ extern "C" {
   //   print("hit at %d, ending %d, on keyword %d", hit->Start, hit->End, hit->KeywordIndex);
   // }
   typedef void (*LG_HITCALLBACK_FN)(void* userData, const LG_SearchHit* const hit);
-  
+
   // Returns a handle to a parser for assembling all the keywords you'd like to search for
   // The parameter lets you pass a hint as to the size of the finite state machine that will be created
   // from the keywords. This is important if there will be a lot of keywords, as it helps minimize
   // heap allocation and fragmentation. A good rule of thumb is to pass the total number of characters
   // in all of the keywords. Everything will work fine with 0, though.
   LG_HPARSER lg_create_parser(unsigned int numFsmStateSizeHint);
-  
+
   // De-allocates all RAM associated with parsing the keywords.
   // Can, and should, be called after creating an LG_HPROGRAM.
   void lg_destroy_parser(LG_HPARSER hParser);

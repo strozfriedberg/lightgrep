@@ -11,7 +11,7 @@ namespace po = boost::program_options;
 // This is a special parser which puts all options after '--' into "pargs"
 std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
   std::vector<po::option> result;
-  
+
   std::vector<std::string>::const_iterator i(args.begin());
   if (i != args.end() && *i == "--") {
     po::option opt;
@@ -25,7 +25,7 @@ std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
     result.push_back(opt);
     args.clear();
   }
-  
+
   return result;
 }
 
@@ -38,14 +38,15 @@ void parse_opts(int argc, char** argv,
   // NB: Would be more appropriate to use a std::queue for pargs, but
   // boost::options_description throws a fit if we do.
   std::vector<std::string> pargs;
-  
+
   po::options_description hidden;
   hidden.add_options()
-    ("pargs", po::value< std::vector<std::string> >(&pargs)->multitoken(), "positional arguments"); 
-  
+    ("pargs", po::value< std::vector<std::string> >(&pargs)->multitoken(), "positional arguments");
+
   desc.add_options()
     ("help", "produce help message")
     ("test", "run unit tests (same as test command)")
+    ("long-test", "run long test")
     ("encoding,e", po::value< std::string >(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
     ("command,c", po::value< std::string >(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|test|server]")
     ("keywords,k", po::value< std::string >(&opts.KeyFile), "path to file containing keywords")
@@ -61,7 +62,7 @@ void parse_opts(int argc, char** argv,
     ("end-debug", po::value< uint64 >(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
     #endif
     ;
-  
+
   po::options_description allOpts;
   allOpts.add(desc).add(hidden);
 
@@ -82,7 +83,10 @@ void parse_opts(int argc, char** argv,
   else if (optsMap.count("test")) {
     opts.Command = "test";
   }
- 
+  else if (optsMap.count("long-test")) {
+    opts.Command = "long-test";
+  }
+
   if (opts.Command == "search" ||
       opts.Command == "graph" || opts.Command == "prog") {
     // determine the source of our patterns
@@ -108,7 +112,7 @@ void parse_opts(int argc, char** argv,
         opts.KeyFile = pargs.front();
         pargs.erase(pargs.begin());
       }
-    }  
+    }
 
     opts.CaseSensitive = optsMap.count("ignore-case") == 0;
     opts.LiteralMode = optsMap.count("fixed-strings") > 0;
@@ -130,13 +134,13 @@ void parse_opts(int argc, char** argv,
         opts.Input = "-";
       }
     }
-    
+
     // there should be no positional arguments unused now
     if (!pargs.empty()) {
       throw po::too_many_positional_options_error();
     }
   }
-  else if (opts.Command == "test" ||
+  else if (opts.Command == "test" || opts.Command == "long-test" ||
            opts.Command == "help" || opts.Command == "server") {
     // nothing else to do
   }

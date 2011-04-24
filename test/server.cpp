@@ -84,11 +84,11 @@ public:
   }
 
   virtual ~SocketWriter() {}
-  
+
   virtual void write(const HitInfo& hit) {
     boost::asio::write(*Socket, boost::asio::buffer((void*)(&hit), sizeof(HitInfo)));
   }
-  
+
 private:
   boost::shared_ptr<tcp::socket> Socket;
 };

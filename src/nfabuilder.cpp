@@ -33,7 +33,8 @@ std::ostream& operator<<(std::ostream& out, const OutListT& list) {
 }
 
 std::ostream& operator<<(std::ostream& out, const Fragment& f) {
-  out << "in " << f.InList << ", out " << f.OutList;
+  out << "in " << f.InList << ", out " << f.OutList
+      << ", skip " << f.Skippable;
   return out;
 }
 
@@ -93,33 +94,51 @@ void NFABuilder::setLiteralTransition(TransitionPtr& state, byte val) {
   }
 }
 
-void NFABuilder::patch_pre(OutListT& src, const InListT& dst) {
-  // make an edge from each vertex in src to each vertex in dst, putting
-  // these edges before the src vertex insertion points
+void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
+  // Make an edge from each vertex in src to each vertex in dst. Edges
+  // to vertices in dst before dstskip go before the insertion point in
+  // src, edges to vertices in dst after dstskip go after the insertion
+  // point in src.
   for (OutListT::iterator oi(src.begin()); oi != src.end(); ++oi) {
     uint32 pos = oi->second;
-    for (InListT::const_iterator ii(dst.begin()); ii != dst.end(); ++ii) {
+
+    const InListT::const_iterator skip_stop(dst.begin() + dstskip);
+    InListT::const_iterator ii(dst.begin());
+
+    // make edges before dstskip, inserting before src insertion point
+    for ( ; ii != dst.end() && ii < skip_stop; ++ii) {
       Fsm->addEdgeAt(oi->first, *ii, pos++);
     }
-    *oi = std::make_pair(oi->first, pos);
+
+    // save the new insertion point for dst
+    const uint32 spos = pos;
+
+    // make edges after dstskip, inserting after src insertion point
+    for ( ; ii != dst.end(); ++ii) {
+      Fsm->addEdgeAt(oi->first, *ii, pos++);
+    }
+
+    // set the new insertion point for dst
+    *oi = std::make_pair(oi->first, spos);
   }
 }
 
-void NFABuilder::patch_post(const OutListT& src, const InListT& dst) {
-  // make an edge from each vertex in src to each vertex in dst, putting
-  // these edges after the src vertex insertion points
-  for (OutListT::const_iterator oi(src.begin()); oi != src.end(); ++oi) {
-    uint32 pos = oi->second;
-    for (InListT::const_iterator ii(dst.begin()); ii != dst.end(); ++ii) {
-      Fsm->addEdgeAt(oi->first, *ii, pos++);
-    }
-  }
+void NFABuilder::patch_pre(OutListT& src, const InListT& dst) {
+  // Put all new edges before dst's insertion point.
+  patch_mid(src, dst, dst.size());
+}
+
+void NFABuilder::patch_post(OutListT& src, const InListT& dst) {
+  // Put all new edges after dst's insertion point.
+  patch_mid(src, dst, 0);
 }
 
 void NFABuilder::literal(const Node& n) {
   uint32 len = Enc->write(n.Val, TempBuf.get());
   if (0 == len) {
-    // bad things
+    // FXIME: should we really be checking this if it's supposed to be
+    // an impossible condition?
+    throw std::logic_error("bad things");
   }
   else {
     Graph& g(*Fsm);
@@ -177,7 +196,7 @@ void NFABuilder::charClass(const Node& n, const std::string& lbl) {
 void NFABuilder::question(const Node&) {
   Fragment& optional = Stack.top();
   if (optional.Skippable > optional.InList.size()) {
-    optional.Skippable = optional.InList.size(); 
+    optional.Skippable = optional.InList.size();
   }
 }
 
@@ -189,7 +208,7 @@ void NFABuilder::question_ng(const Node&) {
 void NFABuilder::plus(const Node& n) {
   Fragment& repeat = Stack.top();
   repeat.N = n;
-  
+
   // make back edges
   patch_pre(repeat.OutList, repeat.InList);
 }
@@ -269,7 +288,7 @@ void NFABuilder::alternate(const Node& n) {
   first.InList.insert(first.InList.end(),
                       second.InList.begin(), second.InList.end());
   first.OutList.insert(first.OutList.end(),
-                       second.OutList.begin(), second.OutList.end()); 
+                       second.OutList.begin(), second.OutList.end());
 
   first.N = n;
 
@@ -282,12 +301,7 @@ void NFABuilder::concatenate(const Node& n) {
   Fragment& first = Stack.top();
 
   // patch left out to right in
-  if (first.Skippable == NOSKIP || first.Skippable < TempFrag.Skippable) {
-    patch_pre(first.OutList, TempFrag.InList);
-  }
-  else {
-    patch_post(first.OutList, TempFrag.InList);
-  }
+  patch_mid(first.OutList, TempFrag.InList, TempFrag.Skippable);
 
   // build new in list
   if (first.Skippable != NOSKIP) {
@@ -298,7 +312,7 @@ void NFABuilder::concatenate(const Node& n) {
   // build new out list
   if (TempFrag.Skippable != NOSKIP) {
     first.OutList.insert(first.OutList.end(),
-                         TempFrag.OutList.begin(), TempFrag.OutList.end()); 
+                         TempFrag.OutList.begin(), TempFrag.OutList.end());
   }
   else {
     first.OutList = TempFrag.OutList;
@@ -342,29 +356,17 @@ void NFABuilder::finish(const Node& n) {
   }
 }
 
-void printTree(std::ostream& out, const Node& n) {
-  if (n.Left) {
-    printTree(out, *n.Left);
-  }
-  
-  if (n.Right) {
-    printTree(out, *n.Right);
-  }
-
-  out << n << '\n';
-}
-
 void NFABuilder::traverse(const Node* n) {
 
   if (n->Left) {
     // this node has a left child
-    if ((n->Type == Node::REPETITION || n->Type == Node::REPETITION_NG) && 
+    if ((n->Type == Node::REPETITION || n->Type == Node::REPETITION_NG) &&
        !((n->Min == 0 && (n->Max == 1 || n->Max == UNBOUNDED)) ||
          (n->Min == 1 && n->Max == UNBOUNDED)))
     {
       // This is a repetition, but not one of the special ones.
 
-      // NB: We expect that all empty repetitions ({0,0} and {0,0}?) 
+      // NB: We expect that all empty repetitions ({0,0} and {0,0}?)
       // will have been excised from the parse tree by now.
 
       if (n->Min == 1 && n->Max == 1) {
@@ -373,7 +375,7 @@ void NFABuilder::traverse(const Node* n) {
       }
       else {
         //
-        // T{n} = T...T 
+        // T{n} = T...T
         //          ^
         //        n times
         //
@@ -389,10 +391,10 @@ void NFABuilder::traverse(const Node* n) {
         // a graph with outdegree 2, while the former produces
         // one with outdegree m-n.
         //
-  
+
         // determine the size of the repetition tree
-        uint32 size; 
-                   
+        uint32 size;
+
         if (n->Min == n->Max) {
           // n-1 contatenations in the mandatory part
           size = n->Min - 1;
@@ -408,17 +410,17 @@ void NFABuilder::traverse(const Node* n) {
           // consisting of m-n questions and m-n-1 concatenations
           size = 2*n->Max - n->Min - 1;
         }
-  
+
         ParseTree rep;
         rep.init(size);
-  
+
         Node root;
 
         Node* none = 0;
         Node* parent = &root;
 
         if (n->Min > 0) {
-          // build the mandatory part 
+          // build the mandatory part
           for (uint32 i = 1; i < n->Min; ++i) {
             Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
             parent->Right = con;
@@ -431,7 +433,7 @@ void NFABuilder::traverse(const Node* n) {
           parent->Right = n->Left;
         }
         else if (n->Max == UNBOUNDED) {
-          // build the unbounded optional part 
+          // build the unbounded optional part
           if (n->Min == 0) {
             Node* star = rep.add(Node(n->Type, n->Left, 0, UNBOUNDED));
             parent->Right = star;
@@ -449,14 +451,14 @@ void NFABuilder::traverse(const Node* n) {
             parent = con;
           }
 
-          // build the bounded optional part 
+          // build the bounded optional part
           for (uint32 i = 1; i < n->Max - n->Min; ++i) {
             Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
             Node* question = rep.add(Node(n->Type, con, 0, 1));
             parent->Right = question;
             parent = con;
           }
- 
+
           Node* question = rep.add(Node(n->Type, n->Left, 0, 1));
           parent->Right = question;
         }
@@ -467,7 +469,7 @@ void NFABuilder::traverse(const Node* n) {
     else {
       // this is not a repetition, or is one of ? * + ?? *? +?
       traverse(n->Left);
-    } 
+    }
   }
 
   if (n->Right) {
@@ -479,13 +481,12 @@ void NFABuilder::traverse(const Node* n) {
 }
 
 bool NFABuilder::build(const ParseTree& tree) {
-//printTree(std::cerr, *tree.Root);
   traverse(tree.Root);
   return IsGood;
 }
 
 void NFABuilder::callback(const std::string& type, const Node& n) {
-  // std::cout << type << std::endl;
+//  std::cerr << n << std::endl;
   switch (n.Type) {
     case Node::REGEXP:
       finish(n);
@@ -514,8 +515,11 @@ void NFABuilder::callback(const std::string& type, const Node& n) {
     default:
       break;
   }
-  // std::cout << "Stack size is " << Stack.size() << std::endl;
-  // if (Stack.size() > 0) {
-  //   std::cout << "top is " << Stack.top() << std::endl;
-  // }
+
+/*
+  std::cerr << "Stack size is " << Stack.size() << std::endl;
+  if (Stack.size() > 0) {
+     std::cerr << "top is " << Stack.top() << std::endl;
+  }
+*/
 }

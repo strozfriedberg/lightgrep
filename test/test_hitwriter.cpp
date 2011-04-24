@@ -7,17 +7,17 @@ SCOPE_TEST(hitWriterOutput) {
   std::vector< std::string > keys,
                              encodings;
   std::stringstream stream;
-  
+
   keys.push_back("whatever");
   encodings.push_back("ASCII");
   encodings.push_back("UCS-16");
-  
+
   tbl.push_back(std::make_pair<uint32,uint32>(0, 0));
   tbl.push_back(std::make_pair<uint32,uint32>(0, 1));
 
   HitWriter writer(stream, tbl, keys, encodings);
   writer.collect(SearchHit(0, 10, 0));
-  
+
   uint64 offset, len, keyIndex;
   std::string key, encoding;
 

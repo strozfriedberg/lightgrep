@@ -18,7 +18,7 @@ private:
     ONE  = 1,
     MANY = ONE << 1
   };
-    
+
 public:
 #pragma pack(1)
   struct AdjacentList {
@@ -65,11 +65,11 @@ public:
   }
 
   const TransitionPtr operator[](vertex v) const {
-    return Vertices[v].Tran; 
+    return Vertices[v].Tran;
   }
-  
+
   TransitionPtr& operator[](vertex v) { return Vertices[v].Tran; }
- 
+
   void clear() {
     Vertices.clear();
     AdjLists.clear();

@@ -40,40 +40,31 @@
 SCOPE_TEST(kAndpIncompatibleOptions) {
   const char* cargv[] = { "--keywords", "foo", "--pattern", "bar" };
   Options opts;
-  try {
-    TEST_OPTS(cargv, opts);
-  }
-  catch (boost::program_options::error& e) {
-    return;
-  }
 
-  SCOPE_ASSERT(false);
+  SCOPE_EXPECT(
+    TEST_OPTS(cargv, opts),
+    boost::program_options::error
+  );
 }
 
 SCOPE_TEST(kTooManyOptions) {
   const char* cargv[] = { "--keywords", "foo", "bar", "baz" };
   Options opts;
-  try {
-    TEST_OPTS(cargv, opts);
-  }
-  catch (boost::program_options::too_many_positional_options_error& e) {
-    return;
-  }
 
-  SCOPE_ASSERT(false);
+  SCOPE_EXPECT(
+    TEST_OPTS(cargv, opts),
+    boost::program_options::too_many_positional_options_error
+  );
 }
 
 SCOPE_TEST(pTooManyOptions) {
   const char* cargv[] = { "--pattern", "foo", "bar", "baz" };
   Options opts;
-  try {
-    TEST_OPTS(cargv, opts);
-  }
-  catch (boost::program_options::too_many_positional_options_error& e) {
-    return;
-  }
 
-  SCOPE_ASSERT(false);
+  SCOPE_EXPECT(
+    TEST_OPTS(cargv, opts),
+    boost::program_options::too_many_positional_options_error
+  );
 }
 
 SCOPE_TEST(endOnePosArgOptions) {
@@ -97,13 +88,10 @@ SCOPE_TEST(endTwoPosArgsOptions) {
 SCOPE_TEST(endThreePosArgsOptions) {
   const char* cargv[] = { "--", "foo", "bar", "baz" };
   Options opts;
-  try {
-    TEST_OPTS(cargv, opts);
-  }
-  catch (boost::program_options::too_many_positional_options_error& e) {
-    return;
-  }
 
-  SCOPE_ASSERT(false);
+  SCOPE_EXPECT(
+    TEST_OPTS(cargv, opts),
+    boost::program_options::too_many_positional_options_error
+  );
 }
 

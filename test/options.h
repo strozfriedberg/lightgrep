@@ -9,7 +9,7 @@ class Options {
 public:
   uint64  DebugBegin,
           DebugEnd;
-          
+
   std::string KeyFile,
               Command,
               Input,

@@ -13,7 +13,7 @@
 #include "compiler.h"
 #include "utility_impl.h"
 #include "states.h"
-#include "MockCallback.h"
+#include "mockcallback.h"
 
 #include "test_helper.h"
 
@@ -46,11 +46,11 @@ bool buildNFA(Graph& fsm, const std::string& dot) {
   boost::property_map<graph_t, boost::edge_name_t>::type edge_label =
     get(boost::edge_name, src);
   dp.property("label", edge_label);
-  
+
   if (!boost::read_graphviz(is, src, dp, "node_id")) return false;
 
   // Convert this graph to a Graph (annoying!)
-  
+
   typedef boost::graph_traits<graph_t>::vertex vertex_t;
   typedef boost::graph_traits<graph_t>::edge_iterator edge_iterator;
 
@@ -85,7 +85,7 @@ SCOPE_TEST(acOrbcProgram) {
   edge(2, 3, fsm, new LitState('c'));
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
-  
+
   SCOPE_ASSERT_EQUAL(10u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[0], 5), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
@@ -226,7 +226,7 @@ SCOPE_TEST(codeGen2FinishVertex) {
   vis.finish_vertex(3, fsm);
   SCOPE_ASSERT_EQUAL(4u, cg->Snippets[3].Start);
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[3].numTotal());
-  
+
   vis.finish_vertex(4, fsm);
   SCOPE_ASSERT_EQUAL(6u, cg->Snippets[4].Start);
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[4].numTotal());
@@ -238,7 +238,7 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
   edge(0, 2, fsm, new LitState('b'));
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
   CodeGenVisitor vis(cg);
-  
+
   cg->NumDiscovered = 3;
   cg->DiscoverRanks[0] = 0;
   cg->DiscoverRanks[1] = 1;
@@ -247,11 +247,11 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
   vis.finish_vertex(0, fsm);
   SCOPE_ASSERT_EQUAL(0u, cg->Snippets[0].Start);
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[0].numTotal());
-  
+
   vis.finish_vertex(1, fsm);
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[1].Start);
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[1].numTotal());
-  
+
   vis.finish_vertex(2, fsm);
   SCOPE_ASSERT_EQUAL(4u, cg->Snippets[2].Start);
   SCOPE_ASSERT_EQUAL(2u, cg->Snippets[2].numTotal());
@@ -262,10 +262,10 @@ SCOPE_TEST(layoutWithCheckHalt) {
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 2, fsm, new LitState('b'));
- 
+
   fsm[2]->Label = 0;
   fsm[2]->IsMatch = true;
- 
+
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
   CodeGenVisitor vis(cg);
   specialVisit(fsm, 0, vis);
@@ -281,7 +281,7 @@ SCOPE_TEST(layoutWithCheckHalt) {
 SCOPE_TEST(twoStateBetterLayout) {
   Graph fsm(2);
   edge(0, 1, fsm, new LitState('a'));
-  
+
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
   SCOPE_ASSERT_EQUAL(2u, prog.size());
@@ -294,8 +294,8 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
   edge(0, 1, g, new LitState('a'));
   edge(0, 2, g, new LitState('b'));
   edge(0, 3, g, new LitState('c'));
-  edge(0, 4, g, new LitState('e')); 
- 
+  edge(0, 4, g, new LitState('e'));
+
   boost::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.numVertices()));
   CodeGenVisitor vis(cgh);
 
@@ -333,7 +333,7 @@ SCOPE_TEST(alternationBetterLayout) {
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
-  
+
   SCOPE_ASSERT_EQUAL(8u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[0], 5), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);

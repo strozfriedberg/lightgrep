@@ -13,7 +13,7 @@ print <<HEAD;
 #include "nfabuilder.h"
 #include "parsetree.h"
 
-#include "test_helper.h"
+#include "stest.h"
 
 HEAD
 

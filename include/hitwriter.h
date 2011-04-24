@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SearchHit.h"
+#include "searchhit.h"
 
 #include <iosfwd>
 
