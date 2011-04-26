@@ -28,7 +28,8 @@ expr :=
   con
   alt
   quant
-  assertion 
+  assertion
+  reset_match 
 
 con :=
   expr expr
@@ -157,6 +158,9 @@ esc :=
 assertion :=
   esc 'b'
   esc 'B'
+
+reset_match :=
+  esc 'K'
 
 quotation :=
   esc 'Q' quotation_contents esc 'E'
