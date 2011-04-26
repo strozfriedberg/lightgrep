@@ -1,0 +1,189 @@
+This is the subset of PCRE that we intend to support in lightgrep. See
+pcrepattern(3) for a description (in words, unfortunately, not as a
+grammar) of PCRE syntax. In particular, this omits:
+
+  * Wide hex characters (\x{hhh...})
+  * String, line, and match anchors (^, $, \A, \Z, \z, \G)
+  * Backreferences (\1-\9)
+  * Unicode (\p{}, \P{}, \X)
+  * Any single-byte (\C)
+  * Posix character classes ([:alpha:], etc.)
+  * Internal option setting ((?imsx))
+  * Noncapturing subpatterns ((?:foo))
+  * Named subpatterns
+  * Atomic grouping
+  * Possessive quantifiers
+  * Lookahead and -behind assertions
+  * Conditional subpatterns
+  * Comments ((?# comment))
+  * Recursive patterns
+  * Subpatterns as subroutines 
+  * Callouts
+  * Backtracking control
+
+Lightgrep PCRE grammar:
+
+expr :=
+  atom
+  con
+  alt
+  quant
+  assertion 
+
+con :=
+  expr expr
+
+alt :=
+  expr '|' expr
+
+quant :=
+  quant_g
+  quant_ng
+  
+quant_g :=
+  atom '?'
+  atom '*'
+  atom '+'
+  atom '{' number ',' number '}'
+  atom '{' number ',' '}'
+  atom '{' number '}'
+
+quant_ng :=
+  quant_g '?'
+
+atom :=
+  '(' expr ')'
+  literal
+  escape
+  char_class
+  quotation
+
+number :=
+  number digit_dec
+  digit_dec
+
+digit_oct :=
+  [0-7]
+
+digit_dec :=
+  [0-9]
+
+digit_hex :=
+  [0-9A-Fa-f]
+
+literal :=
+  [0x20-0x7E] - { '*', '+', '.', '?', '\', '[', '|' }
+
+escape :=
+  char_escape
+  ctrl_escape
+  hex_escape
+  oct_escape
+
+char_escape :=
+  esc 't'
+  esc 'n'
+  esc 'r'
+  esc 'f'
+  esc 'a'
+  esc 'e'
+  esc [^a-zA-Z0-9]
+
+ctrl_escape :=
+  esc 'c' [0x20-0x7E]
+ 
+hex_escape :=
+  esc 'x' digit_hex digit_hex
+  esc 'x' digit_hex
+  esc 'x'
+
+oct_escape :=
+  esc [0-3] digit_oct digit_oct
+  esc digit_oct digit_oct
+  esc '0'
+
+char_class :=
+  '.'
+  explicit_class
+  named_class
+
+explicit_class :=
+  '[' cc_contents ']' 
+  '[' '^' cc_contents ']' 
+
+cc_contents :=
+  ']'
+  cc_contents cc_atom
+  cc_atom
+
+cc_atom :=
+  cc_literal
+  cc_escape
+  cc_range
+  named_class
+  quotation
+
+cc_literal :=
+  [0x20-0x7E] - { '\', ']' }
+
+cc_escape :=
+  esc 'b'
+  escape
+
+cc_range :=
+  cc_range_atom '-' cc_range_atom
+
+cc_range_atom :=
+  cc_literal
+  cc_escape 
+
+named_class :=
+  esc 'd'
+  esc 'D'
+  esc 'h'
+  esc 'H'
+  esc 's'
+  esc 'S'
+  esc 'v'
+  esc 'V'
+  esc 'w'
+  esc 'W'
+  esc 'N'
+  esc 'R'
+
+esc :=
+  '\'
+
+assertion :=
+  esc 'b'
+  esc 'B'
+
+quotation :=
+  esc 'Q' quotation_contents esc 'E'
+
+quotation_contents :=
+  quotation_contents quotation_atom
+
+quotation_atom :=
+  '\' [^E]
+  [0x20-0x7E] - {'\'}
+
+
+Notes:
+
+1. This document is aspirational, not descriptive. Not everything
+defined here is supported at present.
+
+2. There are three cases where it is possible to create patterns which
+are accepted by this grammar, but will be rejected by lightgrep.
+
+  (a) Any pattern which has zero-length matches.
+  (b) Any pattern containing quantifier {n,m} where n > m.
+  (c) Any pattern containing a character class with a range where the
+      lower bound is greater than the upper bound, e.g. [z-a].
+ 
+In all three cases, these patterns are semantically bad, but syntacticly
+well-formed. In cases (b) and (c), PCRE will also reject these patterns.
+PCRE will accept case (a). It would be possible, but incredibly tedious,
+to exclude patterns of these types from the grammar.
+
