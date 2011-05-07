@@ -287,7 +287,7 @@ void unparse(std::ostream& out, const Node* n) {
     break;
 
   case Node::LITERAL:
-    out << (char) n->Val;
+    out << byteToCharacterString(n->Val);
     break;
 
   default:
