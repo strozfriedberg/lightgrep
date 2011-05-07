@@ -25,18 +25,19 @@ def buildBoost(target, source, env):
       break
   if (shouldBuild):
     print("building")
+    mode = "debug" if env['DEBUG_MODE'] == 'true' else "release"
     curDir = os.getcwd()
     os.chdir(str(source[0]))
     libsToBuild = '--with-program_options --with-system --with-thread'
     if (isWindows == True):
       shellCall('.\\bootstrap.bat')
       shellCall('.\\bjam --stagedir=%s %s '
-        'link=static variant=release threading=multi runtime-link=static toolset=gcc '
+        'link=static variant=%s threading=multi runtime-link=static toolset=gcc '
         'address-model=%s define=BOOST_USE_WINDOWS_H '
-        '-s BOOST_NO_RVALUE_REFERENCES stage' % (curDir, libsToBuild, bits))
+        '-s BOOST_NO_RVALUE_REFERENCES stage' % (curDir, libsToBuild, mode, bits))
     else:
       shellCall('./bootstrap.sh')
-      shellCall('./bjam --stagedir=%s %s link=shared variant=release threading=multi stage' % (curDir, libsToBuild))
+      shellCall('./bjam --stagedir=%s %s link=shared variant=%s threading=multi stage' % (curDir, libsToBuild, mode))
     os.chdir(curDir)
     if (isWindows):
       libs = [str(x) for x in Glob('#/lib/libboost*')]
@@ -85,6 +86,7 @@ if (isWindows):
 else:
   env = Environment(ENV=os.environ)
 
+env['DEBUG_MODE'] = debug
 env.Replace(CPPPATH=['#/include'])
 env.Replace(CCFLAGS=ccflags)
 env.Append(LIBPATH=['#/lib'])
@@ -93,7 +95,8 @@ env.Append(LINKFLAGS=ldflags)
 if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
-libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options*'], boostDir, buildBoost)
+libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options*'],
+                        boostDir, buildBoost)
 liblg = sub('src')
 c_example = sub('c_example')
 libDir = env.Install('lib', liblg)
