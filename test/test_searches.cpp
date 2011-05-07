@@ -323,3 +323,15 @@ SCOPE_FIXTURE_CTOR(startsWithTest, STest, STest(3, (const char*[]){"ab..ef", "c[
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[1]);
 }
 
+SCOPE_FIXTURE_CTOR(hitCaching, STest, STest("[a-zA-Z]+ing")) {
+  // 2011-05-06. This pattern causes Vm to continue buffering hits in the Matches vector until closeOut().
+  const byte* text = (const byte*)"ping winging it";
+  fixture.Grep->search(text, &text[5], 0, fixture); // generates hit, but not emitted
+  SCOPE_ASSERT_EQUAL(0, fixture.Hits.size());
+  fixture.Grep->search(&text[5], &text[15], 5, fixture); // generates a hit on 'wing', emits hit on 'ping'
+  SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
+  fixture.Grep->closeOut(fixture);
+  SCOPE_ASSERT_EQUAL(2, fixture.Hits.size()); // flushes last hit
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(5, 7, 0), fixture.Hits[1]);
+}
