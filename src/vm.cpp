@@ -403,31 +403,42 @@ void Vm::doMatch(const Thread& t) {
 
   // check whether any higher-priority threads block us
   bool blocked = false;
+  uint64 blockStart = 0;
+  SearchHit hit;
   for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
     if (it->Label == NONE || it->Label == t.Label) {
       blocked = true;
+      blockStart = it->Start;
       break;
     }
   }
 
+  std::vector<Match>& list(Matches[t.Label]);
   if (blocked) {
     // check whether we replace any already-recorded matches
-    for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
+    std::vector<Match>::iterator begRemaining = list.begin();
+    for (std::vector<Match>::iterator im(begRemaining); im != list.end(); ++im) {
+      if (im->End < blockStart) {
+        hit.set(im->Start, im->End - im->Start + 1, t.Label);
+        CurHitFn->collect(hit);
+        ++begRemaining;
+      }
       if (im->Start <= t.End && t.Start <= im->End) {
-        Matches[t.Label].erase(im, Matches[t.Label].end());
+        list.erase(im, list.end());
         break;
       }
+    }
+    if (list.begin() != begRemaining) {
+      list.erase(std::copy(begRemaining, list.end(), list.begin()), list.end());
     }
   }
   else {
     if (CurHitFn) {
       // emit all matches which aren't replaced by this one
-      SearchHit hit;
-      if (Matches[t.Label].size() > MaxMatches) {
-        MaxMatches = Matches[t.Label].size();
+      if (list.size() > MaxMatches) {
+        MaxMatches = list.size();
       }
-
-      for (std::vector<Match>::iterator im(Matches[t.Label].begin()); im != Matches[t.Label].end(); ++im) {
+      for (std::vector<Match>::iterator im(list.begin()); im != list.end(); ++im) {
         if (im->Start > t.End || t.Start > im->End) {
           hit.set(im->Start, im->End - im->Start + 1, t.Label);
           CurHitFn->collect(hit);
@@ -437,12 +448,10 @@ void Vm::doMatch(const Thread& t) {
         }
       }
     }
-
-    Matches[t.Label].clear();
+    list.clear();
   }
-
   // store this match
-  Matches[t.Label].push_back(Match(t.Start, t.End));
+  list.push_back(Match(t.Start, t.End));
 }
 
 void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
