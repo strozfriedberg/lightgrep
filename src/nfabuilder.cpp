@@ -99,10 +99,11 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
   // to vertices in dst before dstskip go before the insertion point in
   // src, edges to vertices in dst after dstskip go after the insertion
   // point in src.
+  const InListT::const_iterator skip_stop(dst.begin() + dstskip);
+
   for (OutListT::iterator oi(src.begin()); oi != src.end(); ++oi) {
     uint32 pos = oi->second;
 
-    const InListT::const_iterator skip_stop(dst.begin() + dstskip);
     InListT::const_iterator ii(dst.begin());
 
     // make edges before dstskip, inserting before src insertion point
@@ -119,7 +120,7 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
     }
 
     // set the new insertion point for dst
-    *oi = std::make_pair(oi->first, spos);
+    oi->second = spos;
   }
 }
 
