@@ -108,7 +108,7 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
 
     // make edges before dstskip, inserting before src insertion point
     for ( ; ii != dst.end() && ii < skip_stop; ++ii) {
-      Fsm->addEdgeAt(oi->first, *ii, pos++);
+      Fsm->addEdgeAtND(oi->first, *ii, pos++);
     }
 
     // save the new insertion point for dst
@@ -116,7 +116,7 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
 
     // make edges after dstskip, inserting after src insertion point
     for ( ; ii != dst.end(); ++ii) {
-      Fsm->addEdgeAt(oi->first, *ii, pos++);
+      Fsm->addEdgeAtND(oi->first, *ii, pos++);
     }
 
     // set the new insertion point for dst
