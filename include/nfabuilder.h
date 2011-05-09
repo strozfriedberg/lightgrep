@@ -45,6 +45,13 @@ struct Fragment {
     InList.clear();
     OutList.clear();
   }
+
+  void assign(Fragment& f) {
+    InList.swap(f.InList);
+    OutList.swap(f.OutList);
+    N = f.N;
+    Skippable = f.Skippable;
+  }
 };
 
 class NFABuilder {
@@ -91,7 +98,7 @@ private:
   void patch_pre(OutListT& src, const InListT& dst);
   void patch_post(OutListT& src, const InListT& dst);
 
-  void traverse(const Node* n);
+  void traverse(const Node* root);
 
   bool IsGood, CaseSensitive;
   uint32 CurLabel;
@@ -102,5 +109,5 @@ private:
   boost::scoped_array<byte> TempBuf;
   std::vector<TransitionPtr> LitFlyweights;
 
-  Fragment  TempFrag;
+  Fragment TempFrag;
 };

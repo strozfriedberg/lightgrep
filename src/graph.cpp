@@ -83,6 +83,61 @@ void Graph::_add(AdjacentList& l, vertex v, size_t i) {
     }
     break;
   case MANY:
+    for (std::vector<vertex>::const_iterator it(AdjLists[l.What].begin()); it != AdjLists[l.What].end(); ++it) {
+      if (*it == v) {
+        return;
+      }
+    }
+    std::vector<vertex>::iterator it(AdjLists[l.What].begin() + i);
+    AdjLists[l.What].insert(it, v);
+    break;
+  }
+}
+void Graph::_add_no_dupe_check(AdjacentList& l, vertex v) {
+  switch (l.Flags) {
+  case ZERO:
+    l.Flags = ONE;
+    l.What = v;
+    break;
+  case ONE:
+    { 
+      l.Flags = MANY;
+      const vertex tmp[2] = { l.What, v };
+      AdjLists.push_back(std::vector<vertex>(&tmp[0], &tmp[2]));
+      l.What = AdjLists.size() - 1;
+    }
+    break;
+  case MANY:
+    AdjLists[l.What].push_back(v);
+    break;
+  }
+}
+
+void Graph::_add_no_dupe_check(AdjacentList& l, vertex v, size_t i) {
+  switch (l.Flags) {
+  case ZERO:
+    l.Flags = ONE;
+    l.What = v;
+    break;
+  case ONE:
+    {
+      l.Flags = MANY;
+
+      vertex tmp[2];
+      if (i == 0) {
+        tmp[0] = v;
+        tmp[1] = l.What;
+      }
+      else {
+        tmp[0] = l.What;
+        tmp[1] = v;
+      }
+
+      AdjLists.push_back(std::vector<vertex>(&tmp[0], &tmp[2]));
+      l.What = AdjLists.size() - 1;
+    }
+    break;
+  case MANY:
     std::vector<vertex>::iterator it(AdjLists[l.What].begin() + i);
     AdjLists[l.What].insert(it, v);
     break;
@@ -126,6 +181,22 @@ void Graph::addEdgeAt(const vertex source, const vertex target, size_t i) {
   }
   _add(Vertices[source].Out, target, i);
   _add(Vertices[target].In, source);
+}
+
+void Graph::addEdgeND(const vertex source, const vertex target) {
+  if (source >= Vertices.size() || target >= Vertices.size()) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("out of bounds, source = " << source << ", target = " << target << ", but size = " << Vertices.size());
+  }
+  _add_no_dupe_check(Vertices[source].Out, target);
+  _add_no_dupe_check(Vertices[target].In, source);
+}
+
+void Graph::addEdgeAtND(const vertex source, const vertex target, size_t i) {
+  if (source >= Vertices.size() || target >= Vertices.size()) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("out of bounds, source = " << source << ", target = " << target << ", but size = " << Vertices.size());
+  }
+  _add_no_dupe_check(Vertices[source].Out, target, i);
+  _add_no_dupe_check(Vertices[target].In, source);
 }
 
 /*
