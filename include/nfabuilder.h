@@ -91,7 +91,7 @@ private:
   void patch_pre(OutListT& src, const InListT& dst);
   void patch_post(OutListT& src, const InListT& dst);
 
-  void traverse(const Node* n);
+  void traverse(const Node* root);
 
   bool IsGood, CaseSensitive;
   uint32 CurLabel;
