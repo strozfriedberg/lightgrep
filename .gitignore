@@ -10,3 +10,4 @@ DesignTimeResolveAssemblyReferencesInput.cache
 *.pdb
 *.exe.manifest
 *.FileListAbsolute.txt
+.*.swp
