@@ -270,10 +270,11 @@ void NFABuilder::repetition_ng(const Node& n) {
 }
 
 void NFABuilder::alternate(const Node& n) {
-  Fragment second = Stack.top();
+  Fragment second;
+  second.assign(Stack.top());
   Stack.pop();
-  Fragment first = Stack.top();
-  Stack.pop();
+  
+  Fragment& first(Stack.top());
 
   if (first.Skippable != NOSKIP) {
     // leave first.Skippable unchanged
@@ -291,14 +292,12 @@ void NFABuilder::alternate(const Node& n) {
                        second.OutList.begin(), second.OutList.end());
 
   first.N = n;
-
-  Stack.push(first);
 }
 
 void NFABuilder::concatenate(const Node& n) {
   TempFrag.assign(Stack.top());
   Stack.pop();
-  Fragment& first = Stack.top();
+  Fragment& first(Stack.top());
 
   // patch left out to right in
   patch_mid(first.OutList, TempFrag.InList, TempFrag.Skippable);
@@ -315,7 +314,7 @@ void NFABuilder::concatenate(const Node& n) {
                          TempFrag.OutList.begin(), TempFrag.OutList.end());
   }
   else {
-    first.OutList = TempFrag.OutList;
+    first.OutList.swap(TempFrag.OutList);
   }
 
   // set new skippable
