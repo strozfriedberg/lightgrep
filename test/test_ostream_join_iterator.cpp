@@ -6,7 +6,7 @@
 #include <sstream>
 
 SCOPE_TEST(joinEmpty) {
-  const int a[] = { };
+  const int *a = 0;
   std::stringstream ss;
   std::copy(a, a, ostream_join_iterator<int>(ss, ", "));
   SCOPE_ASSERT_EQUAL("", ss.str());
