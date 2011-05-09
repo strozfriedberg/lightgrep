@@ -296,7 +296,7 @@ void NFABuilder::alternate(const Node& n) {
 }
 
 void NFABuilder::concatenate(const Node& n) {
-  TempFrag = Stack.top();
+  TempFrag.assign(Stack.top());
   Stack.pop();
   Fragment& first = Stack.top();
 
