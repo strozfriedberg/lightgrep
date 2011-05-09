@@ -330,10 +330,9 @@ void NFABuilder::finish(const Node& n) {
     concatenate(n);
     Fragment& start(Stack.top());
 
-    const uint32 numOut = start.OutList.size();
-    for (uint32 i = 0; i < numOut; ++i) {
+    for (OutListT::const_iterator i(start.OutList.begin()); i != start.OutList.end(); ++i) {
       // std::cout << "marking " << *it << " as a match" << std::endl;
-      Graph::vertex v = start.OutList[i].first;
+      Graph::vertex v = i->first;
       if (0 == v) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
         reset();
         return;
