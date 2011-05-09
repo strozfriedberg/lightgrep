@@ -2,9 +2,8 @@
 
 #include "basic.h"
 
-#include <set>
+#include <vector>
 
-#include "instructions.h"
 #include "graph.h"
 #include "vm_interface.h"
 

@@ -1,8 +1,8 @@
 #include <scope/test.h>
 
+#include "codegen.h"
 #include "compiler.h"
 #include "states.h"
-#include "utility_impl.h"
 
 #include "test_helper.h"
 
@@ -25,17 +25,17 @@ SCOPE_TEST(testMerge) {
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('c'));
   edge(2, 3, fsm, new LitState('e', 0));
-  edge(0, 4, fsm, new LitState('z'));
+  edge(1, 4, fsm, new LitState('z'));
   edge(4, 5, fsm, new LitState('y', 1));
   comp.mergeIntoFSM(fsm, key);
 
   SCOPE_ASSERT_EQUAL(8u, fsm.numVertices());
-  SCOPE_ASSERT_EQUAL(2u, (fsm).outDegree(0));
-  SCOPE_ASSERT_EQUAL(2u, (fsm).outDegree(1));
-  SCOPE_ASSERT_EQUAL(2u, (fsm).outDegree(2));
-  SCOPE_ASSERT_EQUAL(1u, (fsm).outDegree(6));
-  SCOPE_ASSERT_EQUAL(1u, (fsm).outDegree(7));
-  SCOPE_ASSERT_EQUAL(3u, (fsm).inDegree(7));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(3u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(6));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(7));
+  SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(7));
 }
 
 SCOPE_TEST(testMergeLabelsSimple) {

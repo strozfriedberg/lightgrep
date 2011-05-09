@@ -1,7 +1,5 @@
 #include <scope/test.h>
 
-#include "utility_impl.h"
-
 #include "test_helper.h"
 
 void edge(Graph::vertex source, Graph::vertex target, Graph& fsm, TransitionPtr tPtr) {

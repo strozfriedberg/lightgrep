@@ -32,7 +32,7 @@ namespace po = boost::program_options;
 
 void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
 
-void longTest(const Options& opts) {
+void longTest(const Options&) {
   longTest();
 }
 

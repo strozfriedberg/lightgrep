@@ -45,8 +45,11 @@ public:
   bool edgeExists(const vertex source, const vertex target) const;
 
   void addEdge(const vertex source, const vertex target);
-
   void addEdgeAt(const vertex source, const vertex target, size_t i);
+
+  // these do not check for duplicate edges before adding them
+  void addEdgeND(const vertex source, const vertex target);
+  void addEdgeAtND(const vertex source, const vertex target, size_t i);
 
   vertex inVertex(vertex v, size_t i) const {
     return _adjacent(Vertices[v].In, i);
@@ -78,6 +81,9 @@ public:
 private:
   void _add(AdjacentList& l, vertex v);
   void _add(AdjacentList& l, vertex v, size_t i);
+
+  void _add_no_dupe_check(AdjacentList& l, vertex v);
+  void _add_no_dupe_check(AdjacentList& l, vertex v, size_t i);
 
   uint32 _degree(const AdjacentList& l) const;
 

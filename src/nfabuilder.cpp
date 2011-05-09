@@ -99,15 +99,16 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
   // to vertices in dst before dstskip go before the insertion point in
   // src, edges to vertices in dst after dstskip go after the insertion
   // point in src.
+  const InListT::const_iterator skip_stop(dst.begin() + dstskip);
+
   for (OutListT::iterator oi(src.begin()); oi != src.end(); ++oi) {
     uint32 pos = oi->second;
 
-    const InListT::const_iterator skip_stop(dst.begin() + dstskip);
     InListT::const_iterator ii(dst.begin());
 
     // make edges before dstskip, inserting before src insertion point
     for ( ; ii != dst.end() && ii < skip_stop; ++ii) {
-      Fsm->addEdgeAt(oi->first, *ii, pos++);
+      Fsm->addEdgeAtND(oi->first, *ii, pos++);
     }
 
     // save the new insertion point for dst
@@ -115,11 +116,11 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
 
     // make edges after dstskip, inserting after src insertion point
     for ( ; ii != dst.end(); ++ii) {
-      Fsm->addEdgeAt(oi->first, *ii, pos++);
+      Fsm->addEdgeAtND(oi->first, *ii, pos++);
     }
 
     // set the new insertion point for dst
-    *oi = std::make_pair(oi->first, spos);
+    oi->second = spos;
   }
 }
 
@@ -270,10 +271,11 @@ void NFABuilder::repetition_ng(const Node& n) {
 }
 
 void NFABuilder::alternate(const Node& n) {
-  Fragment second = Stack.top();
+  Fragment second;
+  second.assign(Stack.top());
   Stack.pop();
-  Fragment first = Stack.top();
-  Stack.pop();
+  
+  Fragment& first(Stack.top());
 
   if (first.Skippable != NOSKIP) {
     // leave first.Skippable unchanged
@@ -291,14 +293,12 @@ void NFABuilder::alternate(const Node& n) {
                        second.OutList.begin(), second.OutList.end());
 
   first.N = n;
-
-  Stack.push(first);
 }
 
 void NFABuilder::concatenate(const Node& n) {
-  TempFrag = Stack.top();
+  TempFrag.assign(Stack.top());
   Stack.pop();
-  Fragment& first = Stack.top();
+  Fragment& first(Stack.top());
 
   // patch left out to right in
   patch_mid(first.OutList, TempFrag.InList, TempFrag.Skippable);
@@ -315,7 +315,7 @@ void NFABuilder::concatenate(const Node& n) {
                          TempFrag.OutList.begin(), TempFrag.OutList.end());
   }
   else {
-    first.OutList = TempFrag.OutList;
+    first.OutList.swap(TempFrag.OutList);
   }
 
   // set new skippable
@@ -330,10 +330,9 @@ void NFABuilder::finish(const Node& n) {
     concatenate(n);
     Fragment& start(Stack.top());
 
-    const uint32 numOut = start.OutList.size();
-    for (uint32 i = 0; i < numOut; ++i) {
+    for (OutListT::const_iterator i(start.OutList.begin()); i != start.OutList.end(); ++i) {
       // std::cout << "marking " << *it << " as a match" << std::endl;
-      Graph::vertex v = start.OutList[i].first;
+      Graph::vertex v = i->first;
       if (0 == v) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
         reset();
         return;
@@ -356,128 +355,131 @@ void NFABuilder::finish(const Node& n) {
   }
 }
 
-void NFABuilder::traverse(const Node* n) {
+void NFABuilder::traverse(const Node* root) {
+  // do a postorder depth-first traversal of the parse tree
 
-  if (n->Left) {
-    // this node has a left child
-    if ((n->Type == Node::REPETITION || n->Type == Node::REPETITION_NG) &&
-       !((n->Min == 0 && (n->Max == 1 || n->Max == UNBOUNDED)) ||
-         (n->Min == 1 && n->Max == UNBOUNDED)))
-    {
-      // This is a repetition, but not one of the special ones.
+  std::stack<const Node*> child_stack;
+  std::stack<const Node*> parent_stack;
 
-      // NB: We expect that all empty repetitions ({0,0} and {0,0}?)
-      // will have been excised from the parse tree by now.
+  // FIXME: preallocate the child_stack: max size should be number of
+  // nodes in the parse tree + extra nodes for unrolled repetitions
 
-      if (n->Min == 1 && n->Max == 1) {
-        // skip the repetition node
-        traverse(n->Left);
-      }
-      else {
-        //
-        // T{n} = T...T
-        //          ^
-        //        n times
-        //
-        // T{n,} = T...TT*
-        //           ^
-        //         n times
-        //
-        // T{n,m} = T...TT?...T? = T...T(T(T...)?)?
-        //            ^     ^
-        //       n times   m-n times
-        //
-        // Note that the latter equivalence for T{n,m} produces
-        // a graph with outdegree 2, while the former produces
-        // one with outdegree m-n.
-        //
+  child_stack.push(root);
 
-        // determine the size of the repetition tree
-        uint32 size;
+  // Dummy nodes used for expanding counted repetitions. It's safe to
+  // pass nodes without valid children to callback() so long as the
+  // callbacks for these types don't use anything but Node::Type.
+  Node concat(Node::CONCATENATION, (Node*) 0, (Node*) 0);
+  Node ques(Node::REPETITION, 0, 0, 1);
+  Node ques_ng(Node::REPETITION_NG, 0, 0, 1);
+  Node plus(Node::REPETITION, 0, 1, UNBOUNDED);
+  Node plus_ng(Node::REPETITION_NG, 0, 1, UNBOUNDED);
 
-        if (n->Min == n->Max) {
-          // n-1 contatenations in the mandatory part
-          size = n->Min - 1;
-        }
-        else if (n->Max == UNBOUNDED) {
-          // n-1 concatenations in the mandatory part
-          // followed by 1 concatenation and 1 star
-          size = n->Min + 1;
+  const Node* n;
+  while (!child_stack.empty()) {
+    n = child_stack.top();
+    child_stack.pop();
+    parent_stack.push(n);
+
+    if (n->Left) {
+      // this node has a left child
+      if ((n->Type == Node::REPETITION || n->Type == Node::REPETITION_NG) &&
+          !((n->Min == 0 && (n->Max == 1 || n->Max == UNBOUNDED)) ||
+            (n->Min == 1 && n->Max == UNBOUNDED)))
+      {
+        // This is a repetition, but not one of the special ones.
+
+        // NB: We expect that all empty repetitions ({0,0} and {0,0}?)
+        // will have been excised from the parse tree by now.
+
+        if (n->Min == 1 && n->Max == 1) {
+          // skip the repetition node
+          child_stack.push(n->Left);
         }
         else {
-          // n-1 concatenations in the mandatory part
-          // joined by 1 concatenation with the optional part
-          // consisting of m-n questions and m-n-1 concatenations
-          size = 2*n->Max - n->Min - 1;
-        }
+          //
+          // T{n} = T...T
+          //          ^
+          //        n times
+          //
+          // T{n,} = T...TT*
+          //           ^
+          //         n times
+          //
+          // T{n,m} = T...TT?...T? = T...T(T(T...)?)?
+          //            ^     ^
+          //       n times   m-n times
+          //
+          // Note that the latter equivalence for T{n,m} produces
+          // a graph with outdegree 2, while the former produces
+          // one with outdegree m-n.
+          //
 
-        ParseTree rep;
-        rep.init(size);
+          if (n->Min == n->Max) {
+            // push n-1 concatenations
+            for (uint32 i = n->Min - 1; i > 0; --i) {
+              parent_stack.push(&concat);
+            }
 
-        Node root;
-
-        Node* none = 0;
-        Node* parent = &root;
-
-        if (n->Min > 0) {
-          // build the mandatory part
-          for (uint32 i = 1; i < n->Min; ++i) {
-            Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
-            parent->Right = con;
-            parent = con;
+            // push the subpattern n times
+            for (uint32 i = n->Min; i > 0; --i) {
+              parent_stack.push(n->Left);
+            }
           }
-        }
+          else if (n->Max == UNBOUNDED) {
+            // push n-1 concatenations
+            for (uint32 i = n->Min - 1; i > 0; --i) {
+              parent_stack.push(&concat);
+            }
 
-        if (n->Min == n->Max) {
-          // finish the mandatory part
-          parent->Right = n->Left;
-        }
-        else if (n->Max == UNBOUNDED) {
-          // build the unbounded optional part
-          if (n->Min == 0) {
-            Node* star = rep.add(Node(n->Type, n->Left, 0, UNBOUNDED));
-            parent->Right = star;
+            // push the last mandatory part and the optional part
+            parent_stack.push(n->Type == Node::REPETITION ? &plus : &plus_ng);
+            parent_stack.push(n->Left);
+
+            // push the first n-1 mandataory parts
+            for (uint32 i = n->Min - 1; i > 0; --i) {
+              parent_stack.push(n->Left);
+            }
           }
           else {
-            Node* plus = rep.add(Node(n->Type, n->Left, 1, UNBOUNDED));
-            parent->Right = plus;
+            // push n concatenations
+            for (uint32 i = n->Min; i > 0; --i) {
+              parent_stack.push(&concat);
+            }
+
+            // push m-n-1 optional concatenations
+            for (uint32 i = n->Max - n->Min - 1; i > 0; --i) {
+              parent_stack.push(n->Type == Node::REPETITION ? &ques : &ques_ng);
+              parent_stack.push(&concat);
+            }
+
+            // push the last ?
+            parent_stack.push(n->Type == Node::REPETITION ? &ques : &ques_ng);
+
+            // push m subpatterns
+            for (uint32 i = n->Max; i > 0; --i) {
+              parent_stack.push(n->Left);
+            }
           }
         }
-        else {
-          if (n->Min > 0) {
-            // finish the mandatory part
-            Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
-            parent->Right = con;
-            parent = con;
-          }
-
-          // build the bounded optional part
-          for (uint32 i = 1; i < n->Max - n->Min; ++i) {
-            Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
-            Node* question = rep.add(Node(n->Type, con, 0, 1));
-            parent->Right = question;
-            parent = con;
-          }
-
-          Node* question = rep.add(Node(n->Type, n->Left, 0, 1));
-          parent->Right = question;
-        }
-
-        traverse(root.Right);
+      }
+      else {
+        // this is not a repetition, or is one of ? * + ?? *? +?
+        child_stack.push(n->Left);
       }
     }
-    else {
-      // this is not a repetition, or is one of ? * + ?? *? +?
-      traverse(n->Left);
+  
+    if (n->Right) {
+      child_stack.push(n->Right);
     }
   }
 
-  if (n->Right) {
-    // this node has a right child
-    traverse(n->Right);
-  }
+  while (!parent_stack.empty()) {
+    n = parent_stack.top();
+    parent_stack.pop();
 
-  callback("", *n);
+    callback("", *n);
+  }
 }
 
 bool NFABuilder::build(const ParseTree& tree) {
