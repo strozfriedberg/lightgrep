@@ -5,6 +5,8 @@
 #include <memory>
 #include <algorithm>
 #include <boost/bind.hpp>
+#include <cstdlib>
+#include <csignal>
 
 #define BOOST_USE_WINDOWS_H
 
@@ -95,7 +97,7 @@ private:
 
 class SafeFileWriter: public ServerWriter {
 public:
-  SafeFileWriter(boost::shared_ptr<std::ostream> output, boost::shared_ptr<boost::mutex> m, const KwInfo& kwInfo):
+  SafeFileWriter(boost::shared_ptr<std::ofstream> output, boost::shared_ptr<boost::mutex> m, const KwInfo& kwInfo):
     ServerWriter(kwInfo),
     Mutex(m),
     Output(output),
@@ -127,9 +129,52 @@ public:
 
 private:
   boost::shared_ptr<boost::mutex> Mutex;
-  boost::shared_ptr<std::ostream> Output;
+  boost::shared_ptr<std::ofstream> Output;
   StaticVector<HitInfo>    Buffer;
 };
+
+void cleanSeppuku(int sig);
+
+class CleanupRegistry {
+public:
+  boost::shared_ptr<boost::mutex> Mutex;
+  boost::shared_ptr<std::ofstream> File;
+
+  bool init(const std::string& path) {
+    File.reset(new std::ofstream(path.c_str(), std::ios::out));
+    if (!*File) {
+      return false;
+    }
+    Mutex.reset(new boost::mutex);
+    signal(SIGTERM, cleanSeppuku);
+    return true;
+  }
+
+  void cleanup() {
+    if (File) {
+      boost::mutex::scoped_lock lock(*Mutex);
+      File->flush();
+      File->close();
+      File.reset();
+    }
+  }
+  
+  static CleanupRegistry& get() {
+    static CleanupRegistry reg;
+    return reg;
+  }
+
+private:
+
+  CleanupRegistry() {}
+};
+
+void cleanSeppuku(int) {
+  std::cerr << "Received SIGTERM. Shutting down..." << std::endl;
+  CleanupRegistry::get().cleanup();
+  std::cerr << "Shutdown" << std::endl;
+  exit(0);
+}
 
 void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, boost::shared_ptr<ServerWriter> output) {
   boost::scoped_array<byte>      data(new byte[BUF_SIZE]);
@@ -181,14 +226,12 @@ void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
     std::cout << "Created service" << std::endl;
     tcp::acceptor acceptor(srv, tcp::endpoint(tcp::v4(), 12777));
     std::cout << "Created acceptor" << std::endl;
-    boost::shared_ptr<boost::mutex> fileMutex; // null
-    boost::shared_ptr<std::ostream> outFile;
+    bool usesFile = false;
     if (opts.Output != "-") {
-      outFile.reset(new std::ofstream(opts.Output.c_str(), std::ios::out));
-      if (!*outFile) {
+      if (!CleanupRegistry::get().init(opts.Output)) {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file at " << opts.Output);
       }
-      fileMutex.reset(new boost::mutex);
+      usesFile = true;
     }
     while (true) {
       std::auto_ptr<tcp::socket> socket(new tcp::socket(srv));
@@ -197,8 +240,8 @@ void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
       std::cout << "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << std::endl;
       boost::shared_ptr<tcp::socket> s(socket.release());
       boost::shared_ptr<ServerWriter> writer;
-      if (outFile) {
-        writer.reset(new SafeFileWriter(outFile, fileMutex, kwInfo));
+      if (usesFile) {
+        writer.reset(new SafeFileWriter(CleanupRegistry::get().File, CleanupRegistry::get().Mutex, kwInfo));
       }
       else {
         writer.reset(new SocketWriter(s, kwInfo));
