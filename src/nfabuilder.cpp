@@ -362,9 +362,14 @@ void NFABuilder::traverse(const Node* root) {
   std::stack<const Node*> child_stack;
   std::stack<const Node*> parent_stack;
 
+  // FIXME: preallocate the child_stack: max size should be number of
+  // nodes in the parse tree + extra nodes for unrolled repetitions
+
   child_stack.push(root);
 
-  // dummy nodes used for expanding counted repetitions
+  // Dummy nodes used for expanding counted repetitions. It's safe to
+  // pass nodes without valid children to callback() so long as the
+  // callbacks for these types don't use anything but Node::Type.
   Node concat(Node::CONCATENATION, (Node*) 0, (Node*) 0);
   Node ques(Node::REPETITION, 0, 0, 1);
   Node ques_ng(Node::REPETITION_NG, 0, 0, 1);
