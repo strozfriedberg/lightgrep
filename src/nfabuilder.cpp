@@ -355,16 +355,23 @@ void NFABuilder::finish(const Node& n) {
   }
 }
 
+template<typename T>
+void clearStack(T& stack) {
+  while (!stack.empty()) {
+    stack.pop();
+  }
+}
+
 void NFABuilder::traverse(const Node* root) {
   // do a postorder depth-first traversal of the parse tree
 
-  std::stack<const Node*> child_stack;
-  std::stack<const Node*> parent_stack;
+  clearStack(ChildStack);
+  clearStack(ParentStack);
 
-  // FIXME: preallocate the child_stack: max size should be number of
+  // FIXME: preallocate the ChildStack: max size should be number of
   // nodes in the parse tree + extra nodes for unrolled repetitions
 
-  child_stack.push(root);
+  ChildStack.push(root);
 
   // Dummy nodes used for expanding counted repetitions. It's safe to
   // pass nodes without valid children to callback() so long as the
@@ -376,10 +383,10 @@ void NFABuilder::traverse(const Node* root) {
   Node plus_ng(Node::REPETITION_NG, 0, 1, UNBOUNDED);
 
   const Node* n;
-  while (!child_stack.empty()) {
-    n = child_stack.top();
-    child_stack.pop();
-    parent_stack.push(n);
+  while (!ChildStack.empty()) {
+    n = ChildStack.top();
+    ChildStack.pop();
+    ParentStack.push(n);
 
     if (n->Left) {
       // this node has a left child
@@ -394,7 +401,7 @@ void NFABuilder::traverse(const Node* root) {
 
         if (n->Min == 1 && n->Max == 1) {
           // skip the repetition node
-          child_stack.push(n->Left);
+          ChildStack.push(n->Left);
         }
         else {
           //
@@ -418,65 +425,65 @@ void NFABuilder::traverse(const Node* root) {
           if (n->Min == n->Max) {
             // push n-1 concatenations
             for (uint32 i = n->Min - 1; i > 0; --i) {
-              parent_stack.push(&concat);
+              ParentStack.push(&concat);
             }
 
             // push the subpattern n times
             for (uint32 i = n->Min; i > 0; --i) {
-              parent_stack.push(n->Left);
+              ParentStack.push(n->Left);
             }
           }
           else if (n->Max == UNBOUNDED) {
             // push n-1 concatenations
             for (uint32 i = n->Min - 1; i > 0; --i) {
-              parent_stack.push(&concat);
+              ParentStack.push(&concat);
             }
 
             // push the last mandatory part and the optional part
-            parent_stack.push(n->Type == Node::REPETITION ? &plus : &plus_ng);
-            parent_stack.push(n->Left);
+            ParentStack.push(n->Type == Node::REPETITION ? &plus : &plus_ng);
+            ParentStack.push(n->Left);
 
             // push the first n-1 mandataory parts
             for (uint32 i = n->Min - 1; i > 0; --i) {
-              parent_stack.push(n->Left);
+              ParentStack.push(n->Left);
             }
           }
           else {
             // push n concatenations
             for (uint32 i = n->Min; i > 0; --i) {
-              parent_stack.push(&concat);
+              ParentStack.push(&concat);
             }
 
             // push m-n-1 optional concatenations
             for (uint32 i = n->Max - n->Min - 1; i > 0; --i) {
-              parent_stack.push(n->Type == Node::REPETITION ? &ques : &ques_ng);
-              parent_stack.push(&concat);
+              ParentStack.push(n->Type == Node::REPETITION ? &ques : &ques_ng);
+              ParentStack.push(&concat);
             }
 
             // push the last ?
-            parent_stack.push(n->Type == Node::REPETITION ? &ques : &ques_ng);
+            ParentStack.push(n->Type == Node::REPETITION ? &ques : &ques_ng);
 
             // push m subpatterns
             for (uint32 i = n->Max; i > 0; --i) {
-              parent_stack.push(n->Left);
+              ParentStack.push(n->Left);
             }
           }
         }
       }
       else {
         // this is not a repetition, or is one of ? * + ?? *? +?
-        child_stack.push(n->Left);
+        ChildStack.push(n->Left);
       }
     }
   
     if (n->Right) {
-      child_stack.push(n->Right);
+      ChildStack.push(n->Right);
     }
   }
 
-  while (!parent_stack.empty()) {
-    n = parent_stack.top();
-    parent_stack.pop();
+  while (!ParentStack.empty()) {
+    n = ParentStack.top();
+    ParentStack.pop();
 
     callback("", *n);
   }
