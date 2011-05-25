@@ -80,9 +80,17 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
   }
 }
 
+uint32 totalCharacters(const std::vector<std::string>& keywords) {
+  uint32 ret = 0;
+  for (std::vector<std::string>::const_iterator it(keywords.begin()); it != keywords.end(); ++it) {
+    ret += it->size();
+  }
+  return ret;
+}
+
 GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode) {
   // std::cerr << "createGraph" << std::endl;
-  GraphPtr ret;
+  GraphPtr ret(new Graph(1, totalCharacters(keywords)));
   uint32 keyIdx = 0;
   if (enc & CP_ASCII) {
     addKeys(keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, litMode, ret, keyIdx);
@@ -94,7 +102,7 @@ GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool 
 }
 
 GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode) {
-  GraphPtr ret;
+  GraphPtr ret(new Graph(1, totalCharacters(keyInfo.Keywords)));
   uint32 keyIdx = 0;
   if (enc & CP_ASCII) {
     keyInfo.Encodings.push_back("ASCII");
