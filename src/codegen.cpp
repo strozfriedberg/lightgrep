@@ -54,7 +54,7 @@ void CodeGenVisitor::finish_vertex(Graph::vertex v, const Graph& graph) {
          match = 0,
          eval  = (v == 0 ? 0 : graph[v]->numInstructions());
 
-  TransitionPtr t = graph[v];
+  const Transition* t = graph[v];
   if (t) {
     if (t->Label != NONE) {
       label = 1;

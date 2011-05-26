@@ -153,8 +153,12 @@ Graph::Graph(uint32 numVs): Vertices(numVs, Vertex())
 {
 }
 
-Graph::vertex Graph::addVertex() {
-  Vertices.push_back(Vertex());
+Graph::~Graph() {
+  clear();
+}
+
+Graph::vertex Graph::addVertex(Transition* t) {
+  Vertices.push_back(Vertex(t));
   return Vertices.size() - 1;
 }
 
@@ -197,6 +201,16 @@ void Graph::addEdgeAtND(const vertex source, const vertex target, size_t i) {
   }
   _add_no_dupe_check(Vertices[source].Out, target, i);
   _add_no_dupe_check(Vertices[target].In, source);
+}
+
+void Graph::clear() {
+  for (std::vector<Vertex>::iterator it(Vertices.begin()); it != Vertices.end(); ++it) {
+    if (it->Tran) {
+      delete it->Tran;
+    }
+  }
+  Vertices.clear();
+  AdjLists.clear();
 }
 
 /*

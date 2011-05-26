@@ -37,7 +37,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
         dstTarget = src.outVertex(dstHead, i);
 
         if (StateMap[dstTarget] == NONE) {
-          TransitionPtr srcTran = src[dstTarget];
+          Transition* srcTran = src[dstTarget];
           srcBits.reset();
           srcTran->getBits(srcBits);
           // std::cerr << "  dstTarget = " << dstTarget << " with transition " << tran->label() << std::endl;
@@ -46,7 +46,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
 
           for (uint32 j = 0; j < dst.outDegree(srcHead); ++j) {
             srcTarget = dst.outVertex(srcHead, j);
-            TransitionPtr dstTran = dst[srcTarget];
+            Transition* dstTran = dst[srcTarget];
             dstBits.reset();
             dstTran->getBits(dstBits);
             // std::cerr << "    looking at merge state " << srcTarget << " with transition " << dstTran->label() << std::endl;
@@ -64,9 +64,9 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
           if (!found) {
             // The destination NFA and the srcHead NFA have diverged.
             // Copy the tail node from the srcHead to the destination
-            srcTarget = dst.addVertex();
+            srcTarget = dst.addVertex(srcTran->clone());
             // std::cerr << "  creating new state " << srcTarget << std::endl;
-            dst[srcTarget] = srcTran;
+            // dst.setTran(srcTarget, srcTran->clone());
           }
           StateMap[dstTarget] = srcTarget;
         }

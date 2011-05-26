@@ -92,7 +92,7 @@ public:
   bool build(const ParseTree& tree);
 
 private:
-  void setLiteralTransition(TransitionPtr& state, byte val);
+  void setLiteralTransition(Graph& g, const Graph::vertex& v, byte val);
 
   void patch_mid(OutListT& src, const InListT& dst, uint32 dstskip);
   void patch_pre(OutListT& src, const InListT& dst);
