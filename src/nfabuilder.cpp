@@ -80,17 +80,17 @@ void NFABuilder::setSizeHint(uint64 reserveSize) {
   ReserveSize = reserveSize;
 }
 
-void NFABuilder::setLiteralTransition(TransitionPtr& state, byte val) {
+void NFABuilder::setLiteralTransition(Graph& g, const Graph::vertex& v, byte val) {
   if (CaseSensitive || !std::isalpha(val)) {
 // FIXME: Labeled vertices can't be shared. We don't know which will be
 // labeled (permanently) until after walking back labels. If the memory
 // we were saving this way was really important, we need to figure out
 // something else to do here.
 //    state = LitFlyweights[val];
-    state = TransitionPtr(new LitState(val));
+    g.setTran(v, new LitState(val));
   }
   else {
-    state.reset(new EitherState(std::toupper(val), std::tolower(val)));
+    g.setTran(v, new EitherState(std::toupper(val), std::tolower(val)));
   }
 }
 
@@ -145,11 +145,11 @@ void NFABuilder::literal(const Node& n) {
     Graph& g(*Fsm);
     Graph::vertex first, prev, last;
     first = prev = last = g.addVertex();
-    setLiteralTransition(g[first], TempBuf[0]);
+    setLiteralTransition(g, first, TempBuf[0]);
     for (uint32 i = 1; i < len; ++i) {
       last = g.addVertex();
       addNewEdge(prev, last, g);
-      setLiteralTransition(g[last], TempBuf[i]);
+      setLiteralTransition(g, last, TempBuf[i]);
       prev = last;
     }
     TempFrag.reset(n);
@@ -161,7 +161,7 @@ void NFABuilder::literal(const Node& n) {
 
 void NFABuilder::dot(const Node& n) {
   Graph::vertex v = Fsm->addVertex();
-  (*Fsm)[v].reset(new RangeState(0, 255));
+  Fsm->setTran(v, new RangeState(0, 255));
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
@@ -185,10 +185,10 @@ void NFABuilder::charClass(const Node& n, const std::string& lbl) {
     }
   }
   if (num == n.Bits.count()) {
-    (*Fsm)[v].reset(new RangeState(first, last));
+    Fsm->setTran(v, new RangeState(first, last));
   }
   else {
-    (*Fsm)[v].reset(new CharClassState(n.Bits, lbl));
+    Fsm->setTran(v, new CharClassState(n.Bits, lbl));
   }
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
@@ -338,10 +338,9 @@ void NFABuilder::finish(const Node& n) {
         return;
       }
       else {
-        TransitionPtr final((*Fsm)[v]->clone()); // this is to make sure the transition isn't shared amongst other states
+        Transition* final = (*Fsm)[v];
         final->Label = CurLabel;
         final->IsMatch = true;
-        (*Fsm)[v] = final;
       }
     }
     // std::cout << "final is " << final << std::endl;

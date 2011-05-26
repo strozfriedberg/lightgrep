@@ -17,7 +17,7 @@ bool   LitState::toInstruction(Instruction* addr) const {
 }
 
 LitState* LitState::clone(void* buffer) const {
-  return buffer == 0 ? new LitState(Lit): new(buffer) LitState(Lit);
+  return buffer == 0 ? new LitState(*this): new(buffer) LitState(*this);
 }
 
 std::string printLabel(const Transition& t) {
@@ -46,7 +46,7 @@ bool   EitherState::toInstruction(Instruction* addr) const {
 }
 
 EitherState* EitherState::clone(void* buffer) const {
-  return buffer == 0 ? new EitherState(Lit1, Lit2): new(buffer) EitherState(Lit1, Lit2);
+  return buffer == 0 ? new EitherState(*this): new(buffer) EitherState(*this);
 }
 
 std::string EitherState::label() const {
@@ -73,7 +73,7 @@ bool   RangeState::toInstruction(Instruction* addr) const {
 }
 
 RangeState* RangeState::clone(void* buffer) const {
-  return 0 == buffer ? new RangeState(First, Last): new(buffer) RangeState(First, Last);
+  return 0 == buffer ? new RangeState(*this): new(buffer) RangeState(*this);
 }
 
 std::string RangeState::label() const {
@@ -103,7 +103,7 @@ bool   CharClassState::toInstruction(Instruction* addr) const {
 }
 
 CharClassState* CharClassState::clone(void* buffer) const {
-  return 0 == buffer ? new CharClassState(Allowed, Label): new(buffer) CharClassState(Allowed, Label);
+  return 0 == buffer ? new CharClassState(*this): new(buffer) CharClassState(*this);
 }
 
 std::string CharClassState::label() const {
@@ -112,5 +112,5 @@ std::string CharClassState::label() const {
   //   buf << std::hex << std::setfill('0') << std::setw(8) << *((uint32*)(&Allowed)+i);
   // }
   // return buf.str();
-  return Label + printLabel(*this);
+  return LabelStr + printLabel(*this);
 }

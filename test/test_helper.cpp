@@ -8,7 +8,7 @@ void edge(Graph::vertex source, Graph::vertex target, Graph& fsm, TransitionPtr 
   while (target >= fsm.numVertices()) fsm.addVertex();
 
   fsm.addEdge(source, target);
-  fsm[target] = tPtr;
+  fsm.setTran(target, tPtr->clone());
 }
 
 void edge(Graph::vertex source, Graph::vertex target, Graph& fsm, Transition* tPtr) {
