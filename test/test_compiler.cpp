@@ -6,6 +6,41 @@
 
 #include "test_helper.h"
 
+SCOPE_TEST(testMerge_aaOrab_toEmpty) {
+  Compiler comp;
+  Graph dst(1), src(5);
+  
+  // aa|ab
+  edge(0, 1, src, new LitState('a'));
+  boost::shared_ptr<LitState> a(new LitState('a'));
+  edge(1, 2, src, a);
+  edge(0, 3, src, new LitState('a'));
+  boost::shared_ptr<LitState> b(new LitState('b'));
+  edge(3, 4, src, b);
+
+  comp.mergeIntoFSM(dst, src);
+
+  SCOPE_ASSERT_EQUAL(4u, dst.numVertices());
+
+  SCOPE_ASSERT_EQUAL(0u, dst.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, dst.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, dst.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, dst.inDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, dst.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, dst.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(3u, dst.outVertex(1, 1));
+
+  SCOPE_ASSERT_EQUAL(1u, dst.inDegree(2));
+  SCOPE_ASSERT_EQUAL(0u, dst.outDegree(2));
+
+  SCOPE_ASSERT_EQUAL(1u, dst.inDegree(3));
+  SCOPE_ASSERT_EQUAL(0u, dst.outDegree(3));
+
+  SCOPE_ASSERT_EQUAL(a, dst[2]);
+  SCOPE_ASSERT_EQUAL(b, dst[3]);
+}
+
 SCOPE_TEST(testMerge) {
   Compiler comp;
   Graph fsm,
