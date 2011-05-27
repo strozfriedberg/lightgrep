@@ -98,7 +98,7 @@ private:
   void patch_pre(OutListT& src, const InListT& dst);
   void patch_post(OutListT& src, const InListT& dst);
 
-  void traverse(const Node* root);
+  void traverse(const Node* n);
 
   bool IsGood, CaseSensitive;
   uint32 CurLabel;
@@ -106,6 +106,8 @@ private:
   boost::shared_ptr<Encoding> Enc;
   GraphPtr Fsm;
   std::stack<Fragment> Stack;
+  std::stack<const Node*, std::vector<const Node*> > ChildStack, ParentStack;
+  
   boost::scoped_array<byte> TempBuf;
   std::vector<TransitionPtr> LitFlyweights;
 
