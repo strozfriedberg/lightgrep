@@ -31,11 +31,15 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
     srcHead = States.front().second;
     States.pop();
 
+    #ifdef LBT_TRACE_ENABLED
     std::cerr << "popped (" << dstHead << ',' << srcHead << ')' << std::endl;
+    #endif
 
     // skip if we've seen this source vertex already
     if (Visited[srcHead]) {
+      #ifdef LBT_TRACE_ENABLED
       std::cerr << "already seen " << srcHead << ", skipping" << std::endl;
+      #endif
       continue;
     }
 
@@ -49,7 +53,9 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       srcBits.reset();
       srcTrans->getBits(srcBits);
 
+      #ifdef LBT_TRACE_ENABLED
       std::cerr << "trying to match " << srcTail << std::endl;
+      #endif
 
       // try to match it with a successor of the destination vertex,
       // preserving the relative order of the source vertex's successors
@@ -74,7 +80,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
         // 5) the source has only one incoming edge
         // 6) if the destination has been matched with a source, then that
         //    source has only one incoming edge
-        // 7) the source hsa only one incoming edge
+        // 7) the source has only one incoming edge
 
         if (dstBits == srcBits &&
             dstTrans->Label == srcTrans->Label &&
@@ -84,8 +90,9 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
             (Dst2Src[dstTail] == NONE || 1 == src.inDegree(Dst2Src[dstTail])) &&
             1 == src.inDegree(srcTail)) {
           found = true;
-          std::cerr << "matched " << srcTail <<
-                         " with " << dstTail << std::endl;
+          #ifdef LBT_TRACE_ENABLED
+          std::cerr << "matched " << srcTail << " with " << dstTail << std::endl;
+          #endif
           break;
         }
       }
@@ -100,17 +107,23 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
           dstTail = dst.addVertex();
           dst[dstTail] = srcTrans;
 
+          #ifdef LBT_TRACE_ENABLED
           std::cerr << "added new vertex " << dstTail << " for " << srcTail << std::endl;
+          #endif
         }
 
         addNewEdge(dstHead, dstTail, dst);
+        #ifdef LBT_TRACE_ENABLED
         std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
+        #endif
       }
   
       Src2Dst[srcTail] = dstTail;
       Dst2Src[dstTail] = srcTail;
       States.push(StatePair(dstTail, srcTail));
+      #ifdef LBT_TRACE_ENABLED
       std::cerr << "pushed (" << dstTail << ',' << srcTail << ')' << std::endl;
+      #endif
     }
   }
 }
