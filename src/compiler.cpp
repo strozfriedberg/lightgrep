@@ -10,18 +10,16 @@ static const Graph::vertex NONE = 0xFFFFFFFF;
 static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
 void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
-  ByteSet srcBits,
-          dstBits;
-
   while (!States.empty()) {
     States.pop();
   }
 
-  uint32 numVs = src.numVertices();
+  const uint32 numVs = src.numVertices();
   StateMap.assign(numVs, NONE);
   Visited.assign(numVs, false);
 
-  Graph::vertex dstHead, srcHead, dstTarget, srcTarget = 0xFFFFFFFF;
+  Graph::vertex srcHead, dstHead, srcTail, dstTail;
+  ByteSet srcBits, dstBits;
 
   States.push(StatePair(0, 0));
   while (!States.empty()) {
@@ -29,6 +27,59 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
     srcHead = States.top().second;
     States.pop();
 
+    // skip if we've seen this source vertex already
+    if (Visited[srcHead]) continue;
+
+
+    Visited[srcHead] = true;
+
+    // for each successor of the source vertex
+    for (uint32 si = 0, di = 0; si < src.outDegree(srcHead); ++si) {
+      srcTail = src.outVertex(srcHead, si);
+      TransitionPtr srcTrans(src[srcTail]);
+
+      srcBits.reset();
+      srcTrans->getBits(srcBits);
+
+      // try to match it with a successor of the destination vertex,
+      // preserving the relative order of the source vertex's successors
+
+      bool found = false;
+      for ( ; di < dst.outDegree(dstHead); ++di) {
+        dstTail = dst.outVertex(dstHead, di);
+        TransitionPtr dstTrans(dst[dstTail]);
+
+        dstBits.reset();
+        dstTrans->getBits(dstBits);
+
+        if (dstBits == srcBits &&
+            dstTrans->Label == srcTrans->Label &&
+            1 == dst.inDegree(dstTail) &&
+            1 == src.inDegree(srcTail)) { 
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        // match not found
+        dstTail = StateMap[srcTail];
+
+        if (dstTail == NONE) {
+          // add a new vertex to the destination if the image of the source
+          // tail vertex does not exist 
+          dstTail = dst.addVertex();
+          dst[dstTail] = srcTrans;
+        }
+
+        addNewEdge(dstHead, dstTail, dst);
+      }
+  
+      StateMap[srcTail] = dstTail;
+      States.push(StatePair(dstTail, srcTail));
+    }
+
+/*
     if (!Visited[dstHead]) {
       // std::cerr << "on state pair " << dstHead << ", " << srcHead << std::endl;
       Visited[dstHead] = true;
@@ -79,6 +130,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
         States.push(StatePair(dstTarget, srcTarget));
       }
     }
+*/
   }
 }
 
