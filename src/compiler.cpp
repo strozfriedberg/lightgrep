@@ -14,22 +14,30 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
     States.pop();
   }
 
-  const uint32 numVs = src.numVertices();
-  StateMap.assign(numVs, NONE);
-  Visited.assign(numVs, false);
+  const uint32 NOLABEL = std::numeric_limits<uint32>::max();
+
+  const uint32 srcSize = src.numVertices();
+  const uint32 dstSize = dst.numVertices();
+  Src2Dst.assign(srcSize, NONE);
+  Dst2Src.assign(srcSize + dstSize, NONE);
+  Visited.assign(srcSize, false);
 
   Graph::vertex srcHead, dstHead, srcTail, dstTail;
   ByteSet srcBits, dstBits;
 
   States.push(StatePair(0, 0));
   while (!States.empty()) {
-    dstHead = States.top().first;
-    srcHead = States.top().second;
+    dstHead = States.front().first;
+    srcHead = States.front().second;
     States.pop();
 
-    // skip if we've seen this source vertex already
-    if (Visited[srcHead]) continue;
+    std::cerr << "popped (" << dstHead << ',' << srcHead << ')' << std::endl;
 
+    // skip if we've seen this source vertex already
+    if (Visited[srcHead]) {
+      std::cerr << "already seen " << srcHead << ", skipping" << std::endl;
+      continue;
+    }
 
     Visited[srcHead] = true;
 
@@ -40,6 +48,8 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
 
       srcBits.reset();
       srcTrans->getBits(srcBits);
+
+      std::cerr << "trying to match " << srcTail << std::endl;
 
       // try to match it with a successor of the destination vertex,
       // preserving the relative order of the source vertex's successors
@@ -52,85 +62,56 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
         dstBits.reset();
         dstTrans->getBits(dstBits);
 
+        // Explanation of the condition:
+        // 
+        // Vertices match if:
+        //
+        // 1) they have the same incoming edge
+        // 2) they have the same label (i.e., they are match states for
+        //    the same pattern, or are not match states)
+        // 3) if they are match states, then they have no successors
+        // 4) the destination has only one incoming edge
+        // 5) the source has only one incoming edge
+        // 6) if the destination has been matched with a source, then that
+        //    source has only one incoming edge
+        // 7) the source hsa only one incoming edge
+
         if (dstBits == srcBits &&
             dstTrans->Label == srcTrans->Label &&
+            (dstTrans->Label == NOLABEL ||
+              (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))) &&
             1 == dst.inDegree(dstTail) &&
-            1 == src.inDegree(srcTail)) { 
+            (Dst2Src[dstTail] == NONE || 1 == src.inDegree(Dst2Src[dstTail])) &&
+            1 == src.inDegree(srcTail)) {
           found = true;
+          std::cerr << "matched " << srcTail <<
+                         " with " << dstTail << std::endl;
           break;
         }
       }
 
       if (!found) {
         // match not found
-        dstTail = StateMap[srcTail];
+        dstTail = Src2Dst[srcTail];
 
         if (dstTail == NONE) {
           // add a new vertex to the destination if the image of the source
           // tail vertex does not exist 
           dstTail = dst.addVertex();
           dst[dstTail] = srcTrans;
+
+          std::cerr << "added new vertex " << dstTail << " for " << srcTail << std::endl;
         }
 
         addNewEdge(dstHead, dstTail, dst);
+        std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
       }
   
-      StateMap[srcTail] = dstTail;
+      Src2Dst[srcTail] = dstTail;
+      Dst2Src[dstTail] = srcTail;
       States.push(StatePair(dstTail, srcTail));
+      std::cerr << "pushed (" << dstTail << ',' << srcTail << ')' << std::endl;
     }
-
-/*
-    if (!Visited[dstHead]) {
-      // std::cerr << "on state pair " << dstHead << ", " << srcHead << std::endl;
-      Visited[dstHead] = true;
-
-      for (uint32 i = 0; i < src.outDegree(dstHead); ++i) {
-        dstTarget = src.outVertex(dstHead, i);
-
-        if (StateMap[dstTarget] == NONE) {
-          TransitionPtr srcTran = src[dstTarget];
-          srcBits.reset();
-          srcTran->getBits(srcBits);
-          // std::cerr << "  dstTarget = " << dstTarget << " with transition " << tran->label() << std::endl;
-
-          bool found = false;
-
-          for (uint32 j = 0; j < dst.outDegree(srcHead); ++j) {
-            srcTarget = dst.outVertex(srcHead, j);
-            TransitionPtr dstTran = dst[srcTarget];
-            dstBits.reset();
-            dstTran->getBits(dstBits);
-            // std::cerr << "    looking at merge state " << srcTarget << " with transition " << dstTran->label() << std::endl;
-            if (dstBits == srcBits &&
-                dstTran->Label == srcTran->Label &&
-                1 == dst.inDegree(srcTarget) &&
-                2 > src.inDegree(dstHead) &&
-                2 > src.inDegree(dstTarget)) {
-              // std::cerr << "    found equivalent state " << srcTarget << std::endl;
-              found = true;
-              break;
-            }
-          }
-
-          if (!found) {
-            // The destination NFA and the srcHead NFA have diverged.
-            // Copy the tail node from the srcHead to the destination
-            srcTarget = dst.addVertex();
-            // std::cerr << "  creating new state " << srcTarget << std::endl;
-            dst[srcTarget] = srcTran;
-          }
-          StateMap[dstTarget] = srcTarget;
-        }
-        else {
-          srcTarget = StateMap[dstTarget];
-        }
-        // std::cerr << "  srcTarget = " << srcTarget << std::endl;
-
-        addNewEdge(srcHead, srcTarget, dst);
-        States.push(StatePair(dstTarget, srcTarget));
-      }
-    }
-*/
   }
 }
 
