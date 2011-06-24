@@ -57,7 +57,7 @@ void parse_opts(int argc, char** argv,
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
     ("block-size", po::value< unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
-    ("print-path", "Puts the path of the file into the search output")
+    ("with-filename,H", "Puts the path of the file into the search output")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value< uint64 >(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
@@ -118,7 +118,7 @@ void parse_opts(int argc, char** argv,
     opts.CaseSensitive = optsMap.count("ignore-case") == 0;
     opts.LiteralMode = optsMap.count("fixed-strings") > 0;
     opts.NoOutput = optsMap.count("no-output") > 0;
-    opts.PrintPath = optsMap.count("print-path") > 0;
+    opts.PrintPath = optsMap.count("with-filename") > 0;
 
     if (opts.Command == "search") {
       // determine the source of our input
