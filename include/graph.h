@@ -29,18 +29,22 @@ public:
   };
 
   struct Vertex {
-    TransitionPtr Tran;
+    Transition* Tran;
     AdjacentList In, Out;
+
+    Vertex(): Tran(0) {}
+    Vertex(Transition* t): Tran(t) {}
   };
 #pragma pack()
 
   Graph(uint32 numVs, uint32 reserveSize);
   Graph(uint32 numVs = 0);
+  ~Graph();
 
   uint32 numVertices() const { return Vertices.size(); }
   uint32 capacity() const { return Vertices.capacity(); }
 
-  vertex addVertex();
+  vertex addVertex(Transition* t = 0);
 
   bool edgeExists(const vertex source, const vertex target) const;
 
@@ -67,18 +71,24 @@ public:
     return _degree(Vertices[v].Out);
   }
 
-  const TransitionPtr operator[](vertex v) const {
+  Transition* operator[](vertex v) const {
     return Vertices[v].Tran;
   }
 
-  TransitionPtr& operator[](vertex v) { return Vertices[v].Tran; }
+/*  Transition* & operator[](vertex v) {
+    return Transitions[Vertices[v].TranIndex];
+  }*/
 
-  void clear() {
-    Vertices.clear();
-    AdjLists.clear();
+  void setTran(const vertex& v, Transition* tran) {
+    Vertices[v].Tran = tran;
   }
 
+  void clear();
+
 private:
+  Graph(const Graph&);
+  Graph& operator=(const Graph&);
+
   void _add(AdjacentList& l, vertex v);
   void _add(AdjacentList& l, vertex v, size_t i);
 

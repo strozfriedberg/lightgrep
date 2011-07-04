@@ -6,10 +6,16 @@
 
 #include "test_helper.h"
 
+ByteSet getBits(Transition& t) {
+  ByteSet b;
+  t.getBits(b);
+  return b;
+}
+
 SCOPE_TEST(testMerge_aaOrab_toEmpty) {
   Compiler comp;
   Graph dst(1), src(5);
-  
+
   // aa|ab
   edge(0, 1, src, new LitState('a'));
   boost::shared_ptr<LitState> a(new LitState('a'));
@@ -37,8 +43,8 @@ SCOPE_TEST(testMerge_aaOrab_toEmpty) {
   SCOPE_ASSERT_EQUAL(1u, dst.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, dst.outDegree(3));
 
-  SCOPE_ASSERT_EQUAL(a, dst[2]);
-  SCOPE_ASSERT_EQUAL(b, dst[3]);
+  SCOPE_ASSERT_EQUAL(getBits(*a), getBits(*dst[2]));
+  SCOPE_ASSERT_EQUAL(getBits(*b), getBits(*dst[3]));
 }
 
 SCOPE_TEST(testMerge) {

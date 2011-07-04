@@ -27,7 +27,6 @@
 extern "C" void tss_cleanup_implemented() { }
 // </magic_incantation>
 
-
 namespace po = boost::program_options;
 
 void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
@@ -113,6 +112,18 @@ void printHelp(const po::options_description& desc) {
     << desc << std::endl;
 }
 
+HitCounter* createOutputWriter(const Options& opts, const KwInfo& keyInfo) {
+  if (opts.NoOutput) {
+    return new NullWriter();
+  }
+  else if (opts.PrintPath) {
+    return new PathWriter(opts.Input, opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
+  }
+  else {
+    return new HitWriter(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
+  }
+}
+
 void search(const Options& opts) {
   FILE *file = opts.Input == "-" ? stdin : fopen(opts.Input.c_str(), "rb");
   if (!file) {
@@ -129,16 +140,7 @@ void search(const Options& opts) {
 
   double lastTime = 0.0;
   boost::timer searchClock;
-  HitWriter output(opts.openOutput(), keyInfo.PatternsTable,
-                   keyInfo.Keywords, keyInfo.Encodings);
-  NullWriter   devNull;
-  HitCounter*  cb = 0;
-  if (opts.NoOutput) {
-    cb = &devNull;
-  }
-  else {
-    cb = &output;
-  }
+  boost::scoped_ptr< HitCounter > cb(createOutputWriter(opts, keyInfo));
 
   byte* cur  = new byte[opts.BlockSize];
   uint64 blkSize = 0,

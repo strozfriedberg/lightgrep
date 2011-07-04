@@ -134,11 +134,11 @@ bool has_only_zero_length_match(const Node* n) {
 }
 
 bool reduce_empty_subtrees(Node* n, std::stack<Node*>& branch) {
-  
+
   // ST{0}Q = ST{0}?Q = T{0}QS = T{0}?Q = S
   // R(S{0}Q|T) = (S{0}Q|T)R = R
   // (S|T{0}Q) = S?
- 
+
   bool ret = false;
   branch.push(n);
 
@@ -148,12 +148,12 @@ bool reduce_empty_subtrees(Node* n, std::stack<Node*>& branch) {
       // prune the whole tree
       n->Left = 0;
       break;
- 
+
     case Node::ALTERNATION:
     case Node::CONCATENATION:
     case Node::REPETITION:
     case Node::REPETITION_NG:
-      // replace this subtree with a dummy    
+      // replace this subtree with a dummy
       n->Type = Node::REPETITION;
       n->Min = n->Max = 0;
       n->Right = 0;
@@ -164,7 +164,7 @@ bool reduce_empty_subtrees(Node* n, std::stack<Node*>& branch) {
       n->Left->Left = n->Left->Right = 0;
       n->Left->Val = 'x';
       break;
-     
+
     default:
       // WTF?
       throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
@@ -256,7 +256,7 @@ bool prune_useless_repetitions(Node* n, const std::stack<Node*>& branch) {
 bool reduce_useless_repetitions(Node* n, std::stack<Node*>& branch) {
   // T{1} = T{1}? = T
   // T{n}? = T{n}
- 
+
   bool ret = false;
   branch.push(n);
 
@@ -306,11 +306,11 @@ bool reduce_useless_repetitions(Node* root) {
 bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
   /*
      As a postfix, S{n,m}?T = S{n}T, when T admits zero-length matches.
-    
+
      In the tree, the adjacency can show up as either S{n,m}? and T as
      children of the same concatenation, or as T being the right uncle
      of S{n,m}?:
-    
+
          &            &
         / \    OR    / \
        +?  T        &   T
@@ -379,7 +379,7 @@ bool reduce_trailing_nongreedy_then_empty(Node* n, std::stack<Node*>& branch) {
         ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
       }
     }
-    
+
     ret |= reduce_trailing_nongreedy_then_empty(n->Right, branch);
     break;
 

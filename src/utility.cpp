@@ -219,7 +219,7 @@ ProgramPtr createProgram(const Graph& graph) {
     //   std::cerr << "have compiled " << i << " states so far" << std::endl;
     // }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
-    TransitionPtr t(graph[v]);
+    Transition* t(graph[v]);
     if (t) {
       t->toInstruction(curOp);
       curOp += t->numInstructions();

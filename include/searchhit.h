@@ -32,5 +32,6 @@ OutStream& operator<<(OutStream& out, const SearchHit& hit) {
 
 class HitCallback {
 public:
+  virtual ~HitCallback() {}
   virtual void collect(const SearchHit& hit) = 0;
 };
