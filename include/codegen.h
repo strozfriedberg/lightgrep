@@ -66,9 +66,9 @@ public:
 
   void discover_vertex(Graph::vertex v, const Graph& graph);
 
-  uint32 calcJumpTableSize(Graph::vertex v, const Graph& graph, uint32 outDegree); 
+  uint32 calcJumpTableSize(Graph::vertex v, const Graph& graph, uint32 outDegree);
 
-  void finish_vertex(Graph::vertex v, const Graph& graph); 
+  void finish_vertex(Graph::vertex v, const Graph& graph);
 
 private:
   boost::shared_ptr<CodeGenHelper> Helper;

@@ -100,7 +100,7 @@ void Graph::_add_no_dupe_check(AdjacentList& l, vertex v) {
     l.What = v;
     break;
   case ONE:
-    { 
+    {
       l.Flags = MANY;
       const vertex tmp[2] = { l.What, v };
       AdjLists.push_back(std::vector<vertex>(&tmp[0], &tmp[2]));
