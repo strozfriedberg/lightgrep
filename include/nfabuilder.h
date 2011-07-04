@@ -107,7 +107,7 @@ private:
   GraphPtr Fsm;
   std::stack<Fragment> Stack;
   std::stack<const Node*, std::vector<const Node*> > ChildStack, ParentStack;
-  
+
   boost::scoped_array<byte> TempBuf;
   std::vector<TransitionPtr> LitFlyweights;
 

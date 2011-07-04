@@ -31,7 +31,7 @@ public:
   struct Vertex {
     Transition* Tran;
     AdjacentList In, Out;
-    
+
     Vertex(): Tran(0) {}
     Vertex(Transition* t): Tran(t) {}
   };
@@ -88,7 +88,7 @@ public:
 private:
   Graph(const Graph&);
   Graph& operator=(const Graph&);
-  
+
   void _add(AdjacentList& l, vertex v);
   void _add(AdjacentList& l, vertex v, size_t i);
 

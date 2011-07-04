@@ -274,7 +274,7 @@ void NFABuilder::alternate(const Node& n) {
   Fragment second;
   second.assign(Stack.top());
   Stack.pop();
-  
+
   Fragment& first(Stack.top());
 
   if (first.Skippable != NOSKIP) {

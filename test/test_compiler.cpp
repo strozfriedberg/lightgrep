@@ -15,7 +15,7 @@ ByteSet getBits(Transition& t) {
 SCOPE_TEST(testMerge_aaOrab_toEmpty) {
   Compiler comp;
   Graph dst(1), src(5);
-  
+
   // aa|ab
   edge(0, 1, src, new LitState('a'));
   boost::shared_ptr<LitState> a(new LitState('a'));
