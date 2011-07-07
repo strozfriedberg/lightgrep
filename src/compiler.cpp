@@ -48,7 +48,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
     // for each successor of the source vertex
     for (uint32 si = 0, di = 0; si < src.outDegree(srcHead); ++si) {
       srcTail = src.outVertex(srcHead, si);
-      TransitionPtr srcTrans(src[srcTail]);
+      Transition* srcTrans(src[srcTail]);
 
       srcBits.reset();
       srcTrans->getBits(srcBits);
@@ -63,13 +63,13 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       bool found = false;
       for ( ; di < dst.outDegree(dstHead); ++di) {
         dstTail = dst.outVertex(dstHead, di);
-        TransitionPtr dstTrans(dst[dstTail]);
+        Transition* dstTrans(dst[dstTail]);
 
         dstBits.reset();
         dstTrans->getBits(dstBits);
 
         // Explanation of the condition:
-        // 
+        //
         // Vertices match if:
         //
         // 1) they have the same incoming edge
@@ -103,9 +103,9 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
 
         if (dstTail == NONE) {
           // add a new vertex to the destination if the image of the source
-          // tail vertex does not exist 
+          // tail vertex does not exist
           dstTail = dst.addVertex();
-          dst[dstTail] = srcTrans;
+          dst.setTran(dstTail, srcTrans->clone());
 
           #ifdef LBT_TRACE_ENABLED
           std::cerr << "added new vertex " << dstTail << " for " << srcTail << std::endl;
@@ -117,7 +117,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
         std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
         #endif
       }
-  
+
       Src2Dst[srcTail] = dstTail;
       Dst2Src[dstTail] = srcTail;
       States.push(StatePair(dstTail, srcTail));
