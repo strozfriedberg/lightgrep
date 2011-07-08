@@ -42,13 +42,14 @@ int main(int argc, char** argv) {
   // above C_33. (Or, for larger patterns, we could approximate the
   // Catalan numbers, or use long doubles...)
 
-  // C[i] is the ith Catalan number 
-  std::vector<uint64> C(nmax+1);
-  for (uint32 i = 1; i <= nmax; ++i) {
+  // C[i] is the ith Catalan number
+  std::vector<uint64> C(nmax);
+ 
+  for (uint32 i = 0; i < nmax; ++i) {
     C[i] = catalan(i);
   }
 
-  // sumC[n] is the sum of C[i], 0 < i <= n
+  // sumC[n] is the sum of C[i], 0 <= i < n
   std::vector<uint64> sumC(C);
   std::partial_sum(C.begin(), C.end(), sumC.begin()); 
 
@@ -59,28 +60,32 @@ int main(int argc, char** argv) {
 */
 
   // Seed for the PRNG
-  const uint32 seed = argc > 3 ?
-    boost::lexical_cast<uint32>(argv[3]) : time(0);
+  const uint32 seed = argc > 3 ? boost::lexical_cast<uint32>(argv[3]) : time(0);
   srand(seed);
 
   for (uint32 pnum = 0; pnum < pcount; ++pnum) {
+    // The number of non-isomorphic ordered binary trees with exactly n
+    // nodes is C_{n-1}. Therefore, the number of nonempty trees with at
+    // most n nodes is \sum_{k=1}^{n} C_{k-1}.
+
     // Determine the number of nodes in the parse tree: Find the first
-    // cumulative Catalan number such that a random number in [0,sumC[nmax]]
-    // is less than or equal to it.
-    const uint64 rc = rand_int(0, sumC[nmax]+1);
+    // cumulative Catalan number such that a random number in [0,sumC[nmax])
+    // is less than it.
+    const uint64 rc = rand_int(0, sumC[nmax]);
     const uint32 n = std::find_if(
       sumC.begin(), sumC.end(),
-      boost::bind(std::less_equal<uint64>(), rc, _1)) - sumC.begin();
+      boost::bind(std::less<uint64>(), rc, _1)) - sumC.begin();
 
     // Build a random n-node binary tree.
   
     ParseTree tree;
-    tree.init(n+1);
+    tree.init(n+1); // extra node is for the REGEXP root
     
     Node* ig = tree.add(Node(Node::IGNORE, (Node*) 0, (Node*) 0));
     tree.Root = tree.add(Node(Node::REGEXP, ig));
     std::vector<Node*> available(1, ig);
 
+    // NB: count from 1 because available starts with one node
     uint32 ni;
     for (uint32 i = 1; i < n; ++i) {
       ni = rand_int(0, available.size());
