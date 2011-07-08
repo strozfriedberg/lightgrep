@@ -1,13 +1,17 @@
 #include "compiler.h"
 #include "utility.h"
 
+#include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <set>
 #include <stack>
 #include <vector>
 
 static const Graph::vertex NONE = 0xFFFFFFFF;
 static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
+
+typedef std::vector<Graph::vertex> Branch;
 
 void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   while (!States.empty()) {
@@ -19,11 +23,14 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   const uint32 srcSize = src.numVertices();
   const uint32 dstSize = dst.numVertices();
   Src2Dst.assign(srcSize, NONE);
-  Dst2Src.assign(srcSize + dstSize, NONE);
+  Dst2Src.assign(srcSize + dstSize, std::vector<Graph::vertex>());
   Visited.assign(srcSize, false);
 
   Graph::vertex srcHead, dstHead, srcTail, dstTail;
   ByteSet srcBits, dstBits;
+
+  std::vector< std::vector<Graph::vertex> > inverse_map(dstSize);
+  std::vector<Branch> branch_map(srcSize);
 
   States.push(StatePair(0, 0));
   while (!States.empty()) {
@@ -53,15 +60,49 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       srcBits.reset();
       srcTrans->getBits(srcBits);
 
+      Branch sbranch(branch_map[srcHead]);
+      sbranch.push_back(si);
+      branch_map[srcTail] = sbranch;
+
       #ifdef LBT_TRACE_ENABLED
-      std::cerr << "trying to match " << srcTail << std::endl;
+      std::cerr << "trying to match " << srcTail << " on branch ";
+      std::copy(sbranch.begin(), sbranch.end(),
+                std::ostream_iterator<Graph::vertex>(std::cerr, "."));
+      std::cerr << std::endl;
       #endif
 
       // try to match it with a successor of the destination vertex,
       // preserving the relative order of the source vertex's successors
 
+      // find dstTail range to which we could map srcTail, by branch order
+      uint32 lb = 0;
+      uint32 ub = dst.outDegree(dstHead);
+
+      for (di = lb; di < ub; ++di) {
+        // get dstTail vertex and its preimages
+        dstTail = dst.outVertex(dstHead, di);
+        std::vector<Graph::vertex> preimages(Dst2Src[dstTail]);
+
+        // compare src branch to the branch of each preimage
+        std::vector<Graph::vertex>::const_iterator i(preimages.begin());
+        for ( ; i != preimages.end(); ++i) {
+          const Branch& dbranch = branch_map[*i];
+          if (std::lexicographical_compare(dbranch.begin(), dbranch.end(),
+                                           sbranch.begin(), sbranch.end())) {
+            // dst branch < src branch, advance the lower bound
+            lb = di;
+          }
+          else {
+            // src branch >= dst branch, set upper bound and stop
+            ub = di;
+            break;
+          }
+        }
+      }
+
       bool found = false;
-      for ( ; di < dst.outDegree(dstHead); ++di) {
+
+      for (di = lb; di < ub; ++di) {
         dstTail = dst.outVertex(dstHead, di);
         Transition* dstTrans(dst[dstTail]);
 
@@ -87,9 +128,11 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
             (dstTrans->Label == NOLABEL ||
               (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))) &&
             1 == dst.inDegree(dstTail) &&
-            (Dst2Src[dstTail] == NONE || 1 == src.inDegree(Dst2Src[dstTail])) &&
+            (Dst2Src[dstTail].empty() ||
+              1 == src.inDegree(Dst2Src[dstTail].front())) &&
             1 == src.inDegree(srcTail)) {
           found = true;
+
           #ifdef LBT_TRACE_ENABLED
           std::cerr << "matched " << srcTail << " with " << dstTail << std::endl;
           #endif
@@ -103,12 +146,13 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
 
         if (dstTail == NONE) {
           // add a new vertex to the destination if the image of the source
-          // tail vertex does not exist
+          // tail vertex cannot be matched
           dstTail = dst.addVertex();
           dst.setTran(dstTail, srcTrans->clone());
 
           #ifdef LBT_TRACE_ENABLED
-          std::cerr << "added new vertex " << dstTail << " for " << srcTail << std::endl;
+          std::cerr << "added new vertex " << dstTail << " for "
+                                           << srcTail << std::endl;
           #endif
         }
 
@@ -119,7 +163,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       }
 
       Src2Dst[srcTail] = dstTail;
-      Dst2Src[dstTail] = srcTail;
+      Dst2Src[dstTail].push_back(srcTail);
       States.push(StatePair(dstTail, srcTail));
       #ifdef LBT_TRACE_ENABLED
       std::cerr << "pushed (" << dstTail << ',' << srcTail << ')' << std::endl;

@@ -18,7 +18,7 @@ public:
   void removeNonMinimalLabels(Graph& g);
 
 private:
-  std::vector<Graph::vertex> Dst2Src;
+  std::vector< std::vector<Graph::vertex> > Dst2Src;
   std::vector<Graph::vertex> Src2Dst;
   std::queue<StatePair> States;
   std::vector<bool> Visited;
