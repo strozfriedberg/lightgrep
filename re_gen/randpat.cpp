@@ -71,13 +71,12 @@ int main(int argc, char** argv) {
     // Determine the number of nodes in the parse tree: Find the first
     // cumulative Catalan number such that a random number in [0,sumC[nmax])
     // is less than it.
-    const uint64 rc = rand_int(0, sumC[nmax]);
+    const uint64 rc = rand_int(0, sumC[nmax-1]);
     const uint32 n = std::find_if(
       sumC.begin(), sumC.end(),
       boost::bind(std::less<uint64>(), rc, _1)) - sumC.begin();
 
     // Build a random n-node binary tree.
-  
     ParseTree tree;
     tree.init(n+1); // extra node is for the REGEXP root
     
