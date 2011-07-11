@@ -20,7 +20,10 @@ public:
   }
 
   bool operator<(const SearchHit& x) const {
-    return Offset < x.Offset || (Offset == x.Offset && Length < x.Length);
+    return Offset < x.Offset ||
+            (Offset == x.Offset &&
+              (Length < x.Length ||
+                (Length == x.Length && Label < x.Label)));
   }
 };
 
