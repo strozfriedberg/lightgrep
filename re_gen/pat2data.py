@@ -8,9 +8,9 @@
 
 import os.path
 import struct
-import subprocess
 import sys
-import tempfile
+
+import lgtestlib
 
 def main():
   sg = os.path.dirname(__file__) + '/shitgrep'
@@ -28,46 +28,12 @@ def main():
     # read the patterns
     pats = line.rstrip('\n').split('\t')
 
-    pf = None
+    # get matches from shitgrep
+    matches = lgtestlib.run_shitgrep(sg, pats, text)
 
-    try:
-      if len(pats) == 1:
-        # specify single patterns on command line
-        cmd = (sg, '-p', pats[0])
-      else:
-        # write multiple patterns to temporary pattern file
-        pf, pfname = tempfile.mkstemp()
-        for p in pats:
-          print >>pf, p
-
-        cmd = (sg, pfname)
-
-      # get matches from shitgrep
-      proc = subprocess.Popen(cmd,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-      )
-
-      sgout, sgerr = proc.communicate(text)
-
-      retval = proc.wait()
-      if retval:
-        raise Exception('shitgrep returned {}, {}'.format(retval, sgerr))
-
-    finally:
-      if pf:
-        # clean up pattern file, if we used one
-        pf.close()
-        os.unlink(pfname)
-
-    if len(pats) == sgerr.count('is not allowed as a final state of the NFA'):
-      # skip pattern sets which have only zero-length matches
+    if matches is None:
+      # skip pattern sets where every pattern has zero-length matches
       continue
-
-    matches = []
-    for m in sgout.splitlines():
-      matches.append(map(int, m.split('\t', 3)[0:3]))
 
     # write out patterns and their matches
     sys.stdout.write(lstruct.pack(len(pats)))
