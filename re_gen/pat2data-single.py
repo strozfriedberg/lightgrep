@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+#
+# Expects one pattern per line on stdin, text as only command-line argument.
+# Writes tests to stdout in multipattern "long" test format.
+#
+
 import os.path
 import struct
 import subprocess
