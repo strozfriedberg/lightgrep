@@ -45,9 +45,14 @@ def run_shitgrep(sg, pats, text):
     # every pattern in this pattern set has zero-length matches
     return None
 
+  # parse the matches
   matches = []
   for m in sgout.splitlines():
     matches.append(map(int, m.split('\t', 3)[0:3]))
+
+  # sort the matches by offset, length, label
+  lex = lambda x,y: cmp(x[0], y[0]) or cmp(x[1], y[1]) or cmp(x[2], y[2])
+  matches.sort(lex)
 
   return matches
 
