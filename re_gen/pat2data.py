@@ -13,7 +13,7 @@ import sys
 import tempfile
 
 def main():
-  path = os.path.dirname(__file__)
+  sg = os.path.dirname(__file__) + '/shitgrep'
 
   # compile the output structs
   lstruct = struct.Struct('=L')
@@ -33,14 +33,14 @@ def main():
     try:
       if len(pats) == 1:
         # specify single patterns on command line
-        cmd = (path + '/shitgrep', '-p', pats[0])
+        cmd = (sg, '-p', pats[0])
       else:
         # write multiple patterns to temporary pattern file
         pf, pfname = tempfile.mkstemp()
         for p in pats:
           print >>pf, p
 
-        cmd = (path + '/shitgrep', pfname)
+        cmd = (sg, pfname)
 
       # get matches from shitgrep
       proc = subprocess.Popen(cmd,
