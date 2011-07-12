@@ -20,7 +20,7 @@ def main():
   # get the text
   text = sys.argv[1]
 
-  patnum = 0
+  setnum = 0
 
   # read the patterns 
   for pat in sys.stdin:
@@ -60,9 +60,9 @@ def main():
       sys.stdout.write(mstruct.pack(m[0], m[1], m[2]))
 
     # show progress
-    patnum += 1
-    if not patnum % 100:
-      print >> sys.stderr, patnum
+    setnum += 1
+    if not setnum % 100:
+      print >> sys.stderr, setnum
 
 if __name__ == "__main__":
   sys.exit(main())
