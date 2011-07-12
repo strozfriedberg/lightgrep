@@ -53,6 +53,8 @@ def main():
       print >>sys.stderr, setnum
 
   print >>sys.stderr, setnum
+  return 0
+
 
 if __name__ == "__main__":
   sys.exit(main())
