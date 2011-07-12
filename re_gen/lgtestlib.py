@@ -17,11 +17,13 @@ def run_shitgrep(sg, pats, text):
 
       for p in pats:
         print >>pf, p
+      pf.close()
 
       cmd = (sg, pfname)
 
     # get matches from shitgrep
-    proc = subprocess.Popen(cmd,
+    proc = subprocess.Popen(
+      cmd,
       stdin=subprocess.PIPE,
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE
