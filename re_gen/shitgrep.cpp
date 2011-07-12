@@ -11,6 +11,7 @@
 #include <fstream>
 #include <istream>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 
@@ -200,6 +201,71 @@ void do_matches(std::istream& is, const char* text, size_t text_len) {
   cerr << matches << " matches" << endl;
 }
 
+void* mmap_input(const char* filename, int& fd, size_t& text_len) {
+  using namespace std;
+
+  fd = open(filename, O_RDWR);
+  if (fd == -1) {
+    stringstream ss;
+    ss << "open: " << strerror(errno) << endl;
+    throw runtime_error(ss.str());
+  }
+
+  // get the file size
+  struct stat st;
+  if (fstat(fd, &st) == -1) {
+    stringstream ss;
+    ss << "stat: " << strerror(errno) << endl;
+    throw runtime_error(ss.str());
+  }
+
+  text_len = st.st_size;
+
+  // We extend the text by one byte so it can be null-terminated.
+  // Note that you can't extend the file while it's mmapped, so
+  // we have to do this beforehand.
+  if (ftruncate(fd, text_len+1) == -1) {
+    stringstream ss;
+    ss << "ftruncate: " << strerror(errno) << endl;
+    throw runtime_error(ss.str());
+  }
+
+  void* addr = mmap(NULL, text_len+1, PROT_READ, MAP_PRIVATE, fd, 0);
+  if (addr == MAP_FAILED) {
+    stringstream ss;
+    ss << "mmap: " << strerror(errno) << endl;
+    throw runtime_error(ss.str());
+  }
+
+  return addr;
+}
+
+void unmmap_input(int fd, void* addr, size_t text_len) {
+  using namespace std;
+
+  // unmap the file
+  if (munmap(addr, text_len+1) == -1) {
+    stringstream ss;
+    ss << "munmap: " << strerror(errno) << endl;
+    throw runtime_error(ss.str());
+  }
+
+  // chop off the null terminator we added
+  if (ftruncate(fd, text_len) == -1) {
+    stringstream ss;
+    ss << "ftruncate: " << strerror(errno) << endl;
+    throw runtime_error(ss.str());
+  }
+
+  // close the file
+  if (close(fd) == -1) {
+    stringstream ss;
+    ss << "close: " << strerror(errno) << endl;
+    throw runtime_error(ss.str());
+  }
+}
+
+
 int main(int argc, char** argv)
 {
   using namespace std;
@@ -208,80 +274,85 @@ int main(int argc, char** argv)
   // Parse the arguments
   //
 
-  if (argc == 2) {
-    if (!strcmp(argv[1], "-h")) {
-      // -h prints the short help
-      cerr << help_short() << endl;
-      return 0;
-    } 
-    else if (!strcmp(argv[1], "--help")) {
-      // --help prints the long help
-      cerr << help_long() << endl;
-      return 0;
-    }
-  }
-
-  if (argc < 3) {
+  if (argc < 2) {
     cerr << "too few arguments!\n"
          << help_short() << endl;
     return 1;
   }
 
-  const char* text_filename;
+  if (!strcmp(argv[1], "-h")) {
+    // -h prints the short help
+    cerr << help_short() << endl;
+    return 0;
+  }
+  else if (!strcmp(argv[1], "--help")) {
+    // --help prints the long help
+    cerr << help_long() << endl;
+    return 0;
+  }
+
+  unsigned int text_arg = 0;
   const char* pat;
   bool use_pfile;
 
-  if (argc == 4 && !strcmp(argv[1], "-p")) {
+  if (!strcmp(argv[1], "-p")) {
     // get pattern from command line
     use_pfile = false;
+
+    if (argc < 3) {
+      cerr << "too few arguments!\n"
+           << help_short() << endl;
+      return 1;
+    }
+
     pat = argv[2];
-    text_filename = argv[3];
-  }
-  else if (argc > 3) {
-    cerr << "too many arguments!\n"
-         << help_short() << endl;
-    return 1;
+    text_arg = 3;
   }
   else {
     // get patterns from pattern file  
     use_pfile = true;
     pat = argv[1];
-    text_filename = argv[2];
+    text_arg = 2;
+  }
+
+  if (text_arg + 1 < (unsigned int) argc) {
+    cerr << "too many arguments!\n"
+         << help_short() << endl;
+    return 1;
+  }
+
+  const char* text_filename;
+
+  if (text_arg < (unsigned int) argc) {
+    // read text from file
+    text_filename = argv[text_arg];
+  }
+  else {
+    // read text from stdin
+    text_filename = 0;
   }
 
   //
-  // Memory-map the text
+  // Set up the text
   //
-  int fd = open(text_filename, O_RDWR);
-  if (fd == -1) {
-    cerr << "open: " << strerror(errno) << endl;
-    return errno;
+  const char* text;
+  size_t text_len;
+  int fd;
+  void* addr;
+  string text_str;
+
+  if (text_filename) {
+    // memory-map the text file
+    addr = mmap_input(text_filename, fd, text_len);
+    text = static_cast<char*>(addr);
   }
-
-  // get the file size
-  struct stat st;
-  if (fstat(fd, &st) == -1) {
-    cerr << "stat: " << strerror(errno) << endl;
-    return errno;
+  else {
+    // read the whole text file from stdin
+    text_str.assign(istreambuf_iterator<char>(cin),
+                    istreambuf_iterator<char>());
+    text = text_str.data();
+    text_len = text_str.length();
   }
-
-  const size_t text_len = st.st_size;
-
-  // We extend the text by one byte so it can be null-terminated.
-  // Note that you can't extend the file while it's mmapped, so
-  // we have to do this beforehand.
-  if (ftruncate(fd, text_len+1) == -1) {
-    cerr << "ftruncate: " << strerror(errno) << endl;
-    return errno;
-  }
-
-  void* addr = mmap(NULL, text_len+1, PROT_READ, MAP_PRIVATE, fd, 0);
-  if (addr == MAP_FAILED) {
-    cerr << "mmap: " << strerror(errno) << endl;
-    return errno;
-  }
-
-  const char* text = static_cast<char*>(addr);
 
   //
   // Iterate over the pattern file
@@ -304,22 +375,7 @@ int main(int argc, char** argv)
   //
   // Cleanup
   //
-
-  // unmap the file
-  if (munmap(addr, text_len+1) == -1) {
-    cerr << "munmap: " << strerror(errno) << endl;
-    return errno;
-  }
-
-  // chop off the null terminator we added
-  if (ftruncate(fd, text_len) == -1) {
-    cerr << "ftruncate: " << strerror(errno) << endl;
-    return errno;
-  }
-
-  // close the file
-  if (close(fd) == -1) {
-    cerr << "close: " << strerror(errno) << endl;
-    return errno;
+  if (text_filename) {
+    unmmap_input(fd, addr, text_len);
   }
 }
