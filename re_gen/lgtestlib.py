@@ -12,7 +12,9 @@ def run_shitgrep(sg, pats, text):
       cmd = (sg, '-p', pats[0])
     else:
       # write multiple patterns to temporary pattern file
-      pf, pfname = tempfile.mkstemp()
+      fd, pfname = tempfile.mkstemp('w')
+      pf = os.fdopen(fd, 'w')
+
       for p in pats:
         print >>pf, p
 
