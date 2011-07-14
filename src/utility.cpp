@@ -179,7 +179,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
       const uint32 addr = startIndex + (indirectTbl - start);
       *cur++ = *reinterpret_cast<const Instruction*>(&addr);
       for (uint32 j = 0; j < tbl[i].size(); ++j) {
-        uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
+        const uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
 
         *indirectTbl = (j + 1 == tbl[i].size() ?
           Instruction::makeJump(indirectTbl, landing) :
