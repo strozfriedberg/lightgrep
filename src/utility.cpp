@@ -91,30 +91,51 @@ GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool 
   // std::cerr << "createGraph" << std::endl;
   GraphPtr ret(new Graph(1, totalCharacters(keywords)));
   uint32 keyIdx = 0;
+
   if (enc & CP_ASCII) {
-    addKeys(keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, litMode, ret, keyIdx);
+    addKeys(
+      keywords, boost::shared_ptr<Encoding>(new Ascii),
+      caseSensitive, litMode, ret, keyIdx
+    );
   }
+
   if (enc & CP_UCS16) {
-    addKeys(keywords, boost::shared_ptr<Encoding>(new UCS16), caseSensitive, litMode, ret, keyIdx);
+    addKeys(
+      keywords, boost::shared_ptr<Encoding>(new UCS16),
+      caseSensitive, litMode, ret, keyIdx
+    );
   }
+
   return ret;
 }
 
 GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode) {
   GraphPtr ret(new Graph(1, totalCharacters(keyInfo.Keywords)));
   uint32 keyIdx = 0;
+
   if (enc & CP_ASCII) {
     keyInfo.Encodings.push_back("ASCII");
-    uint32 encIdx = keyInfo.Encodings.size() - 1;
-    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, litMode, ret, keyIdx);
+    const uint32 encIdx = keyInfo.Encodings.size() - 1;
+
+    addKeys(
+      keyInfo.Keywords, boost::shared_ptr<Encoding>(new Ascii),
+      caseSensitive, litMode, ret, keyIdx
+    );
+
     for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
       keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
     }
   }
+
   if (enc & CP_UCS16) {
     keyInfo.Encodings.push_back("UCS-16");
-    uint32 encIdx = keyInfo.Encodings.size() - 1;
-    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new UCS16), caseSensitive, litMode, ret, keyIdx);
+    const uint32 encIdx = keyInfo.Encodings.size() - 1;
+
+    addKeys(
+      keyInfo.Keywords, boost::shared_ptr<Encoding>(new UCS16),
+      caseSensitive, litMode, ret, keyIdx
+    );
+
     for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
       keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
     }
