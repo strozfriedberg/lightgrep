@@ -178,17 +178,16 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
     else {
       const uint32 addr = startIndex + (indirectTbl - start);
       *cur++ = *reinterpret_cast<const Instruction*>(&addr);
-      for (uint32 j = 0; j < tbl[i].size(); ++j) {
+
+      // write the indirect table in reverse edge order because
+      // parent threads have priority over forked children
+      for (int32 j = tbl[i].size() - 1; j >= 0; --j) {
         const uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
 
-        *indirectTbl = (j + 1 == tbl[i].size() ?
-          Instruction::makeJump(indirectTbl, landing) :
-          Instruction::makeFork(indirectTbl, landing));
+        *indirectTbl = j > 0 ?
+          Instruction::makeFork(indirectTbl, landing) :
+          Instruction::makeJump(indirectTbl, landing);
         indirectTbl += 2;
-/*
-        *indirectTbl++ = (j + 1 == tbl[i].size() ?
-          Instruction::makeJump(landing) : Instruction::makeFork(landing));
-*/
       }
     }
   }
