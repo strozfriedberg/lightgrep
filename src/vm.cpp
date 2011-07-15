@@ -415,32 +415,35 @@ void Vm::doMatch(const Thread& t) {
     }
   }
 
-  std::vector<Match>& list(Matches[t.Label]);
+  std::vector<Match>& ml(Matches[t.Label]);
   if (blocked) {
     // check whether we replace any already-recorded matches
-    std::vector<Match>::iterator begRemaining = list.begin();
-    for (std::vector<Match>::iterator im(begRemaining); im != list.end(); ++im) {
+    std::vector<Match>::iterator begRemaining = ml.begin();
+    for (std::vector<Match>::iterator im(begRemaining); im != ml.end(); ++im) {
       if (im->End < blockStart) {
         hit.set(im->Start, im->End - im->Start + 1, t.Label);
         CurHitFn->collect(hit);
         ++begRemaining;
       }
+
       if (im->Start <= t.End && t.Start <= im->End) {
-        list.erase(im, list.end());
+        ml.erase(im, ml.end());
         break;
       }
     }
-    if (list.begin() != begRemaining) {
-      list.erase(std::copy(begRemaining, list.end(), list.begin()), list.end());
+
+    if (ml.begin() != begRemaining) {
+      ml.erase(std::copy(begRemaining, ml.end(), ml.begin()), ml.end());
     }
   }
   else {
     if (CurHitFn) {
       // emit all matches which aren't replaced by this one
-      if (list.size() > MaxMatches) {
-        MaxMatches = list.size();
+      if (ml.size() > MaxMatches) {
+        MaxMatches = ml.size();
       }
-      for (std::vector<Match>::iterator im(list.begin()); im != list.end(); ++im) {
+
+      for (std::vector<Match>::iterator im(ml.begin()); im != ml.end(); ++im) {
         if (im->Start > t.End || t.Start > im->End) {
           hit.set(im->Start, im->End - im->Start + 1, t.Label);
           CurHitFn->collect(hit);
@@ -450,10 +453,12 @@ void Vm::doMatch(const Thread& t) {
         }
       }
     }
-    list.clear();
+
+    ml.clear();
   }
+
   // store this match
-  list.push_back(Match(t.Start, t.End));
+  ml.push_back(Match(t.Start, t.End));
 }
 
 void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
