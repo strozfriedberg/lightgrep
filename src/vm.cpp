@@ -399,7 +399,9 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 }
 
 void Vm::doMatch(const Thread& t) {
-  //std::cerr << t << std::endl;
+  #ifdef LBT_TRACE_ENABLED
+  std::cerr << "match: " << t << std::endl;
+  #endif
 
   // check whether any higher-priority threads block us
   bool blocked = false;
