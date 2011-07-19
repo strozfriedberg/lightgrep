@@ -22,7 +22,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
   NFABuilder  nfab;
   nfab.setEncoding(enc);
 
-  for (uint32 i = 0; i < keywords.size(); ++i) {
+  for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
     const std::string& kw(keywords[i]);
     if (!kw.empty()) {
       try {
@@ -48,7 +48,6 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
               fsm = nfab.getFsm();
               nfab.resetFsm();
             }
-            ++keyIdx;
           }
           else {
             std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
