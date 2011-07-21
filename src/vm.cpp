@@ -406,7 +406,7 @@ void Vm::doMatch(const Thread& t) {
   uint64 blockStart = 0;
   SearchHit hit;
   for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
-    if (it->Label == NONE || it->Label == t.Label) {
+    if (it->Label == NOLABEL || it->Label == t.Label) {
       blocked = true;
       blockStart = it->Start;
       break;
