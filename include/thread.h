@@ -15,30 +15,11 @@ struct Thread {
     Start(0),
     End(std::numeric_limits<uint64>::max()) {}
 
-  #ifdef LBT_TRACE_ENABLED
-  Thread(const Instruction* pc, uint32 label,
-         uint64 id, uint64 start, uint64 end):
-    PC(pc),
-    Label(label),
-    Id(id),
-    Start(start),
-    End(end) {}
-  #endif
-
   Thread(const Instruction* pc, uint32 label, uint64 start, uint64 end):
     PC(pc),
     Label(label),
     Start(start),
     End(end) {}
-
-  Thread(const Instruction* pc, const Thread& parent):
-    PC(pc),
-    Label(parent.Label),
-    #ifdef LBT_TRACE_ENABLED
-    Id(parent.Id),
-    #endif
-    Start(parent.Start),
-    End(parent.End) {}
 
   Thread(const Instruction* pc):
     PC(pc),
