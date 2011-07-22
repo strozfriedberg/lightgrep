@@ -146,7 +146,7 @@ uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, co
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
   if (1 == graph.outDegree(v) &&
-      NONE == graph[v]->Label && !graph[v]->IsMatch) {
+      NOLABEL == graph[v]->Label && !graph[v]->IsMatch) {
     return cg->Snippets[graph.outVertex(v, 0)].Start;
   }
   else {
@@ -242,13 +242,16 @@ ProgramPtr createProgram(const Graph& graph) {
       t->toInstruction(curOp);
       curOp += t->numInstructions();
       // std::cerr << "wrote " << i << std::endl;
-      if (cg->Snippets[v].CheckIndex != NONE) {
-        *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
-      }
-      if (t->Label != NONE) {
+
+      if (t->Label != NOLABEL) {
         *curOp++ = Instruction::makeLabel(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
       }
+
+      if (cg->Snippets[v].CheckIndex != NONE) {
+        *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
+      }
+
       if (t->IsMatch) {
         *curOp++ = Instruction::makeMatch();
       }

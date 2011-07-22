@@ -11,6 +11,7 @@
 #include "utility.h"
 
 static const uint32 NONE = std::numeric_limits<uint32>::max();
+static const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 
 struct StateLayoutInfo {
   uint32 Start,
