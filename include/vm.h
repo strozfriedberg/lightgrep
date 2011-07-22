@@ -4,6 +4,8 @@
 #include <set>
 #endif
 
+#include <vector>
+
 #include "sparseset.h"
 
 #include "vm_interface.h"
