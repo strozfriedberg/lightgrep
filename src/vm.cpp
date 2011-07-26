@@ -6,9 +6,6 @@
 #include <iomanip>
 #include <iostream>
 
-static const uint32 NOLABEL = std::numeric_limits<uint32>::max();
-static const uint64 NONE = std::numeric_limits<uint64>::max();
-
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"pc\":" << std::hex << t.PC
       << ", \"Label\":" << std::dec << t.Label
@@ -106,13 +103,13 @@ boost::shared_ptr<VmInterface> VmInterface::create() {
 
 Vm::Vm() :
   #ifdef LBT_TRACE_ENABLED
-  BeginDebug(NONE), EndDebug(NONE), NextId(0),
+  BeginDebug(Thread::NONE), EndDebug(Thread::NONE), NextId(0),
   #endif
   CurHitFn(0) {}
 
 Vm::Vm(ProgramPtr prog):
   #ifdef LBT_TRACE_ENABLED
-  BeginDebug(NONE), EndDebug(NONE), NextId(0),
+  BeginDebug(Thread::NONE), EndDebug(Thread::NONE), NextId(0),
   #endif
   CurHitFn(0)
 {
@@ -297,7 +294,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it(t+1); it != Active.end(); ++it) {
         if (it->Label == t->Label) {
-          it->End = NONE;
+          it->End = Thread::NONE;
           it->PC = &Prog->back(); // DIE. Last instruction is always a halt
         }
       }
@@ -306,7 +303,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       Kill.insert(t->Label);
       return true;
     case HALT_OP:
-//      if (t->End == NONE) {
+//      if (t->End == Thread::NONE) {
         // die, we have no match
         t->PC = 0;
 //      }
@@ -361,9 +358,9 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
 
     for (t = First.begin(); t != First.end(); ++t) {
       #ifdef LBT_TRACE_ENABLED
-      Active.push_back(Thread(t->PC, NOLABEL, NextId++, offset, NONE));
+      Active.push_back(Thread(t->PC, Thread::NOLABEL, NextId++, offset, Thread::NONE));
       #else
-      Active.push_back(Thread(t->PC, NOLABEL, offset, NONE));
+      Active.push_back(Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE));
       #endif
 
       #ifdef LBT_TRACE_ENABLED
@@ -417,7 +414,7 @@ void Vm::doMatch(const Thread& t) {
   uint64 blockStart = 0;
   SearchHit hit;
   for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
-    if (it->Label == NOLABEL || it->Label == t.Label) {
+    if (it->Label == Thread::NOLABEL || it->Label == t.Label) {
       blocked = true;
       blockStart = it->Start;
       break;
@@ -479,7 +476,7 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
 
   if (first[*beg]) {
     for (ThreadList::const_iterator t(First.begin()); t != First.end(); ++t) {
-      Active.push_back(Thread(t->PC, NOLABEL, offset, NONE));
+      Active.push_back(Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE));
     }
 
     for (register const byte* cur = beg; cur < end; ++cur) {
@@ -538,7 +535,7 @@ void Vm::closeOut(HitCallback& hitFn) {
         MaxMatches = Matches[i].size();
       }
       for (std::vector<Match>::const_iterator j(Matches[i].begin()); j != Matches[i].end(); ++j) {
-        if (j->Start != NONE) {
+        if (j->Start != Thread::NONE) {
           hit.Offset = j->Start;
           hit.Length = j->End - j->Start + 1;
           hit.Label  = i;
