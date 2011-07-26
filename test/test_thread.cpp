@@ -11,6 +11,7 @@ SCOPE_TEST(defaultThreadConstructor) {
   SCOPE_ASSERT_EQUAL(std::numeric_limits<uint64>::max(), t.End);
 }
 
+/*
 SCOPE_TEST(threadInit) {
   Thread t;
   Instruction* basePtr = reinterpret_cast<Instruction*>(17);
@@ -21,6 +22,7 @@ SCOPE_TEST(threadInit) {
   SCOPE_ASSERT_EQUAL(startOffset, t.Start);
   SCOPE_ASSERT_EQUAL(std::numeric_limits<uint64>::max(), t.End);
 }
+*/
 
 SCOPE_TEST(threadJump) {
   Thread t;
