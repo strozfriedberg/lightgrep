@@ -15,7 +15,8 @@
 class Vm: public VmInterface {
 public:
 
-  typedef StaticVector<Thread> ThreadList;
+//  typedef StaticVector<Thread> ThreadList;
+  typedef std::vector<Thread> ThreadList;
 
   Vm();
   Vm(ProgramPtr prog);
@@ -35,8 +36,12 @@ public:
   }
   #endif
 
+  bool execute(Thread* t, const byte* cur);
   bool execute(ThreadList::iterator t, const byte* cur);
+
+  bool executeEpsilon(Thread* t, uint64 offset);
   bool executeEpsilon(ThreadList::iterator t, uint64 offset);
+
   void executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn);
   void cleanup();
 
@@ -44,7 +49,10 @@ public:
   const ThreadList& active() const { return Active; }
   const ThreadList& next() const { return Next; }
 
-  Thread& add(const Thread& t) { return (Active.addBack() = t); }
+  Thread& add(const Thread& t) {
+    Active.push_back(t);
+    return Active.back();
+  }
 
   unsigned int numActive() const { return Active.size(); }
   unsigned int numNext() const { return Next.size(); }
@@ -56,7 +64,7 @@ private:
   bool _executeEpsilon(const Instruction* base, ThreadList::iterator t, uint64 offset);
   bool _executeEpSequence(const Instruction* base, ThreadList::iterator t, uint64 offset);
   void _executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, uint64 offset);
-  void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset);
+  void _executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, uint64 offset);
   void _cleanup();
 
   #ifdef LBT_TRACE_ENABLED

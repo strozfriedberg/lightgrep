@@ -21,6 +21,16 @@ struct Thread {
     Start(start),
     End(end) {}
 
+  #ifdef LBT_TRACE_ENABLED
+  Thread(const Instruction* pc, uint32 label,
+         uint64 id, uint64 start, uint64 end):
+    PC(pc),
+    Label(label),
+    Id(id),
+    Start(start),
+    End(end) {}
+  #endif
+
   Thread(const Instruction* pc):
     PC(pc),
     Label(std::numeric_limits<uint32>::max()),
@@ -30,6 +40,7 @@ struct Thread {
     Start(0),
     End(std::numeric_limits<uint64>::max()) {}
 
+/*
   Thread(const Thread& t):
     PC(t.PC),
     Label(t.Label),
@@ -39,6 +50,18 @@ struct Thread {
     Start(t.Start),
     End(t.End) {}
 
+  Thread& operator=(const Thread& t) {
+    PC = t.PC;
+    Label = t.Label;
+    #ifdef LBT_TRACE_ENABLED
+    Id = t.Id;
+    #endif
+    Start = t.Start;
+    End = t.End;
+  }
+*/
+
+/*
   #ifdef LBT_TRACE_ENABLED
   void init(const Instruction* pc, uint32 label,
             uint64 id, uint64 start, uint64 end) {
@@ -61,6 +84,7 @@ struct Thread {
     PC = base;
     Start = start;
   }
+*/
 
   void jump(const Instruction* base, uint32 offset) {
     PC = base;
