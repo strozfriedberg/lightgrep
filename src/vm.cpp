@@ -143,22 +143,21 @@ void Vm::init(ProgramPtr prog) {
 
   CheckStates.resize(numCheckedStates);
 
-  ThreadList zerolist(1, Thread(&(*Prog)[0]));
-  Thread& s0 = zerolist.front();
-  ThreadList::iterator t(zerolist.begin());
+  Active.push_back(Thread(&(*Prog)[0]));
+  ThreadList::iterator t(Active.begin());
 
   #ifdef LBT_TRACE_ENABLED
   open_init_epsilon_json(std::cerr);
-  new_thread_json.insert(s0.Id);
-  pre_run_thread_json(std::cerr, 0, s0, &(*Prog)[0]);
+  new_thread_json.insert(Active.front().Id);
+  pre_run_thread_json(std::cerr, 0, Active.front(), &(*Prog)[0]);
   #endif
 
   if (_executeEpSequence(&(*Prog)[0], t, 0)) {
-    Next.push_back(s0);
+    Next.push_back(*t);
   }
 
   #ifdef LBT_TRACE_ENABLED
-  post_run_thread_json(std::cerr, 0, s0, &(*Prog)[0]);
+  post_run_thread_json(std::cerr, 0, Active.front(), &(*Prog)[0]);
   close_init_epsilon_json(std::cerr);
   #endif
 
@@ -190,8 +189,6 @@ void Vm::reset() {
 }
 
 inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const byte* cur) {
-  std::cerr << *t << std::endl;
-
   register Instruction instr = *t->PC;
   switch (instr.OpCode) {
     case LIT_OP:
@@ -329,7 +326,6 @@ inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, 
   pre_run_thread_json(std::cerr, offset, *t, base);
   #endif
 
-  std::cerr << *t << std::endl;
   _execute(base, t, cur);
 
   #ifdef LBT_TRACE_ENABLED
@@ -368,7 +364,6 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
   // create new threads at this offset
   if (first[*cur]) {
     const size_t oldsize = Active.size();
-    std::cerr << "oldsize == " << oldsize << std::endl;
 
     for (t = First.begin(); t != First.end(); ++t) {
       #ifdef LBT_TRACE_ENABLED
@@ -383,7 +378,6 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
     }
 
     for (t = Active.begin() + oldsize; t != Active.end(); ++t) {
-      std::cerr << *t << std::endl;
       _executeThread(base, t, cur, offset);
     }
   }
@@ -400,8 +394,8 @@ inline void Vm::_cleanup() {
 void Vm::cleanup() { _cleanup(); }
 
 bool Vm::execute(Thread* t, const byte* cur) {
-  ThreadList l(1, *t);
-  return execute(l.begin(), cur);
+  Active.push_back(*t);
+  return execute(Active.end()-1, cur);
 }
 
 bool Vm::execute(ThreadList::iterator t, const byte* cur) {
@@ -409,8 +403,8 @@ bool Vm::execute(ThreadList::iterator t, const byte* cur) {
 }
 
 bool Vm::executeEpsilon(Thread* t, uint64 offset) {
-  ThreadList l(1, *t);
-  return executeEpsilon(l.begin(), offset);
+  Active.push_back(*t);
+  return executeEpsilon(Active.end()-1, offset);
 }
 
 bool Vm::executeEpsilon(ThreadList::iterator t, uint64 offset) {
@@ -424,8 +418,6 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 }
 
 void Vm::doMatch(const Thread& t) {
-  //std::cerr << t << std::endl;
-
   // check whether any higher-priority threads block us
   bool blocked = false;
   uint64 blockStart = 0;
