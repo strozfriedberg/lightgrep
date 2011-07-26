@@ -161,13 +161,7 @@ void Vm::init(ProgramPtr prog) {
   close_init_epsilon_json(std::cerr);
   #endif
 
-  First.reserve(Next.size());
-  std::copy(Next.begin(), Next.end(), First.begin());
-/*
-  for (uint32 i = 0; i < Next.size(); ++i) {
-    First.push_back(Next[i]);
-  }
-*/
+  First.swap(Next);
 
   reset();
 }
@@ -448,6 +442,7 @@ void Vm::doMatch(const Thread& t) {
     }
 
     if (ml.begin() != begRemaining) {
+// FIXME: should we be using a std::back_inserter here?
       ml.erase(std::copy(begRemaining, ml.end(), ml.begin()), ml.end());
     }
   }
