@@ -405,8 +405,8 @@ SCOPE_TEST(generateCheckHalt) {
   // std::cout << prog;
   SCOPE_ASSERT_EQUAL(7u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[1]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[3]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[4], 0), prog[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[6]);
