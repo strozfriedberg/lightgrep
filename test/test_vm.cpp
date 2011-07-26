@@ -213,7 +213,7 @@ SCOPE_TEST(executeMatch) {
   (*p)[0] = Instruction::makeLit('a'); // just to keep Vm::init() from executing the match
   Vm s(p);
 
-  Thread cur(&(*p)[1], 0, 0, std::numeric_limits<uint64>::max());
+  Thread cur(&(*p)[1], 0, 0, Thread::NONE);
   SCOPE_ASSERT(s.executeEpsilon(&cur, 57));
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
@@ -255,14 +255,25 @@ SCOPE_TEST(executeCheckHalt) {
   SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), s.active()[1]); // thread died because the state was set
 }
 
-SCOPE_TEST(executeHalt) {
+SCOPE_TEST(executeHaltNoMatch) {
+  ProgramPtr p(new Program(1, Instruction::makeHalt()));
+  Vm         s(p);
+
+  Thread cur(&(*p)[0], 0, 0, Thread::NONE);
+  SCOPE_ASSERT(!s.executeEpsilon(&cur, 317));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
+  SCOPE_ASSERT_EQUAL(0u, s.numNext());
+  SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, Thread::NONE), s.active().front());
+}
+
+SCOPE_TEST(executeHaltMatch) {
   ProgramPtr p(new Program(1, Instruction::makeHalt()));
   Vm         s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
   SCOPE_ASSERT(!s.executeEpsilon(&cur, 317));
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), s.active().front());
+  SCOPE_ASSERT_EQUAL(cur, s.active().front());
 }
 
 SCOPE_TEST(runFrame) {
@@ -279,14 +290,13 @@ SCOPE_TEST(runFrame) {
   prog[8] = Instruction::makeLit('c');
   prog.First.set('a');
 
-  const uint64 unalloc = std::numeric_limits<uint64>::max();
   byte b = 'a';
   Vm s(p);
   s.executeFrame(&b, 0, cb);
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(2u, s.numNext());
   SCOPE_ASSERT_EQUAL(Thread(&prog[7], 1, 0, 0), s.next()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&prog[8], std::numeric_limits<uint32>::max(), 0, unalloc), s.next()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&prog[8], Thread::NOLABEL, 0, Thread::NONE), s.next()[1]);
 }
 
 SCOPE_TEST(testInit) {
@@ -367,7 +377,7 @@ SCOPE_TEST(newThreadInit) {
   v.executeFrame(&text[2], 15, cb);
   v.cleanup();
   SCOPE_ASSERT_EQUAL(1, v.active().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], std::numeric_limits<uint32>::max(), 15, std::numeric_limits<uint64>::max()), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], Thread::NOLABEL, 15, Thread::NONE), v.active()[0]);
 }
 
 SCOPE_TEST(threeKeywords) {

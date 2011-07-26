@@ -6,14 +6,17 @@
 #include "instructions.h"
 
 struct Thread {
+  static const uint32 NOLABEL;
+  static const uint64 NONE;
+
   Thread():
     PC(0),
-    Label(std::numeric_limits<uint32>::max()),
+    Label(NOLABEL),
     #ifdef LBT_TRACE_ENABLED
     Id(0),
     #endif
     Start(0),
-    End(std::numeric_limits<uint64>::max()) {}
+    End(NONE) {}
 
   Thread(const Instruction* pc, uint32 label, uint64 start, uint64 end):
     PC(pc),
@@ -33,12 +36,12 @@ struct Thread {
 
   Thread(const Instruction* pc):
     PC(pc),
-    Label(std::numeric_limits<uint32>::max()),
+    Label(NOLABEL),
     #ifdef LBT_TRACE_ENABLED
     Id(0),
     #endif
     Start(0),
-    End(std::numeric_limits<uint64>::max()) {}
+    End(NONE) {}
 
 /*
   Thread(const Thread& t):
@@ -130,3 +133,4 @@ struct Thread {
 };
 
 std::ostream& operator<<(std::ostream& out, const Thread& t);
+
