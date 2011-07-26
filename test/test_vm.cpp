@@ -349,35 +349,67 @@ SCOPE_TEST(simpleLitMatch) {
 
 SCOPE_TEST(newThreadInit) {
   ProgramPtr p(new Program);
-  p->push_back(Instruction::makeJumpTableRange('a', 'b')); // 0
-  p->push_back(Instruction::makeRaw32(4));                 // 1
-  p->push_back(Instruction::makeRaw32(8));                 // 2
-  p->push_back(Instruction::makeLit('a'));                 // 3
-  p->push_back(Instruction::makeLabel(1)); // nonzero         4
-  p->push_back(Instruction::makeMatch());                  // 5
-  p->push_back(Instruction::makeHalt());                   // 6
-  p->push_back(Instruction::makeLit('b'));                 // 7
-  p->push_back(Instruction::makeLit('c'));                 // 8
-  p->push_back(Instruction::makeLabel(0));
-  p->push_back(Instruction::makeMatch());
-  p->push_back(Instruction::makeHalt());
+  p->push_back(Instruction::makeJumpTableRange('a', 'b')); //  0
+  p->push_back(Instruction::makeRaw32(4));                 //  1
+  p->push_back(Instruction::makeRaw32(8));                 //  2
+  p->push_back(Instruction::makeLit('a'));                 //  3
+  p->push_back(Instruction::makeLabel(1)); // nonzero          4
+  p->push_back(Instruction::makeMatch());                  //  5
+  p->push_back(Instruction::makeHalt());                   //  6
+  p->push_back(Instruction::makeLit('b'));                 //  7
+  p->push_back(Instruction::makeLit('c'));                 //  8
+  p->push_back(Instruction::makeLabel(0));                 //  9
+  p->push_back(Instruction::makeMatch());                  // 10
+  p->push_back(Instruction::makeHalt());                   // 11
   byte text[] = {'a', 'a', 'b', 'c'};
   MockCallback cb;
   Vm v;
   p->First.set('a');
   p->First.set('b');
   v.init(p);
-  v.executeFrame(&text[0], 13, cb); // should result in hit, empty active
-  v.cleanup();
-  v.executeFrame(&text[1], 14, cb);
-  v.cleanup();
-//  SCOPE_ASSERT(v.active().empty());
-//  SCOPE_ASSERT_EQUAL(1, cb.Hits.size());
-//  SCOPE_ASSERT_EQUAL(SearchHit(13, 1, 1), cb.Hits[0]);
-  v.executeFrame(&text[2], 15, cb);
+
+  v.executeFrame(&text[0], 13, cb);
+  SCOPE_ASSERT_EQUAL(1, v.active().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(1, v.next().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 13, 13), v.next()[0]);
+
   v.cleanup();
   SCOPE_ASSERT_EQUAL(1, v.active().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], Thread::NOLABEL, 15, Thread::NONE), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(0, v.next().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 13, 13), v.active()[0]);
+
+  v.executeFrame(&text[1], 14, cb);
+  SCOPE_ASSERT_EQUAL(2, v.active().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 14, 14), v.active()[1]);
+  SCOPE_ASSERT_EQUAL(2, v.next().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.next()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 14, 14), v.next()[1]);
+
+  v.cleanup();
+  SCOPE_ASSERT_EQUAL(2, v.active().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 14, 14), v.active()[1]);
+  SCOPE_ASSERT_EQUAL(0, v.next().size());
+
+  v.executeFrame(&text[2], 15, cb);
+  SCOPE_ASSERT_EQUAL(3, v.active().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 14, 14), v.active()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], Thread::NOLABEL, 15, Thread::NONE), v.active()[2]);
+  SCOPE_ASSERT_EQUAL(3, v.next().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.next()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 14, 14), v.next()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], Thread::NOLABEL, 15, Thread::NONE), v.next()[2]);
+
+  v.cleanup();
+  SCOPE_ASSERT_EQUAL(3, v.active().size());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 14, 14), v.active()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], Thread::NOLABEL, 15, Thread::NONE), v.active()[2]);
+  SCOPE_ASSERT_EQUAL(0, v.next().size());
 }
 
 SCOPE_TEST(threeKeywords) {

@@ -303,10 +303,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       Kill.insert(t->Label);
       return true;
     case HALT_OP:
-//      if (t->End == Thread::NONE) {
+      if (t->End == Thread::NONE) {
         // die, we have no match
         t->PC = 0;
-//      }
+      }
     default:
       return false;
   }
@@ -413,7 +413,7 @@ void Vm::doMatch(const Thread& t) {
   bool blocked = false;
   uint64 blockStart = 0;
   SearchHit hit;
-  for (ThreadList::iterator it = Next.begin(); it != Next.end(); ++it) {
+  for (ThreadList::const_iterator it = Next.begin(); it != Next.end(); ++it) {
     if (it->Label == Thread::NOLABEL || it->Label == t.Label) {
       blocked = true;
       blockStart = it->Start;
@@ -522,7 +522,15 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
     ++offset;
   }
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
-  return Active.size() > 0; // potential hits, if there's more data
+  
+  for (ThreadList::const_iterator t(Active.begin()); t != Active.end(); ++t) { 
+    if ((*t->PC).OpCode != HALT_OP) {
+      // potential hits, if there's more data
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void Vm::closeOut(HitCallback& hitFn) {
