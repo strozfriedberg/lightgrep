@@ -286,9 +286,15 @@ ProgramPtr createProgram(const Graph& graph) {
       // std::cerr << "wrote " << Instruction::makeHalt() << std::endl;
     }
   }
+
   if (!(Instruction::makeHalt() == ret->back())) {
-    ret->push_back(Instruction::makeHalt()); // last instruction will always be Halt, so Vm can jump there
+    // penultimate instruction will always be Halt, so Vm can jump there
+    ret->push_back(Instruction::makeHalt());
   }
+
+  // last instruction will always be Finish, for handling matches
+  ret->push_back(Instruction::makeFinish());
+
   return ret;
 }
 

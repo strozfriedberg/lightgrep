@@ -66,6 +66,9 @@ std::string Instruction::toString() const {
     case HALT_OP:
       buf << "Halt";
       break;
+    case FINISH_OP:
+      buf << "Finish";
+      break;
     default:
       buf << "* UNRECOGNIZED *";
   };
@@ -175,6 +178,13 @@ Instruction Instruction::makeCheckHalt(uint32 checkIndex) {
 Instruction Instruction::makeHalt() {
   Instruction i;
   i.OpCode = HALT_OP;
+  i.Op.Offset = 0;
+  return i;
+}
+
+Instruction Instruction::makeFinish() {
+  Instruction i;
+  i.OpCode = FINISH_OP;
   i.Op.Offset = 0;
   return i;
 }
