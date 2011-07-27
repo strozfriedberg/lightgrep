@@ -569,7 +569,6 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
   }
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
   
-  can_emit = true;
   bool more = false;
   for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
     switch (t->PC->OpCode) {
