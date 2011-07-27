@@ -135,6 +135,7 @@ void Vm::init(ProgramPtr prog) {
   ++numPatterns;
   ++numCheckedStates;
 
+  MatchEnds.resize(numPatterns);
   Matches.resize(numPatterns);
   Kill.resize(numPatterns);
 
@@ -183,28 +184,32 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
   register Instruction instr = *t->PC;
   switch (instr.OpCode) {
     case LIT_OP:
-      // std::cerr << "Lit " << t->PC->Op.Literal << std::endl;
+      can_emit = false;
       if (*cur == instr.Op.Literal) {
         t->advance(InstructionSize<LIT_OP>::VAL);
         return true;
       }
       break;
     case EITHER_OP:
+      can_emit = false;
       if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
         t->advance(InstructionSize<EITHER_OP>::VAL);
         return true;
       }
       break;
     case RANGE_OP:
+      can_emit = false;
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         t->advance(InstructionSize<RANGE_OP>::VAL);
         return true;
       }
       break;
     case ANY_OP:
+      can_emit = false;
       t->advance(InstructionSize<ANY_OP>::VAL);
       return true;
     case BIT_VECTOR_OP:
+      can_emit = false;
       {
         const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t->PC + 1);
         if ((*setPtr)[*cur]) {
@@ -214,12 +219,14 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
       }
       break;
     case JUMP_TABLE_OP:
+      can_emit = false;
       if (*(uint32*)(t->PC + 1 + *cur) != 0xffffffff) {
         t->jump(base, *reinterpret_cast<const uint32*>(t->PC + 1 + *cur));
         return true;
       }
       break;
     case JUMP_TABLE_RANGE_OP:
+      can_emit = false;
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         const uint32 addr = *reinterpret_cast<const uint32*>(t->PC + 1 + (*cur - instr.Op.Range.First));
         if (addr != 0xffffffff) {
@@ -228,6 +235,9 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
         }
       }
       break;
+
+    case FINISH_OP:
+      return false;
   }
 
   // DIE, penultimate instruction is always a halt.
@@ -241,6 +251,8 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
   switch (instr.OpCode) {
     case FORK_OP:
       {
+        can_emit = false;
+
         Thread f = *t;
         t->advance(InstructionSize<FORK_OP>::VAL);
 
@@ -258,10 +270,14 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         new_thread_json.insert(t->Id = NextId++);
         #endif
       }
+
     case JUMP_OP:
+      can_emit = false;
       t->jump(base, *reinterpret_cast<const uint32*>(t->PC+1));
       return true;
+
     case CHECK_HALT_OP:
+      can_emit = false;
       if (CheckStates.find(instr.Op.Offset)) { // read sync point
         t->PC = 0;
         return false;
@@ -271,8 +287,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
         return true;
       }
+
     case LABEL_OP:
       {
+        can_emit = false;
         std::vector< Match >& lblMatches(Matches[instr.Op.Offset]);
         if (lblMatches.empty() ||
           ((t->Start <= lblMatches.back().Start || lblMatches.back().End < t->Start) &&
@@ -287,7 +305,9 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           return false;
         }
       }
+
     case MATCH_OP:
+      can_emit = false;
       t->End = offset;
       doMatch(*t);
       t->advance(InstructionSize<MATCH_OP>::VAL);
@@ -304,10 +324,20 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       // also kill any thread receiving this label later in the frame
       Kill.insert(t->Label);
       return true;
+
     case HALT_OP:
+      can_emit = false;
       // die, if we have no match; o/w go on to FINISH
       t->PC = t->End == Thread::NONE ? 0 : &Prog->back();
+      return false;
+
     case FINISH_OP:
+      if (can_emit) {
+        finishThread(*t);
+        t->PC = 0;
+      }
+      return false;
+
     default:
       return false;
   }
@@ -347,6 +377,8 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
 }
 
 inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, uint64 offset) {
+  can_emit = true;
+
   // run old threads at this offset
   while (t != Active.end()) {
     _executeThread(base, t, cur, offset);
@@ -409,6 +441,16 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
   _executeFrame(Prog->First, t, &(*Prog)[0], cur, offset);
 }
 
+void Vm::finishThread(const Thread& t) {
+  if (t.Start >= MatchEnds[t.Label]) {
+    SearchHit hit(t.Start, t.End - t.Start + 1, t.Label);
+    if (CurHitFn) {
+      CurHitFn->collect(hit);
+    }
+    MatchEnds[t.Label] = t.End + 1;
+  }
+}
+
 void Vm::doMatch(const Thread& t) {
   // check whether any higher-priority threads block us
   bool blocked = false;
@@ -429,7 +471,7 @@ void Vm::doMatch(const Thread& t) {
     for (std::vector<Match>::iterator im(begRemaining); im != ml.end(); ++im) {
       if (im->End < blockStart) {
         hit.set(im->Start, im->End - im->Start + 1, t.Label);
-        CurHitFn->collect(hit);
+//        CurHitFn->collect(hit);
         ++begRemaining;
       }
 
@@ -454,7 +496,7 @@ void Vm::doMatch(const Thread& t) {
       for (std::vector<Match>::iterator im(ml.begin()); im != ml.end(); ++im) {
         if (im->Start > t.End || t.Start > im->End) {
           hit.set(im->Start, im->End - im->Start + 1, t.Label);
-          CurHitFn->collect(hit);
+//          CurHitFn->collect(hit);
         }
         else {
           break;
@@ -524,14 +566,33 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
   }
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
   
-  for (ThreadList::const_iterator t(Active.begin()); t != Active.end(); ++t) { 
-    if ((*t->PC).OpCode != HALT_OP && (*t->PC).OpCode != FINISH_OP) {
-      // potential hits, if there's more data
-      return true;
+  can_emit = true;
+  bool more = false;
+  for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
+    switch (t->PC->OpCode) {
+      case HALT_OP:
+        // dead, no match
+        break;
+
+      case FINISH_OP:
+        // dead, has match
+        finishThread(*t);
+        break;
+
+      default:
+        // live
+        if (t->End != Thread::NONE) {
+          // has match
+          finishThread(*t);
+        }
+
+        // potential hits, if there's more data
+        more = true;
+        break;
     }
   }
 
-  return false;
+  return more;
 }
 
 void Vm::closeOut(HitCallback& hitFn) {
@@ -548,7 +609,7 @@ void Vm::closeOut(HitCallback& hitFn) {
           hit.Offset = j->Start;
           hit.Length = j->End - j->Start + 1;
           hit.Label  = i;
-          CurHitFn->collect(hit);
+//          CurHitFn->collect(hit);
         }
       }
     }
