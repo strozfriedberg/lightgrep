@@ -230,7 +230,8 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
       break;
   }
 
-  t->PC = &Prog->back();
+  // DIE, penultimate instruction is always a halt.
+  t->PC = &Prog->back() - 1;
   return false;
 }
 
@@ -295,7 +296,8 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       for (ThreadList::iterator it(t+1); it != Active.end(); ++it) {
         if (it->Label == t->Label) {
           it->End = Thread::NONE;
-          it->PC = &Prog->back(); // DIE. Last instruction is always a halt
+          // DIE. Penultimate instruction is always a halt
+          it->PC = &Prog->back() - 1;
         }
       }
 
@@ -303,10 +305,9 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       Kill.insert(t->Label);
       return true;
     case HALT_OP:
-      if (t->End == Thread::NONE) {
-        // die, we have no match
-        t->PC = 0;
-      }
+      // die, if we have no match; o/w go on to FINISH
+      t->PC = t->End == Thread::NONE ? 0 : &Prog->back();
+    case FINISH_OP:
     default:
       return false;
   }
@@ -524,7 +525,7 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
   
   for (ThreadList::const_iterator t(Active.begin()); t != Active.end(); ++t) { 
-    if ((*t->PC).OpCode != HALT_OP) {
+    if ((*t->PC).OpCode != HALT_OP && (*t->PC).OpCode != FINISH_OP) {
       // potential hits, if there's more data
       return true;
     }
