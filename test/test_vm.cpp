@@ -18,7 +18,7 @@ SCOPE_TEST(executeLit) {
   s.reset();
   b = 'c';
   SCOPE_ASSERT(!s.execute(&cur, &b));
-  SCOPE_ASSERT_EQUAL(Thread(&p->back()), s.active().front());
+  SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
 }
 
 SCOPE_TEST(executeEither) {
@@ -32,7 +32,6 @@ SCOPE_TEST(executeEither) {
   SCOPE_ASSERT_EQUAL(&(*p)[1], s.active().front().PC);
 
   s.reset();
-  cur = Thread(&(*p)[0]);
   b = '3';
   SCOPE_ASSERT(s.execute(&cur, &b));
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
@@ -40,12 +39,11 @@ SCOPE_TEST(executeEither) {
   SCOPE_ASSERT_EQUAL(&(*p)[1], s.active().front().PC);
 
   s.reset();
-  cur = Thread(&(*p)[0]);
   b = '4';
   SCOPE_ASSERT(!s.execute(&cur, &b));
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(&p->back()), s.active().front().PC);
+  SCOPE_ASSERT_EQUAL(Thread(&p->back()-1), s.active().front().PC);
 }
 
 SCOPE_TEST(executeRange) {
@@ -66,7 +64,7 @@ SCOPE_TEST(executeRange) {
       SCOPE_ASSERT(!s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(1u, s.numActive());
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
-      SCOPE_ASSERT_EQUAL(Thread(&p->back()), s.active().front().PC);
+      SCOPE_ASSERT_EQUAL(Thread(&p->back()-1), s.active().front().PC);
     }
   }
 }
@@ -123,7 +121,7 @@ SCOPE_TEST(executeJumpTable) {
       SCOPE_ASSERT(!s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(1u, s.numActive());
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
-      SCOPE_ASSERT_EQUAL(Thread(&p.back(), 0, 0, 0), s.active().front());
+      SCOPE_ASSERT_EQUAL(Thread(&p.back()-1, 0, 0, 0), s.active().front());
     }
   }
 }
@@ -157,7 +155,7 @@ SCOPE_TEST(executeJumpTableRange) {
       SCOPE_ASSERT(!s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(1u, s.numActive());
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
-      SCOPE_ASSERT_EQUAL(Thread(&p->back(), 0, 0, 0), s.active().front());
+      SCOPE_ASSERT_EQUAL(Thread(&p->back()-1, 0, 0, 0), s.active().front());
     }
 
     s.reset();
@@ -191,7 +189,7 @@ SCOPE_TEST(executeBitVector) {
       SCOPE_ASSERT(!s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(1u, s.numActive());
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
-      SCOPE_ASSERT_EQUAL(Thread(&p->back(), 0, 0, 0), s.active().front());
+      SCOPE_ASSERT_EQUAL(Thread(&p->back()-1, 0, 0, 0), s.active().front());
     }
 
     s.reset();
@@ -361,6 +359,7 @@ SCOPE_TEST(newThreadInit) {
   p->push_back(Instruction::makeLabel(0));                 //  9
   p->push_back(Instruction::makeMatch());                  // 10
   p->push_back(Instruction::makeHalt());                   // 11
+  p->push_back(Instruction::makeFinish());                 // 12
   byte text[] = {'a', 'a', 'b', 'c'};
   MockCallback cb;
   Vm v;
@@ -370,67 +369,68 @@ SCOPE_TEST(newThreadInit) {
 
   v.executeFrame(&text[0], 13, cb);
   SCOPE_ASSERT_EQUAL(1, v.active().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 13, 13), v.active()[0]);
   SCOPE_ASSERT_EQUAL(1, v.next().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 13, 13), v.next()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 13, 13), v.next()[0]);
 
   v.cleanup();
   SCOPE_ASSERT_EQUAL(1, v.active().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 13, 13), v.active()[0]);
   SCOPE_ASSERT_EQUAL(0, v.next().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 13, 13), v.active()[0]);
 
   v.executeFrame(&text[1], 14, cb);
   SCOPE_ASSERT_EQUAL(2, v.active().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.active()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 14, 14), v.active()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 14, 14), v.active()[1]);
   SCOPE_ASSERT_EQUAL(2, v.next().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.next()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 14, 14), v.next()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 13, 13), v.next()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 14, 14), v.next()[1]);
 
   v.cleanup();
   SCOPE_ASSERT_EQUAL(2, v.active().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.active()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[6], 1, 14, 14), v.active()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 14, 14), v.active()[1]);
   SCOPE_ASSERT_EQUAL(0, v.next().size());
 
   v.executeFrame(&text[2], 15, cb);
   SCOPE_ASSERT_EQUAL(3, v.active().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.active()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 14, 14), v.active()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 14, 14), v.active()[1]);
   SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], Thread::NOLABEL, 15, Thread::NONE), v.active()[2]);
   SCOPE_ASSERT_EQUAL(3, v.next().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.next()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 14, 14), v.next()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 13, 13), v.next()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 14, 14), v.next()[1]);
   SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], Thread::NOLABEL, 15, Thread::NONE), v.next()[2]);
 
   v.cleanup();
   SCOPE_ASSERT_EQUAL(3, v.active().size());
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 13, 13), v.active()[0]);
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[11], 1, 14, 14), v.active()[1]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 13, 13), v.active()[0]);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[12], 1, 14, 14), v.active()[1]);
   SCOPE_ASSERT_EQUAL(Thread(&(*p)[8], Thread::NOLABEL, 15, Thread::NONE), v.active()[2]);
   SCOPE_ASSERT_EQUAL(0, v.next().size());
 }
 
 SCOPE_TEST(threeKeywords) {
-  ProgramPtr p(new Program(18, Instruction::makeRaw32(0))); // (a)|(b)|(bc)
+  ProgramPtr p(new Program(19, Instruction::makeRaw32(0))); // (a)|(b)|(bc)
   Program& prog(*p);
 
-  prog[0]  = Instruction::makeFork(&prog[0], 4);       // 0
-  prog[2]  = Instruction::makeJump(&prog[2], 8);       // 1
-  prog[4]  = Instruction::makeLit('a');      // 2
-  prog[5]  = Instruction::makeLabel(0);      // 3
-  prog[6]  = Instruction::makeMatch();       // 4
-  prog[7]  = Instruction::makeHalt();        // 5
-  prog[8]  = Instruction::makeLit('b');      // 6
-  prog[9]  = Instruction::makeFork(&prog[9], 14);      // 7
-  prog[11] = Instruction::makeLabel(1);      // 8
-  prog[12] = Instruction::makeMatch();       // 9
-  prog[13] = Instruction::makeHalt();        // 10
-  prog[14] = Instruction::makeLit('c');      // 11
-  prog[15] = Instruction::makeLabel(2);      // 12
-  prog[16] = Instruction::makeMatch();       // 13
-  prog[17] = Instruction::makeHalt();        // 14
+  prog[0]  = Instruction::makeFork(&prog[0], 4);
+  prog[2]  = Instruction::makeJump(&prog[2], 8);
+  prog[4]  = Instruction::makeLit('a');
+  prog[5]  = Instruction::makeLabel(0);
+  prog[6]  = Instruction::makeMatch();
+  prog[7]  = Instruction::makeHalt();
+  prog[8]  = Instruction::makeLit('b');
+  prog[9]  = Instruction::makeFork(&prog[9], 14);
+  prog[11] = Instruction::makeLabel(1);
+  prog[12] = Instruction::makeMatch();
+  prog[13] = Instruction::makeHalt();
+  prog[14] = Instruction::makeLit('c');
+  prog[15] = Instruction::makeLabel(2);
+  prog[16] = Instruction::makeMatch();
+  prog[17] = Instruction::makeHalt();
+  prog[18] = Instruction::makeFinish();
 
   byte text[] = {'c', 'a', 'b', 'c'};
   MockCallback cb;
@@ -453,6 +453,7 @@ SCOPE_TEST(stitchedText) {
   p->push_back(Instruction::makeLabel(0));
   p->push_back(Instruction::makeMatch());
   p->push_back(Instruction::makeHalt());
+  p->push_back(Instruction::makeFinish());
   byte text1[] = {'a', 'c', 'a'},
        text2[] = {'b', 'b'};
   MockCallback cb;
