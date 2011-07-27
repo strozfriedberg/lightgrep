@@ -137,7 +137,7 @@ void Vm::init(ProgramPtr prog) {
   ++numPatterns;
   ++numCheckedStates;
 
-  MatchEnds.resize(numPatterns);
+  Matches.resize(numPatterns);
   Kill.resize(numPatterns);
 
   CheckStates.resize(numCheckedStates);
@@ -171,7 +171,7 @@ void Vm::reset() {
   Next.clear();
   CheckStates.clear();
 
-  MatchEnds.assign(MatchEnds.size(), 0);
+  Matches.assign(Matches.size(), Match(0, 0));
 
   CurHitFn = 0;
 
@@ -293,8 +293,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         can_emit = false;
 
         const uint32 label = instr.Op.Offset;
-        if (t->Start >= MatchEnds[label] && !Kill.find(label)) {
-          t->Label = instr.Op.Offset;
+//        if (t->Start > Matches[label].End && !Kill.find(label)) {
+        if ((t->Start <= Matches[label].Start || t->Start >= Matches[label].End)
+             && !Kill.find(label)) {
+          t->Label = label;
           t->advance(InstructionSize<LABEL_OP>::VAL);
           return true;
         }
@@ -439,13 +441,17 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
 }
 
 void Vm::finishThread(const Thread& t) {
-  if (t.Start >= MatchEnds[t.Label]) {
-    SearchHit hit(t.Start, t.End - t.Start + 1, t.Label);
+  Match& m = Matches[t.Label];
+
+  if (m.Start != m.End && (m.Start > t.End || t.Start >= m.End)) {
     if (CurHitFn) {
+      SearchHit hit(m.Start, m.End - m.Start, t.Label);
       CurHitFn->collect(hit);
     }
-    MatchEnds[t.Label] = t.End + 1;
   }
+
+  m.Start = t.Start;
+  m.End = t.End + 1;
 }
 
 void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
@@ -525,6 +531,15 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
         // potential hits, if there's more data
         more = true;
         break;
+    }
+  }
+
+  if (CurHitFn) {
+    for (std::vector<Match>::const_iterator m(Matches.begin()); m != Matches.end(); ++m) {
+      if (m->Start != m->End) {
+        SearchHit hit(m->Start, m->End - m->Start, m - Matches.begin());
+        CurHitFn->collect(hit);
+      }
     }
   }
 

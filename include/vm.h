@@ -94,7 +94,14 @@ private:
              Next;
 
   bool can_emit;
-  std::vector<uint64> MatchEnds;
+
+  struct Match {
+    uint64 Start, End;
+
+    Match(uint64 start = 0, uint64 end = 0): Start(start), End(end) {}
+  };
+
+  std::vector<Match> Matches;
 
   SparseSet  CheckStates,
              Kill;
