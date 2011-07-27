@@ -59,6 +59,7 @@ public:
 
 private:
   void doMatch(const Thread& t);
+  void finishThread(const Thread& t);
 
   bool _execute(const Instruction* base, ThreadList::iterator t, const byte* cur);
   bool _executeEpsilon(const Instruction* base, ThreadList::iterator t, uint64 offset);
@@ -101,6 +102,9 @@ private:
   ThreadList First,
              Active,
              Next;
+
+  bool can_emit;
+  std::vector<uint64> MatchEnds;
 
   SparseSet  CheckStates,
              Kill;
