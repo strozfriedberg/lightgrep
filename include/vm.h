@@ -58,7 +58,6 @@ public:
   unsigned int numNext() const { return Next.size(); }
 
 private:
-  void doMatch(const Thread& t);
   void finishThread(const Thread& t);
 
   bool _execute(const Instruction* base, ThreadList::iterator t, const byte* cur);
@@ -87,15 +86,6 @@ private:
   uint64 NextId;
   #endif
 
-  struct Match {
-    uint64 Start, End;
-
-    Match(uint64 start, uint64 end): Start(start), End(end) {}
-  };
-
-  friend std::ostream& operator<<(std::ostream& out, const Match& m);
-
-  std::vector< std::vector<Match> > Matches;
   uint64 MaxMatches;
 
   ProgramPtr Prog;
