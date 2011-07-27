@@ -170,9 +170,12 @@ void Vm::reset() {
   Next.clear();
   CheckStates.clear();
 
+  MatchEnds.assign(MatchEnds.size(), 0);
+
   for (std::vector< std::vector< Match > >::iterator matchIt = Matches.begin(); matchIt != Matches.end(); ++matchIt) {
     matchIt->clear();
   }
+
   CurHitFn = 0;
 
   #ifdef LBT_TRACE_ENABLED
