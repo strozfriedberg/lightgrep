@@ -17,9 +17,11 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
   return out;
 }
 
+/*
 std::ostream& operator<<(std::ostream& out, const Vm::Match& m) {
   return out << '(' << m.Start << ',' << m.End << ')';
 }
+*/
 
 #ifdef LBT_TRACE_ENABLED
 
@@ -136,7 +138,6 @@ void Vm::init(ProgramPtr prog) {
   ++numCheckedStates;
 
   MatchEnds.resize(numPatterns);
-  Matches.resize(numPatterns);
   Kill.resize(numPatterns);
 
   CheckStates.resize(numCheckedStates);
@@ -171,10 +172,6 @@ void Vm::reset() {
   CheckStates.clear();
 
   MatchEnds.assign(MatchEnds.size(), 0);
-
-  for (std::vector< std::vector< Match > >::iterator matchIt = Matches.begin(); matchIt != Matches.end(); ++matchIt) {
-    matchIt->clear();
-  }
 
   CurHitFn = 0;
 
@@ -294,11 +291,9 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
     case LABEL_OP:
       {
         can_emit = false;
-        std::vector< Match >& lblMatches(Matches[instr.Op.Offset]);
-        if (lblMatches.empty() ||
-          ((t->Start <= lblMatches.back().Start || lblMatches.back().End < t->Start) &&
-          !Kill.find(instr.Op.Offset)))
-    		{
+
+        const uint32 label = instr.Op.Offset;
+        if (t->Start >= MatchEnds[label] && !Kill.find(label)) {
           t->Label = instr.Op.Offset;
           t->advance(InstructionSize<LABEL_OP>::VAL);
           return true;
@@ -312,7 +307,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
     case MATCH_OP:
       can_emit = false;
       t->End = offset;
-      doMatch(*t);
       t->advance(InstructionSize<MATCH_OP>::VAL);
 
       // kill all same-labeled threads after us, due to overlap
@@ -454,66 +448,6 @@ void Vm::finishThread(const Thread& t) {
   }
 }
 
-void Vm::doMatch(const Thread& t) {
-  // check whether any higher-priority threads block us
-  bool blocked = false;
-  uint64 blockStart = 0;
-  SearchHit hit;
-  for (ThreadList::const_iterator it = Next.begin(); it != Next.end(); ++it) {
-    if (it->Label == Thread::NOLABEL || it->Label == t.Label) {
-      blocked = true;
-      blockStart = it->Start;
-      break;
-    }
-  }
-
-  std::vector<Match>& ml(Matches[t.Label]);
-  if (blocked) {
-    // check whether we replace any already-recorded matches
-    std::vector<Match>::iterator begRemaining = ml.begin();
-    for (std::vector<Match>::iterator im(begRemaining); im != ml.end(); ++im) {
-      if (im->End < blockStart) {
-        hit.set(im->Start, im->End - im->Start + 1, t.Label);
-//        CurHitFn->collect(hit);
-        ++begRemaining;
-      }
-
-      if (im->Start <= t.End && t.Start <= im->End) {
-        ml.erase(im, ml.end());
-        break;
-      }
-    }
-
-    if (ml.begin() != begRemaining) {
-// FIXME: should we be using a std::back_inserter here?
-      ml.erase(std::copy(begRemaining, ml.end(), ml.begin()), ml.end());
-    }
-  }
-  else {
-    if (CurHitFn) {
-      // emit all matches which aren't replaced by this one
-      if (ml.size() > MaxMatches) {
-        MaxMatches = ml.size();
-      }
-
-      for (std::vector<Match>::iterator im(ml.begin()); im != ml.end(); ++im) {
-        if (im->Start > t.End || t.Start > im->End) {
-          hit.set(im->Start, im->End - im->Start + 1, t.Label);
-//          CurHitFn->collect(hit);
-        }
-        else {
-          break;
-        }
-      }
-    }
-
-    ml.clear();
-  }
-
-  // store this match
-  ml.push_back(Match(t.Start, t.End));
-}
-
 void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
   CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];
@@ -602,6 +536,7 @@ void Vm::closeOut(HitCallback& hitFn) {
   SearchHit hit;
 
   if (CurHitFn) {
+/*
     for (uint32 i = 0; i < Matches.size(); ++i) {
       if (Matches[i].size() > MaxMatches) {
         MaxMatches = Matches[i].size();
@@ -615,6 +550,7 @@ void Vm::closeOut(HitCallback& hitFn) {
         }
       }
     }
+*/
   }
   // std::cerr << "MaxMatches = " << MaxMatches << std::endl;
 }
