@@ -75,7 +75,7 @@ private:
 
 class CharClassState: public Transition {
 public:
-  CharClassState(ByteSet allowed, const std::string& text): LabelStr(text), Allowed(allowed)  {}
+  CharClassState(ByteSet allowed): Allowed(allowed) {}
   virtual ~CharClassState() {}
 
   virtual const byte* allowed(const byte* beg, const byte*) const { return Allowed[*beg] ? beg+1: beg; }
@@ -90,10 +90,8 @@ public:
   virtual bool toInstruction(Instruction* addr) const;
   virtual std::string label() const;
 
-  std::string LabelStr;
-
 private:
-  CharClassState(const CharClassState& x): Transition(x.Label, x.IsMatch), LabelStr(x.LabelStr), Allowed(x.Allowed) {}
+  CharClassState(const CharClassState& x): Transition(x.Label, x.IsMatch), Allowed(x.Allowed) {}
 
-  ByteSet     Allowed;
+  ByteSet Allowed;
 };

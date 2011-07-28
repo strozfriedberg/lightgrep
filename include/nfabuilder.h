@@ -60,7 +60,7 @@ public:
 
   void reset();
 
-  virtual void callback(const std::string& type, const Node& n);
+  virtual void callback(const Node& n);
 
   void setEncoding(const boost::shared_ptr<Encoding>& e);
   void setCaseSensitive(bool caseSensitive); // defaults to true
@@ -78,7 +78,7 @@ public:
   void repetition_ng(const Node& n);
   void literal(const Node& n);
   void dot(const Node& n);
-  void charClass(const Node& n, const std::string& lbl);
+  void charClass(const Node& n);
 
   void finish(const Node&);
 

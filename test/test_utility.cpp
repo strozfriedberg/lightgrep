@@ -467,7 +467,7 @@ SCOPE_TEST(testBitVectorGeneration) {
   bits.set('4');
   bits.set('8');
   Graph fsm(2);
-  edge(0, 1, fsm, new CharClassState(bits, "0248"));
+  edge(0, 1, fsm, new CharClassState(bits));
   fsm[1]->Label = 0;
   fsm[1]->IsMatch = true;
 
