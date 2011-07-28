@@ -11,7 +11,7 @@ void printHex(std::ostream& out, byte b) {
       << (uint32)b << std::dec;
 }
 
-bool   LitState::toInstruction(Instruction* addr) const {
+bool LitState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeLit(Lit);
   return true;
 }

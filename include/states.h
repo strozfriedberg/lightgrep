@@ -17,7 +17,7 @@ public:
   virtual LitState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 1; };
-  virtual bool   toInstruction(Instruction* addr) const;
+  virtual bool toInstruction(Instruction* addr) const;
   virtual std::string label() const;
 
 private:
@@ -40,7 +40,7 @@ public:
   virtual EitherState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 1; };
-  virtual bool   toInstruction(Instruction* addr) const;
+  virtual bool toInstruction(Instruction* addr) const;
   virtual std::string label() const;
 
 private:
@@ -64,7 +64,7 @@ public:
   virtual RangeState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 1; };
-  virtual bool   toInstruction(Instruction* addr) const;
+  virtual bool toInstruction(Instruction* addr) const;
   virtual std::string label() const;
 
 private:
@@ -87,7 +87,7 @@ public:
   virtual CharClassState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 9; }
-  virtual bool   toInstruction(Instruction* addr) const;
+  virtual bool toInstruction(Instruction* addr) const;
   virtual std::string label() const;
 
   std::string LabelStr;
