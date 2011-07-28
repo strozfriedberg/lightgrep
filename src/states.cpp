@@ -40,7 +40,7 @@ std::string LitState::label() const {
   return buf.str();
 }
 
-bool   EitherState::toInstruction(Instruction* addr) const {
+bool EitherState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeEither(Lit1, Lit2);
   return true;
 }
@@ -67,7 +67,7 @@ std::string EitherState::label() const {
   return buf.str();
 }
 
-bool   RangeState::toInstruction(Instruction* addr) const {
+bool RangeState::toInstruction(Instruction* addr) const {
   *addr = (First == 0 && Last == 255) ? Instruction::makeAny(): Instruction::makeRange(First, Last);
   return true;
 }
@@ -95,7 +95,7 @@ std::string RangeState::label() const {
   return buf.str();
 }
 
-bool   CharClassState::toInstruction(Instruction* addr) const {
+bool CharClassState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeBitVector();
   ByteSet* setPtr = reinterpret_cast<ByteSet*>(addr+1);
   *setPtr = Allowed;
