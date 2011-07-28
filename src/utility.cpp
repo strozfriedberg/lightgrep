@@ -416,10 +416,23 @@ void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
   out << "];\n";
 }
 
+std::string escape(char c, const std::string& text) {
+  // escape a character in the given string
+  std::string repl(text);
+  for (std::string::size_type next = repl.find(c);
+       next != std::string::npos; next = repl.find(c, next)) {
+    repl.insert(next, 1, '\\');
+    next += 2;
+  }
+  return repl;
+}
+
 void writeEdge(std::ostream& out, Graph::vertex v, Graph::vertex u,
                uint32 priority, const Graph& graph) {
+  std::string esclabel = escape('\\', graph[u]->label());
+
   out << "  " << v << " -> " << u << " ["
-      << "label=\"" << graph[u]->label() << "\", "
+      << "label=\"" << esclabel << "\", "
       << "taillabel=\"" << priority << "\"];\n";
 }
 

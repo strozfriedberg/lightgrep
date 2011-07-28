@@ -166,7 +166,7 @@ void NFABuilder::dot(const Node& n) {
   Stack.push(TempFrag);
 }
 
-void NFABuilder::charClass(const Node& n, const std::string& lbl) {
+void NFABuilder::charClass(const Node& n) {
   Graph::vertex v = Fsm->addVertex();
   uint32 num = 0;
   byte first = 0, last = 0;
@@ -184,12 +184,14 @@ void NFABuilder::charClass(const Node& n, const std::string& lbl) {
       num = 0;
     }
   }
+
   if (num == n.Bits.count()) {
     Fsm->setTran(v, new RangeState(first, last));
   }
   else {
-    Fsm->setTran(v, new CharClassState(n.Bits, lbl));
+    Fsm->setTran(v, new CharClassState(n.Bits));
   }
+
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
@@ -475,7 +477,7 @@ void NFABuilder::traverse(const Node* n) {
     traverse(n->Right);
   }
 
-  callback("", *n);
+  callback(*n);
 }
 
 bool NFABuilder::build(const ParseTree& tree) {
@@ -483,7 +485,7 @@ bool NFABuilder::build(const ParseTree& tree) {
   return IsGood;
 }
 
-void NFABuilder::callback(const std::string& type, const Node& n) {
+void NFABuilder::callback(const Node& n) {
 //  std::cerr << n << std::endl;
   switch (n.Type) {
     case Node::REGEXP:
@@ -505,7 +507,7 @@ void NFABuilder::callback(const std::string& type, const Node& n) {
       dot(n);
       break;
     case Node::CHAR_CLASS:
-      charClass(n, type);
+      charClass(n);
       break;
     case Node::LITERAL:
       literal(n);
