@@ -2,13 +2,13 @@
 
 #include "instructions.h"
 
-#include <sstream>
 #include <cctype>
 #include <iomanip>
+#include <sstream>
 
 void printHex(std::ostream& out, byte b) {
-  out << "0x" << std::setfill('0') << std::setw(2) << std::hex
-      << (uint32)b << std::dec;
+  out << "0x" << std::setfill('0') << std::setw(2)
+      << std::hex << std::uppercase << (uint32)b << std::dec;
 }
 
 bool LitState::toInstruction(Instruction* addr) const {
@@ -107,10 +107,19 @@ CharClassState* CharClassState::clone(void* buffer) const {
 }
 
 std::string CharClassState::label() const {
-  // std::stringstream buf;
-  // for (uint32 i = 0; i < 8; ++i) {
-  //   buf << std::hex << std::setfill('0') << std::setw(8) << *((uint32*)(&Allowed)+i);
-  // }
-  // return buf.str();
-  return LabelStr + printLabel(*this);
+  // make the label string
+  std::stringstream ss;
+  for (uint32 i = 0; i < 256; ++i) {
+    if (Allowed.test(i)) {
+      if (std::isgraph(i)) {
+        ss << (char) i;
+      }
+      else {
+        ss << "\\x" << std::hex << std::uppercase <<
+                       std::setfill('0') << std::setw(2) << i;
+      }
+    }
+  }
+
+  return ss.str() + printLabel(*this);
 }
