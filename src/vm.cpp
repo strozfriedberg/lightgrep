@@ -137,10 +137,11 @@ void Vm::init(ProgramPtr prog) {
   ++numPatterns;
   ++numCheckedStates;
 
-  Matches.resize(numPatterns);
-  Kill.resize(numPatterns);
+  MatchEnds.resize(numPatterns);
+//  Kill.resize(numPatterns);
+  Seen.resize(numPatterns);
 
-  CheckStates.resize(numCheckedStates);
+//  CheckStates.resize(numCheckedStates);
 
   Active.push_back(Thread(&(*Prog)[0]));
   ThreadList::iterator t(Active.begin());
@@ -169,9 +170,9 @@ void Vm::reset() {
   MaxMatches = 0;
   Active.clear();
   Next.clear();
-  CheckStates.clear();
+//  CheckStates.clear();
 
-  Matches.assign(Matches.size(), Match(0, 0));
+  MatchEnds.assign(MatchEnds.size(), 0);
 
   CurHitFn = 0;
 
@@ -180,36 +181,40 @@ void Vm::reset() {
   #endif
 }
 
+void Vm::markSeen(uint32 label) {
+  if (label == Thread::NOLABEL) {
+    can_emit = false;
+  }
+  else if (!Seen.find(label)) {
+    Seen.insert(label);
+  }
+}
+
 inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const byte* cur) {
   register Instruction instr = *t->PC;
   switch (instr.OpCode) {
     case LIT_OP:
-      can_emit = false;
       if (*cur == instr.Op.Literal) {
         t->advance(InstructionSize<LIT_OP>::VAL);
         return true;
       }
       break;
     case EITHER_OP:
-      can_emit = false;
       if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
         t->advance(InstructionSize<EITHER_OP>::VAL);
         return true;
       }
       break;
     case RANGE_OP:
-      can_emit = false;
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         t->advance(InstructionSize<RANGE_OP>::VAL);
         return true;
       }
       break;
     case ANY_OP:
-      can_emit = false;
       t->advance(InstructionSize<ANY_OP>::VAL);
       return true;
     case BIT_VECTOR_OP:
-      can_emit = false;
       {
         const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t->PC + 1);
         if ((*setPtr)[*cur]) {
@@ -219,14 +224,12 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
       }
       break;
     case JUMP_TABLE_OP:
-      can_emit = false;
       if (*(uint32*)(t->PC + 1 + *cur) != 0xffffffff) {
         t->jump(base, *reinterpret_cast<const uint32*>(t->PC + 1 + *cur));
         return true;
       }
       break;
     case JUMP_TABLE_RANGE_OP:
-      can_emit = false;
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         const uint32 addr = *reinterpret_cast<const uint32*>(t->PC + 1 + (*cur - instr.Op.Range.First));
         if (addr != 0xffffffff) {
@@ -251,13 +254,14 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
   switch (instr.OpCode) {
     case FORK_OP:
       {
-        can_emit = false;
-
         Thread f = *t;
         t->advance(InstructionSize<FORK_OP>::VAL);
 
         // recurse to keep going in sequence
         if (_executeEpSequence(base, t, offset)) {
+          if (t->PC->OpCode != FINISH_OP) {
+            markSeen(t->Label);
+          }
           Next.push_back(*t);
         }
 
@@ -272,12 +276,11 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       }
 
     case JUMP_OP:
-      can_emit = false;
       t->jump(base, *reinterpret_cast<const uint32*>(t->PC+1));
       return true;
 
     case CHECK_HALT_OP:
-      can_emit = false;
+/*
       if (CheckStates.find(instr.Op.Offset)) { // read sync point
         t->PC = 0;
         return false;
@@ -287,15 +290,16 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
         return true;
       }
+*/
+      t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
+      return true;
 
     case LABEL_OP:
       {
-        can_emit = false;
-
         const uint32 label = instr.Op.Offset;
-//        if (t->Start > Matches[label].End && !Kill.find(label)) {
-        if ((t->Start <= Matches[label].Start || t->Start >= Matches[label].End)
-             && !Kill.find(label)) {
+//std::cerr << *t << " MatchEnds[" << label << "] == " << MatchEnds[label] << std::endl;
+//        if (t->Start >= MatchEnds[label] && !Kill.find(label)) {
+        if (t->Start >= MatchEnds[label]) {
           t->Label = label;
           t->advance(InstructionSize<LABEL_OP>::VAL);
           return true;
@@ -307,10 +311,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       }
 
     case MATCH_OP:
-      can_emit = false;
       t->End = offset;
       t->advance(InstructionSize<MATCH_OP>::VAL);
 
+/*
       // kill all same-labeled threads after us, due to overlap
       for (ThreadList::iterator it(t+1); it != Active.end(); ++it) {
         if (it->Label == t->Label) {
@@ -322,17 +326,34 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 
       // also kill any thread receiving this label later in the frame
       Kill.insert(t->Label);
+*/
       return true;
 
     case HALT_OP:
-      can_emit = false;
-      // die, if we have no match; o/w go on to FINISH
-      t->PC = t->End == Thread::NONE ? 0 : &Prog->back();
+      // die, motherfucker, die
+      t->PC = 0;
       return false;
 
     case FINISH_OP:
-      if (can_emit) {
-        finishThread(*t);
+      if (can_emit && !Seen.find(t->Label)) {
+        if (t->Start >= MatchEnds[t->Label]) {
+          MatchEnds[t->Label] = t->End + 1;
+
+          if (CurHitFn) {
+            SearchHit hit(t->Start, t->End - t->Start + 1, t->Label);
+            CurHitFn->collect(hit);
+          }
+
+          // kill all same-labeled overlapping threads
+          for (ThreadList::iterator it(t+1); it != Active.end() && it->Start <= t->End; ++it) {
+            if (it->Label == t->Label) {
+              it->End = Thread::NONE;
+              // DIE. Penultimate instruction is always a halt
+              it->PC = &Prog->back() - 1;
+            }
+          }
+        }
+
         t->PC = 0;
       }
       return false;
@@ -354,6 +375,10 @@ inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, 
   #endif
 
   if (_executeEpSequence(base, t, offset)) {
+    if (t->PC->OpCode != FINISH_OP) {
+      markSeen(t->Label);
+    }
+
     Next.push_back(*t);
   }
 }
@@ -365,8 +390,18 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
     const uint64 id = t->Id; // t can change on a fork, we want the original
     pre_run_thread_json(std::cerr, offset, *t, base);
     ex = _executeEpsilon(base, t, offset);
+//std::cerr << "\nNext.size() == " << Next.size() << std::endl;
+
+    if (t->Id == id) {
+      post_run_thread_json(std::cerr, offset, *t, base);
+    }
+    else if (!Next.empty() && Next.back().Id == id) {
+      post_run_thread_json(std::cerr, offset, Next.back(), base);
+    }
+/*
     const Thread& x = t->Id == id ? *t : Next.back();
     post_run_thread_json(std::cerr, offset, x, base);
+*/
   } while (ex);
   #else
   while (_executeEpsilon(base, t, offset)) ;
@@ -405,13 +440,14 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
     }
   }
 
-  Kill.clear();
+//  Kill.clear();
+  Seen.clear();
 }
 
 inline void Vm::_cleanup() {
   Active.swap(Next);
   Next.clear();
-  CheckStates.clear();
+//  CheckStates.clear();
 }
 
 void Vm::cleanup() { _cleanup(); }
@@ -440,20 +476,6 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
   _executeFrame(Prog->First, t, &(*Prog)[0], cur, offset);
 }
 
-void Vm::finishThread(const Thread& t) {
-  Match& m = Matches[t.Label];
-
-  if (m.Start != m.End && (m.Start > t.End || t.Start >= m.End)) {
-    if (CurHitFn) {
-      SearchHit hit(m.Start, m.End - m.Start, t.Label);
-      CurHitFn->collect(hit);
-    }
-  }
-
-  m.Start = t.Start;
-  m.End = t.End + 1;
-}
-
 void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
   CurHitFn = &hitFn;
   const Instruction* base = &(*Prog)[0];
@@ -470,7 +492,8 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
         _executeThread(base, t, cur, offset);
       }
 
-      Kill.clear();
+//      Kill.clear();
+      Seen.clear();
 
       _cleanup();
 
@@ -508,64 +531,41 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
     ++offset;
   }
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
-  
-  bool more = false;
+
+  // check for remaining live threads
   for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
-    switch (t->PC->OpCode) {
-      case HALT_OP:
-        // dead, no match
-        break;
-
-      case FINISH_OP:
-        // dead, has match
-        finishThread(*t);
-        break;
-
-      default:
-        // live
-        if (t->End != Thread::NONE) {
-          // has match
-          finishThread(*t);
-        }
-
-        // potential hits, if there's more data
-        more = true;
-        break;
+    const unsigned char op = t->PC->OpCode;
+    if (op == HALT_OP || op == FINISH_OP) {
+      continue;
     }
+
+    // this is a live thread
+    return true;
   }
 
-  if (CurHitFn) {
-    for (std::vector<Match>::const_iterator m(Matches.begin()); m != Matches.end(); ++m) {
-      if (m->Start != m->End) {
-        SearchHit hit(m->Start, m->End - m->Start, m - Matches.begin());
-        CurHitFn->collect(hit);
-      }
-    }
-  }
-
-  return more;
+  return false;
 }
 
 void Vm::closeOut(HitCallback& hitFn) {
   CurHitFn = &hitFn;
+  if (!CurHitFn) {
+    return;
+  }
+
   SearchHit hit;
 
-  if (CurHitFn) {
-/*
-    for (uint32 i = 0; i < Matches.size(); ++i) {
-      if (Matches[i].size() > MaxMatches) {
-        MaxMatches = Matches[i].size();
-      }
-      for (std::vector<Match>::const_iterator j(Matches[i].begin()); j != Matches[i].end(); ++j) {
-        if (j->Start != Thread::NONE) {
-          hit.Offset = j->Start;
-          hit.Length = j->End - j->Start + 1;
-          hit.Label  = i;
-//          CurHitFn->collect(hit);
-        }
+  for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
+//std::cerr << *t << std::endl;
+    if (t->PC->OpCode == FINISH_OP) {
+      // has match
+      if (t->Start >= MatchEnds[t->Label]) {
+        MatchEnds[t->Label] = t->End + 1;
+
+        hit.Offset = t->Start;
+        hit.Length = t->End - t->Start + 1;
+        hit.Label = t->Label;
+        CurHitFn->collect(hit);
       }
     }
-*/
   }
-  // std::cerr << "MaxMatches = " << MaxMatches << std::endl;
 }
