@@ -225,13 +225,14 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
 ProgramPtr createProgram(const Graph& graph) {
   // std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
-  uint32 numVs = graph.numVertices();
+  const uint32 numVs = graph.numVertices();
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
   // std::cerr << "Determined order in first pass" << std::endl;
   ret->NumChecked = cg->NumChecked;
   ret->resize(cg->Guard);
+
   for (Graph::vertex v = 0; v < numVs; ++v) {
     // if (++i % 10000 == 0) {
     //   std::cerr << "have compiled " << i << " states so far" << std::endl;
@@ -254,6 +255,10 @@ ProgramPtr createProgram(const Graph& graph) {
 
       if (t->IsMatch) {
         *curOp++ = Instruction::makeMatch();
+
+        // fork to FINISH_OP
+        *curOp = Instruction::makeFork(curOp, cg->Guard+1);
+        curOp += 2;
       }
     }
 
@@ -287,10 +292,10 @@ ProgramPtr createProgram(const Graph& graph) {
     }
   }
 
-  if (!(Instruction::makeHalt() == ret->back())) {
-    // penultimate instruction will always be Halt, so Vm can jump there
-    ret->push_back(Instruction::makeHalt());
-  }
+//  if (!(Instruction::makeHalt() == ret->back())) {
+  // penultimate instruction will always be Halt, so Vm can jump there
+  ret->push_back(Instruction::makeHalt());
+//  }
 
   // last instruction will always be Finish, for handling matches
   ret->push_back(Instruction::makeFinish());

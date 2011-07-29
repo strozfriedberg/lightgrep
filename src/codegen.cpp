@@ -54,17 +54,21 @@ void CodeGenVisitor::finish_vertex(Graph::vertex v, const Graph& graph) {
          match = 0,
          eval  = (v == 0 ? 0 : graph[v]->numInstructions());
 
+  const uint32 outDegree = graph.outDegree(v);
+
   const Transition* t = graph[v];
   if (t) {
     if (t->Label != NONE) {
       label = 1;
     }
+
     if (t->IsMatch) {
-      match = 1;
+      // 1 for match, 2 more if match is nonterminal for the fork to FINISH
+//      match = 2*(outDegree > 0) + 1;
+      match = 3;
     }
   }
 
-  const uint32 outDegree = graph.outDegree(v);
   uint32 outOps = 0;
 
   if (outDegree == 0) {
