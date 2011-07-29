@@ -30,9 +30,6 @@ def main():
   print '''
 #include <scope/test.h>
 
-#include "nfabuilder.h"
-#include "parsetree.h"
-
 #include "stest.h"
 '''
 
