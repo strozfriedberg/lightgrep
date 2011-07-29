@@ -96,8 +96,6 @@ SCOPE_FIXTURE_CTOR(aOrbPlusShorterSearch2, STest, STest("(a|b)+c")) {
 }
 
 SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest(4, (const char*[]){"a(b|c)a", "ac+", "ab?a", "two"})) {
-  //
-  // writeGraphviz(std::cout, *fixture.Fsm);
   //                               01234567890123
   const byte* text = (const byte*)"aba aa aca two";
   fixture.search(text, text + 14, 0, fixture);
