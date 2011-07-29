@@ -336,21 +336,19 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 
     case FINISH_OP:
       if (can_emit && !Seen.find(t->Label)) {
-        if (t->Start >= MatchEnds[t->Label]) {
-          MatchEnds[t->Label] = t->End + 1;
+        MatchEnds[t->Label] = t->End + 1;
 
-          if (CurHitFn) {
-            SearchHit hit(t->Start, t->End - t->Start + 1, t->Label);
-            CurHitFn->collect(hit);
-          }
+        if (CurHitFn) {
+          SearchHit hit(t->Start, t->End - t->Start + 1, t->Label);
+          CurHitFn->collect(hit);
+        }
 
-          // kill all same-labeled overlapping threads
-          for (ThreadList::iterator it(t+1); it != Active.end() && it->Start <= t->End; ++it) {
-            if (it->Label == t->Label) {
-              it->End = Thread::NONE;
-              // DIE. Penultimate instruction is always a halt
-              it->PC = &Prog->back() - 1;
-            }
+        // kill all same-labeled overlapping threads
+        for (ThreadList::iterator it(t+1); it != Active.end() && it->Start <= t->End; ++it) {
+          if (it->Label == t->Label) {
+            it->End = Thread::NONE;
+            // DIE. Penultimate instruction is always a halt
+            it->PC = &Prog->back() - 1;
           }
         }
 
