@@ -27,8 +27,7 @@ def main():
     raise Exception('too many arguments') 
 
   # print head stuff
-  print '''
-#include <scope/test.h>
+  print '''#include <scope/test.h>
 
 #include "stest.h"
 '''
