@@ -201,7 +201,7 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
 }
 
 std::ostream& printIndex(std::ostream& out, uint32 i) {
-  out << std::setfill('0') << std::setw(7) << i << '\t';
+  out << std::setfill('0') << std::hex << std::setw(8) << i << ' ';
   return out;
 }
 
