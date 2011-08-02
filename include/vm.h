@@ -1,10 +1,8 @@
 #pragma once
 
-#ifdef LBT_TRACE_ENABLED
 #include <set>
-#endif
-
 #include <vector>
+#include <utility>
 
 #include "sparseset.h"
 
@@ -15,7 +13,6 @@
 class Vm: public VmInterface {
 public:
 
-//  typedef StaticVector<Thread> ThreadList;
   typedef std::vector<Thread> ThreadList;
 
   Vm();
@@ -98,10 +95,7 @@ private:
 
   std::vector<uint64> MatchEnds;
 
-/*
-  SparseSet  CheckStates,
-             Kill;
-*/
+  std::set< std::pair<uint32,uint64> > CheckStates;
 
   HitCallback* CurHitFn;
 };
