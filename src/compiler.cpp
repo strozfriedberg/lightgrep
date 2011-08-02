@@ -11,7 +11,12 @@
 static const Graph::vertex NONE = 0xFFFFFFFF;
 static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
-typedef std::vector<Graph::vertex> Branch;
+void resizeBranchVec(std::vector< Compiler::Branch >& vec, uint32 size) {
+  for (std::vector< Compiler::Branch >::iterator it(vec.begin()); it != vec.end(); ++it) {
+    it->clear();
+  }
+  vec.resize(size);
+}
 
 void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   while (!States.empty()) {
@@ -23,14 +28,16 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   const uint32 srcSize = src.numVertices();
   const uint32 dstSize = dst.numVertices();
   Src2Dst.assign(srcSize, NONE);
-  Dst2Src.assign(srcSize + dstSize, std::vector<Graph::vertex>());
+//  Dst2Src.assign(srcSize + dstSize, std::vector<Graph::vertex>());
+  resizeBranchVec(Dst2Src, srcSize + dstSize);
+  resizeBranchVec(BranchMap, srcSize);
+//  BranchMap.assign(srcSize, Branch());
   Visited.assign(srcSize, false);
 
   Graph::vertex srcHead, dstHead, srcTail, dstTail;
   ByteSet srcBits, dstBits;
 
-  std::vector< std::vector<Graph::vertex> > inverse_map(dstSize);
-  std::vector<Branch> branch_map(srcSize);
+  // std::vector<Branch> branch_map(srcSize);
 
   States.push(StatePair(0, 0));
   while (!States.empty()) {
@@ -60,9 +67,12 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       srcBits.reset();
       srcTrans->getBits(srcBits);
 
-      Branch sbranch(branch_map[srcHead]);
-      sbranch.push_back(si);
-      branch_map[srcTail] = sbranch;
+      // Branch sbranch(BranchMap[srcHead]);
+      BranchMap[srcTail] = BranchMap[srcHead];
+      BranchMap[srcTail].push_back(si);
+      Branch sbranch(BranchMap[srcTail]);
+      // sbranch.push_back(si);
+      // BranchMap[srcTail] = sbranch;
 
       #ifdef LBT_TRACE_ENABLED
       std::cerr << "trying to match " << srcTail << " on branch ";
@@ -81,12 +91,12 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       for (di = lb; di < ub; ++di) {
         // get dstTail vertex and its preimages
         dstTail = dst.outVertex(dstHead, di);
-        std::vector<Graph::vertex> preimages(Dst2Src[dstTail]);
+        const Branch& preimages(Dst2Src[dstTail]);
 
         // compare src branch to the branch of each preimage
         std::vector<Graph::vertex>::const_iterator i(preimages.begin());
         for ( ; i != preimages.end(); ++i) {
-          const Branch& dbranch = branch_map[*i];
+          const Branch& dbranch = BranchMap[*i];
           if (std::lexicographical_compare(dbranch.begin(), dbranch.end(),
                                            sbranch.begin(), sbranch.end())) {
             // dst branch < src branch, advance the lower bound
@@ -170,6 +180,8 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       #endif
     }
   }
+  resizeBranchVec(BranchMap, 0);
+//  BranchMap.clear();
 }
 
 void Compiler::labelGuardStates(Graph& g) {
