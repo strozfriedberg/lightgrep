@@ -138,10 +138,7 @@ void Vm::init(ProgramPtr prog) {
   ++numCheckedStates;
 
   MatchEnds.resize(numPatterns);
-//  Kill.resize(numPatterns);
   Seen.resize(numPatterns);
-
-//  CheckStates.resize(numCheckedStates);
 
   Active.push_back(Thread(&(*Prog)[0]));
   ThreadList::iterator t(Active.begin());
@@ -168,9 +165,12 @@ void Vm::init(ProgramPtr prog) {
 
 void Vm::reset() {
   MaxMatches = 0;
+
   Active.clear();
   Next.clear();
-//  CheckStates.clear();
+
+  CheckStates.clear();
+  Seen.clear();
 
   MatchEnds.assign(MatchEnds.size(), 0);
 
@@ -280,25 +280,23 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       return true;
 
     case CHECK_HALT_OP:
-/*
-      if (CheckStates.find(instr.Op.Offset)) { // read sync point
-        t->PC = 0;
-        return false;
+      {
+        std::pair<uint32,uint64> s(instr.Op.Offset, t->Start);
+        if (CheckStates.end() != CheckStates.find(s)) { // read sync point
+
+          t->PC = 0;
+          return false;
+        }
+        else {
+          CheckStates.insert(s); // write sync point
+          t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
+          return true;
+        }
       }
-      else {
-        CheckStates.insert(instr.Op.Offset); // write sync point
-        t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
-        return true;
-      }
-*/
-      t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
-      return true;
 
     case LABEL_OP:
       {
         const uint32 label = instr.Op.Offset;
-//std::cerr << *t << " MatchEnds[" << label << "] == " << MatchEnds[label] << std::endl;
-//        if (t->Start >= MatchEnds[label] && !Kill.find(label)) {
         if (t->Start >= MatchEnds[label]) {
           t->Label = label;
           t->advance(InstructionSize<LABEL_OP>::VAL);
@@ -313,20 +311,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
     case MATCH_OP:
       t->End = offset;
       t->advance(InstructionSize<MATCH_OP>::VAL);
-
-/*
-      // kill all same-labeled threads after us, due to overlap
-      for (ThreadList::iterator it(t+1); it != Active.end(); ++it) {
-        if (it->Label == t->Label) {
-          it->End = Thread::NONE;
-          // DIE. Penultimate instruction is always a halt
-          it->PC = &Prog->back() - 1;
-        }
-      }
-
-      // also kill any thread receiving this label later in the frame
-      Kill.insert(t->Label);
-*/
       return true;
 
     case HALT_OP:
@@ -438,14 +422,14 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
     }
   }
 
-//  Kill.clear();
   Seen.clear();
 }
 
 inline void Vm::_cleanup() {
   Active.swap(Next);
   Next.clear();
-//  CheckStates.clear();
+  Seen.clear();
+  CheckStates.clear();
 }
 
 void Vm::cleanup() { _cleanup(); }
@@ -489,9 +473,6 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
       for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
         _executeThread(base, t, cur, offset);
       }
-
-//      Kill.clear();
-      Seen.clear();
 
       _cleanup();
 
@@ -553,7 +534,6 @@ void Vm::closeOut(HitCallback& hitFn) {
   SearchHit hit;
 
   for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
-//std::cerr << *t << std::endl;
     if (t->PC->OpCode == FINISH_OP) {
       // has match
       if (t->Start >= MatchEnds[t->Label]) {

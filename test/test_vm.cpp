@@ -247,13 +247,10 @@ SCOPE_TEST(executeCheckHalt) {
 //  SCOPE_ASSERT(checkStates[5]);
 //  SCOPE_ASSERT(checkStates[0]); // this bit is reserved specially to see whether we need to clear the set
 
-// FIXME: CheckHalt temporarily is a no-op
-//  SCOPE_ASSERT(!s.executeEpsilon(&cur, 231));
-  SCOPE_ASSERT(s.executeEpsilon(&cur, 231));
+  SCOPE_ASSERT(!s.executeEpsilon(&cur, 231));
   SCOPE_ASSERT_EQUAL(2, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
-//  SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), s.active()[1]); // thread died because the state was set
-  SCOPE_ASSERT_EQUAL(Thread(&(*p)[1], 0, 0, 0), s.active()[1]); // thread died because the state was set
+  SCOPE_ASSERT_EQUAL(Thread(0, 0, 0, 0), s.active()[1]); // thread died because the state was set
 }
 
 SCOPE_TEST(executeHalt) {
