@@ -90,7 +90,7 @@ private:
              Active,
              Next;
 
-  bool can_emit;
+  bool SeenNone;
   SparseSet Seen;
 
   std::vector<uint64> MatchEnds;
