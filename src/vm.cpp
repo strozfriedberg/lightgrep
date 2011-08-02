@@ -183,7 +183,7 @@ void Vm::reset() {
 
 void Vm::markSeen(uint32 label) {
   if (label == Thread::NOLABEL) {
-    can_emit = false;
+    SeenNone = true;
   }
   else if (!Seen.find(label)) {
     Seen.insert(label);
@@ -319,7 +319,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       return false;
 
     case FINISH_OP:
-      if (can_emit && !Seen.find(t->Label)) {
+      if (!SeenNone && !Seen.find(t->Label)) {
         MatchEnds[t->Label] = t->End + 1;
 
         if (CurHitFn) {
@@ -393,7 +393,7 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
 }
 
 inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, uint64 offset) {
-  can_emit = true;
+  SeenNone = false;
 
   // run old threads at this offset
   while (t != Active.end()) {
