@@ -65,7 +65,7 @@ boostDir = 'vendors/boost'
 
 debug = ARGUMENTS.get('debug', 'false')
 if (debug == 'true'):
-  flags = '-g -fstack-protector-all -D LBT_TRACE_ENABLED'
+  flags = '-g -fstack-protector-all'
   ldflags = ''
 elif (debug == 'profile'):
   flags = '-g -pg -O'
