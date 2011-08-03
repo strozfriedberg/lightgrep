@@ -8,6 +8,7 @@
 
 class Compiler {
 public:
+  typedef std::vector<Graph::vertex> Branch;
   typedef std::pair< Graph::vertex, Graph::vertex > StatePair;
 
   void mergeIntoFSM(Graph& dst, const Graph& src);
@@ -18,7 +19,8 @@ public:
   void removeNonMinimalLabels(Graph& g);
 
 private:
-  std::vector< std::vector<Graph::vertex> > Dst2Src;
+  std::vector< Branch > Dst2Src,
+                        BranchMap;
   std::vector<Graph::vertex> Src2Dst;
   std::queue<StatePair> States;
   std::vector<bool> Visited;
