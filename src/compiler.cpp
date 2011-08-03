@@ -179,8 +179,6 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       #endif
     }
   }
-  resizeBranchVec(BranchMap, 0);
-//  BranchMap.clear();
 }
 
 void Compiler::labelGuardStates(Graph& g) {
