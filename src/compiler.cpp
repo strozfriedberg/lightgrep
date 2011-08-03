@@ -67,12 +67,9 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       srcBits.reset();
       srcTrans->getBits(srcBits);
 
-      // Branch sbranch(BranchMap[srcHead]);
       BranchMap[srcTail] = BranchMap[srcHead];
       BranchMap[srcTail].push_back(si);
-      Branch sbranch(BranchMap[srcTail]);
-      // sbranch.push_back(si);
-      // BranchMap[srcTail] = sbranch;
+      const Branch& sbranch(BranchMap[srcTail]);
 
       #ifdef LBT_TRACE_ENABLED
       std::cerr << "trying to match " << srcTail << " on branch ";
