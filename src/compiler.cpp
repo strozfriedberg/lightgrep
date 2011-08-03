@@ -164,6 +164,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
         }
 
         addNewEdge(dstHead, dstTail, dst);
+
         #ifdef LBT_TRACE_ENABLED
         std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
         #endif
@@ -172,6 +173,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       Src2Dst[srcTail] = dstTail;
       Dst2Src[dstTail].push_back(srcTail);
       States.push(StatePair(dstTail, srcTail));
+
       #ifdef LBT_TRACE_ENABLED
       std::cerr << "pushed (" << dstTail << ',' << srcTail << ')' << std::endl;
       #endif
