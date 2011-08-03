@@ -70,7 +70,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       // Branch sbranch(BranchMap[srcHead]);
       BranchMap[srcTail] = BranchMap[srcHead];
       BranchMap[srcTail].push_back(si);
-      Branch sbranch(BranchMap[srcTail]);
+      const Branch& sbranch(BranchMap[srcTail]);
       // sbranch.push_back(si);
       // BranchMap[srcTail] = sbranch;
 
@@ -180,7 +180,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       #endif
     }
   }
-  resizeBranchVec(BranchMap, 0);
+//  resizeBranchVec(BranchMap, 0);
 //  BranchMap.clear();
 }
 
