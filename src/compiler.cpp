@@ -67,12 +67,9 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       srcBits.reset();
       srcTrans->getBits(srcBits);
 
-      // Branch sbranch(BranchMap[srcHead]);
       BranchMap[srcTail] = BranchMap[srcHead];
       BranchMap[srcTail].push_back(si);
       const Branch& sbranch(BranchMap[srcTail]);
-      // sbranch.push_back(si);
-      // BranchMap[srcTail] = sbranch;
 
       #ifdef LBT_TRACE_ENABLED
       std::cerr << "trying to match " << srcTail << " on branch ";
@@ -167,6 +164,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
         }
 
         addNewEdge(dstHead, dstTail, dst);
+
         #ifdef LBT_TRACE_ENABLED
         std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
         #endif
@@ -175,13 +173,12 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       Src2Dst[srcTail] = dstTail;
       Dst2Src[dstTail].push_back(srcTail);
       States.push(StatePair(dstTail, srcTail));
+
       #ifdef LBT_TRACE_ENABLED
       std::cerr << "pushed (" << dstTail << ',' << srcTail << ')' << std::endl;
       #endif
     }
   }
-//  resizeBranchVec(BranchMap, 0);
-//  BranchMap.clear();
 }
 
 void Compiler::labelGuardStates(Graph& g) {

@@ -120,9 +120,6 @@ Vm::Vm(ProgramPtr prog):
 
 void Vm::init(ProgramPtr prog) {
   Prog = prog;
-  // Prog->push_back(Instruction::makeHalt()); // a special halt; killed threads will be set to here
-//  Active.resize(Prog->size());
-//  Next.resize(Prog->size());
   uint32 numPatterns = 0,
          numCheckedStates = 0;
   Program& p(*Prog);
@@ -319,6 +316,15 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       return false;
 
     case FINISH_OP:
+      // kill all same-labeled, same-start threads
+      for (ThreadList::iterator i(t+1); i != Active.end() && i->Start == t->Start; ++i) {
+        if (i->Label == t->Label) {
+          i->End = Thread::NONE;
+          // DIE. Penultimate instruction is always a halt
+          i->PC = &Prog->back() - 1;
+        }
+      }
+
       if (!SeenNone && !Seen.find(t->Label)) {
         MatchEnds[t->Label] = t->End + 1;
 
