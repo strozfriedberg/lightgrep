@@ -349,11 +349,11 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         }
 
         // kill all same-labeled overlapping threads
-        for (ThreadList::iterator it(t+1); it != Active.end() && it->Start <= t->End; ++it) {
-          if (it->Label == t->Label) {
-            it->End = Thread::NONE;
+        for (ThreadList::iterator i(t+1); i != Active.end() && i->Start <= t->End; ++i) {
+          if (i->Label == t->Label) {
+            i->End = Thread::NONE;
             // DIE. Penultimate instruction is always a halt
-            it->PC = &Prog->back() - 1;
+            i->PC = &Prog->back() - 1;
           }
         }
 
