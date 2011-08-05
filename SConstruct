@@ -76,6 +76,9 @@ elif (debug == 'coverage'):
 elif (debug == 'trace'):
   flags = '-O3 -D LBT_TRACE_ENABLED'
   ldflags = ''
+elif (debug == 'hist'):
+  flags = '-O3 -D LBT_HISTOGRAM_ENABLED'
+  ldflags = ''
 else:
   flags = '-O3'
   ldflags = ''
