@@ -86,6 +86,11 @@ private:
   uint64 MaxMatches;
 
   ProgramPtr Prog;
+
+  #ifdef LBT_HISTOGRAM_ENABLED
+  std::vector<uint32> ProgHistogram;
+  #endif
+
   ThreadList First,
              Active,
              Next;

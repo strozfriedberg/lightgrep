@@ -120,9 +120,14 @@ Vm::Vm(ProgramPtr prog):
 
 void Vm::init(ProgramPtr prog) {
   Prog = prog;
+  Program& p(*Prog);
+
+  #ifdef LBT_HISTOGRAM_ENABLED
+  ProgHistogram.resize(p.size());
+  #endif
+
   uint32 numPatterns = 0,
          numCheckedStates = 0;
-  Program& p(*Prog);
   for (uint32 i = 0; i < p.size(); ++i) {
     if (p[i].OpCode == LABEL_OP && numPatterns < p[i].Op.Offset) {
       numPatterns = p[i].Op.Offset;
@@ -189,6 +194,11 @@ void Vm::markSeen(uint32 label) {
 
 inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const byte* cur) {
   register Instruction instr = *t->PC;
+
+  #ifdef LBT_HISTOGRAM_ENABLED
+  ++ProgHistogram[(std::vector<uint32>::size_type) (t->PC - base)];
+  #endif
+
   switch (instr.OpCode) {
     case LIT_OP:
       if (*cur == instr.Op.Literal) {
@@ -248,6 +258,11 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
 // while base is always == &Program[0], we pass it in because it then should get inlined away
 inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t, uint64 offset) {
   register Instruction instr = *t->PC;
+
+  #ifdef LBT_HISTOGRAM_ENABLED
+  ++ProgHistogram[(std::vector<uint32>::size_type) (t->PC - base)];
+  #endif
+
   switch (instr.OpCode) {
     case FORK_OP:
       {
@@ -516,6 +531,13 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
     ++offset;
   }
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
+
+  #ifdef LBT_HISTOGRAM_ENABLED
+  for (std::vector<uint32>::const_iterator i(ProgHistogram.begin()); i != ProgHistogram.end(); ++i) {
+    std::cerr << (i - ProgHistogram.begin()) << ' ' << *i << '\n';
+  }
+  std::cerr << std::endl;
+  #endif
 
   // check for remaining live threads
   for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
