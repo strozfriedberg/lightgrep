@@ -140,7 +140,9 @@ void Vm::init(ProgramPtr prog) {
   ++numCheckedStates;
 
   MatchEnds.resize(numPatterns);
+
   Seen.resize(numPatterns);
+  SeenNone = false;
 
   Active.push_back(Thread(&(*Prog)[0]));
   ThreadList::iterator t(Active.begin());
@@ -172,6 +174,8 @@ void Vm::reset() {
   Next.clear();
 
   CheckStates.clear();
+
+  SeenNone = false;
   Seen.clear();
 
   MatchEnds.assign(MatchEnds.size(), 0);
@@ -414,8 +418,6 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
 }
 
 inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, uint64 offset) {
-  SeenNone = false;
-
   // run old threads at this offset
   while (t != Active.end()) {
     _executeThread(base, t, cur, offset);
@@ -442,15 +444,15 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
       _executeThread(base, t, cur, offset);
     }
   }
-
-  Seen.clear();
 }
 
 inline void Vm::_cleanup() {
   Active.swap(Next);
   Next.clear();
-  Seen.clear();
   CheckStates.clear();
+
+  SeenNone = false;
+  Seen.clear();
 }
 
 void Vm::cleanup() { _cleanup(); }

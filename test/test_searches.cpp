@@ -418,8 +418,8 @@ SCOPE_FIXTURE_CTOR(startsWithTest, STest, STest(3, (const char*[]){"ab..ef", "c[
   const byte* text = (const byte*)"abcdefghijklmnop";
   fixture.startsWith(text, text + 16, 0, fixture);
   SCOPE_ASSERT_EQUAL(2, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 6, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 6, 0), fixture.Hits[1]);
 }
 
 /*
