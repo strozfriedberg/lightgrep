@@ -336,7 +336,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 
     case FINISH_OP:
       // kill all same-labeled, same-start threads
-      for (ThreadList::iterator i(t+1); i != Active.end() && i->Start == t->Start; ++i) {
+      for (ThreadList::iterator i(t+1); i != Active.end() && i->Start <= t->End; ++i) {
         if (i->Label == t->Label) {
           i->End = Thread::NONE;
           // DIE. Penultimate instruction is always a halt
