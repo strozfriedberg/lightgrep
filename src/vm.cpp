@@ -352,15 +352,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           CurHitFn->collect(hit);
         }
 
-        // kill all same-labeled overlapping threads
-        for (ThreadList::iterator i(t+1); i != Active.end() && i->Start <= t->End; ++i) {
-          if (i->Label == t->Label) {
-            i->End = Thread::NONE;
-            // DIE. Penultimate instruction is always a halt
-            i->PC = &Prog->back() - 1;
-          }
-        }
-
         t->PC = 0;
       }
       return false;
@@ -391,6 +382,12 @@ inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, 
 }
 
 inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator t, uint64 offset) {
+
+  // kill threads overlapping an emitted match
+  if (t->Label != Thread::NOLABEL && t->Start < MatchEnds[t->Label]) {
+    return false;
+  }
+
   #ifdef LBT_TRACE_ENABLED
   bool ex;
   do {
