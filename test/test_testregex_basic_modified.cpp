@@ -1138,14 +1138,12 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch159, STest, STest("(.+)")) {
   SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
 }
 
-/*
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch160, STest, STest("([^!.]+).att.com!(.+)")) {
   const byte* text = (const byte*) "gryphon.att.com!eby";
   fixture.search(text, text + 19, 0, fixture);
   SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 19, 0), fixture.Hits[0]);
 }
-*/
 
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch161, STest, STest("([^!]+!)?([^!]+)")) {
   const byte* text = (const byte*) "bas";
