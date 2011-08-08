@@ -3,10 +3,12 @@
 #include "basic.h"
 #include "graph.h"
 
+#include <queue>
 #include <stack>
 
 class Compiler {
 public:
+  typedef std::vector<Graph::vertex> Branch;
   typedef std::pair< Graph::vertex, Graph::vertex > StatePair;
 
   void mergeIntoFSM(Graph& dst, const Graph& src);
@@ -17,7 +19,9 @@ public:
   void removeNonMinimalLabels(Graph& g);
 
 private:
-  std::vector< Graph::vertex > StateMap;
-  std::stack< StatePair, std::vector<StatePair> > States;
-  std::vector< bool > Visited;
+  std::vector< Branch > Dst2Src,
+                        BranchMap;
+  std::vector<Graph::vertex> Src2Dst;
+  std::queue<StatePair> States;
+  std::vector<bool> Visited;
 };

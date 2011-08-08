@@ -2,22 +2,22 @@
 
 #include "instructions.h"
 
-#include <sstream>
 #include <cctype>
 #include <iomanip>
+#include <sstream>
 
 void printHex(std::ostream& out, byte b) {
-  out << "0x" << std::setfill('0') << std::setw(2) << std::hex
-      << (uint32)b << std::dec;
+  out << "0x" << std::setfill('0') << std::setw(2)
+      << std::hex << std::uppercase << (uint32)b << std::dec;
 }
 
-bool   LitState::toInstruction(Instruction* addr) const {
+bool LitState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeLit(Lit);
   return true;
 }
 
 LitState* LitState::clone(void* buffer) const {
-  return buffer == 0 ? new LitState(Lit): new(buffer) LitState(Lit);
+  return buffer == 0 ? new LitState(*this): new(buffer) LitState(*this);
 }
 
 std::string printLabel(const Transition& t) {
@@ -40,13 +40,13 @@ std::string LitState::label() const {
   return buf.str();
 }
 
-bool   EitherState::toInstruction(Instruction* addr) const {
+bool EitherState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeEither(Lit1, Lit2);
   return true;
 }
 
 EitherState* EitherState::clone(void* buffer) const {
-  return buffer == 0 ? new EitherState(Lit1, Lit2): new(buffer) EitherState(Lit1, Lit2);
+  return buffer == 0 ? new EitherState(*this): new(buffer) EitherState(*this);
 }
 
 std::string EitherState::label() const {
@@ -67,13 +67,13 @@ std::string EitherState::label() const {
   return buf.str();
 }
 
-bool   RangeState::toInstruction(Instruction* addr) const {
+bool RangeState::toInstruction(Instruction* addr) const {
   *addr = (First == 0 && Last == 255) ? Instruction::makeAny(): Instruction::makeRange(First, Last);
   return true;
 }
 
 RangeState* RangeState::clone(void* buffer) const {
-  return 0 == buffer ? new RangeState(First, Last): new(buffer) RangeState(First, Last);
+  return 0 == buffer ? new RangeState(*this): new(buffer) RangeState(*this);
 }
 
 std::string RangeState::label() const {
@@ -95,7 +95,7 @@ std::string RangeState::label() const {
   return buf.str();
 }
 
-bool   CharClassState::toInstruction(Instruction* addr) const {
+bool CharClassState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeBitVector();
   ByteSet* setPtr = reinterpret_cast<ByteSet*>(addr+1);
   *setPtr = Allowed;
@@ -103,14 +103,23 @@ bool   CharClassState::toInstruction(Instruction* addr) const {
 }
 
 CharClassState* CharClassState::clone(void* buffer) const {
-  return 0 == buffer ? new CharClassState(Allowed, Label): new(buffer) CharClassState(Allowed, Label);
+  return 0 == buffer ? new CharClassState(*this): new(buffer) CharClassState(*this);
 }
 
 std::string CharClassState::label() const {
-  // std::stringstream buf;
-  // for (uint32 i = 0; i < 8; ++i) {
-  //   buf << std::hex << std::setfill('0') << std::setw(8) << *((uint32*)(&Allowed)+i);
-  // }
-  // return buf.str();
-  return Label + printLabel(*this);
+  // make the label string
+  std::stringstream ss;
+  for (uint32 i = 0; i < 256; ++i) {
+    if (Allowed.test(i)) {
+      if (std::isgraph(i)) {
+        ss << (char) i;
+      }
+      else {
+        ss << "\\x" << std::hex << std::uppercase <<
+                       std::setfill('0') << std::setw(2) << i;
+      }
+    }
+  }
+
+  return ss.str() + printLabel(*this);
 }

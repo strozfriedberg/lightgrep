@@ -17,6 +17,10 @@ struct STest: public HitCallback {
     init(kws);
   }
 
+  STest(const std::vector<std::string>& keys) {
+    init(keys);
+  }
+
   STest(uint32 num, const char** keys) {
     std::vector<std::string> kws(num);
     for (unsigned int i = 0; i < num; ++i) {

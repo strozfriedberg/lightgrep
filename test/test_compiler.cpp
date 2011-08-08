@@ -6,10 +6,50 @@
 
 #include "test_helper.h"
 
+ByteSet getBits(Transition& t) {
+  ByteSet b;
+  t.getBits(b);
+  return b;
+}
+
+SCOPE_TEST(testMerge_aaOrab_toEmpty) {
+  Compiler comp;
+  Graph dst(1), src(5);
+
+  // aa|ab
+  edge(0, 1, src, new LitState('a'));
+  boost::shared_ptr<LitState> a(new LitState('a'));
+  edge(1, 2, src, a);
+  edge(0, 3, src, new LitState('a'));
+  boost::shared_ptr<LitState> b(new LitState('b'));
+  edge(3, 4, src, b);
+
+  comp.mergeIntoFSM(dst, src);
+
+  SCOPE_ASSERT_EQUAL(4u, dst.numVertices());
+
+  SCOPE_ASSERT_EQUAL(0u, dst.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, dst.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, dst.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, dst.inDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, dst.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, dst.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(3u, dst.outVertex(1, 1));
+
+  SCOPE_ASSERT_EQUAL(1u, dst.inDegree(2));
+  SCOPE_ASSERT_EQUAL(0u, dst.outDegree(2));
+
+  SCOPE_ASSERT_EQUAL(1u, dst.inDegree(3));
+  SCOPE_ASSERT_EQUAL(0u, dst.outDegree(3));
+
+  SCOPE_ASSERT_EQUAL(getBits(*a), getBits(*dst[2]));
+  SCOPE_ASSERT_EQUAL(getBits(*b), getBits(*dst[3]));
+}
+
 SCOPE_TEST(testMerge) {
   Compiler comp;
-  Graph fsm,
-             key(5);
+  Graph fsm, key(5);
 
   // a(b|c)d+
   edge(0, 1, key, new LitState('a'));
@@ -27,15 +67,68 @@ SCOPE_TEST(testMerge) {
   edge(2, 3, fsm, new LitState('e', 0));
   edge(1, 4, fsm, new LitState('z'));
   edge(4, 5, fsm, new LitState('y', 1));
+
   comp.mergeIntoFSM(fsm, key);
 
-  SCOPE_ASSERT_EQUAL(8u, fsm.numVertices());
+  const uint32 NOLABEL = std::numeric_limits<uint32>::max();
+
+  SCOPE_ASSERT_EQUAL(9u, fsm.numVertices());
+
+  SCOPE_ASSERT(!fsm[0]);
+  SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
-  SCOPE_ASSERT_EQUAL(3u, fsm.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[1]->Label);
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, fsm.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(4u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(4u, fsm.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(6u, fsm.outVertex(1, 2));
+  SCOPE_ASSERT_EQUAL(7u, fsm.outVertex(1, 3));
+
+  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[2]->Label);
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(3u, fsm.outVertex(2, 0));
+
+  SCOPE_ASSERT_EQUAL(0u, fsm[3]->Label);
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(3));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inVertex(3, 0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
+
+  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[4]->Label);
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(4));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(4, 0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(4));
+  SCOPE_ASSERT_EQUAL(5u, fsm.outVertex(4, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, fsm[5]->Label);
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(5));
+  SCOPE_ASSERT_EQUAL(4u, fsm.inVertex(5, 0));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(5));
+
+  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[6]->Label);
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(6));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(6, 0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(6));
+  SCOPE_ASSERT_EQUAL(8u, fsm.outVertex(6, 0));
+
+  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[7]->Label);
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(7));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(7, 0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(7));
-  SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(7));
+  SCOPE_ASSERT_EQUAL(8u, fsm.outVertex(7, 0));
+
+  SCOPE_ASSERT_EQUAL(2u, fsm[8]->Label);
+  SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(8));
+  SCOPE_ASSERT_EQUAL(6u, fsm.inVertex(8, 0));
+  SCOPE_ASSERT_EQUAL(7u, fsm.inVertex(8, 1));
+  SCOPE_ASSERT_EQUAL(8u, fsm.inVertex(8, 2));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(8));
+  SCOPE_ASSERT_EQUAL(8u, fsm.outVertex(8, 0));
 }
 
 SCOPE_TEST(testMergeLabelsSimple) {

@@ -60,7 +60,7 @@ public:
 
   void reset();
 
-  virtual void callback(const std::string& type, const Node& n);
+  virtual void callback(const Node& n);
 
   void setEncoding(const boost::shared_ptr<Encoding>& e);
   void setCaseSensitive(bool caseSensitive); // defaults to true
@@ -78,7 +78,7 @@ public:
   void repetition_ng(const Node& n);
   void literal(const Node& n);
   void dot(const Node& n);
-  void charClass(const Node& n, const std::string& lbl);
+  void charClass(const Node& n);
 
   void finish(const Node&);
 
@@ -92,13 +92,13 @@ public:
   bool build(const ParseTree& tree);
 
 private:
-  void setLiteralTransition(TransitionPtr& state, byte val);
+  void setLiteralTransition(Graph& g, const Graph::vertex& v, byte val);
 
   void patch_mid(OutListT& src, const InListT& dst, uint32 dstskip);
   void patch_pre(OutListT& src, const InListT& dst);
   void patch_post(OutListT& src, const InListT& dst);
 
-  void traverse(const Node* root);
+  void traverse(const Node* n);
 
   bool IsGood, CaseSensitive;
   uint32 CurLabel;
@@ -106,6 +106,8 @@ private:
   boost::shared_ptr<Encoding> Enc;
   GraphPtr Fsm;
   std::stack<Fragment> Stack;
+  std::stack<const Node*, std::vector<const Node*> > ChildStack, ParentStack;
+
   boost::scoped_array<byte> TempBuf;
   std::vector<TransitionPtr> LitFlyweights;
 

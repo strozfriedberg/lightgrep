@@ -128,14 +128,14 @@ SCOPE_TEST(hasZeroLengthMatch_aSOrbS_Test) {
 SCOPE_TEST(spliceOutParentLeftTest) {
   ParseTree tree;
   tree.init(4);
-  
+
   Node *l = tree.add(Node(Node::LITERAL, 'l'));
   Node *r = tree.add(Node(Node::LITERAL, 'r'));
   Node *con = tree.add(Node(Node::CONCATENATION, l, r));
   tree.Root = tree.add(Node(Node::REGEXP, con));
 
   splice_out_parent(tree.Root, con, l);
- 
+
   SCOPE_ASSERT_EQUAL(l, tree.Root->Left);
   SCOPE_ASSERT_EQUAL((Node*) 0, tree.Root->Right);
 }
@@ -143,14 +143,14 @@ SCOPE_TEST(spliceOutParentLeftTest) {
 SCOPE_TEST(spliceOutParentRightTest) {
   ParseTree tree;
   tree.init(4);
-  
+
   Node *l = tree.add(Node(Node::LITERAL, 'l'));
   Node *r = tree.add(Node(Node::LITERAL, 'r'));
   Node *con = tree.add(Node(Node::CONCATENATION, l, r));
   tree.Root = tree.add(Node(Node::REGEXP, con));
 
   splice_out_parent(tree.Root, con, r);
- 
+
   SCOPE_ASSERT_EQUAL(r, tree.Root->Left);
   SCOPE_ASSERT_EQUAL((Node*) 0, tree.Root->Right);
 }

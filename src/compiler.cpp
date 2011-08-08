@@ -1,7 +1,9 @@
 #include "compiler.h"
 #include "utility.h"
 
+#include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <set>
 #include <stack>
 #include <vector>
@@ -9,75 +11,172 @@
 static const Graph::vertex NONE = 0xFFFFFFFF;
 static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
-void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
-  ByteSet srcBits,
-          dstBits;
+void resizeBranchVec(std::vector< Compiler::Branch >& vec, uint32 size) {
+  for (std::vector< Compiler::Branch >::iterator it(vec.begin()); it != vec.end(); ++it) {
+    it->clear();
+  }
+  vec.resize(size);
+}
 
+void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   while (!States.empty()) {
     States.pop();
   }
 
-  uint32 numVs = src.numVertices();
-  StateMap.assign(numVs, NONE);
-  Visited.assign(numVs, false);
+  const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 
-  Graph::vertex dstHead, srcHead, dstTarget, srcTarget = 0xFFFFFFFF;
+  const uint32 srcSize = src.numVertices();
+  const uint32 dstSize = dst.numVertices();
+  Src2Dst.assign(srcSize, NONE);
+//  Dst2Src.assign(srcSize + dstSize, std::vector<Graph::vertex>());
+  resizeBranchVec(Dst2Src, srcSize + dstSize);
+  resizeBranchVec(BranchMap, srcSize);
+//  BranchMap.assign(srcSize, Branch());
+  Visited.assign(srcSize, false);
+
+  Graph::vertex srcHead, dstHead, srcTail, dstTail;
+  ByteSet srcBits, dstBits;
+
+  // std::vector<Branch> branch_map(srcSize);
 
   States.push(StatePair(0, 0));
   while (!States.empty()) {
-    dstHead = States.top().first;
-    srcHead = States.top().second;
+    dstHead = States.front().first;
+    srcHead = States.front().second;
     States.pop();
 
-    if (!Visited[dstHead]) {
-      // std::cerr << "on state pair " << dstHead << ", " << srcHead << std::endl;
-      Visited[dstHead] = true;
+    #ifdef LBT_TRACE_ENABLED
+    std::cerr << "popped (" << dstHead << ',' << srcHead << ')' << std::endl;
+    #endif
 
-      for (uint32 i = 0; i < src.outDegree(dstHead); ++i) {
-        dstTarget = src.outVertex(dstHead, i);
+    // skip if we've seen this source vertex already
+    if (Visited[srcHead]) {
+      #ifdef LBT_TRACE_ENABLED
+      std::cerr << "already seen " << srcHead << ", skipping" << std::endl;
+      #endif
+      continue;
+    }
 
-        if (StateMap[dstTarget] == NONE) {
-          TransitionPtr srcTran = src[dstTarget];
-          srcBits.reset();
-          srcTran->getBits(srcBits);
-          // std::cerr << "  dstTarget = " << dstTarget << " with transition " << tran->label() << std::endl;
+    Visited[srcHead] = true;
 
-          bool found = false;
+    // for each successor of the source vertex
+    for (uint32 si = 0, di = 0; si < src.outDegree(srcHead); ++si) {
+      srcTail = src.outVertex(srcHead, si);
+      Transition* srcTrans(src[srcTail]);
 
-          for (uint32 j = 0; j < dst.outDegree(srcHead); ++j) {
-            srcTarget = dst.outVertex(srcHead, j);
-            TransitionPtr dstTran = dst[srcTarget];
-            dstBits.reset();
-            dstTran->getBits(dstBits);
-            // std::cerr << "    looking at merge state " << srcTarget << " with transition " << dstTran->label() << std::endl;
-            if (dstBits == srcBits &&
-                dstTran->Label == srcTran->Label &&
-                1 == dst.inDegree(srcTarget) &&
-                2 > src.inDegree(dstHead) &&
-                2 > src.inDegree(dstTarget)) {
-              // std::cerr << "    found equivalent state " << srcTarget << std::endl;
-              found = true;
-              break;
-            }
+      srcBits.reset();
+      srcTrans->getBits(srcBits);
+
+      BranchMap[srcTail] = BranchMap[srcHead];
+      BranchMap[srcTail].push_back(si);
+      const Branch& sbranch(BranchMap[srcTail]);
+
+      #ifdef LBT_TRACE_ENABLED
+      std::cerr << "trying to match " << srcTail << " on branch ";
+      std::copy(sbranch.begin(), sbranch.end(),
+                std::ostream_iterator<Graph::vertex>(std::cerr, "."));
+      std::cerr << std::endl;
+      #endif
+
+      // try to match it with a successor of the destination vertex,
+      // preserving the relative order of the source vertex's successors
+
+      // find dstTail range to which we could map srcTail, by branch order
+      uint32 lb = 0;
+      uint32 ub = dst.outDegree(dstHead);
+
+      for (di = lb; di < ub; ++di) {
+        // get dstTail vertex and its preimages
+        dstTail = dst.outVertex(dstHead, di);
+        const Branch& preimages(Dst2Src[dstTail]);
+
+        // compare src branch to the branch of each preimage
+        std::vector<Graph::vertex>::const_iterator i(preimages.begin());
+        for ( ; i != preimages.end(); ++i) {
+          const Branch& dbranch = BranchMap[*i];
+          if (std::lexicographical_compare(dbranch.begin(), dbranch.end(),
+                                           sbranch.begin(), sbranch.end())) {
+            // dst branch < src branch, advance the lower bound
+            lb = di;
           }
-
-          if (!found) {
-            // The destination NFA and the srcHead NFA have diverged.
-            // Copy the tail node from the srcHead to the destination
-            srcTarget = dst.addVertex();
-            // std::cerr << "  creating new state " << srcTarget << std::endl;
-            dst[srcTarget] = srcTran;
+          else {
+            // src branch >= dst branch, set upper bound and stop
+            ub = di;
+            break;
           }
-          StateMap[dstTarget] = srcTarget;
         }
-        else {
-          srcTarget = StateMap[dstTarget];
-        }
-        // std::cerr << "  srcTarget = " << srcTarget << std::endl;
-
-        addNewEdge(srcHead, srcTarget, dst);
-        States.push(StatePair(dstTarget, srcTarget));
       }
+
+      bool found = false;
+
+      for (di = lb; di < ub; ++di) {
+        dstTail = dst.outVertex(dstHead, di);
+        Transition* dstTrans(dst[dstTail]);
+
+        dstBits.reset();
+        dstTrans->getBits(dstBits);
+
+        // Explanation of the condition:
+        //
+        // Vertices match if:
+        //
+        // 1) they have the same incoming edge
+        // 2) they have the same label (i.e., they are match states for
+        //    the same pattern, or are not match states)
+        // 3) if they are match states, then they have no successors
+        // 4) the destination has only one incoming edge
+        // 5) the source has only one incoming edge
+        // 6) if the destination has been matched with a source, then that
+        //    source has only one incoming edge
+        // 7) the source has only one incoming edge
+
+        if (dstBits == srcBits &&
+            dstTrans->Label == srcTrans->Label &&
+            (dstTrans->Label == NOLABEL ||
+              (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))) &&
+            1 == dst.inDegree(dstTail) &&
+            (Dst2Src[dstTail].empty() ||
+              1 == src.inDegree(Dst2Src[dstTail].front())) &&
+            1 == src.inDegree(srcTail)) {
+          found = true;
+
+          #ifdef LBT_TRACE_ENABLED
+          std::cerr << "matched " << srcTail << " with " << dstTail << std::endl;
+          #endif
+          break;
+        }
+      }
+
+      if (!found) {
+        // match not found
+        dstTail = Src2Dst[srcTail];
+
+        if (dstTail == NONE) {
+          // add a new vertex to the destination if the image of the source
+          // tail vertex cannot be matched
+          dstTail = dst.addVertex();
+          dst.setTran(dstTail, srcTrans->clone());
+
+          #ifdef LBT_TRACE_ENABLED
+          std::cerr << "added new vertex " << dstTail << " for "
+                                           << srcTail << std::endl;
+          #endif
+        }
+
+        addNewEdge(dstHead, dstTail, dst);
+
+        #ifdef LBT_TRACE_ENABLED
+        std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
+        #endif
+      }
+
+      Src2Dst[srcTail] = dstTail;
+      Dst2Src[dstTail].push_back(srcTail);
+      States.push(StatePair(dstTail, srcTail));
+
+      #ifdef LBT_TRACE_ENABLED
+      std::cerr << "pushed (" << dstTail << ',' << srcTail << ')' << std::endl;
+      #endif
     }
   }
 }

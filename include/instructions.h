@@ -17,6 +17,7 @@ enum OpCodes {
   LABEL_OP,
   MATCH_OP,
   HALT_OP,
+  FINISH_OP,
   ILLEGAL
 };
 
@@ -80,6 +81,7 @@ struct Instruction {
   static Instruction makeFork(Instruction* ptr, uint32 offset);
   static Instruction makeCheckHalt(uint32 checkIndex);
   static Instruction makeHalt();
+  static Instruction makeFinish();
   static Instruction makeRaw32(uint32 val);
   static Instruction makeRaw24(uint32 val);
 };

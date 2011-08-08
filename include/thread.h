@@ -6,14 +6,23 @@
 #include "instructions.h"
 
 struct Thread {
+  static const uint32 NOLABEL;
+  static const uint64 NONE;
+
   Thread():
     PC(0),
-    Label(std::numeric_limits<uint32>::max()),
+    Label(NOLABEL),
     #ifdef LBT_TRACE_ENABLED
     Id(0),
     #endif
     Start(0),
-    End(std::numeric_limits<uint64>::max()) {}
+    End(NONE) {}
+
+  Thread(const Instruction* pc, uint32 label, uint64 start, uint64 end):
+    PC(pc),
+    Label(label),
+    Start(start),
+    End(end) {}
 
   #ifdef LBT_TRACE_ENABLED
   Thread(const Instruction* pc, uint32 label,
@@ -25,30 +34,16 @@ struct Thread {
     End(end) {}
   #endif
 
-  Thread(const Instruction* pc, uint32 label, uint64 start, uint64 end):
-    PC(pc),
-    Label(label),
-    Start(start),
-    End(end) {}
-
-  Thread(const Instruction* pc, const Thread& parent):
-    PC(pc),
-    Label(parent.Label),
-    #ifdef LBT_TRACE_ENABLED
-    Id(parent.Id),
-    #endif
-    Start(parent.Start),
-    End(parent.End) {}
-
   Thread(const Instruction* pc):
     PC(pc),
-    Label(std::numeric_limits<uint32>::max()),
+    Label(NOLABEL),
     #ifdef LBT_TRACE_ENABLED
     Id(0),
     #endif
     Start(0),
-    End(std::numeric_limits<uint64>::max()) {}
+    End(NONE) {}
 
+/*
   Thread(const Thread& t):
     PC(t.PC),
     Label(t.Label),
@@ -58,6 +53,18 @@ struct Thread {
     Start(t.Start),
     End(t.End) {}
 
+  Thread& operator=(const Thread& t) {
+    PC = t.PC;
+    Label = t.Label;
+    #ifdef LBT_TRACE_ENABLED
+    Id = t.Id;
+    #endif
+    Start = t.Start;
+    End = t.End;
+  }
+*/
+
+/*
   #ifdef LBT_TRACE_ENABLED
   void init(const Instruction* pc, uint32 label,
             uint64 id, uint64 start, uint64 end) {
@@ -80,6 +87,7 @@ struct Thread {
     PC = base;
     Start = start;
   }
+*/
 
   void jump(const Instruction* base, uint32 offset) {
     PC = base;
@@ -125,3 +133,4 @@ struct Thread {
 };
 
 std::ostream& operator<<(std::ostream& out, const Thread& t);
+
