@@ -175,6 +175,10 @@ charclass:
 character:
   CHAR
 | DIGIT
+| ']'
+  {
+    $$ = ']';
+  }
 | ','
   {
     $$ = ',';
