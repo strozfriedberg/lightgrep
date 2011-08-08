@@ -253,7 +253,6 @@ namespace {
       case '+':
       case '*':
       case '.':
-      case '#':
       case '[':
       case ']':
       case '^':
@@ -296,7 +295,6 @@ namespace {
           case '+':
           case '*':
           case '.':
-          case '#':
           case '[':
           case ']':
           case '^':
