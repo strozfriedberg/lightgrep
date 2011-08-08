@@ -256,9 +256,15 @@ ProgramPtr createProgram(const Graph& graph) {
       if (t->IsMatch) {
         *curOp++ = Instruction::makeMatch();
 
-        // fork to FINISH_OP
-        *curOp = Instruction::makeFork(curOp, cg->Guard+1);
-        curOp += 2;
+        if (graph.outDegree(v)) {
+          // nonterminal match, fork to FINISH_OP
+          *curOp = Instruction::makeFork(curOp, cg->Guard+1);
+          curOp += 2;
+        }
+        else {
+          // terminal match, FINISH_OP is next
+          *curOp++ = Instruction::makeFinish();
+        }
       }
     }
 
@@ -285,10 +291,6 @@ ProgramPtr createProgram(const Graph& graph) {
         *curOp = Instruction::makeJump(curOp, cg->Snippets[curTarget].Start);
         curOp += 2;
       }
-    }
-    else {
-      *curOp++ = Instruction::makeHalt();
-      // std::cerr << "wrote " << Instruction::makeHalt() << std::endl;
     }
   }
 
