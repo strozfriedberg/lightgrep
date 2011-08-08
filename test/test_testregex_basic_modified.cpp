@@ -334,14 +334,18 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch45, STest, STest("[[:upper:]]+"))
   SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[0]);
 }
+*/
 
+/*
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch46, STest, STest("[[-]]")) {
   const byte* text = (const byte*) "[[-]]";
   fixture.search(text, text + 5, 0, fixture);
   SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 2, 0), fixture.Hits[0]);
 }
+*/
 
+/*
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch47, STest, STest("[[.NIL.]]")) {
   const byte* text = (const byte*) "NULL";
   fixture.search(text, text + 4, 0, fixture);
@@ -625,6 +629,7 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch87, STest, STest("a[b-]")) {
   SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
 }
+*/
 
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch88, STest, STest("a]")) {
   const byte* text = (const byte*) "a]";
@@ -639,7 +644,6 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch89, STest, STest("a[]]b")) {
   SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
 }
-*/
 
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch90, STest, STest("a[^bc]d")) {
   const byte* text = (const byte*) "aed";
@@ -655,14 +659,12 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch91, STest, STest("a[^-b]c")) {
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
 }
 
-/*
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch92, STest, STest("a[^]b]c")) {
   const byte* text = (const byte*) "adc";
   fixture.search(text, text + 3, 0, fixture);
   SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
 }
-*/
 
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch93, STest, STest("ab|cd")) {
   const byte* text = (const byte*) "abc";
