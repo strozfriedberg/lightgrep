@@ -6,8 +6,6 @@ class Instruction;
 
 class Transition {
 public:
-  Transition(): IsMatch(false), Label(0xffffffff) {}
-  Transition(uint32 lbl): IsMatch(false), Label(lbl) {}
   virtual ~Transition() {}
 
   virtual const byte* allowed(const byte* beg, const byte* end) const = 0;
@@ -20,4 +18,13 @@ public:
 
   bool   IsMatch;
   uint32 Label;
+
+protected:
+  Transition(): IsMatch(false), Label(0xffffffff) {}
+  Transition(uint32 lbl): IsMatch(false), Label(lbl) {}
+  Transition(uint32 lbl, bool isMatch): IsMatch(isMatch), Label(lbl) {}
+
+private:
+  Transition(const Transition&) {}
+  Transition& operator=(const Transition&) {return *this;}
 };

@@ -20,7 +20,10 @@ public:
   }
 
   bool operator<(const SearchHit& x) const {
-    return Offset < x.Offset || (Offset == x.Offset && Length < x.Length);
+    return Offset < x.Offset ||
+            (Offset == x.Offset &&
+              (Length < x.Length ||
+                (Length == x.Length && Label < x.Label)));
   }
 };
 
@@ -32,5 +35,6 @@ OutStream& operator<<(OutStream& out, const SearchHit& hit) {
 
 class HitCallback {
 public:
+  virtual ~HitCallback() {}
   virtual void collect(const SearchHit& hit) = 0;
 };

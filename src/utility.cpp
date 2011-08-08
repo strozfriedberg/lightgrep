@@ -22,7 +22,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
   NFABuilder  nfab;
   nfab.setEncoding(enc);
 
-  for (uint32 i = 0; i < keywords.size(); ++i) {
+  for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
     const std::string& kw(keywords[i]);
     if (!kw.empty()) {
       try {
@@ -30,7 +30,6 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
         nfab.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
 
         if (parse(kw, litMode, tree)) {
-
           bool rewritten = false;
           if (kw.find('?',1) != std::string::npos) {
             rewritten |= reduce_trailing_nongreedy_then_empty(tree.Root);
@@ -49,7 +48,6 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
               fsm = nfab.getFsm();
               nfab.resetFsm();
             }
-            ++keyIdx;
           }
           else {
             std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
@@ -92,30 +90,51 @@ GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool 
   // std::cerr << "createGraph" << std::endl;
   GraphPtr ret(new Graph(1, totalCharacters(keywords)));
   uint32 keyIdx = 0;
+
   if (enc & CP_ASCII) {
-    addKeys(keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, litMode, ret, keyIdx);
+    addKeys(
+      keywords, boost::shared_ptr<Encoding>(new Ascii),
+      caseSensitive, litMode, ret, keyIdx
+    );
   }
+
   if (enc & CP_UCS16) {
-    addKeys(keywords, boost::shared_ptr<Encoding>(new UCS16), caseSensitive, litMode, ret, keyIdx);
+    addKeys(
+      keywords, boost::shared_ptr<Encoding>(new UCS16),
+      caseSensitive, litMode, ret, keyIdx
+    );
   }
+
   return ret;
 }
 
 GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode) {
   GraphPtr ret(new Graph(1, totalCharacters(keyInfo.Keywords)));
   uint32 keyIdx = 0;
+
   if (enc & CP_ASCII) {
     keyInfo.Encodings.push_back("ASCII");
-    uint32 encIdx = keyInfo.Encodings.size() - 1;
-    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new Ascii), caseSensitive, litMode, ret, keyIdx);
+    const uint32 encIdx = keyInfo.Encodings.size() - 1;
+
+    addKeys(
+      keyInfo.Keywords, boost::shared_ptr<Encoding>(new Ascii),
+      caseSensitive, litMode, ret, keyIdx
+    );
+
     for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
       keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
     }
   }
+
   if (enc & CP_UCS16) {
     keyInfo.Encodings.push_back("UCS-16");
-    uint32 encIdx = keyInfo.Encodings.size() - 1;
-    addKeys(keyInfo.Keywords, boost::shared_ptr<Encoding>(new UCS16), caseSensitive, litMode, ret, keyIdx);
+    const uint32 encIdx = keyInfo.Encodings.size() - 1;
+
+    addKeys(
+      keyInfo.Keywords, boost::shared_ptr<Encoding>(new UCS16),
+      caseSensitive, litMode, ret, keyIdx
+    );
+
     for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
       keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
     }
@@ -127,7 +146,7 @@ uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, co
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
   if (1 == graph.outDegree(v) &&
-      NONE == graph[v]->Label && !graph[v]->IsMatch) {
+      NOLABEL == graph[v]->Label && !graph[v]->IsMatch) {
     return cg->Snippets[graph.outVertex(v, 0)].Start;
   }
   else {
@@ -178,17 +197,16 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
     else {
       const uint32 addr = startIndex + (indirectTbl - start);
       *cur++ = *reinterpret_cast<const Instruction*>(&addr);
-      for (uint32 j = 0; j < tbl[i].size(); ++j) {
-        uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
 
-        *indirectTbl = (j + 1 == tbl[i].size() ?
-          Instruction::makeJump(indirectTbl, landing) :
-          Instruction::makeFork(indirectTbl, landing));
+      // write the indirect table in reverse edge order because
+      // parent threads have priority over forked children
+      for (int32 j = tbl[i].size() - 1; j >= 0; --j) {
+        const uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
+
+        *indirectTbl = j > 0 ?
+          Instruction::makeFork(indirectTbl, landing) :
+          Instruction::makeJump(indirectTbl, landing);
         indirectTbl += 2;
-/*
-        *indirectTbl++ = (j + 1 == tbl[i].size() ?
-          Instruction::makeJump(landing) : Instruction::makeFork(landing));
-*/
       }
     }
   }
@@ -207,32 +225,46 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
 ProgramPtr createProgram(const Graph& graph) {
   // std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
-  uint32 numVs = graph.numVertices();
+  const uint32 numVs = graph.numVertices();
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
   // std::cerr << "Determined order in first pass" << std::endl;
   ret->NumChecked = cg->NumChecked;
   ret->resize(cg->Guard);
+
   for (Graph::vertex v = 0; v < numVs; ++v) {
     // if (++i % 10000 == 0) {
     //   std::cerr << "have compiled " << i << " states so far" << std::endl;
     // }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
-    TransitionPtr t(graph[v]);
+    Transition* t(graph[v]);
     if (t) {
       t->toInstruction(curOp);
       curOp += t->numInstructions();
       // std::cerr << "wrote " << i << std::endl;
-      if (cg->Snippets[v].CheckIndex != NONE) {
-        *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
-      }
-      if (t->Label != NONE) {
+
+      if (t->Label != NOLABEL) {
         *curOp++ = Instruction::makeLabel(t->Label); // also problematic
         // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
       }
+
+      if (cg->Snippets[v].CheckIndex != NONE) {
+        *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
+      }
+
       if (t->IsMatch) {
         *curOp++ = Instruction::makeMatch();
+
+        if (graph.outDegree(v)) {
+          // nonterminal match, fork to FINISH_OP
+          *curOp = Instruction::makeFork(curOp, cg->Guard+1);
+          curOp += 2;
+        }
+        else {
+          // terminal match, FINISH_OP is next
+          *curOp++ = Instruction::makeFinish();
+        }
       }
     }
 
@@ -260,14 +292,16 @@ ProgramPtr createProgram(const Graph& graph) {
         curOp += 2;
       }
     }
-    else {
-      *curOp++ = Instruction::makeHalt();
-      // std::cerr << "wrote " << Instruction::makeHalt() << std::endl;
-    }
   }
-  if (!(Instruction::makeHalt() == ret->back())) {
-    ret->push_back(Instruction::makeHalt()); // last instruction will always be Halt, so Vm can jump there
-  }
+
+//  if (!(Instruction::makeHalt() == ret->back())) {
+  // penultimate instruction will always be Halt, so Vm can jump there
+  ret->push_back(Instruction::makeHalt());
+//  }
+
+  // last instruction will always be Finish, for handling matches
+  ret->push_back(Instruction::makeFinish());
+
   return ret;
 }
 
@@ -389,10 +423,23 @@ void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
   out << "];\n";
 }
 
+std::string escape(char c, const std::string& text) {
+  // escape a character in the given string
+  std::string repl(text);
+  for (std::string::size_type next = repl.find(c);
+       next != std::string::npos; next = repl.find(c, next)) {
+    repl.insert(next, 1, '\\');
+    next += 2;
+  }
+  return repl;
+}
+
 void writeEdge(std::ostream& out, Graph::vertex v, Graph::vertex u,
                uint32 priority, const Graph& graph) {
+  std::string esclabel = escape('\\', graph[u]->label());
+
   out << "  " << v << " -> " << u << " ["
-      << "label=\"" << graph[u]->label() << "\", "
+      << "label=\"" << esclabel << "\", "
       << "taillabel=\"" << priority << "\"];\n";
 }
 

@@ -608,32 +608,6 @@ SCOPE_TEST(parseDot) {
   SCOPE_ASSERT_EQUAL(256u, set.count());
 }
 
-SCOPE_TEST(parsePound) {
-  NFABuilder nfab;
-  ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("#", false, tree));
-  SCOPE_ASSERT(nfab.build(tree));
-
-  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
-  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
-  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 1);
-  for (uint32 i = '0'; i <= '9'; ++i) {
-    skip[i] = 0;
-  }
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
-  ByteSet set;
-  set.reset();
-  fsm[1]->getBits(set);
-  SCOPE_ASSERT_EQUAL(10u, set.count());
-  for (byte b = '0'; b <= '9'; ++b) {
-    SCOPE_ASSERT(set[b]);
-  }
-}
-
 SCOPE_TEST(parseHexCode) {
   NFABuilder nfab;
   ParseTree tree;
@@ -744,37 +718,39 @@ SCOPE_TEST(parseSimpleCharClass) {
   expected.set('b');
   fsm[1]->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
+  SCOPE_ASSERT_EQUAL("ABab/0", fsm[1]->label());
 }
 
-SCOPE_TEST(parseNegatedClass) {
+SCOPE_TEST(parseUnprintableCharClass) {
   NFABuilder nfab;
   ParseTree tree;
   Graph& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("[^#]", false, tree));
+  SCOPE_ASSERT(parse("[A\\xFF\\x00]", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
+  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
+  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
+  std::vector<uint32> skip(256, 1);
+  skip['A'] = 0;
+  skip[0x00] = 0;
+  skip[0xFF] = 0;
+  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
   ByteSet expected,
           actual;
   expected.reset();
   actual.reset();
-  expected.set('0');
-  expected.set('1');
-  expected.set('2');
-  expected.set('3');
-  expected.set('4');
-  expected.set('5');
-  expected.set('6');
-  expected.set('7');
-  expected.set('8');
-  expected.set('9');
-  expected = ~expected;
+  expected.set('A');
+  expected.set(0x00);
+  expected.set(0xFF);
   fsm[1]->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
+  SCOPE_ASSERT_EQUAL("\\x00A\\xFF/0", fsm[1]->label());
 }
+
+
 
 SCOPE_TEST(parseNegatedRanges) {
   NFABuilder nfab;
@@ -839,22 +815,22 @@ SCOPE_TEST(parseRepeatedSkippables) {
   // we'll simulate a?b*
   NFABuilder nfab;
   SCOPE_ASSERT_EQUAL(1, nfab.stack().size());
-  nfab.callback("", Node(Node::LITERAL, 0, 0, 'a'));
+  nfab.callback(Node(Node::LITERAL, 0, 0, 'a'));
   SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
-  nfab.callback("", Node(Node::REPETITION, 0, 0, 1));
+  nfab.callback(Node(Node::REPETITION, 0, 0, 1));
   SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(1, nfab.stack().top().Skippable);
-  nfab.callback("", Node(Node::LITERAL, 0, 0, 'b'));
+  nfab.callback(Node(Node::LITERAL, 0, 0, 'b'));
   SCOPE_ASSERT_EQUAL(3, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
-  nfab.callback("", Node(Node::REPETITION, 0, 0, UNBOUNDED));
+  nfab.callback(Node(Node::REPETITION, 0, 0, UNBOUNDED));
   SCOPE_ASSERT_EQUAL(3, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(1, nfab.stack().top().Skippable);
-  nfab.callback("", Node(Node::CONCATENATION, 0, 0, 0));
+  nfab.callback(Node(Node::CONCATENATION, 0, 0, 0));
   SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(2, nfab.stack().top().Skippable);
-  nfab.callback("", Node(Node::CONCATENATION, 0, 0, 0));
+  nfab.callback(Node(Node::CONCATENATION, 0, 0, 0));
   SCOPE_ASSERT_EQUAL(1, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
 }
