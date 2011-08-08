@@ -272,7 +272,7 @@ namespace {
 
   int yylex(void) {
     if (Text < TextEnd) {
-      unsigned int c = *Text++;
+      const unsigned int c = *Text++;
       if (LiteralMode) {
         yylval.c = c;
         return CHAR;
