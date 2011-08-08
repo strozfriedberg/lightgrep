@@ -63,19 +63,15 @@ void CodeGenVisitor::finish_vertex(Graph::vertex v, const Graph& graph) {
     }
 
     if (t->IsMatch) {
-      // 1 for match, 2 more if match is nonterminal for the fork to FINISH
-//      match = 2*(outDegree > 0) + 1;
-      match = 3;
+      // 1 for match, 1 for finish; or 1 for match, 2 for jump if
+      // match is nonterminal
+      match = 2 + (outDegree > 0);
     }
   }
 
   uint32 outOps = 0;
 
-  if (outDegree == 0) {
-    // std::cerr << "no out edges, so a halt" << std::endl;
-    outOps = 1; // HALT instruction
-  }
-  else {
+  if (outDegree) {
     outOps = calcJumpTableSize(v, graph, outDegree);
 
     if (outDegree < 4 || outOps == 0) {
