@@ -65,7 +65,7 @@ boostDir = 'vendors/boost'
 
 debug = ARGUMENTS.get('debug', 'false')
 if (debug == 'true'):
-  flags = '-g -fstack-protector-all -D LBT_TRACE_ENABLED'
+  flags = '-g -fstack-protector-all'
   ldflags = ''
 elif (debug == 'profile'):
   flags = '-g -pg -O'
@@ -75,6 +75,9 @@ elif (debug == 'coverage'):
   ldflags = '--coverage'
 elif (debug == 'trace'):
   flags = '-O3 -D LBT_TRACE_ENABLED'
+  ldflags = ''
+elif (debug == 'hist'):
+  flags = '-O3 -D LBT_HISTOGRAM_ENABLED'
   ldflags = ''
 else:
   flags = '-O3'

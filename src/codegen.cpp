@@ -54,24 +54,24 @@ void CodeGenVisitor::finish_vertex(Graph::vertex v, const Graph& graph) {
          match = 0,
          eval  = (v == 0 ? 0 : graph[v]->numInstructions());
 
-  TransitionPtr t = graph[v];
+  const uint32 outDegree = graph.outDegree(v);
+
+  const Transition* t = graph[v];
   if (t) {
     if (t->Label != NONE) {
       label = 1;
     }
+
     if (t->IsMatch) {
-      match = 1;
+      // 1 for match, 1 for finish; or 1 for match, 2 for jump if
+      // match is nonterminal
+      match = 2 + (outDegree > 0);
     }
   }
 
-  const uint32 outDegree = graph.outDegree(v);
   uint32 outOps = 0;
 
-  if (outDegree == 0) {
-    // std::cerr << "no out edges, so a halt" << std::endl;
-    outOps = 1; // HALT instruction
-  }
-  else {
+  if (outDegree) {
     outOps = calcJumpTableSize(v, graph, outDegree);
 
     if (outDegree < 4 || outOps == 0) {

@@ -3,13 +3,15 @@ CXX=g++
 CPPFLAGS=-c -O3 -W -Wall -pedantic
 LDFLAGS=-lstdc++ -lpcre
 
-all: debruijn forms inst shitgrep 
+all: debruijn forms inst randpat shitgrep 
 
 debruijn: debruijn.o
 
 forms: forms.o
 
 inst: inst.o
+
+randpat: randpat.o unparser.o node.o
 
 shitgrep: shitgrep.o
 
