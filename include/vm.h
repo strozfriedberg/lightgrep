@@ -1,8 +1,8 @@
 #pragma once
 
-#ifdef LBT_TRACE_ENABLED
 #include <set>
-#endif
+#include <vector>
+#include <utility>
 
 #include "sparseset.h"
 
@@ -13,7 +13,7 @@
 class Vm: public VmInterface {
 public:
 
-  typedef StaticVector<Thread> ThreadList;
+  typedef std::vector<Thread> ThreadList;
 
   Vm();
   Vm(ProgramPtr prog);
@@ -33,8 +33,12 @@ public:
   }
   #endif
 
+  bool execute(Thread* t, const byte* cur);
   bool execute(ThreadList::iterator t, const byte* cur);
+
+  bool executeEpsilon(Thread* t, uint64 offset);
   bool executeEpsilon(ThreadList::iterator t, uint64 offset);
+
   void executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn);
   void cleanup();
 
@@ -42,19 +46,22 @@ public:
   const ThreadList& active() const { return Active; }
   const ThreadList& next() const { return Next; }
 
-  Thread& add(const Thread& t) { return (Active.addBack() = t); }
+  Thread& add(const Thread& t) {
+    Active.push_back(t);
+    return Active.back();
+  }
 
   unsigned int numActive() const { return Active.size(); }
   unsigned int numNext() const { return Next.size(); }
 
 private:
-  void doMatch(const Thread& t);
+  void markSeen(uint32 label);
 
   bool _execute(const Instruction* base, ThreadList::iterator t, const byte* cur);
   bool _executeEpsilon(const Instruction* base, ThreadList::iterator t, uint64 offset);
   bool _executeEpSequence(const Instruction* base, ThreadList::iterator t, uint64 offset);
   void _executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, uint64 offset);
-  void _executeFrame(const ByteSet& first, ThreadList::iterator& threadIt, const Instruction* base, const byte* cur, uint64 offset);
+  void _executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, uint64 offset);
   void _cleanup();
 
   #ifdef LBT_TRACE_ENABLED
@@ -76,24 +83,24 @@ private:
   uint64 NextId;
   #endif
 
-  struct Match {
-    uint64 Start, End;
-
-    Match(uint64 start, uint64 end): Start(start), End(end) {}
-  };
-
-  friend std::ostream& operator<<(std::ostream& out, const Match& m);
-
-  std::vector< std::vector<Match> > Matches;
   uint64 MaxMatches;
 
   ProgramPtr Prog;
+
+  #ifdef LBT_HISTOGRAM_ENABLED
+  std::vector<uint32> ProgHistogram;
+  #endif
+
   ThreadList First,
              Active,
              Next;
 
-  SparseSet  CheckStates,
-             Kill;
+  bool SeenNone;
+  SparseSet Seen;
+
+  std::vector<uint64> MatchEnds;
+
+  std::set< std::pair<uint32,uint64> > CheckStates;
 
   HitCallback* CurHitFn;
 };

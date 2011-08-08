@@ -66,6 +66,9 @@ std::string Instruction::toString() const {
     case HALT_OP:
       buf << "Halt";
       break;
+    case FINISH_OP:
+      buf << "Finish";
+      break;
     default:
       buf << "* UNRECOGNIZED *";
   };
@@ -179,6 +182,13 @@ Instruction Instruction::makeHalt() {
   return i;
 }
 
+Instruction Instruction::makeFinish() {
+  Instruction i;
+  i.OpCode = FINISH_OP;
+  i.Op.Offset = 0;
+  return i;
+}
+
 Instruction Instruction::makeRaw32(uint32 val) {
   Instruction i;
   *reinterpret_cast<uint32*>(&i) = val;
@@ -191,7 +201,7 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
 }
 
 std::ostream& printIndex(std::ostream& out, uint32 i) {
-  out << std::setfill('0') << std::setw(7) << i << '\t';
+  out << std::setfill('0') << std::hex << std::setw(8) << i << ' ';
   return out;
 }
 

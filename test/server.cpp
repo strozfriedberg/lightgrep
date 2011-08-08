@@ -158,7 +158,7 @@ public:
       File.reset();
     }
   }
-  
+
   static CleanupRegistry& get() {
     static CleanupRegistry reg;
     return reg;
