@@ -335,7 +335,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       return false;
 
     case FINISH_OP:
-      // kill all same-labeled, same-start threads
+      // kill all same-labeled, overlapping threads
       for (ThreadList::iterator i(t+1); i != Active.end() && i->Start <= t->End; ++i) {
         if (i->Label == t->Label) {
           i->End = Thread::NONE;
