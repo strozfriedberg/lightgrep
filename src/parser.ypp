@@ -14,7 +14,7 @@ namespace {
 
   bool LiteralMode;
 
-  Node* add(const char* type, const Node& n) {
+  Node* add(const char*, const Node& n) {
     return Tree->add(n);
   }
 }
