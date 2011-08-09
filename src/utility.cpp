@@ -245,8 +245,7 @@ ProgramPtr createProgram(const Graph& graph) {
       // std::cerr << "wrote " << i << std::endl;
 
       if (t->Label != NOLABEL) {
-        *curOp++ = Instruction::makeLabel(t->Label); // also problematic
-        // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
+        *curOp++ = Instruction::makeLabel(t->Label);
       }
 
       if (cg->Snippets[v].CheckIndex != NONE) {
