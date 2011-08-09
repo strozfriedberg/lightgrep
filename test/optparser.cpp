@@ -58,6 +58,7 @@ void parse_opts(int argc, char** argv,
     ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
     ("block-size", po::value< unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ("with-filename,H", "Puts the path of the file into the search output")
+    ("server-log", po::value< std::string >(&opts.ServerLog), "Server output to file")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value< uint64 >(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")

@@ -15,7 +15,8 @@ public:
               Input,
               Output,
               Encoding,
-              Pattern;
+              Pattern,
+              ServerLog;
 
   unsigned int BlockSize;
 
