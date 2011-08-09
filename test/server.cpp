@@ -194,8 +194,8 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
       hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
         if (0 == hdr.Length && 0xffffffffffffffff == hdr.ID) {
-          std::cerr << "received conn shutdown sequence, acknowledging and waiting for close\n"
-          boost::asio::send(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
+          std::cerr << "received conn shutdown sequence, acknowledging and waiting for close\n";
+          boost::asio::write(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
           continue;
         }
         std::cout << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
