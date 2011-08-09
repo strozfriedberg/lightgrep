@@ -29,8 +29,8 @@ namespace {
 %token <c> CHAR
 %token <c> DIGIT
 
-%type <node> regexp alt concat rep number atom literal charclass
-%type <c>    character
+%type <node> regexp alt concat rep number atom literal charclass charclass_right
+%type <c>    character cc_char cc_char_left cc_char_right cc_char_first
 
 %start regexp
 
@@ -151,37 +151,12 @@ literal:
   }
 ;
 
-charclass:
-  charclass character '-' character
-  {
-    $$ = $1;
-    $$->range($2, $4);
-  }
-| charclass character
-  {
-    $$ = $1;
-    $$->Bits.set($2);
-  }
-| character '-' character
-  {
-    $$ = add("ignore", Node(Node::IGNORE, $1, $3));
-  }
-| character
-  {
-    $$ = add("ignore", Node(Node::IGNORE, $1));
-  }
-;
-
 character:
   CHAR
 | DIGIT
 | ']'
   {
     $$ = ']';
-  }
-| ','
-  {
-    $$ = ',';
   }
 | '-'
   {
@@ -195,9 +170,128 @@ character:
   {
     $$ = '}';
   }
+| ','
+  {
+    $$ = ',';
+  }
+;
+
+charclass:
+  cc_char_first '-' cc_char_right charclass_right
+  {
+    $$ = $4;
+    $$->range($1, $3);
+  }
+| cc_char_first charclass_right
+  {
+    $$ = $2;
+    $$->Bits.set($1);
+  }
+| cc_char_first '-' cc_char_right
+  {
+    $$ = add("ignore", Node(Node::IGNORE, $1, $3));
+  }
+| cc_char_first
+  {
+    $$ = add("ignore", Node(Node::IGNORE, $1));
+  }
+;
+
+charclass_right:
+  cc_char_left '-' cc_char_right charclass_right
+  {
+    $$ = $4;
+    $$->range($1, $3);
+  }
+| cc_char_left charclass_right
+  {
+    $$ = $2;
+    $$->Bits.set($1);
+  }
+| cc_char_left '-' cc_char_right
+  {
+    $$ = add("ignore", Node(Node::IGNORE, $1, $3));
+  }
+| cc_char_left
+  {
+    $$ = add("ignore", Node(Node::IGNORE, $1));
+  }
+;
+
+cc_char_left:
+  '-'
+  {
+    $$ = '-';
+  }
+| cc_char
+;
+
+cc_char_right:
+  '-'
+  {
+    $$ = '-';
+  }
+| cc_char
+;
+
+cc_char_first:
+  ']'
+  {
+    $$ = ']';
+  }
+| '-'
+  {
+    $$ = '-';
+  }
+| cc_char
+;
+
+cc_char:
+  CHAR
+| DIGIT
+| '|'
+  {
+    $$ = '|';
+  }
+| '('
+  {
+    $$ = '(';
+  }
+| ')'
+  {
+    $$ = ')';
+  }
+| '?'
+  {
+    $$ = '?';
+  }
+| '+'
+  {
+    $$ = '+';
+  }
+| '*'
+  {
+    $$ = '*';
+  }
 | '.'
   {
     $$ = '.';
+  }
+| '['
+  {
+    $$ = '[';
+  }
+| '{'
+  {
+    $$ = '{';
+  }
+| '}'
+  {
+    $$ = '}';
+  }
+| ','
+  {
+    $$ = ',';
   }
 ;
 
