@@ -41,13 +41,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
           }
 
           if (nfab.build(tree)) {
-            if (fsm) {
-              comp.mergeIntoFSM(*fsm, *nfab.getFsm());
-            }
-            else {
-              fsm = nfab.getFsm();
-              nfab.resetFsm();
-            }
+            comp.mergeIntoFSM(*fsm, *nfab.getFsm());
           }
           else {
             std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
