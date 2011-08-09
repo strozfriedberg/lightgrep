@@ -119,6 +119,7 @@ public:
   virtual void flush() {
     {
       boost::mutex::scoped_lock lock(*Mutex);
+      std::cerr << "Flushing hits file\n";
       for (StaticVector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
         *Output << it->ID << '\t' << it->Offset << '\t' << it->Length << '\t' << it->Label << '\t' << it->Encoding << '\n';
       }
@@ -170,11 +171,13 @@ private:
 };
 
 void cleanSeppuku(int) {
-  std::cerr << "Received SIGTERM. Shutting down..." << std::endl;
+  std::cerr << "Received SIGTERM. Shutting down...\n";
   CleanupRegistry::get().cleanup();
-  std::cerr << "Shutdown" << std::endl;
+  std::cerr << "Shutdown\n";
   exit(0);
 }
+
+static const unsigned char ONE = 1;
 
 void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, boost::shared_ptr<ServerWriter> output) {
   boost::scoped_array<byte>      data(new byte[BUF_SIZE]);
@@ -190,6 +193,11 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
       hdr.ID = 0;
       hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
+        if (0 == hdr.Length && 0xffffffffffffffff == hdr.ID) {
+          std::cerr << "received conn shutdown sequence, acknowledging and waiting for close\n"
+          boost::asio::send(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
+          continue;
+        }
         std::cout << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
         output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
         ++numReads;
