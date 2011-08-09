@@ -24,6 +24,10 @@ using boost::asio::ip::tcp;
 
 static const uint64 BUF_SIZE = 1024 * 1024;
 
+namespace {
+  static std::ostream* ErrOut = &std::cerr;
+}
+
 #pragma pack(1)
 struct FileHeader {
   FileHeader(): ID(0), Length(0) {}
@@ -119,7 +123,7 @@ public:
   virtual void flush() {
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      std::cerr << "Flushing hits file\n";
+      *ErrOut << "Flushing hits file\n";
       for (StaticVector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
         *Output << it->ID << '\t' << it->Offset << '\t' << it->Length << '\t' << it->Label << '\t' << it->Encoding << '\n';
       }
@@ -171,9 +175,9 @@ private:
 };
 
 void cleanSeppuku(int) {
-  std::cerr << "Received SIGTERM. Shutting down...\n";
+  *ErrOut << "Received SIGTERM. Shutting down...\n";
   CleanupRegistry::get().cleanup();
-  std::cerr << "Shutdown\n";
+  *ErrOut << "Shutdown\n";
   exit(0);
 }
 
@@ -194,11 +198,11 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
       hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
         if (0 == hdr.Length && 0xffffffffffffffff == hdr.ID) {
-          std::cerr << "received conn shutdown sequence, acknowledging and waiting for close\n";
+          *ErrOut << "received conn shutdown sequence, acknowledging and waiting for close\n";
           boost::asio::write(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
           continue;
         }
-        std::cout << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
+        *ErrOut << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
         output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
         ++numReads;
         uint64 offset = 0;
@@ -206,9 +210,9 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
           len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length-offset)));
           ++numReads;
           search->search(data.get(), data.get() + len, offset, *output);
-          //std::cout << "read " << len << " bytes\n";
-          // std::cout.write((const char*)data.get(), len);
-          // std::cout << '\n';
+          //*ErrOut << "read " << len << " bytes\n";
+          // *ErrOut.write((const char*)data.get(), len);
+          // *ErrOut << '\n';
           totalRead += len;
           offset += len;
         }
@@ -223,17 +227,23 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
     }
   }
   catch (std::exception& e) {
-    std::cout << "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n';
+    *ErrOut << "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n';
   }
-  std::cout << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n";
+  *ErrOut << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n";
 }
 
 void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
   try {
     boost::asio::io_service srv;
-    std::cout << "Created service" << std::endl;
+    if (!opts.ServerLog.empty()) {
+      ErrOut = new std::ofstream(opts.ServerLog.c_str(), std::ios::out);
+    }
+    else {
+      ErrOut = &std::cerr;
+    }
+    *ErrOut << "Created service" << std::endl;
     tcp::acceptor acceptor(srv, tcp::endpoint(tcp::v4(), 12777));
-    std::cout << "Created acceptor" << std::endl;
+    *ErrOut << "Created acceptor" << std::endl;
     bool usesFile = false;
     if (opts.Output != "-") {
       if (!CleanupRegistry::get().init(opts.Output)) {
@@ -243,9 +253,9 @@ void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
     }
     while (true) {
       std::auto_ptr<tcp::socket> socket(new tcp::socket(srv));
-      std::cout << "Created socket" << std::endl;
+      *ErrOut << "Created socket" << std::endl;
       acceptor.accept(*socket);
-      std::cout << "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << std::endl;
+      *ErrOut << "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << std::endl;
       boost::shared_ptr<tcp::socket> s(socket.release());
       boost::shared_ptr<ServerWriter> writer;
       if (usesFile) {
@@ -258,6 +268,10 @@ void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
     }
   }
   catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
+    *ErrOut << e.what() << std::endl;
+  }
+  if (&std::cerr != ErrOut) {
+    delete ErrOut;
+    ErrOut = 0;
   }
 }
