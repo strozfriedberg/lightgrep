@@ -28,16 +28,14 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   const uint32 srcSize = src.numVertices();
   const uint32 dstSize = dst.numVertices();
   Src2Dst.assign(srcSize, NONE);
-//  Dst2Src.assign(srcSize + dstSize, std::vector<Graph::vertex>());
   resizeBranchVec(Dst2Src, srcSize + dstSize);
   resizeBranchVec(BranchMap, srcSize);
+//  Dst2Src.assign(srcSize + dstSize, std::vector<Graph::vertex>());
 //  BranchMap.assign(srcSize, Branch());
   Visited.assign(srcSize, false);
 
   Graph::vertex srcHead, dstHead, srcTail, dstTail;
   ByteSet srcBits, dstBits;
-
-  // std::vector<Branch> branch_map(srcSize);
 
   States.push(StatePair(0, 0));
   while (!States.empty()) {
