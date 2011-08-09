@@ -62,7 +62,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
     // for each successor of the source vertex
     for (uint32 si = 0, di = 0; si < src.outDegree(srcHead); ++si) {
       srcTail = src.outVertex(srcHead, si);
-      Transition* srcTrans(src[srcTail]);
+      const Transition* srcTrans(src[srcTail]);
 
       srcBits.reset();
       srcTrans->getBits(srcBits);
