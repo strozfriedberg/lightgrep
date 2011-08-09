@@ -10,7 +10,7 @@ public:
 
   virtual const byte* allowed(const byte* beg, const byte*) const { return *beg == Lit ? beg+1: beg; }
 
-  virtual void getBits(std::bitset<256>& bits) const { bits.set(Lit); }
+  virtual void getBits(ByteSet& bits) const { bits.set(Lit); }
 
   virtual size_t objSize() const { return sizeof(*this); }
 
@@ -33,7 +33,7 @@ public:
 
   virtual const byte* allowed(const byte* beg, const byte*) const { return *beg == Lit1 || *beg == Lit2 ? beg+1: beg; }
 
-  virtual void getBits(std::bitset<256>& bits) const { bits.set(Lit1); bits.set(Lit2); }
+  virtual void getBits(ByteSet& bits) const { bits.set(Lit1); bits.set(Lit2); }
 
   virtual size_t objSize() const { return sizeof(*this); }
 
@@ -57,7 +57,7 @@ public:
 
   virtual const byte* allowed(const byte* beg, const byte*) const { return First <= *beg && *beg <= Last ? beg+1: beg; }
 
-  virtual void getBits(std::bitset<256>& bits) const { for (uint32 i = First; i <= Last; ++i) { bits.set(i); }; }
+  virtual void getBits(ByteSet& bits) const { for (uint32 i = First; i <= Last; ++i) { bits.set(i); }; }
 
   virtual size_t objSize() const { return sizeof(*this); }
 
