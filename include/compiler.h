@@ -17,6 +17,8 @@ public:
 
   void propagateMatchLabels(Graph& g);
   void removeNonMinimalLabels(Graph& g);
+  
+  void reduceRange(const Graph& dst, Graph::vertex dstHead, const Branch& sbranch, uint32& lb, uint32& ub);
 
 private:
   std::vector< Branch > Dst2Src,
