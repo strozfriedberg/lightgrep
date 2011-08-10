@@ -7,8 +7,12 @@
 extern "C" {
 #endif
 
+#ifndef uint64
   typedef unsigned long long uint64;
+#endif
+#ifndef uint32
   typedef unsigned int uint32;
+#endif
 
   typedef void* LG_HPARSER;
   typedef void* LG_HPROGRAM;

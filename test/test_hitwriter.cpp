@@ -18,21 +18,21 @@ SCOPE_TEST(hitWriterOutput) {
   HitWriter writer(stream, tbl, keys, encodings);
   writer.collect(SearchHit(0, 10, 0));
 
-  uint64 offset, len, keyIndex;
+  uint64 offset, end, keyIndex;
   std::string key, encoding;
 
-  stream >> offset >> len >> keyIndex >> key >> encoding;
+  stream >> offset >> end >> keyIndex >> key >> encoding;
   SCOPE_ASSERT_EQUAL(0u, offset);
-  SCOPE_ASSERT_EQUAL(10u, len);
+  SCOPE_ASSERT_EQUAL(10u, end);
   SCOPE_ASSERT_EQUAL(0u, keyIndex);
   SCOPE_ASSERT_EQUAL(std::string("whatever"), key);
   SCOPE_ASSERT_EQUAL(std::string("ASCII"), encoding);
 
   writer.collect(SearchHit(2, 20, 1));
 
-  stream >> offset >> len >> keyIndex >> key >> encoding;
+  stream >> offset >> end >> keyIndex >> key >> encoding;
   SCOPE_ASSERT_EQUAL(2u, offset);
-  SCOPE_ASSERT_EQUAL(20u, len);
+  SCOPE_ASSERT_EQUAL(22u, end);
   SCOPE_ASSERT_EQUAL(0u, keyIndex);
   SCOPE_ASSERT_EQUAL(std::string("whatever"), key);
   SCOPE_ASSERT_EQUAL(std::string("UCS-16"), encoding);

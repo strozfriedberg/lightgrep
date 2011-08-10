@@ -52,10 +52,10 @@ public:
 
   virtual void collect(const SearchHit& hit) {
     ++NumHits;
-    Hit.Offset = hit.Offset;
-    Hit.Length = hit.Length;
-    Hit.Label  = KeyInfo.PatternsTable[hit.Label].first;
-    Hit.Encoding = KeyInfo.PatternsTable[hit.Label].second;
+    Hit.Offset = hit.Start;
+    Hit.Length = hit.length();
+    Hit.Label  = KeyInfo.PatternsTable[hit.KeywordIndex].first;
+    Hit.Encoding = KeyInfo.PatternsTable[hit.KeywordIndex].second;
     write(Hit);
   }
 
