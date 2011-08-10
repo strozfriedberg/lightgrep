@@ -337,6 +337,13 @@ SCOPE_FIXTURE_CTOR(aaaOraaOraaDotSearch, STest, STest("aaa|aa|aa.")) {
   SCOPE_ASSERT_EQUAL(SearchHit(4, 2, 0), fixture.Hits[1]);
 }
 
+SCOPE_FIXTURE_CTOR(aSQdotPQdotQaSearch, STest, STest("a*?.+?.?a")) {
+  const byte* text = (const byte*) "aaab";
+  fixture.search(text, text + 4, 0, fixture);
+  SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+}
+
 SCOPE_FIXTURE_CTOR(aOraaQ_aOrbSearch, STest, STest(2, (const char*[]){"a|aa?", "a|b"})) {
   const byte* text = (const byte*) "aa";
   fixture.search(text, text + 2, 0, fixture);
