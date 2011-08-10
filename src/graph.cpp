@@ -144,9 +144,10 @@ void Graph::_add_no_dupe_check(AdjacentList& l, vertex v, size_t i) {
   }
 }
 
-Graph::Graph(uint32 numVs, uint32 reserveSize): Vertices(numVs, Vertex())
+Graph::Graph(uint32 numVs, uint32 reserveSize)
 {
-  Vertices.reserve(reserveSize);
+  Vertices.reserve(std::max(numVs, reserveSize));
+  Vertices.resize(numVs, Vertex());
 }
 
 Graph::Graph(uint32 numVs): Vertices(numVs, Vertex())

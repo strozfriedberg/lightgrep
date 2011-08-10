@@ -17,6 +17,8 @@ struct ParseContext {
   NFABuilder  Nfab;
   Compiler    Comp;
   GraphPtr    Fsm;
+
+  ParseContext(unsigned int sizeHint): Fsm(new Graph(1, sizeHint)) {}
 };
 
 class HitHandler: public HitCallback {
@@ -33,8 +35,14 @@ private:
   LG_SearchHit Hit;
 };
 
-LG_HPARSER lg_create_parser(unsigned int) {
-  return new ParseContext;
+LG_HPARSER lg_create_parser(unsigned int sizeHint) {
+  LG_HPARSER ret = 0;
+  try {
+    ret = new ParseContext(sizeHint);
+  }
+  catch (...) {
+  }
+  return ret;
 }
 
 void lg_destroy_parser(LG_HPARSER hParser) {
@@ -47,20 +55,14 @@ int lg_add_keyword(LG_HPARSER hParser,
                       LG_KeyOptions* options,
                       const char** error)
 {
-  ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
-  pc->Nfab.reset();
-  pc->Nfab.setCurLabel(keyIndex);
-  pc->Nfab.setCaseSensitive(options->CaseInsensitive == 0);
-  std::string k(keyword);
   try {
+    ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
+    pc->Nfab.reset();
+    pc->Nfab.setCurLabel(keyIndex);
+    pc->Nfab.setCaseSensitive(options->CaseInsensitive == 0);
+    std::string k(keyword);
     if (parse(k, options->FixedString != 0, pc->Tree) && pc->Nfab.build(pc->Tree)) {
-      if (pc->Fsm) {
-        pc->Comp.mergeIntoFSM(*pc->Fsm, *pc->Nfab.getFsm());
-      }
-      else {
-        pc->Fsm = pc->Nfab.getFsm();
-        pc->Nfab.resetFsm();
-      }
+      pc->Comp.mergeIntoFSM(*pc->Fsm, *pc->Nfab.getFsm());
       return 1;
     }
     else {
@@ -79,14 +81,18 @@ int lg_add_keyword(LG_HPARSER hParser,
 LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
                                 LG_ProgramOptions* option)
 {
-  ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
-  pc->Comp.labelGuardStates(*pc->Fsm);
+  LG_HPROGRAM prog = 0;
+  try {
+    ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
+    pc->Comp.labelGuardStates(*pc->Fsm);
 
-  ProgramPtr *prog = new ProgramPtr;
-  *prog = createProgram(*pc->Fsm);
-  (*prog)->First = firstBytes(*pc->Fsm);
-//  std::cerr << "program size is " << (*prog)->size() << std::endl;
-//  std::cerr << **prog;
+    ProgramPtr *prog = new ProgramPtr;
+    *prog = createProgram(*pc->Fsm);
+    (*prog)->First = firstBytes(*pc->Fsm);
+  //  std::cerr << "program size is " << (*prog)->size() << std::endl;
+  //  std::cerr << **prog;
+  }
+  catch (...) {}
   return prog;
 }
 
@@ -96,10 +102,15 @@ void lg_destroy_program(LG_HPROGRAM hProg) {
 }
 
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
-  boost::shared_ptr<VmInterface> *ctx = new boost::shared_ptr<VmInterface>;
-  *ctx = VmInterface::create();
-  (*ctx)->init(*reinterpret_cast<ProgramPtr*>(hProg));
-  return ctx;
+  LG_HCONTEXT ret = 0;
+  try {
+    boost::shared_ptr<VmInterface> *ctx = new boost::shared_ptr<VmInterface>;
+    *ctx = VmInterface::create();
+    (*ctx)->init(*reinterpret_cast<ProgramPtr*>(hProg));
+    ret = ctx;
+  }
+  catch (...) {}
+  return ret;
 }
 
 void lg_destroy_context(LG_HCONTEXT hCtx) {
