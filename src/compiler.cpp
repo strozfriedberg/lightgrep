@@ -18,6 +18,30 @@ void resizeBranchVec(std::vector< Compiler::Branch >& vec, uint32 size) {
   vec.resize(size);
 }
 
+void Compiler::reduceRange(const Graph& dst, Graph::vertex dstHead, const Branch& sbranch, uint32& lb, uint32& ub) {
+  for (uint32 di = lb; di < ub; ++di) {
+    // get dstTail vertex and its preimages
+    Graph::vertex dstTail = dst.outVertex(dstHead, di);
+    const std::vector<Graph::vertex>& preimages(Dst2Src[dstTail]);
+
+    // compare src branch to the branch of each preimage
+    std::vector<Graph::vertex>::const_iterator i(preimages.begin());
+    for ( ; i != preimages.end(); ++i) {
+      const Branch& dbranch = BranchMap[*i];
+      if (std::lexicographical_compare(dbranch.begin(), dbranch.end(),
+                                       sbranch.begin(), sbranch.end())) {
+        // dst branch < src branch, advance the lower bound
+        lb = di;
+      }
+      else {
+        // src branch >= dst branch, set upper bound and stop
+        ub = di;
+        break;
+      }
+    }
+  }
+}
+
 void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   while (!States.empty()) {
     States.pop();
@@ -58,7 +82,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
     Visited[srcHead] = true;
 
     // for each successor of the source vertex
-    for (uint32 si = 0, di = 0; si < src.outDegree(srcHead); ++si) {
+    for (uint32 si = 0, di = 0, lb = 0; si < src.outDegree(srcHead); ++si) {
       srcTail = src.outVertex(srcHead, si);
       const Transition* srcTrans(src[srcTail]);
 
@@ -80,30 +104,9 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       // preserving the relative order of the source vertex's successors
 
       // find dstTail range to which we could map srcTail, by branch order
-      uint32 lb = 0;
       uint32 ub = dst.outDegree(dstHead);
 
-      for (di = lb; di < ub; ++di) {
-        // get dstTail vertex and its preimages
-        dstTail = dst.outVertex(dstHead, di);
-        const Branch& preimages(Dst2Src[dstTail]);
-
-        // compare src branch to the branch of each preimage
-        std::vector<Graph::vertex>::const_iterator i(preimages.begin());
-        for ( ; i != preimages.end(); ++i) {
-          const Branch& dbranch = BranchMap[*i];
-          if (std::lexicographical_compare(dbranch.begin(), dbranch.end(),
-                                           sbranch.begin(), sbranch.end())) {
-            // dst branch < src branch, advance the lower bound
-            lb = di;
-          }
-          else {
-            // src branch >= dst branch, set upper bound and stop
-            ub = di;
-            break;
-          }
-        }
-      }
+      reduceRange(dst, dstHead, sbranch, lb, ub);
 
       bool found = false;
 
