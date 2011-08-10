@@ -566,9 +566,9 @@ void Vm::closeOut(HitCallback& hitFn) {
       if (t->Start >= MatchEnds[t->Label]) {
         MatchEnds[t->Label] = t->End + 1;
 
-        hit.Offset = t->Start;
-        hit.Length = t->End - t->Start + 1;
-        hit.Label = t->Label;
+        hit.Start = t->Start;
+        hit.End = t->End + 1;
+        hit.KeywordIndex = t->Label;
         CurHitFn->collect(hit);
       }
     }

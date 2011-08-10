@@ -2,34 +2,35 @@
 
 #include "basic.h"
 
-class SearchHit {
+class SearchHit: public LG_SearchHit {
 public:
-  uint64  Offset,
-          Length;
-  uint32  Label;
+  SearchHit() { set(0, 0, 0); }
+  // note that this takes the length
+  SearchHit(uint64 start, uint64 length, uint32 lbl) { set(start, start + length, lbl); }
 
-  SearchHit(): Offset(0), Length(0), Label(0) {}
-  SearchHit(uint64 o, uint64 len, uint32 lbl): Offset(o), Length(len), Label(lbl) {}
+  void set(uint64 start, uint64 end, uint32 lbl) {
+    Start = start; End = end; KeywordIndex = lbl;
+  }
 
-  void set(uint64 o, uint64 len, uint32 lbl) {
-    Offset = o; Length = len; Label = lbl;
+  uint64 length() const {
+    return End - Start;
   }
 
   bool operator==(const SearchHit& x) const {
-    return x.Offset == Offset && x.Length == Length && x.Label == Label;
+    return x.Start == Start && x.End == End && x.KeywordIndex == KeywordIndex;
   }
 
   bool operator<(const SearchHit& x) const {
-    return Offset < x.Offset ||
-            (Offset == x.Offset &&
-              (Length < x.Length ||
-                (Length == x.Length && Label < x.Label)));
+    return Start < x.Start ||
+          (Start == x.Start &&
+          (End < x.End ||
+          (End == x.End && KeywordIndex < x.KeywordIndex)));
   }
 };
 
 template<class OutStream>
 OutStream& operator<<(OutStream& out, const SearchHit& hit) {
-  out << '(' << hit.Offset << ", " << hit.Length << ", " << hit.Label << ')';
+  out << '(' << hit.Start << ", " << hit.End << ", " << hit.KeywordIndex << ')';
   return out;
 }
 

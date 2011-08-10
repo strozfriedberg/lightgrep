@@ -24,9 +24,6 @@ public:
   HitHandler(LG_HITCALLBACK_FN fn, void* userData): Fn(fn), UserData(userData) {}
 
   virtual void collect(const SearchHit& hit) {
-    Hit.Start = hit.Offset;
-    Hit.End = hit.Offset + hit.Length;
-    Hit.KeywordIndex = hit.Label;
     (*Fn)(UserData, &Hit);
   }
 
