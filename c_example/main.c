@@ -1,5 +1,6 @@
 // Copyright 2011, Lightbox Technologies, Inc. All Rights Reserved.
 #include "lightgrep_c_api.h"
+#include "encodings.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -35,6 +36,8 @@ int main() {
   LG_KeyOptions keyOpts;
   keyOpts.CaseInsensitive = 1;
   keyOpts.FixedString = 0;
+  keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
+
   char *keys[] = {"mary", "lamb", "[a-z]+"};
   const char* errString = "";
 
