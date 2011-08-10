@@ -12,10 +12,6 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-void addNewEdge(Graph::vertex source, Graph::vertex target, Graph& fsm) {
-  fsm.addEdge(source, target);
-}
-
 void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, bool litMode, GraphPtr& fsm, uint32& keyIdx) {
   Compiler    comp;
   ParseTree   tree;
