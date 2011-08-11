@@ -29,12 +29,13 @@ bool Compiler::canMerge(const Graph& dst, const Graph& src, Graph::vertex dstTai
   // 7) the source has only one incoming edge
 
   if (
-    dstBits == srcBits && dstLabel == srcLabel &&
+    dstLabel == srcLabel &&
     (
       dstLabel == NOLABEL ||
       (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))
     )
     && 1 == dst.inDegree(dstTail) && 1 == src.inDegree(srcTail)
+    && dstBits == srcBits
   ) {
     std::map< Graph::vertex, std::vector<Graph::vertex> >::const_iterator i(Dst2Src.find(dstTail));
     return i == Dst2Src.end() || 1 == src.inDegree(i->second.front());
