@@ -20,6 +20,8 @@ public:
   
   void reduceRange(const Graph& dst, Graph::vertex dstHead, const Branch& sbranch, uint32& lb, uint32& ub);
 
+  StatePair processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead, uint32& lb);
+
 private:
   std::vector< Branch > Dst2Src,
                         BranchMap;
