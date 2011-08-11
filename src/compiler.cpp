@@ -66,7 +66,7 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
           (dstTrans->Label == NOLABEL ||
             (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))) &&
           1 == dst.inDegree(dstTail) &&
-          (Dst2Src[dstTail].empty() ||
+          (Dst2Src.find(dstTail) == Dst2Src.end() ||
             1 == src.inDegree(Dst2Src[dstTail].front())) &&
           1 == src.inDegree(srcTail)) {
         found = true;
@@ -97,45 +97,33 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
     }
   }
 
-  dst.addEdge(dstHead, dstTail);
+  dst.addEdgeAt(dstHead, dstTail, di);
   DstPos[dstHead] = di + 1;
   return StatePair(dstTail, srcTail);
 }
 
 void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
-  while (!States.empty()) {
-    States.pop();
-  }
-
-  const uint32 srcSize = src.numVertices();
-  const uint32 dstSize = dst.numVertices();
-  Src2Dst.assign(srcSize, NONE);
-
-  for (std::vector< std::vector<Graph::vertex> >::iterator i(Dst2Src.begin()); i != Dst2Src.end(); ++i) {
-    i->clear();
-  }
-  Dst2Src.resize(dstSize + srcSize);
-
+  Src2Dst.assign(src.numVertices(), NONE);
+  Dst2Src.clear();
+  DstPos.clear();
   Visited.clear();
-  DstPos.assign(dstSize + srcSize, 0);
 
   Src2Dst[0] = 0;
 
-  // push all children of the initial state in the source
+  // push all outedges of the initial state in the source
   for (int32 i = src.outDegree(0) - 1; i >= 0; --i) {
-    States.push(StatePair(0, i));
+    Edges.push(StatePair(0, i));
   }
 
-  while (!States.empty()) {
-    const StatePair& p(States.top());
-    const Graph::vertex srcHead = p.first;
+  while (!Edges.empty()) {
+    const StatePair& p(Edges.top());
+    Edges.pop();
+
     const uint32 si = p.second;
-    Graph::vertex srcTail = src.outVertex(srcHead, si);
-    States.pop();
+    const Graph::vertex srcHead = p.first;
+    const Graph::vertex dstHead = Src2Dst[srcHead];
 
-    Graph::vertex dstHead = Src2Dst[srcHead];
-
-    // skip if we've seen this source vertex already
+    // skip if we've seen this edge already
     if (Visited.find(p) != Visited.end()) {
       continue;
     }
@@ -143,14 +131,14 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
     Visited.insert(p);
 
     const StatePair s(processChild(src, dst, si, srcHead, dstHead));
-    srcTail = s.second;
+    const Graph::vertex srcTail = s.second;
     const Graph::vertex dstTail = s.first;
 
     Src2Dst[srcTail] = dstTail;
     Dst2Src[dstTail].push_back(srcTail);
 
     for (int32 i = src.outDegree(srcTail) - 1; i >= 0; --i) {
-      States.push(StatePair(srcTail, i));
+      Edges.push(StatePair(srcTail, i));
     }
   }
 }
