@@ -48,7 +48,15 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
   const Graph::vertex srcTail = src.outVertex(srcHead, si);
   Graph::vertex dstTail = Src2Dst[srcTail];
 
-  if (dstTail == NONE) {
+  if (dstTail != NONE) {
+    for (uint32 di = 0; di < dst.outDegree(dstHead); ++di) {
+      if (dst.outVertex(dstHead, di) == dstTail) {
+        lb = di + 1;
+        break;
+      }
+    }
+  }
+  else {
     const Transition* srcTrans(src[srcTail]);
 
     ByteSet srcBits;
@@ -77,7 +85,8 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
 
     ByteSet dstBits;
 
-    for (uint32 di = lb; di < ub; ++di) {
+    uint32 di = lb;
+    for ( ; di < ub; ++di) {
       dstTail = dst.outVertex(dstHead, di);
       Transition* dstTrans(dst[dstTail]);
 
@@ -115,7 +124,10 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
       }
     }
 
-    if (!found) {
+    if (found) {
+      lb = di + 1;
+    }
+    else {
       // match not found
 
       // add a new vertex to the destination if the image of the source
@@ -131,11 +143,11 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
       #ifdef LBT_TRACE_ENABLED
       std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
       #endif
+      lb = ub;
     }
   }
 
   dst.addEdge(dstHead, dstTail);
-
   return StatePair(dstTail, srcTail);
 }
 
