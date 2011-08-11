@@ -28,5 +28,5 @@ private:
   std::vector<Graph::vertex> Src2Dst;
   std::stack<EdgePair> Edges;
   std::set<EdgePair> Visited;
-  std::map<Graph::vertex,uint32> DstPos;
+  std::map<Graph::vertex, uint32> DstPos;
 };
