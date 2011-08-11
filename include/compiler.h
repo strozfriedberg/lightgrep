@@ -3,13 +3,14 @@
 #include "basic.h"
 #include "graph.h"
 
+#include <map>
 #include <set>
 #include <stack>
 
 class Compiler {
 public:
-  typedef std::vector<Graph::vertex> Branch;
-  typedef std::pair< Graph::vertex, Graph::vertex > StatePair;
+  typedef std::pair<Graph::vertex, Graph::vertex> StatePair;
+  typedef std::pair<Graph::vertex, uint32> EdgePair;
 
   void mergeIntoFSM(Graph& dst, const Graph& src);
 
@@ -21,9 +22,9 @@ public:
   StatePair processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead);
 
 private:
-  std::vector< Branch > Dst2Src;
+  std::map<Graph::vertex, std::vector<Graph::vertex> > Dst2Src;
   std::vector<Graph::vertex> Src2Dst;
-  std::stack<StatePair> States;
-  std::set<StatePair> Visited;
-  std::vector<uint32> DstPos;
+  std::stack<EdgePair> Edges;
+  std::set<EdgePair> Visited;
+  std::map<Graph::vertex,uint32> DstPos;
 };
