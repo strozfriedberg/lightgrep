@@ -104,7 +104,7 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
   }
 
   dst.addEdgeAt(dstHead, dstTail, di);
-  DstPos[dstHead] = di + 1;
+  DstPos[dstHead] = di;
   return StatePair(dstTail, srcTail);
 }
 
