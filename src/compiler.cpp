@@ -73,7 +73,7 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
 
     for (di = DstPos[dstHead]; di < dst.outDegree(dstHead); ++di) {
       dstTail = dst.outVertex(dstHead, di);
-      Transition* dstTrans(dst[dstTail]);
+      const Transition* dstTrans(dst[dstTail]);
 
       dstBits.reset();
       dstTrans->getBits(dstBits);
