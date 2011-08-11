@@ -443,9 +443,9 @@ SCOPE_FIXTURE_CTOR(aSQaSQDot_aPDotPQSearch, STest, STest(2, (const char *[]){ "a
   fixture.search(text, text + 3, 0, fixture);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 1), fixture.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[2]);
-  SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 0), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 0), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 1), fixture.Hits[3]);
 }
 
 SCOPE_FIXTURE_CTOR(metaCCSearch, STest, STest("[|()?+*]+")) {
