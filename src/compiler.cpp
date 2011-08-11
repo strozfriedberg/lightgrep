@@ -13,7 +13,7 @@ static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
 const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 
-bool Compiler::canMerge(const Graph& dst, const Graph& src, Graph::vertex dstTail, Graph::vertex srcTail, const ByteSet& dstBits, const ByteSet& srcBits, uint32 dstLabel, uint32 srcLabel) const {
+bool Compiler::canMerge(const Graph& dst, Graph::vertex dstTail, const ByteSet& dstBits, uint32 dstLabel, const Graph& src, Graph::vertex srcTail, const ByteSet& srcBits, uint32 srcLabel) const {
   // Explanation of the condition:
   //
   // Vertices match if:
@@ -78,7 +78,8 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
       dstBits.reset();
       dstTrans->getBits(dstBits);
 
-      if (canMerge(dst, src, dstTail, srcTail, dstBits, srcBits, dstTrans->Label, srcTrans->Label)) {
+      if (canMerge(dst, dstTail, dstBits, dstTrans->Label,
+                   src, srcTail, srcBits, srcTrans->Label)) {
         found = true;
         break;
       }
