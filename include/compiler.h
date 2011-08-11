@@ -18,15 +18,12 @@ public:
   void propagateMatchLabels(Graph& g);
   void removeNonMinimalLabels(Graph& g);
   
-  void reduceRange(const Graph& dst, Graph::vertex dstHead, const Branch& sbranch, uint32& lb, uint32& ub);
-
-  StatePair processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead, uint32& lb);
+  StatePair processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead);
 
 private:
-  std::vector< Branch > Dst2Src,
-                        BranchMap;
+  std::vector< Branch > Dst2Src;
   std::vector<Graph::vertex> Src2Dst;
   std::stack<StatePair> States;
-//  std::vector<bool> Visited;
   std::set<StatePair> Visited;
+  std::vector<uint32> DstPos;
 };
