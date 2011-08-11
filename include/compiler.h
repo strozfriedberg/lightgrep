@@ -3,7 +3,7 @@
 #include "basic.h"
 #include "graph.h"
 
-#include <queue>
+#include <set>
 #include <stack>
 
 class Compiler {
@@ -26,6 +26,7 @@ private:
   std::vector< Branch > Dst2Src,
                         BranchMap;
   std::vector<Graph::vertex> Src2Dst;
-  std::queue<StatePair> States;
-  std::vector<bool> Visited;
+  std::stack<StatePair> States;
+//  std::vector<bool> Visited;
+  std::set<StatePair> Visited;
 };

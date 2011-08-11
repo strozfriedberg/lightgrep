@@ -161,44 +161,52 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   Src2Dst.assign(srcSize, NONE);
   resizeBranchVec(Dst2Src, srcSize + dstSize);
   resizeBranchVec(BranchMap, srcSize);
-  Visited.assign(srcSize, false);
+//  Visited.assign(srcSize, false);
+  Visited.clear();
 
   Graph::vertex srcHead, dstHead, srcTail, dstTail;
   ByteSet srcBits, dstBits;
 
-  States.push(StatePair(0, 0));
+  Src2Dst[0] = 0;
+
+  // push all children of the initial state in the source
+  for (int32 i = src.outDegree(0) - 1; i >= 0; --i) {
+    States.push(StatePair(0, src.outVertex(0, i)));
+  }
+
   while (!States.empty()) {
-    dstHead = States.front().first;
-    srcHead = States.front().second;
+    StatePair& p(States.top());
+    srcHead = p.first;
+    srcTail = p.second;
     States.pop();
 
-    #ifdef LBT_TRACE_ENABLED
-    std::cerr << "popped (" << dstHead << ',' << srcHead << ')' << std::endl;
-    #endif
+    dstHead = Src2Dst[srcHead];
 
     // skip if we've seen this source vertex already
-    if (Visited[srcHead]) {
-      #ifdef LBT_TRACE_ENABLED
-      std::cerr << "already seen " << srcHead << ", skipping" << std::endl;
-      #endif
+    if (Visited.find(p) != Visited.end()) {
       continue;
     }
 
-    Visited[srcHead] = true;
+    Visited.insert(p);
 
-    // for each successor of the source vertex
-    for (uint32 si = 0, lb = 0; si < src.outDegree(srcHead); ++si) {
-      StatePair s(processChild(src, dst, si, srcHead, dstHead, lb));
-      srcTail = s.second;
-      dstTail = s.first;
+    uint32 si = 0;
+    for ( ; si < src.outDegree(srcHead); ++si) {
+      if (src.outVertex(srcHead, si) == srcTail) {
+        break;
+      }
+    }
 
-      Src2Dst[srcTail] = dstTail;
-      Dst2Src[dstTail].push_back(srcTail);
-      States.push(s);
+    uint32 lb = 0;   
 
-      #ifdef LBT_TRACE_ENABLED
-      std::cerr << "pushed (" << dstTail << ',' << srcTail << ')' << std::endl;
-      #endif
+    StatePair s(processChild(src, dst, si, srcHead, dstHead, lb));
+    srcTail = s.second;
+    dstTail = s.first;
+
+    Src2Dst[srcTail] = dstTail;
+    Dst2Src[dstTail].push_back(srcTail);
+
+    for (int32 i = src.outDegree(srcTail) - 1; i >= 0; --i) {
+      States.push(StatePair(srcTail, src.outVertex(srcTail, i)));
     }
   }
 }
