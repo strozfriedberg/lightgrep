@@ -119,23 +119,21 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   Visited.clear();
   DstPos.assign(dstSize + srcSize, 0);
 
-  Graph::vertex srcHead, dstHead, srcTail, dstTail;
-  ByteSet srcBits, dstBits;
-
   Src2Dst[0] = 0;
 
   // push all children of the initial state in the source
   for (int32 i = src.outDegree(0) - 1; i >= 0; --i) {
-    States.push(StatePair(0, src.outVertex(0, i)));
+    States.push(StatePair(0, i));
   }
 
   while (!States.empty()) {
-    StatePair& p(States.top());
-    srcHead = p.first;
-    srcTail = p.second;
+    const StatePair& p(States.top());
+    const Graph::vertex srcHead = p.first;
+    const uint32 si = p.second;
+    Graph::vertex srcTail = src.outVertex(srcHead, si);
     States.pop();
 
-    dstHead = Src2Dst[srcHead];
+    Graph::vertex dstHead = Src2Dst[srcHead];
 
     // skip if we've seen this source vertex already
     if (Visited.find(p) != Visited.end()) {
@@ -144,22 +142,15 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
 
     Visited.insert(p);
 
-    uint32 si = 0;
-    for ( ; si < src.outDegree(srcHead); ++si) {
-      if (src.outVertex(srcHead, si) == srcTail) {
-        break;
-      }
-    }
-
-    StatePair s(processChild(src, dst, si, srcHead, dstHead));
+    const StatePair s(processChild(src, dst, si, srcHead, dstHead));
     srcTail = s.second;
-    dstTail = s.first;
+    const Graph::vertex dstTail = s.first;
 
     Src2Dst[srcTail] = dstTail;
     Dst2Src[dstTail].push_back(srcTail);
 
     for (int32 i = src.outDegree(srcTail) - 1; i >= 0; --i) {
-      States.push(StatePair(srcTail, src.outVertex(srcTail, i)));
+      States.push(StatePair(srcTail, i));
     }
   }
 }
