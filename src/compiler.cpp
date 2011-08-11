@@ -47,10 +47,8 @@ const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead, uint32& lb) {
   const Graph::vertex srcTail = src.outVertex(srcHead, si);
   Graph::vertex dstTail = Src2Dst[srcTail];
-  if (dstTail != NONE) {
-    dst.addEdge(dstHead, dstTail);
-  }
-  else {
+
+  if (dstTail == NONE) {
     const Transition* srcTrans(src[srcTail]);
 
     ByteSet srcBits;
@@ -130,13 +128,13 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
                                        << srcTail << std::endl;
       #endif
 
-      dst.addEdge(dstHead, dstTail);
-
       #ifdef LBT_TRACE_ENABLED
       std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
       #endif
     }
   }
+
+  dst.addEdge(dstHead, dstTail);
 
   return StatePair(dstTail, srcTail);
 }
@@ -151,8 +149,6 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   Src2Dst.assign(srcSize, NONE);
   resizeBranchVec(Dst2Src, srcSize + dstSize);
   resizeBranchVec(BranchMap, srcSize);
-//  Dst2Src.assign(srcSize + dstSize, std::vector<Graph::vertex>());
-//  BranchMap.assign(srcSize, Branch());
   Visited.assign(srcSize, false);
 
   Graph::vertex srcHead, dstHead, srcTail, dstTail;
