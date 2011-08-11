@@ -13,6 +13,36 @@ static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
 const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 
+bool Compiler::canMerge(const Graph& dst, const Graph& src, Graph::vertex dstTail, Graph::vertex srcTail, const ByteSet& dstBits, const ByteSet& srcBits, uint32 dstLabel, uint32 srcLabel) const {
+  // Explanation of the condition:
+  //
+  // Vertices match if:
+  //
+  // 1) they have the same incoming edge
+  // 2) they have the same label (i.e., they are match states for
+  //    the same pattern, or are not match states)
+  // 3) if they are match states, then they have no successors
+  // 4) the destination has only one incoming edge
+  // 5) the source has only one incoming edge
+  // 6) if the destination has been matched with a source, then that
+  //    source has only one incoming edge
+  // 7) the source has only one incoming edge
+
+  if (
+    dstBits == srcBits && dstLabel == srcLabel &&
+    (
+      dstLabel == NOLABEL ||
+      (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))
+    )
+    && 1 == dst.inDegree(dstTail) && 1 == src.inDegree(srcTail)
+  ) {
+    std::map< Graph::vertex, std::vector<Graph::vertex> >::const_iterator i(Dst2Src.find(dstTail));
+    return i == Dst2Src.end() || 1 == src.inDegree(i->second.front());
+  }
+
+  return false;
+}
+
 Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead) {
   const Graph::vertex srcTail = src.outVertex(srcHead, si);
 
@@ -47,33 +77,8 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
       dstBits.reset();
       dstTrans->getBits(dstBits);
 
-      // Explanation of the condition:
-      //
-      // Vertices match if:
-      //
-      // 1) they have the same incoming edge
-      // 2) they have the same label (i.e., they are match states for
-      //    the same pattern, or are not match states)
-      // 3) if they are match states, then they have no successors
-      // 4) the destination has only one incoming edge
-      // 5) the source has only one incoming edge
-      // 6) if the destination has been matched with a source, then that
-      //    source has only one incoming edge
-      // 7) the source has only one incoming edge
-
-      if (dstBits == srcBits &&
-          dstTrans->Label == srcTrans->Label &&
-          (dstTrans->Label == NOLABEL ||
-            (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))) &&
-          1 == dst.inDegree(dstTail) &&
-          (Dst2Src.find(dstTail) == Dst2Src.end() ||
-            1 == src.inDegree(Dst2Src[dstTail].front())) &&
-          1 == src.inDegree(srcTail)) {
+      if (canMerge(dst, src, dstTail, srcTail, dstBits, srcBits, dstTrans->Label, srcTrans->Label)) {
         found = true;
-
-        #ifdef LBT_TRACE_ENABLED
-        std::cerr << "matched " << srcTail << " with " << dstTail << std::endl;
-        #endif
         break;
       }
     }
