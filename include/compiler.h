@@ -21,7 +21,7 @@ public:
   
   StatePair processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead);
 
-  bool canMerge(const Graph& dst, const Graph& src, Graph::vertex srcTail, Graph::vertex dstTail, const ByteSet& srcBits, const ByteSet& dstBits, uint32 srcLabel, uint32 dstLabel) const;
+  bool canMerge(const Graph& dst, Graph::vertex dstTail, const ByteSet& dstBits, uint32 dstLabel, const Graph& src, Graph::vertex srcTail, const ByteSet& srcBits, uint32 srcLabel) const;
 
 private:
   std::map<Graph::vertex, std::vector<Graph::vertex> > Dst2Src;
