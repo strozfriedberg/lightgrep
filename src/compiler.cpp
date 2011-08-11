@@ -11,47 +11,17 @@
 static const Graph::vertex NONE = 0xFFFFFFFF;
 static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
-void resizeBranchVec(std::vector< Compiler::Branch >& vec, uint32 size) {
-  for (std::vector< Compiler::Branch >::iterator it(vec.begin()); it != vec.end(); ++it) {
-    it->clear();
-  }
-  vec.resize(size);
-}
-
-void Compiler::reduceRange(const Graph& dst, Graph::vertex dstHead, const Branch& sbranch, uint32& lb, uint32& ub) {
-  for (uint32 di = lb; di < ub; ++di) {
-    // get dstTail vertex and its preimages
-    Graph::vertex dstTail = dst.outVertex(dstHead, di);
-    const std::vector<Graph::vertex>& preimages(Dst2Src[dstTail]);
-
-    // compare src branch to the branch of each preimage
-    std::vector<Graph::vertex>::const_iterator i(preimages.begin());
-    for ( ; i != preimages.end(); ++i) {
-      const Branch& dbranch = BranchMap[*i];
-      if (std::lexicographical_compare(dbranch.begin(), dbranch.end(),
-                                       sbranch.begin(), sbranch.end())) {
-        // dst branch < src branch, advance the lower bound
-        lb = di;
-      }
-      else {
-        // src branch >= dst branch, set upper bound and stop
-        ub = di;
-        break;
-      }
-    }
-  }
-}
-
 const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 
-Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead, uint32& lb) {
+Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead) {
   const Graph::vertex srcTail = src.outVertex(srcHead, si);
+
   Graph::vertex dstTail = Src2Dst[srcTail];
+  uint32 di = 0;
 
   if (dstTail != NONE) {
-    for (uint32 di = 0; di < dst.outDegree(dstHead); ++di) {
+    for ( ; di < dst.outDegree(dstHead); ++di) {
       if (dst.outVertex(dstHead, di) == dstTail) {
-        lb = di + 1;
         break;
       }
     }
@@ -62,31 +32,15 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
     ByteSet srcBits;
     srcTrans->getBits(srcBits);
 
-    BranchMap[srcTail] = BranchMap[srcHead];
-    BranchMap[srcTail].push_back(si);
-    const Branch& sbranch(BranchMap[srcTail]);
-
-    #ifdef LBT_TRACE_ENABLED
-    std::cerr << "trying to match " << srcTail << " on branch ";
-    std::copy(sbranch.begin(), sbranch.end(),
-              std::ostream_iterator<Graph::vertex>(std::cerr, "."));
-    std::cerr << std::endl;
-    #endif
-
     // try to match it with a successor of the destination vertex,
     // preserving the relative order of the source vertex's successors
 
     // find dstTail range to which we could map srcTail, by branch order
-    uint32 ub = dst.outDegree(dstHead);
-
-    reduceRange(dst, dstHead, sbranch, lb, ub);
 
     bool found = false;
-
     ByteSet dstBits;
 
-    uint32 di = lb;
-    for ( ; di < ub; ++di) {
+    for (di = DstPos[dstHead]; di < dst.outDegree(dstHead); ++di) {
       dstTail = dst.outVertex(dstHead, di);
       Transition* dstTrans(dst[dstTail]);
 
@@ -124,10 +78,7 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
       }
     }
 
-    if (found) {
-      lb = di + 1;
-    }
-    else {
+    if (!found) {
       // match not found
 
       // add a new vertex to the destination if the image of the source
@@ -143,11 +94,11 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
       #ifdef LBT_TRACE_ENABLED
       std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
       #endif
-      lb = ub;
     }
   }
 
   dst.addEdge(dstHead, dstTail);
+  DstPos[dstHead] = di + 1;
   return StatePair(dstTail, srcTail);
 }
 
@@ -159,10 +110,14 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   const uint32 srcSize = src.numVertices();
   const uint32 dstSize = dst.numVertices();
   Src2Dst.assign(srcSize, NONE);
-  resizeBranchVec(Dst2Src, srcSize + dstSize);
-  resizeBranchVec(BranchMap, srcSize);
-//  Visited.assign(srcSize, false);
+
+  for (std::vector< std::vector<Graph::vertex> >::iterator i(Dst2Src.begin()); i != Dst2Src.end(); ++i) {
+    i->clear();
+  }
+  Dst2Src.resize(dstSize + srcSize);
+
   Visited.clear();
+  DstPos.assign(dstSize + srcSize, 0);
 
   Graph::vertex srcHead, dstHead, srcTail, dstTail;
   ByteSet srcBits, dstBits;
@@ -196,9 +151,7 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
       }
     }
 
-    uint32 lb = 0;   
-
-    StatePair s(processChild(src, dst, si, srcHead, dstHead, lb));
+    StatePair s(processChild(src, dst, si, srcHead, dstHead));
     srcTail = s.second;
     dstTail = s.first;
 
