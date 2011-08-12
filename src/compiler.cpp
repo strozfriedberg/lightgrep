@@ -13,7 +13,7 @@ static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
 const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 
-bool Compiler::canMerge(const Graph& dst, Graph::vertex dstTail, const ByteSet& dstBits, uint32 dstLabel, const Graph& src, Graph::vertex srcTail, const ByteSet& srcBits, uint32 srcLabel) const {
+bool Compiler::canMerge(const Graph& dst, Graph::vertex dstTail, const Transition* dstTrans, ByteSet& dstBits, const Graph& src, Graph::vertex srcTail, const Transition* srcTrans, const ByteSet& srcBits) const {
   // Explanation of the condition:
   //
   // Vertices match if:
@@ -29,16 +29,20 @@ bool Compiler::canMerge(const Graph& dst, Graph::vertex dstTail, const ByteSet& 
   // 7) the source has only one incoming edge
 
   if (
-    dstLabel == srcLabel &&
+    dstTrans->Label == srcTrans->Label &&
     (
-      dstLabel == NOLABEL ||
+      dstTrans->Label == NOLABEL ||
       (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))
     )
     && 1 == dst.inDegree(dstTail) && 1 == src.inDegree(srcTail)
-    && dstBits == srcBits
   ) {
-    std::map< Graph::vertex, std::vector<Graph::vertex> >::const_iterator i(Dst2Src.find(dstTail));
-    return i == Dst2Src.end() || 1 == src.inDegree(i->second.front());
+    dstBits.reset();
+    dstTrans->getBits(dstBits);
+
+    if (dstBits == srcBits) {
+      std::map< Graph::vertex, std::vector<Graph::vertex> >::const_iterator i(Dst2Src.find(dstTail));
+      return i == Dst2Src.end() || 1 == src.inDegree(i->second.front());
+    }
   }
 
   return false;
@@ -80,11 +84,8 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
 
 //      std::cerr << "match src " << srcTail << " with dst " << dstTail << "? ";
 
-      dstBits.reset();
-      dstTrans->getBits(dstBits);
-
-      if (canMerge(dst, dstTail, dstBits, dstTrans->Label,
-                   src, srcTail, srcBits, srcTrans->Label)) {
+      if (canMerge(dst, dstTail, dstTrans, dstBits,
+                   src, srcTail, srcTrans, srcBits)) {
         found = true;
         break;
       }
