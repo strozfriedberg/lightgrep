@@ -100,11 +100,11 @@ SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest(4, (const char*[]){"a(b|c)a", "a
   const byte* text = (const byte*)"aba aa aca two";
   fixture.search(text, text + 14, 0, fixture);
   SCOPE_ASSERT_EQUAL(6u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[1]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 2, 2), fixture.Hits[2]);
-  SCOPE_ASSERT_EQUAL(SearchHit(7, 3, 0), fixture.Hits[3]);
-  SCOPE_ASSERT_EQUAL(SearchHit(7, 2, 1), fixture.Hits[4]);
+  SCOPE_ASSERT_EQUAL(SearchHit(7, 2, 1), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(7, 3, 0), fixture.Hits[4]);
   SCOPE_ASSERT_EQUAL(SearchHit(11, 3, 3), fixture.Hits[5]);
 }
 
@@ -344,38 +344,37 @@ SCOPE_FIXTURE_CTOR(aSQdotPQdotQaSearch, STest, STest("a*?.+?.?a")) {
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(aaaaOrDotOrDotaDot_aOrDotaaOrDotOraDotSearch, STest, STest(2, (const char *[]){ "aaaa|.|.a.", "a|.(a)a|.|a." })) {
+SCOPE_FIXTURE_CTOR(aaaaOrDotOrDotaDot_aOrDotaaSearch, STest, STest(2, (const char *[]){ "aaaa|.|.a.", "a|.aa" })) {
   const byte* text = (const byte*) "aaab";
   fixture.search(text, text + 4, 0, fixture);
-  SCOPE_ASSERT_EQUAL(8, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(7, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 1), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 1), fixture.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 1), fixture.Hits[2]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[3]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[4]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 1), fixture.Hits[4]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 0), fixture.Hits[5]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 1, 0), fixture.Hits[6]);
-  SCOPE_ASSERT_EQUAL(SearchHit(3, 1, 1), fixture.Hits[7]);
 }
 
 SCOPE_FIXTURE_CTOR(aOraaQ_aOrbSearch, STest, STest(2, (const char*[]){"a|aa?", "a|b"})) {
   const byte* text = (const byte*) "aa";
   fixture.search(text, text + 2, 0, fixture);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 1), fixture.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[2]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 1), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 1), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 1), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[3]);
 }
 
 SCOPE_FIXTURE_CTOR(aOraa_aOrbSearch, STest, STest(2, (const char*[]){"a|aa", "a|b"})) {
   const byte* text = (const byte*) "aa";
   fixture.search(text, text + 2, 0, fixture);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 1), fixture.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[2]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 1), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 1), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 1), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[3]);
 }
 
 SCOPE_FIXTURE_CTOR(aPOrDotOraaDot_aaDotPDotDotaQSearch, STest, STest(2, (const char *[]){ "a+|.|aa.", "aa.+..a*" })) {
@@ -401,8 +400,8 @@ SCOPE_FIXTURE_CTOR(aDotaQQOraOrDotPQ_aQaOrDotPaQQSearch, STest, STest(2, (const 
   const byte* text = (const byte*) "aaab";
   fixture.search(text, text + 4, 0, fixture);
   SCOPE_ASSERT_EQUAL(5, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 1), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 1), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[1]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 2, 0), fixture.Hits[2]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 1), fixture.Hits[3]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 1, 1), fixture.Hits[4]);
@@ -431,8 +430,8 @@ SCOPE_FIXTURE_CTOR(aaa_aaaOraSearch, STest, STest(2, (const char *[]){ "aaa", "a
   const byte* text = (const byte*) "aaa";
   fixture.search(text, text + 3, 0, fixture);
   SCOPE_ASSERT_EQUAL(2, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 1), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 1), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[1]);
 }
 
 SCOPE_FIXTURE_CTOR(aPQab_aPQaOrbSearch, STest, STest(2, (const char *[]){ "a+?ab", "a+?a|b" })) {
@@ -448,8 +447,8 @@ SCOPE_FIXTURE_CTOR(aPQa_aPQaSearch, STest, STest(2, (const char *[]){ "a+?a", "a
   const byte* text = (const byte*) "aaa";
   fixture.search(text, text + 3, 0, fixture);
   SCOPE_ASSERT_EQUAL(2, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 1), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 1), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[1]);
 }
 
 SCOPE_FIXTURE_CTOR(aSQaSQDot_aPDotPQSearch, STest, STest(2, (const char *[]){ "a*?a*?.", "a+.+?" })) {
