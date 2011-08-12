@@ -71,9 +71,14 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
     bool found = false;
     ByteSet dstBits;
 
-    for (di = DstPos[dstHead]; di < dst.outDegree(dstHead); ++di) {
+    std::map<Graph::vertex, uint32>::const_iterator i(DstPos.find(dstHead));
+    di = i == DstPos.end() ? 0 : i->second;
+
+    for ( ; di < dst.outDegree(dstHead); ++di) {
       dstTail = dst.outVertex(dstHead, di);
       const Transition* dstTrans(dst[dstTail]);
+
+//      std::cerr << "match src " << srcTail << " with dst " << dstTail << "? ";
 
       dstBits.reset();
       dstTrans->getBits(dstBits);
@@ -92,6 +97,10 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
       // tail vertex cannot be matched
       dstTail = dst.addVertex();
       dst.setTran(dstTail, srcTrans->clone());
+
+      if (i == DstPos.end()) {
+        di = 0;
+      }
 
       #ifdef LBT_TRACE_ENABLED
       std::cerr << "added new vertex " << dstTail << " for "
