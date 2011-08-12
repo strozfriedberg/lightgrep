@@ -334,26 +334,33 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       return false;
 
     case FINISH_OP:
-      // kill all same-labeled, overlapping threads
-      for (ThreadList::iterator i(t+1); i != Active.end() && i->Start == t->Start; ++i) {
-        if (i->Label == t->Label) {
-          i->End = Thread::NONE;
-          // DIE. Penultimate instruction is always a halt
-          i->PC = &Prog->back() - 1;
-        }
-      }
+      {
+        const uint32 tLabel = t->Label;
+        const uint64 tStart = t->Start;
 
-      if (!SeenNone && !Seen.find(t->Label)) {
-        MatchEnds[t->Label] = t->End + 1;
-
-        if (CurHitFn) {
-          SearchHit hit(t->Start, t->End - t->Start + 1, t->Label);
-          CurHitFn->collect(hit);
+        // kill all same-labeled, same-start threads
+        const ThreadList::const_iterator e(Active.end());
+        for (ThreadList::iterator i(t+1); i != e && i->Start == tStart; ++i) {
+          if (i->Label == tLabel) {
+            i->End = Thread::NONE;
+            // DIE. Penultimate instruction is always a halt
+            i->PC = &Prog->back() - 1;
+          }
         }
 
-        t->PC = 0;
+        if (!SeenNone && !Seen.find(tLabel)) {
+          MatchEnds[tLabel] = t->End + 1;
+
+          if (CurHitFn) {
+            SearchHit hit(tStart, t->End - tStart + 1, tLabel);
+            CurHitFn->collect(hit);
+          }
+
+          t->PC = 0;
+        }
+
+        return false;
       }
-      return false;
 
     default:
       return false;
