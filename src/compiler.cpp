@@ -35,13 +35,13 @@ bool Compiler::canMerge(const Graph& dst, Graph::vertex dstTail, const Transitio
       (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))
     )
     && 1 == dst.inDegree(dstTail) && 1 == src.inDegree(srcTail)
-  ) {
-    dstBits.reset();
-    dstTrans->getBits(dstBits);
-
-    if (dstBits == srcBits) {
-      std::map< Graph::vertex, std::vector<Graph::vertex> >::const_iterator i(Dst2Src.find(dstTail));
-      return i == Dst2Src.end() || 1 == src.inDegree(i->second.front());
+  )
+  {
+    const std::map< Graph::vertex, std::vector<Graph::vertex> >::const_iterator i(Dst2Src.find(dstTail));
+    if (i == Dst2Src.end() || 1 == src.inDegree(i->second.front())) {
+      dstBits.reset();
+      dstTrans->getBits(dstBits);
+      return dstBits == srcBits;
     }
   }
 
