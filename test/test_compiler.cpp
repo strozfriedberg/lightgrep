@@ -72,7 +72,7 @@ SCOPE_TEST(testMerge) {
 
   const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 
-  SCOPE_ASSERT_EQUAL(9u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(8u, fsm.numVertices());
 
   SCOPE_ASSERT(!fsm[0]);
   SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
@@ -82,17 +82,17 @@ SCOPE_TEST(testMerge) {
   SCOPE_ASSERT_EQUAL(NOLABEL, fsm[1]->Label);
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.inVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(4u, fsm.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2u, fsm.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(4u, fsm.outVertex(1, 1));
-  SCOPE_ASSERT_EQUAL(6u, fsm.outVertex(1, 2));
-  SCOPE_ASSERT_EQUAL(7u, fsm.outVertex(1, 3));
+  SCOPE_ASSERT_EQUAL(3u, fsm.outDegree(1));
+  SCOPE_ASSERT_EQUAL(6u, fsm.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(4u, fsm.outVertex(1, 2));
 
   SCOPE_ASSERT_EQUAL(NOLABEL, fsm[2]->Label);
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
+  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(3u, fsm.outVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(7u, fsm.outVertex(2, 1));
 
   SCOPE_ASSERT_EQUAL(0u, fsm[3]->Label);
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(3));
@@ -114,21 +114,15 @@ SCOPE_TEST(testMerge) {
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(6));
   SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(6, 0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(6));
-  SCOPE_ASSERT_EQUAL(8u, fsm.outVertex(6, 0));
+  SCOPE_ASSERT_EQUAL(7u, fsm.outVertex(6, 0));
 
-  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[7]->Label);
-  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(7));
-  SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(7, 0));
+  SCOPE_ASSERT_EQUAL(2u, fsm[7]->Label);
+  SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(7));
+  SCOPE_ASSERT_EQUAL(6u, fsm.inVertex(7, 0));
+  SCOPE_ASSERT_EQUAL(7u, fsm.inVertex(7, 1));
+  SCOPE_ASSERT_EQUAL(2u, fsm.inVertex(7, 2));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(7));
-  SCOPE_ASSERT_EQUAL(8u, fsm.outVertex(7, 0));
-
-  SCOPE_ASSERT_EQUAL(2u, fsm[8]->Label);
-  SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(8));
-  SCOPE_ASSERT_EQUAL(6u, fsm.inVertex(8, 0));
-  SCOPE_ASSERT_EQUAL(7u, fsm.inVertex(8, 1));
-  SCOPE_ASSERT_EQUAL(8u, fsm.inVertex(8, 2));
-  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(8));
-  SCOPE_ASSERT_EQUAL(8u, fsm.outVertex(8, 0));
+  SCOPE_ASSERT_EQUAL(7u, fsm.outVertex(7, 0));
 }
 
 SCOPE_TEST(testMergeLabelsSimple) {
