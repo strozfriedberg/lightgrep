@@ -297,14 +297,12 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 
     case CHECK_HALT_OP:
       {
-        std::pair<uint32,uint64> s(instr.Op.Offset, t->Start);
-        if (CheckStates.end() != CheckStates.find(s)) { // read sync point
-
+        const std::pair<uint32,uint64> s(instr.Op.Offset, t->Start);
+        if (!CheckStates.insert(s).second) {
           t->PC = 0;
           return false;
         }
         else {
-          CheckStates.insert(s); // write sync point
           t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
           return true;
         }
