@@ -54,8 +54,10 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
   Graph::vertex dstTail = Src2Dst[srcTail];
   uint32 di = 0;
 
+  const uint32 dstHeadOutDegree = dst.outDegree(dstHead);
+
   if (dstTail != NONE) {
-    for ( ; di < dst.outDegree(dstHead); ++di) {
+    for ( ; di < dstHeadOutDegree; ++di) {
       if (dst.outVertex(dstHead, di) == dstTail) {
         break;
       }
@@ -78,7 +80,7 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
     std::map<Graph::vertex, uint32>::const_iterator i(DstPos.find(dstHead));
     di = i == DstPos.end() ? 0 : i->second;
 
-    for ( ; di < dst.outDegree(dstHead); ++di) {
+    for ( ; di < dstHeadOutDegree; ++di) {
       dstTail = dst.outVertex(dstHead, di);
       const Transition* dstTrans(dst[dstTail]);
 
