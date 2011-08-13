@@ -451,3 +451,22 @@ SCOPE_TEST(testCreateXXYYY) {
   ASSERT_EQUAL_LABELS(exp, g);
   ASSERT_EQUAL_MATCHES(exp, g);
 }
+
+/*
+SCOPE_TEST(testDeterminize) {
+  Graph g(7);
+  edge(0, 1, g, new LitState('a'));
+  edge(1, 2, g, new LitState('1'));
+  edge(1, 3, g, new LitState('2'));
+  edge(0, 4, g, new EitherState('a', 'b'));
+  edge(4, 5, g, new LitState('3'));
+  edge(4, 6, g, new LitState('4'));
+
+  Graph h(1);
+
+  Compiler comp;
+  comp.determinize(h, g);
+
+  writeGraphviz(std::cerr, h);
+}
+*/
