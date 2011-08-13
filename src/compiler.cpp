@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include "states.h"
 #include "utility.h"
 
 #include <algorithm>
@@ -245,9 +246,7 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
   std::vector<bool> visited(g.numVertices());
 
   std::set<Graph::vertex> heads;
-
-  std::stack<Graph::vertex,
-             std::vector<Graph::vertex> > next;
+  std::stack<Graph::vertex, std::vector<Graph::vertex> > next;
 
   next.push(0);
   visited[0] = true;
@@ -293,6 +292,45 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
       g[t]->Label = NONE;
       next.push(t);
       visited[t] = true;
+    }
+  }
+}
+
+void Compiler::determinize(Graph& dst, const Graph& src) {
+  determinizeVertex(dst, 0, src, 0);
+}
+
+void Compiler::determinizeVertex(Graph& dst, Graph::vertex dstHead, const Graph& src, Graph::vertex srcHead) {
+  
+  std::vector< std::vector<Graph::vertex> > outVertices(256, std::vector<Graph::vertex>());
+  ByteSet outSet;
+
+  // collect all byte transitions leaving srcHead
+  for (uint32 i = 0; i < src.outDegree(srcHead); ++i) {
+    const Graph::vertex srcTail = src.outVertex(srcHead, i);
+
+    outSet.reset(); 
+    src[srcTail]->getBits(outSet);
+
+    for (uint32 j = 0; j < 256; ++j) {
+      if (outSet[j]) {
+        outVertices[j].push_back(srcTail);
+      }
+    }
+  }
+
+  // make a new vertex in dst for each outgoing byte
+  for (std::vector< std::vector<Graph::vertex> >::const_iterator i(outVertices.begin()); i != outVertices.end(); ++i) {
+    if (i->empty()) {
+      continue;
+    }
+
+    const Graph::vertex dstTail = dst.addVertex();
+    dst.addEdge(dstHead, dstTail);
+    dst.setTran(dstTail, new LitState(i - outVertices.begin()));
+
+    for (std::vector<Graph::vertex>::const_iterator j(i->begin()); j != i->end(); ++j) {
+      determinizeVertex(dst, dstTail, src, *j);
     }
   }
 }

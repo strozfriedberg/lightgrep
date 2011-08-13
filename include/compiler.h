@@ -18,6 +18,9 @@ public:
 
   void propagateMatchLabels(Graph& g);
   void removeNonMinimalLabels(Graph& g);
+
+  void determinize(Graph& dst, const Graph& src);
+  void determinizeVertex(Graph& dst, Graph::vertex dstHead, const Graph& src, Graph::vertex srcHead);
   
   StatePair processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead);
 
