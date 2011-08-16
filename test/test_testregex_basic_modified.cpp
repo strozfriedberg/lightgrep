@@ -274,23 +274,19 @@ SCOPE_TEST(testregexBasicModifiedSearch37) {
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
-/*
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch38, STest, STest("[^-]")) {
   const byte* text = (const byte*) "--a";
   fixture.search(text, text + 3, 0, fixture);
   SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 0), fixture.Hits[0]);
 }
-*/
 
-/*
 SCOPE_TEST(testregexBasicModifiedSearch39) {
   NFABuilder nfab;
   ParseTree tree;
   SCOPE_ASSERT(parse("[a-]*", false, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
-*/
 
 SCOPE_TEST(testregexBasicModifiedSearch40) {
   NFABuilder nfab;
@@ -336,14 +332,12 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch45, STest, STest("[[:upper:]]+"))
 }
 */
 
-/*
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch46, STest, STest("[[-]]")) {
   const byte* text = (const byte*) "[[-]]";
   fixture.search(text, text + 5, 0, fixture);
   SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 2, 0), fixture.Hits[0]);
 }
-*/
 
 /*
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch47, STest, STest("[[.NIL.]]")) {
@@ -622,14 +616,12 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch86, STest, STest("a[-b]")) {
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
 }
 
-/*
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch87, STest, STest("a[b-]")) {
   const byte* text = (const byte*) "a-";
   fixture.search(text, text + 2, 0, fixture);
   SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
 }
-*/
 
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch88, STest, STest("a]")) {
   const byte* text = (const byte*) "a]";

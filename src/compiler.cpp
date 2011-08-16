@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include "states.h"
 #include "utility.h"
 
 #include <algorithm>
@@ -11,172 +12,153 @@
 static const Graph::vertex NONE = 0xFFFFFFFF;
 static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
 
-void resizeBranchVec(std::vector< Compiler::Branch >& vec, uint32 size) {
-  for (std::vector< Compiler::Branch >::iterator it(vec.begin()); it != vec.end(); ++it) {
-    it->clear();
+const uint32 NOLABEL = std::numeric_limits<uint32>::max();
+
+bool Compiler::canMerge(const Graph& dst, Graph::vertex dstTail, const Transition* dstTrans, ByteSet& dstBits, const Graph& src, Graph::vertex srcTail, const Transition* srcTrans, const ByteSet& srcBits) const {
+  // Explanation of the condition:
+  //
+  // Vertices match if:
+  //
+  // 1) they have the same incoming edge
+  // 2) they have the same label (i.e., they are match states for
+  //    the same pattern, or are not match states)
+  // 3) if they are match states, then they have no successors
+  // 4) the destination has only one incoming edge
+  // 5) the source has only one incoming edge
+  // 6) if the destination has been matched with a source, then that
+  //    source has only one incoming edge
+  // 7) the source has only one incoming edge
+
+  if (
+    dstTrans->Label == srcTrans->Label &&
+    (
+      dstTrans->Label == NOLABEL ||
+      (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))
+    )
+    && 1 == dst.inDegree(dstTail) && 1 == src.inDegree(srcTail)
+  )
+  {
+    const std::map< Graph::vertex, std::vector<Graph::vertex> >::const_iterator i(Dst2Src.find(dstTail));
+    if (i == Dst2Src.end() || 1 == src.inDegree(i->second.front())) {
+      dstBits.reset();
+      dstTrans->getBits(dstBits);
+      return dstBits == srcBits;
+    }
   }
-  vec.resize(size);
+
+  return false;
+}
+
+Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead) {
+  const Graph::vertex srcTail = src.outVertex(srcHead, si);
+
+  Graph::vertex dstTail = Src2Dst[srcTail];
+  uint32 di = 0;
+
+  const uint32 dstHeadOutDegree = dst.outDegree(dstHead);
+
+  if (dstTail != NONE) {
+    for ( ; di < dstHeadOutDegree; ++di) {
+      if (dst.outVertex(dstHead, di) == dstTail) {
+        break;
+      }
+    }
+  }
+  else {
+    const Transition* srcTrans(src[srcTail]);
+
+    ByteSet srcBits;
+    srcTrans->getBits(srcBits);
+
+    // try to match it with a successor of the destination vertex,
+    // preserving the relative order of the source vertex's successors
+
+    // find dstTail range to which we could map srcTail, by branch order
+
+    bool found = false;
+    ByteSet dstBits;
+
+    std::map<Graph::vertex, uint32>::const_iterator i(DstPos.find(dstHead));
+    di = i == DstPos.end() ? 0 : i->second;
+
+    for ( ; di < dstHeadOutDegree; ++di) {
+      dstTail = dst.outVertex(dstHead, di);
+      const Transition* dstTrans(dst[dstTail]);
+
+//      std::cerr << "match src " << srcTail << " with dst " << dstTail << "? ";
+
+      if (canMerge(dst, dstTail, dstTrans, dstBits,
+                   src, srcTail, srcTrans, srcBits)) {
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      // match not found
+
+      // add a new vertex to the destination if the image of the source
+      // tail vertex cannot be matched
+      dstTail = dst.addVertex();
+      dst.setTran(dstTail, srcTrans->clone());
+
+      if (i == DstPos.end()) {
+        di = 0;
+      }
+
+      #ifdef LBT_TRACE_ENABLED
+      std::cerr << "added new vertex " << dstTail << " for "
+                                       << srcTail << std::endl;
+      #endif
+
+      #ifdef LBT_TRACE_ENABLED
+      std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
+      #endif
+    }
+  }
+
+  dst.addEdgeAt(dstHead, dstTail, di);
+  DstPos[dstHead] = di;
+  return StatePair(dstTail, srcTail);
 }
 
 void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
-  while (!States.empty()) {
-    States.pop();
+  Src2Dst.assign(src.numVertices(), NONE);
+  Dst2Src.clear();
+  DstPos.clear();
+  Visited.clear();
+
+  Src2Dst[0] = 0;
+
+  // push all outedges of the initial state in the source
+  for (int32 i = src.outDegree(0) - 1; i >= 0; --i) {
+    Edges.push(StatePair(0, i));
   }
 
-  const uint32 NOLABEL = std::numeric_limits<uint32>::max();
+  while (!Edges.empty()) {
+    const StatePair& p(Edges.top());
+    Edges.pop();
 
-  const uint32 srcSize = src.numVertices();
-  const uint32 dstSize = dst.numVertices();
-  Src2Dst.assign(srcSize, NONE);
-//  Dst2Src.assign(srcSize + dstSize, std::vector<Graph::vertex>());
-  resizeBranchVec(Dst2Src, srcSize + dstSize);
-  resizeBranchVec(BranchMap, srcSize);
-//  BranchMap.assign(srcSize, Branch());
-  Visited.assign(srcSize, false);
+    const uint32 si = p.second;
+    const Graph::vertex srcHead = p.first;
+    const Graph::vertex dstHead = Src2Dst[srcHead];
 
-  Graph::vertex srcHead, dstHead, srcTail, dstTail;
-  ByteSet srcBits, dstBits;
-
-  // std::vector<Branch> branch_map(srcSize);
-
-  States.push(StatePair(0, 0));
-  while (!States.empty()) {
-    dstHead = States.front().first;
-    srcHead = States.front().second;
-    States.pop();
-
-    #ifdef LBT_TRACE_ENABLED
-    std::cerr << "popped (" << dstHead << ',' << srcHead << ')' << std::endl;
-    #endif
-
-    // skip if we've seen this source vertex already
-    if (Visited[srcHead]) {
-      #ifdef LBT_TRACE_ENABLED
-      std::cerr << "already seen " << srcHead << ", skipping" << std::endl;
-      #endif
+    // skip if we've seen this edge already
+    if (Visited.find(p) != Visited.end()) {
       continue;
     }
 
-    Visited[srcHead] = true;
+    Visited.insert(p);
 
-    // for each successor of the source vertex
-    for (uint32 si = 0, di = 0; si < src.outDegree(srcHead); ++si) {
-      srcTail = src.outVertex(srcHead, si);
-      Transition* srcTrans(src[srcTail]);
+    const StatePair s(processChild(src, dst, si, srcHead, dstHead));
+    const Graph::vertex srcTail = s.second;
+    const Graph::vertex dstTail = s.first;
 
-      srcBits.reset();
-      srcTrans->getBits(srcBits);
+    Src2Dst[srcTail] = dstTail;
+    Dst2Src[dstTail].push_back(srcTail);
 
-      BranchMap[srcTail] = BranchMap[srcHead];
-      BranchMap[srcTail].push_back(si);
-      const Branch& sbranch(BranchMap[srcTail]);
-
-      #ifdef LBT_TRACE_ENABLED
-      std::cerr << "trying to match " << srcTail << " on branch ";
-      std::copy(sbranch.begin(), sbranch.end(),
-                std::ostream_iterator<Graph::vertex>(std::cerr, "."));
-      std::cerr << std::endl;
-      #endif
-
-      // try to match it with a successor of the destination vertex,
-      // preserving the relative order of the source vertex's successors
-
-      // find dstTail range to which we could map srcTail, by branch order
-      uint32 lb = 0;
-      uint32 ub = dst.outDegree(dstHead);
-
-      for (di = lb; di < ub; ++di) {
-        // get dstTail vertex and its preimages
-        dstTail = dst.outVertex(dstHead, di);
-        const Branch& preimages(Dst2Src[dstTail]);
-
-        // compare src branch to the branch of each preimage
-        std::vector<Graph::vertex>::const_iterator i(preimages.begin());
-        for ( ; i != preimages.end(); ++i) {
-          const Branch& dbranch = BranchMap[*i];
-          if (std::lexicographical_compare(dbranch.begin(), dbranch.end(),
-                                           sbranch.begin(), sbranch.end())) {
-            // dst branch < src branch, advance the lower bound
-            lb = di;
-          }
-          else {
-            // src branch >= dst branch, set upper bound and stop
-            ub = di;
-            break;
-          }
-        }
-      }
-
-      bool found = false;
-
-      for (di = lb; di < ub; ++di) {
-        dstTail = dst.outVertex(dstHead, di);
-        Transition* dstTrans(dst[dstTail]);
-
-        dstBits.reset();
-        dstTrans->getBits(dstBits);
-
-        // Explanation of the condition:
-        //
-        // Vertices match if:
-        //
-        // 1) they have the same incoming edge
-        // 2) they have the same label (i.e., they are match states for
-        //    the same pattern, or are not match states)
-        // 3) if they are match states, then they have no successors
-        // 4) the destination has only one incoming edge
-        // 5) the source has only one incoming edge
-        // 6) if the destination has been matched with a source, then that
-        //    source has only one incoming edge
-        // 7) the source has only one incoming edge
-
-        if (dstBits == srcBits &&
-            dstTrans->Label == srcTrans->Label &&
-            (dstTrans->Label == NOLABEL ||
-              (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))) &&
-            1 == dst.inDegree(dstTail) &&
-            (Dst2Src[dstTail].empty() ||
-              1 == src.inDegree(Dst2Src[dstTail].front())) &&
-            1 == src.inDegree(srcTail)) {
-          found = true;
-
-          #ifdef LBT_TRACE_ENABLED
-          std::cerr << "matched " << srcTail << " with " << dstTail << std::endl;
-          #endif
-          break;
-        }
-      }
-
-      if (!found) {
-        // match not found
-        dstTail = Src2Dst[srcTail];
-
-        if (dstTail == NONE) {
-          // add a new vertex to the destination if the image of the source
-          // tail vertex cannot be matched
-          dstTail = dst.addVertex();
-          dst.setTran(dstTail, srcTrans->clone());
-
-          #ifdef LBT_TRACE_ENABLED
-          std::cerr << "added new vertex " << dstTail << " for "
-                                           << srcTail << std::endl;
-          #endif
-        }
-
-        addNewEdge(dstHead, dstTail, dst);
-
-        #ifdef LBT_TRACE_ENABLED
-        std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
-        #endif
-      }
-
-      Src2Dst[srcTail] = dstTail;
-      Dst2Src[dstTail].push_back(srcTail);
-      States.push(StatePair(dstTail, srcTail));
-
-      #ifdef LBT_TRACE_ENABLED
-      std::cerr << "pushed (" << dstTail << ',' << srcTail << ')' << std::endl;
-      #endif
+    for (int32 i = src.outDegree(srcTail) - 1; i >= 0; --i) {
+      Edges.push(StatePair(srcTail, i));
     }
   }
 }
@@ -264,9 +246,7 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
   std::vector<bool> visited(g.numVertices());
 
   std::set<Graph::vertex> heads;
-
-  std::stack<Graph::vertex,
-             std::vector<Graph::vertex> > next;
+  std::stack<Graph::vertex, std::vector<Graph::vertex> > next;
 
   next.push(0);
   visited[0] = true;
@@ -312,6 +292,45 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
       g[t]->Label = NONE;
       next.push(t);
       visited[t] = true;
+    }
+  }
+}
+
+void Compiler::determinize(Graph& dst, const Graph& src) {
+  determinizeVertex(dst, 0, src, 0);
+}
+
+void Compiler::determinizeVertex(Graph& dst, Graph::vertex dstHead, const Graph& src, Graph::vertex srcHead) {
+  
+  std::vector< std::vector<Graph::vertex> > outVertices(256, std::vector<Graph::vertex>());
+  ByteSet outSet;
+
+  // collect all byte transitions leaving srcHead
+  for (uint32 i = 0; i < src.outDegree(srcHead); ++i) {
+    const Graph::vertex srcTail = src.outVertex(srcHead, i);
+
+    outSet.reset(); 
+    src[srcTail]->getBits(outSet);
+
+    for (uint32 j = 0; j < 256; ++j) {
+      if (outSet[j]) {
+        outVertices[j].push_back(srcTail);
+      }
+    }
+  }
+
+  // make a new vertex in dst for each outgoing byte
+  for (std::vector< std::vector<Graph::vertex> >::const_iterator i(outVertices.begin()); i != outVertices.end(); ++i) {
+    if (i->empty()) {
+      continue;
+    }
+
+    const Graph::vertex dstTail = dst.addVertex();
+    dst.addEdge(dstHead, dstTail);
+    dst.setTran(dstTail, new LitState(i - outVertices.begin()));
+
+    for (std::vector<Graph::vertex>::const_iterator j(i->begin()); j != i->end(); ++j) {
+      determinizeVertex(dst, dstTail, src, *j);
     }
   }
 }

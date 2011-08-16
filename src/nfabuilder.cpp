@@ -148,7 +148,7 @@ void NFABuilder::literal(const Node& n) {
     setLiteralTransition(g, first, TempBuf[0]);
     for (uint32 i = 1; i < len; ++i) {
       last = g.addVertex();
-      addNewEdge(prev, last, g);
+      g.addEdge(prev, last);
       setLiteralTransition(g, last, TempBuf[i]);
       prev = last;
     }
