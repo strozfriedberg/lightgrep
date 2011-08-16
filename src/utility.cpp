@@ -12,10 +12,6 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-void addNewEdge(Graph::vertex source, Graph::vertex target, Graph& fsm) {
-  fsm.addEdge(source, target);
-}
-
 void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, bool litMode, GraphPtr& fsm, uint32& keyIdx) {
   Compiler    comp;
   ParseTree   tree;
@@ -41,13 +37,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
           }
 
           if (nfab.build(tree)) {
-            if (fsm) {
-              comp.mergeIntoFSM(*fsm, *nfab.getFsm());
-            }
-            else {
-              fsm = nfab.getFsm();
-              nfab.resetFsm();
-            }
+            comp.mergeIntoFSM(*fsm, *nfab.getFsm());
           }
           else {
             std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
@@ -245,8 +235,7 @@ ProgramPtr createProgram(const Graph& graph) {
       // std::cerr << "wrote " << i << std::endl;
 
       if (t->Label != NOLABEL) {
-        *curOp++ = Instruction::makeLabel(t->Label); // also problematic
-        // std::cerr << "wrote " << Instruction::makeSaveLabel(t->Label) << std::endl;
+        *curOp++ = Instruction::makeLabel(t->Label);
       }
 
       if (cg->Snippets[v].CheckIndex != NONE) {

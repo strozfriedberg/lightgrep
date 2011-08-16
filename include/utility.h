@@ -24,8 +24,6 @@ struct KwInfo {
   std::vector< std::pair<uint32, uint32> > PatternsTable;
 };
 
-void addNewEdge(Graph::vertex source, Graph::vertex target, Graph& fsm);
-
 GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII, bool caseSensitive = true, bool litMode = false);
 GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode);
 

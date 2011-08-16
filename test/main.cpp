@@ -71,9 +71,10 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
   p = createProgram(*fsm);
   std::cerr << p->size() << " instructions" << std::endl;
 
-  p->Skip = calculateSkipTable(*fsm);
+//  p->Skip = calculateSkipTable(*fsm);
   p->First = firstBytes(*fsm);
 
+/*
   std::cerr << p->Skip->l_min() << " lmin" << std::endl;
   uint32 numMax = 0;
   double total = 0;
@@ -85,6 +86,7 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
   }
   std::cerr << numMax << " numMaxSkips" << std::endl;
   std::cerr << (total/256) << " averageSkip" << std::endl;
+*/
   return p;
 }
 
