@@ -311,12 +311,20 @@ namespace {
     return -1;
   }
 
+// FIXME: Add octal escapes
+// FIXME: Add \w, \W: [a-zA-Z0-9_]
+// FIXME: Add \s, \S: [\t\n\f\r ]
+// FIXME: Add \d, \D: [0-9]
+// FIXME: Add \c
+
   int consumeEscape() {
     if (Text >= TextEnd) {
       return -1;
     }
-    unsigned int c = *Text++;
+
+    const unsigned int c = *Text++;
     switch (c) {
+      // metacharacters as themselves
       case '|':
       case '(':
       case ')':
@@ -333,6 +341,17 @@ namespace {
       case '\\':
         yylval.c = c;
         return CHAR;
+
+      // ASCII escapes
+      case 'a':
+        yylval.c = '\a';
+        return CHAR;
+      case 'e':
+        yylval.c = '\e';
+        return CHAR;
+      case 'f':
+        yylval.c = '\f';
+        return CHAR;
       case 'n':
         yylval.c = '\n';
         return CHAR;
@@ -342,10 +361,14 @@ namespace {
       case 't':
         yylval.c = '\t';
         return CHAR;
+
+      // hexadecimal characters
       case 'x':
         return consumeHexCode();
+
+      default:
+        return -1;
     }
-    return -1;
   }
 
   int yylex(void) {
