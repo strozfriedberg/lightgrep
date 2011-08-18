@@ -28,8 +28,9 @@ namespace {
 
 %token <c> CHAR
 %token <c> DIGIT
+%token <c> NAMED
 
-%type <node> regexp alt concat rep number atom literal charclass charclass_right
+%type <node> regexp alt concat rep number atom literal charclass charclass_right cc_named
 %type <c>    character cc_char cc_char_first
 
 %start regexp
@@ -149,6 +150,7 @@ literal:
     $$ = $2;
     $$->Type = Node::CHAR_CLASS;
   }
+| cc_named
 ;
 
 character:
@@ -187,6 +189,11 @@ charclass:
     $$ = $2;
     $$->Bits.set($1);
   }
+| cc_named charclass_right
+  {
+    $$ = $2;
+    $$->Bits |= $1->Bits;
+  }
 ;
 
 charclass_right:
@@ -199,6 +206,11 @@ charclass_right:
   {
     $$ = $2;
     $$->Bits.set($1);
+  }
+| cc_named charclass_right
+  {
+    $$ = $2;
+    $$->Bits |= $1->Bits;
   }
 | /* empty */
   {
@@ -268,6 +280,54 @@ cc_char:
   }
 ;
 
+cc_named:
+  NAMED
+  {
+    switch ($1) {
+      case 'd':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, '0', '9'));
+      }
+      case 'D':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, '0', '9'));
+        $$->Bits.flip();
+      }
+      case 's':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, ' '));
+        $$->Bits.set('\f');
+        $$->Bits.set('\n');
+        $$->Bits.set('\t');
+        $$->Bits.set('\r');
+      }
+      case 'S':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, ' '));
+        $$->Bits.set('\f');
+        $$->Bits.set('\n');
+        $$->Bits.set('\t');
+        $$->Bits.set('\r');
+        $$->Bits.flip();
+      }
+      case 'w':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, '_'));
+        $$->range('a', 'z');
+        $$->range('A', 'Z');
+        $$->range('0', '9');
+      }
+      case 'W':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, '_'));
+        $$->range('a', 'z');
+        $$->range('A', 'Z');
+        $$->range('0', '9');
+        $$->Bits.flip();
+      }
+    }
+  }
+;
 %%
 
 namespace {
@@ -357,6 +417,16 @@ namespace {
       case 't':
         yylval.c = '\t';
         return CHAR;
+
+      // named character classes
+      case 'd':
+      case 'D':
+      case 's':
+      case 'S':
+      case 'w':
+      case 'W':
+        yylval.c = c;
+        return NAMED;
 
       // hexadecimal characters
       case 'x':
