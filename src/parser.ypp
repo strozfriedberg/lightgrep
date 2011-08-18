@@ -30,7 +30,7 @@ namespace {
 %token <c> DIGIT
 
 %type <node> regexp alt concat rep number atom literal charclass charclass_right
-%type <c>    character cc_char cc_char_regular cc_char_first
+%type <c>    character cc_char cc_char_first
 
 %start regexp
 
@@ -207,14 +207,6 @@ charclass_right:
   }
 ;
 
-cc_char:
-  '-'
-  {
-    $$ = '-';
-  }
-| cc_char_regular
-;
-
 cc_char_first:
   ']'
   {
@@ -223,9 +215,13 @@ cc_char_first:
 | cc_char
 ;
 
-cc_char_regular:
+cc_char:
   CHAR
 | DIGIT
+| '-'
+  {
+    $$ = '-';
+  }
 | '|'
   {
     $$ = '|';
