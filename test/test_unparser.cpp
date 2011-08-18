@@ -230,6 +230,42 @@ SCOPE_TEST(parseUnparse_LPa1RP1__Test) {
   SCOPE_ASSERT_EQUAL("(a{1}){1}", unparse(tree));
 }
 
+SCOPE_TEST(parseUnparse_CCd_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\d", false, tree));
+  SCOPE_ASSERT_EQUAL("[0-9]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_CCD_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\D", false, tree));
+  SCOPE_ASSERT_EQUAL("[^0-9]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_CCs_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\s", false, tree));
+  SCOPE_ASSERT_EQUAL("[\\t\\n\\f\\r ]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_CCS_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\S", false, tree));
+  SCOPE_ASSERT_EQUAL("[^\\t\\n\\f\\r ]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_CCw_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\w", false, tree));
+  SCOPE_ASSERT_EQUAL("[0-9A-Z_a-z]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_CCW_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\W", false, tree));
+  SCOPE_ASSERT_EQUAL("[^0-9A-Z_a-z]", unparse(tree));
+}
+
 SCOPE_TEST(byteToCharacterString) {
   std::stringstream ss;
 
@@ -239,10 +275,11 @@ SCOPE_TEST(byteToCharacterString) {
     switch (i) {
     case '\a': SCOPE_ASSERT_EQUAL("\\a", actual); break;
     case '\b': SCOPE_ASSERT_EQUAL("\\b", actual); break;
-    case '\t': SCOPE_ASSERT_EQUAL("\\t", actual); break;
+    case '\e': SCOPE_ASSERT_EQUAL("\\e", actual); break;
     case '\f': SCOPE_ASSERT_EQUAL("\\f", actual); break;
+    case '\n': SCOPE_ASSERT_EQUAL("\\n", actual); break;
     case '\r': SCOPE_ASSERT_EQUAL("\\r", actual); break;
-    case 0x1B: SCOPE_ASSERT_EQUAL("\\e", actual); break;
+    case '\t': SCOPE_ASSERT_EQUAL("\\t", actual); break;
     case '\\': SCOPE_ASSERT_EQUAL("\\\\", actual); break;
     default:
       if (0x20 <= i && i <= 0x7E) {

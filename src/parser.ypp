@@ -287,28 +287,32 @@ cc_named:
       case 'd':
       {
         $$ = add("charclass", Node(Node::CHAR_CLASS, '0', '9'));
+        break;
       }
       case 'D':
       {
         $$ = add("charclass", Node(Node::CHAR_CLASS, '0', '9'));
         $$->Bits.flip();
+        break;
       }
       case 's':
       {
         $$ = add("charclass", Node(Node::CHAR_CLASS, ' '));
-        $$->Bits.set('\f');
-        $$->Bits.set('\n');
         $$->Bits.set('\t');
+        $$->Bits.set('\n');
+        $$->Bits.set('\f');
         $$->Bits.set('\r');
+        break;
       }
       case 'S':
       {
         $$ = add("charclass", Node(Node::CHAR_CLASS, ' '));
-        $$->Bits.set('\f');
-        $$->Bits.set('\n');
         $$->Bits.set('\t');
+        $$->Bits.set('\n');
+        $$->Bits.set('\f');
         $$->Bits.set('\r');
         $$->Bits.flip();
+        break;
       }
       case 'w':
       {
@@ -316,6 +320,7 @@ cc_named:
         $$->range('a', 'z');
         $$->range('A', 'Z');
         $$->range('0', '9');
+        break;
       }
       case 'W':
       {
@@ -324,6 +329,7 @@ cc_named:
         $$->range('A', 'Z');
         $$->range('0', '9');
         $$->Bits.flip();
+        break;
       }
     }
   }
@@ -367,11 +373,10 @@ namespace {
     return -1;
   }
 
-// FIXME: Add octal escapes
-// FIXME: Add \w, \W: [a-zA-Z0-9_]
-// FIXME: Add \s, \S: [\t\n\f\r ]
-// FIXME: Add \d, \D: [0-9]
-// FIXME: Add \c
+// FIXME: Add octal escapes.
+// FIXME: Add \c.
+// FIXME: \b is not parsed correctly---should be backspace (0x08) inside
+// character classes, and a wordbreak assertion elsewhere.
 
   int consumeEscape() {
     if (Text >= TextEnd) {
