@@ -37,6 +37,35 @@ void close_paren(std::ostream& out, const Node* n) {
   }
 }
 
+std::string byteToLiteralString(uint32 i) {
+  // all the characters fit to print unescaped
+  if (i == '\\') {
+    return "\\\\";
+  }
+  else if (0x20 <= i && i <= 0x7E) {
+    return std::string(1, (char) i);
+  }
+  else {
+    switch (i) {
+    // all of the named single-character escapes
+    case 0x07: return "\\a";
+    case 0x09: return "\\t";
+    case 0x0A: return "\\n";
+    case 0x0C: return "\\f";
+    case 0x0D: return "\\r";
+    case 0x1B: return "\\e";
+    // otherwise, print the hex code
+    default:
+      {
+        std::stringstream ss;
+        ss << "\\x" << std::hex << std::uppercase
+                    << std::setfill('0') << std::setw(2) << i;
+        return ss.str();
+      }
+    }
+  }
+}
+
 std::string byteToCharacterString(uint32 i) {
   // all the characters fit to print unescaped
   if (i == '\\') {
@@ -51,6 +80,7 @@ std::string byteToCharacterString(uint32 i) {
     case 0x07: return "\\a";
     case 0x08: return "\\b";
     case 0x09: return "\\t";
+    case 0x0A: return "\\n";
     case 0x0C: return "\\f";
     case 0x0D: return "\\r";
     case 0x1B: return "\\e";
@@ -287,7 +317,7 @@ void unparse(std::ostream& out, const Node* n) {
     break;
 
   case Node::LITERAL:
-    out << byteToCharacterString(n->Val);
+    out << byteToLiteralString(n->Val);
     break;
 
   default:
