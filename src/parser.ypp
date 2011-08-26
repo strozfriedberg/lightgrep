@@ -337,6 +337,32 @@ cc_named:
 %%
 
 namespace {
+  int parseOctChar(unsigned int c) {
+    return ('0' <= c && c <= '7') ? c - '0' : -1;
+  }
+
+  int consumeOctCode() {
+    int oct = 0;
+    int digit;
+
+    for (uint32 i = 0; i < 3 && Text < TextEnd; ++i) {
+      digit = parseOctChar(*Text);
+      if (digit == -1) {
+        break;
+      }
+
+      oct = (oct << 3) | digit;
+      ++Text;
+    }
+
+    if (oct > 0377) {
+      return -1;
+    }
+ 
+    yylval.c = oct;
+    return CHAR;
+  }
+
   int parseHexChar(unsigned int c) {
     int val = -1;
     if ('0' <= c && c <= '9') {
@@ -373,10 +399,10 @@ namespace {
     return -1;
   }
 
-// FIXME: Add octal escapes.
 // FIXME: Add \c.
 // FIXME: \b is not parsed correctly---should be backspace (0x08) inside
-// character classes, and a wordbreak assertion elsewhere.
+//  character classes, and a wordbreak assertion elsewhere.
+// FIXME: Support \x, \xh?
 
   int consumeEscape() {
     if (Text >= TextEnd) {
@@ -436,6 +462,18 @@ namespace {
       // hexadecimal characters
       case 'x':
         return consumeHexCode();
+
+      // octal characters
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+        --Text;
+        return consumeOctCode();
 
       default:
         return -1;
