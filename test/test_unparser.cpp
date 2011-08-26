@@ -1,6 +1,7 @@
 #include <scope/test.h>
 
 #include <iomanip>
+#include <stdexcept>
 
 #include "parser.h"
 #include "parsetree.h"
@@ -264,6 +265,53 @@ SCOPE_TEST(parseUnparse_CCW_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("\\W", false, tree));
   SCOPE_ASSERT_EQUAL("[^0-9A-Z_a-z]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BS0_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\0", false, tree));
+  SCOPE_ASSERT_EQUAL("\\x00", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BS00_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\00", false, tree));
+  SCOPE_ASSERT_EQUAL("\\x00", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BS000_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\000", false, tree));
+  SCOPE_ASSERT_EQUAL("\\x00", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BS0000_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\0000", false, tree));
+  SCOPE_ASSERT_EQUAL("\\x000", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BS08_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\08", false, tree));
+  SCOPE_ASSERT_EQUAL("\\x008", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BS377_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\377", false, tree));
+  SCOPE_ASSERT_EQUAL("\\xFF", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BS400_Test) {
+  ParseTree tree;
+  try {
+    parse("\\400", false, tree);
+    SCOPE_ASSERT(false);
+  }
+  catch (std::runtime_error) {
+    // expected
+  }
 }
 
 SCOPE_TEST(byteToCharacterString) {
