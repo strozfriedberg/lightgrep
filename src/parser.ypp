@@ -10,6 +10,8 @@ namespace {
   const unsigned char* TextBegin;
   const unsigned char* TextEnd;
 
+  uint32 ResidualUTF8;
+
   ParseTree* Tree;
 
   bool LiteralMode;
@@ -28,9 +30,10 @@ namespace {
 
 %token <c> CHAR
 %token <c> DIGIT
+%token <c> NAMED
 
-%type <node> regexp alt concat rep number atom literal charclass charclass_right
-%type <c>    character cc_char cc_char_regular cc_char_first
+%type <node> regexp alt concat rep number atom literal charclass charclass_right cc_named
+%type <c> character cc_char cc_char_first
 
 %start regexp
 
@@ -149,6 +152,7 @@ literal:
     $$ = $2;
     $$->Type = Node::CHAR_CLASS;
   }
+| cc_named
 ;
 
 character:
@@ -187,6 +191,11 @@ charclass:
     $$ = $2;
     $$->Bits.set($1);
   }
+| cc_named charclass_right
+  {
+    $$ = $2;
+    $$->Bits |= $1->Bits;
+  }
 ;
 
 charclass_right:
@@ -200,19 +209,16 @@ charclass_right:
     $$ = $2;
     $$->Bits.set($1);
   }
+| cc_named charclass_right
+  {
+    $$ = $2;
+    $$->Bits |= $1->Bits;
+  }
 | /* empty */
   {
     $$ = add("ignore", Node(Node::IGNORE, 'x'));
     $$->Bits.reset();
   }
-;
-
-cc_char:
-  '-'
-  {
-    $$ = '-';
-  }
-| cc_char_regular
 ;
 
 cc_char_first:
@@ -223,9 +229,13 @@ cc_char_first:
 | cc_char
 ;
 
-cc_char_regular:
+cc_char:
   CHAR
 | DIGIT
+| '-'
+  {
+    $$ = '-';
+  }
 | '|'
   {
     $$ = '|';
@@ -272,9 +282,89 @@ cc_char_regular:
   }
 ;
 
+cc_named:
+  NAMED
+  {
+    switch ($1) {
+      case 'd':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, '0', '9'));
+        break;
+      }
+      case 'D':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, '0', '9'));
+        $$->Bits.flip();
+        break;
+      }
+      case 's':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, ' '));
+        $$->Bits.set('\t');
+        $$->Bits.set('\n');
+        $$->Bits.set('\f');
+        $$->Bits.set('\r');
+        break;
+      }
+      case 'S':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, ' '));
+        $$->Bits.set('\t');
+        $$->Bits.set('\n');
+        $$->Bits.set('\f');
+        $$->Bits.set('\r');
+        $$->Bits.flip();
+        break;
+      }
+      case 'w':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, '_'));
+        $$->range('a', 'z');
+        $$->range('A', 'Z');
+        $$->range('0', '9');
+        break;
+      }
+      case 'W':
+      {
+        $$ = add("charclass", Node(Node::CHAR_CLASS, '_'));
+        $$->range('a', 'z');
+        $$->range('A', 'Z');
+        $$->range('0', '9');
+        $$->Bits.flip();
+        break;
+      }
+    }
+  }
+;
 %%
 
 namespace {
+  int parseOctChar(unsigned int c) {
+    return ('0' <= c && c <= '7') ? c - '0' : -1;
+  }
+
+  int consumeOctCode() {
+    int oct = 0;
+    int digit;
+
+    for (uint32 i = 0; i < 3 && Text < TextEnd; ++i) {
+      digit = parseOctChar(*Text);
+      if (digit == -1) {
+        break;
+      }
+
+      oct = (oct << 3) | digit;
+      ++Text;
+    }
+
+    if (oct > 0377) {
+      return -1;
+    }
+ 
+    yylval.c = oct;
+    return CHAR;
+  }
+
   int parseHexChar(unsigned int c) {
     int val = -1;
     if ('0' <= c && c <= '9') {
@@ -289,34 +379,135 @@ namespace {
     return val;
   }
 
+  int consumeShortHexCode() {
+    unsigned char one = *Text++,
+                  two = *Text++;
+    int val = parseHexChar(one),
+        ret;
+    if (val < 0) {
+      return val;
+    }
+    ret = val;
+    ret <<= 4;
+    val = parseHexChar(two);
+    if (val < 0) {
+      return val;
+    }
+    ret += val;
+    yylval.c = ret;
+    return CHAR;
+  }
+
+  uint32 codePointToUTF8(int cp) {
+    if (cp < 0x00) {
+      return -1;
+    }
+    else if (cp < 0x80) {
+      return cp;
+    }
+    else if (cp < 0x800) {
+      return 0x0000C080 |
+             ((cp & 0x000007C0) << 2) |
+              (cp & 0x0000003F);
+    }
+    else if (cp < 0x010000) {
+      return 0x00E08080 |
+             ((cp & 0x0000F000) << 4) |
+             ((cp & 0x00000FC0) << 2) |
+              (cp & 0x0000003F);
+    }
+    else if (cp < 0x110000) {
+      return 0xF0808080 | 
+             ((cp & 0x001C0000) << 6) |
+             ((cp & 0x0003F000) << 4) |
+             ((cp & 0x00000FC0) << 2) |
+              (cp & 0x0000003F);
+    }
+    else {
+      return -1;
+    }
+  }
+
+  int consumeLongHexCode() {
+    ++Text; // advance past '{'
+
+    // long codes are at most 6 hex digits long, plus closing '}'
+    const unsigned char* codeEnd = std::min(Text+7, TextEnd);
+    int cp = 0;
+
+    for (unsigned char digit = *Text; Text < codeEnd; digit = *++Text) {
+      if (digit == '}') {
+        ++Text;
+
+        if (cp < 0x00 || cp > 0x10FFFF) {
+          // value is outside Unicode bounds
+          return -1;
+        }
+
+        if (cp < 0x80) {
+          // 7-bit characters stay ASCII
+          yylval.c = cp;
+          return CHAR;
+        }
+      
+        // multibyte characters, leave some bytes as residual  
+        const uint32 utf8 = codePointToUTF8(cp);
+
+        if (cp < 0x800) {
+          // two bytes
+          yylval.c = (utf8 & 0x0000FF00) >> 8;
+          ResidualUTF8 = utf8 << 24;
+        }
+        else if (cp < 0x010000) {
+          // three bytes
+          yylval.c = (utf8 & 0x00FF0000) >> 16;
+          ResidualUTF8 = utf8 << 16;
+        }
+        else {
+          // four bytes
+          yylval.c = (utf8 & 0xFF000000) >> 24;
+          ResidualUTF8 = utf8 << 8;
+        }
+        
+        return CHAR;
+      }
+
+      const int val = parseHexChar(digit);
+      if (val < 0) {
+        return -1;
+      }
+
+      cp = (cp << 4) | val;
+    }
+
+    return -1;
+  }
+
   int consumeHexCode() {
     if (Text + 1 < TextEnd) {
-      unsigned char one = *Text++,
-                    two = *Text++;
-      int val = parseHexChar(one),
-          ret;
-      if (val < 0) {
-        return val;
+      if (*Text == '{') {
+        return consumeLongHexCode();
       }
-      ret = val;
-      ret <<= 4;
-      val = parseHexChar(two);
-      if (val < 0) {
-        return val;
+      else {
+        return consumeShortHexCode();
       }
-      ret += val;
-      yylval.c = ret;
-      return CHAR;
     }
     return -1;
   }
+
+// FIXME: Add \c.
+// FIXME: \b is not parsed correctly---should be backspace (0x08) inside
+//  character classes, and a wordbreak assertion elsewhere.
+// FIXME: Support \x, \xh?
 
   int consumeEscape() {
     if (Text >= TextEnd) {
       return -1;
     }
-    unsigned int c = *Text++;
+
+    const unsigned int c = *Text++;
     switch (c) {
+      // metacharacters as themselves
       case '|':
       case '(':
       case ')':
@@ -333,6 +524,17 @@ namespace {
       case '\\':
         yylval.c = c;
         return CHAR;
+
+      // ASCII escapes
+      case 'a':
+        yylval.c = '\a';
+        return CHAR;
+      case 'e':
+        yylval.c = '\e';
+        return CHAR;
+      case 'f':
+        yylval.c = '\f';
+        return CHAR;
       case 'n':
         yylval.c = '\n';
         return CHAR;
@@ -342,13 +544,45 @@ namespace {
       case 't':
         yylval.c = '\t';
         return CHAR;
+
+      // named character classes
+      case 'd':
+      case 'D':
+      case 's':
+      case 'S':
+      case 'w':
+      case 'W':
+        yylval.c = c;
+        return NAMED;
+
+      // hexadecimal characters
       case 'x':
         return consumeHexCode();
+
+      // octal characters
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+        --Text;
+        return consumeOctCode();
+
+      default:
+        return -1;
     }
-    return -1;
   }
 
   int yylex(void) {
+    if (ResidualUTF8) {
+      yylval.c = (ResidualUTF8 & 0xFF000000) >> 24;
+      ResidualUTF8 <<= 8;
+      return CHAR;
+    }
+
     if (Text < TextEnd) {
       const unsigned int c = *Text++;
       if (LiteralMode) {
