@@ -314,6 +314,98 @@ SCOPE_TEST(parseUnparse_BS400_Test) {
   }
 }
 
+SCOPE_TEST(parseUnparse_BSx0000_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x{0000}", false, tree));
+  SCOPE_ASSERT_EQUAL("\\x00", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BSx007F_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x{007F}", false, tree));
+  SCOPE_ASSERT_EQUAL("\\x7F", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BSx0080_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x{0080}", false, tree));
+  SCOPE_ASSERT_EQUAL("\\xC2\\x80", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BSx07FF_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x{07FF}", false, tree));
+  SCOPE_ASSERT_EQUAL("\\xDF\\xBF", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BSx0800_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x{0800}", false, tree));
+  SCOPE_ASSERT_EQUAL("\\xE0\\xA0\\x80", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BSxFFFF_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x{FFFF}", false, tree));
+  SCOPE_ASSERT_EQUAL("\\xEF\\xBF\\xBF", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BSx010000_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x{010000}", false, tree));
+  SCOPE_ASSERT_EQUAL("\\xF0\\x90\\x80\\x80", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BSx10FFFF_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x{10FFFF}", false, tree));
+  SCOPE_ASSERT_EQUAL("\\xF4\\x8F\\xBF\\xBF", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_BSx110000_Test) {
+  ParseTree tree;
+  try {
+    parse("\\x{110000}", false, tree);
+    SCOPE_ASSERT(false);
+  }
+  catch (std::runtime_error) {
+    // expected
+  }
+}
+
+SCOPE_TEST(parseUnparse_BSxLCB_Test) {
+  ParseTree tree;
+  try {
+    parse("\\x{", false, tree);
+    SCOPE_ASSERT(false);
+  }
+  catch (std::runtime_error) {
+    // expected
+  }
+}
+
+SCOPE_TEST(parseUnparse_BSxLCB1_Test) {
+  ParseTree tree;
+  try {
+    parse("\\x{1", false, tree);
+    SCOPE_ASSERT(false);
+  }
+  catch (std::runtime_error) {
+    // expected
+  }
+}
+
+SCOPE_TEST(parseUnparse_BSxLCBxRCB_Test) {
+  ParseTree tree;
+  try {
+    parse("\\x{x}", false, tree);
+    SCOPE_ASSERT(false);
+  }
+  catch (std::runtime_error) {
+    // expected
+  }
+}
+
 SCOPE_TEST(byteToCharacterString) {
   std::stringstream ss;
 
