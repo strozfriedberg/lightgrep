@@ -100,7 +100,7 @@ if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.enviro
 
 libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options*'],
                         boostDir, buildBoost)
-liblg = sub('src')
+liblg = sub('src/lib')
 c_example = sub('c_example')
 libDir = env.Install('lib', liblg)
 test = sub('test')
