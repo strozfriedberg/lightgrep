@@ -2,7 +2,7 @@ Import('env')
 Import('isWindows')
 myEnv = env
 flags = myEnv['CCFLAGS']
-parser = myEnv.Command('#/bin/src/parser.tab.cpp', 'parser.ypp', 'bison -r solved $SOURCE -o $TARGET')
+parser = myEnv.Command('#/bin/src/lib/parser.tab.cpp', 'parser.ypp', 'bison -r solved $SOURCE -o $TARGET')
 if (isWindows):
   ret = myEnv.Library('lightgrep', Glob('*.cpp'), LINKFLAGS='-static-libgcc')
 else:
