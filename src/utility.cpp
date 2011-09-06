@@ -64,7 +64,10 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
   // std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
 
   if (fsm) {
-    comp.labelGuardStates(*fsm);
+    GraphPtr det(new Graph(1));
+    comp.subsetDFA(*det, *fsm);
+    comp.labelGuardStates(*det);
+    fsm = det;
   }
 }
 

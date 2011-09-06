@@ -452,8 +452,7 @@ SCOPE_TEST(testCreateXXYYY) {
   ASSERT_EQUAL_MATCHES(exp, g);
 }
 
-/*
-SCOPE_TEST(testDeterminize) {
+SCOPE_TEST(testDeterminize0) {
   Graph g(7);
   edge(0, 1, g, new LitState('a'));
   edge(1, 2, g, new LitState('1'));
@@ -465,8 +464,183 @@ SCOPE_TEST(testDeterminize) {
   Graph h(1);
 
   Compiler comp;
-  comp.determinize(h, g);
+  comp.subsetDFA(h, g);
 
-  writeGraphviz(std::cerr, h);
+  Graph exp;
+  edge(0, 1, exp, new LitState('a'));
+  edge(0, 2, exp, new LitState('b'));
+  edge(2, 3, exp, new LitState('3'));
+  edge(2, 4, exp, new LitState('4'));
+  edge(1, 5, exp, new LitState('1'));
+  edge(1, 6, exp, new LitState('2'));
+  edge(1, 3, exp, new LitState('3'));
+  edge(1, 4, exp, new LitState('4'));
+
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
 }
-*/
+
+SCOPE_TEST(testDeterminize1) {
+  Graph g(5);
+  edge(0, 2, g, new LitState('a'));
+  edge(0, 1, g, new LitState('a'));
+  edge(1, 2, g, new LitState('a'));
+  edge(2, 3, g, new LitState('a'));
+  edge(3, 4, g, new LitState('a'));
+
+  g[4]->IsMatch = true;
+  g[4]->Label = 0;
+
+  Graph h(1);
+  Compiler comp;
+  comp.subsetDFA(h, g);
+
+  Graph exp(5);
+  edge(0, 1, exp, new LitState('a'));
+  edge(1, 2, exp, new LitState('a'));
+  edge(1, 2, exp, new LitState('a'));
+  edge(2, 3, exp, new LitState('a'));
+  edge(2, 4, exp, new LitState('a')); 
+  edge(4, 3, exp, new LitState('a'));
+
+  exp[3]->IsMatch = true;
+  exp[3]->Label = 0; 
+
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
+}
+
+SCOPE_TEST(testDeterminize2) {
+  Graph g(3);
+  edge(0, 1, g, new LitState('a'));
+  edge(0, 2, g, new LitState('a'));
+  edge(1, 3, g, new LitState('a'));
+  edge(2, 3, g, new LitState('a'));
+
+  g[3]->IsMatch = true;
+  g[3]->Label = 0;
+
+  Graph h(1);
+  Compiler comp;
+  comp.subsetDFA(h, g);
+
+  Graph exp(2);
+  edge(0, 1, exp, new LitState('a'));
+  edge(1, 2, exp, new LitState('a'));
+
+  exp[2]->IsMatch = true;
+  exp[2]->Label = 0; 
+
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
+}
+
+SCOPE_TEST(testDeterminize3) {
+  Graph g(2);
+  edge(0, 1, g, new LitState('a'));
+  edge(1, 1, g, new LitState('a'));
+
+  g[1]->IsMatch = true;
+  g[1]->Label = 0;
+
+  Graph h(1);
+  Compiler comp;
+  comp.subsetDFA(h, g);
+
+  ASSERT_EQUAL_GRAPHS(g, h);
+  ASSERT_EQUAL_LABELS(g, h);
+  ASSERT_EQUAL_MATCHES(g, h);
+}
+
+SCOPE_TEST(testDeterminize4) {
+  Graph g(2);
+  edge(0, 1, g, new EitherState('a', 'b'));
+
+  g[1]->IsMatch = true;
+  g[1]->Label = 0;
+
+  Graph h(1);
+  Compiler comp;
+  comp.subsetDFA(h, g);
+
+  Graph exp(2);
+  ByteSet bytes;
+  bytes['a'] = bytes['b'] = true;
+  edge(0, 1, exp, new CharClassState(bytes));
+
+  exp[1]->IsMatch = true;
+  exp[1]->Label = 0;
+
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
+}
+
+SCOPE_TEST(testDeterminize5) {
+  Graph g(4);
+  edge(0, 1, g, new LitState('d'));
+  edge(1, 2, g, new LitState('d'));
+  edge(1, 1, g, new LitState('d'));
+  edge(1, 3, g, new LitState('x'));
+  edge(2, 1, g, new LitState('d'));
+  edge(2, 3, g, new LitState('x'));
+
+  g[3]->IsMatch = true;
+  g[3]->Label = 0;
+
+  Graph h(1);
+  Compiler comp;
+  comp.subsetDFA(h, g);
+
+  Graph exp(5);
+  edge(0, 1, exp, new LitState('d'));
+  edge(1, 2, exp, new LitState('d'));
+  edge(1, 3, exp, new LitState('x'));
+  edge(2, 4, exp, new LitState('d'));
+  edge(2, 3, exp, new LitState('x'));
+  edge(4, 2, exp, new LitState('d'));
+  edge(4, 3, exp, new LitState('x'));
+
+  exp[3]->IsMatch = true;
+  exp[3]->Label = 0;
+
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
+}
+
+SCOPE_TEST(testCopySubgraph) {
+  Graph g;
+  edge(0, 1, g, new LitState('a'));
+  edge(1, 1, g, new LitState('b'));
+  edge(1, 2, g, new LitState('c'));
+  edge(1, 3, g, new LitState('d'));
+  edge(2, 4, g, new LitState('e'));
+  edge(3, 4, g, new LitState('f'));
+  edge(0, 5, g, new LitState('x'));
+
+  Compiler comp;
+  std::set<Graph::vertex> visited;
+  comp.copySubgraph(g, 5, g, 1, visited);
+
+  Graph exp;
+  edge(0, 1, exp, new LitState('a'));
+  edge(1, 1, exp, new LitState('b'));
+  edge(1, 2, exp, new LitState('c'));
+  edge(1, 3, exp, new LitState('d'));
+  edge(2, 4, exp, new LitState('e'));
+  edge(3, 4, exp, new LitState('f'));
+  edge(0, 5, exp, new LitState('x'));
+  edge(5, 5, exp, new LitState('b'));
+  edge(5, 6, exp, new LitState('c'));
+  edge(5, 7, exp, new LitState('d'));
+  edge(6, 8, exp, new LitState('e'));
+  edge(7, 8, exp, new LitState('f'));
+
+  ASSERT_EQUAL_GRAPHS(exp, g);
+  ASSERT_EQUAL_LABELS(exp, g);
+  ASSERT_EQUAL_MATCHES(exp, g);
+}
