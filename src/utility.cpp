@@ -425,7 +425,7 @@ std::string escape(char c, const std::string& text) {
 
 void writeEdge(std::ostream& out, Graph::vertex v, Graph::vertex u,
                uint32 priority, const Graph& graph) {
-  std::string esclabel = escape('\\', graph[u]->label());
+  const std::string esclabel = escape('"', escape('\\', graph[u]->label()));
 
   out << "  " << v << " -> " << u << " ["
       << "label=\"" << esclabel << "\", "
