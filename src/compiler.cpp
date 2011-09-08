@@ -313,12 +313,6 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
     dstStack.pop();
     const Graph::vertex dstHead = list2Dst[dstHeadList];
 
-/*
-    std::cerr << "head ";
-    std::copy(dstHeadList.begin(), dstHeadList.end(), std::ostream_iterator<Graph::vertex>(std::cerr, ", "));
-    std::cerr << std::endl;
-*/
-
     // form determinizable groups
     std::vector< std::vector<Graph::vertex> > detGroups;
     bool startGroup = true;
@@ -401,12 +395,10 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
         dst.addEdge(dstHead, dstTail);
       }
     }
-
-//    std::cerr << std::endl;
   } 
 
   // collapse CharClassStates to RangeStates where possible
-  // probably isn't necessary, but improves the GraphViz output
+  // isn't necessary, but improves the GraphViz output
   for (uint32 i = 1; i < dst.numVertices(); ++i) {
     const Transition* t = dst[i]; 
     
