@@ -611,36 +611,3 @@ SCOPE_TEST(testDeterminize5) {
   ASSERT_EQUAL_LABELS(exp, h);
   ASSERT_EQUAL_MATCHES(exp, h);
 }
-
-SCOPE_TEST(testCopySubgraph) {
-  Graph g;
-  edge(0, 1, g, new LitState('a'));
-  edge(1, 1, g, new LitState('b'));
-  edge(1, 2, g, new LitState('c'));
-  edge(1, 3, g, new LitState('d'));
-  edge(2, 4, g, new LitState('e'));
-  edge(3, 4, g, new LitState('f'));
-  edge(0, 5, g, new LitState('x'));
-
-  Compiler comp;
-  std::set<Graph::vertex> visited;
-  comp.copySubgraph(g, 5, g, 1, visited);
-
-  Graph exp;
-  edge(0, 1, exp, new LitState('a'));
-  edge(1, 1, exp, new LitState('b'));
-  edge(1, 2, exp, new LitState('c'));
-  edge(1, 3, exp, new LitState('d'));
-  edge(2, 4, exp, new LitState('e'));
-  edge(3, 4, exp, new LitState('f'));
-  edge(0, 5, exp, new LitState('x'));
-  edge(5, 5, exp, new LitState('b'));
-  edge(5, 6, exp, new LitState('c'));
-  edge(5, 7, exp, new LitState('d'));
-  edge(6, 8, exp, new LitState('e'));
-  edge(7, 8, exp, new LitState('f'));
-
-  ASSERT_EQUAL_GRAPHS(exp, g);
-  ASSERT_EQUAL_LABELS(exp, g);
-  ASSERT_EQUAL_MATCHES(exp, g);
-}
