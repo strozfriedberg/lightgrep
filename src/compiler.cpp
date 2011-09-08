@@ -313,26 +313,61 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
     dstStack.pop();
     const Graph::vertex dstHead = list2Dst[dstHeadList];
 
-    // form determinizable groups
-    std::vector< std::vector<Graph::vertex> > detGroups;
-    bool startGroup = true;
+/*
+    std::cerr << "dstHeadList == ";
+    std::copy(dstHeadList.begin(), dstHeadList.end(), std::ostream_iterator<Graph::vertex>(std::cerr, ","));
+    std::cerr << std::endl;
+*/
+
+    // get list of srcTails without right duplicates
+    std::vector<Graph::vertex> srcTailsList;
+    std::set<Graph::vertex> seen;
 
     for (std::vector<Graph::vertex>::const_iterator i(dstHeadList.begin()); i != dstHeadList.end(); ++i) {
       const Graph::vertex srcHead = *i;
       for (uint32 j = 0; j < src.outDegree(srcHead); ++j) {
         const Graph::vertex srcTail = src.outVertex(srcHead, j);
 
-        if (startGroup) {
-          detGroups.push_back(std::vector<Graph::vertex>());
-        }
-
-        detGroups.back().push_back(srcTail);
-
-        if (src[srcTail]->IsMatch) {
-          startGroup = true;
+        if (seen.insert(srcTail).second) {
+          srcTailsList.push_back(srcTail);
         }
       }
     }
+
+/*
+    std::cerr << "srcTailsList == ";
+    std::copy(srcTailsList.begin(), srcTailsList.end(), std::ostream_iterator<Graph::vertex>(std::cerr, ","));
+    std::cerr << std::endl;
+*/
+
+    // form determinizable groups
+    std::vector< std::vector<Graph::vertex> > detGroups;
+    bool startGroup = true;
+
+    for (std::vector<Graph::vertex>::const_iterator i(srcTailsList.begin()); i != srcTailsList.end(); ++i) {
+      const Graph::vertex srcTail = *i;
+
+      if (src[srcTail]->IsMatch) {
+        // match states are always singleton groups
+        detGroups.push_back(std::vector<Graph::vertex>());
+        startGroup = true;
+      }
+      else if (startGroup) {
+        detGroups.push_back(std::vector<Graph::vertex>());
+        startGroup = false;
+      }
+
+      detGroups.back().push_back(srcTail);
+    }
+
+/*
+    std::cerr << "detGroups\n";
+    for (std::vector< std::vector<Graph::vertex> >::const_iterator i(detGroups.begin()); i != detGroups.end(); ++i) {
+      std::copy(i->begin(), i->end(), std::ostream_iterator<Graph::vertex>(std::cerr, ","));
+      std::cerr << '\n';
+    }
+    std::cerr << std::endl;
+*/
 
     // determinze each such group
     for (std::vector< std::vector<Graph::vertex> >::const_iterator i(detGroups.begin()); i != detGroups.end(); ++i) {
