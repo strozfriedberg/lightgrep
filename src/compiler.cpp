@@ -298,7 +298,6 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
 
 void Compiler::subsetDFA(Graph& dst, const Graph& src) {
 
-
   std::stack< std::vector<Graph::vertex> > dstStack;
   std::map< std::vector<Graph::vertex>, Graph::vertex> list2Dst;
 
@@ -314,98 +313,74 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
     dstStack.pop();
     const Graph::vertex dstHead = list2Dst[dstHeadList];
 
+/*
     std::cerr << "head ";
     std::copy(dstHeadList.begin(), dstHeadList.end(), std::ostream_iterator<Graph::vertex>(std::cerr, ", "));
     std::cerr << std::endl;
+*/
 
-    // collect all transitions leaving srcHead, per byte
-    std::map< byte, std::vector<Graph::vertex> > outVertices;
+    // form determinizable groups
+    std::vector< std::vector<Graph::vertex> > detGroups;
+    bool startGroup = true;
 
     for (std::vector<Graph::vertex>::const_iterator i(dstHeadList.begin()); i != dstHeadList.end(); ++i) {
       const Graph::vertex srcHead = *i;
-
       for (uint32 j = 0; j < src.outDegree(srcHead); ++j) {
         const Graph::vertex srcTail = src.outVertex(srcHead, j);
 
-        outBytes.reset();
-        src[srcTail]->getBits(outBytes);
+        if (startGroup) {
+          detGroups.push_back(std::vector<Graph::vertex>());
+        }
 
-        for (uint32 k = 0; k < 256; ++k) {
-          if (outBytes[k]) {
-            outVertices[k].push_back(srcTail);
-          }
+        detGroups.back().push_back(srcTail);
+
+        if (src[srcTail]->IsMatch) {
+          startGroup = true;
         }
       }
     }
 
-    // for each byte, calculate new dst out vertices
-    for (std::map< byte, std::vector<Graph::vertex> >::const_iterator i(outVertices.begin()); i != outVertices.end(); ++i) {
-     
-      const byte b = i->first;
-      const std::vector<Graph::vertex>& outList(i->second);
+    // determinze each such group
+    for (std::vector< std::vector<Graph::vertex> >::const_iterator i(detGroups.begin()); i != detGroups.end(); ++i) {
 
-      std::cerr << b << ':';
-      std::copy(outList.begin(), outList.end(), std::ostream_iterator<Graph::vertex>(std::cerr, ", "));
-      std::cerr << std::endl;
+      // collect all transitions leaving srcHead, per byte
+      std::map< byte, std::vector<Graph::vertex> > outVertices;
 
-      // build a list of admissible outgoing subset states
-      std::vector< std::vector<Graph::vertex> > outStates;
-      bool startList = true;      
+      for (std::vector<Graph::vertex>::const_iterator j(i->begin()); j != i->end(); ++j) {
+        const Graph::vertex srcTail = *j;
 
-      for (std::vector<Graph::vertex>::const_iterator j(outList.begin()); j != outList.end(); ++j) {
-        const bool isMatch = src[*j]->IsMatch;
-        if (isMatch) {
-          startList = true;
-        }
+        outBytes.reset();
+        src[srcTail]->getBits(outBytes);
 
-        if (startList) {
-          std::vector<Graph::vertex> l(1, *j);
-          outStates.push_back(l);
-          startList = isMatch;
-        }
-        else {
-          outStates.back().push_back(*j);
-        }
-      }
-    
-      // remove subset states with duplicates to the left
-      for (std::vector< std::vector<Graph::vertex> >::iterator j(outStates.begin()); j != outStates.end(); ++j) {
-        std::set<Graph::vertex> seen; 
-        for (std::vector<Graph::vertex>::iterator k(j->begin()); k != j->end(); ) {
-          if (!seen.insert(*k).second) {
-            k = j->erase(k);
-          }
-          else {
-            ++k;
+        for (uint32 b = 0; b < 256; ++b) {
+          if (outBytes[b]) {
+            outVertices[b].push_back(srcTail);
           }
         }
       }
 
-      std::set< std::vector<Graph::vertex> > seen;
+      // for each byte, calculate new dst out vertex
+      for (std::map< byte, std::vector<Graph::vertex> >::const_iterator j(outVertices.begin()); j != outVertices.end(); ++j) {
 
-      // add an edge from dstHead to each outgoing subset state
-      for (std::vector< std::vector<Graph::vertex> >::const_iterator j(outStates.begin()); j != outStates.end(); ++j) {
+        const byte b = j->first;
+        const std::vector<Graph::vertex>& outList(j->second);
 
-        if (!seen.insert(*j).second) {
-          continue;
-        }
- 
-        std::map< std::vector<Graph::vertex>, Graph::vertex>::const_iterator k(list2Dst.find(*j));
+        std::map< std::vector<Graph::vertex>, Graph::vertex>::const_iterator l(list2Dst.find(outList));
 
         Graph::vertex dstTail;
-        if (k == list2Dst.end()) {
-          list2Dst[*j] = dstTail = dst.addVertex();
-          dstStack.push(*j);
-          
+        if (l == list2Dst.end()) {
+          list2Dst[outList] = dstTail = dst.addVertex();
+          dstStack.push(outList);
+
           dst.setTran(dstTail, new LitState(b));
 
-          if (src[j->front()]->IsMatch) {
+          if (src[outList.front()]->IsMatch) {
             dst[dstTail]->IsMatch = true;
-            dst[dstTail]->Label = src[j->front()]->Label;
+            dst[dstTail]->Label = src[outList.front()]->Label;
           }
         }
         else {
-          dstTail = k->second;
+          dstTail = l->second;
 
           outBytes.reset();
           dst[dstTail]->getBits(outBytes);
@@ -414,9 +389,9 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
             outBytes[b] = true;
             dst.setTran(dstTail, new CharClassState(outBytes));
           
-            if (src[j->front()]->IsMatch) {
+            if (src[outList.front()]->IsMatch) {
               dst[dstTail]->IsMatch = true;
-              dst[dstTail]->Label = src[j->front()]->Label;
+              dst[dstTail]->Label = src[outList.front()]->Label;
             }
           }
         }
@@ -425,8 +400,7 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
       }
     }
 
-    std::cerr << std::endl;
-
+//    std::cerr << std::endl;
   } 
 
   // collapse CharClassStates to RangeStates where possible
@@ -440,7 +414,7 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
     outBytes.reset();
     t->getBits(outBytes);
 
-    for (uint32 b = 0; b < 256; ++b) {
+    for (int32 b = 0; b < 256; ++b) {
       if (outBytes[b]) {
         if (last != b - 1) {
           // not a range
