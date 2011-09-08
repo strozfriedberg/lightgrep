@@ -372,6 +372,7 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
           list2Dst[outList] = dstTail = dst.addVertex();
           dstStack.push(outList);
 
+          delete dst[dstTail];
           dst.setTran(dstTail, new LitState(b));
 
           if (src[outList.front()]->IsMatch) {
@@ -387,6 +388,7 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
 
           if (!outBytes[b]) {
             outBytes[b] = true;
+            delete dst[dstTail];
             dst.setTran(dstTail, new CharClassState(outBytes));
           
             if (src[outList.front()]->IsMatch) {
@@ -435,6 +437,7 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
       r->IsMatch = t->IsMatch;
       r->Label = t->Label;
       dst.setTran(i, r);
+      delete t;
     }
   }
 }
