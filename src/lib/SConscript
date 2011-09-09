@@ -1,10 +1,10 @@
 Import('env')
-Import('isWindows')
+Import('isShared')
 myEnv = env
 flags = myEnv['CCFLAGS']
 parser = myEnv.Command('#/bin/src/lib/parser.tab.cpp', 'parser.ypp', 'bison -r solved $SOURCE -o $TARGET')
-if (isWindows):
-  ret = myEnv.Library('lightgrep', Glob('*.cpp'), LINKFLAGS='-static-libgcc')
-else:
+if (isShared):
   ret = myEnv.SharedLibrary('lightgrep', Glob('*.cpp'))
+else:
+  ret = myEnv.Library('lightgrep', Glob('*.cpp'), LINKFLAGS='-static-libgcc')
 Return('ret')
