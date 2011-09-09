@@ -431,14 +431,14 @@ SCOPE_TEST(testCreateXXYYY) {
   Graph& g = *gp;
 
   Graph exp;
-  edge(0, 1, exp, new LitState('x', 0));
-  edge(0, 2, exp, new LitState('x', 1));
+  edge(0, 1, exp, new LitState('x'));
+  edge(0, 2, exp, new LitState('x'));
   edge(0, 3, exp, new LitState('y'));
   edge(3, 4, exp, new LitState('y'));
-  edge(4, 5, exp, new LitState('y', 2));
+  edge(4, 5, exp, new LitState('y'));
 
-  exp[1]->Label = 0;
-  exp[2]->Label = 1;
+  exp[1]->Label = 1;
+  exp[2]->Label = 0;
   exp[3]->Label = 2;
   exp[4]->Label = NONE;
   exp[5]->Label = NONE;
