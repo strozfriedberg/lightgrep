@@ -1,8 +1,8 @@
-Import('env', 'isWindows', 'isLinux')
-libs = ['lightgrep', 'boost_system', 'boost_thread', 'boost_program_options']
-if (isLinux):
-  libs.append('pthread')
-if (isWindows):
-  libs.append('ws2_32') # so stupid that I have to specify winsock
-ret = env.Program('test', Glob('*.cpp'), LIBS=libs)
+Import('env')
+libs = ['lightgrep', 'boost_program_options']
+optSrcs = env.Glob('#/src/cmd/opt*.cpp')
+testSrcs = env.Glob('*.cpp')
+testSrcs.extend(optSrcs)
+print([str(t) for t in testSrcs])
+ret = env.Program('test', testSrcs, LIBS=libs)
 Return('ret')

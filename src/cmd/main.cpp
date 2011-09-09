@@ -15,8 +15,6 @@
 #include "options.h"
 #include "optparser.h"
 
-#include "test_search_data.h"
-
 #define BOOST_USE_WINDOWS_H
 #include <boost/thread.hpp>
 
@@ -30,10 +28,6 @@ extern "C" void tss_cleanup_implemented() { }
 namespace po = boost::program_options;
 
 void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
-
-void longTest(const Options&) {
-  longTest();
-}
 
 void writeGraphviz(const Options& opts) {
   std::vector<std::string> keys = opts.getKeys();
@@ -202,12 +196,6 @@ int main(int argc, char** argv) {
 
     if (opts.Command == "search") {
       search(opts);
-    }
-    else if (opts.Command == "test") {
-      return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
-    }
-    else if (opts.Command == "long-test") {
-      longTest(opts);
     }
     else if (opts.Command == "server") {
       KwInfo keyInfo;
