@@ -296,20 +296,54 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
   }
 }
 
+struct ByteSetLess {
+  bool operator()(const ByteSet& a, const ByteSet& b) const {
+    for (uint32 i = 0; i < 256; ++i) {
+      if (a[i] < b[i]) {
+        return false;
+      }
+      else if (a[i] > b[i]) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+};
+
+struct PairLess {
+  bool operator()(
+    const std::pair<ByteSet, std::vector<Graph::vertex> >& a,
+    const std::pair<ByteSet, std::vector<Graph::vertex> >& b) const
+  {
+    for (uint32 i = 0; i < 256; ++i) {
+      if (a.first[i] < b.first[i]) {
+        return false;
+      }
+      else if (a.first[i] > b.first[i]) {
+        return true;
+      }
+    }
+
+    return std::lexicographical_compare(a.second.begin(), a.second.end(),
+                                        b.second.begin(), b.second.end());
+  }
+};
+
 void Compiler::subsetDFA(Graph& dst, const Graph& src) {
 
-  std::stack< std::pair< byte, std::vector<Graph::vertex> > > dstStack;
-  std::map< std::pair< byte, std::vector<Graph::vertex> >, Graph::vertex > dstList2Dst;
+  std::stack< std::pair<ByteSet, std::vector<Graph::vertex> > > dstStack;
+  std::map< std::pair<ByteSet, std::vector<Graph::vertex> >, Graph::vertex, PairLess > dstList2Dst;
 
   // set up initial dst state
-  const std::pair< byte, std::vector<Graph::vertex> > d0(0, std::vector<Graph::vertex>(1, 0));
+  const std::pair<ByteSet, std::vector<Graph::vertex> > d0(ByteSet(), std::vector<Graph::vertex>(1, 0));
   dstList2Dst[d0] = 0;
   dstStack.push(d0);
 
   ByteSet outBytes;
 
   while (!dstStack.empty()) {
-    const std::pair< byte, std::vector<Graph::vertex> > p(dstStack.top());
+    const std::pair<ByteSet, std::vector<Graph::vertex> > p(dstStack.top());
     dstStack.pop();
 
     const std::vector<Graph::vertex>& srcHeadList(p.second);
@@ -351,11 +385,30 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
       }
     }
 
-    // form each srcTailsList into determinizable groups
-    std::map< byte, std::vector< std::vector<Graph::vertex> > > dstListGroups;
+    // collapse outgoing bytes with the same srcTails
+    std::map<std::vector<Graph::vertex>, ByteSet> srcList2Bytes;
 
     for (std::map< byte, std::vector<Graph::vertex> >::const_iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
       const byte b = i->first;
+      const std::vector<Graph::vertex>& srcTailList(i->second);
+
+      srcList2Bytes[srcTailList][b] = true;
+    }
+
+    std::map<ByteSet, std::vector<Graph::vertex>, ByteSetLess> bytes2SrcList;
+
+    for (std::map<std::vector<Graph::vertex>, ByteSet>::const_iterator i(srcList2Bytes.begin()); i != srcList2Bytes.end(); ++i) {
+      const ByteSet bs = i->second;
+      const std::vector<Graph::vertex>& srcTailList(i->first);
+
+      bytes2SrcList[bs] = srcTailList;
+    }
+
+    // form each srcTailList into determinizable groups
+    std::map<ByteSet, std::vector< std::vector<Graph::vertex> >, ByteSetLess> dstListGroups;
+
+    for (std::map<ByteSet, std::vector<Graph::vertex>, ByteSetLess>::const_iterator i(bytes2SrcList.begin()); i != bytes2SrcList.end(); ++i) {
+      const ByteSet bs = i->first;
       const std::vector<Graph::vertex>& srcTailList(i->second);
 
       bool startGroup = true;
@@ -365,36 +418,36 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
 
         if (src[srcTail]->IsMatch) {
           // match states are always singleton groups
-          dstListGroups[b].push_back(std::vector<Graph::vertex>());
+          dstListGroups[bs].push_back(std::vector<Graph::vertex>());
           startGroup = true;
         }
         else if (startGroup) {
-          dstListGroups[b].push_back(std::vector<Graph::vertex>());
+          dstListGroups[bs].push_back(std::vector<Graph::vertex>());
           startGroup = false;
         }
 
-        dstListGroups[b].back().push_back(srcTail);
+        dstListGroups[bs].back().push_back(srcTail);
       }
     }
 
     // determinize for each outgoing byte
-    for (std::map< byte, std::vector< std::vector<Graph::vertex> > >::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
-      const byte b = i->first;
+    for (std::map<ByteSet, std::vector< std::vector<Graph::vertex> >, ByteSetLess>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
+      const ByteSet bs = i->first;
       const std::vector< std::vector<Graph::vertex> >& dstLists(i->second);
 
       for (std::vector< std::vector<Graph::vertex> >::const_iterator j(dstLists.begin()); j != dstLists.end(); ++j) {
 
         const std::vector<Graph::vertex>& dstList(*j);
-        const std::pair< byte, std::vector<Graph::vertex> > p(b, dstList);
+        const std::pair<ByteSet, std::vector<Graph::vertex> > p(bs, dstList);
 
-        std::map< std::pair< byte, std::vector<Graph::vertex> >, Graph::vertex>::const_iterator l(dstList2Dst.find(p));
+        std::map< std::pair<ByteSet, std::vector<Graph::vertex> >, Graph::vertex, PairLess>::const_iterator l(dstList2Dst.find(p));
 
         Graph::vertex dstTail;
         if (l == dstList2Dst.end()) {
           // new sublist dst vertex
           dstList2Dst[p] = dstTail = dst.addVertex();
-          dstStack.push(std::make_pair(b, dstList));
-          dst.setTran(dstTail, new LitState(b));
+          dstStack.push(std::make_pair(bs, dstList));
+          dst.setTran(dstTail, new CharClassState(bs));
         }
         else {
           // old sublist vertex
@@ -411,29 +464,7 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
     }
   }
 
-/*
-    std::cerr << "dstHeadList == ";
-    std::copy(dstHeadList.begin(), dstHeadList.end(), std::ostream_iterator<Graph::vertex>(std::cerr, ","));
-    std::cerr << std::endl;
-*/
-
-/*
-    std::cerr << "srcTailsList == ";
-    std::copy(srcTailsList.begin(), srcTailsList.end(), std::ostream_iterator<Graph::vertex>(std::cerr, ","));
-    std::cerr << std::endl;
-*/
-
-
-/*
-    std::cerr << "detGroups\n";
-    for (std::vector< std::vector<Graph::vertex> >::const_iterator i(detGroups.begin()); i != detGroups.end(); ++i) {
-      std::copy(i->begin(), i->end(), std::ostream_iterator<Graph::vertex>(std::cerr, ","));
-      std::cerr << '\n';
-    }
-    std::cerr << std::endl;
-*/
-
-  // collapse CharClassStates to RangeStates where possible
+  // collapse CharClassStates where possible
   // isn't necessary, but improves the GraphViz output
   for (uint32 i = 1; i < dst.numVertices(); ++i) {
     const Transition* t = dst[i]; 
@@ -461,7 +492,14 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
     }
 
     if (first != -1) {
-      Transition* r = new RangeState(first, last);
+      Transition* r;
+      if (first == last) {
+        r = new LitState(first);
+      }
+      else {
+        r = new RangeState(first, last);
+      }
+
       r->IsMatch = t->IsMatch;
       r->Label = t->Label;
       dst.setTran(i, r);
