@@ -477,17 +477,19 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
 
     for (int32 b = 0; b < 256; ++b) {
       if (outBytes[b]) {
-        if (last != b - 1) {
+        if (first == -1) {
+          // start of a range
+          first = last = b;
+        }
+        else if (last != b - 1) {
           // not a range
           first = -1;
           break;
         }
-
-        if (first == -1) {
-          first = b;
+        else {
+          // ongoing range
+          last = b;
         }
-
-        last = b;
       }
     }
 
