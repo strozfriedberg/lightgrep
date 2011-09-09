@@ -3,6 +3,5 @@ libs = ['lightgrep', 'boost_program_options']
 optSrcs = env.Glob('#/src/cmd/opt*.cpp')
 testSrcs = env.Glob('*.cpp')
 testSrcs.extend(optSrcs)
-print([str(t) for t in testSrcs])
 ret = env.Program('test', testSrcs, LIBS=libs)
 Return('ret')
