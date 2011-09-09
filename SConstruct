@@ -6,6 +6,7 @@ import re
 
 isWindows = False
 isLinux = False
+isShared = False
 bits = '32'
 
 def shellCall(cmd):
@@ -13,7 +14,8 @@ def shellCall(cmd):
   os.system(cmd)
 
 def sub(src):
-  return env.SConscript(p.join(src, 'SConscript'), exports=['env', 'isWindows', 'isLinux'], variant_dir=p.join('bin', src), duplicate=0)
+  vars = ['env', 'isWindows', 'isLinux', 'isShared']
+  return env.SConscript(p.join(src, 'SConscript'), exports=vars, variant_dir=p.join('bin', src), duplicate=0)
 
 def buildBoost(target, source, env):
   shouldBuild = False
@@ -25,6 +27,7 @@ def buildBoost(target, source, env):
       break
   if (shouldBuild):
     print("building")
+    linkage = 'shared' if isShared else 'static'
     mode = "debug" if env['DEBUG_MODE'] == 'true' else "release"
     curDir = os.getcwd()
     os.chdir(str(source[0]))
@@ -32,12 +35,13 @@ def buildBoost(target, source, env):
     if (isWindows == True):
       shellCall('.\\bootstrap.bat')
       shellCall('.\\bjam --stagedir=%s %s '
-        'link=static variant=%s threading=multi runtime-link=static toolset=gcc '
+        'link=%s runtime-link=%s variant=%s threading=multi toolset=gcc '
         'address-model=%s define=BOOST_USE_WINDOWS_H '
-        '-s BOOST_NO_RVALUE_REFERENCES stage' % (curDir, libsToBuild, mode, bits))
+        '-s BOOST_NO_RVALUE_REFERENCES stage' % (curDir, libsToBuild, linkage, linkage, mode, bits))
     else:
       shellCall('./bootstrap.sh')
-      shellCall('./bjam --stagedir=%s %s link=shared variant=%s threading=multi stage' % (curDir, libsToBuild, mode))
+      shellCall('./bjam --stagedir=%s %s link=%s runtime-link=%s variant=%s threading=multi stage'
+        % (curDir, libsToBuild, linkage, linkage, mode))
     os.chdir(curDir)
     if (isWindows):
       libs = [str(x) for x in Glob('#/lib/libboost*')]
@@ -62,6 +66,8 @@ isLinux = arch.find('Linux') > -1
 
 scopeDir = 'vendors/scope'
 boostDir = 'vendors/boost'
+
+isShared = True if 'true' == ARGUMENTS.get('shared', 'false') else False
 
 debug = ARGUMENTS.get('debug', 'false')
 if (debug == 'true'):
