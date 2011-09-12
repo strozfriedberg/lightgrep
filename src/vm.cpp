@@ -349,11 +349,13 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         }
 
         if (!SeenNone && !Seen.find(tLabel)) {
-          MatchEnds[tLabel] = t->End + 1;
+          if (t->Start >= MatchEnds[tLabel]) {
+            MatchEnds[tLabel] = t->End + 1;
 
-          if (CurHitFn) {
-            SearchHit hit(tStart, t->End - tStart + 1, tLabel);
-            CurHitFn->collect(hit);
+            if (CurHitFn) {
+              SearchHit hit(tStart, t->End - tStart + 1, tLabel);
+              CurHitFn->collect(hit);
+            }
           }
 
           t->PC = 0;
