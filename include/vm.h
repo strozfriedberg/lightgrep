@@ -86,6 +86,7 @@ private:
   uint64 MaxMatches;
 
   ProgramPtr Prog;
+  Instruction* ProgEnd;
 
   #ifdef LBT_HISTOGRAM_ENABLED
   std::vector<uint32> ProgHistogram;
