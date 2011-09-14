@@ -121,6 +121,7 @@ Vm::Vm(ProgramPtr prog):
 void Vm::init(ProgramPtr prog) {
   Prog = prog;
   Program& p(*Prog);
+  ProgEnd = &p.back() - 1;
 
   #ifdef LBT_HISTOGRAM_ENABLED
   ProgHistogram.resize(p.size());
@@ -256,7 +257,7 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
   }
 
   // DIE, penultimate instruction is always a halt.
-  t->PC = &Prog->back() - 1;
+  t->PC = ProgEnd;
   return false;
 }
 
