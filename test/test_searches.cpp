@@ -350,9 +350,9 @@ SCOPE_FIXTURE_CTOR(aaaaOrDotOrDotaDot_aOrDotaaSearch, STest, STest(2, (const cha
   SCOPE_ASSERT_EQUAL(7, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 1), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 1), fixture.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[2]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[3]);
-  SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 1), fixture.Hits[4]);
+  SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 1), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[4]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 0), fixture.Hits[5]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 1, 0), fixture.Hits[6]);
 }

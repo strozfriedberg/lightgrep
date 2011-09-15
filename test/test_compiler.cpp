@@ -611,3 +611,29 @@ SCOPE_TEST(testDeterminize5) {
   ASSERT_EQUAL_LABELS(exp, h);
   ASSERT_EQUAL_MATCHES(exp, h);
 }
+
+SCOPE_TEST(testPruneBranches) {
+  Graph g(3);
+  edge(0, 1, g, new LitState('a'));
+  edge(0, 2, g, new LitState('a'));
+
+  g[1]->IsMatch = true;
+  g[1]->Label = 0;
+
+  Compiler comp;
+  comp.pruneBranches(g);
+
+  Graph exp(3);
+  edge(0, 1, exp, new LitState('a'));
+
+  exp.setTran(2, new LitState('a'));
+
+  exp[1]->IsMatch = true;
+  exp[1]->Label = 0;
+
+  writeGraphviz(std::cerr, g);
+
+  ASSERT_EQUAL_GRAPHS(exp, g);
+  ASSERT_EQUAL_LABELS(exp, g);
+  ASSERT_EQUAL_MATCHES(exp, g);
+}
