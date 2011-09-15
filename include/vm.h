@@ -103,5 +103,8 @@ private:
 
   std::set< std::pair<uint32,uint64> > CheckStates;
 
+  SparseSet CheckLabels;
+  std::vector< std::set<uint64> > CheckOffsets;
+
   HitCallback* CurHitFn;
 };
