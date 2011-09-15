@@ -163,6 +163,60 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   }
 }
 
+void Compiler::pruneBranches(Graph& g) {
+  std::stack<Graph::vertex> next;
+  std::set<Graph::vertex> seen;
+
+  next.push(0);
+  seen.insert(0);
+
+  ByteSet mbs, obs;
+
+  // walk the graph
+  while (!next.empty()) {
+    const Graph::vertex head = next.top();
+    next.pop();
+
+    // remove same-transition edges following a match vertex
+    for (uint32 i = 0; i < g.outDegree(head); ++i) {
+      const Graph::vertex tail = g.outVertex(head, i);
+
+      if (seen.insert(tail).second) {
+        next.push(tail);
+      }
+
+      if (g[tail]->IsMatch) {
+        mbs.reset();
+        g[tail]->getBits(mbs);
+        mbs.flip();
+
+        for (uint32 j = g.outDegree(head) - 1; j > i; --j) {
+          const Graph::vertex t2 = g.outVertex(head, j);
+
+          obs.reset();
+          g[t2]->getBits(obs);
+
+          obs &= mbs;
+
+          if (obs.none()) {
+            g.removeEdge(head, j);
+          }
+/*
+          else {
+            Transition* ot = g[t2];
+            Transition* nt = new CharClassState(obs);
+            nt->IsMatch = ot->IsMatch;
+            nt->Label = ot->Label;
+            g.setTran(t2, nt);
+            delete ot;
+          }
+*/
+        }
+      }
+    }
+  }
+}
+
 void Compiler::labelGuardStates(Graph& g) {
   propagateMatchLabels(g);
   removeNonMinimalLabels(g);
