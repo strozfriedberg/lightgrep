@@ -145,6 +145,12 @@ void Vm::init(ProgramPtr prog) {
   Seen.resize(numPatterns);
   SeenNone = false;
 
+//  CheckLabels.resize(numCheckedStates);
+/*
+  CheckOffsets.clear();
+  CheckOffsets.resize(numCheckedStates);
+*/
+
   Active.push_back(Thread(&(*Prog)[0]));
   ThreadList::iterator t(Active.begin());
 
@@ -174,7 +180,8 @@ void Vm::reset() {
   Active.clear();
   Next.clear();
 
-  CheckStates.clear();
+//  CheckStates.clear();
+//  CheckLabels.clear();
 
   SeenNone = false;
   Seen.clear();
@@ -299,6 +306,33 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 
     case CHECK_HALT_OP:
       {
+/*
+        if (CheckLabels.find(instr.Op.Offset)) {
+          t->PC = 0;
+          return false;
+        }
+        else {
+          CheckLabels.insert(instr.Op.Offset);
+        }
+*/
+
+/*
+        if (CheckLabels.find(instr.Op.Offset)) {
+          if (!CheckOffsets[instr.Op.Offset].insert(t->Start).second) {
+            t->PC = 0;
+            return false;
+          }
+        }
+        else {
+          CheckLabels.insert(instr.Op.Offset);
+          CheckOffsets[instr.Op.Offset].clear();
+          CheckOffsets[instr.Op.Offset].insert(t->Start);
+        }
+*/
+
+        t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
+        return true;
+/*
         const std::pair<uint32,uint64> s(instr.Op.Offset, t->Start);
         if (!CheckStates.insert(s).second) {
           t->PC = 0;
@@ -308,6 +342,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
           return true;
         }
+*/
       }
 
     case LABEL_OP:
@@ -455,7 +490,8 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
 inline void Vm::_cleanup() {
   Active.swap(Next);
   Next.clear();
-  CheckStates.clear();
+//  CheckStates.clear();
+//  CheckLabels.clear();
 
   SeenNone = false;
   Seen.clear();
