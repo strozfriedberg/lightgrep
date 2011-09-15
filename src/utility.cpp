@@ -37,6 +37,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
           }
 
           if (nfab.build(tree)) {
+            comp.pruneBranches(*nfab.getFsm());
             comp.mergeIntoFSM(*fsm, *nfab.getFsm());
           }
           else {
