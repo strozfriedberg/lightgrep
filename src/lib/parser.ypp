@@ -358,7 +358,7 @@ namespace {
     if (oct > 0377) {
       return -1;
     }
- 
+
     yylval.c = oct;
     return CHAR;
   }
