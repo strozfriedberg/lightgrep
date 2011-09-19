@@ -17,45 +17,6 @@ def sub(src):
   vars = ['env', 'isWindows', 'isLinux', 'isShared']
   return env.SConscript(p.join(src, 'SConscript'), exports=vars, variant_dir=p.join('bin', src), duplicate=0)
 
-def buildBoost(target, source, env):
-  shouldBuild = False
-  for t in target:
-#	print("Looking for %s" % t)
-    if (len(env.Glob(str(t))) == 1):
-      print("Couldn't find %s... need to build" % str(t))
-      shouldBuild = True
-      break
-  if (shouldBuild):
-    print("building")
-    linkage = 'shared' if isShared else 'static'
-    mode = "debug" if env['DEBUG_MODE'] == 'true' else "release"
-    curDir = os.getcwd()
-    os.chdir(str(source[0]))
-    libsToBuild = '--with-program_options --with-system --with-thread'
-    if (isWindows == True):
-      shellCall('.\\bootstrap.bat')
-      shellCall('.\\bjam --stagedir=%s %s '
-        'link=%s runtime-link=%s variant=%s threading=multi toolset=gcc '
-        'address-model=%s define=BOOST_USE_WINDOWS_H '
-        '-s BOOST_NO_RVALUE_REFERENCES stage' % (curDir, libsToBuild, linkage, linkage, mode, bits))
-    else:
-      shellCall('./bootstrap.sh')
-      shellCall('./bjam --stagedir=%s %s link=%s runtime-link=%s variant=%s threading=multi stage'
-        % (curDir, libsToBuild, linkage, linkage, mode))
-    os.chdir(curDir)
-    if (isWindows):
-      libs = [str(x) for x in Glob('#/lib/libboost*')]
-      if len(libs) == 0:
-        print("GLOB DID NOT SUCCEED")
-      for lib in libs:
-        try:
-          newName = re.sub(r'-.*\.(a|dll)', r'.\g<1>', lib) # Boost tacks on version/MT options, which this gets rid of
-          print("renaming %s to %s" % (lib, newName))
-          os.rename(lib, newName)
-        except:
-          print('had an error with the rename')
-
-
 arch = platform.platform()
 print("System is %s, %s" % (arch, platform.machine()))
 if (platform.machine().find('64') > -1):
@@ -90,8 +51,10 @@ else:
   ldflags = ''
 
 ccflags = '-Wall -Wno-trigraphs -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir)
+
+# we inherit the OS environment to get PATH, so ccache works
 if (isWindows):
-  env = Environment(ENV=os.environ, tools=['mingw']) # this builds in a dependency on the PATH, which is useful for ccache
+  env = Environment(ENV=os.environ, tools=['mingw']) # we don't want scons to use Visual Studio just yet
 else:
   env = Environment(ENV=os.environ)
 
@@ -101,20 +64,33 @@ env.Replace(CCFLAGS=ccflags)
 env.Append(LIBPATH=['#/lib'])
 env.Append(LINKFLAGS=ldflags)
 
+conf = Configure(env)
+if (not (conf.CheckCXXHeader('boost/shared_ptr.hpp')
+   and conf.CheckLib('boost_system')
+   and conf.CheckLib('boost_thread')
+   and conf.CheckLib('boost_program_options'))):
+   print('Boost sanity check failed.')
+   Exit(1)
+
 if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
-libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options*'],
-                        boostDir, buildBoost)
+#libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options*'],
+#                        boostDir, buildBoost)
+
 liblg = sub('src/lib')
-c_example = sub('c_example')
+#env.Depends(liblg, libBoost)
+
 libDir = env.Install('lib', liblg)
+
+c_example = sub('c_example')
+#env.Depends(c_example, libDir)
+
 test = sub('test')
-env.Depends(test, libBoost)
-env.Depends(test, libDir)
+#env.Depends(test, libDir)
+
 cmd = sub('src/cmd')
-env.Depends(cmd, libBoost)
-env.Depends(cmd, libDir)
+#env.Depends(cmd, libDir)
 
 env.Command('unittests', test, '$SOURCE --test')
 env.InstallAs('#/lightgrep.exe', cmd)
