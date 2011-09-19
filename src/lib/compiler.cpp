@@ -521,8 +521,8 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
   // collapse CharClassStates where possible
   // isn't necessary, but improves the GraphViz output
   for (uint32 i = 1; i < dst.numVertices(); ++i) {
-    const Transition* t = dst[i]; 
-    
+    const Transition* t = dst[i];
+
     int32 first = -1;
     int32 last = -1;
 
