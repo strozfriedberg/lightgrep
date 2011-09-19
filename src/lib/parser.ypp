@@ -360,7 +360,7 @@ namespace {
     if (oct > 0377) {
       return -1;
     }
- 
+
     yylval.c = oct;
     return CHAR;
   }
@@ -417,7 +417,7 @@ namespace {
               (cp & 0x0000003F);
     }
     else if (cp < 0x110000) {
-      return 0xF0808080 | 
+      return 0xF0808080 |
              ((cp & 0x001C0000) << 6) |
              ((cp & 0x0003F000) << 4) |
              ((cp & 0x00000FC0) << 2) |
@@ -449,8 +449,8 @@ namespace {
           yylval.c = cp;
           return CHAR;
         }
-      
-        // multibyte characters, leave some bytes as residual  
+
+        // multibyte characters, leave some bytes as residual
         const uint32 utf8 = codePointToUTF8(cp);
 
         if (cp < 0x800) {
@@ -468,7 +468,7 @@ namespace {
           yylval.c = (utf8 & 0xFF000000) >> 24;
           ResidualUTF8 = utf8 << 8;
         }
-        
+
         return CHAR;
       }
 
