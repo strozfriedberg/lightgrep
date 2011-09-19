@@ -55,6 +55,8 @@ public:
   void addEdgeND(const vertex source, const vertex target);
   void addEdgeAtND(const vertex source, const vertex target, size_t i);
 
+  void removeEdge(const vertex source, size_t i);
+
   vertex inVertex(vertex v, size_t i) const {
     return _adjacent(Vertices[v].In, i);
   }
@@ -94,6 +96,8 @@ private:
 
   void _add_no_dupe_check(AdjacentList& l, vertex v);
   void _add_no_dupe_check(AdjacentList& l, vertex v, size_t i);
+
+  void _remove(AdjacentList& l, size_t i);
 
   uint32 _degree(const AdjacentList& l) const;
 

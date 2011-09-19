@@ -6,9 +6,26 @@
 #include <iomanip>
 #include <sstream>
 
-void printHex(std::ostream& out, byte b) {
-  out << "0x" << std::setfill('0') << std::setw(2)
-      << std::hex << std::uppercase << (uint32)b << std::dec;
+void printByte(std::ostream& out, byte b) {
+  if (std::isgraph(b)) {
+    out << (char) b;
+  }
+  else {
+    out << "\\x" << std::setfill('0') << std::setw(2)
+        << std::hex << std::uppercase << (uint32) b << std::dec;
+  }
+}
+
+void printRange(std::ostream& out, byte beg, byte end) {
+  printByte(out, beg);
+
+  if (end - beg > 1) {
+    out << '-';
+  }
+
+  if (end != beg) {
+    printByte(out, end);
+  }
 }
 
 bool LitState::toInstruction(Instruction* addr) const {
@@ -30,12 +47,7 @@ std::string printLabel(const Transition& t) {
 
 std::string LitState::label() const {
   std::stringstream buf;
-  if (std::isgraph(Lit)) {
-    buf << Lit;
-  }
-  else {
-    printHex(buf, Lit);
-  }
+  printByte(buf, Lit);
   buf << printLabel(*this);
   return buf.str();
 }
@@ -51,18 +63,8 @@ EitherState* EitherState::clone(void* buffer) const {
 
 std::string EitherState::label() const {
   std::stringstream buf;
-  if (std::isgraph(Lit1)) {
-    buf << Lit1;
-  }
-  else {
-    printHex(buf, Lit1);
-  }
-  if (std::isgraph(Lit2)) {
-    buf << Lit2;
-  }
-  else {
-    printHex(buf, Lit2);
-  }
+  printByte(buf, Lit1);
+  printByte(buf, Lit2);
   buf << printLabel(*this);
   return buf.str();
 }
@@ -78,19 +80,7 @@ RangeState* RangeState::clone(void* buffer) const {
 
 std::string RangeState::label() const {
   std::stringstream buf;
-  if (std::isgraph(First)) {
-    buf << First;
-  }
-  else {
-    printHex(buf, First);
-  }
-  buf << '-';
-  if (std::isgraph(First)) {
-    buf << Last;
-  }
-  else {
-    printHex(buf, Last);
-  }
+  printRange(buf, First, Last);
   buf << printLabel(*this);
   return buf.str();
 }
@@ -109,16 +99,25 @@ CharClassState* CharClassState::clone(void* buffer) const {
 std::string CharClassState::label() const {
   // make the label string
   std::stringstream ss;
+
+  int32 beg = -1, end;
+
   for (uint32 i = 0; i < 256; ++i) {
     if (Allowed.test(i)) {
-      if (std::isgraph(i)) {
-        ss << (char) i;
+      if (beg == -1) {
+        beg = i;
       }
-      else {
-        ss << "\\x" << std::hex << std::uppercase <<
-                       std::setfill('0') << std::setw(2) << i;
-      }
+
+      end = i;
     }
+    else if (beg != -1) {
+      printRange(ss, beg, end);
+      beg = -1;
+    }
+  }
+
+  if (beg != -1) {
+    printRange(ss, beg, end);
   }
 
   return ss.str() + printLabel(*this);

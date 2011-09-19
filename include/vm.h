@@ -86,6 +86,7 @@ private:
   uint64 MaxMatches;
 
   ProgramPtr Prog;
+  Instruction* ProgEnd;
 
   #ifdef LBT_HISTOGRAM_ENABLED
   std::vector<uint32> ProgHistogram;
@@ -101,6 +102,9 @@ private:
   std::vector<uint64> MatchEnds;
 
   std::set< std::pair<uint32,uint64> > CheckStates;
+
+  SparseSet CheckLabels;
+  std::vector< std::set<uint64> > CheckOffsets;
 
   HitCallback* CurHitFn;
 };

@@ -37,6 +37,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
           }
 
           if (nfab.build(tree)) {
+            comp.pruneBranches(*nfab.getFsm());
             comp.mergeIntoFSM(*fsm, *nfab.getFsm());
           }
           else {
@@ -64,7 +65,10 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
   // std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
 
   if (fsm) {
-    comp.labelGuardStates(*fsm);
+    GraphPtr det(new Graph(1));
+    comp.subsetDFA(*det, *fsm);
+    comp.labelGuardStates(*det);
+    fsm = det;
   }
 }
 
@@ -425,7 +429,7 @@ std::string escape(char c, const std::string& text) {
 
 void writeEdge(std::ostream& out, Graph::vertex v, Graph::vertex u,
                uint32 priority, const Graph& graph) {
-  std::string esclabel = escape('\\', graph[u]->label());
+  const std::string esclabel = escape('"', escape('\\', graph[u]->label()));
 
   out << "  " << v << " -> " << u << " ["
       << "label=\"" << esclabel << "\", "
