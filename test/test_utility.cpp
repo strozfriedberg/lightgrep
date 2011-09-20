@@ -134,21 +134,59 @@ SCOPE_TEST(twoUnicode) {
   kws.push_back("aa");
   kws.push_back("ab");
   GraphPtr fsm = createGraph(kws, CP_UCS16);
-  SCOPE_ASSERT_EQUAL(7u, fsm->numVertices());
-  SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(2));
-  SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(2));
-  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(3));
-  SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(3));
-  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(4));
-  SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(4));
-  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(5));
-  SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(5));
-  SCOPE_ASSERT_EQUAL(1u, fsm->inDegree(6));
-  SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(6));
-  SCOPE_ASSERT_EQUAL(4u, calculateLMin(*fsm));
+  Graph& g = *fsm;
+  
+  SCOPE_ASSERT_EQUAL(7u, g.numVertices());
+
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(2u, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(3, g.outVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(4, g.outVertex(2, 1));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(3));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(3));
+  SCOPE_ASSERT_EQUAL(6, g.outVertex(3, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(4));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(4));
+  SCOPE_ASSERT_EQUAL(5, g.outVertex(4, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(5));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(5));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(6));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(6));
+
+  SCOPE_ASSERT(!g[0]);
+  SCOPE_ASSERT(!g[1]->IsMatch);
+  SCOPE_ASSERT(!g[2]->IsMatch);
+  SCOPE_ASSERT(!g[3]->IsMatch);
+  SCOPE_ASSERT(!g[4]->IsMatch);
+  SCOPE_ASSERT(g[5]->IsMatch);
+  SCOPE_ASSERT(g[6]->IsMatch);
+
+  ByteSet abs, ebs;
+
+  const byte exp[] = { 'a', 0, 'a', 'b', 0, 0 };
+  for (uint32 i = 1; i < g.numVertices(); ++i) {
+    abs.reset();
+    ebs.reset();
+
+    ebs[exp[i-1]] = true;
+    g[i]->getBits(abs);
+
+    SCOPE_ASSERT_EQUAL(ebs, abs);
+  }
+
+  SCOPE_ASSERT_EQUAL(4u, calculateLMin(g));
 }
 
 SCOPE_TEST(firstBitset) {
