@@ -6,6 +6,7 @@ import re
 
 isWindows = False
 isLinux = False
+isShared = False
 bits = '32'
 
 def shellCall(cmd):
@@ -13,44 +14,8 @@ def shellCall(cmd):
   os.system(cmd)
 
 def sub(src):
-  return env.SConscript(p.join(src, 'SConscript'), exports=['env', 'isWindows', 'isLinux'], variant_dir=p.join('bin', src), duplicate=0)
-
-def buildBoost(target, source, env):
-  shouldBuild = False
-  for t in target:
-#	print("Looking for %s" % t)
-    if (len(env.Glob(str(t))) == 1):
-      print("Couldn't find %s... need to build" % str(t))
-      shouldBuild = True
-      break
-  if (shouldBuild):
-    print("building")
-    mode = "debug" if env['DEBUG_MODE'] == 'true' else "release"
-    curDir = os.getcwd()
-    os.chdir(str(source[0]))
-    libsToBuild = '--with-program_options --with-system --with-thread'
-    if (isWindows == True):
-      shellCall('.\\bootstrap.bat')
-      shellCall('.\\bjam --stagedir=%s %s '
-        'link=static variant=%s threading=multi runtime-link=static toolset=gcc '
-        'address-model=%s define=BOOST_USE_WINDOWS_H '
-        '-s BOOST_NO_RVALUE_REFERENCES stage' % (curDir, libsToBuild, mode, bits))
-    else:
-      shellCall('./bootstrap.sh')
-      shellCall('./bjam --stagedir=%s %s link=shared variant=%s threading=multi stage' % (curDir, libsToBuild, mode))
-    os.chdir(curDir)
-    if (isWindows):
-      libs = [str(x) for x in Glob('#/lib/libboost*')]
-      if len(libs) == 0:
-        print("GLOB DID NOT SUCCEED")
-      for lib in libs:
-        try:
-          newName = re.sub(r'-.*\.(a|dll)', r'.\g<1>', lib) # Boost tacks on version/MT options, which this gets rid of
-          print("renaming %s to %s" % (lib, newName))
-          os.rename(lib, newName)
-        except:
-          print('had an error with the rename')
-
+  vars = ['env', 'isWindows', 'isLinux', 'isShared']
+  return env.SConscript(p.join(src, 'SConscript'), exports=vars, variant_dir=p.join('bin', src), duplicate=0)
 
 arch = platform.platform()
 print("System is %s, %s" % (arch, platform.machine()))
@@ -62,6 +27,8 @@ isLinux = arch.find('Linux') > -1
 
 scopeDir = 'vendors/scope'
 boostDir = 'vendors/boost'
+
+isShared = True if 'true' == ARGUMENTS.get('shared', 'false') else False
 
 debug = ARGUMENTS.get('debug', 'false')
 if (debug == 'true'):
@@ -84,8 +51,10 @@ else:
   ldflags = ''
 
 ccflags = '-Wall -Wno-trigraphs -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir)
+
+# we inherit the OS environment to get PATH, so ccache works
 if (isWindows):
-  env = Environment(ENV=os.environ, tools=['mingw']) # this builds in a dependency on the PATH, which is useful for ccache
+  env = Environment(ENV=os.environ, tools=['mingw']) # we don't want scons to use Visual Studio just yet
 else:
   env = Environment(ENV=os.environ)
 
@@ -95,16 +64,33 @@ env.Replace(CCFLAGS=ccflags)
 env.Append(LIBPATH=['#/lib'])
 env.Append(LINKFLAGS=ldflags)
 
+conf = Configure(env)
+if (not (conf.CheckCXXHeader('boost/shared_ptr.hpp')
+   and conf.CheckLib('boost_system')
+   and conf.CheckLib('boost_thread')
+   and conf.CheckLib('boost_program_options'))):
+   print('Boost sanity check failed.')
+   Exit(1)
+
 if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
-libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options*'],
-                        boostDir, buildBoost)
-liblg = sub('src')
-c_example = sub('c_example')
+#libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options*'],
+#                        boostDir, buildBoost)
+
+liblg = sub('src/lib')
+#env.Depends(liblg, libBoost)
+
 libDir = env.Install('lib', liblg)
+
+c_example = sub('c_example')
+#env.Depends(c_example, libDir)
+
 test = sub('test')
-env.Depends(test, libBoost)
-env.Depends(test, libDir)
+#env.Depends(test, libDir)
+
+cmd = sub('src/cmd')
+#env.Depends(cmd, libDir)
+
 env.Command('unittests', test, '$SOURCE --test')
-env.InstallAs('#/lightgrep.exe', test)
+env.InstallAs('#/lightgrep.exe', cmd)

@@ -163,6 +163,60 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
   }
 }
 
+void Compiler::pruneBranches(Graph& g) {
+  std::stack<Graph::vertex> next;
+  std::set<Graph::vertex> seen;
+
+  next.push(0);
+  seen.insert(0);
+
+  ByteSet mbs, obs;
+
+  // walk the graph
+  while (!next.empty()) {
+    const Graph::vertex head = next.top();
+    next.pop();
+
+    // remove same-transition edges following a match vertex
+    for (uint32 i = 0; i < g.outDegree(head); ++i) {
+      const Graph::vertex tail = g.outVertex(head, i);
+
+      if (seen.insert(tail).second) {
+        next.push(tail);
+      }
+
+      if (g[tail]->IsMatch) {
+        mbs.reset();
+        g[tail]->getBits(mbs);
+        mbs.flip();
+
+        for (uint32 j = g.outDegree(head) - 1; j > i; --j) {
+          const Graph::vertex t2 = g.outVertex(head, j);
+
+          obs.reset();
+          g[t2]->getBits(obs);
+
+          obs &= mbs;
+
+          if (obs.none()) {
+            g.removeEdge(head, j);
+          }
+/*
+          else {
+            Transition* ot = g[t2];
+            Transition* nt = new CharClassState(obs);
+            nt->IsMatch = ot->IsMatch;
+            nt->Label = ot->Label;
+            g.setTran(t2, nt);
+            delete ot;
+          }
+*/
+        }
+      }
+    }
+  }
+}
+
 void Compiler::labelGuardStates(Graph& g) {
   propagateMatchLabels(g);
   removeNonMinimalLabels(g);
@@ -296,41 +350,216 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
   }
 }
 
-void Compiler::determinize(Graph& dst, const Graph& src) {
-  determinizeVertex(dst, 0, src, 0);
-}
+struct ByteSetLess {
+  bool operator()(const ByteSet& a, const ByteSet& b) const {
+    for (uint32 i = 0; i < 256; ++i) {
+      if (a[i] < b[i]) {
+        return false;
+      }
+      else if (a[i] > b[i]) {
+        return true;
+      }
+    }
 
-void Compiler::determinizeVertex(Graph& dst, Graph::vertex dstHead, const Graph& src, Graph::vertex srcHead) {
-  
-  std::vector< std::vector<Graph::vertex> > outVertices(256, std::vector<Graph::vertex>());
-  ByteSet outSet;
+    return false;
+  }
+};
 
-  // collect all byte transitions leaving srcHead
-  for (uint32 i = 0; i < src.outDegree(srcHead); ++i) {
-    const Graph::vertex srcTail = src.outVertex(srcHead, i);
+struct PairLess {
+  bool operator()(
+    const std::pair<ByteSet, std::vector<Graph::vertex> >& a,
+    const std::pair<ByteSet, std::vector<Graph::vertex> >& b) const
+  {
+    for (uint32 i = 0; i < 256; ++i) {
+      if (a.first[i] < b.first[i]) {
+        return false;
+      }
+      else if (a.first[i] > b.first[i]) {
+        return true;
+      }
+    }
 
-    outSet.reset(); 
-    src[srcTail]->getBits(outSet);
+    return std::lexicographical_compare(a.second.begin(), a.second.end(),
+                                        b.second.begin(), b.second.end());
+  }
+};
 
-    for (uint32 j = 0; j < 256; ++j) {
-      if (outSet[j]) {
-        outVertices[j].push_back(srcTail);
+void Compiler::subsetDFA(Graph& dst, const Graph& src) {
+
+  std::stack< std::pair<ByteSet, std::vector<Graph::vertex> > > dstStack;
+  std::map< std::pair<ByteSet, std::vector<Graph::vertex> >, Graph::vertex, PairLess > dstList2Dst;
+
+  // set up initial dst state
+  const std::pair<ByteSet, std::vector<Graph::vertex> > d0(ByteSet(), std::vector<Graph::vertex>(1, 0));
+  dstList2Dst[d0] = 0;
+  dstStack.push(d0);
+
+  ByteSet outBytes;
+
+  while (!dstStack.empty()) {
+    const std::pair<ByteSet, std::vector<Graph::vertex> > p(dstStack.top());
+    dstStack.pop();
+
+    const std::vector<Graph::vertex>& srcHeadList(p.second);
+    const Graph::vertex dstHead = dstList2Dst[p];
+
+    // for each byte, collect all srcTails leaving srcHeads
+    std::map< byte, std::vector<Graph::vertex> > srcTailLists;
+
+    for (std::vector<Graph::vertex>::const_iterator i(srcHeadList.begin()); i != srcHeadList.end(); ++i) {
+      const Graph::vertex srcHead = *i;
+
+      for (uint32 j = 0; j < src.outDegree(srcHead); ++j) {
+        const Graph::vertex srcTail = src.outVertex(srcHead, j);
+
+        outBytes.reset();
+        src[srcTail]->getBits(outBytes);
+
+        for (uint32 b = 0; b < 256; ++b) {
+          if (outBytes[b]) {
+            srcTailLists[b].push_back(srcTail);
+          }
+        }
+      }
+    }
+
+    // remove right duplicates from each srcTailsList
+    for (std::map< byte, std::vector<Graph::vertex> >::iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
+      std::vector<Graph::vertex>& srcTailList(i->second);
+      std::set<Graph::vertex> seen;
+
+      for (std::vector<Graph::vertex>::iterator j(srcTailList.begin()); j != srcTailList.end(); ) {
+        const Graph::vertex srcTail = *j;
+        if (seen.insert(srcTail).second) {
+          ++j;
+        }
+        else {
+          j = srcTailList.erase(j);
+        }
+      }
+    }
+
+    // collapse outgoing bytes with the same srcTails
+    std::map<std::vector<Graph::vertex>, ByteSet> srcList2Bytes;
+
+    for (std::map< byte, std::vector<Graph::vertex> >::const_iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
+      const byte b = i->first;
+      const std::vector<Graph::vertex>& srcTailList(i->second);
+
+      srcList2Bytes[srcTailList][b] = true;
+    }
+
+    std::map<ByteSet, std::vector<Graph::vertex>, ByteSetLess> bytes2SrcList;
+
+    for (std::map<std::vector<Graph::vertex>, ByteSet>::const_iterator i(srcList2Bytes.begin()); i != srcList2Bytes.end(); ++i) {
+      const ByteSet bs = i->second;
+      const std::vector<Graph::vertex>& srcTailList(i->first);
+
+      bytes2SrcList[bs] = srcTailList;
+    }
+
+    // form each srcTailList into determinizable groups
+    std::map<ByteSet, std::vector< std::vector<Graph::vertex> >, ByteSetLess> dstListGroups;
+
+    for (std::map<ByteSet, std::vector<Graph::vertex>, ByteSetLess>::const_iterator i(bytes2SrcList.begin()); i != bytes2SrcList.end(); ++i) {
+      const ByteSet bs = i->first;
+      const std::vector<Graph::vertex>& srcTailList(i->second);
+
+      bool startGroup = true;
+
+      for (std::vector<Graph::vertex>::const_iterator j(srcTailList.begin()); j != srcTailList.end(); ++j) {
+        const Graph::vertex srcTail = *j;
+
+        if (src[srcTail]->IsMatch) {
+          // match states are always singleton groups
+          dstListGroups[bs].push_back(std::vector<Graph::vertex>());
+          startGroup = true;
+        }
+        else if (startGroup) {
+          dstListGroups[bs].push_back(std::vector<Graph::vertex>());
+          startGroup = false;
+        }
+
+        dstListGroups[bs].back().push_back(srcTail);
+      }
+    }
+
+    // determinize for each outgoing byte
+    for (std::map<ByteSet, std::vector< std::vector<Graph::vertex> >, ByteSetLess>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
+      const ByteSet bs = i->first;
+      const std::vector< std::vector<Graph::vertex> >& dstLists(i->second);
+
+      for (std::vector< std::vector<Graph::vertex> >::const_iterator j(dstLists.begin()); j != dstLists.end(); ++j) {
+
+        const std::vector<Graph::vertex>& dstList(*j);
+        const std::pair<ByteSet, std::vector<Graph::vertex> > p(bs, dstList);
+
+        std::map< std::pair<ByteSet, std::vector<Graph::vertex> >, Graph::vertex, PairLess>::const_iterator l(dstList2Dst.find(p));
+
+        Graph::vertex dstTail;
+        if (l == dstList2Dst.end()) {
+          // new sublist dst vertex
+          dstList2Dst[p] = dstTail = dst.addVertex();
+          dstStack.push(std::make_pair(bs, dstList));
+          dst.setTran(dstTail, new CharClassState(bs));
+        }
+        else {
+          // old sublist vertex
+          dstTail = l->second;
+        }
+
+        if (src[dstList.front()]->IsMatch) {
+          dst[dstTail]->IsMatch = true;
+          dst[dstTail]->Label = src[dstList.front()]->Label;
+        }
+
+        dst.addEdge(dstHead, dstTail);
       }
     }
   }
 
-  // make a new vertex in dst for each outgoing byte
-  for (std::vector< std::vector<Graph::vertex> >::const_iterator i(outVertices.begin()); i != outVertices.end(); ++i) {
-    if (i->empty()) {
-      continue;
+  // collapse CharClassStates where possible
+  // isn't necessary, but improves the GraphViz output
+  for (uint32 i = 1; i < dst.numVertices(); ++i) {
+    const Transition* t = dst[i]; 
+    
+    int32 first = -1;
+    int32 last = -1;
+
+    outBytes.reset();
+    t->getBits(outBytes);
+
+    for (int32 b = 0; b < 256; ++b) {
+      if (outBytes[b]) {
+        if (first == -1) {
+          // start of a range
+          first = last = b;
+        }
+        else if (last != b - 1) {
+          // not a range
+          first = -1;
+          break;
+        }
+        else {
+          // ongoing range
+          last = b;
+        }
+      }
     }
 
-    const Graph::vertex dstTail = dst.addVertex();
-    dst.addEdge(dstHead, dstTail);
-    dst.setTran(dstTail, new LitState(i - outVertices.begin()));
+    if (first != -1) {
+      Transition* r;
+      if (first == last) {
+        r = new LitState(first);
+      }
+      else {
+        r = new RangeState(first, last);
+      }
 
-    for (std::vector<Graph::vertex>::const_iterator j(i->begin()); j != i->end(); ++j) {
-      determinizeVertex(dst, dstTail, src, *j);
+      r->IsMatch = t->IsMatch;
+      r->Label = t->Label;
+      dst.setTran(i, r);
+      delete t;
     }
   }
 }

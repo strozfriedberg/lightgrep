@@ -19,9 +19,10 @@ public:
   void propagateMatchLabels(Graph& g);
   void removeNonMinimalLabels(Graph& g);
 
-  void determinize(Graph& dst, const Graph& src);
-  void determinizeVertex(Graph& dst, Graph::vertex dstHead, const Graph& src, Graph::vertex srcHead);
-  
+  void subsetDFA(Graph& dst, const Graph& src);
+
+  void pruneBranches(Graph& g);
+
   StatePair processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead);
 
   bool canMerge(const Graph& dst, Graph::vertex dstTail, const Transition* dstTrans, ByteSet& dstBits, const Graph& src, Graph::vertex srcTail, const Transition* srcTrans, const ByteSet& srcBits) const;

@@ -158,6 +158,27 @@ Graph::~Graph() {
   clear();
 }
 
+void Graph::_remove(AdjacentList& l, size_t i) {
+  switch (l.Flags) {
+  case ONE:
+    l.Flags = ZERO;
+    break;
+  case MANY:
+    {
+      std::vector<vertex>& vlist(AdjLists[l.What]);
+
+      vlist.erase(vlist.begin() + i);
+
+      if (vlist.size() == 1) {
+        l.Flags = ONE;
+        l.What = vlist.front();
+        vlist.clear();
+      }
+    }
+    break;
+  }
+}
+
 Graph::vertex Graph::addVertex(Transition* t) {
   Vertices.push_back(Vertex(t));
   return Vertices.size() - 1;
@@ -202,6 +223,25 @@ void Graph::addEdgeAtND(const vertex source, const vertex target, size_t i) {
   }
   _add_no_dupe_check(Vertices[source].Out, target, i);
   _add_no_dupe_check(Vertices[target].In, source);
+}
+
+void Graph::removeEdge(const vertex source, size_t oi) {
+  if (source >= Vertices.size()) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("out of bounds, source = " << source << ", but size = " << Vertices.size());
+  }
+
+  const vertex target = outVertex(source, oi);
+
+  size_t ii;
+  for (uint32 i = 0; i < inDegree(target); ++i) {
+    if (inVertex(target, i) == source) {
+      ii = i;
+      break;
+    }
+  }
+
+  _remove(Vertices[source].Out, oi);
+  _remove(Vertices[target].In, ii);
 }
 
 void Graph::clear() {
