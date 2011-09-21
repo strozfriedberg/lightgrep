@@ -57,6 +57,8 @@ else:
 
 ccflags = '-Wall -Wno-trigraphs -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir)
 
+boostType = ARGUMENTS.get('boostType', '')
+
 # we inherit the OS environment to get PATH, so ccache works
 if (isWindows):
   env = Environment(ENV=os.environ, tools=['mingw']) # we don't want scons to use Visual Studio just yet
