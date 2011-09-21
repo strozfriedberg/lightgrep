@@ -26,9 +26,6 @@ if (platform.machine().find('64') > -1):
 isWindows = arch.find('Windows') > -1
 isLinux = arch.find('Linux') > -1
 
-scopeDir = 'vendors/scope'
-boostDir = 'vendors/boost'
-
 defines = [] # a list of defined symbols, as strings, for the preprocessor
 
 isShared = True if 'true' == ARGUMENTS.get('shared', 'false') else False
@@ -55,7 +52,10 @@ else:
   flags = '-O3'
   ldflags = ''
 
-ccflags = '-Wall -Wno-trigraphs -Wextra %s -isystem %s -isystem %s' % (flags, scopeDir, boostDir)
+ccflags = '-Wall -Wno-trigraphs -Wextra %s' % (flags)
+
+# add vendors/scope and vendors/boost as system include paths, if they exist
+ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
 
 boostType = ARGUMENTS.get('boostType', '')
 
@@ -89,22 +89,15 @@ if (not (conf.CheckCXXHeader('boost/shared_ptr.hpp')
 if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
-#libBoost = env.Command(['#/lib/*boost_system*', '#/lib/*boost_thread*', '#/lib/*boost_program_options*'],
-#                        boostDir, buildBoost)
-
 liblg = sub('src/lib')
-#env.Depends(liblg, libBoost)
 
 libDir = env.Install('lib', liblg)
 
 c_example = sub('c_example')
-#env.Depends(c_example, libDir)
 
 test = sub('test')
-#env.Depends(test, libDir)
 
 cmd = sub('src/cmd')
-#env.Depends(cmd, libDir)
 
 env.Command('unittests', test, '$SOURCE --test')
 env.InstallAs('#/lightgrep.exe', cmd)
