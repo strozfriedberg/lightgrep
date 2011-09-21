@@ -15,14 +15,15 @@
 #include "options.h"
 #include "optparser.h"
 
-#define BOOST_USE_WINDOWS_H
 #include <boost/thread.hpp>
 
 // <magic_incantation>
 // this ridiculous piece of crap you see here is necessary to get
 // boost_thread static libraries to link on Windows using MinGW
 // found it in the boost issue tracker
-extern "C" void tss_cleanup_implemented() { }
+namespace boost {
+  void tss_cleanup_implemented() { }
+}
 // </magic_incantation>
 
 namespace po = boost::program_options;

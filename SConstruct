@@ -8,13 +8,14 @@ isWindows = False
 isLinux = False
 isShared = False
 bits = '32'
+boostType = ''
 
 def shellCall(cmd):
   print(cmd)
   os.system(cmd)
 
 def sub(src):
-  vars = ['env', 'isWindows', 'isLinux', 'isShared']
+  vars = ['env', 'isWindows', 'isLinux', 'isShared', 'boostType']
   return env.SConscript(p.join(src, 'SConscript'), exports=vars, variant_dir=p.join('bin', src), duplicate=0)
 
 arch = platform.platform()
@@ -27,6 +28,8 @@ isLinux = arch.find('Linux') > -1
 
 scopeDir = 'vendors/scope'
 boostDir = 'vendors/boost'
+
+defines = [] # a list of defined symbols, as strings, for the preprocessor
 
 isShared = True if 'true' == ARGUMENTS.get('shared', 'false') else False
 
@@ -41,10 +44,12 @@ elif (debug == 'coverage'):
   flags = '-g -O0 -fprofile-arcs -ftest-coverage -fbranch-probabilities'
   ldflags = '--coverage'
 elif (debug == 'trace'):
-  flags = '-O3 -D LBT_TRACE_ENABLED'
+  flags = '-O3'
+  defines.append('LBT_TRACE_ENABLED')
   ldflags = ''
 elif (debug == 'hist'):
-  flags = '-O3 -D LBT_HISTOGRAM_ENABLED'
+  flags = '-O3'
+  defines.append('LBT_HISTOGRAM_ENABLED')
   ldflags = ''
 else:
   flags = '-O3'
@@ -55,12 +60,16 @@ ccflags = '-Wall -Wno-trigraphs -Wextra %s -isystem %s -isystem %s' % (flags, sc
 # we inherit the OS environment to get PATH, so ccache works
 if (isWindows):
   env = Environment(ENV=os.environ, tools=['mingw']) # we don't want scons to use Visual Studio just yet
+  defines.append('BOOST_USE_WINDOWS_H')
+  if (not isShared):
+    defines.append('BOOST_THREAD_USE_LIB')
 else:
   env = Environment(ENV=os.environ)
 
 env['DEBUG_MODE'] = debug
 env.Replace(CPPPATH=['#/include'])
 env.Replace(CCFLAGS=ccflags)
+env.Replace(CPPDEFINES=defines)
 env.Append(LIBPATH=['#/lib'])
 env.Append(LINKFLAGS=ldflags)
 

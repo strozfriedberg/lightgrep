@@ -8,8 +8,6 @@
 #include <cstdlib>
 #include <csignal>
 
-#define BOOST_USE_WINDOWS_H
-
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 
