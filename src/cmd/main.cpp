@@ -33,7 +33,7 @@ void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
 void writeGraphviz(const Options& opts) {
   std::vector<std::string> keys = opts.getKeys();
   if (!keys.empty()) {
-    GraphPtr fsm = createGraph(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
+    GraphPtr fsm = createGraph(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode, opts.Determinize);
     if (fsm) {
       writeGraphviz(opts.openOutput(), *fsm);
     }
@@ -43,7 +43,7 @@ void writeGraphviz(const Options& opts) {
 void writeProgram(const Options& opts) {
   std::vector<std::string> keys = opts.getKeys();
   if (!keys.empty()) {
-    GraphPtr fsm = createGraph(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
+    GraphPtr fsm = createGraph(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode, opts.Determinize);
     if (fsm) {
       ProgramPtr p = createProgram(*fsm);
       std::ostream& out(opts.openOutput());
@@ -60,7 +60,7 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
   if (keyInfo.Keywords.empty()) {
     return p;
   }
-  GraphPtr fsm = createGraph(keyInfo, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode);
+  GraphPtr fsm = createGraph(keyInfo, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode, opts.Determinize);
   std::cerr << fsm->numVertices() << " vertices" << '\n';
 
   p = createProgram(*fsm);

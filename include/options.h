@@ -23,6 +23,7 @@ public:
   bool    CaseSensitive,
           LiteralMode,
           NoOutput,
+          Determinize,
           PrintPath;
 
   mutable std::ofstream OutputFile;
