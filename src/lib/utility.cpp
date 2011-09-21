@@ -12,8 +12,7 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, bool litMode, GraphPtr& fsm, uint32& keyIdx) {
-  Compiler    comp;
+void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, bool litMode, GraphPtr& fsm, uint32& keyIdx, Compiler& comp) {
   ParseTree   tree;
   NFABuilder  nfab;
   nfab.setEncoding(enc);
@@ -63,13 +62,6 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
     }
   }
   // std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
-
-  if (fsm) {
-    GraphPtr det(new Graph(1));
-    comp.subsetDFA(*det, *fsm);
-    comp.labelGuardStates(*det);
-    fsm = det;
-  }
 }
 
 uint32 totalCharacters(const std::vector<std::string>& keywords) {
@@ -80,60 +72,56 @@ uint32 totalCharacters(const std::vector<std::string>& keywords) {
   return ret;
 }
 
-GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode) {
-  // std::cerr << "createGraph" << std::endl;
-  GraphPtr ret(new Graph(1, totalCharacters(keywords)));
-  uint32 keyIdx = 0;
+void addKeys(KwInfo& keyInfo, GraphPtr g, Compiler& comp, const std::string encName, boost::shared_ptr<Encoding> enc, bool caseSensitive, bool litMode, uint32 keyIdx) {
+  keyInfo.Encodings.push_back(encName);
+  const uint32 encIdx = keyInfo.Encodings.size() - 1;
 
-  if (enc & CP_ASCII) {
-    addKeys(
-      keywords, boost::shared_ptr<Encoding>(new Ascii),
-      caseSensitive, litMode, ret, keyIdx
-    );
+  addKeys(keyInfo.Keywords, enc, caseSensitive, litMode, g, keyIdx, comp);
+
+  for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
+    keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
   }
-
-  if (enc & CP_UCS16) {
-    addKeys(
-      keywords, boost::shared_ptr<Encoding>(new UCS16),
-      caseSensitive, litMode, ret, keyIdx
-    );
-  }
-
-  return ret;
 }
 
-GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode) {
-  GraphPtr ret(new Graph(1, totalCharacters(keyInfo.Keywords)));
+GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode, bool determinize) {
+  KwInfo keyInfo;
+  keyInfo.Keywords = keywords;
+  return createGraph(keyInfo, enc, caseSensitive, litMode, determinize);
+}
+
+GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode, bool determinize) {
+  GraphPtr g(new Graph(1, totalCharacters(keyInfo.Keywords)));
   uint32 keyIdx = 0;
 
+  Compiler comp;
+
   if (enc & CP_ASCII) {
-    keyInfo.Encodings.push_back("ASCII");
-    const uint32 encIdx = keyInfo.Encodings.size() - 1;
-
     addKeys(
-      keyInfo.Keywords, boost::shared_ptr<Encoding>(new Ascii),
-      caseSensitive, litMode, ret, keyIdx
+      keyInfo, g, comp,
+      "ASCII", boost::shared_ptr<Encoding>(new Ascii),
+      caseSensitive, litMode, keyIdx
     );
-
-    for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
-      keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
-    }
   }
 
   if (enc & CP_UCS16) {
-    keyInfo.Encodings.push_back("UCS-16");
-    const uint32 encIdx = keyInfo.Encodings.size() - 1;
-
     addKeys(
-      keyInfo.Keywords, boost::shared_ptr<Encoding>(new UCS16),
-      caseSensitive, litMode, ret, keyIdx
+      keyInfo, g, comp,
+      "UCS-16", boost::shared_ptr<Encoding>(new UCS16),
+      caseSensitive, litMode, keyIdx
     );
-
-    for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
-      keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
-    }
   }
-  return ret;
+
+  if (g) {
+    if (determinize) {
+      GraphPtr dfa(new Graph(1));
+      comp.subsetDFA(*dfa, *g);
+      g = dfa;
+    }
+
+    comp.labelGuardStates(*g);
+  }
+
+  return g;
 }
 
 uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {
