@@ -9,7 +9,6 @@
 #include <csignal>
 
 #include <boost/asio.hpp>
-#include <boost/thread.hpp>
 
 #include "program.h"
 #include "vm_interface.h"
@@ -17,6 +16,8 @@
 #include "hitwriter.h"
 #include "options.h"
 #include "staticvector.h"
+
+#include "include_boost_thread.h"
 
 using boost::asio::ip::tcp;
 

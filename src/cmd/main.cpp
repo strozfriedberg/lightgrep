@@ -15,7 +15,7 @@
 #include "options.h"
 #include "optparser.h"
 
-#include <boost/thread.hpp>
+#include "include_boost_thread.h"
 
 // <magic_incantation>
 // this ridiculous piece of crap you see here is necessary to get
