@@ -1,0 +1,74 @@
+Lightgrep Build Steps
+
+Platforms
+---------
+Lightgrep can build on Linux, MacOS X, and Windows. It should be noted that Windows builds are a huge pain in the ass; stock up on beer and nachos.
+
+
+Tooling
+-------
+Lightgrep depends on gcc (MinGW on Windows), bison, and the SCons build tool (v2), which in turn requires Python. Some relevant links are:
+
+SCons: http://www.scons.org/
+
+Bison for Windows: http://gnuwin32.sourceforge.net/
+
+<mingw download links, especially for 64 bit>
+
+If you plan on building Lightgrep frequently, we highly recommend installing and using Tridge's excellent ccache.
+
+
+Libraries
+---------
+Lightgrep uses the Boost collection of C++ libraries extensively. In addition to many of the header-only libraries, Lightgrep relies on the thread, system, and program_options libraries having been built and available by default to gcc.
+
+  http://www.boost.org
+ 
+Boost on Windows
+
+To build Boost on Windows, try the following (assuming that you've unzipped boost to C:\boost):
+
+C:\> cd boost
+C:\boost\> .\bootstrap.bat   # builds boost's jam build tool
+C:\boost\> .\bjam --stagedir=C:\lib --with-program_options --with-system --with-thread
+                  link=static runtime-link=static variant=release
+                  threading=multi toolset=gcc address-model=[32|64]
+                  define=BOOST_USE_WINDOWS_H define=BOOST_THREAD_USE_LIB
+                  -s BOOST_NO_RVALUE_REFERENCES
+                  stage
+
+You may also want to use the '--layout=system' option, or you can make copies of the libraries that remove version and build information from their filenames.
+
+This will build the requisite libraries and place them in C:\lib (or wherever you choose to put the libs), but will avoid copying all the header files into a new place (as the bjam 'install' command does). Use shared or static link modes as appropriate.
+
+Lightgrep's unit tests also use the cripplingly obscure, largely incomplete Scope unit test library. Scope can be obtained at:
+
+  git://github.com/jonstewart/scope.git
+
+Lightgrep's git repository includes Boost and Scope as vendor submodules. If you don't have them installed on your system already, then it's easy enough to do the following:
+
+  git submodule init
+  git submodule update
+
+This will download both Boost and Scope inside of the ./vendors/ directory, and scons will add ./vendors/boost and ./vendors/scope as header file include paths for gcc. You will still need to build the Boost libraries, however.
+
+
+Scons Options
+-------------
+On a Unix-based OS, we recommend using the '-j n', to specify the use of 'n' parallel build tasks. This probably won't work so well on Windows, as, y'know, Windows sucks.
+
+  'shared=true' will build liblightgrep as a shared library/DLL. Otherwise, static linking is used throughout the build process.
+
+  'debug=[true|profile|coverage|trace|hist]'
+
+    'true' allows for general source-level debugging.
+
+    'profile' is for profiling, obviously
+
+    'coverage'... not sure what this does. Joel? (I mean, coverage, obviously, not sure how to use it.)
+
+    'trace' enables some debug output (with optimized code) for specified ranges of text.
+
+    'hist' is like trace, but with less spewage
+
+  'boostType="foo"' will append foo onto the end of any Boost libraries (e.g., "-mt", "-mgw44-mt-s-1_46_1")
