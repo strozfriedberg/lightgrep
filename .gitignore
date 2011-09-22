@@ -12,3 +12,4 @@ DesignTimeResolveAssemblyReferencesInput.cache
 *.FileListAbsolute.txt
 .*.swp
 #*
+.sconf_temp
