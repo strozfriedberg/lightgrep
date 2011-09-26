@@ -500,10 +500,10 @@ SCOPE_FIXTURE_CTOR(aPQOrDotPDotDotOrDota_aSDotaaSQOrDotP_DotP_DotDotaaOrDotPQSea
   fixture.search(text, text + 3, 0, fixture);
   SCOPE_ASSERT_EQUAL(8, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 3), fixture.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 1), fixture.Hits[2]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[3]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[4]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 1), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 3), fixture.Hits[4]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 3), fixture.Hits[5]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 0), fixture.Hits[6]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 3), fixture.Hits[7]);
@@ -514,8 +514,8 @@ SCOPE_FIXTURE_CTOR(aOrDota_DotDotaOrDotSearch, STest, STest(2, (const char *[]){
   fixture.search(text, text + 3, 0, fixture);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 1), fixture.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 1, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 1), fixture.Hits[2]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 1, 0), fixture.Hits[3]);
 }
 
