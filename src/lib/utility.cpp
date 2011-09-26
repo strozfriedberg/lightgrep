@@ -40,6 +40,7 @@ void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encodin
             comp.mergeIntoFSM(*fsm, *nfab.getFsm());
           }
           else {
+// FIXME: output to our own error stream instead, so that --no-output can suppress this
             std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
           }
         }
