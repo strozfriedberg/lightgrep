@@ -124,7 +124,7 @@ unsigned int match(
     if (matches == 0) return total;
 
     // run the callback for this match
-    callback(ovector[0], ovector[1]-ovector[0], patnum, pattern, charset);
+    callback(ovector[0], ovector[1], patnum, pattern, charset);
 
     total += matches;
 
@@ -136,10 +136,10 @@ unsigned int match(
   return total;
 }
 
-void match_printer(int mpos, int mlen, unsigned int patnum,
+void match_printer(int mstart, int mend, unsigned int patnum,
                    const char* pattern, const char* charset) {
-  std::cout << mpos << '\t'
-            << mlen << '\t'
+  std::cout << mstart << '\t'
+            << mend << '\t'
             << patnum << '\t'
             << pattern << '\t'
             << charset << '\n';  
