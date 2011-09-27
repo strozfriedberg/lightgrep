@@ -30,6 +30,9 @@ std::string Instruction::toString() const {
     case LIT_OP:
       buf << "Literal 0x" << HexCode<byte>(Op.Literal) << "/'" << Op.Literal << '\'';
       break;
+    case NOT_LIT_OP:
+      buf << "NotLiteral 0x" << HexCode<byte>(Op.Literal) << "/'" << Op.Literal << '\'';
+      break;
     case EITHER_OP:
       buf << "Either 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "', 0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
       break;
@@ -79,6 +82,13 @@ std::string Instruction::toString() const {
 Instruction Instruction::makeLit(byte b) {
   Instruction i;
   i.OpCode = LIT_OP;
+  i.Op.Literal = b;
+  return i;
+}
+
+Instruction Instruction::makeNotLit(byte b) {
+  Instruction i;
+  i.OpCode = NOT_LIT_OP;
   i.Op.Literal = b;
   return i;
 }

@@ -52,6 +52,23 @@ std::string LitState::label() const {
   return buf.str();
 }
 
+bool NotLitState::toInstruction(Instruction* addr) const {
+  *addr = Instruction::makeNotLit(Lit);
+  return true;
+}
+
+NotLitState* NotLitState::clone(void* buffer) const {
+  return buffer == 0 ? new NotLitState(*this): new(buffer) NotLitState(*this);
+}
+
+std::string NotLitState::label() const {
+  std::stringstream buf;
+  buf << '^';
+  printByte(buf, Lit);
+  buf << printLabel(*this);
+  return buf.str();
+}
+
 bool EitherState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeEither(Lit1, Lit2);
   return true;
