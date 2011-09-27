@@ -25,6 +25,32 @@ private:
   byte Lit;
 };
 
+class NotLitState: public Transition {
+public:
+  NotLitState(byte lit): Transition(), Lit(lit) {}
+  NotLitState(byte lit, uint32 label): Transition(label), Lit(lit) {}
+  virtual ~NotLitState() {}
+
+  virtual const byte* allowed(const byte* beg, const byte*) const { return *beg != Lit ? beg+1: beg; }
+
+  virtual void getBits(ByteSet& bits) const {
+    bits.set(Lit);
+    bits.flip();
+  }
+
+  virtual size_t objSize() const { return sizeof(*this); }
+
+  virtual NotLitState* clone(void* buffer) const;
+
+  virtual size_t numInstructions() const { return 1; };
+  virtual bool toInstruction(Instruction* addr) const;
+  virtual std::string label() const;
+
+private:
+  NotLitState(const NotLitState& x): Transition(x.Label, x.IsMatch), Lit(x.Lit) {}
+  byte Lit;
+};
+
 class EitherState: public Transition {
 public:
   EitherState(byte one, byte two): Transition(), Lit1(one), Lit2(two) {}

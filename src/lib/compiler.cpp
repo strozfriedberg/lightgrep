@@ -523,39 +523,72 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
   for (uint32 i = 1; i < dst.numVertices(); ++i) {
     const Transition* t = dst[i];
 
-    int32 first = -1;
-    int32 last = -1;
+    int32 pfirst = -1;
+    int32 plast = -1;
+
+    int32 nfirst = -1;
+    int32 nlast = -1;
+
+    bool neg = false;
 
     outBytes.reset();
     t->getBits(outBytes);
 
     for (int32 b = 0; b < 256; ++b) {
       if (outBytes[b]) {
-        if (first == -1) {
-          // start of a range
-          first = last = b;
+        if (pfirst == -1) {
+          // start of a one range
+          pfirst = plast = b;
         }
-        else if (last != b - 1) {
-          // not a range
-          first = -1;
-          break;
+        else if (plast != b - 1) {
+          // not a one range
+          pfirst = -2;
+
+          if (pfirst == nfirst) {
+            break;
+          }
         }
         else {
-          // ongoing range
-          last = b;
+          // ongoing one range
+          plast = b;
+        }
+      }
+      else {
+        if (nfirst == -1) {
+          // start of a zero range
+          nfirst = nlast = b;
+        }
+        else if (nlast != b - 1) {
+          // not a zero range
+          nfirst = -2;
+
+          if (pfirst == nfirst) {
+            break;
+          }
+        }
+        else {
+          // ongoing zero range
+          nlast = b;
         }
       }
     }
 
-    if (first != -1) {
-      Transition* r;
-      if (first == last) {
-        r = new LitState(first);
+    Transition* r = 0;
+    if (pfirst >= 0) {
+      if (pfirst == plast) {
+        r = new LitState(pfirst);
       }
       else {
-        r = new RangeState(first, last);
+        r = new RangeState(pfirst, plast);
       }
+    }
+    else if (nfirst >= 0) {
+      if (nfirst == nlast) {
+        r = new NotLitState(nfirst);
+      }
+    }
 
+    if (r) {
       r->IsMatch = t->IsMatch;
       r->Label = t->Label;
       dst.setTran(i, r);

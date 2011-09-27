@@ -30,6 +30,22 @@ SCOPE_TEST(executeLit) {
   SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
 }
 
+SCOPE_TEST(executeNotLit) {
+  byte b = 'z';
+  ProgramPtr p(new Program(1, Instruction::makeNotLit('a')));
+  Vm         s(p);
+  Thread cur(&(*p)[0]);
+  SCOPE_ASSERT(s.execute(&cur, &b));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
+  SCOPE_ASSERT_EQUAL(0u, s.numNext());
+  SCOPE_ASSERT_EQUAL(&(*p)[1], s.active().front().PC);
+
+  s.reset();
+  b = 'a';
+  SCOPE_ASSERT(!s.execute(&cur, &b));
+  SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
+}
+
 SCOPE_TEST(executeEither) {
   byte b = 'z';
   ProgramPtr p(new Program(1, Instruction::makeEither('z', '3')));
