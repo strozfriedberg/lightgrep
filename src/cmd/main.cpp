@@ -124,22 +124,24 @@ void search(const Options& opts) {
     return;
   }
 
-  double lastTime = 0.0;
-  boost::timer searchClock;
-
   boost::shared_ptr<VmInterface> search(VmInterface::create());
   #ifdef LBT_TRACE_ENABLED
   search->setDebugRange(opts.DebugBegin, opts.DebugEnd);
   #endif
   search->init(p);
 
-  boost::scoped_ptr< HitCounter > cb(createOutputWriter(opts, keyInfo));
+  boost::scoped_ptr<HitCounter> cb(createOutputWriter(opts, keyInfo));
 
   byte* cur  = new byte[opts.BlockSize];
   uint64 blkSize = 0,
          offset = 0;
 
   blkSize = readNext(file, cur, opts.BlockSize);
+
+  // init timer here so as not to time the first read
+  double lastTime = 0.0;
+  boost::timer searchClock;
+
   if (!feof(file)) {
     byte* next = new byte[opts.BlockSize];
     do {
