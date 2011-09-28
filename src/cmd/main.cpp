@@ -85,19 +85,6 @@ ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
   return p;
 }
 
-boost::shared_ptr<VmInterface> initSearch(const Options& opts, KwInfo& keyInfo) {
-  ProgramPtr p = initProgram(opts, keyInfo);
-  if (!p) {
-    return boost::shared_ptr<VmInterface>();
-  }
-  boost::shared_ptr<VmInterface> ret = VmInterface::create();
-  #ifdef LBT_TRACE_ENABLED
-  ret->setDebugRange(opts.DebugBegin, opts.DebugEnd);
-  #endif
-  ret->init(p);
-  return ret;
-}
-
 uint64 readNext(FILE* file, byte* buf, unsigned int blockSize) {
   return fread((void*)buf, 1, blockSize, file);
 }
@@ -127,16 +114,25 @@ void search(const Options& opts) {
     std::cerr << "Could not open file " << opts.Input << std::endl;
     return;
   }
+
   setbuf(file, 0); // unbuffered, bitte
+
   KwInfo keyInfo;
-  boost::shared_ptr<VmInterface> search = initSearch(opts, keyInfo);
-  if (!search) {
-    std::cerr << "could not initialize search engine" << std::endl;
+  ProgramPtr p = initProgram(opts, keyInfo);
+  if (!p) {
+    std::cerr << "Could not initialize search engine" << std::endl;
     return;
   }
 
   double lastTime = 0.0;
   boost::timer searchClock;
+
+  boost::shared_ptr<VmInterface> search(VmInterface::create());
+  #ifdef LBT_TRACE_ENABLED
+  search->setDebugRange(opts.DebugBegin, opts.DebugEnd);
+  #endif
+  search->init(p);
+
   boost::scoped_ptr< HitCounter > cb(createOutputWriter(opts, keyInfo));
 
   byte* cur  = new byte[opts.BlockSize];
