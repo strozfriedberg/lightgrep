@@ -5,7 +5,6 @@
 enum OpCodes {
   UNINITIALIZED = 0,
   LIT_OP,
-  NOT_LIT_OP,
   EITHER_OP,
   RANGE_OP,
   ANY_OP,
@@ -70,7 +69,6 @@ struct Instruction {
   bool operator==(const Instruction& x) const { return *((uint32*)this) == *((uint32*)&x); } // total hack
 
   static Instruction makeLit(byte b);
-  static Instruction makeNotLit(byte b);
   static Instruction makeEither(byte one, byte two);
   static Instruction makeRange(byte first, byte last);
   static Instruction makeAny();

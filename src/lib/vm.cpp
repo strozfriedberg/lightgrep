@@ -219,12 +219,6 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
         return true;
       }
       break;
-    case NOT_LIT_OP:
-      if (*cur != instr.Op.Literal) {
-        t->advance(InstructionSize<NOT_LIT_OP>::VAL);
-        return true;
-      }
-      break;
     case EITHER_OP:
       if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
         t->advance(InstructionSize<EITHER_OP>::VAL);
