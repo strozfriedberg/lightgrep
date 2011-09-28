@@ -97,19 +97,6 @@ SCOPE_TEST(acOrbcProgram) {
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[9]);
 }
 
-SCOPE_TEST(notaProgram) {
-  Graph fsm(2);
-
-  edge(0, 1, fsm, new NotLitState('a'));
-  ProgramPtr p = createProgram(fsm);
-  Program& prog(*p);
-
-  SCOPE_ASSERT_EQUAL(3u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeNotLit('a'), prog[0]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[1]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[2]);
-}
-
 SCOPE_TEST(keywordLabelsProgram) {
   Graph fsm(4);
   edge(0, 1, fsm, new LitState('a'));
