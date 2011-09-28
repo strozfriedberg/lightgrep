@@ -28,7 +28,7 @@ SCOPE_TEST(hitWriterOutput) {
   SCOPE_ASSERT_EQUAL(std::string("whatever"), key);
   SCOPE_ASSERT_EQUAL(std::string("ASCII"), encoding);
 
-  writer.collect(SearchHit(2, 20, 1));
+  writer.collect(SearchHit(2, 22, 1));
 
   stream >> offset >> end >> keyIndex >> key >> encoding;
   SCOPE_ASSERT_EQUAL(2u, offset);

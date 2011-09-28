@@ -4,12 +4,13 @@
 
 class SearchHit: public LG_SearchHit {
 public:
-  SearchHit() { set(0, 0, 0); }
-  // note that this takes the length
-  SearchHit(uint64 start, uint64 length, uint32 lbl) { set(start, start + length, lbl); }
+  SearchHit() {}
 
-  void set(uint64 start, uint64 end, uint32 lbl) {
-    Start = start; End = end; KeywordIndex = lbl;
+  // note that this takes the length
+  SearchHit(uint64 start, uint64 end, uint32 lbl) {
+    Start = start;
+    End = end;
+    KeywordIndex = lbl;
   }
 
   uint64 length() const {
