@@ -30,6 +30,22 @@ SCOPE_TEST(executeLit) {
   SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
 }
 
+SCOPE_TEST(executeNotLit) {
+  byte b = 'z';
+  ProgramPtr p(new Program(1, Instruction::makeNotLit('a')));
+  Vm         s(p);
+  Thread cur(&(*p)[0]);
+  SCOPE_ASSERT(s.execute(&cur, &b));
+  SCOPE_ASSERT_EQUAL(1u, s.numActive());
+  SCOPE_ASSERT_EQUAL(0u, s.numNext());
+  SCOPE_ASSERT_EQUAL(&(*p)[1], s.active().front().PC);
+
+  s.reset();
+  b = 'a';
+  SCOPE_ASSERT(!s.execute(&cur, &b));
+  SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
+}
+
 SCOPE_TEST(executeEither) {
   byte b = 'z';
   ProgramPtr p(new Program(1, Instruction::makeEither('z', '3')));
@@ -341,7 +357,7 @@ SCOPE_TEST(simpleLitMatch) {
   SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
   v.closeOut(cb);
   SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(35, 2, 3), cb.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(35, 37, 3), cb.Hits[0]);
   text[1] = 'c';
   SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
 }
@@ -435,9 +451,9 @@ SCOPE_TEST(threeKeywords) {
   SCOPE_ASSERT(!v.search(text, &text[4], 10, cb));
   v.closeOut(cb);
   SCOPE_ASSERT_EQUAL(3u, cb.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(11, 1, 0), cb.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(12, 1, 1), cb.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(12, 2, 2), cb.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(11, 12, 0), cb.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(12, 13, 1), cb.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(12, 14, 2), cb.Hits[2]);
 }
 
 SCOPE_TEST(stitchedText) {
@@ -462,5 +478,5 @@ SCOPE_TEST(stitchedText) {
   SCOPE_ASSERT(!v.search(text2, &text2[2], 3, cb));
   v.closeOut(cb);
   SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(2, 2, 0), cb.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(2, 4, 0), cb.Hits[0]);
 }

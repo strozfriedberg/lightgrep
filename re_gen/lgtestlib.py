@@ -50,7 +50,7 @@ def run_shitgrep(sg, pats, text):
   for m in sgout.splitlines():
     matches.append(map(int, m.split('\t', 3)[0:3]))
 
-  # sort the matches by offset, length, label
+  # sort the matches by start, end, label
   lex = lambda x,y: cmp(x[0], y[0]) or cmp(x[1], y[1]) or cmp(x[2], y[2])
   matches.sort(lex)
 

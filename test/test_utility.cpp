@@ -97,6 +97,19 @@ SCOPE_TEST(acOrbcProgram) {
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[9]);
 }
 
+SCOPE_TEST(notaProgram) {
+  Graph fsm(2);
+
+  edge(0, 1, fsm, new NotLitState('a'));
+  ProgramPtr p = createProgram(fsm);
+  Program& prog(*p);
+
+  SCOPE_ASSERT_EQUAL(3u, prog.size());
+  SCOPE_ASSERT_EQUAL(Instruction::makeNotLit('a'), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[1]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[2]);
+}
+
 SCOPE_TEST(keywordLabelsProgram) {
   Graph fsm(4);
   edge(0, 1, fsm, new LitState('a'));
@@ -464,8 +477,8 @@ SCOPE_TEST(testInitVM) {
   SCOPE_ASSERT(!search->search(&text[0], &text[15], 0, cb));
   search->closeOut(cb);
   SCOPE_ASSERT_EQUAL(2u, cb.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), cb.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(5, 3, 1), cb.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(2, 5, 0), cb.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(5, 8, 1), cb.Hits[1]);
 }
 
 SCOPE_TEST(testPivotTransitions) {
