@@ -219,21 +219,25 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
         return true;
       }
       break;
+
     case EITHER_OP:
       if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
         t->advance(InstructionSize<EITHER_OP>::VAL);
         return true;
       }
       break;
+
     case RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         t->advance(InstructionSize<RANGE_OP>::VAL);
         return true;
       }
       break;
+
     case ANY_OP:
       t->advance(InstructionSize<ANY_OP>::VAL);
       return true;
+
     case BIT_VECTOR_OP:
       {
         const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t->PC + 1);
@@ -243,12 +247,14 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
         }
       }
       break;
+
     case JUMP_TABLE_OP:
       if (*(uint32*)(t->PC + 1 + *cur) != 0xffffffff) {
         t->jump(base, *reinterpret_cast<const uint32*>(t->PC + 1 + *cur));
         return true;
       }
       break;
+
     case JUMP_TABLE_RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         const uint32 addr = *reinterpret_cast<const uint32*>(t->PC + 1 + (*cur - instr.Op.Range.First));
