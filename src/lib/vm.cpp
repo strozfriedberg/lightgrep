@@ -587,7 +587,8 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
   #endif
 
   // check for remaining live threads
-  for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
+  const ThreadList::const_iterator e(Active.end());
+  for (ThreadList::iterator t(Active.begin()); t != e; ++t) {
     const unsigned char op = t->PC->OpCode;
     if (op == HALT_OP || op == FINISH_OP) {
       continue;
