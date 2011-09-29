@@ -407,7 +407,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       return false;
   }
 
-// TODO: is this faster with no default case?
   return false;
 }
 
