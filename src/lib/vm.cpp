@@ -297,7 +297,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         }
 
         if (!SeenNone && !Seen.find(tLabel)) {
-          if (t->Start >= MatchEnds[tLabel]) {
+          if (tStart >= MatchEnds[tLabel]) {
             MatchEnds[tLabel] = t->End + 1;
 
             if (CurHitFn) {
