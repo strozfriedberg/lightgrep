@@ -293,7 +293,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           if (i->Label == tLabel) {
             i->End = Thread::NONE;
             // DIE. Penultimate instruction is always a halt
-            i->PC = &Prog->back() - 1;
+            i->PC = ProgEnd;
           }
         }
 
