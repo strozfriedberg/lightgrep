@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "basic.h"
 
 // for the time-being, we're only going to support uint32, but could obviously template
@@ -32,9 +34,7 @@ public:
     Data.reset(new uint32[2 * maxSize]);
     End = Max = maxSize;
     // we don't have to do this, but it'll make things like valgrind happy
-    for (uint32 i = 0; i < maxSize; ++i) {
-      Data[i] = 0;
-    }
+    std::fill(Data.get(), Data.get() + maxSize, 0);
   }
 
 private:
