@@ -291,7 +291,6 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         const ThreadList::const_iterator e(Active.end());
         for (ThreadList::iterator i(t+1); i != e && i->Start == tStart; ++i) {
           if (i->Label == tLabel) {
-            i->End = Thread::NONE;
             // DIE. Penultimate instruction is always a halt
             i->PC = ProgEnd;
           }
