@@ -283,6 +283,37 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
   #endif
 
   switch (instr.OpCode) {
+    case FINISH_OP:
+      {
+        const uint32 tLabel = t->Label;
+        const uint64 tStart = t->Start;
+
+        // kill all same-labeled, same-start threads
+        const ThreadList::const_iterator e(Active.end());
+        for (ThreadList::iterator i(t+1); i != e && i->Start == tStart; ++i) {
+          if (i->Label == tLabel) {
+            i->End = Thread::NONE;
+            // DIE. Penultimate instruction is always a halt
+            i->PC = &Prog->back() - 1;
+          }
+        }
+
+        if (!SeenNone && !Seen.find(tLabel)) {
+          if (t->Start >= MatchEnds[tLabel]) {
+            MatchEnds[tLabel] = t->End + 1;
+
+            if (CurHitFn) {
+              SearchHit hit(tStart, t->End + 1, tLabel);
+              CurHitFn->collect(hit);
+            }
+          }
+
+          t->PC = 0;
+        }
+
+        return false;
+      }
+
     case FORK_OP:
       {
         Thread f = *t;
@@ -374,41 +405,10 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       // die, motherfucker, die
       t->PC = 0;
       return false;
-
-    case FINISH_OP:
-      {
-        const uint32 tLabel = t->Label;
-        const uint64 tStart = t->Start;
-
-        // kill all same-labeled, same-start threads
-        const ThreadList::const_iterator e(Active.end());
-        for (ThreadList::iterator i(t+1); i != e && i->Start == tStart; ++i) {
-          if (i->Label == tLabel) {
-            i->End = Thread::NONE;
-            // DIE. Penultimate instruction is always a halt
-            i->PC = &Prog->back() - 1;
-          }
-        }
-
-        if (!SeenNone && !Seen.find(tLabel)) {
-          if (t->Start >= MatchEnds[tLabel]) {
-            MatchEnds[tLabel] = t->End + 1;
-
-            if (CurHitFn) {
-              SearchHit hit(tStart, t->End + 1, tLabel);
-              CurHitFn->collect(hit);
-            }
-          }
-
-          t->PC = 0;
-        }
-
-        return false;
-      }
-
-    default:
-      return false;
   }
+
+// TODO: is this faster with no default case?
+  return false;
 }
 
 inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, uint64 offset) {
