@@ -13,7 +13,7 @@ public:
 
   // e had damn well better be less than Max, because we don't check
   bool find(uint32 e) const {
-    uint32 i = Data[e] + Max;
+    const uint32 i = Data[e] + Max;
     return i < End && Data[i] == e;
   }
 
