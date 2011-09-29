@@ -200,7 +200,6 @@ void Vm::markSeen(uint32 label) {
     SeenNone = true;
   }
   else if (!Seen.find(label)) {
-// FIXME: just insert, once test_vm.cpp is fixed
     Seen.insert(label);
   }
 }
