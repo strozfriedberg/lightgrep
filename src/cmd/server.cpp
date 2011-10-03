@@ -61,9 +61,9 @@ public:
   virtual void write(const HitInfo& hit) = 0;
   virtual void flush() {}
 
-  void writeEndHit() {
+  void writeEndHit(uint64 fileLen) {
     Hit.Offset = std::numeric_limits<uint64>::max();
-    Hit.Length = 0;
+    Hit.Length = fileLen;
     Hit.Label = std::numeric_limits<uint32>::max();
     Hit.Encoding = 0;
     write(Hit);
@@ -196,7 +196,7 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
       hdr.ID = 0;
       hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
-        if (0 == hdr.Length && 0xffffffffffffffff == hdr.ID) {
+        if (0ul == hdr.Length && 0xfffffffffffffffful == hdr.ID) {
           *ErrOut << "received conn shutdown sequence, acknowledging and waiting for close\n";
           boost::asio::write(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
           continue;
@@ -217,7 +217,7 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
         }
         search->closeOut(*output);
         search->reset();
-        output->writeEndHit();
+        output->writeEndHit(hdr.Length);
       }
       else {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
