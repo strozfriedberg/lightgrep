@@ -288,7 +288,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         const uint64 tStart = t->Start;
         const uint64 tEnd = t->End;
 
-        if (t->End - 1 <= offset) {
+        if (tEnd == offset) {
           // kill all same-labeled, same-start threads
           const ThreadList::const_iterator e(Active.end());
           for (ThreadList::iterator i(t+1); i != e && i->Start == tStart; ++i) {
