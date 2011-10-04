@@ -189,7 +189,7 @@ void Vm::reset() {
   #endif
 }
 
-void Vm::markSeen(uint32 label) {
+inline void Vm::_markSeen(uint32 label) {
   if (label == Thread::NOLABEL) {
     SeenNone = true;
   }
@@ -316,7 +316,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
         // recurse to keep going in sequence
         if (_executeEpSequence(base, t, offset)) {
           if (t->PC->OpCode != FINISH_OP) {
-            markSeen(t->Label);
+            _markSeen(t->Label);
           }
           Next.push_back(*t);
         }
@@ -417,7 +417,7 @@ inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, 
 
   if (_executeEpSequence(base, t, offset)) {
     if (t->PC->OpCode != FINISH_OP) {
-      markSeen(t->Label);
+      _markSeen(t->Label);
     }
 
     Next.push_back(*t);
