@@ -17,12 +17,6 @@ std::ostream& operator<<(std::ostream& out, const Thread& t) {
   return out;
 }
 
-/*
-std::ostream& operator<<(std::ostream& out, const Vm::Match& m) {
-  return out << '(' << m.Start << ',' << m.End << ')';
-}
-*/
-
 #ifdef LBT_TRACE_ENABLED
 
 void Vm::open_init_epsilon_json(std::ostream& out) {
