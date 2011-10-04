@@ -55,7 +55,7 @@ public:
   unsigned int numNext() const { return Next.size(); }
 
 private:
-  void markSeen(uint32 label);
+  void _markSeen(uint32 label);
 
   bool _execute(const Instruction* base, ThreadList::iterator t, const byte* cur);
   bool _executeEpsilon(const Instruction* base, ThreadList::iterator t, uint64 offset);
