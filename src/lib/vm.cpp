@@ -304,8 +304,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
             MatchEnds[tLabel] = tEnd + 1;
 
             if (CurHitFn) {
-              SearchHit hit(tStart, tEnd + 1, tLabel);
-              CurHitFn->collect(hit);
+              CurHitFn->collect(SearchHit(tStart, tEnd + 1, tLabel));
             }
           }
 
