@@ -286,22 +286,25 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
       {
         const uint32 tLabel = t->Label;
         const uint64 tStart = t->Start;
+        const uint64 tEnd = t->End;
 
-        // kill all same-labeled, same-start threads
-        const ThreadList::const_iterator e(Active.end());
-        for (ThreadList::iterator i(t+1); i != e && i->Start == tStart; ++i) {
-          if (i->Label == tLabel) {
-            // DIE. Penultimate instruction is always a halt
-            i->PC = ProgEnd;
+        if (t->End - 1 <= offset) {
+          // kill all same-labeled, same-start threads
+          const ThreadList::const_iterator e(Active.end());
+          for (ThreadList::iterator i(t+1); i != e && i->Start == tStart; ++i) {
+            if (i->Label == tLabel) {
+              // DIE. Penultimate instruction is always a halt
+              i->PC = ProgEnd;
+            }
           }
         }
 
         if (!SeenNone && !Seen.find(tLabel)) {
           if (tStart >= MatchEnds[tLabel]) {
-            MatchEnds[tLabel] = t->End + 1;
+            MatchEnds[tLabel] = tEnd + 1;
 
             if (CurHitFn) {
-              SearchHit hit(tStart, t->End + 1, tLabel);
+              SearchHit hit(tStart, tEnd + 1, tLabel);
               CurHitFn->collect(hit);
             }
           }
