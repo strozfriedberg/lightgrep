@@ -189,7 +189,7 @@ void Vm::reset() {
   #endif
 }
 
-inline void Vm::_markSeen(uint32 label) {
+inline void Vm::_markSeen(const uint32 label) {
   if (label == Thread::NOLABEL) {
     SeenNone = true;
   }
@@ -268,7 +268,7 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
 }
 
 // while base is always == &Program[0], we pass it in because it then should get inlined away
-inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t, uint64 offset) {
+inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t, const uint64 offset) {
   register Instruction instr = *t->PC;
 
   #ifdef LBT_HISTOGRAM_ENABLED
@@ -404,7 +404,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
   return false;
 }
 
-inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, uint64 offset) {
+inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, const uint64 offset) {
   #ifdef LBT_TRACE_ENABLED
   pre_run_thread_json(std::cerr, offset, *t, base);
   #endif
@@ -424,7 +424,7 @@ inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, 
   }
 }
 
-inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator t, uint64 offset) {
+inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator t, const uint64 offset) {
 
   // kill threads overlapping an emitted match
   if (t->Label != Thread::NOLABEL && t->Start < MatchEnds[t->Label]) {
@@ -457,7 +457,7 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
   return t->PC;
 }
 
-inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, uint64 offset) {
+inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, const uint64 offset) {
   // run old threads at this offset
   while (t != Active.end()) {
     _executeThread(base, t, cur, offset);
