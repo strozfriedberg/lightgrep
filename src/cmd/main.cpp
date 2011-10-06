@@ -9,6 +9,8 @@
 #include <boost/graph/graphviz.hpp>
 #include <boost/bind.hpp>
 
+#include "encodings.h"
+#include "lightgrep_c_api.h"
 #include "utility.h"
 #include "vm_interface.h"
 #include "hitwriter.h"
@@ -117,20 +119,55 @@ void search(const Options& opts) {
 
   setbuf(file, 0); // unbuffered, bitte
 
-  KwInfo keyInfo;
-  ProgramPtr p = initProgram(opts, keyInfo);
-  if (!p) {
-    std::cerr << "Could not initialize search engine" << std::endl;
+  std::vector<std::string>& keywords(opts.getKeys());
+  std::cerr << keywords.size() << " keywords"<< std::endl;
+  if (keywords.empty()) {
+    std::cerr << "No patterns" << std::endl; 
     return;
   }
 
-  boost::shared_ptr<VmInterface> search(VmInterface::create());
-  #ifdef LBT_TRACE_ENABLED
-  search->setDebugRange(opts.DebugBegin, opts.DebugEnd);
-  #endif
-  search->init(p);
+  boost::shared_ptr<void> parser(lg_create_parser(0), lg_destroy_parser);
 
-  boost::scoped_ptr<HitCounter> cb(createOutputWriter(opts, keyInfo));
+  LG_KeyOptions keyOpts;
+  keyOpts.CaseInsensitive = !opts.CaseSensitive;
+  keyOpts.FixedString = opts.LiteralMode;  
+
+  uint32 keyIdx = 0;
+
+  const char** error = 0;
+
+  if (opts.getEncoding() & CP_ASCII) {
+    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
+
+    for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
+      if (!lg_add_keyword(parser.get(), keywords[i].c_str(), keyIdx, &keyOpts, error)) {
+        std::cerr << *error << " on keyword "
+                  << i << ", '" << keywords[i] << "'" << std::endl;
+      }
+    }
+  }
+
+  if (opts.getEncoding() & CP_UCS16) {
+    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_UTF_16];
+
+    for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
+      if (!lg_add_keyword(parser.get(), keywords[i].c_str(), keyIdx, &keyOpts, error)) {
+        std::cerr << *error << " on keyword "
+                  << i << ", '" << keywords[i] << "'" << std::endl;
+      }
+    }
+  }
+
+  LG_ProgramOptions progOpts;
+  progOpts.Determinize = opts.Determinize;
+
+  boost::shared_ptr<void> prog(lg_create_program(parser.get(), &progOpts),
+                               lg_destroy_program);
+
+  parser.reset();
+
+  boost::shared_ptr<void> searcher(lg_create_context(prog.get()),
+                                   lg_destroy_context);
 
   byte* cur  = new byte[opts.BlockSize];
   uint64 blkSize = 0,
@@ -142,6 +179,8 @@ void search(const Options& opts) {
   double lastTime = 0.0;
   boost::timer searchClock;
 
+  boost::scoped_ptr<HitCounter> cb(createOutputWriter(opts, keyInfo));
+
   if (!feof(file)) {
     byte* next = new byte[opts.BlockSize];
     do {
@@ -150,7 +189,8 @@ void search(const Options& opts) {
       boost::unique_future<uint64> sizeFut = task.get_future();
       boost::thread exec(boost::move(task));
 
-      search->search(cur, cur + blkSize, offset, *cb); // search cur block
+      // search cur block
+      lg_search(searcher.get(), cur, cur + blkSize, offset, 0, *cb);
 
       offset += blkSize;
       if (offset % (1024 * 1024 * 1024) == 0) { // should change this due to the block size being variable
@@ -165,9 +205,11 @@ void search(const Options& opts) {
     } while (!feof(file)); // note file is shared btwn threads, but safely
     delete [] next;
   }
-  // assert: all data has been read, offset + blkSize == file size, cur is last block
-  search->search(cur, cur + blkSize, offset, *cb);
-  search->closeOut(*cb);
+
+  // assert: all data has been read, offset + blkSize == file size,
+  // cur is last block
+  lg_search(searcher.get(), cur, cur + blkSize, offset, 0, *cb);
+  lg_closeout_search(0, *cb);
 
   offset += blkSize;  // be sure to count the last block
   lastTime = searchClock.elapsed();
@@ -184,7 +226,6 @@ void search(const Options& opts) {
 
   fclose(file);
   delete [] cur;
-  // delete [] argArray;
 }
 
 int main(int argc, char** argv) {
