@@ -55,13 +55,13 @@ public:
   unsigned int numNext() const { return Next.size(); }
 
 private:
-  void _markSeen(uint32 label);
+  void _markSeen(const uint32 label);
 
   bool _execute(const Instruction* base, ThreadList::iterator t, const byte* cur);
-  bool _executeEpsilon(const Instruction* base, ThreadList::iterator t, uint64 offset);
-  bool _executeEpSequence(const Instruction* base, ThreadList::iterator t, uint64 offset);
-  void _executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, uint64 offset);
-  void _executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, uint64 offset);
+  bool _executeEpsilon(const Instruction* base, ThreadList::iterator t, const uint64 offset);
+  bool _executeEpSequence(const Instruction* base, ThreadList::iterator t, const uint64 offset);
+  void _executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, const uint64 offset);
+  void _executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, const uint64 offset);
   void _cleanup();
 
   #ifdef LBT_TRACE_ENABLED
