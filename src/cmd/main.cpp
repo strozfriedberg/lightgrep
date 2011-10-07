@@ -92,7 +92,9 @@ uint64 readNext(FILE* file, byte* buf, unsigned int blockSize) {
 }
 
 void printHelp(const po::options_description& desc) {
-  std::cout << "lightgrep, Copyright (c) 2010-2011, Lightbox Technologies, Inc." << "\nCreated " << __DATE__ << "\n\n"
+  std::cout
+    << "lightgrep, Copyright (c) 2010-2011, Lightbox Technologies, Inc."
+    << "\nCreated " << __DATE__ << "\n\n"
     << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
     << "This copy provided EXCLUSIVELY to the U.S. Army, CCIU, DFRB\n\n"
     << desc << std::endl;
@@ -112,8 +114,36 @@ HitCounter* createOutputWriter(const Options& opts, const KwInfo& keyInfo) {
 }
 */
 
+/*
 void callback(void* userData, const LG_SearchHit* const hit) {
   reinterpret_cast<HitCounter*>(userData)->collect(*hit);
+}
+*/
+
+struct HitInfo {
+  HitInfo(std::ostream& outStream,
+          const std::vector< std::pair<uint32,uint32> >& tbl,
+          const std::vector<std::string>& keys,
+          const std::vector<std::string>& encodings):
+          Out(outStream), Table(tbl), Keys(keys),
+          Encodings(encodings), NumHits(0) {}
+
+  std::ostream& Out;
+  const std::vector< std::pair<uint32, uint32> >& Table;
+  const std::vector<std::string>& Keys;
+  const std::vector<std::string>& Encodings;
+  uint64 NumHits;
+};
+
+void nullwriter(void*, const LG_SearchHit* const) {}
+
+void hitwriter(void* userData, const LG_SearchHit* const hit) {
+  HitInfo* hi = reinterpret_cast<HitInfo*>(userData);
+  
+  const std::pair<uint32,uint32>& info(hi->Table[hit->KeywordIndex]);
+  hi->Out << hit->Start << '\t' << hit->End << '\t' << info.first << '\t'
+          << hi->Keys[info.first] << '\t' << hi->Encodings[info.second] << '\n';
+  ++hi->NumHits;
 }
 
 void search(const Options& opts) {
@@ -185,6 +215,7 @@ void search(const Options& opts) {
 
   parser.reset();
 
+/*
   boost::scoped_ptr<HitCounter> hc;
   if (opts.NoOutput) {
     hc.reset(new NullWriter());
@@ -195,6 +226,11 @@ void search(const Options& opts) {
   else {
     hc.reset(new HitWriter(opts.openOutput(), keyInfo, keywords, encodings));
   }
+*/
+
+  HitInfo hinfo(opts.openOutput(), keyInfo, keywords, encodings);
+
+  LG_HITCALLBACK_FN callback = opts.NoOutput ? nullwriter : hitwriter; 
 
   boost::shared_ptr<void> searcher(lg_create_context(prog.get()),
                                    lg_destroy_context);
@@ -218,7 +254,7 @@ void search(const Options& opts) {
       boost::thread exec(boost::move(task));
 
       // search cur block
-      lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, hc.get(), callback);
+      lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, &hinfo, callback);
 
       offset += blkSize;
       if (offset % (1024 * 1024 * 1024) == 0) { // should change this due to the block size being variable
@@ -236,8 +272,8 @@ void search(const Options& opts) {
 
   // assert: all data has been read, offset + blkSize == file size,
   // cur is last block
-  lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, hc.get(), callback);
-  lg_closeout_search(searcher.get(), hc.get(), callback);
+  lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, &hinfo, callback);
+  lg_closeout_search(searcher.get(), &hinfo, callback);
 
   offset += blkSize;  // be sure to count the last block
   lastTime = searchClock.elapsed();
@@ -250,7 +286,7 @@ void search(const Options& opts) {
     std::cerr << "+inf";
   }
   std::cerr << " MB/s avg" << std::endl;
-  std::cerr << hc->NumHits << " hits" << std::endl;
+  std::cerr << hinfo.NumHits << " hits" << std::endl;
 
   fclose(file);
   delete[] cur;
