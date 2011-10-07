@@ -14,6 +14,7 @@
   one LABEL_OP to each test pattern.
 */
 
+/*
 SCOPE_TEST(executeLit) {
   byte b = 'a';
   ProgramPtr p(new Program(1, Instruction::makeLit('a')));
@@ -464,3 +465,4 @@ SCOPE_TEST(stitchedText) {
   SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 4, 0), cb.Hits[0]);
 }
+*/

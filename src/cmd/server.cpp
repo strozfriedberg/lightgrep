@@ -44,6 +44,7 @@ struct HitInfo {
 };
 #pragma pack()
 
+/*
 class ServerWriter: public HitCallback {
 public:
   ServerWriter(const KwInfo& kwInfo): KeyInfo(kwInfo), NumHits(0) {}
@@ -136,6 +137,7 @@ private:
   boost::shared_ptr<std::ofstream> Output;
   StaticVector<HitInfo>    Buffer;
 };
+*/
 
 void cleanSeppuku(int sig);
 
@@ -182,6 +184,7 @@ void cleanSeppuku(int) {
 
 static const unsigned char ONE = 1;
 
+/*
 void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, boost::shared_ptr<ServerWriter> output) {
   boost::scoped_array<byte>      data(new byte[BUF_SIZE]);
   boost::shared_ptr<VmInterface> search = VmInterface::create();
@@ -274,3 +277,4 @@ void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
     ErrOut = 0;
   }
 }
+*/

@@ -299,7 +299,8 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 
 // FIXME: remove this test?
             if (CurHitFn) {
-              CurHitFn->collect(SearchHit(tStart, tEnd + 1, tLabel));
+              SearchHit hit(tStart, tEnd + 1, tLabel);
+              (*CurHitFn)(UserData, &hit);
             }
           }
 
@@ -517,14 +518,15 @@ bool Vm::executeEpsilon(ThreadList::iterator t, uint64 offset) {
   return _executeEpsilon(&(*Prog)[0], t, offset);
 }
 
-void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn) {
+void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback hitFn) {
   CurHitFn = &hitFn;
   ThreadList::iterator t = Active.begin();
   _executeFrame(Prog->First, t, &(*Prog)[0], cur, offset);
 }
 
-void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn) {
+void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData) {
   CurHitFn = &hitFn;
+  UserData = userData;
   const Instruction* base = &(*Prog)[0];
   ByteSet first = Prog->First;
   register uint64 offset = startOffset;
@@ -550,12 +552,13 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
     }
   }
 
-  closeOut(hitFn);
+  closeOut(hitFn, userData);
   reset();
 }
 
-bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, HitCallback& hitFn) {
+bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, HitCallback hitFn, void* userData) {
   CurHitFn = &hitFn;
+  UserData = userData;
   const Instruction* base = &(*Prog)[0];
   ByteSet first = Prog->First;
   register uint64 offset = startOffset;
@@ -598,8 +601,9 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
   return false;
 }
 
-void Vm::closeOut(HitCallback& hitFn) {
+void Vm::closeOut(HitCallback hitFn, void* userData) {
   CurHitFn = &hitFn;
+  UserData = userData;
 
 // FIXME: remove this test?
   if (!CurHitFn) {
@@ -617,7 +621,7 @@ void Vm::closeOut(HitCallback& hitFn) {
         hit.Start = t->Start;
         hit.End = t->End + 1;
         hit.KeywordIndex = t->Label;
-        CurHitFn->collect(hit);
+        (*CurHitFn)(UserData, &hit);
       }
     }
   }
