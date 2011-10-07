@@ -36,7 +36,6 @@ public:
 private:
   LG_HITCALLBACK_FN Fn;
   void* UserData;
-//  LG_SearchHit Hit;
 };
 
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
