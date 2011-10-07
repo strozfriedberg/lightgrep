@@ -302,6 +302,7 @@ int main(int argc, char** argv) {
       search(opts);
     }
     else if (opts.Command == "server") {
+/*
       KwInfo keyInfo;
       ProgramPtr p = initProgram(opts, keyInfo);
       if (!p) {
@@ -309,6 +310,7 @@ int main(int argc, char** argv) {
         return 1;
       }
       startup(p, keyInfo, opts);
+*/
     }
     else if (opts.Command == "help") {
       printHelp(desc);
