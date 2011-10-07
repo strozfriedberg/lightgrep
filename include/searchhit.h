@@ -2,6 +2,8 @@
 
 #include "basic.h"
 
+#include <boost/function.hpp>
+
 class SearchHit: public LG_SearchHit {
 public:
   SearchHit() {}
@@ -35,8 +37,12 @@ OutStream& operator<<(OutStream& out, const SearchHit& hit) {
   return out;
 }
 
+/*
 class HitCallback {
 public:
   virtual ~HitCallback() {}
   virtual void collect(const SearchHit& hit) = 0;
 };
+*/
+
+typedef LG_HITCALLBACK_FN HitCallback;

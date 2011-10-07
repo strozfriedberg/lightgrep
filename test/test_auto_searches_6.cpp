@@ -56,7 +56,7 @@ SCOPE_TEST(autoPatternTest1256) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1257, STest, STest("a+|b+?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(16, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -92,7 +92,7 @@ SCOPE_TEST(autoPatternTest1259) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1260, STest, STest("a+?|b+?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -138,7 +138,7 @@ SCOPE_TEST(autoPatternTest1263) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1264, STest, STest("a{2}|b+?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -155,7 +155,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1264, STest, STest("a{2}|b+?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1265, STest, STest("a{1,2}|b+?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -178,7 +178,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1265, STest, STest("a{1,2}|b+?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1266, STest, STest("a{2,}|b+?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -202,7 +202,7 @@ SCOPE_TEST(autoPatternTest1267) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1268, STest, STest("a{2}?|b+?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -219,7 +219,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1268, STest, STest("a{2}?|b+?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1269, STest, STest("a{1,2}?|b+?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -244,7 +244,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1269, STest, STest("a{1,2}?|b+?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1270, STest, STest("a{2,}?|b+?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -555,7 +555,7 @@ SCOPE_TEST(autoPatternTest1312) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1313, STest, STest("a+|b{2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(9, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -584,7 +584,7 @@ SCOPE_TEST(autoPatternTest1315) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1316, STest, STest("a+?|b{2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -623,7 +623,7 @@ SCOPE_TEST(autoPatternTest1319) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1320, STest, STest("a{2}|b{2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -633,7 +633,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1320, STest, STest("a{2}|b{2}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1321, STest, STest("a{1,2}|b{2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -649,7 +649,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1321, STest, STest("a{1,2}|b{2}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1322, STest, STest("a{2,}|b{2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -666,7 +666,7 @@ SCOPE_TEST(autoPatternTest1323) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1324, STest, STest("a{2}?|b{2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -676,7 +676,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1324, STest, STest("a{2}?|b{2}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1325, STest, STest("a{1,2}?|b{2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -694,7 +694,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1325, STest, STest("a{1,2}?|b{2}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1326, STest, STest("a{2,}?|b{2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -704,7 +704,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1326, STest, STest("a{2,}?|b{2}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1327, STest, STest("a+|b{1,2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(14, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -738,7 +738,7 @@ SCOPE_TEST(autoPatternTest1329) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1330, STest, STest("a+?|b{1,2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -782,7 +782,7 @@ SCOPE_TEST(autoPatternTest1333) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1334, STest, STest("a{2}|b{1,2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(9, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -797,7 +797,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1334, STest, STest("a{2}|b{1,2}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1335, STest, STest("a{1,2}|b{1,2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(15, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -818,7 +818,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1335, STest, STest("a{1,2}|b{1,2}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1336, STest, STest("a{2,}|b{1,2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(9, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -840,7 +840,7 @@ SCOPE_TEST(autoPatternTest1337) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1338, STest, STest("a{2}?|b{1,2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(9, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -855,7 +855,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1338, STest, STest("a{2}?|b{1,2}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1339, STest, STest("a{1,2}?|b{1,2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -878,7 +878,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1339, STest, STest("a{1,2}?|b{1,2}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1340, STest, STest("a{2,}?|b{1,2}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(9, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -893,7 +893,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1340, STest, STest("a{2,}?|b{1,2}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1341, STest, STest("a+|b{2,}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(9, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -922,7 +922,7 @@ SCOPE_TEST(autoPatternTest1343) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1344, STest, STest("a+?|b{2,}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -961,7 +961,7 @@ SCOPE_TEST(autoPatternTest1347) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1348, STest, STest("a{2}|b{2,}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -971,7 +971,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1348, STest, STest("a{2}|b{2,}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1349, STest, STest("a{1,2}|b{2,}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -987,7 +987,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1349, STest, STest("a{1,2}|b{2,}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1350, STest, STest("a{2,}|b{2,}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1004,7 +1004,7 @@ SCOPE_TEST(autoPatternTest1351) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1352, STest, STest("a{2}?|b{2,}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1014,7 +1014,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1352, STest, STest("a{2}?|b{2,}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1353, STest, STest("a{1,2}?|b{2,}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -1032,7 +1032,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1353, STest, STest("a{1,2}?|b{2,}")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1354, STest, STest("a{2,}?|b{2,}")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1140,7 +1140,7 @@ SCOPE_TEST(autoPatternTest1368) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1369, STest, STest("a+|b{2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(9, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1169,7 +1169,7 @@ SCOPE_TEST(autoPatternTest1371) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1372, STest, STest("a+?|b{2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -1208,7 +1208,7 @@ SCOPE_TEST(autoPatternTest1375) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1376, STest, STest("a{2}|b{2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1218,7 +1218,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1376, STest, STest("a{2}|b{2}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1377, STest, STest("a{1,2}|b{2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -1234,7 +1234,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1377, STest, STest("a{1,2}|b{2}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1378, STest, STest("a{2,}|b{2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1251,7 +1251,7 @@ SCOPE_TEST(autoPatternTest1379) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1380, STest, STest("a{2}?|b{2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1261,7 +1261,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1380, STest, STest("a{2}?|b{2}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1381, STest, STest("a{1,2}?|b{2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -1279,7 +1279,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1381, STest, STest("a{1,2}?|b{2}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1382, STest, STest("a{2,}?|b{2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1289,7 +1289,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1382, STest, STest("a{2,}?|b{2}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1383, STest, STest("a+|b{1,2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(16, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -1325,7 +1325,7 @@ SCOPE_TEST(autoPatternTest1385) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1386, STest, STest("a+?|b{1,2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -1371,7 +1371,7 @@ SCOPE_TEST(autoPatternTest1389) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1390, STest, STest("a{2}|b{1,2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -1388,7 +1388,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1390, STest, STest("a{2}|b{1,2}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1391, STest, STest("a{1,2}|b{1,2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -1411,7 +1411,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1391, STest, STest("a{1,2}|b{1,2}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1392, STest, STest("a{2,}|b{1,2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -1435,7 +1435,7 @@ SCOPE_TEST(autoPatternTest1393) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1394, STest, STest("a{2}?|b{1,2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -1452,7 +1452,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1394, STest, STest("a{2}?|b{1,2}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1395, STest, STest("a{1,2}?|b{1,2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -1477,7 +1477,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1395, STest, STest("a{1,2}?|b{1,2}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1396, STest, STest("a{2,}?|b{1,2}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -1494,7 +1494,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1396, STest, STest("a{2,}?|b{1,2}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1397, STest, STest("a+|b{2,}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(9, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1523,7 +1523,7 @@ SCOPE_TEST(autoPatternTest1399) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1400, STest, STest("a+?|b{2,}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -1562,7 +1562,7 @@ SCOPE_TEST(autoPatternTest1403) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1404, STest, STest("a{2}|b{2,}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1572,7 +1572,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1404, STest, STest("a{2}|b{2,}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1405, STest, STest("a{1,2}|b{2,}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -1588,7 +1588,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1405, STest, STest("a{1,2}|b{2,}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1406, STest, STest("a{2,}|b{2,}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1605,7 +1605,7 @@ SCOPE_TEST(autoPatternTest1407) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1408, STest, STest("a{2}?|b{2,}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1615,7 +1615,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1408, STest, STest("a{2}?|b{2,}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1409, STest, STest("a{1,2}?|b{2,}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -1633,7 +1633,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1409, STest, STest("a{1,2}?|b{2,}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1410, STest, STest("a{2,}?|b{2,}?")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(4, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1643,7 +1643,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1410, STest, STest("a{2,}?|b{2,}?")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1411, STest, STest("a+|a|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(7, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1670,7 +1670,7 @@ SCOPE_TEST(autoPatternTest1413) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1414, STest, STest("a+?|a|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -1707,7 +1707,7 @@ SCOPE_TEST(autoPatternTest1417) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1418, STest, STest("a{2}|a|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(8, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -1721,7 +1721,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1418, STest, STest("a{2}|a|a")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1419, STest, STest("a{1,2}|a|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(8, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -1735,7 +1735,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1419, STest, STest("a{1,2}|a|a")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1420, STest, STest("a{2,}|a|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(7, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
@@ -1755,7 +1755,7 @@ SCOPE_TEST(autoPatternTest1421) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1422, STest, STest("a{2}?|a|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(8, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -1769,7 +1769,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1422, STest, STest("a{2}?|a|a")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1423, STest, STest("a{1,2}?|a|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -1785,7 +1785,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1423, STest, STest("a{1,2}?|a|a")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1424, STest, STest("a{2,}?|a|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(8, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -1799,7 +1799,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1424, STest, STest("a{2,}?|a|a")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1425, STest, STest("a+|b|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(16, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -1835,7 +1835,7 @@ SCOPE_TEST(autoPatternTest1427) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1428, STest, STest("a+?|b|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -1881,7 +1881,7 @@ SCOPE_TEST(autoPatternTest1431) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1432, STest, STest("a{2}|b|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -1904,7 +1904,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1432, STest, STest("a{2}|b|a")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1433, STest, STest("a{1,2}|b|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -1927,7 +1927,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1433, STest, STest("a{1,2}|b|a")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1434, STest, STest("a{2,}|b|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(16, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -1956,7 +1956,7 @@ SCOPE_TEST(autoPatternTest1435) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1436, STest, STest("a{2}?|b|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -1979,7 +1979,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1436, STest, STest("a{2}?|b|a")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1437, STest, STest("a{1,2}?|b|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2004,7 +2004,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1437, STest, STest("a{1,2}?|b|a")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1438, STest, STest("a{2,}?|b|a")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -2027,7 +2027,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1438, STest, STest("a{2,}?|b|a")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1439, STest, STest("a+|a|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(16, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2063,7 +2063,7 @@ SCOPE_TEST(autoPatternTest1441) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1442, STest, STest("a+?|a|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2109,7 +2109,7 @@ SCOPE_TEST(autoPatternTest1445) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1446, STest, STest("a{2}|a|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -2132,7 +2132,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1446, STest, STest("a{2}|a|b")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1447, STest, STest("a{1,2}|a|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -2155,7 +2155,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1447, STest, STest("a{1,2}|a|b")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1448, STest, STest("a{2,}|a|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(16, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2184,7 +2184,7 @@ SCOPE_TEST(autoPatternTest1449) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1450, STest, STest("a{2}?|a|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -2207,7 +2207,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1450, STest, STest("a{2}?|a|b")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1451, STest, STest("a{1,2}?|a|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2232,7 +2232,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1451, STest, STest("a{1,2}?|a|b")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1452, STest, STest("a{2,}?|a|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -2255,7 +2255,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1452, STest, STest("a{2,}?|a|b")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1453, STest, STest("a+|b|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(16, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2291,7 +2291,7 @@ SCOPE_TEST(autoPatternTest1455) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1456, STest, STest("a+?|b|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2337,7 +2337,7 @@ SCOPE_TEST(autoPatternTest1459) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1460, STest, STest("a{2}|b|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2354,7 +2354,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1460, STest, STest("a{2}|b|b")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1461, STest, STest("a{1,2}|b|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -2377,7 +2377,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1461, STest, STest("a{1,2}|b|b")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1462, STest, STest("a{2,}|b|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2401,7 +2401,7 @@ SCOPE_TEST(autoPatternTest1463) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1464, STest, STest("a{2}?|b|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2418,7 +2418,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1464, STest, STest("a{2}?|b|b")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1465, STest, STest("a{1,2}?|b|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2443,7 +2443,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1465, STest, STest("a{1,2}?|b|b")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1466, STest, STest("a{2,}?|b|b")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2460,7 +2460,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1466, STest, STest("a{2,}?|b|b")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1467, STest, STest("a+|b|c")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(25, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2505,7 +2505,7 @@ SCOPE_TEST(autoPatternTest1469) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1470, STest, STest("a+?|b|c")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2560,7 +2560,7 @@ SCOPE_TEST(autoPatternTest1473) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1474, STest, STest("a{2}|b|c")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(20, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2586,7 +2586,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1474, STest, STest("a{2}|b|c")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1475, STest, STest("a{1,2}|b|c")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(26, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
@@ -2618,7 +2618,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1475, STest, STest("a{1,2}|b|c")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1476, STest, STest("a{2,}|b|c")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(20, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2651,7 +2651,7 @@ SCOPE_TEST(autoPatternTest1477) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1478, STest, STest("a{2}?|b|c")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(20, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2677,7 +2677,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1478, STest, STest("a{2}?|b|c")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1479, STest, STest("a{1,2}?|b|c")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2711,7 +2711,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1479, STest, STest("a{1,2}?|b|c")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1480, STest, STest("a{2,}?|b|c")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(20, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 4, 0), fixture.Hits[1]);
@@ -2737,7 +2737,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1480, STest, STest("a{2,}?|b|c")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1481, STest, STest("a|a(a)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2753,7 +2753,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1481, STest, STest("a|a(a)")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1482, STest, STest("a|b(a)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2769,7 +2769,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1482, STest, STest("a|b(a)")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1483, STest, STest("a|a(b)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2785,7 +2785,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1483, STest, STest("a|a(b)")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1484, STest, STest("a|b(b)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2803,7 +2803,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1484, STest, STest("a|b(b)")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1485, STest, STest("a|b(c)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(13, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2822,7 +2822,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1485, STest, STest("a|b(c)")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1486, STest, STest("a|aa")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2838,7 +2838,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1486, STest, STest("a|aa")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1487, STest, STest("a|ba")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2854,7 +2854,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1487, STest, STest("a|ba")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1488, STest, STest("a|ab")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2870,7 +2870,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1488, STest, STest("a|ab")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1489, STest, STest("a|bb")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2888,7 +2888,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1489, STest, STest("a|bb")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1490, STest, STest("a|bc")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(13, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2907,7 +2907,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1490, STest, STest("a|bc")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1491, STest, STest("a|aaa")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2923,7 +2923,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1491, STest, STest("a|aaa")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1492, STest, STest("a|baa")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(9, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2938,7 +2938,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1492, STest, STest("a|baa")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1493, STest, STest("a|aba")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2954,7 +2954,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1493, STest, STest("a|aba")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1494, STest, STest("a|bba")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2970,7 +2970,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1494, STest, STest("a|bba")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1495, STest, STest("a|bca")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -2986,7 +2986,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1495, STest, STest("a|bca")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1496, STest, STest("a|aab")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -3002,7 +3002,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1496, STest, STest("a|aab")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1497, STest, STest("a|bab")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -3018,7 +3018,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1497, STest, STest("a|bab")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1498, STest, STest("a|abb")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);
@@ -3034,7 +3034,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1498, STest, STest("a|abb")) {
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1499, STest, STest("a|bbb")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0, fixture);
+  fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(11, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[1]);

@@ -47,7 +47,7 @@ void longTest() {
     // run lg on the text with the patterns
     STest test(patterns);
     const byte* text_ptr = (const byte*) text.data();
-    test.search(text_ptr, text_ptr + text.length(), 0, test);
+    test.search(text_ptr, text_ptr + text.length(), 0);
 
     std::vector<SearchHit>& actual = test.Hits;
 

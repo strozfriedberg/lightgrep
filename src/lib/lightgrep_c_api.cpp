@@ -14,6 +14,8 @@
 #include <cstring>
 #include <iostream>
 
+#include <boost/bind.hpp>
+
 char Error[1024];
 
 struct ParseContext {
@@ -25,6 +27,7 @@ struct ParseContext {
   ParseContext(unsigned int sizeHint): Fsm(new Graph(1, sizeHint)) {}
 };
 
+/*
 class HitHandler: public HitCallback {
 public:
   HitHandler(LG_HITCALLBACK_FN fn, void* userData): Fn(fn), UserData(userData) {}
@@ -37,6 +40,7 @@ private:
   LG_HITCALLBACK_FN Fn;
   void* UserData;
 };
+*/
 
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
   LG_HPARSER ret = 0;
@@ -179,8 +183,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
-  HitHandler cb(callbackFn, userData);
-  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->startsWith((const byte*)bufStart, (const byte*)bufEnd, startOffset, cb);
+  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->startsWith((const byte*)bufStart, (const byte*)bufEnd, startOffset, *callbackFn, userData);
 }
 
 unsigned int lg_search(LG_HCONTEXT hCtx,
@@ -190,14 +193,12 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
                          void* userData,
                          LG_HITCALLBACK_FN callbackFn)
 {
-  HitHandler cb(callbackFn, userData);
-  return (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->search((const byte*)bufStart, (const byte*)bufEnd, startOffset, cb);
+  return (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->search((const byte*)bufStart, (const byte*)bufEnd, startOffset, *callbackFn, userData);
 }
 
 void lg_closeout_search(LG_HCONTEXT hCtx,
                         void* userData,
                         LG_HITCALLBACK_FN callbackFn)
 {
-  HitHandler cb(callbackFn, userData);
-  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->closeOut(cb);
+  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->closeOut(*callbackFn, userData);
 }

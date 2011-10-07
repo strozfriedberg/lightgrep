@@ -21,9 +21,9 @@ public:
   // numCheckedStates should be equal to the number + 1 for the reserved bit
   void init(ProgramPtr prog);
 
-  virtual void startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
-  virtual bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
-  virtual void closeOut(HitCallback& hitFn);
+  virtual void startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData);
+  virtual bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData);
+  virtual void closeOut(HitCallback hitFn, void* userData);
   virtual void reset();
 
   #ifdef LBT_TRACE_ENABLED
@@ -39,7 +39,7 @@ public:
   bool executeEpsilon(Thread* t, uint64 offset);
   bool executeEpsilon(ThreadList::iterator t, uint64 offset);
 
-  void executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn);
+  void executeFrame(const byte* cur, uint64 offset, HitCallback hitFn);
   void cleanup();
 
   const ThreadList& first() const { return First; }
@@ -107,4 +107,5 @@ private:
   std::vector< std::set<uint64> > CheckOffsets;
 
   HitCallback* CurHitFn;
+  void* UserData;
 };
