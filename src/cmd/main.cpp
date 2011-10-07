@@ -98,6 +98,7 @@ void printHelp(const po::options_description& desc) {
     << desc << std::endl;
 }
 
+/*
 HitCounter* createOutputWriter(const Options& opts, const KwInfo& keyInfo) {
   if (opts.NoOutput) {
     return new NullWriter();
@@ -109,6 +110,11 @@ HitCounter* createOutputWriter(const Options& opts, const KwInfo& keyInfo) {
     return new HitWriter(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
   }
 }
+*/
+
+void callback(void* userData, const LG_SearchHit* const hit) {
+  reinterpret_cast<HitCounter*>(userData)->collect(*hit);
+}
 
 void search(const Options& opts) {
   FILE *file = opts.Input == "-" ? stdin : fopen(opts.Input.c_str(), "rb");
@@ -119,8 +125,13 @@ void search(const Options& opts) {
 
   setbuf(file, 0); // unbuffered, bitte
 
-  std::vector<std::string>& keywords(opts.getKeys());
-  std::cerr << keywords.size() << " keywords"<< std::endl;
+  const std::vector<std::string>& keywords(opts.getKeys());
+  std::cerr << keywords.size() << " keyword";
+  if (keywords.size() != 1) {
+    std::cerr << 's';
+  }
+  std::cerr << std::endl;
+
   if (keywords.empty()) {
     std::cerr << "No patterns" << std::endl; 
     return;
@@ -130,16 +141,21 @@ void search(const Options& opts) {
 
   LG_KeyOptions keyOpts;
   keyOpts.CaseInsensitive = !opts.CaseSensitive;
-  keyOpts.FixedString = opts.LiteralMode;  
+  keyOpts.FixedString = opts.LiteralMode;
 
   uint32 keyIdx = 0;
+  std::vector< std::pair<uint32,uint32> > keyInfo;
+  std::vector<std::string> encodings;
 
   const char** error = 0;
 
   if (opts.getEncoding() & CP_ASCII) {
     keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
+    encodings.push_back("ASCII");
 
     for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
+      keyInfo.push_back(std::make_pair(i, encodings.size()-1));
+
       if (!lg_add_keyword(parser.get(), keywords[i].c_str(), keyIdx, &keyOpts, error)) {
         std::cerr << *error << " on keyword "
                   << i << ", '" << keywords[i] << "'" << std::endl;
@@ -149,8 +165,11 @@ void search(const Options& opts) {
 
   if (opts.getEncoding() & CP_UCS16) {
     keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_UTF_16];
+    encodings.push_back("UTF-16");
 
     for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
+      keyInfo.push_back(std::make_pair(i, encodings.size()-1));
+
       if (!lg_add_keyword(parser.get(), keywords[i].c_str(), keyIdx, &keyOpts, error)) {
         std::cerr << *error << " on keyword "
                   << i << ", '" << keywords[i] << "'" << std::endl;
@@ -166,10 +185,21 @@ void search(const Options& opts) {
 
   parser.reset();
 
+  boost::scoped_ptr<HitCounter> hc;
+  if (opts.NoOutput) {
+    hc.reset(new NullWriter());
+  }
+  else if (opts.PrintPath) {
+    hc.reset(new PathWriter(opts.Input, opts.openOutput(), keyInfo, keywords, encodings));
+  }
+  else {
+    hc.reset(new HitWriter(opts.openOutput(), keyInfo, keywords, encodings));
+  }
+
   boost::shared_ptr<void> searcher(lg_create_context(prog.get()),
                                    lg_destroy_context);
 
-  byte* cur  = new byte[opts.BlockSize];
+  byte* cur = new byte[opts.BlockSize];
   uint64 blkSize = 0,
          offset = 0;
 
@@ -178,8 +208,6 @@ void search(const Options& opts) {
   // init timer here so as not to time the first read
   double lastTime = 0.0;
   boost::timer searchClock;
-
-  boost::scoped_ptr<HitCounter> cb(createOutputWriter(opts, keyInfo));
 
   if (!feof(file)) {
     byte* next = new byte[opts.BlockSize];
@@ -190,7 +218,7 @@ void search(const Options& opts) {
       boost::thread exec(boost::move(task));
 
       // search cur block
-      lg_search(searcher.get(), cur, cur + blkSize, offset, 0, *cb);
+      lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, hc.get(), callback);
 
       offset += blkSize;
       if (offset % (1024 * 1024 * 1024) == 0) { // should change this due to the block size being variable
@@ -203,13 +231,13 @@ void search(const Options& opts) {
       blkSize = sizeFut.get(); // block on i/o thread completion
       std::swap(cur, next);
     } while (!feof(file)); // note file is shared btwn threads, but safely
-    delete [] next;
+    delete[] next;
   }
 
   // assert: all data has been read, offset + blkSize == file size,
   // cur is last block
-  lg_search(searcher.get(), cur, cur + blkSize, offset, 0, *cb);
-  lg_closeout_search(0, *cb);
+  lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, hc.get(), callback);
+  lg_closeout_search(searcher.get(), hc.get(), callback);
 
   offset += blkSize;  // be sure to count the last block
   lastTime = searchClock.elapsed();
@@ -222,10 +250,10 @@ void search(const Options& opts) {
     std::cerr << "+inf";
   }
   std::cerr << " MB/s avg" << std::endl;
-  std::cerr << cb->NumHits << " hits" << std::endl;
+  std::cerr << hc->NumHits << " hits" << std::endl;
 
   fclose(file);
-  delete [] cur;
+  delete[] cur;
 }
 
 int main(int argc, char** argv) {
