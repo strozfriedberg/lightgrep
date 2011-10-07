@@ -27,9 +27,7 @@ extern "C" {
   } LG_KeyOptions;
 
   typedef struct {
-    // We might put some options here someday,
-    // allowing some control over optimization, etc.
-    char c;
+    char Determinize;     // 0 => build NFA, non-zero => build (pseudo)DFA
   } LG_ProgramOptions;
 
   typedef struct {
@@ -38,6 +36,7 @@ extern "C" {
     uint32  KeywordIndex; // index of keyword that hit
   } LG_SearchHit;
 
+// FIXME: missing param in example?
   // function you specify to handle the search hit, e.g.,
   // void gotASearchHit(const LG_SearchHit const* hit) {
   //   print("hit at %d, ending %d, on keyword %d",

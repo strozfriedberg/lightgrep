@@ -7,10 +7,14 @@
 #include "nfabuilder.h"
 #include "parser.h"
 #include "parsetree.h"
+#include "rewriter.h"
 #include "utility.h"
 #include "vm_interface.h"
 
+#include <cstring>
 #include <iostream>
+
+char Error[1024];
 
 struct ParseContext {
   ParseTree   Tree;
@@ -26,13 +30,13 @@ public:
   HitHandler(LG_HITCALLBACK_FN fn, void* userData): Fn(fn), UserData(userData) {}
 
   virtual void collect(const SearchHit& hit) {
-    (*Fn)(UserData, &Hit);
+    (*Fn)(UserData, &hit);
   }
 
 private:
   LG_HITCALLBACK_FN Fn;
   void* UserData;
-  LG_SearchHit Hit;
+//  LG_SearchHit Hit;
 };
 
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
@@ -50,66 +54,114 @@ void lg_destroy_parser(LG_HPARSER hParser) {
 }
 
 int lg_add_keyword(LG_HPARSER hParser,
-                      const char* keyword,
-                      unsigned int keyIndex,
-                      LG_KeyOptions* options,
-                      const char** error)
+                   const char* keyword,
+                   unsigned int keyIndex,
+                   LG_KeyOptions* options,
+                   const char** error)
 {
   try {
     ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
-    pc->Nfab.reset();
-    pc->Nfab.setCurLabel(keyIndex);
-    pc->Nfab.setCaseSensitive(options->CaseInsensitive == 0);
-    std::string k(keyword);
-    if (parse(k, options->FixedString != 0, pc->Tree) && pc->Nfab.build(pc->Tree)) {
-      pc->Comp.mergeIntoFSM(*pc->Fsm, *pc->Nfab.getFsm());
-      return 1;
+
+    NFABuilder& nfab(pc->Nfab);
+    ParseTree& tree(pc->Tree);
+    Compiler& comp(pc->Comp);
+    GraphPtr& g(pc->Fsm);
+
+    // prepare the NFA builder
+    nfab.reset();
+    nfab.setCurLabel(keyIndex);
+    nfab.setCaseSensitive(options->CaseInsensitive == 0);
+
+    // parse the keyword
+    std::string kw(keyword);
+    if (parse(kw, options->FixedString != 0, tree)) {
+      // rewrite the parse tree, if necessary
+      bool rewritten = false;
+      if (kw.find('?',1) != std::string::npos) {
+        rewritten |= reduce_trailing_nongreedy_then_empty(tree.Root);
+      }
+
+      if (rewritten || kw.find('{',1) != std::string::npos) {
+        reduce_empty_subtrees(tree.Root);
+        reduce_useless_repetitions(tree.Root);
+      }
+
+      // build the NFA for this keyword
+      if (nfab.build(tree)) {
+        // and merge it into the greater NFA
+        comp.pruneBranches(*nfab.getFsm());
+        comp.mergeIntoFSM(*g, *nfab.getFsm());
+        return 1;
+      }
     }
     else {
-      *error = "Could not parse keyword";
+      strcpy(Error, "Could not parse");
     }
   }
   catch (std::exception& e) {
-    *error = e.what();
+    strcpy(Error, "Exception: ");
+    strcat(Error, e.what());
   }
   catch (...) {
-    *error = "Unspecified exception";
+    strcpy(Error, "Unspecified exception");
   }
+
+  *error = Error;
   return 0;
 }
 
 LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
-                                LG_ProgramOptions* option)
+                              LG_ProgramOptions* options)
 {
   LG_HPROGRAM prog = 0;
   try {
     ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
-    pc->Comp.labelGuardStates(*pc->Fsm);
 
-    ProgramPtr *prog = new ProgramPtr;
-    *prog = createProgram(*pc->Fsm);
-    (*prog)->First = firstBytes(*pc->Fsm);
-  //  std::cerr << "program size is " << (*prog)->size() << std::endl;
-  //  std::cerr << **prog;
+    GraphPtr g(pc->Fsm);
+    Compiler& comp(pc->Comp);
+
+    if (options->Determinize) {
+      GraphPtr dfa(new Graph(1));
+      comp.subsetDFA(*dfa, *g);
+      g = dfa;
+    }
+
+    comp.labelGuardStates(*g);
+
+    ProgramPtr* pp = new ProgramPtr;
+    try {
+      *pp = createProgram(*pc->Fsm);
+      (*pp)->First = firstBytes(*pc->Fsm);
+      prog = pp;
+    }
+    catch (...) {
+      delete pp;
+    }
   }
   catch (...) {}
+
   return prog;
 }
 
 void lg_destroy_program(LG_HPROGRAM hProg) {
-  ProgramPtr *prog = reinterpret_cast<ProgramPtr*>(hProg);
-  delete prog;
+  delete reinterpret_cast<ProgramPtr*>(hProg);
 }
 
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
   LG_HCONTEXT ret = 0;
   try {
-    boost::shared_ptr<VmInterface> *ctx = new boost::shared_ptr<VmInterface>;
-    *ctx = VmInterface::create();
-    (*ctx)->init(*reinterpret_cast<ProgramPtr*>(hProg));
-    ret = ctx;
+    boost::shared_ptr<VmInterface>* ctx = new boost::shared_ptr<VmInterface>;
+    try {
+      *ctx = VmInterface::create();
+      (*ctx)->init(*reinterpret_cast<ProgramPtr*>(hProg));
+      ret = ctx;
+    }
+    catch (...) {
+      delete ctx;
+    }
   }
   catch (...) {}
+
   return ret;
 }
 
