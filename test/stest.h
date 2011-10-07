@@ -5,7 +5,10 @@
 #include "utility.h"
 #include "vm_interface.h"
 
-struct STest: public HitCallback {
+void collector(void* userData, const LG_SearchHit* const hit);
+
+//struct STest: public HitCallback {
+struct STest {
   std::vector< SearchHit > Hits;
   GraphPtr Fsm;
   ProgramPtr Prog;
@@ -38,16 +41,15 @@ struct STest: public HitCallback {
     Grep->init(Prog);
   }
 
-  void search(const byte* begin, const byte* end, uint64 offset, HitCallback& cb) {
-    Grep->search(begin, end, offset, cb);
-    Grep->closeOut(cb);
+  void search(const byte* begin, const byte* end, uint64 offset) {
+    Grep->search(begin, end, offset, collector, this);
+    Grep->closeOut(collector, this);
   }
 
-  void startsWith(const byte* begin, const byte* end, uint64 offset, HitCallback& cb) {
-    Grep->startsWith(begin, end, offset, cb);
-  }
-
-  virtual void collect(const SearchHit& hit) {
-    Hits.push_back(hit);
+  void startsWith(const byte* begin, const byte* end, uint64 offset) {
+    Grep->startsWith(begin, end, offset, collector, this);
   }
 };
+
+void collector(void* userData, const LG_SearchHit* const hit);
+
