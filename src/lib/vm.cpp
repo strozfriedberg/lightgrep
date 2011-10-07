@@ -297,6 +297,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           if (tStart >= MatchEnds[tLabel]) {
             MatchEnds[tLabel] = tEnd + 1;
 
+// FIXME: remove this test?
             if (CurHitFn) {
               CurHitFn->collect(SearchHit(tStart, tEnd + 1, tLabel));
             }
@@ -599,6 +600,8 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
 
 void Vm::closeOut(HitCallback& hitFn) {
   CurHitFn = &hitFn;
+
+// FIXME: remove this test?
   if (!CurHitFn) {
     return;
   }
