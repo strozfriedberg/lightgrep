@@ -201,11 +201,11 @@ void search(const Options& opts) {
   boost::scoped_ptr<HitCounterInfo> hinfo;
 
   if (opts.NoOutput) {
-    callback = nullWriter;
+    callback = &nullWriter;
     hinfo.reset(new HitCounterInfo);
   }
   else if (opts.PrintPath) {
-    callback = pathWriter;
+    callback = &pathWriter;
     hinfo.reset(
       new PathWriterInfo(
         opts.Input, opts.openOutput(), patInfo, patterns, encodings
@@ -213,7 +213,7 @@ void search(const Options& opts) {
     );
   }
   else {
-    callback = hitWriter;
+    callback = &hitWriter;
     hinfo.reset(
       new HitWriterInfo(opts.openOutput(), patInfo, patterns, encodings)
     );
