@@ -297,10 +297,9 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
           if (tStart >= MatchEnds[tLabel]) {
             MatchEnds[tLabel] = tEnd + 1;
 
-// FIXME: remove this test?
             if (CurHitFn) {
               SearchHit hit(tStart, tEnd + 1, tLabel);
-              CurHitFn(UserData, &hit);
+              (*CurHitFn)(UserData, &hit);
             }
           }
 
@@ -606,7 +605,6 @@ void Vm::closeOut(HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
 
-// FIXME: remove this test?
   if (!CurHitFn) {
     return;
   }
@@ -622,7 +620,7 @@ void Vm::closeOut(HitCallback hitFn, void* userData) {
         hit.Start = t->Start;
         hit.End = t->End + 1;
         hit.KeywordIndex = t->Label;
-        CurHitFn(UserData, &hit);
+        (*CurHitFn)(UserData, &hit);
       }
     }
   }
