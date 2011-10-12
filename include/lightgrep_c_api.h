@@ -1,7 +1,7 @@
 // Copyright 2011, Lightbox Technologies, Inc. All Rights Reserved.
 
-#ifndef LIGHTGREP_C_API_H
-#define LIGHTGREP_C_API_H
+#ifndef __LIGHTGREP_C_API_H_
+#define __LIGHTGREP_C_API_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -114,7 +114,7 @@ extern "C" {
   unsigned int lg_search(LG_HCONTEXT hCtx,
                          const char* bufStart,
                          const char* bufEnd,   // pointer past the end of the buffer, i.e. bufEnd - bufStart == length of buffer
-                         uint64 startOffset,   // Increment this with each call, by the length of the previous buffer. i.e., startOffset += bufEnd - bufStart;
+                         const uint64 startOffset,   // Increment this with each call, by the length of the previous buffer. i.e., startOffset += bufEnd - bufStart;
                          void* userData,       // pass in what you like, it will be passed through to the callback function
                          LG_HITCALLBACK_FN callbackFn);
 
@@ -128,4 +128,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif /* __LIGHTGREP_C_API_H_ */
