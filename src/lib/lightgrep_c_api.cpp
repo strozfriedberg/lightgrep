@@ -6,6 +6,7 @@
 #include "compiler.h"
 #include "encodings.h"
 #include "nfabuilder.h"
+#include "parsecontext.h"
 #include "parsetree.h"
 #include "utility.h"
 #include "vm_interface.h"
@@ -17,15 +18,6 @@
 #include <boost/shared_ptr.hpp>
 
 char Error[1024];
-
-struct ParseContext {
-  ParseTree   Tree;
-  NFABuilder  Nfab;
-  Compiler    Comp;
-  GraphPtr    Fsm;
-
-  ParseContext(unsigned int sizeHint): Fsm(new Graph(1, sizeHint)) {}
-};
 
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
   LG_HPARSER ret = 0;
