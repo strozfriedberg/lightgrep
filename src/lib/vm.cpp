@@ -300,7 +300,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 // FIXME: remove this test?
             if (CurHitFn) {
               SearchHit hit(tStart, tEnd + 1, tLabel);
-              (*CurHitFn)(UserData, &hit);
+              CurHitFn(UserData, &hit);
             }
           }
 
@@ -518,14 +518,15 @@ bool Vm::executeEpsilon(ThreadList::iterator t, uint64 offset) {
   return _executeEpsilon(&(*Prog)[0], t, offset);
 }
 
-void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback hitFn) {
-  CurHitFn = &hitFn;
+void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback hitFn, void* userData) {
+  CurHitFn = hitFn;
+  UserData = userData;
   ThreadList::iterator t = Active.begin();
   _executeFrame(Prog->First, t, &(*Prog)[0], cur, offset);
 }
 
 void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData) {
-  CurHitFn = &hitFn;
+  CurHitFn = hitFn;
   UserData = userData;
   const Instruction* base = &(*Prog)[0];
   ByteSet first = Prog->First;
@@ -557,7 +558,7 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
 }
 
 bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, HitCallback hitFn, void* userData) {
-  CurHitFn = &hitFn;
+  CurHitFn = hitFn;
   UserData = userData;
   const Instruction* base = &(*Prog)[0];
   ByteSet first = Prog->First;
@@ -602,7 +603,7 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
 }
 
 void Vm::closeOut(HitCallback hitFn, void* userData) {
-  CurHitFn = &hitFn;
+  CurHitFn = hitFn;
   UserData = userData;
 
 // FIXME: remove this test?
@@ -621,7 +622,7 @@ void Vm::closeOut(HitCallback hitFn, void* userData) {
         hit.Start = t->Start;
         hit.End = t->End + 1;
         hit.KeywordIndex = t->Label;
-        (*CurHitFn)(UserData, &hit);
+        CurHitFn(UserData, &hit);
       }
     }
   }

@@ -2,67 +2,88 @@
 #include "codegen.h"
 #include "concrete_encodings.h"
 #include "compiler.h"
+#include "encodings.h"
 #include "nfabuilder.h"
 #include "parser.h"
 #include "rewriter.h"
 
 #include <algorithm>
+#include <sstream>
+#include <stdexcept>
 #include <queue>
 
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-void addKeys(const std::vector<std::string>& keywords, boost::shared_ptr<Encoding> enc, bool caseSensitive, bool litMode, GraphPtr& fsm, uint32& keyIdx, Compiler& comp) {
+void addPattern(
+  NFABuilder& nfab,
+  ParseTree& tree,
+  Compiler& comp,
+  Graph& g,
+  const std::string& pattern,
+  uint32 patIndex,
+  bool caseSensitive,
+  bool fixedString,
+  const std::string& encoding)
+{
+  // prepare the NFA builder
+  nfab.reset();
+  nfab.setCurLabel(patIndex);
+  nfab.setCaseSensitive(caseSensitive);
+
+  if (encoding == "ASCII") {
+    nfab.setEncoding(boost::shared_ptr<Encoding>(new Ascii));
+  }
+  else if (encoding == "UTF-16") {
+    nfab.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
+  }
+  else {
+    std::stringstream ss;
+    ss << "Unrecognized encoding '" << encoding << "'";
+    throw std::runtime_error(ss.str());
+  }
+
+  // parse the pattern
+  if (parse(pattern, fixedString, tree)) {
+    // rewrite the parse tree, if necessary
+    bool rewritten = false;
+    if (pattern.find('?',1) != std::string::npos) {
+      rewritten |= reduce_trailing_nongreedy_then_empty(tree.Root);
+    }
+
+    if (rewritten || pattern.find('{',1) != std::string::npos) {
+      reduce_empty_subtrees(tree.Root);
+      reduce_useless_repetitions(tree.Root);
+    }
+
+    // build the NFA for this pattern
+    if (nfab.build(tree)) {
+      // and merge it into the greater NFA
+      comp.pruneBranches(*nfab.getFsm());
+      comp.mergeIntoFSM(g, *nfab.getFsm());
+      return;
+    }
+  }
+
+  throw std::runtime_error("Could not parse");
+}
+
+void addKeys(const std::vector<std::string>& keywords, const std::string& encoding, bool caseSensitive, bool litMode, GraphPtr& fsm, uint32& keyIdx, Compiler& comp) {
   ParseTree   tree;
   NFABuilder  nfab;
-  nfab.setEncoding(enc);
 
   for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
     const std::string& kw(keywords[i]);
-    if (!kw.empty()) {
-      try {
-        nfab.setCurLabel(keyIdx);
-        nfab.setCaseSensitive(caseSensitive); // do this before each keyword since parsing may change it
 
-        if (parse(kw, litMode, tree)) {
-          bool rewritten = false;
-          if (kw.find('?',1) != std::string::npos) {
-            rewritten |= reduce_trailing_nongreedy_then_empty(tree.Root);
-          }
-
-          if (rewritten || kw.find('{',1) != std::string::npos) {
-            reduce_empty_subtrees(tree.Root);
-            reduce_useless_repetitions(tree.Root);
-          }
-
-          if (nfab.build(tree)) {
-            comp.pruneBranches(*nfab.getFsm());
-            comp.mergeIntoFSM(*fsm, *nfab.getFsm());
-          }
-          else {
-// FIXME: output to our own error stream instead, so that --no-output can suppress this
-            std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
-          }
-        }
-        else {
-          std::cerr << "Could not parse keyword number " << i << ", " << kw << std::endl;
-        }
-
-        nfab.reset();
-      }
-      catch (std::exception& e) {
-        std::cerr << "Exception on keyword \"" << kw <<  "\" (" << i << "): " << e.what() << std::endl;
-        if (fsm) {
-          std::cerr << "Currently " << fsm->numVertices() << " vertices" << std::endl;
-        }
-        throw;
-      }
-      // if (i && i % 10000 == 0) {
-      //   std::cerr << "Parsed " << i << " keywords" << std::endl;
-      // }
+    try {
+      addPattern(nfab, tree, comp, *fsm, kw, keyIdx,
+                 caseSensitive, litMode, encoding);
+    }
+    catch (std::runtime_error& e) {
+      std::cerr << e.what() << " keyword number " << i
+                << ", " << kw << std::endl;
     }
   }
-  // std::cerr << "Parsed " << keywords.size() << " keywords, beginning labeling" << std::endl;
 }
 
 uint32 totalCharacters(const std::vector<std::string>& keywords) {
@@ -73,11 +94,11 @@ uint32 totalCharacters(const std::vector<std::string>& keywords) {
   return ret;
 }
 
-void addKeys(KwInfo& keyInfo, GraphPtr g, Compiler& comp, const std::string encName, boost::shared_ptr<Encoding> enc, bool caseSensitive, bool litMode, uint32 keyIdx) {
+void addKeys(KwInfo& keyInfo, GraphPtr g, Compiler& comp, const std::string encName, bool caseSensitive, bool litMode, uint32& keyIdx) {
   keyInfo.Encodings.push_back(encName);
   const uint32 encIdx = keyInfo.Encodings.size() - 1;
 
-  addKeys(keyInfo.Keywords, enc, caseSensitive, litMode, g, keyIdx, comp);
+  addKeys(keyInfo.Keywords, encName, caseSensitive, litMode, g, keyIdx, comp);
 
   for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
     keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
@@ -97,19 +118,11 @@ GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMo
   Compiler comp;
 
   if (enc & CP_ASCII) {
-    addKeys(
-      keyInfo, g, comp,
-      "ASCII", boost::shared_ptr<Encoding>(new Ascii),
-      caseSensitive, litMode, keyIdx
-    );
+    addKeys(keyInfo, g, comp, "ASCII", caseSensitive, litMode, keyIdx);
   }
 
   if (enc & CP_UCS16) {
-    addKeys(
-      keyInfo, g, comp,
-      "UCS-16", boost::shared_ptr<Encoding>(new UCS16),
-      caseSensitive, litMode, keyIdx
-    );
+    addKeys(keyInfo, g, comp, "UTF-16", caseSensitive, litMode, keyIdx);
   }
 
   if (g) {
