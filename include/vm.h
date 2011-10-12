@@ -39,7 +39,7 @@ public:
   bool executeEpsilon(Thread* t, uint64 offset);
   bool executeEpsilon(ThreadList::iterator t, uint64 offset);
 
-  void executeFrame(const byte* cur, uint64 offset, HitCallback hitFn);
+  void executeFrame(const byte* cur, uint64 offset, HitCallback hitFn, void* userData);
   void cleanup();
 
   const ThreadList& first() const { return First; }
@@ -106,6 +106,6 @@ private:
   SparseSet CheckLabels;
   std::vector< std::set<uint64> > CheckOffsets;
 
-  HitCallback* CurHitFn;
+  HitCallback CurHitFn;
   void* UserData;
 };
