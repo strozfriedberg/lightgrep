@@ -1,21 +1,19 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 
-#include <scope/testrunner.h>
+#include <boost/bind.hpp>
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
-
 #include <boost/graph/graphviz.hpp>
-#include <boost/bind.hpp>
 
 #include "encodings.h"
-#include "lightgrep_c_api.h"
-#include "utility.h"
-#include "vm_interface.h"
 #include "hitwriter.h"
+#include "lightgrep_c_api.h"
 #include "options.h"
 #include "optparser.h"
+#include "utility.h"
 
 #include "include_boost_thread.h"
 
@@ -40,6 +38,21 @@ void writeGraphviz(const Options& opts) {
       writeGraphviz(opts.openOutput(), *fsm);
     }
   }
+
+/*
+  // parse patterns and get index and encoding info for hit writer
+  const std::vector<std::string>& patterns(opts.getKeys());
+  std::vector< std::pair<uint32,uint32> > patInfo;
+  std::vector<std::string> encodings;
+
+  boost::shared_ptr<void> parser(
+    parsePatterns(opts, patterns, patInfo, encodings)
+  );
+
+  // build the program
+  boost::shared_ptr<void> prog(buildProgram(parser.get(), opts));
+*/
+
 }
 
 void writeProgram(const Options& opts) {
@@ -55,38 +68,6 @@ void writeProgram(const Options& opts) {
   }
 }
 
-ProgramPtr initProgram(const Options& opts, KwInfo& keyInfo) {
-  ProgramPtr p;
-  keyInfo.Keywords = opts.getKeys();
-  std::cerr << keyInfo.Keywords.size() << " keywords"<< std::endl;
-  if (keyInfo.Keywords.empty()) {
-    return p;
-  }
-  GraphPtr fsm = createGraph(keyInfo, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode, opts.Determinize);
-  std::cerr << fsm->numVertices() << " vertices" << '\n';
-
-  p = createProgram(*fsm);
-  std::cerr << p->size() << " instructions" << std::endl;
-
-//  p->Skip = calculateSkipTable(*fsm);
-  p->First = firstBytes(*fsm);
-
-/*
-  std::cerr << p->Skip->l_min() << " lmin" << std::endl;
-  uint32 numMax = 0;
-  double total = 0;
-  for (uint32 i = 0; i < 256; ++i) {
-    total += p->Skip->skipVec()[i];
-    if (p->Skip->skipVec()[i] == p->Skip->l_min()) {
-      ++numMax;
-    }
-  }
-  std::cerr << numMax << " numMaxSkips" << std::endl;
-  std::cerr << (total/256) << " averageSkip" << std::endl;
-*/
-  return p;
-}
-
 uint64 readNext(FILE* file, byte* buf, unsigned int blockSize) {
   return fread((void*)buf, 1, blockSize, file);
 }
@@ -100,53 +81,96 @@ void printHelp(const po::options_description& desc) {
     << desc << std::endl;
 }
 
-/*
-HitCounter* createOutputWriter(const Options& opts, const KwInfo& keyInfo) {
-  if (opts.NoOutput) {
-    return new NullWriter();
-  }
-  else if (opts.PrintPath) {
-    return new PathWriter(opts.Input, opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
-  }
-  else {
-    return new HitWriter(opts.openOutput(), keyInfo.PatternsTable, keyInfo.Keywords, keyInfo.Encodings);
+void addPattern(
+  LG_HPARSER parser,
+  const std::string& pattern,
+  uint32 i,
+  uint32 patIdx,
+  const LG_KeyOptions& keyOpts,
+  std::vector< std::pair<uint32,uint32> >& patInfo,
+  const std::vector<std::string>& encodings)
+{
+  const char* error = 0;
+
+  patInfo.push_back(std::make_pair(i, encodings.size()-1));
+
+  if (!lg_add_keyword(parser, pattern.c_str(), patIdx, &keyOpts, &error)) {
+    std::cerr << error << " on pattern "
+              << i << ", '" << pattern << "'" << std::endl;
   }
 }
-*/
 
-/*
-void callback(void* userData, const LG_SearchHit* const hit) {
-  reinterpret_cast<HitCounter*>(userData)->collect(*hit);
+boost::shared_ptr<void> parsePatterns(
+  const Options& opts,
+  const std::vector<std::string>& patterns,
+  std::vector< std::pair<uint32,uint32> >& patInfo,
+  std::vector<std::string>& encodings)
+{
+  // get patterns from options
+  std::cerr << patterns.size() << " patterns";
+  if (patterns.size() != 1) {
+    std::cerr << 's';
+  }
+  std::cerr << std::endl;
+
+  if (patterns.empty()) {
+    return boost::shared_ptr<void>();
+  }
+
+  // find total length of patterns
+  const uint32 tlen = std::accumulate(
+    patterns.begin(), patterns.end(), 0,
+    boost::bind(std::plus<uint32>(), _1, boost::bind(&std::string::size, _2))
+  );
+
+// FIXME: very BAD if we pass 0 as sizeHint
+  boost::shared_ptr<void> parser(lg_create_parser(tlen), lg_destroy_parser);
+
+  // set up parsing options
+  LG_KeyOptions keyOpts;
+  keyOpts.CaseInsensitive = !opts.CaseSensitive;
+  keyOpts.FixedString = opts.LiteralMode;
+
+  // parse patterns
+  uint32 patIdx = 0;
+
+  if (opts.getEncoding() & CP_ASCII) {
+    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
+    encodings.push_back("ASCII");
+
+    for (uint32 i = 0; i < patterns.size(); ++i, ++patIdx) {
+      addPattern(
+        parser.get(), patterns[i], i, patIdx, keyOpts, patInfo, encodings
+      );
+    }
+  }
+
+  if (opts.getEncoding() & CP_UCS16) {
+    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_UTF_16];
+    encodings.push_back("UTF-16");
+
+    for (uint32 i = 0; i < patterns.size(); ++i, ++patIdx) {
+      addPattern(
+        parser.get(), patterns[i], i, patIdx, keyOpts, patInfo, encodings
+      );
+    }
+  }
+
+  return parser;
 }
-*/
 
-struct HitInfo {
-  HitInfo(std::ostream& outStream,
-          const std::vector< std::pair<uint32,uint32> >& tbl,
-          const std::vector<std::string>& keys,
-          const std::vector<std::string>& encodings):
-          Out(outStream), Table(tbl), Keys(keys),
-          Encodings(encodings), NumHits(0) {}
+boost::shared_ptr<void> buildProgram(LG_HPARSER parser, const Options& opts) {
+  LG_ProgramOptions progOpts;
+  progOpts.Determinize = opts.Determinize;
 
-  std::ostream& Out;
-  const std::vector< std::pair<uint32, uint32> >& Table;
-  const std::vector<std::string>& Keys;
-  const std::vector<std::string>& Encodings;
-  uint64 NumHits;
-};
-
-void nullwriter(void*, const LG_SearchHit* const) {}
-
-void hitwriter(void* userData, const LG_SearchHit* const hit) {
-  HitInfo* hi = reinterpret_cast<HitInfo*>(userData);
-  
-  const std::pair<uint32,uint32>& info(hi->Table[hit->KeywordIndex]);
-  hi->Out << hit->Start << '\t' << hit->End << '\t' << info.first << '\t'
-          << hi->Keys[info.first] << '\t' << hi->Encodings[info.second] << '\n';
-  ++hi->NumHits;
+  return boost::shared_ptr<void>(
+    lg_create_program(parser, &progOpts),
+    lg_destroy_program
+  );
 }
 
 void search(const Options& opts) {
+  // try to open our input
   FILE *file = opts.Input == "-" ? stdin : fopen(opts.Input.c_str(), "rb");
   if (!file) {
     std::cerr << "Could not open file " << opts.Input << std::endl;
@@ -155,83 +179,45 @@ void search(const Options& opts) {
 
   setbuf(file, 0); // unbuffered, bitte
 
-  const std::vector<std::string>& keywords(opts.getKeys());
-  std::cerr << keywords.size() << " keyword";
-  if (keywords.size() != 1) {
-    std::cerr << 's';
-  }
-  std::cerr << std::endl;
-
-  if (keywords.empty()) {
-    std::cerr << "No patterns" << std::endl; 
-    return;
-  }
-
-  boost::shared_ptr<void> parser(lg_create_parser(0), lg_destroy_parser);
-
-  LG_KeyOptions keyOpts;
-  keyOpts.CaseInsensitive = !opts.CaseSensitive;
-  keyOpts.FixedString = opts.LiteralMode;
-
-  uint32 keyIdx = 0;
-  std::vector< std::pair<uint32,uint32> > keyInfo;
+  // parse patterns and get index and encoding info for hit writer
+  const std::vector<std::string>& patterns(opts.getKeys());
+  std::vector< std::pair<uint32,uint32> > patInfo;
   std::vector<std::string> encodings;
 
-  const char** error = 0;
+  boost::shared_ptr<void> parser(
+    parsePatterns(opts, patterns, patInfo, encodings)
+  );
 
-  if (opts.getEncoding() & CP_ASCII) {
-    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
-    encodings.push_back("ASCII");
+  // build the program
+  boost::shared_ptr<void> prog(buildProgram(parser.get(), opts)); 
 
-    for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
-      keyInfo.push_back(std::make_pair(i, encodings.size()-1));
-
-      if (!lg_add_keyword(parser.get(), keywords[i].c_str(), keyIdx, &keyOpts, error)) {
-        std::cerr << *error << " on keyword "
-                  << i << ", '" << keywords[i] << "'" << std::endl;
-      }
-    }
-  }
-
-  if (opts.getEncoding() & CP_UCS16) {
-    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_UTF_16];
-    encodings.push_back("UTF-16");
-
-    for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
-      keyInfo.push_back(std::make_pair(i, encodings.size()-1));
-
-      if (!lg_add_keyword(parser.get(), keywords[i].c_str(), keyIdx, &keyOpts, error)) {
-        std::cerr << *error << " on keyword "
-                  << i << ", '" << keywords[i] << "'" << std::endl;
-      }
-    }
-  }
-
-  LG_ProgramOptions progOpts;
-  progOpts.Determinize = opts.Determinize;
-
-  boost::shared_ptr<void> prog(lg_create_program(parser.get(), &progOpts),
-                               lg_destroy_program);
-
+  // go free, little parser
   parser.reset();
 
-/*
-  boost::scoped_ptr<HitCounter> hc;
+  // setup hit callback
+  LG_HITCALLBACK_FN callback;
+  boost::scoped_ptr<HitCounterInfo> hinfo;
+
   if (opts.NoOutput) {
-    hc.reset(new NullWriter());
+    callback = nullWriter;
+    hinfo.reset(new HitCounterInfo);
   }
   else if (opts.PrintPath) {
-    hc.reset(new PathWriter(opts.Input, opts.openOutput(), keyInfo, keywords, encodings));
+    callback = pathWriter;
+    hinfo.reset(
+      new PathWriterInfo(
+        opts.Input, opts.openOutput(), patInfo, patterns, encodings
+      )
+    );
   }
   else {
-    hc.reset(new HitWriter(opts.openOutput(), keyInfo, keywords, encodings));
+    callback = hitWriter;
+    hinfo.reset(
+      new HitWriterInfo(opts.openOutput(), patInfo, patterns, encodings)
+    );
   }
-*/
 
-  HitInfo hinfo(opts.openOutput(), keyInfo, keywords, encodings);
-
-  LG_HITCALLBACK_FN callback = opts.NoOutput ? nullwriter : hitwriter; 
-
+  // search
   boost::shared_ptr<void> searcher(lg_create_context(prog.get()),
                                    lg_destroy_context);
 
@@ -254,7 +240,7 @@ void search(const Options& opts) {
       boost::thread exec(boost::move(task));
 
       // search cur block
-      lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, &hinfo, callback);
+      lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, hinfo.get(), callback);
 
       offset += blkSize;
       if (offset % (1024 * 1024 * 1024) == 0) { // should change this due to the block size being variable
@@ -272,8 +258,8 @@ void search(const Options& opts) {
 
   // assert: all data has been read, offset + blkSize == file size,
   // cur is last block
-  lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, &hinfo, callback);
-  lg_closeout_search(searcher.get(), &hinfo, callback);
+  lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, hinfo.get(), callback);
+  lg_closeout_search(searcher.get(), hinfo.get(), callback);
 
   offset += blkSize;  // be sure to count the last block
   lastTime = searchClock.elapsed();
@@ -286,7 +272,7 @@ void search(const Options& opts) {
     std::cerr << "+inf";
   }
   std::cerr << " MB/s avg" << std::endl;
-  std::cerr << hinfo.NumHits << " hits" << std::endl;
+  std::cerr << hinfo->NumHits << " hits" << std::endl;
 
   fclose(file);
   delete[] cur;

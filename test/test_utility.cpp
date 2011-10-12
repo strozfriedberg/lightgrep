@@ -462,8 +462,8 @@ SCOPE_TEST(testInitVM) {
   byte text[] = "a onetwothree";
 
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT(!search->search(&text[0], &text[15], 0, mockcallback, &hits));
-  search->closeOut(mockcallback, &hits);
+  SCOPE_ASSERT(!search->search(&text[0], &text[15], 0, mockCallback, &hits));
+  search->closeOut(mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(2u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 5, 0), hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(5, 8, 1), hits[1]);

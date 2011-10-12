@@ -4,17 +4,17 @@
 
 #include "graph.h"
 #include "compiler.h"
+#include "encodings.h"
 #include "nfabuilder.h"
-#include "parser.h"
 #include "parsetree.h"
-#include "rewriter.h"
 #include "utility.h"
 #include "vm_interface.h"
 
 #include <cstring>
 #include <iostream>
+#include <sstream>
 
-#include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
 
 char Error[1024];
 
@@ -26,21 +26,6 @@ struct ParseContext {
 
   ParseContext(unsigned int sizeHint): Fsm(new Graph(1, sizeHint)) {}
 };
-
-/*
-class HitHandler: public HitCallback {
-public:
-  HitHandler(LG_HITCALLBACK_FN fn, void* userData): Fn(fn), UserData(userData) {}
-
-  virtual void collect(const SearchHit& hit) {
-    (*Fn)(UserData, &hit);
-  }
-
-private:
-  LG_HITCALLBACK_FN Fn;
-  void* UserData;
-};
-*/
 
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
   LG_HPARSER ret = 0;
@@ -59,83 +44,68 @@ void lg_destroy_parser(LG_HPARSER hParser) {
 int lg_add_keyword(LG_HPARSER hParser,
                    const char* keyword,
                    unsigned int keyIndex,
-                   LG_KeyOptions* options,
+                   const LG_KeyOptions* options,
                    const char** error)
 {
   try {
     ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
 
-    NFABuilder& nfab(pc->Nfab);
-    ParseTree& tree(pc->Tree);
-    Compiler& comp(pc->Comp);
-    GraphPtr& g(pc->Fsm);
+    addPattern(
+      pc->Nfab,
+      pc->Tree,
+      pc->Comp,
+      *pc->Fsm,
+      keyword,
+      keyIndex,
+      options->CaseInsensitive == 0,
+      options->FixedString != 0,
+      options->Encoding
+    );
 
-    // prepare the NFA builder
-    nfab.reset();
-    nfab.setCurLabel(keyIndex);
-    nfab.setCaseSensitive(options->CaseInsensitive == 0);
-
-    // parse the keyword
-    std::string kw(keyword);
-    if (parse(kw, options->FixedString != 0, tree)) {
-      // rewrite the parse tree, if necessary
-      bool rewritten = false;
-      if (kw.find('?',1) != std::string::npos) {
-        rewritten |= reduce_trailing_nongreedy_then_empty(tree.Root);
-      }
-
-      if (rewritten || kw.find('{',1) != std::string::npos) {
-        reduce_empty_subtrees(tree.Root);
-        reduce_useless_repetitions(tree.Root);
-      }
-
-      // build the NFA for this keyword
-      if (nfab.build(tree)) {
-        // and merge it into the greater NFA
-        comp.pruneBranches(*nfab.getFsm());
-        comp.mergeIntoFSM(*g, *nfab.getFsm());
-        return 1;
-      }
-    }
-    else {
-      strcpy(Error, "Could not parse");
-    }
+    return 1;
   }
   catch (std::exception& e) {
-    strcpy(Error, "Exception: ");
-    strcat(Error, e.what());
+    strcpy(Error, e.what());
   }
   catch (...) {
     strcpy(Error, "Unspecified exception");
   }
 
-  *error = Error;
+  *error = &Error[0];
   return 0;
 }
 
 LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
-                              LG_ProgramOptions* options)
+                              const LG_ProgramOptions* options)
 {
   LG_HPROGRAM prog = 0;
   try {
     ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
 
-    GraphPtr g(pc->Fsm);
+    GraphPtr& g(pc->Fsm);
     Compiler& comp(pc->Comp);
+
+    std::cerr << g->numVertices() << " vertices" << std::endl;
 
     if (options->Determinize) {
       GraphPtr dfa(new Graph(1));
       comp.subsetDFA(*dfa, *g);
       g = dfa;
+
+      std::cerr << g->numVertices() << " vertices" << std::endl;
     }
 
     comp.labelGuardStates(*g);
 
+    std::cerr << g->numVertices() << " vertices" << std::endl;
+
     ProgramPtr* pp = new ProgramPtr;
     try {
-      *pp = createProgram(*pc->Fsm);
-      (*pp)->First = firstBytes(*pc->Fsm);
+      *pp = createProgram(*g);
+      (*pp)->First = firstBytes(*g);
       prog = pp;
+
+      std::cerr << (*pp)->size() << " instructions" << std::endl;
     }
     catch (...) {
       delete pp;
@@ -189,7 +159,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
 unsigned int lg_search(LG_HCONTEXT hCtx,
                          const char* bufStart,
                          const char* bufEnd,
-                         uint64 startOffset,
+                         const uint64 startOffset,
                          void* userData,
                          LG_HITCALLBACK_FN callbackFn)
 {
