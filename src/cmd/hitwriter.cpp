@@ -2,7 +2,10 @@
 
 #include <ostream>
 
-void nullWriter(void*, const LG_SearchHit* const) {}
+void nullWriter(void*userData, const LG_SearchHit* const) {
+  HitCounterInfo* hi = reinterpret_cast<HitCounterInfo*>(userData);
+  ++hi->NumHits;
+}
 
 void hitWriter(void* userData, const LG_SearchHit* const hit) {
   HitWriterInfo* hi = reinterpret_cast<HitWriterInfo*>(userData);
