@@ -135,7 +135,8 @@ boost::shared_ptr<void> parsePatterns(
   uint32 patIdx = 0;
 
   if (opts.getEncoding() & CP_ASCII) {
-    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
+//    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
+    keyOpts.Encoding = "ASCII";
     encodings.push_back("ASCII");
 
     for (uint32 i = 0; i < patterns.size(); ++i, ++patIdx) {
@@ -146,7 +147,8 @@ boost::shared_ptr<void> parsePatterns(
   }
 
   if (opts.getEncoding() & CP_UCS16) {
-    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_UTF_16];
+//    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_UTF_16];
+    keyOpts.Encoding = "UTF-16";
     encodings.push_back("UTF-16");
 
     for (uint32 i = 0; i < patterns.size(); ++i, ++patIdx) {
