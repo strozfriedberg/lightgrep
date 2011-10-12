@@ -77,14 +77,10 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
     GraphPtr& g(pc->Fsm);
     Compiler& comp(pc->Comp);
 
-    std::cerr << g->numVertices() << " vertices" << std::endl;
-
     if (options->Determinize) {
       GraphPtr dfa(new Graph(1));
       comp.subsetDFA(*dfa, *g);
       g = dfa;
-
-      std::cerr << g->numVertices() << " vertices" << std::endl;
     }
 
     comp.labelGuardStates(*g);
