@@ -13,6 +13,7 @@
 #include "lightgrep_c_api.h"
 #include "options.h"
 #include "optparser.h"
+#include "parsecontext.h"
 #include "utility.h"
 
 #include "include_boost_thread.h"
@@ -29,44 +30,6 @@ namespace boost {
 namespace po = boost::program_options;
 
 void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
-
-void writeGraphviz(const Options& opts) {
-  std::vector<std::string> keys = opts.getKeys();
-  if (!keys.empty()) {
-    GraphPtr fsm = createGraph(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode, opts.Determinize);
-    if (fsm) {
-      writeGraphviz(opts.openOutput(), *fsm);
-    }
-  }
-
-/*
-  // parse patterns and get index and encoding info for hit writer
-  const std::vector<std::string>& patterns(opts.getKeys());
-  std::vector< std::pair<uint32,uint32> > patInfo;
-  std::vector<std::string> encodings;
-
-  boost::shared_ptr<void> parser(
-    parsePatterns(opts, patterns, patInfo, encodings)
-  );
-
-  // build the program
-  boost::shared_ptr<void> prog(buildProgram(parser.get(), opts));
-*/
-
-}
-
-void writeProgram(const Options& opts) {
-  std::vector<std::string> keys = opts.getKeys();
-  if (!keys.empty()) {
-    GraphPtr fsm = createGraph(keys, opts.getEncoding(), opts.CaseSensitive, opts.LiteralMode, opts.Determinize);
-    if (fsm) {
-      ProgramPtr p = createProgram(*fsm);
-      std::ostream& out(opts.openOutput());
-      out << p->size() << " instructions" << std::endl;
-      out << *p;
-    }
-  }
-}
 
 uint64 readNext(FILE* file, byte* buf, unsigned int blockSize) {
   return fread((void*)buf, 1, blockSize, file);
@@ -186,15 +149,16 @@ void search(const Options& opts) {
   std::vector< std::pair<uint32,uint32> > patInfo;
   std::vector<std::string> encodings;
 
-  boost::shared_ptr<void> parser(
-    parsePatterns(opts, patterns, patInfo, encodings)
-  );
+  boost::shared_ptr<void> prog;
 
-  // build the program
-  boost::shared_ptr<void> prog(buildProgram(parser.get(), opts)); 
+  {
+    boost::shared_ptr<void> parser(
+      parsePatterns(opts, patterns, patInfo, encodings)
+    );
 
-  // go free, little parser
-  parser.reset();
+    // build the program
+    prog = buildProgram(parser.get(), opts);
+  }
 
   // setup hit callback
   LG_HITCALLBACK_FN callback;
@@ -278,6 +242,55 @@ void search(const Options& opts) {
 
   fclose(file);
   delete[] cur;
+}
+
+void writeGraphviz(const Options& opts) {
+  const std::vector<std::string>& patterns(opts.getKeys());
+  if (!patterns.empty()) {
+    // parse patterns
+    boost::shared_ptr<void> parser;
+
+    {
+      std::vector< std::pair<uint32,uint32> > patInfo;
+      std::vector<std::string> encodings;
+      parser = parsePatterns(opts, patterns, patInfo, encodings);
+    }
+
+    if (opts.Determinize) {
+      // build the program to force determinization
+      buildProgram(parser.get(), opts);
+    }
+
+    // break on through the C API to print the graph
+    GraphPtr g(reinterpret_cast<ParseContext*>(parser.get())->Fsm);
+    writeGraphviz(opts.openOutput(), *g);
+  }
+}
+
+void writeProgram(const Options& opts) {
+  const std::vector<std::string>& patterns(opts.getKeys());
+  if (!patterns.empty()) {
+    boost::shared_ptr<void> progh;
+
+    {
+      // parse patterns
+      boost::shared_ptr<void> parser;
+
+      {
+        std::vector< std::pair<uint32,uint32> > patInfo;
+        std::vector<std::string> encodings;
+        parser = parsePatterns(opts, patterns, patInfo, encodings);
+      }
+
+      // build the program
+      progh = buildProgram(parser.get(), opts);
+    }
+
+    // break on through the C API to print the program
+    ProgramPtr prog(*reinterpret_cast<ProgramPtr*>(progh.get()));
+    std::ostream& out(opts.openOutput());
+    out << prog->size() << " instructions\n" << *prog << std::endl;
+  }
 }
 
 int main(int argc, char** argv) {
