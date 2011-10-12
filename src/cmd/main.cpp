@@ -107,7 +107,7 @@ boost::shared_ptr<void> parsePatterns(
   std::vector<std::string>& encodings)
 {
   // get patterns from options
-  std::cerr << patterns.size() << " patterns";
+  std::cerr << patterns.size() << " pattern";
   if (patterns.size() != 1) {
     std::cerr << 's';
   }
