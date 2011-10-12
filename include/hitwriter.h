@@ -7,6 +7,8 @@
 #include <vector>
 
 struct HitCounterInfo {
+  HitCounterInfo(): NumHits(0) {}
+
   uint64 NumHits;
 };
 
