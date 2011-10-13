@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lightgrep_c_api.h"
+#include "patterninfo.h"
 
 #include <iosfwd>
 #include <string>
@@ -14,18 +15,11 @@ struct HitCounterInfo {
 
 void nullWriter(void* userData, const LG_SearchHit* const);
 
-struct HitWriterInfo: public HitCounterInfo {
-  HitWriterInfo(std::ostream& outStream,
-                const std::vector< std::pair<uint32,uint32> >& tbl,
-                const std::vector<std::string>& patterns,
-                const std::vector<std::string>& encodings):
-                Out(outStream), Table(tbl), Patterns(patterns),
-                Encodings(encodings) {}
+struct HitWriterInfo: public HitCounterInfo, PatternInfo {
+  HitWriterInfo(std::ostream& outStream, const PatternInfo& pinfo):
+                PatternInfo(pinfo), Out(outStream) {}
 
   std::ostream& Out;
-  const std::vector< std::pair<uint32, uint32> >& Table;
-  const std::vector<std::string>& Patterns;
-  const std::vector<std::string>& Encodings;
 };
 
 void hitWriter(void* userData, const LG_SearchHit* const hit);
@@ -33,10 +27,8 @@ void hitWriter(void* userData, const LG_SearchHit* const hit);
 struct PathWriterInfo: public HitWriterInfo {
   PathWriterInfo(const std::string& path,
                  std::ostream& outStream,
-                 const std::vector< std::pair<uint32,uint32> >& tbl,
-                 const std::vector<std::string>& patterns,
-                 const std::vector<std::string>& encodings):
-                 HitWriterInfo(outStream, tbl, patterns, encodings),
+                 const PatternInfo& pinfo):
+                 HitWriterInfo(outStream, pinfo),
                  Path(path) {}
 
   const std::string Path;
