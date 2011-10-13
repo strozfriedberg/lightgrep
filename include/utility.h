@@ -20,10 +20,8 @@ enum Encodings {
 };
 
 struct KwInfo {
-  typedef std::vector<std::string> StringVec;
-
-  StringVec Keywords,
-            Encodings;
+  std::vector<std::string> Keywords,
+                           Encodings;
   std::vector< std::pair<uint32, uint32> > PatternsTable;
 };
 
