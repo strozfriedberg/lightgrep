@@ -77,6 +77,8 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
     GraphPtr& g(pc->Fsm);
     Compiler& comp(pc->Comp);
 
+// FIXME: should check here that the graph has >= 2 nodes
+
     if (options->Determinize) {
       GraphPtr dfa(new Graph(1));
       comp.subsetDFA(*dfa, *g);
@@ -85,6 +87,7 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
 
     comp.labelGuardStates(*g);
 
+// FIXME: should not print anything, but where to send this?
     std::cerr << g->numVertices() << " vertices" << std::endl;
 
     ProgramPtr* pp = new ProgramPtr;
