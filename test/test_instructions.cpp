@@ -109,11 +109,3 @@ SCOPE_TEST(makeAny) {
   SCOPE_ASSERT_EQUAL(0u, i.Op.Offset);
   SCOPE_ASSERT_EQUAL("Any", i.toString());
 }
-
-SCOPE_TEST(makeNotLit) {
-  Instruction i = Instruction::makeNotLit('a');
-  SCOPE_ASSERT_EQUAL(NOT_LIT_OP, i.OpCode);
-  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL('a', i.Op.Literal);
-  SCOPE_ASSERT_EQUAL("NotLiteral 0x61/\'a\'", i.toString());
-}
