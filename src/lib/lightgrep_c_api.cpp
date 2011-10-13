@@ -87,16 +87,11 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
 
     comp.labelGuardStates(*g);
 
-// FIXME: should not print anything, but where to send this?
-    std::cerr << g->numVertices() << " vertices" << std::endl;
-
     ProgramPtr* pp = new ProgramPtr;
     try {
       *pp = createProgram(*g);
       (*pp)->First = firstBytes(*g);
       prog = pp;
-
-      std::cerr << (*pp)->size() << " instructions" << std::endl;
     }
     catch (...) {
       delete pp;
