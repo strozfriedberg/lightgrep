@@ -4,18 +4,18 @@
 #include <fstream>
 #include <memory>
 #include <algorithm>
-#include <boost/bind.hpp>
 #include <cstdlib>
 #include <csignal>
 
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
 
-#include "program.h"
-#include "vm_interface.h"
-#include "utility.h"
 #include "hitwriter.h"
 #include "options.h"
+#include "patterninfo.h"
 #include "staticvector.h"
+#include "utility.h"
 
 #include "include_boost_thread.h"
 
@@ -44,18 +44,17 @@ struct HitInfo {
 };
 #pragma pack()
 
-/*
-class ServerWriter: public HitCallback {
+class ServerWriter: public PatternInfo {
 public:
-  ServerWriter(const KwInfo& kwInfo): KeyInfo(kwInfo), NumHits(0) {}
+  ServerWriter(const PatternInfo& pinfo): PatternInfo(pinfo), NumHits(0) {}
   virtual ~ServerWriter() {}
 
-  virtual void collect(const SearchHit& hit) {
+  virtual void collect(const LG_SearchHit& hit) {
     ++NumHits;
     Hit.Offset = hit.Start;
-    Hit.Length = hit.length();
-    Hit.Label  = KeyInfo.PatternsTable[hit.KeywordIndex].first;
-    Hit.Encoding = KeyInfo.PatternsTable[hit.KeywordIndex].second;
+    Hit.Length = hit.End - hit.Start;
+    Hit.Label  = Table[hit.KeywordIndex].first;
+    Hit.Encoding = Table[hit.KeywordIndex].second;
     write(Hit);
   }
 
@@ -76,33 +75,38 @@ public:
   uint64 numHits() const { return NumHits; }
 
 private:
-  const KwInfo& KeyInfo;
   uint64 NumHits;
   HitInfo Hit;
 };
 
 class SocketWriter: public ServerWriter {
 public:
-  SocketWriter(boost::shared_ptr<tcp::socket> sock, const KwInfo& kwInfo):
-    ServerWriter(kwInfo),
-    Socket(sock)
-  {
-  }
+  SocketWriter(boost::shared_ptr<tcp::socket> sock,
+               const PatternInfo& pinfo):
+               ServerWriter(pinfo),
+               Socket(sock) {}
 
   virtual ~SocketWriter() {}
 
   virtual void write(const HitInfo& hit) {
-    boost::asio::write(*Socket, boost::asio::buffer((void*)(&hit), sizeof(HitInfo)));
+    boost::asio::write(
+      *Socket, boost::asio::buffer((void*)(&hit), sizeof(HitInfo))
+    );
   }
 
 private:
   boost::shared_ptr<tcp::socket> Socket;
 };
 
+void socketWriter(void* userData, const LG_SearchHit* const hit) {
+  SocketWriter* sw = reinterpret_cast<SocketWriter*>(userData);
+  sw->collect(*hit);
+}
+
 class SafeFileWriter: public ServerWriter {
 public:
-  SafeFileWriter(boost::shared_ptr<std::ofstream> output, boost::shared_ptr<boost::mutex> m, const KwInfo& kwInfo):
-    ServerWriter(kwInfo),
+  SafeFileWriter(boost::shared_ptr<std::ofstream> output, boost::shared_ptr<boost::mutex> m, const PatternInfo& pinfo):
+    ServerWriter(pinfo),
     Mutex(m),
     Output(output),
     Buffer(1000)
@@ -125,7 +129,11 @@ public:
       boost::mutex::scoped_lock lock(*Mutex);
       *ErrOut << "Flushing hits file\n";
       for (StaticVector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
-        *Output << it->ID << '\t' << it->Offset << '\t' << it->Length << '\t' << it->Label << '\t' << it->Encoding << '\n';
+        *Output << it->ID << '\t' 
+                << it->Offset << '\t'
+                << it->Length << '\t'
+                << it->Label << '\t'
+                << it->Encoding << '\n';
       }
       Output->flush();
     }
@@ -137,7 +145,11 @@ private:
   boost::shared_ptr<std::ofstream> Output;
   StaticVector<HitInfo>    Buffer;
 };
-*/
+
+void safeFileWriter(void* userData, const LG_SearchHit* const hit) {
+  SafeFileWriter* sw = reinterpret_cast<SafeFileWriter*>(userData);
+  sw->collect(*hit);
+}
 
 void cleanSeppuku(int sig);
 
@@ -184,11 +196,16 @@ void cleanSeppuku(int) {
 
 static const unsigned char ONE = 1;
 
-/*
-void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, boost::shared_ptr<ServerWriter> output) {
-  boost::scoped_array<byte>      data(new byte[BUF_SIZE]);
-  boost::shared_ptr<VmInterface> search = VmInterface::create();
-  search->init(prog);
+void processConn(
+  boost::shared_ptr<tcp::socket> sock,
+  boost::shared_ptr<void> prog,
+  boost::shared_ptr<ServerWriter> output,
+  LG_HITCALLBACK_FN callback)
+{
+  boost::scoped_array<byte> data(new byte[BUF_SIZE]);
+
+  boost::shared_ptr<void> searcher(lg_create_context(prog.get()),
+                                   lg_destroy_context);
 
   std::size_t len = 0;
   uint64 totalRead = 0,
@@ -211,15 +228,15 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
         while (offset < hdr.Length) {
           len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length-offset)));
           ++numReads;
-          search->search(data.get(), data.get() + len, offset, *output);
+          lg_search(searcher.get(), (char*) data.get(), (char*) data.get() + len, offset, output.get(), callback);
           //*ErrOut << "read " << len << " bytes\n";
           // *ErrOut.write((const char*)data.get(), len);
           // *ErrOut << '\n';
           totalRead += len;
           offset += len;
         }
-        search->closeOut(*output);
-        search->reset();
+        lg_closeout_search(searcher.get(), output.get(), callback);
+        lg_reset_context(searcher.get());
         output->writeEndHit(hdr.Length);
       }
       else {
@@ -234,7 +251,11 @@ void processConn(boost::shared_ptr<tcp::socket> sock, const ProgramPtr& prog, bo
   *ErrOut << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n";
 }
 
-void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
+void startup(
+  boost::shared_ptr<void> prog,
+  const PatternInfo& pinfo,
+  const Options& opts)
+{
   try {
     boost::asio::io_service srv;
     if (!opts.ServerLog.empty()) {
@@ -243,9 +264,11 @@ void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
     else {
       ErrOut = &std::cerr;
     }
+
     *ErrOut << "Created service" << std::endl;
     tcp::acceptor acceptor(srv, tcp::endpoint(tcp::v4(), 12777));
     *ErrOut << "Created acceptor" << std::endl;
+
     bool usesFile = false;
     if (opts.Output != "-") {
       if (!CleanupRegistry::get().init(opts.Output)) {
@@ -253,28 +276,35 @@ void startup(ProgramPtr prog, const KwInfo& kwInfo, const Options& opts) {
       }
       usesFile = true;
     }
+
     while (true) {
       std::auto_ptr<tcp::socket> socket(new tcp::socket(srv));
       *ErrOut << "Created socket" << std::endl;
       acceptor.accept(*socket);
-      *ErrOut << "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << std::endl;
+      *ErrOut << "Accepted socket from " << socket->remote_endpoint()
+              << " on " << socket->local_endpoint() << std::endl;
       boost::shared_ptr<tcp::socket> s(socket.release());
+
+      LG_HITCALLBACK_FN callback;
       boost::shared_ptr<ServerWriter> writer;
       if (usesFile) {
-        writer.reset(new SafeFileWriter(CleanupRegistry::get().File, CleanupRegistry::get().Mutex, kwInfo));
+        callback = &safeFileWriter;
+        writer.reset(new SafeFileWriter(CleanupRegistry::get().File, CleanupRegistry::get().Mutex, pinfo));
       }
       else {
-        writer.reset(new SocketWriter(s, kwInfo));
+        callback = &socketWriter;
+        writer.reset(new SocketWriter(s, pinfo));
       }
-      boost::thread spawned(boost::bind(processConn, s, prog, writer)); // launches the thread, then detaches
+
+      boost::thread spawned(boost::bind(processConn, s, prog, writer, callback)); // launches the thread, then detaches
     }
   }
   catch (std::exception& e) {
     *ErrOut << e.what() << std::endl;
   }
+
   if (&std::cerr != ErrOut) {
     delete ErrOut;
     ErrOut = 0;
   }
 }
-*/

@@ -14,6 +14,7 @@
 #include "options.h"
 #include "optparser.h"
 #include "parsecontext.h"
+#include "patterninfo.h"
 #include "utility.h"
 
 #include "include_boost_thread.h"
@@ -29,7 +30,7 @@ namespace boost {
 
 namespace po = boost::program_options;
 
-void startup(ProgramPtr p, const KwInfo& keyInfo, const Options& opts);
+void startup(boost::shared_ptr<void> prog, const PatternInfo& pinfo, const Options& opts);
 
 uint64 readNext(FILE* file, byte* buf, unsigned int blockSize) {
   return fread((void*)buf, 1, blockSize, file);
@@ -46,43 +47,36 @@ void printHelp(const po::options_description& desc) {
 
 void addPattern(
   LG_HPARSER parser,
-  const std::string& pattern,
   uint32 i,
   uint32 patIdx,
   const LG_KeyOptions& keyOpts,
-  std::vector< std::pair<uint32,uint32> >& patInfo,
-  const std::vector<std::string>& encodings)
+  PatternInfo& pinfo)
 {
   const char* error = 0;
 
-  patInfo.push_back(std::make_pair(i, encodings.size()-1));
+  pinfo.Table.push_back(std::make_pair(i, pinfo.Encodings.size()-1));
 
-  if (!lg_add_keyword(parser, pattern.c_str(), patIdx, &keyOpts, &error)) {
+  if (!lg_add_keyword(parser, pinfo.Patterns[i].c_str(), patIdx, &keyOpts, &error)) {
     std::cerr << error << " on pattern "
-              << i << ", '" << pattern << "'" << std::endl;
+              << i << ", '" << pinfo.Patterns[i] << "'" << std::endl;
   }
 }
 
-boost::shared_ptr<void> parsePatterns(
-  const Options& opts,
-  const std::vector<std::string>& patterns,
-  std::vector< std::pair<uint32,uint32> >& patInfo,
-  std::vector<std::string>& encodings)
-{
+boost::shared_ptr<void> parsePatterns(const Options& opts, PatternInfo& pinfo) {
   // get patterns from options
-  std::cerr << patterns.size() << " pattern";
-  if (patterns.size() != 1) {
+  std::cerr << pinfo.Patterns.size() << " pattern";
+  if (pinfo.Patterns.size() != 1) {
     std::cerr << 's';
   }
   std::cerr << std::endl;
 
-  if (patterns.empty()) {
+  if (pinfo.Patterns.empty()) {
     return boost::shared_ptr<void>();
   }
 
   // find total length of patterns
   const uint32 tlen = std::accumulate(
-    patterns.begin(), patterns.end(), 0,
+    pinfo.Patterns.begin(), pinfo.Patterns.end(), 0,
     boost::bind(std::plus<uint32>(), _1, boost::bind(&std::string::size, _2))
   );
 
@@ -100,24 +94,20 @@ boost::shared_ptr<void> parsePatterns(
   if (opts.getEncoding() & CP_ASCII) {
 //    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
     keyOpts.Encoding = "ASCII";
-    encodings.push_back("ASCII");
+    pinfo.Encodings.push_back("ASCII");
 
-    for (uint32 i = 0; i < patterns.size(); ++i, ++patIdx) {
-      addPattern(
-        parser.get(), patterns[i], i, patIdx, keyOpts, patInfo, encodings
-      );
+    for (uint32 i = 0; i < pinfo.Patterns.size(); ++i, ++patIdx) {
+      addPattern(parser.get(), i, patIdx, keyOpts, pinfo);
     }
   }
 
   if (opts.getEncoding() & CP_UCS16) {
 //    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_UTF_16];
     keyOpts.Encoding = "UTF-16";
-    encodings.push_back("UTF-16");
+    pinfo.Encodings.push_back("UTF-16");
 
-    for (uint32 i = 0; i < patterns.size(); ++i, ++patIdx) {
-      addPattern(
-        parser.get(), patterns[i], i, patIdx, keyOpts, patInfo, encodings
-      );
+    for (uint32 i = 0; i < pinfo.Patterns.size(); ++i, ++patIdx) {
+      addPattern(parser.get(), i, patIdx, keyOpts, pinfo);
     }
   }
 
@@ -145,16 +135,13 @@ void search(const Options& opts) {
   setbuf(file, 0); // unbuffered, bitte
 
   // parse patterns and get index and encoding info for hit writer
-  const std::vector<std::string>& patterns(opts.getKeys());
-  std::vector< std::pair<uint32,uint32> > patInfo;
-  std::vector<std::string> encodings;
+  PatternInfo pinfo;
+  pinfo.Patterns = opts.getKeys();
 
   boost::shared_ptr<void> prog;
 
   {
-    boost::shared_ptr<void> parser(
-      parsePatterns(opts, patterns, patInfo, encodings)
-    );
+    boost::shared_ptr<void> parser(parsePatterns(opts, pinfo));
 
     // build the program
     prog = buildProgram(parser.get(), opts);
@@ -170,17 +157,11 @@ void search(const Options& opts) {
   }
   else if (opts.PrintPath) {
     callback = &pathWriter;
-    hinfo.reset(
-      new PathWriterInfo(
-        opts.Input, opts.openOutput(), patInfo, patterns, encodings
-      )
-    );
+    hinfo.reset(new PathWriterInfo(opts.Input, opts.openOutput(), pinfo));
   }
   else {
     callback = &hitWriter;
-    hinfo.reset(
-      new HitWriterInfo(opts.openOutput(), patInfo, patterns, encodings)
-    );
+    hinfo.reset(new HitWriterInfo(opts.openOutput(), pinfo));
   }
 
   // search
@@ -245,52 +226,68 @@ void search(const Options& opts) {
 }
 
 void writeGraphviz(const Options& opts) {
-  const std::vector<std::string>& patterns(opts.getKeys());
-  if (!patterns.empty()) {
-    // parse patterns
-    boost::shared_ptr<void> parser;
-
-    {
-      std::vector< std::pair<uint32,uint32> > patInfo;
-      std::vector<std::string> encodings;
-      parser = parsePatterns(opts, patterns, patInfo, encodings);
-    }
-
-    if (opts.Determinize) {
-      // build the program to force determinization
-      buildProgram(parser.get(), opts);
-    }
-
-    // break on through the C API to print the graph
-    GraphPtr g(reinterpret_cast<ParseContext*>(parser.get())->Fsm);
-    writeGraphviz(opts.openOutput(), *g);
+  if (opts.getKeys().empty()) {
+    return;
   }
+
+  PatternInfo pinfo;
+  pinfo.Patterns = opts.getKeys();
+
+  // parse patterns
+  boost::shared_ptr<void> parser(parsePatterns(opts, pinfo));
+
+  if (opts.Determinize) {
+    // build the program to force determinization
+    buildProgram(parser.get(), opts);
+  }
+
+  // break on through the C API to print the graph
+  GraphPtr g(reinterpret_cast<ParseContext*>(parser.get())->Fsm);
+  writeGraphviz(opts.openOutput(), *g);
 }
 
 void writeProgram(const Options& opts) {
-  const std::vector<std::string>& patterns(opts.getKeys());
-  if (!patterns.empty()) {
-    boost::shared_ptr<void> progh;
-
-    {
-      // parse patterns
-      boost::shared_ptr<void> parser;
-
-      {
-        std::vector< std::pair<uint32,uint32> > patInfo;
-        std::vector<std::string> encodings;
-        parser = parsePatterns(opts, patterns, patInfo, encodings);
-      }
-
-      // build the program
-      progh = buildProgram(parser.get(), opts);
-    }
-
-    // break on through the C API to print the program
-    ProgramPtr prog(*reinterpret_cast<ProgramPtr*>(progh.get()));
-    std::ostream& out(opts.openOutput());
-    out << prog->size() << " instructions\n" << *prog << std::endl;
+  if (opts.getKeys().empty()) {
+    return;
   }
+
+  PatternInfo pinfo;
+  pinfo.Patterns = opts.getKeys();
+
+  boost::shared_ptr<void> progh;
+
+  {
+    // parse patterns
+    boost::shared_ptr<void> parser(parsePatterns(opts, pinfo));
+
+    // build the program
+    progh = buildProgram(parser.get(), opts);
+  }
+
+  // break on through the C API to print the program
+  ProgramPtr prog(*reinterpret_cast<ProgramPtr*>(progh.get()));
+  std::ostream& out(opts.openOutput());
+  out << prog->size() << " instructions\n" << *prog << std::endl;
+}
+
+void startServer(const Options& opts) {
+  PatternInfo pinfo;
+  pinfo.Patterns = opts.getKeys();
+
+  boost::shared_ptr<void> prog;
+
+  {
+    // parse patterns
+    boost::shared_ptr<void> parser(parsePatterns(opts, pinfo));
+
+// FIXME: should check that parser != 0
+// FIXME: should check that prog != 0
+
+    // build the program
+    prog = buildProgram(parser.get(), opts);
+  }
+
+  startup(prog, pinfo, opts);
 }
 
 int main(int argc, char** argv) {
@@ -303,6 +300,8 @@ int main(int argc, char** argv) {
       search(opts);
     }
     else if (opts.Command == "server") {
+      startServer(opts);
+
 /*
       KwInfo keyInfo;
       ProgramPtr p = initProgram(opts, keyInfo);
