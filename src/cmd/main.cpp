@@ -145,6 +145,12 @@ void search(const Options& opts) {
 
     // build the program
     prog = buildProgram(parser.get(), opts);
+
+    GraphPtr g(reinterpret_cast<ParseContext*>(parser.get())->Fsm);
+    std::cerr << g->numVertices() << " vertices" << std::endl;
+
+    ProgramPtr p(*reinterpret_cast<ProgramPtr*>(prog.get()));
+    std::cerr << p->size() << " instructions" << std::endl;
   }
 
   // setup hit callback
@@ -236,13 +242,12 @@ void writeGraphviz(const Options& opts) {
   // parse patterns
   boost::shared_ptr<void> parser(parsePatterns(opts, pinfo));
 
-  if (opts.Determinize) {
-    // build the program to force determinization
-    buildProgram(parser.get(), opts);
-  }
+  // build the program to force determinization
+  buildProgram(parser.get(), opts);
 
   // break on through the C API to print the graph
   GraphPtr g(reinterpret_cast<ParseContext*>(parser.get())->Fsm);
+  std::cerr << g->numVertices() << " vertices" << std::endl;
   writeGraphviz(opts.openOutput(), *g);
 }
 
@@ -262,12 +267,16 @@ void writeProgram(const Options& opts) {
 
     // build the program
     progh = buildProgram(parser.get(), opts);
+ 
+    GraphPtr g(reinterpret_cast<ParseContext*>(parser.get())->Fsm);
+    std::cerr << g->numVertices() << " vertices" << std::endl;
   }
 
   // break on through the C API to print the program
-  ProgramPtr prog(*reinterpret_cast<ProgramPtr*>(progh.get()));
+  ProgramPtr p(*reinterpret_cast<ProgramPtr*>(progh.get()));
+  std::cerr << p->size() << " instructions" << std::endl;
   std::ostream& out(opts.openOutput());
-  out << prog->size() << " instructions\n" << *prog << std::endl;
+  out << *p << std::endl;
 }
 
 void startServer(const Options& opts) {
