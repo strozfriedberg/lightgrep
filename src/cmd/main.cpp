@@ -146,10 +146,10 @@ void search(const Options& opts) {
     // build the program
     prog = buildProgram(parser.get(), opts);
 
-    GraphPtr g(reinterpret_cast<ParseContext*>(parser.get())->Fsm);
+    GraphPtr g(static_cast<ParseContext*>(parser.get())->Fsm);
     std::cerr << g->numVertices() << " vertices" << std::endl;
 
-    ProgramPtr p(*reinterpret_cast<ProgramPtr*>(prog.get()));
+    ProgramPtr p(*static_cast<ProgramPtr*>(prog.get()));
     std::cerr << p->size() << " instructions" << std::endl;
   }
 
@@ -246,7 +246,7 @@ void writeGraphviz(const Options& opts) {
   buildProgram(parser.get(), opts);
 
   // break on through the C API to print the graph
-  GraphPtr g(reinterpret_cast<ParseContext*>(parser.get())->Fsm);
+  GraphPtr g(static_cast<ParseContext*>(parser.get())->Fsm);
   std::cerr << g->numVertices() << " vertices" << std::endl;
   writeGraphviz(opts.openOutput(), *g);
 }
@@ -268,12 +268,12 @@ void writeProgram(const Options& opts) {
     // build the program
     progh = buildProgram(parser.get(), opts);
  
-    GraphPtr g(reinterpret_cast<ParseContext*>(parser.get())->Fsm);
+    GraphPtr g(static_cast<ParseContext*>(parser.get())->Fsm);
     std::cerr << g->numVertices() << " vertices" << std::endl;
   }
 
   // break on through the C API to print the program
-  ProgramPtr p(*reinterpret_cast<ProgramPtr*>(progh.get()));
+  ProgramPtr p(*static_cast<ProgramPtr*>(progh.get()));
   std::cerr << p->size() << " instructions" << std::endl;
   std::ostream& out(opts.openOutput());
   out << *p << std::endl;

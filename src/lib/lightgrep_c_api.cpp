@@ -30,7 +30,7 @@ LG_HPARSER lg_create_parser(unsigned int sizeHint) {
 }
 
 void lg_destroy_parser(LG_HPARSER hParser) {
-  delete reinterpret_cast<ParseContext*>(hParser);
+  delete static_cast<ParseContext*>(hParser);
 }
 
 int lg_add_keyword(LG_HPARSER hParser,
@@ -40,7 +40,7 @@ int lg_add_keyword(LG_HPARSER hParser,
                    const char** error)
 {
   try {
-    ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
+    ParseContext* pc = static_cast<ParseContext*>(hParser);
 
     addPattern(
       pc->Nfab,
@@ -72,7 +72,7 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
 {
   LG_HPROGRAM prog = 0;
   try {
-    ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
+    ParseContext* pc = static_cast<ParseContext*>(hParser);
 
     GraphPtr& g(pc->Fsm);
     Compiler& comp(pc->Comp);
@@ -103,7 +103,7 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
 }
 
 void lg_destroy_program(LG_HPROGRAM hProg) {
-  delete reinterpret_cast<ProgramPtr*>(hProg);
+  delete static_cast<ProgramPtr*>(hProg);
 }
 
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
@@ -112,7 +112,7 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
     boost::shared_ptr<VmInterface>* ctx = new boost::shared_ptr<VmInterface>;
     try {
       *ctx = VmInterface::create();
-      (*ctx)->init(*reinterpret_cast<ProgramPtr*>(hProg));
+      (*ctx)->init(*static_cast<ProgramPtr*>(hProg));
       ret = ctx;
     }
     catch (...) {
@@ -125,11 +125,11 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
 }
 
 void lg_destroy_context(LG_HCONTEXT hCtx) {
-  delete reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx);
+  delete static_cast<boost::shared_ptr<VmInterface>*>(hCtx);
 }
 
 void lg_reset_context(LG_HCONTEXT hCtx) {
-  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->reset();
+  (*static_cast<boost::shared_ptr<VmInterface>*>(hCtx))->reset();
 }
 
 void lg_starts_with(LG_HCONTEXT hCtx,
@@ -139,7 +139,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
-  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->startsWith((const byte*)bufStart, (const byte*)bufEnd, startOffset, *callbackFn, userData);
+  (*static_cast<boost::shared_ptr<VmInterface>*>(hCtx))->startsWith((const byte*)bufStart, (const byte*)bufEnd, startOffset, *callbackFn, userData);
 }
 
 unsigned int lg_search(LG_HCONTEXT hCtx,
@@ -149,12 +149,12 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
                          void* userData,
                          LG_HITCALLBACK_FN callbackFn)
 {
-  return (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->search((const byte*)bufStart, (const byte*)bufEnd, startOffset, *callbackFn, userData);
+  return (*static_cast<boost::shared_ptr<VmInterface>*>(hCtx))->search((const byte*)bufStart, (const byte*)bufEnd, startOffset, *callbackFn, userData);
 }
 
 void lg_closeout_search(LG_HCONTEXT hCtx,
                         void* userData,
                         LG_HITCALLBACK_FN callbackFn)
 {
-  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->closeOut(*callbackFn, userData);
+  (*static_cast<boost::shared_ptr<VmInterface>*>(hCtx))->closeOut(*callbackFn, userData);
 }
