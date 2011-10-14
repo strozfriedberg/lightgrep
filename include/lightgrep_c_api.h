@@ -95,7 +95,6 @@ extern "C" {
                       uint64 startOffset,
                       void* userData,
                       LG_HITCALLBACK_FN callbackFn);
-// FIXME: swap order of callback and data?
 
   // Reset the context to its initial state.
   // Call this before searching a new file.
