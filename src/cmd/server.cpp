@@ -99,7 +99,7 @@ private:
 };
 
 void socketWriter(void* userData, const LG_SearchHit* const hit) {
-  SocketWriter* sw = reinterpret_cast<SocketWriter*>(userData);
+  SocketWriter* sw = static_cast<SocketWriter*>(userData);
   sw->collect(*hit);
 }
 
@@ -147,7 +147,7 @@ private:
 };
 
 void safeFileWriter(void* userData, const LG_SearchHit* const hit) {
-  SafeFileWriter* sw = reinterpret_cast<SafeFileWriter*>(userData);
+  SafeFileWriter* sw = static_cast<SafeFileWriter*>(userData);
   sw->collect(*hit);
 }
 
