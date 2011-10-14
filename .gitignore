@@ -8,8 +8,11 @@
 *~
 .*.swp
 .sconf_temp
+config.log
 DesignTimeResolveAssemblyReferencesInput.cache
+gmon.out
 bin/*
 deps/*
 lib/*
-tmp
+tmp/*
+re_gen/lgtestlib.pyc
