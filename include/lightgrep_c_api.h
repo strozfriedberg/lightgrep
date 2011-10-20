@@ -63,7 +63,7 @@ extern "C" {
 
   // Frees all RAM associated with parsing the keywords.
   // Can, and should, be called after creating an LG_HPROGRAM.
-  void lg_destroy_parser(LG_HPARSER hParser);
+  int lg_destroy_parser(LG_HPARSER hParser);
 
   // Parse a keyword and add it to the set of keywords associated with the
   // parser. Returns 1 on success, 0 if there was a parsing error.
@@ -80,14 +80,14 @@ extern "C" {
 
   // A Program must live as long as any associated contexts,
   // so only call this at the end.
-  void lg_destroy_program(LG_HPROGRAM hProg);
+  int lg_destroy_program(LG_HPROGRAM hProg);
 
   // Create a "search context" from a program. Many search contexts can be
   // associated with a single program. A context lets you search a byte stream
   // and keeps track of the necessary state so that you can treat buffers as
   // contiguous. Uses a fixed amount of RAM.
   LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg);
-  void lg_destroy_context(LG_HCONTEXT hCtx);
+  int lg_destroy_context(LG_HCONTEXT hCtx);
 
   // Finds matches beginning at the first byte. It works like lg_search(), but
   // neither lg_closeout_search() nor lg_reset() need to be called (these are
