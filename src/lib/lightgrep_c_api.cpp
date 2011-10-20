@@ -14,8 +14,20 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 #include <boost/shared_ptr.hpp>
+
+int lg_destroy_handle(Handle* h) {
+  try {
+    delete h;
+    return 1;
+  }
+  catch (...) {
+    // We can't store an error message, as the pointer is now invalid. Ha!
+    return 0;
+  }
+}
 
 int lg_ok(void* vp) {
   try {
@@ -44,13 +56,8 @@ LG_HPARSER lg_create_parser(unsigned int sizeHint) {
   }
 }
 
-void lg_destroy_parser(LG_HPARSER hParser) {
-  try {
-    delete hParser;
-  }
-  catch (...) {
-    // We can't even report this, as the pointer is now invalid. Ha!
-  }
+int lg_destroy_parser(LG_HPARSER hParser) {
+  return lg_destroy_handle(hParser);
 }
 
 int lg_add_keyword(LG_HPARSER hParser,
@@ -75,6 +82,9 @@ int lg_add_keyword(LG_HPARSER hParser,
       return 1;
     }
     catch (std::exception& e) {
+// FIXME: should distinguish exceptions which apply only to one keyword
+// from those which leave parser in an unusable state
+
       hParser->Error = e.what();
     }
     catch (...) {
@@ -82,10 +92,9 @@ int lg_add_keyword(LG_HPARSER hParser,
     }
   }
   catch (...) {
-    // This is the vanishingly unlikely case in which either
-    // std::exception::what() or std::string::operator= threw.
-    // We can't even set an error string here, just stop the
-    // exception from propagating.
+    // This is the unlikely case in which std::string::operator= threw.
+    // We can't even set an error string here, just stop the exception
+    // from propagating.
   }
 
   return 0;
@@ -107,7 +116,9 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
       GraphPtr& g(hParser->Fsm);
       Compiler& comp(hParser->Comp);
 
-  // FIXME: should check here that the graph has >= 2 nodes
+      if (g->numVertices() < 2) {
+        throw std::runtime_error("Parser has no patterns");
+      }
 
       if (options->Determinize) {
         GraphPtr dfa(new Graph(1));
@@ -128,20 +139,22 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
       hProg->Error = "Unspecified exception";
       hProg->Prog.reset();
     }
+
+    return hProg;
   }
   catch (...) {
-  }
+    try {
+      delete hProg;
+    }
+    catch (...) {
+    }
 
-  return hProg;
+    return 0;
+  }
 }
 
-void lg_destroy_program(LG_HPROGRAM hProg) {
-  try {
-    delete hProg;
-  }
-  catch (...) {
-    // We can't even report this, as the pointer is now invalid. Ha!
-  }
+int lg_destroy_program(LG_HPROGRAM hProg) {
+  return lg_destroy_handle(hProg);
 }
 
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
@@ -165,6 +178,8 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
       hCtx->Error = "Unspecified exception";
       hCtx->Vm.reset();
     }
+
+    return hCtx;
   }
   catch (...) {
     try {
@@ -175,17 +190,10 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
 
     return 0;
   }
-
-  return hCtx;
 }
 
-void lg_destroy_context(LG_HCONTEXT hCtx) {
-  try {
-    delete hCtx;
-  }
-  catch (...) {
-    // We can't even report this, as the pointer is now invalid. Ha!
-  }
+int lg_destroy_context(LG_HCONTEXT hCtx) {
+  return lg_destroy_handle(hCtx);
 }
 
 void lg_reset_context(LG_HCONTEXT hCtx) {
@@ -258,6 +266,8 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
   }
   catch (...) {
   }
+
+  return 0;
 }
 
 void lg_closeout_search(LG_HCONTEXT hCtx,
