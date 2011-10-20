@@ -39,14 +39,13 @@ int main() {
   keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
 
   char *keys[] = {"mary", "lamb", "[a-z]+"};
-  const char* errString = "";
 
   // add the keywords to the parser one at a time
   int isgood = 1;
   unsigned int i;
   for (i = 0; i < NUM_KEYS; ++i) {
-    if (!lg_add_keyword(parser, keys[i], i, &keyOpts, &errString)) {
-      fprintf(stderr, "Parser error on keyword %d, %s: %s", i, keys[i], errString);
+    if (!lg_add_keyword(parser, keys[i], i, &keyOpts)) {
+      fprintf(stderr, "Parser error on keyword %d, %s: %s", i, keys[i], lg_error(parser));
       isgood = 0;
       break;
     }

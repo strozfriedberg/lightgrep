@@ -9,11 +9,11 @@
 #include <boost/graph/graphviz.hpp>
 
 #include "encodings.h"
+#include "handles.h"
 #include "hitwriter.h"
 #include "lightgrep_c_api.h"
 #include "options.h"
 #include "optparser.h"
-#include "parsecontext.h"
 #include "patterninfo.h"
 #include "utility.h"
 
@@ -30,7 +30,7 @@ namespace boost {
 
 namespace po = boost::program_options;
 
-void startup(boost::shared_ptr<void> prog, const PatternInfo& pinfo, const Options& opts);
+void startup(boost::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts);
 
 uint64 readNext(FILE* file, byte* buf, unsigned int blockSize) {
   return fread((void*)buf, 1, blockSize, file);
@@ -52,17 +52,17 @@ void addPattern(
   const LG_KeyOptions& keyOpts,
   PatternInfo& pinfo)
 {
-  const char* error = 0;
-
   pinfo.Table.push_back(std::make_pair(i, pinfo.Encodings.size()-1));
 
-  if (!lg_add_keyword(parser, pinfo.Patterns[i].c_str(), patIdx, &keyOpts, &error)) {
-    std::cerr << error << " on pattern "
+  if (!lg_add_keyword(parser, pinfo.Patterns[i].c_str(), patIdx, &keyOpts)) {
+    std::cerr << lg_error(parser) << " on pattern "
               << i << ", '" << pinfo.Patterns[i] << "'" << std::endl;
   }
 }
 
-boost::shared_ptr<void> parsePatterns(const Options& opts, PatternInfo& pinfo) {
+boost::shared_ptr<ParserHandle> parsePatterns(const Options& opts,
+                                              PatternInfo& pinfo)
+{
   // get patterns from options
   std::cerr << pinfo.Patterns.size() << " pattern";
   if (pinfo.Patterns.size() != 1) {
@@ -71,7 +71,7 @@ boost::shared_ptr<void> parsePatterns(const Options& opts, PatternInfo& pinfo) {
   std::cerr << std::endl;
 
   if (pinfo.Patterns.empty()) {
-    return boost::shared_ptr<void>();
+    return boost::shared_ptr<ParserHandle>();
   }
 
   // find total length of patterns
@@ -81,7 +81,8 @@ boost::shared_ptr<void> parsePatterns(const Options& opts, PatternInfo& pinfo) {
   );
 
 // FIXME: very BAD if we pass 0 as sizeHint
-  boost::shared_ptr<void> parser(lg_create_parser(tlen), lg_destroy_parser);
+  boost::shared_ptr<ParserHandle> parser(lg_create_parser(tlen),
+                                         lg_destroy_parser);
 
   // set up parsing options
   LG_KeyOptions keyOpts;
@@ -114,11 +115,12 @@ boost::shared_ptr<void> parsePatterns(const Options& opts, PatternInfo& pinfo) {
   return parser;
 }
 
-boost::shared_ptr<void> buildProgram(LG_HPARSER parser, const Options& opts) {
+boost::shared_ptr<ProgramHandle> buildProgram(LG_HPARSER parser,
+                                              const Options& opts) {
   LG_ProgramOptions progOpts;
   progOpts.Determinize = opts.Determinize;
 
-  return boost::shared_ptr<void>(
+  return boost::shared_ptr<ProgramHandle>(
     lg_create_program(parser, &progOpts),
     lg_destroy_program
   );
@@ -138,18 +140,18 @@ void search(const Options& opts) {
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
-  boost::shared_ptr<void> prog;
+  boost::shared_ptr<ProgramHandle> prog;
 
   {
-    boost::shared_ptr<void> parser(parsePatterns(opts, pinfo));
+    boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
 
     // build the program
     prog = buildProgram(parser.get(), opts);
 
-    GraphPtr g(static_cast<ParseContext*>(parser.get())->Fsm);
+    GraphPtr g(parser->Fsm);
     std::cerr << g->numVertices() << " vertices" << std::endl;
 
-    ProgramPtr p(*static_cast<ProgramPtr*>(prog.get()));
+    ProgramPtr p(prog->Prog);
     std::cerr << p->size() << " instructions" << std::endl;
   }
 
@@ -171,8 +173,8 @@ void search(const Options& opts) {
   }
 
   // search
-  boost::shared_ptr<void> searcher(lg_create_context(prog.get()),
-                                   lg_destroy_context);
+  boost::shared_ptr<ContextHandle> searcher(lg_create_context(prog.get()),
+                                            lg_destroy_context);
 
   byte* cur = new byte[opts.BlockSize];
   uint64 blkSize = 0,
@@ -240,13 +242,13 @@ void writeGraphviz(const Options& opts) {
   pinfo.Patterns = opts.getKeys();
 
   // parse patterns
-  boost::shared_ptr<void> parser(parsePatterns(opts, pinfo));
+  boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
 
   // build the program to force determinization
   buildProgram(parser.get(), opts);
 
   // break on through the C API to print the graph
-  GraphPtr g(static_cast<ParseContext*>(parser.get())->Fsm);
+  GraphPtr g(parser->Fsm);
   std::cerr << g->numVertices() << " vertices" << std::endl;
   writeGraphviz(opts.openOutput(), *g);
 }
@@ -259,21 +261,21 @@ void writeProgram(const Options& opts) {
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
-  boost::shared_ptr<void> progh;
+  boost::shared_ptr<ProgramHandle> progh;
 
   {
     // parse patterns
-    boost::shared_ptr<void> parser(parsePatterns(opts, pinfo));
+    boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
 
     // build the program
     progh = buildProgram(parser.get(), opts);
  
-    GraphPtr g(static_cast<ParseContext*>(parser.get())->Fsm);
+    GraphPtr g(parser->Fsm);
     std::cerr << g->numVertices() << " vertices" << std::endl;
   }
 
   // break on through the C API to print the program
-  ProgramPtr p(*static_cast<ProgramPtr*>(progh.get()));
+  ProgramPtr p(progh->Prog);
   std::cerr << p->size() << " instructions" << std::endl;
   std::ostream& out(opts.openOutput());
   out << *p << std::endl;
@@ -283,11 +285,11 @@ void startServer(const Options& opts) {
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
-  boost::shared_ptr<void> prog;
+  boost::shared_ptr<ProgramHandle> prog;
 
   {
     // parse patterns
-    boost::shared_ptr<void> parser(parsePatterns(opts, pinfo));
+    boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
 
 // FIXME: should check that parser != 0
 // FIXME: should check that prog != 0

@@ -5,8 +5,8 @@
 #include "graph.h"
 #include "compiler.h"
 #include "encodings.h"
+#include "handles.h"
 #include "nfabuilder.h"
-#include "parsecontext.h"
 #include "parsetree.h"
 #include "utility.h"
 #include "vm_interface.h"
@@ -17,119 +17,191 @@
 
 #include <boost/shared_ptr.hpp>
 
-char Error[1024];
-
-LG_HPARSER lg_create_parser(unsigned int sizeHint) {
-  LG_HPARSER ret = 0;
+int lg_ok(void* vp) {
   try {
-    ret = new ParseContext(sizeHint);
+    return vp && static_cast<Handle*>(vp)->ok();
   }
   catch (...) {
+    return 0;
   }
-  return ret;
+}
+
+const char* lg_error(void* vp) {
+  try {
+    return vp ? static_cast<Handle*>(vp)->error() : 0;
+  }
+  catch (...) {
+    return 0;
+  }
+}
+
+LG_HPARSER lg_create_parser(unsigned int sizeHint) {
+  try {
+    return new ParserHandle(sizeHint);
+  }
+  catch (...) {
+    return 0;
+  }
 }
 
 void lg_destroy_parser(LG_HPARSER hParser) {
-  delete static_cast<ParseContext*>(hParser);
+  try {
+    delete hParser;
+  }
+  catch (...) {
+    // We can't even report this, as the pointer is now invalid. Ha!
+  }
 }
 
 int lg_add_keyword(LG_HPARSER hParser,
                    const char* keyword,
                    unsigned int keyIndex,
-                   const LG_KeyOptions* options,
-                   const char** error)
+                   const LG_KeyOptions* options)
 {
   try {
-    ParseContext* pc = static_cast<ParseContext*>(hParser);
+    try {
+      addPattern(
+        hParser->Nfab,
+        hParser->Tree,
+        hParser->Comp,
+        *hParser->Fsm,
+        keyword,
+        keyIndex,
+        options->CaseInsensitive == 0,
+        options->FixedString != 0,
+        options->Encoding
+      );
 
-    addPattern(
-      pc->Nfab,
-      pc->Tree,
-      pc->Comp,
-      *pc->Fsm,
-      keyword,
-      keyIndex,
-      options->CaseInsensitive == 0,
-      options->FixedString != 0,
-      options->Encoding
-    );
-
-    return 1;
-  }
-  catch (std::exception& e) {
-    strcpy(Error, e.what());
+      return 1;
+    }
+    catch (std::exception& e) {
+      hParser->Error = e.what();
+    }
+    catch (...) {
+      hParser->Error = "Unspecified exception";
+    }
   }
   catch (...) {
-    strcpy(Error, "Unspecified exception");
+    // This is the vanishingly unlikely case in which either
+    // std::exception::what() or std::string::operator= threw.
+    // We can't even set an error string here, just stop the
+    // exception from propagating.
   }
 
-  *error = &Error[0];
   return 0;
 }
 
 LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
                               const LG_ProgramOptions* options)
 {
-  LG_HPROGRAM prog = 0;
+  LG_HPROGRAM hProg = 0;
   try {
-    ParseContext* pc = static_cast<ParseContext*>(hParser);
+    hProg = new ProgramHandle;
+  }
+  catch (...) {
+    return 0;
+  }
 
-    GraphPtr& g(pc->Fsm);
-    Compiler& comp(pc->Comp);
-
-// FIXME: should check here that the graph has >= 2 nodes
-
-    if (options->Determinize) {
-      GraphPtr dfa(new Graph(1));
-      comp.subsetDFA(*dfa, *g);
-      g = dfa;
-    }
-
-    comp.labelGuardStates(*g);
-
-    ProgramPtr* pp = new ProgramPtr;
+  try {
     try {
-      *pp = createProgram(*g);
-      (*pp)->First = firstBytes(*g);
-      prog = pp;
+      GraphPtr& g(hParser->Fsm);
+      Compiler& comp(hParser->Comp);
+
+  // FIXME: should check here that the graph has >= 2 nodes
+
+      if (options->Determinize) {
+        GraphPtr dfa(new Graph(1));
+        comp.subsetDFA(*dfa, *g);
+        g = dfa;
+      }
+
+      comp.labelGuardStates(*g);
+
+      hProg->Prog = createProgram(*g);
+      hProg->Prog->First = firstBytes(*g);
+    }
+    catch (std::exception& e) {
+      hProg->Error = e.what();
+      hProg->Prog.reset();
     }
     catch (...) {
-      delete pp;
+      hProg->Error = "Unspecified exception";
+      hProg->Prog.reset();
     }
   }
-  catch (...) {}
+  catch (...) {
+  }
 
-  return prog;
+  return hProg;
 }
 
 void lg_destroy_program(LG_HPROGRAM hProg) {
-  delete static_cast<ProgramPtr*>(hProg);
+  try {
+    delete hProg;
+  }
+  catch (...) {
+    // We can't even report this, as the pointer is now invalid. Ha!
+  }
 }
 
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
-  LG_HCONTEXT ret = 0;
+  LG_HCONTEXT hCtx = 0;
   try {
-    boost::shared_ptr<VmInterface>* ctx = new boost::shared_ptr<VmInterface>;
+    hCtx = new ContextHandle;
+  }
+  catch (...) {
+    return 0;
+  }
+
+  try {
     try {
-      *ctx = VmInterface::create();
-      (*ctx)->init(*static_cast<ProgramPtr*>(hProg));
-      ret = ctx;
+      hCtx->Vm->init(hProg->Prog);
+    }
+    catch (std::exception& e) {
+      hCtx->Error = e.what();
+      hCtx->Vm.reset();
     }
     catch (...) {
-      delete ctx;
+      hCtx->Error = "Unspecified exception";
+      hCtx->Vm.reset();
     }
   }
-  catch (...) {}
+  catch (...) {
+    try {
+      delete hCtx;
+    }
+    catch (...) {
+    }
 
-  return ret;
+    return 0;
+  }
+
+  return hCtx;
 }
 
 void lg_destroy_context(LG_HCONTEXT hCtx) {
-  delete static_cast<boost::shared_ptr<VmInterface>*>(hCtx);
+  try {
+    delete hCtx;
+  }
+  catch (...) {
+    // We can't even report this, as the pointer is now invalid. Ha!
+  }
 }
 
 void lg_reset_context(LG_HCONTEXT hCtx) {
-  (*static_cast<boost::shared_ptr<VmInterface>*>(hCtx))->reset();
+  try {
+    try {
+      hCtx->Vm->reset();
+    }
+    catch (std::exception& e) {
+      hCtx->Error = e.what();
+    }
+    catch (...) {
+      hCtx->Error = "Unspecified exception";
+    }
+  }
+  catch (...) {
+  }
 }
 
 void lg_starts_with(LG_HCONTEXT hCtx,
@@ -139,22 +211,70 @@ void lg_starts_with(LG_HCONTEXT hCtx,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
-  (*static_cast<boost::shared_ptr<VmInterface>*>(hCtx))->startsWith((const byte*)bufStart, (const byte*)bufEnd, startOffset, *callbackFn, userData);
+  try {
+    try {
+      hCtx->Vm->startsWith(
+        (const byte*) bufStart,
+        (const byte*) bufEnd,
+        startOffset,
+        *callbackFn,
+        userData
+      );
+    }
+    catch (std::exception& e) {
+      hCtx->Error = e.what();
+    }
+    catch (...) {
+      hCtx->Error = "Unspecified exception";
+    }
+  }
+  catch (...) {
+  }
 }
 
 unsigned int lg_search(LG_HCONTEXT hCtx,
-                         const char* bufStart,
-                         const char* bufEnd,
-                         const uint64 startOffset,
-                         void* userData,
-                         LG_HITCALLBACK_FN callbackFn)
+                       const char* bufStart,
+                       const char* bufEnd,
+                       const uint64 startOffset,
+                       void* userData,
+                       LG_HITCALLBACK_FN callbackFn)
 {
-  return (*static_cast<boost::shared_ptr<VmInterface>*>(hCtx))->search((const byte*)bufStart, (const byte*)bufEnd, startOffset, *callbackFn, userData);
+  try {
+    try {
+      return hCtx->Vm->search(
+        (const byte*) bufStart,
+        (const byte*) bufEnd,
+        startOffset,
+        *callbackFn,
+        userData
+      );
+    }
+    catch (std::exception& e) {
+      hCtx->Error = e.what();
+    }
+    catch(...) {
+      hCtx->Error = "Unspecified exception";
+    }
+  }
+  catch (...) {
+  }
 }
 
 void lg_closeout_search(LG_HCONTEXT hCtx,
                         void* userData,
                         LG_HITCALLBACK_FN callbackFn)
 {
-  (*static_cast<boost::shared_ptr<VmInterface>*>(hCtx))->closeOut(*callbackFn, userData);
+  try {
+    try {
+      hCtx->Vm->closeOut(*callbackFn, userData);
+    }
+    catch (std::exception& e) {
+      hCtx->Error = e.what();
+    }
+    catch (...) {
+      hCtx->Error = "Unspecified exception";
+    }
+  }
+  catch(...) {
+  }
 }
