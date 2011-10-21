@@ -4,36 +4,20 @@
 
 #include "graph.h"
 #include "compiler.h"
+#include "encodings.h"
 #include "nfabuilder.h"
-#include "parser.h"
+#include "parsecontext.h"
 #include "parsetree.h"
 #include "utility.h"
 #include "vm_interface.h"
 
+#include <cstring>
 #include <iostream>
+#include <sstream>
 
-struct ParseContext {
-  ParseTree   Tree;
-  NFABuilder  Nfab;
-  Compiler    Comp;
-  GraphPtr    Fsm;
+#include <boost/shared_ptr.hpp>
 
-  ParseContext(unsigned int sizeHint): Fsm(new Graph(1, sizeHint)) {}
-};
-
-class HitHandler: public HitCallback {
-public:
-  HitHandler(LG_HITCALLBACK_FN fn, void* userData): Fn(fn), UserData(userData) {}
-
-  virtual void collect(const SearchHit& hit) {
-    (*Fn)(UserData, &Hit);
-  }
-
-private:
-  LG_HITCALLBACK_FN Fn;
-  void* UserData;
-  LG_SearchHit Hit;
-};
+char Error[1024];
 
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
   LG_HPARSER ret = 0;
@@ -50,66 +34,98 @@ void lg_destroy_parser(LG_HPARSER hParser) {
 }
 
 int lg_add_keyword(LG_HPARSER hParser,
-                      const char* keyword,
-                      unsigned int keyIndex,
-                      LG_KeyOptions* options,
-                      const char** error)
+                   const char* keyword,
+                   unsigned int keyIndex,
+                   const LG_KeyOptions* options,
+                   const char** error)
 {
   try {
     ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
-    pc->Nfab.reset();
-    pc->Nfab.setCurLabel(keyIndex);
-    pc->Nfab.setCaseSensitive(options->CaseInsensitive == 0);
-    std::string k(keyword);
-    if (parse(k, options->FixedString != 0, pc->Tree) && pc->Nfab.build(pc->Tree)) {
-      pc->Comp.mergeIntoFSM(*pc->Fsm, *pc->Nfab.getFsm());
-      return 1;
-    }
-    else {
-      *error = "Could not parse keyword";
-    }
+
+    addPattern(
+      pc->Nfab,
+      pc->Tree,
+      pc->Comp,
+      *pc->Fsm,
+      keyword,
+      keyIndex,
+      options->CaseInsensitive == 0,
+      options->FixedString != 0,
+      options->Encoding
+    );
+
+    return 1;
   }
   catch (std::exception& e) {
-    *error = e.what();
+    strcpy(Error, e.what());
   }
   catch (...) {
-    *error = "Unspecified exception";
+    strcpy(Error, "Unspecified exception");
   }
+
+  *error = &Error[0];
   return 0;
 }
 
 LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
-                                LG_ProgramOptions* option)
+                              const LG_ProgramOptions* options)
 {
   LG_HPROGRAM prog = 0;
   try {
     ParseContext* pc = reinterpret_cast<ParseContext*>(hParser);
-    pc->Comp.labelGuardStates(*pc->Fsm);
 
-    ProgramPtr *prog = new ProgramPtr;
-    *prog = createProgram(*pc->Fsm);
-    (*prog)->First = firstBytes(*pc->Fsm);
-  //  std::cerr << "program size is " << (*prog)->size() << std::endl;
-  //  std::cerr << **prog;
+    GraphPtr& g(pc->Fsm);
+    Compiler& comp(pc->Comp);
+
+// FIXME: should check here that the graph has >= 2 nodes
+
+    if (options->Determinize) {
+      GraphPtr dfa(new Graph(1));
+      comp.subsetDFA(*dfa, *g);
+      g = dfa;
+    }
+
+    comp.labelGuardStates(*g);
+
+// FIXME: should not print anything, but where to send this?
+    std::cerr << g->numVertices() << " vertices" << std::endl;
+
+    ProgramPtr* pp = new ProgramPtr;
+    try {
+      *pp = createProgram(*g);
+      (*pp)->First = firstBytes(*g);
+      prog = pp;
+
+      std::cerr << (*pp)->size() << " instructions" << std::endl;
+    }
+    catch (...) {
+      delete pp;
+    }
   }
   catch (...) {}
+
   return prog;
 }
 
 void lg_destroy_program(LG_HPROGRAM hProg) {
-  ProgramPtr *prog = reinterpret_cast<ProgramPtr*>(hProg);
-  delete prog;
+  delete reinterpret_cast<ProgramPtr*>(hProg);
 }
 
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
   LG_HCONTEXT ret = 0;
   try {
-    boost::shared_ptr<VmInterface> *ctx = new boost::shared_ptr<VmInterface>;
-    *ctx = VmInterface::create();
-    (*ctx)->init(*reinterpret_cast<ProgramPtr*>(hProg));
-    ret = ctx;
+    boost::shared_ptr<VmInterface>* ctx = new boost::shared_ptr<VmInterface>;
+    try {
+      *ctx = VmInterface::create();
+      (*ctx)->init(*reinterpret_cast<ProgramPtr*>(hProg));
+      ret = ctx;
+    }
+    catch (...) {
+      delete ctx;
+    }
   }
   catch (...) {}
+
   return ret;
 }
 
@@ -128,25 +144,22 @@ void lg_starts_with(LG_HCONTEXT hCtx,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
-  HitHandler cb(callbackFn, userData);
-  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->startsWith((const byte*)bufStart, (const byte*)bufEnd, startOffset, cb);
+  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->startsWith((const byte*)bufStart, (const byte*)bufEnd, startOffset, *callbackFn, userData);
 }
 
 unsigned int lg_search(LG_HCONTEXT hCtx,
                          const char* bufStart,
                          const char* bufEnd,
-                         uint64 startOffset,
+                         const uint64 startOffset,
                          void* userData,
                          LG_HITCALLBACK_FN callbackFn)
 {
-  HitHandler cb(callbackFn, userData);
-  return (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->search((const byte*)bufStart, (const byte*)bufEnd, startOffset, cb);
+  return (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->search((const byte*)bufStart, (const byte*)bufEnd, startOffset, *callbackFn, userData);
 }
 
 void lg_closeout_search(LG_HCONTEXT hCtx,
                         void* userData,
                         LG_HITCALLBACK_FN callbackFn)
 {
-  HitHandler cb(callbackFn, userData);
-  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->closeOut(cb);
+  (*reinterpret_cast<boost::shared_ptr<VmInterface>*>(hCtx))->closeOut(*callbackFn, userData);
 }

@@ -5,20 +5,19 @@
 enum OpCodes {
   UNINITIALIZED = 0,
   LIT_OP,
-  NOT_LIT_OP,
   EITHER_OP,
   RANGE_OP,
   ANY_OP,
   BIT_VECTOR_OP,
   JUMP_TABLE_OP,
   JUMP_TABLE_RANGE_OP,
-  JUMP_OP,
+  FINISH_OP,
   FORK_OP,
+  JUMP_OP,
   CHECK_HALT_OP,
   LABEL_OP,
   MATCH_OP,
   HALT_OP,
-  FINISH_OP,
   ILLEGAL
 };
 
@@ -70,7 +69,6 @@ struct Instruction {
   bool operator==(const Instruction& x) const { return *((uint32*)this) == *((uint32*)&x); } // total hack
 
   static Instruction makeLit(byte b);
-  static Instruction makeNotLit(byte b);
   static Instruction makeEither(byte one, byte two);
   static Instruction makeRange(byte first, byte last);
   static Instruction makeAny();
