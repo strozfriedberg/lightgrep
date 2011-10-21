@@ -21,9 +21,9 @@ public:
   // numCheckedStates should be equal to the number + 1 for the reserved bit
   void init(ProgramPtr prog);
 
-  virtual void startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
-  virtual bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback& hitFn);
-  virtual void closeOut(HitCallback& hitFn);
+  virtual void startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData);
+  virtual bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData);
+  virtual void closeOut(HitCallback hitFn, void* userData);
   virtual void reset();
 
   #ifdef LBT_TRACE_ENABLED
@@ -39,7 +39,7 @@ public:
   bool executeEpsilon(Thread* t, uint64 offset);
   bool executeEpsilon(ThreadList::iterator t, uint64 offset);
 
-  void executeFrame(const byte* cur, uint64 offset, HitCallback& hitFn);
+  void executeFrame(const byte* cur, uint64 offset, HitCallback hitFn, void* userData);
   void cleanup();
 
   const ThreadList& first() const { return First; }
@@ -55,13 +55,13 @@ public:
   unsigned int numNext() const { return Next.size(); }
 
 private:
-  void markSeen(uint32 label);
+  void _markSeen(const uint32 label);
 
   bool _execute(const Instruction* base, ThreadList::iterator t, const byte* cur);
-  bool _executeEpsilon(const Instruction* base, ThreadList::iterator t, uint64 offset);
-  bool _executeEpSequence(const Instruction* base, ThreadList::iterator t, uint64 offset);
-  void _executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, uint64 offset);
-  void _executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, uint64 offset);
+  bool _executeEpsilon(const Instruction* base, ThreadList::iterator t, const uint64 offset);
+  bool _executeEpSequence(const Instruction* base, ThreadList::iterator t, const uint64 offset);
+  void _executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, const uint64 offset);
+  void _executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, const uint64 offset);
   void _cleanup();
 
   #ifdef LBT_TRACE_ENABLED
@@ -106,5 +106,6 @@ private:
   SparseSet CheckLabels;
   std::vector< std::set<uint64> > CheckOffsets;
 
-  HitCallback* CurHitFn;
+  HitCallback CurHitFn;
+  void* UserData;
 };

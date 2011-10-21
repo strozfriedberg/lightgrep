@@ -30,22 +30,6 @@ SCOPE_TEST(executeLit) {
   SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
 }
 
-SCOPE_TEST(executeNotLit) {
-  byte b = 'z';
-  ProgramPtr p(new Program(1, Instruction::makeNotLit('a')));
-  Vm         s(p);
-  Thread cur(&(*p)[0]);
-  SCOPE_ASSERT(s.execute(&cur, &b));
-  SCOPE_ASSERT_EQUAL(1u, s.numActive());
-  SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(&(*p)[1], s.active().front().PC);
-
-  s.reset();
-  b = 'a';
-  SCOPE_ASSERT(!s.execute(&cur, &b));
-  SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
-}
-
 SCOPE_TEST(executeEither) {
   byte b = 'z';
   ProgramPtr p(new Program(1, Instruction::makeEither('z', '3')));
@@ -290,7 +274,6 @@ SCOPE_TEST(executeHalt) {
 }
 
 SCOPE_TEST(runFrame) {
-  MockCallback cb;
   ProgramPtr p(new Program(9, Instruction::makeRaw32(0)));
   Program&   prog(*p);
   // not a complete program, but good enough for executing a frame
@@ -305,7 +288,7 @@ SCOPE_TEST(runFrame) {
 
   byte b = 'a';
   Vm s(p);
-  s.executeFrame(&b, 0, cb);
+  s.executeFrame(&b, 0, 0, 0);
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(2u, s.numNext());
   SCOPE_ASSERT_EQUAL(Thread(&prog[7], 1, 0, 0), s.next()[0]);
@@ -350,16 +333,17 @@ SCOPE_TEST(simpleLitMatch) {
   prog[6] = Instruction::makeFinish();
 
   byte text[] = {'a', 'b', 'c'};
-  MockCallback cb;
   Vm v;
   prog.First.set('a');
   v.init(p);
-  SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
-  v.closeOut(cb);
-  SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(35, 37, 3), cb.Hits[0]);
+  std::vector<SearchHit> hits;
+  SCOPE_ASSERT(!v.search(text, &text[3], 35, &mockCallback, &hits));
+  v.closeOut(&mockCallback, &hits);
+  SCOPE_ASSERT_EQUAL(1u, hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(35, 37, 3), hits[0]);
   text[1] = 'c';
-  SCOPE_ASSERT(!v.search(text, &text[3], 35, cb));
+  hits.clear();
+  SCOPE_ASSERT(!v.search(text, &text[3], 35, &mockCallback, &hits));
 }
 
 SCOPE_TEST(newThreadInit) {
@@ -382,13 +366,12 @@ SCOPE_TEST(newThreadInit) {
   prog[16] = Instruction::makeFinish();
 
   byte text[] = {'a', 'a', 'b', 'c'};
-  MockCallback cb;
   Vm v;
   p->First.set('a');
   p->First.set('b');
   v.init(p);
 
-  v.executeFrame(&text[0], 13, cb);
+  v.executeFrame(&text[0], 13, 0, 0);
   SCOPE_ASSERT_EQUAL(1, v.active().size());
   SCOPE_ASSERT_EQUAL(Thread(0, 1, 13, 13), v.active()[0]);
   SCOPE_ASSERT_EQUAL(0, v.next().size());
@@ -397,7 +380,7 @@ SCOPE_TEST(newThreadInit) {
   SCOPE_ASSERT_EQUAL(0, v.active().size());
   SCOPE_ASSERT_EQUAL(0, v.next().size());
 
-  v.executeFrame(&text[1], 14, cb);
+  v.executeFrame(&text[1], 14, 0, 0);
   SCOPE_ASSERT_EQUAL(1, v.active().size());
   SCOPE_ASSERT_EQUAL(Thread(0, 1, 14, 14), v.active()[0]);
   SCOPE_ASSERT_EQUAL(0, v.next().size());
@@ -406,7 +389,7 @@ SCOPE_TEST(newThreadInit) {
   SCOPE_ASSERT_EQUAL(0, v.active().size());
   SCOPE_ASSERT_EQUAL(0, v.next().size());
 
-  v.executeFrame(&text[2], 15, cb);
+  v.executeFrame(&text[2], 15, 0, 0);
   SCOPE_ASSERT_EQUAL(1, v.active().size());
   SCOPE_ASSERT_EQUAL(Thread(&(*p)[9], Thread::NOLABEL, 15, Thread::NONE), v.active()[0]);
   SCOPE_ASSERT_EQUAL(1, v.next().size());
@@ -443,17 +426,17 @@ SCOPE_TEST(threeKeywords) {
   prog[24] = Instruction::makeFinish();
 
   byte text[] = {'c', 'a', 'b', 'c'};
-  MockCallback cb;
   Vm v;
   p->First.set('a');
   p->First.set('b');
   v.init(p);
-  SCOPE_ASSERT(!v.search(text, &text[4], 10, cb));
-  v.closeOut(cb);
-  SCOPE_ASSERT_EQUAL(3u, cb.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(11, 12, 0), cb.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(12, 13, 1), cb.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(12, 14, 2), cb.Hits[2]);
+  std::vector<SearchHit> hits;
+  SCOPE_ASSERT(!v.search(text, &text[4], 10, &mockCallback, &hits));
+  v.closeOut(&mockCallback, &hits);
+  SCOPE_ASSERT_EQUAL(3u, hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(11, 12, 0), hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(12, 13, 1), hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(12, 14, 2), hits[2]);
 }
 
 SCOPE_TEST(stitchedText) {
@@ -469,14 +452,14 @@ SCOPE_TEST(stitchedText) {
 
   byte text1[] = {'a', 'c', 'a'},
        text2[] = {'b', 'b'};
-  MockCallback cb;
   Vm v;
   p->First.set('a');
   v.init(p);
-  SCOPE_ASSERT(v.search(text1, &text1[3], 0, cb));
-  SCOPE_ASSERT_EQUAL(0u, cb.Hits.size());
-  SCOPE_ASSERT(!v.search(text2, &text2[2], 3, cb));
-  v.closeOut(cb);
-  SCOPE_ASSERT_EQUAL(1u, cb.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(2, 4, 0), cb.Hits[0]);
+  std::vector<SearchHit> hits;
+  SCOPE_ASSERT(v.search(text1, &text1[3], 0, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(0u, hits.size());
+  SCOPE_ASSERT(!v.search(text2, &text2[2], 3, &mockCallback, &hits));
+  v.closeOut(&mockCallback, &hits);
+  SCOPE_ASSERT_EQUAL(1u, hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(2, 4, 0), hits[0]);
 }
