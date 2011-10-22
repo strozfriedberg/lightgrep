@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include "basic.h"
@@ -18,16 +19,22 @@ struct Handle {
     Error.reserve(256);
   }
 
-  virtual bool ok() const = 0;  
-  virtual const char* error() const { return Error.c_str(); }
+  virtual bool ok() const = 0;
+  virtual void destroy() = 0;
+  const char* error() const { return Error.c_str(); }
 
   std::string Error;
 };
 
-struct ParserHandle: public Handle {
-  ParserHandle(uint32 sizeHint): Fsm(new Graph(1, sizeHint)) {}
+template <typename T> struct HandleBase: public Handle {
+  virtual bool ok() const { return Impl; }
+  virtual void destroy() { Impl.reset(); }
 
-  virtual bool ok() const { return Fsm; }
+  boost::scoped_ptr<T> Impl;
+};
+
+struct ParserHandleImpl {
+  ParserHandleImpl(uint32 sizeHint): Fsm(new Graph(1, sizeHint)) {}
 
   ParseTree   Tree;
   NFABuilder  Nfab;
@@ -35,20 +42,19 @@ struct ParserHandle: public Handle {
   GraphPtr    Fsm;
 };
 
-struct ProgramHandle: public Handle {
-  virtual bool ok() const {
-    return Prog;
-  }
+struct ParserHandle: public HandleBase<ParserHandleImpl> {};
 
+struct ProgramHandleImpl {
   ProgramPtr Prog;
 };
 
-struct ContextHandle: public Handle {
-  ContextHandle(): Vm(VmInterface::create()) {}
+struct ProgramHandle: public HandleBase<ProgramHandleImpl> {};
 
-  virtual bool ok() const {
-    return Vm;
-  }
+struct ContextHandleImpl {
+  ContextHandleImpl(): Vm(VmInterface::create()) {}
 
   boost::shared_ptr<VmInterface> Vm;
 };
+
+struct ContextHandle: public HandleBase<ContextHandleImpl> {};
+
