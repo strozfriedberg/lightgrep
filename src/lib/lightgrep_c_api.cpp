@@ -16,15 +16,54 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 
-int lg_destroy_handle(Handle* h) {
+const char OH_SHIT[] = "Unspecified exception";
+
+void paranoid_copy_error_string(std::string& err, const char* msg) {
   try {
-    delete h;
-    return 1;
+    try {
+      err = msg;
+    }
+    catch (const std::bad_alloc&) {
+      // We don't have enough memory to copy the error string,
+      // so copy up to the the capacity we already have.
+      err.assign(msg, err.capacity());
+    }
   }
   catch (...) {
-    // We can't store an error message, as the pointer is now invalid. Ha!
+    // This should be impossible.
+  }
+}
+
+template <typename T> bool exception_trap(T func, Handle* h) {
+  try {
+    func();
+    return true;
+  }
+  catch (const std::exception& e) {
+    paranoid_copy_error_string(h->Error, e.what());
+  }
+  catch (...) {
+    paranoid_copy_error_string(h->Error, OH_SHIT);
+  }
+  
+  return false;
+}
+
+int lg_destroy_handle(Handle* h) {
+  if (exception_trap(boost::bind(&Handle::destroy, h), h)) {
+    try {
+      delete h;
+    }
+    catch (...) {
+    }
+
+    return 1;
+  }
+  else {
     return 0;
   }
 }
@@ -47,13 +86,21 @@ const char* lg_error(void* vp) {
   }
 }
 
+void create_parser_impl(LG_HPARSER hParser, unsigned int sizeHint) {
+  hParser->Impl.reset(new ParserHandleImpl(sizeHint));
+}
+
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
+  LG_HPARSER hParser = 0;
   try {
-    return new ParserHandle(sizeHint);
+    hParser = new ParserHandle;
   }
   catch (...) {
     return 0;
   }
+
+  exception_trap(boost::bind(create_parser_impl, hParser, sizeHint), hParser);
+  return hParser;
 }
 
 int lg_destroy_parser(LG_HPARSER hParser) {
@@ -68,10 +115,10 @@ int lg_add_keyword(LG_HPARSER hParser,
   try {
     try {
       addPattern(
-        hParser->Nfab,
-        hParser->Tree,
-        hParser->Comp,
-        *hParser->Fsm,
+        hParser->Impl->Nfab,
+        hParser->Impl->Tree,
+        hParser->Impl->Comp,
+        *hParser->Impl->Fsm,
         keyword,
         keyIndex,
         options->CaseInsensitive == 0,
@@ -113,8 +160,8 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
 
   try {
     try {
-      GraphPtr& g(hParser->Fsm);
-      Compiler& comp(hParser->Comp);
+      GraphPtr& g(hParser->Impl->Fsm);
+      Compiler& comp(hParser->Impl->Comp);
 
       if (g->numVertices() < 2) {
         throw std::runtime_error("Parser has no patterns");
@@ -128,16 +175,16 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
 
       comp.labelGuardStates(*g);
 
-      hProg->Prog = createProgram(*g);
-      hProg->Prog->First = firstBytes(*g);
+      hProg->Impl->Prog = createProgram(*g);
+      hProg->Impl->Prog->First = firstBytes(*g);
     }
     catch (std::exception& e) {
       hProg->Error = e.what();
-      hProg->Prog.reset();
+      hProg->Impl->Prog.reset();
     }
     catch (...) {
       hProg->Error = "Unspecified exception";
-      hProg->Prog.reset();
+      hProg->Impl->Prog.reset();
     }
 
     return hProg;
@@ -168,15 +215,15 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
 
   try {
     try {
-      hCtx->Vm->init(hProg->Prog);
+      hCtx->Impl->Vm->init(hProg->Impl->Prog);
     }
     catch (std::exception& e) {
       hCtx->Error = e.what();
-      hCtx->Vm.reset();
+      hCtx->Impl->Vm.reset();
     }
     catch (...) {
       hCtx->Error = "Unspecified exception";
-      hCtx->Vm.reset();
+      hCtx->Impl->Vm.reset();
     }
 
     return hCtx;
@@ -199,7 +246,7 @@ int lg_destroy_context(LG_HCONTEXT hCtx) {
 void lg_reset_context(LG_HCONTEXT hCtx) {
   try {
     try {
-      hCtx->Vm->reset();
+      hCtx->Impl->Vm->reset();
     }
     catch (std::exception& e) {
       hCtx->Error = e.what();
@@ -221,7 +268,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
 {
   try {
     try {
-      hCtx->Vm->startsWith(
+      hCtx->Impl->Vm->startsWith(
         (const byte*) bufStart,
         (const byte*) bufEnd,
         startOffset,
@@ -249,7 +296,7 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
 {
   try {
     try {
-      return hCtx->Vm->search(
+      return hCtx->Impl->Vm->search(
         (const byte*) bufStart,
         (const byte*) bufEnd,
         startOffset,
@@ -276,7 +323,7 @@ void lg_closeout_search(LG_HCONTEXT hCtx,
 {
   try {
     try {
-      hCtx->Vm->closeOut(*callbackFn, userData);
+      hCtx->Impl->Vm->closeOut(*callbackFn, userData);
     }
     catch (std::exception& e) {
       hCtx->Error = e.what();
