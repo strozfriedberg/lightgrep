@@ -148,10 +148,10 @@ void search(const Options& opts) {
     // build the program
     prog = buildProgram(parser.get(), opts);
 
-    GraphPtr g(parser->Fsm);
+    GraphPtr g(parser->Impl->Fsm);
     std::cerr << g->numVertices() << " vertices" << std::endl;
 
-    ProgramPtr p(prog->Prog);
+    ProgramPtr p(prog->Impl->Prog);
     std::cerr << p->size() << " instructions" << std::endl;
   }
 
@@ -248,7 +248,7 @@ void writeGraphviz(const Options& opts) {
   buildProgram(parser.get(), opts);
 
   // break on through the C API to print the graph
-  GraphPtr g(parser->Fsm);
+  GraphPtr g(parser->Impl->Fsm);
   std::cerr << g->numVertices() << " vertices" << std::endl;
   writeGraphviz(opts.openOutput(), *g);
 }
@@ -270,12 +270,12 @@ void writeProgram(const Options& opts) {
     // build the program
     progh = buildProgram(parser.get(), opts);
  
-    GraphPtr g(parser->Fsm);
+    GraphPtr g(parser->Impl->Fsm);
     std::cerr << g->numVertices() << " vertices" << std::endl;
   }
 
   // break on through the C API to print the program
-  ProgramPtr p(progh->Prog);
+  ProgramPtr p(progh->Impl->Prog);
   std::cerr << p->size() << " instructions" << std::endl;
   std::ostream& out(opts.openOutput());
   out << *p << std::endl;
