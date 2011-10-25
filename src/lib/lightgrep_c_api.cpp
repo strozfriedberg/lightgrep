@@ -184,7 +184,7 @@ int lg_destroy_context(LG_HCONTEXT hCtx) {
 }
 
 void lg_reset_context(LG_HCONTEXT hCtx) {
-  exception_trap(boost::bind(&VmInterface::reset, boost::ref(hCtx->Impl->Vm)), hCtx);
+  exception_trap(boost::bind(&VmInterface::reset, hCtx->Impl->Vm), hCtx);
 }
 
 void lg_starts_with(LG_HCONTEXT hCtx,
@@ -194,7 +194,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(boost::bind(&VmInterface::startsWith, boost::ref(hCtx->Impl->Vm), (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
+  exception_trap(boost::bind(&VmInterface::startsWith, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
 }
 
 unsigned int lg_search(LG_HCONTEXT hCtx,
@@ -204,7 +204,7 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
                        void* userData,
                        LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(boost::bind(&VmInterface::search, boost::ref(hCtx->Impl->Vm), (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
+  exception_trap(boost::bind(&VmInterface::search, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
 
   return 0;
 }
@@ -213,6 +213,6 @@ void lg_closeout_search(LG_HCONTEXT hCtx,
                         void* userData,
                         LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(boost::bind(&VmInterface::closeOut, boost::ref(hCtx->Impl->Vm), *callbackFn, userData), hCtx);
+  exception_trap(boost::bind(&VmInterface::closeOut, hCtx->Impl->Vm, *callbackFn, userData), hCtx);
 
 }
