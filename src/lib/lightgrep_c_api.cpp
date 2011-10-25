@@ -123,7 +123,7 @@ int lg_add_keyword(LG_HPARSER hParser,
 
 void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
 {
-  GraphPtr g(hParser->Impl->Fsm);
+  GraphPtr& g(hParser->Impl->Fsm);
 
   if (g->numVertices() < 2) {
     throw std::runtime_error("Parser has no patterns");
@@ -140,7 +140,7 @@ void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
   comp.labelGuardStates(*g);
 
   hProg->Impl.reset(new ProgramHandleImpl);
-  ProgramPtr prog(hProg->Impl->Prog);
+  ProgramPtr& prog(hProg->Impl->Prog);
 
   prog = createProgram(*g);
   prog->First = firstBytes(*g);
