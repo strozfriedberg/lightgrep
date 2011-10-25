@@ -79,7 +79,7 @@ void addKeys(const std::vector<std::string>& keywords, const std::string& encodi
       addPattern(nfab, tree, comp, *fsm, kw, keyIdx,
                  caseSensitive, litMode, encoding);
     }
-    catch (std::runtime_error& e) {
+    catch (const std::runtime_error& e) {
       std::cerr << e.what() << " keyword number " << i
                 << ", " << kw << std::endl;
     }
