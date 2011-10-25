@@ -128,7 +128,7 @@ boost::shared_ptr<ProgramHandle> buildProgram(LG_HPARSER parser,
 
 void search(const Options& opts) {
   // try to open our input
-  FILE *file = opts.Input == "-" ? stdin : fopen(opts.Input.c_str(), "rb");
+  FILE* file = opts.Input == "-" ? stdin : fopen(opts.Input.c_str(), "rb");
   if (!file) {
     std::cerr << "Could not open file " << opts.Input << std::endl;
     return;
