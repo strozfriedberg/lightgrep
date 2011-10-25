@@ -309,7 +309,7 @@ SCOPE_TEST(parseUnparse_BS400_Test) {
     parse("\\400", false, tree);
     SCOPE_ASSERT(false);
   }
-  catch (std::runtime_error) {
+  catch (const std::runtime_error&) {
     // expected
   }
 }
