@@ -53,7 +53,7 @@ template <typename T> bool exception_trap(T func, Handle* h) {
   return false;
 }
 
-int lg_destroy_handle(Handle* h) {
+int destroy_handle(Handle* h) {
   if (exception_trap(boost::bind(&Handle::destroy, h), h)) {
     try {
       delete h;
@@ -64,6 +64,15 @@ int lg_destroy_handle(Handle* h) {
     return 1;
   }
   else {
+    return 0;
+  }
+}
+
+template <typename T> T* create_handle() {
+  try {
+    return new T;
+  }
+  catch (...) {
     return 0;
   }
 }
@@ -91,11 +100,8 @@ void create_parser_impl(LG_HPARSER hParser, unsigned int sizeHint) {
 }
 
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
-  LG_HPARSER hParser = 0;
-  try {
-    hParser = new ParserHandle;
-  }
-  catch (...) {
+  LG_HPARSER hParser = create_handle<ParserHandle>();
+  if (!hParser) {
     return 0;
   }
 
@@ -104,7 +110,7 @@ LG_HPARSER lg_create_parser(unsigned int sizeHint) {
 }
 
 int lg_destroy_parser(LG_HPARSER hParser) {
-  return lg_destroy_handle(hParser);
+  return destroy_handle(hParser);
 }
 
 int lg_add_keyword(LG_HPARSER hParser,
@@ -112,151 +118,73 @@ int lg_add_keyword(LG_HPARSER hParser,
                    unsigned int keyIndex,
                    const LG_KeyOptions* options)
 {
-  try {
-    try {
-      addPattern(
-        hParser->Impl->Nfab,
-        hParser->Impl->Tree,
-        hParser->Impl->Comp,
-        *hParser->Impl->Fsm,
-        keyword,
-        keyIndex,
-        options->CaseInsensitive == 0,
-        options->FixedString != 0,
-        options->Encoding
-      );
+  return exception_trap(boost::bind(addPattern, boost::ref(hParser->Impl->Nfab), boost::ref(hParser->Impl->Tree), boost::ref(hParser->Impl->Comp), boost::ref(*hParser->Impl->Fsm), keyword, keyIndex, options->CaseInsensitive == 0, options->FixedString != 0, options->Encoding), hParser);
+}
 
-      return 1;
-    }
-    catch (std::exception& e) {
-// FIXME: should distinguish exceptions which apply only to one keyword
-// from those which leave parser in an unusable state
+void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
+{
+  GraphPtr g(hParser->Impl->Fsm);
 
-      hParser->Error = e.what();
-    }
-    catch (...) {
-      hParser->Error = "Unspecified exception";
-    }
-  }
-  catch (...) {
-    // This is the unlikely case in which std::string::operator= threw.
-    // We can't even set an error string here, just stop the exception
-    // from propagating.
+  if (g->numVertices() < 2) {
+    throw std::runtime_error("Parser has no patterns");
   }
 
-  return 0;
+  Compiler& comp(hParser->Impl->Comp);
+
+  if (determinize) {
+    GraphPtr dfa(new Graph(1));
+    comp.subsetDFA(*dfa, *g);
+    g = dfa;
+  }
+
+  comp.labelGuardStates(*g);
+
+  hProg->Impl.reset(new ProgramHandleImpl);
+  ProgramPtr prog(hProg->Impl->Prog);
+
+  prog = createProgram(*g);
+  prog->First = firstBytes(*g);
 }
 
 LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
                               const LG_ProgramOptions* options)
 {
-  LG_HPROGRAM hProg = 0;
-  try {
-    hProg = new ProgramHandle;
-  }
-  catch (...) {
+  LG_HPROGRAM hProg = create_handle<ProgramHandle>();
+  if (!hProg) {
     return 0;
   }
 
-  try {
-    try {
-      GraphPtr& g(hParser->Impl->Fsm);
-      Compiler& comp(hParser->Impl->Comp);
+  exception_trap(boost::bind(create_program, hParser, hProg, options->Determinize), hProg);
 
-      if (g->numVertices() < 2) {
-        throw std::runtime_error("Parser has no patterns");
-      }
-
-      if (options->Determinize) {
-        GraphPtr dfa(new Graph(1));
-        comp.subsetDFA(*dfa, *g);
-        g = dfa;
-      }
-
-      comp.labelGuardStates(*g);
-
-      hProg->Impl->Prog = createProgram(*g);
-      hProg->Impl->Prog->First = firstBytes(*g);
-    }
-    catch (std::exception& e) {
-      hProg->Error = e.what();
-      hProg->Impl->Prog.reset();
-    }
-    catch (...) {
-      hProg->Error = "Unspecified exception";
-      hProg->Impl->Prog.reset();
-    }
-
-    return hProg;
-  }
-  catch (...) {
-    try {
-      delete hProg;
-    }
-    catch (...) {
-    }
-
-    return 0;
-  }
+  return hProg;
 }
 
 int lg_destroy_program(LG_HPROGRAM hProg) {
-  return lg_destroy_handle(hProg);
+  return destroy_handle(hProg);
+}
+
+void create_context(LG_HPROGRAM hProg, LG_HCONTEXT hCtx) {
+  hCtx->Impl.reset(new ContextHandleImpl);
+  hCtx->Impl->Vm->init(hProg->Impl->Prog);
 }
 
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
-  LG_HCONTEXT hCtx = 0;
-  try {
-    hCtx = new ContextHandle;
-  }
-  catch (...) {
+  LG_HCONTEXT hCtx = create_handle<ContextHandle>();
+  if (!hCtx) {
     return 0;
   }
 
-  try {
-    try {
-      hCtx->Impl->Vm->init(hProg->Impl->Prog);
-    }
-    catch (std::exception& e) {
-      hCtx->Error = e.what();
-      hCtx->Impl->Vm.reset();
-    }
-    catch (...) {
-      hCtx->Error = "Unspecified exception";
-      hCtx->Impl->Vm.reset();
-    }
+  exception_trap(boost::bind(create_context, hProg, hCtx), hCtx);
 
-    return hCtx;
-  }
-  catch (...) {
-    try {
-      delete hCtx;
-    }
-    catch (...) {
-    }
-
-    return 0;
-  }
+  return hCtx;
 }
 
 int lg_destroy_context(LG_HCONTEXT hCtx) {
-  return lg_destroy_handle(hCtx);
+  return destroy_handle(hCtx);
 }
 
 void lg_reset_context(LG_HCONTEXT hCtx) {
-  try {
-    try {
-      hCtx->Impl->Vm->reset();
-    }
-    catch (std::exception& e) {
-      hCtx->Error = e.what();
-    }
-    catch (...) {
-      hCtx->Error = "Unspecified exception";
-    }
-  }
-  catch (...) {
-  }
+  exception_trap(boost::bind(&VmInterface::reset, boost::ref(hCtx->Impl->Vm)), hCtx);
 }
 
 void lg_starts_with(LG_HCONTEXT hCtx,
@@ -266,25 +194,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
-  try {
-    try {
-      hCtx->Impl->Vm->startsWith(
-        (const byte*) bufStart,
-        (const byte*) bufEnd,
-        startOffset,
-        *callbackFn,
-        userData
-      );
-    }
-    catch (std::exception& e) {
-      hCtx->Error = e.what();
-    }
-    catch (...) {
-      hCtx->Error = "Unspecified exception";
-    }
-  }
-  catch (...) {
-  }
+  exception_trap(boost::bind(&VmInterface::startsWith, boost::ref(hCtx->Impl->Vm), (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
 }
 
 unsigned int lg_search(LG_HCONTEXT hCtx,
@@ -294,25 +204,7 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
                        void* userData,
                        LG_HITCALLBACK_FN callbackFn)
 {
-  try {
-    try {
-      return hCtx->Impl->Vm->search(
-        (const byte*) bufStart,
-        (const byte*) bufEnd,
-        startOffset,
-        *callbackFn,
-        userData
-      );
-    }
-    catch (std::exception& e) {
-      hCtx->Error = e.what();
-    }
-    catch(...) {
-      hCtx->Error = "Unspecified exception";
-    }
-  }
-  catch (...) {
-  }
+  exception_trap(boost::bind(&VmInterface::search, boost::ref(hCtx->Impl->Vm), (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
 
   return 0;
 }
@@ -321,17 +213,6 @@ void lg_closeout_search(LG_HCONTEXT hCtx,
                         void* userData,
                         LG_HITCALLBACK_FN callbackFn)
 {
-  try {
-    try {
-      hCtx->Impl->Vm->closeOut(*callbackFn, userData);
-    }
-    catch (std::exception& e) {
-      hCtx->Error = e.what();
-    }
-    catch (...) {
-      hCtx->Error = "Unspecified exception";
-    }
-  }
-  catch(...) {
-  }
+  exception_trap(boost::bind(&VmInterface::closeOut, boost::ref(hCtx->Impl->Vm), *callbackFn, userData), hCtx);
+
 }

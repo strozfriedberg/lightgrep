@@ -45,6 +45,8 @@ struct ParserHandleImpl {
 struct ParserHandle: public HandleBase<ParserHandleImpl> {};
 
 struct ProgramHandleImpl {
+  ProgramHandleImpl(): Prog(new Program) {};
+
   ProgramPtr Prog;
 };
 
