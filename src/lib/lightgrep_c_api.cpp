@@ -105,7 +105,7 @@ LG_HPARSER lg_create_parser(unsigned int sizeHint) {
     return 0;
   }
 
-  exception_trap(boost::bind(create_parser_impl, hParser, sizeHint), hParser);
+  exception_trap(boost::bind(&create_parser_impl, hParser, sizeHint), hParser);
   return hParser;
 }
 
@@ -118,7 +118,7 @@ int lg_add_keyword(LG_HPARSER hParser,
                    unsigned int keyIndex,
                    const LG_KeyOptions* options)
 {
-  return exception_trap(boost::bind(addPattern, boost::ref(hParser->Impl->Nfab), boost::ref(hParser->Impl->Tree), boost::ref(hParser->Impl->Comp), boost::ref(*hParser->Impl->Fsm), keyword, keyIndex, options->CaseInsensitive == 0, options->FixedString != 0, options->Encoding), hParser);
+  return exception_trap(boost::bind(&addPattern, boost::ref(hParser->Impl->Nfab), boost::ref(hParser->Impl->Tree), boost::ref(hParser->Impl->Comp), boost::ref(*hParser->Impl->Fsm), keyword, keyIndex, options->CaseInsensitive == 0, options->FixedString != 0, options->Encoding), hParser);
 }
 
 void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
@@ -154,7 +154,7 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
     return 0;
   }
 
-  exception_trap(boost::bind(create_program, hParser, hProg, options->Determinize), hProg);
+  exception_trap(boost::bind(&create_program, hParser, hProg, options->Determinize), hProg);
 
   return hProg;
 }
@@ -174,7 +174,7 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
     return 0;
   }
 
-  exception_trap(boost::bind(create_context, hProg, hCtx), hCtx);
+  exception_trap(boost::bind(&create_context, hProg, hCtx), hCtx);
 
   return hCtx;
 }
