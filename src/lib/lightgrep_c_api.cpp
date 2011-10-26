@@ -53,7 +53,7 @@ template <typename T> bool exception_trap(T func, Handle* h) {
   return false;
 }
 
-int destroy_handle(Handle* h) {
+bool destroy_handle(Handle* h) {
   if (exception_trap(boost::bind(&Handle::destroy, h), h)) {
     try {
       delete h;
@@ -61,10 +61,10 @@ int destroy_handle(Handle* h) {
     catch (...) {
     }
 
-    return 1;
+    return true;
   }
   else {
-    return 0;
+    return false;
   }
 }
 
@@ -99,6 +99,15 @@ void create_parser_impl(LG_HPARSER hParser, unsigned int sizeHint) {
   hParser->Impl.reset(new ParserHandleImpl(sizeHint));
 }
 
+// TODO:
+// 1. Should API functions return 0 or < 0 on failure? 0
+// 2. Should all API functions return an error code?
+// 3. How should we indicate that (outer) handle deletion failed?
+// 4. ok() doesn't work, due to not resetting Impl on failure.
+// 5. Could we use boost::thread_specific_ptr for returning error strings?
+// 6. Use boost::thread_specific_ptr, get rid of inner handles.
+// 7. Add doxygen docs for C API.
+
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
   LG_HPARSER hParser = create_handle<ParserHandle>();
   if (!hParser) {
@@ -126,7 +135,7 @@ void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
   GraphPtr& g(hParser->Impl->Fsm);
 
   if (g->numVertices() < 2) {
-    throw std::runtime_error("Parser has no patterns");
+    throw std::runtime_error("No valid patterns were parsed");
   }
 
   Compiler& comp(hParser->Impl->Comp);
@@ -204,6 +213,8 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
                        void* userData,
                        LG_HITCALLBACK_FN callbackFn)
 {
+// FIXME: return Active[0]->Start
+
   exception_trap(boost::bind(&VmInterface::search, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
 
   return 0;
