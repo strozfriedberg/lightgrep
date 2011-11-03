@@ -1,55 +1,38 @@
 #pragma once
 
-#include "searchhit.h"
+#include "lightgrep_c_api.h"
+#include "patterninfo.h"
 
 #include <iosfwd>
+#include <string>
+#include <vector>
 
-class HitCounter: public HitCallback {
-public:
-  HitCounter(): NumHits(0) {}
+struct HitCounterInfo {
+  HitCounterInfo(): NumHits(0) {}
 
-  virtual ~HitCounter() {}
-
-  uint64  NumHits;
+  uint64 NumHits;
 };
 
-class HitWriter: public HitCounter {
-public:
-  HitWriter(std::ostream& outStream,
-            const std::vector< std::pair<uint32, uint32> >& tbl,
-            const std::vector<std::string>& keys,
-            const std::vector<std::string>& encodings):
-            HitCounter(), Out(outStream), Table(tbl), Keys(keys), Encodings(encodings) {}
+void nullWriter(void* userData, const LG_SearchHit* const);
 
-  virtual ~HitWriter() {}
-  virtual void collect(const SearchHit& hit);
+struct HitWriterInfo: public HitCounterInfo, PatternInfo {
+  HitWriterInfo(std::ostream& outStream, const PatternInfo& pinfo):
+                PatternInfo(pinfo), Out(outStream) {}
 
-protected:
   std::ostream& Out;
-  const std::vector< std::pair<uint32, uint32> >& Table;
-  const std::vector< std::string >& Keys;
-  const std::vector< std::string >& Encodings;
 };
 
-class NullWriter: public HitCounter {
-public:
+void hitWriter(void* userData, const LG_SearchHit* const hit);
 
-  virtual ~NullWriter() {}
-  virtual void collect(const SearchHit&) { ++NumHits; }
+struct PathWriterInfo: public HitWriterInfo {
+  PathWriterInfo(const std::string& path,
+                 std::ostream& outStream,
+                 const PatternInfo& pinfo):
+                 HitWriterInfo(outStream, pinfo),
+                 Path(path) {}
+
+  const std::string Path;
 };
 
-class PathWriter: public HitWriter {
-public:
-  PathWriter(const std::string& path,
-             std::ostream& outStream,
-             const std::vector< std::pair<uint32, uint32> >& tbl,
-             const std::vector<std::string>& keys,
-             const std::vector<std::string>& encodings):
-             HitWriter(outStream, tbl, keys, encodings), Path(path) {}
+void pathWriter(void* userData, const LG_SearchHit* const hit);
 
-  virtual ~PathWriter() {}
-  virtual void collect(const SearchHit& hit);
-
-private:
-  std::string Path;
-};

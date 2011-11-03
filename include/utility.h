@@ -2,9 +2,12 @@
 
 #include "basic.h"
 
+#include <string>
 #include <vector>
 
+#include "compiler.h"
 #include "graph.h"
+#include "nfabuilder.h"
 #include "vm_interface.h"
 
 struct SearchInfo {
@@ -17,15 +20,25 @@ enum Encodings {
 };
 
 struct KwInfo {
-  typedef std::vector<std::string> StringVec;
-
-  StringVec Keywords,
-            Encodings;
+  std::vector<std::string> Keywords,
+                           Encodings;
   std::vector< std::pair<uint32, uint32> > PatternsTable;
 };
 
-GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII, bool caseSensitive = true, bool litMode = false);
-GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode);
+void addPattern(
+  NFABuilder& nfab,
+  ParseTree& tree,
+  Compiler& comp,
+  Graph& g,
+  const std::string& pattern,
+  uint32 patIndex,
+  bool caseSensitive,
+  bool fixedString,
+  const std::string& encoding);
+
+GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc = CP_ASCII, bool caseSensitive = true, bool litMode = false, bool determinize = true);
+
+GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode, bool determinize);
 
 class Visitor {
 public:

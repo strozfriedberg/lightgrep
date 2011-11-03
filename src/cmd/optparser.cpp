@@ -53,6 +53,7 @@ void parse_opts(int argc, char** argv,
     ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
     ("no-output", "do not output hits (good for profiling)")
+    ("no-det", "do not determinize NFAs")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
@@ -119,6 +120,7 @@ void parse_opts(int argc, char** argv,
     opts.CaseSensitive = optsMap.count("ignore-case") == 0;
     opts.LiteralMode = optsMap.count("fixed-strings") > 0;
     opts.NoOutput = optsMap.count("no-output") > 0;
+    opts.Determinize = optsMap.count("no-det") == 0;
     opts.PrintPath = optsMap.count("with-filename") > 0;
 
     if (opts.Command == "search") {
