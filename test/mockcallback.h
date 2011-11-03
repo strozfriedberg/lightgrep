@@ -1,12 +1,4 @@
 #pragma once
 
-#include "vm.h"
+void mockCallback(void* userData, const LG_SearchHit* const hit);
 
-class MockCallback: public HitCallback {
-public:
-  virtual void collect(const SearchHit& hit) {
-    Hits.push_back(hit);
-  }
-
-  std::vector<SearchHit> Hits;
-};

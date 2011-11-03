@@ -1,7 +1,7 @@
 // Copyright 2011, Lightbox Technologies, Inc. All Rights Reserved.
 
-#ifndef ENCODINGS_H
-#define ENCODINGS_H
+#ifndef __ENCODINGS_H_
+#define __ENCODINGS_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,7 +12,7 @@ static const int LG_ENC_ASCII = 1;
 static const int LG_UTF_8 = 2;
 static const int LG_UTF_16 = 3;
 
-const char* LG_SUPPORTED_ENCODINGS[] = {
+static const char* LG_SUPPORTED_ENCODINGS[] = {
 
 // The Encoding specified in LG_KeyOptions MUST match one of the below strings (in ASCII)
 
@@ -27,4 +27,4 @@ const char* LG_SUPPORTED_ENCODINGS[] = {
 }
 #endif
 
-#endif
+#endif /* __ENCODINGS_H_ */

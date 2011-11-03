@@ -631,8 +631,6 @@ SCOPE_TEST(testPruneBranches) {
   exp[1]->IsMatch = true;
   exp[1]->Label = 0;
 
-  writeGraphviz(std::cerr, g);
-
   ASSERT_EQUAL_GRAPHS(exp, g);
   ASSERT_EQUAL_LABELS(exp, g);
   ASSERT_EQUAL_MATCHES(exp, g);
