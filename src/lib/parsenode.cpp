@@ -1,4 +1,4 @@
-#include "node.h"
+#include "parsenode.h"
 
 void repetition(std::ostream& out, uint32 min, uint32 max) {
   if (min == 0) {
@@ -31,38 +31,38 @@ void repetition(std::ostream& out, uint32 min, uint32 max) {
   out << '}';
 }
 
-std::ostream& operator<<(std::ostream& out, const Node& n) {
+std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
   switch (n.Type) {
-  case Node::REGEXP:
+  case ParseNode::REGEXP:
     return out << "REGEXP";
-  case Node::ALTERNATION:
+  case ParseNode::ALTERNATION:
     return out << '|';
-  case Node::CONCATENATION:
+  case ParseNode::CONCATENATION:
     return out << '&';
-  case Node::GROUP:
+  case ParseNode::GROUP:
     return out << '(';
-  case Node::REPETITION:
+  case ParseNode::REPETITION:
     repetition(out, n.Min, n.Max);
     return out;
-  case Node::REPETITION_NG:
+  case ParseNode::REPETITION_NG:
     repetition(out, n.Min, n.Max);
     return out << '?';
-  case Node::ELEMENT:
+  case ParseNode::ELEMENT:
     return out << "ELEMENT";
-  case Node::DOT:
+  case ParseNode::DOT:
     return out << '.';
-  case Node::CHAR_CLASS:
+  case ParseNode::CHAR_CLASS:
     return out << n.Bits;
-  case Node::LITERAL:
+  case ParseNode::LITERAL:
     return out << (char) n.Val;
-  case Node::IGNORE:
+  case ParseNode::IGNORE:
     return out << "IGNORE";
   default:
     return out << "WTF";
   }
 }
 
-void printTree(std::ostream& out, const Node& n) {
+void printTree(std::ostream& out, const ParseNode& n) {
   if (n.Right) {
     printTree(out, *n.Right);
   }
@@ -74,7 +74,7 @@ void printTree(std::ostream& out, const Node& n) {
   out << n << '\n';
 }
 
-void printTreeDetails(std::ostream& out, const Node& n) {
+void printTreeDetails(std::ostream& out, const ParseNode& n) {
   if (n.Right) {
     printTreeDetails(out, *n.Right);
   }

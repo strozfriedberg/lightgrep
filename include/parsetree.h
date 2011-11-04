@@ -1,15 +1,15 @@
 #pragma once
 
 #include "basic.h"
-#include "node.h"
+#include "parsenode.h"
 
 #include <vector>
 
 class ParseTree {
 public:
-  Node* Root;
+  ParseNode* Root;
 
-  Node* add(const Node& n) {
+  ParseNode* add(const ParseNode& n) {
     Store.push_back(n);
     return &Store[Store.size()-1];
   }
@@ -34,7 +34,7 @@ public:
     //
     // Therefore, sizing the vector to twice the length of the pattern
     // ensures that the vector will never resize on us and invalidate our
-    // Node pointers.
+    // ParseNode pointers.
     //
     Root = 0;
     Store.clear();
@@ -42,5 +42,5 @@ public:
   }
 
 private:
-  std::vector<Node> Store;
+  std::vector<ParseNode> Store;
 };

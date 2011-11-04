@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-void parseOutput(std::string type, Node n) {
+void parseOutput(std::string type, ParseNode n) {
   std::cout << type << ": " << n.Val << std::endl;
 }
 
@@ -815,22 +815,22 @@ SCOPE_TEST(parseRepeatedSkippables) {
   // we'll simulate a?b*
   NFABuilder nfab;
   SCOPE_ASSERT_EQUAL(1, nfab.stack().size());
-  nfab.callback(Node(Node::LITERAL, 0, 0, 'a'));
+  nfab.callback(ParseNode(ParseNode::LITERAL, 0, 0, 'a'));
   SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
-  nfab.callback(Node(Node::REPETITION, 0, 0, 1));
+  nfab.callback(ParseNode(ParseNode::REPETITION, 0, 0, 1));
   SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(1, nfab.stack().top().Skippable);
-  nfab.callback(Node(Node::LITERAL, 0, 0, 'b'));
+  nfab.callback(ParseNode(ParseNode::LITERAL, 0, 0, 'b'));
   SCOPE_ASSERT_EQUAL(3, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
-  nfab.callback(Node(Node::REPETITION, 0, 0, UNBOUNDED));
+  nfab.callback(ParseNode(ParseNode::REPETITION, 0, 0, UNBOUNDED));
   SCOPE_ASSERT_EQUAL(3, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(1, nfab.stack().top().Skippable);
-  nfab.callback(Node(Node::CONCATENATION, 0, 0, 0));
+  nfab.callback(ParseNode(ParseNode::CONCATENATION, 0, 0, 0));
   SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(2, nfab.stack().top().Skippable);
-  nfab.callback(Node(Node::CONCATENATION, 0, 0, 0));
+  nfab.callback(ParseNode(ParseNode::CONCATENATION, 0, 0, 0));
   SCOPE_ASSERT_EQUAL(1, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
 }
