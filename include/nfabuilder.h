@@ -3,7 +3,7 @@
 #include "basic.h"
 #include "graph.h"
 #include "encoding.h"
-#include "node.h"
+#include "parsenode.h"
 #include "parsetree.h"
 
 #include <limits>
@@ -16,7 +16,7 @@ static const uint32 NOSKIP = std::numeric_limits<uint32>::max();
 
 struct Fragment {
   Fragment(): Skippable(NOSKIP) {}
-  Fragment(Graph::vertex in, const Node& n):
+  Fragment(Graph::vertex in, const ParseNode& n):
     InList(1, in), N(n), Skippable(NOSKIP) {}
 
   /*
@@ -26,11 +26,11 @@ struct Fragment {
    */
   InListT InList;
   OutListT OutList;
-  Node N;
+  ParseNode N;
 
   uint32 Skippable;
 
-  void initFull(Graph::vertex in, const Node& n) {
+  void initFull(Graph::vertex in, const ParseNode& n) {
     N = n;
     Skippable = NOSKIP;
     InList.clear();
@@ -39,7 +39,7 @@ struct Fragment {
     OutList.push_back(std::make_pair(in, 0));
   }
 
-  void reset(const Node& n) {
+  void reset(const ParseNode& n) {
     N = n;
     Skippable = NOSKIP;
     InList.clear();
@@ -60,27 +60,27 @@ public:
 
   void reset();
 
-  virtual void callback(const Node& n);
+  virtual void callback(const ParseNode& n);
 
   void setEncoding(const boost::shared_ptr<Encoding>& e);
   void setCaseSensitive(bool caseSensitive); // defaults to true
   void setSizeHint(uint64 reserveSize);
 
-  void alternate(const Node& n);
-  void concatenate(const Node& n);
-  void star(const Node& n);
-  void plus(const Node& n);
-  void question(const Node& n);
-  void repetition(const Node& n);
-  void star_ng(const Node& n);
-  void plus_ng(const Node& n);
-  void question_ng(const Node& n);
-  void repetition_ng(const Node& n);
-  void literal(const Node& n);
-  void dot(const Node& n);
-  void charClass(const Node& n);
+  void alternate(const ParseNode& n);
+  void concatenate(const ParseNode& n);
+  void star(const ParseNode& n);
+  void plus(const ParseNode& n);
+  void question(const ParseNode& n);
+  void repetition(const ParseNode& n);
+  void star_ng(const ParseNode& n);
+  void plus_ng(const ParseNode& n);
+  void question_ng(const ParseNode& n);
+  void repetition_ng(const ParseNode& n);
+  void literal(const ParseNode& n);
+  void dot(const ParseNode& n);
+  void charClass(const ParseNode& n);
 
-  void finish(const Node&);
+  void finish(const ParseNode&);
 
   GraphPtr getFsm() const { return Fsm; }
   void resetFsm() { Fsm.reset(); }
@@ -98,7 +98,7 @@ private:
   void patch_pre(OutListT& src, const InListT& dst);
   void patch_post(OutListT& src, const InListT& dst);
 
-  void traverse(const Node* n);
+  void traverse(const ParseNode* n);
 
   bool IsGood, CaseSensitive;
   uint32 CurLabel;
@@ -106,7 +106,7 @@ private:
   boost::shared_ptr<Encoding> Enc;
   GraphPtr Fsm;
   std::stack<Fragment> Stack;
-  std::stack<const Node*, std::vector<const Node*> > ChildStack, ParentStack;
+  std::stack<const ParseNode*, std::vector<const ParseNode*> > ChildStack, ParentStack;
 
   boost::scoped_array<byte> TempBuf;
   std::vector<TransitionPtr> LitFlyweights;

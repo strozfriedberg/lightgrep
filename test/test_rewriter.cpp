@@ -129,30 +129,30 @@ SCOPE_TEST(spliceOutParentLeftTest) {
   ParseTree tree;
   tree.init(4);
 
-  Node *l = tree.add(Node(Node::LITERAL, 'l'));
-  Node *r = tree.add(Node(Node::LITERAL, 'r'));
-  Node *con = tree.add(Node(Node::CONCATENATION, l, r));
-  tree.Root = tree.add(Node(Node::REGEXP, con));
+  ParseNode *l = tree.add(ParseNode(ParseNode::LITERAL, 'l'));
+  ParseNode *r = tree.add(ParseNode(ParseNode::LITERAL, 'r'));
+  ParseNode *con = tree.add(ParseNode(ParseNode::CONCATENATION, l, r));
+  tree.Root = tree.add(ParseNode(ParseNode::REGEXP, con));
 
   splice_out_parent(tree.Root, con, l);
 
   SCOPE_ASSERT_EQUAL(l, tree.Root->Left);
-  SCOPE_ASSERT_EQUAL((Node*) 0, tree.Root->Right);
+  SCOPE_ASSERT_EQUAL((ParseNode*) 0, tree.Root->Right);
 }
 
 SCOPE_TEST(spliceOutParentRightTest) {
   ParseTree tree;
   tree.init(4);
 
-  Node *l = tree.add(Node(Node::LITERAL, 'l'));
-  Node *r = tree.add(Node(Node::LITERAL, 'r'));
-  Node *con = tree.add(Node(Node::CONCATENATION, l, r));
-  tree.Root = tree.add(Node(Node::REGEXP, con));
+  ParseNode *l = tree.add(ParseNode(ParseNode::LITERAL, 'l'));
+  ParseNode *r = tree.add(ParseNode(ParseNode::LITERAL, 'r'));
+  ParseNode *con = tree.add(ParseNode(ParseNode::CONCATENATION, l, r));
+  tree.Root = tree.add(ParseNode(ParseNode::REGEXP, con));
 
   splice_out_parent(tree.Root, con, r);
 
   SCOPE_ASSERT_EQUAL(r, tree.Root->Left);
-  SCOPE_ASSERT_EQUAL((Node*) 0, tree.Root->Right);
+  SCOPE_ASSERT_EQUAL((ParseNode*) 0, tree.Root->Right);
 }
 
 // FIXME: Split this into multiple tests.
@@ -447,4 +447,3 @@ SCOPE_TEST(reduceEmptySubtrees_aaa0OraOraa0_Test) {
   SCOPE_ASSERT(reduce_empty_subtrees(tree.Root));
   SCOPE_ASSERT_EQUAL("aa|a|a", unparse(tree));
 }
-
