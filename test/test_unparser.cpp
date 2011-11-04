@@ -9,7 +9,7 @@
 
 SCOPE_TEST(unparseEmptyTest) {
   ParseTree tree;
-  Node root(Node::REGEXP, 0, 0, 0);
+  ParseNode root(ParseNode::REGEXP, 0, 0, 0);
   tree.Root = &root;
 
   SCOPE_ASSERT_EQUAL("", unparse(tree));
