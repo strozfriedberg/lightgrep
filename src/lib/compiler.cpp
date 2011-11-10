@@ -170,6 +170,7 @@ void Compiler::pruneBranches(Graph& g) {
   next.push(0);
   seen.insert(0);
 
+//  ByteSet mbs, obs, nbs;
   ByteSet mbs, obs;
 
   // walk the graph
@@ -188,31 +189,29 @@ void Compiler::pruneBranches(Graph& g) {
         next.push(tail);
       }
 
-      if (g[tail]->IsMatch) {
-        g[tail]->getBits(mbs);
+      obs.reset();
+      g[tail]->getBits(obs);
 
-        for (uint32 j = g.outDegree(head) - 1; j > i; --j) {
-          const Graph::vertex t2 = g.outVertex(head, j);
+//      nbs = obs & ~mbs;
+      obs &= ~mbs;
 
-          obs.reset();
-          g[t2]->getBits(obs);
-
-          obs &= ~mbs;
-
-          if (obs.none()) {
-            g.removeEdge(head, j);
-          }
+//      if (nbs.none()) {
+      if (obs.none()) {
+        g.removeEdge(head, i--);
+      }
 /*
-          else {
-            Transition* ot = g[t2];
-            Transition* nt = new CharClassState(obs);
-            nt->IsMatch = ot->IsMatch;
-            nt->Label = ot->Label;
-            g.setTran(t2, nt);
-            delete ot;
-          }
+      else if (nbs != obs) {
+        Transition* ot = g[tail];
+        Transition* nt = new CharClassState(nbs);
+        nt->IsMatch = ot->IsMatch;
+        nt->Label = ot->Label;
+        g.setTran(tail, nt);
+        delete ot;
+      }
 */
-        }
+
+      if (g[tail]->IsMatch) {
+        mbs |= obs;
       }
     }
   }
