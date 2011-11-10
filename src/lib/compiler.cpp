@@ -177,7 +177,10 @@ void Compiler::pruneBranches(Graph& g) {
     const Graph::vertex head = next.top();
     next.pop();
 
-    // remove same-transition edges following a match vertex
+    mbs.reset();
+
+    // remove same-transition edges following a match vertex,
+    // accumulating transition bytes for match edges as we go
     for (uint32 i = 0; i < g.outDegree(head); ++i) {
       const Graph::vertex tail = g.outVertex(head, i);
 
@@ -186,9 +189,7 @@ void Compiler::pruneBranches(Graph& g) {
       }
 
       if (g[tail]->IsMatch) {
-        mbs.reset();
         g[tail]->getBits(mbs);
-        mbs.flip();
 
         for (uint32 j = g.outDegree(head) - 1; j > i; --j) {
           const Graph::vertex t2 = g.outVertex(head, j);
@@ -196,7 +197,7 @@ void Compiler::pruneBranches(Graph& g) {
           obs.reset();
           g[t2]->getBits(obs);
 
-          obs &= mbs;
+          obs &= ~mbs;
 
           if (obs.none()) {
             g.removeEdge(head, j);
