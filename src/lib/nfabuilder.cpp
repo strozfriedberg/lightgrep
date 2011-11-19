@@ -63,7 +63,7 @@ void NFABuilder::reset() {
   while (!Stack.empty()) {
     Stack.pop();
   }
-  TempFrag.initFull(0, Node());
+  TempFrag.initFull(0, ParseNode());
   Stack.push(TempFrag);
 }
 
@@ -134,7 +134,7 @@ void NFABuilder::patch_post(OutListT& src, const InListT& dst) {
   patch_mid(src, dst, 0);
 }
 
-void NFABuilder::literal(const Node& n) {
+void NFABuilder::literal(const ParseNode& n) {
   uint32 len = Enc->write(n.Val, TempBuf.get());
   if (0 == len) {
     // FXIME: should we really be checking this if it's supposed to be
@@ -159,14 +159,14 @@ void NFABuilder::literal(const Node& n) {
   }
 }
 
-void NFABuilder::dot(const Node& n) {
+void NFABuilder::dot(const ParseNode& n) {
   Graph::vertex v = Fsm->addVertex();
   Fsm->setTran(v, new RangeState(0, 255));
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
 
-void NFABuilder::charClass(const Node& n) {
+void NFABuilder::charClass(const ParseNode& n) {
   Graph::vertex v = Fsm->addVertex();
   uint32 num = 0;
   byte first = 0, last = 0;
@@ -196,19 +196,19 @@ void NFABuilder::charClass(const Node& n) {
   Stack.push(TempFrag);
 }
 
-void NFABuilder::question(const Node&) {
+void NFABuilder::question(const ParseNode&) {
   Fragment& optional = Stack.top();
   if (optional.Skippable > optional.InList.size()) {
     optional.Skippable = optional.InList.size();
   }
 }
 
-void NFABuilder::question_ng(const Node&) {
+void NFABuilder::question_ng(const ParseNode&) {
   Fragment& optional = Stack.top();
   optional.Skippable = 0;
 }
 
-void NFABuilder::plus(const Node& n) {
+void NFABuilder::plus(const ParseNode& n) {
   Fragment& repeat = Stack.top();
   repeat.N = n;
 
@@ -216,7 +216,7 @@ void NFABuilder::plus(const Node& n) {
   patch_pre(repeat.OutList, repeat.InList);
 }
 
-void NFABuilder::plus_ng(const Node& n) {
+void NFABuilder::plus_ng(const ParseNode& n) {
   Fragment& repeat = Stack.top();
   repeat.N = n;
 
@@ -224,17 +224,17 @@ void NFABuilder::plus_ng(const Node& n) {
   patch_post(repeat.OutList, repeat.InList);
 }
 
-void NFABuilder::star(const Node& n) {
+void NFABuilder::star(const ParseNode& n) {
   plus(n);
   question(n);
 }
 
-void NFABuilder::star_ng(const Node& n) {
+void NFABuilder::star_ng(const ParseNode& n) {
   plus_ng(n);
   question_ng(n);
 }
 
-void NFABuilder::repetition(const Node& n) {
+void NFABuilder::repetition(const ParseNode& n) {
   if (n.Min == 0) {
     if (n.Max == 1) {
       question(n);
@@ -253,7 +253,7 @@ void NFABuilder::repetition(const Node& n) {
   // all other cases are already reduced by traverse
 }
 
-void NFABuilder::repetition_ng(const Node& n) {
+void NFABuilder::repetition_ng(const ParseNode& n) {
   if (n.Min == 0) {
     if (n.Max == 1) {
       question_ng(n);
@@ -272,7 +272,7 @@ void NFABuilder::repetition_ng(const Node& n) {
   // all other cases are already reduced by traverse
 }
 
-void NFABuilder::alternate(const Node& n) {
+void NFABuilder::alternate(const ParseNode& n) {
   Fragment second;
   second.assign(Stack.top());
   Stack.pop();
@@ -297,7 +297,7 @@ void NFABuilder::alternate(const Node& n) {
   first.N = n;
 }
 
-void NFABuilder::concatenate(const Node& n) {
+void NFABuilder::concatenate(const ParseNode& n) {
   TempFrag.assign(Stack.top());
   Stack.pop();
   Fragment& first(Stack.top());
@@ -327,7 +327,7 @@ void NFABuilder::concatenate(const Node& n) {
   first.N = n;
 }
 
-void NFABuilder::finish(const Node& n) {
+void NFABuilder::finish(const ParseNode& n) {
   if (2 == Stack.size()) {
     concatenate(n);
     Fragment& start(Stack.top());
@@ -356,11 +356,11 @@ void NFABuilder::finish(const Node& n) {
   }
 }
 
-void NFABuilder::traverse(const Node* n) {
+void NFABuilder::traverse(const ParseNode* n) {
 
   if (n->Left) {
     // this node has a left child
-    if ((n->Type == Node::REPETITION || n->Type == Node::REPETITION_NG) &&
+    if ((n->Type == ParseNode::REPETITION || n->Type == ParseNode::REPETITION_NG) &&
        !((n->Min == 0 && (n->Max == 1 || n->Max == UNBOUNDED)) ||
          (n->Min == 1 && n->Max == UNBOUNDED)))
     {
@@ -414,15 +414,15 @@ void NFABuilder::traverse(const Node* n) {
         ParseTree rep;
         rep.init(size);
 
-        Node root;
+        ParseNode root;
 
-        Node* none = 0;
-        Node* parent = &root;
+        ParseNode* none = 0;
+        ParseNode* parent = &root;
 
         if (n->Min > 0) {
           // build the mandatory part
           for (uint32 i = 1; i < n->Min; ++i) {
-            Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
+            ParseNode* con = rep.add(ParseNode(ParseNode::CONCATENATION, n->Left, none));
             parent->Right = con;
             parent = con;
           }
@@ -435,31 +435,31 @@ void NFABuilder::traverse(const Node* n) {
         else if (n->Max == UNBOUNDED) {
           // build the unbounded optional part
           if (n->Min == 0) {
-            Node* star = rep.add(Node(n->Type, n->Left, 0, UNBOUNDED));
+            ParseNode* star = rep.add(ParseNode(n->Type, n->Left, 0, UNBOUNDED));
             parent->Right = star;
           }
           else {
-            Node* plus = rep.add(Node(n->Type, n->Left, 1, UNBOUNDED));
+            ParseNode* plus = rep.add(ParseNode(n->Type, n->Left, 1, UNBOUNDED));
             parent->Right = plus;
           }
         }
         else {
           if (n->Min > 0) {
             // finish the mandatory part
-            Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
+            ParseNode* con = rep.add(ParseNode(ParseNode::CONCATENATION, n->Left, none));
             parent->Right = con;
             parent = con;
           }
 
           // build the bounded optional part
           for (uint32 i = 1; i < n->Max - n->Min; ++i) {
-            Node* con = rep.add(Node(Node::CONCATENATION, n->Left, none));
-            Node* question = rep.add(Node(n->Type, con, 0, 1));
+            ParseNode* con = rep.add(ParseNode(ParseNode::CONCATENATION, n->Left, none));
+            ParseNode* question = rep.add(ParseNode(n->Type, con, 0, 1));
             parent->Right = question;
             parent = con;
           }
 
-          Node* question = rep.add(Node(n->Type, n->Left, 0, 1));
+          ParseNode* question = rep.add(ParseNode(n->Type, n->Left, 0, 1));
           parent->Right = question;
         }
 
@@ -485,31 +485,31 @@ bool NFABuilder::build(const ParseTree& tree) {
   return IsGood;
 }
 
-void NFABuilder::callback(const Node& n) {
+void NFABuilder::callback(const ParseNode& n) {
 //  std::cerr << n << std::endl;
   switch (n.Type) {
-    case Node::REGEXP:
+    case ParseNode::REGEXP:
       finish(n);
       break;
-    case Node::ALTERNATION:
+    case ParseNode::ALTERNATION:
       alternate(n);
       break;
-    case Node::CONCATENATION:
+    case ParseNode::CONCATENATION:
       concatenate(n);
       break;
-    case Node::REPETITION:
+    case ParseNode::REPETITION:
       repetition(n);
       break;
-    case Node::REPETITION_NG:
+    case ParseNode::REPETITION_NG:
       repetition_ng(n);
       break;
-    case Node::DOT:
+    case ParseNode::DOT:
       dot(n);
       break;
-    case Node::CHAR_CLASS:
+    case ParseNode::CHAR_CLASS:
       charClass(n);
       break;
-    case Node::LITERAL:
+    case ParseNode::LITERAL:
       literal(n);
       break;
     default:

@@ -8,13 +8,13 @@
 
 #include <boost/lexical_cast.hpp>
 
-bool is_binary(const Node* n) {
-  return n->Type == Node::ALTERNATION || n->Type == Node::CONCATENATION;
+bool is_binary(const ParseNode* n) {
+  return n->Type == ParseNode::ALTERNATION || n->Type == ParseNode::CONCATENATION;
 }
 
-bool is_atomic(const Node* n) {
-  return n->Type == Node::DOT || n->Type == Node::CHAR_CLASS
-                              || n->Type == Node::LITERAL;
+bool is_atomic(const ParseNode* n) {
+  return n->Type == ParseNode::DOT || n->Type == ParseNode::CHAR_CLASS
+                              || n->Type == ParseNode::LITERAL;
 }
 
 //
@@ -25,13 +25,13 @@ bool is_atomic(const Node* n) {
 // * a repetition operator is the parent of another repetition operator
 //
 
-void open_paren(std::ostream& out, const Node* n) {
+void open_paren(std::ostream& out, const ParseNode* n) {
   if (!is_binary(n) && !is_atomic(n->Left)) {
     out << '(';
   }
 }
 
-void close_paren(std::ostream& out, const Node* n) {
+void close_paren(std::ostream& out, const ParseNode* n) {
   if (!is_binary(n) && !is_atomic(n->Left)) {
     out << ')';
   }
@@ -257,9 +257,9 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
   return ss.str();
 }
 
-void unparse(std::ostream& out, const Node* n) {
+void unparse(std::ostream& out, const ParseNode* n) {
   switch (n->Type) {
-  case Node::REGEXP:
+  case ParseNode::REGEXP:
     if (!n->Left) {
       return;
     }
@@ -267,14 +267,14 @@ void unparse(std::ostream& out, const Node* n) {
     unparse(out, n->Left);
     break;
 
-  case Node::ALTERNATION:
+  case ParseNode::ALTERNATION:
     unparse(out, n->Left);
     out << '|';
     unparse(out, n->Right);
     break;
 
-  case Node::CONCATENATION:
-    if (n->Left->Type == Node::ALTERNATION) {
+  case ParseNode::CONCATENATION:
+    if (n->Left->Type == ParseNode::ALTERNATION) {
       out << '(';
       unparse(out, n->Left);
       out << ')';
@@ -283,7 +283,7 @@ void unparse(std::ostream& out, const Node* n) {
       unparse(out, n->Left);
     }
 
-    if (n->Right->Type == Node::ALTERNATION) {
+    if (n->Right->Type == ParseNode::ALTERNATION) {
       out << '(';
       unparse(out, n->Right);
       out << ')';
@@ -293,14 +293,14 @@ void unparse(std::ostream& out, const Node* n) {
     }
     break;
 
-  case Node::REPETITION:
+  case ParseNode::REPETITION:
     open_paren(out, n);
     unparse(out, n->Left);
     close_paren(out, n);
     repetition(out, n->Min, n->Max);
     break;
 
-  case Node::REPETITION_NG:
+  case ParseNode::REPETITION_NG:
     open_paren(out, n);
     unparse(out, n->Left);
     close_paren(out, n);
@@ -308,15 +308,15 @@ void unparse(std::ostream& out, const Node* n) {
     out << '?';
     break;
 
-  case Node::DOT:
+  case ParseNode::DOT:
     out << '.';
     break;
 
-  case Node::CHAR_CLASS:
+  case ParseNode::CHAR_CLASS:
     out << '[' << byteSetToCharacterClass(n->Bits) << ']';
     break;
 
-  case Node::LITERAL:
+  case ParseNode::LITERAL:
     out << byteToLiteralString(n->Val);
     break;
 

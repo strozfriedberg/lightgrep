@@ -38,9 +38,7 @@ void addPattern(
     nfab.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
   }
   else {
-    std::stringstream ss;
-    ss << "Unrecognized encoding '" << encoding << "'";
-    throw std::runtime_error(ss.str());
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("Unrecognized encoding '" << encoding << "'");
   }
 
   // parse the pattern
@@ -79,7 +77,7 @@ void addKeys(const std::vector<std::string>& keywords, const std::string& encodi
       addPattern(nfab, tree, comp, *fsm, kw, keyIdx,
                  caseSensitive, litMode, encoding);
     }
-    catch (std::runtime_error& e) {
+    catch (const std::runtime_error& e) {
       std::cerr << e.what() << " keyword number " << i
                 << ", " << kw << std::endl;
     }
