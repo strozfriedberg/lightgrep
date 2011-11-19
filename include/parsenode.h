@@ -19,7 +19,7 @@ struct ParseNode {
     DOT,
     CHAR_CLASS,
     LITERAL,
-    IGNORE
+    LG_IGNORE
   };
 
   NodeType  Type;

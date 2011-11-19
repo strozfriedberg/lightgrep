@@ -55,7 +55,7 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
     return out << n.Bits;
   case ParseNode::LITERAL:
     return out << (char) n.Val;
-  case ParseNode::IGNORE:
+  case ParseNode::LG_IGNORE:
     return out << "IGNORE";
   default:
     return out << "WTF";
