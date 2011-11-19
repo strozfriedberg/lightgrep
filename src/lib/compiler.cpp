@@ -170,6 +170,7 @@ void Compiler::pruneBranches(Graph& g) {
   next.push(0);
   seen.insert(0);
 
+//  ByteSet mbs, obs, nbs;
   ByteSet mbs, obs;
 
   // walk the graph
@@ -177,7 +178,10 @@ void Compiler::pruneBranches(Graph& g) {
     const Graph::vertex head = next.top();
     next.pop();
 
-    // remove same-transition edges following a match vertex
+    mbs.reset();
+
+    // remove same-transition edges following a match vertex,
+    // accumulating transition bytes for match edges as we go
     for (uint32 i = 0; i < g.outDegree(head); ++i) {
       const Graph::vertex tail = g.outVertex(head, i);
 
@@ -185,33 +189,29 @@ void Compiler::pruneBranches(Graph& g) {
         next.push(tail);
       }
 
-      if (g[tail]->IsMatch) {
-        mbs.reset();
-        g[tail]->getBits(mbs);
-        mbs.flip();
+      obs.reset();
+      g[tail]->getBits(obs);
 
-        for (uint32 j = g.outDegree(head) - 1; j > i; --j) {
-          const Graph::vertex t2 = g.outVertex(head, j);
+//      nbs = obs & ~mbs;
+      obs &= ~mbs;
 
-          obs.reset();
-          g[t2]->getBits(obs);
-
-          obs &= mbs;
-
-          if (obs.none()) {
-            g.removeEdge(head, j);
-          }
+//      if (nbs.none()) {
+      if (obs.none()) {
+        g.removeEdge(head, i--);
+      }
 /*
-          else {
-            Transition* ot = g[t2];
-            Transition* nt = new CharClassState(obs);
-            nt->IsMatch = ot->IsMatch;
-            nt->Label = ot->Label;
-            g.setTran(t2, nt);
-            delete ot;
-          }
+      else if (nbs != obs) {
+        Transition* ot = g[tail];
+        Transition* nt = new CharClassState(nbs);
+        nt->IsMatch = ot->IsMatch;
+        nt->Label = ot->Label;
+        g.setTran(tail, nt);
+        delete ot;
+      }
 */
-        }
+
+      if (g[tail]->IsMatch) {
+        mbs |= obs;
       }
     }
   }

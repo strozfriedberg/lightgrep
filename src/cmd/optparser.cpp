@@ -45,8 +45,6 @@ void parse_opts(int argc, char** argv,
 
   desc.add_options()
     ("help", "produce help message")
-    ("test", "run unit tests (same as test command)")
-    ("long-test", "run long test")
     ("encoding,e", po::value< std::string >(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
     ("command,c", po::value< std::string >(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|test|server]")
     ("keywords,k", po::value< std::string >(&opts.KeyFile), "path to file containing keywords")
