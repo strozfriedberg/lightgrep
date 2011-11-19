@@ -38,9 +38,7 @@ void addPattern(
     nfab.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
   }
   else {
-    std::stringstream ss;
-    ss << "Unrecognized encoding '" << encoding << "'";
-    throw std::runtime_error(ss.str());
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("Unrecognized encoding '" << encoding << "'");
   }
 
   // parse the pattern
