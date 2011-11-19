@@ -11,6 +11,7 @@
 #include <boost/bind.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include "handles.h"
 #include "hitwriter.h"
 #include "options.h"
 #include "patterninfo.h"
@@ -99,7 +100,7 @@ private:
 };
 
 void socketWriter(void* userData, const LG_SearchHit* const hit) {
-  SocketWriter* sw = reinterpret_cast<SocketWriter*>(userData);
+  SocketWriter* sw = static_cast<SocketWriter*>(userData);
   sw->collect(*hit);
 }
 
@@ -147,7 +148,7 @@ private:
 };
 
 void safeFileWriter(void* userData, const LG_SearchHit* const hit) {
-  SafeFileWriter* sw = reinterpret_cast<SafeFileWriter*>(userData);
+  SafeFileWriter* sw = static_cast<SafeFileWriter*>(userData);
   sw->collect(*hit);
 }
 
@@ -198,14 +199,14 @@ static const unsigned char ONE = 1;
 
 void processConn(
   boost::shared_ptr<tcp::socket> sock,
-  boost::shared_ptr<void> prog,
+  boost::shared_ptr<ProgramHandle> prog,
   boost::shared_ptr<ServerWriter> output,
   LG_HITCALLBACK_FN callback)
 {
   boost::scoped_array<byte> data(new byte[BUF_SIZE]);
 
-  boost::shared_ptr<void> searcher(lg_create_context(prog.get()),
-                                   lg_destroy_context);
+  boost::shared_ptr<ContextHandle> searcher(lg_create_context(prog.get()),
+                                            lg_destroy_context);
 
   std::size_t len = 0;
   uint64 totalRead = 0,
@@ -252,7 +253,7 @@ void processConn(
 }
 
 void startup(
-  boost::shared_ptr<void> prog,
+  boost::shared_ptr<ProgramHandle> prog,
   const PatternInfo& pinfo,
   const Options& opts)
 {

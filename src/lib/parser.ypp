@@ -1,5 +1,5 @@
 %{
-#include "node.h"
+#include "parsenode.h"
 #include "parsetree.h"
 
 namespace {
@@ -14,7 +14,7 @@ namespace {
 
   bool LiteralMode;
 
-  Node* add(const char*, const Node& n) {
+  ParseNode* add(const char*, const ParseNode& n) {
     return Tree->add(n);
   }
 }
@@ -23,7 +23,7 @@ namespace {
 
 %union {
   unsigned int c;
-  Node* node;
+  ParseNode* node;
 }
 
 %token <c> CHAR
@@ -39,14 +39,14 @@ namespace {
 
 regexp: alt
   {
-    Tree->Root = $$ = add("regexp", Node(Node::REGEXP, $1));
+    Tree->Root = $$ = add("regexp", ParseNode(ParseNode::REGEXP, $1));
   }
 
 alt:
   concat
 | alt '|' concat
   {
-    $$ = add("alt", Node(Node::ALTERNATION, $1, $3));
+    $$ = add("alt", ParseNode(ParseNode::ALTERNATION, $1, $3));
   }
 ;
 
@@ -54,7 +54,7 @@ concat:
   rep
 | concat rep
   {
-    $$ = add("concat", Node(Node::CONCATENATION, $1, $2));
+    $$ = add("concat", ParseNode(ParseNode::CONCATENATION, $1, $2));
   }
 ;
 
@@ -62,58 +62,58 @@ rep:
   atom
 | atom '*' '?'
   {
-    $$ = add("star_ng", Node(Node::REPETITION_NG, $1, 0, UNBOUNDED));
+    $$ = add("star_ng", ParseNode(ParseNode::REPETITION_NG, $1, 0, UNBOUNDED));
   }
 | atom '+' '?'
   {
-    $$ = add("plus_ng", Node(Node::REPETITION_NG, $1, 1, UNBOUNDED));
+    $$ = add("plus_ng", ParseNode(ParseNode::REPETITION_NG, $1, 1, UNBOUNDED));
   }
 | atom '?' '?'
   {
-    $$ = add("question_ng", Node(Node::REPETITION_NG, $1, 0, 1));
+    $$ = add("question_ng", ParseNode(ParseNode::REPETITION_NG, $1, 0, 1));
   }
 | atom '{' number '}' '?'
   {
-    $$ = add("repetition_ng", Node(Node::REPETITION_NG, $1, $3->Val, $3->Val));
+    $$ = add("repetition_ng", ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, $3->Val));
   }
 | atom '{' number ',' '}' '?'
   {
-    $$ = add("repetition_ng", Node(Node::REPETITION_NG, $1, $3->Val, UNBOUNDED));
+    $$ = add("repetition_ng", ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, UNBOUNDED));
   }
 | atom '{' number ',' number '}' '?'
   {
-    $$ = add("repetition_ng", Node(Node::REPETITION_NG, $1, $3->Val, $5->Val));
+    $$ = add("repetition_ng", ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, $5->Val));
   }
 | atom '*'
   {
-    $$ = add("star", Node(Node::REPETITION, $1, 0, UNBOUNDED));
+    $$ = add("star", ParseNode(ParseNode::REPETITION, $1, 0, UNBOUNDED));
   }
 | atom '+'
   {
-    $$ = add("plus", Node(Node::REPETITION, $1, 1, UNBOUNDED));
+    $$ = add("plus", ParseNode(ParseNode::REPETITION, $1, 1, UNBOUNDED));
   }
 | atom '?'
   {
-    $$ = add("question", Node(Node::REPETITION, $1, 0, 1));
+    $$ = add("question", ParseNode(ParseNode::REPETITION, $1, 0, 1));
   }
 | atom '{' number '}'
   {
-    $$ = add("repetition", Node(Node::REPETITION, $1, $3->Val, $3->Val));
+    $$ = add("repetition", ParseNode(ParseNode::REPETITION, $1, $3->Val, $3->Val));
   }
 | atom '{' number ',' '}'
   {
-    $$ = add("repetition", Node(Node::REPETITION, $1, $3->Val, UNBOUNDED));
+    $$ = add("repetition", ParseNode(ParseNode::REPETITION, $1, $3->Val, UNBOUNDED));
   }
 | atom '{' number ',' number '}'
   {
-    $$ = add("repetition", Node(Node::REPETITION, $1, $3->Val, $5->Val));
+    $$ = add("repetition", ParseNode(ParseNode::REPETITION, $1, $3->Val, $5->Val));
   }
 ;
 
 number:
   DIGIT
   {
-    $$ = add("ignore", Node(Node::IGNORE, $1 - 48));
+    $$ = add("ignore", ParseNode(ParseNode::LG_IGNORE, $1 - 48));
   }
 | number DIGIT
   {
@@ -133,22 +133,22 @@ atom:
 literal:
   character
   {
-    $$ = add("literal", Node(Node::LITERAL, $1));
+    $$ = add("literal", ParseNode(ParseNode::LITERAL, $1));
   }
 | '.'
   {
-    $$ = add("dot", Node(Node::DOT, '.'));
+    $$ = add("dot", ParseNode(ParseNode::DOT, '.'));
   }
 | '[' '^' charclass ']'
   {
     $$ = $3;
-    $$->Type = Node::CHAR_CLASS;
+    $$->Type = ParseNode::CHAR_CLASS;
     $$->Bits.flip();
   }
 | '[' charclass ']'
   {
     $$ = $2;
-    $$->Type = Node::CHAR_CLASS;
+    $$->Type = ParseNode::CHAR_CLASS;
   }
 | cc_named
 ;
@@ -214,7 +214,7 @@ charclass_right:
   }
 | /* empty */
   {
-    $$ = add("ignore", Node(Node::IGNORE, 'x'));
+    $$ = add("ignore", ParseNode(ParseNode::LG_IGNORE, 'x'));
     $$->Bits.reset();
   }
 ;
@@ -286,18 +286,18 @@ cc_named:
     switch ($1) {
       case 'd':
       {
-        $$ = add("charclass", Node(Node::CHAR_CLASS, '0', '9'));
+        $$ = add("charclass", ParseNode(ParseNode::CHAR_CLASS, '0', '9'));
         break;
       }
       case 'D':
       {
-        $$ = add("charclass", Node(Node::CHAR_CLASS, '0', '9'));
+        $$ = add("charclass", ParseNode(ParseNode::CHAR_CLASS, '0', '9'));
         $$->Bits.flip();
         break;
       }
       case 's':
       {
-        $$ = add("charclass", Node(Node::CHAR_CLASS, ' '));
+        $$ = add("charclass", ParseNode(ParseNode::CHAR_CLASS, ' '));
         $$->Bits.set('\t');
         $$->Bits.set('\n');
         $$->Bits.set('\f');
@@ -306,7 +306,7 @@ cc_named:
       }
       case 'S':
       {
-        $$ = add("charclass", Node(Node::CHAR_CLASS, ' '));
+        $$ = add("charclass", ParseNode(ParseNode::CHAR_CLASS, ' '));
         $$->Bits.set('\t');
         $$->Bits.set('\n');
         $$->Bits.set('\f');
@@ -316,7 +316,7 @@ cc_named:
       }
       case 'w':
       {
-        $$ = add("charclass", Node(Node::CHAR_CLASS, '_'));
+        $$ = add("charclass", ParseNode(ParseNode::CHAR_CLASS, '_'));
         $$->range('a', 'z');
         $$->range('A', 'Z');
         $$->range('0', '9');
@@ -324,7 +324,7 @@ cc_named:
       }
       case 'W':
       {
-        $$ = add("charclass", Node(Node::CHAR_CLASS, '_'));
+        $$ = add("charclass", ParseNode(ParseNode::CHAR_CLASS, '_'));
         $$->range('a', 'z');
         $$->range('A', 'Z');
         $$->range('0', '9');

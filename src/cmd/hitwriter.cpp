@@ -3,12 +3,12 @@
 #include <ostream>
 
 void nullWriter(void*userData, const LG_SearchHit* const) {
-  HitCounterInfo* hi = reinterpret_cast<HitCounterInfo*>(userData);
+  HitCounterInfo* hi = static_cast<HitCounterInfo*>(userData);
   ++hi->NumHits;
 }
 
 void hitWriter(void* userData, const LG_SearchHit* const hit) {
-  HitWriterInfo* hi = reinterpret_cast<HitWriterInfo*>(userData);
+  HitWriterInfo* hi = static_cast<HitWriterInfo*>(userData);
   
   const std::pair<uint32,uint32>& info(hi->Table[hit->KeywordIndex]);
   hi->Out << hit->Start << '\t'
@@ -20,7 +20,7 @@ void hitWriter(void* userData, const LG_SearchHit* const hit) {
 }
 
 void pathWriter(void* userData, const LG_SearchHit* const hit) {
-  PathWriterInfo* hi = reinterpret_cast<PathWriterInfo*>(userData);
+  PathWriterInfo* hi = static_cast<PathWriterInfo*>(userData);
   
   const std::pair<uint32,uint32>& info(hi->Table[hit->KeywordIndex]);
   hi->Out << hi->Path << '\t'

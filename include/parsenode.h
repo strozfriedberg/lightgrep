@@ -7,7 +7,7 @@
 
 static const uint32 UNBOUNDED = std::numeric_limits<uint32>::max();
 
-struct Node {
+struct ParseNode {
   enum NodeType {
     REGEXP,
     ALTERNATION,
@@ -19,46 +19,46 @@ struct Node {
     DOT,
     CHAR_CLASS,
     LITERAL,
-    IGNORE
+    LG_IGNORE
   };
 
   NodeType  Type;
-  Node      *Left,
+  ParseNode *Left,
             *Right;
   int       Val;
   uint32    Min,
             Max;
   ByteSet   Bits;
 
-  Node(): Type(LITERAL), Left(0), Right(0), Val(0), Min(0), Max(0)
+  ParseNode(): Type(LITERAL), Left(0), Right(0), Val(0), Min(0), Max(0)
   {
     Bits.reset();
   }
 
-  Node(NodeType t, unsigned int v):
+  ParseNode(NodeType t, unsigned int v):
     Type(t), Left(0), Right(0), Val(v), Min(0), Max(0)
   {
     Bits.reset();
     Bits.set(v);
   }
 
-  Node(NodeType t, Node* l):
+  ParseNode(NodeType t, ParseNode* l):
     Type(t), Left(l), Right(0), Val(0), Min(0), Max(0) {}
 
-  Node(NodeType t, Node* l, Node* r):
+  ParseNode(NodeType t, ParseNode* l, ParseNode* r):
     Type(t), Left(l), Right(r), Val(0), Min(0), Max(0) {}
 
-  Node(NodeType t, Node* l, uint32 min, uint32 max):
+  ParseNode(NodeType t, ParseNode* l, uint32 min, uint32 max):
     Type(t), Left(l), Right(0), Val(0), Min(min), Max(max) {}
 
-  Node(NodeType t, unsigned int first, unsigned int last):
+  ParseNode(NodeType t, unsigned int first, unsigned int last):
     Type(t), Left(0), Right(0), Val(0), Min(0), Max(0)
   {
     Bits.reset();
     range(first, last);
   }
 
-  explicit Node(NodeType t, const ByteSet& b):
+  explicit ParseNode(NodeType t, const ByteSet& b):
     Type(t), Left(0), Right(0), Val(0), Min(0), Max(0), Bits(b) {}
 
   void range(byte first, byte last) {
@@ -68,9 +68,9 @@ struct Node {
   }
 };
 
-std::ostream& operator<<(std::ostream& out, const Node& n);
+std::ostream& operator<<(std::ostream& out, const ParseNode& n);
 
-void printTree(std::ostream& out, const Node& n);
-void printTreeDetails(std::ostream& out, const Node& n);
+void printTree(std::ostream& out, const ParseNode& n);
+void printTreeDetails(std::ostream& out, const ParseNode& n);
 void repetition(std::ostream& out, uint32 min, uint32 max);
 

@@ -9,7 +9,7 @@
 
 SCOPE_TEST(unparseEmptyTest) {
   ParseTree tree;
-  Node root(Node::REGEXP, 0, 0, 0);
+  ParseNode root(ParseNode::REGEXP, 0, 0, 0);
   tree.Root = &root;
 
   SCOPE_ASSERT_EQUAL("", unparse(tree));
@@ -309,7 +309,7 @@ SCOPE_TEST(parseUnparse_BS400_Test) {
     parse("\\400", false, tree);
     SCOPE_ASSERT(false);
   }
-  catch (std::runtime_error) {
+  catch (const std::runtime_error&) {
     // expected
   }
 }
