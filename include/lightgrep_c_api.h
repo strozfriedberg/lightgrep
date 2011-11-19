@@ -40,9 +40,8 @@ extern "C" {
     uint32  KeywordIndex; // index of keyword that hit
   } LG_SearchHit;
 
-// FIXME: missing param in example?
   // function you specify to handle the search hit, e.g.,
-  // void gotASearchHit(const LG_SearchHit const* hit) {
+  // void gotASearchHit(void* userData, const LG_SearchHit const* hit) {
   //   print("hit at %d, ending %d, on keyword %d",
   //         hit->Start, hit->End, hit->KeywordIndex);
   // }
