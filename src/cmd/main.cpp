@@ -19,6 +19,14 @@
 
 #include "include_boost_thread.h"
 
+
+#ifdef LIGHTGREP_CUSTOMER
+// check this out: http://stackoverflow.com/questions/2751870/how-exactly-does-the-double-stringize-trick-work
+#define STRINGIZE(whatever) #whatever
+#define JUMP_THROUGH_A_HOOP(yo) STRINGIZE(yo)
+#define CUSTOMER_NAME JUMP_THROUGH_A_HOOP(LIGHTGREP_CUSTOMER)
+#endif
+
 // <magic_incantation>
 // this ridiculous piece of crap you see here is necessary to get
 // boost_thread static libraries to link on Windows using MinGW
@@ -41,7 +49,9 @@ void printHelp(const po::options_description& desc) {
     << "lightgrep, Copyright (c) 2010-2011, Lightbox Technologies, Inc."
     << "\nCreated " << __DATE__ << "\n\n"
     << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
-    << "This copy provided EXCLUSIVELY to the U.S. Army, CCIU, DFRB\n\n"
+    #ifdef LIGHTGREP_CUSTOMER
+    << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << "\n\n"
+    #endif
     << desc << std::endl;
 }
 
@@ -285,20 +295,15 @@ void startServer(const Options& opts) {
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
-  boost::shared_ptr<ProgramHandle> prog;
-
-  {
-    // parse patterns
-    boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
-
-// FIXME: should check that parser != 0
-// FIXME: should check that prog != 0
-
-    // build the program
-    prog = buildProgram(parser.get(), opts);
+  boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
+  if (parser) {
+    boost::shared_ptr<ProgramHandle> prog(buildProgram(parser.get(), opts));
+    if (prog) {
+      startup(prog, pinfo, opts);
+      return;
+    }
   }
-
-  startup(prog, pinfo, opts);
+  THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not parse patterns at server startup");
 }
 
 int main(int argc, char** argv) {
@@ -312,16 +317,6 @@ int main(int argc, char** argv) {
     }
     else if (opts.Command == "server") {
       startServer(opts);
-
-/*
-      KwInfo keyInfo;
-      ProgramPtr p = initProgram(opts, keyInfo);
-      if (!p) {
-        std::cerr << "Could not initialize search engine for server mode" << std::endl;
-        return 1;
-      }
-      startup(p, keyInfo, opts);
-*/
     }
     else if (opts.Command == "help") {
       printHelp(desc);

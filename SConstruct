@@ -30,6 +30,10 @@ defines = [] # a list of defined symbols, as strings, for the preprocessor
 
 isShared = True if 'true' == ARGUMENTS.get('shared', 'false') else False
 
+customer = ARGUMENTS.get('customer', '')
+if (len(customer) > 0):
+   defines.append(('LIGHTGREP_CUSTOMER', customer))
+
 debug = ARGUMENTS.get('debug', 'false')
 if (debug == 'true'):
   flags = '-g -fstack-protector-all'
