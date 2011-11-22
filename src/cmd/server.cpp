@@ -24,8 +24,36 @@ using boost::asio::ip::tcp;
 
 static const uint64 BUF_SIZE = 1024 * 1024;
 
+
+class SafeStream {
+public:
+  SafeStream(std::ostream* baseStream, const boost::shared_ptr<boost::mutex>& mutex):
+    BaseStream(baseStream), Mutex(mutex) {}
+
+  SafeStream& operator+=(const std::ostream& buf) {
+    boost::mutex::scoped_lock lock(*Mutex);
+    *BaseStream << buf;
+    return *this;
+  }
+
+  SafeStream& operator+=(const std::string& str) {
+    boost::mutex::scoped_lock lock(*Mutex);
+    *BaseStream << str;
+    return *this;
+  }
+
+private:
+  std::ostream* BaseStream;
+  boost::shared_ptr<boost::mutex> Mutex;
+};
+
 namespace {
   static std::ostream* ErrOut = &std::cerr;
+  static boost::shared_ptr<boost::mutex> ErrMutex(new boost::mutex);
+}
+
+SafeStream writeErr() {
+  return SafeStream(ErrOut, ErrMutex);
 }
 
 #pragma pack(1)
@@ -128,7 +156,7 @@ public:
   virtual void flush() {
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      *ErrOut << "Flushing hits file\n";
+      writeErr() += "Flushing hits file\n";
       for (StaticVector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
         *Output << it->ID << '\t' 
                 << it->Offset << '\t'
@@ -189,9 +217,9 @@ private:
 };
 
 void cleanSeppuku(int) {
-  *ErrOut << "Received SIGTERM. Shutting down...\n";
+  writeErr() += "Received SIGTERM. Shutting down...\n";
   CleanupRegistry::get().cleanup();
-  *ErrOut << "Shutdown\n";
+  writeErr() += "Shutdown\n";
   exit(0);
 }
 
@@ -218,11 +246,11 @@ void processConn(
       hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
         if (0ul == hdr.Length && 0xfffffffffffffffful == hdr.ID) {
-          *ErrOut << "received conn shutdown sequence, acknowledging and waiting for close\n";
+          writeErr() += "received conn shutdown sequence, acknowledging and waiting for close\n";
           boost::asio::write(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
           continue;
         }
-        *ErrOut << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
+        writeErr() += std::stringstream() << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
         output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
         ++numReads;
         uint64 offset = 0;
@@ -230,9 +258,9 @@ void processConn(
           len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length-offset)));
           ++numReads;
           lg_search(searcher.get(), (char*) data.get(), (char*) data.get() + len, offset, output.get(), callback);
-          //*ErrOut << "read " << len << " bytes\n";
-          // *ErrOut.write((const char*)data.get(), len);
-          // *ErrOut << '\n';
+          // writeErr() << "read " << len << " bytes\n";
+          // writeErr().write((const char*)data.get(), len);
+          // writeErr() << '\n';
           totalRead += len;
           offset += len;
         }
@@ -247,9 +275,9 @@ void processConn(
     }
   }
   catch (std::exception& e) {
-    *ErrOut << "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n';
+    writeErr() += std::stringstream() << "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n';
   }
-  *ErrOut << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n";
+  writeErr() += std::stringstream() << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n";
 }
 
 void startup(
@@ -266,9 +294,9 @@ void startup(
       ErrOut = &std::cerr;
     }
 
-    *ErrOut << "Created service" << std::endl;
+    writeErr() += std::stringstream() << "Created service" << std::endl;
     tcp::acceptor acceptor(srv, tcp::endpoint(tcp::v4(), 12777));
-    *ErrOut << "Created acceptor" << std::endl;
+    writeErr() += std::stringstream() << "Created acceptor" << std::endl;
 
     bool usesFile = false;
     if (opts.Output != "-") {
@@ -280,10 +308,10 @@ void startup(
 
     while (true) {
       std::auto_ptr<tcp::socket> socket(new tcp::socket(srv));
-      *ErrOut << "Created socket" << std::endl;
+      writeErr() += std::stringstream() << "Created socket" << std::endl;
       acceptor.accept(*socket);
-      *ErrOut << "Accepted socket from " << socket->remote_endpoint()
-              << " on " << socket->local_endpoint() << std::endl;
+      writeErr() += std::stringstream() << "Accepted socket from " << socket->remote_endpoint()
+                 << " on " << socket->local_endpoint() << std::endl;
       boost::shared_ptr<tcp::socket> s(socket.release());
 
       LG_HITCALLBACK_FN callback;
@@ -301,7 +329,7 @@ void startup(
     }
   }
   catch (std::exception& e) {
-    *ErrOut << e.what() << std::endl;
+    writeErr() += std::stringstream() << e.what() << std::endl;
   }
 
   if (&std::cerr != ErrOut) {
