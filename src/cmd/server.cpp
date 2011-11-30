@@ -245,10 +245,15 @@ void processConn(
       hdr.ID = 0;
       hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
-        if (0ul == hdr.Length && 0xfffffffffffffffful == hdr.ID) {
-          writeErr() += "received conn shutdown sequence, acknowledging and waiting for close\n";
-          boost::asio::write(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
-          continue;
+        if (0xfffffffffffffffful == hdr.ID) {
+          if (0ul == hdr.Length) {
+            writeErr() += "received conn shutdown sequence, acknowledging and waiting for close\n";
+            boost::asio::write(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
+            continue;
+          }
+          else if (0xfffffffffffffffful == hdr.Length) {
+            cleanSeppuku(0);
+          }
         }
         writeErr() += std::stringstream() << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
         output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
@@ -278,6 +283,7 @@ void processConn(
     writeErr() += std::stringstream() << "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n';
   }
   writeErr() += std::stringstream() << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n";
+  output->flush();
 }
 
 void startup(
