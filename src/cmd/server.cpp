@@ -245,13 +245,13 @@ void processConn(
       hdr.ID = 0;
       hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
-        if (0xfffffffffffffffful == hdr.ID) {
-          if (0ul == hdr.Length) {
+        if (0xffffffffffffffffull == hdr.ID) {
+          if (0ull == hdr.Length) {
             writeErr() += "received conn shutdown sequence, acknowledging and waiting for close\n";
             boost::asio::write(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
             continue;
           }
-          else if (0xfffffffffffffffful == hdr.Length) {
+          else if (0xffffffffffffffffull == hdr.Length) {
             cleanSeppuku(0);
           }
         }
