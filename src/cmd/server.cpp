@@ -24,6 +24,7 @@ using boost::asio::ip::tcp;
 
 static const uint64 BUF_SIZE = 1024 * 1024;
 
+//********************************************************
 
 class SafeStream {
 public:
@@ -46,6 +47,7 @@ private:
   std::ostream* BaseStream;
   boost::shared_ptr<boost::mutex> Mutex;
 };
+//********************************************************
 
 namespace {
   static std::ostream* ErrOut = &std::cerr;
@@ -55,6 +57,7 @@ namespace {
 SafeStream writeErr() {
   return SafeStream(ErrOut, ErrMutex);
 }
+//********************************************************
 
 #pragma pack(1)
 struct FileHeader {
@@ -72,6 +75,7 @@ struct HitInfo {
          Encoding;
 };
 #pragma pack()
+//********************************************************
 
 class ServerWriter: public PatternInfo {
 public:
@@ -107,6 +111,7 @@ private:
   uint64 NumHits;
   HitInfo Hit;
 };
+//********************************************************
 
 class SocketWriter: public ServerWriter {
 public:
@@ -131,6 +136,7 @@ void socketWriter(void* userData, const LG_SearchHit* const hit) {
   SocketWriter* sw = static_cast<SocketWriter*>(userData);
   sw->collect(*hit);
 }
+//********************************************************
 
 class SafeFileWriter: public ServerWriter {
 public:
@@ -179,6 +185,7 @@ void safeFileWriter(void* userData, const LG_SearchHit* const hit) {
   SafeFileWriter* sw = static_cast<SafeFileWriter*>(userData);
   sw->collect(*hit);
 }
+//********************************************************
 
 void cleanSeppuku(int sig);
 
@@ -222,6 +229,7 @@ void cleanSeppuku(int) {
   writeErr() += "Shutdown\n";
   exit(0);
 }
+//********************************************************
 
 static const unsigned char ONE = 1;
 
