@@ -47,7 +47,6 @@ private:
   std::ostream* BaseStream;
   boost::shared_ptr<boost::mutex> Mutex;
 };
-//********************************************************
 
 namespace {
   static std::ostream* ErrOut = &std::cerr;
@@ -56,6 +55,90 @@ namespace {
 
 SafeStream writeErr() {
   return SafeStream(ErrOut, ErrMutex);
+}
+//********************************************************
+
+void cleanSeppuku(int sig);
+
+class Registry {
+public:
+  boost::shared_ptr<boost::mutex> Mutex;
+  boost::shared_ptr<std::ofstream> File;
+  std::vector<uint64> FileCounts,
+                      HitCounts;
+
+  bool init(const std::string& path, uint32 numKeywords) {
+    if (!path.empty()) {
+      File.reset(new std::ofstream(path.c_str(), std::ios::out));
+      if (!*File) {
+        return false;
+      }
+    }
+    Mutex.reset(new boost::mutex);
+    signal(SIGTERM, cleanSeppuku);
+    FileCounts.resize(numKeywords, 0);
+    HitCounts.resize(numKeywords, 0);
+    return true;
+  }
+
+  void getStats(std::string& output) {
+    std::stringstream buf;
+    {
+      boost::mutex::scoped_lock lock(*Mutex);
+      buf << "File Counts" << std::ends;
+      for (unsigned int i = 0; i < FileCounts.size(); ++i) {
+        uint64 c = FileCounts[i];
+        if (c > 0) {
+          buf << i << '\t' << c << std::ends;
+        }
+      }
+      buf << "Hit Counts" << std::ends;
+      for (unsigned int i = 0; i < HitCounts.size(); ++i) {
+        uint64 c = HitCounts[i];
+        if (c > 0) {
+          buf << i << '\t' << c << std::ends;
+        }
+      }
+    }
+    output = buf.str();
+  }
+
+  void updateHits(const std::vector<uint32>& hitsForFile) {
+    boost::mutex::scoped_lock lock(*Mutex);
+    uint64 c = 0;
+    for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
+      c = hitsForFile[i];
+      if (c > 0) {
+        HitCounts[i] += c;
+        ++FileCounts[i];
+      }
+    }
+  }
+
+  void cleanup() {
+    if (File) {
+      boost::mutex::scoped_lock lock(*Mutex);
+      File->flush();
+      File->close();
+      File.reset();
+    }
+  }
+
+  static Registry& get() {
+    static Registry reg;
+    return reg;
+  }
+
+private:
+
+  Registry() {}
+};
+
+void cleanSeppuku(int) {
+  writeErr() += "Received SIGTERM. Shutting down...\n";
+  Registry::get().cleanup();
+  writeErr() += "Shutdown\n";
+  exit(0);
 }
 //********************************************************
 
@@ -79,7 +162,7 @@ struct HitInfo {
 
 class ServerWriter: public PatternInfo {
 public:
-  ServerWriter(const PatternInfo& pinfo): PatternInfo(pinfo), NumHits(0) {}
+  ServerWriter(const PatternInfo& pinfo): PatternInfo(pinfo), NumHits(0), HitsForFile(pinfo.Patterns.size(), 0) {}
   virtual ~ServerWriter() {}
 
   virtual void collect(const LG_SearchHit& hit) {
@@ -88,6 +171,7 @@ public:
     Hit.Length = hit.End - hit.Start;
     Hit.Label  = Table[hit.KeywordIndex].first;
     Hit.Encoding = Table[hit.KeywordIndex].second;
+    ++HitsForFile[Hit.Label];
     write(Hit);
   }
 
@@ -100,6 +184,8 @@ public:
     Hit.Label = std::numeric_limits<uint32>::max();
     Hit.Encoding = 0;
     write(Hit);
+    Registry::get().updateHits(HitsForFile);
+    HitsForFile.assign(HitsForFile.size(), 0);
     Hit.ID = std::numeric_limits<uint64>::max();
   }
 
@@ -108,8 +194,10 @@ public:
   uint64 numHits() const { return NumHits; }
 
 private:
-  uint64 NumHits;
+  uint64  NumHits;
   HitInfo Hit;
+
+  std::vector<uint32> HitsForFile;
 };
 //********************************************************
 
@@ -187,50 +275,6 @@ void safeFileWriter(void* userData, const LG_SearchHit* const hit) {
 }
 //********************************************************
 
-void cleanSeppuku(int sig);
-
-class CleanupRegistry {
-public:
-  boost::shared_ptr<boost::mutex> Mutex;
-  boost::shared_ptr<std::ofstream> File;
-
-  bool init(const std::string& path) {
-    File.reset(new std::ofstream(path.c_str(), std::ios::out));
-    if (!*File) {
-      return false;
-    }
-    Mutex.reset(new boost::mutex);
-    signal(SIGTERM, cleanSeppuku);
-    return true;
-  }
-
-  void cleanup() {
-    if (File) {
-      boost::mutex::scoped_lock lock(*Mutex);
-      File->flush();
-      File->close();
-      File.reset();
-    }
-  }
-
-  static CleanupRegistry& get() {
-    static CleanupRegistry reg;
-    return reg;
-  }
-
-private:
-
-  CleanupRegistry() {}
-};
-
-void cleanSeppuku(int) {
-  writeErr() += "Received SIGTERM. Shutting down...\n";
-  CleanupRegistry::get().cleanup();
-  writeErr() += "Shutdown\n";
-  exit(0);
-}
-//********************************************************
-
 static const unsigned char ONE = 1;
 
 void processConn(
@@ -261,6 +305,13 @@ void processConn(
           }
           else if (0xffffffffffffffffull == hdr.Length) {
             cleanSeppuku(0);
+          }
+          else if (1ull == hdr.Length) {
+            std::string stats;
+            Registry::get().getStats(stats);
+            uint64 bytes = stats.size();
+            boost::asio::write(*sock, boost::asio::buffer(&bytes, sizeof(bytes)));
+            boost::asio::write(*sock, boost::asio::buffer(stats));
           }
         }
         writeErr() += std::stringstream() << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
@@ -294,11 +345,7 @@ void processConn(
   output->flush();
 }
 
-void startup(
-  boost::shared_ptr<ProgramHandle> prog,
-  const PatternInfo& pinfo,
-  const Options& opts)
-{
+void startup(boost::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
   try {
     boost::asio::io_service srv;
     if (!opts.ServerLog.empty()) {
@@ -314,10 +361,13 @@ void startup(
 
     bool usesFile = false;
     if (opts.Output != "-") {
-      if (!CleanupRegistry::get().init(opts.Output)) {
+      if (!Registry::get().init(opts.Output, pinfo.Patterns.size())) {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file at " << opts.Output);
       }
       usesFile = true;
+    }
+    else {
+      Registry::get().init("", pinfo.Patterns.size());
     }
 
     while (true) {
@@ -332,7 +382,7 @@ void startup(
       boost::shared_ptr<ServerWriter> writer;
       if (usesFile) {
         callback = &safeFileWriter;
-        writer.reset(new SafeFileWriter(CleanupRegistry::get().File, CleanupRegistry::get().Mutex, pinfo));
+        writer.reset(new SafeFileWriter(Registry::get().File, Registry::get().Mutex, pinfo));
       }
       else {
         callback = &socketWriter;
