@@ -66,6 +66,9 @@ public:
   boost::shared_ptr<std::ofstream> File;
   std::vector<uint64> FileCounts,
                       HitCounts;
+  uint64              TotalBytes,
+                      TotalFiles,
+                      TotalHits;
 
   bool init(const std::string& path, uint32 numKeywords) {
     if (!path.empty()) {
@@ -85,6 +88,9 @@ public:
     std::stringstream buf;
     {
       boost::mutex::scoped_lock lock(*Mutex);
+      buf << "Total Bytes" << std::ends << TotalBytes << std::ends;
+      buf << "Total Files" << std::ends << TotalFiles << std::ends;
+      buf << "Total Hits" << std::ends << TotalHits << std::ends;
       buf << "File Counts" << std::ends;
       for (unsigned int i = 0; i < FileCounts.size(); ++i) {
         uint64 c = FileCounts[i];
@@ -103,14 +109,17 @@ public:
     output = buf.str();
   }
 
-  void updateHits(const std::vector<uint32>& hitsForFile) {
+  void updateHits(const std::vector<uint32>& hitsForFile, uint64 fileLen) {
     boost::mutex::scoped_lock lock(*Mutex);
+    TotalBytes += fileLen;
+    ++TotalFiles;
     uint64 c = 0;
     for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
       c = hitsForFile[i];
       if (c > 0) {
         HitCounts[i] += c;
         ++FileCounts[i];
+        TotalHits += c;
       }
     }
   }
@@ -184,7 +193,7 @@ public:
     Hit.Label = std::numeric_limits<uint32>::max();
     Hit.Encoding = 0;
     write(Hit);
-    Registry::get().updateHits(HitsForFile);
+    Registry::get().updateHits(HitsForFile, fileLen);
     HitsForFile.assign(HitsForFile.size(), 0);
     Hit.ID = std::numeric_limits<uint64>::max();
   }
