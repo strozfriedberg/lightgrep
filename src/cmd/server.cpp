@@ -286,6 +286,11 @@ void safeFileWriter(void* userData, const LG_SearchHit* const hit) {
 
 static const unsigned char ONE = 1;
 
+#define SAFEWRITE(ssbuf, EXPR) \
+  ssbuf.str(std::string()); \
+  ssbuf << EXPR; \
+  writeErr() += ssbuf.str();
+
 void processConn(
   boost::shared_ptr<tcp::socket> sock,
   boost::shared_ptr<ProgramHandle> prog,
@@ -296,6 +301,8 @@ void processConn(
 
   boost::shared_ptr<ContextHandle> searcher(lg_create_context(prog.get()),
                                             lg_destroy_context);
+
+	std::stringstream buf;
 
   std::size_t len = 0;
   uint64 totalRead = 0,
@@ -313,17 +320,20 @@ void processConn(
             continue;
           }
           else if (0xffffffffffffffffull == hdr.Length) {
+            writeErr() += "received hard shutdown command, terminating\n";
             cleanSeppuku(0);
           }
           else if (1ull == hdr.Length) {
+          	writeErr() += "asked for stats";
             std::string stats;
             Registry::get().getStats(stats);
             uint64 bytes = stats.size();
             boost::asio::write(*sock, boost::asio::buffer(&bytes, sizeof(bytes)));
             boost::asio::write(*sock, boost::asio::buffer(stats));
+            SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
           }
         }
-        writeErr() += std::stringstream() << "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n";
+        SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");
         output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
         ++numReads;
         uint64 offset = 0;
@@ -342,19 +352,20 @@ void processConn(
         output->writeEndHit(hdr.Length);
       }
       else {
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket\n");
       }
       // uint32 i = ntohl(*(uint32*)data);
     }
   }
   catch (std::exception& e) {
-    writeErr() += std::stringstream() << "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n';
+    SAFEWRITE(buf, "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n');
   }
-  writeErr() += std::stringstream() << "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n";
+  SAFEWRITE(buf, "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n");
   output->flush();
 }
 
 void startup(boost::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
+	std::stringstream buf;
   try {
     boost::asio::io_service srv;
     if (!opts.ServerLog.empty()) {
@@ -363,10 +374,9 @@ void startup(boost::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, co
     else {
       ErrOut = &std::cerr;
     }
-
-    writeErr() += std::stringstream() << "Created service" << std::endl;
+		SAFEWRITE(buf, "Created service\n");
     tcp::acceptor acceptor(srv, tcp::endpoint(tcp::v4(), 12777));
-    writeErr() += std::stringstream() << "Created acceptor" << std::endl;
+    SAFEWRITE(buf, "Created acceptor\n");
 
     bool usesFile = false;
     if (opts.Output != "-") {
@@ -381,10 +391,9 @@ void startup(boost::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, co
 
     while (true) {
       std::auto_ptr<tcp::socket> socket(new tcp::socket(srv));
-      writeErr() += std::stringstream() << "Created socket" << std::endl;
+      SAFEWRITE(buf, "Created socket\n");
       acceptor.accept(*socket);
-      writeErr() += std::stringstream() << "Accepted socket from " << socket->remote_endpoint()
-                 << " on " << socket->local_endpoint() << std::endl;
+      SAFEWRITE(buf, "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << "\n");
       boost::shared_ptr<tcp::socket> s(socket.release());
 
       LG_HITCALLBACK_FN callback;
