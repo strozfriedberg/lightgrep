@@ -68,6 +68,7 @@ public:
                       HitCounts;
   uint64              TotalBytes,
                       TotalFiles,
+                      ResponsiveFiles,
                       TotalHits;
 
   bool init(const std::string& path, uint32 numKeywords) {
@@ -81,6 +82,7 @@ public:
     signal(SIGTERM, cleanSeppuku);
     FileCounts.resize(numKeywords, 0);
     HitCounts.resize(numKeywords, 0);
+    TotalBytes = TotalFiles = ResponsiveFiles = TotalHits = 0;
     return true;
   }
 
@@ -90,6 +92,7 @@ public:
       boost::mutex::scoped_lock lock(*Mutex);
       buf << "Total Bytes" << std::ends << TotalBytes << std::ends;
       buf << "Total Files" << std::ends << TotalFiles << std::ends;
+      buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
       buf << "Total Hits" << std::ends << TotalHits << std::ends;
       buf << "File Counts" << std::ends;
       for (unsigned int i = 0; i < FileCounts.size(); ++i) {
@@ -114,13 +117,18 @@ public:
     TotalBytes += fileLen;
     ++TotalFiles;
     uint64 c = 0;
+    bool hadHits = false;
     for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
       c = hitsForFile[i];
       if (c > 0) {
         HitCounts[i] += c;
         ++FileCounts[i];
         TotalHits += c;
+        hadHits = true;
       }
+    }
+    if (hadHits) {
+    	++ResponsiveFiles;
     }
   }
 
@@ -146,7 +154,6 @@ private:
 void cleanSeppuku(int) {
   writeErr() += "Received SIGTERM. Shutting down...\n";
   Registry::get().cleanup();
-  writeErr() += "Shutdown\n";
   exit(0);
 }
 //********************************************************
