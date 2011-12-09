@@ -324,7 +324,7 @@ void processConn(
             cleanSeppuku(0);
           }
           else if (1ull == hdr.Length) {
-          	writeErr() += "asked for stats";
+          	writeErr() += "asked for stats\n";
             std::string stats;
             Registry::get().getStats(stats);
             uint64 bytes = stats.size();
