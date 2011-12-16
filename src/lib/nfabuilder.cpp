@@ -360,7 +360,8 @@ void NFABuilder::traverse(const ParseNode* n) {
 
   if (n->Left) {
     // this node has a left child
-    if ((n->Type == ParseNode::REPETITION || n->Type == ParseNode::REPETITION_NG) &&
+    if ((n->Type == ParseNode::REPETITION ||
+         n->Type == ParseNode::REPETITION_NG) &&
        !((n->Min == 0 && (n->Max == 1 || n->Max == UNBOUNDED)) ||
          (n->Min == 1 && n->Max == UNBOUNDED)))
     {
