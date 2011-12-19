@@ -31,10 +31,10 @@ void addPattern(
   nfab.setCurLabel(patIndex);
   nfab.setCaseSensitive(caseSensitive);
 
-  if (encoding == "ASCII") {
+  if (encoding == LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII]) {
     nfab.setEncoding(boost::shared_ptr<Encoding>(new Ascii));
   }
-  else if (encoding == "UTF-16") {
+  else if (encoding == LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16]) {
     nfab.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
   }
   else {
@@ -116,11 +116,11 @@ GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMo
   Compiler comp;
 
   if (enc & CP_ASCII) {
-    addKeys(keyInfo, g, comp, "ASCII", caseSensitive, litMode, keyIdx);
+    addKeys(keyInfo, g, comp, LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII], caseSensitive, litMode, keyIdx);
   }
 
   if (enc & CP_UCS16) {
-    addKeys(keyInfo, g, comp, "UTF-16", caseSensitive, litMode, keyIdx);
+    addKeys(keyInfo, g, comp, LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16], caseSensitive, litMode, keyIdx);
   }
 
   if (g) {
