@@ -33,7 +33,7 @@ struct STest {
   }
 
   void init(const std::vector<std::string>& kws) {
-    Fsm = createGraph(kws);
+    Fsm = createGraph(kws, CP_ASCII, true, false, true, true);
     Prog = createProgram(*Fsm);
     Prog->First = firstBytes(*Fsm);
     Prog->Skip = calculateSkipTable(*Fsm);
