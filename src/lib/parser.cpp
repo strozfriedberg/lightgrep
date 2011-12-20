@@ -4,6 +4,21 @@
 #include "concrete_encodings.h"
 #include "rewriter.h"
 
+
+typedef std::map< std::string, boost::shared_ptr<Encoding> > EncodingMap;
+
+EncodingMap createEncodingMap() {
+  EncodingMap map;
+  map[LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII]].reset(new Ascii);
+  map[LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16]].reset(new UCS16);
+  return map;
+}
+
+const EncodingMap& getEncodings() {
+  static EncodingMap map(createEncodingMap());
+  return map;
+}
+
 void Parser::addPattern(const std::string& pattern, uint32 patIndex, const LG_KeyOptions& keyOpts)
 {
   // prepare the NFA builder
@@ -12,11 +27,9 @@ void Parser::addPattern(const std::string& pattern, uint32 patIndex, const LG_Ke
   Nfab.setCaseSensitive(!keyOpts.CaseInsensitive);
 
   std::string encoding(keyOpts.Encoding);
-  if (encoding == LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII]) {
-    Nfab.setEncoding(boost::shared_ptr<Encoding>(new Ascii));
-  }
-  else if (encoding == LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16]) {
-    Nfab.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
+  EncodingMap::const_iterator foundEnc(getEncodings().find(encoding));
+  if (foundEnc != getEncodings().end()) {
+    Nfab.setEncoding(foundEnc->second);
   }
   else {
     THROW_RUNTIME_ERROR_WITH_OUTPUT("Unrecognized encoding '" << encoding << "'");
