@@ -11,6 +11,7 @@
 #include "nfabuilder.h"
 #include "parsetree.h"
 #include "vm_interface.h"
+#include "parser.h"
 
 struct Handle {
   Handle() {
@@ -33,16 +34,7 @@ template <typename T> struct HandleBase: public Handle {
   boost::scoped_ptr<T> Impl;
 };
 
-struct ParserHandleImpl {
-  ParserHandleImpl(uint32 sizeHint): Fsm(new Graph(1, sizeHint)) {}
-
-  ParseTree   Tree;
-  NFABuilder  Nfab;
-  Compiler    Comp;
-  GraphPtr    Fsm;
-};
-
-struct ParserHandle: public HandleBase<ParserHandleImpl> {};
+struct ParserHandle: public HandleBase<Parser> {};
 
 struct ProgramHandleImpl {
   ProgramHandleImpl(): Prog(new Program) {};
@@ -59,4 +51,3 @@ struct ContextHandleImpl {
 };
 
 struct ContextHandle: public HandleBase<ContextHandleImpl> {};
-
