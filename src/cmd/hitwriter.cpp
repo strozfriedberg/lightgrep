@@ -1,4 +1,5 @@
 #include "hitwriter.h"
+#include "encodings.h"
 
 #include <ostream>
 
@@ -15,7 +16,7 @@ void hitWriter(void* userData, const LG_SearchHit* const hit) {
           << hit->End << '\t'
           << info.first << '\t'
           << hi->Patterns[info.first] << '\t'
-          << hi->Encodings[info.second] << '\n';
+          << LG_SUPPORTED_ENCODINGS[info.second] << '\n';
   ++hi->NumHits;
 }
 
@@ -28,7 +29,7 @@ void pathWriter(void* userData, const LG_SearchHit* const hit) {
           << hit->End << '\t'
           << info.first << '\t'
           << hi->Patterns[info.first] << '\t'
-          << hi->Encodings[info.second] << '\n';
+          << LG_SUPPORTED_ENCODINGS[info.second] << '\n';
   ++hi->NumHits;
 }
 

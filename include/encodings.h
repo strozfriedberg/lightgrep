@@ -9,8 +9,8 @@ extern "C" {
 
 static const int LG_ENC_LATIN_1 = 0;
 static const int LG_ENC_ASCII = 1;
-static const int LG_UTF_8 = 2;
-static const int LG_UTF_16 = 3;
+static const int LG_ENC_UTF_8 = 2;
+static const int LG_ENC_UTF_16 = 3;
 
 static const char* LG_SUPPORTED_ENCODINGS[] = {
 

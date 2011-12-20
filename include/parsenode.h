@@ -8,6 +8,7 @@
 static const uint32 UNBOUNDED = std::numeric_limits<uint32>::max();
 
 struct ParseNode {
+
   enum NodeType {
     REGEXP,
     ALTERNATION,

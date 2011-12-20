@@ -6,6 +6,7 @@
 #include "nfabuilder.h"
 #include "parser.h"
 #include "rewriter.h"
+#include "patterninfo.h"
 
 #include <algorithm>
 #include <sstream>
@@ -15,71 +16,18 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-void addPattern(
-  NFABuilder& nfab,
-  ParseTree& tree,
-  Compiler& comp,
-  Graph& g,
-  const std::string& pattern,
-  uint32 patIndex,
-  bool caseSensitive,
-  bool fixedString,
-  const std::string& encoding)
-{
-  // prepare the NFA builder
-  nfab.reset();
-  nfab.setCurLabel(patIndex);
-  nfab.setCaseSensitive(caseSensitive);
-
-  if (encoding == "ASCII") {
-    nfab.setEncoding(boost::shared_ptr<Encoding>(new Ascii));
-  }
-  else if (encoding == "UTF-16") {
-    nfab.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
-  }
-  else {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT("Unrecognized encoding '" << encoding << "'");
-  }
-
-  // parse the pattern
-  if (parse(pattern, fixedString, tree)) {
-    // rewrite the parse tree, if necessary
-    bool rewritten = false;
-    if (pattern.find('?',1) != std::string::npos) {
-      rewritten |= reduce_trailing_nongreedy_then_empty(tree.Root);
-    }
-
-    if (rewritten || pattern.find('{',1) != std::string::npos) {
-      reduce_empty_subtrees(tree.Root);
-      reduce_useless_repetitions(tree.Root);
-    }
-
-    // build the NFA for this pattern
-    if (nfab.build(tree)) {
-      // and merge it into the greater NFA
-      comp.pruneBranches(*nfab.getFsm());
-      comp.mergeIntoFSM(g, *nfab.getFsm());
-      return;
-    }
-  }
-
-  throw std::runtime_error("Could not parse");
-}
-
-void addKeys(const std::vector<std::string>& keywords, const std::string& encoding, bool caseSensitive, bool litMode, GraphPtr& fsm, uint32& keyIdx, Compiler& comp) {
-  ParseTree   tree;
-  NFABuilder  nfab;
+void addKeys(const std::vector<std::string>& keywords, const LG_KeyOptions& keyOpts, bool ignoreBad, Parser& p, uint32& keyIdx) {
 
   for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
     const std::string& kw(keywords[i]);
 
     try {
-      addPattern(nfab, tree, comp, *fsm, kw, keyIdx,
-                 caseSensitive, litMode, encoding);
+      p.addPattern(kw, keyIdx, keyOpts);
     }
-    catch (const std::runtime_error& e) {
-      std::cerr << e.what() << " keyword number " << i
-                << ", " << kw << std::endl;
+    catch (std::runtime_error& err) {
+      if (!ignoreBad) {
+        throw;
+      }
     }
   }
 }
@@ -92,48 +40,45 @@ uint32 totalCharacters(const std::vector<std::string>& keywords) {
   return ret;
 }
 
-void addKeys(KwInfo& keyInfo, GraphPtr g, Compiler& comp, const std::string encName, bool caseSensitive, bool litMode, uint32& keyIdx) {
-  keyInfo.Encodings.push_back(encName);
-  const uint32 encIdx = keyInfo.Encodings.size() - 1;
+void addKeys(PatternInfo& keyInfo, const LG_KeyOptions& keyOpts, uint32 encIdx, bool ignoreBad, Parser& p, uint32& keyIdx) {
+  addKeys(keyInfo.Patterns, keyOpts, ignoreBad, p, keyIdx);
 
-  addKeys(keyInfo.Keywords, encName, caseSensitive, litMode, g, keyIdx, comp);
-
-  for (uint32 i = 0; i < keyInfo.Keywords.size(); ++i) {
-    keyInfo.PatternsTable.push_back(std::make_pair<uint32,uint32>(i, encIdx));
+  for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
+    keyInfo.Table.push_back(std::make_pair<uint32,uint32>(i, encIdx));
   }
 }
 
-GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode, bool determinize) {
-  KwInfo keyInfo;
-  keyInfo.Keywords = keywords;
-  return createGraph(keyInfo, enc, caseSensitive, litMode, determinize);
-}
-
-GraphPtr createGraph(KwInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode, bool determinize) {
-  GraphPtr g(new Graph(1, totalCharacters(keyInfo.Keywords)));
+GraphPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
+  Parser p(totalCharacters(keyInfo.Patterns));
   uint32 keyIdx = 0;
-
-  Compiler comp;
-
+  LG_KeyOptions keyOpts;
+  keyOpts.CaseInsensitive = !caseSensitive;
+  keyOpts.FixedString = litMode;
   if (enc & CP_ASCII) {
-    addKeys(keyInfo, g, comp, "ASCII", caseSensitive, litMode, keyIdx);
+    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
+    addKeys(keyInfo, keyOpts, LG_ENC_ASCII, ignoreBadParse, p, keyIdx);
   }
 
   if (enc & CP_UCS16) {
-    addKeys(keyInfo, g, comp, "UTF-16", caseSensitive, litMode, keyIdx);
+    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+    addKeys(keyInfo, keyOpts, LG_ENC_UTF_16, ignoreBadParse, p, keyIdx);
   }
 
-  if (g) {
+  if (p.Fsm) {
     if (determinize) {
       GraphPtr dfa(new Graph(1));
-      comp.subsetDFA(*dfa, *g);
-      g = dfa;
+      p.Comp.subsetDFA(*dfa, *p.Fsm);
+      p.Fsm = dfa;
     }
-
-    comp.labelGuardStates(*g);
+    p.Comp.labelGuardStates(*p.Fsm);
   }
+  return p.Fsm;
+}
 
-  return g;
+GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
+  PatternInfo keyInfo;
+  keyInfo.Patterns = keywords;
+  return createGraph(keyInfo, enc, caseSensitive, litMode, determinize, ignoreBadParse);
 }
 
 uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {

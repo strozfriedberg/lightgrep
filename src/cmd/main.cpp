@@ -59,10 +59,11 @@ void addPattern(
   LG_HPARSER parser,
   uint32 i,
   uint32 patIdx,
+  uint32 encIdx,
   const LG_KeyOptions& keyOpts,
   PatternInfo& pinfo)
 {
-  pinfo.Table.push_back(std::make_pair(i, pinfo.Encodings.size()-1));
+  pinfo.Table.push_back(std::make_pair(i, encIdx));
 
   if (!lg_add_keyword(parser, pinfo.Patterns[i].c_str(), patIdx, &keyOpts)) {
     std::cerr << lg_error(parser) << " on pattern "
@@ -103,22 +104,18 @@ boost::shared_ptr<ParserHandle> parsePatterns(const Options& opts,
   uint32 patIdx = 0;
 
   if (opts.getEncoding() & CP_ASCII) {
-//    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
-    keyOpts.Encoding = "ASCII";
-    pinfo.Encodings.push_back("ASCII");
+    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
 
     for (uint32 i = 0; i < pinfo.Patterns.size(); ++i, ++patIdx) {
-      addPattern(parser.get(), i, patIdx, keyOpts, pinfo);
+      addPattern(parser.get(), i, patIdx, LG_ENC_ASCII, keyOpts, pinfo);
     }
   }
 
   if (opts.getEncoding() & CP_UCS16) {
-//    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_UTF_16];
-    keyOpts.Encoding = "UTF-16";
-    pinfo.Encodings.push_back("UTF-16");
+    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
 
     for (uint32 i = 0; i < pinfo.Patterns.size(); ++i, ++patIdx) {
-      addPattern(parser.get(), i, patIdx, keyOpts, pinfo);
+      addPattern(parser.get(), i, patIdx, LG_ENC_UTF_16, keyOpts, pinfo);
     }
   }
 
