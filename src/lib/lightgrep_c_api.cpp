@@ -95,7 +95,7 @@ const char* lg_error(void* vp) {
 }
 
 void create_parser_impl(LG_HPARSER hParser, unsigned int sizeHint) {
-  hParser->Impl.reset(new ParserHandleImpl(sizeHint));
+  hParser->Impl.reset(new Parser(sizeHint));
 }
 
 // TODO:
@@ -126,7 +126,7 @@ int lg_add_keyword(LG_HPARSER hParser,
                    unsigned int keyIndex,
                    const LG_KeyOptions* options)
 {
-  return exception_trap(boost::bind(&addPattern, boost::ref(hParser->Impl->Nfab), boost::ref(hParser->Impl->Tree), boost::ref(hParser->Impl->Comp), boost::ref(*hParser->Impl->Fsm), keyword, keyIndex, options->CaseInsensitive == 0, options->FixedString != 0, options->Encoding), hParser);
+  return exception_trap(boost::bind(&Parser::addPattern, hParser->Impl.get(), keyword, keyIndex, *options), hParser);
 }
 
 void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
