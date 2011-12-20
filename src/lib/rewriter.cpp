@@ -265,6 +265,8 @@ bool reduce_useless_repetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
     if (!n->Left) {
       return ret;
     }
+  case ParseNode::REPETITION:
+  case ParseNode::REPETITION_NG:
     ret = prune_useless_repetitions(n->Left, branch);
     ret |= reduce_useless_repetitions(n->Left, branch);
     break;
@@ -275,11 +277,6 @@ bool reduce_useless_repetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
     ret |= reduce_useless_repetitions(n->Left, branch);
     ret |= prune_useless_repetitions(n->Right, branch);
     ret |= reduce_useless_repetitions(n->Right, branch);
-    break;
-
-  case ParseNode::REPETITION:
-  case ParseNode::REPETITION_NG:
-    ret = reduce_useless_repetitions(n->Left, branch);
     break;
 
   case ParseNode::DOT:
