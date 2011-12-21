@@ -122,8 +122,7 @@ boost::shared_ptr<ParserHandle> parsePatterns(const Options& opts,
   return parser;
 }
 
-boost::shared_ptr<ProgramHandle> buildProgram(LG_HPARSER parser,
-                                              const Options& opts) {
+boost::shared_ptr<ProgramHandle> buildProgram(LG_HPARSER parser, const Options& opts) {
   LG_ProgramOptions progOpts;
   progOpts.Determinize = opts.Determinize;
 
@@ -131,6 +130,20 @@ boost::shared_ptr<ProgramHandle> buildProgram(LG_HPARSER parser,
     lg_create_program(parser, &progOpts),
     lg_destroy_program
   );
+}
+
+boost::shared_ptr<ProgramHandle> createProgram(const Options& opts, PatternInfo& pinfo) {
+  boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
+
+  // build the program
+  boost::shared_ptr<ProgramHandle> prog = buildProgram(parser.get(), opts);
+
+  GraphPtr g(parser->Impl->Fsm);
+  std::cerr << g->numVertices() << " vertices" << std::endl;
+
+  ProgramPtr p(prog->Impl->Prog);
+  std::cerr << p->size() << " instructions" << std::endl;
+  return prog;
 }
 
 void search(const Options& opts) {
@@ -147,20 +160,7 @@ void search(const Options& opts) {
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
-  boost::shared_ptr<ProgramHandle> prog;
-
-  {
-    boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
-
-    // build the program
-    prog = buildProgram(parser.get(), opts);
-
-    GraphPtr g(parser->Impl->Fsm);
-    std::cerr << g->numVertices() << " vertices" << std::endl;
-
-    ProgramPtr p(prog->Impl->Prog);
-    std::cerr << p->size() << " instructions" << std::endl;
-  }
+  boost::shared_ptr<ProgramHandle> prog(createProgram(opts, pinfo));
 
   // setup hit callback
   LG_HITCALLBACK_FN callback;
