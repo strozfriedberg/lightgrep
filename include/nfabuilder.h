@@ -98,7 +98,7 @@ private:
   void patch_pre(OutListT& src, const InListT& dst);
   void patch_post(OutListT& src, const InListT& dst);
 
-  void traverse(const ParseNode* n);
+  void traverse(const ParseNode* root);
 
   bool IsGood, CaseSensitive;
   uint32 CurLabel;
