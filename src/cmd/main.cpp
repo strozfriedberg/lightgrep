@@ -146,6 +146,60 @@ boost::shared_ptr<ProgramHandle> createProgram(const Options& opts, PatternInfo&
   return prog;
 }
 
+class SearchController {
+public:
+  SearchController(uint32 blkSize): BlockSize(blkSize), BytesSearched(0), TotalTime(0.0),
+    Cur(new byte[blkSize]), Next(new byte[blkSize]) {}
+
+  bool searchFile(boost::shared_ptr<ContextHandle> search, HitCounterInfo* hinfo, FILE* file, LG_HITCALLBACK_FN callback);
+
+  uint32 BlockSize;
+  uint64 BytesSearched;
+  double TotalTime;
+  boost::scoped_array<byte> Cur,
+                            Next;
+};
+
+bool SearchController::searchFile(boost::shared_ptr<ContextHandle> searcher, HitCounterInfo* hinfo, FILE* file, LG_HITCALLBACK_FN callback) {
+  boost::timer searchClock;
+  uint64 blkSize = 0,
+         offset = 0;
+
+  blkSize = readNext(file, Cur.get(), BlockSize);
+  if (!feof(file)) {
+    do {
+      // read the next block on a separate thread
+      boost::packaged_task<uint64> task(boost::bind(&readNext, file, Next.get(), BlockSize));
+      boost::unique_future<uint64> sizeFut = task.get_future();
+      boost::thread exec(boost::move(task));
+
+      // search cur block
+      lg_search(searcher.get(), (char*)Cur.get(), (char*)Cur.get() + blkSize, offset, hinfo, callback);
+
+      offset += blkSize;
+      if (offset % (1024 * 1024 * 1024) == 0) { // should change this due to the block size being variable
+        double lastTime = searchClock.elapsed();
+        uint64 units = offset >> 20;
+        double bw = units / lastTime;
+        units >>= 10;
+        std::cerr << units << " GB searched in " << lastTime << " seconds, " << bw << " MB/s avg" << std::endl;
+      }
+      blkSize = sizeFut.get(); // block on i/o thread completion
+      Cur.swap(Next);
+    } while (!feof(file)); // note file is shared btwn threads, but safely
+  }
+
+  // assert: all data has been read, offset + blkSize == file size,
+  // cur is last block
+  lg_search(searcher.get(), (char*)Cur.get(), (char*)Cur.get() + blkSize, offset, hinfo, callback);
+  lg_closeout_search(searcher.get(), hinfo, callback);
+  offset += blkSize;  // be sure to count the last block
+
+  TotalTime += searchClock.elapsed();
+  BytesSearched += offset;
+  return true;
+}
+
 void search(const Options& opts) {
   // try to open our input
   FILE* file = opts.Input == "-" ? stdin : fopen(opts.Input.c_str(), "rb");
@@ -183,52 +237,13 @@ void search(const Options& opts) {
   boost::shared_ptr<ContextHandle> searcher(lg_create_context(prog.get()),
                                             lg_destroy_context);
 
-  byte* cur = new byte[opts.BlockSize];
-  uint64 blkSize = 0,
-         offset = 0;
+  SearchController ctrl(opts.BlockSize);
+  ctrl.searchFile(searcher, hinfo.get(), file, callback);
 
-  blkSize = readNext(file, cur, opts.BlockSize);
-
-  // init timer here so as not to time the first read
-  double lastTime = 0.0;
-  boost::timer searchClock;
-
-  if (!feof(file)) {
-    byte* next = new byte[opts.BlockSize];
-    do {
-      // read the next block on a separate thread
-      boost::packaged_task<uint64> task(boost::bind(&readNext, file, next, opts.BlockSize));
-      boost::unique_future<uint64> sizeFut = task.get_future();
-      boost::thread exec(boost::move(task));
-
-      // search cur block
-      lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, hinfo.get(), callback);
-
-      offset += blkSize;
-      if (offset % (1024 * 1024 * 1024) == 0) { // should change this due to the block size being variable
-        lastTime = searchClock.elapsed();
-        uint64 units = offset >> 20;
-        double bw = units / lastTime;
-        units >>= 10;
-        std::cerr << units << " GB searched in " << lastTime << " seconds, " << bw << " MB/s avg" << std::endl;
-      }
-      blkSize = sizeFut.get(); // block on i/o thread completion
-      std::swap(cur, next);
-    } while (!feof(file)); // note file is shared btwn threads, but safely
-    delete[] next;
-  }
-
-  // assert: all data has been read, offset + blkSize == file size,
-  // cur is last block
-  lg_search(searcher.get(), (char*) cur, (char*) cur + blkSize, offset, hinfo.get(), callback);
-  lg_closeout_search(searcher.get(), hinfo.get(), callback);
-
-  offset += blkSize;  // be sure to count the last block
-  lastTime = searchClock.elapsed();
-  std::cerr << offset << " bytes" << std::endl;
-  std::cerr << lastTime << " searchTime" << std::endl;
-  if (lastTime > 0.0) {
-    std::cerr << offset/lastTime/(1 << 20);
+  std::cerr << ctrl.BytesSearched << " bytes" << std::endl;
+  std::cerr << ctrl.TotalTime << " searchTime" << std::endl;
+  if (ctrl.TotalTime > 0.0) {
+    std::cerr << ctrl.BytesSearched/ctrl.TotalTime/(1 << 20);
   }
   else {
     std::cerr << "+inf";
@@ -237,7 +252,6 @@ void search(const Options& opts) {
   std::cerr << hinfo->NumHits << " hits" << std::endl;
 
   fclose(file);
-  delete[] cur;
 }
 
 void writeGraphviz(const Options& opts) {
