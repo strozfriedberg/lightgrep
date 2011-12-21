@@ -7,6 +7,8 @@
 #include <iostream>
 #include <utility>
 
+#include <boost/shared_ptr.hpp>
+
 std::ostream& operator<<(std::ostream& out, const InListT& list) {
   out << '[';
   for (InListT::const_iterator it(list.begin()); it != list.end(); ++it) {
@@ -356,24 +358,32 @@ void NFABuilder::finish(const ParseNode& n) {
   }
 }
 
-void NFABuilder::traverse(const ParseNode* n) {
+void NFABuilder::traverse(const ParseNode* root) {
+  // holder for synthesized nodes
+  std::vector< boost::shared_ptr<ParseNode> > synth;
 
-  if (n->Left) {
-    // this node has a left child
-    if ((n->Type == ParseNode::REPETITION || n->Type == ParseNode::REPETITION_NG) &&
-       !((n->Min == 0 && (n->Max == 1 || n->Max == UNBOUNDED)) ||
-         (n->Min == 1 && n->Max == UNBOUNDED)))
-    {
-      // This is a repetition, but not one of the special ones.
+  // wind for preorder traversal, unwind for postorder
+  std::stack<const ParseNode*> wind, unwind;
+  wind.push(root);
 
-      // NB: We expect that all empty repetitions ({0,0} and {0,0}?)
-      // will have been excised from the parse tree by now.
+  while (!wind.empty()) {
+    const ParseNode* n = wind.top();
+    wind.pop();
+    unwind.push(n);
 
-      if (n->Min == 1 && n->Max == 1) {
-        // skip the repetition node
-        traverse(n->Left);
-      }
-      else {
+    if (n->Left) {
+      // This node has a left child
+      if ((n->Type == ParseNode::REPETITION ||
+           n->Type == ParseNode::REPETITION_NG) &&
+         !((n->Min == 0 && (n->Max == 1 || n->Max == UNBOUNDED)) ||
+           (n->Min == 1 && n->Max == UNBOUNDED)))
+      {
+        // This is a repetition, but not one of the special named ones.
+        // We synthesize nodes here to eliminate counted repetitions.
+
+        // NB: We expect that all empty ({0,0} and {0,0}?) and single
+        // ({1,1}, {1,1}?) have been excised from the parse tree by now.
+
         //
         // T{n} = T...T
         //          ^
@@ -392,28 +402,6 @@ void NFABuilder::traverse(const ParseNode* n) {
         // one with outdegree m-n.
         //
 
-        // determine the size of the repetition tree
-        uint32 size;
-
-        if (n->Min == n->Max) {
-          // n-1 contatenations in the mandatory part
-          size = n->Min - 1;
-        }
-        else if (n->Max == UNBOUNDED) {
-          // n-1 concatenations in the mandatory part
-          // followed by 1 concatenation and 1 star
-          size = n->Min + 1;
-        }
-        else {
-          // n-1 concatenations in the mandatory part
-          // joined by 1 concatenation with the optional part
-          // consisting of m-n questions and m-n-1 concatenations
-          size = 2*n->Max - n->Min - 1;
-        }
-
-        ParseTree rep;
-        rep.init(size);
-
         ParseNode root;
 
         ParseNode* none = 0;
@@ -422,7 +410,11 @@ void NFABuilder::traverse(const ParseNode* n) {
         if (n->Min > 0) {
           // build the mandatory part
           for (uint32 i = 1; i < n->Min; ++i) {
-            ParseNode* con = rep.add(ParseNode(ParseNode::CONCATENATION, n->Left, none));
+            synth.push_back(boost::shared_ptr<ParseNode>(
+              new ParseNode(ParseNode::CONCATENATION, n->Left, none))
+            );
+            ParseNode* con = synth.back().get();
+
             parent->Right = con;
             parent = con;
           }
@@ -435,49 +427,73 @@ void NFABuilder::traverse(const ParseNode* n) {
         else if (n->Max == UNBOUNDED) {
           // build the unbounded optional part
           if (n->Min == 0) {
-            ParseNode* star = rep.add(ParseNode(n->Type, n->Left, 0, UNBOUNDED));
+            synth.push_back(boost::shared_ptr<ParseNode>(
+              new ParseNode(n->Type, n->Left, 0, UNBOUNDED))
+            );
+            ParseNode* star = synth.back().get();
             parent->Right = star;
           }
           else {
-            ParseNode* plus = rep.add(ParseNode(n->Type, n->Left, 1, UNBOUNDED));
+            synth.push_back(boost::shared_ptr<ParseNode>(
+              new ParseNode(n->Type, n->Left, 1, UNBOUNDED))
+            );
+            ParseNode* plus = synth.back().get();
             parent->Right = plus;
           }
         }
         else {
           if (n->Min > 0) {
             // finish the mandatory part
-            ParseNode* con = rep.add(ParseNode(ParseNode::CONCATENATION, n->Left, none));
+            synth.push_back(boost::shared_ptr<ParseNode>(
+              new ParseNode(ParseNode::CONCATENATION, n->Left, none))
+            );
+            ParseNode* con = synth.back().get();
             parent->Right = con;
             parent = con;
           }
 
           // build the bounded optional part
           for (uint32 i = 1; i < n->Max - n->Min; ++i) {
-            ParseNode* con = rep.add(ParseNode(ParseNode::CONCATENATION, n->Left, none));
-            ParseNode* question = rep.add(ParseNode(n->Type, con, 0, 1));
+            synth.push_back(boost::shared_ptr<ParseNode>(
+              new ParseNode(ParseNode::CONCATENATION, n->Left, none))
+            );
+            ParseNode* con = synth.back().get();
+            
+            synth.push_back(boost::shared_ptr<ParseNode>(
+              new ParseNode(n->Type, con, 0, 1))
+            );
+            ParseNode* question = synth.back().get();
+            
             parent->Right = question;
             parent = con;
           }
 
-          ParseNode* question = rep.add(ParseNode(n->Type, n->Left, 0, 1));
+          synth.push_back(boost::shared_ptr<ParseNode>(
+            new ParseNode(n->Type, n->Left, 0, 1))
+          );
+          ParseNode* question = synth.back().get(); 
           parent->Right = question;
         }
 
-        traverse(root.Right);
+        wind.push(root.Right);
+      }
+      else {
+        // this is not a repetition, or is one of ? * + ?? *? +?
+        wind.push(n->Left);
       }
     }
-    else {
-      // this is not a repetition, or is one of ? * + ?? *? +?
-      traverse(n->Left);
+
+    if (n->Right) {
+      wind.push(n->Right);
     }
   }
 
-  if (n->Right) {
-    // this node has a right child
-    traverse(n->Right);
-  }
+  while (!unwind.empty()) {
+    const ParseNode* n = unwind.top();
+    unwind.pop();
 
-  callback(*n);
+    callback(*n);
+  }
 }
 
 bool NFABuilder::build(const ParseTree& tree) {

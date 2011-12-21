@@ -385,11 +385,32 @@ SCOPE_TEST(reduceUselessRepetitions_a1Orb1_Test) {
   SCOPE_ASSERT_EQUAL("a|b", unparse(tree));
 }
 
-SCOPE_TEST(reduceUselessRepetitions_PLaPQRPPQ_Test) {
+SCOPE_TEST(reduceUselessRepetitions_a11_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("(a{1}){1}", false, tree));
   SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
   SCOPE_ASSERT_EQUAL("a", unparse(tree));
+}
+
+SCOPE_TEST(reduceUselessRepetitions_a111_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("((a{1}){1}){1}", false, tree));
+  SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
+  SCOPE_ASSERT_EQUAL("a", unparse(tree));
+}
+
+SCOPE_TEST(reduceUselessRepetitions_a12_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("(a{1}){2}", false, tree));
+  SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
+  SCOPE_ASSERT_EQUAL("a{2}", unparse(tree));
+}
+
+SCOPE_TEST(reduceUselessRepetitions_a121_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("((a{1}){2}){1}", false, tree));
+  SCOPE_ASSERT(reduce_useless_repetitions(tree.Root));
+  SCOPE_ASSERT_EQUAL("a{2}", unparse(tree));
 }
 
 SCOPE_TEST(reduceEmptySubtrees_a_Test) {
