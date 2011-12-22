@@ -1,7 +1,7 @@
 Import('env', 'isWindows', 'isLinux', 'boostType')
 libs = ['lightgrep']
 libs.extend([lib + boostType for lib in
-                 ['boost_system', 'boost_thread', 'boost_program_options']])
+                 ['boost_system', 'boost_thread', 'boost_program_options', 'boost_filesystem']])
 if (isLinux):
   libs.append('pthread')
 elif (isWindows):

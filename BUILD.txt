@@ -20,7 +20,7 @@ If you plan on building Lightgrep frequently, we highly recommend installing and
 
 Libraries
 ---------
-Lightgrep uses the Boost collection of C++ libraries extensively. In addition to many of the header-only libraries, Lightgrep relies on the thread, system, and program_options libraries having been built and available by default to gcc.
+Lightgrep uses the Boost collection of C++ libraries extensively. In addition to many of the header-only libraries, Lightgrep relies on the thread, system, filesystem, and program_options libraries having been built and available by default to gcc.
 
   http://www.boost.org
  
@@ -31,6 +31,7 @@ To build Boost on Windows, try the following (assuming that you've unzipped boos
 C:\> cd boost
 C:\boost\> .\bootstrap.bat   # builds boost's jam build tool
 C:\boost\> .\bjam --stagedir=C:\lib --with-program_options --with-system --with-thread
+                  --with-filesystem
                   link=static runtime-link=static variant=release
                   threading=multi toolset=gcc address-model=[32|64]
                   define=BOOST_USE_WINDOWS_H define=BOOST_THREAD_USE_LIB
