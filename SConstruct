@@ -86,6 +86,7 @@ conf = Configure(env)
 if (not (conf.CheckCXXHeader('boost/shared_ptr.hpp')
    and conf.CheckLib('boost_system' + boostType)
    and conf.CheckLib('boost_thread' + boostType)
+   and conf.CheckLib('boost_filesystem' + boostType)
    and conf.CheckLib('boost_program_options' + boostType))):
    print('Boost sanity check failed.')
    Exit(1)
