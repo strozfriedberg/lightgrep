@@ -32,7 +32,9 @@ void Parser::addPattern(const std::string& pattern, uint32 patIndex, const LG_Ke
     Nfab.setEncoding(foundEnc->second);
   }
   else {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT("Unrecognized encoding '" << encoding << "'");
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "Unrecognized encoding '" << encoding << "'"
+    );
   }
 
   // parse the pattern
