@@ -245,7 +245,7 @@ void Graph::removeEdge(const vertex source, size_t oi) {
 
   // this should be impossible
   THROW_RUNTIME_ERROR_WITH_OUTPUT(
-    "source-target mismatch, " << source << ".Out[" << oi << "] points to "
+    "edge head-tail mismatch, " << source << ".Out[" << oi << "] points to "
     << target << ", but " << target << ".In does not point back to " << source
   );
 }
