@@ -227,21 +227,27 @@ void Graph::addEdgeAtND(const vertex source, const vertex target, size_t i) {
 
 void Graph::removeEdge(const vertex source, size_t oi) {
   if (source >= Vertices.size()) {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT("out of bounds, source = " << source << ", but size = " << Vertices.size());
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "out of bounds, source = " << source << ", but size = "
+                                 << Vertices.size()
+    );
   }
 
   const vertex target = outVertex(source, oi);
 
-  size_t ii;
-  for (uint32 i = 0; i < inDegree(target); ++i) {
-    if (inVertex(target, i) == source) {
-      ii = i;
-      break;
+  for (uint32 ii = 0; ii < inDegree(target); ++ii) {
+    if (inVertex(target, ii) == source) {
+      _remove(Vertices[source].Out, oi);
+      _remove(Vertices[target].In, ii);
+      return;
     }
   }
 
-  _remove(Vertices[source].Out, oi);
-  _remove(Vertices[target].In, ii);
+  // this should be impossible
+  THROW_RUNTIME_ERROR_WITH_OUTPUT(
+    "edge head-tail mismatch, " << source << ".Out[" << oi << "] points to "
+    << target << ", but " << target << ".In does not point back to " << source
+  );
 }
 
 void Graph::clear() {

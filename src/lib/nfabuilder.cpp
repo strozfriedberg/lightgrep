@@ -403,7 +403,6 @@ void NFABuilder::traverse(const ParseNode* root) {
         //
 
         ParseNode root;
-
         ParseNode* none = 0;
         ParseNode* parent = &root;
 

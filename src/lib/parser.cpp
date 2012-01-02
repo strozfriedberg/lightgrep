@@ -19,6 +19,19 @@ const EncodingMap& getEncodings() {
   return map;
 }
 
+bool contains_possible_nongreedy(const std::string& pattern) {
+  // The trailing '?' of a nongreedy operator must have at least
+  // two characters preceeding it.
+  return pattern.find('?', 2) != std::string::npos;
+}
+
+bool contains_possible_counted_repetition(const std::string& pattern) {
+  // The '{' of a counted repetition operator must have at least one
+  // character preceeding it and two characters following it.
+  const std::string::size_type cr = pattern.rfind('{', pattern.length()-3);
+  return cr > 0 && cr != std::string::npos;
+}
+
 void Parser::addPattern(const std::string& pattern, uint32 patIndex, const LG_KeyOptions& keyOpts)
 {
   // prepare the NFA builder
@@ -32,18 +45,21 @@ void Parser::addPattern(const std::string& pattern, uint32 patIndex, const LG_Ke
     Nfab.setEncoding(foundEnc->second);
   }
   else {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT("Unrecognized encoding '" << encoding << "'");
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "Unrecognized encoding '" << encoding << "'"
+    );
   }
 
   // parse the pattern
   if (parse(pattern, keyOpts.FixedString, Tree)) {
     // rewrite the parse tree, if necessary
-    bool rewritten = false;
-    if (pattern.find('?',1) != std::string::npos) {
-      rewritten |= reduce_trailing_nongreedy_then_empty(Tree.Root);
+    bool rewrite = false;
+
+    if (contains_possible_nongreedy(pattern)) {
+      rewrite |= reduce_trailing_nongreedy_then_empty(Tree.Root);
     }
 
-    if (rewritten || pattern.find('{',1) != std::string::npos) {
+    if (rewrite || contains_possible_counted_repetition(pattern)) {
       reduce_empty_subtrees(Tree.Root);
       reduce_useless_repetitions(Tree.Root);
     }

@@ -4,7 +4,6 @@
 
 #include "graph.h"
 #include "compiler.h"
-#include "encodings.h"
 #include "handles.h"
 #include "nfabuilder.h"
 #include "parsetree.h"
