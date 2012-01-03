@@ -170,18 +170,25 @@ int lg_destroy_program(LG_HPROGRAM hProg) {
   return destroy_handle(hProg);
 }
 
-void create_context(LG_HPROGRAM hProg, LG_HCONTEXT hCtx) {
+void create_context(LG_HPROGRAM hProg, LG_HCONTEXT hCtx,
+                    uint64 beginTrace, uint64 endTrace)
+{
   hCtx->Impl.reset(new ContextHandleImpl);
+  #ifdef LBT_TRACE_ENABLED
+  hCtx->Impl->Vm->setDebugRange(beginTrace, endTrace);
+  #endif
   hCtx->Impl->Vm->init(hProg->Impl->Prog);
 }
 
-LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg) {
+LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
+                              const LG_ContextOptions* options)
+{
   LG_HCONTEXT hCtx = create_handle<ContextHandle>();
   if (!hCtx) {
     return 0;
   }
 
-  exception_trap(boost::bind(&create_context, hProg, hCtx), hCtx);
+  exception_trap(boost::bind(&create_context, hProg, hCtx, options->TraceBegin, options->TraceEnd), hCtx);
 
   return hCtx;
 }
