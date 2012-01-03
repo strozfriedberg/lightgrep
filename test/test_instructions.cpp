@@ -76,14 +76,6 @@ SCOPE_TEST(makeFork) {
   SCOPE_ASSERT_EQUAL("Fork 0x01000000/16777216", i[0].toString());
 }
 
-SCOPE_TEST(makeJumpTable) {
-  Instruction i = Instruction::makeJumpTable();
-  SCOPE_ASSERT_EQUAL(JUMP_TABLE_OP, i.OpCode);
-  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL(0u, i.Op.Offset);
-  SCOPE_ASSERT_EQUAL("JumpTable", i.toString());
-}
-
 SCOPE_TEST(makeHalt) {
   Instruction i = Instruction::makeHalt();
   SCOPE_ASSERT_EQUAL(HALT_OP, i.OpCode);

@@ -35,6 +35,11 @@ extern "C" {
   } LG_ProgramOptions;
 
   typedef struct {
+    uint64 TraceBegin,    // starting offset of trace output
+           TraceEnd;      // ending offset of trace output
+  } LG_ContextOptions;
+
+  typedef struct {
     uint64  Start,        // starting offset of the hit
             End;          // one past the hit, i.e., End - Start = Length
     uint32  KeywordIndex; // index of keyword that hit
@@ -75,7 +80,7 @@ extern "C" {
   // recognizing all the specified keywords. Once a program has been created,
   // the parser can be discarded.
   LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
-                                const LG_ProgramOptions* option);
+                                const LG_ProgramOptions* options);
 
   // A Program must live as long as any associated contexts,
   // so only call this at the end.
@@ -85,7 +90,8 @@ extern "C" {
   // associated with a single program. A context lets you search a byte stream
   // and keeps track of the necessary state so that you can treat buffers as
   // contiguous. Uses a fixed amount of RAM.
-  LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg);
+  LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
+                                const LG_ContextOptions* options);
   int lg_destroy_context(LG_HCONTEXT hCtx);
 
   // Finds matches beginning at the first byte. It works like lg_search(), but

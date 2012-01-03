@@ -45,9 +45,6 @@ std::string Instruction::toString() const {
     case JUMP_OP:
       buf << "Jump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
       break;
-    case JUMP_TABLE_OP:
-      buf << "JumpTable";
-      break;
     case JUMP_TABLE_RANGE_OP:
       buf << "JmpTblRange 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
       break;
@@ -122,13 +119,6 @@ Instruction Instruction::makeJump(Instruction* ptr, uint32 offset) {
   i.OpCode = JUMP_OP;
   i.Op.Offset = 0;
   *reinterpret_cast<uint32*>(ptr+1) = offset;
-  return i;
-}
-
-Instruction Instruction::makeJumpTable() {
-  Instruction i;
-  i.OpCode = JUMP_TABLE_OP;
-  i.Op.Offset = 0;
   return i;
 }
 
@@ -215,7 +205,7 @@ std::ostream& operator<<(std::ostream& out, const Program& prog) {
       out << std::dec;
       i += 8;
     }
-    else if (prog[i].OpCode == JUMP_TABLE_OP || prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
+    else if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
       uint32 start = 0,
              end = 255;
       if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {

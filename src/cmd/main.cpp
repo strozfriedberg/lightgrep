@@ -234,8 +234,14 @@ void search(const Options& opts) {
   }
 
   // search
-  boost::shared_ptr<ContextHandle> searcher(lg_create_context(prog.get()),
-                                            lg_destroy_context);
+  LG_ContextOptions ctxOpts;
+  ctxOpts.TraceBegin = opts.DebugBegin;
+  ctxOpts.TraceEnd = opts.DebugEnd;
+
+  boost::shared_ptr<ContextHandle> searcher(
+    lg_create_context(prog.get(), &ctxOpts),
+    lg_destroy_context
+  );
 
   SearchController ctrl(opts.BlockSize);
   ctrl.searchFile(searcher, hinfo.get(), file, callback);
