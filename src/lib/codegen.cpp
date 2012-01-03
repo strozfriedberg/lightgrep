@@ -27,21 +27,10 @@ uint32 CodeGenVisitor::calcJumpTableSize(Graph::vertex v, const Graph& graph, ui
           last  = i;
         }
       }
-      sizeIndirectTables *= 2;
 
-      uint32 totalSize;
-
-      if (last - first < 128) {
-        // JumpTableRange instr + inclusive number
-        totalSize = 2 + (last - first) + sizeIndirectTables;
-        Helper->Snippets[v].Op = JUMP_TABLE_RANGE_OP;
-      }
-      else {
-        Helper->Snippets[v].Op = JUMP_TABLE_OP;
-        totalSize = 257 + sizeIndirectTables;
-      }
-
-      return totalSize;
+      Helper->Snippets[v].Op = JUMP_TABLE_RANGE_OP;
+      // JumpTableRange instr + inclusive number
+      return 2 + (last - first) + 2*sizeIndirectTables;
     }
   }
   return 0;
