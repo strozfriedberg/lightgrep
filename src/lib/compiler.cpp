@@ -106,14 +106,9 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
         di = 0;
       }
 
-      #ifdef LBT_TRACE_ENABLED
-      std::cerr << "added new vertex " << dstTail << " for "
-                                       << srcTail << std::endl;
-      #endif
-
-      #ifdef LBT_TRACE_ENABLED
-      std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
-      #endif
+      // std::cerr << "added new vertex " << dstTail << " for "
+      //                                  << srcTail << std::endl;
+      // std::cerr << "added edge " << dstHead << " -> " << dstTail << std::endl;
     }
   }
 
