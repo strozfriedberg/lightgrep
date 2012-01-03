@@ -306,8 +306,11 @@ void processConn(
 {
   boost::scoped_array<byte> data(new byte[BUF_SIZE]);
 
-  boost::shared_ptr<ContextHandle> searcher(lg_create_context(prog.get()),
-                                            lg_destroy_context);
+  LG_ContextOptions ctxOpts;
+  boost::shared_ptr<ContextHandle> searcher(
+    lg_create_context(prog.get(), &ctxOpts),
+    lg_destroy_context
+  );
 
 	std::stringstream buf;
 
