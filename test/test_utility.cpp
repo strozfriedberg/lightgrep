@@ -345,23 +345,6 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
   SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(3, g, g.outDegree(3)));
 }
 
-SCOPE_TEST(testCodeGenVisitorShouldBeJumpTable) {
-  Graph g(4);
-  edge(0, 1, g, new LitState(0x00));
-  edge(0, 2, g, new LitState('b'));
-  edge(0, 3, g, new LitState('c'));
-  edge(0, 4, g, new LitState(0xFF));
-
-  boost::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.numVertices()));
-  CodeGenVisitor vis(cgh);
-
-  SCOPE_ASSERT_EQUAL(257, vis.calcJumpTableSize(0, g, g.outDegree(0)));
-  SCOPE_ASSERT_EQUAL(JUMP_TABLE_OP, cgh->Snippets[0].Op);
-  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(1, g, g.outDegree(1)));
-  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(2, g, g.outDegree(2)));
-  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(3, g, g.outDegree(3)));
-}
-
 SCOPE_TEST(alternationBetterLayout) {
   Graph fsm(3);
   edge(0, 1, fsm, new LitState('a'));
