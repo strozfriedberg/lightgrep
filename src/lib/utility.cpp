@@ -103,26 +103,22 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
   uint32 first = 0,
          last  = 255;
 
-  if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op) {
-    for (uint32 i = 0; i < 256; ++i) {
-      if (!tbl[i].empty()) {
-        first = i;
-        break;
-      }
+  for (uint32 i = 0; i < 256; ++i) {
+    if (!tbl[i].empty()) {
+      first = i;
+      break;
     }
-    for (uint32 i = 255; i > first; --i) {
-      if (!tbl[i].empty()) {
-        last = i;
-        break;
-      }
+  }
+
+  for (uint32 i = 255; i > first; --i) {
+    if (!tbl[i].empty()) {
+      last = i;
+      break;
     }
-    *cur++ = Instruction::makeJumpTableRange(first, last);
-    indirectTbl = start + 2 + (last - first);
   }
-  else {
-    *cur++ = Instruction::makeJumpTable();
-    indirectTbl = start + 257;
-  }
+
+  *cur++ = Instruction::makeJumpTableRange(first, last);
+  indirectTbl = start + 2 + (last - first);
 
   for (uint32 i = first; i <= last; ++i) {
     if (tbl[i].empty()) {
@@ -206,8 +202,7 @@ ProgramPtr createProgram(const Graph& graph) {
       }
     }
 
-    if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op ||
-        JUMP_TABLE_OP == cg->Snippets[v].Op) {
+    if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op) { 
       createJumpTable(cg, &(*ret)[0], curOp, v, graph);
       continue;
     }

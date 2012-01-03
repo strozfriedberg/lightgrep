@@ -241,13 +241,6 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
       }
       break;
 
-    case JUMP_TABLE_OP:
-      if (*(uint32*)(t->PC + 1 + *cur) != 0xffffffff) {
-        t->jump(base, *reinterpret_cast<const uint32*>(t->PC + 1 + *cur));
-        return true;
-      }
-      break;
-
     case JUMP_TABLE_RANGE_OP:
       if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
         const uint32 addr = *reinterpret_cast<const uint32*>(t->PC + 1 + (*cur - instr.Op.Range.First));
