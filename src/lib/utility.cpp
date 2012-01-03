@@ -202,7 +202,7 @@ ProgramPtr createProgram(const Graph& graph) {
       }
     }
 
-    if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op) { 
+    if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op) {
       createJumpTable(cg, &(*ret)[0], curOp, v, graph);
       continue;
     }
