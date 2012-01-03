@@ -149,9 +149,9 @@ void Vm::init(ProgramPtr prog) {
   ThreadList::iterator t(Active.begin());
 
   #ifdef LBT_TRACE_ENABLED
-  open_init_epsilon_json(std::cerr);
+  open_init_epsilon_json(std::clog);
   new_thread_json.insert(Active.front().Id);
-  pre_run_thread_json(std::cerr, 0, Active.front(), &(*Prog)[0]);
+  pre_run_thread_json(std::clog, 0, Active.front(), &(*Prog)[0]);
   #endif
 
   if (_executeEpSequence(&(*Prog)[0], t, 0)) {
@@ -159,8 +159,8 @@ void Vm::init(ProgramPtr prog) {
   }
 
   #ifdef LBT_TRACE_ENABLED
-  post_run_thread_json(std::cerr, 0, Active.front(), &(*Prog)[0]);
-  close_init_epsilon_json(std::cerr);
+  post_run_thread_json(std::clog, 0, Active.front(), &(*Prog)[0]);
+  close_init_epsilon_json(std::clog);
   #endif
 
   First.swap(Next);
@@ -400,13 +400,13 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
 
 inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, const uint64 offset) {
   #ifdef LBT_TRACE_ENABLED
-  pre_run_thread_json(std::cerr, offset, *t, base);
+  pre_run_thread_json(std::clog, offset, *t, base);
   #endif
 
   _execute(base, t, cur);
 
   #ifdef LBT_TRACE_ENABLED
-  post_run_thread_json(std::cerr, offset, *t, base);
+  post_run_thread_json(std::clog, offset, *t, base);
   #endif
 
   if (_executeEpSequence(base, t, offset)) {
@@ -429,15 +429,15 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
   bool ex;
   do {
     const uint64 id = t->Id; // t can change on a fork, we want the original
-    pre_run_thread_json(std::cerr, offset, *t, base);
+    pre_run_thread_json(std::clog, offset, *t, base);
     ex = _executeEpsilon(base, t, offset);
 //std::cerr << "\nNext.size() == " << Next.size() << std::endl;
 
     if (t->Id == id) {
-      post_run_thread_json(std::cerr, offset, *t, base);
+      post_run_thread_json(std::clog, offset, *t, base);
     }
     else if (!Next.empty() && Next.back().Id == id) {
-      post_run_thread_json(std::cerr, offset, Next.back(), base);
+      post_run_thread_json(std::clog, offset, Next.back(), base);
     }
 /*
     const Thread& x = t->Id == id ? *t : Next.back();
@@ -558,13 +558,13 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
 
   for (register const byte* cur = beg; cur < end; ++cur) {
     #ifdef LBT_TRACE_ENABLED
-    open_frame_json(std::cerr, offset, cur);
+    open_frame_json(std::clog, offset, cur);
     #endif
 
     _executeFrame(first, Active.begin(), base, cur, offset);
 
     #ifdef LBT_TRACE_ENABLED
-    close_frame_json(std::cerr, offset);
+    close_frame_json(std::clog, offset);
     #endif
 
     _cleanup();
@@ -574,9 +574,9 @@ bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, H
 
   #ifdef LBT_HISTOGRAM_ENABLED
   for (std::vector<uint32>::const_iterator i(ProgHistogram.begin()); i != ProgHistogram.end(); ++i) {
-    std::cerr << (i - ProgHistogram.begin()) << ' ' << *i << '\n';
+    std::clog << (i - ProgHistogram.begin()) << ' ' << *i << '\n';
   }
-  std::cerr << std::endl;
+  std::clog << std::endl;
   #endif
 
   // check for remaining live threads
