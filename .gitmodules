@@ -1,6 +1,0 @@
-[submodule "vendors/scope"]
-	path = vendors/scope
-	url = git://github.com/jonstewart/scope.git
-[submodule "vendors/boost"]
-	path = vendors/boost
-	url = git://github.com/jonstewart/boost-svn
