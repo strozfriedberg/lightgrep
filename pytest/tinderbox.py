@@ -1,9 +1,12 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+
 import os
 import subprocess
-from multiprocessing import Process, Queue
 import sys
+
+from multiprocessing import Process, Queue
 
 git_bin = 'git'
 git_pull = [ git_bin, 'pull' ]
@@ -28,6 +31,18 @@ bzcat_bin = 'bzcat'
 long_test_single_bzcat = [ bzcat_bin, 're_gen/aQ-3.bz2' ]
 long_test_triple_bzcat = [ bzcat_bin, 're_gen/aQ-3-3.bz2' ]
 
+def task_declare(name):
+  print(name, end=": ")
+
+def task_result(result):
+  print(result)
+
+def task_success():
+  task_result("ok")
+
+def task_failure():
+  task_result("failed!")
+
 def runLongTest(knownGoodData, errQueue):
   bzcat = [bzcat_bin, knownGoodData]
   p1 = subprocess.Popen(bzcat, bufsize=-1, stdout=subprocess.PIPE)
@@ -42,56 +57,68 @@ def runLongTest(knownGoodData, errQueue):
 def main():
   try:
     # check whether the repo is current
-#    if 'Already up-to-date' in run(git_pull)[0]:
+    task_declare("Pulling")
+    if 'Already up-to-date' in run(git_pull)[0]:
+      task_result("up-to-date")
 #      sys.exit()
-    
-    # clean and bulid
+    else:
+      task_success()
+ 
+    # clean and build
+    task_declare("Cleaning")
     run(scons_clean, scons_env)
+    task_success()
 
+    task_declare("Building")
     result = run(scons_build, scons_env)
     stdout = result[0].split('\n')
     stderr = result[1].split('\n')
 
     gcc_warnings = [ line for line in stderr if 'warning' in line ]
     gcc_errors = [ line for line in stderr if 'error' in line ]
+   
+    if gcc_warnings:
+      task_result("warnings")
+      task_result(gcc_warnings)
     
-    print(gcc_warnings)
-    print(gcc_errors)      
-  
-    # bail on compile failure  
     if gcc_errors:
+      task_failed()
+      task_result(gcc_errors)
       sys.exit()
-
+  
     # check unit test failures
+    task_declare("Unit tests")
     try:
       fail_end = stdout.index('Failures!')
       unit_failures = stdout[stdout.index('bin/test/test --test')+1:fail_end]
-    except ValueError:
-      unit_failures = []
-    
-    print(unit_failures)
-
-    # bail on unit test failures
-    if unit_failures:
+      task_result(unit_failures)
       sys.exit()
-
-    # run single-pattern long test
+    except ValueError:
+      task_success() 
+    
+    # run long tests
+    task_declare("Long tests")
     longErrs = Queue()
     oneProc = Process(target=runLongTest, args=('re_gen/aQ-3.bz2', longErrs))
     threeProc = Process(target=runLongTest, args=('re_gen/aQ-3-3.bz2', longErrs))
     oneProc.start()
     threeProc.start()
+    hadErrors = False
     err = ('', '', '')
     while err is not None:
       err = longErrs.get()
       if (err is not None):
-        print(err)
+        task_result(err)
+        hadErrors = True
     
     oneProc.join()
     threeProc.join()
 
+    if not hadErrors:
+      task_success()
+
   except (subprocess.CalledProcessError, OSError) as e:
-    print e
+    print(e)
 
 
 def run(cmd, environ=None):
