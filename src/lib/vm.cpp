@@ -199,7 +199,7 @@ inline void Vm::_markSeen(const uint32 label) {
 }
 
 inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const byte* cur) {
-  register Instruction instr = *t->PC;
+  const Instruction instr = *t->PC;
 
   #ifdef LBT_HISTOGRAM_ENABLED
   ++ProgHistogram[(std::vector<uint32>::size_type) (t->PC - base)];
@@ -262,7 +262,7 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
 
 // while base is always == &Program[0], we pass it in because it then should get inlined away
 inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t, const uint64 offset) {
-  register Instruction instr = *t->PC;
+  const Instruction instr = *t->PC;
 
   #ifdef LBT_HISTOGRAM_ENABLED
   ++ProgHistogram[(std::vector<uint32>::size_type) (t->PC - base)];
@@ -521,15 +521,14 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
   CurHitFn = hitFn;
   UserData = userData;
   const Instruction* base = &(*Prog)[0];
-  ByteSet first = Prog->First;
-  register uint64 offset = startOffset;
+  uint64 offset = startOffset;
 
-  if (first[*beg]) {
+  if (Prog->First[*beg]) {
     for (ThreadList::const_iterator t(First.begin()); t != First.end(); ++t) {
       Active.push_back(Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE));
     }
 
-    for (register const byte* cur = beg; cur < end; ++cur) {
+    for (const byte* cur = beg; cur < end; ++cur) {
       for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
         _executeThread(base, t, cur, offset);
       }
@@ -549,14 +548,14 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
   reset();
 }
 
-bool Vm::search(const byte* beg, register const byte* end, uint64 startOffset, HitCallback hitFn, void* userData) {
+bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
   const Instruction* base = &(*Prog)[0];
-  ByteSet first = Prog->First;
-  register uint64 offset = startOffset;
+  const ByteSet& first = Prog->First;
+  uint64 offset = startOffset;
 
-  for (register const byte* cur = beg; cur < end; ++cur) {
+  for (const byte* cur = beg; cur < end; ++cur) {
     #ifdef LBT_TRACE_ENABLED
     open_frame_json(std::clog, offset, cur);
     #endif
