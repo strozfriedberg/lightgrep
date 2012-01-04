@@ -30,7 +30,7 @@ void Vm::close_init_epsilon_json(std::ostream& out) const {
   close_frame_json(out, 0);
 }
 
-void Vm::open_frame_json(std::ostream& out, uint64 offset, const byte* cur) {
+void Vm::open_frame_json(std::ostream& out, uint64 offset, const byte* const cur) {
   if (BeginDebug <= offset && offset < EndDebug) {
     out << "{\"offset\":" << offset << ", \"byte\":" << (uint32) *cur
         << ", \"num\":" << Active.size() << ", \"list\":[";
@@ -45,7 +45,7 @@ void Vm::close_frame_json(std::ostream& out, uint64 offset) const {
 }
 
 void Vm::pre_run_thread_json(std::ostream& out, uint64 offset,
-                             const Thread& t, const Instruction* base) {
+                             const Thread& t, const Instruction* const base) {
   if (BeginDebug <= offset && offset < EndDebug) {
     byte state = Thread::PRERUN;
 
@@ -58,7 +58,7 @@ void Vm::pre_run_thread_json(std::ostream& out, uint64 offset,
 }
 
 void Vm::post_run_thread_json(std::ostream& out, uint64 offset,
-                              const Thread& t, const Instruction* base) {
+                              const Thread& t, const Instruction* const base) {
   if (BeginDebug <= offset && offset < EndDebug) {
     byte state = Thread::POSTRUN;
     if (!t.PC)  {
@@ -70,7 +70,7 @@ void Vm::post_run_thread_json(std::ostream& out, uint64 offset,
 }
 
 void Vm::thread_json(std::ostream& out, const Thread& t,
-                     const Instruction* base, byte state) {
+                     const Instruction* const base, byte state) {
   // put commas between consecutive threads
   if (first_thread_json) {
     first_thread_json = false;
@@ -82,7 +82,7 @@ void Vm::thread_json(std::ostream& out, const Thread& t,
   t.output_json(out, base, state);
 }
 
-void Thread::output_json(std::ostream& out, const Instruction* base, byte state) const {
+void Thread::output_json(std::ostream& out, const Instruction* const base, byte state) const {
   out << "{ \"Id\":" << Id
       << ", \"PC\":" << (PC ? PC - base : -1)
       << ", \"Label\":" << Label
@@ -198,7 +198,7 @@ inline void Vm::_markSeen(const uint32 label) {
   }
 }
 
-inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const byte* cur) {
+inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur) {
   const Instruction instr = *t->PC;
 
   #ifdef LBT_HISTOGRAM_ENABLED
@@ -261,7 +261,7 @@ inline bool Vm::_execute(const Instruction* base, ThreadList::iterator t, const 
 }
 
 // while base is always == &Program[0], we pass it in because it then should get inlined away
-inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t, const uint64 offset) {
+inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64 offset) {
   const Instruction instr = *t->PC;
 
   #ifdef LBT_HISTOGRAM_ENABLED
@@ -398,7 +398,7 @@ inline bool Vm::_executeEpsilon(const Instruction* base, ThreadList::iterator t,
   return false;
 }
 
-inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, const uint64 offset) {
+inline void Vm::_executeThread(const Instruction* const base, ThreadList::iterator t, const byte* const cur, const uint64 offset) {
   #ifdef LBT_TRACE_ENABLED
   pre_run_thread_json(std::clog, offset, *t, base);
   #endif
@@ -418,7 +418,7 @@ inline void Vm::_executeThread(const Instruction* base, ThreadList::iterator t, 
   }
 }
 
-inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator t, const uint64 offset) {
+inline bool Vm::_executeEpSequence(const Instruction* const base, ThreadList::iterator t, const uint64 offset) {
 
   // kill threads overlapping an emitted match
   if (t->Label != Thread::NOLABEL && t->Start < MatchEnds[t->Label]) {
@@ -445,13 +445,13 @@ inline bool Vm::_executeEpSequence(const Instruction* base, ThreadList::iterator
 */
   } while (ex);
   #else
-  while (_executeEpsilon(base, t, offset)) ;
+  while (_executeEpsilon(base, t, offset));
   #endif
 
   return t->PC;
 }
 
-inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, const uint64 offset) {
+inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64 offset) {
   // run old threads at this offset
   while (t != Active.end()) {
     _executeThread(base, t, cur, offset);
@@ -517,7 +517,7 @@ void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback hitFn, void* u
   _executeFrame(Prog->First, t, &(*Prog)[0], cur, offset);
 }
 
-void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData) {
+void Vm::startsWith(const byte* const beg, const byte* const end, const uint64 startOffset, HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
   const Instruction* base = &(*Prog)[0];
@@ -528,7 +528,7 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
       Active.push_back(Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE));
     }
 
-    for (const byte* cur = beg; cur < end; ++cur) {
+    for (const byte* cur = beg; cur < end; ++cur, ++offset) {
       for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
         _executeThread(base, t, cur, offset);
       }
@@ -539,8 +539,6 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
         // early exit if threads die out
         break;
       }
-
-      ++offset;
     }
   }
 
@@ -548,14 +546,14 @@ void Vm::startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCal
   reset();
 }
 
-bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData) {
+bool Vm::search(const byte* const beg, const byte* const end, const uint64 startOffset, HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
   const Instruction* base = &(*Prog)[0];
   const ByteSet& first = Prog->First;
   uint64 offset = startOffset;
 
-  for (const byte* cur = beg; cur < end; ++cur) {
+  for (const byte* cur = beg; cur < end; ++cur, ++offset) {
     #ifdef LBT_TRACE_ENABLED
     open_frame_json(std::clog, offset, cur);
     #endif
@@ -567,8 +565,8 @@ bool Vm::search(const byte* beg, const byte* end, uint64 startOffset, HitCallbac
     #endif
 
     _cleanup();
-    ++offset;
   }
+
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
 
   #ifdef LBT_HISTOGRAM_ENABLED
