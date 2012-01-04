@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+from multiprocessing import Process, Queue
 import sys
 
 git_bin = 'git'
@@ -21,11 +22,22 @@ scons_env = os.environ
 scons_env['LD_LIBRARY_PATH'] = '/home/uckelman/projects/lightbox/lightgrep/lib'
 
 test_bin = 'bin/test/test'
-long_test_single = [ test_bin, '--long-test' ]
+long_test = [ test_bin, '--long-test' ]
 
 bzcat_bin = 'bzcat'
 long_test_single_bzcat = [ bzcat_bin, 're_gen/aQ-3.bz2' ]
 long_test_triple_bzcat = [ bzcat_bin, 're_gen/aQ-3-3.bz2' ]
+
+def runLongTest(knownGoodData, errQueue):
+  bzcat = [bzcat_bin, knownGoodData]
+  p1 = subprocess.Popen(bzcat, bufsize=-1, stdout=subprocess.PIPE)
+  p2 = subprocess.Popen(long_test, bufsize=-1, stdin=p1.stdout, stdout=subprocess.PIPE, stderr=open('/dev/null', 'w'))
+
+  for line in p2.stdout:
+    if line.endswith('failed!'):
+      errQueue.put((line, p2.stdout.readline(), p2.stdout.readline()))
+  errQueue.put(None)
+  p2.wait()
 
 def main():
   try:
@@ -48,20 +60,23 @@ def main():
     except ValueError:
       unit_tests = []
       
-    # run single-pattern long test
-    p1 = subprocess.Popen(long_test_single_bzcat, bufsize=-1, stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(long_test_single, bufsize=-1, stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
-    single_pattern_tests = [] 
-#    for line in p2.communicate()[0].split('\n'):
-#      if line.endswith('falied!'):
-#        single_pattern_tests.append(line)
-#        single_pattern_tests.append(next(line))
-#        single_pattern_tests.append(next(line))
+    print(gcc_warnings)
+    print(unit_tests)
 
-    print gcc_warnings
-    print unit_tests
-    print single_pattern_tests
+    # run single-pattern long test
+    longErrs = Queue()
+    oneProc = Process(target=runLongTest, args=('re_gen/aQ-3.bz2', longErrs))
+    threeProc = Process(target=runLongTest, args=('re_gen/aQ-3-3.bz2', longErrs))
+    oneProc.start()
+    threeProc.start()
+    err = ('', '', '')
+    while err is not None:
+      err = longErrs.get()
+      if (err is not None):
+        print(err)
+    
+    oneProc.join()
+    threeProc.join()
 
   except (subprocess.CalledProcessError, OSError) as e:
     print e
