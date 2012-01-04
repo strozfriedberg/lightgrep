@@ -481,12 +481,12 @@ inline void Vm::_cleanup() {
 
 void Vm::cleanup() { _cleanup(); }
 
-bool Vm::execute(Thread* t, const byte* cur) {
+bool Vm::execute(Thread* t, const byte* const cur) {
   Active.push_back(*t);
   return execute(Active.end()-1, cur);
 }
 
-bool Vm::execute(ThreadList::iterator t, const byte* cur) {
+bool Vm::execute(ThreadList::iterator t, const byte* const cur) {
   return _execute(&(*Prog)[0], t, cur);
 }
 
@@ -499,7 +499,7 @@ bool Vm::executeEpsilon(ThreadList::iterator t, uint64 offset) {
   return _executeEpsilon(&(*Prog)[0], t, offset);
 }
 
-void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback hitFn, void* userData) {
+void Vm::executeFrame(const byte* const cur, uint64 offset, HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
   ThreadList::iterator t = Active.begin();
