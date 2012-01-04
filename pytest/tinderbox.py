@@ -91,6 +91,7 @@ def main():
     try:
       fail_end = stdout.index('Failures!')
       unit_failures = stdout[stdout.index('bin/test/test --test')+1:fail_end]
+      task_failure()
       task_result(unit_failures)
       sys.exit()
     except ValueError:
@@ -108,8 +109,10 @@ def main():
     while err is not None:
       err = longErrs.get()
       if (err is not None):
+        if not hadErrors:
+          task_failure()
+          hadErrors = True
         task_result(err)
-        hadErrors = True
     
     oneProc.join()
     threeProc.join()
