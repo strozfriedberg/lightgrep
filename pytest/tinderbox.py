@@ -3,10 +3,10 @@
 from __future__ import print_function
 
 import os
-import subprocess
 import sys
 
 from multiprocessing import Process, Queue
+from subprocess import CalledProcessError, PIPE, Popen
 
 git_bin = 'git'
 git_pull = [ git_bin, 'pull' ]
@@ -45,8 +45,8 @@ def task_failure():
 
 def runLongTest(knownGoodData, errQueue):
   bzcat = [bzcat_bin, knownGoodData]
-  p1 = subprocess.Popen(bzcat, bufsize=-1, stdout=subprocess.PIPE)
-  p2 = subprocess.Popen(long_test, bufsize=-1, stdin=p1.stdout, stdout=subprocess.PIPE, stderr=open('/dev/null', 'w'))
+  p1 = Popen(bzcat, bufsize=-1, stdout=PIPE)
+  p2 = Popen(long_test, bufsize=-1, stdin=p1.stdout, stdout=PIPE, stderr=open(os.devnull, 'w'))
 
   for line in p2.stdout:
     if line.endswith('failed!'):
@@ -86,6 +86,9 @@ def main():
       task_result(gcc_errors)
       sys.exit()
   
+    if not gcc_warnings:
+      task_success()
+
     # check unit test failures
     task_declare("Unit tests")
     try:
@@ -96,7 +99,9 @@ def main():
       sys.exit()
     except ValueError:
       task_success() 
-    
+ 
+    # from here onward, run tests in parallel
+ 
     # run long tests
     task_declare("Long tests")
     longErrs = Queue()
@@ -104,32 +109,29 @@ def main():
     threeProc = Process(target=runLongTest, args=('re_gen/aQ-3-3.bz2', longErrs))
     oneProc.start()
     threeProc.start()
-    hadErrors = False
+
+    long_failures = []
     err = ('', '', '')
     while err is not None:
       err = longErrs.get()
       if (err is not None):
-        if not hadErrors:
-          task_failure()
-          hadErrors = True
-        task_result(err)
-    
+        long_failures.append(err)
+
     oneProc.join()
     threeProc.join()
 
-    if not hadErrors:
+    if long_failures:
+      task_failure()
+      task_result(long_failures)
+    else:
       task_success()
 
-  except (subprocess.CalledProcessError, OSError) as e:
+  except (CalledProcessError, OSError) as e:
     print(e)
 
 
 def run(cmd, environ=None):
-  proc = subprocess.Popen(args=cmd,
-                          env=environ,
-                          bufsize=-1,
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE)
+  proc = Popen(args=cmd, env=environ, bufsize=-1, stdout=PIPE, stderr=PIPE)
   return proc.communicate()
 
 
