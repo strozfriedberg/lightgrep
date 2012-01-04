@@ -7,7 +7,7 @@
 #include <iostream>
 
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
-  out << "{ \"pc\":" << std::hex << t.PC
+  out << "{ \"PC\":" << std::hex << t.PC
       << ", \"Label\":" << std::dec << t.Label
       #ifdef LBT_TRACE_ENABLED
       << ", \"Id\":" << t.Id
@@ -89,6 +89,7 @@ void Thread::output_json(std::ostream& out, const Instruction* base, byte state)
       << ", \"Start\":" << Start
       << ", \"End\":" << End
       << ", \"state\":" << (uint32) state
+      << ", \"op\":" << (PC ? PC->OpCode : 0)
       << " }";
 }
 #endif
