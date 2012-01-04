@@ -172,10 +172,11 @@ int lg_destroy_program(LG_HPROGRAM hProg) {
 
 void create_context(LG_HPROGRAM hProg, LG_HCONTEXT hCtx,
   #ifdef LBT_TRACE_ENABLED
-                    uint64 beginTrace, uint64 endTrace)
+                    uint64 beginTrace, uint64 endTrace
   #else
-                    uint64, uint64)
+                    uint64, uint64
   #endif
+  )
 {
   hCtx->Impl.reset(new ContextHandleImpl);
   #ifdef LBT_TRACE_ENABLED
