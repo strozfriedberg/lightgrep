@@ -21,8 +21,8 @@ public:
   // numCheckedStates should be equal to the number + 1 for the reserved bit
   void init(ProgramPtr prog);
 
-  virtual void startsWith(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData);
-  virtual bool search(const byte* beg, const byte* end, uint64 startOffset, HitCallback hitFn, void* userData);
+  virtual void startsWith(const byte* const beg, const byte* const end, const uint64 startOffset, HitCallback hitFn, void* userData);
+  virtual bool search(const byte* const beg, const byte* const end, const uint64 startOffset, HitCallback hitFn, void* userData);
   virtual void closeOut(HitCallback hitFn, void* userData);
   virtual void reset();
 
@@ -57,24 +57,24 @@ public:
 private:
   void _markSeen(const uint32 label);
 
-  bool _execute(const Instruction* base, ThreadList::iterator t, const byte* cur);
-  bool _executeEpsilon(const Instruction* base, ThreadList::iterator t, const uint64 offset);
-  bool _executeEpSequence(const Instruction* base, ThreadList::iterator t, const uint64 offset);
-  void _executeThread(const Instruction* base, ThreadList::iterator t, const byte* cur, const uint64 offset);
-  void _executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* base, const byte* cur, const uint64 offset);
+  bool _execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur);
+  bool _executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64 offset);
+  bool _executeEpSequence(const Instruction* const base, ThreadList::iterator t, const uint64 offset);
+  void _executeThread(const Instruction* const base, ThreadList::iterator t, const byte* const cur, const uint64 offset);
+  void _executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64 offset);
   void _cleanup();
 
   #ifdef LBT_TRACE_ENABLED
   void open_init_epsilon_json(std::ostream& out);
   void close_init_epsilon_json(std::ostream& out) const;
-  void open_frame_json(std::ostream& out, uint64 offset, const byte* cur);
+  void open_frame_json(std::ostream& out, uint64 offset, const byte* const cur);
   void close_frame_json(std::ostream& out, uint64 offset) const;
   void pre_run_thread_json(std::ostream& out, uint64 offset, const Thread& t,
-                           const Instruction* base);
+                           const Instruction* const base);
   void post_run_thread_json(std::ostream& out, uint64 offset, const Thread& t,
-                            const Instruction* base);
+                            const Instruction* const base);
   void thread_json(std::ostream& out, const Thread& t,
-                   const Instruction* base, byte state);
+                   const Instruction* const base, byte state);
 
   bool first_thread_json;
   std::set<uint64> new_thread_json;
