@@ -53,15 +53,27 @@ def main():
     stderr = result[1].split('\n')
 
     gcc_warnings = [ line for line in stderr if 'warning' in line ]
+    gcc_errors = [ line for line in stderr if 'error' in line ]
     
+    print(gcc_warnings)
+    print(gcc_errors)      
+  
+    # bail on compile failure  
+    if gcc_errors:
+      sys.exit()
+
+    # check unit test failures
     try:
       fail_end = stdout.index('Failures!')
-      unit_tests = stdout[stdout.index('bin/test/test --test')+1:fail_end]
+      unit_failures = stdout[stdout.index('bin/test/test --test')+1:fail_end]
     except ValueError:
-      unit_tests = []
-      
-    print(gcc_warnings)
-    print(unit_tests)
+      unit_failures = []
+    
+    print(unit_failures)
+
+    # bail on unit test failures
+    if unit_failures:
+      sys.exit()
 
     # run single-pattern long test
     longErrs = Queue()
