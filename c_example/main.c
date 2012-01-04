@@ -60,7 +60,8 @@ int main() {
     parser = 0;
 
     // create a search context
-    LG_HCONTEXT searcher = lg_create_context(prog);
+    LG_ContextOptions ctxOpts;
+    LG_HCONTEXT searcher = lg_create_context(prog, &ctxOpts);
 
     char filesigText[] = "lambs love mary.";
     printf("using startsWith\n");
