@@ -88,10 +88,6 @@ private:
   ProgramPtr Prog;
   Instruction* ProgEnd;
 
-  #ifdef LBT_HISTOGRAM_ENABLED
-  std::vector<uint32> ProgHistogram;
-  #endif
-
   ThreadList First,
              Active,
              Next;

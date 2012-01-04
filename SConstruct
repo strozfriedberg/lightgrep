@@ -48,10 +48,6 @@ elif (debug == 'trace'):
   flags = '-O3'
   defines.append('LBT_TRACE_ENABLED')
   ldflags = ''
-elif (debug == 'hist'):
-  flags = '-O3'
-  defines.append('LBT_HISTOGRAM_ENABLED')
-  ldflags = ''
 else:
   flags = '-O3'
   ldflags = ''
