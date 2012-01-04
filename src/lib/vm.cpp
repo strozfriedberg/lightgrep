@@ -199,7 +199,7 @@ inline void Vm::_markSeen(const uint32 label) {
 }
 
 inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur) {
-  const Instruction instr = *t->PC;
+  const Instruction& instr = *t->PC;
 
   #ifdef LBT_HISTOGRAM_ENABLED
   ++ProgHistogram[(std::vector<uint32>::size_type) (t->PC - base)];
@@ -262,7 +262,7 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
 
 // while base is always == &Program[0], we pass it in because it then should get inlined away
 inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64 offset) {
-  const Instruction instr = *t->PC;
+  const Instruction& instr = *t->PC;
 
   #ifdef LBT_HISTOGRAM_ENABLED
   ++ProgHistogram[(std::vector<uint32>::size_type) (t->PC - base)];
