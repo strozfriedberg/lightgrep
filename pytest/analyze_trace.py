@@ -34,6 +34,7 @@ class TraceStats:
     self.ThreadLifetimes = collections.Counter()
     self.NumThreadsSegments = []
     self.NumBytes = 0
+    self.RecordSegments = True
 
   def read(self, lines):
     lastNumThreads = 0
@@ -51,8 +52,9 @@ class TraceStats:
           self.MaxThreadsOnFrame = max(self.MaxThreadsOnFrame, n)
           self.ThreadsPerFrameHist[n] += 1
           threadLevel = math.trunc(n / 3)
-          if (lastNumThreads != threadLevel):
-            self.NumThreadsSegments.append((lastNumThreads, lastStart, offset))
+          if (lastNumThreads != threadLevel and self.RecordSegments):
+            if (lastNumThreads > 0):
+              self.NumThreadsSegments.append((lastNumThreads, lastStart, offset))
             lastStart = offset
             lastNumThreads = threadLevel
           numInstrs = 0
