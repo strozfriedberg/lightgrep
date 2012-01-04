@@ -33,13 +33,13 @@ public:
   }
   #endif
 
-  bool execute(Thread* t, const byte* cur);
-  bool execute(ThreadList::iterator t, const byte* cur);
+  bool execute(Thread* t, const byte* const cur);
+  bool execute(ThreadList::iterator t, const byte* const cur);
 
   bool executeEpsilon(Thread* t, uint64 offset);
   bool executeEpsilon(ThreadList::iterator t, uint64 offset);
 
-  void executeFrame(const byte* cur, uint64 offset, HitCallback hitFn, void* userData);
+  void executeFrame(const byte* const cur, uint64 offset, HitCallback hitFn, void* userData);
   void cleanup();
 
   const ThreadList& first() const { return First; }
@@ -86,7 +86,7 @@ private:
   uint64 MaxMatches;
 
   ProgramPtr Prog;
-  Instruction* ProgEnd;
+  const Instruction* ProgEnd;
 
   ThreadList First,
              Active,
