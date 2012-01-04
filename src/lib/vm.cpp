@@ -118,10 +118,6 @@ void Vm::init(ProgramPtr prog) {
   Program& p(*Prog);
   ProgEnd = &p.back() - 1;
 
-  #ifdef LBT_HISTOGRAM_ENABLED
-  ProgHistogram.resize(p.size());
-  #endif
-
   uint32 numPatterns = 0,
          numCheckedStates = 0;
   for (uint32 i = 0; i < p.size(); ++i) {
@@ -202,10 +198,6 @@ inline void Vm::_markSeen(const uint32 label) {
 inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur) {
   const Instruction& instr = *t->PC;
 
-  #ifdef LBT_HISTOGRAM_ENABLED
-  ++ProgHistogram[(std::vector<uint32>::size_type) (t->PC - base)];
-  #endif
-
   switch (instr.OpCode) {
     case LIT_OP:
       if (*cur == instr.Op.Literal) {
@@ -264,10 +256,6 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
 // while base is always == &Program[0], we pass it in because it then should get inlined away
 inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64 offset) {
   const Instruction& instr = *t->PC;
-
-  #ifdef LBT_HISTOGRAM_ENABLED
-  ++ProgHistogram[(std::vector<uint32>::size_type) (t->PC - base)];
-  #endif
 
   switch (instr.OpCode) {
     case FINISH_OP:
@@ -493,12 +481,12 @@ inline void Vm::_cleanup() {
 
 void Vm::cleanup() { _cleanup(); }
 
-bool Vm::execute(Thread* t, const byte* cur) {
+bool Vm::execute(Thread* t, const byte* const cur) {
   Active.push_back(*t);
   return execute(Active.end()-1, cur);
 }
 
-bool Vm::execute(ThreadList::iterator t, const byte* cur) {
+bool Vm::execute(ThreadList::iterator t, const byte* const cur) {
   return _execute(&(*Prog)[0], t, cur);
 }
 
@@ -511,7 +499,7 @@ bool Vm::executeEpsilon(ThreadList::iterator t, uint64 offset) {
   return _executeEpsilon(&(*Prog)[0], t, offset);
 }
 
-void Vm::executeFrame(const byte* cur, uint64 offset, HitCallback hitFn, void* userData) {
+void Vm::executeFrame(const byte* const cur, uint64 offset, HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
   ThreadList::iterator t = Active.begin();
@@ -569,13 +557,6 @@ bool Vm::search(const byte* const beg, const byte* const end, const uint64 start
   }
 
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
-
-  #ifdef LBT_HISTOGRAM_ENABLED
-  for (std::vector<uint32>::const_iterator i(ProgHistogram.begin()); i != ProgHistogram.end(); ++i) {
-    std::clog << (i - ProgHistogram.begin()) << ' ' << *i << '\n';
-  }
-  std::clog << std::endl;
-  #endif
 
   // check for remaining live threads
   const ThreadList::const_iterator e(Active.end());
