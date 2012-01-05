@@ -1,0 +1,15 @@
+Twain
+[\n\r]Twain
+Twain[\n\r]
+Huck[a-zA-Z]+
+Tom|Sawyer|Huckelberry|Finn
+.(Tom|Sawyer|Huckelberry|Finn)
+[a-zA-Z]+ing
+[a-zA-Z]+mov[a-zA-Z]+
+([A-Za-z]awyer|[A-Za-z]inn)[^a-ZA-Z]
+[A-Z]awyer|[A-Z]inn
+Tom.{0,30}river|river.{0,30}Tom
+[\n\r][a-zA-Z]{0,4}ing[^a-zA-Z]
+[\n\r][a-zA-Z]{5,}[\n\r]
+[a-zA-Z]+ing[\n\r]
+[\n\r].[\n\r]
