@@ -137,7 +137,7 @@ boost::shared_ptr<ProgramHandle> createProgram(const Options& opts, PatternInfo&
 
   // build the program
   boost::shared_ptr<ProgramHandle> prog = buildProgram(parser.get(), opts);
-  if (lg_error(prog.get())) {
+  if (!lg_ok(prog.get())) {
     std::cerr << lg_error(prog.get()) << std::endl;
     return boost::shared_ptr<ProgramHandle>();
   }
@@ -281,7 +281,7 @@ void writeGraphviz(const Options& opts) {
   // build the program to force determinization, if required
   {
     boost::shared_ptr<ProgramHandle> prog(buildProgram(parser.get(), opts));
-    if (lg_error(prog.get())) {
+    if (!lg_ok(prog.get())) {
       std::cerr << lg_error(prog.get()) << std::endl;
       return;
     }
@@ -309,7 +309,7 @@ void writeProgram(const Options& opts) {
 
     // build the program
     prog = buildProgram(parser.get(), opts);
-    if (lg_error(prog.get())) {
+    if (!lg_ok(prog.get())) {
       std::cerr << lg_error(prog.get()) << std::endl;
       return;
     }
