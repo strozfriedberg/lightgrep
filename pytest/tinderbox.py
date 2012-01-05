@@ -151,6 +151,9 @@ def main():
       else:
         commit = arg
 
+  # put repo into a known state
+  run([ git_bin, 'checkout', 'master' ])
+
   try:
     # check whether the repo is current
     task_declare("Pulling")
@@ -163,12 +166,13 @@ def main():
 
     task_declare("Commit")
 
-    # checkout the requested commit, or HEAD
-    if not commit:
+    # checkout the requested commit, if any
+    if commit:
+      run([ git_bin, 'checkout', commit])
+    else:
       # get hash for HEAD
       commit = run(git_hash)[0].strip()
 
-    run([ git_bin, 'checkout', commit])
     task_result(commit)
  
     # clean and build
