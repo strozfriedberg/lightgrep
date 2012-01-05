@@ -9,7 +9,7 @@ def main():
 
   perf_schema = \
     'CREATE TABLE perf ( \
-      git TEXT PRIMARY KEY, \
+      git TEXT, \
       test_name TEXT, \
       seconds REAL, \
       task_clock REAL, \
@@ -25,7 +25,8 @@ def main():
       L1_dcache_loads INTEGER, \
       L1_dcache_load_misses INTEGER, \
       LLC_loads INTEGER, \
-      LLC_load_misses INTEGER \
+      LLC_load_misses INTEGER, \
+      PRIMARY KEY (git, test_name) \
     )'
 
   commit_schema = \
