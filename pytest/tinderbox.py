@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os
 import re
+import sqlite3
 import sys
 
 from multiprocessing import Process, Queue
@@ -11,6 +12,7 @@ from subprocess import CalledProcessError, PIPE, Popen
 
 git_bin = 'git'
 git_pull = [ git_bin, 'pull' ]
+git_hash = [ git_bin, 'rev-parse', 'HEAD' ]
 
 scons_bin = 'scons'
 scons_threads = 8
@@ -40,6 +42,8 @@ norvig_test = [ perf_bin, 'stat', '--repeat', '10', '-d', lg_bin, '--no-output',
 
 twain_test = [ perf_bin, 'stat', '--repeat', '10', '-d', lg_bin, '--no-output', 'pytest/keys/twain.txt', 'pytest/corpora/marktwainworks.txt' ]
 
+dbfile = 'pytest/lg.db'
+
 def task_declare(name):
   print(name, end=": ")
 
@@ -63,15 +67,106 @@ def runLongTest(knownGoodData, errQueue):
   errQueue.put(None)
   p2.wait()
 
+def perfStats(perfspew):
+  stats_begin = None;
+  for (i, line) in enumerate(perfspew):
+    if line.startswith(" Performance counter stats"):
+      stats_begin = i + 1
+      break;
+
+  stats = dict()
+  p = re.compile("\s+((?:\d+|(?:\d{1,3}(?:,\d{3})+))(?:\.\d+)?)\s+([\w-]+)")
+  for line in perfspew[stats_begin:]:
+    m = p.match(line)
+    if m:
+      stats[m.group(2).replace('-', '_')] = m.group(1).replace(',', '')
+
+  return stats
+
+def perfTest(name, commit, count, cmd, db):
+  stdout = run(cmd)[1].split('\n')
+
+  task_declare("%s test hit count" % (name))
+  if '%d hits' % (count) in stdout:
+    task_success()
+  else:
+    task_failure()
+    sys.exit()
+
+  stats = perfStats(stdout)
+  stats['git'] = commit
+
+  perf_insert = \
+    'INSERT INTO %s ( \
+      git, \
+      seconds, \
+      task_clock, \
+      context_switches, \
+      CPU_migrations, \
+      page_faults, \
+      cycles, \
+      stalled_cycles_frontend, \
+      stalled_cycles_backend, \
+      instructions, \
+      branches, \
+      branch_misses, \
+      L1_dcache_loads, \
+      L1_dcache_load_misses, \
+      LLC_loads, \
+      LLC_load_misses \
+    ) VALUES ( \
+      :git, \
+      :seconds, \
+      :task_clock, \
+      :context_switches, \
+      :CPU_migrations, \
+      :page_faults, \
+      :cycles, \
+      :stalled_cycles_frontend, \
+      :stalled_cycles_backend, \
+      :instructions, \
+      :branches, \
+      :branch_misses, \
+      :L1_dcache_loads, \
+      :L1_dcache_load_misses, \
+      :LLC_loads, \
+      :LLC_load_misses \
+    )'
+
+  db.execute(perf_insert % (name.lower()), stats)
+  db.commit()
+
 def main():
+  build_force = False
+  commit = None
+
+  # parse our arguments
+  if len(sys.argv) > 1:
+    for arg in sys.argv[1:]:
+      if arg == '-f':
+        build_force = True
+      else:
+        commit = arg
+
   try:
     # check whether the repo is current
     task_declare("Pulling")
     if 'Already up-to-date' in run(git_pull)[0]:
       task_result("up-to-date")
-#      sys.exit()
+      if not build_force:
+        sys.exit()
     else:
       task_success()
+
+    task_declare("Commit")
+
+    # checkout the requested commit, or HEAD
+    if not commit:
+      # get hash for HEAD
+      commit = run(git_hash)[0].strip()
+
+    run([ git_bin, 'checkout', commit])
+    task_result(commit)
  
     # clean and build
     task_declare("Cleaning")
@@ -109,40 +204,17 @@ def main():
     except ValueError:
       task_success() 
 
-    # run Twain test
-    stdout = run(twain_test)[1].split('\n')
+    # prepare for tests using the database
+    with sqlite3.connect(dbfile) as db:
+      # run Twain test
+      if build_force:
+        db.execute("DELETE FROM twain WHERE git = ?", (commit,))
+      perfTest('Twain', commit, 497999, twain_test, db)
 
-    task_declare("Twain test hit count")
-    if '497999 hits' in stdout:
-      task_success()
-    else:
-      task_failure()
-      sys.exit()
-
-    stats_begin = None;
-    for (i, line) in enumerate(stdout):
-      if line.startswith(" Performance counter stats"):
-        stats_begin = i + 1
-        break;
-
-    twain_stats = dict()
-    p = re.compile("\s+((?:\d+|(?:\d{1,3}(?:,\d{3})+))(?:\.\d+)?)\s+([\w-]+)")
-    for line in stdout[stats_begin:]:
-      m = p.match(line)
-      if m:
-        twain_stats[m.group(2)] = m.group(1).replace(',', '')
-
-    print(twain_stats)
-
-    # run fixed-string Norvig corpus test
-    result = run(norvig_test)[1].split('\n')
-
-    task_declare("Norvig test hit count")
-    if '687628 hits' in result:
-      task_success()
-    else:
-      task_failure()
-      sys.exit()
+      # run fixed-string Norvig corpus test
+      if build_force:
+        db.execute("DELETE FROM norvig WHERE git = ?", (commit,))
+      perfTest('Norvig', commit, 687628, norvig_test, db)
 
     # run long tests in parallel
     task_declare("Long tests")
