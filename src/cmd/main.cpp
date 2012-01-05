@@ -278,7 +278,7 @@ void writeGraphviz(const Options& opts) {
   // parse patterns
   boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
 
-  // build the program to force determinization
+  // build the program to force determinization, if required
   {
     boost::shared_ptr<ProgramHandle> prog(buildProgram(parser.get(), opts));
     if (lg_error(prog.get())) {
