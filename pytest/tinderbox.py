@@ -95,10 +95,12 @@ def perfTest(name, commit, count, cmd, db):
 
   stats = perfStats(stdout)
   stats['git'] = commit
+  stats['test_name'] = name.lower()
 
   perf_insert = \
-    'INSERT INTO %s ( \
+    'INSERT INTO perf ( \
       git, \
+      test_name, \
       seconds, \
       task_clock, \
       context_switches, \
@@ -116,6 +118,7 @@ def perfTest(name, commit, count, cmd, db):
       LLC_load_misses \
     ) VALUES ( \
       :git, \
+      :test_name, \
       :seconds, \
       :task_clock, \
       :context_switches, \
@@ -133,7 +136,7 @@ def perfTest(name, commit, count, cmd, db):
       :LLC_load_misses \
     )'
 
-  db.execute(perf_insert % (name.lower()), stats)
+  db.execute(perf_insert, stats)
   db.commit()
 
 def main():
@@ -186,7 +189,7 @@ def main():
       task_result(gcc_warnings)
     
     if gcc_errors:
-      task_failed()
+      task_failure()
       task_result(gcc_errors)
       sys.exit()
   
@@ -206,14 +209,12 @@ def main():
 
     # prepare for tests using the database
     with sqlite3.connect(dbfile) as db:
-      # run Twain test
       if build_force:
-        db.execute("DELETE FROM twain WHERE git = ?", (commit,))
-      perfTest('Twain', commit, 497999, twain_test, db)
+        db.execute("DELETE FROM perf WHERE git = ?", (commit,))
 
+      # run Twain test
+      perfTest('Twain', commit, 497999, twain_test, db)
       # run fixed-string Norvig corpus test
-      if build_force:
-        db.execute("DELETE FROM norvig WHERE git = ?", (commit,))
       perfTest('Norvig', commit, 687628, norvig_test, db)
 
     # run long tests in parallel
