@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import os
+import re
 import sys
 
 from multiprocessing import Process, Queue
@@ -30,6 +31,14 @@ long_test = [ test_bin, '--long-test' ]
 bzcat_bin = 'bzcat'
 long_test_single_bzcat = [ bzcat_bin, 're_gen/aQ-3.bz2' ]
 long_test_triple_bzcat = [ bzcat_bin, 're_gen/aQ-3-3.bz2' ]
+
+perf_bin = 'perf'
+
+lg_bin = 'bin/src/cmd/lightgrep'
+
+norvig_test = [ perf_bin, 'stat', '--repeat', '10', '-d', lg_bin, '--no-output', 'pytest/keys/114743.txt', 'pytest/corpora/norvig6mb.txt' ]
+
+twain_test = [ perf_bin, 'stat', '--repeat', '10', '-d', lg_bin, '--no-output', 'pytest/keys/twain.txt', 'pytest/corpora/marktwainworks.txt' ]
 
 def task_declare(name):
   print(name, end=": ")
@@ -99,10 +108,43 @@ def main():
       sys.exit()
     except ValueError:
       task_success() 
- 
-    # from here onward, run tests in parallel
- 
-    # run long tests
+
+    # run Twain test
+    stdout = run(twain_test)[1].split('\n')
+
+    task_declare("Twain test hit count")
+    if '497999 hits' in stdout:
+      task_success()
+    else:
+      task_failure()
+      sys.exit()
+
+    stats_begin = None;
+    for (i, line) in enumerate(stdout):
+      if line.startswith(" Performance counter stats"):
+        stats_begin = i + 1
+        break;
+
+    twain_stats = dict()
+    p = re.compile("\s+((?:\d+|(?:\d{1,3}(?:,\d{3})+))(?:\.\d+)?)\s+([\w-]+)")
+    for line in stdout[stats_begin:]:
+      m = p.match(line)
+      if m:
+        twain_stats[m.group(2)] = m.group(1).replace(',', '')
+
+    print(twain_stats)
+
+    # run fixed-string Norvig corpus test
+    result = run(norvig_test)[1].split('\n')
+
+    task_declare("Norvig test hit count")
+    if '687628 hits' in result:
+      task_success()
+    else:
+      task_failure()
+      sys.exit()
+
+    # run long tests in parallel
     task_declare("Long tests")
     longErrs = Queue()
     oneProc = Process(target=runLongTest, args=('re_gen/aQ-3.bz2', longErrs))
