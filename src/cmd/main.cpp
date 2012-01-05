@@ -137,6 +137,10 @@ boost::shared_ptr<ProgramHandle> createProgram(const Options& opts, PatternInfo&
 
   // build the program
   boost::shared_ptr<ProgramHandle> prog = buildProgram(parser.get(), opts);
+  if (lg_error(prog.get())) {
+    std::cerr << lg_error(prog.get()) << std::endl;
+    return boost::shared_ptr<ProgramHandle>();
+  }
 
   GraphPtr g(parser->Impl->Fsm);
   std::cerr << g->numVertices() << " vertices" << std::endl;
@@ -215,6 +219,9 @@ void search(const Options& opts) {
   pinfo.Patterns = opts.getKeys();
 
   boost::shared_ptr<ProgramHandle> prog(createProgram(opts, pinfo));
+  if (!prog) {
+    return;
+  }
 
   // setup hit callback
   LG_HITCALLBACK_FN callback;
@@ -272,7 +279,13 @@ void writeGraphviz(const Options& opts) {
   boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
 
   // build the program to force determinization
-  buildProgram(parser.get(), opts);
+  {
+    boost::shared_ptr<ProgramHandle> prog(buildProgram(parser.get(), opts));
+    if (lg_error(prog.get())) {
+      std::cerr << lg_error(prog.get()) << std::endl;
+      return;
+    }
+  }
 
   // break on through the C API to print the graph
   GraphPtr g(parser->Impl->Fsm);
@@ -288,21 +301,25 @@ void writeProgram(const Options& opts) {
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
-  boost::shared_ptr<ProgramHandle> progh;
+  boost::shared_ptr<ProgramHandle> prog;
 
   {
     // parse patterns
     boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
 
     // build the program
-    progh = buildProgram(parser.get(), opts);
+    prog = buildProgram(parser.get(), opts);
+    if (lg_error(prog.get())) {
+      std::cerr << lg_error(prog.get()) << std::endl;
+      return;
+    }
  
     GraphPtr g(parser->Impl->Fsm);
     std::cerr << g->numVertices() << " vertices" << std::endl;
   }
 
   // break on through the C API to print the program
-  ProgramPtr p(progh->Impl->Prog);
+  ProgramPtr p(prog->Impl->Prog);
   std::cerr << p->size() << " instructions" << std::endl;
   std::ostream& out(opts.openOutput());
   out << *p << std::endl;
