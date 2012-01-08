@@ -1,8 +1,6 @@
 #include "basic.h"
 #include "matchgen.h"
 
-#include <iostream>
-#include <set>
 #include <stack>
 
 struct Info { 
@@ -11,7 +9,11 @@ struct Info {
   std::string m;
 };
 
-void matchgen(const Graph& g, std::vector<std::string>& matches) {
+void matchgen(const Graph& g, std::set<std::string>& matches, uint32 limit) {
+  if (limit == 0) {
+    return;
+  }
+
   std::stack<Info> stack;
   Info i;
   i.v = 0;
@@ -24,11 +26,14 @@ void matchgen(const Graph& g, std::vector<std::string>& matches) {
     Info pi = stack.top();
     stack.pop();    
     Graph::vertex v = pi.v;
-    std::string m(pi.m);
-    std::set<Graph::vertex> seen(pi.seen);
+    std::string& m(pi.m);
+    std::set<Graph::vertex>& seen(pi.seen);
 
     if (g[v] && g[v]->IsMatch) {
-      std::cout << m << std::endl;
+      matches.insert(m);
+      if (matches.size() >= limit) {
+        return;
+      }
     }
 
     for (uint32 i = 0; i < g.outDegree(v); ++i) {
