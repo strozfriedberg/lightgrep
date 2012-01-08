@@ -3,8 +3,11 @@
 #include "basic.h"
 #include "optparser.h"
 
-#include <string>
 #include <vector>
+#include <set>
+#include <string>
+
+#include <boost/lexical_cast.hpp>
 
 namespace po = boost::program_options;
 
@@ -46,7 +49,7 @@ void parse_opts(int argc, char** argv,
   desc.add_options()
     ("help", "produce help message")
     ("encoding,e", po::value< std::string >(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
-    ("command,c", po::value< std::string >(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|test|server]")
+    ("command,c", po::value< std::string >(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|server]")
     ("keywords,k", po::value< std::string >(&opts.KeyFile), "path to file containing keywords")
     ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
@@ -88,8 +91,8 @@ void parse_opts(int argc, char** argv,
     opts.Command = "long-test";
   }
 
-  if (opts.Command == "search" ||
-      opts.Command == "graph" || opts.Command == "prog") {
+  if (opts.Command == "search" || opts.Command == "graph" ||
+      opts.Command == "prog"   || opts.Command == "samp") {
     // determine the source of our patterns
     if (!optsMap["pattern"].empty()) {
       if (!optsMap["keywords"].empty()) {
@@ -137,14 +140,22 @@ void parse_opts(int argc, char** argv,
         opts.Input = "-";
       }
     }
+    else if (opts.Command == "samp") {
+      if (!pargs.empty()) {
+        opts.Limit = boost::lexical_cast<uint32>(pargs.front());
+        pargs.erase(pargs.begin());
+      }
+      else {
+        opts.Limit = std::numeric_limits<std::set<std::string>::size_type>::max();
+      } 
+    }
 
     // there should be no positional arguments unused now
     if (!pargs.empty()) {
       throw po::too_many_positional_options_error();
     }
   }
-  else if (opts.Command == "test" || opts.Command == "long-test" ||
-           opts.Command == "help" || opts.Command == "server") {
+  else if (opts.Command == "help" || opts.Command == "server") {
     // nothing else to do
   }
   else {

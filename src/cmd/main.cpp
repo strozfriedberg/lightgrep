@@ -1,7 +1,10 @@
+#include <algorithm>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <numeric>
+#include <set>
 
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
@@ -12,6 +15,7 @@
 #include "handles.h"
 #include "hitwriter.h"
 #include "lightgrep_c_api.h"
+#include "matchgen.h"
 #include "options.h"
 #include "optparser.h"
 #include "patterninfo.h"
@@ -325,6 +329,30 @@ void writeProgram(const Options& opts) {
   out << *p << std::endl;
 }
 
+void writeSampleMatches(const Options& opts) {
+  if (opts.getKeys().empty()) {
+    return;
+  }
+
+  const std::vector<std::string>& pats(opts.getKeys());
+  for (std::vector<std::string>::const_iterator i(pats.begin()); i != pats.end(); ++i) {
+    // parse the pattern
+
+    PatternInfo pinfo;
+    pinfo.Patterns.push_back(*i);
+
+    boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
+
+    // break on through the C API to get the graph
+    GraphPtr g(parser->Impl->Fsm);
+
+    std::set<std::string> matches;
+    matchgen(*g, matches, opts.Limit);
+
+    std::copy(matches.begin(), matches.end(), std::ostream_iterator<std::string>(opts.openOutput(), "\n"));
+  }
+}
+
 void startServer(const Options& opts) {
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
@@ -360,6 +388,9 @@ int main(int argc, char** argv) {
     }
     else if (opts.Command == "prog") {
       writeProgram(opts);
+    }
+    else if (opts.Command == "samp") {
+      writeSampleMatches(opts);
     }
     else {
       // this should be impossible

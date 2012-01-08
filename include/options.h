@@ -4,11 +4,15 @@
 
 #include "basic.h"
 #include <iosfwd>
+#include <set>
+#include <string>
 
 class Options {
 public:
   uint64  DebugBegin,
           DebugEnd;
+
+  std::set<std::string>::size_type Limit;
 
   std::string KeyFile,
               Command,
