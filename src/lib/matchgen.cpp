@@ -1,5 +1,6 @@
 #include "basic.h"
 #include "matchgen.h"
+#include "unparser.h"
 
 #include <stack>
 
@@ -50,7 +51,7 @@ void matchgen(const Graph& g, std::set<std::string>& matches, uint32 limit) {
         if (bs[b]) {
           Info ci;
           ci.v = c;
-          ci.m = m + (char) b;
+          ci.m = m + byteToLiteralString(b);
           ci.seen = seen;
           ci.seen.insert(c);
           stack.push(ci);
