@@ -314,6 +314,26 @@ SCOPE_TEST(parseUnparse_BS400_Test) {
   }
 }
 
+SCOPE_TEST(parseUnparse_BSq_Test) {
+  ParseTree tree;
+  try {
+    parse("\\q", false, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+  }
+}
+
+SCOPE_TEST(parseUnparse_xBSq_Test) {
+  ParseTree tree;
+  try {
+    parse("x\\q", false, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+  }
+}
+
 SCOPE_TEST(byteToCharacterString) {
   std::stringstream ss;
 
