@@ -40,5 +40,5 @@ public:
 
   std::ostream& openOutput() const;
 
-  std::vector< std::string > getKeys() const;
+  std::vector<std::string> getKeys() const;
 };
