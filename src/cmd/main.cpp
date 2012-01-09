@@ -294,30 +294,6 @@ void searches(const Options& opts) {
 
   // search our inputs
   if (opts.Recursive) {
-/*
-    std::stack<fs::path> stack;
-
-    for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
-      stack.push(fs::path(*i));
-    }
-
-    while (!stack.empty()) {
-      fs::path p(stack.top());
-      stack.pop();
-
-      if (fs::exists(p)) {
-        if (fs::is_directory(p)) {
-          const fs::directory_iterator dirend;
-          for (fs::directory_iterator i(p); i != dirend; ++i) {
-            stack.push(i->path());
-          }
-        }
-        else {
-          search(p.native(), ctrl, searcher, hinfo.get(), callback);
-        }
-      }
-    }
-*/
     for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
       const fs::path p(*i);
       if (fs::is_directory(p)) {
