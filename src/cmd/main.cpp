@@ -367,7 +367,7 @@ void writeSampleMatches(const Options& opts) {
       GraphPtr g(parser->Impl->Fsm);
 
       std::set<std::string> matches;
-      matchgen(*g, matches, opts.Limit);
+      matchgen(*g, matches, opts.SampleLimit, opts.LoopLimit);
 
       std::copy(matches.begin(), matches.end(), std::ostream_iterator<std::string>(opts.openOutput(), "\n"));
     }

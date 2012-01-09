@@ -3,6 +3,8 @@
 // must include <fstream> before this header, because of <iosfwd> usage
 
 #include "basic.h"
+#include "graph.h"
+
 #include <iosfwd>
 #include <set>
 #include <string>
@@ -12,7 +14,8 @@ public:
   uint64  DebugBegin,
           DebugEnd;
 
-  std::set<std::string>::size_type Limit;
+  std::set<std::string>::size_type SampleLimit;
+  std::multiset<Graph::vertex>::size_type LoopLimit;
 
   std::string KeyFile,
               Command,

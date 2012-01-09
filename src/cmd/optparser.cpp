@@ -142,11 +142,17 @@ void parse_opts(int argc, char** argv,
     }
     else if (opts.Command == "samp") {
       if (!pargs.empty()) {
-        opts.Limit = boost::lexical_cast<uint32>(pargs.front());
+        opts.SampleLimit = boost::lexical_cast<uint32>(pargs.front());
         pargs.erase(pargs.begin());
+
+        if (!pargs.empty()) {
+          opts.LoopLimit = boost::lexical_cast<uint32>(pargs.front());
+          pargs.erase(pargs.begin());
+        }
       }
       else {
-        opts.Limit = std::numeric_limits<std::set<std::string>::size_type>::max();
+        opts.SampleLimit = std::numeric_limits<std::set<std::string>::size_type>::max();
+        opts.LoopLimit = 1;
       } 
     }
 
