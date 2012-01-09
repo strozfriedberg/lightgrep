@@ -29,6 +29,7 @@ namespace {
 %token <c> CHAR
 %token <c> DIGIT
 %token <c> NAMED
+%token <c> BAD
 
 %type <node> regexp alt concat rep number atom literal charclass charclass_right cc_named
 %type <c>    character cc_char cc_char_first
@@ -356,7 +357,7 @@ namespace {
     }
 
     if (oct > 0377) {
-      return -1;
+      return BAD;
     }
 
     yylval.c = oct;
@@ -406,7 +407,7 @@ namespace {
 
   int consumeEscape() {
     if (Text >= TextEnd) {
-      return -1;
+      return BAD;
     }
 
     const unsigned int c = *Text++;
@@ -476,7 +477,7 @@ namespace {
         return consumeOctCode();
 
       default:
-        return -1;
+        return BAD;
     }
   }
 
