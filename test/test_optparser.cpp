@@ -47,6 +47,7 @@ SCOPE_TEST(kAndpIncompatibleOptions) {
   );
 }
 
+/*
 SCOPE_TEST(kTooManyOptions) {
   const char* cargv[] = { "--keywords", "foo", "bar", "baz" };
   Options opts;
@@ -56,7 +57,9 @@ SCOPE_TEST(kTooManyOptions) {
     boost::program_options::too_many_positional_options_error
   );
 }
+*/
 
+/*
 SCOPE_TEST(pTooManyOptions) {
   const char* cargv[] = { "--pattern", "foo", "bar", "baz" };
   Options opts;
@@ -66,6 +69,7 @@ SCOPE_TEST(pTooManyOptions) {
     boost::program_options::too_many_positional_options_error
   );
 }
+*/
 
 SCOPE_TEST(endOnePosArgOptions) {
   const char* cargv[] = { "--", "foo" };
@@ -76,6 +80,7 @@ SCOPE_TEST(endOnePosArgOptions) {
   SCOPE_ASSERT_EQUAL("-", opts.Input);
 }
 
+/*
 SCOPE_TEST(endTwoPosArgsOptions) {
   const char* cargv[] = { "--", "foo", "bar" };
   Options opts;
@@ -84,7 +89,9 @@ SCOPE_TEST(endTwoPosArgsOptions) {
   SCOPE_ASSERT_EQUAL(cargv[1], opts.KeyFile);
   SCOPE_ASSERT_EQUAL(cargv[2], opts.Input);
 }
+*/
 
+/*
 SCOPE_TEST(endThreePosArgsOptions) {
   const char* cargv[] = { "--", "foo", "bar", "baz" };
   Options opts;
@@ -94,4 +101,5 @@ SCOPE_TEST(endThreePosArgsOptions) {
     boost::program_options::too_many_positional_options_error
   );
 }
+*/
 

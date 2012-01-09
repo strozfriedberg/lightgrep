@@ -6,19 +6,19 @@
 
 struct Info { 
   Graph::vertex v;
-  std::set<Graph::vertex> seen;
+  std::vector<uint32> seen;
   std::string m;
 };
 
-void matchgen(const Graph& g, std::set<std::string>& matches, uint32 limit) {
-  if (limit == 0) {
+void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_matches, uint32 max_loops) {
+  if (max_matches == 0) {
     return;
   }
 
   std::stack<Info> stack;
   Info i;
   i.v = 0;
-  i.seen.insert(0);
+  i.seen.assign(g.numVertices(), 0);
   stack.push(i);
 
   ByteSet bs;
@@ -28,19 +28,20 @@ void matchgen(const Graph& g, std::set<std::string>& matches, uint32 limit) {
     stack.pop();    
     Graph::vertex v = pi.v;
     std::string& m(pi.m);
-    std::set<Graph::vertex>& seen(pi.seen);
+    std::vector<uint32>& seen(pi.seen);
 
     if (g[v] && g[v]->IsMatch) {
       matches.insert(m);
-      if (matches.size() >= limit) {
+      if (matches.size() >= max_matches) {
         return;
       }
     }
 
-    for (uint32 i = 0; i < g.outDegree(v); ++i) {
-      Graph::vertex c = g.outVertex(v, i);
+    const uint32 odeg = g.outDegree(v);
+    for (uint32 i = 0; i < odeg; ++i) {
+      Graph::vertex c = g.outVertex(v, odeg - i - 1);
 
-      if (pi.seen.find(c) != pi.seen.end()) {
+      if (pi.seen[c] > max_loops) {
         continue;
       }
 
@@ -53,7 +54,7 @@ void matchgen(const Graph& g, std::set<std::string>& matches, uint32 limit) {
           ci.v = c;
           ci.m = m + byteToLiteralString(b);
           ci.seen = seen;
-          ci.seen.insert(c);
+          ++ci.seen[c];
           stack.push(ci);
           break;
         }

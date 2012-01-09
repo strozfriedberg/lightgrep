@@ -3,16 +3,20 @@
 // must include <fstream> before this header, because of <iosfwd> usage
 
 #include "basic.h"
+#include "graph.h"
+
 #include <iosfwd>
 #include <set>
 #include <string>
+#include <vector>
 
 class Options {
 public:
-  uint64  DebugBegin,
-          DebugEnd;
+  uint64 DebugBegin,
+         DebugEnd;
 
-  std::set<std::string>::size_type Limit;
+  std::set<std::string>::size_type SampleLimit;
+  std::multiset<Graph::vertex>::size_type LoopLimit;
 
   std::string KeyFile,
               Command,
@@ -22,13 +26,16 @@ public:
               Pattern,
               ServerLog;
 
+  std::vector<std::string> Inputs;
+
   unsigned int BlockSize;
 
-  bool    CaseSensitive,
-          LiteralMode,
-          NoOutput,
-          Determinize,
-          PrintPath;
+  bool CaseSensitive,
+       LiteralMode,
+       NoOutput,
+       Determinize,
+       PrintPath,
+       Recursive;
 
   mutable std::ofstream OutputFile;
 
@@ -36,5 +43,5 @@ public:
 
   std::ostream& openOutput() const;
 
-  std::vector< std::string > getKeys() const;
+  std::vector<std::string> getKeys() const;
 };
