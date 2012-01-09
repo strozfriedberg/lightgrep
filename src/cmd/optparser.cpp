@@ -141,6 +141,9 @@ void parse_opts(int argc, char** argv,
       }
     }
     else if (opts.Command == "samp") {
+      opts.SampleLimit = std::numeric_limits<std::set<std::string>::size_type>::max();
+      opts.LoopLimit = 1;
+
       if (!pargs.empty()) {
         opts.SampleLimit = boost::lexical_cast<uint32>(pargs.front());
         pargs.erase(pargs.begin());
@@ -150,10 +153,6 @@ void parse_opts(int argc, char** argv,
           pargs.erase(pargs.begin());
         }
       }
-      else {
-        opts.SampleLimit = std::numeric_limits<std::set<std::string>::size_type>::max();
-        opts.LoopLimit = 1;
-      } 
     }
 
     // there should be no positional arguments unused now
