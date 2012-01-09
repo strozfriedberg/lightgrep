@@ -385,19 +385,19 @@ namespace {
       int val = parseHexChar(one),
           ret;
       if (val < 0) {
-        return val;
+        return BAD;
       }
       ret = val;
       ret <<= 4;
       val = parseHexChar(two);
       if (val < 0) {
-        return val;
+        return BAD;
       }
       ret += val;
       yylval.c = ret;
       return CHAR;
     }
-    return -1;
+    return BAD;
   }
 
 // FIXME: Add \c.
