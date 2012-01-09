@@ -10,7 +10,7 @@ struct Info {
   std::string m;
 };
 
-void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_loops, uint32 max_matches) {
+void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_matches, uint32 max_loops) {
   if (max_matches == 0) {
     return;
   }
