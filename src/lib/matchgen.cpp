@@ -6,7 +6,7 @@
 
 struct Info { 
   Graph::vertex v;
-  std::multiset<Graph::vertex> seen;
+  std::vector<uint32> seen;
   std::string m;
 };
 
@@ -18,6 +18,7 @@ void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_loops, 
   std::stack<Info> stack;
   Info i;
   i.v = 0;
+  i.seen.assign(g.numVertices(), 0);
   stack.push(i);
 
   ByteSet bs;
@@ -27,7 +28,7 @@ void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_loops, 
     stack.pop();    
     Graph::vertex v = pi.v;
     std::string& m(pi.m);
-    std::multiset<Graph::vertex>& seen(pi.seen);
+    std::vector<uint32>& seen(pi.seen);
 
     if (g[v] && g[v]->IsMatch) {
       matches.insert(m);
@@ -40,7 +41,7 @@ void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_loops, 
     for (uint32 i = 0; i < odeg; ++i) {
       Graph::vertex c = g.outVertex(v, odeg - i - 1);
 
-      if (pi.seen.count(c) > max_loops) {
+      if (pi.seen[c] > max_loops) {
         continue;
       }
 
@@ -53,7 +54,7 @@ void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_loops, 
           ci.v = c;
           ci.m = m + byteToLiteralString(b);
           ci.seen = seen;
-          ci.seen.insert(c);
+          ++ci.seen[c];
           stack.push(ci);
           break;
         }
