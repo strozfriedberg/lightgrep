@@ -7,6 +7,7 @@
 #include <set>
 
 #include <boost/bind.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -41,6 +42,7 @@ namespace boost {
 // </magic_incantation>
 
 namespace po = boost::program_options;
+namespace fs = boost::filesystem;
 
 void startup(boost::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts);
 
@@ -224,16 +226,34 @@ bool SearchController::searchFile(boost::shared_ptr<ContextHandle> searcher, Hit
   return true;
 }
 
-void search(const Options& opts) {
+void search(const std::string& input, SearchController& ctrl, boost::shared_ptr<ContextHandle> searcher, HitCounterInfo* hinfo, LG_HITCALLBACK_FN callback) {
   // try to open our input
-  FILE* file = opts.Input == "-" ? stdin : fopen(opts.Input.c_str(), "rb");
+  FILE* file = input == "-" ? stdin : fopen(input.c_str(), "rb");
   if (!file) {
-    std::cerr << "Could not open file " << opts.Input << std::endl;
+    std::cerr << "Could not open file " << input << std::endl;
     return;
   }
 
   setbuf(file, 0); // unbuffered, bitte
 
+  hinfo->setPath(input);
+  lg_reset_context(searcher.get());
+  ctrl.searchFile(searcher, hinfo, file, callback);
+
+  fclose(file);
+}
+
+void searchRecursively(const fs::path& path, SearchController& ctrl, boost::shared_ptr<ContextHandle> searcher, HitCounterInfo* hinfo, LG_HITCALLBACK_FN callback) {
+  fs::recursive_directory_iterator end;
+  for (fs::recursive_directory_iterator d(path); d != end; ++d) {
+    const fs::path p(d->path());
+    if (!fs::is_directory(p)) {
+      search(p.native(), ctrl, searcher, hinfo, callback);
+    }
+  }
+}
+
+void searches(const Options& opts) {
   // parse patterns and get index and encoding info for hit writer
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
@@ -244,7 +264,7 @@ void search(const Options& opts) {
   }
 
   // setup hit callback
-  LG_HITCALLBACK_FN callback;
+  LG_HITCALLBACK_FN callback = 0;
   boost::scoped_ptr<HitCounterInfo> hinfo;
 
   if (opts.NoOutput) {
@@ -253,14 +273,14 @@ void search(const Options& opts) {
   }
   else if (opts.PrintPath) {
     callback = &pathWriter;
-    hinfo.reset(new PathWriterInfo(opts.Input, opts.openOutput(), pinfo));
+    hinfo.reset(new PathWriterInfo(opts.openOutput(), pinfo));
   }
   else {
     callback = &hitWriter;
     hinfo.reset(new HitWriterInfo(opts.openOutput(), pinfo));
   }
 
-  // search
+  // setup search context
   LG_ContextOptions ctxOpts;
   ctxOpts.TraceBegin = opts.DebugBegin;
   ctxOpts.TraceEnd = opts.DebugEnd;
@@ -271,7 +291,50 @@ void search(const Options& opts) {
   );
 
   SearchController ctrl(opts.BlockSize);
-  ctrl.searchFile(searcher, hinfo.get(), file, callback);
+
+  // search our inputs
+  if (opts.Recursive) {
+/*
+    std::stack<fs::path> stack;
+
+    for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
+      stack.push(fs::path(*i));
+    }
+
+    while (!stack.empty()) {
+      fs::path p(stack.top());
+      stack.pop();
+
+      if (fs::exists(p)) {
+        if (fs::is_directory(p)) {
+          const fs::directory_iterator dirend;
+          for (fs::directory_iterator i(p); i != dirend; ++i) {
+            stack.push(i->path());
+          }
+        }
+        else {
+          search(p.native(), ctrl, searcher, hinfo.get(), callback);
+        }
+      }
+    }
+*/
+    for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
+      const fs::path p(*i);
+      if (fs::is_directory(p)) {
+        searchRecursively(p, ctrl, searcher, hinfo.get(), callback);
+      }
+      else {
+        search(*i, ctrl, searcher, hinfo.get(), callback);
+      }
+    }
+  }
+  else {
+    for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
+      if (!fs::is_directory(fs::path(*i))) {
+        search(*i, ctrl, searcher, hinfo.get(), callback);
+      }
+    }
+  }
 
   std::cerr << ctrl.BytesSearched << " bytes" << std::endl;
   std::cerr << ctrl.TotalTime << " searchTime" << std::endl;
@@ -283,8 +346,6 @@ void search(const Options& opts) {
   }
   std::cerr << " MB/s avg" << std::endl;
   std::cerr << hinfo->NumHits << " hits" << std::endl;
-
-  fclose(file);
 }
 
 bool writeGraphviz(const Options& opts) {
@@ -397,7 +458,7 @@ int main(int argc, char** argv) {
     parse_opts(argc, argv, desc, opts);
 
     if (opts.Command == "search") {
-      search(opts);
+      searches(opts);
     }
     else if (opts.Command == "server") {
       startServer(opts);

@@ -8,6 +8,7 @@
 #include <iosfwd>
 #include <set>
 #include <string>
+#include <vector>
 
 class Options {
 public:
@@ -24,6 +25,8 @@ public:
               Encoding,
               Pattern,
               ServerLog;
+
+  std::vector<std::string> Inputs;
 
   unsigned int BlockSize;
 
