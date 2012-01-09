@@ -18,7 +18,7 @@ void fixture(const char* pattern, const char** expected, uint32 max_matches, uin
   SCOPE_ASSERT(nfab.build(tree));
 
   std::set<std::string> aset;
-  matchgen(*nfab.getFsm(), aset, max_loops, max_matches);
+  matchgen(*nfab.getFsm(), aset, max_matches, max_loops);
 
   std::set<std::string> eset(expected, expected + max_matches);
 
