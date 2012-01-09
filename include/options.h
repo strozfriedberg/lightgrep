@@ -11,8 +11,8 @@
 
 class Options {
 public:
-  uint64  DebugBegin,
-          DebugEnd;
+  uint64 DebugBegin,
+         DebugEnd;
 
   std::set<std::string>::size_type SampleLimit;
   std::multiset<Graph::vertex>::size_type LoopLimit;
@@ -27,11 +27,12 @@ public:
 
   unsigned int BlockSize;
 
-  bool    CaseSensitive,
-          LiteralMode,
-          NoOutput,
-          Determinize,
-          PrintPath;
+  bool CaseSensitive,
+       LiteralMode,
+       NoOutput,
+       Determinize,
+       PrintPath,
+       Recursive;
 
   mutable std::ofstream OutputFile;
 
