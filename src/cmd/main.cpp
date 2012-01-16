@@ -248,7 +248,7 @@ void searchRecursively(const fs::path& path, SearchController& ctrl, boost::shar
   for (fs::recursive_directory_iterator d(path); d != end; ++d) {
     const fs::path p(d->path());
     if (!fs::is_directory(p)) {
-      search(p.native(), ctrl, searcher, hinfo, callback);
+      search(p.string(), ctrl, searcher, hinfo, callback);
     }
   }
 }
