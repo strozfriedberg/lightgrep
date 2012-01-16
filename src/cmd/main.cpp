@@ -86,13 +86,6 @@ boost::shared_ptr<ParserHandle> parsePatterns(const Options& opts,
                                               uint32& numErrors)
 {
   numErrors = 0;
-  // get patterns from options
-  std::cerr << pinfo.Patterns.size() << " pattern";
-  if (pinfo.Patterns.size() != 1) {
-    std::cerr << 's';
-  }
-  std::cerr << std::endl;
-
   if (pinfo.Patterns.empty()) {
     return boost::shared_ptr<ParserHandle>();
   }
