@@ -167,6 +167,8 @@ void Compiler::mergeIntoFSM(NFA& dst, const NFA& src) {
     for (int32 i = src.outDegree(srcTail) - 1; i >= 0; --i) {
       Edges.push(StatePair(srcTail, i));
     }
+
+    dst.Deterministic &= src.Deterministic;
   }
 }
 

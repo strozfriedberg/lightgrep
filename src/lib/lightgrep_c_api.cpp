@@ -138,7 +138,7 @@ void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
 
   Compiler& comp(hParser->Impl->Comp);
 
-  if (determinize) {
+  if (determinize && !g->Deterministic) {
     NFAPtr dfa(new NFA(1));
     comp.subsetDFA(*dfa, *g);
     g = dfa;
