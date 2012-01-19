@@ -1,7 +1,7 @@
 #pragma once
 
+#include "automata.h"
 #include "basic.h"
-#include "graph.h"
 
 #include <map>
 #include <set>
@@ -9,28 +9,28 @@
 
 class Compiler {
 public:
-  typedef std::pair<Graph::vertex, Graph::vertex> StatePair;
-  typedef std::pair<Graph::vertex, uint32> EdgePair;
+  typedef std::pair<NFA::VertexDescriptor, NFA::VertexDescriptor> StatePair;
+  typedef std::pair<NFA::VertexDescriptor, uint32> EdgePair;
 
-  void mergeIntoFSM(Graph& dst, const Graph& src);
+  void mergeIntoFSM(NFA& dst, const NFA& src);
 
-  void labelGuardStates(Graph& g);
+  void labelGuardStates(NFA& g);
 
-  void propagateMatchLabels(Graph& g);
-  void removeNonMinimalLabels(Graph& g);
+  void propagateMatchLabels(NFA& g);
+  void removeNonMinimalLabels(NFA& g);
 
-  void subsetDFA(Graph& dst, const Graph& src);
+  void subsetDFA(NFA& dst, const NFA& src);
 
-  void pruneBranches(Graph& g);
+  void pruneBranches(NFA& g);
 
-  StatePair processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead);
+  StatePair processChild(const NFA& src, NFA& dst, uint32 si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead);
 
-  bool canMerge(const Graph& dst, Graph::vertex dstTail, const Transition* dstTrans, ByteSet& dstBits, const Graph& src, Graph::vertex srcTail, const Transition* srcTrans, const ByteSet& srcBits) const;
+  bool canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const Transition* srcTrans, const ByteSet& srcBits) const;
 
 private:
-  std::map<Graph::vertex, std::vector<Graph::vertex> > Dst2Src;
-  std::vector<Graph::vertex> Src2Dst;
+  std::map<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor> > Dst2Src;
+  std::vector<NFA::VertexDescriptor> Src2Dst;
   std::stack<EdgePair> Edges;
   std::set<EdgePair> Visited;
-  std::map<Graph::vertex, uint32> DstPos;
+  std::map<NFA::VertexDescriptor, uint32> DstPos;
 };

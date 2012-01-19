@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "automata.h"
 #include "compiler.h"
-#include "graph.h"
 #include "nfabuilder.h"
 #include "vm_interface.h"
 
@@ -26,25 +26,25 @@ GraphPtr createGraph(const std::vector<std::string>& keywords,
 
 class Visitor {
 public:
-  virtual void discoverVertex(Graph::vertex,
-                              const Graph&) const {}
+  virtual void discoverVertex(NFA::VertexDescriptor,
+                              const NFA&) const {}
 
-  virtual void treeEdge(Graph::vertex,
-                        Graph::vertex,
-                        const Graph&) const {}
+  virtual void treeEdge(NFA::VertexDescriptor,
+                        NFA::VertexDescriptor,
+                        const NFA&) const {}
 };
 
-void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor);
+void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor);
 
-ProgramPtr createProgram(const Graph& graph);
+ProgramPtr createProgram(const NFA& graph);
 
-ByteSet firstBytes(const Graph& graph);
-void nextBytes(ByteSet& set, Graph::vertex v, const Graph& graph);
+ByteSet firstBytes(const NFA& graph);
+void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph);
 
 boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, SearchInfo& info);
 
-std::vector< std::vector< Graph::vertex > > pivotStates(Graph::vertex source, const Graph& graph);
+std::vector< std::vector< NFA::VertexDescriptor > > pivotStates(NFA::VertexDescriptor source, const NFA& graph);
 
-uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable);
+uint32 maxOutbound(const std::vector< std::vector< NFA::VertexDescriptor > >& tranTable);
 
-void writeGraphviz(std::ostream& out, const Graph& graph);
+void writeGraphviz(std::ostream& out, const NFA& graph);

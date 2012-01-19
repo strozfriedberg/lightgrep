@@ -151,7 +151,7 @@ boost::shared_ptr<ProgramHandle> createProgram(const Options& opts, PatternInfo&
     prog = buildProgram(parser.get(), opts);
     if (lg_ok(prog.get())) {
       GraphPtr g(parser->Impl->Fsm);
-      std::cerr << g->numVertices() << " vertices" << std::endl;
+      std::cerr << g->verticesSize() << " vertices" << std::endl;
 
       ProgramPtr p(prog->Impl->Prog);
       std::cerr << p->size() << " instructions" << std::endl;    
@@ -339,7 +339,7 @@ bool writeGraphviz(const Options& opts) {
 
     // break on through the C API to print the graph
     GraphPtr g(parser->Impl->Fsm);
-    std::cerr << g->numVertices() << " vertices" << std::endl;
+    std::cerr << g->verticesSize() << " vertices" << std::endl;
     writeGraphviz(opts.openOutput(), *g);
     return true;
   }
@@ -368,7 +368,7 @@ void writeProgram(const Options& opts) {
     }
  
     GraphPtr g(parser->Impl->Fsm);
-    std::cerr << g->numVertices() << " vertices" << std::endl;
+    std::cerr << g->verticesSize() << " vertices" << std::endl;
   }
 
   // break on through the C API to print the program
