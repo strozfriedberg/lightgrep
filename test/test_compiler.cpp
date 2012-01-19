@@ -43,8 +43,8 @@ SCOPE_TEST(testMerge_aaOrab_toEmpty) {
   SCOPE_ASSERT_EQUAL(1u, dst.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, dst.outDegree(3));
 
-  SCOPE_ASSERT_EQUAL(getBits(*a), getBits(*dst[2].trans));
-  SCOPE_ASSERT_EQUAL(getBits(*b), getBits(*dst[3].trans));
+  SCOPE_ASSERT_EQUAL(getBits(*a), getBits(*dst[2].Trans));
+  SCOPE_ASSERT_EQUAL(getBits(*b), getBits(*dst[3].Trans));
 }
 
 SCOPE_TEST(testMerge) {
@@ -74,12 +74,12 @@ SCOPE_TEST(testMerge) {
 
   SCOPE_ASSERT_EQUAL(8u, fsm.verticesSize());
 
-  SCOPE_ASSERT(!fsm[0].trans);
+  SCOPE_ASSERT(!fsm[0].Trans);
   SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outVertex(0, 0));
 
-  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[1].trans->Label);
+  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[1].Trans->Label);
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.inVertex(1, 0));
   SCOPE_ASSERT_EQUAL(3u, fsm.outDegree(1));
@@ -87,36 +87,36 @@ SCOPE_TEST(testMerge) {
   SCOPE_ASSERT_EQUAL(2u, fsm.outVertex(1, 1));
   SCOPE_ASSERT_EQUAL(4u, fsm.outVertex(1, 2));
 
-  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[2].trans->Label);
+  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[2].Trans->Label);
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(2, 0));
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(3u, fsm.outVertex(2, 0));
   SCOPE_ASSERT_EQUAL(7u, fsm.outVertex(2, 1));
 
-  SCOPE_ASSERT_EQUAL(0u, fsm[3].trans->Label);
+  SCOPE_ASSERT_EQUAL(0u, fsm[3].Trans->Label);
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(3));
   SCOPE_ASSERT_EQUAL(2u, fsm.inVertex(3, 0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
 
-  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[4].trans->Label);
+  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[4].Trans->Label);
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(4));
   SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(4, 0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(4));
   SCOPE_ASSERT_EQUAL(5u, fsm.outVertex(4, 0));
 
-  SCOPE_ASSERT_EQUAL(1u, fsm[5].trans->Label);
+  SCOPE_ASSERT_EQUAL(1u, fsm[5].Trans->Label);
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(5));
   SCOPE_ASSERT_EQUAL(4u, fsm.inVertex(5, 0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(5));
 
-  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[6].trans->Label);
+  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[6].Trans->Label);
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(6));
   SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(6, 0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(6));
   SCOPE_ASSERT_EQUAL(7u, fsm.outVertex(6, 0));
 
-  SCOPE_ASSERT_EQUAL(2u, fsm[7].trans->Label);
+  SCOPE_ASSERT_EQUAL(2u, fsm[7].Trans->Label);
   SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(7));
   SCOPE_ASSERT_EQUAL(6u, fsm.inVertex(7, 0));
   SCOPE_ASSERT_EQUAL(7u, fsm.inVertex(7, 1));
@@ -133,15 +133,15 @@ SCOPE_TEST(testMergeLabelsSimple) {
   edge(0, 1, src, new LitState('a'));
   edge(1, 2, src, new LitState('b'));
 
-  src[2].trans->Label = 1;
-  src[2].trans->IsMatch = true;
+  src[2].Trans->Label = 1;
+  src[2].Trans->IsMatch = true;
 
   // ac
   edge(0, 1, dst, new LitState('a'));
   edge(1, 2, dst, new LitState('c'));
 
-  dst[2].trans->Label = 0;
-  dst[2].trans->IsMatch = true;
+  dst[2].Trans->Label = 0;
+  dst[2].Trans->IsMatch = true;
 
   c.mergeIntoFSM(dst, src);
 
@@ -150,12 +150,12 @@ SCOPE_TEST(testMergeLabelsSimple) {
   edge(1, 2, exp, new LitState('c'));
   edge(1, 3, exp, new LitState('b'));
 
-  exp[1].trans->Label = NONE;
-  exp[2].trans->Label = 0;
-  exp[3].trans->Label = 1;
+  exp[1].Trans->Label = NONE;
+  exp[2].Trans->Label = 0;
+  exp[3].Trans->Label = 1;
 
-  exp[2].trans->IsMatch = true;
-  exp[3].trans->IsMatch = true;
+  exp[2].Trans->IsMatch = true;
+  exp[3].Trans->IsMatch = true;
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
   ASSERT_EQUAL_LABELS(exp, dst);
@@ -171,16 +171,16 @@ SCOPE_TEST(testMergeLabelsComplex) {
   edge(1, 2, src, new LitState('b'));
   edge(2, 3, src, new LitState('d'));
 
-  src[3].trans->Label = 0;
-  src[3].trans->IsMatch = true;
+  src[3].Trans->Label = 0;
+  src[3].Trans->IsMatch = true;
 
   // acd
   edge(0, 1, dst, new LitState('a'));
   edge(1, 2, dst, new LitState('c'));
   edge(2, 3, dst, new LitState('d'));
 
-  dst[3].trans->Label = 1;
-  dst[3].trans->IsMatch = true;
+  dst[3].Trans->Label = 1;
+  dst[3].Trans->IsMatch = true;
 
   c.mergeIntoFSM(dst, src);
   c.labelGuardStates(dst);
@@ -192,14 +192,14 @@ SCOPE_TEST(testMergeLabelsComplex) {
   edge(1, 4, exp, new LitState('b'));
   edge(4, 5, exp, new LitState('d'));
 
-  exp[1].trans->Label = NONE;
-  exp[2].trans->Label = 1;
-  exp[3].trans->Label = NONE;
-  exp[4].trans->Label = 0;
-  exp[5].trans->Label = NONE;
+  exp[1].Trans->Label = NONE;
+  exp[2].Trans->Label = 1;
+  exp[3].Trans->Label = NONE;
+  exp[4].Trans->Label = 0;
+  exp[5].Trans->Label = NONE;
 
-  exp[3].trans->IsMatch = true;
-  exp[5].trans->IsMatch = true;
+  exp[3].Trans->IsMatch = true;
+  exp[5].Trans->IsMatch = true;
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
   ASSERT_EQUAL_LABELS(exp, dst);
@@ -218,8 +218,8 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   edge(2, 4, key[0], a);
   edge(3, 4, key[0], a);
 
-  key[0][4].trans->Label = 0;
-  key[0][4].trans->IsMatch = true;
+  key[0][4].Trans->Label = 0;
+  key[0][4].Trans->IsMatch = true;
 
   // ac+
   edge(0, 1, key[1], new LitState('a'));
@@ -227,8 +227,8 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   edge(1, 2, key[1], c);
   edge(2, 2, key[1], c);
 
-  key[1][2].trans->Label = 1;
-  key[1][2].trans->IsMatch = true;
+  key[1][2].Trans->Label = 1;
+  key[1][2].Trans->IsMatch = true;
 
   // ab?a
   edge(0, 1, key[2], new LitState('a'));
@@ -237,16 +237,16 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   edge(1, 3, key[2], a2);
   edge(2, 3, key[2], a2);
 
-  key[2][3].trans->Label = 2;
-  key[2][3].trans->IsMatch = true;
+  key[2][3].Trans->Label = 2;
+  key[2][3].Trans->IsMatch = true;
 
   // two
   edge(0, 1, key[3], new LitState('t'));
   edge(1, 2, key[3], new LitState('w'));
   edge(2, 3, key[3], new LitState('o', 3));
 
-  key[3][3].trans->Label = 3;
-  key[3][3].trans->IsMatch = true;
+  key[3][3].Trans->Label = 3;
+  key[3][3].Trans->IsMatch = true;
 
   // merge
   for (uint32 i = 1; i < 4; ++i) {
@@ -263,39 +263,39 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   edge(2, 4, exp, ae);
   edge(3, 4, exp, ae);
 
-  exp[4].trans->Label = 0;
-  exp[4].trans->IsMatch = true;
+  exp[4].Trans->Label = 0;
+  exp[4].Trans->IsMatch = true;
 
   boost::shared_ptr<LitState> ce(new LitState('c'));
   edge(1, 5, exp, ce);
   edge(5, 5, exp, ce);
 
-  exp[5].trans->Label = 1;
-  exp[5].trans->IsMatch = true;
+  exp[5].Trans->Label = 1;
+  exp[5].Trans->IsMatch = true;
 
   boost::shared_ptr<LitState> a2e(new LitState('a'));
   edge(2, 6, exp, a2e);
   edge(1, 6, exp, a2e);
 
-  exp[6].trans->Label = 2;
-  exp[6].trans->IsMatch = true;
+  exp[6].Trans->Label = 2;
+  exp[6].Trans->IsMatch = true;
 
   edge(0, 7, exp, new LitState('t'));
   edge(7, 8, exp, new LitState('w'));
   edge(8, 9, exp, new LitState('o'));
 
-  exp[9].trans->Label = 3;
-  exp[9].trans->IsMatch = true;
+  exp[9].Trans->Label = 3;
+  exp[9].Trans->IsMatch = true;
 
-  exp[1].trans->Label = NONE;
-  exp[2].trans->Label = NONE;
-  exp[3].trans->Label = 0;
-  exp[4].trans->Label = 0;
-  exp[5].trans->Label = 1;
-  exp[6].trans->Label = 2;
-  exp[7].trans->Label = 3;
-  exp[8].trans->Label = NONE;
-  exp[9].trans->Label = NONE;
+  exp[1].Trans->Label = NONE;
+  exp[2].Trans->Label = NONE;
+  exp[3].Trans->Label = 0;
+  exp[4].Trans->Label = 0;
+  exp[5].Trans->Label = 1;
+  exp[6].Trans->Label = 2;
+  exp[7].Trans->Label = 3;
+  exp[8].Trans->Label = NONE;
+  exp[9].Trans->Label = NONE;
 
   ASSERT_EQUAL_GRAPHS(exp, key[0]);
   ASSERT_EQUAL_LABELS(exp, key[0]);
@@ -312,21 +312,21 @@ SCOPE_TEST(testPropagateMatchLabels) {
   edge(3, 4, g, new LitState('y'));
   edge(4, 5, g, new LitState('y'));
 
-  g[1].trans->Label = 0;
-  g[2].trans->Label = 1;
-  g[5].trans->Label = 2;
+  g[1].Trans->Label = 0;
+  g[2].Trans->Label = 1;
+  g[5].Trans->Label = 2;
 
-  g[1].trans->IsMatch = true;
-  g[2].trans->IsMatch = true;
-  g[5].trans->IsMatch = true;
+  g[1].Trans->IsMatch = true;
+  g[2].Trans->IsMatch = true;
+  g[5].Trans->IsMatch = true;
 
   comp.propagateMatchLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0, g[1].trans->Label);
-  SCOPE_ASSERT_EQUAL(1, g[2].trans->Label);
-  SCOPE_ASSERT_EQUAL(2, g[3].trans->Label);
-  SCOPE_ASSERT_EQUAL(2, g[4].trans->Label);
-  SCOPE_ASSERT_EQUAL(2, g[5].trans->Label);
+  SCOPE_ASSERT_EQUAL(0, g[1].Trans->Label);
+  SCOPE_ASSERT_EQUAL(1, g[2].Trans->Label);
+  SCOPE_ASSERT_EQUAL(2, g[3].Trans->Label);
+  SCOPE_ASSERT_EQUAL(2, g[4].Trans->Label);
+  SCOPE_ASSERT_EQUAL(2, g[5].Trans->Label);
 }
 
 SCOPE_TEST(testRemoveNonMinimalLabels) {
@@ -339,23 +339,23 @@ SCOPE_TEST(testRemoveNonMinimalLabels) {
   edge(3, 4, g, new LitState('y'));
   edge(4, 5, g, new LitState('y'));
 
-  g[1].trans->Label = 0;
-  g[2].trans->Label = 1;
-  g[3].trans->Label = 2;
-  g[4].trans->Label = 2;
-  g[5].trans->Label = 2;
+  g[1].Trans->Label = 0;
+  g[2].Trans->Label = 1;
+  g[3].Trans->Label = 2;
+  g[4].Trans->Label = 2;
+  g[5].Trans->Label = 2;
 
-  g[1].trans->IsMatch = true;
-  g[2].trans->IsMatch = true;
-  g[5].trans->IsMatch = true;
+  g[1].Trans->IsMatch = true;
+  g[2].Trans->IsMatch = true;
+  g[5].Trans->IsMatch = true;
 
   comp.removeNonMinimalLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0, g[1].trans->Label);
-  SCOPE_ASSERT_EQUAL(1, g[2].trans->Label);
-  SCOPE_ASSERT_EQUAL(2, g[3].trans->Label);
-  SCOPE_ASSERT_EQUAL(NONE, g[4].trans->Label);
-  SCOPE_ASSERT_EQUAL(NONE, g[5].trans->Label);
+  SCOPE_ASSERT_EQUAL(0, g[1].Trans->Label);
+  SCOPE_ASSERT_EQUAL(1, g[2].Trans->Label);
+  SCOPE_ASSERT_EQUAL(2, g[3].Trans->Label);
+  SCOPE_ASSERT_EQUAL(NONE, g[4].Trans->Label);
+  SCOPE_ASSERT_EQUAL(NONE, g[5].Trans->Label);
 }
 
 SCOPE_TEST(testLabelGuardStates) {
@@ -368,23 +368,23 @@ SCOPE_TEST(testLabelGuardStates) {
   edge(3, 4, g, new LitState('y'));
   edge(4, 5, g, new LitState('y'));
 
-  g[1].trans->Label = 0;
-  g[1].trans->IsMatch = true;
+  g[1].Trans->Label = 0;
+  g[1].Trans->IsMatch = true;
 
-  g[2].trans->Label = 1;
-  g[2].trans->IsMatch = true;
+  g[2].Trans->Label = 1;
+  g[2].Trans->IsMatch = true;
 
-  g[5].trans->Label = 2;
-  g[5].trans->IsMatch = true;
+  g[5].Trans->Label = 2;
+  g[5].Trans->IsMatch = true;
 
   comp.propagateMatchLabels(g);
   comp.removeNonMinimalLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0, g[1].trans->Label);
-  SCOPE_ASSERT_EQUAL(1, g[2].trans->Label);
-  SCOPE_ASSERT_EQUAL(2, g[3].trans->Label);
-  SCOPE_ASSERT_EQUAL(NONE, g[4].trans->Label);
-  SCOPE_ASSERT_EQUAL(NONE, g[5].trans->Label);
+  SCOPE_ASSERT_EQUAL(0, g[1].Trans->Label);
+  SCOPE_ASSERT_EQUAL(1, g[2].Trans->Label);
+  SCOPE_ASSERT_EQUAL(2, g[3].Trans->Label);
+  SCOPE_ASSERT_EQUAL(NONE, g[4].Trans->Label);
+  SCOPE_ASSERT_EQUAL(NONE, g[5].Trans->Label);
 }
 
 SCOPE_TEST(testSubstringKey) {
@@ -394,11 +394,11 @@ SCOPE_TEST(testSubstringKey) {
   // an
   edge(0, 1, k0, new LitState('a'));
   edge(1, 2, k0, new LitState('n', 0));
-  k0[2].trans->IsMatch = true;
+  k0[2].Trans->IsMatch = true;
 
   // a
   edge(0, 1, k1, new LitState('a', 1));
-  k1[1].trans->IsMatch = true;
+  k1[1].Trans->IsMatch = true;
 
   // merge
   comp.mergeIntoFSM(k0, k1);
@@ -409,12 +409,12 @@ SCOPE_TEST(testSubstringKey) {
   edge(1, 2, exp, new LitState('n', 0));
   edge(0, 3, exp, new LitState('a', 1));
 
-  exp[1].trans->Label = 0;
-  exp[2].trans->Label = NONE;
-  exp[3].trans->Label = 1;
+  exp[1].Trans->Label = 0;
+  exp[2].Trans->Label = NONE;
+  exp[3].Trans->Label = 1;
 
-  exp[2].trans->IsMatch = true;
-  exp[3].trans->IsMatch = true;
+  exp[2].Trans->IsMatch = true;
+  exp[3].Trans->IsMatch = true;
 
   ASSERT_EQUAL_GRAPHS(exp, k0);
   ASSERT_EQUAL_LABELS(exp, k0);
@@ -437,15 +437,15 @@ SCOPE_TEST(testCreateXXYYY) {
   edge(3, 4, exp, new LitState('y'));
   edge(4, 5, exp, new LitState('y'));
 
-  exp[1].trans->Label = 1;
-  exp[2].trans->Label = 0;
-  exp[3].trans->Label = 2;
-  exp[4].trans->Label = NONE;
-  exp[5].trans->Label = NONE;
+  exp[1].Trans->Label = 1;
+  exp[2].Trans->Label = 0;
+  exp[3].Trans->Label = 2;
+  exp[4].Trans->Label = NONE;
+  exp[5].Trans->Label = NONE;
 
-  exp[1].trans->IsMatch = true;
-  exp[2].trans->IsMatch = true;
-  exp[5].trans->IsMatch = true;
+  exp[1].Trans->IsMatch = true;
+  exp[2].Trans->IsMatch = true;
+  exp[5].Trans->IsMatch = true;
 
   ASSERT_EQUAL_GRAPHS(exp, g);
   ASSERT_EQUAL_LABELS(exp, g);
@@ -489,8 +489,8 @@ SCOPE_TEST(testDeterminize1) {
   edge(2, 3, g, new LitState('a'));
   edge(3, 4, g, new LitState('a'));
 
-  g[4].trans->IsMatch = true;
-  g[4].trans->Label = 0;
+  g[4].Trans->IsMatch = true;
+  g[4].Trans->Label = 0;
 
   NFA h(1);
   Compiler comp;
@@ -504,8 +504,8 @@ SCOPE_TEST(testDeterminize1) {
   edge(2, 4, exp, new LitState('a')); 
   edge(4, 3, exp, new LitState('a'));
 
-  exp[3].trans->IsMatch = true;
-  exp[3].trans->Label = 0; 
+  exp[3].Trans->IsMatch = true;
+  exp[3].Trans->Label = 0; 
 
   ASSERT_EQUAL_GRAPHS(exp, h);
   ASSERT_EQUAL_LABELS(exp, h);
@@ -519,8 +519,8 @@ SCOPE_TEST(testDeterminize2) {
   edge(1, 3, g, new LitState('a'));
   edge(2, 3, g, new LitState('a'));
 
-  g[3].trans->IsMatch = true;
-  g[3].trans->Label = 0;
+  g[3].Trans->IsMatch = true;
+  g[3].Trans->Label = 0;
 
   NFA h(1);
   Compiler comp;
@@ -530,8 +530,8 @@ SCOPE_TEST(testDeterminize2) {
   edge(0, 1, exp, new LitState('a'));
   edge(1, 2, exp, new LitState('a'));
 
-  exp[2].trans->IsMatch = true;
-  exp[2].trans->Label = 0; 
+  exp[2].Trans->IsMatch = true;
+  exp[2].Trans->Label = 0; 
 
   ASSERT_EQUAL_GRAPHS(exp, h);
   ASSERT_EQUAL_LABELS(exp, h);
@@ -543,8 +543,8 @@ SCOPE_TEST(testDeterminize3) {
   edge(0, 1, g, new LitState('a'));
   edge(1, 1, g, new LitState('a'));
 
-  g[1].trans->IsMatch = true;
-  g[1].trans->Label = 0;
+  g[1].Trans->IsMatch = true;
+  g[1].Trans->Label = 0;
 
   NFA h(1);
   Compiler comp;
@@ -559,8 +559,8 @@ SCOPE_TEST(testDeterminize4) {
   NFA g(2);
   edge(0, 1, g, new EitherState('a', 'b'));
 
-  g[1].trans->IsMatch = true;
-  g[1].trans->Label = 0;
+  g[1].Trans->IsMatch = true;
+  g[1].Trans->Label = 0;
 
   NFA h(1);
   Compiler comp;
@@ -571,8 +571,8 @@ SCOPE_TEST(testDeterminize4) {
   bytes['a'] = bytes['b'] = true;
   edge(0, 1, exp, new CharClassState(bytes));
 
-  exp[1].trans->IsMatch = true;
-  exp[1].trans->Label = 0;
+  exp[1].Trans->IsMatch = true;
+  exp[1].Trans->Label = 0;
 
   ASSERT_EQUAL_GRAPHS(exp, h);
   ASSERT_EQUAL_LABELS(exp, h);
@@ -588,8 +588,8 @@ SCOPE_TEST(testDeterminize5) {
   edge(2, 1, g, new LitState('d'));
   edge(2, 3, g, new LitState('x'));
 
-  g[3].trans->IsMatch = true;
-  g[3].trans->Label = 0;
+  g[3].Trans->IsMatch = true;
+  g[3].Trans->Label = 0;
 
   NFA h(1);
   Compiler comp;
@@ -604,8 +604,8 @@ SCOPE_TEST(testDeterminize5) {
   edge(4, 2, exp, new LitState('d'));
   edge(4, 3, exp, new LitState('x'));
 
-  exp[3].trans->IsMatch = true;
-  exp[3].trans->Label = 0;
+  exp[3].Trans->IsMatch = true;
+  exp[3].Trans->Label = 0;
 
   ASSERT_EQUAL_GRAPHS(exp, h);
   ASSERT_EQUAL_LABELS(exp, h);
@@ -617,8 +617,8 @@ SCOPE_TEST(testPruneBranches) {
   edge(0, 1, g, new LitState('a'));
   edge(0, 2, g, new LitState('a'));
 
-  g[1].trans->IsMatch = true;
-  g[1].trans->Label = 0;
+  g[1].Trans->IsMatch = true;
+  g[1].Trans->Label = 0;
 
   Compiler comp;
   comp.pruneBranches(g);
@@ -626,10 +626,10 @@ SCOPE_TEST(testPruneBranches) {
   NFA exp(3);
   edge(0, 1, exp, new LitState('a'));
 
-  exp[2].trans = new LitState('a');
+  exp[2].Trans = new LitState('a');
 
-  exp[1].trans->IsMatch = true;
-  exp[1].trans->Label = 0;
+  exp[1].Trans->IsMatch = true;
+  exp[1].Trans->Label = 0;
 
   ASSERT_EQUAL_GRAPHS(exp, g);
   ASSERT_EQUAL_LABELS(exp, g);

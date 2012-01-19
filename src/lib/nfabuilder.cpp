@@ -89,10 +89,10 @@ void NFABuilder::setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, by
 // we were saving this way was really important, we need to figure out
 // something else to do here.
 //    state = LitFlyweights[val];
-    g[v].trans = new LitState(val);
+    g[v].Trans = new LitState(val);
   }
   else {
-    g[v].trans = new EitherState(std::toupper(val), std::tolower(val));
+    g[v].Trans = new EitherState(std::toupper(val), std::tolower(val));
   }
 }
 
@@ -163,7 +163,7 @@ void NFABuilder::literal(const ParseNode& n) {
 
 void NFABuilder::dot(const ParseNode& n) {
   NFA::VertexDescriptor v = Fsm->addVertex();
-  (*Fsm)[v].trans = new RangeState(0, 255);
+  (*Fsm)[v].Trans = new RangeState(0, 255);
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
@@ -188,10 +188,10 @@ void NFABuilder::charClass(const ParseNode& n) {
   }
 
   if (num == n.Bits.count()) {
-    (*Fsm)[v].trans = new RangeState(first, last);
+    (*Fsm)[v].Trans = new RangeState(first, last);
   }
   else {
-    (*Fsm)[v].trans = new CharClassState(n.Bits);
+    (*Fsm)[v].Trans = new CharClassState(n.Bits);
   }
 
   TempFrag.initFull(v, n);
@@ -342,7 +342,7 @@ void NFABuilder::finish(const ParseNode& n) {
         return;
       }
       else {
-        Transition* final = (*Fsm)[v].trans;
+        Transition* final = (*Fsm)[v].Trans;
         final->Label = CurLabel;
         final->IsMatch = true;
       }

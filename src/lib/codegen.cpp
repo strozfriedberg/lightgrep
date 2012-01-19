@@ -41,11 +41,11 @@ void CodeGenVisitor::finish_vertex(NFA::VertexDescriptor v, const NFA& graph) {
 
   uint32 label = 0,
          match = 0,
-         eval  = (v == 0 ? 0 : graph[v].trans->numInstructions());
+         eval  = (v == 0 ? 0 : graph[v].Trans->numInstructions());
 
   const uint32 outDegree = graph.outDegree(v);
 
-  const Transition* t = graph[v].trans;
+  const Transition* t = graph[v].Trans;
   if (t) {
     if (t->Label != NONE) {
       label = 1;

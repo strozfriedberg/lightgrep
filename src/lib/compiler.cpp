@@ -65,7 +65,7 @@ Compiler::StatePair Compiler::processChild(const NFA& src, NFA& dst, uint32 si, 
     }
   }
   else {
-    const Transition* srcTrans(src[srcTail].trans);
+    const Transition* srcTrans(src[srcTail].Trans);
 
     ByteSet srcBits;
     srcTrans->getBits(srcBits);
@@ -83,7 +83,7 @@ Compiler::StatePair Compiler::processChild(const NFA& src, NFA& dst, uint32 si, 
 
     for ( ; di < dstHeadOutDegree; ++di) {
       dstTail = dst.outVertex(dstHead, di);
-      const Transition* dstTrans(dst[dstTail].trans);
+      const Transition* dstTrans(dst[dstTail].Trans);
 
 //      std::cerr << "match src " << srcTail << " with dst " << dstTail << "? ";
 
@@ -100,7 +100,7 @@ Compiler::StatePair Compiler::processChild(const NFA& src, NFA& dst, uint32 si, 
       // add a new vertex to the destination if the image of the source
       // tail vertex cannot be matched
       dstTail = dst.addVertex();
-      dst[dstTail].trans = srcTrans->clone();
+      dst[dstTail].Trans = srcTrans->clone();
 
       if (i == DstPos.end()) {
         di = 0;
@@ -197,7 +197,7 @@ void Compiler::pruneBranches(NFA& g) {
       }
 
       obs.reset();
-      g[tail].trans->getBits(obs);
+      g[tail].Trans->getBits(obs);
 
 //      nbs = obs & ~mbs;
       obs &= ~mbs;
@@ -217,7 +217,7 @@ void Compiler::pruneBranches(NFA& g) {
       }
 */
 
-      if (g[tail].trans->IsMatch) {
+      if (g[tail].Trans->IsMatch) {
         mbs |= obs;
       }
     }
@@ -236,13 +236,13 @@ void Compiler::propagateMatchLabels(NFA& g) {
 
   for (NFA::VertexDescriptor m = 0; m < g.verticesSize(); ++m) {
     // skip non-match vertices
-    if (!g[m].trans || !g[m].trans->IsMatch) continue;
+    if (!g[m].Trans || !g[m].Trans->IsMatch) continue;
 
     if (++i % 10000 == 0) {
       std::cerr << "handled " << i << " labeled vertices" << std::endl;
     }
 
-    const uint32 label = g[m].trans->Label;
+    const uint32 label = g[m].Trans->Label;
 
     // walk label back from this match state to all of its ancestors
     // which have no other match-state descendants
@@ -257,21 +257,21 @@ void Compiler::propagateMatchLabels(NFA& g) {
       for (uint32 i = 0; i < g.inDegree(t); ++i) {
         NFA::VertexDescriptor h = g.inVertex(t, i);
 
-        if (!g[h].trans) {
+        if (!g[h].Trans) {
           // Skip the initial state.
           continue;
         }
-        else if (g[h].trans->Label == NONE) {
+        else if (g[h].Trans->Label == NONE) {
           // Mark unmarked parents with our label and walk back to them.
-          g[h].trans->Label = label;
+          g[h].Trans->Label = label;
           next.push(h);
         }
-        else if (g[h].trans->Label == UNLABELABLE) {
+        else if (g[h].Trans->Label == UNLABELABLE) {
           // This parent is already marked as an ancestor of multiple match
           // states; all paths from it back to the root are already marked
           // as unlabelable, so we don't need to walk back from it.
         }
-        else if (g[h].trans->Label == label) {
+        else if (g[h].Trans->Label == label) {
           // This parent has our label, which means we've already walked
           // back through it.
         }
@@ -285,11 +285,11 @@ void Compiler::propagateMatchLabels(NFA& g) {
             NFA::VertexDescriptor u = unext.top();
             unext.pop();
 
-            g[u].trans->Label = UNLABELABLE;
+            g[u].Trans->Label = UNLABELABLE;
 
             for (uint32 j = 0; j < g.inDegree(u); ++j) {
               NFA::VertexDescriptor uh = g.inVertex(u, j);
-              if (g[uh].trans && g[uh].trans->Label != UNLABELABLE) {
+              if (g[uh].Trans && g[uh].Trans->Label != UNLABELABLE) {
                 // Walking on all nodes not already marked unlabelable
                 unext.push(uh);
               }
@@ -321,8 +321,8 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
 
       if (visited[t]) continue;
 
-      if (g[t].trans->Label == UNLABELABLE) {
-        g[t].trans->Label = NONE;
+      if (g[t].Trans->Label == UNLABELABLE) {
+        g[t].Trans->Label = NONE;
         next.push(t);
       }
       else {
@@ -350,7 +350,7 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
 
       // NB: Any node which should be labeled, we've already visited,
       // so we can unlabel everything we reach this way.
-      g[t].trans->Label = NONE;
+      g[t].Trans->Label = NONE;
       next.push(t);
       visited[t] = true;
     }
@@ -420,7 +420,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
         const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, j);
 
         outBytes.reset();
-        src[srcTail].trans->getBits(outBytes);
+        src[srcTail].Trans->getBits(outBytes);
 
         for (uint32 b = 0; b < 256; ++b) {
           if (outBytes[b]) {
@@ -477,7 +477,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
       for (std::vector<NFA::VertexDescriptor>::const_iterator j(srcTailList.begin()); j != srcTailList.end(); ++j) {
         const NFA::VertexDescriptor srcTail = *j;
 
-        if (src[srcTail].trans->IsMatch) {
+        if (src[srcTail].Trans->IsMatch) {
           // match states are always singleton groups
           dstListGroups[bs].push_back(std::vector<NFA::VertexDescriptor>());
           startGroup = true;
@@ -508,16 +508,16 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
           // new sublist dst vertex
           dstList2Dst[p] = dstTail = dst.addVertex();
           dstStack.push(std::make_pair(bs, dstList));
-          dst[dstTail].trans = new CharClassState(bs);
+          dst[dstTail].Trans = new CharClassState(bs);
         }
         else {
           // old sublist vertex
           dstTail = l->second;
         }
 
-        if (src[dstList.front()].trans->IsMatch) {
-          dst[dstTail].trans->IsMatch = true;
-          dst[dstTail].trans->Label = src[dstList.front()].trans->Label;
+        if (src[dstList.front()].Trans->IsMatch) {
+          dst[dstTail].Trans->IsMatch = true;
+          dst[dstTail].Trans->Label = src[dstList.front()].Trans->Label;
         }
 
         dst.addEdge(dstHead, dstTail);
@@ -528,7 +528,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
   // collapse CharClassStates where possible
   // isn't necessary, but improves the GraphViz output
   for (uint32 i = 1; i < dst.verticesSize(); ++i) {
-    const Transition* t = dst[i].trans;
+    const Transition* t = dst[i].Trans;
 
     int32 first = -1;
     int32 last = -1;
@@ -565,7 +565,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
 
       r->IsMatch = t->IsMatch;
       r->Label = t->Label;
-      dst[i].trans = r;
+      dst[i].Trans = r;
       delete t;
     }
   }

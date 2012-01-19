@@ -28,8 +28,8 @@ SCOPE_TEST(parseAorB) {
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
-  SCOPE_ASSERT(fsm[1].trans->IsMatch);
-  SCOPE_ASSERT(fsm[2].trans->IsMatch);
+  SCOPE_ASSERT(fsm[1].Trans->IsMatch);
+  SCOPE_ASSERT(fsm[2].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseAorBorC) {
@@ -44,9 +44,9 @@ SCOPE_TEST(parseAorBorC) {
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
-  SCOPE_ASSERT(fsm[1].trans->IsMatch);
-  SCOPE_ASSERT(fsm[2].trans->IsMatch);
-  SCOPE_ASSERT(fsm[3].trans->IsMatch);
+  SCOPE_ASSERT(fsm[1].Trans->IsMatch);
+  SCOPE_ASSERT(fsm[2].Trans->IsMatch);
+  SCOPE_ASSERT(fsm[3].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseAB) {
@@ -60,8 +60,8 @@ SCOPE_TEST(parseAB) {
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
-  SCOPE_ASSERT(!fsm[1].trans->IsMatch);
-  SCOPE_ASSERT(fsm[2].trans->IsMatch);
+  SCOPE_ASSERT(!fsm[1].Trans->IsMatch);
+  SCOPE_ASSERT(fsm[2].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseAlternationAndConcatenation) {
@@ -76,9 +76,9 @@ SCOPE_TEST(parseAlternationAndConcatenation) {
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
-  SCOPE_ASSERT(fsm[1].trans->IsMatch);
-  SCOPE_ASSERT(!fsm[2].trans->IsMatch);
-  SCOPE_ASSERT(fsm[3].trans->IsMatch);
+  SCOPE_ASSERT(fsm[1].Trans->IsMatch);
+  SCOPE_ASSERT(!fsm[2].Trans->IsMatch);
+  SCOPE_ASSERT(fsm[3].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseGroup) {
@@ -239,9 +239,9 @@ SCOPE_TEST(parseaPQb) {
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
 
-  SCOPE_ASSERT(!g[0].trans);
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
-  SCOPE_ASSERT(g[2].trans->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
+  SCOPE_ASSERT(g[2].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseStar) {
@@ -304,9 +304,9 @@ SCOPE_TEST(parseaQQb) {
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
 
-  SCOPE_ASSERT(!g[0].trans);
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
-  SCOPE_ASSERT(g[2].trans->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
+  SCOPE_ASSERT(g[2].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseaQQbQQc) {
@@ -337,10 +337,10 @@ SCOPE_TEST(parseaQQbQQc) {
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0].trans);
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
-  SCOPE_ASSERT(!g[2].trans->IsMatch);
-  SCOPE_ASSERT(g[3].trans->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
+  SCOPE_ASSERT(!g[2].Trans->IsMatch);
+  SCOPE_ASSERT(g[3].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseaQQbQc) {
@@ -371,10 +371,10 @@ SCOPE_TEST(parseaQQbQc) {
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0].trans);
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
-  SCOPE_ASSERT(!g[2].trans->IsMatch);
-  SCOPE_ASSERT(g[3].trans->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
+  SCOPE_ASSERT(!g[2].Trans->IsMatch);
+  SCOPE_ASSERT(g[3].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseaQQOrbQQc) {
@@ -404,10 +404,10 @@ SCOPE_TEST(parseaQQOrbQQc) {
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0].trans);
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
-  SCOPE_ASSERT(!g[2].trans->IsMatch);
-  SCOPE_ASSERT(g[3].trans->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
+  SCOPE_ASSERT(!g[2].Trans->IsMatch);
+  SCOPE_ASSERT(g[3].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseaOrbQa) {
@@ -437,10 +437,10 @@ SCOPE_TEST(parseaOrbQa) {
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0].trans);
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
-  SCOPE_ASSERT(!g[2].trans->IsMatch);
-  SCOPE_ASSERT(g[3].trans->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
+  SCOPE_ASSERT(!g[2].Trans->IsMatch);
+  SCOPE_ASSERT(g[3].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseaOrbQQa) {
@@ -470,10 +470,10 @@ SCOPE_TEST(parseaOrbQQa) {
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0].trans);
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
-  SCOPE_ASSERT(!g[2].trans->IsMatch);
-  SCOPE_ASSERT(g[3].trans->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
+  SCOPE_ASSERT(!g[2].Trans->IsMatch);
+  SCOPE_ASSERT(g[3].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseaSQb) {
@@ -499,9 +499,9 @@ SCOPE_TEST(parseaSQb) {
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
 
-  SCOPE_ASSERT(!g[0].trans);
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
-  SCOPE_ASSERT(g[2].trans->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
+  SCOPE_ASSERT(g[2].Trans->IsMatch);
 }
 
 SCOPE_TEST(parseDot) {
@@ -518,7 +518,7 @@ SCOPE_TEST(parseDot) {
 
   ByteSet set;
   set.reset();
-  fsm[1].trans->getBits(set);
+  fsm[1].Trans->getBits(set);
   SCOPE_ASSERT_EQUAL(256u, set.count());
 }
 
@@ -535,7 +535,7 @@ SCOPE_TEST(parseHexCode) {
 
   ByteSet set;
   set.reset();
-  fsm[1].trans->getBits(set);
+  fsm[1].Trans->getBits(set);
   SCOPE_ASSERT_EQUAL(1u, set.count());
   SCOPE_ASSERT(set[' ']);
 }
@@ -581,7 +581,7 @@ SCOPE_TEST(parseHighHex) {
   expected.reset();
   actual.reset();
   expected.set(0xe5);
-  fsm[1].trans->getBits(actual);
+  fsm[1].Trans->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
@@ -604,9 +604,9 @@ SCOPE_TEST(parseSimpleCharClass) {
   expected.set('a');
   expected.set('B');
   expected.set('b');
-  fsm[1].trans->getBits(actual);
+  fsm[1].Trans->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
-  SCOPE_ASSERT_EQUAL("ABab/0", fsm[1].trans->label());
+  SCOPE_ASSERT_EQUAL("ABab/0", fsm[1].Trans->label());
 }
 
 SCOPE_TEST(parseUnprintableCharClass) {
@@ -627,9 +627,9 @@ SCOPE_TEST(parseUnprintableCharClass) {
   expected.set('A');
   expected.set(0x00);
   expected.set(0xFF);
-  fsm[1].trans->getBits(actual);
+  fsm[1].Trans->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
-  SCOPE_ASSERT_EQUAL("\\x00A\\xFF/0", fsm[1].trans->label());
+  SCOPE_ASSERT_EQUAL("\\x00A\\xFF/0", fsm[1].Trans->label());
 }
 
 SCOPE_TEST(parseNegatedRanges) {
@@ -658,7 +658,7 @@ SCOPE_TEST(parseNegatedRanges) {
       expected.set(i, true);
     }
   }
-  fsm[1].trans->getBits(actual);
+  fsm[1].Trans->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
@@ -678,9 +678,9 @@ SCOPE_TEST(parseCaseInsensitive) {
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   Instruction i;
-  SCOPE_ASSERT(fsm[1].trans->toInstruction(&i));
+  SCOPE_ASSERT(fsm[1].Trans->toInstruction(&i));
   SCOPE_ASSERT_EQUAL(Instruction::makeEither('A', 'a'), i);
-  SCOPE_ASSERT(fsm[2].trans->toInstruction(&i));
+  SCOPE_ASSERT(fsm[2].Trans->toInstruction(&i));
   SCOPE_ASSERT_EQUAL(Instruction::makeEither('B', 'b'), i);
 }
 
@@ -767,12 +767,12 @@ SCOPE_TEST(parseZeroDotStarZero) {
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
-    SCOPE_ASSERT(!g[i].trans->IsMatch); \
+    SCOPE_ASSERT(!g[i].Trans->IsMatch); \
   } \
 \
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(n)); \
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(n)); \
-  SCOPE_ASSERT(g[n].trans->IsMatch);
+  SCOPE_ASSERT(g[n].Trans->IsMatch);
 
 SCOPE_TEST(parse_aLCnRC) {
   for (uint32 c = 1; c < 100; ++c) {
@@ -800,13 +800,13 @@ SCOPE_TEST(parse_aLCnRC) {
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
-    SCOPE_ASSERT(!g[i].trans->IsMatch); \
+    SCOPE_ASSERT(!g[i].Trans->IsMatch); \
   } \
 \
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(n)); \
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(n)); \
   SCOPE_ASSERT_EQUAL(n, g.outVertex(n, 0)); \
-  SCOPE_ASSERT(g[n].trans->IsMatch);
+  SCOPE_ASSERT(g[n].Trans->IsMatch);
 
 SCOPE_TEST(parse_aLCn_RC) {
   for (uint32 n = 1; n < 100; ++n) {
@@ -832,11 +832,11 @@ SCOPE_TEST(parse_aLC0_RCQb) {
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
   SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
   SCOPE_ASSERT_EQUAL(1, g.outVertex(1, 1));
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
-  SCOPE_ASSERT(g[2].trans->IsMatch);
+  SCOPE_ASSERT(g[2].Trans->IsMatch);
 }
 
 #define TEST_REPETITION_NG_N_U(pattern, n) \
@@ -859,18 +859,18 @@ SCOPE_TEST(parse_aLC0_RCQb) {
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
-    SCOPE_ASSERT(!g[i].trans->IsMatch); \
+    SCOPE_ASSERT(!g[i].Trans->IsMatch); \
   } \
 \
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(n)); \
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(n)); \
   SCOPE_ASSERT_EQUAL(n+1, g.outVertex(n, 0)); \
   SCOPE_ASSERT_EQUAL(n, g.outVertex(n, 1)); \
-  SCOPE_ASSERT(!g[n].trans->IsMatch); \
+  SCOPE_ASSERT(!g[n].Trans->IsMatch); \
 \
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(n+1)); \
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(n+1)); \
-  SCOPE_ASSERT(g[n].trans->IsMatch);
+  SCOPE_ASSERT(g[n].Trans->IsMatch);
 
 SCOPE_TEST(parse_aLCn_RCQb) {
   for (uint32 n = 1; n < 100; ++n) {
@@ -899,8 +899,8 @@ SCOPE_TEST(parse_xa0_) {
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
   SCOPE_ASSERT_EQUAL(2, g.outVertex(2, 0));
 
-  SCOPE_ASSERT(g[1].trans->IsMatch);
-  SCOPE_ASSERT(g[2].trans->IsMatch);
+  SCOPE_ASSERT(g[1].Trans->IsMatch);
+  SCOPE_ASSERT(g[2].Trans->IsMatch);
 }
 
 #define TEST_REPETITION_N_M(pattern, n, m) \
@@ -923,19 +923,19 @@ SCOPE_TEST(parse_xa0_) {
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
-    SCOPE_ASSERT(!g[i].trans->IsMatch); \
+    SCOPE_ASSERT(!g[i].Trans->IsMatch); \
   } \
 \
   for (uint32 i = n; i < m; ++i) { \
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
-    SCOPE_ASSERT(g[i].trans->IsMatch); \
+    SCOPE_ASSERT(g[i].Trans->IsMatch); \
   } \
 \
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(m)); \
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(m)); \
-  SCOPE_ASSERT(g[m].trans->IsMatch);
+  SCOPE_ASSERT(g[m].Trans->IsMatch);
 
 SCOPE_TEST(parse_aLCn_mRC) {
   for (uint32 n = 1; n < 5; ++n) {
@@ -970,9 +970,9 @@ SCOPE_TEST(parse_aaQQb) {
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
-  SCOPE_ASSERT(!g[2].trans->IsMatch);
-  SCOPE_ASSERT(g[3].trans->IsMatch);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
+  SCOPE_ASSERT(!g[2].Trans->IsMatch);
+  SCOPE_ASSERT(g[3].Trans->IsMatch);
 }
 
 SCOPE_TEST(parse_xLPaORaQQRPy) {
@@ -1005,8 +1005,8 @@ SCOPE_TEST(parse_xLPaORaQQRPy) {
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(4));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(4));
 
-  SCOPE_ASSERT(!g[1].trans->IsMatch);
-  SCOPE_ASSERT(!g[2].trans->IsMatch);
-  SCOPE_ASSERT(!g[3].trans->IsMatch);
-  SCOPE_ASSERT(g[4].trans->IsMatch);
+  SCOPE_ASSERT(!g[1].Trans->IsMatch);
+  SCOPE_ASSERT(!g[2].Trans->IsMatch);
+  SCOPE_ASSERT(!g[3].Trans->IsMatch);
+  SCOPE_ASSERT(g[4].Trans->IsMatch);
 }
