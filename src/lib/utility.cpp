@@ -48,7 +48,7 @@ void addKeys(PatternInfo& keyInfo, const LG_KeyOptions& keyOpts, uint32 encIdx, 
   }
 }
 
-GraphPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
+NFAPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
   Parser p(totalCharacters(keyInfo.Patterns));
   uint32 keyIdx = 0;
   LG_KeyOptions keyOpts;
@@ -66,7 +66,7 @@ GraphPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool 
 
   if (p.Fsm) {
     if (determinize) {
-      GraphPtr dfa(new NFA(1));
+      NFAPtr dfa(new NFA(1));
       p.Comp.subsetDFA(*dfa, *p.Fsm);
       p.Fsm = dfa;
     }
@@ -75,7 +75,7 @@ GraphPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool 
   return p.Fsm;
 }
 
-GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
+NFAPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
   PatternInfo keyInfo;
   keyInfo.Patterns = keywords;
   return createGraph(keyInfo, enc, caseSensitive, litMode, determinize, ignoreBadParse);
@@ -282,7 +282,7 @@ ByteSet firstBytes(const NFA& graph) {
 
 boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, SearchInfo&) {
   boost::shared_ptr<VmInterface> vm = VmInterface::create();
-  GraphPtr fsm = createGraph(keywords);
+  NFAPtr fsm = createGraph(keywords);
   ProgramPtr prog = createProgram(*fsm);
   prog->First = firstBytes(*fsm);
   vm->init(prog);

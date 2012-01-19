@@ -150,7 +150,7 @@ boost::shared_ptr<ProgramHandle> createProgram(const Options& opts, PatternInfo&
     // build the program
     prog = buildProgram(parser.get(), opts);
     if (lg_ok(prog.get())) {
-      GraphPtr g(parser->Impl->Fsm);
+      NFAPtr g(parser->Impl->Fsm);
       std::cerr << g->verticesSize() << " vertices" << std::endl;
 
       ProgramPtr p(prog->Impl->Prog);
@@ -338,7 +338,7 @@ bool writeGraphviz(const Options& opts) {
     }
 
     // break on through the C API to print the graph
-    GraphPtr g(parser->Impl->Fsm);
+    NFAPtr g(parser->Impl->Fsm);
     std::cerr << g->verticesSize() << " vertices" << std::endl;
     writeGraphviz(opts.openOutput(), *g);
     return true;
@@ -367,7 +367,7 @@ void writeProgram(const Options& opts) {
       return;
     }
  
-    GraphPtr g(parser->Impl->Fsm);
+    NFAPtr g(parser->Impl->Fsm);
     std::cerr << g->verticesSize() << " vertices" << std::endl;
   }
 
@@ -394,7 +394,7 @@ void writeSampleMatches(const Options& opts) {
     boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo, numErrors));
     if (numErrors == 0) {
       // break on through the C API to get the graph
-      GraphPtr g(parser->Impl->Fsm);
+      NFAPtr g(parser->Impl->Fsm);
 
       std::set<std::string> matches;
       matchgen(*g, matches, opts.SampleLimit, opts.LoopLimit);

@@ -17,7 +17,7 @@ enum Encodings {
   CP_UCS16 = 2
 };
 
-GraphPtr createGraph(const std::vector<std::string>& keywords,
+NFAPtr createGraph(const std::vector<std::string>& keywords,
                     uint32 enc = CP_ASCII, 
                     bool caseSensitive = true, 
                     bool litMode = false, 

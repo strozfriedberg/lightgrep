@@ -14,5 +14,5 @@ struct Glushkov {
 };
 
 typedef Graph<Empty,Glushkov,Empty> NFA;
-typedef boost::shared_ptr<NFA> GraphPtr;
+typedef boost::shared_ptr<NFA> NFAPtr;
 

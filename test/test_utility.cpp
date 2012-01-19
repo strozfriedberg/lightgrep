@@ -124,7 +124,7 @@ SCOPE_TEST(twoFixedStrings) {
   std::vector< std::string > kws;
   kws.push_back("one");
   kws.push_back("two");
-  GraphPtr fsm = createGraph(kws);
+  NFAPtr fsm = createGraph(kws);
   SCOPE_ASSERT_EQUAL(7u, fsm->verticesSize());
 }
 
@@ -132,7 +132,7 @@ SCOPE_TEST(twoUnicode) {
   std::vector< std::string > kws;
   kws.push_back("aa");
   kws.push_back("ab");
-  GraphPtr fsm = createGraph(kws, CP_UCS16);
+  NFAPtr fsm = createGraph(kws, CP_UCS16);
   NFA& g = *fsm;
   
   SCOPE_ASSERT_EQUAL(7u, g.verticesSize());
@@ -206,7 +206,7 @@ SCOPE_TEST(simpleCollapse) {
   std::vector< std::string > kws;
   kws.push_back("ab");
   kws.push_back("ac");
-  GraphPtr fsm = createGraph(kws);
+  NFAPtr fsm = createGraph(kws);
   SCOPE_ASSERT_EQUAL(4u, fsm->verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));

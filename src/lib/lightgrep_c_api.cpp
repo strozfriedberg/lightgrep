@@ -130,7 +130,7 @@ int lg_add_keyword(LG_HPARSER hParser,
 
 void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
 {
-  GraphPtr& g(hParser->Impl->Fsm);
+  NFAPtr& g(hParser->Impl->Fsm);
 
   if (g->verticesSize() < 2) {
     throw std::runtime_error("No valid patterns were parsed");
@@ -139,7 +139,7 @@ void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
   Compiler& comp(hParser->Impl->Comp);
 
   if (determinize) {
-    GraphPtr dfa(new NFA(1));
+    NFAPtr dfa(new NFA(1));
     comp.subsetDFA(*dfa, *g);
     g = dfa;
   }
