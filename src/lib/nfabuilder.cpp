@@ -59,8 +59,8 @@ void NFABuilder::reset() {
     Fsm->addVertex();
   }
   else {
-    Fsm.reset(new Graph(1));
-//    Fsm.reset(new Graph(1, ReserveSize));
+    Fsm.reset(new NFA(1));
+//    Fsm.reset(new NFA(1, ReserveSize));
   }
   while (!Stack.empty()) {
     Stack.pop();
@@ -82,17 +82,17 @@ void NFABuilder::setSizeHint(uint64 reserveSize) {
   ReserveSize = reserveSize;
 }
 
-void NFABuilder::setLiteralTransition(Graph& g, const Graph::vertex& v, byte val) {
+void NFABuilder::setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, byte val) {
   if (CaseSensitive || !std::isalpha(val)) {
 // FIXME: Labeled vertices can't be shared. We don't know which will be
 // labeled (permanently) until after walking back labels. If the memory
 // we were saving this way was really important, we need to figure out
 // something else to do here.
 //    state = LitFlyweights[val];
-    g.setTran(v, new LitState(val));
+    g[v].trans = new LitState(val);
   }
   else {
-    g.setTran(v, new EitherState(std::toupper(val), std::tolower(val)));
+    g[v].trans = new EitherState(std::toupper(val), std::tolower(val));
   }
 }
 
@@ -110,7 +110,7 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
 
     // make edges before dstskip, inserting before src insertion point
     for ( ; ii != dst.end() && ii < skip_stop; ++ii) {
-      Fsm->addEdgeAtND(oi->first, *ii, pos++);
+      Fsm->insertEdge(oi->first, *ii, pos++);
     }
 
     // save the new insertion point for dst
@@ -118,7 +118,7 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
 
     // make edges after dstskip, inserting after src insertion point
     for ( ; ii != dst.end(); ++ii) {
-      Fsm->addEdgeAtND(oi->first, *ii, pos++);
+      Fsm->insertEdge(oi->first, *ii, pos++);
     }
 
     // set the new insertion point for dst
@@ -144,8 +144,8 @@ void NFABuilder::literal(const ParseNode& n) {
     throw std::logic_error("bad things");
   }
   else {
-    Graph& g(*Fsm);
-    Graph::vertex first, prev, last;
+    NFA& g(*Fsm);
+    NFA::VertexDescriptor first, prev, last;
     first = prev = last = g.addVertex();
     setLiteralTransition(g, first, TempBuf[0]);
     for (uint32 i = 1; i < len; ++i) {
@@ -162,14 +162,14 @@ void NFABuilder::literal(const ParseNode& n) {
 }
 
 void NFABuilder::dot(const ParseNode& n) {
-  Graph::vertex v = Fsm->addVertex();
-  Fsm->setTran(v, new RangeState(0, 255));
+  NFA::VertexDescriptor v = Fsm->addVertex();
+  (*Fsm)[v].trans = new RangeState(0, 255);
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
 
 void NFABuilder::charClass(const ParseNode& n) {
-  Graph::vertex v = Fsm->addVertex();
+  NFA::VertexDescriptor v = Fsm->addVertex();
   uint32 num = 0;
   byte first = 0, last = 0;
   for (uint32 i = 0; i < 256; ++i) {
@@ -188,10 +188,10 @@ void NFABuilder::charClass(const ParseNode& n) {
   }
 
   if (num == n.Bits.count()) {
-    Fsm->setTran(v, new RangeState(first, last));
+    (*Fsm)[v].trans = new RangeState(first, last);
   }
   else {
-    Fsm->setTran(v, new CharClassState(n.Bits));
+    (*Fsm)[v].trans = new CharClassState(n.Bits);
   }
 
   TempFrag.initFull(v, n);
@@ -336,13 +336,13 @@ void NFABuilder::finish(const ParseNode& n) {
 
     for (OutListT::const_iterator i(start.OutList.begin()); i != start.OutList.end(); ++i) {
       // std::cout << "marking " << *it << " as a match" << std::endl;
-      Graph::vertex v = i->first;
+      NFA::VertexDescriptor v = i->first;
       if (0 == v) { // State 0 is not allowed to be a match state; i.e. 0-length REs are not allowed
         reset();
         return;
       }
       else {
-        Transition* final = (*Fsm)[v];
+        Transition* final = (*Fsm)[v].trans;
         final->Label = CurLabel;
         final->IsMatch = true;
       }

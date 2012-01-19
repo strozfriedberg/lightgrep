@@ -66,7 +66,7 @@ GraphPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool 
 
   if (p.Fsm) {
     if (determinize) {
-      GraphPtr dfa(new Graph(1));
+      GraphPtr dfa(new NFA(1));
       p.Comp.subsetDFA(*dfa, *p.Fsm);
       p.Fsm = dfa;
     }
@@ -81,11 +81,11 @@ GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool 
   return createGraph(keyInfo, enc, caseSensitive, litMode, determinize, ignoreBadParse);
 }
 
-uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {
+uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, NFA::VertexDescriptor v, const NFA& graph) {
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
   if (1 == graph.outDegree(v) &&
-      NOLABEL == graph[v]->Label && !graph[v]->IsMatch) {
+      NOLABEL == graph[v].trans->Label && !graph[v].trans->IsMatch) {
     return cg->Snippets[graph.outVertex(v, 0)].Start;
   }
   else {
@@ -94,12 +94,12 @@ uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, co
 }
 
 // JumpTables are either ranged, or full-size, and can have indirect tables at the end when there are multiple transitions out on a single byte value
-void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* const base, Instruction* const start, Graph::vertex v, const Graph& graph) {
+void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* const base, Instruction* const start, NFA::VertexDescriptor v, const NFA& graph) {
   const uint32 startIndex = start - base;
   Instruction* cur = start,
              * indirectTbl;
 
-  std::vector< std::vector< Graph::vertex > > tbl(pivotStates(v, graph));
+  std::vector< std::vector< NFA::VertexDescriptor > > tbl(pivotStates(v, graph));
   uint32 first = 0,
          last  = 255;
 
@@ -157,10 +157,10 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
 // need a two-pass to get it to work with the bgl visitors
 //  discover_vertex: determine slot
 //  finish_vertex:
-ProgramPtr createProgram(const Graph& graph) {
+ProgramPtr createProgram(const NFA& graph) {
   // std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
-  const uint32 numVs = graph.numVertices();
+  const uint32 numVs = graph.verticesSize();
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
@@ -168,12 +168,12 @@ ProgramPtr createProgram(const Graph& graph) {
   ret->NumChecked = cg->NumChecked;
   ret->resize(cg->Guard);
 
-  for (Graph::vertex v = 0; v < numVs; ++v) {
+  for (NFA::VertexDescriptor v = 0; v < numVs; ++v) {
     // if (++i % 10000 == 0) {
     //   std::cerr << "have compiled " << i << " states so far" << std::endl;
     // }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
-    Transition* t(graph[v]);
+    Transition* t(graph[v].trans);
     if (t) {
       t->toInstruction(curOp);
       curOp += t->numInstructions();
@@ -209,7 +209,7 @@ ProgramPtr createProgram(const Graph& graph) {
 
     const uint32 v_odeg = graph.outDegree(v);
     if (v_odeg > 0) {
-      Graph::vertex curTarget;
+      NFA::VertexDescriptor curTarget;
 
       // layout non-initial children in reverse order
       for (uint32 i = v_odeg-1; i > 0; --i) {
@@ -238,20 +238,20 @@ ProgramPtr createProgram(const Graph& graph) {
   return ret;
 }
 
-void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor) {
-  std::vector<bool> seen(graph.numVertices());
-  std::queue<Graph::vertex> next;
+void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor) {
+  std::vector<bool> seen(graph.verticesSize());
+  std::queue<NFA::VertexDescriptor> next;
 
   visitor.discoverVertex(start, graph);
   next.push(start);
   seen[start] = true;
 
   while (!next.empty()) {
-    Graph::vertex h = next.front();
+    NFA::VertexDescriptor h = next.front();
     next.pop();
 
     for (uint32 ov = 0; ov < graph.outDegree(h); ++ov) {
-      Graph::vertex t = graph.outVertex(h, ov);
+      NFA::VertexDescriptor t = graph.outVertex(h, ov);
       if (!seen[t]) {
         // One might think that we discover a vertex at the tail of an
         // edge first, but one would be wrong...
@@ -264,16 +264,16 @@ void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor) {
   }
 }
 
-void nextBytes(ByteSet& set, Graph::vertex v, const Graph& graph) {
+void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph) {
   ByteSet tBits;
   for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
     tBits.reset();
-    graph[graph.outVertex(v, ov)]->getBits(tBits);
+    graph[graph.outVertex(v, ov)].trans->getBits(tBits);
     set |= tBits;
   }
 }
 
-ByteSet firstBytes(const Graph& graph) {
+ByteSet firstBytes(const NFA& graph) {
   ByteSet ret;
   ret.reset();
   nextBytes(ret, 0, graph);
@@ -289,15 +289,15 @@ boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, 
   return vm;
 }
 
-std::vector< std::vector< Graph::vertex > > pivotStates(Graph::vertex source, const Graph& graph) {
-  std::vector< std::vector< Graph::vertex > > ret(256);
+std::vector< std::vector< NFA::VertexDescriptor > > pivotStates(NFA::VertexDescriptor source, const NFA& graph) {
+  std::vector< std::vector< NFA::VertexDescriptor > > ret(256);
   ByteSet permitted;
 
   for (uint32 i = 0; i < graph.outDegree(source); ++i) {
-    Graph::vertex ov = graph.outVertex(source, i);
+    NFA::VertexDescriptor ov = graph.outVertex(source, i);
 
     permitted.reset();
-    graph[ov]->getBits(permitted);
+    graph[ov].trans->getBits(permitted);
     for (uint32 i = 0; i < 256; ++i) {
       if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
         ret[i].push_back(ov);
@@ -307,18 +307,18 @@ std::vector< std::vector< Graph::vertex > > pivotStates(Graph::vertex source, co
   return ret;
 }
 
-uint32 maxOutbound(const std::vector< std::vector< Graph::vertex > >& tranTable) {
+uint32 maxOutbound(const std::vector< std::vector< NFA::VertexDescriptor > >& tranTable) {
   uint32 ret = 0;
-  for (std::vector< std::vector< Graph::vertex > >::const_iterator it(tranTable.begin()); it != tranTable.end(); ++it) {
+  for (std::vector< std::vector< NFA::VertexDescriptor > >::const_iterator it(tranTable.begin()); it != tranTable.end(); ++it) {
     ret = it->size() > ret ? it->size() : ret;
   }
   return ret;
 }
 
-void writeVertex(std::ostream& out, Graph::vertex v, const Graph& graph) {
+void writeVertex(std::ostream& out, NFA::VertexDescriptor v, const NFA& graph) {
   out << "  " << v << " [label=\"" << v << "\"";
 
-  if (graph[v] && graph[v]->IsMatch) {
+  if (graph[v].trans && graph[v].trans->IsMatch) {
     // double ring for match states
     out << ", peripheries=2";
   }
@@ -337,23 +337,22 @@ std::string escape(char c, const std::string& text) {
   return repl;
 }
 
-void writeEdge(std::ostream& out, Graph::vertex v, Graph::vertex u,
-               uint32 priority, const Graph& graph) {
-  const std::string esclabel = escape('"', escape('\\', graph[u]->label()));
+void writeEdge(std::ostream& out, NFA::VertexDescriptor v, NFA::VertexDescriptor u, uint32 priority, const NFA& graph) {
+  const std::string esclabel = escape('"', escape('\\', graph[u].trans->label()));
 
   out << "  " << v << " -> " << u << " ["
       << "label=\"" << esclabel << "\", "
       << "taillabel=\"" << priority << "\"];\n";
 }
 
-void writeGraphviz(std::ostream& out, const Graph& graph) {
+void writeGraphviz(std::ostream& out, const NFA& graph) {
   out << "digraph G {\n  rankdir=LR;\n  ranksep=equally;\n  node [shape=\"circle\"];" << std::endl;
 
-  for (uint32 i = 0; i < graph.numVertices(); ++i) {
+  for (uint32 i = 0; i < graph.verticesSize(); ++i) {
     writeVertex(out, i, graph);
   }
 
-  for (uint32 i = 0; i < graph.numVertices(); ++i) {
+  for (uint32 i = 0; i < graph.verticesSize(); ++i) {
     for (uint32 j = 0; j < graph.outDegree(i); ++j) {
       writeEdge(out, i, graph.outVertex(i, j), j, graph);
     }

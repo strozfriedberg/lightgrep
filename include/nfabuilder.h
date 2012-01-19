@@ -1,7 +1,7 @@
 #pragma once
 
+#include "automata.h"
 #include "basic.h"
-#include "graph.h"
 #include "encoding.h"
 #include "parsenode.h"
 #include "parsetree.h"
@@ -9,14 +9,14 @@
 #include <limits>
 #include <stack>
 
-typedef std::vector<Graph::vertex> InListT;
-typedef std::vector< std::pair<Graph::vertex, uint32> > OutListT;
+typedef std::vector<NFA::VertexDescriptor> InListT;
+typedef std::vector< std::pair<NFA::VertexDescriptor, uint32> > OutListT;
 
 static const uint32 NOSKIP = std::numeric_limits<uint32>::max();
 
 struct Fragment {
   Fragment(): Skippable(NOSKIP) {}
-  Fragment(Graph::vertex in, const ParseNode& n):
+  Fragment(NFA::VertexDescriptor in, const ParseNode& n):
     InList(1, in), N(n), Skippable(NOSKIP) {}
 
   /*
@@ -30,7 +30,7 @@ struct Fragment {
 
   uint32 Skippable;
 
-  void initFull(Graph::vertex in, const ParseNode& n) {
+  void initFull(NFA::VertexDescriptor in, const ParseNode& n) {
     N = n;
     Skippable = NOSKIP;
     InList.clear();
@@ -92,7 +92,7 @@ public:
   bool build(const ParseTree& tree);
 
 private:
-  void setLiteralTransition(Graph& g, const Graph::vertex& v, byte val);
+  void setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, byte val);
 
   void patch_mid(OutListT& src, const InListT& dst, uint32 dstskip);
   void patch_pre(OutListT& src, const InListT& dst);

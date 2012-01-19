@@ -1,5 +1,6 @@
 #pragma once
 
+#include "automata.h"
 #include "parsenode.h"
 #include "parsetree.h"
 #include "nfabuilder.h"
@@ -9,7 +10,7 @@ bool parse(const std::string& text, bool litMode, ParseTree& tree);
 
 class Parser {
 public:
-  Parser(uint32 sizeHint): Fsm(new Graph(1, sizeHint)) {}
+  Parser(uint32 sizeHint): Fsm(new NFA(1, sizeHint)) {}
 
   ParseTree   Tree;
   NFABuilder  Nfab;

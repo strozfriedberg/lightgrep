@@ -2,7 +2,7 @@
 
 #include "lightgrep_c_api.h"
 
-#include "graph.h"
+#include "automata.h"
 #include "compiler.h"
 #include "handles.h"
 #include "nfabuilder.h"
@@ -132,14 +132,14 @@ void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
 {
   GraphPtr& g(hParser->Impl->Fsm);
 
-  if (g->numVertices() < 2) {
+  if (g->verticesSize() < 2) {
     throw std::runtime_error("No valid patterns were parsed");
   }
 
   Compiler& comp(hParser->Impl->Comp);
 
   if (determinize) {
-    GraphPtr dfa(new Graph(1));
+    GraphPtr dfa(new NFA(1));
     comp.subsetDFA(*dfa, *g);
     g = dfa;
   }

@@ -2,102 +2,151 @@
 
 #include "graph.h"
 
-SCOPE_TEST(numVerticesWithReserve) {
-  Graph g(0, 1);
-  SCOPE_ASSERT_EQUAL(1, g.capacity());
-  SCOPE_ASSERT_EQUAL(0, g.addVertex());
-  SCOPE_ASSERT_EQUAL(1, g.capacity());
-  SCOPE_ASSERT_EQUAL(1, g.addVertex());
-  SCOPE_ASSERT(2 <= g.capacity());
-  SCOPE_ASSERT_EQUAL(2, g.addVertex());
-  SCOPE_ASSERT(3 <= g.capacity());
+struct X {};
+
+SCOPE_TEST(graphNullaryCtor) {
+  Graph<X,X,X> g;
+  SCOPE_ASSERT_EQUAL(0, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(0, g.edgesSize());
 }
 
-SCOPE_TEST(fsmAddVertex) {
-  Graph g(0);
-  SCOPE_ASSERT_EQUAL(0, g.addVertex());
-  SCOPE_ASSERT_EQUAL(1, g.addVertex());
-  SCOPE_ASSERT_EQUAL(2, g.addVertex());
+SCOPE_TEST(graphFiveCtor) {
+  Graph<X,X,X> g(5);
+  SCOPE_ASSERT_EQUAL(5, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(0, g.edgesSize());
 }
 
-SCOPE_TEST(fsmInEdges) {
-  // two disconnected nodes
-  Graph g(2);
-  SCOPE_ASSERT_EQUAL(2, g.numVertices());
-  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(0, g.inDegree(1));
+SCOPE_TEST(graphTenTwentyCtor) {
+  Graph<X,X,X> g(10, 20);
+  SCOPE_ASSERT_EQUAL(10, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(20, g.verticesCapacity());
+  SCOPE_ASSERT_EQUAL(0, g.edgesSize());
+}
 
-  // add 0 -> 1
-  SCOPE_ASSERT(!g.edgeExists(0, 1));
-  g.addEdge(0, 1);
-  SCOPE_ASSERT(g.edgeExists(0, 1));
-  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+SCOPE_TEST(graphSixSevenEightCtor) {
+  Graph<X,X,X> g(6, 7, 8);
+  SCOPE_ASSERT_EQUAL(6, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(7, g.verticesCapacity());
+  SCOPE_ASSERT_EQUAL(0, g.edgesSize());
+  SCOPE_ASSERT_EQUAL(8, g.edgesCapacity());
+}
 
-  // add 0 -> 0
-  SCOPE_ASSERT(!g.edgeExists(0, 0));
-  g.addEdge(0, 0);
-  SCOPE_ASSERT(g.edgeExists(0, 0));
+SCOPE_TEST(graphAddVertex) {
+  Graph<X,X,X> g(0);
+  SCOPE_ASSERT_EQUAL(0, g.addVertex());
+  SCOPE_ASSERT_EQUAL(1, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(1, g.addVertex());
+  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(2, g.addVertex());
+  SCOPE_ASSERT_EQUAL(3, g.verticesSize());
+}
+
+SCOPE_TEST(graphAddLoop) {
+  Graph<X,X,X> g(1);
+  SCOPE_ASSERT_EQUAL(0, g.addEdge(0, 0));
+  SCOPE_ASSERT_EQUAL(1, g.edgesSize());
   SCOPE_ASSERT_EQUAL(1, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
   SCOPE_ASSERT_EQUAL(0, g.inVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(0, g.inEdge(0, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outEdge(0, 0));
 }
 
-SCOPE_TEST(fsmOutEdges) {
-  // two disconnected nodes
-  Graph g(2);
-  SCOPE_ASSERT_EQUAL(2, g.numVertices());
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(0));
+SCOPE_TEST(graphAddEdge) {
+  Graph<X,X,X> g(2);
 
-  // add 0 -> 1
-  SCOPE_ASSERT(!g.edgeExists(0, 1));
-  g.addEdge(0, 1);
-  SCOPE_ASSERT(g.edgeExists(0, 1));
-  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
-
-  // add 0 -> 0
-  SCOPE_ASSERT(!g.edgeExists(0, 0));
-  g.addEdge(0, 0);
-  SCOPE_ASSERT(g.edgeExists(0, 0));
-  SCOPE_ASSERT_EQUAL(2, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(0, g.outVertex(0, 1));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
-}
-
-SCOPE_TEST(fsmManyInZeroOutItr) {
-  // This tests the situation where a node has ZERO out-, but MANY indegree.
-  Graph g(3);
-  g.addEdge(0, 2);
-  g.addEdge(1, 2);
-
+  // two disconnected vertices
+  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(0, g.edgesSize());
   SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(0));
   SCOPE_ASSERT_EQUAL(0, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.inDegree(2));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(1, g.inVertex(2, 1));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
 
+  // 0 -> 1
+  SCOPE_ASSERT_EQUAL(0, g.addEdge(0, 1));
+  SCOPE_ASSERT_EQUAL(1, g.edgesSize());
+  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outEdge(0, 0));
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.inEdge(1, 0));
+
+  // 1 -> 0
+  SCOPE_ASSERT_EQUAL(1, g.addEdge(1, 0));
+  SCOPE_ASSERT_EQUAL(2, g.edgesSize());
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.inVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1, g.inEdge(0, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outEdge(0, 0));
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.inEdge(1, 0));
+  SCOPE_ASSERT_EQUAL(1, g.outEdge(1, 0));
 }
 
-SCOPE_TEST(fsmClear) {
-  Graph g(1);
+SCOPE_TEST(graphRemoveEdge) {
+  Graph<X,X,X> g(2);
+
+  SCOPE_ASSERT_EQUAL(0, g.addEdge(0, 1));
+  SCOPE_ASSERT_EQUAL(1, g.addEdge(1, 0));
+  SCOPE_ASSERT_EQUAL(2, g.edgesSize());
+  g.removeEdge(0);
+  SCOPE_ASSERT_EQUAL(1, g.edgesSize());
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1, g.inVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.inEdge(0, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outEdge(1, 0));
+}
+
+SCOPE_TEST(graphRemoveVertex) {
+  Graph<X,X,X> g(3);
+  g.addEdge(0, 1);
+  g.addEdge(1, 2);
+  g.addEdge(2, 0);
+
+  g.removeVertex(1);
+  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(1, g.edgesSize());
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(0, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1, g.inVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.inEdge(0, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outEdge(1, 0));
+}
+
+SCOPE_TEST(graphClearVertices) {
+  Graph<X,X,X> g(1);
   g.addEdge(0, 0);
-
-  SCOPE_ASSERT_EQUAL(1, g.numVertices());
-  g.clear();
-  SCOPE_ASSERT_EQUAL(0, g.numVertices());
+  SCOPE_ASSERT_EQUAL(1, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(1, g.edgesSize());
+  g.clearVertices();
+  SCOPE_ASSERT_EQUAL(0, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(0, g.edgesSize());
 }
 
-SCOPE_TEST(fsmVertexSize) {
-  SCOPE_ASSERT(sizeof(Graph::Vertex) <= 32);
+SCOPE_TEST(graphClearEdges) {
+  Graph<X,X,X> g(1);
+  g.addEdge(0, 0);
+  SCOPE_ASSERT_EQUAL(1, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(1, g.edgesSize());
+  g.clearEdges();
+  SCOPE_ASSERT_EQUAL(1, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(0, g.edgesSize());
 }
+

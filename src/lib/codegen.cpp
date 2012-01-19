@@ -4,11 +4,11 @@
 
 #include "codegen.h"
 
-void CodeGenVisitor::discover_vertex(Graph::vertex v, const Graph& graph) {
+void CodeGenVisitor::discover_vertex(NFA::VertexDescriptor v, const NFA& graph) {
   Helper->discover(v, graph);
 }
 
-uint32 CodeGenVisitor::calcJumpTableSize(Graph::vertex v, const Graph& graph, uint32 outDegree) {
+uint32 CodeGenVisitor::calcJumpTableSize(NFA::VertexDescriptor v, const NFA& graph, uint32 outDegree) {
   if (outDegree > 3) {
     TransitionTbl tbl(pivotStates(v, graph));
     if (maxOutbound(tbl) < outDegree) {
@@ -36,16 +36,16 @@ uint32 CodeGenVisitor::calcJumpTableSize(Graph::vertex v, const Graph& graph, ui
   return 0;
 }
 
-void CodeGenVisitor::finish_vertex(Graph::vertex v, const Graph& graph) {
+void CodeGenVisitor::finish_vertex(NFA::VertexDescriptor v, const NFA& graph) {
   // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
 
   uint32 label = 0,
          match = 0,
-         eval  = (v == 0 ? 0 : graph[v]->numInstructions());
+         eval  = (v == 0 ? 0 : graph[v].trans->numInstructions());
 
   const uint32 outDegree = graph.outDegree(v);
 
-  const Transition* t = graph[v];
+  const Transition* t = graph[v].trans;
   if (t) {
     if (t->Label != NONE) {
       label = 1;
@@ -84,18 +84,18 @@ void CodeGenVisitor::finish_vertex(Graph::vertex v, const Graph& graph) {
   // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
 }
 
-void specialVisit(const Graph& graph, Graph::vertex startVertex, CodeGenVisitor& vis) {
-  std::deque<Graph::vertex> statesToVisit;
-  std::vector<Graph::vertex> inOrder;
-  std::vector<bool> discovered(graph.numVertices(), false);
+void specialVisit(const NFA& graph, NFA::VertexDescriptor startVertex, CodeGenVisitor& vis) {
+  std::deque<NFA::VertexDescriptor> statesToVisit;
+  std::vector<NFA::VertexDescriptor> inOrder;
+  std::vector<bool> discovered(graph.verticesSize(), false);
 
-  inOrder.reserve(graph.numVertices());
+  inOrder.reserve(graph.verticesSize());
 
   discovered[startVertex].flip();
   statesToVisit.push_back(startVertex);
 
   while (!statesToVisit.empty()) {
-    Graph::vertex v = statesToVisit.front();
+    NFA::VertexDescriptor v = statesToVisit.front();
     statesToVisit.pop_front();
 
     vis.discover_vertex(v, graph);
@@ -105,7 +105,7 @@ void specialVisit(const Graph& graph, Graph::vertex startVertex, CodeGenVisitor&
     const bool nobranch = numOut < 2;
 
     for (uint32 i = 0; i < numOut; ++i) {
-      Graph::vertex t = graph.outVertex(v, i);
+      NFA::VertexDescriptor t = graph.outVertex(v, i);
       if (!discovered[t]) {
         discovered[t].flip();
 
