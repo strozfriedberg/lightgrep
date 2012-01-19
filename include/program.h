@@ -1,8 +1,6 @@
 #pragma once
 
 #include "instructions.h"
-#include "skiptable.h"
-
 
 class Program: public std::vector<Instruction> {
 public:
@@ -11,7 +9,6 @@ public:
 
   uint32  NumChecked;
 
-  boost::shared_ptr<SkipTable> Skip;
   ByteSet First;
 };
 
