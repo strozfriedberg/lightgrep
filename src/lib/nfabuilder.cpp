@@ -93,6 +93,7 @@ void NFABuilder::setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, by
   }
   else {
     g[v].Trans = new EitherState(std::toupper(val), std::tolower(val));
+    g.Deterministic = false;
   }
 }
 
@@ -164,6 +165,7 @@ void NFABuilder::literal(const ParseNode& n) {
 void NFABuilder::dot(const ParseNode& n) {
   NFA::VertexDescriptor v = Fsm->addVertex();
   (*Fsm)[v].Trans = new RangeState(0, 255);
+  Fsm->Deterministic = false;
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
@@ -193,6 +195,8 @@ void NFABuilder::charClass(const ParseNode& n) {
   else {
     (*Fsm)[v].Trans = new CharClassState(n.Bits);
   }
+
+  Fsm->Deterministic = false;
 
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);

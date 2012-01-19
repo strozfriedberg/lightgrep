@@ -11,6 +11,12 @@ struct Glushkov {
   Transition* Trans;
 };
 
-typedef Graph<Empty,Glushkov,Empty> NFA;
+struct Properties {
+  bool Deterministic;
+
+  Properties(): Deterministic(true) {}
+};
+
+typedef Graph<Properties,Glushkov,Empty> NFA;
 typedef boost::shared_ptr<NFA> NFAPtr;
 
