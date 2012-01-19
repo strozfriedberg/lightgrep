@@ -40,8 +40,6 @@ void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor);
 
 uint32 calculateLMin(const Graph& graph);
 
-boost::shared_ptr<SkipTable> calculateSkipTable(const Graph& graph);
-
 ProgramPtr createProgram(const Graph& graph);
 
 ByteSet firstBytes(const Graph& graph);

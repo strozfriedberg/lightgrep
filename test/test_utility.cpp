@@ -126,7 +126,6 @@ SCOPE_TEST(twoFixedStrings) {
   kws.push_back("two");
   GraphPtr fsm = createGraph(kws);
   SCOPE_ASSERT_EQUAL(7u, fsm->numVertices());
-  SCOPE_ASSERT_EQUAL(3u, calculateLMin(*fsm));
 }
 
 SCOPE_TEST(twoUnicode) {
@@ -185,8 +184,6 @@ SCOPE_TEST(twoUnicode) {
 
     SCOPE_ASSERT_EQUAL(ebs, abs);
   }
-
-  SCOPE_ASSERT_EQUAL(4u, calculateLMin(g));
 }
 
 SCOPE_TEST(firstBitset) {
@@ -215,7 +212,6 @@ SCOPE_TEST(simpleCollapse) {
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(3));
-  SCOPE_ASSERT_EQUAL(2u, calculateLMin(*fsm));
 }
 
 SCOPE_TEST(codeGen2DiscoverVertex) {
