@@ -427,7 +427,7 @@ SCOPE_TEST(testCreateXXYYY) {
   kws.push_back("x");
   kws.push_back("yyy");
 
-  GraphPtr gp(createGraph(kws, CP_ASCII, true, false));
+  NFAPtr gp(createGraph(kws, CP_ASCII, true, false));
   NFA& g = *gp;
 
   NFA exp;

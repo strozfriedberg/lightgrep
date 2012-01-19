@@ -82,7 +82,7 @@ public:
 
   void finish(const ParseNode&);
 
-  GraphPtr getFsm() const { return Fsm; }
+  NFAPtr getFsm() const { return Fsm; }
   void resetFsm() { Fsm.reset(); }
 
   void setCurLabel(uint32 lbl) { CurLabel = lbl; }
@@ -104,7 +104,7 @@ private:
   uint32 CurLabel;
   uint64 ReserveSize;
   boost::shared_ptr<Encoding> Enc;
-  GraphPtr Fsm;
+  NFAPtr Fsm;
   std::stack<Fragment> Stack;
   std::stack<const ParseNode*, std::vector<const ParseNode*> > ChildStack, ParentStack;
 

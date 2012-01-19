@@ -15,7 +15,7 @@ public:
   ParseTree   Tree;
   NFABuilder  Nfab;
   Compiler    Comp;
-  GraphPtr    Fsm;
+  NFAPtr    Fsm;
 
   void addPattern(const std::string& pattern, uint32 patIndex, const LG_KeyOptions& keyOpts);
 };
