@@ -10,7 +10,7 @@ typedef boost::shared_ptr<Transition> TransitionPtr;
 struct Empty {};
 
 struct Glushkov {
-  Transition* trans;
+  Transition* Trans;
 };
 
 typedef Graph<Empty,Glushkov,Empty> NFA;

@@ -85,7 +85,7 @@ uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, NFA::VertexDescript
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
   if (1 == graph.outDegree(v) &&
-      NOLABEL == graph[v].trans->Label && !graph[v].trans->IsMatch) {
+      NOLABEL == graph[v].Trans->Label && !graph[v].Trans->IsMatch) {
     return cg->Snippets[graph.outVertex(v, 0)].Start;
   }
   else {
@@ -173,7 +173,7 @@ ProgramPtr createProgram(const NFA& graph) {
     //   std::cerr << "have compiled " << i << " states so far" << std::endl;
     // }
     Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
-    Transition* t(graph[v].trans);
+    Transition* t(graph[v].Trans);
     if (t) {
       t->toInstruction(curOp);
       curOp += t->numInstructions();
@@ -268,7 +268,7 @@ void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph) {
   ByteSet tBits;
   for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
     tBits.reset();
-    graph[graph.outVertex(v, ov)].trans->getBits(tBits);
+    graph[graph.outVertex(v, ov)].Trans->getBits(tBits);
     set |= tBits;
   }
 }
@@ -297,7 +297,7 @@ std::vector< std::vector< NFA::VertexDescriptor > > pivotStates(NFA::VertexDescr
     NFA::VertexDescriptor ov = graph.outVertex(source, i);
 
     permitted.reset();
-    graph[ov].trans->getBits(permitted);
+    graph[ov].Trans->getBits(permitted);
     for (uint32 i = 0; i < 256; ++i) {
       if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
         ret[i].push_back(ov);
@@ -318,7 +318,7 @@ uint32 maxOutbound(const std::vector< std::vector< NFA::VertexDescriptor > >& tr
 void writeVertex(std::ostream& out, NFA::VertexDescriptor v, const NFA& graph) {
   out << "  " << v << " [label=\"" << v << "\"";
 
-  if (graph[v].trans && graph[v].trans->IsMatch) {
+  if (graph[v].Trans && graph[v].Trans->IsMatch) {
     // double ring for match states
     out << ", peripheries=2";
   }
@@ -338,7 +338,7 @@ std::string escape(char c, const std::string& text) {
 }
 
 void writeEdge(std::ostream& out, NFA::VertexDescriptor v, NFA::VertexDescriptor u, uint32 priority, const NFA& graph) {
-  const std::string esclabel = escape('"', escape('\\', graph[u].trans->label()));
+  const std::string esclabel = escape('"', escape('\\', graph[u].Trans->label()));
 
   out << "  " << v << " -> " << u << " ["
       << "label=\"" << esclabel << "\", "

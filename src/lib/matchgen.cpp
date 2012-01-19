@@ -30,7 +30,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, 
     std::string& m(pi.m);
     std::vector<uint32>& seen(pi.seen);
 
-    if (g[v].trans && g[v].trans->IsMatch) {
+    if (g[v].Trans && g[v].Trans->IsMatch) {
       matches.insert(m);
       if (matches.size() >= max_matches) {
         return;
@@ -46,7 +46,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, 
       }
 
       bs.reset();
-      g[c].trans->getBits(bs);
+      g[c].Trans->getBits(bs);
 
       for (uint32 b = 0; b < 256; ++b) {
         if (bs[b]) {

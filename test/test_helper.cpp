@@ -8,7 +8,7 @@ void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, 
   while (target >= fsm.verticesSize()) fsm.addVertex();
 
   fsm.addEdge(source, target);
-  fsm[target].trans = tPtr->clone();
+  fsm[target].Trans = tPtr->clone();
 }
 
 void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, Transition* tPtr) {
@@ -44,9 +44,9 @@ void ASSERT_EQUAL_GRAPHS(const NFA& a, const NFA& b) {
 void ASSERT_EQUAL_LABELS(const NFA& a, const NFA& b) {
   SCOPE_ASSERT_EQUAL(a.verticesSize(), b.verticesSize());
   for (uint32 v = 0; v < a.verticesSize(); ++v) {
-    SCOPE_ASSERT((!a[v].trans && !b[v].trans) || (a[v].trans && b[v].trans));
-    if (a[v].trans && b[v].trans) {
-      SCOPE_ASSERT_EQUAL(a[v].trans->Label, b[v].trans->Label);
+    SCOPE_ASSERT((!a[v].Trans && !b[v].Trans) || (a[v].Trans && b[v].Trans));
+    if (a[v].Trans && b[v].Trans) {
+      SCOPE_ASSERT_EQUAL(a[v].Trans->Label, b[v].Trans->Label);
     }
   }
 }
@@ -54,9 +54,9 @@ void ASSERT_EQUAL_LABELS(const NFA& a, const NFA& b) {
 void ASSERT_EQUAL_MATCHES(const NFA& a, const NFA& b) {
   SCOPE_ASSERT_EQUAL(a.verticesSize(), b.verticesSize());
   for (uint32 v = 0; v < a.verticesSize(); ++v) {
-    SCOPE_ASSERT((!a[v].trans && !b[v].trans) || (a[v].trans && b[v].trans));
-    if (a[v].trans && b[v].trans) {
-      SCOPE_ASSERT_EQUAL(a[v].trans->IsMatch, b[v].trans->IsMatch);
+    SCOPE_ASSERT((!a[v].Trans && !b[v].Trans) || (a[v].Trans && b[v].Trans));
+    if (a[v].Trans && b[v].Trans) {
+      SCOPE_ASSERT_EQUAL(a[v].Trans->IsMatch, b[v].Trans->IsMatch);
     }
   }
 }
