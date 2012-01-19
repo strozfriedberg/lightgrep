@@ -6,6 +6,7 @@
 #include <string>
 
 std::string byteToCharacterString(uint32 i);
+std::string byteToLiteralString(uint32 i);
 std::string byteSetToCharacterClass(const ByteSet& bs);
 
 std::string unparse(const ParseTree& tree);

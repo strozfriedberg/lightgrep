@@ -267,6 +267,32 @@ SCOPE_TEST(parseUnparse_CCW_Test) {
   SCOPE_ASSERT_EQUAL("[^0-9A-Z_a-z]", unparse(tree));
 }
 
+SCOPE_TEST(parseUnparse_BSx_Test) {
+  ParseTree tree;
+  try {
+    parse("\\x", false, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+  }
+}
+
+SCOPE_TEST(parseUnparse_BSx0_Test) {
+  ParseTree tree;
+  try {
+    parse("\\x0", false, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+  }
+}
+
+SCOPE_TEST(parseUnparse_BSx00_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x00", false, tree));
+  SCOPE_ASSERT_EQUAL("\\x00", unparse(tree));
+}
+
 SCOPE_TEST(parseUnparse_BS0_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("\\0", false, tree));
@@ -308,6 +334,26 @@ SCOPE_TEST(parseUnparse_BS400_Test) {
   try {
     parse("\\400", false, tree);
     SCOPE_ASSERT(false);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+  }
+}
+
+SCOPE_TEST(parseUnparse_BSq_Test) {
+  ParseTree tree;
+  try {
+    parse("\\q", false, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+  }
+}
+
+SCOPE_TEST(parseUnparse_xBSq_Test) {
+  ParseTree tree;
+  try {
+    parse("x\\q", false, tree);
   }
   catch (const std::runtime_error&) {
     // expected

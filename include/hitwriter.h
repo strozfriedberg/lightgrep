@@ -11,6 +11,8 @@ struct HitCounterInfo {
   HitCounterInfo(): NumHits(0) {}
 
   uint64 NumHits;
+
+  virtual void setPath(const std::string&) {}
 };
 
 void nullWriter(void* userData, const LG_SearchHit* const);
@@ -25,13 +27,13 @@ struct HitWriterInfo: public HitCounterInfo, PatternInfo {
 void hitWriter(void* userData, const LG_SearchHit* const hit);
 
 struct PathWriterInfo: public HitWriterInfo {
-  PathWriterInfo(const std::string& path,
-                 std::ostream& outStream,
+  PathWriterInfo(std::ostream& outStream,
                  const PatternInfo& pinfo):
-                 HitWriterInfo(outStream, pinfo),
-                 Path(path) {}
+                 HitWriterInfo(outStream, pinfo) {}
 
-  const std::string Path;
+  std::string Path;
+
+  virtual void setPath(const std::string& path) { Path = path; }
 };
 
 void pathWriter(void* userData, const LG_SearchHit* const hit);
