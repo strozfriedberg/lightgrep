@@ -2,6 +2,8 @@
 
 #include "basic.h"
 
+#include <boost/shared_ptr.hpp>
+
 class Instruction;
 
 class Transition {
@@ -28,3 +30,6 @@ private:
   Transition(const Transition&) {}
   Transition& operator=(const Transition&) {return *this;}
 };
+
+typedef boost::shared_ptr<Transition> TransitionPtr;
+
