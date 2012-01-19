@@ -3,8 +3,11 @@
 #include "basic.h"
 #include "optparser.h"
 
-#include <string>
 #include <vector>
+#include <set>
+#include <string>
+
+#include <boost/lexical_cast.hpp>
 
 namespace po = boost::program_options;
 
@@ -46,7 +49,7 @@ void parse_opts(int argc, char** argv,
   desc.add_options()
     ("help", "produce help message")
     ("encoding,e", po::value< std::string >(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
-    ("command,c", po::value< std::string >(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|test|server]")
+    ("command,c", po::value< std::string >(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|server]")
     ("keywords,k", po::value< std::string >(&opts.KeyFile), "path to file containing keywords")
     ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
@@ -55,8 +58,10 @@ void parse_opts(int argc, char** argv,
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
+    ("recursive,r", "traverse directories recursively")
     ("block-size", po::value< unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
-    ("with-filename,H", "Puts the path of the file into the search output")
+    ("with-filename,H", "print the filename for each match")
+    ("no-filename,h", "suppress the filename for each match")
     ("server-log", po::value< std::string >(&opts.ServerLog), "Server output to file")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
@@ -88,8 +93,8 @@ void parse_opts(int argc, char** argv,
     opts.Command = "long-test";
   }
 
-  if (opts.Command == "search" ||
-      opts.Command == "graph" || opts.Command == "prog") {
+  if (opts.Command == "search" || opts.Command == "graph" ||
+      opts.Command == "prog"   || opts.Command == "samp") {
     // determine the source of our patterns
     if (!optsMap["pattern"].empty()) {
       if (!optsMap["keywords"].empty()) {
@@ -119,32 +124,53 @@ void parse_opts(int argc, char** argv,
     opts.LiteralMode = optsMap.count("fixed-strings") > 0;
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Determinize = optsMap.count("no-det") == 0;
-    opts.PrintPath = optsMap.count("with-filename") > 0;
+    opts.Recursive = optsMap.count("recursive") > 0;
+
+    if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
+      throw po::error("--with-filename and --no-filename are incompatible options");
+    }
 
     if (opts.Command == "search") {
+      // filename printing defaults off for single files, on for multiple files
+      opts.PrintPath = optsMap.count("with-filename") > 0;
+
       // determine the source of our input
       if (!optsMap["input"].defaulted()) {
         // input from --input
-        opts.Input = optsMap["input"].as<std::string>();
+        opts.Inputs.push_back(optsMap["input"].as<std::string>());
       }
       else if (!pargs.empty()) {
-        // input from parg
-        opts.Input = pargs.front();
-        pargs.erase(pargs.begin());
+        // input from pargs
+        opts.Inputs = pargs;
+        pargs.clear();
+        opts.PrintPath = optsMap.count("no-filename") == 0;
       }
       else {
         // input from stdin
-        opts.Input = "-";
+        opts.Inputs.push_back("-");
+      }
+    }
+    else if (opts.Command == "samp") {
+      opts.SampleLimit = std::numeric_limits<std::set<std::string>::size_type>::max();
+      opts.LoopLimit = 1;
+
+      if (!pargs.empty()) {
+        opts.SampleLimit = boost::lexical_cast<uint32>(pargs.front());
+        pargs.erase(pargs.begin());
+
+        if (!pargs.empty()) {
+          opts.LoopLimit = boost::lexical_cast<uint32>(pargs.front());
+          pargs.erase(pargs.begin());
+        }
       }
     }
 
-    // there should be no positional arguments unused now
+    // there should be no unused positional arguments now
     if (!pargs.empty()) {
       throw po::too_many_positional_options_error();
     }
   }
-  else if (opts.Command == "test" || opts.Command == "long-test" ||
-           opts.Command == "help" || opts.Command == "server") {
+  else if (opts.Command == "help" || opts.Command == "server") {
     // nothing else to do
   }
   else {

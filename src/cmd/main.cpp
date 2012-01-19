@@ -1,9 +1,13 @@
+#include <algorithm>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <numeric>
+#include <set>
 
 #include <boost/bind.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -12,6 +16,7 @@
 #include "handles.h"
 #include "hitwriter.h"
 #include "lightgrep_c_api.h"
+#include "matchgen.h"
 #include "options.h"
 #include "optparser.h"
 #include "patterninfo.h"
@@ -37,6 +42,7 @@ namespace boost {
 // </magic_incantation>
 
 namespace po = boost::program_options;
+namespace fs = boost::filesystem;
 
 void startup(boost::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts);
 
@@ -55,7 +61,7 @@ void printHelp(const po::options_description& desc) {
     << desc << std::endl;
 }
 
-void addPattern(
+bool addPattern(
   LG_HPARSER parser,
   uint32 i,
   uint32 patIdx,
@@ -65,33 +71,32 @@ void addPattern(
 {
   pinfo.Table.push_back(std::make_pair(i, encIdx));
 
-  if (!lg_add_keyword(parser, pinfo.Patterns[i].c_str(), patIdx, &keyOpts)) {
+  if (lg_add_keyword(parser, pinfo.Patterns[i].c_str(), patIdx, &keyOpts)) {
+    return true;
+  }
+  else {
     std::cerr << lg_error(parser) << " on pattern "
               << i << ", '" << pinfo.Patterns[i] << "'" << std::endl;
+    return false;
   }
 }
 
 boost::shared_ptr<ParserHandle> parsePatterns(const Options& opts,
-                                              PatternInfo& pinfo)
+                                              PatternInfo& pinfo,
+                                              uint32& numErrors)
 {
-  // get patterns from options
-  std::cerr << pinfo.Patterns.size() << " pattern";
-  if (pinfo.Patterns.size() != 1) {
-    std::cerr << 's';
-  }
-  std::cerr << std::endl;
-
+  numErrors = 0;
   if (pinfo.Patterns.empty()) {
     return boost::shared_ptr<ParserHandle>();
   }
 
-  // find total length of patterns
-  const uint32 tlen = std::accumulate(
+  // find total length of patterns -- or 1 if tlen is 0
+  const uint32 tlen = std::max(std::accumulate(
     pinfo.Patterns.begin(), pinfo.Patterns.end(), 0,
-    boost::bind(std::plus<uint32>(), _1, boost::bind(&std::string::size, _2))
+    boost::bind(std::plus<uint32>(), _1, boost::bind(&std::string::size, _2))),
+    1
   );
 
-// FIXME: very BAD if we pass 0 as sizeHint
   boost::shared_ptr<ParserHandle> parser(lg_create_parser(tlen),
                                          lg_destroy_parser);
 
@@ -107,7 +112,9 @@ boost::shared_ptr<ParserHandle> parsePatterns(const Options& opts,
     keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
 
     for (uint32 i = 0; i < pinfo.Patterns.size(); ++i, ++patIdx) {
-      addPattern(parser.get(), i, patIdx, LG_ENC_ASCII, keyOpts, pinfo);
+      if (!addPattern(parser.get(), i, patIdx, LG_ENC_ASCII, keyOpts, pinfo)) {
+        ++numErrors;
+      }
     }
   }
 
@@ -115,10 +122,11 @@ boost::shared_ptr<ParserHandle> parsePatterns(const Options& opts,
     keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
 
     for (uint32 i = 0; i < pinfo.Patterns.size(); ++i, ++patIdx) {
-      addPattern(parser.get(), i, patIdx, LG_ENC_UTF_16, keyOpts, pinfo);
+      if (!addPattern(parser.get(), i, patIdx, LG_ENC_UTF_16, keyOpts, pinfo)) {
+        ++numErrors;
+      }
     }
   }
-
   return parser;
 }
 
@@ -133,16 +141,27 @@ boost::shared_ptr<ProgramHandle> buildProgram(LG_HPARSER parser, const Options& 
 }
 
 boost::shared_ptr<ProgramHandle> createProgram(const Options& opts, PatternInfo& pinfo) {
-  boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
 
-  // build the program
-  boost::shared_ptr<ProgramHandle> prog = buildProgram(parser.get(), opts);
+  uint32 numErrors;
+  boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo, numErrors));
 
-  GraphPtr g(parser->Impl->Fsm);
-  std::cerr << g->numVertices() << " vertices" << std::endl;
+  boost::shared_ptr<ProgramHandle> prog;
+  if (numErrors < pinfo.Patterns.size()) {
+    // build the program
+    prog = buildProgram(parser.get(), opts);
+    if (lg_ok(prog.get())) {
+      GraphPtr g(parser->Impl->Fsm);
+      std::cerr << g->numVertices() << " vertices" << std::endl;
 
-  ProgramPtr p(prog->Impl->Prog);
-  std::cerr << p->size() << " instructions" << std::endl;
+      ProgramPtr p(prog->Impl->Prog);
+      std::cerr << p->size() << " instructions" << std::endl;    
+    }
+    else {
+      std::cerr << lg_error(prog.get()) << std::endl;
+      prog.reset();
+    }
+  }
+
   return prog;
 }
 
@@ -200,24 +219,45 @@ bool SearchController::searchFile(boost::shared_ptr<ContextHandle> searcher, Hit
   return true;
 }
 
-void search(const Options& opts) {
+void search(const std::string& input, SearchController& ctrl, boost::shared_ptr<ContextHandle> searcher, HitCounterInfo* hinfo, LG_HITCALLBACK_FN callback) {
   // try to open our input
-  FILE* file = opts.Input == "-" ? stdin : fopen(opts.Input.c_str(), "rb");
+  FILE* file = input == "-" ? stdin : fopen(input.c_str(), "rb");
   if (!file) {
-    std::cerr << "Could not open file " << opts.Input << std::endl;
+    std::cerr << "Could not open file " << input << std::endl;
     return;
   }
 
   setbuf(file, 0); // unbuffered, bitte
 
+  hinfo->setPath(input);
+  lg_reset_context(searcher.get());
+  ctrl.searchFile(searcher, hinfo, file, callback);
+
+  fclose(file);
+}
+
+void searchRecursively(const fs::path& path, SearchController& ctrl, boost::shared_ptr<ContextHandle> searcher, HitCounterInfo* hinfo, LG_HITCALLBACK_FN callback) {
+  const fs::recursive_directory_iterator end;
+  for (fs::recursive_directory_iterator d(path); d != end; ++d) {
+    const fs::path p(d->path());
+    if (!fs::is_directory(p)) {
+      search(p.string(), ctrl, searcher, hinfo, callback);
+    }
+  }
+}
+
+void searches(const Options& opts) {
   // parse patterns and get index and encoding info for hit writer
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
   boost::shared_ptr<ProgramHandle> prog(createProgram(opts, pinfo));
+  if (!prog) {
+    return;
+  }
 
   // setup hit callback
-  LG_HITCALLBACK_FN callback;
+  LG_HITCALLBACK_FN callback = 0;
   boost::scoped_ptr<HitCounterInfo> hinfo;
 
   if (opts.NoOutput) {
@@ -226,14 +266,14 @@ void search(const Options& opts) {
   }
   else if (opts.PrintPath) {
     callback = &pathWriter;
-    hinfo.reset(new PathWriterInfo(opts.Input, opts.openOutput(), pinfo));
+    hinfo.reset(new PathWriterInfo(opts.openOutput(), pinfo));
   }
   else {
     callback = &hitWriter;
     hinfo.reset(new HitWriterInfo(opts.openOutput(), pinfo));
   }
 
-  // search
+  // setup search context
   LG_ContextOptions ctxOpts;
   ctxOpts.TraceBegin = opts.DebugBegin;
   ctxOpts.TraceEnd = opts.DebugEnd;
@@ -244,7 +284,26 @@ void search(const Options& opts) {
   );
 
   SearchController ctrl(opts.BlockSize);
-  ctrl.searchFile(searcher, hinfo.get(), file, callback);
+
+  // search our inputs
+  if (opts.Recursive) {
+    for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
+      const fs::path p(*i);
+      if (fs::is_directory(p)) {
+        searchRecursively(p, ctrl, searcher, hinfo.get(), callback);
+      }
+      else {
+        search(*i, ctrl, searcher, hinfo.get(), callback);
+      }
+    }
+  }
+  else {
+    for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
+      if (!fs::is_directory(fs::path(*i))) {
+        search(*i, ctrl, searcher, hinfo.get(), callback);
+      }
+    }
+  }
 
   std::cerr << ctrl.BytesSearched << " bytes" << std::endl;
   std::cerr << ctrl.TotalTime << " searchTime" << std::endl;
@@ -256,28 +315,35 @@ void search(const Options& opts) {
   }
   std::cerr << " MB/s avg" << std::endl;
   std::cerr << hinfo->NumHits << " hits" << std::endl;
-
-  fclose(file);
 }
 
-void writeGraphviz(const Options& opts) {
+bool writeGraphviz(const Options& opts) {
   if (opts.getKeys().empty()) {
-    return;
+    return false;
   }
 
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
   // parse patterns
-  boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
+  uint32 numErrors;
+  boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo, numErrors));
+  std::cerr << "numErrors = " << numErrors << std::endl;
+  if (numErrors == 0) {
+    // build the program to force determinization
+    boost::shared_ptr<ProgramHandle> prog(buildProgram(parser.get(), opts));
+    if (!lg_ok(prog.get())) {
+      std::cerr << lg_error(prog.get()) << std::endl;
+      return false;
+    }
 
-  // build the program to force determinization
-  buildProgram(parser.get(), opts);
-
-  // break on through the C API to print the graph
-  GraphPtr g(parser->Impl->Fsm);
-  std::cerr << g->numVertices() << " vertices" << std::endl;
-  writeGraphviz(opts.openOutput(), *g);
+    // break on through the C API to print the graph
+    GraphPtr g(parser->Impl->Fsm);
+    std::cerr << g->numVertices() << " vertices" << std::endl;
+    writeGraphviz(opts.openOutput(), *g);
+    return true;
+  }
+  return false;
 }
 
 void writeProgram(const Options& opts) {
@@ -288,32 +354,63 @@ void writeProgram(const Options& opts) {
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
-  boost::shared_ptr<ProgramHandle> progh;
+  boost::shared_ptr<ProgramHandle> prog;
 
   {
     // parse patterns
-    boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
-
+    uint32 numErrors;
+    boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo, numErrors));
     // build the program
-    progh = buildProgram(parser.get(), opts);
+    prog = buildProgram(parser.get(), opts);
+    if (!lg_ok(prog.get())) {
+      std::cerr << lg_error(prog.get()) << std::endl;
+      return;
+    }
  
     GraphPtr g(parser->Impl->Fsm);
     std::cerr << g->numVertices() << " vertices" << std::endl;
   }
 
   // break on through the C API to print the program
-  ProgramPtr p(progh->Impl->Prog);
+  ProgramPtr p(prog->Impl->Prog);
   std::cerr << p->size() << " instructions" << std::endl;
   std::ostream& out(opts.openOutput());
   out << *p << std::endl;
+}
+
+void writeSampleMatches(const Options& opts) {
+  if (opts.getKeys().empty()) {
+    return;
+  }
+
+  const std::vector<std::string>& pats(opts.getKeys());
+  for (std::vector<std::string>::const_iterator i(pats.begin()); i != pats.end(); ++i) {
+    // parse the pattern
+
+    PatternInfo pinfo;
+    pinfo.Patterns.push_back(*i);
+
+    uint32 numErrors;
+    boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo, numErrors));
+    if (numErrors == 0) {
+      // break on through the C API to get the graph
+      GraphPtr g(parser->Impl->Fsm);
+
+      std::set<std::string> matches;
+      matchgen(*g, matches, opts.SampleLimit, opts.LoopLimit);
+
+      std::copy(matches.begin(), matches.end(), std::ostream_iterator<std::string>(opts.openOutput(), "\n"));
+    }
+  }
 }
 
 void startServer(const Options& opts) {
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
-  boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo));
-  if (parser) {
+  uint32 numErrors;
+  boost::shared_ptr<ParserHandle> parser(parsePatterns(opts, pinfo, numErrors));
+  if (parser && numErrors == 0) {
     boost::shared_ptr<ProgramHandle> prog(buildProgram(parser.get(), opts));
     if (prog) {
       startup(prog, pinfo, opts);
@@ -330,7 +427,7 @@ int main(int argc, char** argv) {
     parse_opts(argc, argv, desc, opts);
 
     if (opts.Command == "search") {
-      search(opts);
+      searches(opts);
     }
     else if (opts.Command == "server") {
       startServer(opts);
@@ -339,10 +436,13 @@ int main(int argc, char** argv) {
       printHelp(desc);
     }
     else if (opts.Command == "graph") {
-      writeGraphviz(opts);
+      return writeGraphviz(opts) ? 0: 1;
     }
     else if (opts.Command == "prog") {
       writeProgram(opts);
+    }
+    else if (opts.Command == "samp") {
+      writeSampleMatches(opts);
     }
     else {
       // this should be impossible
