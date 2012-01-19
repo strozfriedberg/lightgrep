@@ -7,15 +7,15 @@
 
 #include <boost/bind.hpp>
 
-template <class GraphData, class VertexData, class EdgeData>
-class Graph : public GraphData
+template <class GraphType, class VertexType, class EdgeType>
+class Graph : public GraphType
 {
 private:
-  struct Vertex;
-  struct Edge;
+  struct VertexData;
+  struct EdgeData;
 
-  typedef typename std::vector<Vertex> VList;
-  typedef typename std::vector<Edge> EList;
+  typedef typename std::vector<VertexData> VList;
+  typedef typename std::vector<EdgeData> EList;
 
 public:
   typedef typename VList::size_type VertexDescriptor;
@@ -24,32 +24,35 @@ public:
   typedef typename VList::size_type VertexSizeType;
   typedef typename EList::size_type EdgeSizeType;
 
+  typedef VertexType Vertex;
+  typedef EdgeType Edge;
+
 private:
   typedef typename std::vector<EdgeDescriptor> EDList;
 
-  struct Vertex : public VertexData {
-    Vertex(): VertexData() {}
-    Vertex(const VertexData& vdata): VertexData(vdata) {}
+  struct VertexData : public VertexType {
+    VertexData(): VertexType() {}
+    VertexData(const VertexType& v): VertexType(v) {}
 
     EDList In, Out;
   };
 
-  struct Edge : public EdgeData {
-    Edge(VertexDescriptor head, VertexDescriptor tail, const EdgeData& edata): EdgeData(edata), Head(head), Tail(tail) {}
+  struct EdgeData : public EdgeType {
+    EdgeData(VertexDescriptor head, VertexDescriptor tail, const EdgeType& e): EdgeType(e), Head(head), Tail(tail) {}
 
     VertexDescriptor Head, Tail;
   };
 
 public:
 
-  Graph(VertexSizeType vActual = 0): Vertices(vActual, Vertex()) {}
+  Graph(VertexSizeType vActual = 0): Vertices(vActual, VertexData()) {}
 
   Graph(VertexSizeType vActual, VertexSizeType vReserve, EdgeSizeType eReserve = 0) {
     if (vReserve > vActual) {
       Vertices.reserve(vReserve);
     }
 
-    Vertices.resize(vActual, Vertex());
+    Vertices.resize(vActual, VertexData());
 
     if (eReserve > 0) {
       Edges.reserve(eReserve);
@@ -84,19 +87,19 @@ public:
     return Vertices[head].Out.size();
   }
 
-  VertexData& operator[](VertexDescriptor vd) {
+  VertexType& operator[](VertexDescriptor vd) {
     return Vertices[vd];
   }
 
-  const VertexData& operator[](VertexDescriptor vd) const {
+  const VertexType& operator[](VertexDescriptor vd) const {
     return Vertices[vd];
   }
 
-  EdgeData& operator()(EdgeDescriptor ed) {
+  EdgeType& operator()(EdgeDescriptor ed) {
     return Edges[ed];
   }
 
-  const EdgeData& operator()(EdgeDescriptor ed) const {
+  const EdgeType& operator()(EdgeDescriptor ed) const {
     return Edges[ed];
   }
 
@@ -123,29 +126,29 @@ public:
     Edges.clear();
   }
 
-  VertexDescriptor addVertex(const VertexData& vdata = VertexData()) {
-    Vertices.push_back(Vertex(vdata));
+  VertexDescriptor addVertex(const VertexType& v = VertexType()) {
+    Vertices.push_back(VertexData(v));
     return Vertices.size() - 1;
   }
 
   void removeVertex(VertexDescriptor vd) {
-    const Vertex& v(Vertices[vd]);
+    const VertexData& v(Vertices[vd]);
     std::for_each(v.In.begin(), v.In.end(), boost::bind(&Graph::removeEdge, this, _1));
     std::for_each(v.Out.begin(), v.Out.end(), boost::bind(&Graph::removeEdge, this, _1));
 
     compact_vertex(vd);
   }
 
-  EdgeDescriptor addEdge(VertexDescriptor head, VertexDescriptor tail, const EdgeData& edata = EdgeData()) {
-    Edges.push_back(Edge(head, tail, edata));
+  EdgeDescriptor addEdge(VertexDescriptor head, VertexDescriptor tail, const EdgeType& e = EdgeType()) {
+    Edges.push_back(EdgeData(head, tail, e));
     const EdgeDescriptor ed = Edges.size() - 1;
     Vertices[head].Out.push_back(ed);
     Vertices[tail].In.push_back(ed);
     return ed;
   }
 
-  EdgeDescriptor insertEdge(VertexDescriptor head, VertexDescriptor tail, EdgeSizeType hi = std::numeric_limits<EdgeSizeType>::max(), EdgeSizeType ti = std::numeric_limits<EdgeSizeType>::max(), const EdgeData& edata = EdgeData()) {
-    Edges.push_back(Edge(head, tail, edata));
+  EdgeDescriptor insertEdge(VertexDescriptor head, VertexDescriptor tail, EdgeSizeType hi = std::numeric_limits<EdgeSizeType>::max(), EdgeSizeType ti = std::numeric_limits<EdgeSizeType>::max(), const EdgeType& e = EdgeType()) {
+    Edges.push_back(EdgeData(head, tail, e));
     const EdgeDescriptor ed = Edges.size() - 1;
 
     attach_edge(Vertices[head].Out, hi, ed);
