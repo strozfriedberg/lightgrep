@@ -138,7 +138,7 @@ void NFABuilder::patch_post(OutListT& src, const InListT& dst) {
 }
 
 void NFABuilder::literal(const ParseNode& n) {
-  uint32 len = Enc->write(n.Val, TempBuf.get());
+  const uint32 len = Enc->write(n.Val, TempBuf.get());
   if (0 == len) {
     // FXIME: should we really be checking this if it's supposed to be
     // an impossible condition?
