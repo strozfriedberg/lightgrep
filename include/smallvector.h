@@ -9,7 +9,8 @@
 
 #include <boost/lexical_cast.hpp>
 #include <boost/iterator/iterator_facade.hpp>
-#include <boost/type_traits/add_const.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 #include <boost/utility/enable_if.hpp>
 
@@ -28,180 +29,39 @@ public:
 //  typedef std::reverse_iterator<iterator> reverse_iterator;
 //  typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
-  class iterator;
-  class const_iterator;
-
-  class iterator : public boost::iterator_facade<iterator, T, std::random_access_iterator_tag>
-  {
-  public:
-    iterator(): Ptr(0) {} 
-
-    explicit iterator(pointer ptr): Ptr(ptr) {}
-
-    explicit iterator(typename std::vector<value_type>::iterator i): Ptr(0), Iter(i) {}
-
-    iterator(const iterator& other): Ptr(other.Ptr), Iter(other.Iter) {}
-
-  private:
-    friend class const_iterator;
-    friend class boost::iterator_core_access;
-
-    reference dereference() const {
-      return Ptr ? *Ptr : *Iter; 
-    }
-
-    bool equal(const iterator& other) const {
-      return Ptr == other.Ptr && (Ptr || Iter == other.Iter);
-    }
-
-    bool equal(const const_iterator& other) const {
-      return Ptr == other.Ptr && (Ptr || Iter == other.Iter);
-    }
-
-    void increment() {
-      if (Ptr) {
-        ++Ptr;
-      }
-      else {
-        ++Iter;
-      }
-    }
-
-    void decrement() {
-      if (Ptr) {
-        --Ptr;
-      }
-      else {
-        --Iter;
-      }
-    }
-
-    void advance(difference_type n) {
-      if (Ptr) {
-        Ptr += n;
-      }
-      else {
-        Iter += n;
-      }
-    }  
-
-    difference_type distance_to(const iterator& other) const {
-      return Ptr ? other.Ptr - Ptr : other.Iter - Iter;
-    }
-
-    difference_type distance_to(const const_iterator& other) const {
-      return Ptr ? other.Ptr - Ptr : other.Iter - Iter;
-    }
-
-    pointer Ptr;
-    typename std::vector<value_type>::iterator Iter;
-  };
-
-  class const_iterator : public boost::iterator_facade<const_iterator, T const, std::random_access_iterator_tag>
-  {
-  public:
-    const_iterator(): Ptr(0) {}
-
-    explicit const_iterator(T* ptr): Ptr(ptr) {}
-
-    explicit const_iterator(T const* ptr): Ptr(ptr) {}
-
-    explicit const_iterator(typename std::vector<value_type>::iterator i): Ptr(0), Iter(i) {}
-
-    explicit const_iterator(typename std::vector<value_type>::const_iterator i): Ptr(0), Iter(i) {}
-
-    const_iterator(const iterator& other): Ptr(other.Ptr), Iter(other.Iter) {}
-
-    const_iterator(const const_iterator& other): Ptr(other.Ptr), Iter(other.Iter) {}
-
-  private:
-    friend class iterator;
-    friend class boost::iterator_core_access;
-
-    const T& dereference() const {
-      return Ptr ? *Ptr : *Iter; 
-    }
-
-    bool equal(const iterator& other) const {
-      return Ptr == other.Ptr && (Ptr || Iter == other.Iter);
-    }
-
-    bool equal(const const_iterator& other) const {
-      return Ptr == other.Ptr && (Ptr || Iter == other.Iter);
-    }
-
-    void increment() {
-      if (Ptr) {
-        ++Ptr;
-      }
-      else {
-        ++Iter;
-      }
-    }
-
-    void decrement() {
-      if (Ptr) {
-        --Ptr;
-      }
-      else {
-        --Iter;
-      }
-    }
-
-    void advance(difference_type n) {
-      if (Ptr) {
-        Ptr += n;
-      }
-      else {
-        Iter += n;
-      }
-    }  
-
-    difference_type distance_to(const iterator& other) const {
-      return Ptr ? other.Ptr - Ptr : other.Iter - Iter;
-    }
-
-    difference_type distance_to(const const_iterator& other) const {
-      return Ptr ? other.Ptr - Ptr : other.Iter - Iter;
-    }
-
-//    pointer Ptr;
-    T const* Ptr;
-    typename std::vector<T>::const_iterator Iter;
-  };
-
-/*
-  template <class Value>
-  class base_iter : public boost::iterator_facade<base_iter<Value>, Value, std::random_access_iterator_tag>
+  template <typename Value>
+  class iter_base : public boost::iterator_facade<iter_base<Value>, Value, std::random_access_iterator_tag>
   {
   private:
     struct enabler {};
 
   public:
-    base_iter(): Ptr(0) {} 
+    iter_base(): Ptr(0) {} 
 
-    explicit base_iter(pointer ptr): Ptr(ptr) {}
+    explicit iter_base(Value* ptr): Ptr(ptr) {}
 
-    explicit base_iter(typename std::vector<value_type>::iterator i): Ptr(0), Iter(i) {}
+    iter_base(typename std::vector<value_type>::iterator i): Ptr(0), Iter(i) {}
 
-    explicit base_iter(typename std::vector<value_type>::const_iterator i): Ptr(0), Iter(i) {}
+    iter_base(typename std::vector<value_type>::const_iterator i): Ptr(0), Iter(i) {}
 
-    template <class OtherValue>
-    base_iter(const base_iter<OtherValue>& other,
-              typename boost::enable_if<
-                boost::is_convertible<OtherValue*,pointer>,
-                enabler
-              >::type = enabler()): Ptr(other.Ptr), Iter(other.Iter) {}
+    template <class OtherValue>    
+    iter_base(
+      const iter_base<OtherValue>& other,
+      typename boost::enable_if<
+        boost::is_convertible<OtherValue*,Value*>,
+        enabler
+      >::type = enabler()): Ptr(other.Ptr), Iter(other.Iter) {}
 
   private:
     friend class boost::iterator_core_access;
+    template <class> friend class iter_base;
 
-    reference dereference() const {
+    Value& dereference() const {
       return Ptr ? *Ptr : *Iter; 
     }
 
     template <class OtherValue>
-    bool equal(const base_iter<OtherValue>& other) const {
+    bool equal(const iter_base<OtherValue>& other) const {
       return Ptr == other.Ptr && (Ptr || Iter == other.Iter);
     }
 
@@ -233,132 +93,18 @@ public:
     }  
 
     template <class OtherValue>
-    difference_type distance_to(const base_iter<OtherValue>& other) const {
+    difference_type distance_to(const iter_base<OtherValue>& other) const {
       return Ptr ? other.Ptr - Ptr : other.Iter - Iter;
     }
 
-    pointer Ptr;
-    typename std::vector<value_type>::iterator Iter;
+    Value* Ptr;
+//    typename std::vector<value_type>::iterator Iter;
+
+    typename boost::mpl::if_<boost::is_const<Value>, typename std::vector<value_type>::const_iterator, typename std::vector<value_type>::iterator>::type Iter;
   };
 
-  typedef base_iter<T> iterator;
-  typedef base_iter<T const> const_iterator;
-*/
-
-/*
-  template <class Value>
-  class base_iter : public boost::iterator_facade<base_iter<Value>, Value, boost::random_access_iterator_tag>
-  {
-  pubilc:
-    virtual ~base_iter() {}
-
-  protected:
-    friend class boost::iterator_core_access;
-
-    virtual reference dereference() const = 0;
-
-    template <class OtherValue>
-    virtual bool equal(const base_iter<OtherValue>& other) const = 0;
-
-    virtual void increment() = 0;
-
-    virtual void decrement() = 0;
-
-    virtual void advance(difference_type n) = 0;
-
-    template <class OtherValue>
-    virtual difference_type distance_to(const base_iter<OtherValue>& other) const = 0;
-  };
-
-  typedef base_iter<T> iterator;
-  typedef base_iter<T const> const_iterator;
-
-  template <class Value>
-  class array_iter : public base_iter<Value>
-  {
-  pubilc:
-    array_iter(): ptr(0) {}
-  
-    explicit array_iter(pointer p): ptr(p) {}
-
-    template <class OtherValue>
-    array_iter(const array_iter<OtherValue>& other): ptr(other.ptr) {}
-
-  private:
-    virtual reference dereference() const {
-      return *ptr;
-    }
-
-    template <class OtherValue>
-    virtual bool equal(const base_iter<OtherValue>& other) const {
-      array_iter<OtherValue>* op = dynamic_cast<array_iter<OtherValue>*>(&other);
-      return op && ptr == op->ptr;
-    }
-
-    virtual void increment() {
-      ++ptr;
-    }
-
-    virtual void decrement() {
-      --ptr;
-    }
-
-    virtual void advance(difference_type n) {
-      ptr += n;
-    }
-
-    template <class OtherValue>
-    virtual difference_type distance_to(const base_iter<OtherValue>& other) const { 
-      array_iter<OtherValue>* op = dynamic_cast<array_iter<OtherValue>*>(&other);
-      return op ? op.ptr - ptr : 0;
-    }
-
-    pointer ptr;
-  };
-
-  template <class Value>
-  class vec_iter : public base_iter<Value>
-  {
-  pubilc:
-    vec_iter() {}
-  
-    explicit vec_iter(std::vector<Value>::iterator i): iter(i) {}
-
-    template <class OtherValue>
-    vec_iter(const vec_iter<OtherValue>& other): iter(other.iter) {}
-
-  private:
-    virtual reference dereference() const {
-      return *iter;
-    }
-
-    template <class OtherValue>
-    virtual bool equal(const base_iter<OtherValue>& other) const {
-      vec_iter<OtherValue>* op = dynamic_cast<vec_iter<OtherValue>*>(&other);
-      return op && iter == op.iter;
-    }
-
-    virtual void increment() {
-      ++iter;
-    }
-
-    virtual void decrement() {
-      --iter;
-    }
-
-    virtual void advance(difference_type n) {
-      iter += n;
-    }
-
-    template <class OtherValue>
-    virtual difference_type distance_to(const base_iter<OtherValue>& other) const { 
-      vec_iter<OtherValue>* op = dynamic_cast<vec_iter<OtherValue>*>(&other);
-      return op ? other.iter - iter : 0;
-    }
-
-    std::vector<Value>::iterator iter;
-  };
-*/
+  typedef iter_base<T> iterator;
+  typedef iter_base<T const> const_iterator;
 
   //
   // ctors & dtor
