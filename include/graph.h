@@ -1,5 +1,8 @@
 #pragma once
 
+#include "basic.h"
+#include "smallvector.h"
+
 #include <algorithm>
 #include <iostream>
 #include <limits>
@@ -18,8 +21,11 @@ private:
   typedef typename std::vector<EdgeData> EList;
 
 public:
-  typedef typename VList::size_type VertexDescriptor;
-  typedef typename EList::size_type EdgeDescriptor;
+//  typedef typename VList::size_type VertexDescriptor;
+//  typedef typename EList::size_type EdgeDescriptor;
+
+  typedef uint32 VertexDescriptor;
+  typedef uint32 EdgeDescriptor;
 
   typedef typename VList::size_type VertexSizeType;
   typedef typename EList::size_type EdgeSizeType;
@@ -28,11 +34,14 @@ public:
   typedef EdgeType Edge;
 
 private:
-  typedef typename std::vector<EdgeDescriptor> EDList;
+//  typedef typename std::vector<EdgeDescriptor> EDList;
+  typedef SmallVector<EdgeDescriptor,1> EDList;
+
+  std::vector< std::vector<EdgeDescriptor> > EStore;
 
   struct VertexData : public VertexType {
-    VertexData(): VertexType() {}
-    VertexData(const VertexType& v): VertexType(v) {}
+    VertexData(std::vector< std::vector<EdgeDescriptor> >& store): VertexType(), In(store), Out(store) {}
+    VertexData(const VertexType& v, std::vector< std::vector<EdgeDescriptor> >& store): VertexType(v), In(store), Out(store) {}
 
     EDList In, Out;
   };
@@ -45,14 +54,14 @@ private:
 
 public:
 
-  Graph(VertexSizeType vActual = 0): Vertices(vActual, VertexData()) {}
+  Graph(VertexSizeType vActual = 0): Vertices(vActual, VertexData(EStore)) {}
 
   Graph(VertexSizeType vActual, VertexSizeType vReserve, EdgeSizeType eReserve = 0) {
     if (vReserve > vActual) {
       Vertices.reserve(vReserve);
     }
 
-    Vertices.resize(vActual, VertexData());
+    Vertices.resize(vActual, VertexData(EStore));
 
     if (eReserve > 0) {
       Edges.reserve(eReserve);
@@ -127,7 +136,7 @@ public:
   }
 
   VertexDescriptor addVertex(const VertexType& v = VertexType()) {
-    Vertices.push_back(VertexData(v));
+    Vertices.push_back(VertexData(v, EStore));
     return Vertices.size() - 1;
   }
 
