@@ -26,11 +26,14 @@ public:
   typedef const T& const_reference;
   typedef T* pointer;
   typedef const T* const_pointer;
-//  typedef std::reverse_iterator<iterator> reverse_iterator;
-//  typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
   template <typename Value>
-  class iter_base : public boost::iterator_facade<iter_base<Value>, Value, std::random_access_iterator_tag>
+  class iter_base :
+    public boost::iterator_facade<
+      iter_base<Value>,
+      Value,
+      std::random_access_iterator_tag
+    >
   {
   private:
     struct enabler {};
@@ -98,13 +101,20 @@ public:
     }
 
     Value* Ptr;
-//    typename std::vector<value_type>::iterator Iter;
 
-    typename boost::mpl::if_<boost::is_const<Value>, typename std::vector<value_type>::const_iterator, typename std::vector<value_type>::iterator>::type Iter;
+    // pick the correct std::vector iterator type
+    typename boost::mpl::if_<
+      boost::is_const<Value>,
+      typename std::vector<value_type>::const_iterator,
+      typename std::vector<value_type>::iterator
+    >::type Iter;
   };
 
   typedef iter_base<T> iterator;
   typedef iter_base<T const> const_iterator;
+
+  typedef std::reverse_iterator<iterator> reverse_iterator;
+  typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
   //
   // ctors & dtor
