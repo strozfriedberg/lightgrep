@@ -19,6 +19,10 @@ class SmallVector
 {
 public:
 
+  //
+  // typedefs
+  //
+
   typedef T value_type;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -26,6 +30,10 @@ public:
   typedef const T& const_reference;
   typedef T* pointer;
   typedef const T* const_pointer;
+
+  //
+  // iterator, const_iterator
+  //
 
   template <typename Value>
   class iter_base :
