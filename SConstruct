@@ -44,6 +44,9 @@ elif (debug == 'profile'):
 elif (debug == 'coverage'):
   flags = '-g -O0 -fprofile-arcs -ftest-coverage -fbranch-probabilities'
   ldflags = '--coverage'
+elif (debug == 'perf'):
+  flags = '-g -O3'
+  ldflags = ''
 elif (debug == 'trace'):
   flags = '-O3'
   defines.append('LBT_TRACE_ENABLED')

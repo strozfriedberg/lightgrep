@@ -28,7 +28,6 @@ SCOPE_TEST(parseAorB) {
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
-  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   SCOPE_ASSERT(fsm[1]->IsMatch);
   SCOPE_ASSERT(fsm[2]->IsMatch);
 }
@@ -45,7 +44,6 @@ SCOPE_TEST(parseAorBorC) {
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
-  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   SCOPE_ASSERT(fsm[1]->IsMatch);
   SCOPE_ASSERT(fsm[2]->IsMatch);
   SCOPE_ASSERT(fsm[3]->IsMatch);
@@ -62,12 +60,6 @@ SCOPE_TEST(parseAB) {
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
-  std::vector<uint32> skip(256, 2);
-  skip['a'] = 0;
-  skip['b'] = 1;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
   SCOPE_ASSERT(!fsm[1]->IsMatch);
   SCOPE_ASSERT(fsm[2]->IsMatch);
 }
@@ -84,12 +76,6 @@ SCOPE_TEST(parseAlternationAndConcatenation) {
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 1);
-  skip['a'] = 0;
-  skip['b'] = 0;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
   SCOPE_ASSERT(fsm[1]->IsMatch);
   SCOPE_ASSERT(!fsm[2]->IsMatch);
   SCOPE_ASSERT(fsm[3]->IsMatch);
@@ -107,13 +93,6 @@ SCOPE_TEST(parseGroup) {
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
-  std::vector<uint32> skip(256, 2);
-  skip['a'] = 0;
-  skip['b'] = 1;
-  skip['c'] = 1;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseQuestionMark) {
@@ -137,11 +116,6 @@ SCOPE_TEST(parseQuestionMark) {
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 1);
-  skip['a'] = 0;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseQuestionMarkFirst) {
@@ -155,13 +129,6 @@ SCOPE_TEST(parseQuestionMarkFirst) {
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
-  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 1);
-  skip['a'] = 0;
-  skip['b'] = 0;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseTwoQuestionMarks) {
@@ -186,14 +153,6 @@ SCOPE_TEST(parseTwoQuestionMarks) {
   // d
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(4));
   SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(4));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
-  std::vector<uint32> skip(256, 2);
-  skip['a'] = 0;
-  skip['b'] = 1;
-  skip['c'] = 1;
-  skip['d'] = 1;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseQuestionWithAlternation) {
@@ -215,13 +174,6 @@ SCOPE_TEST(parseQuestionWithAlternation) {
   // c
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
   SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(3));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 1);
-  skip['a'] = 0;
-  skip['b'] = 0;
-  skip['c'] = 0;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseQuestionWithGrouping) {
@@ -245,7 +197,6 @@ SCOPE_TEST(parseQuestionWithGrouping) {
   // d
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(4));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(4));
-  SCOPE_ASSERT_EQUAL(2u, calculateLMin(fsm));
 }
 
 SCOPE_TEST(parsePlus) {
@@ -261,11 +212,6 @@ SCOPE_TEST(parsePlus) {
   // a+
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(1));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 1);
-  skip['a'] = 0;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseaPQb) {
@@ -296,13 +242,6 @@ SCOPE_TEST(parseaPQb) {
   SCOPE_ASSERT(!g[0]);
   SCOPE_ASSERT(!g[1]->IsMatch);
   SCOPE_ASSERT(g[2]->IsMatch);
-
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(g);
-  SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
-  std::vector<uint32> skip(256, 2);
-  skip['a'] = 0;
-  skip['b'] = 1;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseStar) {
@@ -319,13 +258,6 @@ SCOPE_TEST(parseStar) {
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(3));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
-  std::vector<uint32> skip(256, 2);
-  skip['a'] = 0;
-  skip['b'] = 1;
-  skip['c'] = 1;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseStarWithGrouping) {
@@ -348,14 +280,6 @@ SCOPE_TEST(parseStarWithGrouping) {
   // d
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(4));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(4));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(2u, tbl->l_min());
-  std::vector<uint32> skip(256, 2);
-  skip['a'] = 0;
-  skip['b'] = 1;
-  skip['c'] = 2; // for clarity; 'c' is beyond l-min
-  skip['d'] = 1;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseaQQb) {
@@ -578,13 +502,6 @@ SCOPE_TEST(parseaSQb) {
   SCOPE_ASSERT(!g[0]);
   SCOPE_ASSERT(!g[1]->IsMatch);
   SCOPE_ASSERT(g[2]->IsMatch);
-
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(g);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 1);
-  skip['a'] = 0;
-  skip['b'] = 0;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseDot) {
@@ -598,10 +515,7 @@ SCOPE_TEST(parseDot) {
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(1));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 0);
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
+
   ByteSet set;
   set.reset();
   fsm[1]->getBits(set);
@@ -618,11 +532,7 @@ SCOPE_TEST(parseHexCode) {
   SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 1);
-  skip[0x20] = 0;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
+
   ByteSet set;
   set.reset();
   fsm[1]->getBits(set);
@@ -645,12 +555,6 @@ SCOPE_TEST(parseHexDotPlus) {
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(4));
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(4));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(4u, tbl->l_min());
-  std::vector<uint32> skip(256, 2);
-  skip[0x20] = 0;
-  skip[0xff] = 1;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parse2ByteUnicode) {
@@ -662,14 +566,6 @@ SCOPE_TEST(parse2ByteUnicode) {
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
-  SCOPE_ASSERT_EQUAL(4u, calculateLMin(fsm));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(4u, tbl->l_min());
-  std::vector<uint32> skip(256, 4);
-  skip['a'] = 0;
-  skip[0] = 1;
-  skip['b'] = 2;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
 }
 
 SCOPE_TEST(parseHighHex) {
@@ -680,7 +576,6 @@ SCOPE_TEST(parseHighHex) {
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
-  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
   ByteSet expected,
           actual;
   expected.reset();
@@ -700,14 +595,7 @@ SCOPE_TEST(parseSimpleCharClass) {
   SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 1);
-  skip['a'] = 0;
-  skip['b'] = 0;
-  skip['A'] = 0;
-  skip['B'] = 0;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
+
   ByteSet expected,
           actual;
   expected.reset();
@@ -731,13 +619,7 @@ SCOPE_TEST(parseUnprintableCharClass) {
   SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
-  boost::shared_ptr<SkipTable> tbl = calculateSkipTable(fsm);
-  SCOPE_ASSERT_EQUAL(1u, tbl->l_min());
-  std::vector<uint32> skip(256, 1);
-  skip['A'] = 0;
-  skip[0x00] = 0;
-  skip[0xFF] = 0;
-  SCOPE_ASSERT_EQUAL(skip, tbl->skipVec());
+
   ByteSet expected,
           actual;
   expected.reset();
@@ -750,8 +632,6 @@ SCOPE_TEST(parseUnprintableCharClass) {
   SCOPE_ASSERT_EQUAL("\\x00A\\xFF/0", fsm[1]->label());
 }
 
-
-
 SCOPE_TEST(parseNegatedRanges) {
   NFABuilder nfab;
   ParseTree tree;
@@ -762,7 +642,7 @@ SCOPE_TEST(parseNegatedRanges) {
   SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, calculateLMin(fsm));
+ 
   ByteSet expected,
           actual;
   expected.reset();
