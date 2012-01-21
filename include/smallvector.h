@@ -120,7 +120,7 @@ public:
   // ctors & dtor
   //
 
-  explicit SmallVector(std::vector< std::vector<T> >& store): ArrayEnd(0), VecStore(store) {}
+  SmallVector(std::vector< std::vector<T> >& store): ArrayEnd(0), VecStore(store) {}
 
 /*
   explicit SmallVector(size_type count, const T& value = T(), const Allocator& alloc = Allocator()): ArrayEnd(0), Alloc(alloc) {
@@ -150,7 +150,7 @@ public:
 */
 
   //
-  // 
+  // assignment
   //
 
   SmallVector& operator=(const SmallVector& other) {
@@ -355,7 +355,7 @@ public:
 */
 
   iterator erase(iterator i) {
-    ptrdiff_t pos = i - begin();
+    const typename iterator::difference_type pos = i - begin();
 
     if (large()) {
       return iterator(vector().erase(vector().begin() + pos));
