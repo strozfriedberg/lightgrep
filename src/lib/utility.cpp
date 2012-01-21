@@ -238,35 +238,6 @@ ProgramPtr createProgram(const Graph& graph) {
   return ret;
 }
 
-class SkipTblVisitor: public Visitor {
-public:
-  SkipTblVisitor(boost::shared_ptr<SkipTable> skip): Skipper(skip) {}
-
-  void discoverVertex(Graph::vertex v, const Graph& graph) const {
-    Skipper->calculateTransitions(v, graph);
-  }
-
-  void treeEdge(Graph::vertex h, Graph::vertex t, const Graph& graph) const {
-    Skipper->setDistance(h, t, graph);
-  }
-
-private:
-  boost::shared_ptr<SkipTable> Skipper;
-};
-
-uint32 calculateLMin(const Graph& graph) {
-  return calculateSkipTable(graph)->l_min();
-}
-
-boost::shared_ptr<SkipTable> calculateSkipTable(const Graph& graph) {
-  // std::cerr << "calculating skiptable and l-min" << std::endl;
-  boost::shared_ptr<SkipTable> skip(new SkipTable(graph.numVertices()));
-  SkipTblVisitor vis(skip);
-  bfs(graph, 0, vis);
-  skip->finishSkipVec();
-  return skip;
-}
-
 void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor) {
   std::vector<bool> seen(graph.numVertices());
   std::queue<Graph::vertex> next;
@@ -313,7 +284,6 @@ boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, 
   boost::shared_ptr<VmInterface> vm = VmInterface::create();
   GraphPtr fsm = createGraph(keywords);
   ProgramPtr prog = createProgram(*fsm);
-  prog->Skip = calculateSkipTable(*fsm);
   prog->First = firstBytes(*fsm);
   vm->init(prog);
   return vm;

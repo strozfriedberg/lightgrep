@@ -10,9 +10,7 @@
 #include "nfabuilder.h"
 #include "vm_interface.h"
 
-struct SearchInfo {
-
-};
+struct SearchInfo {};
 
 enum Encodings {
   CP_ASCII = 1,
@@ -37,10 +35,6 @@ public:
 };
 
 void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor);
-
-uint32 calculateLMin(const Graph& graph);
-
-boost::shared_ptr<SkipTable> calculateSkipTable(const Graph& graph);
 
 ProgramPtr createProgram(const Graph& graph);
 

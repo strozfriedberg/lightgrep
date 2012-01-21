@@ -8,7 +8,6 @@
 
 #include "vm_interface.h"
 #include "staticvector.h"
-#include "skiptable.h"
 
 class Vm: public VmInterface {
 public:
