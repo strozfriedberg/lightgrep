@@ -7,13 +7,6 @@
 //#include <stdexcept>
 #include <vector>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/type_traits/is_const.hpp>
-#include <boost/type_traits/is_convertible.hpp>
-#include <boost/utility/enable_if.hpp>
-
 template <class T, size_t SmallSize>
 class SmallVector
 {
@@ -31,96 +24,8 @@ public:
   typedef T* pointer;
   typedef const T* const_pointer;
 
-  //
-  // iterator, const_iterator
-  //
-
-  template <typename Value>
-  class iter_base :
-    public boost::iterator_facade<
-      iter_base<Value>,
-      Value,
-      std::random_access_iterator_tag
-    >
-  {
-  private:
-    struct enabler {};
-
-  public:
-    iter_base(): Ptr(0) {} 
-
-    explicit iter_base(Value* ptr): Ptr(ptr) {}
-
-    iter_base(typename std::vector<value_type>::iterator i): Ptr(0), Iter(i) {}
-
-    iter_base(typename std::vector<value_type>::const_iterator i): Ptr(0), Iter(i) {}
-
-    template <class OtherValue>    
-    iter_base(
-      const iter_base<OtherValue>& other,
-      typename boost::enable_if<
-        boost::is_convertible<OtherValue*,Value*>,
-        enabler
-      >::type = enabler()): Ptr(other.Ptr), Iter(other.Iter) {}
-
-  private:
-    friend class boost::iterator_core_access;
-    template <class> friend class iter_base;
-
-    Value& dereference() const {
-      return Ptr ? *Ptr : *Iter; 
-    }
-
-    template <class OtherValue>
-    bool equal(const iter_base<OtherValue>& other) const {
-      return Ptr == other.Ptr && (Ptr || Iter == other.Iter);
-    }
-
-    void increment() {
-      if (Ptr) {
-        ++Ptr;
-      }
-      else {
-        ++Iter;
-      }
-    }
-
-    void decrement() {
-      if (Ptr) {
-        --Ptr;
-      }
-      else {
-        --Iter;
-      }
-    }
-
-    void advance(difference_type n) {
-      if (Ptr) {
-        Ptr += n;
-      }
-      else {
-        Iter += n;
-      }
-    }  
-
-    template <class OtherValue>
-    difference_type distance_to(const iter_base<OtherValue>& other) const {
-      return Ptr ? other.Ptr - Ptr : other.Iter - Iter;
-    }
-
-    Value* Ptr;
-
-    // pick the correct std::vector iterator type
-    typename boost::mpl::if_<
-      boost::is_const<Value>,
-      typename std::vector<value_type>::const_iterator,
-      typename std::vector<value_type>::iterator
-    >::type Iter;
-  };
-
-  typedef iter_base<T> iterator;
-  typedef iter_base<T const> const_iterator;
-
+  typedef pointer iterator;
+  typedef const_pointer const_iterator;
   typedef std::reverse_iterator<iterator> reverse_iterator;
   typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
@@ -184,7 +89,7 @@ public:
     }
     else {
       std::fill(Array, Array + count, value);
-      ArrayEnd = count; 
+      ArrayEnd = count;
     }
   }
 
@@ -234,7 +139,7 @@ public:
     return large() ? vector()[pos] : Array[pos];
   }
 
-/*  
+/*
   reference front() {
     return large() ? vector().front() : Array[0];
   }
@@ -255,21 +160,21 @@ public:
   //
   // iterators
   //
-  
+
   iterator begin() {
-    return large() ? iterator(vector().begin()) : iterator(Array); 
-  }  
+    return large() ? &*vector().begin() : Array;
+  }
 
   const_iterator begin() const {
-    return large() ? const_iterator(vector().begin()) : const_iterator(Array); 
+    return large() ? &*vector().begin() : Array;
   }
 
   iterator end() {
-    return large() ? iterator(vector().end()) : iterator(Array + ArrayEnd); 
+    return large() ? &*vector().end() : Array + ArrayEnd;
   }
 
   const_iterator end() const {
-    return large() ? const_iterator(vector().end()) : const_iterator(Array + ArrayEnd); 
+    return large() ? &*vector().end() : Array + ArrayEnd;
   }
 
 /*
@@ -289,8 +194,8 @@ public:
   //
   // capacity
   //
- 
-/* 
+
+/*
   bool empty() const {
     return size() == 0;
   }
@@ -298,7 +203,7 @@ public:
 
   size_type size() const {
     return large() ? vector().size() : ArrayEnd;
-  }  
+  }
 
 /*
   size_type max_size() const {
@@ -307,7 +212,7 @@ public:
 
   void reserve(size_type size) {
     if (size > SmallSize) {
-       
+
     }
   }
 
@@ -330,10 +235,10 @@ public:
   }
 
   iterator insert(iterator i, const T& value) {
-    const typename iterator::difference_type pos = i - begin();
+    const difference_type pos = i - begin();
 
     if (large()) {
-      return iterator(vector().insert(vector().begin() + pos, value));
+      return &*vector().insert(vector().begin() + pos, value);
     }
     else {
       if (ArrayEnd < SmallSize) {
@@ -349,7 +254,7 @@ public:
         vector().push_back(value);
         vector().insert(vector().end(), Array + pos, Array + SmallSize);
 
-        return iterator(vector().begin() + pos); 
+        return &*(vector().begin() + pos);
       }
     }
   }
@@ -363,16 +268,16 @@ public:
 */
 
   iterator erase(iterator i) {
-    const typename iterator::difference_type pos = i - begin();
+    const difference_type pos = i - begin();
 
     if (large()) {
-      return iterator(vector().erase(vector().begin() + pos));
+      return &*vector().erase(vector().begin() + pos);
     }
     else {
       std::copy(Array + pos + 1, Array + ArrayEnd, Array + pos);
       --ArrayEnd;
       return i;
-    } 
+    }
   }
 
 /*
@@ -431,7 +336,7 @@ private:
     return VecStore[ArrayEnd - SmallSize - 1];
   }
 
-  void overflow() { 
+  void overflow() {
     VecStore.push_back(std::vector<T>(Array, Array + ArrayEnd));
     ArrayEnd += VecStore.size();
   }
@@ -450,7 +355,7 @@ void operator==(SmallVector<T,Alloc> &lhs, SmallVector<T,Alloc> &rhs) {
 template <class T, class Alloc>
 void operator!=(SmallVector<T,Alloc> &lhs, SmallVector<T,Alloc> &rhs) {
 }
-	
+
 template <class T, class Alloc>
 void operator<(SmallVector<T,Alloc> &lhs, SmallVector<T,Alloc> &rhs) {
 }
@@ -470,5 +375,5 @@ void operator>=(SmallVector<T,Alloc> &lhs, SmallVector<T,Alloc> &rhs) {
 template <class T, unsigned int SmallSize, class Alloc>
 void std::swap(SmallVector<T,SmallSize,Alloc> &lhs, SmallVector<T,SmallSize,Alloc> &rhs) {
   lhs.swap(rhs);
-} 
+}
 */
