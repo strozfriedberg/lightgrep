@@ -7,7 +7,7 @@
 //#include <stdexcept>
 #include <vector>
 
-template <class T, size_t SmallSize>
+template <class T, size_t N>
 class SmallVector
 {
 public:
@@ -48,7 +48,7 @@ public:
   SmallVector(const SmallVector& other): VecStore(other.VecStore) {
     if (other.large()) {
       VecStore.push_back(other.vector());
-      ArrayEnd = SmallSize + VecStore.size();
+      ArrayEnd = N + VecStore.size();
     }
     else {
       ArrayEnd = other.ArrayEnd;
@@ -71,7 +71,7 @@ public:
 
     if (other.large()) {
       VecStore.push_back(other.vector());
-      ArrayEnd = SmallSize + VecStore.size();
+      ArrayEnd = N + VecStore.size();
     }
     else {
       ArrayEnd = other.ArrayEnd;
@@ -83,9 +83,9 @@ public:
 
 /*
   void assign(size_type count, const T& value) {
-    if (count > SmallSize) {
+    if (count > N) {
       VecStore.push_back(std::vector<T>(count, value));
-      ArrayEnd = VecStore.size() - 1 + SmallSize;
+      ArrayEnd = VecStore.size() - 1 + N;
     }
     else {
       std::fill(Array, Array + count, value);
@@ -94,9 +94,9 @@ public:
   }
 
   template <class InputIterator> void assign(InputIterator first, InputIterator last) {
-    if (last - first > SmallSize) {
+    if (last - first > N) {
       VecStore.push_back(std::vector<T>(first, last));
-      ArrayEnd = VecStore.size() - 1 + SmallSize;
+      ArrayEnd = VecStore.size() - 1 + N;
     }
     else {
       std::copy(first, last, Array);
@@ -211,13 +211,13 @@ public:
   }
 
   void reserve(size_type size) {
-    if (size > SmallSize) {
+    if (size > N) {
 
     }
   }
 
   size_type capacity() const {
-    return large() ? vector().capacity() : SmallSize;
+    return large() ? vector().capacity() : N;
   }
 */
 
@@ -241,18 +241,18 @@ public:
       return &*vector().insert(vector().begin() + pos, value);
     }
     else {
-      if (ArrayEnd < SmallSize) {
+      if (ArrayEnd < N) {
         std::copy(Array + pos, Array + ArrayEnd, Array + pos + 1);
         Array[pos] = value;
         ++ArrayEnd;
         return ++i;
       }
-      else { /* ArrayEnd == SmallSize */
+      else { /* ArrayEnd == N */
         VecStore.push_back(std::vector<T>(Array, Array + pos));
         ArrayEnd += VecStore.size();
 
         vector().push_back(value);
-        vector().insert(vector().end(), Array + pos, Array + SmallSize);
+        vector().insert(vector().end(), Array + pos, Array + N);
 
         return &*(vector().begin() + pos);
       }
@@ -286,11 +286,11 @@ public:
 */
 
   void push_back(const T& value) {
-    if (ArrayEnd < SmallSize) {
+    if (ArrayEnd < N) {
       Array[ArrayEnd++] = value;
     }
     else {
-      if (ArrayEnd == SmallSize) {
+      if (ArrayEnd == N) {
         VecStore.push_back(std::vector<T>(Array, Array + ArrayEnd));
         ArrayEnd += VecStore.size();
       }
@@ -301,7 +301,7 @@ public:
 
 /*
   void pop_back() {
-    if (ArrayEnd > SmallSize) {
+    if (ArrayEnd > N) {
       vector().pop_back();
     }
     else {
@@ -310,7 +310,7 @@ public:
   }
 
   void resize(size_type count, T value = T()) {
-    if (count > SmallSize) {
+    if (count > N) {
 
     }
     else {
@@ -325,15 +325,15 @@ public:
 
 private:
   bool large() const {
-    return ArrayEnd > SmallSize;
+    return ArrayEnd > N;
   }
 
   std::vector<T>& vector() {
-    return VecStore[ArrayEnd - SmallSize - 1];
+    return VecStore[ArrayEnd - N - 1];
   }
 
   const std::vector<T>& vector() const {
-    return VecStore[ArrayEnd - SmallSize - 1];
+    return VecStore[ArrayEnd - N - 1];
   }
 
   void overflow() {
@@ -341,7 +341,7 @@ private:
     ArrayEnd += VecStore.size();
   }
 
-  T Array[SmallSize];
+  T Array[N];
   unsigned int ArrayEnd;
 
   std::vector< std::vector<T> >& VecStore;
@@ -372,8 +372,8 @@ template <class T, class Alloc>
 void operator>=(SmallVector<T,Alloc> &lhs, SmallVector<T,Alloc> &rhs) {
 }
 
-template <class T, unsigned int SmallSize, class Alloc>
-void std::swap(SmallVector<T,SmallSize,Alloc> &lhs, SmallVector<T,SmallSize,Alloc> &rhs) {
+template <class T, unsigned int N, class Alloc>
+void std::swap(SmallVector<T,N,Alloc> &lhs, SmallVector<T,N,Alloc> &rhs) {
   lhs.swap(rhs);
 }
 */
