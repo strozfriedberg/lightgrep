@@ -10,7 +10,7 @@
 
 #include <boost/bind.hpp>
 
-template <class GraphType, class VertexType, class EdgeType>
+template <class GraphType, class VertexType, class EdgeType, class EdgeDescriptorStorageFactory>
 class Graph : public GraphType
 {
 private:
@@ -21,9 +21,6 @@ private:
   typedef typename std::vector<EdgeData> EList;
 
 public:
-//  typedef typename VList::size_type VertexDescriptor;
-//  typedef typename EList::size_type EdgeDescriptor;
-
   typedef uint32 VertexDescriptor;
   typedef uint32 EdgeDescriptor;
 
@@ -34,14 +31,12 @@ public:
   typedef EdgeType Edge;
 
 private:
-//  typedef typename std::vector<EdgeDescriptor> EDList;
-  typedef SmallVector<EdgeDescriptor,1> EDList;
-
-  std::vector< std::vector<EdgeDescriptor> > EStore;
+  typedef typename EdgeDescriptorStorageFactory::ListType EDList;
 
   struct VertexData : public VertexType {
-    VertexData(std::vector< std::vector<EdgeDescriptor> >& store): VertexType(), In(store), Out(store) {}
-    VertexData(const VertexType& v, std::vector< std::vector<EdgeDescriptor> >& store): VertexType(v), In(store), Out(store) {}
+    VertexData(EdgeDescriptorStorageFactory& fac): VertexType(), In(fac.create()), Out(fac.create()) {}
+
+    VertexData(const VertexType& v, EdgeDescriptorStorageFactory& fac): VertexType(v), In(fac.create()), Out(fac.create()) {}
 
     EDList In, Out;
   };
@@ -54,14 +49,14 @@ private:
 
 public:
 
-  Graph(VertexSizeType vActual = 0): Vertices(vActual, VertexData(EStore)) {}
+  Graph(VertexSizeType vActual = 0): Vertices(vActual, VertexData(EDSFactory)) {}
 
   Graph(VertexSizeType vActual, VertexSizeType vReserve, EdgeSizeType eReserve = 0) {
     if (vReserve > vActual) {
       Vertices.reserve(vReserve);
     }
 
-    Vertices.resize(vActual, VertexData(EStore));
+    Vertices.resize(vActual, VertexData(EDSFactory));
 
     if (eReserve > 0) {
       Edges.reserve(eReserve);
@@ -136,7 +131,7 @@ public:
   }
 
   VertexDescriptor addVertex(const VertexType& v = VertexType()) {
-    Vertices.push_back(VertexData(v, EStore));
+    Vertices.push_back(VertexData(v, EDSFactory));
     return Vertices.size() - 1;
   }
 
@@ -239,18 +234,20 @@ private:
 
   VList Vertices;
   EList Edges;
+
+  EdgeDescriptorStorageFactory EDSFactory;
 };
 
-template <class G, class V, class E> std::ostream& operator<<(std::ostream& out, const Graph<G,V,E>& g) {
-  const typename Graph<G,V,E>::VertexSizeType vnum = g.verticesSize();
+template <class G, class V, class E, class S> std::ostream& operator<<(std::ostream& out, const Graph<G,V,E,S>& g) {
+  const typename Graph<G,V,E,S>::VertexSizeType vnum = g.verticesSize();
 
   // print graph size
   out << "|g| = " << vnum << '\n';
 
   // print out edges for each vertex
-  for (typename Graph<G,V,E>::VertexSizeType v = 0; v < vnum; ++v) {
-    const typename Graph<G,V,E>::EdgeSizeType odeg = g.outDegree(v);
-    for (typename Graph<G,V,E>::EdgeSizeType o = 0; o < odeg; ++o) {
+  for (typename Graph<G,V,E,S>::VertexSizeType v = 0; v < vnum; ++v) {
+    const typename Graph<G,V,E,S>::EdgeSizeType odeg = g.outDegree(v);
+    for (typename Graph<G,V,E,S>::EdgeSizeType o = 0; o < odeg; ++o) {
       out << v << " -> " << g.outVertex(v, o) << '\n';
     }
   }
