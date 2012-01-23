@@ -75,9 +75,9 @@ else:
   env = Environment(ENV=os.environ)
 
 env['DEBUG_MODE'] = debug
-env.Replace(CPPPATH=['#/include'])
 env.Replace(CCFLAGS=ccflags)
 env.Replace(CPPDEFINES=defines)
+env.Append(CPPPATH=['#/include'])
 env.Append(LIBPATH=['#/lib'])
 env.Append(LINKFLAGS=ldflags)
 
