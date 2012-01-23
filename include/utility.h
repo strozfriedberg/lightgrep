@@ -9,6 +9,7 @@
 #include "graph.h"
 #include "nfabuilder.h"
 #include "vm_interface.h"
+#include "patterninfo.h"
 
 struct SearchInfo {};
 
@@ -17,7 +18,9 @@ enum Encodings {
   CP_UCS16 = 2
 };
 
-GraphPtr createGraph(const std::vector<std::string>& keywords,
+uint32 totalCharacters(const std::vector<Pattern>& keywords);
+
+GraphPtr createGraph(const std::vector<Pattern>& keywords,
                     uint32 enc = CP_ASCII, 
                     bool caseSensitive = true, 
                     bool litMode = false, 
@@ -41,7 +44,7 @@ ProgramPtr createProgram(const Graph& graph);
 ByteSet firstBytes(const Graph& graph);
 void nextBytes(ByteSet& set, Graph::vertex v, const Graph& graph);
 
-boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, SearchInfo& info);
+boost::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, SearchInfo& info);
 
 std::vector< std::vector< Graph::vertex > > pivotStates(Graph::vertex source, const Graph& graph);
 

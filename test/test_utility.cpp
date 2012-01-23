@@ -120,19 +120,22 @@ SCOPE_TEST(keywordLabelsProgram) {
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[8]);
 }
 
+template<class T>
+std::vector< Pattern > makePatterns(unsigned int n, const T& x) {
+  std::vector<Pattern> ret;
+  for (unsigned int i = 0; i < n; ++i) {
+    ret.push_back(Pattern(x[i]));
+  }
+  return ret;
+}
+
 SCOPE_TEST(twoFixedStrings) {
-  std::vector< std::string > kws;
-  kws.push_back("one");
-  kws.push_back("two");
-  GraphPtr fsm = createGraph(kws);
+  GraphPtr fsm = createGraph(makePatterns(2u, (const char*[]){"one", "two"}));
   SCOPE_ASSERT_EQUAL(7u, fsm->numVertices());
 }
 
 SCOPE_TEST(twoUnicode) {
-  std::vector< std::string > kws;
-  kws.push_back("aa");
-  kws.push_back("ab");
-  GraphPtr fsm = createGraph(kws, CP_UCS16);
+  GraphPtr fsm = createGraph(makePatterns(2u, (const char*[]){"aa", "ab"}), CP_UCS16);
   Graph& g = *fsm;
   
   SCOPE_ASSERT_EQUAL(7u, g.numVertices());
@@ -203,10 +206,7 @@ SCOPE_TEST(firstBitset) {
 }
 
 SCOPE_TEST(simpleCollapse) {
-  std::vector< std::string > kws;
-  kws.push_back("ab");
-  kws.push_back("ac");
-  GraphPtr fsm = createGraph(kws);
+  GraphPtr fsm = createGraph(makePatterns(2u, (const char*[]){"ab", "ac"}));
   SCOPE_ASSERT_EQUAL(4u, fsm->numVertices());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
@@ -432,11 +432,8 @@ SCOPE_TEST(generateCheckHalt) {
 }
 
 SCOPE_TEST(testInitVM) {
-  std::vector<std::string> keys;
   SearchInfo info;
-  keys.push_back("one");
-  keys.push_back("two");
-  boost::shared_ptr<VmInterface> search = initVM(keys, info);
+  boost::shared_ptr<VmInterface> search = initVM(makePatterns(2u, (const char*[]){"one", "two"}), info);
                //012345678901234
   byte text[] = "a onetwothree";
 

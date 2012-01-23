@@ -6,7 +6,6 @@
 #include "nfabuilder.h"
 #include "parser.h"
 #include "rewriter.h"
-#include "patterninfo.h"
 
 #include <algorithm>
 #include <sstream>
@@ -16,10 +15,10 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-void addKeys(const std::vector<std::string>& keywords, const LG_KeyOptions& keyOpts, bool ignoreBad, Parser& p, uint32& keyIdx) {
+void addKeys(const std::vector<Pattern>& keywords, const LG_KeyOptions& keyOpts, bool ignoreBad, Parser& p, uint32& keyIdx) {
 
   for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
-    const std::string& kw(keywords[i]);
+    const std::string& kw(keywords[i].Expression);
 
     try {
       p.addPattern(kw, keyIdx, keyOpts);
@@ -32,10 +31,10 @@ void addKeys(const std::vector<std::string>& keywords, const LG_KeyOptions& keyO
   }
 }
 
-uint32 totalCharacters(const std::vector<std::string>& keywords) {
+uint32 totalCharacters(const std::vector<Pattern>& keywords) {
   uint32 ret = 0;
-  for (std::vector<std::string>::const_iterator it(keywords.begin()); it != keywords.end(); ++it) {
-    ret += it->size();
+  for (std::vector<Pattern>::const_iterator it(keywords.begin()); it != keywords.end(); ++it) {
+    ret += it->Expression.size();
   }
   return ret;
 }
@@ -44,7 +43,7 @@ void addKeys(PatternInfo& keyInfo, const LG_KeyOptions& keyOpts, uint32 encIdx, 
   addKeys(keyInfo.Patterns, keyOpts, ignoreBad, p, keyIdx);
 
   for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
-    keyInfo.Table.push_back(std::make_pair<uint32,uint32>(i, encIdx));
+    keyInfo.Table.push_back(std::make_pair(i, encIdx));
   }
 }
 
@@ -75,7 +74,7 @@ GraphPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool 
   return p.Fsm;
 }
 
-GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
+GraphPtr createGraph(const std::vector<Pattern>& keywords, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
   PatternInfo keyInfo;
   keyInfo.Patterns = keywords;
   return createGraph(keyInfo, enc, caseSensitive, litMode, determinize, ignoreBadParse);
@@ -280,7 +279,7 @@ ByteSet firstBytes(const Graph& graph) {
   return ret;
 }
 
-boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, SearchInfo&) {
+boost::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, SearchInfo&) {
   boost::shared_ptr<VmInterface> vm = VmInterface::create();
   GraphPtr fsm = createGraph(keywords);
   ProgramPtr prog = createProgram(*fsm);
