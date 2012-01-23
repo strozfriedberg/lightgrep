@@ -4,6 +4,7 @@
 
 #include "basic.h"
 #include "graph.h"
+#include "pattern.h"
 
 #include <iosfwd>
 #include <set>
@@ -23,7 +24,7 @@ public:
               Input,
               Output,
               Encoding,
-              Pattern,
+              SinglePattern,
               ServerLog;
 
   std::vector<std::string> Inputs;
@@ -43,5 +44,5 @@ public:
 
   std::ostream& openOutput() const;
 
-  std::vector<std::string> getKeys() const;
+  std::vector<Pattern> getKeys() const;
 };

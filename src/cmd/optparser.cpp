@@ -57,7 +57,7 @@ void parse_opts(int argc, char** argv,
     ("no-det", "do not determinize NFAs")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
-    ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
+    ("pattern,p", po::value< std::string >(&opts.SinglePattern), "a single keyword on the command-line")
     ("recursive,r", "traverse directories recursively")
     ("block-size", po::value< unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ("with-filename,H", "print the filename for each match")
@@ -102,7 +102,7 @@ void parse_opts(int argc, char** argv,
       }
 
       // keywords from --pattern
-      opts.Pattern = optsMap["pattern"].as<std::string>();
+      opts.SinglePattern = optsMap["pattern"].as<std::string>();
     }
     else {
       if (!optsMap["keywords"].empty()) {

@@ -6,7 +6,7 @@
 #include "options.h"
 #include "utility.h"
 
-bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys) {
+bool readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) {
   std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
   keys.clear();
   if (keyFile) {
@@ -15,7 +15,7 @@ bool readKeyFile(const std::string& keyFilePath, std::vector<std::string>& keys)
       keyFile.getline(line, 8192);
       std::string lineS(line);
       if (!lineS.empty()) {
-        keys.push_back(lineS);
+        keys.push_back(Pattern(lineS));
         // std::cerr << "read " << lineS << std::endl;
       }
     }
@@ -56,10 +56,10 @@ std::ostream& Options::openOutput() const {
   }
 }
 
-std::vector< std::string > Options::getKeys() const {
-  std::vector< std::string > ret;
-  if (!Pattern.empty()) {
-    ret.push_back(Pattern);
+std::vector< Pattern > Options::getKeys() const {
+  std::vector< Pattern > ret;
+  if (!SinglePattern.empty()) {
+    ret.push_back(Pattern(SinglePattern));
   }
   else {
     readKeyFile(KeyFile, ret);

@@ -71,12 +71,12 @@ bool addPattern(
 {
   pinfo.Table.push_back(std::make_pair(i, encIdx));
 
-  if (lg_add_keyword(parser, pinfo.Patterns[i].c_str(), patIdx, &keyOpts)) {
+  if (lg_add_keyword(parser, pinfo.Patterns[i].Expression.c_str(), patIdx, &keyOpts)) {
     return true;
   }
   else {
     std::cerr << lg_error(parser) << " on pattern "
-              << i << ", '" << pinfo.Patterns[i] << "'" << std::endl;
+              << i << ", '" << pinfo.Patterns[i].Expression << "'" << std::endl;
     return false;
   }
 }
@@ -91,11 +91,7 @@ boost::shared_ptr<ParserHandle> parsePatterns(const Options& opts,
   }
 
   // find total length of patterns -- or 1 if tlen is 0
-  const uint32 tlen = std::max(std::accumulate(
-    pinfo.Patterns.begin(), pinfo.Patterns.end(), 0,
-    boost::bind(std::plus<uint32>(), _1, boost::bind(&std::string::size, _2))),
-    1
-  );
+  const uint32 tlen = std::max(1u, totalCharacters(pinfo.Patterns));
 
   boost::shared_ptr<ParserHandle> parser(lg_create_parser(tlen),
                                          lg_destroy_parser);
@@ -383,8 +379,8 @@ void writeSampleMatches(const Options& opts) {
     return;
   }
 
-  const std::vector<std::string>& pats(opts.getKeys());
-  for (std::vector<std::string>::const_iterator i(pats.begin()); i != pats.end(); ++i) {
+  const std::vector<Pattern>& pats(opts.getKeys());
+  for (std::vector<Pattern>::const_iterator i(pats.begin()); i != pats.end(); ++i) {
     // parse the pattern
 
     PatternInfo pinfo;
