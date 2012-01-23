@@ -86,13 +86,6 @@ boost::shared_ptr<ParserHandle> parsePatterns(const Options& opts,
                                               uint32& numErrors)
 {
   numErrors = 0;
-  // get patterns from options
-  std::cerr << pinfo.Patterns.size() << " pattern";
-  if (pinfo.Patterns.size() != 1) {
-    std::cerr << 's';
-  }
-  std::cerr << std::endl;
-
   if (pinfo.Patterns.empty()) {
     return boost::shared_ptr<ParserHandle>();
   }
@@ -244,11 +237,11 @@ void search(const std::string& input, SearchController& ctrl, boost::shared_ptr<
 }
 
 void searchRecursively(const fs::path& path, SearchController& ctrl, boost::shared_ptr<ContextHandle> searcher, HitCounterInfo* hinfo, LG_HITCALLBACK_FN callback) {
-  fs::recursive_directory_iterator end;
+  const fs::recursive_directory_iterator end;
   for (fs::recursive_directory_iterator d(path); d != end; ++d) {
     const fs::path p(d->path());
     if (!fs::is_directory(p)) {
-      search(p.native(), ctrl, searcher, hinfo, callback);
+      search(p.string(), ctrl, searcher, hinfo, callback);
     }
   }
 }
