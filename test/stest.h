@@ -36,7 +36,6 @@ struct STest {
     Fsm = createGraph(kws, CP_ASCII, true, false, true, true);
     Prog = createProgram(*Fsm);
     Prog->First = firstBytes(*Fsm);
-    Prog->Skip = calculateSkipTable(*Fsm);
     Grep = VmInterface::create();
     Grep->init(Prog);
   }
