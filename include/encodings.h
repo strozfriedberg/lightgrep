@@ -16,7 +16,7 @@ static const char* LG_SUPPORTED_ENCODINGS[] = {
 
 // The Encoding specified in LG_KeyOptions MUST match one of the below strings (in ASCII)
 
-  "ANSI_X3.4-1968",     // 0    aka good ol' ASCII, ANSI; yes, this is the formal IANA name
+  "US-ASCII",           // 0    aka ANSI_X3.4-1968, ASCII (as a special case, you can use any of the three)
   "ISO_8859-1:1987",    // 1    8859-1, aka Latin-1
   "UTF-8",              // 2
   "UTF-16"              // 3
