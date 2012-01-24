@@ -121,7 +121,7 @@ SCOPE_TEST(keywordLabelsProgram) {
 }
 
 template<class T>
-std::vector< Pattern > makePatterns(unsigned int n, const T& x) {
+std::vector< Pattern > makePatterns(unsigned int n, T x) {
   std::vector<Pattern> ret;
   for (unsigned int i = 0; i < n; ++i) {
     ret.push_back(Pattern(x[i]));
