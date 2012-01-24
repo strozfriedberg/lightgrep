@@ -2,6 +2,7 @@
 
 #include "basic.h"
 #include "optparser.h"
+#include "encodings.h"
 
 #include <vector>
 #include <set>
@@ -57,7 +58,7 @@ void parse_opts(int argc, char** argv,
     ("no-det", "do not determinize NFAs")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
-    ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
+    ("pattern,p", po::value< std::string >(&opts.SinglePattern), "a single keyword on the command-line")
     ("recursive,r", "traverse directories recursively")
     ("block-size", po::value< unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ("with-filename,H", "print the filename for each match")
@@ -102,7 +103,7 @@ void parse_opts(int argc, char** argv,
       }
 
       // keywords from --pattern
-      opts.Pattern = optsMap["pattern"].as<std::string>();
+      opts.SinglePattern = optsMap["pattern"].as<std::string>();
     }
     else {
       if (!optsMap["keywords"].empty()) {
@@ -120,11 +121,22 @@ void parse_opts(int argc, char** argv,
       }
     }
 
-    opts.CaseSensitive = optsMap.count("ignore-case") == 0;
+    opts.CaseInsensitive = optsMap.count("ignore-case") > 0;
     opts.LiteralMode = optsMap.count("fixed-strings") > 0;
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;
+    if (0 == opts.Encoding.compare("ascii")) {
+      opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
+    }
+    else if (0 == opts.Encoding.compare("ucs16")) {
+      opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+    }
+    else if (0 == opts.Encoding.compare("both")) {
+      std::stringstream buf;
+      buf << LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII] << "," << LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+      opts.Encoding = buf.str();
+    }
 
     if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
       throw po::error("--with-filename and --no-filename are incompatible options");

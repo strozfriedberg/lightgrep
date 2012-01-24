@@ -44,6 +44,9 @@ elif (debug == 'profile'):
 elif (debug == 'coverage'):
   flags = '-g -O0 -fprofile-arcs -ftest-coverage -fbranch-probabilities'
   ldflags = '--coverage'
+elif (debug == 'perf'):
+  flags = '-g -O3'
+  ldflags = ''
 elif (debug == 'trace'):
   flags = '-O3'
   defines.append('LBT_TRACE_ENABLED')
@@ -72,9 +75,9 @@ else:
   env = Environment(ENV=os.environ)
 
 env['DEBUG_MODE'] = debug
-env.Replace(CPPPATH=['#/include'])
 env.Replace(CCFLAGS=ccflags)
 env.Replace(CPPDEFINES=defines)
+env.Append(CPPPATH=['#/include'])
 env.Append(LIBPATH=['#/lib'])
 env.Append(LINKFLAGS=ldflags)
 

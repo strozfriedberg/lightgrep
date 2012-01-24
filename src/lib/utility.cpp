@@ -6,7 +6,6 @@
 #include "nfabuilder.h"
 #include "parser.h"
 #include "rewriter.h"
-#include "patterninfo.h"
 
 #include <algorithm>
 #include <sstream>
@@ -16,13 +15,10 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-void addKeys(const std::vector<std::string>& keywords, const LG_KeyOptions& keyOpts, bool ignoreBad, Parser& p, uint32& keyIdx) {
-
+void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, Parser& p, uint32& keyIdx) {
   for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
-    const std::string& kw(keywords[i]);
-
     try {
-      p.addPattern(kw, keyIdx, keyOpts);
+      p.addPattern(keywords[i], keyIdx);
     }
     catch (std::runtime_error& err) {
       if (!ignoreBad) {
@@ -32,39 +28,35 @@ void addKeys(const std::vector<std::string>& keywords, const LG_KeyOptions& keyO
   }
 }
 
-uint32 totalCharacters(const std::vector<std::string>& keywords) {
+uint32 totalCharacters(const std::vector<Pattern>& keywords) {
   uint32 ret = 0;
-  for (std::vector<std::string>::const_iterator it(keywords.begin()); it != keywords.end(); ++it) {
-    ret += it->size();
+  for (std::vector<Pattern>::const_iterator it(keywords.begin()); it != keywords.end(); ++it) {
+    ret += it->Expression.size();
   }
   return ret;
 }
 
-void addKeys(PatternInfo& keyInfo, const LG_KeyOptions& keyOpts, uint32 encIdx, bool ignoreBad, Parser& p, uint32& keyIdx) {
-  addKeys(keyInfo.Patterns, keyOpts, ignoreBad, p, keyIdx);
+void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
+  addKeys(keyInfo.Patterns, ignoreBad, p, keyIdx);
+  EncodingsCodeMap encMap = getEncodingsMap();
 
   for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
-    keyInfo.Table.push_back(std::make_pair<uint32,uint32>(i, encIdx));
+    uint32 encIdx = 0;
+    EncodingsCodeMap::const_iterator it(encMap.find(keyInfo.Patterns[i].Encoding));
+    if (it != encMap.end()) {
+      encIdx = it->second;
+    }
+    keyInfo.Table.push_back(std::make_pair(i, encIdx));
   }
 }
 
-GraphPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
+GraphPtr createGraph(PatternInfo& keyInfo, bool determinize, bool ignoreBadParse) {
   Parser p(totalCharacters(keyInfo.Patterns));
   uint32 keyIdx = 0;
-  LG_KeyOptions keyOpts;
-  keyOpts.CaseInsensitive = !caseSensitive;
-  keyOpts.FixedString = litMode;
-  if (enc & CP_ASCII) {
-    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
-    addKeys(keyInfo, keyOpts, LG_ENC_ASCII, ignoreBadParse, p, keyIdx);
-  }
 
-  if (enc & CP_UCS16) {
-    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
-    addKeys(keyInfo, keyOpts, LG_ENC_UTF_16, ignoreBadParse, p, keyIdx);
-  }
-
+  addKeys(keyInfo, ignoreBadParse, p, keyIdx);
   if (p.Fsm) {
+
     if (determinize) {
       GraphPtr dfa(new Graph(1));
       p.Comp.subsetDFA(*dfa, *p.Fsm);
@@ -75,10 +67,10 @@ GraphPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool 
   return p.Fsm;
 }
 
-GraphPtr createGraph(const std::vector<std::string>& keywords, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
+GraphPtr createGraph(const std::vector<Pattern>& keywords, bool determinize, bool ignoreBadParse) {
   PatternInfo keyInfo;
   keyInfo.Patterns = keywords;
-  return createGraph(keyInfo, enc, caseSensitive, litMode, determinize, ignoreBadParse);
+  return createGraph(keyInfo, determinize, ignoreBadParse);
 }
 
 uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {
@@ -238,35 +230,6 @@ ProgramPtr createProgram(const Graph& graph) {
   return ret;
 }
 
-class SkipTblVisitor: public Visitor {
-public:
-  SkipTblVisitor(boost::shared_ptr<SkipTable> skip): Skipper(skip) {}
-
-  void discoverVertex(Graph::vertex v, const Graph& graph) const {
-    Skipper->calculateTransitions(v, graph);
-  }
-
-  void treeEdge(Graph::vertex h, Graph::vertex t, const Graph& graph) const {
-    Skipper->setDistance(h, t, graph);
-  }
-
-private:
-  boost::shared_ptr<SkipTable> Skipper;
-};
-
-uint32 calculateLMin(const Graph& graph) {
-  return calculateSkipTable(graph)->l_min();
-}
-
-boost::shared_ptr<SkipTable> calculateSkipTable(const Graph& graph) {
-  // std::cerr << "calculating skiptable and l-min" << std::endl;
-  boost::shared_ptr<SkipTable> skip(new SkipTable(graph.numVertices()));
-  SkipTblVisitor vis(skip);
-  bfs(graph, 0, vis);
-  skip->finishSkipVec();
-  return skip;
-}
-
 void bfs(const Graph& graph, Graph::vertex start, Visitor& visitor) {
   std::vector<bool> seen(graph.numVertices());
   std::queue<Graph::vertex> next;
@@ -309,11 +272,10 @@ ByteSet firstBytes(const Graph& graph) {
   return ret;
 }
 
-boost::shared_ptr<VmInterface> initVM(const std::vector<std::string>& keywords, SearchInfo&) {
+boost::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, SearchInfo&) {
   boost::shared_ptr<VmInterface> vm = VmInterface::create();
   GraphPtr fsm = createGraph(keywords);
   ProgramPtr prog = createProgram(*fsm);
-  prog->Skip = calculateSkipTable(*fsm);
   prog->First = firstBytes(*fsm);
   vm->init(prog);
   return vm;
