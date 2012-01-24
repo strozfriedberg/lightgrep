@@ -126,16 +126,19 @@ void parse_opts(int argc, char** argv,
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;
-    if (0 == opts.Encoding.compare("ascii")) {
+    if (opts.Encoding == "ascii") {
       opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
     }
-    else if (0 == opts.Encoding.compare("ucs16")) {
+    else if (opts.Encoding == "ucs16") {
       opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
     }
-    else if (0 == opts.Encoding.compare("both")) {
+    else if (opts.Encoding == "both") {
       std::stringstream buf;
       buf << LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII] << "," << LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
       opts.Encoding = buf.str();
+    }
+    else {
+      THROW_WITH_OUTPUT(po::error, "did not recognize encoding '" << opts.Encoding << "'");
     }
 
     if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
