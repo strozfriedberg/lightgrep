@@ -2,8 +2,8 @@
 
 #include "graph.h"
 #include "parser.h"
-#include "utility.h"
 #include "vm_interface.h"
+#include "pattern.h"
 
 void collector(void* userData, const LG_SearchHit* const hit);
 
@@ -15,31 +15,22 @@ struct STest {
   boost::shared_ptr<VmInterface> Grep;
 
   STest(const std::string& key) {
-    std::vector<std::string> kws;
+    std::vector<Pattern> kws;
     kws.push_back(key);
     init(kws);
   }
 
-  STest(const std::vector<std::string>& keys) {
-    init(keys);
-  }
+  STest(const std::vector<std::string>& keys);
 
   STest(uint32 num, const char** keys) {
-    std::vector<std::string> kws(num);
+    std::vector<Pattern> kws(num);
     for (unsigned int i = 0; i < num; ++i) {
-      kws[i] = keys[i];
+      kws[i] = Pattern(keys[i]);
     }
     init(kws);
   }
 
-  void init(const std::vector<std::string>& kws) {
-    Fsm = createGraph(kws, CP_ASCII, true, false, true, true);
-    Prog = createProgram(*Fsm);
-    Prog->First = firstBytes(*Fsm);
-    Prog->Skip = calculateSkipTable(*Fsm);
-    Grep = VmInterface::create();
-    Grep->init(Prog);
-  }
+  void init(const std::vector<Pattern>& kws);
 
   void search(const byte* begin, const byte* end, uint64 offset) {
     Grep->search(begin, end, offset, collector, this);
@@ -52,4 +43,3 @@ struct STest {
 };
 
 void collector(void* userData, const LG_SearchHit* const hit);
-

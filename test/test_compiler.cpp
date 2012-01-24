@@ -422,12 +422,12 @@ SCOPE_TEST(testSubstringKey) {
 }
 
 SCOPE_TEST(testCreateXXYYY) {
-  std::vector<std::string> kws;
-  kws.push_back("x");
-  kws.push_back("x");
-  kws.push_back("yyy");
+  std::vector<Pattern> kws;
+  kws.push_back(Pattern("x"));
+  kws.push_back(Pattern("x"));
+  kws.push_back(Pattern("yyy"));
 
-  GraphPtr gp(createGraph(kws, CP_ASCII, true, false));
+  GraphPtr gp(createGraph(kws));
   Graph& g = *gp;
 
   Graph exp;

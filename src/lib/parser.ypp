@@ -435,7 +435,7 @@ namespace {
         yylval.c = '\a';
         return CHAR;
       case 'e':
-        yylval.c = '\e';
+        yylval.c = 0x1B;
         return CHAR;
       case 'f':
         yylval.c = '\f';
