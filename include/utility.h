@@ -13,11 +13,6 @@
 
 struct SearchInfo {};
 
-enum Encodings {
-  CP_ASCII = 1,
-  CP_UCS16 = 2
-};
-
 uint32 totalCharacters(const std::vector<Pattern>& keywords);
 
 GraphPtr createGraph(const std::vector<Pattern>& keywords,

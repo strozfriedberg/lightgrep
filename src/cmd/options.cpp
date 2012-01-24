@@ -26,21 +26,6 @@ bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& 
   }
 }
 
-uint32 Options::getEncoding() const {
-  uint32 value = 0;
-  if (Encoding == "ucs16") {
-    value |= CP_UCS16;
-  }
-  else if (Encoding == "both") {
-    value |= CP_UCS16;
-    value |= CP_ASCII;
-  }
-  else if (Encoding == "ascii") {
-    value |= CP_ASCII;
-  }
-  return value;
-}
-
 std::ostream& Options::openOutput() const {
   if (Output == "-") {
     return std::cout;

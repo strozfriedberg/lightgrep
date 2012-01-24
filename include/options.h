@@ -40,8 +40,6 @@ public:
 
   mutable std::ofstream OutputFile;
 
-  uint32 getEncoding() const;
-
   std::ostream& openOutput() const;
 
   std::vector<Pattern> getKeys() const;
