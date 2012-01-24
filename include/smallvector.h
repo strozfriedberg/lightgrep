@@ -7,7 +7,62 @@
 //#include <stdexcept>
 #include <vector>
 
-template <class T, size_t N>
+template <typename T, size_t N>
+//union InternalOverflow {
+struct InternalOverflow {
+  typedef typename std::vector< std::vector<T> >::size_type size_type;
+
+  size_type create(const T* first, const T* last) {
+    Vector.assign(first, last);
+    return N + 1;
+  }
+
+  std::vector<T>& vector(size_type) {
+    return Vector;
+  }
+
+  const std::vector<T>& vector(size_type) const {
+    return Vector;
+  }
+
+  T Array[N];
+  std::vector<T> Vector;
+};
+
+template <typename T, size_t N>
+struct ExternalOverflow {
+  typedef typename std::vector< std::vector<T> >::size_type size_type;
+
+  size_type create(const T* first, const T* last) {
+    VecStore.push_back(std::vector<T>(first, last));
+    return N + VecStore.size();
+  }
+
+  std::vector<T>& vector(size_type i) {
+    return VecStore[i - N - 1];
+  }
+
+  const std::vector<T>& vector(size_type i) const {
+    return VecStore[i - N - 1];
+  }
+
+  ExternalOverflow(std::vector< std::vector<T> >& store): VecStore(store) {}
+
+  ExternalOverflow(const ExternalOverflow& other): VecStore(other.VecStore) {
+    std::copy(other.Array, other.Array + N, Array);
+  }
+
+  ExternalOverflow& operator=(const ExternalOverflow& other) {
+    std::copy(other.Array, other.Array + N, Array);
+    VecStore = other.VecStore;
+    return *this;
+  }
+
+  T Array[N];
+  std::vector< std::vector<T> >& VecStore;
+};
+
+template <typename T, size_t N, template <typename, size_t> class StorageType>
 class SmallVector
 {
 public:
@@ -33,7 +88,7 @@ public:
   // ctors & dtor
   //
 
-  SmallVector(std::vector< std::vector<T> >& store): ArrayEnd(0), VecStore(store) {}
+  SmallVector(const StorageType<T,N>& storage): ArrayEnd(0), Storage(storage) {}
 
 /*
   explicit SmallVector(size_type count, const T& value = T(), const Allocator& alloc = Allocator()): ArrayEnd(0), Alloc(alloc) {
@@ -45,14 +100,13 @@ public:
   }
 */
 
-  SmallVector(const SmallVector& other): VecStore(other.VecStore) {
+  SmallVector(const SmallVector& other): Storage(other.Storage) {
     if (other.large()) {
-      VecStore.push_back(other.vector());
-      ArrayEnd = N + VecStore.size();
+      ArrayEnd = overflow(&*(other.vector().begin()), &*(other.vector().end()));
     }
     else {
       ArrayEnd = other.ArrayEnd;
-      std::copy(other.Array, other.Array + other.ArrayEnd, Array);
+      std::copy(other.array(), other.array() + other.ArrayEnd, array());
     }
   }
 
@@ -67,15 +121,14 @@ public:
   //
 
   SmallVector& operator=(const SmallVector& other) {
-    VecStore = other.VecStore;
+    Storage = other.Storage;
 
     if (other.large()) {
-      VecStore.push_back(other.vector());
-      ArrayEnd = N + VecStore.size();
+      ArrayEnd = overflow(&*other.vector().begin(), &*other.vector().end());
     }
     else {
       ArrayEnd = other.ArrayEnd;
-      std::copy(other.Array, other.Array + other.ArrayEnd, Array);
+      std::copy(other.array(), other.array() + other.ArrayEnd, array());
     }
 
     return *this;
@@ -132,11 +185,11 @@ public:
 */
 
   reference operator[](size_type pos) {
-    return large() ? vector()[pos] : Array[pos];
+    return large() ? vector()[pos] : array()[pos];
   }
 
   const_reference operator[](size_type pos) const {
-    return large() ? vector()[pos] : Array[pos];
+    return large() ? vector()[pos] : array()[pos];
   }
 
 /*
@@ -162,19 +215,19 @@ public:
   //
 
   iterator begin() {
-    return large() ? &*vector().begin() : Array;
+    return large() ? &*vector().begin() : array();
   }
 
   const_iterator begin() const {
-    return large() ? &*vector().begin() : Array;
+    return large() ? &*vector().begin() : array();
   }
 
   iterator end() {
-    return large() ? &*vector().end() : Array + ArrayEnd;
+    return large() ? &*vector().end() : array() + ArrayEnd;
   }
 
   const_iterator end() const {
-    return large() ? &*vector().end() : Array + ArrayEnd;
+    return large() ? &*vector().end() : array() + ArrayEnd;
   }
 
 /*
@@ -242,17 +295,18 @@ public:
     }
     else {
       if (ArrayEnd < N) {
-        std::copy(Array + pos, Array + ArrayEnd, Array + pos + 1);
-        Array[pos] = value;
+        std::copy(array() + pos, array() + ArrayEnd, array() + pos + 1);
+        array()[pos] = value;
         ++ArrayEnd;
         return ++i;
       }
       else { /* ArrayEnd == N */
-        VecStore.push_back(std::vector<T>(Array, Array + pos));
-        ArrayEnd += VecStore.size();
+        T tmp[N+1];
+        std::copy(array(), array() + pos, tmp);
+        tmp[pos] = value;
+        std::copy(array() + pos, array() + ArrayEnd, tmp + pos + 1);
 
-        vector().push_back(value);
-        vector().insert(vector().end(), Array + pos, Array + N);
+        ArrayEnd = overflow(tmp, tmp + N + 1);
 
         return &*(vector().begin() + pos);
       }
@@ -274,7 +328,7 @@ public:
       return &*vector().erase(vector().begin() + pos);
     }
     else {
-      std::copy(Array + pos + 1, Array + ArrayEnd, Array + pos);
+      std::copy(array() + pos + 1, array() + ArrayEnd, array() + pos);
       --ArrayEnd;
       return i;
     }
@@ -287,12 +341,11 @@ public:
 
   void push_back(const_reference value) {
     if (ArrayEnd < N) {
-      Array[ArrayEnd++] = value;
+      array()[ArrayEnd++] = value;
     }
     else {
       if (ArrayEnd == N) {
-        VecStore.push_back(std::vector<T>(Array, Array + ArrayEnd));
-        ArrayEnd += VecStore.size();
+        ArrayEnd = overflow(array(), array() + ArrayEnd);
       }
 
       vector().push_back(value);
@@ -328,23 +381,28 @@ private:
     return ArrayEnd > N;
   }
 
+  unsigned int ArrayEnd;
+  StorageType<T,N> Storage;
+
+  unsigned int overflow(const_pointer first, const_pointer last) {
+    return Storage.create(first, last);
+  }
+
   std::vector<T>& vector() {
-    return VecStore[ArrayEnd - N - 1];
+    return Storage.vector(ArrayEnd);
   }
 
   const std::vector<T>& vector() const {
-    return VecStore[ArrayEnd - N - 1];
+    return Storage.vector(ArrayEnd);
   }
 
-  void overflow() {
-    VecStore.push_back(std::vector<T>(Array, Array + ArrayEnd));
-    ArrayEnd += VecStore.size();
+  pointer array() {
+    return Storage.Array;
   }
 
-  T Array[N];
-  unsigned int ArrayEnd;
-
-  std::vector< std::vector<T> >& VecStore;
+  const_pointer array() const {
+    return Storage.Array;
+  }
 };
 
 /*

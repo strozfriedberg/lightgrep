@@ -10,7 +10,10 @@
 
 #include <boost/bind.hpp>
 
-template <class GraphType, class VertexType, class EdgeType, class EdgeDescriptorStorageFactory>
+template <class GraphType,
+          class VertexType,
+          class EdgeType,
+          class EdgeDescriptorStorageFactory>
 class Graph : public GraphType
 {
 private:

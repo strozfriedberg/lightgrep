@@ -5,13 +5,15 @@
 
 SCOPE_TEST(smallvector1Ctor) {
   std::vector< std::vector<int> > store;
-  SmallVector<int,1> v(store);
+  ExternalOverflow<int,1> eo(store);
+  SmallVector<int,1,ExternalOverflow> v(eo);
   SCOPE_ASSERT_EQUAL(0, v.size());
 }
 
 SCOPE_TEST(smallvector1PushBack) {
   std::vector< std::vector<int> > store;
-  SmallVector<int,1> v(store);
+  ExternalOverflow<int,1> eo(store);
+  SmallVector<int,1,ExternalOverflow> v(eo);
 
   for (int32 i = 0; i < 100; ++i) {
     v.push_back(i);
@@ -22,7 +24,8 @@ SCOPE_TEST(smallvector1PushBack) {
 
 SCOPE_TEST(smallvector1Clear) {
   std::vector< std::vector<int> > store;
-  SmallVector<int,1> v(store);
+  ExternalOverflow<int,1> eo(store);
+  SmallVector<int,1,ExternalOverflow> v(eo);
 
   for (uint32 i = 0; i < 10; ++i) {
     for (uint32 j = 0; j < i; ++j) {
@@ -37,7 +40,8 @@ SCOPE_TEST(smallvector1Clear) {
 
 SCOPE_TEST(smallvector1Insert) {
   std::vector< std::vector<int> > store;
-  SmallVector<int,1> v(store);
+  ExternalOverflow<int,1> eo(store);
+  SmallVector<int,1,ExternalOverflow> v(eo);
   
   for (int32 i = 0; i < 10; ++i) {
     v.insert(v.begin(), i);
@@ -52,7 +56,8 @@ SCOPE_TEST(smallvector1Insert) {
 
 SCOPE_TEST(smallvector1Erase) {
   std::vector< std::vector<int> > store;
-  SmallVector<int,1> v(store);
+  ExternalOverflow<int,1> eo(store);
+  SmallVector<int,1,ExternalOverflow> v(eo);
   
   for (int32 i = 0; i < 10; ++i) {
     v.push_back(i);
@@ -71,3 +76,7 @@ SCOPE_TEST(smallvector1Erase) {
   }
 }
 
+SCOPE_TEST(smallvector1Size) {
+  SCOPE_ASSERT(sizeof(SmallVector<uint32,1,ExternalOverflow>) <
+               sizeof(std::vector<uint32>) + sizeof(uint32));
+}

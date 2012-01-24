@@ -19,10 +19,10 @@ struct Properties {
 
 template <class T, size_t N> class SmallVectorFactory {
 public:
-  typedef SmallVector<T,N> ListType;
+  typedef SmallVector<T,N,ExternalOverflow> ListType;
 
   ListType create() {
-    return ListType(Store);
+    return ListType(ExternalOverflow<T,N>(Store));
   }
 
 private:
