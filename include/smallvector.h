@@ -7,6 +7,7 @@
 //#include <stdexcept>
 #include <vector>
 
+#pragma pack(push, 1)
 template <typename T, size_t N>
 //union InternalOverflow {
 struct InternalOverflow {
@@ -404,6 +405,7 @@ private:
     return Storage.Array;
   }
 };
+#pragma pack(pop)
 
 /*
 template <class T, class Alloc>
