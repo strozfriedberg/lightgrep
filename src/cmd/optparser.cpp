@@ -95,7 +95,9 @@ void parse_opts(int argc, char** argv,
   }
 
   if (opts.Command == "search" || opts.Command == "graph" ||
-      opts.Command == "prog"   || opts.Command == "samp") {
+      opts.Command == "prog"   || opts.Command == "samp"  ||
+      opts.Command == "server")
+  {
     // determine the source of our patterns
     if (!optsMap["pattern"].empty()) {
       if (!optsMap["keywords"].empty()) {
@@ -185,7 +187,7 @@ void parse_opts(int argc, char** argv,
       throw po::too_many_positional_options_error();
     }
   }
-  else if (opts.Command == "help" || opts.Command == "server") {
+  else if (opts.Command == "help") {
     // nothing else to do
   }
   else {
