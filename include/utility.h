@@ -21,9 +21,6 @@ enum Encodings {
 uint32 totalCharacters(const std::vector<Pattern>& keywords);
 
 GraphPtr createGraph(const std::vector<Pattern>& keywords,
-                    uint32 enc = CP_ASCII, 
-                    bool caseSensitive = true, 
-                    bool litMode = false, 
                     bool determinize = true,
                     bool ignoreBadParse = false);
 

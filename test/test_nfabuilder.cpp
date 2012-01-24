@@ -666,7 +666,7 @@ SCOPE_TEST(parseCaseInsensitive) {
   NFABuilder nfab;
   ParseTree tree;
   Graph& fsm(*nfab.getFsm());
-  nfab.setCaseSensitive(false);
+  nfab.setCaseInsensitive(true);
   SCOPE_ASSERT(parse("ab", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 

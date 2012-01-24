@@ -41,7 +41,7 @@ std::ostream& operator<<(std::ostream& out, const Fragment& f) {
 }
 
 NFABuilder::NFABuilder():
-  CaseSensitive(true),
+  CaseInsensitive(false),
   CurLabel(0),
   ReserveSize(0)
 {
@@ -74,8 +74,8 @@ void NFABuilder::setEncoding(const boost::shared_ptr<Encoding>& e) {
   TempBuf.reset(new byte[Enc->maxByteLength()]);
 }
 
-void NFABuilder::setCaseSensitive(bool caseSensitive) {
-  CaseSensitive = caseSensitive;
+void NFABuilder::setCaseInsensitive(bool insensitive) {
+  CaseInsensitive = insensitive;
 }
 
 void NFABuilder::setSizeHint(uint64 reserveSize) {
@@ -83,7 +83,7 @@ void NFABuilder::setSizeHint(uint64 reserveSize) {
 }
 
 void NFABuilder::setLiteralTransition(Graph& g, const Graph::vertex& v, byte val) {
-  if (CaseSensitive || !std::isalpha(val)) {
+  if (!CaseInsensitive || !std::isalpha(val)) {
 // FIXME: Labeled vertices can't be shared. We don't know which will be
 // labeled (permanently) until after walking back labels. If the memory
 // we were saving this way was really important, we need to figure out

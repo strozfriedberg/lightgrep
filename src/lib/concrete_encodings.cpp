@@ -1,4 +1,5 @@
 #include "concrete_encodings.h"
+#include "encodings.h"
 
 uint32 Ascii::maxByteLength() const {
   return 1u;
@@ -24,4 +25,13 @@ uint32 UCS16::write(int ch, byte buf[]) const {
     return 2;
   }
   return 0;
+}
+
+EncodingsCodeMap getEncodingsMap() {
+  EncodingsCodeMap map;
+  const uint32 num = sizeof(LG_SUPPORTED_ENCODINGS) / sizeof(const char*);
+  for (uint32 i = 0; i < num; ++i) {
+    map.insert(std::make_pair(std::string(LG_SUPPORTED_ENCODINGS[i]), i));
+  }
+  return map;
 }

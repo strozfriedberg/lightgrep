@@ -36,7 +36,6 @@ int main() {
   LG_KeyOptions keyOpts;
   keyOpts.CaseInsensitive = 1;
   keyOpts.FixedString = 0;
-  keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
 
   char *keys[] = {"mary", "lamb", "[a-z]+"};
 
@@ -44,7 +43,7 @@ int main() {
   int isgood = 1;
   unsigned int i;
   for (i = 0; i < NUM_KEYS; ++i) {
-    if (!lg_add_keyword(parser, keys[i], i, &keyOpts)) {
+    if (!lg_add_keyword(parser, keys[i], i, &keyOpts, LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII])) {
       fprintf(stderr, "Parser error on keyword %d, %s: %s", i, keys[i], lg_error(parser));
       isgood = 0;
       break;
