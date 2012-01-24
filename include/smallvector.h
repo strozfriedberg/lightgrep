@@ -234,7 +234,7 @@ public:
     }
   }
 
-  iterator insert(iterator i, const T& value) {
+  iterator insert(iterator i, const_reference value) {
     const difference_type pos = i - begin();
 
     if (large()) {
@@ -285,7 +285,7 @@ public:
   }
 */
 
-  void push_back(const T& value) {
+  void push_back(const_reference value) {
     if (ArrayEnd < N) {
       Array[ArrayEnd++] = value;
     }
