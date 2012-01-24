@@ -341,6 +341,7 @@ void processConn(
             boost::asio::write(*sock, boost::asio::buffer(&bytes, sizeof(bytes)));
             boost::asio::write(*sock, boost::asio::buffer(stats));
             SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
+            continue;
           }
         }
         SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");
