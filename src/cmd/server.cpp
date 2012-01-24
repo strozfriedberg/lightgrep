@@ -139,6 +139,16 @@ public:
       File->close();
       File.reset();
     }
+    std::string stats;
+    getStats(stats);
+    {
+      boost::mutex::scoped_lock lock(*Mutex);
+      std::ofstream statsFile("lightgrep_hit_stats.txt", std::ios::out);
+      if (statsFile) {
+        statsFile << stats;
+        statsFile.close();
+      }
+    }
   }
 
   static Registry& get() {
