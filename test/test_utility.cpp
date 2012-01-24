@@ -135,7 +135,11 @@ SCOPE_TEST(twoFixedStrings) {
 }
 
 SCOPE_TEST(twoUnicode) {
-  GraphPtr fsm = createGraph(makePatterns(2u, (const char*[]){"aa", "ab"}), CP_UCS16);
+  std::vector<Pattern> pats(makePatterns(2u, (const char*[]){"aa", "ab"}));
+  for (std::vector<Pattern>::iterator it(pats.begin()); it != pats.end(); ++it) {
+    it->Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+  }
+  GraphPtr fsm = createGraph(pats);
   Graph& g = *fsm;
   
   SCOPE_ASSERT_EQUAL(7u, g.numVertices());

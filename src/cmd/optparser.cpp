@@ -2,6 +2,7 @@
 
 #include "basic.h"
 #include "optparser.h"
+#include "encodings.h"
 
 #include <vector>
 #include <set>
@@ -125,6 +126,17 @@ void parse_opts(int argc, char** argv,
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;
+    if (0 == opts.Encoding.compare("ascii")) {
+      opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
+    }
+    else if (0 == opts.Encoding.compare("ucs16")) {
+      opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+    }
+    else if (0 == opts.Encoding.compare("both")) {
+      std::stringstream buf;
+      buf << LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII] << "," << LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+      opts.Encoding = buf.str();
+    }
 
     if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
       throw po::error("--with-filename and --no-filename are incompatible options");

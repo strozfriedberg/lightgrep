@@ -63,7 +63,7 @@ public:
   virtual void callback(const ParseNode& n);
 
   void setEncoding(const boost::shared_ptr<Encoding>& e);
-  void setCaseSensitive(bool caseSensitive); // defaults to true
+  void setCaseInsensitive(bool insensitive); // defaults to true
   void setSizeHint(uint64 reserveSize);
 
   void alternate(const ParseNode& n);
@@ -100,7 +100,7 @@ private:
 
   void traverse(const ParseNode* root);
 
-  bool IsGood, CaseSensitive;
+  bool IsGood, CaseInsensitive;
   uint32 CurLabel;
   uint64 ReserveSize;
   boost::shared_ptr<Encoding> Enc;

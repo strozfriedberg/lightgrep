@@ -8,7 +8,7 @@
 #include "options.h"
 #include "utility.h"
 
-bool readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) {
+bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const {
   std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
   keys.clear();
   if (keyFile) {
@@ -16,10 +16,7 @@ bool readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) {
       char line[8192];
       keyFile.getline(line, 8192);
       std::string lineS(line);
-      if (!lineS.empty()) {
-        keys.push_back(Pattern(lineS));
-        // std::cerr << "read " << lineS << std::endl;
-      }
+      parseLine(lineS, keys);
     }
     return !keys.empty();
   }
@@ -94,21 +91,22 @@ bool Options::parseLine(const std::string& line, std::vector<Pattern>& keys) con
     }
     if (num > 0) {
       tokenizer::const_iterator curTok(tokens.begin());
-      Pattern p(*curTok++, LiteralMode, CaseInsensitive, Encoding);
+      Pattern p(*curTok++, LiteralMode, CaseInsensitive, "");
+      std::string encodings(Encoding); // comma-separated
+
       if (4 == num) {
         setBool(*curTok++, p.FixedString);
         setBool(*curTok++, p.CaseInsensitive);
-        const tokenizer encodings(*curTok, boost::char_separator<char>(","));
-        if (curTok != encodings.end()) {
-          for (tokenizer::const_iterator enc(encodings.begin()); enc != encodings.end(); ++enc) {
-            p.Encoding = *enc;
-            keys.push_back(p);
-          }
-          return true;
-        }
+        encodings = *curTok;
       }
-      keys.push_back(p);
-      return true;
+      const tokenizer encList(encodings, boost::char_separator<char>(","));
+      if (encList.begin() != encList.end()) {
+        for (tokenizer::const_iterator enc(encList.begin()); enc != encList.end(); ++enc) {
+          p.Encoding = *enc;
+          keys.push_back(p);
+        }
+        return true;
+      }
     }
   }
   return false;

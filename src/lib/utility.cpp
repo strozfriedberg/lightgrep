@@ -15,13 +15,10 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
-void addKeys(const std::vector<Pattern>& keywords, const LG_KeyOptions& keyOpts, bool ignoreBad, Parser& p, uint32& keyIdx) {
-
+void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, Parser& p, uint32& keyIdx) {
   for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
-    const std::string& kw(keywords[i].Expression);
-
     try {
-      p.addPattern(kw, keyIdx, keyOpts);
+      p.addPattern(keywords[i], keyIdx);
     }
     catch (std::runtime_error& err) {
       if (!ignoreBad) {
@@ -39,31 +36,27 @@ uint32 totalCharacters(const std::vector<Pattern>& keywords) {
   return ret;
 }
 
-void addKeys(PatternInfo& keyInfo, const LG_KeyOptions& keyOpts, uint32 encIdx, bool ignoreBad, Parser& p, uint32& keyIdx) {
-  addKeys(keyInfo.Patterns, keyOpts, ignoreBad, p, keyIdx);
+void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
+  addKeys(keyInfo.Patterns, ignoreBad, p, keyIdx);
+  EncodingsCodeMap encMap = getEncodingsMap();
 
   for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
+    uint32 encIdx = 0;
+    EncodingsCodeMap::const_iterator it(encMap.find(keyInfo.Patterns[i].Encoding));
+    if (it != encMap.end()) {
+      encIdx = it->second;
+    }
     keyInfo.Table.push_back(std::make_pair(i, encIdx));
   }
 }
 
-GraphPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
+GraphPtr createGraph(PatternInfo& keyInfo, bool determinize, bool ignoreBadParse) {
   Parser p(totalCharacters(keyInfo.Patterns));
   uint32 keyIdx = 0;
-  LG_KeyOptions keyOpts;
-  keyOpts.CaseInsensitive = !caseSensitive;
-  keyOpts.FixedString = litMode;
-  if (enc & CP_ASCII) {
-    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
-    addKeys(keyInfo, keyOpts, LG_ENC_ASCII, ignoreBadParse, p, keyIdx);
-  }
 
-  if (enc & CP_UCS16) {
-    keyOpts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
-    addKeys(keyInfo, keyOpts, LG_ENC_UTF_16, ignoreBadParse, p, keyIdx);
-  }
-
+  addKeys(keyInfo, ignoreBadParse, p, keyIdx);
   if (p.Fsm) {
+
     if (determinize) {
       GraphPtr dfa(new Graph(1));
       p.Comp.subsetDFA(*dfa, *p.Fsm);
@@ -74,10 +67,10 @@ GraphPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool 
   return p.Fsm;
 }
 
-GraphPtr createGraph(const std::vector<Pattern>& keywords, uint32 enc, bool caseSensitive, bool litMode, bool determinize, bool ignoreBadParse) {
+GraphPtr createGraph(const std::vector<Pattern>& keywords, bool determinize, bool ignoreBadParse) {
   PatternInfo keyInfo;
   keyInfo.Patterns = keywords;
-  return createGraph(keyInfo, enc, caseSensitive, litMode, determinize, ignoreBadParse);
+  return createGraph(keyInfo, determinize, ignoreBadParse);
 }
 
 uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, Graph::vertex v, const Graph& graph) {

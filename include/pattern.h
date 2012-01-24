@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basic.h"
+#include "encodings.h"
 
 class Pattern {
 public:
@@ -9,7 +10,10 @@ public:
               CaseInsensitive;
   std::string Encoding;
 
-  Pattern(const std::string& expr = "", bool fixed = false, bool insensitive = false, const std::string& enc = ""):
+  Pattern(const std::string& expr = "",
+          bool fixed = false,
+          bool insensitive = false,
+          const std::string& enc = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII]):
     Expression(expr), FixedString(fixed), CaseInsensitive(insensitive), Encoding(enc) {}
 
   bool operator==(const Pattern& p) const {

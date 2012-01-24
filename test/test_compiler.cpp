@@ -427,7 +427,7 @@ SCOPE_TEST(testCreateXXYYY) {
   kws.push_back(Pattern("x"));
   kws.push_back(Pattern("yyy"));
 
-  GraphPtr gp(createGraph(kws, CP_ASCII, true, false));
+  GraphPtr gp(createGraph(kws));
   Graph& g = *gp;
 
   Graph exp;

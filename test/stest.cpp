@@ -20,7 +20,7 @@ STest::STest(const std::vector<std::string>& keys) {
 }
 
 void STest::init(const std::vector<Pattern>& kws) {
-  Fsm = createGraph(kws, CP_ASCII, true, false, true, true);
+  Fsm = createGraph(kws, true, true);
   if (Fsm) {
     Prog = createProgram(*Fsm);
     Prog->First = firstBytes(*Fsm);
