@@ -98,7 +98,7 @@ boost::shared_ptr<ParserHandle> parsePatterns(const Options& opts,
 
   // set up parsing options
   LG_KeyOptions keyOpts;
-  keyOpts.CaseInsensitive = !opts.CaseSensitive;
+  keyOpts.CaseInsensitive = opts.CaseInsensitive;
   keyOpts.FixedString = opts.LiteralMode;
 
   // parse patterns

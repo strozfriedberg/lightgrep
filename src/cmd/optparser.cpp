@@ -120,7 +120,7 @@ void parse_opts(int argc, char** argv,
       }
     }
 
-    opts.CaseSensitive = optsMap.count("ignore-case") == 0;
+    opts.CaseInsensitive = optsMap.count("ignore-case") > 0;
     opts.LiteralMode = optsMap.count("fixed-strings") > 0;
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Determinize = optsMap.count("no-det") == 0;

@@ -31,7 +31,7 @@ public:
 
   unsigned int BlockSize;
 
-  bool CaseSensitive,
+  bool CaseInsensitive,
        LiteralMode,
        NoOutput,
        Determinize,
@@ -45,4 +45,6 @@ public:
   std::ostream& openOutput() const;
 
   std::vector<Pattern> getKeys() const;
+
+  bool parseLine(const std::string& line, std::vector<Pattern>& keys) const;
 };
