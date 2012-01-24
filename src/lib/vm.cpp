@@ -434,7 +434,7 @@ inline bool Vm::_executeEpSequence(const Instruction* const base, ThreadList::it
 */
   } while (ex);
   #else
-  while (_executeEpsilon(base, t, offset));
+  while (_executeEpsilon(base, t, offset)) ;
   #endif
 
   return t->PC;
