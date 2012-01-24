@@ -33,5 +33,7 @@ EncodingsCodeMap getEncodingsMap() {
   for (uint32 i = 0; i < num; ++i) {
     map.insert(std::make_pair(std::string(LG_SUPPORTED_ENCODINGS[i]), i));
   }
+  map.insert(std::make_pair("ANSI_X3.4-1968", LG_ENC_ASCII));
+  map.insert(std::make_pair("ASCII", LG_ENC_ASCII));
   return map;
 }
