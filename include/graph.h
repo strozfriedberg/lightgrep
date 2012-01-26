@@ -1,10 +1,8 @@
 #pragma once
 
 #include "basic.h"
-#include "smallvector.h"
 
 #include <algorithm>
-#include <iostream>
 #include <limits>
 #include <vector>
 
@@ -13,7 +11,7 @@
 template <class GraphType,
           class VertexType,
           class EdgeType,
-          class EdgeDescriptorStorageFactory>
+          template <typename> class EdgeDescriptorStorage>
 class Graph : public GraphType
 {
 private:
@@ -34,15 +32,15 @@ public:
   typedef EdgeType Edge;
 
 private:
-  typedef typename EdgeDescriptorStorageFactory::ListType EDList;
-
+#pragma pack(push, 1)
   struct VertexData : public VertexType {
-    VertexData(EdgeDescriptorStorageFactory& fac): VertexType(), In(fac.create()), Out(fac.create()) {}
+    VertexData(): VertexType() {}
 
-    VertexData(const VertexType& v, EdgeDescriptorStorageFactory& fac): VertexType(v), In(fac.create()), Out(fac.create()) {}
+    VertexData(const VertexType& v): VertexType(v) {}
 
-    EDList In, Out;
+    typename EdgeDescriptorStorage<EdgeDescriptor>::ListType In, Out;
   };
+#pragma pack(pop)
 
   struct EdgeData : public EdgeType {
     EdgeData(VertexDescriptor head, VertexDescriptor tail, const EdgeType& e): EdgeType(e), Head(head), Tail(tail) {}
@@ -51,15 +49,14 @@ private:
   };
 
 public:
-
-  Graph(VertexSizeType vActual = 0): Vertices(vActual, VertexData(EDSFactory)) {}
+  Graph(VertexSizeType vActual = 0): Vertices(vActual, VertexData()) {}
 
   Graph(VertexSizeType vActual, VertexSizeType vReserve, EdgeSizeType eReserve = 0) {
     if (vReserve > vActual) {
       Vertices.reserve(vReserve);
     }
 
-    Vertices.resize(vActual, VertexData(EDSFactory));
+    Vertices.resize(vActual, VertexData());
 
     if (eReserve > 0) {
       Edges.reserve(eReserve);
@@ -71,27 +68,27 @@ public:
   //
 
   VertexDescriptor inVertex(VertexDescriptor tail, EdgeSizeType i) const {
-    return Edges[Vertices[tail].In[i]].Head;
+    return Edges[Store.at(Vertices[tail].In, i)].Head;
   }
 
   VertexDescriptor outVertex(VertexDescriptor head, EdgeSizeType i) const {
-    return Edges[Vertices[head].Out[i]].Tail;
+    return Edges[Store.at(Vertices[head].Out, i)].Tail;
   }
 
   EdgeDescriptor inEdge(VertexDescriptor tail, EdgeSizeType i) const {
-    return Vertices[tail].In[i];
+    return Store.at(Vertices[tail].In, i);
   }
 
   EdgeDescriptor outEdge(VertexDescriptor head, EdgeSizeType i) const {
-    return Vertices[head].Out[i];
+    return Store.at(Vertices[head].Out, i);
   }
 
   EdgeSizeType inDegree(VertexDescriptor tail) const {
-    return Vertices[tail].In.size();
+    return Store.size(Vertices[tail].In);
   }
 
   EdgeSizeType outDegree(VertexDescriptor head) const {
-    return Vertices[head].Out.size();
+    return Store.size(Vertices[head].Out);
   }
 
   VertexType& operator[](VertexDescriptor vd) {
@@ -123,8 +120,8 @@ public:
 
     const typename VList::iterator iend(Vertices.end());
     for (typename VList::iterator i(Vertices.begin()); i != iend; ++i) {
-      i->In.clear();
-      i->Out.clear();
+      Store.clear(i->In);
+      Store.clear(i->Out);
     }
   }
 
@@ -134,41 +131,38 @@ public:
   }
 
   VertexDescriptor addVertex(const VertexType& v = VertexType()) {
-    Vertices.push_back(VertexData(v, EDSFactory));
+    Vertices.push_back(VertexData(v));
     return Vertices.size() - 1;
   }
 
   void removeVertex(VertexDescriptor vd) {
     const VertexData& v(Vertices[vd]);
-    std::for_each(v.In.begin(), v.In.end(), boost::bind(&Graph::removeEdge, this, _1));
-    std::for_each(v.Out.begin(), v.Out.end(), boost::bind(&Graph::removeEdge, this, _1));
+    std::for_each(Store.begin(v.In), Store.end(v.In), boost::bind(&Graph::removeEdge, this, _1));
+    std::for_each(Store.begin(v.Out), Store.end(v.Out), boost::bind(&Graph::removeEdge, this, _1));
 
-    compact_vertex(vd);
+    compact_after_vertex(vd);
   }
 
   EdgeDescriptor addEdge(VertexDescriptor head, VertexDescriptor tail, const EdgeType& e = EdgeType()) {
     Edges.push_back(EdgeData(head, tail, e));
     const EdgeDescriptor ed = Edges.size() - 1;
-    Vertices[head].Out.push_back(ed);
-    Vertices[tail].In.push_back(ed);
+    Store.add(Vertices[head].Out, ed);
+    Store.add(Vertices[tail].In, ed);
     return ed;
   }
 
   EdgeDescriptor insertEdge(VertexDescriptor head, VertexDescriptor tail, EdgeSizeType hi = std::numeric_limits<EdgeSizeType>::max(), EdgeSizeType ti = std::numeric_limits<EdgeSizeType>::max(), const EdgeType& e = EdgeType()) {
     Edges.push_back(EdgeData(head, tail, e));
     const EdgeDescriptor ed = Edges.size() - 1;
-
-    attach_edge(Vertices[head].Out, hi, ed);
-    attach_edge(Vertices[tail].In, ti, ed);
-
+    Store.insert(Vertices[head].Out, hi, ed);
+    Store.insert(Vertices[tail].In, ti, ed);
     return ed;
   }
 
   void removeEdge(EdgeDescriptor ed) {
-    detach_edge(Vertices[Edges[ed].Head].Out, ed);
-    detach_edge(Vertices[Edges[ed].Tail].In, ed);
-
-    compact_edge(ed);
+    Store.remove(Vertices[Edges[ed].Head].Out, ed);
+    Store.remove(Vertices[Edges[ed].Tail].In, ed);
+    compact_after_edge(ed);
   }
 
   //
@@ -200,27 +194,17 @@ public:
   }
 
 private:
-  void attach_edge(EDList& elist, EdgeSizeType epos, EdgeDescriptor ed) {
-    elist.insert(epos < elist.size() ? elist.begin() + epos : elist.end(), ed);
-  }
-
-  void detach_edge(EDList& elist, EdgeDescriptor ed) {
-    elist.erase(std::find(elist.begin(), elist.end(), ed));
-  }
-
-  void compact_edge(EdgeDescriptor ed) {
+  void compact_after_edge(EdgeDescriptor ed) {
     typename EList::iterator i(Edges.erase(Edges.begin() + ed));
     const typename EList::iterator iend(Edges.end());
     for ( ; i != iend; ++i) {
-      EDList& out(Vertices[i->Head].Out);
-      --*std::find(out.begin(), out.end(), i - Edges.begin() + 1);
-
-      EDList& in(Vertices[i->Tail].In);
-      --*std::find(in.begin(), in.end(), i - Edges.begin() + 1);
+      const EdgeDescriptor e = i - Edges.begin() + 1;
+      --*Store.find(Vertices[i->Head].Out, e);
+      --*Store.find(Vertices[i->Tail].In, e);
     }
   }
 
-  void compact_vertex(VertexDescriptor vd) {
+  void compact_after_vertex(VertexDescriptor vd) {
     Vertices.erase(Vertices.begin() + vd);
 
     const typename EList::iterator iend(Edges.end());
@@ -238,10 +222,10 @@ private:
   VList Vertices;
   EList Edges;
 
-  EdgeDescriptorStorageFactory EDSFactory;
+  EdgeDescriptorStorage<EdgeDescriptor> Store;
 };
 
-template <class G, class V, class E, class S> std::ostream& operator<<(std::ostream& out, const Graph<G,V,E,S>& g) {
+template <class G, class V, class E, template <typename> class S> std::ostream& operator<<(std::ostream& out, const Graph<G,V,E,S>& g) {
   const typename Graph<G,V,E,S>::VertexSizeType vnum = g.verticesSize();
 
   // print graph size

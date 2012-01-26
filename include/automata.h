@@ -2,6 +2,7 @@
 
 #include "graph.h"
 #include "transition.h"
+#include "vectorfamily.h"
 
 #include <boost/shared_ptr.hpp>
 
@@ -17,19 +18,6 @@ struct Properties {
   Properties(): Deterministic(true) {}
 };
 
-template <class T, size_t N> class SmallVectorFactory {
-public:
-  typedef SmallVector<T,N,ExternalOverflow> ListType;
-
-  ListType create() {
-    return ListType(ExternalOverflow<T,N>(Store));
-  }
-
-private:
-  std::vector< std::vector<T> > Store;
-};
-
-// FIXME: would like to replace uint32 by Graph::EdgeDescriptor, but how?
-typedef Graph< Properties,Glushkov,Empty,SmallVectorFactory<uint32,1> > NFA;
+typedef Graph<Properties,Glushkov,Empty,VectorFamily> NFA;
 typedef boost::shared_ptr<NFA> NFAPtr;
 
