@@ -9,6 +9,14 @@
 struct Empty {};
 
 struct Glushkov {
+  Glushkov(): Trans(0) {}
+
+  Glushkov(const Glushkov& g): Trans(g.Trans ? g.Trans->clone() : 0) {}
+
+  virtual ~Glushkov() {
+    delete Trans;
+  }
+
   Transition* Trans;
 };
 
