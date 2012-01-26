@@ -46,7 +46,7 @@ void ASSERT_EQUAL_LABELS(const NFA& a, const NFA& b) {
   for (uint32 v = 0; v < a.verticesSize(); ++v) {
     SCOPE_ASSERT((!a[v].Trans && !b[v].Trans) || (a[v].Trans && b[v].Trans));
     if (a[v].Trans && b[v].Trans) {
-      SCOPE_ASSERT_EQUAL(a[v].Trans->Label, b[v].Trans->Label);
+      SCOPE_ASSERT_EQUAL(a[v].Label, b[v].Label);
     }
   }
 }
@@ -56,7 +56,7 @@ void ASSERT_EQUAL_MATCHES(const NFA& a, const NFA& b) {
   for (uint32 v = 0; v < a.verticesSize(); ++v) {
     SCOPE_ASSERT((!a[v].Trans && !b[v].Trans) || (a[v].Trans && b[v].Trans));
     if (a[v].Trans && b[v].Trans) {
-      SCOPE_ASSERT_EQUAL(a[v].Trans->IsMatch, b[v].Trans->IsMatch);
+      SCOPE_ASSERT_EQUAL(a[v].IsMatch, b[v].IsMatch);
     }
   }
 }

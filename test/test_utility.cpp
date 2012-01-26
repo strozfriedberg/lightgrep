@@ -103,8 +103,8 @@ SCOPE_TEST(keywordLabelsProgram) {
   edge(0, 2, fsm, new LitState('b'));
   edge(2, 3, fsm, new LitState('c'));
 
-  fsm[1].Trans->Label = 0;
-  fsm[3].Trans->Label = 1;
+  fsm[1].Label = 0;
+  fsm[3].Label = 1;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -165,12 +165,12 @@ SCOPE_TEST(twoUnicode) {
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(6));
 
   SCOPE_ASSERT(!g[0].Trans);
-  SCOPE_ASSERT(!g[1].Trans->IsMatch);
-  SCOPE_ASSERT(!g[2].Trans->IsMatch);
-  SCOPE_ASSERT(!g[3].Trans->IsMatch);
-  SCOPE_ASSERT(!g[4].Trans->IsMatch);
-  SCOPE_ASSERT(g[5].Trans->IsMatch);
-  SCOPE_ASSERT(g[6].Trans->IsMatch);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(!g[3].IsMatch);
+  SCOPE_ASSERT(!g[4].IsMatch);
+  SCOPE_ASSERT(g[5].IsMatch);
+  SCOPE_ASSERT(g[6].IsMatch);
 
   ByteSet abs, ebs;
 
@@ -297,8 +297,8 @@ SCOPE_TEST(layoutWithCheckHalt) {
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 2, fsm, new LitState('b'));
 
-  fsm[2].Trans->Label = 0;
-  fsm[2].Trans->IsMatch = true;
+  fsm[2].Label = 0;
+  fsm[2].IsMatch = true;
 
   boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
@@ -346,8 +346,8 @@ SCOPE_TEST(alternationBetterLayout) {
   edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('b'));
 
-  fsm[1].Trans->Label = 0;
-  fsm[2].Trans->Label = 0;
+  fsm[1].Label = 0;
+  fsm[2].Label = 0;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -412,8 +412,8 @@ SCOPE_TEST(generateCheckHalt) {
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 1, fsm, new LitState('a'));
 
-  fsm[1].Trans->Label = 0;
-  fsm[1].Trans->IsMatch = true;
+  fsm[1].Label = 0;
+  fsm[1].IsMatch = true;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -450,11 +450,18 @@ SCOPE_TEST(testInitVM) {
 
 SCOPE_TEST(testPivotTransitions) {
   NFA fsm(5);
-  edge(0, 1, fsm, new LitState('a', 0));
-  edge(0, 2, fsm, new LitState('a', 1));
+  edge(0, 1, fsm, new LitState('a'));
+  edge(0, 2, fsm, new LitState('a'));
   edge(0, 3, fsm, new LitState('z'));
   edge(0, 4, fsm, new LitState('z'));
-  std::vector< std::vector< NFA::VertexDescriptor > > tbl = pivotStates(0, fsm);
+
+  fsm[1].IsMatch = true;
+  fsm[1].Label = 0;
+
+  fsm[2].IsMatch = true;
+  fsm[2].Label = 1;
+
+  std::vector< std::vector<NFA::VertexDescriptor> > tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(256u, tbl.size());
   for (uint32 i = 0; i < 256; ++i) {
     if (i == 'a') {
@@ -482,8 +489,8 @@ SCOPE_TEST(testBitVectorGeneration) {
   bits.set('8');
   NFA fsm(2);
   edge(0, 1, fsm, new CharClassState(bits));
-  fsm[1].Trans->Label = 0;
-  fsm[1].Trans->IsMatch = true;
+  fsm[1].Label = 0;
+  fsm[1].IsMatch = true;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -520,8 +527,8 @@ SCOPE_TEST(generateJumpTableRange) {
   edge(4, 6, fsm, f);
   edge(5, 6, fsm, f);
 
-  fsm[1].Trans->Label = 0;
-  fsm[6].Trans->IsMatch = true;
+  fsm[1].Label = 0;
+  fsm[6].IsMatch = true;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -569,10 +576,10 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
   edge(6, 7, fsm, new LitState('g'));
   edge(6, 8, fsm, new LitState('h'));
 
-  fsm[7].Trans->Label = 0;
-  fsm[8].Trans->Label = 1;
-  fsm[7].Trans->IsMatch = true;
-  fsm[8].Trans->IsMatch = true;
+  fsm[7].Label = 0;
+  fsm[8].Label = 1;
+  fsm[7].IsMatch = true;
+  fsm[8].IsMatch = true;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -612,8 +619,8 @@ SCOPE_TEST(testFirstChildNext) {
   edge(1, 3, g, zero);
   edge(2, 3, g, zero);
 
-  g[1].Trans->Label = 0;
-  g[3].Trans->IsMatch = true;
+  g[1].Label = 0;
+  g[3].IsMatch = true;
 
   ProgramPtr p = createProgram(g);
   Program& prog(*p);
@@ -641,8 +648,8 @@ SCOPE_TEST(testFirstChildPrev) {
   edge(2, 3, g, zero);
   edge(1, 3, g, zero);
 
-  g[1].Trans->Label = 0;
-  g[3].Trans->IsMatch = true;
+  g[1].Label = 0;
+  g[3].IsMatch = true;
 
   ProgramPtr p = createProgram(g);
   Program& prog(*p);

@@ -37,18 +37,9 @@ LitState* LitState::clone(void* buffer) const {
   return buffer == 0 ? new LitState(*this): new(buffer) LitState(*this);
 }
 
-std::string printLabel(const Transition& t) {
-  std::stringstream buf;
-  if (t.Label != 0xffffffff) {
-    buf << "/" << t.Label;
-  }
-  return buf.str();
-}
-
 std::string LitState::label() const {
   std::stringstream buf;
   printByte(buf, Lit);
-  buf << printLabel(*this);
   return buf.str();
 }
 
@@ -65,7 +56,6 @@ std::string EitherState::label() const {
   std::stringstream buf;
   printByte(buf, Lit1);
   printByte(buf, Lit2);
-  buf << printLabel(*this);
   return buf.str();
 }
 
@@ -81,7 +71,6 @@ RangeState* RangeState::clone(void* buffer) const {
 std::string RangeState::label() const {
   std::stringstream buf;
   printRange(buf, First, Last);
-  buf << printLabel(*this);
   return buf.str();
 }
 
@@ -120,5 +109,5 @@ std::string CharClassState::label() const {
     printRange(ss, beg, end);
   }
 
-  return ss.str() + printLabel(*this);
+  return ss.str();
 }
