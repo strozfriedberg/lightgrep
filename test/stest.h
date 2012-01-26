@@ -7,9 +7,8 @@
 
 void collector(void* userData, const LG_SearchHit* const hit);
 
-//struct STest: public HitCallback {
 struct STest {
-  std::vector< SearchHit > Hits;
+  std::vector<SearchHit> Hits;
   NFAPtr Fsm;
   ProgramPtr Prog;
   boost::shared_ptr<VmInterface> Grep;
