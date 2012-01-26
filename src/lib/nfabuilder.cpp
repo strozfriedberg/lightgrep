@@ -1,7 +1,8 @@
 #include "nfabuilder.h"
 
-#include "states.h"
 #include "concrete_encodings.h"
+#include "states.h"
+#include "transitionfactory.h"
 #include "utility.h"
 
 #include <iostream>
@@ -43,17 +44,15 @@ std::ostream& operator<<(std::ostream& out, const Fragment& f) {
 NFABuilder::NFABuilder():
   CaseSensitive(true),
   CurLabel(0),
-  ReserveSize(0)
+  ReserveSize(0),
+  Fsm(new NFA(1)),
+  TransFac(new TransitionFactory())
 {
-  for (unsigned int i = 0; i < 256; ++i) {
-    LitFlyweights.push_back(TransitionPtr(new LitState(i)));
-  }
   setEncoding(boost::shared_ptr<Encoding>(new Ascii));
-  reset();
+  init();
 }
 
 void NFABuilder::reset() {
-  IsGood = false;
   if (Fsm) {
     Fsm->clear();
     Fsm->addVertex();
@@ -62,11 +61,19 @@ void NFABuilder::reset() {
     Fsm.reset(new NFA(1));
 //    Fsm.reset(new NFA(1, ReserveSize));
   }
+
   while (!Stack.empty()) {
     Stack.pop();
   }
+
+  init();
+}
+
+void NFABuilder::init() {
+  IsGood = false;
   TempFrag.initFull(0, ParseNode());
   Stack.push(TempFrag);
+  Fsm->TransFac = TransFac;
 }
 
 void NFABuilder::setEncoding(const boost::shared_ptr<Encoding>& e) {
@@ -89,10 +96,12 @@ void NFABuilder::setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, by
 // we were saving this way was really important, we need to figure out
 // something else to do here.
 //    state = LitFlyweights[val];
-    g[v].Trans = new LitState(val);
+    LitState s(val);
+    g[v].Trans = g.TransFac->get(&s);
   }
   else {
-    g[v].Trans = new EitherState(std::toupper(val), std::tolower(val));
+    EitherState s(std::toupper(val), std::tolower(val));
+    g[v].Trans = g.TransFac->get(&s);
     g.Deterministic = false;
   }
 }
@@ -164,7 +173,8 @@ void NFABuilder::literal(const ParseNode& n) {
 
 void NFABuilder::dot(const ParseNode& n) {
   NFA::VertexDescriptor v = Fsm->addVertex();
-  (*Fsm)[v].Trans = new RangeState(0, 255);
+  RangeState s(0, 255);
+  (*Fsm)[v].Trans = Fsm->TransFac->get(&s);
   Fsm->Deterministic = false;
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
@@ -190,10 +200,12 @@ void NFABuilder::charClass(const ParseNode& n) {
   }
 
   if (num == n.Bits.count()) {
-    (*Fsm)[v].Trans = new RangeState(first, last);
+    RangeState s(first, last);
+    (*Fsm)[v].Trans = Fsm->TransFac->get(&s);
   }
   else {
-    (*Fsm)[v].Trans = new CharClassState(n.Bits);
+    CharClassState s(n.Bits);
+    (*Fsm)[v].Trans = Fsm->TransFac->get(&s);
   }
 
   Fsm->Deterministic = false;

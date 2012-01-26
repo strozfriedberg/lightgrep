@@ -140,6 +140,7 @@ void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
 
   if (determinize && !g->Deterministic) {
     NFAPtr dfa(new NFA(1));
+    dfa->TransFac = g->TransFac;
     comp.subsetDFA(*dfa, *g);
     g = dfa;
   }

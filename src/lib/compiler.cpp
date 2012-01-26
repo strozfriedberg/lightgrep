@@ -510,7 +510,8 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
           // new sublist dst vertex
           dstList2Dst[p] = dstTail = dst.addVertex();
           dstStack.push(std::make_pair(bs, dstList));
-          dst[dstTail].Trans = new CharClassState(bs);
+          CharClassState s(bs);
+          dst[dstTail].Trans = dst.TransFac->get(&s);
         }
         else {
           // old sublist vertex
@@ -530,13 +531,11 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
   // collapse CharClassStates where possible
   // isn't necessary, but improves the GraphViz output
   for (uint32 i = 1; i < dst.verticesSize(); ++i) {
-    const Transition* t = dst[i].Trans;
-
     int32 first = -1;
     int32 last = -1;
 
     outBytes.reset();
-    t->getBits(outBytes);
+    dst[i].Trans->getBits(outBytes);
 
     for (int32 b = 0; b < 256; ++b) {
       if (outBytes[b]) {
@@ -557,16 +556,14 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     if (first != -1) {
-      Transition* r;
       if (first == last) {
-        r = new LitState(first);
+        LitState s(first);
+        dst[i].Trans = dst.TransFac->get(&s);
       }
       else {
-        r = new RangeState(first, last);
+        RangeState s(first, last);
+        dst[i].Trans = dst.TransFac->get(&s);
       }
-
-      dst[i].Trans = r;
-      delete t;
     }
   }
 }
