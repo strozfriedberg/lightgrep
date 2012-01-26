@@ -9,6 +9,7 @@ Parser::EncodingMap createEncodingMap() {
   Parser::EncodingMap map;
   map[LG_ENC_ASCII].reset(new Ascii);
   map[LG_ENC_UTF_16].reset(new UCS16);
+  map[LG_ENC_UTF_8].reset(new Ascii);
   return map;
 }
 
