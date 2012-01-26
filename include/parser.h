@@ -10,12 +10,14 @@ bool parse(const std::string& text, bool litMode, ParseTree& tree);
 
 class Parser {
 public:
-  Parser(uint32 sizeHint): Fsm(new NFA(1, sizeHint)) {}
+  Parser(uint32 sizeHint): Fsm(new NFA(1, sizeHint)) {
+    Fsm->TransFac = Nfab.getTransFac();
+  }
 
-  ParseTree   Tree;
-  NFABuilder  Nfab;
-  Compiler    Comp;
-  NFAPtr    Fsm;
+  ParseTree  Tree;
+  NFABuilder Nfab;
+  Compiler   Comp;
+  NFAPtr     Fsm;
 
   void addPattern(const std::string& pattern, uint32 patIndex, const LG_KeyOptions& keyOpts);
 };

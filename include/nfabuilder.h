@@ -5,9 +5,13 @@
 #include "encoding.h"
 #include "parsenode.h"
 #include "parsetree.h"
+#include "transitionfactory.h"
 
 #include <limits>
 #include <stack>
+
+#include <boost/scoped_array.hpp>
+#include <boost/shared_ptr.hpp>
 
 typedef std::vector<NFA::VertexDescriptor> InListT;
 typedef std::vector< std::pair<NFA::VertexDescriptor, uint32> > OutListT;
@@ -91,7 +95,11 @@ public:
 
   bool build(const ParseTree& tree);
 
+  boost::shared_ptr<TransitionFactory> getTransFac() { return TransFac; }
+
 private:
+  void init();
+
   void setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, byte val);
 
   void patch_mid(OutListT& src, const InListT& dst, uint32 dstskip);
@@ -109,7 +117,7 @@ private:
   std::stack<const ParseNode*, std::vector<const ParseNode*> > ChildStack, ParentStack;
 
   boost::scoped_array<byte> TempBuf;
-  std::vector<TransitionPtr> LitFlyweights;
+  boost::shared_ptr<TransitionFactory> TransFac;
 
   Fragment TempFrag;
 };

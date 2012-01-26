@@ -67,6 +67,7 @@ NFAPtr createGraph(PatternInfo& keyInfo, uint32 enc, bool caseSensitive, bool li
   if (p.Fsm) {
     if (determinize) {
       NFAPtr dfa(new NFA(1));
+      dfa->TransFac = p.Fsm->TransFac;
       p.Comp.subsetDFA(*dfa, *p.Fsm);
       p.Fsm = dfa;
     }

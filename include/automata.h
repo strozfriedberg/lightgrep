@@ -2,6 +2,7 @@
 
 #include "graph.h"
 #include "transition.h"
+#include "transitionfactory.h"
 #include "vectorfamily.h"
 
 #include <limits>
@@ -9,28 +10,17 @@
 
 #include <boost/shared_ptr.hpp>
 
-struct Empty {};
+struct Properties {
+  Properties(): Deterministic(true), TransFac(new TransitionFactory()) {}
+
+  bool Deterministic;
+  boost::shared_ptr<TransitionFactory> TransFac;
+};
 
 struct Glushkov {
   static const uint32 NOLABEL;
 
   Glushkov(): Trans(0), IsMatch(false), Label(NOLABEL) {}
-
-  Glushkov(const Glushkov& g): Trans(g.Trans ? g.Trans->clone() : 0), IsMatch(g.IsMatch), Label(g.Label) {}
-
-  virtual ~Glushkov() {
-    delete Trans;
-  }
-
-  Glushkov& operator=(const Glushkov& other) {
-    if (this != &other) {
-      delete Trans;
-      Trans = other.Trans ? other.Trans->clone() : 0;
-      IsMatch = other.IsMatch;
-      Label = other.Label;
-    }
-    return *this;
-  }
 
   std::string label() const {
     std::stringstream buf;
@@ -48,11 +38,7 @@ struct Glushkov {
   uint32 Label;
 };
 
-struct Properties {
-  bool Deterministic;
-
-  Properties(): Deterministic(true) {}
-};
+struct Empty {};
 
 typedef Graph<Properties,Glushkov,Empty,VectorFamily> NFA;
 typedef boost::shared_ptr<NFA> NFAPtr;
