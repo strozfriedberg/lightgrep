@@ -45,17 +45,14 @@ void CodeGenVisitor::finish_vertex(NFA::VertexDescriptor v, const NFA& graph) {
 
   const uint32 outDegree = graph.outDegree(v);
 
-  const Transition* t = graph[v].Trans;
-  if (t) {
-    if (t->Label != NONE) {
-      label = 1;
-    }
+  if (graph[v].Label != NONE) {
+    label = 1;
+  }
 
-    if (t->IsMatch) {
-      // 1 for match, 1 for finish; or 1 for match, 2 for jump if
-      // match is nonterminal
-      match = 2 + (outDegree > 0);
-    }
+  if (graph[v].IsMatch) {
+    // 1 for match, 1 for finish; or 1 for match, 2 for jump if
+    // match is nonterminal
+    match = 2 + (outDegree > 0);
   }
 
   uint32 outOps = 0;

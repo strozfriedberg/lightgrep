@@ -346,9 +346,9 @@ void NFABuilder::finish(const ParseNode& n) {
         return;
       }
       else {
-        Transition* final = (*Fsm)[v].Trans;
-        final->Label = CurLabel;
-        final->IsMatch = true;
+        NFA::Vertex& final((*Fsm)[v]);
+        final.Label = CurLabel;
+        final.IsMatch = true;
       }
     }
     // std::cout << "final is " << final << std::endl;

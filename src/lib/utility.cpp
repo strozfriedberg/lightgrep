@@ -85,7 +85,7 @@ uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, NFA::VertexDescript
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
   if (1 == graph.outDegree(v) &&
-      NOLABEL == graph[v].Trans->Label && !graph[v].Trans->IsMatch) {
+      NOLABEL == graph[v].Label && !graph[v].IsMatch) {
     return cg->Snippets[graph.outVertex(v, 0)].Start;
   }
   else {
@@ -179,15 +179,15 @@ ProgramPtr createProgram(const NFA& graph) {
       curOp += t->numInstructions();
       // std::cerr << "wrote " << i << std::endl;
 
-      if (t->Label != NOLABEL) {
-        *curOp++ = Instruction::makeLabel(t->Label);
+      if (graph[v].Label != NOLABEL) {
+        *curOp++ = Instruction::makeLabel(graph[v].Label);
       }
 
       if (cg->Snippets[v].CheckIndex != NONE) {
         *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
       }
 
-      if (t->IsMatch) {
+      if (graph[v].IsMatch) {
         *curOp++ = Instruction::makeMatch();
 
         if (graph.outDegree(v)) {
@@ -318,7 +318,7 @@ uint32 maxOutbound(const std::vector< std::vector< NFA::VertexDescriptor > >& tr
 void writeVertex(std::ostream& out, NFA::VertexDescriptor v, const NFA& graph) {
   out << "  " << v << " [label=\"" << v << "\"";
 
-  if (graph[v].Trans && graph[v].Trans->IsMatch) {
+  if (graph[v].IsMatch) {
     // double ring for match states
     out << ", peripheries=2";
   }
@@ -338,7 +338,7 @@ std::string escape(char c, const std::string& text) {
 }
 
 void writeEdge(std::ostream& out, NFA::VertexDescriptor v, NFA::VertexDescriptor u, uint32 priority, const NFA& graph) {
-  const std::string esclabel = escape('"', escape('\\', graph[u].Trans->label()));
+  const std::string esclabel = escape('"', escape('\\', graph[u].label()));
 
   out << "  " << v << " -> " << u << " ["
       << "label=\"" << esclabel << "\", "

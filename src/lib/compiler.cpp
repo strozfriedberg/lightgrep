@@ -14,7 +14,7 @@ static const NFA::VertexDescriptor UNLABELABLE = 0xFFFFFFFE;
 
 const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 
-bool Compiler::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const Transition* srcTrans, const ByteSet& srcBits) const {
+bool Compiler::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const ByteSet& srcBits) const {
   // Explanation of the condition:
   //
   // Vertices match if:
@@ -30,9 +30,9 @@ bool Compiler::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Tra
   // 7) the source has only one incoming edge
 
   if (
-    dstTrans->Label == srcTrans->Label &&
+    dst[dstTail].Label == src[srcTail].Label &&
     (
-      dstTrans->Label == NOLABEL ||
+      dst[dstTail].Label == NOLABEL ||
       (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))
     )
     && 1 == dst.inDegree(dstTail) && 1 == src.inDegree(srcTail)
@@ -88,7 +88,7 @@ Compiler::StatePair Compiler::processChild(const NFA& src, NFA& dst, uint32 si, 
 //      std::cerr << "match src " << srcTail << " with dst " << dstTail << "? ";
 
       if (canMerge(dst, dstTail, dstTrans, dstBits,
-                   src, srcTail, srcTrans, srcBits)) {
+                   src, srcTail,           srcBits)) {
         found = true;
         break;
       }
@@ -100,7 +100,7 @@ Compiler::StatePair Compiler::processChild(const NFA& src, NFA& dst, uint32 si, 
       // add a new vertex to the destination if the image of the source
       // tail vertex cannot be matched
       dstTail = dst.addVertex();
-      dst[dstTail].Trans = srcTrans->clone();
+      dst[dstTail] = src[srcTail];
 
       if (i == DstPos.end()) {
         di = 0;
@@ -219,7 +219,7 @@ void Compiler::pruneBranches(NFA& g) {
       }
 */
 
-      if (g[tail].Trans->IsMatch) {
+      if (g[tail].IsMatch) {
         mbs |= obs;
       }
     }
@@ -238,13 +238,13 @@ void Compiler::propagateMatchLabels(NFA& g) {
 
   for (NFA::VertexDescriptor m = 0; m < g.verticesSize(); ++m) {
     // skip non-match vertices
-    if (!g[m].Trans || !g[m].Trans->IsMatch) continue;
+    if (!g[m].IsMatch) continue;
 
     if (++i % 10000 == 0) {
       std::cerr << "handled " << i << " labeled vertices" << std::endl;
     }
 
-    const uint32 label = g[m].Trans->Label;
+    const uint32 label = g[m].Label;
 
     // walk label back from this match state to all of its ancestors
     // which have no other match-state descendants
@@ -263,17 +263,17 @@ void Compiler::propagateMatchLabels(NFA& g) {
           // Skip the initial state.
           continue;
         }
-        else if (g[h].Trans->Label == NONE) {
+        else if (g[h].Label == NONE) {
           // Mark unmarked parents with our label and walk back to them.
-          g[h].Trans->Label = label;
+          g[h].Label = label;
           next.push(h);
         }
-        else if (g[h].Trans->Label == UNLABELABLE) {
+        else if (g[h].Label == UNLABELABLE) {
           // This parent is already marked as an ancestor of multiple match
           // states; all paths from it back to the root are already marked
           // as unlabelable, so we don't need to walk back from it.
         }
-        else if (g[h].Trans->Label == label) {
+        else if (g[h].Label == label) {
           // This parent has our label, which means we've already walked
           // back through it.
         }
@@ -287,11 +287,11 @@ void Compiler::propagateMatchLabels(NFA& g) {
             NFA::VertexDescriptor u = unext.top();
             unext.pop();
 
-            g[u].Trans->Label = UNLABELABLE;
+            g[u].Label = UNLABELABLE;
 
             for (uint32 j = 0; j < g.inDegree(u); ++j) {
               NFA::VertexDescriptor uh = g.inVertex(u, j);
-              if (g[uh].Trans && g[uh].Trans->Label != UNLABELABLE) {
+              if (g[uh].Trans && g[uh].Label != UNLABELABLE) {
                 // Walking on all nodes not already marked unlabelable
                 unext.push(uh);
               }
@@ -323,8 +323,8 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
 
       if (visited[t]) continue;
 
-      if (g[t].Trans->Label == UNLABELABLE) {
-        g[t].Trans->Label = NONE;
+      if (g[t].Label == UNLABELABLE) {
+        g[t].Label = NONE;
         next.push(t);
       }
       else {
@@ -352,7 +352,7 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
 
       // NB: Any node which should be labeled, we've already visited,
       // so we can unlabel everything we reach this way.
-      g[t].Trans->Label = NONE;
+      g[t].Label = NONE;
       next.push(t);
       visited[t] = true;
     }
@@ -479,7 +479,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
       for (std::vector<NFA::VertexDescriptor>::const_iterator j(srcTailList.begin()); j != srcTailList.end(); ++j) {
         const NFA::VertexDescriptor srcTail = *j;
 
-        if (src[srcTail].Trans->IsMatch) {
+        if (src[srcTail].IsMatch) {
           // match states are always singleton groups
           dstListGroups[bs].push_back(std::vector<NFA::VertexDescriptor>());
           startGroup = true;
@@ -517,9 +517,9 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
           dstTail = l->second;
         }
 
-        if (src[dstList.front()].Trans->IsMatch) {
-          dst[dstTail].Trans->IsMatch = true;
-          dst[dstTail].Trans->Label = src[dstList.front()].Trans->Label;
+        if (src[dstList.front()].IsMatch) {
+          dst[dstTail].IsMatch = true;
+          dst[dstTail].Label = src[dstList.front()].Label;
         }
 
         dst.addEdge(dstHead, dstTail);
@@ -565,8 +565,6 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
         r = new RangeState(first, last);
       }
 
-      r->IsMatch = t->IsMatch;
-      r->Label = t->Label;
       dst[i].Trans = r;
       delete t;
     }

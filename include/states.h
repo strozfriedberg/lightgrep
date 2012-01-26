@@ -4,8 +4,7 @@
 
 class LitState: public Transition {
 public:
-  LitState(byte lit): Transition(), Lit(lit) {}
-  LitState(byte lit, uint32 label): Transition(label), Lit(lit) {}
+  LitState(byte lit): Lit(lit) {}
   virtual ~LitState() {}
 
   virtual const byte* allowed(const byte* beg, const byte*) const { return *beg == Lit ? beg+1: beg; }
@@ -21,14 +20,14 @@ public:
   virtual std::string label() const;
 
 private:
-  LitState(const LitState& x): Transition(x.Label, x.IsMatch), Lit(x.Lit) {}
+  LitState(const LitState& x): Transition(), Lit(x.Lit) {}
+
   byte Lit;
 };
 
 class EitherState: public Transition {
 public:
-  EitherState(byte one, byte two): Transition(), Lit1(one), Lit2(two) {}
-  EitherState(byte one, byte two, uint32 label): Transition(label), Lit1(one), Lit2(two) {}
+  EitherState(byte one, byte two): Lit1(one), Lit2(two) {}
   virtual ~EitherState() {}
 
   virtual const byte* allowed(const byte* beg, const byte*) const { return *beg == Lit1 || *beg == Lit2 ? beg+1: beg; }
@@ -44,15 +43,14 @@ public:
   virtual std::string label() const;
 
 private:
-  EitherState(const EitherState& x): Transition(x.Label, x.IsMatch), Lit1(x.Lit1), Lit2(x.Lit2) {}
+  EitherState(const EitherState& x): Transition(), Lit1(x.Lit1), Lit2(x.Lit2) {}
 
   byte Lit1, Lit2;
 };
 
 class RangeState: public Transition {
 public:
-  RangeState(byte first, byte last): Transition(), First(first), Last(last) {}
-  RangeState(byte first, byte last, uint32 label): Transition(label), First(first), Last(last) {}
+  RangeState(byte first, byte last): First(first), Last(last) {}
   virtual ~RangeState() {}
 
   virtual const byte* allowed(const byte* beg, const byte*) const { return First <= *beg && *beg <= Last ? beg+1: beg; }
@@ -68,7 +66,7 @@ public:
   virtual std::string label() const;
 
 private:
-  RangeState(const RangeState& x): Transition(x.Label, x.IsMatch), First(x.First), Last(x.Last) {}
+  RangeState(const RangeState& x): Transition(), First(x.First), Last(x.Last) {}
 
   byte First, Last;
 };
@@ -91,7 +89,7 @@ public:
   virtual std::string label() const;
 
 private:
-  CharClassState(const CharClassState& x): Transition(x.Label, x.IsMatch), Allowed(x.Allowed) {}
+  CharClassState(const CharClassState& x): Transition(), Allowed(x.Allowed) {}
 
   ByteSet Allowed;
 };

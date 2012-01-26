@@ -25,7 +25,7 @@ public:
 
   StatePair processChild(const NFA& src, NFA& dst, uint32 si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead);
 
-  bool canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const Transition* srcTrans, const ByteSet& srcBits) const;
+  bool canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const ByteSet& srcBits) const;
 
 private:
   std::map<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor> > Dst2Src;
