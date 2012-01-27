@@ -139,6 +139,14 @@ private:
 bool operator<(const ByteSet& lbs, const ByteSet& rbs);
 
 struct TransitionComparator {
+  //
+  // This defines a total ordering over Transitions, such that
+  //
+  //   LitState < EitherState < RangeState < CharClassState
+  //
+  // and for two Transitions of the same type, the one with the
+  // lexicographically least data is the lesser.
+  //
   bool operator()(const Transition* a, const Transition* b) const {
     switch (a->type()) {
     case LitStateType:
