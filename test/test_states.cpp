@@ -112,6 +112,8 @@ SCOPE_TEST(charClassState) {
 }
 
 SCOPE_TEST(byteSetLexOrder) {
+  SCOPE_ASSERT_EQUAL(32, sizeof(ByteSet));
+
   SCOPE_ASSERT(ByteSet(0xFE) < ByteSet(0xFF));
 
   ByteSet none(0), test(1), all;
