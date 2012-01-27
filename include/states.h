@@ -5,6 +5,7 @@
 #include <limits>
 
 struct TransitionComparator;
+class TransitionFactory;
 
 enum TransitionType {
   LitStateType,
@@ -18,7 +19,9 @@ public:
   LitState(byte lit): Lit(lit) {}
   virtual ~LitState() {}
 
-  virtual const byte* allowed(const byte* beg, const byte*) const { return *beg == Lit ? beg+1: beg; }
+  virtual const byte* allowed(const byte* beg, const byte*) const {
+    return *beg == Lit ? beg + 1 : beg;
+  }
 
   virtual void getBits(ByteSet& bits) const { bits.set(Lit); }
 
@@ -38,6 +41,7 @@ private:
   byte Lit;
 
   friend struct TransitionComparator;
+  friend class TransitionFactory;
 };
 
 class EitherState: public Transition {
@@ -45,7 +49,9 @@ public:
   EitherState(byte one, byte two): Lit1(one), Lit2(two) {}
   virtual ~EitherState() {}
 
-  virtual const byte* allowed(const byte* beg, const byte*) const { return *beg == Lit1 || *beg == Lit2 ? beg+1: beg; }
+  virtual const byte* allowed(const byte* beg, const byte*) const {
+    return *beg == Lit1 || *beg == Lit2 ? beg + 1 : beg;
+  }
 
   virtual void getBits(ByteSet& bits) const { bits.set(Lit1); bits.set(Lit2); }
 
@@ -65,6 +71,7 @@ private:
   byte Lit1, Lit2;
 
   friend struct TransitionComparator;
+  friend class TransitionFactory;
 };
 
 class RangeState: public Transition {
@@ -72,9 +79,13 @@ public:
   RangeState(byte first, byte last): First(first), Last(last) {}
   virtual ~RangeState() {}
 
-  virtual const byte* allowed(const byte* beg, const byte*) const { return First <= *beg && *beg <= Last ? beg+1: beg; }
+  virtual const byte* allowed(const byte* beg, const byte*) const {
+    return First <= *beg && *beg <= Last ? beg+1: beg;
+  }
 
-  virtual void getBits(ByteSet& bits) const { for (uint32 i = First; i <= Last; ++i) { bits.set(i); }; }
+  virtual void getBits(ByteSet& bits) const {
+    for (uint32 i = First; i <= Last; ++i) { bits.set(i); };
+  }
 
   virtual byte type() const { return RangeStateType; }
 
@@ -92,6 +103,7 @@ private:
   byte First, Last;
 
   friend struct TransitionComparator;
+  friend class TransitionFactory;
 };
 
 class CharClassState: public Transition {
@@ -99,7 +111,9 @@ public:
   CharClassState(ByteSet allowed): Allowed(allowed) {}
   virtual ~CharClassState() {}
 
-  virtual const byte* allowed(const byte* beg, const byte*) const { return Allowed[*beg] ? beg+1: beg; }
+  virtual const byte* allowed(const byte* beg, const byte*) const {
+    return Allowed[*beg] ? beg+1 : beg;
+  }
 
   virtual void getBits(ByteSet& bits) const { bits = Allowed; }
 
@@ -119,6 +133,7 @@ private:
   ByteSet Allowed;
 
   friend struct TransitionComparator;
+  friend class TransitionFactory;
 };
 
 bool operator<(const ByteSet& lbs, const ByteSet& rbs);
