@@ -5,18 +5,20 @@
 #include "rewriter.h"
 
 
-typedef std::map< std::string, boost::shared_ptr<Encoding> > EncodingMap;
-
-EncodingMap createEncodingMap() {
-  EncodingMap map;
-  map[LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII]].reset(new Ascii);
-  map[LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16]].reset(new UCS16);
+Parser::EncodingMap createEncodingMap() {
+  Parser::EncodingMap map;
+  map[LG_ENC_ASCII].reset(new Ascii);
+  map[LG_ENC_UTF_16].reset(new UCS16);
+  map[LG_ENC_UTF_8].reset(new Ascii);
   return map;
 }
 
-const EncodingMap& getEncodings() {
-  static EncodingMap map(createEncodingMap());
-  return map;
+Parser::Parser(uint32 sizeHint):
+  Fsm(new NFA(1, sizeHint)),
+  EncCodes(getEncodingsMap()),  // names -> uint
+  Encoders(createEncodingMap()) // uint  -> Encoding object
+{
+  Fsm->TransFac = Nfab.getTransFac();
 }
 
 bool contains_possible_nongreedy(const std::string& pattern) {
@@ -32,34 +34,39 @@ bool contains_possible_counted_repetition(const std::string& pattern) {
   return cr > 0 && cr != std::string::npos;
 }
 
-void Parser::addPattern(const std::string& pattern, uint32 patIndex, const LG_KeyOptions& keyOpts)
+void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
 {
+//  std::cerr << "[" << patIndex << "]: " << pattern << std::endl; 
   // prepare the NFA builder
   Nfab.reset();
   Nfab.setCurLabel(patIndex);
-  Nfab.setCaseSensitive(!keyOpts.CaseInsensitive);
+  Nfab.setCaseInsensitive(pattern.CaseInsensitive);
 
-  std::string encoding(keyOpts.Encoding);
-  EncodingMap::const_iterator foundEnc(getEncodings().find(encoding));
-  if (foundEnc != getEncodings().end()) {
-    Nfab.setEncoding(foundEnc->second);
+  bool good = false;
+  EncodingsCodeMap::const_iterator foundName(EncCodes.find(pattern.Encoding));
+  if (foundName != EncCodes.end()) {
+    EncodingMap::const_iterator    foundEncoder(Encoders.find(foundName->second));
+    if (foundEncoder != Encoders.end()) {
+      Nfab.setEncoding(foundEncoder->second);
+      good = true;
+    }
   }
-  else {
+  if (!good) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT(
-      "Unrecognized encoding '" << encoding << "'"
+      "Unrecognized encoding '" << pattern.Encoding << "'"
     );
   }
 
   // parse the pattern
-  if (parse(pattern, keyOpts.FixedString, Tree)) {
+  if (parse(pattern.Expression, pattern.FixedString, Tree)) {
     // rewrite the parse tree, if necessary
     bool rewrite = false;
 
-    if (contains_possible_nongreedy(pattern)) {
+    if (contains_possible_nongreedy(pattern.Expression)) {
       rewrite |= reduce_trailing_nongreedy_then_empty(Tree.Root);
     }
 
-    if (rewrite || contains_possible_counted_repetition(pattern)) {
+    if (rewrite || contains_possible_counted_repetition(pattern.Expression)) {
       reduce_empty_subtrees(Tree.Root);
       reduce_useless_repetitions(Tree.Root);
     }
@@ -72,5 +79,5 @@ void Parser::addPattern(const std::string& pattern, uint32 patIndex, const LG_Ke
       return;
     }
   }
-  THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not parse " << pattern);
+  THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not parse " << pattern.Expression);
 }

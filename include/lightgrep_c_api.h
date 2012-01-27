@@ -23,11 +23,8 @@ extern "C" {
   typedef struct ContextHandle* LG_HCONTEXT;
 
   typedef struct {
-    char CaseInsensitive; // 0 => case sensitive, non-zero => case-insensitive
     char FixedString;     // 0 => grep, non-zero => fixed-string
-    const char* Encoding; // Encoding of keyword to search for, using IANA names
-                          // c.f. http://www.iana.org/assignments/character-sets
-                          // encodings.h has the list of supported encodings
+    char CaseInsensitive; // 0 => case sensitive, non-zero => case-insensitive
   } LG_KeyOptions;
 
   typedef struct {
@@ -72,9 +69,12 @@ extern "C" {
   // Parse a keyword and add it to the set of keywords associated with the
   // parser. Returns 1 on success, 0 if there was a parsing error.
   int lg_add_keyword(LG_HPARSER hParser,
-                     const char* keyword,    // the expression to search for, in UTF-8
-                     unsigned int keyIndex,  // unique for this keyword
-                     const LG_KeyOptions* options); // options
+                     const char* keyword,           // the expression to search for, in UTF-8
+                     unsigned int keyIndex,         // unique for this keyword
+                     const LG_KeyOptions* options,  // parsing options
+                     const char* Encoding);         // Encoding of keyword to search for, using IANA names
+                                                    // c.f. http://www.iana.org/assignments/character-sets
+                                                    // encodings.h has the list of supported encodings
 
   // Create a "Program" from a parser, which efficiently encodes the logic for
   // recognizing all the specified keywords. Once a program has been created,

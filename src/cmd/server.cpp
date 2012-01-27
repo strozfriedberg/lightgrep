@@ -139,6 +139,16 @@ public:
       File->close();
       File.reset();
     }
+    std::string stats;
+    getStats(stats);
+    {
+      boost::mutex::scoped_lock lock(*Mutex);
+      std::ofstream statsFile("lightgrep_hit_stats.txt", std::ios::out);
+      if (statsFile) {
+        statsFile << stats;
+        statsFile.close();
+      }
+    }
   }
 
   static Registry& get() {
@@ -339,8 +349,12 @@ void processConn(
             Registry::get().getStats(stats);
             uint64 bytes = stats.size();
             boost::asio::write(*sock, boost::asio::buffer(&bytes, sizeof(bytes)));
-            boost::asio::write(*sock, boost::asio::buffer(stats));
-            SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
+            byte ack;
+            if (boost::asio::read(*sock, boost::asio::buffer(&ack, sizeof(ack))) == sizeof(ack)) {
+	            boost::asio::write(*sock, boost::asio::buffer(stats));
+  	          SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
+    	      }
+  	        continue;
           }
         }
         SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");

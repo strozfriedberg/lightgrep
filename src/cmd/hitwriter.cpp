@@ -8,28 +8,24 @@ void nullWriter(void*userData, const LG_SearchHit* const) {
   ++hi->NumHits;
 }
 
-void hitWriter(void* userData, const LG_SearchHit* const hit) {
-  HitWriterInfo* hi = static_cast<HitWriterInfo*>(userData);
-  
+void writeHit(HitWriterInfo* hi, const LG_SearchHit* const hit) {
   const std::pair<uint32,uint32>& info(hi->Table[hit->KeywordIndex]);
   hi->Out << hit->Start << '\t'
           << hit->End << '\t'
           << info.first << '\t'
-          << hi->Patterns[info.first] << '\t'
+          << hi->Patterns[info.first].Expression << '\t'
           << LG_SUPPORTED_ENCODINGS[info.second] << '\n';
   ++hi->NumHits;
 }
 
+void hitWriter(void* userData, const LG_SearchHit* const hit) {
+  HitWriterInfo* hi = static_cast<HitWriterInfo*>(userData);
+  writeHit(hi, hit);
+}
+
 void pathWriter(void* userData, const LG_SearchHit* const hit) {
   PathWriterInfo* hi = static_cast<PathWriterInfo*>(userData);
-  
-  const std::pair<uint32,uint32>& info(hi->Table[hit->KeywordIndex]);
-  hi->Out << hi->Path << '\t'
-          << hit->Start << '\t'
-          << hit->End << '\t'
-          << info.first << '\t'
-          << hi->Patterns[info.first] << '\t'
-          << LG_SUPPORTED_ENCODINGS[info.second] << '\n';
-  ++hi->NumHits;
+  hi->Out << hi->Path << '\t';
+  writeHit(hi, hit);
 }
 

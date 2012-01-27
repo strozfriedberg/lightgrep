@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream& out, const Fragment& f) {
 }
 
 NFABuilder::NFABuilder():
-  CaseSensitive(true),
+  CaseInsensitive(false),
   CurLabel(0),
   ReserveSize(0),
   Fsm(new NFA(1)),
@@ -81,8 +81,8 @@ void NFABuilder::setEncoding(const boost::shared_ptr<Encoding>& e) {
   TempBuf.reset(new byte[Enc->maxByteLength()]);
 }
 
-void NFABuilder::setCaseSensitive(bool caseSensitive) {
-  CaseSensitive = caseSensitive;
+void NFABuilder::setCaseInsensitive(bool insensitive) {
+  CaseInsensitive = insensitive;
 }
 
 void NFABuilder::setSizeHint(uint64 reserveSize) {
@@ -90,7 +90,7 @@ void NFABuilder::setSizeHint(uint64 reserveSize) {
 }
 
 void NFABuilder::setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, byte val) {
-  if (CaseSensitive || !std::isalpha(val)) {
+  if (!CaseInsensitive || !std::isalpha(val)) {
     g[v].Trans = g.TransFac->getLit(val);
   }
   else {

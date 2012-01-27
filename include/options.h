@@ -4,6 +4,7 @@
 
 #include "automata.h"
 #include "basic.h"
+#include "pattern.h"
 
 #include <iosfwd>
 #include <set>
@@ -23,14 +24,14 @@ public:
               Input,
               Output,
               Encoding,
-              Pattern,
+              SinglePattern,
               ServerLog;
 
   std::vector<std::string> Inputs;
 
   unsigned int BlockSize;
 
-  bool CaseSensitive,
+  bool CaseInsensitive,
        LiteralMode,
        NoOutput,
        Determinize,
@@ -39,9 +40,10 @@ public:
 
   mutable std::ofstream OutputFile;
 
-  uint32 getEncoding() const;
-
   std::ostream& openOutput() const;
 
-  std::vector<std::string> getKeys() const;
+  std::vector<Pattern> getKeys() const;
+
+  bool readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const;
+  bool parseLine(const std::string& line, std::vector<Pattern>& keys) const;
 };

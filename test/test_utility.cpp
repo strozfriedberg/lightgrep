@@ -120,19 +120,21 @@ SCOPE_TEST(keywordLabelsProgram) {
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[8]);
 }
 
-SCOPE_TEST(twoFixedStrings) {
-  std::vector< std::string > kws;
-  kws.push_back("one");
-  kws.push_back("two");
-  NFAPtr fsm = createGraph(kws);
-  SCOPE_ASSERT_EQUAL(7u, fsm->verticesSize());
+template<class T>
+std::vector< Pattern > makePatterns(unsigned int n, T x) {
+  std::vector<Pattern> ret;
+  for (unsigned int i = 0; i < n; ++i) {
+    ret.push_back(Pattern(x[i]));
+  }
+  return ret;
 }
 
 SCOPE_TEST(twoUnicode) {
-  std::vector< std::string > kws;
-  kws.push_back("aa");
-  kws.push_back("ab");
-  NFAPtr fsm = createGraph(kws, CP_UCS16);
+  std::vector<Pattern> pats(makePatterns(2u, (const char*[]){"aa", "ab"}));
+  for (std::vector<Pattern>::iterator it(pats.begin()); it != pats.end(); ++it) {
+    it->Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+  }
+  NFAPtr fsm = createGraph(pats);
   NFA& g = *fsm;
   
   SCOPE_ASSERT_EQUAL(7u, g.verticesSize());
@@ -203,10 +205,7 @@ SCOPE_TEST(firstBitset) {
 }
 
 SCOPE_TEST(simpleCollapse) {
-  std::vector< std::string > kws;
-  kws.push_back("ab");
-  kws.push_back("ac");
-  NFAPtr fsm = createGraph(kws);
+  NFAPtr fsm = createGraph(makePatterns(2u, (const char*[]){"ab", "ac"}));
   SCOPE_ASSERT_EQUAL(4u, fsm->verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
@@ -432,11 +431,8 @@ SCOPE_TEST(generateCheckHalt) {
 }
 
 SCOPE_TEST(testInitVM) {
-  std::vector<std::string> keys;
   SearchInfo info;
-  keys.push_back("one");
-  keys.push_back("two");
-  boost::shared_ptr<VmInterface> search = initVM(keys, info);
+  boost::shared_ptr<VmInterface> search = initVM(makePatterns(2u, (const char*[]){"one", "two"}), info);
                //012345678901234
   byte text[] = "a onetwothree";
 
