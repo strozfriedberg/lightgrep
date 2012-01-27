@@ -37,18 +37,9 @@ LitState* LitState::clone(void* buffer) const {
   return buffer == 0 ? new LitState(*this): new(buffer) LitState(*this);
 }
 
-std::string printLabel(const Transition& t) {
-  std::stringstream buf;
-  if (t.Label != 0xffffffff) {
-    buf << "/" << t.Label;
-  }
-  return buf.str();
-}
-
 std::string LitState::label() const {
   std::stringstream buf;
   printByte(buf, Lit);
-  buf << printLabel(*this);
   return buf.str();
 }
 
@@ -65,7 +56,6 @@ std::string EitherState::label() const {
   std::stringstream buf;
   printByte(buf, Lit1);
   printByte(buf, Lit2);
-  buf << printLabel(*this);
   return buf.str();
 }
 
@@ -81,7 +71,6 @@ RangeState* RangeState::clone(void* buffer) const {
 std::string RangeState::label() const {
   std::stringstream buf;
   printRange(buf, First, Last);
-  buf << printLabel(*this);
   return buf.str();
 }
 
@@ -120,5 +109,50 @@ std::string CharClassState::label() const {
     printRange(ss, beg, end);
   }
 
-  return ss.str() + printLabel(*this);
+  return ss.str();
+}
+
+bool operator<(const ByteSet& lbs, const ByteSet& rbs) {
+  // It is a crying shame that std::bitset does not permit direct
+  // access to its data buffer. This could be done so much faster
+  // and in one line using memcmp.
+
+  static const ByteSet mask(std::numeric_limits<uint64>::max());
+
+  uint64 al, bl;
+
+  al = (lbs & mask).to_ulong();
+  bl = (rbs & mask).to_ulong();
+
+  if (al < bl) {
+    return true;
+  }
+  else if (bl > al) {
+    return false;
+  }
+  else {
+    al = ((lbs >> 64) & mask).to_ulong();
+    bl = ((rbs >> 64) & mask).to_ulong();
+
+    if (al < bl) {
+      return true;
+    }
+    else if (bl > al) {
+      return false;
+    }
+    else {
+      al = ((lbs >> 128) & mask).to_ulong();
+      bl = ((rbs >> 128) & mask).to_ulong();
+
+      if (al < bl) {
+        return true;
+      }
+      else if (bl > al) {
+        return false;
+      }
+      else {
+        return (lbs >> 192).to_ulong() < (rbs >> 192).to_ulong();
+      }
+    }
+  }
 }
