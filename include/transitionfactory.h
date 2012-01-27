@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <limits>
 #include <set>
 
 #include "basic.h"
@@ -29,9 +30,54 @@ public:
 
 private:
   struct Comp {
-    bool operator()(const Transition* a, const Transition* b);
+    Comp(): mask(std::numeric_limits<uint64>::max()) {}
+
+    bool operator()(const Transition* a, const Transition* b) {
+      a_bytes.reset();
+      b_bytes.reset();
+      a->getBits(a_bytes);
+      b->getBits(b_bytes);
+
+      uint64 al, bl;
+
+      al = (a_bytes & mask).to_ulong();
+      bl = (b_bytes & mask).to_ulong();
+
+      if (al < bl) {
+        return true;
+      }
+      else if (bl > al) {
+        return false;
+      }
+      else {
+        al = ((a_bytes >> 64) & mask).to_ulong();
+        bl = ((b_bytes >> 64) & mask).to_ulong();
+
+        if (al < bl) {
+          return true;
+        }
+        else if (bl > al) {
+          return false;
+        }
+        else {
+          al = ((a_bytes >> 128) & mask).to_ulong();
+          bl = ((b_bytes >> 128) & mask).to_ulong();
+
+          if (al < bl) {
+            return true;
+          }
+          else if (bl > al) {
+            return false;
+          }
+          else {
+            return (a_bytes >> 192).to_ulong() < (b_bytes >> 192).to_ulong();
+          }
+        }
+      }
+    }
 
     ByteSet a_bytes, b_bytes;
+    const ByteSet mask;
   };
 
   std::set<Transition*,Comp> Exemplars;
