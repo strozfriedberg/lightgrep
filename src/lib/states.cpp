@@ -3,6 +3,7 @@
 #include "instructions.h"
 
 #include <cctype>
+#include <cstring>
 #include <iomanip>
 #include <sstream>
 
@@ -113,46 +114,7 @@ std::string CharClassState::label() const {
 }
 
 bool operator<(const ByteSet& lbs, const ByteSet& rbs) {
-  // It is a crying shame that std::bitset does not permit direct
-  // access to its data buffer. This could be done so much faster
-  // and in one line using memcmp.
-
-  static const ByteSet mask(std::numeric_limits<uint64>::max());
-
-  uint64 al, bl;
-
-  al = (lbs & mask).to_ulong();
-  bl = (rbs & mask).to_ulong();
-
-  if (al < bl) {
-    return true;
-  }
-  else if (bl > al) {
-    return false;
-  }
-  else {
-    al = ((lbs >> 64) & mask).to_ulong();
-    bl = ((rbs >> 64) & mask).to_ulong();
-
-    if (al < bl) {
-      return true;
-    }
-    else if (bl > al) {
-      return false;
-    }
-    else {
-      al = ((lbs >> 128) & mask).to_ulong();
-      bl = ((rbs >> 128) & mask).to_ulong();
-
-      if (al < bl) {
-        return true;
-      }
-      else if (bl > al) {
-        return false;
-      }
-      else {
-        return (lbs >> 192).to_ulong() < (rbs >> 192).to_ulong();
-      }
-    }
-  }
+  // This is evil, and depends on std::bitset<256> being layed out as an
+  // array of 32 bytes. If it is not, this will fail catastrophically.
+  return memcmp(&lbs, &rbs, sizeof(lbs)) < 0;
 }
