@@ -510,8 +510,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
           // new sublist dst vertex
           dstList2Dst[p] = dstTail = dst.addVertex();
           dstStack.push(std::make_pair(bs, dstList));
-          CharClassState s(bs);
-          dst[dstTail].Trans = dst.TransFac->get(&s);
+          dst[dstTail].Trans = dst.TransFac->getCharClass(bs);
         }
         else {
           // old sublist vertex
@@ -557,12 +556,10 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
 
     if (first != -1) {
       if (first == last) {
-        LitState s(first);
-        dst[i].Trans = dst.TransFac->get(&s);
+        dst[i].Trans = dst.TransFac->getLit(first);
       }
       else {
-        RangeState s(first, last);
-        dst[i].Trans = dst.TransFac->get(&s);
+        dst[i].Trans = dst.TransFac->getRange(first, last);
       }
     }
   }

@@ -91,17 +91,10 @@ void NFABuilder::setSizeHint(uint64 reserveSize) {
 
 void NFABuilder::setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, byte val) {
   if (CaseSensitive || !std::isalpha(val)) {
-// FIXME: Labeled vertices can't be shared. We don't know which will be
-// labeled (permanently) until after walking back labels. If the memory
-// we were saving this way was really important, we need to figure out
-// something else to do here.
-//    state = LitFlyweights[val];
-    LitState s(val);
-    g[v].Trans = g.TransFac->get(&s);
+    g[v].Trans = g.TransFac->getLit(val);
   }
   else {
-    EitherState s(std::toupper(val), std::tolower(val));
-    g[v].Trans = g.TransFac->get(&s);
+    g[v].Trans = g.TransFac->getEither(std::toupper(val), std::tolower(val));
     g.Deterministic = false;
   }
 }
@@ -173,8 +166,7 @@ void NFABuilder::literal(const ParseNode& n) {
 
 void NFABuilder::dot(const ParseNode& n) {
   NFA::VertexDescriptor v = Fsm->addVertex();
-  RangeState s(0, 255);
-  (*Fsm)[v].Trans = Fsm->TransFac->get(&s);
+  (*Fsm)[v].Trans = Fsm->TransFac->getRange(0, 255);
   Fsm->Deterministic = false;
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
@@ -200,12 +192,10 @@ void NFABuilder::charClass(const ParseNode& n) {
   }
 
   if (num == n.Bits.count()) {
-    RangeState s(first, last);
-    (*Fsm)[v].Trans = Fsm->TransFac->get(&s);
+    (*Fsm)[v].Trans = Fsm->TransFac->getRange(first, last);
   }
   else {
-    CharClassState s(n.Bits);
-    (*Fsm)[v].Trans = Fsm->TransFac->get(&s);
+    (*Fsm)[v].Trans = Fsm->TransFac->getCharClass(n.Bits);
   }
 
   Fsm->Deterministic = false;
