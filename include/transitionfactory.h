@@ -1,8 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <set>
 
 #include "basic.h"
+#include "deletor.h"
 #include "transition.h"
 #include "states.h"
 
@@ -11,10 +13,7 @@ public:
   TransitionFactory(): Lit(0), Either(0, 0), Range(0, 0), CharClass(ByteSet()) {}
 
   ~TransitionFactory() {
-    const std::set<Transition*>::iterator end(Exemplars.end());
-    for (std::set<Transition*>::iterator i(Exemplars.begin()); i != end; ++i) {
-      delete *i;
-    }
+    std::for_each(Exemplars.begin(), Exemplars.end(), Deletor<Transition>());
   }
 
   Transition* getLit(byte lit) {
