@@ -5,8 +5,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include "automata.h"
 #include "basic.h"
-#include "graph.h"
 #include "instructions.h"
 #include "utility.h"
 
@@ -37,7 +37,7 @@ struct CodeGenHelper {
   CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, NONE),
     Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
 
-  void discover(Graph::vertex v, const Graph& graph) {
+  void discover(NFA::VertexDescriptor v, const NFA& graph) {
     DiscoverRanks[v] = NumDiscovered++;
     if (graph.inDegree(v) > 1) {
       Snippets[v].CheckIndex = ++NumChecked;
@@ -59,21 +59,21 @@ struct CodeGenHelper {
          NumChecked;
 };
 
-typedef std::vector< std::vector< Graph::vertex > > TransitionTbl;
+typedef std::vector< std::vector< NFA::VertexDescriptor > > TransitionTbl;
 
 class CodeGenVisitor {
 public:
   CodeGenVisitor(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
 
-  void discover_vertex(Graph::vertex v, const Graph& graph);
+  void discover_vertex(NFA::VertexDescriptor v, const NFA& graph);
 
-  uint32 calcJumpTableSize(Graph::vertex v, const Graph& graph, uint32 outDegree);
+  uint32 calcJumpTableSize(NFA::VertexDescriptor v, const NFA& graph, uint32 outDegree);
 
-  void finish_vertex(Graph::vertex v, const Graph& graph);
+  void finish_vertex(NFA::VertexDescriptor v, const NFA& graph);
 
 private:
   boost::shared_ptr<CodeGenHelper> Helper;
 };
 
-void specialVisit(const Graph& graph, Graph::vertex startVertex, CodeGenVisitor& vis);
+void specialVisit(const NFA& graph, NFA::VertexDescriptor startVertex, CodeGenVisitor& vis);
 

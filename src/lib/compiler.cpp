@@ -9,12 +9,12 @@
 #include <stack>
 #include <vector>
 
-static const Graph::vertex NONE = 0xFFFFFFFF;
-static const Graph::vertex UNLABELABLE = 0xFFFFFFFE;
+static const NFA::VertexDescriptor NONE = 0xFFFFFFFF;
+static const NFA::VertexDescriptor UNLABELABLE = 0xFFFFFFFE;
 
 const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 
-bool Compiler::canMerge(const Graph& dst, Graph::vertex dstTail, const Transition* dstTrans, ByteSet& dstBits, const Graph& src, Graph::vertex srcTail, const Transition* srcTrans, const ByteSet& srcBits) const {
+bool Compiler::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const ByteSet& srcBits) const {
   // Explanation of the condition:
   //
   // Vertices match if:
@@ -30,15 +30,15 @@ bool Compiler::canMerge(const Graph& dst, Graph::vertex dstTail, const Transitio
   // 7) the source has only one incoming edge
 
   if (
-    dstTrans->Label == srcTrans->Label &&
+    dst[dstTail].Label == src[srcTail].Label &&
     (
-      dstTrans->Label == NOLABEL ||
+      dst[dstTail].Label == NOLABEL ||
       (0 == src.outDegree(srcTail) && 0 == dst.outDegree(dstTail))
     )
     && 1 == dst.inDegree(dstTail) && 1 == src.inDegree(srcTail)
   )
   {
-    const std::map< Graph::vertex, std::vector<Graph::vertex> >::const_iterator i(Dst2Src.find(dstTail));
+    const std::map< NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor> >::const_iterator i(Dst2Src.find(dstTail));
     if (i == Dst2Src.end() || 1 == src.inDegree(i->second.front())) {
       dstBits.reset();
       dstTrans->getBits(dstBits);
@@ -49,10 +49,10 @@ bool Compiler::canMerge(const Graph& dst, Graph::vertex dstTail, const Transitio
   return false;
 }
 
-Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 si, Graph::vertex srcHead, Graph::vertex dstHead) {
-  const Graph::vertex srcTail = src.outVertex(srcHead, si);
+Compiler::StatePair Compiler::processChild(const NFA& src, NFA& dst, uint32 si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead) {
+  const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, si);
 
-  Graph::vertex dstTail = Src2Dst[srcTail];
+  NFA::VertexDescriptor dstTail = Src2Dst[srcTail];
   uint32 di = 0;
 
   const uint32 dstHeadOutDegree = dst.outDegree(dstHead);
@@ -65,7 +65,7 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
     }
   }
   else {
-    const Transition* srcTrans(src[srcTail]);
+    const Transition* srcTrans(src[srcTail].Trans);
 
     ByteSet srcBits;
     srcTrans->getBits(srcBits);
@@ -78,17 +78,17 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
     bool found = false;
     ByteSet dstBits;
 
-    std::map<Graph::vertex, uint32>::const_iterator i(DstPos.find(dstHead));
+    std::map<NFA::VertexDescriptor, uint32>::const_iterator i(DstPos.find(dstHead));
     di = i == DstPos.end() ? 0 : i->second;
 
     for ( ; di < dstHeadOutDegree; ++di) {
       dstTail = dst.outVertex(dstHead, di);
-      const Transition* dstTrans(dst[dstTail]);
+      const Transition* dstTrans(dst[dstTail].Trans);
 
 //      std::cerr << "match src " << srcTail << " with dst " << dstTail << "? ";
 
       if (canMerge(dst, dstTail, dstTrans, dstBits,
-                   src, srcTail, srcTrans, srcBits)) {
+                   src, srcTail,           srcBits)) {
         found = true;
         break;
       }
@@ -100,7 +100,7 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
       // add a new vertex to the destination if the image of the source
       // tail vertex cannot be matched
       dstTail = dst.addVertex();
-      dst.setTran(dstTail, srcTrans->clone());
+      dst[dstTail] = src[srcTail];
 
       if (i == DstPos.end()) {
         di = 0;
@@ -112,13 +112,25 @@ Compiler::StatePair Compiler::processChild(const Graph& src, Graph& dst, uint32 
     }
   }
 
-  dst.addEdgeAt(dstHead, dstTail, di);
+  // don't insert duplicate edges
+  bool found = false;
+  for (NFA::VertexSizeType i = 0; i < dstHeadOutDegree; ++i) {
+    if (dst.outVertex(dstHead, i) == dstTail) {
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    dst.insertEdge(dstHead, dstTail, di);
+  }
+
   DstPos[dstHead] = di;
   return StatePair(dstTail, srcTail);
 }
 
-void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
-  Src2Dst.assign(src.numVertices(), NONE);
+void Compiler::mergeIntoFSM(NFA& dst, const NFA& src) {
+  Src2Dst.assign(src.verticesSize(), NONE);
   Dst2Src.clear();
   DstPos.clear();
   Visited.clear();
@@ -135,8 +147,8 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
     Edges.pop();
 
     const uint32 si = p.second;
-    const Graph::vertex srcHead = p.first;
-    const Graph::vertex dstHead = Src2Dst[srcHead];
+    const NFA::VertexDescriptor srcHead = p.first;
+    const NFA::VertexDescriptor dstHead = Src2Dst[srcHead];
 
     // skip if we've seen this edge already
     if (Visited.find(p) != Visited.end()) {
@@ -146,8 +158,8 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
     Visited.insert(p);
 
     const StatePair s(processChild(src, dst, si, srcHead, dstHead));
-    const Graph::vertex srcTail = s.second;
-    const Graph::vertex dstTail = s.first;
+    const NFA::VertexDescriptor srcTail = s.second;
+    const NFA::VertexDescriptor dstTail = s.first;
 
     Src2Dst[srcTail] = dstTail;
     Dst2Src[dstTail].push_back(srcTail);
@@ -155,12 +167,14 @@ void Compiler::mergeIntoFSM(Graph& dst, const Graph& src) {
     for (int32 i = src.outDegree(srcTail) - 1; i >= 0; --i) {
       Edges.push(StatePair(srcTail, i));
     }
+
+    dst.Deterministic &= src.Deterministic;
   }
 }
 
-void Compiler::pruneBranches(Graph& g) {
-  std::stack<Graph::vertex> next;
-  std::set<Graph::vertex> seen;
+void Compiler::pruneBranches(NFA& g) {
+  std::stack<NFA::VertexDescriptor> next;
+  std::set<NFA::VertexDescriptor> seen;
 
   next.push(0);
   seen.insert(0);
@@ -170,7 +184,7 @@ void Compiler::pruneBranches(Graph& g) {
 
   // walk the graph
   while (!next.empty()) {
-    const Graph::vertex head = next.top();
+    const NFA::VertexDescriptor head = next.top();
     next.pop();
 
     mbs.reset();
@@ -178,21 +192,21 @@ void Compiler::pruneBranches(Graph& g) {
     // remove same-transition edges following a match vertex,
     // accumulating transition bytes for match edges as we go
     for (uint32 i = 0; i < g.outDegree(head); ++i) {
-      const Graph::vertex tail = g.outVertex(head, i);
+      const NFA::VertexDescriptor tail = g.outVertex(head, i);
 
       if (seen.insert(tail).second) {
         next.push(tail);
       }
 
       obs.reset();
-      g[tail]->getBits(obs);
+      g[tail].Trans->getBits(obs);
 
 //      nbs = obs & ~mbs;
       obs &= ~mbs;
 
 //      if (nbs.none()) {
       if (obs.none()) {
-        g.removeEdge(head, i--);
+        g.removeEdge(g.outEdge(head, i--));
       }
 /*
       else if (nbs != obs) {
@@ -205,32 +219,32 @@ void Compiler::pruneBranches(Graph& g) {
       }
 */
 
-      if (g[tail]->IsMatch) {
+      if (g[tail].IsMatch) {
         mbs |= obs;
       }
     }
   }
 }
 
-void Compiler::labelGuardStates(Graph& g) {
+void Compiler::labelGuardStates(NFA& g) {
   propagateMatchLabels(g);
   removeNonMinimalLabels(g);
 }
 
-void Compiler::propagateMatchLabels(Graph& g) {
+void Compiler::propagateMatchLabels(NFA& g) {
   uint32 i = 0;
 
-  std::stack<Graph::vertex, std::vector<Graph::vertex> > next, unext;
+  std::stack<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor> > next, unext;
 
-  for (Graph::vertex m = 0; m < g.numVertices(); ++m) {
+  for (NFA::VertexDescriptor m = 0; m < g.verticesSize(); ++m) {
     // skip non-match vertices
-    if (!g[m] || !g[m]->IsMatch) continue;
+    if (!g[m].IsMatch) continue;
 
     if (++i % 10000 == 0) {
       std::cerr << "handled " << i << " labeled vertices" << std::endl;
     }
 
-    const unsigned int label = g[m]->Label;
+    const uint32 label = g[m].Label;
 
     // walk label back from this match state to all of its ancestors
     // which have no other match-state descendants
@@ -238,28 +252,28 @@ void Compiler::propagateMatchLabels(Graph& g) {
     next.push(m);
 
     while (!next.empty()) {
-      Graph::vertex t = next.top();
+      NFA::VertexDescriptor t = next.top();
       next.pop();
 
       // check each parent of the current state
       for (uint32 i = 0; i < g.inDegree(t); ++i) {
-        Graph::vertex h = g.inVertex(t, i);
+        NFA::VertexDescriptor h = g.inVertex(t, i);
 
-        if (!g[h]) {
+        if (!g[h].Trans) {
           // Skip the initial state.
           continue;
         }
-        else if (g[h]->Label == NONE) {
+        else if (g[h].Label == NONE) {
           // Mark unmarked parents with our label and walk back to them.
-          g[h]->Label = label;
+          g[h].Label = label;
           next.push(h);
         }
-        else if (g[h]->Label == UNLABELABLE) {
+        else if (g[h].Label == UNLABELABLE) {
           // This parent is already marked as an ancestor of multiple match
           // states; all paths from it back to the root are already marked
           // as unlabelable, so we don't need to walk back from it.
         }
-        else if (g[h]->Label == label) {
+        else if (g[h].Label == label) {
           // This parent has our label, which means we've already walked
           // back through it.
         }
@@ -270,14 +284,14 @@ void Compiler::propagateMatchLabels(Graph& g) {
           unext.push(h);
 
           while (!unext.empty()) {
-            Graph::vertex u = unext.top();
+            NFA::VertexDescriptor u = unext.top();
             unext.pop();
 
-            g[u]->Label = UNLABELABLE;
+            g[u].Label = UNLABELABLE;
 
             for (uint32 j = 0; j < g.inDegree(u); ++j) {
-              Graph::vertex uh = g.inVertex(u, j);
-              if (g[uh] && g[uh]->Label != UNLABELABLE) {
+              NFA::VertexDescriptor uh = g.inVertex(u, j);
+              if (g[uh].Trans && g[uh].Label != UNLABELABLE) {
                 // Walking on all nodes not already marked unlabelable
                 unext.push(uh);
               }
@@ -289,28 +303,28 @@ void Compiler::propagateMatchLabels(Graph& g) {
   }
 }
 
-void Compiler::removeNonMinimalLabels(Graph& g) {
+void Compiler::removeNonMinimalLabels(NFA& g) {
   // Make a list of all tails of edges where the head is an ancestor of
   // multiple match states, but the tail is an ancestor of only one.
-  std::vector<bool> visited(g.numVertices());
+  std::vector<bool> visited(g.verticesSize());
 
-  std::set<Graph::vertex> heads;
-  std::stack<Graph::vertex, std::vector<Graph::vertex> > next;
+  std::set<NFA::VertexDescriptor> heads;
+  std::stack<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor> > next;
 
   next.push(0);
   visited[0] = true;
 
   while (!next.empty()) {
-    Graph::vertex h = next.top();
+    NFA::VertexDescriptor h = next.top();
     next.pop();
 
     for (uint32 i = 0; i < g.outDegree(h); ++i) {
-      Graph::vertex t = g.outVertex(h, i);
+      NFA::VertexDescriptor t = g.outVertex(h, i);
 
       if (visited[t]) continue;
 
-      if (g[t]->Label == UNLABELABLE) {
-        g[t]->Label = NONE;
+      if (g[t].Label == UNLABELABLE) {
+        g[t].Label = NONE;
         next.push(t);
       }
       else {
@@ -322,23 +336,23 @@ void Compiler::removeNonMinimalLabels(Graph& g) {
   }
 
   // Push all of the minimal guard states we found back onto the stack.
-  for (std::set<Graph::vertex>::const_iterator vi(heads.begin()); vi != heads.end(); ++vi) {
+  for (std::set<NFA::VertexDescriptor>::const_iterator vi(heads.begin()); vi != heads.end(); ++vi) {
     next.push(*vi);
   }
 
   // Unlabel every remaining node not in heads.
   while (!next.empty()) {
-    Graph::vertex h = next.top();
+    NFA::VertexDescriptor h = next.top();
     next.pop();
 
     for (uint32 i = 0; i < g.outDegree(h); ++i) {
-      Graph::vertex t = g.outVertex(h, i);
+      NFA::VertexDescriptor t = g.outVertex(h, i);
 
       if (visited[t]) continue;
 
       // NB: Any node which should be labeled, we've already visited,
       // so we can unlabel everything we reach this way.
-      g[t]->Label = NONE;
+      g[t].Label = NONE;
       next.push(t);
       visited[t] = true;
     }
@@ -362,8 +376,8 @@ struct ByteSetLess {
 
 struct PairLess {
   bool operator()(
-    const std::pair<ByteSet, std::vector<Graph::vertex> >& a,
-    const std::pair<ByteSet, std::vector<Graph::vertex> >& b) const
+    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor> >& a,
+    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor> >& b) const
   {
     for (uint32 i = 0; i < 256; ++i) {
       if (a.first[i] < b.first[i]) {
@@ -379,36 +393,36 @@ struct PairLess {
   }
 };
 
-void Compiler::subsetDFA(Graph& dst, const Graph& src) {
+void Compiler::subsetDFA(NFA& dst, const NFA& src) {
 
-  std::stack< std::pair<ByteSet, std::vector<Graph::vertex> > > dstStack;
-  std::map< std::pair<ByteSet, std::vector<Graph::vertex> >, Graph::vertex, PairLess > dstList2Dst;
+  std::stack< std::pair<ByteSet, std::vector<NFA::VertexDescriptor> > > dstStack;
+  std::map< std::pair<ByteSet, std::vector<NFA::VertexDescriptor> >, NFA::VertexDescriptor, PairLess > dstList2Dst;
 
   // set up initial dst state
-  const std::pair<ByteSet, std::vector<Graph::vertex> > d0(ByteSet(), std::vector<Graph::vertex>(1, 0));
+  const std::pair<ByteSet, std::vector<NFA::VertexDescriptor> > d0(ByteSet(), std::vector<NFA::VertexDescriptor>(1, 0));
   dstList2Dst[d0] = 0;
   dstStack.push(d0);
 
   ByteSet outBytes;
 
   while (!dstStack.empty()) {
-    const std::pair<ByteSet, std::vector<Graph::vertex> > p(dstStack.top());
+    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor> > p(dstStack.top());
     dstStack.pop();
 
-    const std::vector<Graph::vertex>& srcHeadList(p.second);
-    const Graph::vertex dstHead = dstList2Dst[p];
+    const std::vector<NFA::VertexDescriptor>& srcHeadList(p.second);
+    const NFA::VertexDescriptor dstHead = dstList2Dst[p];
 
     // for each byte, collect all srcTails leaving srcHeads
-    std::map< byte, std::vector<Graph::vertex> > srcTailLists;
+    std::map< byte, std::vector<NFA::VertexDescriptor> > srcTailLists;
 
-    for (std::vector<Graph::vertex>::const_iterator i(srcHeadList.begin()); i != srcHeadList.end(); ++i) {
-      const Graph::vertex srcHead = *i;
+    for (std::vector<NFA::VertexDescriptor>::const_iterator i(srcHeadList.begin()); i != srcHeadList.end(); ++i) {
+      const NFA::VertexDescriptor srcHead = *i;
 
       for (uint32 j = 0; j < src.outDegree(srcHead); ++j) {
-        const Graph::vertex srcTail = src.outVertex(srcHead, j);
+        const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, j);
 
         outBytes.reset();
-        src[srcTail]->getBits(outBytes);
+        src[srcTail].Trans->getBits(outBytes);
 
         for (uint32 b = 0; b < 256; ++b) {
           if (outBytes[b]) {
@@ -419,12 +433,12 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
     }
 
     // remove right duplicates from each srcTailsList
-    for (std::map< byte, std::vector<Graph::vertex> >::iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
-      std::vector<Graph::vertex>& srcTailList(i->second);
-      std::set<Graph::vertex> seen;
+    for (std::map< byte, std::vector<NFA::VertexDescriptor> >::iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
+      std::vector<NFA::VertexDescriptor>& srcTailList(i->second);
+      std::set<NFA::VertexDescriptor> seen;
 
-      for (std::vector<Graph::vertex>::iterator j(srcTailList.begin()); j != srcTailList.end(); ) {
-        const Graph::vertex srcTail = *j;
+      for (std::vector<NFA::VertexDescriptor>::iterator j(srcTailList.begin()); j != srcTailList.end(); ) {
+        const NFA::VertexDescriptor srcTail = *j;
         if (seen.insert(srcTail).second) {
           ++j;
         }
@@ -435,43 +449,43 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
     }
 
     // collapse outgoing bytes with the same srcTails
-    std::map<std::vector<Graph::vertex>, ByteSet> srcList2Bytes;
+    std::map<std::vector<NFA::VertexDescriptor>, ByteSet> srcList2Bytes;
 
-    for (std::map< byte, std::vector<Graph::vertex> >::const_iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
+    for (std::map< byte, std::vector<NFA::VertexDescriptor> >::const_iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
       const byte b = i->first;
-      const std::vector<Graph::vertex>& srcTailList(i->second);
+      const std::vector<NFA::VertexDescriptor>& srcTailList(i->second);
 
       srcList2Bytes[srcTailList][b] = true;
     }
 
-    std::map<ByteSet, std::vector<Graph::vertex>, ByteSetLess> bytes2SrcList;
+    std::map<ByteSet, std::vector<NFA::VertexDescriptor>, ByteSetLess> bytes2SrcList;
 
-    for (std::map<std::vector<Graph::vertex>, ByteSet>::const_iterator i(srcList2Bytes.begin()); i != srcList2Bytes.end(); ++i) {
+    for (std::map<std::vector<NFA::VertexDescriptor>, ByteSet>::const_iterator i(srcList2Bytes.begin()); i != srcList2Bytes.end(); ++i) {
       const ByteSet bs = i->second;
-      const std::vector<Graph::vertex>& srcTailList(i->first);
+      const std::vector<NFA::VertexDescriptor>& srcTailList(i->first);
 
       bytes2SrcList[bs] = srcTailList;
     }
 
     // form each srcTailList into determinizable groups
-    std::map<ByteSet, std::vector< std::vector<Graph::vertex> >, ByteSetLess> dstListGroups;
+    std::map<ByteSet, std::vector< std::vector<NFA::VertexDescriptor> >, ByteSetLess> dstListGroups;
 
-    for (std::map<ByteSet, std::vector<Graph::vertex>, ByteSetLess>::const_iterator i(bytes2SrcList.begin()); i != bytes2SrcList.end(); ++i) {
+    for (std::map<ByteSet, std::vector<NFA::VertexDescriptor>, ByteSetLess>::const_iterator i(bytes2SrcList.begin()); i != bytes2SrcList.end(); ++i) {
       const ByteSet bs = i->first;
-      const std::vector<Graph::vertex>& srcTailList(i->second);
+      const std::vector<NFA::VertexDescriptor>& srcTailList(i->second);
 
       bool startGroup = true;
 
-      for (std::vector<Graph::vertex>::const_iterator j(srcTailList.begin()); j != srcTailList.end(); ++j) {
-        const Graph::vertex srcTail = *j;
+      for (std::vector<NFA::VertexDescriptor>::const_iterator j(srcTailList.begin()); j != srcTailList.end(); ++j) {
+        const NFA::VertexDescriptor srcTail = *j;
 
-        if (src[srcTail]->IsMatch) {
+        if (src[srcTail].IsMatch) {
           // match states are always singleton groups
-          dstListGroups[bs].push_back(std::vector<Graph::vertex>());
+          dstListGroups[bs].push_back(std::vector<NFA::VertexDescriptor>());
           startGroup = true;
         }
         else if (startGroup) {
-          dstListGroups[bs].push_back(std::vector<Graph::vertex>());
+          dstListGroups[bs].push_back(std::vector<NFA::VertexDescriptor>());
           startGroup = false;
         }
 
@@ -480,32 +494,33 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
     }
 
     // determinize for each outgoing byte
-    for (std::map<ByteSet, std::vector< std::vector<Graph::vertex> >, ByteSetLess>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
+    for (std::map<ByteSet, std::vector< std::vector<NFA::VertexDescriptor> >, ByteSetLess>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
       const ByteSet bs = i->first;
-      const std::vector< std::vector<Graph::vertex> >& dstLists(i->second);
+      const std::vector< std::vector<NFA::VertexDescriptor> >& dstLists(i->second);
 
-      for (std::vector< std::vector<Graph::vertex> >::const_iterator j(dstLists.begin()); j != dstLists.end(); ++j) {
+      for (std::vector< std::vector<NFA::VertexDescriptor> >::const_iterator j(dstLists.begin()); j != dstLists.end(); ++j) {
 
-        const std::vector<Graph::vertex>& dstList(*j);
-        const std::pair<ByteSet, std::vector<Graph::vertex> > p(bs, dstList);
+        const std::vector<NFA::VertexDescriptor>& dstList(*j);
+        const std::pair<ByteSet, std::vector<NFA::VertexDescriptor> > p(bs, dstList);
 
-        std::map< std::pair<ByteSet, std::vector<Graph::vertex> >, Graph::vertex, PairLess>::const_iterator l(dstList2Dst.find(p));
+        std::map< std::pair<ByteSet, std::vector<NFA::VertexDescriptor> >, NFA::VertexDescriptor, PairLess>::const_iterator l(dstList2Dst.find(p));
 
-        Graph::vertex dstTail;
+        NFA::VertexDescriptor dstTail;
         if (l == dstList2Dst.end()) {
           // new sublist dst vertex
           dstList2Dst[p] = dstTail = dst.addVertex();
           dstStack.push(std::make_pair(bs, dstList));
-          dst.setTran(dstTail, new CharClassState(bs));
+          CharClassState s(bs);
+          dst[dstTail].Trans = dst.TransFac->get(&s);
         }
         else {
           // old sublist vertex
           dstTail = l->second;
         }
 
-        if (src[dstList.front()]->IsMatch) {
-          dst[dstTail]->IsMatch = true;
-          dst[dstTail]->Label = src[dstList.front()]->Label;
+        if (src[dstList.front()].IsMatch) {
+          dst[dstTail].IsMatch = true;
+          dst[dstTail].Label = src[dstList.front()].Label;
         }
 
         dst.addEdge(dstHead, dstTail);
@@ -515,14 +530,12 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
 
   // collapse CharClassStates where possible
   // isn't necessary, but improves the GraphViz output
-  for (uint32 i = 1; i < dst.numVertices(); ++i) {
-    const Transition* t = dst[i];
-
+  for (uint32 i = 1; i < dst.verticesSize(); ++i) {
     int32 first = -1;
     int32 last = -1;
 
     outBytes.reset();
-    t->getBits(outBytes);
+    dst[i].Trans->getBits(outBytes);
 
     for (int32 b = 0; b < 256; ++b) {
       if (outBytes[b]) {
@@ -543,18 +556,14 @@ void Compiler::subsetDFA(Graph& dst, const Graph& src) {
     }
 
     if (first != -1) {
-      Transition* r;
       if (first == last) {
-        r = new LitState(first);
+        LitState s(first);
+        dst[i].Trans = dst.TransFac->get(&s);
       }
       else {
-        r = new RangeState(first, last);
+        RangeState s(first, last);
+        dst[i].Trans = dst.TransFac->get(&s);
       }
-
-      r->IsMatch = t->IsMatch;
-      r->Label = t->Label;
-      dst.setTran(i, r);
-      delete t;
     }
   }
 }
