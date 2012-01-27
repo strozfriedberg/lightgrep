@@ -6,6 +6,13 @@
 
 struct TransitionComparator;
 
+enum TransitionType {
+  LitStateType,
+  EitherStateType,
+  RangeStateType,
+  CharClassStateType
+};
+
 class LitState: public Transition {
 public:
   LitState(byte lit): Lit(lit) {}
@@ -16,6 +23,8 @@ public:
   virtual void getBits(ByteSet& bits) const { bits.set(Lit); }
 
   virtual size_t objSize() const { return sizeof(*this); }
+
+  virtual byte type() const { return LitStateType; }
 
   virtual LitState* clone(void* buffer) const;
 
@@ -39,6 +48,8 @@ public:
   virtual const byte* allowed(const byte* beg, const byte*) const { return *beg == Lit1 || *beg == Lit2 ? beg+1: beg; }
 
   virtual void getBits(ByteSet& bits) const { bits.set(Lit1); bits.set(Lit2); }
+
+  virtual byte type() const { return EitherStateType; }
 
   virtual size_t objSize() const { return sizeof(*this); }
 
@@ -65,6 +76,8 @@ public:
 
   virtual void getBits(ByteSet& bits) const { for (uint32 i = First; i <= Last; ++i) { bits.set(i); }; }
 
+  virtual byte type() const { return RangeStateType; }
+
   virtual size_t objSize() const { return sizeof(*this); }
 
   virtual RangeState* clone(void* buffer) const;
@@ -90,6 +103,8 @@ public:
 
   virtual void getBits(ByteSet& bits) const { bits = Allowed; }
 
+  virtual byte type() const { return CharClassStateType; }
+
   virtual size_t objSize() const { return sizeof(*this); }
 
   virtual CharClassState* clone(void* buffer) const;
@@ -106,108 +121,88 @@ private:
   friend struct TransitionComparator;
 };
 
-class TransitionComparator {
-public:
-  TransitionComparator(): mask(std::numeric_limits<uint64>::max()) {}
+bool operator<(const ByteSet& lbs, const ByteSet& rbs);
 
+struct TransitionComparator {
   bool operator()(const Transition* a, const Transition* b) const {
-    if (const LitState* alit = dynamic_cast<const LitState*>(a)) {
-      if (const LitState* blit = dynamic_cast<const LitState*>(b)) {
-        return alit->Lit < blit->Lit;
-      }
-      else {
+    switch (a->type()) {
+    case LitStateType:
+      switch (b->type()) {
+      case LitStateType:
+        return static_cast<const LitState*>(a)->Lit <
+               static_cast<const LitState*>(b)->Lit;
+      case EitherStateType:
+      case RangeStateType:
+      case CharClassStateType:
         return true;
+      default:
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Impossible! " << b->type());
       }
-    }
-    else if (const EitherState* ae = dynamic_cast<const EitherState*>(a)) {
-      if (dynamic_cast<const LitState*>(b)) {
+    case EitherStateType:
+      switch (b->type()) {
+      case LitStateType:
         return false;
-      }
-      else if (const EitherState* be = dynamic_cast<const EitherState*>(b)) {
-        if (ae->Lit1 < be->Lit1) {
-          return true;
-        }
-        else if (ae->Lit1 > be->Lit1) {
-          return false;
-        }
-        else {
-          return ae->Lit2 < be->Lit2;
-        }
-      }
-      else {
-        return true;
-      }
-    }
-    else if (const RangeState* ar = dynamic_cast<const RangeState*>(a)) {
-      if (dynamic_cast<const LitState*>(b) ||
-          dynamic_cast<const EitherState*>(b)) {
-        return false;
-      }
-      else if (const RangeState* br = dynamic_cast<const RangeState*>(b)) {
-        if (ar->First < br->First) {
-          return true;
-        }
-        else if (ar->First > br->First) {
-          return false;
-        }
-        else {
-          return ar->Last < br->Last;
-        }
-      }
-      else {
-        return true;
-      }
-    }
-    else {
-      const CharClassState* acc = dynamic_cast<const CharClassState*>(a);
+      case EitherStateType:
+        {
+          const EitherState* ae = static_cast<const EitherState*>(a);
+          const EitherState* be = static_cast<const EitherState*>(b);
 
-      const CharClassState* bcc = dynamic_cast<const CharClassState*>(b);
-      if (!bcc) {
-        return false;
-      }
-
-      const ByteSet& a_bytes(acc->Allowed);
-      const ByteSet& b_bytes(bcc->Allowed);
-
-      uint64 al, bl;
-
-      al = (a_bytes & mask).to_ulong();
-      bl = (b_bytes & mask).to_ulong();
-
-      if (al < bl) {
-        return true;
-      }
-      else if (bl > al) {
-        return false;
-      }
-      else {
-        al = ((a_bytes >> 64) & mask).to_ulong();
-        bl = ((b_bytes >> 64) & mask).to_ulong();
-
-        if (al < bl) {
-          return true;
-        }
-        else if (bl > al) {
-          return false;
-        }
-        else {
-          al = ((a_bytes >> 128) & mask).to_ulong();
-          bl = ((b_bytes >> 128) & mask).to_ulong();
-
-          if (al < bl) {
+          if (ae->Lit1 < be->Lit1) {
             return true;
           }
-          else if (bl > al) {
+          else if (ae->Lit1 > be->Lit1) {
             return false;
           }
           else {
-            return (a_bytes >> 192).to_ulong() < (b_bytes >> 192).to_ulong();
+            return ae->Lit2 < be->Lit2;
           }
         }
+      case RangeStateType:
+      case CharClassStateType:
+        return true;
+      default:
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Impossible! " << b->type());
       }
+    case RangeStateType:
+      switch (b->type()) {
+      case LitStateType:
+      case EitherStateType:
+        return false;
+      case RangeStateType:
+        {
+          const RangeState* ar = static_cast<const RangeState*>(a);
+          const RangeState* br = static_cast<const RangeState*>(b);
+
+          if (ar->First < br->First) {
+            return true;
+          }
+          else if (ar->First > br->First) {
+            return false;
+          }
+          else {
+            return ar->Last < br->Last;
+          }
+        }
+      case CharClassStateType:
+        return true;
+      default:
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Impossible! " << b->type());
+      }
+    case CharClassStateType:
+      switch (b->type()) {
+      case LitStateType:
+      case EitherStateType:
+      case RangeStateType:
+        return false;
+      case CharClassStateType:
+        return static_cast<const CharClassState*>(a)->Allowed <
+               static_cast<const CharClassState*>(b)->Allowed;
+      default:
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Impossible! " << b->type());
+      }
+    default:
+      THROW_RUNTIME_ERROR_WITH_OUTPUT("Impossible! " << a->type());
     }
   }
-
-private:
-  const ByteSet mask;
 };
+
