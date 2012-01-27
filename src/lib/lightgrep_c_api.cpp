@@ -123,9 +123,11 @@ int lg_destroy_parser(LG_HPARSER hParser) {
 int lg_add_keyword(LG_HPARSER hParser,
                    const char* keyword,
                    unsigned int keyIndex,
-                   const LG_KeyOptions* options)
+                   const LG_KeyOptions* options,
+                   const char* encoding)
 {
-  return exception_trap(boost::bind(&Parser::addPattern, hParser->Impl.get(), keyword, keyIndex, *options), hParser);
+  Pattern p(keyword, options->FixedString, options->CaseInsensitive, encoding);
+  return exception_trap(boost::bind(&Parser::addPattern, hParser->Impl.get(), boost::cref(p), keyIndex), hParser);
 }
 
 void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)

@@ -433,12 +433,12 @@ SCOPE_TEST(testSubstringKey) {
 }
 
 SCOPE_TEST(testCreateXXYYY) {
-  std::vector<std::string> kws;
-  kws.push_back("x");
-  kws.push_back("x");
-  kws.push_back("yyy");
+  std::vector<Pattern> kws;
+  kws.push_back(Pattern("x"));
+  kws.push_back(Pattern("x"));
+  kws.push_back(Pattern("yyy"));
 
-  NFAPtr gp(createGraph(kws, CP_ASCII, true, false));
+  NFAPtr gp(createGraph(kws));
   NFA& g = *gp;
 
   NFA exp;

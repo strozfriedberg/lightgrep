@@ -1,23 +1,27 @@
 #pragma once
 
 #include "automata.h"
+#include "compiler.h"
+#include "nfabuilder.h"
+#include "pattern.h"
 #include "parsenode.h"
 #include "parsetree.h"
-#include "nfabuilder.h"
-#include "compiler.h"
 
 bool parse(const std::string& text, bool litMode, ParseTree& tree);
 
 class Parser {
 public:
-  Parser(uint32 sizeHint): Fsm(new NFA(1, sizeHint)) {
-    Fsm->TransFac = Nfab.getTransFac();
-  }
+  Parser(uint32 sizeHint);
 
   ParseTree  Tree;
   NFABuilder Nfab;
   Compiler   Comp;
   NFAPtr     Fsm;
 
-  void addPattern(const std::string& pattern, uint32 patIndex, const LG_KeyOptions& keyOpts);
+  typedef std::map< uint32, boost::shared_ptr<Encoding> > EncodingMap;
+
+  EncodingsCodeMap EncCodes;
+  EncodingMap      Encoders;
+
+  void addPattern(const Pattern& pattern, uint32 patIndex);
 };
