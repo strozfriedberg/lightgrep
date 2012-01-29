@@ -2,8 +2,9 @@
 
 // must include <fstream> before this header, because of <iosfwd> usage
 
+#include "automata.h"
 #include "basic.h"
-#include "graph.h"
+#include "pattern.h"
 
 #include <iosfwd>
 #include <set>
@@ -16,21 +17,21 @@ public:
          DebugEnd;
 
   std::set<std::string>::size_type SampleLimit;
-  std::multiset<Graph::vertex>::size_type LoopLimit;
+  std::multiset<NFA::VertexDescriptor>::size_type LoopLimit;
 
   std::string KeyFile,
               Command,
               Input,
               Output,
               Encoding,
-              Pattern,
+              SinglePattern,
               ServerLog;
 
   std::vector<std::string> Inputs;
 
   unsigned int BlockSize;
 
-  bool CaseSensitive,
+  bool CaseInsensitive,
        LiteralMode,
        NoOutput,
        Determinize,
@@ -39,9 +40,10 @@ public:
 
   mutable std::ofstream OutputFile;
 
-  uint32 getEncoding() const;
-
   std::ostream& openOutput() const;
 
-  std::vector<std::string> getKeys() const;
+  std::vector<Pattern> getKeys() const;
+
+  bool readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const;
+  bool parseLine(const std::string& line, std::vector<Pattern>& keys) const;
 };

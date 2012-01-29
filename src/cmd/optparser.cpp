@@ -2,6 +2,7 @@
 
 #include "basic.h"
 #include "optparser.h"
+#include "encodings.h"
 
 #include <vector>
 #include <set>
@@ -57,7 +58,7 @@ void parse_opts(int argc, char** argv,
     ("no-det", "do not determinize NFAs")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
-    ("pattern,p", po::value< std::string >(&opts.Pattern), "a single keyword on the command-line")
+    ("pattern,p", po::value< std::string >(&opts.SinglePattern), "a single keyword on the command-line")
     ("recursive,r", "traverse directories recursively")
     ("block-size", po::value< unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ("with-filename,H", "print the filename for each match")
@@ -94,7 +95,9 @@ void parse_opts(int argc, char** argv,
   }
 
   if (opts.Command == "search" || opts.Command == "graph" ||
-      opts.Command == "prog"   || opts.Command == "samp") {
+      opts.Command == "prog"   || opts.Command == "samp"  ||
+      opts.Command == "server")
+  {
     // determine the source of our patterns
     if (!optsMap["pattern"].empty()) {
       if (!optsMap["keywords"].empty()) {
@@ -102,7 +105,7 @@ void parse_opts(int argc, char** argv,
       }
 
       // keywords from --pattern
-      opts.Pattern = optsMap["pattern"].as<std::string>();
+      opts.SinglePattern = optsMap["pattern"].as<std::string>();
     }
     else {
       if (!optsMap["keywords"].empty()) {
@@ -120,11 +123,25 @@ void parse_opts(int argc, char** argv,
       }
     }
 
-    opts.CaseSensitive = optsMap.count("ignore-case") == 0;
+    opts.CaseInsensitive = optsMap.count("ignore-case") > 0;
     opts.LiteralMode = optsMap.count("fixed-strings") > 0;
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;
+    if (opts.Encoding == "ascii") {
+      opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
+    }
+    else if (opts.Encoding == "ucs16") {
+      opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+    }
+    else if (opts.Encoding == "both") {
+      std::stringstream buf;
+      buf << LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII] << "," << LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+      opts.Encoding = buf.str();
+    }
+    else {
+      THROW_WITH_OUTPUT(po::error, "did not recognize encoding '" << opts.Encoding << "'");
+    }
 
     if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
       throw po::error("--with-filename and --no-filename are incompatible options");
@@ -170,7 +187,7 @@ void parse_opts(int argc, char** argv,
       throw po::too_many_positional_options_error();
     }
   }
-  else if (opts.Command == "help" || opts.Command == "server") {
+  else if (opts.Command == "help") {
     // nothing else to do
   }
   else {

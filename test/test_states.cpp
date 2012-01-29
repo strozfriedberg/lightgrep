@@ -21,7 +21,7 @@ SCOPE_TEST(litAccept) {
   SCOPE_ASSERT_EQUAL(ch+1, lit.allowed(ch, ch+1));
   ch[0] = 'b';
   SCOPE_ASSERT_EQUAL(ch, lit.allowed(ch, ch+1));
-  std::bitset<256> bits(0);
+  ByteSet bits(0);
   lit.getBits(bits);
   SCOPE_ASSERT_EQUAL(1u, bits.count());
   SCOPE_ASSERT(bits.test('a'));
@@ -47,7 +47,7 @@ SCOPE_TEST(eitherAccept) {
   ch = 'A';
   SCOPE_ASSERT_EQUAL(&ch+1, e.allowed(&ch, &ch+1));
 
-  std::bitset<256> bits(0);
+  ByteSet bits(0);
   e.getBits(bits);
   SCOPE_ASSERT_EQUAL(2u, bits.count());
   SCOPE_ASSERT(bits.test('a'));
@@ -66,7 +66,7 @@ SCOPE_TEST(eitherAccept) {
 SCOPE_TEST(rangeAccept) {
   const RangeState r('0', '9');
   byte ch;
-  std::bitset<256> bits(0);
+  ByteSet bits(0);
   r.getBits(bits);
   SCOPE_ASSERT_EQUAL(10u, bits.count());
   for (unsigned int i = 0; i < 256; ++i) {
@@ -109,4 +109,22 @@ SCOPE_TEST(charClassState) {
   ByteSet* setPtr = reinterpret_cast<ByteSet*>(&p[1]);
   SCOPE_ASSERT_EQUAL(set, *setPtr);
   SCOPE_ASSERT_EQUAL("ABab", s.label());
+}
+
+SCOPE_TEST(byteSetLexOrder) {
+  // Our usage of memcmp assumes that ByteSet is layed out as a byte[32].
+  SCOPE_ASSERT_EQUAL(32, sizeof(ByteSet));
+
+  SCOPE_ASSERT(ByteSet(0xFE) < ByteSet(0xFF));
+
+  ByteSet none(0), test(1), all;
+  all.flip();
+
+  do {
+    SCOPE_ASSERT(none < test);
+    SCOPE_ASSERT(!(test < none));
+    SCOPE_ASSERT(test < all);
+    SCOPE_ASSERT(!(all < test));
+    SCOPE_ASSERT(!(test < test));
+  } while ((test <<= 1).any());
 }

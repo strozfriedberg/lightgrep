@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basic.h"
+#include <map>
 
 class Encoding {
 public:
@@ -9,3 +10,8 @@ public:
 
   virtual ~Encoding() {}
 };
+
+
+typedef std::map< std::string, uint32 > EncodingsCodeMap;
+
+EncodingsCodeMap getEncodingsMap();

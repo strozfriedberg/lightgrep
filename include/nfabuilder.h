@@ -1,22 +1,26 @@
 #pragma once
 
+#include "automata.h"
 #include "basic.h"
-#include "graph.h"
 #include "encoding.h"
 #include "parsenode.h"
 #include "parsetree.h"
+#include "transitionfactory.h"
 
 #include <limits>
 #include <stack>
 
-typedef std::vector<Graph::vertex> InListT;
-typedef std::vector< std::pair<Graph::vertex, uint32> > OutListT;
+#include <boost/scoped_array.hpp>
+#include <boost/shared_ptr.hpp>
+
+typedef std::vector<NFA::VertexDescriptor> InListT;
+typedef std::vector< std::pair<NFA::VertexDescriptor, uint32> > OutListT;
 
 static const uint32 NOSKIP = std::numeric_limits<uint32>::max();
 
 struct Fragment {
   Fragment(): Skippable(NOSKIP) {}
-  Fragment(Graph::vertex in, const ParseNode& n):
+  Fragment(NFA::VertexDescriptor in, const ParseNode& n):
     InList(1, in), N(n), Skippable(NOSKIP) {}
 
   /*
@@ -30,7 +34,7 @@ struct Fragment {
 
   uint32 Skippable;
 
-  void initFull(Graph::vertex in, const ParseNode& n) {
+  void initFull(NFA::VertexDescriptor in, const ParseNode& n) {
     N = n;
     Skippable = NOSKIP;
     InList.clear();
@@ -63,7 +67,7 @@ public:
   virtual void callback(const ParseNode& n);
 
   void setEncoding(const boost::shared_ptr<Encoding>& e);
-  void setCaseSensitive(bool caseSensitive); // defaults to true
+  void setCaseInsensitive(bool insensitive); // defaults to true
   void setSizeHint(uint64 reserveSize);
 
   void alternate(const ParseNode& n);
@@ -82,7 +86,7 @@ public:
 
   void finish(const ParseNode&);
 
-  GraphPtr getFsm() const { return Fsm; }
+  NFAPtr getFsm() const { return Fsm; }
   void resetFsm() { Fsm.reset(); }
 
   void setCurLabel(uint32 lbl) { CurLabel = lbl; }
@@ -91,8 +95,12 @@ public:
 
   bool build(const ParseTree& tree);
 
+  boost::shared_ptr<TransitionFactory> getTransFac() { return TransFac; }
+
 private:
-  void setLiteralTransition(Graph& g, const Graph::vertex& v, byte val);
+  void init();
+
+  void setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, byte val);
 
   void patch_mid(OutListT& src, const InListT& dst, uint32 dstskip);
   void patch_pre(OutListT& src, const InListT& dst);
@@ -100,16 +108,16 @@ private:
 
   void traverse(const ParseNode* root);
 
-  bool IsGood, CaseSensitive;
+  bool IsGood, CaseInsensitive;
   uint32 CurLabel;
   uint64 ReserveSize;
   boost::shared_ptr<Encoding> Enc;
-  GraphPtr Fsm;
+  NFAPtr Fsm;
   std::stack<Fragment> Stack;
   std::stack<const ParseNode*, std::vector<const ParseNode*> > ChildStack, ParentStack;
 
   boost::scoped_array<byte> TempBuf;
-  std::vector<TransitionPtr> LitFlyweights;
+  boost::shared_ptr<TransitionFactory> TransFac;
 
   Fragment TempFrag;
 };
