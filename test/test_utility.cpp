@@ -24,7 +24,7 @@ std::ostream& operator<<(std::ostream& os, const boost::shared_ptr<TransitionPtr
 */
 
 /*
-bool buildNFA(Graph& fsm, const std::string& dot) {
+bool buildNFA(NFA& fsm, const std::string& dot) {
   std::istringstream is(dot);
 
   // Vertex properties
@@ -49,7 +49,7 @@ bool buildNFA(Graph& fsm, const std::string& dot) {
 
   if (!boost::read_graphviz(is, src, dp, "node_id")) return false;
 
-  // Convert this graph to a Graph (annoying!)
+  // Convert this graph to a NFA (annoying!)
 
   typedef boost::graph_traits<graph_t>::vertex vertex_t;
   typedef boost::graph_traits<graph_t>::edge_iterator edge_iterator;
@@ -77,7 +77,7 @@ std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
 }
 
 SCOPE_TEST(acOrbcProgram) {
-  Graph fsm(4);
+  NFA fsm(4);
 
   edge(0, 1, fsm, new LitState('a')); // ac|bc
   edge(0, 2, fsm, new LitState('b'));
@@ -98,13 +98,13 @@ SCOPE_TEST(acOrbcProgram) {
 }
 
 SCOPE_TEST(keywordLabelsProgram) {
-  Graph fsm(4);
+  NFA fsm(4);
   edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('b'));
   edge(2, 3, fsm, new LitState('c'));
 
-  fsm[1]->Label = 0;
-  fsm[3]->Label = 1;
+  fsm[1].Label = 0;
+  fsm[3].Label = 1;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -120,22 +120,24 @@ SCOPE_TEST(keywordLabelsProgram) {
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[8]);
 }
 
-SCOPE_TEST(twoFixedStrings) {
-  std::vector< std::string > kws;
-  kws.push_back("one");
-  kws.push_back("two");
-  GraphPtr fsm = createGraph(kws);
-  SCOPE_ASSERT_EQUAL(7u, fsm->numVertices());
+template<class T>
+std::vector< Pattern > makePatterns(unsigned int n, T x) {
+  std::vector<Pattern> ret;
+  for (unsigned int i = 0; i < n; ++i) {
+    ret.push_back(Pattern(x[i]));
+  }
+  return ret;
 }
 
 SCOPE_TEST(twoUnicode) {
-  std::vector< std::string > kws;
-  kws.push_back("aa");
-  kws.push_back("ab");
-  GraphPtr fsm = createGraph(kws, CP_UCS16);
-  Graph& g = *fsm;
+  std::vector<Pattern> pats(makePatterns(2u, (const char*[]){"aa", "ab"}));
+  for (std::vector<Pattern>::iterator it(pats.begin()); it != pats.end(); ++it) {
+    it->Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+  }
+  NFAPtr fsm = createGraph(pats);
+  NFA& g = *fsm;
   
-  SCOPE_ASSERT_EQUAL(7u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(7u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
@@ -164,30 +166,30 @@ SCOPE_TEST(twoUnicode) {
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(6));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(6));
 
-  SCOPE_ASSERT(!g[0]);
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(!g[2]->IsMatch);
-  SCOPE_ASSERT(!g[3]->IsMatch);
-  SCOPE_ASSERT(!g[4]->IsMatch);
-  SCOPE_ASSERT(g[5]->IsMatch);
-  SCOPE_ASSERT(g[6]->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(!g[3].IsMatch);
+  SCOPE_ASSERT(!g[4].IsMatch);
+  SCOPE_ASSERT(g[5].IsMatch);
+  SCOPE_ASSERT(g[6].IsMatch);
 
   ByteSet abs, ebs;
 
   const byte exp[] = { 'a', 0, 'a', 'b', 0, 0 };
-  for (uint32 i = 1; i < g.numVertices(); ++i) {
+  for (uint32 i = 1; i < g.verticesSize(); ++i) {
     abs.reset();
     ebs.reset();
 
     ebs[exp[i-1]] = true;
-    g[i]->getBits(abs);
+    g[i].Trans->getBits(abs);
 
     SCOPE_ASSERT_EQUAL(ebs, abs);
   }
 }
 
 SCOPE_TEST(firstBitset) {
-  Graph fsm(3);
+  NFA fsm(3);
   edge(0, 1, fsm, new LitState('A'));
   edge(0, 2, fsm, new LitState('B'));
 
@@ -203,11 +205,8 @@ SCOPE_TEST(firstBitset) {
 }
 
 SCOPE_TEST(simpleCollapse) {
-  std::vector< std::string > kws;
-  kws.push_back("ab");
-  kws.push_back("ac");
-  GraphPtr fsm = createGraph(kws);
-  SCOPE_ASSERT_EQUAL(4u, fsm->numVertices());
+  NFAPtr fsm = createGraph(makePatterns(2u, (const char*[]){"ab", "ac"}));
+  SCOPE_ASSERT_EQUAL(4u, fsm->verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(2));
@@ -215,9 +214,9 @@ SCOPE_TEST(simpleCollapse) {
 }
 
 SCOPE_TEST(codeGen2DiscoverVertex) {
-  Graph fsm(2);
+  NFA fsm(2);
   edge(0, 1, fsm, new LitState('a'));
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
   vis.discover_vertex(1, fsm);
@@ -230,12 +229,12 @@ SCOPE_TEST(codeGen2DiscoverVertex) {
 }
 
 SCOPE_TEST(codeGen2FinishVertex) {
-  Graph fsm(5);
+  NFA fsm(5);
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 3, fsm, new LitState('c'));
   edge(2, 4, fsm, new LitState('d'));
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
   cg->NumDiscovered = 3;
@@ -267,10 +266,10 @@ SCOPE_TEST(codeGen2FinishVertex) {
 }
 
 SCOPE_TEST(alternationCodeGen2FinishVertex) {
-  Graph fsm(3);
+  NFA fsm(3);
   edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('b'));
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
   cg->NumDiscovered = 3;
@@ -292,15 +291,15 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
 }
 
 SCOPE_TEST(layoutWithCheckHalt) {
-  Graph fsm(3);
+  NFA fsm(3);
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 2, fsm, new LitState('b'));
 
-  fsm[2]->Label = 0;
-  fsm[2]->IsMatch = true;
+  fsm[2].Label = 0;
+  fsm[2].IsMatch = true;
 
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.numVertices()));
+  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
   specialVisit(fsm, 0, vis);
 
@@ -313,7 +312,7 @@ SCOPE_TEST(layoutWithCheckHalt) {
 }
 
 SCOPE_TEST(twoStateBetterLayout) {
-  Graph fsm(2);
+  NFA fsm(2);
   edge(0, 1, fsm, new LitState('a'));
 
   ProgramPtr p = createProgram(fsm);
@@ -325,13 +324,13 @@ SCOPE_TEST(twoStateBetterLayout) {
 }
 
 SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
-  Graph g(4);
+  NFA g(4);
   edge(0, 1, g, new LitState('a'));
   edge(0, 2, g, new LitState('b'));
   edge(0, 3, g, new LitState('c'));
   edge(0, 4, g, new LitState('e'));
 
-  boost::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.numVertices()));
+  boost::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.verticesSize()));
   CodeGenVisitor vis(cgh);
 
   SCOPE_ASSERT_EQUAL(6, vis.calcJumpTableSize(0, g, g.outDegree(0)));
@@ -342,12 +341,12 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
 }
 
 SCOPE_TEST(alternationBetterLayout) {
-  Graph fsm(3);
+  NFA fsm(3);
   edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('b'));
 
-  fsm[1]->Label = 0;
-  fsm[2]->Label = 0;
+  fsm[1].Label = 0;
+  fsm[2].Label = 0;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -362,7 +361,7 @@ SCOPE_TEST(alternationBetterLayout) {
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[7]);
 }
 
-void createTrie(Graph& fsm) {
+void createTrie(NFA& fsm) {
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 3, fsm, new LitState('l'));
@@ -383,7 +382,7 @@ SCOPE_TEST(betterLayout) {
   // b
   //  ite
 
-  Graph fsm(11);
+  NFA fsm(11);
   createTrie(fsm);
 
   ProgramPtr p = createProgram(fsm);
@@ -408,12 +407,12 @@ SCOPE_TEST(betterLayout) {
 }
 
 SCOPE_TEST(generateCheckHalt) {
-  Graph fsm(2);
+  NFA fsm(2);
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 1, fsm, new LitState('a'));
 
-  fsm[1]->Label = 0;
-  fsm[1]->IsMatch = true;
+  fsm[1].Label = 0;
+  fsm[1].IsMatch = true;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -432,11 +431,8 @@ SCOPE_TEST(generateCheckHalt) {
 }
 
 SCOPE_TEST(testInitVM) {
-  std::vector<std::string> keys;
   SearchInfo info;
-  keys.push_back("one");
-  keys.push_back("two");
-  boost::shared_ptr<VmInterface> search = initVM(keys, info);
+  boost::shared_ptr<VmInterface> search = initVM(makePatterns(2u, (const char*[]){"one", "two"}), info);
                //012345678901234
   byte text[] = "a onetwothree";
 
@@ -449,12 +445,19 @@ SCOPE_TEST(testInitVM) {
 }
 
 SCOPE_TEST(testPivotTransitions) {
-  Graph fsm(5);
-  edge(0, 1, fsm, new LitState('a', 0));
-  edge(0, 2, fsm, new LitState('a', 1));
+  NFA fsm(5);
+  edge(0, 1, fsm, new LitState('a'));
+  edge(0, 2, fsm, new LitState('a'));
   edge(0, 3, fsm, new LitState('z'));
   edge(0, 4, fsm, new LitState('z'));
-  std::vector< std::vector< Graph::vertex > > tbl = pivotStates(0, fsm);
+
+  fsm[1].IsMatch = true;
+  fsm[1].Label = 0;
+
+  fsm[2].IsMatch = true;
+  fsm[2].Label = 1;
+
+  std::vector< std::vector<NFA::VertexDescriptor> > tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(256u, tbl.size());
   for (uint32 i = 0; i < 256; ++i) {
     if (i == 'a') {
@@ -480,10 +483,10 @@ SCOPE_TEST(testBitVectorGeneration) {
   bits.set('2');
   bits.set('4');
   bits.set('8');
-  Graph fsm(2);
+  NFA fsm(2);
   edge(0, 1, fsm, new CharClassState(bits));
-  fsm[1]->Label = 0;
-  fsm[1]->IsMatch = true;
+  fsm[1].Label = 0;
+  fsm[1].IsMatch = true;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -498,17 +501,17 @@ SCOPE_TEST(testBitVectorGeneration) {
 }
 
 SCOPE_TEST(testMaxOutbound) {
-  Graph fsm(5);
+  NFA fsm(5);
   edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('a'));
   edge(0, 3, fsm, new LitState('b'));
   edge(0, 4, fsm, new LitState('c'));
-  std::vector< std::vector< Graph::vertex > > tbl = pivotStates(0, fsm);
+  std::vector< std::vector< NFA::VertexDescriptor > > tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(2u, maxOutbound(tbl));
 }
 
 SCOPE_TEST(generateJumpTableRange) {
-  Graph fsm(7); // a(b|c|d|g)f
+  NFA fsm(7); // a(b|c|d|g)f
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(1, 3, fsm, new LitState('c'));
@@ -520,8 +523,8 @@ SCOPE_TEST(generateJumpTableRange) {
   edge(4, 6, fsm, f);
   edge(5, 6, fsm, f);
 
-  fsm[1]->Label = 0;
-  fsm[6]->IsMatch = true;
+  fsm[1].Label = 0;
+  fsm[6].IsMatch = true;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -555,7 +558,7 @@ SCOPE_TEST(generateJumpTableRange) {
 }
 
 SCOPE_TEST(generateJumpTableRangePreLabel) {
-  Graph fsm(7); // a(b|c|d|g)fg + a(b|c|d|g)fh
+  NFA fsm(7); // a(b|c|d|g)fg + a(b|c|d|g)fh
   edge(0, 1, fsm, new LitState('a'));
   edge(1, 2, fsm, new LitState('b'));
   edge(1, 3, fsm, new LitState('c'));
@@ -569,10 +572,10 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
   edge(6, 7, fsm, new LitState('g'));
   edge(6, 8, fsm, new LitState('h'));
 
-  fsm[7]->Label = 0;
-  fsm[8]->Label = 1;
-  fsm[7]->IsMatch = true;
-  fsm[8]->IsMatch = true;
+  fsm[7].Label = 0;
+  fsm[8].Label = 1;
+  fsm[7].IsMatch = true;
+  fsm[8].IsMatch = true;
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -605,15 +608,15 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
 }
 
 SCOPE_TEST(testFirstChildNext) {
-  Graph g;
+  NFA g;
   edge(0, 1, g, new LitState('0'));
   edge(1, 2, g, new LitState('0'));
   boost::shared_ptr<LitState> zero(new LitState('0'));
   edge(1, 3, g, zero);
   edge(2, 3, g, zero);
 
-  g[1]->Label = 0;
-  g[3]->IsMatch = true;
+  g[1].Label = 0;
+  g[3].IsMatch = true;
 
   ProgramPtr p = createProgram(g);
   Program& prog(*p);
@@ -632,7 +635,7 @@ SCOPE_TEST(testFirstChildNext) {
 }
 
 SCOPE_TEST(testFirstChildPrev) {
-  Graph g;
+  NFA g;
   edge(0, 1, g, new LitState('0'));
   boost::shared_ptr<RangeState> dot(new RangeState(0, 255));
   edge(1, 2, g, dot);
@@ -641,8 +644,8 @@ SCOPE_TEST(testFirstChildPrev) {
   edge(2, 3, g, zero);
   edge(1, 3, g, zero);
 
-  g[1]->Label = 0;
-  g[3]->IsMatch = true;
+  g[1].Label = 0;
+  g[3].IsMatch = true;
 
   ProgramPtr p = createProgram(g);
   Program& prog(*p);

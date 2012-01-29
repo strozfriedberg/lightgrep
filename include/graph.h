@@ -1,111 +1,243 @@
 #pragma once
 
-#include <iostream>
+#include "basic.h"
 
-#include "transition.h"
+#include <algorithm>
+#include <limits>
+#include <vector>
 
-typedef boost::shared_ptr<Transition> TransitionPtr;
+#include <boost/bind.hpp>
 
-class Graph {
+template <class GraphType,
+          class VertexType,
+          class EdgeType,
+          template <typename> class EdgeDescriptorStorage>
+class Graph : public GraphType
+{
+private:
+  struct VertexData;
+  struct EdgeData;
+
+  typedef typename std::vector<VertexData> VList;
+  typedef typename std::vector<EdgeData> EList;
+
 public:
-  friend std::ostream& operator<<(std::ostream& out, const Graph& g);
+  typedef uint32 VertexDescriptor;
+  typedef uint32 EdgeDescriptor;
 
-  typedef uint32 vertex;
+  typedef typename VList::size_type VertexSizeType;
+  typedef typename EList::size_type EdgeSizeType;
+
+  typedef VertexType Vertex;
+  typedef EdgeType Edge;
 
 private:
-  enum FlagType {
-    ZERO = 0,
-    ONE  = 1,
-    MANY = ONE << 1
+#pragma pack(push, 1)
+  struct VertexData : public VertexType {
+    VertexData(): VertexType() {}
+
+    VertexData(const VertexType& v): VertexType(v) {}
+
+    typename EdgeDescriptorStorage<EdgeDescriptor>::ListType In, Out;
+  };
+#pragma pack(pop)
+
+  struct EdgeData : public EdgeType {
+    EdgeData(VertexDescriptor head, VertexDescriptor tail, const EdgeType& e): EdgeType(e), Head(head), Tail(tail) {}
+
+    VertexDescriptor Head, Tail;
   };
 
 public:
-#pragma pack(1)
-  struct AdjacentList {
-    uint32 What;
-    byte Flags;
+  Graph(VertexSizeType vActual = 0): Vertices(vActual, VertexData()) {}
 
-    AdjacentList(): Flags(ZERO) { What = 0xFFFFFFFF; }
-  };
+  Graph(VertexSizeType vActual, VertexSizeType vReserve, EdgeSizeType eReserve = 0) {
+    if (vReserve > vActual) {
+      Vertices.reserve(vReserve);
+    }
 
-  struct Vertex {
-    Transition* Tran;
-    AdjacentList In, Out;
+    Vertices.resize(vActual, VertexData());
 
-    Vertex(): Tran(0) {}
-    Vertex(Transition* t): Tran(t) {}
-  };
-#pragma pack()
-
-  Graph(uint32 numVs, uint32 reserveSize);
-  Graph(uint32 numVs = 0);
-  ~Graph();
-
-  uint32 numVertices() const { return Vertices.size(); }
-  uint32 capacity() const { return Vertices.capacity(); }
-
-  vertex addVertex(Transition* t = 0);
-
-  bool edgeExists(const vertex source, const vertex target) const;
-
-  void addEdge(const vertex source, const vertex target);
-  void addEdgeAt(const vertex source, const vertex target, size_t i);
-
-  // these do not check for duplicate edges before adding them
-  void addEdgeND(const vertex source, const vertex target);
-  void addEdgeAtND(const vertex source, const vertex target, size_t i);
-
-  void removeEdge(const vertex source, size_t i);
-
-  vertex inVertex(vertex v, size_t i) const {
-    return _adjacent(Vertices[v].In, i);
+    if (eReserve > 0) {
+      Edges.reserve(eReserve);
+    }
   }
 
-  vertex outVertex(vertex v, size_t i) const {
-    return _adjacent(Vertices[v].Out, i);
+  //
+  // lookup & access
+  //
+
+  VertexDescriptor inVertex(VertexDescriptor tail, EdgeSizeType i) const {
+    return Edges[Store.at(Vertices[tail].In, i)].Head;
   }
 
-  uint32 inDegree(const vertex v) const {
-    return _degree(Vertices[v].In);
+  VertexDescriptor outVertex(VertexDescriptor head, EdgeSizeType i) const {
+    return Edges[Store.at(Vertices[head].Out, i)].Tail;
   }
 
-  uint32 outDegree(const vertex v) const {
-    return _degree(Vertices[v].Out);
+  EdgeDescriptor inEdge(VertexDescriptor tail, EdgeSizeType i) const {
+    return Store.at(Vertices[tail].In, i);
   }
 
-  Transition* operator[](vertex v) const {
-    return Vertices[v].Tran;
+  EdgeDescriptor outEdge(VertexDescriptor head, EdgeSizeType i) const {
+    return Store.at(Vertices[head].Out, i);
   }
 
-/*  Transition* & operator[](vertex v) {
-    return Transitions[Vertices[v].TranIndex];
-  }*/
-
-  void setTran(const vertex& v, Transition* tran) {
-    Vertices[v].Tran = tran;
+  EdgeSizeType inDegree(VertexDescriptor tail) const {
+    return Store.size(Vertices[tail].In);
   }
 
-  void clear();
+  EdgeSizeType outDegree(VertexDescriptor head) const {
+    return Store.size(Vertices[head].Out);
+  }
+
+  VertexType& operator[](VertexDescriptor vd) {
+    return Vertices[vd];
+  }
+
+  const VertexType& operator[](VertexDescriptor vd) const {
+    return Vertices[vd];
+  }
+
+  EdgeType& operator()(EdgeDescriptor ed) {
+    return Edges[ed];
+  }
+
+  const EdgeType& operator()(EdgeDescriptor ed) const {
+    return Edges[ed];
+  }
+
+  //
+  // modifiers
+  //
+
+  void clear() {
+    clearVertices();
+  }
+
+  void clearEdges() {
+    Edges.clear();
+
+    const typename VList::iterator iend(Vertices.end());
+    for (typename VList::iterator i(Vertices.begin()); i != iend; ++i) {
+      Store.clear(i->In);
+      Store.clear(i->Out);
+    }
+  }
+
+  void clearVertices() {
+    Vertices.clear();
+    Edges.clear();
+  }
+
+  VertexDescriptor addVertex(const VertexType& v = VertexType()) {
+    Vertices.push_back(VertexData(v));
+    return Vertices.size() - 1;
+  }
+
+  void removeVertex(VertexDescriptor vd) {
+    const VertexData& v(Vertices[vd]);
+    std::for_each(Store.begin(v.In), Store.end(v.In), boost::bind(&Graph::removeEdge, this, _1));
+    std::for_each(Store.begin(v.Out), Store.end(v.Out), boost::bind(&Graph::removeEdge, this, _1));
+
+    compact_after_vertex(vd);
+  }
+
+  EdgeDescriptor addEdge(VertexDescriptor head, VertexDescriptor tail, const EdgeType& e = EdgeType()) {
+    Edges.push_back(EdgeData(head, tail, e));
+    const EdgeDescriptor ed = Edges.size() - 1;
+    Store.add(Vertices[head].Out, ed);
+    Store.add(Vertices[tail].In, ed);
+    return ed;
+  }
+
+  EdgeDescriptor insertEdge(VertexDescriptor head, VertexDescriptor tail, EdgeSizeType hi = std::numeric_limits<EdgeSizeType>::max(), EdgeSizeType ti = std::numeric_limits<EdgeSizeType>::max(), const EdgeType& e = EdgeType()) {
+    Edges.push_back(EdgeData(head, tail, e));
+    const EdgeDescriptor ed = Edges.size() - 1;
+    Store.insert(Vertices[head].Out, hi, ed);
+    Store.insert(Vertices[tail].In, ti, ed);
+    return ed;
+  }
+
+  void removeEdge(EdgeDescriptor ed) {
+    Store.remove(Vertices[Edges[ed].Head].Out, ed);
+    Store.remove(Vertices[Edges[ed].Tail].In, ed);
+    compact_after_edge(ed);
+  }
+
+  //
+  // capacity
+  //
+
+  VertexSizeType verticesSize() const {
+    return Vertices.size();
+  }
+
+  EdgeSizeType edgesSize() const {
+    return Edges.size();
+  }
+
+  VertexSizeType verticesCapacity() const {
+    return Vertices.capacity();
+  }
+
+  EdgeSizeType edgesCapacity() const {
+    return Edges.capacity();
+  }
+
+  void reserveVertices(VertexSizeType size) {
+    return Vertices.reserve(size);
+  }
+
+  void reserveEdges(EdgeSizeType size) {
+    return Edges.reserve(size);
+  }
 
 private:
-  Graph(const Graph&);
-  Graph& operator=(const Graph&);
+  void compact_after_edge(EdgeDescriptor ed) {
+    typename EList::iterator i(Edges.erase(Edges.begin() + ed));
+    const typename EList::iterator iend(Edges.end());
+    for ( ; i != iend; ++i) {
+      const EdgeDescriptor e = i - Edges.begin() + 1;
+      --*Store.find(Vertices[i->Head].Out, e);
+      --*Store.find(Vertices[i->Tail].In, e);
+    }
+  }
 
-  void _add(AdjacentList& l, vertex v);
-  void _add(AdjacentList& l, vertex v, size_t i);
+  void compact_after_vertex(VertexDescriptor vd) {
+    Vertices.erase(Vertices.begin() + vd);
 
-  void _add_no_dupe_check(AdjacentList& l, vertex v);
-  void _add_no_dupe_check(AdjacentList& l, vertex v, size_t i);
+    const typename EList::iterator iend(Edges.end());
+    for (typename EList::iterator i(Edges.begin()); i != iend; ++i) {
+      if (i->Head > vd) {
+        --i->Head;
+      }
 
-  void _remove(AdjacentList& l, size_t i);
+      if (i->Tail > vd) {
+        --i->Tail;
+      }
+    }
+  }
 
-  uint32 _degree(const AdjacentList& l) const;
+  VList Vertices;
+  EList Edges;
 
-  vertex _adjacent(const AdjacentList& l, size_t i) const;
-  vertex& _adjacent(AdjacentList& l, size_t i);
-
-  std::vector< Vertex > Vertices;
-  std::vector< std::vector< vertex > > AdjLists;
+  EdgeDescriptorStorage<EdgeDescriptor> Store;
 };
 
-typedef boost::shared_ptr<Graph> GraphPtr;
+template <class G, class V, class E, template <typename> class S> std::ostream& operator<<(std::ostream& out, const Graph<G,V,E,S>& g) {
+  const typename Graph<G,V,E,S>::VertexSizeType vnum = g.verticesSize();
+
+  // print graph size
+  out << "|g| = " << vnum << '\n';
+
+  // print out edges for each vertex
+  for (typename Graph<G,V,E,S>::VertexSizeType v = 0; v < vnum; ++v) {
+    const typename Graph<G,V,E,S>::EdgeSizeType odeg = g.outDegree(v);
+    for (typename Graph<G,V,E,S>::EdgeSizeType o = 0; o < odeg; ++o) {
+      out << v << " -> " << g.outVertex(v, o) << '\n';
+    }
+  }
+
+  return out;
+}

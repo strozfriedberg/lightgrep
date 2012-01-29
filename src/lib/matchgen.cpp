@@ -5,12 +5,12 @@
 #include <stack>
 
 struct Info { 
-  Graph::vertex v;
+  NFA::VertexDescriptor v;
   std::vector<uint32> seen;
   std::string m;
 };
 
-void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_matches, uint32 max_loops) {
+void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, uint32 max_loops) {
   if (max_matches == 0) {
     return;
   }
@@ -18,7 +18,7 @@ void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_matches
   std::stack<Info> stack;
   Info i;
   i.v = 0;
-  i.seen.assign(g.numVertices(), 0);
+  i.seen.assign(g.verticesSize(), 0);
   stack.push(i);
 
   ByteSet bs;
@@ -26,11 +26,11 @@ void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_matches
   while (!stack.empty()) {
     Info pi = stack.top();
     stack.pop();    
-    Graph::vertex v = pi.v;
+    NFA::VertexDescriptor v = pi.v;
     std::string& m(pi.m);
     std::vector<uint32>& seen(pi.seen);
 
-    if (g[v] && g[v]->IsMatch) {
+    if (g[v].IsMatch) {
       matches.insert(m);
       if (matches.size() >= max_matches) {
         return;
@@ -39,14 +39,14 @@ void matchgen(const Graph& g, std::set<std::string>& matches, uint32 max_matches
 
     const uint32 odeg = g.outDegree(v);
     for (uint32 i = 0; i < odeg; ++i) {
-      Graph::vertex c = g.outVertex(v, odeg - i - 1);
+      NFA::VertexDescriptor c = g.outVertex(v, odeg - i - 1);
 
       if (pi.seen[c] > max_loops) {
         continue;
       }
 
       bs.reset();
-      g[c]->getBits(bs);
+      g[c].Trans->getBits(bs);
 
       for (uint32 b = 0; b < 256; ++b) {
         if (bs[b]) {

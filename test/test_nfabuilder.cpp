@@ -1,8 +1,8 @@
 
 #include <scope/test.h>
 
+#include "automata.h"
 #include "concrete_encodings.h"
-#include "graph.h"
 #include "nfabuilder.h"
 #include "parser.h"
 #include "parsetree.h"
@@ -19,76 +19,76 @@ void parseOutput(std::string type, ParseNode n) {
 
 SCOPE_TEST(parseAorB) {
   NFABuilder nfab;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   ParseTree tree;
   SCOPE_ASSERT(parse("a|b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(3u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
-  SCOPE_ASSERT(fsm[1]->IsMatch);
-  SCOPE_ASSERT(fsm[2]->IsMatch);
+  SCOPE_ASSERT(fsm[1].IsMatch);
+  SCOPE_ASSERT(fsm[2].IsMatch);
 }
 
 SCOPE_TEST(parseAorBorC) {
   NFABuilder nfab;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   ParseTree tree;
   SCOPE_ASSERT(parse("a|b|c", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(3u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
-  SCOPE_ASSERT(fsm[1]->IsMatch);
-  SCOPE_ASSERT(fsm[2]->IsMatch);
-  SCOPE_ASSERT(fsm[3]->IsMatch);
+  SCOPE_ASSERT(fsm[1].IsMatch);
+  SCOPE_ASSERT(fsm[2].IsMatch);
+  SCOPE_ASSERT(fsm[3].IsMatch);
 }
 
 SCOPE_TEST(parseAB) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("ab", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(3u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
-  SCOPE_ASSERT(!fsm[1]->IsMatch);
-  SCOPE_ASSERT(fsm[2]->IsMatch);
+  SCOPE_ASSERT(!fsm[1].IsMatch);
+  SCOPE_ASSERT(fsm[2].IsMatch);
 }
 
 SCOPE_TEST(parseAlternationAndConcatenation) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("a|bc", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
-  SCOPE_ASSERT(fsm[1]->IsMatch);
-  SCOPE_ASSERT(!fsm[2]->IsMatch);
-  SCOPE_ASSERT(fsm[3]->IsMatch);
+  SCOPE_ASSERT(fsm[1].IsMatch);
+  SCOPE_ASSERT(!fsm[2].IsMatch);
+  SCOPE_ASSERT(fsm[3].IsMatch);
 }
 
 SCOPE_TEST(parseGroup) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("a(b|c)", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
@@ -106,12 +106,12 @@ SCOPE_TEST(parseQuestionMark) {
   SCOPE_ASSERT(parse("ab?", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
 
   // both s1 and s2 should be match states... it appears that there's an edge duplication???
   // writeGraphviz(std::cerr, fsm);
 
-  SCOPE_ASSERT_EQUAL(3u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, fsm.verticesSize());
   // get really invasive with testing here
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
@@ -121,11 +121,11 @@ SCOPE_TEST(parseQuestionMark) {
 SCOPE_TEST(parseQuestionMarkFirst) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("a?b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(3u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
@@ -134,11 +134,11 @@ SCOPE_TEST(parseQuestionMarkFirst) {
 SCOPE_TEST(parseTwoQuestionMarks) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("ab?c?d", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
   // a
@@ -158,11 +158,11 @@ SCOPE_TEST(parseTwoQuestionMarks) {
 SCOPE_TEST(parseQuestionWithAlternation) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("(a|b?)c", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(3u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
   // a
@@ -179,11 +179,11 @@ SCOPE_TEST(parseQuestionWithAlternation) {
 SCOPE_TEST(parseQuestionWithGrouping) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("a(bc)?d", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   // a
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
@@ -202,11 +202,11 @@ SCOPE_TEST(parseQuestionWithGrouping) {
 SCOPE_TEST(parsePlus) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("a+", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
   // a+
@@ -217,12 +217,12 @@ SCOPE_TEST(parsePlus) {
 SCOPE_TEST(parseaPQb) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
 
   SCOPE_ASSERT(parse("a+?b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(3u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
@@ -239,19 +239,19 @@ SCOPE_TEST(parseaPQb) {
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
 
-  SCOPE_ASSERT(!g[0]);
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(g[2]->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(g[2].IsMatch);
 }
 
 SCOPE_TEST(parseStar) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("ab*c", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(2));
@@ -263,11 +263,11 @@ SCOPE_TEST(parseStar) {
 SCOPE_TEST(parseStarWithGrouping) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("a(bc)*d", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   // a
   SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(1));
@@ -285,12 +285,12 @@ SCOPE_TEST(parseStarWithGrouping) {
 SCOPE_TEST(parseaQQb) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
 
   SCOPE_ASSERT(parse("a??b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(3u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
@@ -299,25 +299,25 @@ SCOPE_TEST(parseaQQb) {
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT(g.edgeExists(1, 2));
+  SCOPE_ASSERT(edgeExists(g, 1, 2));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
 
-  SCOPE_ASSERT(!g[0]);
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(g[2]->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(g[2].IsMatch);
 }
 
 SCOPE_TEST(parseaQQbQQc) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
 
   SCOPE_ASSERT(parse("a??b??c", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
@@ -332,26 +332,26 @@ SCOPE_TEST(parseaQQbQQc) {
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
-  SCOPE_ASSERT(g.edgeExists(2, 3));
+  SCOPE_ASSERT(edgeExists(g, 2, 3));
 
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0]);
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(!g[2]->IsMatch);
-  SCOPE_ASSERT(g[3]->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(g[3].IsMatch);
 }
 
 SCOPE_TEST(parseaQQbQc) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
 
   SCOPE_ASSERT(parse("a??b?c", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
@@ -366,26 +366,26 @@ SCOPE_TEST(parseaQQbQc) {
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
-  SCOPE_ASSERT(g.edgeExists(2, 3));
+  SCOPE_ASSERT(edgeExists(g, 2, 3));
 
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0]);
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(!g[2]->IsMatch);
-  SCOPE_ASSERT(g[3]->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(g[3].IsMatch);
 }
 
 SCOPE_TEST(parseaQQOrbQQc) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
 
   SCOPE_ASSERT(parse("(a??|b??)c", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
@@ -395,30 +395,30 @@ SCOPE_TEST(parseaQQOrbQQc) {
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT(g.edgeExists(1, 3));
+  SCOPE_ASSERT(edgeExists(g, 1, 3));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
-  SCOPE_ASSERT(g.edgeExists(2, 3));
+  SCOPE_ASSERT(edgeExists(g, 2, 3));
 
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0]);
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(!g[2]->IsMatch);
-  SCOPE_ASSERT(g[3]->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(g[3].IsMatch);
 }
 
 SCOPE_TEST(parseaOrbQa) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
 
   SCOPE_ASSERT(parse("(a|b?)a", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
@@ -428,30 +428,30 @@ SCOPE_TEST(parseaOrbQa) {
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT(g.edgeExists(1, 3));
+  SCOPE_ASSERT(edgeExists(g, 1, 3));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
-  SCOPE_ASSERT(g.edgeExists(2, 3));
+  SCOPE_ASSERT(edgeExists(g, 2, 3));
 
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0]);
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(!g[2]->IsMatch);
-  SCOPE_ASSERT(g[3]->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(g[3].IsMatch);
 }
 
 SCOPE_TEST(parseaOrbQQa) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
 
   SCOPE_ASSERT(parse("(a|b??)a", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
@@ -461,30 +461,30 @@ SCOPE_TEST(parseaOrbQQa) {
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT(g.edgeExists(1, 3));
+  SCOPE_ASSERT(edgeExists(g, 1, 3));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
-  SCOPE_ASSERT(g.edgeExists(2, 3));
+  SCOPE_ASSERT(edgeExists(g, 2, 3));
 
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0]);
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(!g[2]->IsMatch);
-  SCOPE_ASSERT(g[3]->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(g[3].IsMatch);
 }
 
 SCOPE_TEST(parseaSQb) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
 
   SCOPE_ASSERT(parse("a*?b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(3u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
@@ -499,43 +499,43 @@ SCOPE_TEST(parseaSQb) {
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
 
-  SCOPE_ASSERT(!g[0]);
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(g[2]->IsMatch);
+  SCOPE_ASSERT(!g[0].Trans);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(g[2].IsMatch);
 }
 
 SCOPE_TEST(parseDot) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse(".+", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(1));
 
   ByteSet set;
   set.reset();
-  fsm[1]->getBits(set);
+  fsm[1].Trans->getBits(set);
   SCOPE_ASSERT_EQUAL(256u, set.count());
 }
 
 SCOPE_TEST(parseHexCode) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("\\x20", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
 
   ByteSet set;
   set.reset();
-  fsm[1]->getBits(set);
+  fsm[1].Trans->getBits(set);
   SCOPE_ASSERT_EQUAL(1u, set.count());
   SCOPE_ASSERT(set[' ']);
 }
@@ -543,11 +543,11 @@ SCOPE_TEST(parseHexCode) {
 SCOPE_TEST(parseHexDotPlus) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("\\x20\\xFF.+\\x20", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(2));
@@ -560,39 +560,39 @@ SCOPE_TEST(parseHexDotPlus) {
 SCOPE_TEST(parse2ByteUnicode) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   nfab.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
   SCOPE_ASSERT(parse("ab", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(5u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
 }
 
 SCOPE_TEST(parseHighHex) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("\\xe5", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
   ByteSet expected,
           actual;
   expected.reset();
   actual.reset();
   expected.set(0xe5);
-  fsm[1]->getBits(actual);
+  fsm[1].Trans->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
 SCOPE_TEST(parseSimpleCharClass) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("[AaBb]", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
 
@@ -604,19 +604,19 @@ SCOPE_TEST(parseSimpleCharClass) {
   expected.set('a');
   expected.set('B');
   expected.set('b');
-  fsm[1]->getBits(actual);
+  fsm[1].Trans->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
-  SCOPE_ASSERT_EQUAL("ABab/0", fsm[1]->label());
+  SCOPE_ASSERT_EQUAL("ABab/0", fsm[1].label());
 }
 
 SCOPE_TEST(parseUnprintableCharClass) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("[A\\xFF\\x00]", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
 
@@ -627,19 +627,19 @@ SCOPE_TEST(parseUnprintableCharClass) {
   expected.set('A');
   expected.set(0x00);
   expected.set(0xFF);
-  fsm[1]->getBits(actual);
+  fsm[1].Trans->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
-  SCOPE_ASSERT_EQUAL("\\x00A\\xFF/0", fsm[1]->label());
+  SCOPE_ASSERT_EQUAL("\\x00A\\xFF/0", fsm[1].label());
 }
 
 SCOPE_TEST(parseNegatedRanges) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
+  NFA& fsm(*nfab.getFsm());
   SCOPE_ASSERT(parse("[^a-zA-Z0-9]", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
  
@@ -658,19 +658,19 @@ SCOPE_TEST(parseNegatedRanges) {
       expected.set(i, true);
     }
   }
-  fsm[1]->getBits(actual);
+  fsm[1].Trans->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
 SCOPE_TEST(parseCaseInsensitive) {
   NFABuilder nfab;
   ParseTree tree;
-  Graph& fsm(*nfab.getFsm());
-  nfab.setCaseSensitive(false);
+  NFA& fsm(*nfab.getFsm());
+  nfab.setCaseInsensitive(true);
   SCOPE_ASSERT(parse("ab", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(3u, fsm.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
@@ -678,9 +678,9 @@ SCOPE_TEST(parseCaseInsensitive) {
   SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(2));
   Instruction i;
-  SCOPE_ASSERT(fsm[1]->toInstruction(&i));
+  SCOPE_ASSERT(fsm[1].Trans->toInstruction(&i));
   SCOPE_ASSERT_EQUAL(Instruction::makeEither('A', 'a'), i);
-  SCOPE_ASSERT(fsm[2]->toInstruction(&i));
+  SCOPE_ASSERT(fsm[2].Trans->toInstruction(&i));
   SCOPE_ASSERT_EQUAL(Instruction::makeEither('B', 'b'), i);
 }
 
@@ -717,12 +717,12 @@ SCOPE_TEST(parseRepeatedSkippables) {
 
 SCOPE_TEST(parseZeroDotStarZero) {
   NFABuilder nfab;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
   ParseTree tree;
   SCOPE_ASSERT(parse("0.*0", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
@@ -752,12 +752,12 @@ SCOPE_TEST(parseZeroDotStarZero) {
   ss << pattern << '{' << n << '}'; \
 \
   NFABuilder nfab; \
-  Graph& g(*nfab.getFsm()); \
+  NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
   SCOPE_ASSERT(parse(ss.str(), false, tree)); \
   SCOPE_ASSERT(nfab.build(tree)); \
 \
-  SCOPE_ASSERT_EQUAL(n + 1, g.numVertices()); \
+  SCOPE_ASSERT_EQUAL(n + 1, g.verticesSize()); \
 \
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0)); \
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
@@ -767,12 +767,12 @@ SCOPE_TEST(parseZeroDotStarZero) {
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
-    SCOPE_ASSERT(!g[i]->IsMatch); \
+    SCOPE_ASSERT(!g[i].IsMatch); \
   } \
 \
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(n)); \
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(n)); \
-  SCOPE_ASSERT(g[n]->IsMatch);
+  SCOPE_ASSERT(g[n].IsMatch);
 
 SCOPE_TEST(parse_aLCnRC) {
   for (uint32 c = 1; c < 100; ++c) {
@@ -785,12 +785,12 @@ SCOPE_TEST(parse_aLCnRC) {
   ss << pattern << '{' << n << ",}"; \
 \
   NFABuilder nfab; \
-  Graph& g(*nfab.getFsm()); \
+  NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
   SCOPE_ASSERT(parse(ss.str(), false, tree)); \
   SCOPE_ASSERT(nfab.build(tree)); \
 \
-  SCOPE_ASSERT_EQUAL(n + 1, g.numVertices()); \
+  SCOPE_ASSERT_EQUAL(n + 1, g.verticesSize()); \
 \
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0)); \
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
@@ -800,13 +800,13 @@ SCOPE_TEST(parse_aLCnRC) {
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
-    SCOPE_ASSERT(!g[i]->IsMatch); \
+    SCOPE_ASSERT(!g[i].IsMatch); \
   } \
 \
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(n)); \
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(n)); \
   SCOPE_ASSERT_EQUAL(n, g.outVertex(n, 0)); \
-  SCOPE_ASSERT(g[n]->IsMatch);
+  SCOPE_ASSERT(g[n].IsMatch);
 
 SCOPE_TEST(parse_aLCn_RC) {
   for (uint32 n = 1; n < 100; ++n) {
@@ -816,12 +816,12 @@ SCOPE_TEST(parse_aLCn_RC) {
 
 SCOPE_TEST(parse_aLC0_RCQb) {
   NFABuilder nfab;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
   ParseTree tree;
   SCOPE_ASSERT(parse("a{0,}?b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(3u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
@@ -832,11 +832,11 @@ SCOPE_TEST(parse_aLC0_RCQb) {
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
   SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
   SCOPE_ASSERT_EQUAL(1, g.outVertex(1, 1));
-  SCOPE_ASSERT(!g[1]->IsMatch);
+  SCOPE_ASSERT(!g[1].IsMatch);
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
-  SCOPE_ASSERT(g[2]->IsMatch);
+  SCOPE_ASSERT(g[2].IsMatch);
 }
 
 #define TEST_REPETITION_NG_N_U(pattern, n) \
@@ -844,12 +844,12 @@ SCOPE_TEST(parse_aLC0_RCQb) {
   ss << pattern << '{' << n << ",}?b"; \
 \
   NFABuilder nfab; \
-  Graph& g(*nfab.getFsm()); \
+  NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
   SCOPE_ASSERT(parse(ss.str(), false, tree)); \
   SCOPE_ASSERT(nfab.build(tree)); \
 \
-  SCOPE_ASSERT_EQUAL(n + 2, g.numVertices()); \
+  SCOPE_ASSERT_EQUAL(n + 2, g.verticesSize()); \
 \
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0)); \
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
@@ -859,18 +859,18 @@ SCOPE_TEST(parse_aLC0_RCQb) {
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
-    SCOPE_ASSERT(!g[i]->IsMatch); \
+    SCOPE_ASSERT(!g[i].IsMatch); \
   } \
 \
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(n)); \
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(n)); \
   SCOPE_ASSERT_EQUAL(n+1, g.outVertex(n, 0)); \
   SCOPE_ASSERT_EQUAL(n, g.outVertex(n, 1)); \
-  SCOPE_ASSERT(!g[n]->IsMatch); \
+  SCOPE_ASSERT(!g[n].IsMatch); \
 \
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(n+1)); \
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(n+1)); \
-  SCOPE_ASSERT(g[n]->IsMatch);
+  SCOPE_ASSERT(g[n].IsMatch);
 
 SCOPE_TEST(parse_aLCn_RCQb) {
   for (uint32 n = 1; n < 100; ++n) {
@@ -880,12 +880,12 @@ SCOPE_TEST(parse_aLCn_RCQb) {
 
 SCOPE_TEST(parse_xa0_) {
   NFABuilder nfab;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
   ParseTree tree;
   SCOPE_ASSERT(parse("xa{0,}", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(3u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
@@ -899,8 +899,8 @@ SCOPE_TEST(parse_xa0_) {
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
   SCOPE_ASSERT_EQUAL(2, g.outVertex(2, 0));
 
-  SCOPE_ASSERT(g[1]->IsMatch);
-  SCOPE_ASSERT(g[2]->IsMatch);
+  SCOPE_ASSERT(g[1].IsMatch);
+  SCOPE_ASSERT(g[2].IsMatch);
 }
 
 #define TEST_REPETITION_N_M(pattern, n, m) \
@@ -908,12 +908,12 @@ SCOPE_TEST(parse_xa0_) {
   ss << pattern << '{' << n << ',' << m << '}'; \
 \
   NFABuilder nfab; \
-  Graph& g(*nfab.getFsm()); \
+  NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
   SCOPE_ASSERT(parse(ss.str(), false, tree)); \
   SCOPE_ASSERT(nfab.build(tree)); \
 \
-  SCOPE_ASSERT_EQUAL(m + 1, g.numVertices()); \
+  SCOPE_ASSERT_EQUAL(m + 1, g.verticesSize()); \
 \
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0)); \
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
@@ -923,19 +923,19 @@ SCOPE_TEST(parse_xa0_) {
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
-    SCOPE_ASSERT(!g[i]->IsMatch); \
+    SCOPE_ASSERT(!g[i].IsMatch); \
   } \
 \
   for (uint32 i = n; i < m; ++i) { \
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
-    SCOPE_ASSERT(g[i]->IsMatch); \
+    SCOPE_ASSERT(g[i].IsMatch); \
   } \
 \
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(m)); \
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(m)); \
-  SCOPE_ASSERT(g[m]->IsMatch);
+  SCOPE_ASSERT(g[m].IsMatch);
 
 SCOPE_TEST(parse_aLCn_mRC) {
   for (uint32 n = 1; n < 5; ++n) {
@@ -947,12 +947,12 @@ SCOPE_TEST(parse_aLCn_mRC) {
 
 SCOPE_TEST(parse_aaQQb) {
   NFABuilder nfab;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
   ParseTree tree;
   SCOPE_ASSERT(parse("aa??b", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
@@ -970,19 +970,19 @@ SCOPE_TEST(parse_aaQQb) {
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(!g[2]->IsMatch);
-  SCOPE_ASSERT(g[3]->IsMatch);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(g[3].IsMatch);
 }
 
 SCOPE_TEST(parse_xLPaORaQQRPy) {
   NFABuilder nfab;
-  Graph& g(*nfab.getFsm());
+  NFA& g(*nfab.getFsm());
   ParseTree tree;
   SCOPE_ASSERT(parse("x(a|a??)y", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(5u, g.numVertices());
+  SCOPE_ASSERT_EQUAL(5u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
@@ -1005,8 +1005,8 @@ SCOPE_TEST(parse_xLPaORaQQRPy) {
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(4));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(4));
 
-  SCOPE_ASSERT(!g[1]->IsMatch);
-  SCOPE_ASSERT(!g[2]->IsMatch);
-  SCOPE_ASSERT(!g[3]->IsMatch);
-  SCOPE_ASSERT(g[4]->IsMatch);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(!g[3].IsMatch);
+  SCOPE_ASSERT(g[4].IsMatch);
 }
