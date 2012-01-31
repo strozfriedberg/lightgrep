@@ -211,6 +211,16 @@ SCOPE_TEST(parseUnparse_a4_3_Test) {
   }
 }
 
+SCOPE_TEST(parseUnparse_a4_3Q_Test) {
+  ParseTree tree;
+  try {
+    parse("a{4,3}?", false, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+  }
+}
+
 SCOPE_TEST(parseUnparse_a42__Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("a{42,}", false, tree));
