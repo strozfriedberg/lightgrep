@@ -38,7 +38,8 @@ namespace {
 
 %%
 
-regexp: alt
+regexp:
+  alt
   {
     Tree->Root = $$ = add("regexp", ParseNode(ParseNode::REGEXP, $1));
   }
