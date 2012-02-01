@@ -1,9 +1,11 @@
 #pragma once
 
-#include "graph.h"
+#include <initializer_list>
+
+#include "automata.h"
 #include "parser.h"
-#include "vm_interface.h"
 #include "pattern.h"
+#include "vm_interface.h"
 
 void collector(void* userData, const LG_SearchHit* const hit);
 
@@ -18,6 +20,8 @@ struct STest {
     kws.push_back(key);
     init(kws);
   }
+
+  STest(const std::initializer_list<const char*>& keys);
 
   STest(const std::vector<std::string>& keys);
 

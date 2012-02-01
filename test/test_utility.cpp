@@ -121,16 +121,16 @@ SCOPE_TEST(keywordLabelsProgram) {
 }
 
 template<class T>
-std::vector< Pattern > makePatterns(unsigned int n, T x) {
+std::vector< Pattern > makePatterns(const std::initializer_list<T>& list) {
   std::vector<Pattern> ret;
-  for (unsigned int i = 0; i < n; ++i) {
-    ret.push_back(Pattern(x[i]));
+  for (auto p : list) {
+    ret.push_back(Pattern(p));
   }
   return ret;
 }
 
 SCOPE_TEST(twoUnicode) {
-  std::vector<Pattern> pats(makePatterns(2u, (const char*[]){"aa", "ab"}));
+  std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
   for (std::vector<Pattern>::iterator it(pats.begin()); it != pats.end(); ++it) {
     it->Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
   }
@@ -205,7 +205,7 @@ SCOPE_TEST(firstBitset) {
 }
 
 SCOPE_TEST(simpleCollapse) {
-  NFAPtr fsm = createGraph(makePatterns(2u, (const char*[]){"ab", "ac"}));
+  NFAPtr fsm = createGraph(makePatterns({"ab", "ac"}));
   SCOPE_ASSERT_EQUAL(4u, fsm->verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
@@ -432,7 +432,7 @@ SCOPE_TEST(generateCheckHalt) {
 
 SCOPE_TEST(testInitVM) {
   SearchInfo info;
-  boost::shared_ptr<VmInterface> search = initVM(makePatterns(2u, (const char*[]){"one", "two"}), info);
+  boost::shared_ptr<VmInterface> search = initVM(makePatterns({"one", "two"}), info);
                //012345678901234
   byte text[] = "a onetwothree";
 
