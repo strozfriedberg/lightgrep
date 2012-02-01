@@ -38,7 +38,8 @@ namespace {
 
 %%
 
-regexp: alt
+regexp:
+  alt
   {
     Tree->Root = $$ = add("regexp", ParseNode(ParseNode::REGEXP, $1));
   }
@@ -83,7 +84,13 @@ rep:
   }
 | atom '{' number ',' number '}' '?'
   {
-    $$ = add("repetition_ng", ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, $5->Val));
+    if ($3->Val > $5->Val) {
+      // {n,m} is ill-formed when n > m
+      yyerror("syntax error");
+    }
+    else {
+      $$ = add("repetition_ng", ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, $5->Val));
+    }
   }
 | atom '*'
   {
@@ -107,7 +114,13 @@ rep:
   }
 | atom '{' number ',' number '}'
   {
-    $$ = add("repetition", ParseNode(ParseNode::REPETITION, $1, $3->Val, $5->Val));
+    if ($3->Val > $5->Val) {
+      // {n,m} is ill-formed when n > m
+      yyerror("syntax error");
+    }
+    else {
+      $$ = add("repetition", ParseNode(ParseNode::REPETITION, $1, $3->Val, $5->Val));
+    }
   }
 ;
 
@@ -531,7 +544,9 @@ namespace {
   }
 
   void yyerror(const char* msg) {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT(msg);
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      msg << ", at offset " << (Text - TextBegin)
+    );
   }
 }
 
