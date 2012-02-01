@@ -1,7 +1,6 @@
 #include <algorithm>
 
 #include "stest.h"
-#include "patterninfo.h"
 #include "utility.h"
 
 void collector(void* userData, const LG_SearchHit* const hit) {
@@ -9,13 +8,19 @@ void collector(void* userData, const LG_SearchHit* const hit) {
   stest->Hits.push_back(*static_cast<const SearchHit* const>(hit));
 }
 
-Pattern makePattern(const std::string& s) {
-  return Pattern(s);
+Pattern makePattern(const std::string& s) { return Pattern(s); }
+
+STest::STest(const std::initializer_list<const char*>& keys) {
+  std::vector<Pattern> pats;
+  std::transform(keys.begin(), keys.end(),
+                 std::back_inserter(pats), makePattern);
+  init(pats);
 }
 
 STest::STest(const std::vector<std::string>& keys) {
   std::vector<Pattern> pats;
-  std::transform(keys.begin(), keys.end(), std::back_inserter(pats), makePattern);
+  std::transform(keys.begin(), keys.end(),
+                 std::back_inserter(pats), makePattern);
   init(pats);
 }
 

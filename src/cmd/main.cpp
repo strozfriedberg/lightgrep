@@ -178,7 +178,7 @@ bool SearchController::searchFile(boost::shared_ptr<ContextHandle> searcher, Hit
       // read the next block on a separate thread
       boost::packaged_task<uint64> task(boost::bind(&readNext, file, Next.get(), BlockSize));
       boost::unique_future<uint64> sizeFut = task.get_future();
-      boost::thread exec(boost::move(task));
+      boost::thread exec(std::move(task));
 
       // search cur block
       lg_search(searcher.get(), (char*)Cur.get(), (char*)Cur.get() + blkSize, offset, hinfo, callback);
