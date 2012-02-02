@@ -54,7 +54,7 @@ def main():
         print '''SCOPE_TEST(autoPatternTest{setnum}) {{
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("{pat}", false, tree));
+  SCOPE_ASSERT(parse(R"({pat})", false, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }}
 '''.format(setnum=setnum, pat=pats[0])
@@ -62,14 +62,13 @@ def main():
     else:
       # this pattern set has no zero-length matches
       if len(pats) == 1:
-        stest = '"{}"'.format(pats[0])
+        stest = 'R"({})"'.format(pats[0])
       else:
-        stest = '{setsize}, (const char *[]){{ "{pats}" }}'.format(
-          setsize=len(pats), pats='", "'.join(pats))
+        stest = '{{ R"({})" }}'.format(')", R"('.join(pats))
 
       print '''SCOPE_FIXTURE_CTOR(autoPatternTest{setnum}, STest, STest({stest})) {{
   const byte* text = (const byte*) "{text}";
-  fixture.search(text, text + {textlen}, 0, fixture);
+  fixture.search(text, text + {textlen}, 0);
   SCOPE_ASSERT_EQUAL({matchcount}, fixture.Hits.size());'''.format(setnum=setnum, stest=stest, text=text, textlen=len(text), matchcount=len(matches))
 
       for i, m in enumerate(matches):
