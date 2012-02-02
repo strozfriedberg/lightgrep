@@ -147,8 +147,7 @@ SCOPE_FIXTURE_CTOR(aDotaPlusSearch, STest, STest("a.a+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(4, 7, 0), fixture.Hits[1]);
 }
 
-SCOPE_FIXTURE_CTOR(badLabelingSearch, STest,
-                   STest({"x", "x", "yyy"})) {
+SCOPE_FIXTURE_CTOR(badLabelingSearch, STest, STest({"x", "x", "yyy"})) {
   const byte* text = (const byte*)"yyy";
   fixture.search(text, text + 3, 0);
   SCOPE_ASSERT_EQUAL(1, fixture.Hits.size());
@@ -548,6 +547,19 @@ SCOPE_FIXTURE_CTOR(startsWithTest, STest, STest({"ab..ef", "c[a-z][a-z]", "[aA][
   SCOPE_ASSERT_EQUAL(2, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(0, 6, 0), fixture.Hits[1]);
+}
+
+SCOPE_FIXTURE_CTOR(dot4OraQaSearch, STest, STest(R"(.{4}|a?a)")) {
+  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
+  fixture.search(text, text + 28, 0);
+  SCOPE_ASSERT_EQUAL(7, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(4, 8, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(8, 12, 0), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(12, 16, 0), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(16, 20, 0), fixture.Hits[4]);
+  SCOPE_ASSERT_EQUAL(SearchHit(20, 24, 0), fixture.Hits[5]);
+  SCOPE_ASSERT_EQUAL(SearchHit(24, 28, 0), fixture.Hits[6]);
 }
 
 /*
