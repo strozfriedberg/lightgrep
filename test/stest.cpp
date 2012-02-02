@@ -5,5 +5,3 @@ void collector(void* userData, const LG_SearchHit* const hit) {
   stest->Hits.push_back(*static_cast<const SearchHit* const>(hit));
 }
 
-Pattern makePattern(const std::string& s) { return Pattern(s); }
-

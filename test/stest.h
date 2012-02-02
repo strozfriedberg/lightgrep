@@ -12,8 +12,6 @@
 
 void collector(void* userData, const LG_SearchHit* const hit);
 
-Pattern makePattern(const std::string& s);
-
 struct STest {
   std::vector<SearchHit> Hits;
   NFAPtr Fsm;
@@ -37,9 +35,13 @@ struct STest {
 
   template <typename T>
   void init(const T& keys) {
+    struct PatternMaker {
+      Pattern operator()(const std::string& s) { return Pattern(s); }
+    };
+
     std::vector<Pattern> pats;
     std::transform(keys.begin(), keys.end(),
-                   std::back_inserter(pats), makePattern);
+                   std::back_inserter(pats), PatternMaker());
 
     Fsm = createGraph(pats, true, true);
     if (Fsm) {
@@ -59,5 +61,3 @@ struct STest {
     Grep->startsWith(begin, end, offset, collector, this);
   }
 };
-
-void collector(void* userData, const LG_SearchHit* const hit);
