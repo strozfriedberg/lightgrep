@@ -29,7 +29,8 @@ struct STest {
     init(keys);
   }
 
-  STest(const std::vector<std::string>& keys) {
+  template <typename T>
+  STest(const T& keys) {
     init(keys);
   }
 
