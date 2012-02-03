@@ -131,9 +131,10 @@ std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
 
 SCOPE_TEST(twoUnicode) {
   std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
-  for (std::vector<Pattern>::iterator it(pats.begin()); it != pats.end(); ++it) {
-    it->Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+  for (Pattern& p : pats) {
+    p.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
   }
+
   NFAPtr fsm = createGraph(pats);
   NFA& g = *fsm;
   
