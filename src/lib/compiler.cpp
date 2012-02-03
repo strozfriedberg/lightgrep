@@ -1,4 +1,3 @@
-#include "bitsetutils.h"
 #include "compiler.h"
 #include "states.h"
 #include "utility.h"
@@ -360,31 +359,16 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
   }
 }
 
-struct ByteSetLess {
-  bool operator()(const ByteSet& a, const ByteSet& b) const {
-    for (uint32 i = 0; i < 256; ++i) {
-      if (a[i] < b[i]) {
-        return false;
-      }
-      else if (a[i] > b[i]) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-};
-
 typedef std::pair<ByteSet, std::vector<NFA::VertexDescriptor>> SubsetState;
 
 struct SubsetStateComp {
   bool operator()(const SubsetState& a, const SubsetState& b) const {
-    const int c = lexcmp_bitset(a.first, b.first);
+    const int c = a.first.compare(b.first);
     if (c < 0) {
-      return false;
+      return true;
     }
     else if (c > 0) {
-      return true;
+      return false;
     }
     else {
       return std::lexicographical_compare(a.second.begin(), a.second.end(),
@@ -456,7 +440,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
       srcList2Bytes[srcTailList][b] = true;
     }
 
-    std::map<ByteSet, std::vector<NFA::VertexDescriptor>, ByteSetLess> bytes2SrcList;
+    std::map<ByteSet, std::vector<NFA::VertexDescriptor>> bytes2SrcList;
 
     for (std::map<std::vector<NFA::VertexDescriptor>, ByteSet>::const_iterator i(srcList2Bytes.begin()); i != srcList2Bytes.end(); ++i) {
       const ByteSet bs = i->second;
@@ -466,9 +450,9 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     // form each srcTailList into determinizable groups
-    std::map<ByteSet, std::vector<std::vector<NFA::VertexDescriptor>>, ByteSetLess> dstListGroups;
+    std::map<ByteSet, std::vector<std::vector<NFA::VertexDescriptor>>> dstListGroups;
 
-    for (std::map<ByteSet, std::vector<NFA::VertexDescriptor>, ByteSetLess>::const_iterator i(bytes2SrcList.begin()); i != bytes2SrcList.end(); ++i) {
+    for (std::map<ByteSet, std::vector<NFA::VertexDescriptor>>::const_iterator i(bytes2SrcList.begin()); i != bytes2SrcList.end(); ++i) {
       const ByteSet bs = i->first;
       const std::vector<NFA::VertexDescriptor>& srcTailList(i->second);
 
@@ -492,7 +476,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     // determinize for each outgoing byte
-    for (std::map<ByteSet, std::vector<std::vector<NFA::VertexDescriptor>>, ByteSetLess>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
+    for (std::map<ByteSet, std::vector<std::vector<NFA::VertexDescriptor>>>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
       const ByteSet bs = i->first;
       const std::vector<std::vector<NFA::VertexDescriptor>>& dstLists(i->second);
 
