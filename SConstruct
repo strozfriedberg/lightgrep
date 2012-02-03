@@ -55,7 +55,8 @@ else:
   flags = '-O3'
   ldflags = ''
 
-ccflags = '-std=c++0x -pedantic -Wall -Wextra -pipe %s' % (flags)
+ccflags = '-pedantic -Wall -Wextra -pipe %s' % (flags)
+cppflags = '-std=c++0x'
 
 # add vendors/scope and vendors/boost as system include paths, if they exist
 ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
@@ -76,6 +77,7 @@ else:
 
 env['DEBUG_MODE'] = debug
 env.Replace(CCFLAGS=ccflags)
+env.Replace(CPPFLAGS=cppflags)
 env.Replace(CPPDEFINES=defines)
 env.Append(CPPPATH=['#/include'])
 env.Append(LIBPATH=['#/lib'])
