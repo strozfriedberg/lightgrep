@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bitsetutils.h"
+#include "byteset.h"
 #include "transition.h"
 
 #include <limits>

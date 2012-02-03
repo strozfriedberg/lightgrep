@@ -1,12 +1,9 @@
 #pragma once
 
-#include <bitset>
 #include <stdexcept>
 #include <sstream>
-#include <vector>
-#include <utility>
-#include <boost/smart_ptr.hpp>
 
+#include "byteset.h"
 #include "lightgrep_c_api.h"
 
 typedef unsigned char byte;
@@ -16,8 +13,6 @@ typedef int int32;
 
 //typedef unsigned long long uint64;
 typedef long long int64;
-
-typedef std::bitset<256> ByteSet;
 
 #define THROW_WITH_OUTPUT(exceptType, expression) \
   std::stringstream buf; \
