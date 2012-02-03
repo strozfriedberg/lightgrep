@@ -375,11 +375,10 @@ struct ByteSetLess {
   }
 };
 
-struct PairLess {
-  bool operator()(
-    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>& a,
-    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>& b) const
-  {
+typedef std::pair<ByteSet, std::vector<NFA::VertexDescriptor>> SubsetState;
+
+struct SubsetStateComp {
+  bool operator()(const SubsetState& a, const SubsetState& b) const {
     const int c = lexcmp_bitset(a.first, b.first);
     if (c < 0) {
       return false;
@@ -396,18 +395,18 @@ struct PairLess {
 
 void Compiler::subsetDFA(NFA& dst, const NFA& src) {
 
-  std::stack<std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>> dstStack;
-  std::map<std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>, NFA::VertexDescriptor, PairLess > dstList2Dst;
+  std::stack<SubsetState> dstStack;
+  std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> dstList2Dst;
 
   // set up initial dst state
-  const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>> d0(ByteSet(), std::vector<NFA::VertexDescriptor>(1, 0));
+  const SubsetState d0(ByteSet(), std::vector<NFA::VertexDescriptor>(1, 0));
   dstList2Dst[d0] = 0;
   dstStack.push(d0);
 
   ByteSet outBytes;
 
   while (!dstStack.empty()) {
-    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>> p(dstStack.top());
+    const SubsetState p(dstStack.top());
     dstStack.pop();
 
     const std::vector<NFA::VertexDescriptor>& srcHeadList(p.second);
@@ -416,9 +415,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     // for each byte, collect all srcTails leaving srcHeads
     std::map<byte, std::vector<NFA::VertexDescriptor>> srcTailLists;
 
-    for (std::vector<NFA::VertexDescriptor>::const_iterator i(srcHeadList.begin()); i != srcHeadList.end(); ++i) {
-      const NFA::VertexDescriptor srcHead = *i;
-
+    for (const NFA::VertexDescriptor srcHead : srcHeadList) {
       for (uint32 j = 0; j < src.outDegree(srcHead); ++j) {
         const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, j);
 
@@ -504,7 +501,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
         const std::vector<NFA::VertexDescriptor>& dstList(*j);
         const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>> p(bs, dstList);
 
-        std::map<std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>, NFA::VertexDescriptor, PairLess>::const_iterator l(dstList2Dst.find(p));
+        std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp>::const_iterator l(dstList2Dst.find(p));
 
         NFA::VertexDescriptor dstTail;
         if (l == dstList2Dst.end()) {
