@@ -8,5 +8,5 @@
 
 struct PatternInfo {
   std::vector<Pattern> Patterns;
-  std::vector< std::pair<uint32, uint32> > Table;
+  std::vector<std::pair<uint32, uint32>> Table;
 };

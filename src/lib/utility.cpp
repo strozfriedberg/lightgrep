@@ -92,7 +92,7 @@ void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* con
   Instruction* cur = start,
              * indirectTbl;
 
-  std::vector< std::vector< NFA::VertexDescriptor > > tbl(pivotStates(v, graph));
+  std::vector<std::vector<NFA::VertexDescriptor>> tbl(pivotStates(v, graph));
   uint32 first = 0,
          last  = 255;
 
@@ -282,8 +282,8 @@ boost::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, Sear
   return vm;
 }
 
-std::vector< std::vector< NFA::VertexDescriptor > > pivotStates(NFA::VertexDescriptor source, const NFA& graph) {
-  std::vector< std::vector< NFA::VertexDescriptor > > ret(256);
+std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescriptor source, const NFA& graph) {
+  std::vector<std::vector<NFA::VertexDescriptor>> ret(256);
   ByteSet permitted;
 
   for (uint32 i = 0; i < graph.outDegree(source); ++i) {
@@ -300,9 +300,9 @@ std::vector< std::vector< NFA::VertexDescriptor > > pivotStates(NFA::VertexDescr
   return ret;
 }
 
-uint32 maxOutbound(const std::vector< std::vector< NFA::VertexDescriptor > >& tranTable) {
+uint32 maxOutbound(const std::vector<std::vector<NFA::VertexDescriptor>>& tranTable) {
   uint32 ret = 0;
-  for (std::vector< std::vector< NFA::VertexDescriptor > >::const_iterator it(tranTable.begin()); it != tranTable.end(); ++it) {
+  for (std::vector<std::vector<NFA::VertexDescriptor>>::const_iterator it(tranTable.begin()); it != tranTable.end(); ++it) {
     ret = it->size() > ret ? it->size() : ret;
   }
   return ret;

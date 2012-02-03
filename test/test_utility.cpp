@@ -121,7 +121,7 @@ SCOPE_TEST(keywordLabelsProgram) {
 }
 
 template<class T>
-std::vector< Pattern > makePatterns(const std::initializer_list<T>& list) {
+std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
   std::vector<Pattern> ret;
   for (auto p : list) {
     ret.push_back(Pattern(p));
@@ -457,7 +457,7 @@ SCOPE_TEST(testPivotTransitions) {
   fsm[2].IsMatch = true;
   fsm[2].Label = 1;
 
-  std::vector< std::vector<NFA::VertexDescriptor> > tbl = pivotStates(0, fsm);
+  std::vector<std::vector<NFA::VertexDescriptor>> tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(256u, tbl.size());
   for (uint32 i = 0; i < 256; ++i) {
     if (i == 'a') {
@@ -506,7 +506,7 @@ SCOPE_TEST(testMaxOutbound) {
   edge(0, 2, fsm, new LitState('a'));
   edge(0, 3, fsm, new LitState('b'));
   edge(0, 4, fsm, new LitState('c'));
-  std::vector< std::vector< NFA::VertexDescriptor > > tbl = pivotStates(0, fsm);
+  std::vector<std::vector<NFA::VertexDescriptor>> tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(2u, maxOutbound(tbl));
 }
 

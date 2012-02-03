@@ -38,7 +38,7 @@ bool Compiler::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Tra
     && 1 == dst.inDegree(dstTail) && 1 == src.inDegree(srcTail)
   )
   {
-    const std::map< NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor> >::const_iterator i(Dst2Src.find(dstTail));
+    const std::map<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor>>::const_iterator i(Dst2Src.find(dstTail));
     if (i == Dst2Src.end() || 1 == src.inDegree(i->second.front())) {
       dstBits.reset();
       dstTrans->getBits(dstBits);
@@ -234,7 +234,7 @@ void Compiler::labelGuardStates(NFA& g) {
 void Compiler::propagateMatchLabels(NFA& g) {
   uint32 i = 0;
 
-  std::stack<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor> > next, unext;
+  std::stack<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor>> next, unext;
 
   for (NFA::VertexDescriptor m = 0; m < g.verticesSize(); ++m) {
     // skip non-match vertices
@@ -309,7 +309,7 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
   std::vector<bool> visited(g.verticesSize());
 
   std::set<NFA::VertexDescriptor> heads;
-  std::stack<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor> > next;
+  std::stack<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor>> next;
 
   next.push(0);
   visited[0] = true;
@@ -376,8 +376,8 @@ struct ByteSetLess {
 
 struct PairLess {
   bool operator()(
-    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor> >& a,
-    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor> >& b) const
+    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>& a,
+    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>& b) const
   {
     for (uint32 i = 0; i < 256; ++i) {
       if (a.first[i] < b.first[i]) {
@@ -395,25 +395,25 @@ struct PairLess {
 
 void Compiler::subsetDFA(NFA& dst, const NFA& src) {
 
-  std::stack< std::pair<ByteSet, std::vector<NFA::VertexDescriptor> > > dstStack;
-  std::map< std::pair<ByteSet, std::vector<NFA::VertexDescriptor> >, NFA::VertexDescriptor, PairLess > dstList2Dst;
+  std::stack<std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>> dstStack;
+  std::map<std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>, NFA::VertexDescriptor, PairLess > dstList2Dst;
 
   // set up initial dst state
-  const std::pair<ByteSet, std::vector<NFA::VertexDescriptor> > d0(ByteSet(), std::vector<NFA::VertexDescriptor>(1, 0));
+  const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>> d0(ByteSet(), std::vector<NFA::VertexDescriptor>(1, 0));
   dstList2Dst[d0] = 0;
   dstStack.push(d0);
 
   ByteSet outBytes;
 
   while (!dstStack.empty()) {
-    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor> > p(dstStack.top());
+    const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>> p(dstStack.top());
     dstStack.pop();
 
     const std::vector<NFA::VertexDescriptor>& srcHeadList(p.second);
     const NFA::VertexDescriptor dstHead = dstList2Dst[p];
 
     // for each byte, collect all srcTails leaving srcHeads
-    std::map< byte, std::vector<NFA::VertexDescriptor> > srcTailLists;
+    std::map<byte, std::vector<NFA::VertexDescriptor>> srcTailLists;
 
     for (std::vector<NFA::VertexDescriptor>::const_iterator i(srcHeadList.begin()); i != srcHeadList.end(); ++i) {
       const NFA::VertexDescriptor srcHead = *i;
@@ -433,7 +433,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     // remove right duplicates from each srcTailsList
-    for (std::map< byte, std::vector<NFA::VertexDescriptor> >::iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
+    for (std::map<byte, std::vector<NFA::VertexDescriptor>>::iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
       std::vector<NFA::VertexDescriptor>& srcTailList(i->second);
       std::set<NFA::VertexDescriptor> seen;
 
@@ -451,7 +451,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     // collapse outgoing bytes with the same srcTails
     std::map<std::vector<NFA::VertexDescriptor>, ByteSet> srcList2Bytes;
 
-    for (std::map< byte, std::vector<NFA::VertexDescriptor> >::const_iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
+    for (std::map<byte, std::vector<NFA::VertexDescriptor>>::const_iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
       const byte b = i->first;
       const std::vector<NFA::VertexDescriptor>& srcTailList(i->second);
 
@@ -468,7 +468,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     // form each srcTailList into determinizable groups
-    std::map<ByteSet, std::vector< std::vector<NFA::VertexDescriptor> >, ByteSetLess> dstListGroups;
+    std::map<ByteSet, std::vector<std::vector<NFA::VertexDescriptor>>, ByteSetLess> dstListGroups;
 
     for (std::map<ByteSet, std::vector<NFA::VertexDescriptor>, ByteSetLess>::const_iterator i(bytes2SrcList.begin()); i != bytes2SrcList.end(); ++i) {
       const ByteSet bs = i->first;
@@ -494,16 +494,16 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     // determinize for each outgoing byte
-    for (std::map<ByteSet, std::vector< std::vector<NFA::VertexDescriptor> >, ByteSetLess>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
+    for (std::map<ByteSet, std::vector<std::vector<NFA::VertexDescriptor>>, ByteSetLess>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
       const ByteSet bs = i->first;
-      const std::vector< std::vector<NFA::VertexDescriptor> >& dstLists(i->second);
+      const std::vector<std::vector<NFA::VertexDescriptor>>& dstLists(i->second);
 
-      for (std::vector< std::vector<NFA::VertexDescriptor> >::const_iterator j(dstLists.begin()); j != dstLists.end(); ++j) {
+      for (std::vector<std::vector<NFA::VertexDescriptor>>::const_iterator j(dstLists.begin()); j != dstLists.end(); ++j) {
 
         const std::vector<NFA::VertexDescriptor>& dstList(*j);
-        const std::pair<ByteSet, std::vector<NFA::VertexDescriptor> > p(bs, dstList);
+        const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>> p(bs, dstList);
 
-        std::map< std::pair<ByteSet, std::vector<NFA::VertexDescriptor> >, NFA::VertexDescriptor, PairLess>::const_iterator l(dstList2Dst.find(p));
+        std::map<std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>, NFA::VertexDescriptor, PairLess>::const_iterator l(dstList2Dst.find(p));
 
         NFA::VertexDescriptor dstTail;
         if (l == dstList2Dst.end()) {
