@@ -1,9 +1,7 @@
+#include "instructions.h"
 #include "states.h"
 
-#include "instructions.h"
-
 #include <cctype>
-#include <cstring>
 #include <iomanip>
 #include <sstream>
 
@@ -111,10 +109,4 @@ std::string CharClassState::label() const {
   }
 
   return ss.str();
-}
-
-bool operator<(const ByteSet& lbs, const ByteSet& rbs) {
-  // This is evil, and depends on std::bitset<256> being layed out as an
-  // array of 32 bytes. If it is not, this will fail catastrophically.
-  return memcmp(&lbs, &rbs, sizeof(lbs)) < 0;
 }

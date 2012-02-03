@@ -1,3 +1,4 @@
+#include "bitsetutils.h"
 #include "compiler.h"
 #include "states.h"
 #include "utility.h"
@@ -379,17 +380,17 @@ struct PairLess {
     const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>& a,
     const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>>& b) const
   {
-    for (uint32 i = 0; i < 256; ++i) {
-      if (a.first[i] < b.first[i]) {
-        return false;
-      }
-      else if (a.first[i] > b.first[i]) {
-        return true;
-      }
+    const int c = lexcmp_bitset(a.first, b.first);
+    if (c < 0) {
+      return false;
     }
-
-    return std::lexicographical_compare(a.second.begin(), a.second.end(),
-                                        b.second.begin(), b.second.end());
+    else if (c > 0) {
+      return true;
+    }
+    else {
+      return std::lexicographical_compare(a.second.begin(), a.second.end(),
+                                          b.second.begin(), b.second.end());
+    }
   }
 };
 
