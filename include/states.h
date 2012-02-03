@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bitsetutils.h"
 #include "transition.h"
 
 #include <limits>
@@ -135,8 +136,6 @@ private:
   friend struct TransitionComparator;
   friend class TransitionFactory;
 };
-
-bool operator<(const ByteSet& lbs, const ByteSet& rbs);
 
 struct TransitionComparator {
   //
