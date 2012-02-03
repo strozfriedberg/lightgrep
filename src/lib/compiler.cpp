@@ -359,7 +359,8 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
   }
 }
 
-typedef std::pair<ByteSet, std::vector<NFA::VertexDescriptor>> SubsetState;
+typedef std::vector<NFA::VertexDescriptor> VDList;
+typedef std::pair<ByteSet, VDList> SubsetState;
 
 struct SubsetStateComp {
   bool operator()(const SubsetState& a, const SubsetState& b) const {
@@ -378,12 +379,14 @@ struct SubsetStateComp {
 };
 
 void Compiler::subsetDFA(NFA& dst, const NFA& src) {
+  typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToStateMap;
+  typedef std::set<NFA::VertexDescriptor> VDSet;
 
   std::stack<SubsetState> dstStack;
-  std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> dstList2Dst;
+  SubsetStateToStateMap dstList2Dst;
 
   // set up initial dst state
-  const SubsetState d0(ByteSet(), std::vector<NFA::VertexDescriptor>(1, 0));
+  const SubsetState d0(ByteSet(), VDList(1, 0));
   dstList2Dst[d0] = 0;
   dstStack.push(d0);
 
@@ -393,11 +396,11 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     const SubsetState p(dstStack.top());
     dstStack.pop();
 
-    const std::vector<NFA::VertexDescriptor>& srcHeadList(p.second);
+    const VDList& srcHeadList(p.second);
     const NFA::VertexDescriptor dstHead = dstList2Dst[p];
 
     // for each byte, collect all srcTails leaving srcHeads
-    std::map<byte, std::vector<NFA::VertexDescriptor>> srcTailLists;
+    std::map<byte, VDList> srcTailLists;
 
     for (const NFA::VertexDescriptor srcHead : srcHeadList) {
       for (uint32 j = 0; j < src.outDegree(srcHead); ++j) {
@@ -415,11 +418,11 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     // remove right duplicates from each srcTailsList
-    for (std::map<byte, std::vector<NFA::VertexDescriptor>>::iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
-      std::vector<NFA::VertexDescriptor>& srcTailList(i->second);
-      std::set<NFA::VertexDescriptor> seen;
+    for (std::map<byte, VDList>::iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
+      VDList& srcTailList(i->second);
+      VDSet seen;
 
-      for (std::vector<NFA::VertexDescriptor>::iterator j(srcTailList.begin()); j != srcTailList.end(); ) {
+      for (VDList::iterator j(srcTailList.begin()); j != srcTailList.end(); ) {
         const NFA::VertexDescriptor srcTail = *j;
         if (seen.insert(srcTail).second) {
           ++j;
@@ -431,43 +434,42 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     // collapse outgoing bytes with the same srcTails
-    std::map<std::vector<NFA::VertexDescriptor>, ByteSet> srcList2Bytes;
+    std::map<VDList, ByteSet> srcList2Bytes;
 
-    for (std::map<byte, std::vector<NFA::VertexDescriptor>>::const_iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
+    for (std::map<byte, VDList>::const_iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
       const byte b = i->first;
-      const std::vector<NFA::VertexDescriptor>& srcTailList(i->second);
-
+      const VDList& srcTailList(i->second);
       srcList2Bytes[srcTailList][b] = true;
     }
 
-    std::map<ByteSet, std::vector<NFA::VertexDescriptor>> bytes2SrcList;
+    std::map<ByteSet, VDList> bytes2SrcList;
 
-    for (std::map<std::vector<NFA::VertexDescriptor>, ByteSet>::const_iterator i(srcList2Bytes.begin()); i != srcList2Bytes.end(); ++i) {
+    for (std::map<VDList, ByteSet>::const_iterator i(srcList2Bytes.begin()); i != srcList2Bytes.end(); ++i) {
       const ByteSet bs = i->second;
-      const std::vector<NFA::VertexDescriptor>& srcTailList(i->first);
+      const VDList& srcTailList(i->first);
 
       bytes2SrcList[bs] = srcTailList;
     }
 
     // form each srcTailList into determinizable groups
-    std::map<ByteSet, std::vector<std::vector<NFA::VertexDescriptor>>> dstListGroups;
+    std::map<ByteSet, std::vector<VDList>> dstListGroups;
 
-    for (std::map<ByteSet, std::vector<NFA::VertexDescriptor>>::const_iterator i(bytes2SrcList.begin()); i != bytes2SrcList.end(); ++i) {
+    for (std::map<ByteSet, VDList>::const_iterator i(bytes2SrcList.begin()); i != bytes2SrcList.end(); ++i) {
       const ByteSet bs = i->first;
-      const std::vector<NFA::VertexDescriptor>& srcTailList(i->second);
+      const VDList& srcTailList(i->second);
 
       bool startGroup = true;
 
-      for (std::vector<NFA::VertexDescriptor>::const_iterator j(srcTailList.begin()); j != srcTailList.end(); ++j) {
+      for (VDList::const_iterator j(srcTailList.begin()); j != srcTailList.end(); ++j) {
         const NFA::VertexDescriptor srcTail = *j;
 
         if (src[srcTail].IsMatch) {
           // match states are always singleton groups
-          dstListGroups[bs].push_back(std::vector<NFA::VertexDescriptor>());
+          dstListGroups[bs].push_back(VDList());
           startGroup = true;
         }
         else if (startGroup) {
-          dstListGroups[bs].push_back(std::vector<NFA::VertexDescriptor>());
+          dstListGroups[bs].push_back(VDList());
           startGroup = false;
         }
 
@@ -476,16 +478,16 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     // determinize for each outgoing byte
-    for (std::map<ByteSet, std::vector<std::vector<NFA::VertexDescriptor>>>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
+    for (std::map<ByteSet, std::vector<VDList>>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
       const ByteSet bs = i->first;
-      const std::vector<std::vector<NFA::VertexDescriptor>>& dstLists(i->second);
+      const std::vector<VDList>& dstLists(i->second);
 
-      for (std::vector<std::vector<NFA::VertexDescriptor>>::const_iterator j(dstLists.begin()); j != dstLists.end(); ++j) {
+      for (std::vector<VDList>::const_iterator j(dstLists.begin()); j != dstLists.end(); ++j) {
 
-        const std::vector<NFA::VertexDescriptor>& dstList(*j);
-        const std::pair<ByteSet, std::vector<NFA::VertexDescriptor>> p(bs, dstList);
+        const VDList& dstList(*j);
+        const SubsetState p(bs, dstList);
 
-        std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp>::const_iterator l(dstList2Dst.find(p));
+        const SubsetStateToStateMap::const_iterator l(dstList2Dst.find(p));
 
         NFA::VertexDescriptor dstTail;
         if (l == dstList2Dst.end()) {
@@ -511,7 +513,8 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
 
   // collapse CharClassStates where possible
   // isn't necessary, but improves the GraphViz output
-  for (uint32 i = 1; i < dst.verticesSize(); ++i) {
+  const uint32 dstSize = dst.verticesSize();
+  for (uint32 i = 1; i < dstSize; ++i) {
     int32 first = -1;
     int32 last = -1;
 
