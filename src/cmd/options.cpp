@@ -40,8 +40,8 @@ std::ostream& Options::openOutput() const {
   }
 }
 
-std::vector< Pattern > Options::getKeys() const {
-  std::vector< Pattern > ret;
+std::vector<Pattern> Options::getKeys() const {
+  std::vector<Pattern> ret;
   if (!SinglePattern.empty()) {
     ret.push_back(Pattern(SinglePattern));
   }
@@ -66,7 +66,7 @@ void setBool(const std::string& s, bool& b) {
 }
 
 bool Options::parseLine(const std::string& line, std::vector<Pattern>& keys) const {
-  typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+  typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
 
   if (!line.empty()) {
     const tokenizer tokens(line, boost::char_separator<char>("\t"));

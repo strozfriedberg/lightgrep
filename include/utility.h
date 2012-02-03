@@ -38,8 +38,8 @@ void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph);
 
 boost::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, SearchInfo& info);
 
-std::vector< std::vector< NFA::VertexDescriptor > > pivotStates(NFA::VertexDescriptor source, const NFA& graph);
+std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescriptor source, const NFA& graph);
 
-uint32 maxOutbound(const std::vector< std::vector< NFA::VertexDescriptor > >& tranTable);
+uint32 maxOutbound(const std::vector<std::vector<NFA::VertexDescriptor>>& tranTable);
 
 void writeGraphviz(std::ostream& out, const NFA& graph);
