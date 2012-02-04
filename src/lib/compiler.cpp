@@ -342,7 +342,7 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
 
   // Unlabel every remaining node not in heads.
   while (!next.empty()) {
-    NFA::VertexDescriptor h = next.top();
+    const NFA::VertexDescriptor h = next.top();
     next.pop();
 
     for (uint32 i = 0; i < g.outDegree(h); ++i) {
@@ -508,6 +508,47 @@ void collapseCharacterClass(NFA& dst, NFA::VertexDescriptor v, ByteSet& outBytes
   }
 }
 
+void handleSubsetState(const NFA& src, NFA& dst, const VDList& srcHeadList, const NFA::VertexDescriptor dstHead, std::stack<SubsetState>& dstStack, ByteSet& outBytes, SubsetStateToState& dstList2Dst) {
+  ByteToVertices srcTailLists;
+
+  // for each byte, collect all srcTails leaving srcHeads
+  for (const NFA::VertexDescriptor srcHead : srcHeadList) {
+    makePerByteOutNeighborhoods(src, srcHead, srcTailLists, outBytes);
+  }
+
+  // remove right duplicates from each srcTailsList
+  for (ByteToVertices::value_type& p : srcTailLists) {
+    removeRightDuplicates(p.second);
+  }
+
+  // collapse outgoing bytes with the same srcTails
+  BytesToVertices bytes2SrcList;
+  makeByteSetsWithDistinctOutNeighborhoods(srcTailLists, bytes2SrcList);
+
+  // form each srcTailList into determinizable groups
+  std::map<ByteSet, std::vector<VDList>> dstListGroups;
+
+  for (const BytesToVertices::value_type& v : bytes2SrcList) {
+    const ByteSet& bs(v.first);
+    const VDList& srcTailList(v.second);
+
+    bool startGroup = true;
+
+    for (const NFA::VertexDescriptor srcTail : srcTailList) {
+      addToDeterminizationGroup(src, srcTail, bs, dstListGroups, startGroup);
+    }
+  }
+
+  // determinize for each outgoing byte
+  for (const std::map<ByteSet, std::vector<VDList>>::value_type& v : dstListGroups) {
+    const ByteSet& bs(v.first);
+    const std::vector<VDList>& dstLists(v.second);
+    for (const VDList& dstList : dstLists) {
+      makeDestinationState(src, dst, dstHead, bs, dstList, dstList2Dst, dstStack);
+    }
+  }
+}
+
 void Compiler::subsetDFA(NFA& dst, const NFA& src) {
   std::stack<SubsetState> dstStack;
   SubsetStateToState dstList2Dst;
@@ -519,51 +560,15 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
 
   ByteSet outBytes;
 
+  // process each subset state
   while (!dstStack.empty()) {
-    const SubsetState p(dstStack.top());
+    const SubsetState ss(dstStack.top());
     dstStack.pop();
 
-    const VDList& srcHeadList(p.second);
-    const NFA::VertexDescriptor dstHead = dstList2Dst[p];
+    const VDList& srcHeadList(ss.second);
+    const NFA::VertexDescriptor dstHead = dstList2Dst[ss];
 
-    ByteToVertices srcTailLists;
-
-    // for each byte, collect all srcTails leaving srcHeads
-    for (const NFA::VertexDescriptor srcHead : srcHeadList) {
-      makePerByteOutNeighborhoods(src, srcHead, srcTailLists, outBytes);
-    }
-
-    // remove right duplicates from each srcTailsList
-    for (ByteToVertices::value_type& p : srcTailLists) {
-      removeRightDuplicates(p.second);
-    }
-
-    // collapse outgoing bytes with the same srcTails
-    BytesToVertices bytes2SrcList;
-    makeByteSetsWithDistinctOutNeighborhoods(srcTailLists, bytes2SrcList);
-
-    // form each srcTailList into determinizable groups
-    std::map<ByteSet, std::vector<VDList>> dstListGroups;
-
-    for (const BytesToVertices::value_type& v : bytes2SrcList) {
-      const ByteSet& bs(v.first);
-      const VDList& srcTailList(v.second);
-
-      bool startGroup = true;
-
-      for (const NFA::VertexDescriptor srcTail : srcTailList) {
-        addToDeterminizationGroup(src, srcTail, bs, dstListGroups, startGroup);
-      }
-    }
-
-    // determinize for each outgoing byte
-    for (const std::map<ByteSet, std::vector<VDList>>::value_type& v : dstListGroups) {
-      const ByteSet& bs(v.first);
-      const std::vector<VDList>& dstLists(v.second);
-      for (const VDList& dstList : dstLists) {
-        makeDestinationState(src, dst, dstHead, bs, dstList, dstList2Dst, dstStack);
-      }
-    }
+    handleSubsetState(src, dst, srcHeadList, dstHead, dstStack, outBytes, dstList2Dst);
   }
 
   // collapse CharClassStates where possible
