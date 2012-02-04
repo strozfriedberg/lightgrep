@@ -433,6 +433,20 @@ void makeByteSetsWithDistinctOutNeighborhoods(const ByteToVertices& srcTailLists
   }
 }
 
+void addToDeterminizationGroup(const NFA& src, const NFA::VertexDescriptor srcTail, const ByteSet& bs, std::map<ByteSet, std::vector<VDList>>& dstListGroups, bool& startGroup) {
+  if (src[srcTail].IsMatch) {
+    // match states are always singleton groups
+    dstListGroups[bs].push_back(VDList());
+    startGroup = true;
+  }
+  else if (startGroup) {
+    dstListGroups[bs].push_back(VDList());
+    startGroup = false;
+  }
+
+  dstListGroups[bs].back().push_back(srcTail);
+}
+
 typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToState;
 
 void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor dstHead, const ByteSet& bs, const VDList& dstList, SubsetStateToState& dstList2Dst, std::stack<SubsetState>& dstStack) {
@@ -538,17 +552,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
       bool startGroup = true;
 
       for (const NFA::VertexDescriptor srcTail : srcTailList) {
-        if (src[srcTail].IsMatch) {
-          // match states are always singleton groups
-          dstListGroups[bs].push_back(VDList());
-          startGroup = true;
-        }
-        else if (startGroup) {
-          dstListGroups[bs].push_back(VDList());
-          startGroup = false;
-        }
-
-        dstListGroups[bs].back().push_back(srcTail);
+        addToDeterminizationGroup(src, srcTail, bs, dstListGroups, startGroup);
       }
     }
 
