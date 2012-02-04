@@ -415,6 +415,59 @@ void removeRightDuplicates(VDList& srcTailList) {
   );
 }
 
+typedef std::map<ByteSet, VDList> BytesToVertices;
+
+void makeByteSetsWithDistinctOutNeighborhoods(const ByteToVertices& srcTailLists, BytesToVertices& bytes2SrcList) {
+  typedef std::map<VDList, ByteSet> VerticesToBytes;
+
+  VerticesToBytes srcList2Bytes;
+
+  // mark the outgoing byte for each out neighborhood
+  for (const ByteToVertices::value_type& v : srcTailLists) {
+    srcList2Bytes[v.second][v.first] = true;
+  }
+
+  // invert the map
+  for (const VerticesToBytes::value_type& v : srcList2Bytes) {
+    bytes2SrcList[v.second] = v.first;
+  }
+}
+
+void collapseCharacterClass(NFA& dst, NFA::VertexDescriptor v, ByteSet& outBytes) {
+  int32 first = -1;
+  int32 last = -1;
+
+  outBytes.reset();
+  dst[v].Trans->getBits(outBytes);
+
+  for (int32 b = 0; b < 256; ++b) {
+    if (outBytes[b]) {
+      if (first == -1) {
+        // start of a range
+        first = last = b;
+      }
+      else if (last != b - 1) {
+        // not a range
+        first = -1;
+        break;
+      }
+      else {
+        // ongoing range
+        last = b;
+      }
+    }
+  }
+
+  if (first != -1) {
+    if (first == last) {
+      dst[v].Trans = dst.TransFac->getLit(first);
+    }
+    else {
+      dst[v].Trans = dst.TransFac->getRange(first, last);
+    }
+  }
+}
+
 void Compiler::subsetDFA(NFA& dst, const NFA& src) {
   typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToState;
 
@@ -448,35 +501,19 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     // collapse outgoing bytes with the same srcTails
-    std::map<VDList, ByteSet> srcList2Bytes;
-
-    for (std::map<byte, VDList>::const_iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
-      const byte b = i->first;
-      const VDList& srcTailList(i->second);
-      srcList2Bytes[srcTailList][b] = true;
-    }
-
-    std::map<ByteSet, VDList> bytes2SrcList;
-
-    for (std::map<VDList, ByteSet>::const_iterator i(srcList2Bytes.begin()); i != srcList2Bytes.end(); ++i) {
-      const ByteSet bs = i->second;
-      const VDList& srcTailList(i->first);
-
-      bytes2SrcList[bs] = srcTailList;
-    }
+    BytesToVertices bytes2SrcList;
+    makeByteSetsWithDistinctOutNeighborhoods(srcTailLists, bytes2SrcList);
 
     // form each srcTailList into determinizable groups
     std::map<ByteSet, std::vector<VDList>> dstListGroups;
 
-    for (std::map<ByteSet, VDList>::const_iterator i(bytes2SrcList.begin()); i != bytes2SrcList.end(); ++i) {
-      const ByteSet bs = i->first;
-      const VDList& srcTailList(i->second);
+    for (const BytesToVertices::value_type& v : bytes2SrcList) {
+      const ByteSet& bs(v.first);
+      const VDList& srcTailList(v.second);
 
       bool startGroup = true;
 
-      for (VDList::const_iterator j(srcTailList.begin()); j != srcTailList.end(); ++j) {
-        const NFA::VertexDescriptor srcTail = *j;
-
+      for (const NFA::VertexDescriptor srcTail : srcTailList) {
         if (src[srcTail].IsMatch) {
           // match states are always singleton groups
           dstListGroups[bs].push_back(VDList());
@@ -492,15 +529,12 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     }
 
     // determinize for each outgoing byte
-    for (std::map<ByteSet, std::vector<VDList>>::const_iterator i(dstListGroups.begin()); i != dstListGroups.end(); ++i) {
-      const ByteSet bs = i->first;
-      const std::vector<VDList>& dstLists(i->second);
+    for (const std::map<ByteSet, std::vector<VDList>>::value_type& v : dstListGroups) {
+      const ByteSet& bs(v.first);
+      const std::vector<VDList>& dstLists(v.second);
 
-      for (std::vector<VDList>::const_iterator j(dstLists.begin()); j != dstLists.end(); ++j) {
-
-        const VDList& dstList(*j);
+      for (const VDList& dstList : dstLists) {
         const SubsetState p(bs, dstList);
-
         const SubsetStateToState::const_iterator l(dstList2Dst.find(p));
 
         NFA::VertexDescriptor dstTail;
@@ -529,37 +563,6 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
   // isn't necessary, but improves the GraphViz output
   const uint32 dstSize = dst.verticesSize();
   for (uint32 i = 1; i < dstSize; ++i) {
-    int32 first = -1;
-    int32 last = -1;
-
-    outBytes.reset();
-    dst[i].Trans->getBits(outBytes);
-
-    for (int32 b = 0; b < 256; ++b) {
-      if (outBytes[b]) {
-        if (first == -1) {
-          // start of a range
-          first = last = b;
-        }
-        else if (last != b - 1) {
-          // not a range
-          first = -1;
-          break;
-        }
-        else {
-          // ongoing range
-          last = b;
-        }
-      }
-    }
-
-    if (first != -1) {
-      if (first == last) {
-        dst[i].Trans = dst.TransFac->getLit(first);
-      }
-      else {
-        dst[i].Trans = dst.TransFac->getRange(first, last);
-      }
-    }
+    collapseCharacterClass(dst, i, outBytes);
   }
 }
