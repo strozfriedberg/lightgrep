@@ -433,6 +433,32 @@ void makeByteSetsWithDistinctOutNeighborhoods(const ByteToVertices& srcTailLists
   }
 }
 
+typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToState;
+
+void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor dstHead, const ByteSet& bs, const VDList& dstList, SubsetStateToState& dstList2Dst, std::stack<SubsetState>& dstStack) {
+  const SubsetState ss(bs, dstList);
+  const SubsetStateToState::const_iterator l(dstList2Dst.find(ss));
+
+  NFA::VertexDescriptor dstTail;
+  if (l == dstList2Dst.end()) {
+    // new sublist dst vertex
+    dstList2Dst[ss] = dstTail = dst.addVertex();
+    dstStack.push(ss);
+    dst[dstTail].Trans = dst.TransFac->getCharClass(bs);
+  }
+  else {
+    // old sublist vertex
+    dstTail = l->second;
+  }
+
+  if (src[dstList.front()].IsMatch) {
+    dst[dstTail].IsMatch = true;
+    dst[dstTail].Label = src[dstList.front()].Label;
+  }
+
+  dst.addEdge(dstHead, dstTail);
+}
+
 void collapseCharacterClass(NFA& dst, NFA::VertexDescriptor v, ByteSet& outBytes) {
   int32 first = -1;
   int32 last = -1;
@@ -469,8 +495,6 @@ void collapseCharacterClass(NFA& dst, NFA::VertexDescriptor v, ByteSet& outBytes
 }
 
 void Compiler::subsetDFA(NFA& dst, const NFA& src) {
-  typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToState;
-
   std::stack<SubsetState> dstStack;
   SubsetStateToState dstList2Dst;
 
@@ -532,29 +556,8 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     for (const std::map<ByteSet, std::vector<VDList>>::value_type& v : dstListGroups) {
       const ByteSet& bs(v.first);
       const std::vector<VDList>& dstLists(v.second);
-
       for (const VDList& dstList : dstLists) {
-        const SubsetState p(bs, dstList);
-        const SubsetStateToState::const_iterator l(dstList2Dst.find(p));
-
-        NFA::VertexDescriptor dstTail;
-        if (l == dstList2Dst.end()) {
-          // new sublist dst vertex
-          dstList2Dst[p] = dstTail = dst.addVertex();
-          dstStack.push(std::make_pair(bs, dstList));
-          dst[dstTail].Trans = dst.TransFac->getCharClass(bs);
-        }
-        else {
-          // old sublist vertex
-          dstTail = l->second;
-        }
-
-        if (src[dstList.front()].IsMatch) {
-          dst[dstTail].IsMatch = true;
-          dst[dstTail].Label = src[dstList.front()].Label;
-        }
-
-        dst.addEdge(dstHead, dstTail);
+        makeDestinationState(src, dst, dstHead, bs, dstList, dstList2Dst, dstStack);
       }
     }
   }
