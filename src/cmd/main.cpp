@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <numeric>
 #include <set>
 
 #include <boost/bind.hpp>
@@ -275,20 +274,20 @@ void searches(const Options& opts) {
 
   // search our inputs
   if (opts.Recursive) {
-    for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
-      const fs::path p(*i);
+    for (const std::string& i : opts.Inputs) {
+      const fs::path p(i);
       if (fs::is_directory(p)) {
         searchRecursively(p, ctrl, searcher, hinfo.get(), callback);
       }
       else {
-        search(*i, ctrl, searcher, hinfo.get(), callback);
+        search(i, ctrl, searcher, hinfo.get(), callback);
       }
     }
   }
   else {
-    for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
-      if (!fs::is_directory(fs::path(*i))) {
-        search(*i, ctrl, searcher, hinfo.get(), callback);
+    for (const std::string& i : opts.Inputs) {
+      if (!fs::is_directory(fs::path(i))) {
+        search(i, ctrl, searcher, hinfo.get(), callback);
       }
     }
   }
