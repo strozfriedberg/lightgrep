@@ -361,6 +361,7 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
 
 typedef std::vector<NFA::VertexDescriptor> VDList;
 typedef std::pair<ByteSet, VDList> SubsetState;
+typedef std::map<byte, VDList> ByteToVertices;
 
 struct SubsetStateComp {
   bool operator()(const SubsetState& a, const SubsetState& b) const {
@@ -378,12 +379,47 @@ struct SubsetStateComp {
   }
 };
 
+void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor srcHead, ByteToVertices& srcTailLists, ByteSet& outBytes) {
+  // for each srcTail, add it to srcHead's per-byte outneighborhood
+  for (uint32 j = 0; j < src.outDegree(srcHead); ++j) {
+    const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, j);
+
+    outBytes.reset();
+    src[srcTail].Trans->getBits(outBytes);
+
+    for (uint32 b = 0; b < 256; ++b) {
+      if (outBytes[b]) {
+        srcTailLists[b].push_back(srcTail);
+      }
+    }
+  }
+}
+
+template <typename T>
+struct Duplicate {
+  bool operator()(const T& a) {
+    return !seen.insert(a).second;
+  }
+
+  std::set<T> seen;
+};
+
+void removeRightDuplicates(VDList& srcTailList) {
+  srcTailList.erase(
+    std::remove_if(
+      srcTailList.begin(),
+      srcTailList.end(),
+      Duplicate<NFA::VertexDescriptor>()
+    ),
+    srcTailList.end()
+  );
+}
+
 void Compiler::subsetDFA(NFA& dst, const NFA& src) {
-  typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToStateMap;
-  typedef std::set<NFA::VertexDescriptor> VDSet;
+  typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToState;
 
   std::stack<SubsetState> dstStack;
-  SubsetStateToStateMap dstList2Dst;
+  SubsetStateToState dstList2Dst;
 
   // set up initial dst state
   const SubsetState d0(ByteSet(), VDList(1, 0));
@@ -399,38 +435,16 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     const VDList& srcHeadList(p.second);
     const NFA::VertexDescriptor dstHead = dstList2Dst[p];
 
+    ByteToVertices srcTailLists;
+
     // for each byte, collect all srcTails leaving srcHeads
-    std::map<byte, VDList> srcTailLists;
-
     for (const NFA::VertexDescriptor srcHead : srcHeadList) {
-      for (uint32 j = 0; j < src.outDegree(srcHead); ++j) {
-        const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, j);
-
-        outBytes.reset();
-        src[srcTail].Trans->getBits(outBytes);
-
-        for (uint32 b = 0; b < 256; ++b) {
-          if (outBytes[b]) {
-            srcTailLists[b].push_back(srcTail);
-          }
-        }
-      }
+      makePerByteOutNeighborhoods(src, srcHead, srcTailLists, outBytes);
     }
 
     // remove right duplicates from each srcTailsList
-    for (std::map<byte, VDList>::iterator i(srcTailLists.begin()); i != srcTailLists.end(); ++i) {
-      VDList& srcTailList(i->second);
-      VDSet seen;
-
-      for (VDList::iterator j(srcTailList.begin()); j != srcTailList.end(); ) {
-        const NFA::VertexDescriptor srcTail = *j;
-        if (seen.insert(srcTail).second) {
-          ++j;
-        }
-        else {
-          j = srcTailList.erase(j);
-        }
-      }
+    for (ByteToVertices::value_type& p : srcTailLists) {
+      removeRightDuplicates(p.second);
     }
 
     // collapse outgoing bytes with the same srcTails
@@ -487,7 +501,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
         const VDList& dstList(*j);
         const SubsetState p(bs, dstList);
 
-        const SubsetStateToStateMap::const_iterator l(dstList2Dst.find(p));
+        const SubsetStateToState::const_iterator l(dstList2Dst.find(p));
 
         NFA::VertexDescriptor dstTail;
         if (l == dstList2Dst.end()) {
