@@ -3,6 +3,7 @@
 #include "utility.h"
 
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <iterator>
 #include <set>
@@ -361,7 +362,7 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
 
 typedef std::vector<NFA::VertexDescriptor> VDList;
 typedef std::pair<ByteSet, VDList> SubsetState;
-typedef std::map<byte, VDList> ByteToVertices;
+typedef std::array<VDList,256> ByteToVertices;
 
 struct SubsetStateComp {
   bool operator()(const SubsetState& a, const SubsetState& b) const {
@@ -423,8 +424,10 @@ void makeByteSetsWithDistinctOutNeighborhoods(const ByteToVertices& srcTailLists
   VerticesToBytes srcList2Bytes;
 
   // mark the outgoing byte for each out neighborhood
-  for (const ByteToVertices::value_type& v : srcTailLists) {
-    srcList2Bytes[v.second][v.first] = true;
+  const ByteToVertices::const_iterator beg(srcTailLists.begin());
+  const ByteToVertices::const_iterator end(srcTailLists.end());
+  for (ByteToVertices::const_iterator i(beg); i != end; ++i) {
+    srcList2Bytes[*i][i - beg] = true;
   }
 
   // invert the map
@@ -518,7 +521,7 @@ void handleSubsetState(const NFA& src, NFA& dst, const VDList& srcHeadList, cons
 
   // remove right duplicates from each srcTailsList
   for (ByteToVertices::value_type& p : srcTailLists) {
-    removeRightDuplicates(p.second);
+    removeRightDuplicates(p);
   }
 
   // collapse outgoing bytes with the same srcTails
