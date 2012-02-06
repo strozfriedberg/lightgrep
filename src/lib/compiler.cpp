@@ -382,7 +382,8 @@ struct SubsetStateComp {
 
 void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor srcHead, ByteToVertices& srcTailLists, ByteSet& outBytes) {
   // for each srcTail, add it to srcHead's per-byte outneighborhood
-  for (uint32 j = 0; j < src.outDegree(srcHead); ++j) {
+  const uint32 odeg = src.outDegree(srcHead);
+  for (uint32 j = 0; j < odeg; ++j) {
     const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, j);
 
     outBytes.reset();
