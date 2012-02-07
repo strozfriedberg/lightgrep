@@ -458,12 +458,12 @@ void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor 
   dst.addEdge(dstHead, dstTail);
 }
 
-void collapseCharacterClass(NFA& dst, NFA::VertexDescriptor v, ByteSet& outBytes) {
+void collapseCharacterClass(NFA& g, NFA::VertexDescriptor v, ByteSet& outBytes) {
   int32 first = -1;
   int32 last = -1;
 
   outBytes.reset();
-  dst[v].Trans->getBits(outBytes);
+  g[v].Trans->getBits(outBytes);
 
   for (int32 b = 0; b < 256; ++b) {
     if (outBytes[b]) {
@@ -485,10 +485,10 @@ void collapseCharacterClass(NFA& dst, NFA::VertexDescriptor v, ByteSet& outBytes
 
   if (first != -1) {
     if (first == last) {
-      dst[v].Trans = dst.TransFac->getLit(first);
+      g[v].Trans = g.TransFac->getLit(first);
     }
     else {
-      dst[v].Trans = dst.TransFac->getRange(first, last);
+      g[v].Trans = g.TransFac->getRange(first, last);
     }
   }
 }
