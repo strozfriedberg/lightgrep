@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include "sequences.h"
 #include "states.h"
 #include "utility.h"
 
@@ -395,26 +396,6 @@ void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor src
       }
     }
   }
-}
-
-template <typename T>
-struct Duplicate {
-  bool operator()(const T& a) {
-    return !seen.insert(a).second;
-  }
-
-  std::set<T> seen;
-};
-
-void removeRightDuplicates(VDList& srcTailList) {
-  srcTailList.erase(
-    std::remove_if(
-      srcTailList.begin(),
-      srcTailList.end(),
-      Duplicate<NFA::VertexDescriptor>()
-    ),
-    srcTailList.end()
-  );
 }
 
 typedef std::map<ByteSet, VDList> BytesToVertices;
