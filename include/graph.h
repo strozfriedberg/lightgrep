@@ -3,10 +3,9 @@
 #include "basic.h"
 
 #include <algorithm>
+#include <functional>
 #include <limits>
 #include <vector>
-
-#include <boost/bind.hpp>
 
 template <class GraphType,
           class VertexType,
@@ -243,9 +242,11 @@ public:
   }
 
   void removeVertex(VertexDescriptor vd) {
+    using namespace std::placeholders;
+
     const VertexData& v(Vertices[vd]);
-    std::for_each(Store.begin(v.In), Store.end(v.In), boost::bind(&Graph::removeEdge, this, _1));
-    std::for_each(Store.begin(v.Out), Store.end(v.Out), boost::bind(&Graph::removeEdge, this, _1));
+    std::for_each(Store.begin(v.In), Store.end(v.In), std::bind(&Graph::removeEdge, this, _1));
+    std::for_each(Store.begin(v.Out), Store.end(v.Out), std::bind(&Graph::removeEdge, this, _1));
 
     compact_after_vertex(vd);
   }

@@ -1,9 +1,9 @@
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "basic.h"
 #include "compiler.h"
@@ -47,7 +47,7 @@ struct ProgramHandle: public HandleBase<ProgramHandleImpl> {};
 struct ContextHandleImpl {
   ContextHandleImpl(): Vm(VmInterface::create()) {}
 
-  boost::shared_ptr<VmInterface> Vm;
+  std::shared_ptr<VmInterface> Vm;
 };
 
 struct ContextHandle: public HandleBase<ContextHandleImpl> {};
