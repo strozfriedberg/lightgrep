@@ -18,10 +18,10 @@ SCOPE_TEST(testMerge_aaOrab_toEmpty) {
 
   // aa|ab
   edge(0, 1, src, new LitState('a'));
-  boost::shared_ptr<LitState> a(new LitState('a'));
+  std::shared_ptr<LitState> a(new LitState('a'));
   edge(1, 2, src, a);
   edge(0, 3, src, new LitState('a'));
-  boost::shared_ptr<LitState> b(new LitState('b'));
+  std::shared_ptr<LitState> b(new LitState('b'));
   edge(3, 4, src, b);
 
   comp.mergeIntoFSM(dst, src);
@@ -55,7 +55,7 @@ SCOPE_TEST(testMerge) {
   edge(0, 1, key, new LitState('a'));
   edge(1, 2, key, new LitState('b'));
   edge(1, 3, key, new LitState('c'));
-  boost::shared_ptr<LitState> d(new LitState('d'));
+  std::shared_ptr<LitState> d(new LitState('d'));
   edge(2, 4, key, d);
   edge(3, 4, key, d);
   edge(4, 4, key, d);
@@ -223,7 +223,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   edge(0, 1, key[0], new LitState('a'));
   edge(1, 2, key[0], new LitState('b'));
   edge(1, 3, key[0], new LitState('c'));
-  boost::shared_ptr<LitState> a(new LitState('a'));
+  std::shared_ptr<LitState> a(new LitState('a'));
   edge(2, 4, key[0], a);
   edge(3, 4, key[0], a);
 
@@ -232,7 +232,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
 
   // ac+
   edge(0, 1, key[1], new LitState('a'));
-  boost::shared_ptr<LitState> c(new LitState('c'));
+  std::shared_ptr<LitState> c(new LitState('c'));
   edge(1, 2, key[1], c);
   edge(2, 2, key[1], c);
 
@@ -242,7 +242,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   // ab?a
   edge(0, 1, key[2], new LitState('a'));
   edge(1, 2, key[2], new LitState('b'));
-  boost::shared_ptr<LitState> a2(new LitState('a'));
+  std::shared_ptr<LitState> a2(new LitState('a'));
   edge(1, 3, key[2], a2);
   edge(2, 3, key[2], a2);
 
@@ -268,21 +268,21 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   edge(0, 1, exp, new LitState('a'));
   edge(1, 2, exp, new LitState('b'));
   edge(1, 3, exp, new LitState('c'));
-  boost::shared_ptr<LitState> ae(new LitState('a'));
+  std::shared_ptr<LitState> ae(new LitState('a'));
   edge(2, 4, exp, ae);
   edge(3, 4, exp, ae);
 
   exp[4].Label = 0;
   exp[4].IsMatch = true;
 
-  boost::shared_ptr<LitState> ce(new LitState('c'));
+  std::shared_ptr<LitState> ce(new LitState('c'));
   edge(1, 5, exp, ce);
   edge(5, 5, exp, ce);
 
   exp[5].Label = 1;
   exp[5].IsMatch = true;
 
-  boost::shared_ptr<LitState> a2e(new LitState('a'));
+  std::shared_ptr<LitState> a2e(new LitState('a'));
   edge(2, 6, exp, a2e);
   edge(1, 6, exp, a2e);
 

@@ -94,8 +94,8 @@ void Thread::output_json(std::ostream& out, const Instruction* const base, byte 
 }
 #endif
 
-boost::shared_ptr<VmInterface> VmInterface::create() {
-  return boost::shared_ptr<VmInterface>(new Vm);
+std::shared_ptr<VmInterface> VmInterface::create() {
+  return std::shared_ptr<VmInterface>(new Vm);
 }
 
 Vm::Vm() :
