@@ -1,13 +1,10 @@
 #pragma once
 
-#include <set>
 #include <vector>
-#include <utility>
 
 #include "sparseset.h"
-
-#include "vm_interface.h"
 #include "staticvector.h"
+#include "vm_interface.h"
 
 class Vm: public VmInterface {
 public:
@@ -96,10 +93,7 @@ private:
 
   std::vector<uint64> MatchEnds;
 
-  std::set<std::pair<uint32,uint64>> CheckStates;
-
   SparseSet CheckLabels;
-  std::vector<std::set<uint64>> CheckOffsets;
 
   HitCallback CurHitFn;
   void* UserData;
