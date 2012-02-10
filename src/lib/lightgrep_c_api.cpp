@@ -125,7 +125,7 @@ int lg_add_keyword(LG_HPARSER hParser,
                    const LG_KeyOptions* options,
                    const char* encoding)
 {
-  Pattern p(keyword, options->FixedString, options->CaseInsensitive, encoding);
+  Pattern p(keyword, options->FixedString, options->CaseInsensitive, keyIndex, encoding);
   return exception_trap(std::bind(&Parser::addPattern, hParser->Impl.get(), std::cref(p), keyIndex), hParser);
 }
 
