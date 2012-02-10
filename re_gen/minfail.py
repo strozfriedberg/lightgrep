@@ -16,7 +16,7 @@ def main():
   pats = [ p.rstrip('\n') for p in sys.stdin.readlines() ]
 
   # binary search to weed out good patterns quickly
-  pats = partition_failure(sg, lg, pats, text)
+  pats = partition(sg, lg, pats, text)
  
   # now remove patterns one at at time
   for p in reversed(pats):
@@ -26,18 +26,18 @@ def main():
   print pats
 
 
-def partition_failure(sg, lg, pats, text):
+def partition(sg, lg, pats, text):
   if mismatch(sg, lg, pats, text):
     # this pattern list fails
     if (len(pats) == 1):
       # the pattern list is a singleton
       return pats
     else:
-      ret = partition_failure(sg, lg, pats[0:len(pats)/2], text)
+      ret = partition(sg, lg, pats[0:len(pats)/2], text)
       if len(ret) > 0:
         # the first half of the pattern list fails
         return ret
-      ret = partition_failure(sg, lg, pats[len(pats)/2:], text)
+      ret = partition(sg, lg, pats[len(pats)/2:], text)
       if len(ret) > 0:
         # the second half of the pattern list fails
         return ret
