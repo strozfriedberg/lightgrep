@@ -74,7 +74,7 @@ bool addPattern(
   keyOpts.CaseInsensitive = pat.CaseInsensitive;
 
   if (lg_add_keyword(parser, pat.Expression.c_str(), patIdx, &keyOpts, pat.Encoding.c_str())) {
-    pinfo.Table.push_back(std::make_pair(i, encIdx));
+    pinfo.Table.push_back(std::make_pair(pat.Index, encIdx));
     return true;
   }
   else {
