@@ -4,7 +4,7 @@
 
 #include "stest.h"
 
-SCOPE_FIXTURE_CTOR(hundredPatternSearch, STest, STest(100, (const char *[]){
+SCOPE_FIXTURE_CTOR(hundredPatternSearch, STest, STest({
   "a|a??.|.|a?",
   "a?|aa|a??a+?",
   "a*(a)|a*?|.+",
@@ -36,7 +36,7 @@ SCOPE_FIXTURE_CTOR(hundredPatternSearch, STest, STest(100, (const char *[]){
   "a|.(.)aa|.+?",
   "a+?|a|.|a|.a.",
   "a?.?|.|.|a*",
-  "a|a.??(a.)",
+  R"(a|a.??(a.))",
   "a.|(a)|(.*?)",
   "a.aaa??a.",
   "a??.*.??a+?",
