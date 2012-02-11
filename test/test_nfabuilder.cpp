@@ -382,7 +382,7 @@ SCOPE_TEST(parseaQQOrbQQc) {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  SCOPE_ASSERT(parse("(a??|b??)c", false, tree));
+  SCOPE_ASSERT(parse(R"((a??|b??)c)", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -448,7 +448,7 @@ SCOPE_TEST(parseaOrbQQa) {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  SCOPE_ASSERT(parse("(a|b??)a", false, tree));
+  SCOPE_ASSERT(parse(R"((a|b??)a)", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -979,7 +979,7 @@ SCOPE_TEST(parse_xLPaORaQQRPy) {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("x(a|a??)y", false, tree));
+  SCOPE_ASSERT(parse(R"(x(a|a??)y)", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(5u, g.verticesSize());

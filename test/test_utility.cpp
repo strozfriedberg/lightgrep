@@ -121,19 +121,20 @@ SCOPE_TEST(keywordLabelsProgram) {
 }
 
 template<class T>
-std::vector< Pattern > makePatterns(unsigned int n, T x) {
+std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
   std::vector<Pattern> ret;
-  for (unsigned int i = 0; i < n; ++i) {
-    ret.push_back(Pattern(x[i]));
+  for (auto p : list) {
+    ret.push_back(Pattern(p));
   }
   return ret;
 }
 
 SCOPE_TEST(twoUnicode) {
-  std::vector<Pattern> pats(makePatterns(2u, (const char*[]){"aa", "ab"}));
-  for (std::vector<Pattern>::iterator it(pats.begin()); it != pats.end(); ++it) {
-    it->Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+  std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
+  for (Pattern& p : pats) {
+    p.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
   }
+
   NFAPtr fsm = createGraph(pats);
   NFA& g = *fsm;
   
@@ -205,7 +206,7 @@ SCOPE_TEST(firstBitset) {
 }
 
 SCOPE_TEST(simpleCollapse) {
-  NFAPtr fsm = createGraph(makePatterns(2u, (const char*[]){"ab", "ac"}));
+  NFAPtr fsm = createGraph(makePatterns({"ab", "ac"}));
   SCOPE_ASSERT_EQUAL(4u, fsm->verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
@@ -432,7 +433,7 @@ SCOPE_TEST(generateCheckHalt) {
 
 SCOPE_TEST(testInitVM) {
   SearchInfo info;
-  boost::shared_ptr<VmInterface> search = initVM(makePatterns(2u, (const char*[]){"one", "two"}), info);
+  boost::shared_ptr<VmInterface> search = initVM(makePatterns({"one", "two"}), info);
                //012345678901234
   byte text[] = "a onetwothree";
 
@@ -457,7 +458,7 @@ SCOPE_TEST(testPivotTransitions) {
   fsm[2].IsMatch = true;
   fsm[2].Label = 1;
 
-  std::vector< std::vector<NFA::VertexDescriptor> > tbl = pivotStates(0, fsm);
+  std::vector<std::vector<NFA::VertexDescriptor>> tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(256u, tbl.size());
   for (uint32 i = 0; i < 256; ++i) {
     if (i == 'a') {
@@ -506,7 +507,7 @@ SCOPE_TEST(testMaxOutbound) {
   edge(0, 2, fsm, new LitState('a'));
   edge(0, 3, fsm, new LitState('b'));
   edge(0, 4, fsm, new LitState('c'));
-  std::vector< std::vector< NFA::VertexDescriptor > > tbl = pivotStates(0, fsm);
+  std::vector<std::vector<NFA::VertexDescriptor>> tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(2u, maxOutbound(tbl));
 }
 

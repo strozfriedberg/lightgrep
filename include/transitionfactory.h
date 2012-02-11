@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <set>
 
-#include "basic.h"
+#include "byteset.h"
 #include "deletor.h"
 #include "transition.h"
 #include "states.h"

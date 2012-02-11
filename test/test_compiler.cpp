@@ -608,15 +608,15 @@ SCOPE_TEST(testDeterminize5) {
 
   NFA exp(5);
   edge(0, 1, exp, new LitState('d'));
-  edge(1, 2, exp, new LitState('d'));
-  edge(1, 3, exp, new LitState('x'));
-  edge(2, 4, exp, new LitState('d'));
-  edge(2, 3, exp, new LitState('x'));
-  edge(4, 2, exp, new LitState('d'));
-  edge(4, 3, exp, new LitState('x'));
+  edge(1, 2, exp, new LitState('x'));
+  edge(1, 3, exp, new LitState('d'));
+  edge(3, 2, exp, new LitState('x'));
+  edge(3, 4, exp, new LitState('d'));
+  edge(4, 2, exp, new LitState('x'));
+  edge(4, 3, exp, new LitState('d'));
 
-  exp[3].IsMatch = true;
-  exp[3].Label = 0;
+  exp[2].IsMatch = true;
+  exp[2].Label = 0;
 
   ASSERT_EQUAL_GRAPHS(exp, h);
   ASSERT_EQUAL_LABELS(exp, h);
