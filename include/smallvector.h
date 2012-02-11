@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstddef>
 #include <iterator>
 //#include <limits>
 //#include <memory>
@@ -11,7 +12,7 @@
 template <typename T, size_t N>
 //union InternalOverflow {
 struct InternalOverflow {
-  typedef typename std::vector< std::vector<T> >::size_type size_type;
+  typedef typename std::vector<std::vector<T>>::size_type size_type;
 
   size_type create(const T* first, const T* last) {
     Vector.assign(first, last);
@@ -32,7 +33,7 @@ struct InternalOverflow {
 
 template <typename T, size_t N>
 struct ExternalOverflow {
-  typedef typename std::vector< std::vector<T> >::size_type size_type;
+  typedef typename std::vector<std::vector<T>>::size_type size_type;
 
   size_type create(const T* first, const T* last) {
     VecStore.push_back(std::vector<T>(first, last));
@@ -47,7 +48,7 @@ struct ExternalOverflow {
     return VecStore[i - N - 1];
   }
 
-  ExternalOverflow(std::vector< std::vector<T> >& store): VecStore(store) {}
+  ExternalOverflow(std::vector<std::vector<T>>& store): VecStore(store) {}
 
   ExternalOverflow(const ExternalOverflow& other): VecStore(other.VecStore) {
     std::copy(other.Array, other.Array + N, Array);
@@ -60,7 +61,7 @@ struct ExternalOverflow {
   }
 
   T Array[N];
-  std::vector< std::vector<T> >& VecStore;
+  std::vector<std::vector<T>>& VecStore;
 };
 
 template <typename T, size_t N, template <typename, size_t> class StorageType>

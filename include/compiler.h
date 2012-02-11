@@ -28,7 +28,7 @@ public:
   bool canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const ByteSet& srcBits) const;
 
 private:
-  std::map<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor> > Dst2Src;
+  std::map<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor>> Dst2Src;
   std::vector<NFA::VertexDescriptor> Src2Dst;
   std::stack<EdgePair> Edges;
   std::set<EdgePair> Visited;

@@ -4,14 +4,14 @@
 #include "smallvector.h"
 
 SCOPE_TEST(smallvector1Ctor) {
-  std::vector< std::vector<int> > store;
+  std::vector<std::vector<int>> store;
   ExternalOverflow<int,1> eo(store);
   SmallVector<int,1,ExternalOverflow> v(eo);
   SCOPE_ASSERT_EQUAL(0, v.size());
 }
 
 SCOPE_TEST(smallvector1PushBack) {
-  std::vector< std::vector<int> > store;
+  std::vector<std::vector<int>> store;
   ExternalOverflow<int,1> eo(store);
   SmallVector<int,1,ExternalOverflow> v(eo);
 
@@ -23,7 +23,7 @@ SCOPE_TEST(smallvector1PushBack) {
 }
 
 SCOPE_TEST(smallvector1Clear) {
-  std::vector< std::vector<int> > store;
+  std::vector<std::vector<int>> store;
   ExternalOverflow<int,1> eo(store);
   SmallVector<int,1,ExternalOverflow> v(eo);
 
@@ -39,7 +39,7 @@ SCOPE_TEST(smallvector1Clear) {
 }
 
 SCOPE_TEST(smallvector1Insert) {
-  std::vector< std::vector<int> > store;
+  std::vector<std::vector<int>> store;
   ExternalOverflow<int,1> eo(store);
   SmallVector<int,1,ExternalOverflow> v(eo);
   
@@ -55,7 +55,7 @@ SCOPE_TEST(smallvector1Insert) {
 }
 
 SCOPE_TEST(smallvector1Erase) {
-  std::vector< std::vector<int> > store;
+  std::vector<std::vector<int>> store;
   ExternalOverflow<int,1> eo(store);
   SmallVector<int,1,ExternalOverflow> v(eo);
   
