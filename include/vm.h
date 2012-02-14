@@ -96,10 +96,10 @@ private:
 
   std::vector<uint64> MatchEnds;
 
-  std::set< std::pair<uint32,uint64> > CheckStates;
+  std::set<std::pair<uint32,uint64>> CheckStates;
 
   SparseSet CheckLabels;
-  std::vector< std::set<uint64> > CheckOffsets;
+  std::vector<std::set<uint64>> CheckOffsets;
 
   HitCallback CurHitFn;
   void* UserData;

@@ -1,9 +1,14 @@
 #pragma once
 
-#include "graph.h"
+#include <algorithm>
+#include <initializer_list>
+#include <vector>
+
+#include "automata.h"
 #include "parser.h"
-#include "vm_interface.h"
 #include "pattern.h"
+#include "vm_interface.h"
+#include "utility.h"
 
 void collector(void* userData, const LG_SearchHit* const hit);
 
@@ -13,23 +18,39 @@ struct STest {
   ProgramPtr Prog;
   boost::shared_ptr<VmInterface> Grep;
 
-  STest(const std::string& key) {
-    std::vector<Pattern> kws;
-    kws.push_back(key);
-    init(kws);
+  STest(const char* key) {
+    std::initializer_list<const char*> keys = { key };
+    init(keys);
   }
 
-  STest(const std::vector<std::string>& keys);
+  // This overload prevents type deduction warnings with GCC 4.6.
+  STest(std::initializer_list<const char*> keys) {
+    init(keys);
+  }
 
-  STest(uint32 num, const char** keys) {
-    std::vector<Pattern> kws(num);
-    for (unsigned int i = 0; i < num; ++i) {
-      kws[i] = Pattern(keys[i]);
+  template <typename T>
+  STest(const T& keys) {
+    init(keys);
+  }
+
+  template <typename T>
+  void init(const T& keys) {
+    struct PatternMaker {
+      Pattern operator()(const std::string& s) { return Pattern(s); }
+    };
+
+    std::vector<Pattern> pats;
+    std::transform(keys.begin(), keys.end(),
+                   std::back_inserter(pats), PatternMaker());
+
+    Fsm = createGraph(pats, true, true);
+    if (Fsm) {
+      Prog = createProgram(*Fsm);
+      Prog->First = firstBytes(*Fsm);
+      Grep = VmInterface::create();
+      Grep->init(Prog);
     }
-    init(kws);
   }
-
-  void init(const std::vector<Pattern>& kws);
 
   void search(const byte* begin, const byte* end, uint64 offset) {
     Grep->search(begin, end, offset, collector, this);
@@ -40,5 +61,3 @@ struct STest {
     Grep->startsWith(begin, end, offset, collector, this);
   }
 };
-
-void collector(void* userData, const LG_SearchHit* const hit);
