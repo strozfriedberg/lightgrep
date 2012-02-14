@@ -12,6 +12,6 @@ public:
 };
 
 
-typedef std::map< std::string, uint32 > EncodingsCodeMap;
+typedef std::map<std::string, uint32> EncodingsCodeMap;
 
 EncodingsCodeMap getEncodingsMap();

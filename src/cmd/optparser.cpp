@@ -45,28 +45,28 @@ void parse_opts(int argc, char** argv,
 
   po::options_description hidden;
   hidden.add_options()
-    ("pargs", po::value< std::vector<std::string> >(&pargs)->multitoken(), "positional arguments");
+    ("pargs", po::value<std::vector<std::string>>(&pargs)->multitoken(), "positional arguments");
 
   desc.add_options()
     ("help", "produce help message")
-    ("encoding,e", po::value< std::string >(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
-    ("command,c", po::value< std::string >(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|server]")
-    ("keywords,k", po::value< std::string >(&opts.KeyFile), "path to file containing keywords")
-    ("input", po::value< std::string >(&opts.Input)->default_value("-"), "file to search")
-    ("output,o", po::value< std::string >(&opts.Output)->default_value("-"), "output file (stdout default)")
+    ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
+    ("command,c", po::value<std::string>(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|server]")
+    ("keywords,k", po::value<std::string>(&opts.KeyFile), "path to file containing keywords")
+    ("input", po::value<std::string>(&opts.Input)->default_value("-"), "file to search")
+    ("output,o", po::value<std::string>(&opts.Output)->default_value("-"), "output file (stdout default)")
     ("no-output", "do not output hits (good for profiling)")
     ("no-det", "do not determinize NFAs")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
-    ("pattern,p", po::value< std::string >(&opts.SinglePattern), "a single keyword on the command-line")
+    ("pattern,p", po::value<std::string>(&opts.SinglePattern), "a single keyword on the command-line")
     ("recursive,r", "traverse directories recursively")
-    ("block-size", po::value< unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
+    ("block-size", po::value<unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
-    ("server-log", po::value< std::string >(&opts.ServerLog), "Server output to file")
+    ("server-log", po::value<std::string>(&opts.ServerLog), "Server output to file")
     #ifdef LBT_TRACE_ENABLED
-    ("begin-debug", po::value< uint64 >(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
-    ("end-debug", po::value< uint64 >(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
+    ("begin-debug", po::value<uint64>(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
+    ("end-debug", po::value<uint64>(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
     #endif
     ;
 
