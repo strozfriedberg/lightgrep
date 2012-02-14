@@ -4,8 +4,8 @@
 
 SCOPE_TEST(hitWriterOutput) {
 /*
-  std::vector< std::pair< uint32, uint32 > > tbl;
-  std::vector< std::string > keys,
+  std::vector<std::pair<uint32, uint32 >> tbl;
+  std::vector<std::string> keys,
                              encodings;
   std::stringstream stream;
 
