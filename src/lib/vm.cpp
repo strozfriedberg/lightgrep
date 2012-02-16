@@ -132,6 +132,7 @@ void Vm::init(ProgramPtr prog) {
   ++numCheckedStates;
 
   MatchEnds.resize(numPatterns);
+  MatchEndsMax = 0;
 
   Seen.resize(numPatterns);
   SeenNoLabel = false;
@@ -179,6 +180,7 @@ void Vm::reset() {
   Live.clear();
 
   MatchEnds.assign(MatchEnds.size(), 0);
+  MatchEndsMax = 0;
 
   CurHitFn = 0;
 
@@ -266,18 +268,8 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
 inline bool Vm::_liveCheck(const uint64 start, const uint32 label) {
   if (label == Thread::NOLABEL) {
     // if we're unlabeled, and anything live has priority, we're blocked
-    if (!Next.empty()) {
-      return true;
-    }
-
     // if we're unlabeled and we overlap any matches, we're blocked
-    for (uint64 end : MatchEnds) {
-      if (start < end) {
-        return true;
-      }
-    }
-
-    return false;
+    return !Next.empty() || start < MatchEndsMax;
   }
   else {
     // if we're labeled and an unlabeled or same-labeled thread has
@@ -311,6 +303,10 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
         if (!SeenNoLabel && !Seen.find(tLabel)) {
           if (tStart >= MatchEnds[tLabel]) {
             MatchEnds[tLabel] = tEnd + 1;
+
+            if (tEnd + 1 > MatchEndsMax) {
+              MatchEndsMax = tEnd + 1;
+            }
 
             if (CurHitFn) {
               SearchHit hit(tStart, tEnd + 1, tLabel);
