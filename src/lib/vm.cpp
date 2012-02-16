@@ -134,9 +134,12 @@ void Vm::init(ProgramPtr prog) {
   MatchEnds.resize(numPatterns);
 
   Seen.resize(numPatterns);
-  SeenNone = false;
+  SeenNoLabel = false;
 
-//  CheckLabels.resize(numCheckedStates);
+  Live.resize(numPatterns);
+  LiveNoLabel = false;
+
+  CheckLabels.resize(numCheckedStates);
 
   Active.push_back(Thread(&(*Prog)[0]));
   ThreadList::iterator t(Active.begin());
@@ -167,10 +170,13 @@ void Vm::reset() {
   Active.clear();
   Next.clear();
 
-//  CheckLabels.clear();
+  CheckLabels.clear();
 
-  SeenNone = false;
+  SeenNoLabel = false;
   Seen.clear();
+
+  LiveNoLabel = false;
+  Live.clear();
 
   MatchEnds.assign(MatchEnds.size(), 0);
 
@@ -181,9 +187,18 @@ void Vm::reset() {
   #endif
 }
 
+inline void Vm::_markLive(const uint32 label) {
+  if (label == Thread::NOLABEL) {
+    LiveNoLabel = true;
+  }
+  else if (!Live.find(label)) {
+    Live.insert(label);
+  }
+}
+
 inline void Vm::_markSeen(const uint32 label) {
   if (label == Thread::NOLABEL) {
-    SeenNone = true;
+    SeenNoLabel = true;
   }
   else if (!Seen.find(label)) {
     Seen.insert(label);
@@ -248,6 +263,29 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
   return false;
 }
 
+inline bool Vm::_liveCheck(const uint64 start, const uint32 label) {
+  if (label == Thread::NOLABEL) {
+    // if we're unlabeled, and anything live has priority, we're blocked
+    if (!Next.empty()) {
+      return true;
+    }
+
+    // if we're unlabeled and we overlap any matches, we're blocked
+    for (uint64 end : MatchEnds) {
+      if (start < end) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+  else {
+    // if we're labeled and an unlabeled or same-labeled thread has
+    // priority, we're blocked
+    return LiveNoLabel || Live.find(label);
+  }
+}
+
 // while base is always == &Program[0], we pass it in because it then should get inlined away
 inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64 offset) {
   const Instruction& instr = *t->PC;
@@ -270,7 +308,7 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
           }
         }
 
-        if (!SeenNone && !Seen.find(tLabel)) {
+        if (!SeenNoLabel && !Seen.find(tLabel)) {
           if (tStart >= MatchEnds[tLabel]) {
             MatchEnds[tLabel] = tEnd + 1;
 
@@ -296,6 +334,8 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
           if (t->PC->OpCode != FINISH_OP) {
             _markSeen(t->Label);
           }
+
+          _markLive(t->Label);
           Next.push_back(*t);
         }
 
@@ -315,15 +355,15 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
 
     case CHECK_HALT_OP:
       {
-/*
         if (CheckLabels.find(instr.Op.Offset)) {
+          // another thread has the lock, we die
           t->PC = 0;
           return false;
         }
-        else {
+        else if (!_liveCheck(t->Start, t->Label)) {
+          // nothing blocks us, we take the lock
           CheckLabels.insert(instr.Op.Offset);
         }
-*/
 
         t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
         return true;
@@ -373,6 +413,7 @@ inline void Vm::_executeThread(const Instruction* const base, ThreadList::iterat
       _markSeen(t->Label);
     }
 
+    _markLive(t->Label);
     Next.push_back(*t);
   }
 }
@@ -442,10 +483,13 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
 inline void Vm::_cleanup() {
   Active.swap(Next);
   Next.clear();
-//  CheckLabels.clear();
+  CheckLabels.clear();
 
-  SeenNone = false;
+  SeenNoLabel = false;
   Seen.clear();
+
+  LiveNoLabel = false;
+  Live.clear();
 }
 
 void Vm::cleanup() { _cleanup(); }
