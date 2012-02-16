@@ -53,6 +53,8 @@ public:
 
 private:
   void _markSeen(const uint32 label);
+  void _markLive(const uint32 label);
+  bool _liveCheck(const uint64 start, const uint32 label);
 
   bool _execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur);
   bool _executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64 offset);
@@ -89,8 +91,11 @@ private:
              Active,
              Next;
 
-  bool SeenNone;
+  bool SeenNoLabel;
   SparseSet Seen;
+
+  bool LiveNoLabel;
+  SparseSet Live;
 
   std::vector<uint64> MatchEnds;
 
