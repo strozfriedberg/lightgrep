@@ -98,6 +98,7 @@ private:
   SparseSet Live;
 
   std::vector<uint64> MatchEnds;
+  uint64 MatchEndsMax;
 
   SparseSet CheckLabels;
 
