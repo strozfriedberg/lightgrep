@@ -19,15 +19,15 @@ public:
   std::set<std::string>::size_type SampleLimit;
   std::multiset<NFA::VertexDescriptor>::size_type LoopLimit;
 
-  std::string KeyFile,
-              Command,
+  std::string Command,
               Input,
               Output,
               Encoding,
               ServerLog;
 
   std::vector<std::string> Inputs,
-                           CmdLinePatterns;
+                           CmdLinePatterns,
+                           KeyFiles;
 
   unsigned int BlockSize;
 
