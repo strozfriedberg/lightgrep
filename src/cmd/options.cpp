@@ -90,8 +90,8 @@ bool Options::parseLine(uint32 keyIndex, const std::string& line, std::vector<Pa
       }
       const tokenizer encList(encodings, boost::char_separator<char>(","));
       if (encList.begin() != encList.end()) {
-        for (tokenizer::const_iterator enc(encList.begin()); enc != encList.end(); ++enc) {
-          p.Encoding = *enc;
+        for (std::string enc : encList) {
+          p.Encoding = enc;
           keys.push_back(p);
         }
         return true;
