@@ -24,10 +24,10 @@ public:
               Input,
               Output,
               Encoding,
-              SinglePattern,
               ServerLog;
 
-  std::vector<std::string> Inputs;
+  std::vector<std::string> Inputs,
+                           CmdLinePatterns;
 
   unsigned int BlockSize;
 
