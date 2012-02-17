@@ -43,8 +43,10 @@ std::ostream& Options::openOutput() const {
 
 std::vector<Pattern> Options::getKeys() const {
   std::vector<Pattern> ret;
-  if (!SinglePattern.empty()) {
-    parseLine(0, SinglePattern, ret);
+  if (!CmdLinePatterns.empty()) {
+    for (std::string p : CmdLinePatterns) {
+      parseLine(0, p, ret);
+    }
   }
   else {
     readKeyFile(KeyFile, ret);
