@@ -51,7 +51,7 @@ void parse_opts(int argc, char** argv,
     ("help", "produce help message")
     ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
     ("command,c", po::value<std::string>(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|server]")
-    ("keywords,k", po::value<std::string>(&opts.KeyFile), "path to file containing keywords")
+    ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles), "path to file containing keywords")
     ("input", po::value<std::string>(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value<std::string>(&opts.Output)->default_value("-"), "output file (stdout default)")
     ("no-output", "do not output hits (good for profiling)")
@@ -108,7 +108,6 @@ void parse_opts(int argc, char** argv,
     else {
       if (!optsMap["keywords"].empty()) {
         // keywords from --keywords
-        opts.KeyFile = optsMap["keywords"].as<std::string>();
       }
       else {
         // keywords from parg
@@ -116,7 +115,7 @@ void parse_opts(int argc, char** argv,
           throw po::required_option("keywords");
         }
 
-        opts.KeyFile = pargs.front();
+        opts.KeyFiles.push_back(pargs.front());
         pargs.erase(pargs.begin());
       }
     }

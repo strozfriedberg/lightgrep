@@ -10,7 +10,6 @@
 
 bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const {
   std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
-  keys.clear();
   if (keyFile) {
     uint32 i = 0;
     while (keyFile) {
@@ -49,7 +48,9 @@ std::vector<Pattern> Options::getKeys() const {
     }
   }
   else {
-    readKeyFile(KeyFile, ret);
+    for (std::string kf : KeyFiles) {
+      readKeyFile(kf, ret);
+    }
   }
   return ret;
 }
