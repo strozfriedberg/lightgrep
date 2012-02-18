@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <numeric>
 #include <set>
 
 #include <boost/bind.hpp>
@@ -75,7 +74,7 @@ bool addPattern(
   keyOpts.CaseInsensitive = pat.CaseInsensitive;
 
   if (lg_add_keyword(parser, pat.Expression.c_str(), patIdx, &keyOpts, pat.Encoding.c_str())) {
-    pinfo.Table.push_back(std::make_pair(i, encIdx));
+    pinfo.Table.push_back(std::make_pair(pat.Index, encIdx));
     return true;
   }
   else {
@@ -178,7 +177,7 @@ bool SearchController::searchFile(boost::shared_ptr<ContextHandle> searcher, Hit
       // read the next block on a separate thread
       boost::packaged_task<uint64> task(boost::bind(&readNext, file, Next.get(), BlockSize));
       boost::unique_future<uint64> sizeFut = task.get_future();
-      boost::thread exec(boost::move(task));
+      boost::thread exec(std::move(task));
 
       // search cur block
       lg_search(searcher.get(), (char*)Cur.get(), (char*)Cur.get() + blkSize, offset, hinfo, callback);
@@ -275,20 +274,20 @@ void searches(const Options& opts) {
 
   // search our inputs
   if (opts.Recursive) {
-    for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
-      const fs::path p(*i);
+    for (const std::string& i : opts.Inputs) {
+      const fs::path p(i);
       if (fs::is_directory(p)) {
         searchRecursively(p, ctrl, searcher, hinfo.get(), callback);
       }
       else {
-        search(*i, ctrl, searcher, hinfo.get(), callback);
+        search(i, ctrl, searcher, hinfo.get(), callback);
       }
     }
   }
   else {
-    for (std::vector<std::string>::const_iterator i(opts.Inputs.begin()); i != opts.Inputs.end(); ++i) {
-      if (!fs::is_directory(fs::path(*i))) {
-        search(*i, ctrl, searcher, hinfo.get(), callback);
+    for (const std::string& i : opts.Inputs) {
+      if (!fs::is_directory(fs::path(i))) {
+        search(i, ctrl, searcher, hinfo.get(), callback);
       }
     }
   }

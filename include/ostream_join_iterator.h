@@ -4,7 +4,7 @@
 #include <iterator>
 
 template<typename T, typename CharT = char,
-         typename Traits = std::char_traits<CharT> >
+         typename Traits = std::char_traits<CharT>>
 class ostream_join_iterator :
   public std::iterator<std::output_iterator_tag, void, void, void, void>
 {

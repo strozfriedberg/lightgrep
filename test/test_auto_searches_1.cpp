@@ -107,7 +107,7 @@ SCOPE_TEST(autoPatternTest8) {
 SCOPE_TEST(autoPatternTest9) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("a??", false, tree));
+  SCOPE_ASSERT(parse(R"(a??)", false, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -298,7 +298,7 @@ SCOPE_TEST(autoPatternTest26) {
 SCOPE_TEST(autoPatternTest27) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a??)", false, tree));
+  SCOPE_ASSERT(parse(R"((a??))", false, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -505,7 +505,7 @@ SCOPE_TEST(autoPatternTest45) {
 SCOPE_TEST(autoPatternTest46) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a)??", false, tree));
+  SCOPE_ASSERT(parse(R"((a)??)", false, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -830,7 +830,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest86, STest, STest("aaa*?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest87, STest, STest("aaa??")) {
+SCOPE_FIXTURE_CTOR(autoPatternTest87, STest, STest(R"(aaa??)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(2, fixture.Hits.size());
@@ -933,7 +933,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest100, STest, STest("aba*?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(10, 12, 0), fixture.Hits[2]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest101, STest, STest("aba??")) {
+SCOPE_FIXTURE_CTOR(autoPatternTest101, STest, STest(R"(aba??)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(3, fixture.Hits.size());
@@ -1040,7 +1040,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest114, STest, STest("aab*?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(4, 6, 0), fixture.Hits[1]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest115, STest, STest("aab??")) {
+SCOPE_FIXTURE_CTOR(autoPatternTest115, STest, STest(R"(aab??)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(2, fixture.Hits.size());
@@ -1143,7 +1143,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest128, STest, STest("abb*?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(10, 12, 0), fixture.Hits[2]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest129, STest, STest("abb??")) {
+SCOPE_FIXTURE_CTOR(autoPatternTest129, STest, STest(R"(abb??)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(3, fixture.Hits.size());
@@ -1249,7 +1249,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest142, STest, STest("abc*?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(10, 12, 0), fixture.Hits[2]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest143, STest, STest("abc??")) {
+SCOPE_FIXTURE_CTOR(autoPatternTest143, STest, STest(R"(abc??)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(3, fixture.Hits.size());
@@ -1619,7 +1619,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest171, STest, STest("aa*?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest172, STest, STest("aa??")) {
+SCOPE_FIXTURE_CTOR(autoPatternTest172, STest, STest(R"(aa??)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
@@ -1775,7 +1775,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest185, STest, STest("ab*?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest186, STest, STest("ab??")) {
+SCOPE_FIXTURE_CTOR(autoPatternTest186, STest, STest(R"(ab??)")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
@@ -2243,7 +2243,7 @@ SCOPE_TEST(autoPatternTest224) {
 SCOPE_TEST(autoPatternTest225) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("aa|a??", false, tree));
+  SCOPE_ASSERT(parse(R"(aa|a??)", false, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -2374,7 +2374,7 @@ SCOPE_TEST(autoPatternTest238) {
 SCOPE_TEST(autoPatternTest239) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("ab|a??", false, tree));
+  SCOPE_ASSERT(parse(R"(ab|a??)", false, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 

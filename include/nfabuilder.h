@@ -14,7 +14,7 @@
 #include <boost/shared_ptr.hpp>
 
 typedef std::vector<NFA::VertexDescriptor> InListT;
-typedef std::vector< std::pair<NFA::VertexDescriptor, uint32> > OutListT;
+typedef std::vector<std::pair<NFA::VertexDescriptor, uint32>> OutListT;
 
 static const uint32 NOSKIP = std::numeric_limits<uint32>::max();
 
@@ -114,7 +114,7 @@ private:
   boost::shared_ptr<Encoding> Enc;
   NFAPtr Fsm;
   std::stack<Fragment> Stack;
-  std::stack<const ParseNode*, std::vector<const ParseNode*> > ChildStack, ParentStack;
+  std::stack<const ParseNode*, std::vector<const ParseNode*>> ChildStack, ParentStack;
 
   boost::scoped_array<byte> TempBuf;
   boost::shared_ptr<TransitionFactory> TransFac;

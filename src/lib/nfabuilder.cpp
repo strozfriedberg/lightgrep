@@ -366,7 +366,7 @@ void NFABuilder::finish(const ParseNode& n) {
 
 void NFABuilder::traverse(const ParseNode* root) {
   // holder for synthesized nodes
-  std::vector< boost::shared_ptr<ParseNode> > synth;
+  std::vector<boost::shared_ptr<ParseNode>> synth;
 
   // wind for preorder traversal, unwind for postorder
   std::stack<const ParseNode*> wind, unwind;
