@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <boost/scoped_array.hpp>
 
 #include "basic.h"
 

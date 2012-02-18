@@ -31,6 +31,11 @@ public:
   typedef VertexType Vertex;
   typedef EdgeType Edge;
 
+  typedef typename VList::iterator VertexIterator;
+  typedef typename VList::const_iterator ConstVertexIterator;
+  typedef typename EList::iterator EdgeIterator;
+  typedef typename EList::const_iterator ConstEdgeIterator;
+
 private:
 #pragma pack(push, 1)
   struct VertexData : public VertexType {
@@ -106,6 +111,108 @@ public:
   const EdgeType& operator()(EdgeDescriptor ed) const {
     return Edges[ed];
   }
+
+  //
+  // iterators
+  //
+
+/*
+  VertexIterator vBegin() {
+    return Vertices.begin();
+  }
+
+  ConstVertexIterator vBegin() const {
+    return Vertices.begin();
+  };
+
+  VertexIterator vEnd() {
+    return Vertices.end();
+  }
+
+  ConstVertexIterator vEnd() const {
+    return Vertices.end();
+  };
+
+  EdgeIterator eBegin() {
+    return Edges.begin();
+  }
+
+  ConstEdgeIterator eBegin() const {
+    return Edges.begin();
+  }
+
+  EdgeIterator eEnd() {
+    return Edges.end();
+  }
+ 
+  ConstEdgeIterator eEnd() const {
+    return Edges.end();
+  }  
+
+  VertexIterator ivBegin(VertexDescriptor tail) {
+    return Store.ivbegin(this);
+  }
+
+  ConstVertexIterator ivBegin() const {
+    return store.ivbegin(this);
+  }
+
+  VertexIterator ivEnd() {
+    return store.ivend(this);
+  }
+
+  ConstVertexIterator ivEnd() const {
+    return store.ivend(this);
+  }
+
+  VertexIterator ovBegin() {
+    return store.ovbegin(this);
+  }
+
+  ConstVertexIterator ovBegin() const {
+    return store.ovbegin(this);
+  }
+
+  VertexIterator ovEnd() {
+    return store.ovend(this);
+  }
+
+  ConstVertexIterator ovEnd() const {
+    return store.ovend(this);
+  }
+
+  EdgeIterator ieBegin() {
+    return store.iebegin(this);
+  }
+
+  ConstEdgeIterator ieBegin() const {
+    return store.iebegin(this);
+  }
+
+  EdgeIterator ieEnd() {
+    return store.ieend(this);
+  }
+
+  ConstEdgeIterator ieEnd() const {
+    return store.ieend(this);
+  }
+
+  EdgeIterator oeBegin() {
+    return store.oebegin(this);
+  }
+
+  ConstEdgeIterator oeBegin() const {
+    return store.oebegin(this);
+  }
+
+  EdgeIterator oeEnd() {
+    return store.oeend(this);
+  }
+
+  ConstEdgeIterator oeEnd() const {
+    return store.oeend(this);
+  }
+*/
 
   //
   // modifiers
