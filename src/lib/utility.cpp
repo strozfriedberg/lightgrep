@@ -8,11 +8,11 @@
 #include "rewriter.h"
 
 #include <algorithm>
+#include <functional>
+#include <queue>
 #include <sstream>
 #include <stdexcept>
-#include <queue>
 
-#include <boost/bind.hpp>
 #include <boost/graph/graphviz.hpp>
 
 void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, Parser& p, uint32& keyIdx) {
@@ -74,7 +74,7 @@ NFAPtr createGraph(const std::vector<Pattern>& keywords, bool determinize, bool 
   return createGraph(keyInfo, determinize, ignoreBadParse);
 }
 
-uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, NFA::VertexDescriptor v, const NFA& graph) {
+uint32 figureOutLanding(std::shared_ptr<CodeGenHelper> cg, NFA::VertexDescriptor v, const NFA& graph) {
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
   if (1 == graph.outDegree(v) &&
@@ -87,7 +87,7 @@ uint32 figureOutLanding(boost::shared_ptr<CodeGenHelper> cg, NFA::VertexDescript
 }
 
 // JumpTables are either ranged, or full-size, and can have indirect tables at the end when there are multiple transitions out on a single byte value
-void createJumpTable(boost::shared_ptr<CodeGenHelper> cg, Instruction const* const base, Instruction* const start, NFA::VertexDescriptor v, const NFA& graph) {
+void createJumpTable(std::shared_ptr<CodeGenHelper> cg, Instruction const* const base, Instruction* const start, NFA::VertexDescriptor v, const NFA& graph) {
   const uint32 startIndex = start - base;
   Instruction* cur = start,
              * indirectTbl;
@@ -154,7 +154,7 @@ ProgramPtr createProgram(const NFA& graph) {
   // std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
   const uint32 numVs = graph.verticesSize();
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
+  std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
   // std::cerr << "Determined order in first pass" << std::endl;
@@ -273,8 +273,8 @@ ByteSet firstBytes(const NFA& graph) {
   return ret;
 }
 
-boost::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, SearchInfo&) {
-  boost::shared_ptr<VmInterface> vm = VmInterface::create();
+std::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, SearchInfo&) {
+  std::shared_ptr<VmInterface> vm = VmInterface::create();
   NFAPtr fsm = createGraph(keywords);
   ProgramPtr prog = createProgram(*fsm);
   prog->First = firstBytes(*fsm);

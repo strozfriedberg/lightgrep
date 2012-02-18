@@ -51,14 +51,14 @@ void parse_opts(int argc, char** argv,
     ("help", "produce help message")
     ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
     ("command,c", po::value<std::string>(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|server]")
-    ("keywords,k", po::value<std::string>(&opts.KeyFile), "path to file containing keywords")
+    ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles), "path to file containing keywords")
     ("input", po::value<std::string>(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value<std::string>(&opts.Output)->default_value("-"), "output file (stdout default)")
     ("no-output", "do not output hits (good for profiling)")
     ("no-det", "do not determinize NFAs")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
-    ("pattern,p", po::value<std::string>(&opts.SinglePattern), "a single keyword on the command-line")
+    ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns), "a keyword on the command-line")
     ("recursive,r", "traverse directories recursively")
     ("block-size", po::value<unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ("with-filename,H", "print the filename for each match")
@@ -100,17 +100,14 @@ void parse_opts(int argc, char** argv,
   {
     // determine the source of our patterns
     if (!optsMap["pattern"].empty()) {
+      // keywords from --pattern
       if (!optsMap["keywords"].empty()) {
         throw po::error("--pattern and --keywords are incompatible options");
       }
-
-      // keywords from --pattern
-      opts.SinglePattern = optsMap["pattern"].as<std::string>();
     }
     else {
       if (!optsMap["keywords"].empty()) {
         // keywords from --keywords
-        opts.KeyFile = optsMap["keywords"].as<std::string>();
       }
       else {
         // keywords from parg
@@ -118,7 +115,7 @@ void parse_opts(int argc, char** argv,
           throw po::required_option("keywords");
         }
 
-        opts.KeyFile = pargs.front();
+        opts.KeyFiles.push_back(pargs.front());
         pargs.erase(pargs.begin());
       }
     }

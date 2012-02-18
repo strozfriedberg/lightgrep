@@ -76,7 +76,8 @@ SCOPE_TEST(endOnePosArgOptions) {
   Options opts;
   TEST_OPTS(cargv, opts);
 
-  SCOPE_ASSERT_EQUAL(cargv[1], opts.KeyFile);
+  SCOPE_ASSERT_EQUAL(1, opts.KeyFiles.size());
+  SCOPE_ASSERT_EQUAL(cargv[1], opts.KeyFiles[0]);
   SCOPE_ASSERT_EQUAL("-", opts.Input);
 }
 

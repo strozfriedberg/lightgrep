@@ -11,12 +11,11 @@
 #include "vm_interface.h"
 
 #include <cstring>
+#include <functional>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
-
-#include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
 
 const char OH_SHIT[] = "Unspecified exception";
 
@@ -52,7 +51,7 @@ template <typename T> bool exception_trap(T func, Handle* h) {
 }
 
 bool destroy_handle(Handle* h) {
-  if (exception_trap(boost::bind(&Handle::destroy, h), h)) {
+  if (exception_trap(std::bind(&Handle::destroy, h), h)) {
     try {
       delete h;
     }
@@ -112,7 +111,7 @@ LG_HPARSER lg_create_parser(unsigned int sizeHint) {
     return 0;
   }
 
-  exception_trap(boost::bind(&create_parser_impl, hParser, sizeHint), hParser);
+  exception_trap(std::bind(&create_parser_impl, hParser, sizeHint), hParser);
   return hParser;
 }
 
@@ -127,7 +126,7 @@ int lg_add_keyword(LG_HPARSER hParser,
                    const char* encoding)
 {
   Pattern p(keyword, options->FixedString, options->CaseInsensitive, keyIndex, encoding);
-  return exception_trap(boost::bind(&Parser::addPattern, hParser->Impl.get(), boost::cref(p), keyIndex), hParser);
+  return exception_trap(std::bind(&Parser::addPattern, hParser->Impl.get(), std::cref(p), keyIndex), hParser);
 }
 
 void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
@@ -164,7 +163,7 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
     return 0;
   }
 
-  exception_trap(boost::bind(&create_program, hParser, hProg, options->Determinize), hProg);
+  exception_trap(std::bind(&create_program, hParser, hProg, options->Determinize), hProg);
 
   return hProg;
 }
@@ -196,7 +195,7 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
     return 0;
   }
 
-  exception_trap(boost::bind(&create_context, hProg, hCtx, options->TraceBegin, options->TraceEnd), hCtx);
+  exception_trap(std::bind(&create_context, hProg, hCtx, options->TraceBegin, options->TraceEnd), hCtx);
 
   return hCtx;
 }
@@ -206,7 +205,7 @@ int lg_destroy_context(LG_HCONTEXT hCtx) {
 }
 
 void lg_reset_context(LG_HCONTEXT hCtx) {
-  exception_trap(boost::bind(&VmInterface::reset, hCtx->Impl->Vm), hCtx);
+  exception_trap(std::bind(&VmInterface::reset, hCtx->Impl->Vm), hCtx);
 }
 
 void lg_starts_with(LG_HCONTEXT hCtx,
@@ -216,7 +215,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(boost::bind(&VmInterface::startsWith, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
+  exception_trap(std::bind(&VmInterface::startsWith, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
 }
 
 unsigned int lg_search(LG_HCONTEXT hCtx,
@@ -228,7 +227,7 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
 {
 // FIXME: return Active[0]->Start
 
-  exception_trap(boost::bind(&VmInterface::search, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
+  exception_trap(std::bind(&VmInterface::search, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
 
   return 0;
 }
@@ -237,6 +236,6 @@ void lg_closeout_search(LG_HCONTEXT hCtx,
                         void* userData,
                         LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(boost::bind(&VmInterface::closeOut, hCtx->Impl->Vm, *callbackFn, userData), hCtx);
+  exception_trap(std::bind(&VmInterface::closeOut, hCtx->Impl->Vm, *callbackFn, userData), hCtx);
 
 }
