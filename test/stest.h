@@ -16,7 +16,7 @@ struct STest {
   std::vector<SearchHit> Hits;
   NFAPtr Fsm;
   ProgramPtr Prog;
-  boost::shared_ptr<VmInterface> Grep;
+  std::shared_ptr<VmInterface> Grep;
 
   STest(const char* key) {
     std::initializer_list<const char*> keys = { key };

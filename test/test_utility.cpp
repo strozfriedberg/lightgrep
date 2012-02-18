@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include <fstream>
+#include <functional>
 #include <sstream>
 
-#include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/properties.hpp>
@@ -18,7 +18,7 @@
 #include "test_helper.h"
 
 /*
-std::ostream& operator<<(std::ostream& os, const boost::shared_ptr<TransitionPtr>& p) {
+std::ostream& operator<<(std::ostream& os, const std::shared_ptr<TransitionPtr>& p) {
   return os;
 }
 */
@@ -217,7 +217,7 @@ SCOPE_TEST(simpleCollapse) {
 SCOPE_TEST(codeGen2DiscoverVertex) {
   NFA fsm(2);
   edge(0, 1, fsm, new LitState('a'));
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
+  std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
   vis.discover_vertex(1, fsm);
@@ -235,7 +235,7 @@ SCOPE_TEST(codeGen2FinishVertex) {
   edge(1, 2, fsm, new LitState('b'));
   edge(2, 3, fsm, new LitState('c'));
   edge(2, 4, fsm, new LitState('d'));
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
+  std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
   cg->NumDiscovered = 3;
@@ -270,7 +270,7 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
   NFA fsm(3);
   edge(0, 1, fsm, new LitState('a'));
   edge(0, 2, fsm, new LitState('b'));
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
+  std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
   cg->NumDiscovered = 3;
@@ -300,7 +300,7 @@ SCOPE_TEST(layoutWithCheckHalt) {
   fsm[2].Label = 0;
   fsm[2].IsMatch = true;
 
-  boost::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
+  std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
   specialVisit(fsm, 0, vis);
 
@@ -331,7 +331,7 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
   edge(0, 3, g, new LitState('c'));
   edge(0, 4, g, new LitState('e'));
 
-  boost::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.verticesSize()));
+  std::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.verticesSize()));
   CodeGenVisitor vis(cgh);
 
   SCOPE_ASSERT_EQUAL(6, vis.calcJumpTableSize(0, g, g.outDegree(0)));
@@ -433,7 +433,7 @@ SCOPE_TEST(generateCheckHalt) {
 
 SCOPE_TEST(testInitVM) {
   SearchInfo info;
-  boost::shared_ptr<VmInterface> search = initVM(makePatterns({"one", "two"}), info);
+  std::shared_ptr<VmInterface> search = initVM(makePatterns({"one", "two"}), info);
                //012345678901234
   byte text[] = "a onetwothree";
 
@@ -518,7 +518,7 @@ SCOPE_TEST(generateJumpTableRange) {
   edge(1, 3, fsm, new LitState('c'));
   edge(1, 4, fsm, new LitState('d'));
   edge(1, 5, fsm, new LitState('g'));
-  boost::shared_ptr<LitState> f(new LitState('f'));
+  std::shared_ptr<LitState> f(new LitState('f'));
   edge(2, 6, fsm, f);
   edge(3, 6, fsm, f);
   edge(4, 6, fsm, f);
@@ -565,7 +565,7 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
   edge(1, 3, fsm, new LitState('c'));
   edge(1, 4, fsm, new LitState('d'));
   edge(1, 5, fsm, new LitState('g'));
-  boost::shared_ptr<LitState> f(new LitState('f'));
+  std::shared_ptr<LitState> f(new LitState('f'));
   edge(2, 6, fsm, f);
   edge(3, 6, fsm, f);
   edge(4, 6, fsm, f);
@@ -612,7 +612,7 @@ SCOPE_TEST(testFirstChildNext) {
   NFA g;
   edge(0, 1, g, new LitState('0'));
   edge(1, 2, g, new LitState('0'));
-  boost::shared_ptr<LitState> zero(new LitState('0'));
+  std::shared_ptr<LitState> zero(new LitState('0'));
   edge(1, 3, g, zero);
   edge(2, 3, g, zero);
 
@@ -638,10 +638,10 @@ SCOPE_TEST(testFirstChildNext) {
 SCOPE_TEST(testFirstChildPrev) {
   NFA g;
   edge(0, 1, g, new LitState('0'));
-  boost::shared_ptr<RangeState> dot(new RangeState(0, 255));
+  std::shared_ptr<RangeState> dot(new RangeState(0, 255));
   edge(1, 2, g, dot);
   edge(2, 2, g, dot);
-  boost::shared_ptr<LitState> zero(new LitState('0'));
+  std::shared_ptr<LitState> zero(new LitState('0'));
   edge(2, 3, g, zero);
   edge(1, 3, g, zero);
 
