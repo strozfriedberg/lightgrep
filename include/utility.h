@@ -36,7 +36,7 @@ ProgramPtr createProgram(const NFA& graph);
 ByteSet firstBytes(const NFA& graph);
 void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph);
 
-boost::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, SearchInfo& info);
+std::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, SearchInfo& info);
 
 std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescriptor source, const NFA& graph);
 

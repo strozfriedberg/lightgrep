@@ -98,9 +98,9 @@ SCOPE_TEST(parseGroup) {
 SCOPE_TEST(parseQuestionMark) {
   NFABuilder nfab;
   ParseTree tree;
-  // SCOPE_ASSERT(parse("a?", false, tree boost::bind(&parseOutput, _1, _2)));
+  // SCOPE_ASSERT(parse("a?", false, tree std::bind(&parseOutput, _1, _2)));
   // tree.Store.clear();
-  // SCOPE_ASSERT(parse("a?", false, tree boost::bind(&Parser::callback, &p, _1, _2)));
+  // SCOPE_ASSERT(parse("a?", false, tree std::bind(&Parser::callback, &p, _1, _2)));
   // SCOPE_ASSERT(!p.good());
   // tree.Store.clear();
   SCOPE_ASSERT(parse("ab?", false, tree));
@@ -561,7 +561,7 @@ SCOPE_TEST(parse2ByteUnicode) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  nfab.setEncoding(boost::shared_ptr<Encoding>(new UCS16));
+  nfab.setEncoding(std::shared_ptr<Encoding>(new UCS16));
   SCOPE_ASSERT(parse("ab", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 

@@ -11,7 +11,7 @@
 #include <stack>
 
 #include <boost/scoped_array.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 typedef std::vector<NFA::VertexDescriptor> InListT;
 typedef std::vector<std::pair<NFA::VertexDescriptor, uint32>> OutListT;
@@ -66,7 +66,7 @@ public:
 
   virtual void callback(const ParseNode& n);
 
-  void setEncoding(const boost::shared_ptr<Encoding>& e);
+  void setEncoding(const std::shared_ptr<Encoding>& e);
   void setCaseInsensitive(bool insensitive); // defaults to true
   void setSizeHint(uint64 reserveSize);
 
@@ -95,7 +95,7 @@ public:
 
   bool build(const ParseTree& tree);
 
-  boost::shared_ptr<TransitionFactory> getTransFac() { return TransFac; }
+  std::shared_ptr<TransitionFactory> getTransFac() { return TransFac; }
 
 private:
   void init();
@@ -111,13 +111,13 @@ private:
   bool IsGood, CaseInsensitive;
   uint32 CurLabel;
   uint64 ReserveSize;
-  boost::shared_ptr<Encoding> Enc;
+  std::shared_ptr<Encoding> Enc;
   NFAPtr Fsm;
   std::stack<Fragment> Stack;
   std::stack<const ParseNode*, std::vector<const ParseNode*>> ChildStack, ParentStack;
 
   boost::scoped_array<byte> TempBuf;
-  boost::shared_ptr<TransitionFactory> TransFac;
+  std::shared_ptr<TransitionFactory> TransFac;
 
   Fragment TempFrag;
 };

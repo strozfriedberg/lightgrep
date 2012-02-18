@@ -18,7 +18,7 @@ public:
   Compiler   Comp;
   NFAPtr     Fsm;
 
-  typedef std::map<uint32, boost::shared_ptr<Encoding>> EncodingMap;
+  typedef std::map<uint32, std::shared_ptr<Encoding>> EncodingMap;
 
   EncodingsCodeMap EncCodes;
   EncodingMap      Encoders;
