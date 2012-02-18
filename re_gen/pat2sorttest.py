@@ -29,6 +29,8 @@ def main():
   # print head stuff
   print '''#include <scope/test.h>
 
+#include <algorithm>
+
 #include "stest.h"
 '''
 
@@ -69,12 +71,28 @@ def main():
       print '''SCOPE_FIXTURE_CTOR(autoPatternTest{setnum}, STest, STest({stest})) {{
   const byte* text = (const byte*) "{text}";
   fixture.search(text, text + {textlen}, 0);
-  SCOPE_ASSERT_EQUAL({matchcount}, fixture.Hits.size());'''.format(setnum=setnum, stest=stest, text=text, textlen=len(text), matchcount=len(matches))
+  std::vector<SearchHit>& actual(fixture.Hits);
+  SCOPE_ASSERT_EQUAL({matchcount}, actual.size());
+
+  std::vector<SearchHit> expected;
+  expected.reserve({matchcount});'''.format(setnum=setnum, stest=stest, text=text, textlen=len(text), matchcount=len(matches))
 
       for i, m in enumerate(matches):
-        print '  SCOPE_ASSERT_EQUAL(SearchHit({}, {}, {}), fixture.Hits[{}]);'.format(m[0], m[1], m[2], i)
+        print '  expected.push_back(SearchHit({}, {}, {}));'.format(m[0], m[1], m[2], i)
 
-      print '}\n'
+      print '''
+  std::sort(actual.begin(), actual.end());
+  std::sort(expected.begin(), expected.begin());
+
+  std::pair<std::vector<SearchHit>::iterator,
+            std::vector<SearchHit>::iterator> mis(
+    std::mismatch(expected.begin(), expected.end(), actual.begin())
+  );
+
+  if (mis.first != expected.end()) {
+    SCOPE_ASSERT_EQUAL(*mis.first, *mis.second);
+  }
+}'''
 
     setnum += 1
 

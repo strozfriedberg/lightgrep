@@ -59,7 +59,7 @@ struct CodeGenHelper {
          NumChecked;
 };
 
-typedef std::vector< std::vector< NFA::VertexDescriptor > > TransitionTbl;
+typedef std::vector<std::vector<NFA::VertexDescriptor>> TransitionTbl;
 
 class CodeGenVisitor {
 public:

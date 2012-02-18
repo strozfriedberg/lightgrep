@@ -805,7 +805,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest309, STest, STest("a*?(a)")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest310, STest, STest("a??(a)")) {
+SCOPE_FIXTURE_CTOR(autoPatternTest310, STest, STest(R"(a??(a))")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10, fixture.Hits.size());
@@ -958,7 +958,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest323, STest, STest("a*?(b)")) {
   SCOPE_ASSERT_EQUAL(SearchHit(23, 24, 0), fixture.Hits[8]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest324, STest, STest("a??(b)")) {
+SCOPE_FIXTURE_CTOR(autoPatternTest324, STest, STest(R"(a??(b))")) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(9, fixture.Hits.size());

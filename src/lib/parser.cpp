@@ -78,7 +78,10 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
       Comp.mergeIntoFSM(*Fsm, *Nfab.getFsm());
       return;
     }
-// FIXME: should have a special error message for patterns rejeted due to empty matches?
+    else {
+      THROW_RUNTIME_ERROR_WITH_OUTPUT("Empty matches");
+    }
   }
-  THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not parse " << pattern.Expression);
+
+  THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not parse");
 }
