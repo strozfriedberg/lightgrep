@@ -52,7 +52,7 @@ uint64 readNext(FILE* file, byte* buf, unsigned int blockSize) {
 
 void printHelp(const po::options_description& desc) {
   std::cout
-    << "lightgrep, Copyright (c) 2010-2011, Lightbox Technologies, Inc."
+    << "lightgrep, Copyright (c) 2010-2012, Lightbox Technologies, Inc."
     << "\nCreated " << __DATE__ << "\n\n"
     << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
     #ifdef LIGHTGREP_CUSTOMER
