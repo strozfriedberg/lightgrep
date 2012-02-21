@@ -121,11 +121,17 @@ void Vm::init(ProgramPtr prog) {
   uint32 numPatterns = 0,
          numCheckedStates = 0;
   for (uint32 i = 0; i < p.size(); ++i) {
-    if (p[i].OpCode == LABEL_OP && numPatterns < p[i].Op.Offset) {
-      numPatterns = p[i].Op.Offset;
-    }
-    if (p[i].OpCode == CHECK_HALT_OP) {
-      numCheckedStates = std::max(numCheckedStates, p[i].Op.Offset);
+    switch (p[i].OpCode) {
+    case LABEL_OP:
+      if (numPatterns < p[i].Op.Offset) {
+        numPatterns = p[i].Op.Offset;
+      }
+      break;
+    case CHECK_HALT_OP:
+      if (numCheckedStates < p[i].Op.Offset) {
+        numCheckedStates = p[i].Op.Offset;
+      }
+      break;
     }
   }
   ++numPatterns;
