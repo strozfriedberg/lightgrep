@@ -159,7 +159,7 @@ void NFABuilder::literal(const ParseNode& n) {
     }
     TempFrag.reset(n);
     TempFrag.InList.push_back(first);
-    TempFrag.OutList.push_back(std::make_pair(last, 0));
+    TempFrag.OutList.emplace_back(last, 0);
     Stack.push(TempFrag);
   }
 }
