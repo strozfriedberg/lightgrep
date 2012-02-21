@@ -237,7 +237,7 @@ public:
   }
 
   VertexDescriptor addVertex(const VertexType& v = VertexType()) {
-    Vertices.push_back(VertexData(v));
+    Vertices.emplace_back(v);
     return Vertices.size() - 1;
   }
 
@@ -252,7 +252,7 @@ public:
   }
 
   EdgeDescriptor addEdge(VertexDescriptor head, VertexDescriptor tail, const EdgeType& e = EdgeType()) {
-    Edges.push_back(EdgeData(head, tail, e));
+    Edges.emplace_back(head, tail, e);
     const EdgeDescriptor ed = Edges.size() - 1;
     Store.add(Vertices[head].Out, ed);
     Store.add(Vertices[tail].In, ed);
@@ -260,7 +260,7 @@ public:
   }
 
   EdgeDescriptor insertEdge(VertexDescriptor head, VertexDescriptor tail, EdgeSizeType hi = std::numeric_limits<EdgeSizeType>::max(), EdgeSizeType ti = std::numeric_limits<EdgeSizeType>::max(), const EdgeType& e = EdgeType()) {
-    Edges.push_back(EdgeData(head, tail, e));
+    Edges.emplace_back(head, tail, e);
     const EdgeDescriptor ed = Edges.size() - 1;
     Store.insert(Vertices[head].Out, hi, ed);
     Store.insert(Vertices[tail].In, ti, ed);

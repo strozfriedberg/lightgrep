@@ -46,7 +46,7 @@ void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
     if (it != encMap.end()) {
       encIdx = it->second;
     }
-    keyInfo.Table.push_back(std::make_pair(i, encIdx));
+    keyInfo.Table.emplace_back(i, encIdx);
   }
 }
 

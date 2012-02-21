@@ -74,7 +74,7 @@ bool addPattern(
   keyOpts.CaseInsensitive = pat.CaseInsensitive;
 
   if (lg_add_keyword(parser, pat.Expression.c_str(), patIdx, &keyOpts, pat.Encoding.c_str())) {
-    pinfo.Table.push_back(std::make_pair(pat.Index, encIdx));
+    pinfo.Table.emplace_back(pat.Index, encIdx);
     return true;
   }
   else {
@@ -370,12 +370,11 @@ void writeSampleMatches(const Options& opts) {
     return;
   }
 
-  const std::vector<Pattern>& pats(opts.getKeys());
-  for (std::vector<Pattern>::const_iterator i(pats.begin()); i != pats.end(); ++i) {
+  for (const Pattern& pat : opts.getKeys()) {
     // parse the pattern
 
     PatternInfo pinfo;
-    pinfo.Patterns.push_back(*i);
+    pinfo.Patterns.push_back(pat);
 
     uint32 numErrors;
     std::shared_ptr<ParserHandle> parser(parsePatterns(pinfo, numErrors));
