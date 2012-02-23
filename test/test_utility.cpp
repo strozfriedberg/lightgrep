@@ -124,7 +124,7 @@ template<class T>
 std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
   std::vector<Pattern> ret;
   for (auto p : list) {
-    ret.push_back(Pattern(p));
+    ret.emplace_back(p);
   }
   return ret;
 }

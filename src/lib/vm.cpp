@@ -121,11 +121,17 @@ void Vm::init(ProgramPtr prog) {
   uint32 numPatterns = 0,
          numCheckedStates = 0;
   for (uint32 i = 0; i < p.size(); ++i) {
-    if (p[i].OpCode == LABEL_OP && numPatterns < p[i].Op.Offset) {
-      numPatterns = p[i].Op.Offset;
-    }
-    if (p[i].OpCode == CHECK_HALT_OP) {
-      numCheckedStates = std::max(numCheckedStates, p[i].Op.Offset);
+    switch (p[i].OpCode) {
+    case LABEL_OP:
+      if (numPatterns < p[i].Op.Offset) {
+        numPatterns = p[i].Op.Offset;
+      }
+      break;
+    case CHECK_HALT_OP:
+      if (numCheckedStates < p[i].Op.Offset) {
+        numCheckedStates = p[i].Op.Offset;
+      }
+      break;
     }
   }
   ++numPatterns;
@@ -142,7 +148,7 @@ void Vm::init(ProgramPtr prog) {
 
   CheckLabels.resize(numCheckedStates);
 
-  Active.push_back(Thread(&(*Prog)[0]));
+  Active.emplace_back(&(*Prog)[0]);
   ThreadList::iterator t(Active.begin());
 
   #ifdef LBT_TRACE_ENABLED
@@ -460,9 +466,9 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
 
     for (t = First.begin(); t != First.end(); ++t) {
       #ifdef LBT_TRACE_ENABLED
-      Active.push_back(Thread(t->PC, Thread::NOLABEL, NextId++, offset, Thread::NONE));
+      Active.emplace_back(t->PC, Thread::NOLABEL, NextId++, offset, Thread::NONE);
       #else
-      Active.push_back(Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE));
+      Active.emplace_back(t->PC, Thread::NOLABEL, offset, Thread::NONE);
       #endif
 
       #ifdef LBT_TRACE_ENABLED
@@ -523,7 +529,7 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64 s
 
   if (Prog->First[*beg]) {
     for (ThreadList::const_iterator t(First.begin()); t != First.end(); ++t) {
-      Active.push_back(Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE));
+      Active.emplace_back(t->PC, Thread::NOLABEL, offset, Thread::NONE);
     }
 
     for (const byte* cur = beg; cur < end; ++cur, ++offset) {

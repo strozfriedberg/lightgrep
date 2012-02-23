@@ -51,7 +51,7 @@ public:
       {
         l.Which = MANY;
         const T tmp[2] = { l.What, e };
-        Store.push_back(Vec(&tmp[0], &tmp[2]));
+        Store.emplace_back(&tmp[0], &tmp[2]);
         l.What = Store.size() - 1;
       }
       break;
@@ -80,7 +80,7 @@ public:
           tmp[1] = e;
         }
 
-        Store.push_back(Vec(&tmp[0], &tmp[2]));
+        Store.emplace_back(&tmp[0], &tmp[2]);
         l.What = Store.size() - 1;
       }
       break;
