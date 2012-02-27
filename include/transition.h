@@ -2,7 +2,7 @@
 
 #include "basic.h"
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 class Instruction;
 
@@ -25,5 +25,5 @@ private:
   Transition& operator=(const Transition&) {return *this;}
 };
 
-typedef boost::shared_ptr<Transition> TransitionPtr;
+typedef std::shared_ptr<Transition> TransitionPtr;
 

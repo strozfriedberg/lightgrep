@@ -21,5 +21,5 @@ public:
   virtual void setDebugRange(uint64 beg, uint64 end) = 0;
   #endif
 
-  static boost::shared_ptr<VmInterface> create();
+  static std::shared_ptr<VmInterface> create();
 };

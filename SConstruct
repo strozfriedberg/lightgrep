@@ -84,7 +84,7 @@ env.Append(LIBPATH=['#/lib'])
 env.Append(LINKFLAGS=ldflags)
 
 conf = Configure(env)
-if (not (conf.CheckCXXHeader('boost/shared_ptr.hpp')
+if (not (conf.CheckCXXHeader('boost/scoped_ptr.hpp')
    and conf.CheckLib('boost_system' + boostType)
    and conf.CheckLib('boost_thread' + boostType)
    and conf.CheckLib('boost_filesystem' + boostType)

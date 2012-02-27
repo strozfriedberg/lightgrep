@@ -94,8 +94,8 @@ void Thread::output_json(std::ostream& out, const Instruction* const base, byte 
 }
 #endif
 
-boost::shared_ptr<VmInterface> VmInterface::create() {
-  return boost::shared_ptr<VmInterface>(new Vm);
+std::shared_ptr<VmInterface> VmInterface::create() {
+  return std::shared_ptr<VmInterface>(new Vm);
 }
 
 Vm::Vm() :
@@ -132,15 +132,15 @@ void Vm::init(ProgramPtr prog) {
   ++numCheckedStates;
 
   MatchEnds.resize(numPatterns);
+  MatchEndsMax = 0;
 
   Seen.resize(numPatterns);
-  SeenNone = false;
+  SeenNoLabel = false;
 
-//  CheckLabels.resize(numCheckedStates);
-/*
-  CheckOffsets.clear();
-  CheckOffsets.resize(numCheckedStates);
-*/
+  Live.resize(numPatterns);
+  LiveNoLabel = false;
+
+  CheckLabels.resize(numCheckedStates);
 
   Active.push_back(Thread(&(*Prog)[0]));
   ThreadList::iterator t(Active.begin());
@@ -171,13 +171,16 @@ void Vm::reset() {
   Active.clear();
   Next.clear();
 
-//  CheckStates.clear();
-//  CheckLabels.clear();
+  CheckLabels.clear();
 
-  SeenNone = false;
+  SeenNoLabel = false;
   Seen.clear();
 
+  LiveNoLabel = false;
+  Live.clear();
+
   MatchEnds.assign(MatchEnds.size(), 0);
+  MatchEndsMax = 0;
 
   CurHitFn = 0;
 
@@ -186,9 +189,18 @@ void Vm::reset() {
   #endif
 }
 
+inline void Vm::_markLive(const uint32 label) {
+  if (label == Thread::NOLABEL) {
+    LiveNoLabel = true;
+  }
+  else if (!Live.find(label)) {
+    Live.insert(label);
+  }
+}
+
 inline void Vm::_markSeen(const uint32 label) {
   if (label == Thread::NOLABEL) {
-    SeenNone = true;
+    SeenNoLabel = true;
   }
   else if (!Seen.find(label)) {
     Seen.insert(label);
@@ -253,6 +265,19 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
   return false;
 }
 
+inline bool Vm::_liveCheck(const uint64 start, const uint32 label) {
+  if (label == Thread::NOLABEL) {
+    // if we're unlabeled, and anything live has priority, we're blocked
+    // if we're unlabeled and we overlap any matches, we're blocked
+    return !Next.empty() || start < MatchEndsMax;
+  }
+  else {
+    // if we're labeled and an unlabeled or same-labeled thread has
+    // priority, we're blocked
+    return LiveNoLabel || Live.find(label);
+  }
+}
+
 // while base is always == &Program[0], we pass it in because it then should get inlined away
 inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64 offset) {
   const Instruction& instr = *t->PC;
@@ -275,9 +300,13 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
           }
         }
 
-        if (!SeenNone && !Seen.find(tLabel)) {
+        if (!SeenNoLabel && !Seen.find(tLabel)) {
           if (tStart >= MatchEnds[tLabel]) {
             MatchEnds[tLabel] = tEnd + 1;
+
+            if (tEnd + 1 > MatchEndsMax) {
+              MatchEndsMax = tEnd + 1;
+            }
 
             if (CurHitFn) {
               SearchHit hit(tStart, tEnd + 1, tLabel);
@@ -301,6 +330,8 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
           if (t->PC->OpCode != FINISH_OP) {
             _markSeen(t->Label);
           }
+
+          _markLive(t->Label);
           Next.push_back(*t);
         }
 
@@ -320,43 +351,18 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
 
     case CHECK_HALT_OP:
       {
-/*
         if (CheckLabels.find(instr.Op.Offset)) {
+          // another thread has the lock, we die
           t->PC = 0;
           return false;
         }
-        else {
+        else if (!_liveCheck(t->Start, t->Label)) {
+          // nothing blocks us, we take the lock
           CheckLabels.insert(instr.Op.Offset);
         }
-*/
-
-/*
-        if (CheckLabels.find(instr.Op.Offset)) {
-          if (!CheckOffsets[instr.Op.Offset].insert(t->Start).second) {
-            t->PC = 0;
-            return false;
-          }
-        }
-        else {
-          CheckLabels.insert(instr.Op.Offset);
-          CheckOffsets[instr.Op.Offset].clear();
-          CheckOffsets[instr.Op.Offset].insert(t->Start);
-        }
-*/
 
         t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
         return true;
-/*
-        const std::pair<uint32,uint64> s(instr.Op.Offset, t->Start);
-        if (!CheckStates.insert(s).second) {
-          t->PC = 0;
-          return false;
-        }
-        else {
-          t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
-          return true;
-        }
-*/
       }
 
     case LABEL_OP:
@@ -403,6 +409,7 @@ inline void Vm::_executeThread(const Instruction* const base, ThreadList::iterat
       _markSeen(t->Label);
     }
 
+    _markLive(t->Label);
     Next.push_back(*t);
   }
 }
@@ -472,11 +479,13 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
 inline void Vm::_cleanup() {
   Active.swap(Next);
   Next.clear();
-//  CheckStates.clear();
-//  CheckLabels.clear();
+  CheckLabels.clear();
 
-  SeenNone = false;
+  SeenNoLabel = false;
   Seen.clear();
+
+  LiveNoLabel = false;
+  Live.clear();
 }
 
 void Vm::cleanup() { _cleanup(); }

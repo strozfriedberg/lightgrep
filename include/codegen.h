@@ -1,9 +1,8 @@
 #pragma once
 
 #include <limits>
+#include <memory>
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
 
 #include "automata.h"
 #include "basic.h"
@@ -29,7 +28,10 @@ struct StateLayoutInfo {
   uint32 end() const { return Start + numTotal(); }
 
   bool operator==(const StateLayoutInfo& x) const {
-    return Start == x.Start && NumEval == x.NumEval && NumOther == x.NumOther && CheckIndex == x.CheckIndex;
+    return Start == x.Start &&
+           NumEval == x.NumEval &&
+           NumOther == x.NumOther &&
+           CheckIndex == x.CheckIndex;
   }
 };
 
@@ -63,7 +65,7 @@ typedef std::vector<std::vector<NFA::VertexDescriptor>> TransitionTbl;
 
 class CodeGenVisitor {
 public:
-  CodeGenVisitor(boost::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
+  CodeGenVisitor(std::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
 
   void discover_vertex(NFA::VertexDescriptor v, const NFA& graph);
 
@@ -72,7 +74,7 @@ public:
   void finish_vertex(NFA::VertexDescriptor v, const NFA& graph);
 
 private:
-  boost::shared_ptr<CodeGenHelper> Helper;
+  std::shared_ptr<CodeGenHelper> Helper;
 };
 
 void specialVisit(const NFA& graph, NFA::VertexDescriptor startVertex, CodeGenVisitor& vis);
