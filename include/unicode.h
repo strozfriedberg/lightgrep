@@ -84,6 +84,7 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
   }
   // 2-byte sequence
   else if (cp < 0xE0) {
+    // overlong
     if (cp < 0xC2) {
       return -1;
     }
@@ -125,6 +126,7 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
 
     cp |= (*i++ & 0x3F);
 
+    // check for overlong and UTF-16 surrogates
     return (0x7FF < cp && cp < 0xD800) || cp > 0xDFFF ? cp : -1;
   }
   // 4-byte sequence
@@ -161,9 +163,11 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
 
     cp |= (*i++ & 0x3F);
 
+    // check for overlong and too high
     return cp < 0x10000 || cp > 0x10FFFF ? -1 : cp;
   }
   else {
+    // bad start byte
     return -1;
   }
 } 
