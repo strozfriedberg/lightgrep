@@ -6,15 +6,14 @@
 #include "vectorfamily.h"
 
 #include <limits>
+#include <memory>
 #include <string>
-
-#include <boost/shared_ptr.hpp>
 
 struct Properties {
   Properties(): Deterministic(true), TransFac(new TransitionFactory()) {}
 
   bool Deterministic;
-  boost::shared_ptr<TransitionFactory> TransFac;
+  std::shared_ptr<TransitionFactory> TransFac;
 };
 
 struct Glushkov {
@@ -41,5 +40,5 @@ struct Glushkov {
 struct Empty {};
 
 typedef Graph<Properties,Glushkov,Empty,VectorFamily> NFA;
-typedef boost::shared_ptr<NFA> NFAPtr;
+typedef std::shared_ptr<NFA> NFAPtr;
 

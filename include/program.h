@@ -1,7 +1,7 @@
 #pragma once
 
+#include <memory>
 #include <vector>
-#include <boost/shared_ptr.hpp>
 
 #include "instructions.h"
 
@@ -15,6 +15,6 @@ public:
   ByteSet First;
 };
 
-typedef boost::shared_ptr<Program> ProgramPtr;
+typedef std::shared_ptr<Program> ProgramPtr;
 
 std::ostream& operator<<(std::ostream& out, const Program& prog);
