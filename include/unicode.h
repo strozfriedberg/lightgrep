@@ -75,10 +75,11 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
     return -1;
   }
 
-  int cp = *i; 
+  int cp = *i;
 
   // 1-byte sequence
   if (cp < 0x80) {
+    ++i;
     return cp;
   }
   // 2-byte sequence
@@ -95,7 +96,7 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
       return -1;
     }
 
-    cp |= (*i & 0x3F);
+    cp |= (*i++ & 0x3F);
     return cp;
   }
   // 3-byte sequence
@@ -116,7 +117,7 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
       return -1;
     }
 
-    cp |= (*i & 0x3F);
+    cp |= (*i++ & 0x3F);
 
     return (0x7FF < cp && cp < 0xD800) || cp > 0xDFFF ? cp : -1;
   }
@@ -146,7 +147,7 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
       return -1;
     }
 
-    cp |= (*i & 0x3F);
+    cp |= (*i++ & 0x3F);
     return cp < 0x10000 || cp > 0x10FFFF ? -1 : cp;
   }
   else {

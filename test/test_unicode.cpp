@@ -135,6 +135,7 @@ void test_single(const byte* eb, Expected exp, Actual act) {
   int e = exp(eb, eb+4);
   int a = act(ab, ab+4);
 
+/*
   if (e != a) {
     std::cout << std::hex << std::setfill('0')
               << std::setw(2) << (uint32) eb[0] << ' '
@@ -146,13 +147,13 @@ void test_single(const byte* eb, Expected exp, Actual act) {
               << std::endl;
   }
 
-  SCOPE_ASSERT_EQUAL(e, a);
-
-/*
-  const byte* ab = eb;
-  SCOPE_ASSERT_EQUAL(exp(eb, eb+4), act(ab, ab+4));
-//    SCOPE_ASSERT_EQUAL(eb, ab);
 */
+
+  SCOPE_ASSERT_EQUAL(e, a);
+  if (e != -1) {
+    // has the iterator advanced properly?
+    SCOPE_ASSERT_EQUAL(eb + expected_length(eb[0]), (void*) ab);
+  }
 }
 
 inline uint32 esw(uint32 w) {
