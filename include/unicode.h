@@ -89,6 +89,8 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
     }
     
     cp &= 0x1F;
+
+    // continuation 1
     cp <<= 6;
     
     ++i;
@@ -102,6 +104,8 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
   // 3-byte sequence
   else if (cp < 0xF0) {
     cp &= 0x0F;
+
+    // continuation 1
     cp <<= 6;
 
     ++i;
@@ -110,6 +114,8 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
     }
 
     cp |= (*i & 0x3F);
+
+    // continuation 2
     cp <<= 6;
 
     ++i;
@@ -124,6 +130,8 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
   // 4-byte sequence
   else if (cp < 0xF5) {
     cp &= 0x07;
+
+    // continuation 1
     cp <<= 6;
 
     ++i;
@@ -132,6 +140,8 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
     }
 
     cp |= (*i & 0x3F);
+
+    // continuation 2
     cp <<= 6;
 
     ++i;
@@ -140,6 +150,8 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
     }
     
     cp |= (*i & 0x3F);
+
+    // continuation 3
     cp <<= 6;
 
     ++i;
@@ -148,6 +160,7 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
     }
 
     cp |= (*i++ & 0x3F);
+
     return cp < 0x10000 || cp > 0x10FFFF ? -1 : cp;
   }
   else {
@@ -155,7 +168,6 @@ int utf8_to_unicode_naive(Iterator& i, const Iterator& end) {
   }
 } 
 
-/*
 static const byte UTF8TailLengths[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -172,51 +184,62 @@ static const byte UTF8TailLengths[256] = {
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 	2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-	3,3,3,3,3,3,3,3,4,4,4,4,5,5,0,0
+	3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0
 };
 
 struct UTF8Lookup {
 	uint32 mOverlongMinimum, mMagicSubtraction;
-} const UTF8Lookups[6] = {
+} const UTF8Lookups[4] = {
 	{ 0x00000000, 0x00000000 },
 	{ 0x00000080, 0x00003080 },
 	{ 0x00000800, 0x000E2080 },
-	{ 0x00010000, 0x03C82080 },
-	{ 0x00200000, 0xFA082080 },
-	{ 0x04000000, 0x82082080 },
+	{ 0x00010000, 0x03C82080 }
 };
 
-const unsigned char UTF8InvalidTailBits[4] = {
+const byte UTF8InvalidTailBits[4] = {
 	1,1,0,1,
 };
 
-const unsigned int UTF8InvalidOffset[32] = {
+const byte UTF8InvalidOffset[32] = {
 	0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4,
 	5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
 };
 
 template <class Iterator>
 int utf8_to_unicode_tables(Iterator& i, const Iterator& end) {
-  int c = *i++;
+  uint32 c = *i++ & 0xFF;
 	
   if (c < 0x80) {
 		return c;
   }
 
-	uint32 tail = UTF8TailLengths[c];
+	const byte tail = UTF8TailLengths[c];
 	if (!tail || (i + tail > end)) {
 		return -1;
   }
 
-  c &= 0x3f >> tail;
+  for (const Iterator t(i + tail); i < t; ++i) {
+  	if ((*i & 0xC0) != 0x80) {
+  		return -1;
+    }
 
-  unsigned int mask = 0;
-  for (unsigned int x = 0; x < tail; ++x) {
-	  c = (c << 6) + i[x];
-  	mask = (mask << 1) | UTF8InvalidTailBits[i[x] >> 6];
+  	c = (c << 6) + (*i & 0xFF);
   }
 
-  i += tail;
+  const UTF8Lookup& lookup = UTF8Lookups[tail];
+  c -= lookup.mMagicSubtraction;
+  if (c < lookup.mOverlongMinimum) {
+    return -1;
+  }
+
+/*
+  uint32 mask = 0;
+  for (const Iterator t(i + tail); i < t; ++i) {
+    const byte b = *i & 0xFF;
+	  c = (c << 6) + b;
+  	mask = (mask << 1) | UTF8InvalidTailBits[b >> 6];
+  }
+
   if (mask) {
   	i -= UTF8InvalidOffset[mask];
   	return -1;
@@ -227,6 +250,7 @@ int utf8_to_unicode_tables(Iterator& i, const Iterator& end) {
   if (c < lookup.mOverlongMinimum) {
     return -1;
   }
+*/
 
   if (c >= 0xD800 && c <= 0xDFFF) {
     return -1;
@@ -238,7 +262,6 @@ int utf8_to_unicode_tables(Iterator& i, const Iterator& end) {
 
   return c;
 }
-*/
 
 /*
 template <class BaseIterator>
