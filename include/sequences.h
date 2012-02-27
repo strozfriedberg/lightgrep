@@ -1,10 +1,8 @@
 #pragma once
 
 #include <algorithm>
+#include <functional>
 #include <set>
-
-#include <boost/bind.hpp>
-#include <boost/ref.hpp>
 
 template <typename T>
 struct Duplicate {
@@ -18,11 +16,13 @@ struct Duplicate {
 template <typename T,
           template <typename E, typename A = std::allocator<E>> class C>
 void removeRightDuplicates(C<T>& list) {
+  using namespace std::placeholders;
+
   Duplicate<T> dup;
   list.erase(
     std::remove_if(
       list.begin(), list.end(),
-      boost::bind(&Duplicate<T>::operator(), boost::ref(dup), _1)
+      std::bind(&Duplicate<T>::operator(), std::ref(dup), _1)
     ),
     list.end()
   );

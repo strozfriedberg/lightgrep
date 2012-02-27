@@ -1,15 +1,14 @@
 #include "basic.h"
 
-#include <iostream>
-#include <fstream>
-#include <memory>
 #include <algorithm>
 #include <cstdlib>
 #include <csignal>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <memory>
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "handles.h"
 #include "hitwriter.h"
@@ -28,7 +27,7 @@ static const uint64 BUF_SIZE = 1024 * 1024;
 
 class SafeStream {
 public:
-  SafeStream(std::ostream* baseStream, const boost::shared_ptr<boost::mutex>& mutex):
+  SafeStream(std::ostream* baseStream, const std::shared_ptr<boost::mutex>& mutex):
     BaseStream(baseStream), Mutex(mutex) {}
 
   SafeStream& operator+=(const std::ostream& buf) {
@@ -45,12 +44,12 @@ public:
 
 private:
   std::ostream* BaseStream;
-  boost::shared_ptr<boost::mutex> Mutex;
+  std::shared_ptr<boost::mutex> Mutex;
 };
 
 namespace {
   static std::ostream* ErrOut = &std::cerr;
-  static boost::shared_ptr<boost::mutex> ErrMutex(new boost::mutex);
+  static std::shared_ptr<boost::mutex> ErrMutex(new boost::mutex);
 }
 
 SafeStream writeErr() {
@@ -62,8 +61,8 @@ void cleanSeppuku(int sig);
 
 class Registry {
 public:
-  boost::shared_ptr<boost::mutex> Mutex;
-  boost::shared_ptr<std::ofstream> File;
+  std::shared_ptr<boost::mutex> Mutex;
+  std::shared_ptr<std::ofstream> File;
   std::vector<uint64> FileCounts,
                       HitCounts;
   uint64              TotalBytes,
@@ -229,7 +228,7 @@ private:
 
 class SocketWriter: public ServerWriter {
 public:
-  SocketWriter(boost::shared_ptr<tcp::socket> sock,
+  SocketWriter(std::shared_ptr<tcp::socket> sock,
                const PatternInfo& pinfo):
                ServerWriter(pinfo),
                Socket(sock) {}
@@ -243,7 +242,7 @@ public:
   }
 
 private:
-  boost::shared_ptr<tcp::socket> Socket;
+  std::shared_ptr<tcp::socket> Socket;
 };
 
 void socketWriter(void* userData, const LG_SearchHit* const hit) {
@@ -254,7 +253,7 @@ void socketWriter(void* userData, const LG_SearchHit* const hit) {
 
 class SafeFileWriter: public ServerWriter {
 public:
-  SafeFileWriter(boost::shared_ptr<std::ofstream> output, boost::shared_ptr<boost::mutex> m, const PatternInfo& pinfo):
+  SafeFileWriter(std::shared_ptr<std::ofstream> output, std::shared_ptr<boost::mutex> m, const PatternInfo& pinfo):
     ServerWriter(pinfo),
     Mutex(m),
     Output(output),
@@ -290,8 +289,8 @@ public:
   }
 
 private:
-  boost::shared_ptr<boost::mutex> Mutex;
-  boost::shared_ptr<std::ofstream> Output;
+  std::shared_ptr<boost::mutex> Mutex;
+  std::shared_ptr<std::ofstream> Output;
   StaticVector<HitInfo>    Buffer;
 };
 
@@ -309,15 +308,15 @@ static const unsigned char ONE = 1;
   writeErr() += ssbuf.str();
 
 void processConn(
-  boost::shared_ptr<tcp::socket> sock,
-  boost::shared_ptr<ProgramHandle> prog,
-  boost::shared_ptr<ServerWriter> output,
+  std::shared_ptr<tcp::socket> sock,
+  std::shared_ptr<ProgramHandle> prog,
+  std::shared_ptr<ServerWriter> output,
   LG_HITCALLBACK_FN callback)
 {
   boost::scoped_array<byte> data(new byte[BUF_SIZE]);
 
   LG_ContextOptions ctxOpts;
-  boost::shared_ptr<ContextHandle> searcher(
+  std::shared_ptr<ContextHandle> searcher(
     lg_create_context(prog.get(), &ctxOpts),
     lg_destroy_context
   );
@@ -388,7 +387,7 @@ void processConn(
   output->flush();
 }
 
-void startup(boost::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
+void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
 	std::stringstream buf;
   try {
     boost::asio::io_service srv;
@@ -418,10 +417,10 @@ void startup(boost::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, co
       SAFEWRITE(buf, "Created socket\n");
       acceptor.accept(*socket);
       SAFEWRITE(buf, "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << "\n");
-      boost::shared_ptr<tcp::socket> s(socket.release());
+      std::shared_ptr<tcp::socket> s(socket.release());
 
       LG_HITCALLBACK_FN callback;
-      boost::shared_ptr<ServerWriter> writer;
+      std::shared_ptr<ServerWriter> writer;
       if (usesFile) {
         callback = &safeFileWriter;
         writer.reset(new SafeFileWriter(Registry::get().File, Registry::get().Mutex, pinfo));
@@ -431,7 +430,7 @@ void startup(boost::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, co
         writer.reset(new SocketWriter(s, pinfo));
       }
 
-      boost::thread spawned(boost::bind(processConn, s, prog, writer, callback)); // launches the thread, then detaches
+      boost::thread spawned(std::bind(processConn, s, prog, writer, callback)); // launches the thread, then detaches
     }
   }
   catch (std::exception& e) {

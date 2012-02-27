@@ -31,7 +31,7 @@ template<> struct InstructionSize<BIT_VECTOR_OP> { enum { VAL = 9 }; };
 template<> struct InstructionSize<JUMP_OP> { enum { VAL = 2 }; };
 template<> struct InstructionSize<FORK_OP> { enum { VAL = 2 }; };
 
-#pragma pack(1)
+#pragma pack(push, 1)
 struct ByteRange {
   byte First, Last;
 };
@@ -83,6 +83,6 @@ struct Instruction {
   static Instruction makeRaw32(uint32 val);
   static Instruction makeRaw24(uint32 val);
 };
-#pragma pack()
+#pragma pack(pop)
 
 std::ostream& operator<<(std::ostream& out, const Instruction& instr);
