@@ -267,6 +267,67 @@ int utf8_to_unicode_tables(Iterator& i, const Iterator& end) {
   return c;
 }
 
+template <class Iterator>
+int utf8_to_unicode_naive2(Iterator& i, const Iterator& end) {
+
+  if (i == end) {
+    return -1;
+  }
+
+  uint32 cp = *i & 0xFF;
+
+  const byte tail = UTF8TailLengths[cp];
+  switch (UTF8TailLengths[cp]) {
+  case 3:
+    ++i;
+    if (*i < 0x80 || 0xBF < *i) {
+      return -1;
+    }
+    if (cp == 0xF4 && *i > 0x8F) {
+      return -1;
+    }    
+    cp = (cp << 6) + (*i & 0xFF);
+  case 2:
+    ++i;
+    if (*i < 0x80 || 0xBF < *i) {
+      return -1;
+    }
+    if (cp == 0xED && 0x9F < *i) {
+      return -1;
+    }
+    cp = (cp << 6) + (*i & 0xFF);
+  case 1:
+    ++i;
+    if (*i < 0x80 || 0xBF < *i) {
+      return -1;
+    }
+    cp = (cp << 6) + (*i & 0xFF);
+    break;
+  case 0:
+    return cp < 0x80 ? cp : -1;
+  }
+
+  ++i;
+
+  const UTF8Lookup& lookup = UTF8Lookups[tail];
+  cp -= lookup.mMagicSubtraction;
+  if (cp < lookup.mOverlongMinimum) {
+    return -1;
+  }
+
+/*
+  if (cp >= 0xD800 && cp <= 0xDFFF) {
+    return -1;
+  }
+  if (cp > 0x10FFFF) {
+    return -1;
+  }
+*/
+
+  return cp;
+}
+
+
 /*
 template <class BaseIterator>
 class UTF8toUnicodeIterator:
