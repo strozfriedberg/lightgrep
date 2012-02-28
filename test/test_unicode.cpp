@@ -8,26 +8,31 @@
 #include "basic.h"
 #include "unicode.h"
 
-inline int invalid(const byte*, const byte*) {
+inline int invalid(int& cp, const byte*) {
+  cp = -1;
   return -1;
 }
 
-inline int onebyte(const byte* begin, const byte*) {
-  return *begin;
+inline int onebyte(int& cp, const byte* begin) {
+  cp = *begin;
+  return 1;
 }
 
-inline int twobyte(const byte* begin, const byte*) {
-  return ((*begin & 0x1F) << 6) | ((*(begin+1)) & 0x3F);
+inline int twobyte(int& cp, const byte* begin) {
+  cp = ((*begin & 0x1F) << 6) | ((*(begin+1)) & 0x3F);
+  return 2;
 }
 
-inline int threebyte(const byte* begin, const byte*) {
-  return ((* begin    & 0x0F) << 12) |
-         ((*(begin+1) & 0x3F) <<  6) | (*(begin+2) & 0x3F);
+inline int threebyte(int& cp, const byte* begin) {
+  cp = ((* begin    & 0x0F) << 12) |
+       ((*(begin+1) & 0x3F) <<  6) | (*(begin+2) & 0x3F);
+  return 3;
 }
 
-inline int fourbyte(const byte* begin, const byte*) {
-  return ((* begin    & 0x07) << 18) | ((*(begin+1) & 0x3F) << 12) |
-         ((*(begin+2) & 0x3F) <<  6) |  (*(begin+3) & 0x3F);
+inline int fourbyte(int& cp, const byte* begin) {
+  cp = ((* begin    & 0x07) << 18) | ((*(begin+1) & 0x3F) << 12) |
+       ((*(begin+2) & 0x3F) <<  6) |  (*(begin+3) & 0x3F);
+  return 4;
 }
 
 inline byte expected_length(byte b) {
@@ -46,14 +51,14 @@ inline byte expected_length(byte b) {
 }
 
 template <class Expected, class Actual>
-void test_single(const byte* eb, Expected exp, Actual act) {
+void test_single(const byte* b, Expected exp, Actual act) {
 
-  const byte* ab = eb;
-  const int e = exp(eb, eb+4);
-  const int a = act(ab, ab+4);
+  int e_cp, a_cp;
+  const int e_consumed = exp(e_cp, b);
+  const int a_consumed = act(a_cp, b, b+4);
 
 /*
-  if (e != a) {
+  if (e_cp != a_cp) {
     std::cout << std::hex << std::setfill('0')
               << std::setw(2) << (uint32) eb[0] << ' '
               << std::setw(2) << (uint32) eb[1] << ' '
@@ -65,11 +70,8 @@ void test_single(const byte* eb, Expected exp, Actual act) {
   }
 */
 
-  SCOPE_ASSERT_EQUAL(e, a);
-  if (e != -1) {
-    // has the iterator advanced properly?
-    SCOPE_ASSERT_EQUAL(eb + expected_length(eb[0]), (void*) ab);
-  }
+  SCOPE_ASSERT_EQUAL(e_consumed, a_consumed);
+  SCOPE_ASSERT_EQUAL(e_cp, a_cp);
 }
 
 inline uint32 other_endian(uint32 w) {
