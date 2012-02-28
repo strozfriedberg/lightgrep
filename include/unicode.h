@@ -3,13 +3,15 @@
 #include <algorithm>
 #include <iterator>
 
+#include <boost/iterator/iterator_facade.hpp>
+
 #define CONTINUATION(i,cp) \
-  if (*i < 0x80 || 0xBF < *i) { \
+  b = *++i & 0xFF; \
+  if (b < 0x80 || 0xBF < b) { \
     cp = -1; \
     return -1; \
   } \
-  cp = (cp << 6) | (*i & 0x3F); \
-  ++i
+  cp = (cp << 6) | (b & 0x3F)
 
 template <class Iterator>
 int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
@@ -23,11 +25,12 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
 
   // 1-byte sequence
   if (cp < 0x80) {
-    ++i;
     return 1;
   }
+
+  byte b;
   // 2-byte sequence
-  else if (cp < 0xE0) {
+  if (cp < 0xE0) {
     // overlong
     if (cp < 0xC2) {
       cp = -1;
@@ -35,8 +38,6 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
     }
     
     cp &= 0x1F;
-    ++i;
-
     CONTINUATION(i, cp);
 
     return 2;
@@ -44,8 +45,6 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
   // 3-byte sequence
   else if (cp < 0xF0) {
     cp &= 0x0F;
-    ++i;
-
     CONTINUATION(i, cp);
     CONTINUATION(i, cp);
 
@@ -61,8 +60,6 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
   // 4-byte sequence
   else if (cp < 0xF5) {
     cp &= 0x07;
-    ++i;
-
     CONTINUATION(i, cp);
     CONTINUATION(i, cp);
     CONTINUATION(i, cp);
