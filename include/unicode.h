@@ -1,32 +1,36 @@
 #pragma once
 
+#include <algorithm>
 #include <iterator>
 
 #define CONTINUATION(i,cp) \
   if (*i < 0x80 || 0xBF < *i) { \
+    cp = -1; \
     return -1; \
   } \
   cp = (cp << 6) | (*i & 0x3F); \
   ++i
 
 template <class Iterator>
-int utf8_to_unicode(Iterator& i, const Iterator& end) {
+int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
 
   if (i == end) {
+    cp = -1;
     return -1;
   }
 
-  int cp = *i & 0xFF;
+  cp = *i & 0xFF;
 
   // 1-byte sequence
   if (cp < 0x80) {
     ++i;
-    return cp;
+    return 1;
   }
   // 2-byte sequence
   else if (cp < 0xE0) {
     // overlong
     if (cp < 0xC2) {
+      cp = -1;
       return -1;
     }
     
@@ -34,7 +38,8 @@ int utf8_to_unicode(Iterator& i, const Iterator& end) {
     ++i;
 
     CONTINUATION(i, cp);
-    return cp;
+
+    return 2;
   }
   // 3-byte sequence
   else if (cp < 0xF0) {
@@ -45,7 +50,13 @@ int utf8_to_unicode(Iterator& i, const Iterator& end) {
     CONTINUATION(i, cp);
 
     // check for overlong and UTF-16 surrogates
-    return (0x7FF < cp && cp < 0xD800) || cp > 0xDFFF ? cp : -1;
+    if ((0x7FF < cp && cp < 0xD800) || cp > 0xDFFF) {
+      return 3;
+    }
+    else {
+      cp = -1;
+      return -1;
+    }
   }
   // 4-byte sequence
   else if (cp < 0xF5) {
@@ -57,10 +68,17 @@ int utf8_to_unicode(Iterator& i, const Iterator& end) {
     CONTINUATION(i, cp);
 
     // check for overlong and too high
-    return cp < 0x10000 || cp > 0x10FFFF ? -1 : cp;
+    if (cp < 0x10000 || cp > 0x10FFFF) {
+      cp = -1;
+      return -1;
+    }
+    else {
+      return 4;
+    }
   }
   else {
     // bad start byte
+    cp = -1;
     return -1;
   }
 } 
