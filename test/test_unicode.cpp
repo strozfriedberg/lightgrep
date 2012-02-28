@@ -321,5 +321,5 @@ void utf8_to_unicode_tester(Converter conv) {
 }
 
 SCOPE_TEST(utf8_to_unicode_test) {
-  utf8_to_unicode_tester(utf8_to_unicode_naive<const byte*>);
+  utf8_to_unicode_tester(utf8_to_unicode<const byte*>);
 }
