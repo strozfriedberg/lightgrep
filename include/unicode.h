@@ -2,6 +2,13 @@
 
 #include <iterator>
 
+#define CONTINUATION(i,cp) \
+  if (*i < 0x80 || 0xBF < *i) { \
+    return -1; \
+  } \
+  cp = (cp << 6) | (*i & 0x3F); \
+  ++i
+
 template <class Iterator>
 int utf8_to_unicode(Iterator& i, const Iterator& end) {
 
@@ -24,41 +31,18 @@ int utf8_to_unicode(Iterator& i, const Iterator& end) {
     }
     
     cp &= 0x1F;
-
-    // continuation 1
-    cp <<= 6;
-    
     ++i;
-    if (*i < 0x80 || 0xBF < *i) {
-      return -1;
-    }
 
-    cp |= (*i++ & 0x3F);
+    CONTINUATION(i, cp);
     return cp;
   }
   // 3-byte sequence
   else if (cp < 0xF0) {
     cp &= 0x0F;
-
-    // continuation 1
-    cp <<= 6;
-
     ++i;
-    if (*i < 0x80 || 0xBF < *i) {
-      return -1;
-    }
 
-    cp |= (*i & 0x3F);
-
-    // continuation 2
-    cp <<= 6;
-
-    ++i;
-    if (*i < 0x80 || 0xBF < *i) {
-      return -1;
-    }
-
-    cp |= (*i++ & 0x3F);
+    CONTINUATION(i, cp);
+    CONTINUATION(i, cp);
 
     // check for overlong and UTF-16 surrogates
     return (0x7FF < cp && cp < 0xD800) || cp > 0xDFFF ? cp : -1;
@@ -66,36 +50,11 @@ int utf8_to_unicode(Iterator& i, const Iterator& end) {
   // 4-byte sequence
   else if (cp < 0xF5) {
     cp &= 0x07;
-
-    // continuation 1
-    cp <<= 6;
-
     ++i;
-    if (*i < 0x80 || 0xBF < *i) {
-      return -1;
-    }
 
-    cp |= (*i & 0x3F);
-
-    // continuation 2
-    cp <<= 6;
-
-    ++i;
-    if (*i < 0x80 || 0xBF < *i) {
-      return -1;
-    }
-    
-    cp |= (*i & 0x3F);
-
-    // continuation 3
-    cp <<= 6;
-
-    ++i;
-    if (*i < 0x80 || 0xBF < *i) {
-      return -1;
-    }
-
-    cp |= (*i++ & 0x3F);
+    CONTINUATION(i, cp);
+    CONTINUATION(i, cp);
+    CONTINUATION(i, cp);
 
     // check for overlong and too high
     return cp < 0x10000 || cp > 0x10FFFF ? -1 : cp;
@@ -105,6 +64,8 @@ int utf8_to_unicode(Iterator& i, const Iterator& end) {
     return -1;
   }
 } 
+
+#undef CONTINUATION
 
 /*
 template <class BaseIterator>
