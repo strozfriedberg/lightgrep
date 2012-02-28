@@ -1,5 +1,6 @@
 #include <scope/test.h>
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <type_traits>
@@ -7,17 +8,7 @@
 #include "basic.h"
 #include "unicode.h"
 
-#include <boost/timer.hpp>
-
-/*
-SCOPE_TEST(xxx) {
-  const char* pat = "xxx";
-  std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
-  std::u32string s(conv.from_bytes(pat));
-}
-*/
-
-int invalid(const byte*, const byte*) {
+inline int invalid(const byte*, const byte*) {
   return -1;
 }
 
@@ -54,86 +45,12 @@ inline byte expected_length(byte b) {
   } 
 }
 
-inline bool bad_start(byte b) {
-  return (0x7F < b && b < 0xC2) || 0xF4 < b;
-}
-
-inline bool bad_continuation(byte b) {
-  return (b & 0xC0) ^ 0x80;
-}
-
-inline bool utf16_surrogate(int cp) {
-  return 0xD7FF < cp && cp < 0xE000;
-}
-
-inline bool overlong(int cp, uint32 bc) {
-  switch (bc) {
-  case 1:
-    return false;
-  case 2:
-    return cp < 0x80;
-  case 3:
-    return cp < 0x800;
-  case 4:
-  default:
-    return cp < 0x10000;
-  }
-}
-
-inline bool out_of_range(int cp) {
-  return cp > 0x10FFFF;
-}
-
-template <class Iterator>
-int utf8_to_unicode_reference(Iterator& i, const Iterator& end) {
-  if (bad_start(i[0])) {
-    return -1; 
-  }
-
-  int cp;
-  const byte l = expected_length(i[0]);
-  switch (l) {
-  case 1:
-    cp = onebyte(i, i+1);
-    break;
-  case 2:
-    if (bad_continuation(i[1])) {
-      return -1;
-    }
-    cp = twobyte(i, i+2);
-    break;
-  case 3:
-    if (bad_continuation(i[1]) ||
-        bad_continuation(i[2])) { 
-      return -1;
-    }
-    cp = threebyte(i, i+3);
-    break;
-  case 4:
-    if (bad_continuation(i[1]) ||
-        bad_continuation(i[2]) ||
-        bad_continuation(i[3])) {
-      return -1; 
-    }
-    cp = fourbyte(i, i+4);
-    break;
-  }
-
-  if (out_of_range(cp) || utf16_surrogate(cp) || overlong(cp, l)) {
-    return -1;
-  }
-  else {
-    i += l;
-    return cp;
-  }
-}
-
 template <class Expected, class Actual>
 void test_single(const byte* eb, Expected exp, Actual act) {
 
   const byte* ab = eb;
-  int e = exp(eb, eb+4);
-  int a = act(ab, ab+4);
+  const int e = exp(eb, eb+4);
+  const int a = act(ab, ab+4);
 
 /*
   if (e != a) {
@@ -146,7 +63,6 @@ void test_single(const byte* eb, Expected exp, Actual act) {
               << std::setw(8) << (uint32) a     << ' '
               << std::endl;
   }
-
 */
 
   SCOPE_ASSERT_EQUAL(e, a);
@@ -156,7 +72,7 @@ void test_single(const byte* eb, Expected exp, Actual act) {
   }
 }
 
-inline uint32 esw(uint32 w) {
+inline uint32 other_endian(uint32 w) {
   return ((w & 0x000000FF) << 24) |
          ((w & 0x0000FF00) <<  8) |
          ((w & 0x00FF0000) >>  8) |
@@ -168,7 +84,7 @@ void test_range(uint32 i, const uint32 end, Expected exp, Actual act) {
   uint32 seq;
   while (i < end) {
     // become big-endian
-    seq = esw(i);
+    seq = other_endian(i);
 
     const byte* b = reinterpret_cast<byte*>(&seq);
     test_single(b, exp, act);
@@ -187,8 +103,8 @@ test_range(const byte* first, const byte* last, Expected exp, Actual act)
   // mask out right 4-Length bytes
   const uint32 mask = ((1 << (Length*8)) - 1) << ((4-Length)*8);
 
-  uint32 i = esw(*reinterpret_cast<const uint32*>(first)) & mask;
-  const uint32 end = (esw(*reinterpret_cast<const uint32*>(last)) & mask) + (1 << (4-Length)*8);
+  uint32 i = other_endian(*reinterpret_cast<const uint32*>(first)) & mask;
+  const uint32 end = (other_endian(*reinterpret_cast<const uint32*>(last)) & mask) + (1 << (4-Length)*8);
 
   test_range(i, end, exp, act);
 }
@@ -199,8 +115,8 @@ typename std::enable_if<
                typename std::integral_constant<uint32,Length>>::value>::type
 test_range(const byte* first, const byte* last, Expected exp, Actual act)
 {
-  uint32 i = esw(*reinterpret_cast<const uint32*>(first));
-  const uint32 end = esw(*reinterpret_cast<const uint32*>(last));
+  uint32 i = other_endian(*reinterpret_cast<const uint32*>(first));
+  const uint32 end = other_endian(*reinterpret_cast<const uint32*>(last));
 
   if (end == 0xFFFFFFFF) {
     test_range(i, end, exp, act);
@@ -404,35 +320,6 @@ void utf8_to_unicode_tester(Converter conv) {
   invalid_range<1>("\xF5", "\xFF", conv);          // bad starts
 }
 
-/*
-SCOPE_TEST(utf8_to_unicode_thompson_test) {
-  boost::timer clock;
-  utf8_to_unicode_tester(utf8_to_unicode_thompson<const byte*>);
-  std::cout << "thompson: " << clock.elapsed() << std::endl;
-
-  const char* b = "\0xE0\0x80\0x80";
-  std::cout << utf8_to_unicode_thompson(b, b+4) << std::endl;
-}
-*/
-
-SCOPE_TEST(utf8_to_unicode_naive_test) {
-  boost::timer clock;
+SCOPE_TEST(utf8_to_unicode_test) {
   utf8_to_unicode_tester(utf8_to_unicode_naive<const byte*>);
-  std::cout << "naive: " << clock.elapsed() << std::endl;
 }
-
-/*
-SCOPE_TEST(utf8_to_unicode_tables_test) {
-  boost::timer clock;
-  utf8_to_unicode_tester(utf8_to_unicode_tables<const byte*>);
-  std::cout << "tables: " << clock.elapsed() << std::endl;
-}
-*/
-
-/*
-SCOPE_TEST(utf8_to_unicode_reference_test) {
-  boost::timer clock;
-  utf8_to_unicode_tester(utf8_to_unicode_reference<const byte*>);
-  std::cout << "reference: " << clock.elapsed() << std::endl;
-}
-*/
