@@ -36,7 +36,7 @@ struct ParseNode {
     Bits.reset();
   }
 
-  ParseNode(NodeType t, unsigned int v):
+  ParseNode(NodeType t, uint32 v):
     Type(t), Left(0), Right(0), Val(v), Min(0), Max(0)
   {
     Bits.reset();
@@ -52,7 +52,7 @@ struct ParseNode {
   ParseNode(NodeType t, ParseNode* l, uint32 min, uint32 max):
     Type(t), Left(l), Right(0), Val(0), Min(min), Max(max) {}
 
-  ParseNode(NodeType t, unsigned int first, unsigned int last):
+  ParseNode(NodeType t, uint32 first, uint32 last):
     Type(t), Left(0), Right(0), Val(0), Min(0), Max(0)
   {
     Bits.reset();
