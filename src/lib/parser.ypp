@@ -502,7 +502,10 @@ namespace {
   int yylex(void) {
     if (Text < TextEnd) {
       const int c = *Text++;
-      if (c == -1 || c > 0x7F) {
+      if (c < 1 || c > 0x7F) {
+        //   -1 indicates bogus UTF-8
+        //    0 is a prohibited mid-string null byte
+        // > 7F is a code point which is not 7-bit ASCII
         return BAD;
       }
       else if (LiteralMode) {
@@ -511,8 +514,6 @@ namespace {
       }
       else {
         switch (c) {
-        case 0:
-          return -1;
         case '|':
         case '(':
         case ')':
