@@ -373,6 +373,17 @@ SCOPE_TEST(UTF8toUnicodeIterator_less_test) {
   SCOPE_ASSERT(!(k < j));
 }
 
+SCOPE_TEST(UTF8toUnicodeIterator_pre_increment_test) {
+  const char* text = u8"I \U0001F4A9 Unicode";
+  const char* tend = text + strlen(text);
+  const int unicode[] = { 'I',' ',0x1F4A9,' ','U','n','i','c','o','d','e' };
+  UTF8toUnicodeIterator<const char*> i(text, text, tend);
+  for (int cp : unicode) {
+    SCOPE_ASSERT_EQUAL(cp, *i);
+    ++i;
+  }
+}
+
 SCOPE_TEST(UTF8toUnicodeIterator_post_increment_test) {
   const char* text = u8"I \U0001F4A9 Unicode";
   const char* tend = text + strlen(text);
@@ -390,6 +401,17 @@ SCOPE_TEST(UTF8toUnicodeIterator_pre_decrement_test) {
   UTF8toUnicodeIterator<const char*> i(text, tend, tend);
   for (int cp : unicode) {
     SCOPE_ASSERT_EQUAL(cp, *--i);
+  }
+}
+
+SCOPE_TEST(UTF8toUnicodeIterator_post_decrement_test) {
+  const char* text = u8"I \U0001F4A9 Unicode";
+  const char* tend = text + strlen(text);
+  const int unicode[] = { 'e','d','o','c','i','n','U',' ',0x1F4A9,' ','I' };
+  UTF8toUnicodeIterator<const char*> i(text, tend, tend);
+  for (int cp : unicode) {
+    i--;
+    SCOPE_ASSERT_EQUAL(cp, *i);
   }
 }
 
@@ -460,3 +482,4 @@ SCOPE_TEST(UTF8toUnicodeIterator_subtraction_assignment_test) {
     SCOPE_ASSERT_EQUAL(unicode[unicode.size()-x], *(i -= x));
   }
 }
+
