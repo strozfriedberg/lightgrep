@@ -62,7 +62,7 @@ struct ParseNode {
   explicit ParseNode(NodeType t, const ByteSet& b):
     Type(t), Left(0), Right(0), Val(0), Min(0), Max(0), Bits(b) {}
 
-  void range(byte first, byte last) {
+  void range(uint32 first, uint32 last) {
     for (uint32 i = first; i <= last; ++i) {
       Bits.set(i);
     }
