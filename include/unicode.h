@@ -148,7 +148,7 @@ private:
   }
 
   difference_type distance_to(const UTF8toUnicodeIterator<Iterator>& o) const {
-    if (bi < other.bi) {
+    if (bi < o.bi) {
       return std::count_if(bi, o.bi, IsLeadByte<ByteType>());
     }
     else {
