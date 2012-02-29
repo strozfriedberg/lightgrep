@@ -1,14 +1,18 @@
 %{
 #include "parsenode.h"
 #include "parsetree.h"
+#include "unicode.h"
+
+#include <string>
+#include <vector>
 
 namespace {
   static int yylex(void);
   static void yyerror(const char*);
 
-  const unsigned char* Text;
-  const unsigned char* TextBegin;
-  const unsigned char* TextEnd;
+  const int* Text;
+  const int* TextBegin;
+  const int* TextEnd;
 
   ParseTree* Tree;
 
@@ -351,7 +355,7 @@ cc_named:
 %%
 
 namespace {
-  int parseOctChar(unsigned int c) {
+  int parseOctChar(int c) {
     return ('0' <= c && c <= '7') ? c - '0' : -1;
   }
 
@@ -377,7 +381,7 @@ namespace {
     return CHAR;
   }
 
-  int parseHexChar(unsigned int c) {
+  int parseHexChar(int c) {
     int val = -1;
     if ('0' <= c && c <= '9') {
       val = (c - '0');
@@ -393,8 +397,9 @@ namespace {
 
   int consumeHexCode() {
     if (Text + 1 < TextEnd) {
-      unsigned char one = *Text++,
-                    two = *Text++;
+      int one = *Text++,
+          two = *Text++;
+
       int val = parseHexChar(one),
           ret;
       if (val < 0) {
@@ -423,7 +428,7 @@ namespace {
       return BAD;
     }
 
-    const unsigned int c = *Text++;
+    const int c = *Text++;
     switch (c) {
       // metacharacters as themselves
       case '|':
@@ -496,7 +501,7 @@ namespace {
 
   int yylex(void) {
     if (Text < TextEnd) {
-      const unsigned int c = *Text++;
+      const int c = *Text++;
       if (LiteralMode) {
         yylval.c = c;
         return CHAR;
@@ -553,9 +558,11 @@ namespace {
 bool parse(const std::string& text, bool litMode, ParseTree& tree) {
   LiteralMode = litMode;
 
-  Text = (unsigned char*)text.c_str();
-  TextBegin = Text;
-  TextEnd = Text + text.size();
+  std::vector<int> cp;
+  transform_utf8_to_unicode(text.begin(), text.end(), std::back_inserter(cp));
+
+  TextBegin = Text = cp.data();
+  TextEnd = Text + cp.size();
 
   Tree = &tree;
   Tree->init(text.size());
