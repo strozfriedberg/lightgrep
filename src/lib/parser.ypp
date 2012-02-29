@@ -565,7 +565,7 @@ bool parse(const std::string& text, bool litMode, ParseTree& tree) {
   TextEnd = Text + cp.size();
 
   Tree = &tree;
-  Tree->init(text.size());
+  Tree->init(cp.size());
 
   const int ret = yyparse();
 
