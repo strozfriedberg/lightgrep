@@ -508,40 +508,40 @@ namespace {
       }
       else {
         switch (c) {
-          case 0:
-            return -1;
-          case '|':
-          case '(':
-          case ')':
-          case '?':
-          case '+':
-          case '*':
-          case '.':
-          case '[':
-          case ']':
-          case '^':
-          case '-':
-          case '{':
-          case '}':
-          case ',':
-            return c;
-          case '\\':
-            return consumeEscape();
-          case '0':
-          case '1':
-          case '2':
-          case '3':
-          case '4':
-          case '5':
-          case '6':
-          case '7':
-          case '8':
-          case '9':
-            yylval.c = c;
-            return DIGIT;
-          default:
-            yylval.c = c;
-            return CHAR;
+        case 0:
+          return -1;
+        case '|':
+        case '(':
+        case ')':
+        case '?':
+        case '+':
+        case '*':
+        case '.':
+        case '[':
+        case ']':
+        case '^':
+        case '-':
+        case '{':
+        case '}':
+        case ',':
+          return c;
+        case '\\':
+          return consumeEscape();
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+          yylval.c = c;
+          return DIGIT;
+        default:
+          yylval.c = c;
+          return CHAR;
         }
       }
     }
