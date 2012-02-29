@@ -48,8 +48,8 @@ public:
     return Active.back();
   }
 
-  unsigned int numActive() const { return Active.size(); }
-  unsigned int numNext() const { return Next.size(); }
+  uint32 numActive() const { return Active.size(); }
+  uint32 numNext() const { return Next.size(); }
 
 private:
   void _markSeen(const uint32 label);
