@@ -72,7 +72,7 @@ void test_single(const byte* b, Expected exp, Actual act) {
   }
 */
 
-  SCOPE_ASSERT_EQUAL(e_consumed, a_consumed);
+//  SCOPE_ASSERT_EQUAL(e_consumed, a_consumed);
   SCOPE_ASSERT_EQUAL(e_cp, a_cp);
 }
 
@@ -327,13 +327,6 @@ void utf8_to_unicode_tester(Converter conv) {
 SCOPE_TEST(utf8_to_unicode_test) {
   utf8_to_unicode_tester(utf8_to_unicode<const byte*>);
 }
-
-/*
-SCOPE_TEST(UTF8toUnicodeIterator_ctor_test) {
-  const char* text = u8"We are Motörhead. We play rock & roll.";
-  UTF8toUnicodeIterator<const char*> i(text, text + strlen(text));
-}
-*/
 
 template <class Iterator>
 std::ostream& operator<<(std::ostream& o, const UTF8toUnicodeIterator<Iterator>& i) {
