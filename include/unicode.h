@@ -99,12 +99,14 @@ public boost::iterator_facade<
   int>
 {
 public:
-  UTF8toUnicodeIterator(): bbegin(), bend() {}
+  UTF8toUnicodeIterator(): bbegin(), bend(), cp(-2) {}
 
   UTF8toUnicodeIterator(const Iterator& base_begin,
                         const Iterator& base,
                         const Iterator& base_end):
-    bi(base), bbegin(base_begin), bend(base_end) {}
+    bi(base), bbegin(base_begin), bend(base_end), cp(-2) {}
+
+  typedef typename std::iterator_traits<UTF8toUnicodeIterator<Iterator>>::difference_type difference_type;
 
 private:
   friend class boost::iterator_core_access;
@@ -113,19 +115,18 @@ private:
   typedef typename std::iterator_traits<Iterator>::value_type ByteType;
 
   void increment() {
-//    cp = -2;
+    cp = -2;
     bi = std::find_if(++bi, bend, IsLeadByte<ByteType>());
   }
 
   void decrement() {
-//    cp = -2;
+    cp = -2;
 
 /*
     std::reverse_iterator<Iterator> rbi(--bi);
     const std::reverse_iterator<Iterator> rbend(bbegin);
     bi = std::find_if(rbi, rbend, IsLeadByte<ByteType>()).base();
 */
-
     do {
       if (IsLeadByte<ByteType>()(*--bi)) {
         return;
@@ -133,7 +134,7 @@ private:
     } while (bi != bbegin);
   }
 
-  void advance(typename std::iterator_traits<Iterator>::difference_type n) {
+  void advance(difference_type n) {
     if (n > 0) {
       for ( ; n > 0; --n) {
         increment();
@@ -146,33 +147,27 @@ private:
     }
   }
 
-  int distance_to(const UTF8toUnicodeIterator<Iterator>& other) const {
+  difference_type distance_to(const UTF8toUnicodeIterator<Iterator>& o) const {
     if (bi < other.bi) {
-      return std::count_if(bi, other.bi, IsLeadByte<ByteType>());
+      return std::count_if(bi, o.bi, IsLeadByte<ByteType>());
     }
     else {
-      return -std::count_if(other.bi, bi, IsLeadByte<ByteType>());
+      return -std::count_if(o.bi, bi, IsLeadByte<ByteType>());
     }
   }
 
-  bool equal(const UTF8toUnicodeIterator<Iterator>& other) const {
-    return bi == other.bi && bbegin == other.bbegin && bend == other.bend;
+  bool equal(const UTF8toUnicodeIterator<Iterator>& o) const {
+    return bi == o.bi;
   }
 
-//  const int& dereference() const {
   int dereference() const {
-/*
     if (cp < -1) {
       utf8_to_unicode(cp, bi, bend);
     }
-    return cp;
-*/
-    int cp;
-    utf8_to_unicode(cp, bi, bend);
     return cp;
   }
 
   Iterator bi;
   const Iterator bbegin, bend;
-//  mutable int cp;
+  mutable int cp;
 };
