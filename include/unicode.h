@@ -125,17 +125,9 @@ private:
 
   void decrement() {
     cp = -2;
-
-/*
-    std::reverse_iterator<Iterator> rbi(--bi);
+    std::reverse_iterator<Iterator> rbi(bi);
     const std::reverse_iterator<Iterator> rbend(bbegin);
-    bi = std::find_if(rbi, rbend, IsLeadByte<ByteType>()).base();
-*/
-    do {
-      if (IsLeadByte<ByteType>()(*--bi)) {
-        return;
-      }
-    } while (bi != bbegin);
+    bi = std::find_if(rbi, rbend, IsLeadByte<ByteType>()).base() - 1;
   }
 
   void advance(difference_type n) {
