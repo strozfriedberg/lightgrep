@@ -73,7 +73,14 @@ bool addPattern(
   keyOpts.FixedString = pat.FixedString;
   keyOpts.CaseInsensitive = pat.CaseInsensitive;
 
-  if (lg_add_keyword(parser, pat.Expression.c_str(), patIdx, &keyOpts, pat.Encoding.c_str())) {
+  if (lg_add_keyword(
+    parser,
+    pat.Expression.c_str(),
+    pat.Expression.size(),
+    patIdx,
+    &keyOpts,
+    pat.Encoding.c_str()
+  )) {
     pinfo.Table.emplace_back(pat.Index, encIdx);
     return true;
   }
