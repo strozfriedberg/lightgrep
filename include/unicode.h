@@ -1,9 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <iterator>
-
-#include <boost/iterator/iterator_facade.hpp>
 
 #define CONTINUATION(cp, i, end, used) \
   if (++i == end) { \
