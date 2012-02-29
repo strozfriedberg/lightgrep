@@ -50,7 +50,7 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
     CONTINUATION(cp, i, end, 3);
 
     // check for overlong and UTF-16 surrogates
-    if ((cp < 0x800 || 0xD7FF < cp) && cp < 0xE000) {
+    if (cp < 0x800 || (0xD7FF < cp && cp < 0xE000)) {
       cp = -1;
     }
 
