@@ -502,7 +502,10 @@ namespace {
   int yylex(void) {
     if (Text < TextEnd) {
       const int c = *Text++;
-      if (LiteralMode) {
+      if (c == -1 || c > 0x7F) {
+        return BAD;
+      }
+      else if (LiteralMode) {
         yylval.c = c;
         return CHAR;
       }
