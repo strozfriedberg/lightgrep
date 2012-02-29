@@ -5,8 +5,12 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 
-#define CONTINUATION(i,cp) \
-  b = *++i & 0xFF; \
+#define CONTINUATION(cp, i, end) \
+  if (++i == end) { \
+    cp = -1; \
+    return -1; \
+  } \
+  b = *i & 0xFF; \
   if (b < 0x80 || 0xBF < b) { \
     cp = -1; \
     return -1; \
@@ -38,15 +42,15 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
     }
     
     cp &= 0x1F;
-    CONTINUATION(i, cp);
+    CONTINUATION(cp, i, end);
 
     return 2;
   }
   // 3-byte sequence
   else if (cp < 0xF0) {
     cp &= 0x0F;
-    CONTINUATION(i, cp);
-    CONTINUATION(i, cp);
+    CONTINUATION(cp, i, end);
+    CONTINUATION(cp, i, end);
 
     // check for overlong and UTF-16 surrogates
     if ((0x7FF < cp && cp < 0xD800) || cp > 0xDFFF) {
@@ -60,9 +64,9 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
   // 4-byte sequence
   else if (cp < 0xF5) {
     cp &= 0x07;
-    CONTINUATION(i, cp);
-    CONTINUATION(i, cp);
-    CONTINUATION(i, cp);
+    CONTINUATION(cp, i, end);
+    CONTINUATION(cp, i, end);
+    CONTINUATION(cp, i, end);
 
     // check for overlong and too high
     if (cp < 0x10000 || cp > 0x10FFFF) {
