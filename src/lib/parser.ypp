@@ -161,13 +161,11 @@ literal:
 | '[' '^' charclass ']'
   {
     $$ = $3;
-    $$->Type = ParseNode::CHAR_CLASS;
     $$->Bits.flip();
   }
 | '[' charclass ']'
   {
     $$ = $2;
-    $$->Type = ParseNode::CHAR_CLASS;
   }
 | cc_named
 ;
