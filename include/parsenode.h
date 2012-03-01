@@ -22,9 +22,9 @@ struct ParseNode {
     LG_IGNORE
   };
 
-  NodeType  Type;
-  ParseNode *Left,
-            *Right;
+  NodeType Type;
+
+  ParseNode *Left, *Right;
 
   union {
     int Val;
