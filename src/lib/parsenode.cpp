@@ -47,8 +47,6 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
   case ParseNode::REPETITION_NG:
     repetition(out, n.Rep.Min, n.Rep.Max);
     return out << '?';
-  case ParseNode::ELEMENT:
-    return out << "ELEMENT";
   case ParseNode::DOT:
     return out << '.';
   case ParseNode::CHAR_CLASS:
