@@ -157,7 +157,6 @@ bool reduce_empty_subtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
       // replace this subtree with a dummy
       n->Type = ParseNode::REPETITION;
       n->Rep.Min = n->Rep.Max = 0;
-      n->Right = 0;
 
       // this is safe---we know that n must have a left child if it is
       // not the root and has a zero length match
@@ -217,7 +216,6 @@ bool reduce_empty_subtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
       n->Type = ParseNode::REPETITION;
       n->Rep.Min = 0;
       n->Rep.Max = 1;
-      n->Right = 0;
     }
   }
 

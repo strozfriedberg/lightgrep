@@ -489,7 +489,8 @@ void NFABuilder::traverse(const ParseNode* root) {
       }
     }
 
-    if (n->Right) {
+    if ((n->Type == ParseNode::ALTERNATION ||
+         n->Type == ParseNode::CONCATENATION) && n->Right) {
       wind.push(n->Right);
     }
   }

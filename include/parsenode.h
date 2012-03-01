@@ -23,9 +23,10 @@ struct ParseNode {
 
   NodeType Type;
 
-  ParseNode *Left, *Right;
+  ParseNode *Left;
 
   union {
+    ParseNode* Right;
     int Val;
     struct {
       uint32 Min, Max;
@@ -33,11 +34,9 @@ struct ParseNode {
     ByteSet Bits;
   };
 
-  ParseNode(): Type(LITERAL), Left(0), Right(0), Val(0) {}
+  ParseNode(): Type(LITERAL), Left(0), Val(0) {}
 
-  ParseNode(NodeType t, uint32 v):
-    Type(t), Left(0), Right(0)
-  {
+  ParseNode(NodeType t, uint32 v): Type(t), Left(0) {
     if (Type == CHAR_CLASS) {
       // Use placement new to initialize Bits; note that this does not
       // allocate memory, so we don't have to delete anything.
@@ -50,27 +49,27 @@ struct ParseNode {
   }
 
   ParseNode(NodeType t, ParseNode* l):
-    Type(t), Left(l), Right(0), Val(0) {}
+    Type(t), Left(l), Right(0) {}
 
   ParseNode(NodeType t, ParseNode* l, ParseNode* r):
-    Type(t), Left(l), Right(r), Val(0) {}
+    Type(t), Left(l), Right(r) {}
 
   ParseNode(NodeType t, ParseNode* l, uint32 min, uint32 max):
-    Type(t), Left(l), Right(0)
+    Type(t), Left(l)
   {
     Rep.Min = min;
     Rep.Max = max;
   }
 
   ParseNode(NodeType t, uint32 first, uint32 last):
-    Type(t), Left(0), Right(0), Bits()
+    Type(t), Left(0), Bits()
   {
     Bits.reset();
     range(first, last);
   }
 
   explicit ParseNode(NodeType t, const ByteSet& b):
-    Type(t), Left(0), Right(0), Bits(b) {}
+    Type(t), Left(0), Bits(b) {}
 
   void range(uint32 first, uint32 last) {
     for (uint32 i = first; i <= last; ++i) {
