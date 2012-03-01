@@ -62,7 +62,7 @@ bool has_zero_length_match(const ParseNode *n) {
 
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
-    return n->Range.Min == 0 || has_zero_length_match(n->Left);
+    return n->Rep.Min == 0 || has_zero_length_match(n->Left);
 
   case ParseNode::DOT:
   case ParseNode::CHAR_CLASS:
@@ -89,10 +89,10 @@ bool prefers_zero_length_match(const ParseNode* n) {
            prefers_zero_length_match(n->Right);
 
   case ParseNode::REPETITION:
-    return n->Range.Max == 0 || prefers_zero_length_match(n->Left);
+    return n->Rep.Max == 0 || prefers_zero_length_match(n->Left);
 
   case ParseNode::REPETITION_NG:
-    return n->Range.Min == 0 || prefers_zero_length_match(n->Left);
+    return n->Rep.Min == 0 || prefers_zero_length_match(n->Left);
 
   case ParseNode::DOT:
   case ParseNode::CHAR_CLASS:
@@ -120,7 +120,7 @@ bool has_only_zero_length_match(const ParseNode* n) {
 
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
-    return (n->Range.Min == 0 && n->Range.Max == 0) ||
+    return (n->Rep.Min == 0 && n->Rep.Max == 0) ||
            has_only_zero_length_match(n->Left);
 
   case ParseNode::DOT:
@@ -156,7 +156,7 @@ bool reduce_empty_subtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
     case ParseNode::REPETITION_NG:
       // replace this subtree with a dummy
       n->Type = ParseNode::REPETITION;
-      n->Range.Min = n->Range.Max = 0;
+      n->Rep.Min = n->Rep.Max = 0;
       n->Right = 0;
 
       // this is safe---we know that n must have a left child if it is
@@ -215,8 +215,8 @@ bool reduce_empty_subtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
     if (has_only_zero_length_match(n->Right)) {
       // convert S|T{0} into S?
       n->Type = ParseNode::REPETITION;
-      n->Range.Min = 0;
-      n->Range.Max = 1;
+      n->Rep.Min = 0;
+      n->Rep.Max = 1;
       n->Right = 0;
     }
   }
@@ -231,7 +231,7 @@ bool reduce_empty_subtrees(ParseNode* root) {
 
 bool prune_useless_repetitions(ParseNode* n, const std::stack<ParseNode*>& branch) {
   if ((n->Type == ParseNode::REPETITION || n->Type == ParseNode::REPETITION_NG) &&
-       n->Range.Min == 1 && n->Range.Max == 1) {
+       n->Rep.Min == 1 && n->Rep.Max == 1) {
     // remove {1,1}, {1,1}?
     ParseNode* parent = branch.top();
     if (n == parent->Left) {
@@ -246,7 +246,7 @@ bool prune_useless_repetitions(ParseNode* n, const std::stack<ParseNode*>& branc
     return true;
   }
   else if (n->Type == ParseNode::REPETITION_NG &&
-           n->Range.Min == n->Range.Max) {
+           n->Rep.Min == n->Rep.Max) {
     // reduce {n}? to {n}
     n->Type = ParseNode::REPETITION;
     return true;
@@ -337,7 +337,7 @@ bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& 
   case ParseNode::REPETITION_NG:
     // replace S{n,m}? with S{n}
     n->Type = ParseNode::REPETITION;
-    n->Range.Max = n->Range.Min;
+    n->Rep.Max = n->Rep.Min;
     reduce_trailing_nongreedy_then_empty(n->Left, branch);
     ret = true;
     break;
@@ -354,7 +354,7 @@ bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& 
 
         // replace S{n,m}? with S{n}
         n->Left->Type = ParseNode::REPETITION;
-        n->Left->Range.Max = n->Left->Range.Min;
+        n->Left->Rep.Max = n->Left->Rep.Min;
 
         ret = true;
       }
@@ -364,7 +364,7 @@ bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& 
 
         // replace S{n,m}? with S{n}
         n->Left->Right->Type = ParseNode::REPETITION;
-        n->Left->Right->Range.Max = n->Left->Right->Range.Min;
+        n->Left->Right->Rep.Max = n->Left->Right->Rep.Min;
 
         ret = true;
 
