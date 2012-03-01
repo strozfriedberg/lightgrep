@@ -40,7 +40,9 @@ struct ParseNode {
     Type(t), Left(0), Right(0)
   {
     if (Type == CHAR_CLASS) {
-      Bits.reset();
+      // Use placement new to initialize Bits; note that this does not
+      // allocate memory, so we don't have to delete anything.
+      new(&(this->Bits)) ByteSet();
       Bits.set(v);
     }
     else {
