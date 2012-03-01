@@ -132,7 +132,7 @@ rep:
 number:
   DIGIT
   {
-    $$ = add("ignore", ParseNode::LG_IGNORE, $1 - 48);
+    $$ = add("temporary", ParseNode::TEMPORARY, $1 - 48);
   }
 | number DIGIT
   {
@@ -233,7 +233,7 @@ charclass_right:
   }
 | /* empty */
   {
-    $$ = add("ignore", ParseNode::LG_IGNORE, 'x');
+    $$ = add("temporary", ParseNode::TEMPORARY, 'x');
     $$->Bits.reset();
   }
 ;
