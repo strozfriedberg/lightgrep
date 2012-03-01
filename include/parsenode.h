@@ -30,7 +30,7 @@ struct ParseNode {
     int Val;
     struct {
       uint32 Min, Max;
-    } Range;
+    } Rep;
     ByteSet Bits;
   };
 
@@ -57,8 +57,8 @@ struct ParseNode {
   ParseNode(NodeType t, ParseNode* l, uint32 min, uint32 max):
     Type(t), Left(l), Right(0)
   {
-    Range.Min = min;
-    Range.Max = max;
+    Rep.Min = min;
+    Rep.Max = max;
   }
 
   ParseNode(NodeType t, uint32 first, uint32 last):
