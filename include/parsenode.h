@@ -15,7 +15,6 @@ struct ParseNode {
     GROUP,
     REPETITION,
     REPETITION_NG,
-    ELEMENT,
     DOT,
     CHAR_CLASS,
     LITERAL,
