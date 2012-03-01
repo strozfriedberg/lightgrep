@@ -297,14 +297,14 @@ void unparse(std::ostream& out, const ParseNode* n) {
     open_paren(out, n);
     unparse(out, n->Left);
     close_paren(out, n);
-    repetition(out, n->Min, n->Max);
+    repetition(out, n->Range.Min, n->Range.Max);
     break;
 
   case ParseNode::REPETITION_NG:
     open_paren(out, n);
     unparse(out, n->Left);
     close_paren(out, n);
-    repetition(out, n->Min, n->Max);
+    repetition(out, n->Range.Min, n->Range.Max);
     out << '?';
     break;
 

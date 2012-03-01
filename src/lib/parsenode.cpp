@@ -42,10 +42,10 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
   case ParseNode::GROUP:
     return out << '(';
   case ParseNode::REPETITION:
-    repetition(out, n.Min, n.Max);
+    repetition(out, n.Range.Min, n.Range.Max);
     return out;
   case ParseNode::REPETITION_NG:
-    repetition(out, n.Min, n.Max);
+    repetition(out, n.Range.Min, n.Range.Max);
     return out << '?';
   case ParseNode::ELEMENT:
     return out << "ELEMENT";
@@ -83,7 +83,21 @@ void printTreeDetails(std::ostream& out, const ParseNode& n) {
     printTreeDetails(out, *n.Left);
   }
 
-  out << &n << ' ' << n.Type << ' ' << n.Left << ' ' << n.Right << ' '
-      << n.Val << ' ' << n.Min << ' ' << n.Max << '\n';
+  out << &n << ' ' << n.Type << ' ' << n.Left << ' ' << n.Right << ' ';
+
+  switch (n.Type) {
+  case ParseNode::REPETITION:
+  case ParseNode::REPETITION_NG:
+  case ParseNode::CHAR_CLASS:
+    out << n.Range.Min << ' ' << n.Range.Max;
+    break;
+  case ParseNode::LITERAL:
+    out << n.Val;
+    break;
+  default:
+    break;
+  }
+
+  out << '\n';
 }
 
