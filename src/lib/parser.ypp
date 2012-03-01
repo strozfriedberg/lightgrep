@@ -233,8 +233,8 @@ charclass_right:
   }
 | /* empty */
   {
-    $$ = add("temporary", ParseNode::TEMPORARY, 'x');
-    $$->Bits.reset();
+    $$ = add("temporary", ParseNode::CHAR_CLASS, 'x');
+    $$->Bits['x'] = false;
   }
 ;
 
