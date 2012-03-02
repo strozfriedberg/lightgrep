@@ -9,7 +9,7 @@
 // TODO: ensure T is unsigned
 // TODO: ensure N is appropriate
 
-template <typename T, unsigned long N>
+template <typename T, T N>
 class RangeSet {
 
 public:
