@@ -6,7 +6,7 @@
 #include "basic.h"
 #include "rangeset.h"
 
-template <typename T, unsigned long N>
+template <typename T, T N>
 std::ostream& operator<<(std::ostream& o, const RangeSet<T,N>& rs) {
   const typename RangeSet<T,N>::const_iterator end(rs.end());
   for (typename RangeSet<T,N>::const_iterator i(rs.begin()); i != end; ) {
@@ -32,7 +32,7 @@ SCOPE_TEST(rangeSetEqualsTest) {
   SCOPE_ASSERT(u != s);
 }
 
-template <typename T, unsigned long N>
+template <typename T, T N>
 void bitset_equivalence_tester(const std::bitset<N>& b, RangeSet<T,N>& r) {
   SCOPE_ASSERT_EQUAL(b.any(), r.any());
   SCOPE_ASSERT_EQUAL(b.all(), r.all());
