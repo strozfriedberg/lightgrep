@@ -110,6 +110,13 @@ private:
 class CharClassState: public Transition {
 public:
   CharClassState(const ByteSet& allowed): Allowed(allowed) {}
+
+  CharClassState(const UnicodeSet& allowed) {
+    for (uint32 i = 0; i < 256; ++i) {
+      Allowed[i] = allowed[i];
+    }
+  }
+
   virtual ~CharClassState() {}
 
   virtual const byte* allowed(const byte* beg, const byte*) const {
