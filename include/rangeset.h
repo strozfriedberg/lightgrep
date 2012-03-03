@@ -22,6 +22,8 @@ public:
 
   RangeSet() {}
 
+  RangeSet(T val): vec{ val, val+1 } {}
+
 // TODO: ensure init.size() is even
   RangeSet(std::initializer_list<T> init): vec(init) {}
 
