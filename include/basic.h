@@ -5,6 +5,9 @@
 
 #include "byteset.h"
 #include "lightgrep_c_api.h"
+#include "rangeset.h"
+
+typedef RangeSet<uint32,0x110000> UnicodeSet;
 
 typedef unsigned char byte;
 

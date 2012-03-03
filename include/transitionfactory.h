@@ -10,7 +10,8 @@
 
 class TransitionFactory {
 public:
-  TransitionFactory(): Lit(0), Either(0, 0), Range(0, 0), CharClass(ByteSet()) {}
+  TransitionFactory():
+    Lit(0), Either(0, 0), Range(0, 0), CharClass(ByteSet()) {}
 
   ~TransitionFactory() {
     std::for_each(Exemplars.begin(), Exemplars.end(),
@@ -36,6 +37,13 @@ public:
 
   Transition* getCharClass(const ByteSet& bytes) {
     CharClass.Allowed = bytes;
+    return get(&CharClass);
+  }
+
+  Transition* getCharClass(const UnicodeSet& bytes) {
+    for (uint32 i = 0; i < 256; ++i) {
+      CharClass.Allowed[i] = bytes[i];
+    }
     return get(&CharClass);
   }
 

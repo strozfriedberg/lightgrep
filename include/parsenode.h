@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basic.h"
+#include "rangeset.h"
 
 #include <iostream>
 #include <limits>
@@ -31,50 +32,38 @@ struct ParseNode {
     struct {
       uint32 Min, Max;
     } Rep;
-    ByteSet Bits;
-  //};
+//  };
 
-  ParseNode(): Type(LITERAL), Left(0), Val(0) {}
+  UnicodeSet Bits;
 
-  ParseNode(NodeType t, uint32 v): Type(t), Left(0) {
-    if (Type == CHAR_CLASS) {
-      // Use placement new to initialize Bits; note that this does not
-      // allocate memory, so we don't have to delete anything.
-      new(&(this->Bits)) ByteSet();
-      Bits.set(v);
-    }
-    else {
-      Val = v;
-    }
-  }
+  ParseNode(): Type(LITERAL), Left(0), Val(0), Bits() {}
+
+  ParseNode(NodeType t, uint32 v): Type(t), Left(0), Val(v), Bits(v) {}
 
   ParseNode(NodeType t, ParseNode* l):
-    Type(t), Left(l), Right(0) {}
+    Type(t), Left(l), Right(0), Bits() {}
 
   ParseNode(NodeType t, ParseNode* l, ParseNode* r):
-    Type(t), Left(l), Right(r) {}
+    Type(t), Left(l), Right(r), Bits() {}
 
   ParseNode(NodeType t, ParseNode* l, uint32 min, uint32 max):
-    Type(t), Left(l)
+    Type(t), Left(l), Bits()
   {
     Rep.Min = min;
     Rep.Max = max;
   }
 
   ParseNode(NodeType t, uint32 first, uint32 last):
-    Type(t), Left(0), Bits()
-  {
-    Bits.reset();
-    range(first, last);
-  }
+    Type(t), Left(0), Bits(first, last + 1) {}
 
   explicit ParseNode(NodeType t, const ByteSet& b):
     Type(t), Left(0), Bits(b) {}
 
+  explicit ParseNode(NodeType t, const UnicodeSet& b):
+    Type(t), Left(0), Bits(b) {}
+
   void range(uint32 first, uint32 last) {
-    for (uint32 i = first; i <= last; ++i) {
-      Bits.set(i);
-    }
+    Bits.insert(first, last + 1);
   }
 };
 
