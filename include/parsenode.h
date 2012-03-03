@@ -36,30 +36,22 @@ struct ParseNode {
 
   UnicodeSet Bits;
 
-// TODO: Add setType() to enforce that Bits is properly initialized if
-// type is set to CHAR_CLASS, and properly destroyed if set away from
-// CHAR_CLASS?
+  ParseNode(): Type(LITERAL), Left(0), Val(0), Bits() {}
 
-  ParseNode(): Type(LITERAL), Left(0), Val(0) {}
-
-  ParseNode(NodeType t, uint32 v): Type(t), Left(0) {
+  ParseNode(NodeType t, uint32 v): Type(t), Left(0), Val(v), Bits() {
     if (Type == CHAR_CLASS) {
-//      new(&Bits) UnicodeSet(v);
       Bits.set(v);
-    }
-    else {
-      Val = v;
     }
   }
 
   ParseNode(NodeType t, ParseNode* l):
-    Type(t), Left(l), Right(0) {}
+    Type(t), Left(l), Right(0), Bits() {}
 
   ParseNode(NodeType t, ParseNode* l, ParseNode* r):
-    Type(t), Left(l), Right(r) {}
+    Type(t), Left(l), Right(r), Bits() {}
 
   ParseNode(NodeType t, ParseNode* l, uint32 min, uint32 max):
-    Type(t), Left(l)
+    Type(t), Left(l), Bits()
   {
     Rep.Min = min;
     Rep.Max = max;
@@ -71,6 +63,7 @@ struct ParseNode {
   explicit ParseNode(NodeType t, const ByteSet& b):
     Type(t), Left(0), Bits(b) {}
 
+<<<<<<< HEAD
   ParseNode(NodeType t, const UnicodeSet& b):
     Type(t), Left(0), Bits(b) {}
 
@@ -117,6 +110,9 @@ struct ParseNode {
       break;
     }
   }
+
+  explicit ParseNode(NodeType t, const UnicodeSet& b):
+    Type(t), Left(0), Bits(b) {}
 
   void range(uint32 first, uint32 last) {
     Bits.insert(first, last + 1);
