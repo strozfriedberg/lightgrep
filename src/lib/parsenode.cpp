@@ -61,7 +61,8 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
 }
 
 void printTree(std::ostream& out, const ParseNode& n) {
-  if (n.Right) {
+  if ((n.Type == ParseNode::CONCATENATION ||
+       n.Type == ParseNode::ALTERNATION) && n.Right) {
     printTree(out, *n.Right);
   }
 
@@ -73,7 +74,8 @@ void printTree(std::ostream& out, const ParseNode& n) {
 }
 
 void printTreeDetails(std::ostream& out, const ParseNode& n) {
-  if (n.Right) {
+  if ((n.Type == ParseNode::CONCATENATION ||
+       n.Type == ParseNode::ALTERNATION) && n.Right) {
     printTreeDetails(out, *n.Right);
   }
 
@@ -81,21 +83,24 @@ void printTreeDetails(std::ostream& out, const ParseNode& n) {
     printTreeDetails(out, *n.Left);
   }
 
-  out << &n << ' ' << n.Type << ' ' << n.Left << ' ' << n.Right << ' ';
+  out << &n << ' ' << n.Type << ' ' << n.Left << ' ';
 
   switch (n.Type) {
+  case ParseNode::CONCATENATION:
+  case ParseNode::ALTERNATION:
+    out << n.Right;
+    break;
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
-  case ParseNode::CHAR_CLASS:
     out << n.Rep.Min << ' ' << n.Rep.Max;
     break;
   case ParseNode::LITERAL:
     out << n.Val;
     break;
+  case ParseNode::CHAR_CLASS:
   default:
     break;
   }
 
   out << '\n';
 }
-
