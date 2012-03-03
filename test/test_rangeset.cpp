@@ -231,6 +231,24 @@ SCOPE_TEST(rangeSetInsertEmpty) {
   SCOPE_ASSERT_EQUAL(0, r.end() - r.begin());
 }
 
+SCOPE_TEST(rangeSetInsertOutOfOrderTest) {
+  RangeSet<uint32,256> r;
+  std::bitset<256> b;
+  SCOPE_ASSERT(b == r);
+
+  b[0] = r[0] = true;
+  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+
+  b[255] = r[255] = true;
+  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT_EQUAL(4, r.end() - r.begin());
+
+  b['A'] = r['A'] = true;
+  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT_EQUAL(6, r.end() - r.begin());
+}
+
 SCOPE_TEST(rangeSetInsertRandomTest) {
   RangeSet<uint32,256> r;
   std::bitset<256> b;
