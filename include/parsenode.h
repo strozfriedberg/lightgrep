@@ -36,7 +36,7 @@ struct ParseNode {
 
   UnicodeSet Bits;
 
-  ParseNode(): Type(LITERAL), Left(0), Val(0), Bits() {}
+  ParseNode(): Type(LITERAL), Left(0), Val(0) {}
 
   ParseNode(NodeType t, uint32 v): Type(t), Left(0), Val(v), Bits() {
     if (Type == CHAR_CLASS) {
@@ -45,13 +45,13 @@ struct ParseNode {
   }
 
   ParseNode(NodeType t, ParseNode* l):
-    Type(t), Left(l), Right(0), Bits() {}
+    Type(t), Left(l), Right(0) {}
 
   ParseNode(NodeType t, ParseNode* l, ParseNode* r):
-    Type(t), Left(l), Right(r), Bits() {}
+    Type(t), Left(l), Right(r) {}
 
   ParseNode(NodeType t, ParseNode* l, uint32 min, uint32 max):
-    Type(t), Left(l), Bits()
+    Type(t), Left(l)
   {
     Rep.Min = min;
     Rep.Max = max;
@@ -63,7 +63,6 @@ struct ParseNode {
   explicit ParseNode(NodeType t, const ByteSet& b):
     Type(t), Left(0), Bits(b) {}
 
-<<<<<<< HEAD
   ParseNode(NodeType t, const UnicodeSet& b):
     Type(t), Left(0), Bits(b) {}
 
@@ -111,8 +110,49 @@ struct ParseNode {
     }
   }
 
-  explicit ParseNode(NodeType t, const UnicodeSet& b):
+  ParseNode(NodeType t, const UnicodeSet& b):
     Type(t), Left(0), Bits(b) {}
+
+  ParseNode(const ParseNode& n): Type(n.Type), Left(n.Left) {
+    init_union(n);
+  }
+
+  ~ParseNode() {
+    // we have to call the dtor for UnicodeSet ourselves,
+    // because it has a nontrivial dtor and is part of a union
+    if (Type == CHAR_CLASS) {
+      Bits.~UnicodeSet();
+    }
+  }
+
+  ParseNode& operator=(const ParseNode& n) {
+    // self-assignment is bad, due to the placement new in init_union
+    if (this != &n) {
+      Type = n.Type;
+      Left = n.Left;
+      init_union(n);
+    }
+    return *this;
+  }
+
+  void init_union(const ParseNode& n) {
+    switch (Type) {
+    case ALTERNATION:
+    case CONCATENATION:
+      Right = n.Right;
+      break;
+    case REPETITION:
+    case REPETITION_NG:
+      Rep = n.Rep;
+      break;
+    case CHAR_CLASS:
+      new(&Bits) UnicodeSet(n.Bits);
+      break;
+    default:
+      Val = n.Val;
+      break;
+    }
+  }
 
   void range(uint32 first, uint32 last) {
     Bits.insert(first, last + 1);
