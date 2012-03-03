@@ -22,6 +22,8 @@ public:
 
   RangeSet() {}
 
+  RangeSet(T first, T last): vec{ first, last } {}
+
   RangeSet(T val): vec{ val, val+1 } {}
 
 // TODO: ensure init.size() is even
