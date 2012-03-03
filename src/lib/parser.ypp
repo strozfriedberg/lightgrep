@@ -513,10 +513,9 @@ namespace {
   int yylex(void) {
     if (Text < TextEnd) {
       const int c = *Text++;
-      if (c < 1 || c > 0xFF) {
+      if (c < 1) {
         //   -1 indicates bogus UTF-8
         //    0 is a prohibited mid-string null byte
-        // > FF is a multi-byte code point
         return BAD;
       }
       else if (LiteralMode) {
