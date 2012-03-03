@@ -12,7 +12,8 @@ void print_tree(std::ostream& out, const ParseNode& n) {
     print_tree(out, *n.Left);
   }
 
-  if (n.Right) {
+  if ((n.Type == ParseNode::CONCATENATION ||
+       n.Type == ParseNode::ALTERNATION) && n.Right) {
     // this node has a right child
     print_tree(out, *n.Right);
   }
