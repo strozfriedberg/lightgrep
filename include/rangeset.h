@@ -340,10 +340,10 @@ public:
         insertLast = true;
       }
 
-      u = vec.erase(l, u);
+      l = vec.erase(l, u);
 
       if (insertLast) {
-        vec.insert(u, last);
+        l = vec.insert(l, last);
       }
 
       if (insertFirst) {
