@@ -25,11 +25,13 @@ public:
 // TODO: ensure init.size() is even
   RangeSet(std::initializer_list<T> init): vec(init) {}
 
-  RangeSet(const std::bitset<N>& b) {
-    for (uint32 i = 0; i < N; ++i) {
+// TODO: ensure BN <= N
+  template <size_t BN>
+  RangeSet(const std::bitset<BN>& b) {
+    for (uint32 i = 0; i < BN; ++i) {
       if (b[i]) {
         uint32 j = i + 1;
-        for ( ; j < N; ++j) {
+        for ( ; j < BN; ++j) {
           if (!b[j]) {
             vec.insert(vec.end(), { i, j });
             break;
@@ -65,13 +67,60 @@ public:
     return !(*this == b);
   }
 
-  // provides operator== and operator!= for std::bitset on the left
-  friend bool ::operator==(const std::bitset<N>& b, const RangeSet<T,N>& r) {
-    return r == b;
+  bool operator<(const RangeSet<T,N>& r) const {
+    return vec < r.vec;
   }
-  
-  friend bool ::operator!=(const std::bitset<N>& b, const RangeSet<T,N>& r) {
-    return r != b;
+
+  bool operator>(const RangeSet<T,N>& r) const {
+    return vec > r.vec;
+  }
+
+  bool operator<=(const RangeSet<T,N>& r) const {
+    return vec <= r.vec;
+  }
+
+  bool operator>=(const RangeSet<T,N>& r) const {
+    return vec >= r.vec;
+  }
+
+  RangeSet<T,N>& operator&=(const RangeSet<T,N>& r) {
+    *this = ~*this | ~r;
+    flip();
+    return *this;
+  }
+
+  RangeSet<T,N>& operator|=(const RangeSet<T,N>& r) {
+    const const_iterator end(r.end());
+    for (const_iterator i(r.begin()); i != end; ++i) {
+      insert(*i, *++i);
+    }
+    return *this;
+  }
+
+  RangeSet<T,N>& operator^=(const RangeSet<T,N>& r) {
+    *this = (*this & ~r) | (~*this & r);
+    return *this;
+  }
+
+  RangeSet<T,N> operator~() const {
+    RangeSet<T,N> r(*this);
+    r.flip();
+    return r;
+  }
+
+  RangeSet<T,N> operator&(const RangeSet<T,N>& r) const {
+    RangeSet<T,N> s(*this);
+    return s &= r;
+  }
+
+  RangeSet<T,N> operator|(const RangeSet<T,N>& r) const {
+    RangeSet<T,N> s(*this);
+    return s |= r;
+  }
+
+  RangeSet<T,N> operator^(const RangeSet<T,N>& r) const {
+    RangeSet<T,N> s(*this);
+    return s ^= r;
   }
 
   bool test(size_type pos) const {
@@ -89,15 +138,34 @@ public:
     }
   }
 
-/*
-private:
-  class ElementReference {
+  class reference {
   public:
-    ElementReference(RangeSet<T,N>& r, size_type i): rs(r), pos(i) {}
+    reference(RangeSet<T,N>& r, size_type i): rs(r), pos(i) {}
 
-    ElementReference& operator=(bool value) {
+    // for b[i] = value
+    reference& operator=(bool value) {
       rs.set(pos, value);
       return *this;
+    }
+
+    // for b[i] = b[j]
+    reference& operator=(const reference& other) {
+      rs.set(other.pos, other.rs.test(other.pos));
+      return *this;
+    }
+
+    bool operator~() const {
+      return !rs.test(pos);
+    }
+
+    // for value = b[i]
+    operator bool() const {
+      return rs.test(pos);
+    }
+
+    // for b[i].flip()
+    reference& flip() {
+      rs.flip(pos);
     }
 
   private:
@@ -105,13 +173,9 @@ private:
     size_type pos;
   };
 
-public:
-  typedef ElementReference reference;
-
   reference operator[](size_type pos) {
-    return ElementReference(*this, pos); 
+    return reference(*this, pos);
   }
-*/
 
   bool operator[](size_type pos) const {
     return test(pos);
@@ -293,3 +357,23 @@ public:
 private:
   std::vector<T> vec;
 };
+
+template <typename T, T N>
+bool operator==(const std::bitset<N>& b, const RangeSet<T,N>& r) {
+  return r == b;
+}
+
+template <typename T, T N>
+bool operator!=(const std::bitset<N>& b, const RangeSet<T,N>& r) {
+  return r != b;
+}
+
+template <typename T, T N>
+std::ostream& operator<<(std::ostream& o, const RangeSet<T,N>& rs) {
+  const typename RangeSet<T,N>::const_iterator end(rs.end());
+  for (typename RangeSet<T,N>::const_iterator i(rs.begin()); i != end; ) {
+    o << '[' << *i++ << ',';
+    o << *i++ << ") ";
+  }
+  return o;
+}
