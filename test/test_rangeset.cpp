@@ -6,16 +6,6 @@
 #include "basic.h"
 #include "rangeset.h"
 
-template <typename T, T N>
-std::ostream& operator<<(std::ostream& o, const RangeSet<T,N>& rs) {
-  const typename RangeSet<T,N>::const_iterator end(rs.end());
-  for (typename RangeSet<T,N>::const_iterator i(rs.begin()); i != end; ) {
-    o << '[' << *i++ << ',';
-    o << *i++ << ") ";
-  }
-  return o;
-}
-
 SCOPE_TEST(rangeSetEqualsTest) {
   RangeSet<uint32,256> r, s, u{0,1};
   // reflexive
