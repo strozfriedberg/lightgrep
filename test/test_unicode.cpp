@@ -103,9 +103,7 @@ void test_range(uint32 i, const uint32 end, Expected exp, Actual act) {
 }
 
 template <uint32 Length, class Expected, class Actual>
-typename std::enable_if<
-  !std::is_same<typename std::integral_constant<uint32,4>,
-                typename std::integral_constant<uint32,Length>>::value>::type
+typename std::enable_if<Length != 4>::type
 test_range(const byte* first, const byte* last, Expected exp, Actual act)
 {
   // mask out right 4-Length bytes
@@ -118,9 +116,7 @@ test_range(const byte* first, const byte* last, Expected exp, Actual act)
 }
 
 template <uint32 Length, class Expected, class Actual>
-typename std::enable_if<
-  std::is_same<typename std::integral_constant<uint32,4>,
-               typename std::integral_constant<uint32,Length>>::value>::type
+typename std::enable_if<Length == 4>::type
 test_range(const byte* first, const byte* last, Expected exp, Actual act)
 {
   uint32 i = other_endian(*reinterpret_cast<const uint32*>(first));
@@ -147,33 +143,25 @@ void invalid_range(const char* first, const char* last, Converter conv) {
 }
 
 template <uint32 Length, class Converter>
-typename std::enable_if<
-  std::is_same<typename std::integral_constant<uint32,1>,
-               typename std::integral_constant<uint32,Length>>::value>::type
+typename std::enable_if<Length == 1>::type
 valid_range(const byte* first, const byte* last, Converter conv) {
   test_range<Length>(first, last, onebyte, conv);
 }
 
 template <uint32 Length, class Converter>
-typename std::enable_if<
-  std::is_same<typename std::integral_constant<uint32,2>,
-               typename std::integral_constant<uint32,Length>>::value>::type
+typename std::enable_if<Length == 2>::type
 valid_range(const byte* first, const byte* last, Converter conv) {
   test_range<Length>(first, last, twobyte, conv);
 }
 
 template <uint32 Length, class Converter>
-typename std::enable_if<
-  std::is_same<typename std::integral_constant<uint32,3>,
-               typename std::integral_constant<uint32,Length>>::value>::type
+typename std::enable_if<Length == 3>::type
 valid_range(const byte* first, const byte* last, Converter conv) {
   test_range<Length>(first, last, threebyte, conv);
 }
 
 template <uint32 Length, class Converter>
-typename std::enable_if<
-  std::is_same<typename std::integral_constant<uint32,4>,
-               typename std::integral_constant<uint32,Length>>::value>::type
+typename std::enable_if<Length == 4>::type
 valid_range(const byte* first, const byte* last, Converter conv) {
   test_range<Length>(first, last, fourbyte, conv);
 }
