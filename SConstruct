@@ -9,13 +9,14 @@ isLinux = False
 isShared = False
 bits = '32'
 boostType = ''
+customer = ''
 
 def shellCall(cmd):
   print(cmd)
   os.system(cmd)
 
 def sub(src):
-  vars = ['env', 'isWindows', 'isLinux', 'isShared', 'boostType']
+  vars = ['env', 'isWindows', 'isLinux', 'isShared', 'boostType', 'customer']
   return env.SConscript(p.join(src, 'SConscript'), exports=vars, variant_dir=p.join('bin', src), duplicate=0)
 
 arch = platform.platform()
@@ -31,8 +32,6 @@ defines = [] # a list of defined symbols, as strings, for the preprocessor
 isShared = True if 'true' == ARGUMENTS.get('shared', 'false') else False
 
 customer = ARGUMENTS.get('customer', '')
-if (len(customer) > 0):
-   defines.append(('LIGHTGREP_CUSTOMER', customer))
 
 debug = ARGUMENTS.get('debug', 'false')
 if (debug == 'true'):
