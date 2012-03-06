@@ -1,7 +1,6 @@
 #include "concrete_encodings.h"
 #include "encodings.h"
 
-<<<<<<< HEAD
 #include <iostream>
 #include <stdexcept>
 
