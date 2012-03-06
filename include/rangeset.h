@@ -154,7 +154,7 @@ public:
 
     // for b[i] = b[j]
     reference& operator=(const reference& other) {
-      rs.set(other.pos, other.rs.test(other.pos));
+      rs.set(pos, other.rs.test(other.pos));
       return *this;
     }
 
