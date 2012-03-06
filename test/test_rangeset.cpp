@@ -283,3 +283,13 @@ SCOPE_TEST(rangeSetInsertRandomTest) {
     }
   }
 }
+
+SCOPE_TEST(rangeSetReferenceAssignmentTest) {
+  RangeSet<uint32,256> r;
+  r['a'] = r['b'] = r['c'] = true;
+
+  std::bitset<256> b;
+  b['a'] = b['b'] = b['c'] = true;
+
+  SCOPE_ASSERT(b == r);
+}
