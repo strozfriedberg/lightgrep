@@ -49,7 +49,7 @@ NFABuilder::NFABuilder():
   Fsm(new NFA(1)),
   TransFac(new TransitionFactory())
 {
-  setEncoding(std::shared_ptr<Encoding>(new Ascii));
+  setEncoding(std::shared_ptr<Encoding>(new ASCII));
   init();
 }
 
