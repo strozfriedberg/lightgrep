@@ -2,8 +2,8 @@
 
 #include "concrete_encodings.h"
 
-SCOPE_TEST(testAscii) {
-  Ascii a;
+SCOPE_TEST(testASCII) {
+  ASCII a;
   SCOPE_ASSERT_EQUAL(1u, a.maxByteLength());
   byte buf[1];
   uint32 len;
