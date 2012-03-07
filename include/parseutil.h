@@ -170,4 +170,3 @@ int parseProperty(Iterator& i, const Iterator& end, UnicodeSet& us) {
 
   return propertyGetter(prop, us);
 }
-
