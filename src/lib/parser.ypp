@@ -1,6 +1,7 @@
 %{
 #include "parsenode.h"
 #include "parsetree.h"
+#include "parseutil.h"
 #include "unicode.h"
 
 #include <string>
@@ -392,41 +393,15 @@ namespace {
     return CHAR;
   }
 
-  int parseHexChar(int c) {
-    int val = -1;
-    if ('0' <= c && c <= '9') {
-      val = (c - '0');
-    }
-    else if ('a' <= c && c <= 'f') {
-      val = (c - 'a' + 10);
-    }
-    else if ('A' <= c && c <= 'F') {
-      val = (c - 'A' + 10);
-    }
-    return val;
-  }
-
   int consumeHexCode() {
-    if (Text + 1 < TextEnd) {
-      int one = *Text++,
-          two = *Text++;
-
-      int val = parseHexChar(one),
-          ret;
-      if (val < 0) {
-        return BAD;
-      }
-      ret = val;
-      ret <<= 4;
-      val = parseHexChar(two);
-      if (val < 0) {
-        return BAD;
-      }
-      ret += val;
-      yylval.c = ret;
+    const int val = parseHex(Text, TextEnd);
+    if (val < 0) {
+      return BAD;
+    }
+    else {
+      yylval.c = val;
       return CHAR;
     }
-    return BAD;
   }
 
 // FIXME: Add \c.
