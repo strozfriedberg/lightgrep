@@ -165,3 +165,13 @@ SCOPE_TEST(parseNamedCodePointNumberTest) {
   fixture(parseNamedCodePoint<SItr>, "{U+bogus}", -1, -1);
 }
 
+SCOPE_TEST(parseNamedCodePointNameTest) {
+  fixture(parseNamedCodePoint<SItr>, "{LATIN CAPITAL LETTER A}", 'A', 24);
+  fixture(parseNamedCodePoint<SItr>, "{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O}", 0xA66D, 42);
+  fixture(parseNamedCodePoint<SItr>, "{PILE OF POO}", 0x1F4A9, 13);
+  fixture(parseNamedCodePoint<SItr>, "{LATIN SMALL LETTER L WITH KICKSTAND}", -1, -1);
+  fixture(parseNamedCodePoint<SItr>, "", -1, -1);
+  fixture(parseNamedCodePoint<SItr>, "{bogus", -1, -1);
+  fixture(parseNamedCodePoint<SItr>, "bogus", -1, -1);
+  fixture(parseNamedCodePoint<SItr>, "{}", -1, -1);
+}
