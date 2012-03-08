@@ -367,30 +367,16 @@ cc_named:
 %%
 
 namespace {
-  int parseOctChar(int c) {
-    return ('0' <= c && c <= '7') ? c - '0' : -1;
-  }
 
   int consumeOctCode() {
-    int oct = 0;
-    int digit;
-
-    for (uint32 i = 0; i < 3 && Text < TextEnd; ++i) {
-      digit = parseOctChar(*Text);
-      if (digit == -1) {
-        break;
-      }
-
-      oct = (oct << 3) | digit;
-      ++Text;
-    }
-
-    if (oct > 0377) {
+    const int val = parseOct(Text, TextEnd);
+    if (val < 0) {
       return BAD;
     }
-
-    yylval.c = oct;
-    return CHAR;
+    else {
+      yylval.c = val;
+      return CHAR;
+    }
   }
 
   int consumeHexCode() {
