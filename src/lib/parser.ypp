@@ -456,6 +456,10 @@ namespace {
         --Text;
         return consume(parseOct<const int*>);
 
+      // named Unicode code points
+      case 'N':
+        return consume(parseNamedCodePoint<const int*>);
+
       default:
         return BAD;
     }
