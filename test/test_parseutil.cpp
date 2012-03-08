@@ -82,51 +82,46 @@ SCOPE_TEST(parseHexShortTest) {
   }
 }
 
-void parseHexLongTestFixture(const std::string& s, int exp, int len) {
+typedef std::string::const_iterator SItr;
+
+template <class F>
+void fixture(F func, const std::string& s, int exp, int len) {
   std::string::const_iterator i(s.begin());
-  SCOPE_ASSERT_EQUAL(exp, parseHexLong(i, s.end()));
+  SCOPE_ASSERT_EQUAL(exp, func(i, s.end()));
   if (exp != -1) {
     SCOPE_ASSERT_EQUAL(len, i - s.begin());
   }
 }
 
 SCOPE_TEST(parseHexLongTest) {
-  parseHexLongTestFixture("",         -1,       -1);
-  parseHexLongTestFixture("}",        0x0,       1);
-  parseHexLongTestFixture("1",        -1,       -1);
-  parseHexLongTestFixture("1}",       0x1,       2);
-  parseHexLongTestFixture("11",       -1,       -1);
-  parseHexLongTestFixture("11}",      0x11,      3);
-  parseHexLongTestFixture("111",      -1,       -1);
-  parseHexLongTestFixture("111}",     0x111,     4);
-  parseHexLongTestFixture("1111",     -1,       -1);
-  parseHexLongTestFixture("1111}",    0x1111,    5);
-  parseHexLongTestFixture("11111",    -1,       -1);
-  parseHexLongTestFixture("11111}",   0x11111,   6);
-  parseHexLongTestFixture("111111",   -1,       -1);
-  parseHexLongTestFixture("111111}",  0x111111,  7);
-  parseHexLongTestFixture("1111111",  -1,       -1);
-  parseHexLongTestFixture("1111111}", -1,       -1);  // > 6 hex digits
-}
-
-void parseHexTestFixture(const std::string& s, int exp, int len) {
-  std::string::const_iterator i(s.begin());
-  SCOPE_ASSERT_EQUAL(exp, parseHex(i, s.end()));
-  if (exp != -1) {
-    SCOPE_ASSERT_EQUAL(len, i - s.begin());
-  }
+  fixture(parseHexLong<SItr>, "",         -1,       -1);
+  fixture(parseHexLong<SItr>, "}",        0x0,       1);
+  fixture(parseHexLong<SItr>, "1",        -1,       -1);
+  fixture(parseHexLong<SItr>, "1}",       0x1,       2);
+  fixture(parseHexLong<SItr>, "11",       -1,       -1);
+  fixture(parseHexLong<SItr>, "11}",      0x11,      3);
+  fixture(parseHexLong<SItr>, "111",      -1,       -1);
+  fixture(parseHexLong<SItr>, "111}",     0x111,     4);
+  fixture(parseHexLong<SItr>, "1111",     -1,       -1);
+  fixture(parseHexLong<SItr>, "1111}",    0x1111,    5);
+  fixture(parseHexLong<SItr>, "11111",    -1,       -1);
+  fixture(parseHexLong<SItr>, "11111}",   0x11111,   6);
+  fixture(parseHexLong<SItr>, "111111",   -1,       -1);
+  fixture(parseHexLong<SItr>, "111111}",  0x111111,  7);
+  fixture(parseHexLong<SItr>, "1111111",  -1,       -1);
+  fixture(parseHexLong<SItr>, "1111111}", -1,       -1);  // > 6 hex digits
 }
 
 SCOPE_TEST(parseHexTest) {
-  parseHexTestFixture("", -1, -1);
-  parseHexTestFixture("0", -1, -1);
-  parseHexTestFixture("00", 0, 2);
-  parseHexTestFixture("{0}", 0, 3);
-  parseHexTestFixture("{0", -1, -1);
-  parseHexTestFixture("0}", -1, -1);
-  parseHexTestFixture("00}", 0, 2);
-  parseHexTestFixture("{000000}", 0, 8);
-  parseHexTestFixture("0000000", 0, 2);
+  fixture(parseHex<SItr>, "", -1, -1);
+  fixture(parseHex<SItr>, "0", -1, -1);
+  fixture(parseHex<SItr>, "00", 0, 2);
+  fixture(parseHex<SItr>, "{0}", 0, 3);
+  fixture(parseHex<SItr>, "{0", -1, -1);
+  fixture(parseHex<SItr>, "0}", -1, -1);
+  fixture(parseHex<SItr>, "00}", 0, 2);
+  fixture(parseHex<SItr>, "{000000}", 0, 8);
+  fixture(parseHex<SItr>, "0000000", 0, 2);
 }
 
 SCOPE_TEST(parseOctCharTest) {
@@ -150,22 +145,16 @@ SCOPE_TEST(parseOctCharTest) {
   }
 }
 
-void parseOctTestFixture(const std::string& s, int exp, int len) {
-  std::string::const_iterator i(s.begin());
-  SCOPE_ASSERT_EQUAL(exp, parseOct(i, s.end()));
-  if (exp != -1) {
-    SCOPE_ASSERT_EQUAL(len, i - s.begin());
-  }
+SCOPE_TEST(parseOctTest) {
+  fixture(parseOct<SItr>, "0",  00, 1);
+  fixture(parseOct<SItr>, "01", 01, 2);
+  fixture(parseOct<SItr>, "01a", 01, 2);
+  fixture(parseOct<SItr>, "0a1", 00, 1);
+  fixture(parseOct<SItr>, "000", 00, 3);
+  fixture(parseOct<SItr>, "0001", 00, 3);
+  fixture(parseOct<SItr>, "377", 0377, 3);
+  fixture(parseOct<SItr>, "400", -1, -1); // > 377 is multi-byte
 }
 
-SCOPE_TEST(parseOctTest) {
-  parseOctTestFixture("0",  00, 1);
-  parseOctTestFixture("01", 01, 2);
-  parseOctTestFixture("01a", 01, 2);
-  parseOctTestFixture("0a1", 00, 1);
-  parseOctTestFixture("000", 00, 3);
-  parseOctTestFixture("0001", 00, 3);
-  parseOctTestFixture("377", 0377, 3);
-  parseOctTestFixture("400", -1, -1); // > 377 is multi-byte
 }
 
