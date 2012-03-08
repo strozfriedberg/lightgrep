@@ -4,6 +4,8 @@
 #include <iostream>
 #include <iterator>
 
+#include <unicode/uchar.h>
+
 int parseHexChar(int c);
 
 template <typename Iterator>
@@ -119,11 +121,11 @@ int parseNamedCodePoint(Iterator& i, const Iterator& end) {
   std::string name;
   std::copy(i, nend, std::back_inserter(name));
 
-  return -1;
-/*
-  UErrorCode err;
-  const int val = u_charFromName( , , &err);
+  i = nend + 1;
+
+  // ask ICU for the code point with this name
+  UErrorCode err = U_ZERO_ERROR;
+  const int val = u_charFromName(U_UNICODE_CHAR_NAME, name.c_str(), &err);
   return U_FAILURE(err) ? -1 : val;
-*/
 }
 
