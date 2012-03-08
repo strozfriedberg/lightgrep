@@ -31,3 +31,7 @@ int parseHexChar(int c) {
     return -1;
   }
 }
+
+int parseOctChar(int c) {
+  return ('0' <= c && c <= '7') ? c - '0' : -1;
+}
