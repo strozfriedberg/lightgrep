@@ -98,6 +98,7 @@ int parseOct(Iterator& i, const Iterator& iend) {
   return oct > 0377 ? -1 : oct;
 }
 
+<<<<<<< HEAD
 template <typename Iterator>
 int unicode_to_ascii(Iterator& i, const Iterator& end, std::string& out) {
   byte b;
