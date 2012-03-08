@@ -69,6 +69,7 @@ int parseHex(Iterator& i, const Iterator& end) {
 
 int parseOctChar(int c);
 
+// Should accept \\[0-7]{1,3}
 template <typename Iterator>
 int parseOct(Iterator& i, const Iterator& iend) {
   int oct = 0;
