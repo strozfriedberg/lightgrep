@@ -18,7 +18,8 @@ int parseHexShort(Iterator& i, const Iterator& end) {
 template <typename Iterator>
 int parseHexLong(Iterator& i, const Iterator& iend) {
   const Iterator end = std::min(i + 7, iend);
-  for (int c = *i, val = 0; i++ < end; c = *i) {
+  for (int c, val = 0; i != end; ) {
+    c = *i++;
     switch (c) {
     case '0':
     case '1':
@@ -66,3 +67,24 @@ int parseHex(Iterator& i, const Iterator& end) {
   return *i == '{' ? parseHexLong(++i, end) : parseHexShort(i, end);
 }
 
+int parseOctChar(int c);
+
+template <typename Iterator>
+int parseOct(Iterator& i, const Iterator& iend) {
+  int oct = 0;
+
+  const Iterator end = std::min(i + 3, iend);
+  for (int digit; i != end; ) {
+    digit = parseOctChar(*i);
+
+    if (digit == -1) {
+      break;
+    }
+
+    ++i;
+    oct <<= 3;
+    oct |= digit;
+  }
+
+  return oct > 0377 ? -1 : oct;
+}

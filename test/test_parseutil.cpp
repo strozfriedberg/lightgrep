@@ -1,6 +1,5 @@
 #include <scope/test.h>
 
-#include <iostream>
 #include <sstream>
 
 #include "basic.h"
@@ -128,5 +127,45 @@ SCOPE_TEST(parseHexTest) {
   parseHexTestFixture("00}", 0, 2);
   parseHexTestFixture("{000000}", 0, 8);
   parseHexTestFixture("0000000", 0, 2);
+}
+
+SCOPE_TEST(parseOctCharTest) {
+  // good
+  SCOPE_ASSERT_EQUAL(00, parseOctChar('0'));
+  SCOPE_ASSERT_EQUAL(01, parseOctChar('1'));
+  SCOPE_ASSERT_EQUAL(02, parseOctChar('2'));
+  SCOPE_ASSERT_EQUAL(03, parseOctChar('3'));
+  SCOPE_ASSERT_EQUAL(04, parseOctChar('4'));
+  SCOPE_ASSERT_EQUAL(05, parseOctChar('5'));
+  SCOPE_ASSERT_EQUAL(06, parseOctChar('6'));
+  SCOPE_ASSERT_EQUAL(07, parseOctChar('7'));
+
+  // bad
+  for (int i = -10; i < '0'; ++i) {
+    SCOPE_ASSERT_EQUAL(-1, parseOctChar(i));
+  }
+
+  for (int i = '8'; i < 300; ++i) {
+    SCOPE_ASSERT_EQUAL(-1, parseOctChar(i));
+  }
+}
+
+void parseOctTestFixture(const std::string& s, int exp, int len) {
+  std::string::const_iterator i(s.begin());
+  SCOPE_ASSERT_EQUAL(exp, parseOct(i, s.end()));
+  if (exp != -1) {
+    SCOPE_ASSERT_EQUAL(len, i - s.begin());
+  }
+}
+
+SCOPE_TEST(parseOctTest) {
+  parseOctTestFixture("0",  00, 1);
+  parseOctTestFixture("01", 01, 2);
+  parseOctTestFixture("01a", 01, 2);
+  parseOctTestFixture("0a1", 00, 1);
+  parseOctTestFixture("000", 00, 3);
+  parseOctTestFixture("0001", 00, 3);
+  parseOctTestFixture("377", 0377, 3);
+  parseOctTestFixture("400", -1, -1); // > 377 is multi-byte
 }
 
