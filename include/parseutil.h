@@ -1,6 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <iostream>
+#include <iterator>
 
 int parseHexChar(int c);
 
@@ -64,7 +66,8 @@ int parseHexLong(Iterator& i, const Iterator& iend) {
 // Should accept: \\x[0-9A-Fa-f]{2} and \\x\{[0-9A-Fa-f]{0,6}\}
 template <typename Iterator>
 int parseHex(Iterator& i, const Iterator& end) {
-  return *i == '{' ? parseHexLong(++i, end) : parseHexShort(i, end);
+  return i == end ? -1 :
+    (*i == '{' ? parseHexLong(++i, end) : parseHexShort(i, end));
 }
 
 int parseOctChar(int c);
