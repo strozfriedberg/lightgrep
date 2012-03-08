@@ -156,5 +156,12 @@ SCOPE_TEST(parseOctTest) {
   fixture(parseOct<SItr>, "400", -1, -1); // > 377 is multi-byte
 }
 
+SCOPE_TEST(parseNamedCodePointNumberTest) {
+  fixture(parseNamedCodePoint<SItr>, "{U+BEEF}", 0xBEEF, 8);
+  fixture(parseNamedCodePoint<SItr>, "{U+10FFFF}", 0x10FFFF, 10);
+  fixture(parseNamedCodePoint<SItr>, "{U+0}", 0x0, 5);
+  fixture(parseNamedCodePoint<SItr>, "{U+123}stuff", 0x123, 7);
+  fixture(parseNamedCodePoint<SItr>, "{U+FFFFFFF}", -1, -1);
+  fixture(parseNamedCodePoint<SItr>, "{U+bogus}", -1, -1);
 }
 
