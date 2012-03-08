@@ -92,3 +92,38 @@ int parseOct(Iterator& i, const Iterator& iend) {
 
   return oct > 0377 ? -1 : oct;
 }
+
+// Should accept \{U\+[0-9A-Fa-f]{1,6}\} and \{[\w ]+\}
+template <typename Iterator>
+int parseNamedCodePoint(Iterator& i, const Iterator& end) {
+  if (i == end) {
+    return -1;
+  }
+
+  if (*i++ != '{') {
+    return -1;
+  }
+
+  if (i + 1 < end && *i == 'U' && *(i+1) == '+') {
+    // this is U+hhhh, parseHexLong handles the closing '}'
+    return parseHexLong(i += 2, end);
+  }
+
+  // this is a code point name, find the closing '}'
+  const Iterator nend(std::find(i, end, '}'));
+  if (nend == end) {
+    return -1;
+  }
+
+  // sadly, we need to convert the name back to bytes
+  std::string name;
+  std::copy(i, nend, std::back_inserter(name));
+
+  return -1;
+/*
+  UErrorCode err;
+  const int val = u_charFromName( , , &err);
+  return U_FAILURE(err) ? -1 : val;
+*/
+}
+
