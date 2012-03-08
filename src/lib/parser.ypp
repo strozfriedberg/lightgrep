@@ -368,19 +368,9 @@ cc_named:
 
 namespace {
 
-  int consumeOctCode() {
-    const int val = parseOct(Text, TextEnd);
-    if (val < 0) {
-      return BAD;
-    }
-    else {
-      yylval.c = val;
-      return CHAR;
-    }
-  }
-
-  int consumeHexCode() {
-    const int val = parseHex(Text, TextEnd);
+  template <typename F>
+  int consume(F func) {
+    const int val = func(Text, TextEnd);
     if (val < 0) {
       return BAD;
     }
@@ -452,7 +442,7 @@ namespace {
 
       // hexadecimal characters
       case 'x':
-        return consumeHexCode();
+        return consume(parseHex<const int*>);
 
       // octal characters
       case '0':
@@ -464,7 +454,7 @@ namespace {
       case '6':
       case '7':
         --Text;
-        return consumeOctCode();
+        return consume(parseOct<const int*>);
 
       default:
         return BAD;
