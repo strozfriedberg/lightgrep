@@ -136,4 +136,3 @@ OutputIterator transform_unicode_to_ascii(InputIterator ibegin,
   return obegin;
 }
 */
-
