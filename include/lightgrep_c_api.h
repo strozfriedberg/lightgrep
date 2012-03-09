@@ -3,6 +3,13 @@
 #ifndef __LIGHTGREP_C_API_H_
 #define __LIGHTGREP_C_API_H_
 
+// for size_t
+#ifdef __cplusplus
+#include <cstring>
+#else
+#include <string.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -68,13 +75,16 @@ extern "C" {
 
   // Parse a keyword and add it to the set of keywords associated with the
   // parser. Returns 1 on success, 0 if there was a parsing error.
-  int lg_add_keyword(LG_HPARSER hParser,
-                     const char* keyword,           // the expression to search for, in UTF-8
-                     unsigned int keyIndex,         // unique for this keyword
-                     const LG_KeyOptions* options,  // parsing options
-                     const char* Encoding);         // Encoding of keyword to search for, using IANA names
-                                                    // c.f. http://www.iana.org/assignments/character-sets
-                                                    // encodings.h has the list of supported encodings
+  int lg_add_keyword(
+    LG_HPARSER hParser,
+    const char* keyword,           // the expression to search for, in UTF-8
+    size_t length,                 // the length of the keyword, in bytes
+    unsigned int keyIndex,         // unique for this keyword
+    const LG_KeyOptions* options,  // parsing options
+    const char* Encoding           // Encoding of keyword to search for, using
+    // IANA names c.f. http://www.iana.org/assignments/character-sets
+    // encodings.h has the list of supported encodings
+  );
 
   // Create a "Program" from a parser, which efficiently encodes the logic for
   // recognizing all the specified keywords. Once a program has been created,

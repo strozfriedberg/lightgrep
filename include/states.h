@@ -109,7 +109,7 @@ private:
 
 class CharClassState: public Transition {
 public:
-  CharClassState(ByteSet allowed): Allowed(allowed) {}
+  CharClassState(const ByteSet& allowed): Allowed(allowed) {}
   virtual ~CharClassState() {}
 
   virtual const byte* allowed(const byte* beg, const byte*) const {
