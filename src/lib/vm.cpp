@@ -121,11 +121,17 @@ void Vm::init(ProgramPtr prog) {
   uint32 numPatterns = 0,
          numCheckedStates = 0;
   for (uint32 i = 0; i < p.size(); ++i) {
-    if (p[i].OpCode == LABEL_OP && numPatterns < p[i].Op.Offset) {
-      numPatterns = p[i].Op.Offset;
-    }
-    if (p[i].OpCode == CHECK_HALT_OP) {
-      numCheckedStates = std::max(numCheckedStates, p[i].Op.Offset);
+    switch (p[i].OpCode) {
+    case LABEL_OP:
+      if (numPatterns < p[i].Op.Offset) {
+        numPatterns = p[i].Op.Offset;
+      }
+      break;
+    case CHECK_HALT_OP:
+      if (numCheckedStates < p[i].Op.Offset) {
+        numCheckedStates = p[i].Op.Offset;
+      }
+      break;
     }
   }
   ++numPatterns;
@@ -142,7 +148,7 @@ void Vm::init(ProgramPtr prog) {
 
   CheckLabels.resize(numCheckedStates);
 
-  Active.push_back(Thread(&(*Prog)[0]));
+  Active.emplace_back(&(*Prog)[0]);
   ThreadList::iterator t(Active.begin());
 
   #ifdef LBT_TRACE_ENABLED
@@ -151,7 +157,7 @@ void Vm::init(ProgramPtr prog) {
   pre_run_thread_json(std::clog, 0, Active.front(), &(*Prog)[0]);
   #endif
 
-  if (_executeEpSequence(&(*Prog)[0], t, 0)) {
+  if (_executeEpSequence<0>(&(*Prog)[0], t, 0)) {
     Next.push_back(*t);
   }
 
@@ -279,6 +285,7 @@ inline bool Vm::_liveCheck(const uint64 start, const uint32 label) {
 }
 
 // while base is always == &Program[0], we pass it in because it then should get inlined away
+template <uint32 X>
 inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64 offset) {
   const Instruction& instr = *t->PC;
 
@@ -326,7 +333,7 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
         t->advance(InstructionSize<FORK_OP>::VAL);
 
         // recurse to keep going in sequence
-        if (_executeEpSequence(base, t, offset)) {
+        if (_executeEpSequence<X == 0 ? 0 : X-1>(base, t, offset)) {
           if (t->PC->OpCode != FINISH_OP) {
             _markSeen(t->Label);
           }
@@ -404,7 +411,7 @@ inline void Vm::_executeThread(const Instruction* const base, ThreadList::iterat
   post_run_thread_json(std::clog, offset, *t, base);
   #endif
 
-  if (_executeEpSequence(base, t, offset)) {
+  if (_executeEpSequence<10>(base, t, offset)) {
     if (t->PC->OpCode != FINISH_OP) {
       _markSeen(t->Label);
     }
@@ -414,6 +421,7 @@ inline void Vm::_executeThread(const Instruction* const base, ThreadList::iterat
   }
 }
 
+template <uint32 X>
 inline bool Vm::_executeEpSequence(const Instruction* const base, ThreadList::iterator t, const uint64 offset) {
 
   // kill threads overlapping an emitted match
@@ -426,7 +434,7 @@ inline bool Vm::_executeEpSequence(const Instruction* const base, ThreadList::it
   do {
     const uint64 id = t->Id; // t can change on a fork, we want the original
     pre_run_thread_json(std::clog, offset, *t, base);
-    ex = _executeEpsilon(base, t, offset);
+    ex = _executeEpsilon<X>(base, t, offset);
 //std::cerr << "\nNext.size() == " << Next.size() << std::endl;
 
     if (t->Id == id) {
@@ -441,7 +449,7 @@ inline bool Vm::_executeEpSequence(const Instruction* const base, ThreadList::it
 */
   } while (ex);
   #else
-  while (_executeEpsilon(base, t, offset)) ;
+  while (_executeEpsilon<X>(base, t, offset)) ;
   #endif
 
   return t->PC;
@@ -460,9 +468,9 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
 
     for (t = First.begin(); t != First.end(); ++t) {
       #ifdef LBT_TRACE_ENABLED
-      Active.push_back(Thread(t->PC, Thread::NOLABEL, NextId++, offset, Thread::NONE));
+      Active.emplace_back(t->PC, Thread::NOLABEL, NextId++, offset, Thread::NONE);
       #else
-      Active.push_back(Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE));
+      Active.emplace_back(t->PC, Thread::NOLABEL, offset, Thread::NONE);
       #endif
 
       #ifdef LBT_TRACE_ENABLED
@@ -505,7 +513,7 @@ bool Vm::executeEpsilon(Thread* t, uint64 offset) {
 }
 
 bool Vm::executeEpsilon(ThreadList::iterator t, uint64 offset) {
-  return _executeEpsilon(&(*Prog)[0], t, offset);
+  return _executeEpsilon<0>(&(*Prog)[0], t, offset);
 }
 
 void Vm::executeFrame(const byte* const cur, uint64 offset, HitCallback hitFn, void* userData) {
@@ -523,7 +531,7 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64 s
 
   if (Prog->First[*beg]) {
     for (ThreadList::const_iterator t(First.begin()); t != First.end(); ++t) {
-      Active.push_back(Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE));
+      Active.emplace_back(t->PC, Thread::NOLABEL, offset, Thread::NONE);
     }
 
     for (const byte* cur = beg; cur < end; ++cur, ++offset) {

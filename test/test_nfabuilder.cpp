@@ -517,7 +517,6 @@ SCOPE_TEST(parseDot) {
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(1));
 
   ByteSet set;
-  set.reset();
   fsm[1].Trans->getBits(set);
   SCOPE_ASSERT_EQUAL(256u, set.count());
 }
@@ -534,7 +533,6 @@ SCOPE_TEST(parseHexCode) {
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
 
   ByteSet set;
-  set.reset();
   fsm[1].Trans->getBits(set);
   SCOPE_ASSERT_EQUAL(1u, set.count());
   SCOPE_ASSERT(set[' ']);
@@ -576,10 +574,8 @@ SCOPE_TEST(parseHighHex) {
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
-  ByteSet expected,
-          actual;
-  expected.reset();
-  actual.reset();
+
+  ByteSet expected, actual;
   expected.set(0xe5);
   fsm[1].Trans->getBits(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
@@ -596,10 +592,7 @@ SCOPE_TEST(parseSimpleCharClass) {
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
 
-  ByteSet expected,
-          actual;
-  expected.reset();
-  actual.reset();
+  ByteSet expected, actual;
   expected.set('A');
   expected.set('a');
   expected.set('B');
@@ -620,10 +613,7 @@ SCOPE_TEST(parseUnprintableCharClass) {
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
 
-  ByteSet expected,
-          actual;
-  expected.reset();
-  actual.reset();
+  ByteSet expected, actual;
   expected.set('A');
   expected.set(0x00);
   expected.set(0xFF);
@@ -643,10 +633,7 @@ SCOPE_TEST(parseNegatedRanges) {
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
  
-  ByteSet expected,
-          actual;
-  expected.reset();
-  actual.reset();
+  ByteSet expected, actual;
   for (uint32 i = 0; i < 256; ++i) {
     if (('a' <= i && i <= 'z')
       || ('A' <= i && i <= 'Z')

@@ -9,8 +9,9 @@ class ParseTree {
 public:
   ParseNode* Root;
 
-  ParseNode* add(const ParseNode& n) {
-    Store.push_back(n);
+  template <class... Args>
+  ParseNode* add(Args&&... args) {
+    Store.emplace_back(args...);
     return &Store[Store.size()-1];
   }
 

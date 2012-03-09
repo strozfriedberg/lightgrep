@@ -159,7 +159,7 @@ void NFABuilder::literal(const ParseNode& n) {
     }
     TempFrag.reset(n);
     TempFrag.InList.push_back(first);
-    TempFrag.OutList.push_back(std::make_pair(last, 0));
+    TempFrag.OutList.emplace_back(last, 0);
     Stack.push(TempFrag);
   }
 }
@@ -243,17 +243,17 @@ void NFABuilder::star_ng(const ParseNode& n) {
 }
 
 void NFABuilder::repetition(const ParseNode& n) {
-  if (n.Min == 0) {
-    if (n.Max == 1) {
+  if (n.Rep.Min == 0) {
+    if (n.Rep.Max == 1) {
       question(n);
       return;
     }
-    else if (n.Max == UNBOUNDED) {
+    else if (n.Rep.Max == UNBOUNDED) {
       star(n);
       return;
     }
   }
-  else if (n.Min == 1 && n.Max == UNBOUNDED) {
+  else if (n.Rep.Min == 1 && n.Rep.Max == UNBOUNDED) {
     plus(n);
     return;
   }
@@ -262,17 +262,17 @@ void NFABuilder::repetition(const ParseNode& n) {
 }
 
 void NFABuilder::repetition_ng(const ParseNode& n) {
-  if (n.Min == 0) {
-    if (n.Max == 1) {
+  if (n.Rep.Min == 0) {
+    if (n.Rep.Max == 1) {
       question_ng(n);
       return;
     }
-    else if (n.Max == UNBOUNDED) {
+    else if (n.Rep.Max == UNBOUNDED) {
       star_ng(n);
       return;
     }
   }
-  else if (n.Min == 1 && n.Max == UNBOUNDED) {
+  else if (n.Rep.Min == 1 && n.Rep.Max == UNBOUNDED) {
     plus_ng(n);
     return;
   }
@@ -381,8 +381,9 @@ void NFABuilder::traverse(const ParseNode* root) {
       // This node has a left child
       if ((n->Type == ParseNode::REPETITION ||
            n->Type == ParseNode::REPETITION_NG) &&
-         !((n->Min == 0 && (n->Max == 1 || n->Max == UNBOUNDED)) ||
-           (n->Min == 1 && n->Max == UNBOUNDED)))
+         !((n->Rep.Min == 0 &&
+           (n->Rep.Max == 1 || n->Rep.Max == UNBOUNDED)) ||
+           (n->Rep.Min == 1 && n->Rep.Max == UNBOUNDED)))
       {
         // This is a repetition, but not one of the special named ones.
         // We synthesize nodes here to eliminate counted repetitions.
@@ -412,9 +413,9 @@ void NFABuilder::traverse(const ParseNode* root) {
         ParseNode* none = 0;
         ParseNode* parent = &root;
 
-        if (n->Min > 0) {
+        if (n->Rep.Min > 0) {
           // build the mandatory part
-          for (uint32 i = 1; i < n->Min; ++i) {
+          for (uint32 i = 1; i < n->Rep.Min; ++i) {
             synth.push_back(std::shared_ptr<ParseNode>(
               new ParseNode(ParseNode::CONCATENATION, n->Left, none))
             );
@@ -425,13 +426,13 @@ void NFABuilder::traverse(const ParseNode* root) {
           }
         }
 
-        if (n->Min == n->Max) {
+        if (n->Rep.Min == n->Rep.Max) {
           // finish the mandatory part
           parent->Right = n->Left;
         }
-        else if (n->Max == UNBOUNDED) {
+        else if (n->Rep.Max == UNBOUNDED) {
           // build the unbounded optional part
-          if (n->Min == 0) {
+          if (n->Rep.Min == 0) {
             synth.push_back(std::shared_ptr<ParseNode>(
               new ParseNode(n->Type, n->Left, 0, UNBOUNDED))
             );
@@ -447,7 +448,7 @@ void NFABuilder::traverse(const ParseNode* root) {
           }
         }
         else {
-          if (n->Min > 0) {
+          if (n->Rep.Min > 0) {
             // finish the mandatory part
             synth.push_back(std::shared_ptr<ParseNode>(
               new ParseNode(ParseNode::CONCATENATION, n->Left, none))
@@ -458,7 +459,7 @@ void NFABuilder::traverse(const ParseNode* root) {
           }
 
           // build the bounded optional part
-          for (uint32 i = 1; i < n->Max - n->Min; ++i) {
+          for (uint32 i = 1; i < n->Rep.Max - n->Rep.Min; ++i) {
             synth.push_back(std::shared_ptr<ParseNode>(
               new ParseNode(ParseNode::CONCATENATION, n->Left, none))
             );
@@ -488,7 +489,8 @@ void NFABuilder::traverse(const ParseNode* root) {
       }
     }
 
-    if (n->Right) {
+    if ((n->Type == ParseNode::ALTERNATION ||
+         n->Type == ParseNode::CONCATENATION) && n->Right) {
       wind.push(n->Right);
     }
   }

@@ -29,7 +29,7 @@ public:
                            CmdLinePatterns,
                            KeyFiles;
 
-  unsigned int BlockSize;
+  uint32 BlockSize;
 
   bool CaseInsensitive,
        LiteralMode,
