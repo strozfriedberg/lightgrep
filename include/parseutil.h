@@ -5,7 +5,7 @@
 #include <iterator>
 
 #include "basic.h"
-#include "rangeset.h"
+#include "unicode.h"
 
 #include <unicode/uchar.h>
 
@@ -98,6 +98,35 @@ int parseOct(Iterator& i, const Iterator& iend) {
   return oct > 0377 ? -1 : oct;
 }
 
+template <typename Iterator>
+int unicode_to_ascii(Iterator& i, const Iterator& end, std::string& out) {
+  byte b;
+  while (unicode_to_ascii(b, i, end) != -1) {
+    out += b;
+  }
+
+  // check that there were no non-ASCII chars
+  return i != end ? -1 : 1;
+}
+
+template <typename Iterator>
+int prepareStringForICU(Iterator& i, const Iterator& end, std::string& out) {
+  // find the closing '}'
+  const Iterator nend(std::find(i, end, '}'));
+  if (nend == end) {
+    return -1;
+  }
+
+  // sadly, we need to convert the string back to bytes
+  if (unicode_to_ascii(i, nend, out) == -1) {
+    return -1;
+  }
+
+  ++i;
+
+  return 1;
+}
+
 // Should accept \{U\+[0-9A-Fa-f]{1,6}\} and \{[\w ]+\}
 template <typename Iterator>
 int parseNamedCodePoint(Iterator& i, const Iterator& end) {
@@ -114,18 +143,10 @@ int parseNamedCodePoint(Iterator& i, const Iterator& end) {
     return parseHexLong(i += 2, end);
   }
 
-  // this is a code point name, find the closing '}'
-  const Iterator nend(std::find(i, end, '}'));
-  if (nend == end) {
+  std::string name;
+  if (prepareStringForICU(i, end, name) == -1) {
     return -1;
   }
-
-// FIXME: what happens if we hit a cp > FF?
-  // sadly, we need to convert the name back to bytes
-  std::string name;
-  std::copy(i, nend, std::back_inserter(name));
-
-  i = nend + 1;
 
   // ask ICU for the code point with this name
   UErrorCode err = U_ZERO_ERROR;
@@ -141,23 +162,10 @@ int parseProperty(Iterator& i, const Iterator& end, UnicodeSet& us) {
     return -1;
   }
 
-  // find the closing '}'
-  const Iterator nend(std::find(i, end, '}'));
-  if (nend == end) {
+  std::string prop;
+  if (prepareStringForICU(i, end, prop) == -1) {
     return -1;
   }
-
-// FIXME: what happens if we hit a cp > FF?
-  // sadly, we need to convert the property back to bytes
-/*
-  std::string prop("[");
-  std::copy(i, nend + 1, std::back_inserter(prop));
-  prop += "]";
-*/
-  std::string prop;
-  std::copy(i, nend + 1, std::back_inserter(prop));
-
-  i = nend + 1;
 
   return propertyGetter(prop, us);
 }
