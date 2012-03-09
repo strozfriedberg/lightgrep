@@ -17,6 +17,8 @@ namespace {
 
   ParseTree* Tree;
 
+  UnicodeSet USet;
+
   bool LiteralMode;
 
 /*  template <class... Args>
@@ -34,12 +36,13 @@ namespace {
 %union {
   unsigned int c;
   ParseNode* node;
+  UnicodeSet* s;
 }
 
 %token <c> CHAR
 %token <c> DIGIT
-%token <c> NAMED
 %token <c> BAD
+%token <s> SET;
 
 %type <node> regexp alt concat rep number atom literal charclass charclass_right cc_named
 %type <c>    character cc_char cc_char_first cc_char_not_first
@@ -311,57 +314,9 @@ cc_char:
 ;
 
 cc_named:
-  NAMED
+  SET
   {
-    switch ($1) {
-      case 'd':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, '0', '9'));
-        break;
-      }
-      case 'D':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, '0', '9'));
-        $$->Bits.flip();
-        break;
-      }
-      case 's':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, ' '));
-        $$->Bits.set('\t');
-        $$->Bits.set('\n');
-        $$->Bits.set('\f');
-        $$->Bits.set('\r');
-        break;
-      }
-      case 'S':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, ' '));
-        $$->Bits.set('\t');
-        $$->Bits.set('\n');
-        $$->Bits.set('\f');
-        $$->Bits.set('\r');
-        $$->Bits.flip();
-        break;
-      }
-      case 'w':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, '_'));
-        $$->range('a', 'z');
-        $$->range('A', 'Z');
-        $$->range('0', '9');
-        break;
-      }
-      case 'W':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, '_'));
-        $$->range('a', 'z');
-        $$->range('A', 'Z');
-        $$->range('0', '9');
-        $$->Bits.flip();
-        break;
-      }
-    }
+    $$ = add("charclass", ParseNode::CHAR_CLASS, USet);
   }
 ;
 %%
@@ -369,7 +324,7 @@ cc_named:
 namespace {
 
   template <typename F>
-  int consume(F func) {
+  int consumeSingleton(F func) {
     const int val = func(Text, TextEnd);
     if (val < 0) {
       return BAD;
@@ -377,6 +332,18 @@ namespace {
     else {
       yylval.c = val;
       return CHAR;
+    }
+  }
+
+  template <typename F>
+  int consumeSet(F func) {
+    const int val = func(Text, TextEnd, USet);
+    if (val < 0) {
+      return BAD;
+    }
+    else {
+      yylval.s = &USet;
+      return SET;
     }
   }
 
@@ -432,17 +399,61 @@ namespace {
 
       // named character classes
       case 'd':
+        USet.reset();
+        USet.insert('0', '9' + 1);
+        yylval.s = &USet;
+        return SET;
+
       case 'D':
+        USet.reset();
+        USet.insert('0', '9' + 1);
+        USet.flip();
+        yylval.s = &USet;
+        return SET;
+
       case 's':
+        USet.reset();
+        USet.set('\t');
+        USet.set('\n');
+        USet.set('\f');
+        USet.set('\r');
+        USet.set(' ');
+        yylval.s = &USet;
+        return SET;
+
       case 'S':
+        USet.reset();
+        USet.set('\t');
+        USet.set('\n');
+        USet.set('\f');
+        USet.set('\r');
+        USet.set(' ');
+        USet.flip();
+        yylval.s = &USet;
+        return SET;
+
       case 'w':
+        USet.reset();
+        USet.insert('0', '9' + 1);
+        USet.insert('A', 'Z' + 1);
+        USet.set('_');
+        USet.insert('a', 'z' + 1);
+        yylval.s = &USet;
+        return SET;
+
       case 'W':
-        yylval.c = c;
-        return NAMED;
+        USet.reset();
+        USet.insert('0', '9' + 1);
+        USet.insert('A', 'Z' + 1);
+        USet.set('_');
+        USet.insert('a', 'z' + 1);
+        USet.flip();
+        yylval.s = &USet;
+        return SET;
 
       // hexadecimal characters
       case 'x':
-        return consume(parseHex<const int*>);
+        return consumeSingleton(parseHex<const int*>);
 
       // octal characters
       case '0':
@@ -454,11 +465,17 @@ namespace {
       case '6':
       case '7':
         --Text;
-        return consume(parseOct<const int*>);
+        return consumeSingleton(parseOct<const int*>);
 
       // named Unicode code points
       case 'N':
-        return consume(parseNamedCodePoint<const int*>);
+        return consumeSingleton(parseNamedCodePoint<const int*>);
+
+      // Unicode properties
+      case 'p':
+      case 'P':
+        Text -= 2;
+        return consumeSet(parseProperty<const int*>);
 
       default:
         return BAD;
