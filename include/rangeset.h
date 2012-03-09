@@ -32,9 +32,9 @@ public:
 // TODO: ensure BN <= N
   template <size_t BN>
   RangeSet(const std::bitset<BN>& b) {
-    for (uint32 i = 0; i < BN; ++i) {
+    for (unsigned int i = 0; i < BN; ++i) {
       if (b[i]) {
-        uint32 j = i + 1;
+        unsigned int j = i + 1;
         for ( ; j < BN; ++j) {
           if (!b[j]) {
             vec.insert(vec.end(), { i, j });
@@ -59,7 +59,7 @@ public:
   }
 
   bool operator==(const std::bitset<N>& b) const {
-    for (uint32 i = 0; i < N; ++i) {
+    for (T i = 0; i < N; ++i) {
       if (test(i) != b.test(i)) {
         return false;
       }
