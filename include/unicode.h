@@ -79,15 +79,26 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
 
 #undef CONTINUATION
 
+template <class Encoder, class InputIterator, class OutputIterator>
+OutputIterator transform_to_unicode(InputIterator ibegin,
+                                    InputIterator iend,
+                                    OutputIterator obegin,
+                                    Encoder encoder)
+{
+  int cp;
+  while (ibegin != iend) {
+    ibegin += encoder(cp, ibegin, iend);
+    *obegin++ = cp;
+  }
+  return obegin;
+}
+
 template <class InputIterator, class OutputIterator>
 OutputIterator transform_utf8_to_unicode(InputIterator ibegin,
                                          InputIterator iend,
                                          OutputIterator obegin)
 {
-  int cp;
-  while (ibegin != iend) {
-    ibegin += utf8_to_unicode(cp, ibegin, iend);
-    *obegin++ = cp;
-  }
-  return obegin;
+  return transform_to_unicode(ibegin, iend, obegin,
+                              utf8_to_unicode<InputIterator>);
 }
+
