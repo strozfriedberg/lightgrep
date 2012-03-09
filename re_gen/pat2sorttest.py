@@ -78,7 +78,7 @@ def main():
   expected.reserve({matchcount});'''.format(setnum=setnum, stest=stest, text=text, textlen=len(text), matchcount=len(matches))
 
       for i, m in enumerate(matches):
-        print '  expected.push_back(SearchHit({}, {}, {}));'.format(m[0], m[1], m[2], i)
+        print '  expected.emplace_back({}, {}, {});'.format(m[0], m[1], m[2], i)
 
       print '''
   std::sort(actual.begin(), actual.end());
