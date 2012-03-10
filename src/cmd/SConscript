@@ -1,15 +1,15 @@
 import re
 
-Import('env', 'isWindows', 'isLinux', 'boostType', 'customer')
+Import('env', 'isWindows', 'isLinux')
 libs = ['lightgrep']
-libs.extend([lib + boostType for lib in
+libs.extend([lib + env['boostType'] for lib in
                  ['boost_system', 'boost_thread', 'boost_program_options', 'boost_filesystem']])
 if (isLinux):
   libs.append('pthread')
 elif (isWindows):
   libs.append('ws2_32') # so stupid that I have to specify winsock
 
-esc = ''.join([ '\\\\x%x' % ord(c) for c in customer ])
+esc = ''.join([ '\\\\x%x' % ord(c) for c in env['customer']])
 
 main = env.StaticObject('main.cpp', CPPDEFINES="-DLIGHTGREP_CUSTOMER=%s" % esc)
 not_main = [ f for f in Glob('*.cpp') if 'main.cpp' not in str(f) ]
