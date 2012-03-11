@@ -9,10 +9,12 @@ if (isLinux):
 elif (isWindows):
   libs.append('ws2_32') # so stupid that I have to specify winsock
 
-esc = ''.join([ '\\\\x%x' % ord(c) for c in env['customer']])
-
 mainEnv = env.Clone()
-mainEnv.Append(CPPDEFINES=['LIGHTGREP_CUSTOMER=%s' % esc])
+if (env['customer'] and len(env['customer'])):
+  esc = ''.join([ '\\\\x%x' % ord(c) for c in env['customer']])
+  print("esc customer: %s" % esc)
+  mainEnv.Append(CPPDEFINES=['LIGHTGREP_CUSTOMER=%s' % esc])
+
 main = mainEnv.StaticObject('main.cpp')
 
 not_main = [ f for f in Glob('*.cpp') if 'main.cpp' not in str(f) ]
