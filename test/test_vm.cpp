@@ -5,15 +5,6 @@
 
 #include <iostream>
 
-/*
-  FIXME: These tests cause memory corruption when building with
-  LBT_HISTOGRAM_ENABLED because it expects every program to end with
-  HALT_OP and FINISH_OP. Adding these to the end of every Program here
-  doesn't help because then numPatterns is still zero in most cases,
-  which leads to Seen having size zero. A possible solution is to add
-  one LABEL_OP to each test pattern.
-*/
-
 SCOPE_TEST(executeLit) {
   byte b = 'a';
   ProgramPtr p(new Program(1, Instruction::makeLit('a')));
