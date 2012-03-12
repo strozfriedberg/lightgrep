@@ -20,16 +20,11 @@ enum OpCodes {
   ILLEGAL
 };
 
-template<int OPCODE>
-struct InstructionSize {
-  enum {
-    VAL = 1
-  };
-};
+template<int OPCODE> struct InstructionSize { enum { VAL = 1 }; };
 
 template<> struct InstructionSize<BIT_VECTOR_OP> { enum { VAL = 9 }; };
-template<> struct InstructionSize<JUMP_OP> { enum { VAL = 2 }; };
 template<> struct InstructionSize<FORK_OP> { enum { VAL = 2 }; };
+template<> struct InstructionSize<JUMP_OP> { enum { VAL = 2 }; };
 
 #pragma pack(push, 1)
 struct ByteRange {
@@ -50,14 +45,14 @@ struct Instruction {
 
   byte wordSize() const {
     switch (OpCode) {
-      case BIT_VECTOR_OP:
-        return InstructionSize<BIT_VECTOR_OP>::VAL;
-      case JUMP_OP:
-        return InstructionSize<JUMP_OP>::VAL;
-      case FORK_OP:
-        return InstructionSize<FORK_OP>::VAL;
-      default:
-        return InstructionSize<UNINITIALIZED>::VAL;
+    case BIT_VECTOR_OP:
+      return InstructionSize<BIT_VECTOR_OP>::VAL;
+    case JUMP_OP:
+      return InstructionSize<JUMP_OP>::VAL;
+    case FORK_OP:
+      return InstructionSize<FORK_OP>::VAL;
+    default:
+      return InstructionSize<UNINITIALIZED>::VAL;
     }
   }
 
