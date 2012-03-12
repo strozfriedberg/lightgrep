@@ -37,7 +37,7 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
       cp = -1;
       return 1;
     }
-    
+
     cp &= 0x1F;
     CONTINUATION(cp, i, end, 2);
 
@@ -75,7 +75,7 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
     cp = -1;
     return 1;
   }
-} 
+}
 
 #undef CONTINUATION
 

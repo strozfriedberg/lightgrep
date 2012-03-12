@@ -155,7 +155,7 @@ std::shared_ptr<ProgramHandle> createProgram(const Options& opts, PatternInfo& p
       std::cerr << g->verticesSize() << " vertices" << std::endl;
 
       ProgramPtr p(prog->Impl->Prog);
-      std::cerr << p->size() << " instructions" << std::endl;    
+      std::cerr << p->size() << " instructions" << std::endl;
     }
     else {
       std::cerr << lg_error(prog.get()) << std::endl;
@@ -401,7 +401,7 @@ void writeProgram(const Options& opts) {
       std::cerr << lg_error(prog.get()) << std::endl;
       return;
     }
- 
+
     NFAPtr g(parser->Impl->Fsm);
   }
 

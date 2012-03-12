@@ -46,7 +46,7 @@ template <typename T> bool exception_trap(T func, Handle* h) {
   catch (...) {
     paranoid_copy_error_string(h->Error, OH_SHIT);
   }
-  
+
   return false;
 }
 

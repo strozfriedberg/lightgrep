@@ -143,10 +143,10 @@ public:
   EdgeIterator eEnd() {
     return Edges.end();
   }
- 
+
   ConstEdgeIterator eEnd() const {
     return Edges.end();
-  }  
+  }
 
   VertexIterator ivBegin(VertexDescriptor tail) {
     return Store.ivbegin(this);

@@ -13,7 +13,7 @@ template <typename T, T N>
 class RangeSet {
 
 public:
-  typedef typename std::vector<T>::size_type size_type; 
+  typedef typename std::vector<T>::size_type size_type;
 
   typedef typename std::vector<T>::iterator iterator;
   typedef typename std::vector<T>::const_iterator const_iterator;
@@ -44,7 +44,7 @@ public:
         if (j == N) {
           vec.insert(vec.end(), { i, j });
         }
-  
+
         i = j;
       }
     }
@@ -186,7 +186,7 @@ public:
   }
 
   bool any() const {
-    return !vec.empty(); 
+    return !vec.empty();
   }
 
   bool all() const {
@@ -194,7 +194,7 @@ public:
   }
 
   bool none() const {
-    return vec.empty(); 
+    return vec.empty();
   }
 
   size_type count() const {
@@ -202,7 +202,7 @@ public:
     const const_iterator end(vec.end());
     for (const_iterator i(vec.begin()); i != end; i += 2) {
       c += *(i+1) - *i;
-    } 
+    }
     return c;
   }
 
@@ -261,7 +261,7 @@ public:
   void set() {
     vec = { 0, N };
   }
-  
+
   void set(size_type pos, bool value = true) {
     if (value) {
       insert(pos, pos + 1);
@@ -297,11 +297,11 @@ public:
       else {
         vec.push_back(N);
       }
-    } 
+    }
   }
 
   void flip(size_type pos) {
-    set(pos, !test(pos)); 
+    set(pos, !test(pos));
   }
 
   void insert(const std::pair<T,T>& range) {

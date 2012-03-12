@@ -36,7 +36,7 @@ bool contains_possible_counted_repetition(const std::string& pattern) {
 
 void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
 {
-//  std::cerr << "[" << patIndex << "]: " << pattern << std::endl; 
+//  std::cerr << "[" << patIndex << "]: " << pattern << std::endl;
   // prepare the NFA builder
   Nfab.reset();
   Nfab.setCurLabel(patIndex);

@@ -632,7 +632,7 @@ SCOPE_TEST(parseNegatedRanges) {
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
- 
+
   ByteSet expected, actual;
   for (uint32 i = 0; i < 256; ++i) {
     if (('a' <= i && i <= 'z')

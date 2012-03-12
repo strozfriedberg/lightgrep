@@ -73,7 +73,7 @@ SCOPE_TEST(testMerge) {
 
   fsm[3].IsMatch = true;
   fsm[3].Label = 0;
-  
+
   fsm[5].IsMatch = true;
   fsm[5].Label = 1;
 
@@ -510,7 +510,7 @@ SCOPE_TEST(testDeterminize1) {
   edge(4, 3, exp, exp.TransFac->getLit('a'));
 
   exp[3].IsMatch = true;
-  exp[3].Label = 0; 
+  exp[3].Label = 0;
 
   ASSERT_EQUAL_GRAPHS(exp, h);
   ASSERT_EQUAL_LABELS(exp, h);
@@ -536,7 +536,7 @@ SCOPE_TEST(testDeterminize2) {
   edge(1, 2, exp, exp.TransFac->getLit('a'));
 
   exp[2].IsMatch = true;
-  exp[2].Label = 0; 
+  exp[2].Label = 0;
 
   ASSERT_EQUAL_GRAPHS(exp, h);
   ASSERT_EQUAL_LABELS(exp, h);

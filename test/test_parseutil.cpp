@@ -45,7 +45,7 @@ SCOPE_TEST(parseHexCharTest) {
 
   for (int i = '{'; i < 300; ++i) {
     SCOPE_ASSERT_EQUAL(-1, parseHexChar(i));
-  } 
+  }
 }
 
 SCOPE_TEST(parseHexShortTest) {
@@ -70,7 +70,7 @@ SCOPE_TEST(parseHexShortTest) {
       }
       else {
         exp = -1;
-      } 
+      }
 
       const char* h = b;
       SCOPE_ASSERT_EQUAL(exp, parseHexShort(h, h+2));
