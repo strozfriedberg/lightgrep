@@ -303,7 +303,7 @@ public:
       boost::mutex::scoped_lock lock(*Mutex);
       writeErr() += "Flushing hits file\n";
       for (StaticVector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
-        *Output << it->ID << '\t' 
+        *Output << it->ID << '\t'
                 << it->Offset << '\t'
                 << it->Length << '\t'
                 << it->Label << '\t'

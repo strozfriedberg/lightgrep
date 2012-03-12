@@ -167,7 +167,7 @@ SCOPE_TEST(rangeSetInsertMeetLeftTest) {
 
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
-  SCOPE_ASSERT(b == r); 
+  SCOPE_ASSERT(b == r);
   SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
 }
 
