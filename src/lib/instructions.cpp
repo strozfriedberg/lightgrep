@@ -27,47 +27,47 @@ std::string Instruction::toString() const {
   std::string ret;
   std::stringstream buf;
   switch (OpCode) {
-    case LIT_OP:
-      buf << "Literal 0x" << HexCode<byte>(Op.Literal) << "/'" << Op.Literal << '\'';
-      break;
-    case EITHER_OP:
-      buf << "Either 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "', 0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
-      break;
-    case RANGE_OP:
-      buf << "Range 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
-      break;
-    case ANY_OP:
-      buf << "Any";
-      break;
-    case BIT_VECTOR_OP:
-      buf << "BitVector";
-      break;
-    case JUMP_OP:
-      buf << "Jump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
-      break;
-    case JUMP_TABLE_RANGE_OP:
-      buf << "JmpTblRange 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
-      break;
-    case FORK_OP:
-      buf << "Fork 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
-      break;
-    case CHECK_HALT_OP:
-      buf << "CheckHalt 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
-      break;
-    case LABEL_OP:
-      buf << "Label " << Op.Offset;
-      break;
-    case MATCH_OP:
-      buf << "Match";
-      break;
-    case HALT_OP:
-      buf << "Halt";
-      break;
-    case FINISH_OP:
-      buf << "Finish";
-      break;
-    default:
-      buf << "* UNRECOGNIZED *";
+  case LIT_OP:
+    buf << "Literal 0x" << HexCode<byte>(Op.Literal) << "/'" << Op.Literal << '\'';
+    break;
+  case EITHER_OP:
+    buf << "Either 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "', 0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
+    break;
+  case RANGE_OP:
+    buf << "Range 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
+    break;
+  case ANY_OP:
+    buf << "Any";
+    break;
+  case BIT_VECTOR_OP:
+    buf << "BitVector";
+    break;
+  case JUMP_OP:
+    buf << "Jump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
+    break;
+  case JUMP_TABLE_RANGE_OP:
+    buf << "JmpTblRange 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
+    break;
+  case FORK_OP:
+    buf << "Fork 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
+    break;
+  case CHECK_HALT_OP:
+    buf << "CheckHalt 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
+    break;
+  case LABEL_OP:
+    buf << "Label " << Op.Offset;
+    break;
+  case MATCH_OP:
+    buf << "Match";
+    break;
+  case HALT_OP:
+    buf << "Halt";
+    break;
+  case FINISH_OP:
+    buf << "Finish";
+    break;
+  default:
+    buf << "* UNRECOGNIZED *";
   };
   ret = buf.str();
   return ret;
