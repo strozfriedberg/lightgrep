@@ -137,7 +137,7 @@ SCOPE_TEST(twoUnicode) {
 
   NFAPtr fsm = createGraph(pats);
   NFA& g = *fsm;
-  
+
   SCOPE_ASSERT_EQUAL(7u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));

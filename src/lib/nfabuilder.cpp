@@ -497,12 +497,12 @@ void NFABuilder::traverse(const ParseNode* root) {
               new ParseNode(ParseNode::CONCATENATION, n->Left, none))
             );
             ParseNode* con = synth.back().get();
-            
+
             synth.push_back(std::shared_ptr<ParseNode>(
               new ParseNode(n->Type, con, 0, 1))
             );
             ParseNode* question = synth.back().get();
-            
+
             parent->Right = question;
             parent = con;
           }
@@ -510,7 +510,7 @@ void NFABuilder::traverse(const ParseNode* root) {
           synth.push_back(std::shared_ptr<ParseNode>(
             new ParseNode(n->Type, n->Left, 0, 1))
           );
-          ParseNode* question = synth.back().get(); 
+          ParseNode* question = synth.back().get();
           parent->Right = question;
         }
 

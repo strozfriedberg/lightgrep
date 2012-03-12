@@ -38,7 +38,7 @@ int parseHexLong(Iterator& i, const Iterator& iend) {
     case '7':
     case '8':
     case '9':
-      val <<= 4; 
+      val <<= 4;
       val |= c - '0';
       break;
     case 'A':
@@ -47,7 +47,7 @@ int parseHexLong(Iterator& i, const Iterator& iend) {
     case 'D':
     case 'E':
     case 'F':
-      val <<= 4; 
+      val <<= 4;
       val |= c - 'A' + 10;
       break;
     case 'a':
@@ -56,7 +56,7 @@ int parseHexLong(Iterator& i, const Iterator& iend) {
     case 'd':
     case 'e':
     case 'f':
-      val <<= 4; 
+      val <<= 4;
       val |= c - 'a' + 10;
       break;
     case '}':

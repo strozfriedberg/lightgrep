@@ -152,7 +152,7 @@ public:
     case ZERO:
       {
         THROW_RUNTIME_ERROR_WITH_OUTPUT(i << " out of bounds");
-      } 
+      }
     case ONE:
       return l.What;
     default:
@@ -168,7 +168,7 @@ public:
       return l.What == e ? begin(l) : end(l);
     default:
       return &*std::find(Store[l.What].begin(), Store[l.What].end(), e);
-    } 
+    }
   }
 
   T const* find(const Holder& l, T e) const {
@@ -179,7 +179,7 @@ public:
       return l.What == e ? begin(l) : end(l);
     default:
       return &*std::find(Store[l.What].begin(), Store[l.What].end(), e);
-    } 
+    }
   }
 
   T* begin(Holder& l) {
