@@ -217,53 +217,53 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
   const Instruction& instr = *t->PC;
 
   switch (instr.OpCode) {
-    case LIT_OP:
-      if (*cur == instr.Op.Literal) {
-        t->advance(InstructionSize<LIT_OP>::VAL);
-        return true;
-      }
-      break;
-
-    case EITHER_OP:
-      if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
-        t->advance(InstructionSize<EITHER_OP>::VAL);
-        return true;
-      }
-      break;
-
-    case RANGE_OP:
-      if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
-        t->advance(InstructionSize<RANGE_OP>::VAL);
-        return true;
-      }
-      break;
-
-    case ANY_OP:
-      t->advance(InstructionSize<ANY_OP>::VAL);
+  case LIT_OP:
+    if (*cur == instr.Op.Literal) {
+      t->advance(InstructionSize<LIT_OP>::VAL);
       return true;
+    }
+    break;
 
-    case BIT_VECTOR_OP:
-      {
-        const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t->PC + 1);
-        if ((*setPtr)[*cur]) {
-          t->advance(InstructionSize<BIT_VECTOR_OP>::VAL);
-          return true;
-        }
+  case EITHER_OP:
+    if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
+      t->advance(InstructionSize<EITHER_OP>::VAL);
+      return true;
+    }
+    break;
+
+  case RANGE_OP:
+    if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
+      t->advance(InstructionSize<RANGE_OP>::VAL);
+      return true;
+    }
+    break;
+
+  case ANY_OP:
+    t->advance(InstructionSize<ANY_OP>::VAL);
+    return true;
+
+  case BIT_VECTOR_OP:
+    {
+      const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t->PC + 1);
+      if ((*setPtr)[*cur]) {
+        t->advance(InstructionSize<BIT_VECTOR_OP>::VAL);
+        return true;
       }
-      break;
+    }
+    break;
 
-    case JUMP_TABLE_RANGE_OP:
-      if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
-        const uint32 addr = *reinterpret_cast<const uint32*>(t->PC + 1 + (*cur - instr.Op.Range.First));
-        if (addr != 0xffffffff) {
-          t->jump(base, addr);
-          return true;
-        }
+  case JUMP_TABLE_RANGE_OP:
+    if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
+      const uint32 addr = *reinterpret_cast<const uint32*>(t->PC + 1 + (*cur - instr.Op.Range.First));
+      if (addr != 0xffffffff) {
+        t->jump(base, addr);
+        return true;
       }
-      break;
+    }
+    break;
 
-    case FINISH_OP:
-      return false;
+  case FINISH_OP:
+    return false;
   }
 
   // DIE, penultimate instruction is always a halt.
@@ -290,111 +290,111 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
   const Instruction& instr = *t->PC;
 
   switch (instr.OpCode) {
-    case FINISH_OP:
-      {
-        const uint32 tLabel = t->Label;
-        const uint64 tStart = t->Start;
-        const uint64 tEnd = t->End;
+  case FINISH_OP:
+    {
+      const uint32 tLabel = t->Label;
+      const uint64 tStart = t->Start;
+      const uint64 tEnd = t->End;
 
-        if (tEnd == offset) {
-          // kill all same-labeled, same-start threads
-          const ThreadList::const_iterator e(Active.end());
-          for (ThreadList::iterator i(t+1); i != e && i->Start == tStart; ++i) {
-            if (i->Label == tLabel) {
-              // DIE. Penultimate instruction is always a halt
-              i->PC = ProgEnd;
-            }
+      if (tEnd == offset) {
+        // kill all same-labeled, same-start threads
+        const ThreadList::const_iterator e(Active.end());
+        for (ThreadList::iterator i(t+1); i != e && i->Start == tStart; ++i) {
+          if (i->Label == tLabel) {
+            // DIE. Penultimate instruction is always a halt
+            i->PC = ProgEnd;
+          }
+        }
+      }
+
+      if (!SeenNoLabel && !Seen.find(tLabel)) {
+        if (tStart >= MatchEnds[tLabel]) {
+          MatchEnds[tLabel] = tEnd + 1;
+
+          if (tEnd + 1 > MatchEndsMax) {
+            MatchEndsMax = tEnd + 1;
+          }
+
+          if (CurHitFn) {
+            SearchHit hit(tStart, tEnd + 1, tLabel);
+            (*CurHitFn)(UserData, &hit);
           }
         }
 
-        if (!SeenNoLabel && !Seen.find(tLabel)) {
-          if (tStart >= MatchEnds[tLabel]) {
-            MatchEnds[tLabel] = tEnd + 1;
+        t->PC = 0;
+      }
 
-            if (tEnd + 1 > MatchEndsMax) {
-              MatchEndsMax = tEnd + 1;
-            }
+      return false;
+    }
 
-            if (CurHitFn) {
-              SearchHit hit(tStart, tEnd + 1, tLabel);
-              (*CurHitFn)(UserData, &hit);
-            }
-          }
+  case FORK_OP:
+    {
+      Thread f = *t;
+      t->advance(InstructionSize<FORK_OP>::VAL);
 
-          t->PC = 0;
-        }
+      // recurse to keep going in sequence
+      if (_executeEpSequence<X == 0 ? 0 : X-1>(base, t, offset)) {
+        if (t->PC->OpCode != FINISH_OP) {
+          _markSeen(t->Label);
+        }      
 
+        _markLive(t->Label);
+        Next.push_back(*t);
+      }
+
+      // Now back up to the fork, fall through to handle it as a longjump.
+      // Note that the forked child is taking the parent's place in Active.
+      // This is ESSENTIAL for maintaining correct thread priority order.
+      *t = f;
+
+      #ifdef LBT_TRACE_ENABLED
+      new_thread_json.insert(t->Id = NextId++);
+      #endif
+    }
+
+  case JUMP_OP:
+    t->jump(base, *reinterpret_cast<const uint32*>(t->PC+1));
+    return true;
+
+  case CHECK_HALT_OP:
+    {
+      if (CheckLabels.find(instr.Op.Offset)) {
+        // another thread has the lock, we die
+        t->PC = 0;
         return false;
       }
-
-    case FORK_OP:
-      {
-        Thread f = *t;
-        t->advance(InstructionSize<FORK_OP>::VAL);
-
-        // recurse to keep going in sequence
-        if (_executeEpSequence<X == 0 ? 0 : X-1>(base, t, offset)) {
-          if (t->PC->OpCode != FINISH_OP) {
-            _markSeen(t->Label);
-          }
-
-          _markLive(t->Label);
-          Next.push_back(*t);
-        }
-
-        // Now back up to the fork, fall through to handle it as a longjump.
-        // Note that the forked child is taking the parent's place in Active.
-        // This is ESSENTIAL for maintaining correct thread priority order.
-        *t = f;
-
-        #ifdef LBT_TRACE_ENABLED
-        new_thread_json.insert(t->Id = NextId++);
-        #endif
+      else if (!_liveCheck(t->Start, t->Label)) {
+        // nothing blocks us, we take the lock
+        CheckLabels.insert(instr.Op.Offset);
       }
 
-    case JUMP_OP:
-      t->jump(base, *reinterpret_cast<const uint32*>(t->PC+1));
+      t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
       return true;
+    }
 
-    case CHECK_HALT_OP:
-      {
-        if (CheckLabels.find(instr.Op.Offset)) {
-          // another thread has the lock, we die
-          t->PC = 0;
-          return false;
-        }
-        else if (!_liveCheck(t->Start, t->Label)) {
-          // nothing blocks us, we take the lock
-          CheckLabels.insert(instr.Op.Offset);
-        }
-
-        t->advance(InstructionSize<CHECK_HALT_OP>::VAL);
+  case LABEL_OP:
+    {
+      const uint32 label = instr.Op.Offset;
+      if (t->Start >= MatchEnds[label]) {
+        t->Label = label;
+        t->advance(InstructionSize<LABEL_OP>::VAL);
         return true;
       }
-
-    case LABEL_OP:
-      {
-        const uint32 label = instr.Op.Offset;
-        if (t->Start >= MatchEnds[label]) {
-          t->Label = label;
-          t->advance(InstructionSize<LABEL_OP>::VAL);
-          return true;
-        }
-        else {
-          t->PC = 0;
-          return false;
-        }
+      else {
+        t->PC = 0;
+        return false;
       }
+    }
 
-    case MATCH_OP:
-      t->End = offset;
-      t->advance(InstructionSize<MATCH_OP>::VAL);
-      return true;
+  case MATCH_OP:
+    t->End = offset;
+    t->advance(InstructionSize<MATCH_OP>::VAL);
+    return true;
 
-    case HALT_OP:
-      // die, motherfucker, die
-      t->PC = 0;
-      return false;
+  case HALT_OP:
+    // die, motherfucker, die
+    t->PC = 0;
+    return false;
   }
 
   return false;
