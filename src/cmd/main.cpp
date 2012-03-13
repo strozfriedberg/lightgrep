@@ -55,7 +55,7 @@ void printHelp(const po::options_description& desc) {
     << "\nCreated " << __DATE__ << "\n\n"
     << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
     #ifdef LIGHTGREP_CUSTOMER
-    << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << "\n\n"
+    << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
     #endif
     << desc << std::endl;
 }
@@ -73,7 +73,14 @@ bool addPattern(
   keyOpts.FixedString = pat.FixedString;
   keyOpts.CaseInsensitive = pat.CaseInsensitive;
 
-  if (lg_add_keyword(parser, pat.Expression.c_str(), patIdx, &keyOpts, pat.Encoding.c_str())) {
+  if (lg_add_keyword(
+    parser,
+    pat.Expression.c_str(),
+    pat.Expression.size(),
+    patIdx,
+    &keyOpts,
+    pat.Encoding.c_str()
+  )) {
     pinfo.Table.emplace_back(pat.Index, encIdx);
     return true;
   }

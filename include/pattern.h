@@ -6,9 +6,8 @@
 class Pattern {
 public:
   std::string Expression;
-  bool        FixedString,
-              CaseInsensitive;
-  uint32      Index;
+  bool FixedString, CaseInsensitive;
+  uint32 Index;
   std::string Encoding;
 
   Pattern(const std::string& expr = "",
@@ -16,11 +15,18 @@ public:
           bool insensitive = false,
           uint32 index = 0,
           const std::string& enc = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII]):
-    Expression(expr), FixedString(fixed), CaseInsensitive(insensitive), Index(index), Encoding(enc) {}
+    Expression(expr),
+    FixedString(fixed),
+    CaseInsensitive(insensitive),
+    Index(index),
+    Encoding(enc) {}
 
   bool operator==(const Pattern& p) const {
-    return FixedString == p.FixedString && CaseInsensitive == p.CaseInsensitive && Index == p.Index &&
-      Expression == p.Expression && Encoding == p.Encoding;
+    return FixedString == p.FixedString &&
+           CaseInsensitive == p.CaseInsensitive &&
+           Index == p.Index &&
+           Expression == p.Expression &&
+           Encoding == p.Encoding;
   }
 };
 

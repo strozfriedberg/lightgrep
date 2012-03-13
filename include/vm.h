@@ -48,8 +48,8 @@ public:
     return Active.back();
   }
 
-  unsigned int numActive() const { return Active.size(); }
-  unsigned int numNext() const { return Next.size(); }
+  uint32 numActive() const { return Active.size(); }
+  uint32 numNext() const { return Next.size(); }
 
 private:
   void _markSeen(const uint32 label);
@@ -57,8 +57,13 @@ private:
   bool _liveCheck(const uint64 start, const uint32 label);
 
   bool _execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur);
+
+  template <uint32 X>
   bool _executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64 offset);
+
+  template <uint32 X>
   bool _executeEpSequence(const Instruction* const base, ThreadList::iterator t, const uint64 offset);
+
   void _executeThread(const Instruction* const base, ThreadList::iterator t, const byte* const cur, const uint64 offset);
   void _executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64 offset);
   void _cleanup();

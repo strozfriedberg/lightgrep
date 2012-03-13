@@ -2679,7 +2679,7 @@ dosing
 fantasia
 otosclerotic
 nourish
-señora
+seÃ±ora
 goslings
 electrostatics
 doughtiest
@@ -5289,7 +5289,7 @@ septuagint
 accentually
 myxomatosis
 diagrammer
-señors
+seÃ±ors
 depict
 panoptical
 laundry
@@ -18944,7 +18944,7 @@ toxoplasmic
 pierces
 upbraiding
 worshipped
-mañana
+maÃ±ana
 godzilla
 freezer
 swami
