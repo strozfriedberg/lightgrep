@@ -380,6 +380,16 @@ SCOPE_TEST(parseUnparse_xBSq_Test) {
   }
 }
 
+SCOPE_TEST(parseUnparse_invalid_utf8_Test) {
+  ParseTree tree;
+  try {
+    parse("\xFF", false, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+  }
+}
+
 SCOPE_TEST(byteToCharacterString) {
   std::stringstream ss;
 
