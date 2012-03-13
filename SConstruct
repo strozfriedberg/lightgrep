@@ -6,16 +6,14 @@ import re
 
 isWindows = False
 isLinux = False
-isShared = False
 bits = '32'
-boostType = ''
 
 def shellCall(cmd):
   print(cmd)
   os.system(cmd)
 
 def sub(src):
-  vars = ['env', 'isWindows', 'isLinux', 'isShared', 'boostType']
+  vars = ['env', 'isWindows', 'isLinux']
   return env.SConscript(p.join(src, 'SConscript'), exports=vars, variant_dir=p.join('bin', src), duplicate=0)
 
 arch = platform.platform()
@@ -28,13 +26,32 @@ isLinux = arch.find('Linux') > -1
 
 defines = [] # a list of defined symbols, as strings, for the preprocessor
 
-isShared = True if 'true' == ARGUMENTS.get('shared', 'false') else False
 
-customer = ARGUMENTS.get('customer', '')
-if (len(customer) > 0):
-   defines.append(('LIGHTGREP_CUSTOMER', customer))
+vars = Variables('build_variables.py')
+vars.AddVariables(
+  BoolVariable('isShared', 'whether to build with shared libraries', False),
+  ('customer', 'Customer name to be compiled into build products', ''),
+  ('debug', 'Default false. Can be true|profile|coverage|perf|trace', 'false'),
+  ('boostType', 'Suffix to add to Boost libraries to enable finding them', ''),
+  ('CC', 'set the name of the C compiler to use (scons finds default)', ''),
+  ('CXX', 'set the name of the C++ compiler to use (scons finds default)', '')
+)
 
-debug = ARGUMENTS.get('debug', 'false')
+# we inherit the OS environment to get PATH, so ccache works
+if (isWindows):
+  env = Environment(ENV=os.environ, tools=['mingw'], variables = vars) # we don't want scons to use Visual Studio just yet
+
+  # This define results in BOOST_USE_WINDOWS_H being defined, but only in the right place,
+  # so as to limit exposure to name conflicts caused by our friend, windows.h
+  defines.append('POLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H')
+  if (not env['isShared']):
+    defines.append('BOOST_THREAD_USE_LIB')
+else:
+  env = Environment(ENV=os.environ, variables = vars)
+
+vars.Save('build_variables.py', env)
+
+debug = env['debug']
 if (debug == 'true'):
   flags = '-g -fstack-protector-all'
   ldflags = ''
@@ -61,20 +78,6 @@ cppflags = '-std=c++0x'
 # add vendors/scope and vendors/boost as system include paths, if they exist
 ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
 
-boostType = ARGUMENTS.get('boostType', '')
-
-# we inherit the OS environment to get PATH, so ccache works
-if (isWindows):
-  env = Environment(ENV=os.environ, tools=['mingw']) # we don't want scons to use Visual Studio just yet
-
-  # This define results in BOOST_USE_WINDOWS_H being defined, but only in the right place,
-  # so as to limit exposure to name conflicts caused by our friend, windows.h
-  defines.append('POLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H')
-  if (not isShared):
-    defines.append('BOOST_THREAD_USE_LIB')
-else:
-  env = Environment(ENV=os.environ)
-
 env['DEBUG_MODE'] = debug
 env.Replace(CCFLAGS=ccflags)
 env.Replace(CPPFLAGS=cppflags)
@@ -83,7 +86,13 @@ env.Append(CPPPATH=['#/include'])
 env.Append(LIBPATH=['#/lib'])
 env.Append(LINKFLAGS=ldflags)
 
+print("CC = " + env['CC'])
+print("CXX = " + env['CXX'])
+
+Help(vars.GenerateHelpText(env))
+
 conf = Configure(env)
+boostType = env['boostType']
 if (not (conf.CheckCXXHeader('boost/scoped_ptr.hpp')
    and conf.CheckLib('boost_system' + boostType)
    and conf.CheckLib('boost_thread' + boostType)

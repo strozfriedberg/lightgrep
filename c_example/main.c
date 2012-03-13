@@ -43,7 +43,14 @@ int main() {
   int isgood = 1;
   unsigned int i;
   for (i = 0; i < NUM_KEYS; ++i) {
-    if (!lg_add_keyword(parser, keys[i], i, &keyOpts, LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII])) {
+    if (!lg_add_keyword(
+      parser,
+      keys[i],
+      strlen(keys[i]),
+      i,
+      &keyOpts,
+      LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII]
+    )) {
       fprintf(stderr, "Parser error on keyword %d, %s: %s", i, keys[i], lg_error(parser));
       isgood = 0;
       break;
