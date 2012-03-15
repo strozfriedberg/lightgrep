@@ -1025,3 +1025,46 @@ SCOPE_TEST(parse_xLPaORaQQRPy) {
   SCOPE_ASSERT(!g[3].IsMatch);
   SCOPE_ASSERT(g[4].IsMatch);
 }
+
+SCOPE_TEST(xxxx) {
+  UnicodeSet us;
+  us['a'] = us['b'] = us['c'] = us[7433] = us[7432] = true; 
+
+  UTF8 enc;
+  byte b[4];
+  uint32 len;
+
+  TransitionFactory tfac;
+  NFA g(1);
+
+  ByteSet bs;
+
+  const UnicodeSet::const_iterator rend(us.end());
+  for (UnicodeSet::const_iterator r(us.begin()); r != rend; ++r) {
+    const uint32 l = *r, h = *++r;
+    for (uint32 cp = l; cp < h; ++cp) {
+      len = enc.write(cp, b);
+     
+      NFA::VertexDescriptor head = 0, tail;
+      for (uint32 i = 0; i < len; ++i) {
+        const uint32 odeg = g.outDegree(head);
+        for (uint32 e = 0; e < odeg; ++e) {
+          tail = g.outVertex(head, e);
+          g[tail].Trans->getBits(bs);
+          if (bs[b[i]]) {
+            goto NEXT;
+          }
+        }
+
+        tail = g.addVertex();
+        g.addEdge(head, tail);
+        g[tail].Trans = tfac.getLit(b[i]);
+        
+NEXT:
+        head = tail;
+      }
+    }
+  }
+
+  writeGraphviz(std::cout, g);
+}
