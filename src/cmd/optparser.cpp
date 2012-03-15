@@ -86,15 +86,9 @@ void parse_opts(int argc, char** argv,
   );
   po::notify(optsMap);
 
-  // convert test and help options to commands
+  // convert help option to command
   if (optsMap.count("help")) {
     opts.Command = "help";
-  }
-  else if (optsMap.count("test")) {
-    opts.Command = "test";
-  }
-  else if (optsMap.count("long-test")) {
-    opts.Command = "long-test";
   }
 
   if (opts.Command == "search" || opts.Command == "graph" ||
