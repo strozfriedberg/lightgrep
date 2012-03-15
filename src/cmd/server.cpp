@@ -169,8 +169,17 @@ void cleanSeppuku(int) {
 
 #pragma pack(1)
 struct FileHeader {
-  FileHeader(): ID(0), Length(0) {}
+  enum Commands {
+    SEARCH = 0,
+    GETSTATS = 1,
+    HANGUP = 2,
+    SHUTDOWN = 3
+  };
 
+  FileHeader(): Cmd(0), Type(0), ID(0), Length(0) {}
+
+  byte   Cmd,
+         Type;
   uint64 ID,
          Length;
 };
@@ -307,6 +316,50 @@ static const unsigned char ONE = 1;
   ssbuf << EXPR; \
   writeErr() += ssbuf.str();
 
+FileHeader::Commands getCommand(const FileHeader& hdr) {
+  return FileHeader::Commands(hdr.Cmd);
+}
+
+void sendStats(tcp::socket& sock) {
+  std::stringstream buf;
+  writeErr() += "asked for stats\n";
+  std::string stats;
+  Registry::get().getStats(stats);
+  uint64 bytes = stats.size();
+  boost::asio::write(sock, boost::asio::buffer(&bytes, sizeof(bytes)));
+  byte ack;
+  if (boost::asio::read(sock, boost::asio::buffer(&ack, sizeof(ack))) == sizeof(ack)) {
+    boost::asio::write(sock, boost::asio::buffer(stats));
+    SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
+  }
+}
+
+void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<ServerWriter> output, std::shared_ptr<ContextHandle> searcher,
+  byte* data, LG_HITCALLBACK_FN callback)
+{
+  std::stringstream buf;
+  SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");
+  output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
+  std::size_t len = 0;
+  uint64 totalRead = 0,
+         numReads = 0;
+  ++numReads;
+  uint64 offset = 0;
+  while (offset < hdr.Length) {
+    len = sock.read_some(boost::asio::buffer(data, std::min(BUF_SIZE, hdr.Length-offset)));
+    ++numReads;
+    lg_search(searcher.get(), (char*) data, (char*) data + len, offset, output.get(), callback);
+    // writeErr() << "read " << len << " bytes\n";
+    // writeErr().write((const char*)data.get(), len);
+    // writeErr() << '\n';
+    totalRead += len;
+    offset += len;
+  }
+  lg_closeout_search(searcher.get(), output.get(), callback);
+  lg_reset_context(searcher.get());
+  output->writeEndHit(hdr.Length);
+}
+
 void processConn(
   std::shared_ptr<tcp::socket> sock,
   std::shared_ptr<ProgramHandle> prog,
@@ -323,56 +376,29 @@ void processConn(
 
 	std::stringstream buf;
 
-  std::size_t len = 0;
-  uint64 totalRead = 0,
-         numReads = 0;
   try {
     while (true) {
       FileHeader hdr;
       hdr.ID = 0;
       hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
-        if (0xffffffffffffffffull == hdr.ID) {
-          if (0ull == hdr.Length) {
+        FileHeader::Commands cmd = getCommand(hdr);
+        switch (cmd) {
+          case FileHeader::SEARCH:
+            searchStream(*sock, hdr, output, searcher, data.get(), callback);
+            break;
+          case FileHeader::GETSTATS:
+            sendStats(*sock);
+            break;
+          case FileHeader::HANGUP:
             writeErr() += "received conn shutdown sequence, acknowledging and waiting for close\n";
             boost::asio::write(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
-            continue;
-          }
-          else if (0xffffffffffffffffull == hdr.Length) {
+            break;
+          case FileHeader::SHUTDOWN:
             writeErr() += "received hard shutdown command, terminating\n";
-            cleanSeppuku(0);
-          }
-          else if (1ull == hdr.Length) {
-          	writeErr() += "asked for stats\n";
-            std::string stats;
-            Registry::get().getStats(stats);
-            uint64 bytes = stats.size();
-            boost::asio::write(*sock, boost::asio::buffer(&bytes, sizeof(bytes)));
-            byte ack;
-            if (boost::asio::read(*sock, boost::asio::buffer(&ack, sizeof(ack))) == sizeof(ack)) {
-	            boost::asio::write(*sock, boost::asio::buffer(stats));
-  	          SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
-    	      }
-  	        continue;
-          }
+            cleanSeppuku(0); // die
+            break;
         }
-        SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");
-        output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
-        ++numReads;
-        uint64 offset = 0;
-        while (offset < hdr.Length) {
-          len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length-offset)));
-          ++numReads;
-          lg_search(searcher.get(), (char*) data.get(), (char*) data.get() + len, offset, output.get(), callback);
-          // writeErr() << "read " << len << " bytes\n";
-          // writeErr().write((const char*)data.get(), len);
-          // writeErr() << '\n';
-          totalRead += len;
-          offset += len;
-        }
-        lg_closeout_search(searcher.get(), output.get(), callback);
-        lg_reset_context(searcher.get());
-        output->writeEndHit(hdr.Length);
       }
       else {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket\n");
@@ -383,7 +409,7 @@ void processConn(
   catch (std::exception& e) {
     SAFEWRITE(buf, "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n');
   }
-  SAFEWRITE(buf, "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n");
+//  SAFEWRITE(buf, "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n");
   output->flush();
 }
 
