@@ -1,6 +1,104 @@
 #include "concrete_encodings.h"
 #include "encodings.h"
 
+#include <iostream>
+#include <stdexcept>
+
+bool is_little_endian() {
+  const uint16_t twobytes = 1;
+  return reinterpret_cast<const byte*>(&twobytes)[0];
+}
+
+ICUEncoder::ICUEncoder(const char* name) {
+  UErrorCode err = U_ZERO_ERROR;
+
+/*
+  const int alen = ucnv_countAvailable();
+  for (int i = 0; i < alen; ++i) {
+    const char* n = ucnv_getAvailableName(i);
+    std::cerr << n << '\n';
+    
+    const int xlen = ucnv_countAliases(n, &err);
+    for (uint32 j = 0; j < xlen; ++j) {
+      std::cerr << '\t' << ucnv_getAlias(n, j, &err) << '\n';
+    }
+  }
+
+  std::cerr << std::endl;
+*/
+
+  // ICU pivots through UTF-16 when transcoding; this converter is used
+  // to turn our code points (single characters in UTF-32) into UTF-16.
+  src_conv = ucnv_open(is_little_endian() ? "UTF-32LE" : "UTF-32BE", &err);
+  if (U_FAILURE(err)) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("Your ICU is missing UTF-32. Wat?");
+  }
+
+  // The pivot buffer used by ICU.
+  pivot = new UChar[ucnv_getMaxCharSize(src_conv)];
+
+  // The converter used to translate UTF-16 into our desired encoding.
+  dst_conv = ucnv_open(name, &err);
+  if (U_FAILURE(err)) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("Unrecognized encoding '" << name << "'");
+  }
+
+  // Tell ICU to halt conversion on code points unrepresentable in the
+  // target encoding. 
+  ucnv_setFromUCallBack(
+    dst_conv,
+    UCNV_FROM_U_CALLBACK_STOP,
+    nullptr,
+    nullptr,
+    nullptr,
+    &err
+  );
+
+  if (U_FAILURE(err)) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not set callback. Wat?");
+  }
+ 
+  max_bytes = ucnv_getMaxCharSize(dst_conv);
+}
+
+ICUEncoder::~ICUEncoder() {
+  ucnv_close(src_conv);
+  ucnv_close(dst_conv);
+  delete[] pivot;
+}
+
+uint32 ICUEncoder::maxByteLength() const {
+  return max_bytes;
+}
+
+uint32 ICUEncoder::write(int cp, byte buf[]) const {
+  char* dst = reinterpret_cast<char*>(buf);
+  const char* src = reinterpret_cast<const char*>(&cp);
+
+  UChar* psrc = pivot;
+  UChar* pdst = pivot;
+
+  UErrorCode err = U_ZERO_ERROR;
+
+  ucnv_convertEx(
+    dst_conv,
+    src_conv,
+    &dst,
+    dst + max_bytes,
+    &src,
+    src + sizeof(cp),
+    pivot,
+    &psrc,
+    &pdst,
+    pivot + sizeof(pivot),
+    true,
+    false,
+    &err        
+  );
+
+  return U_FAILURE(err) ? 0 : dst - reinterpret_cast<char*>(buf);
+}
+
 uint32 ASCII::maxByteLength() const {
   return 1;
 }

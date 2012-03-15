@@ -110,12 +110,13 @@ std::shared_ptr<ParserHandle> parsePatterns(PatternInfo& pinfo, uint32& numError
 
   // parse patterns
   uint32 patIdx = 0;
-  EncodingsCodeMap encMap(getEncodingsMap());
+//  EncodingsCodeMap encMap(getEncodingsMap());
   EncodingsCodeMap::const_iterator foundEnc;
+  const EncodingsCodeMap::const_iterator encEnd(ENCODINGS.end());
 
   for (uint32 i = 0; i < pinfo.Patterns.size(); ++i) {
     uint32 encIdx = 0;
-    if ((foundEnc = encMap.find(pinfo.Patterns[i].Encoding)) != encMap.end()) {
+    if ((foundEnc = ENCODINGS.find(pinfo.Patterns[i].Encoding)) != encEnd) {
       encIdx = foundEnc->second;
     }
     if (addPattern(parser.get(), i, patIdx, encIdx, pinfo)) {
@@ -380,6 +381,10 @@ bool writeGraphviz(const Options& opts) {
     return true;
   }
   return false;
+}
+
+void readProgram(ProgramPtr p, const Options& opts) {
+
 }
 
 void writeProgram(const Options& opts) {

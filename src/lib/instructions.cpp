@@ -186,42 +186,72 @@ Instruction Instruction::makeRaw32(uint32 val) {
 }
 
 std::ostream& operator<<(std::ostream& out, const Instruction& instr) {
-  out << instr.toString();
-  return out;
+  return out << instr.toString();
 }
 
-std::ostream& printIndex(std::ostream& out, uint32 i) {
-  out << std::setfill('0') << std::hex << std::setw(8) << i << ' ';
-  return out;
-}
+std::istream& operator>>(std::istream& in, Instruction& instr) {
+  std::string opname;
+  in >> opname;
 
-std::ostream& operator<<(std::ostream& out, const Program& prog) {
-  for (uint32 i = 0; i < prog.size(); ++i) {
-    printIndex(out, i) << prog[i] << '\n';
-    if (prog[i].OpCode == BIT_VECTOR_OP) {
-      for (uint32 j = 1; j < 9; ++j) {
-        out << std::hex << std::setfill('0') << std::setw(8)
-            << i + j << '\t' << *(uint32*)(&prog[i]+j) << '\n';
-      }
-      out << std::dec;
-      i += 8;
-    }
-    else if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
-      uint32 start = 0,
-             end = 255;
-      if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
-        start = prog[i].Op.Range.First;
-        end = prog[i].Op.Range.Last;
-      }
-      for (uint32 j = start; j <= end; ++j) {
-        ++i;
-        printIndex(out, i) << std::setfill(' ') << std::setw(3) << j << ": " << *reinterpret_cast<const uint32*>(&prog[i]) << '\n';
-      }
-    }
-    else if (prog[i].OpCode == JUMP_OP || prog[i].OpCode == FORK_OP) {
-      ++i;
-      printIndex(out, i) << *reinterpret_cast<const uint32*>(&prog[i]) << '\n';
-    }
+  if (opname == "Literal") {
+    uint32 b;
+    in >> std::hex >> b;
+    instr = Instruction::makeLit(b); 
   }
-  return out;
+  else if (opname == "Either") {
+    uint32 a, b;
+    in >> std::hex >> a >> b;
+    instr = Instruction::makeEither(a, b);
+  }
+  else if (opname == "Range") {
+    uint32 first, last;
+    in >> std::hex >> first >> last;
+    instr = Instruction::makeRange(first, last);
+  }
+  else if (opname == "Any") {
+    instr = Instruction::makeAny(); 
+  }
+  else if (opname == "BitVector") {
+    instr = Instruction::makeBitVector();  
+  }
+  else if (opname == "Jump") {
+    instr.OpCode = JUMP_OP;
+    instr.Op.Offset = 0;
+  }
+  else if (opname == "JumpTblRange") {
+    uint32 first, last;
+    in >> std::hex >> first >> last;
+    instr = Instruction::makeRange(first, last);
+    instr.OpCode = JUMP_TABLE_RANGE_OP;
+  }
+  else if (opname == "Fork") {
+    instr.OpCode = FORK_OP;
+    instr.Op.Offset = 0;
+  }
+  else if (opname == "CheckHalt") {
+    uint32 label;
+    in >> label;
+    instr = Instruction::makeCheckHalt(label);
+  }
+  else if (opname == "Label") {
+    uint32 label;
+    in >> label;
+    instr = Instruction::makeLabel(label);
+  }
+  else if (opname == "Match") {
+    instr = Instruction::makeMatch();
+  }
+  else if (opname == "Halt") {
+    instr = Instruction::makeHalt();
+  }
+  else if (opname == "Finish") {
+    instr = Instruction::makeFinish();
+  }
+  else {
+    uint32 val;
+    in >> val;
+    instr = Instruction::makeRaw32(val);
+  }
+
+  return in;  
 }
