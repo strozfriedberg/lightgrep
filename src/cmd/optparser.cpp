@@ -118,7 +118,6 @@ void parse_opts(int argc, char** argv,
   );
   po::notify(optsMap);
 
-
   //
   // determine which command we got
   //
