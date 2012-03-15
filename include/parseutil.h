@@ -166,6 +166,7 @@ int parseProperty(Iterator& i, const Iterator& end, UnicodeSet& us) {
   if (prepareStringForICU(i, end, prop) == -1) {
     return -1;
   }
+  prop += '}';
 
   return propertyGetter(prop, us);
 }
