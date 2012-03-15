@@ -38,12 +38,12 @@ uint32 totalCharacters(const std::vector<Pattern>& keywords) {
 
 void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
   addKeys(keyInfo.Patterns, ignoreBad, p, keyIdx);
-  EncodingsCodeMap encMap = getEncodingsMap();
+//  EncodingsCodeMap encMap = getEncodingsMap();
 
   for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
     uint32 encIdx = 0;
-    EncodingsCodeMap::const_iterator it(encMap.find(keyInfo.Patterns[i].Encoding));
-    if (it != encMap.end()) {
+    EncodingsCodeMap::const_iterator it(ENCODINGS.find(keyInfo.Patterns[i].Encoding));
+    if (it != ENCODINGS.end()) {
       encIdx = it->second;
     }
     keyInfo.Table.emplace_back(i, encIdx);

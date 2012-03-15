@@ -5,6 +5,7 @@
 #include "transitionfactory.h"
 #include "utility.h"
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <utility>
@@ -79,7 +80,7 @@ void NFABuilder::init() {
 
 void NFABuilder::setEncoding(const std::shared_ptr<Encoding>& e) {
   Enc = e;
-  TempBuf.reset(new byte[Enc->maxByteLength()]);
+  TempBuf.reset(new byte[Enc->maxByteLength() + 20]);
 }
 
 void NFABuilder::setCaseInsensitive(bool insensitive) {
@@ -174,40 +175,119 @@ void NFABuilder::dot(const ParseNode& n) {
   Stack.push(TempFrag);
 }
 
-// FIXME: This code is repeated several places. Break out range-finding
-// and smallest-Transition-finding code so it lives in one place.
-std::pair<byte,byte> isRange(const ByteSet& bs) {
-  uint32 num = 0;
-  byte first = 0, last = 0;
-  for (uint32 i = 0; i < 256; ++i) {
-    if (bs.test(i)) {
-      if (!num) {
-        first = i;
+void NFABuilder::charClass(const ParseNode& n) {
+  if (Enc->maxByteLength() == 1) {
+    NFA::VertexDescriptor v = Fsm->addVertex();
+    uint32 num = 0;
+    byte first = 0, last = 0;
+    for (uint32 i = 0; i < 256; ++i) {
+      if (n.Bits.test(i)) {
+        if (!num) {
+          first = i;
+        }
+        if (++num == n.Bits.count()) {
+          last = i;
+          break;
+        }
       }
-      if (++num == bs.count()) {
-        last = i;
-        break;
+      else {
+        num = 0;
       }
+    }
+
+    if (num == n.Bits.count()) {
+      (*Fsm)[v].Trans = Fsm->TransFac->getRange(first, last);
     }
     else {
-      num = 0;
+      (*Fsm)[v].Trans = Fsm->TransFac->getCharClass(n.Bits);
     }
-  }
 
-  return num == bs.count() ?
-    std::make_pair(first, last) : std::make_pair<byte,byte>(0, 0);
-}
-
-void NFABuilder::charClass(const ParseNode& n) {
-  NFA::VertexDescriptor v = Fsm->addVertex();
-
-  std::pair<byte,byte> r = isRange(n.Bits);
-
-  if (r.first != 0 && r.second != 0) {
-    (*Fsm)[v].Trans = Fsm->TransFac->getRange(r.first, r.second);
+    TempFrag.initFull(v, n); 
   }
   else {
-    (*Fsm)[v].Trans = Fsm->TransFac->getCharClass(n.Bits);
+    TempFrag.N = n;
+    TempFrag.Skippable = NOSKIP;
+    TempFrag.InList.clear();
+    TempFrag.OutList.clear();
+
+    ByteSet bs;
+
+    const UnicodeSet::const_iterator rend(n.Bits.end());
+    for (UnicodeSet::const_iterator r(n.Bits.begin()); r != rend; ++r) {
+      const uint32 l = *r, h = *++r;
+      for (uint32 cp = l; cp < h; ++cp) {
+        const uint32 len = Enc->write(cp, TempBuf.get());
+
+        NFA::VertexDescriptor head = 0, tail;
+
+        bs.reset();    
+
+        // find byte 0 in the in list
+        const InListT::const_iterator iend(TempFrag.InList.end());
+        for (InListT::const_iterator i(TempFrag.InList.begin()); i != iend; ++i) {
+          (*Fsm)[*i].Trans->getBits(bs);
+          if (bs[TempBuf[0]]) {
+            head = *i;
+            break;
+          }
+        }
+
+        // add byte 0 to the in list if not there already
+        if (!head) {
+          head = Fsm->addVertex();
+          (*Fsm)[head].Trans = Fsm->TransFac->getLit(TempBuf[0]);
+          TempFrag.InList.push_back(head);
+      
+          if (len == 1) {
+            // add trailing byte to out list
+            TempFrag.OutList.emplace_back(head, 0);
+          }
+        }
+
+        tail = head;
+
+        // move on to middle bytes, if any 
+        for (uint32 i = 1; i < len - 1; ++i) {
+          bs.reset();
+          const uint32 odeg = Fsm->outDegree(head);
+          for (uint32 e = 0; e < odeg; ++e) {
+            tail = Fsm->outVertex(head, e);
+            (*Fsm)[tail].Trans->getBits(bs);
+            if (bs[TempBuf[i]]) {
+              goto NEXT;
+            }
+          }
+
+          tail = Fsm->addVertex();
+          Fsm->addEdge(head, tail);
+          (*Fsm)[tail].Trans = Fsm->TransFac->getLit(TempBuf[i]);
+          
+NEXT:
+          head = tail;
+        }
+
+        if (len > 1) {
+          // handle trailing byte
+          if (Fsm->outDegree(head)) {
+            tail = Fsm->outVertex(head, 0);
+            bs.reset();
+            (*Fsm)[tail].Trans->getBits(bs);
+            bs[TempBuf[len-1]] = true;
+            (*Fsm)[tail].Trans = Fsm->TransFac->getCharClass(bs);
+          }
+          else {
+            tail = Fsm->addVertex();
+            Fsm->addEdge(head, tail);
+            bs.reset();
+            bs[TempBuf[len-1]] = true;
+            (*Fsm)[tail].Trans = Fsm->TransFac->getCharClass(bs);
+
+            // add trailing byte to out list
+            TempFrag.OutList.emplace_back(tail, 0);
+          }
+        }
+      }
+    }
   }
 
   if (CaseInsensitive) {
@@ -232,8 +312,6 @@ void NFABuilder::charClass(const ParseNode& n) {
   }
 
   Fsm->Deterministic = false;
-
-  TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
 

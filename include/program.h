@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <istream>
+#include <ostream>
 #include <vector>
 
 #include "instructions.h"
@@ -27,3 +29,5 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& out, const Program& prog);
+
+std::istream& operator>>(std::istream& in, Program& prog);

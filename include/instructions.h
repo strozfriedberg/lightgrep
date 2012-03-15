@@ -2,6 +2,9 @@
 
 #include "basic.h"
 
+#include <istream>
+#include <ostream>
+
 enum OpCodes {
   UNINITIALIZED = 0,
   LIT_OP,
@@ -81,3 +84,4 @@ struct Instruction {
 #pragma pack(pop)
 
 std::ostream& operator<<(std::ostream& out, const Instruction& instr);
+std::istream& operator>>(std::istream& in, Instruction& instr);

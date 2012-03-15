@@ -20,6 +20,20 @@ SCOPE_TEST(testASCII) {
   }
 }
 
+SCOPE_TEST(testUTF8) {
+  UTF8 enc;
+
+  SCOPE_ASSERT_EQUAL(4, enc.maxByteLength());
+
+/*
+  byte buf[4];
+  uint32 len;
+  for (uint32 i = 0; i < 0x110000; ++i) {
+    len = enc.write(i, buf);
+  }
+*/  
+}
+
 SCOPE_TEST(testUCS16) {
   UCS16 twofer;
   SCOPE_ASSERT_EQUAL(2u, twofer.maxByteLength());
