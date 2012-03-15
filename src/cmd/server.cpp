@@ -176,8 +176,10 @@ struct FileHeader {
     SHUTDOWN = 3
   };
 
-  FileHeader(): ID(0), Length(0) {}
+  FileHeader(): Cmd(0), Type(0), ID(0), Length(0) {}
 
+  byte   Cmd,
+         Type;
   uint64 ID,
          Length;
 };
@@ -315,18 +317,7 @@ static const unsigned char ONE = 1;
   writeErr() += ssbuf.str();
 
 FileHeader::Commands getCommand(const FileHeader& hdr) {
-  if (0xffffffffffffffffull == hdr.ID) {
-    if (0ull == hdr.Length) {
-      return FileHeader::HANGUP;
-    }
-    else if (0xffffffffffffffffull == hdr.Length) {
-      return FileHeader::SHUTDOWN;
-    }
-    else if (1ull == hdr.Length) {
-      return FileHeader::GETSTATS;
-    }
-  }
-  return FileHeader::SEARCH;
+  return FileHeader::Commands(hdr.Cmd);
 }
 
 void sendStats(tcp::socket& sock) {
