@@ -176,11 +176,12 @@ struct FileHeader {
     SHUTDOWN = 3
   };
 
-  FileHeader(): Cmd(0), Type(0), ID(0), Length(0) {}
+  FileHeader(): Cmd(0), Type(0), ID(0), StartOffset(0), Length(0) {}
 
   byte   Cmd,
          Type;
   uint64 ID,
+         StartOffset,
          Length;
 };
 
@@ -344,7 +345,7 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   uint64 totalRead = 0,
          numReads = 0;
   ++numReads;
-  uint64 offset = 0;
+  uint64 offset = hdr.StartOffset;
   while (offset < hdr.Length) {
     len = sock.read_some(boost::asio::buffer(data, std::min(BUF_SIZE, hdr.Length-offset)));
     ++numReads;
