@@ -357,7 +357,9 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   }
   lg_closeout_search(searcher.get(), output.get(), callback);
   lg_reset_context(searcher.get());
-  output->writeEndHit(hdr.Length);
+  if (0 == hdr.Type) {
+    output->writeEndHit(hdr.Length);
+  }
 }
 
 void processConn(
