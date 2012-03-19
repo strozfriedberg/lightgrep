@@ -191,6 +191,7 @@ struct HitInfo {
          Length;
   uint32 Label,
          Encoding;
+  byte   Type;
 };
 #pragma pack()
 //********************************************************
@@ -218,6 +219,7 @@ public:
     Hit.Length = fileLen;
     Hit.Label = std::numeric_limits<uint32>::max();
     Hit.Encoding = 0;
+    Hit.Type = 0;
     write(Hit);
     Registry::get().updateHits(HitsForFile, fileLen);
     HitsForFile.assign(HitsForFile.size(), 0);
@@ -225,6 +227,7 @@ public:
   }
 
   void setCurID(uint64 id) { Hit.ID = id; }
+  void setType(byte type) { Hit.Type = type; }
 
   uint64 numHits() const { return NumHits; }
 
@@ -291,7 +294,8 @@ public:
                 << it->Offset << '\t'
                 << it->Length << '\t'
                 << it->Label << '\t'
-                << it->Encoding << '\n';
+                << it->Encoding << '\t'
+                << it->Type << '\n';
       }
       Output->flush();
     }
@@ -341,11 +345,12 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   std::stringstream buf;
   SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");
   output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
+  output->setType(hdr.Type);
   std::size_t len = 0;
   uint64 offset = hdr.StartOffset,
          totalRead = 0;
   while (totalRead < hdr.Length) {
-    len = sock.read_some(boost::asio::buffer(data, std::min(BUF_SIZE, hdr.Length-offset)));
+    len = sock.read_some(boost::asio::buffer(data, std::min(BUF_SIZE, hdr.Length - totalRead)));
     lg_search(searcher.get(), (char*) data, (char*) data + len, offset, output.get(), callback);
     // writeErr() << "read " << len << " bytes\n";
     // writeErr().write((const char*)data.get(), len);
