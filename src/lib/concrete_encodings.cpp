@@ -152,11 +152,11 @@ uint32 UTF8::write(int cp, byte buf[]) const {
   }
 }
 
-uint32 UCS16::maxByteLength() const {
+uint32 UTF16::maxByteLength() const {
   return 2;
 }
 
-uint32 UCS16::write(int cp, byte buf[]) const {
+uint32 UTF16::write(int cp, byte buf[]) const {
   if (-1 < cp && cp < 65536) {
     *(unsigned short*)buf = cp;
     return 2;
