@@ -34,8 +34,8 @@ SCOPE_TEST(testUTF8) {
 */  
 }
 
-SCOPE_TEST(testUCS16) {
-  UCS16 twofer;
+SCOPE_TEST(testUTF16) {
+  UTF16 twofer;
   SCOPE_ASSERT_EQUAL(2u, twofer.maxByteLength());
   byte buf[2];
   unsigned short val;

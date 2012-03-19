@@ -8,8 +8,8 @@
 Parser::EncodingMap createEncodingMap() {
   Parser::EncodingMap map;
   map[LG_ENC_ASCII].reset(new ASCII);
-  map[LG_ENC_UTF_16].reset(new UCS16);
   map[LG_ENC_UTF_8].reset(new UTF8);
+  map[LG_ENC_UTF_16].reset(new UTF16);
   return map;
 }
 
@@ -50,7 +50,7 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
     enc.reset(new UTF8);
   }
   else if (pattern.Encoding == "UTF-16") {
-    enc.reset(new UCS16);
+    enc.reset(new UTF16);
   }
   else {
     enc.reset(new ICUEncoder(pattern.Encoding.c_str()));
