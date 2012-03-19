@@ -176,11 +176,12 @@ struct FileHeader {
     SHUTDOWN = 3
   };
 
-  FileHeader(): Cmd(0), Type(0), ID(0), Length(0) {}
+  FileHeader(): Cmd(0), Type(0), ID(0), StartOffset(0), Length(0) {}
 
   byte   Cmd,
          Type;
   uint64 ID,
+         StartOffset,
          Length;
 };
 
@@ -341,13 +342,10 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");
   output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
   std::size_t len = 0;
-  uint64 totalRead = 0,
-         numReads = 0;
-  ++numReads;
-  uint64 offset = 0;
-  while (offset < hdr.Length) {
+  uint64 offset = hdr.StartOffset,
+         totalRead = 0;
+  while (totalRead < hdr.Length) {
     len = sock.read_some(boost::asio::buffer(data, std::min(BUF_SIZE, hdr.Length-offset)));
-    ++numReads;
     lg_search(searcher.get(), (char*) data, (char*) data + len, offset, output.get(), callback);
     // writeErr() << "read " << len << " bytes\n";
     // writeErr().write((const char*)data.get(), len);
@@ -357,7 +355,9 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   }
   lg_closeout_search(searcher.get(), output.get(), callback);
   lg_reset_context(searcher.get());
-  output->writeEndHit(hdr.Length);
+  if (0 == hdr.Type) {
+    output->writeEndHit(hdr.Length);
+  }
 }
 
 void processConn(
