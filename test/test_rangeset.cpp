@@ -265,7 +265,7 @@ SCOPE_TEST(rangeSetInsertRandomTest) {
 
     addends.clear();
 
-    for (uint32 j = 0; i < 10; ++i) {
+    for (uint32 j = 0; j < 10; ++j) {
       const std::pair<uint32,uint32> range(std::minmax(u(g), u(g)));
       for (uint32 k = range.first; k < range.second; ++k) { b[k] = true; }
       r.insert(range);
