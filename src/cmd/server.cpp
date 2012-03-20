@@ -65,9 +65,7 @@ public:
   std::shared_ptr<std::ofstream> File;
   std::vector<uint64> FileCounts,
                       HitCounts;
-  uint64              TotalBytes,
-                      TotalFiles,
-                      ResponsiveFiles,
+  uint64              ResponsiveFiles,
                       TotalHits;
 
   bool init(const std::string& path, uint32 numKeywords) {
@@ -81,7 +79,7 @@ public:
     signal(SIGTERM, cleanSeppuku);
     FileCounts.resize(numKeywords, 0);
     HitCounts.resize(numKeywords, 0);
-    TotalBytes = TotalFiles = ResponsiveFiles = TotalHits = 0;
+    ResponsiveFiles = TotalHits = 0;
     return true;
   }
 
@@ -89,8 +87,6 @@ public:
     std::stringstream buf;
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      buf << "Total Bytes" << std::ends << TotalBytes << std::ends;
-      buf << "Total Files" << std::ends << TotalFiles << std::ends;
       buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
       buf << "Total Hits" << std::ends << TotalHits << std::ends;
       buf << "File Counts" << std::ends;
@@ -111,10 +107,8 @@ public:
     output = buf.str();
   }
 
-  void updateHits(const std::vector<uint32>& hitsForFile, uint64 fileLen) {
+  void updateHits(const std::vector<uint32>& hitsForFile) {
     boost::mutex::scoped_lock lock(*Mutex);
-    TotalBytes += fileLen;
-    ++TotalFiles;
     uint64 c = 0;
     bool hadHits = false;
     for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
@@ -169,9 +163,19 @@ void cleanSeppuku(int) {
 
 #pragma pack(1)
 struct FileHeader {
-  FileHeader(): ID(0), Length(0) {}
+  enum Commands {
+    SEARCH = 0,
+    GETSTATS = 1,
+    HANGUP = 2,
+    SHUTDOWN = 3
+  };
 
+  FileHeader(): Cmd(0), Type(0), ID(0), StartOffset(0), Length(0) {}
+
+  byte   Cmd,
+         Type;
   uint64 ID,
+         StartOffset,
          Length;
 };
 
@@ -181,6 +185,7 @@ struct HitInfo {
          Length;
   uint32 Label,
          Encoding;
+  byte   Type;
 };
 #pragma pack()
 //********************************************************
@@ -208,13 +213,15 @@ public:
     Hit.Length = fileLen;
     Hit.Label = std::numeric_limits<uint32>::max();
     Hit.Encoding = 0;
+    Hit.Type = 0;
     write(Hit);
-    Registry::get().updateHits(HitsForFile, fileLen);
+    Registry::get().updateHits(HitsForFile);
     HitsForFile.assign(HitsForFile.size(), 0);
     Hit.ID = std::numeric_limits<uint64>::max();
   }
 
   void setCurID(uint64 id) { Hit.ID = id; }
+  void setType(byte type) { Hit.Type = type; }
 
   uint64 numHits() const { return NumHits; }
 
@@ -281,7 +288,8 @@ public:
                 << it->Offset << '\t'
                 << it->Length << '\t'
                 << it->Label << '\t'
-                << it->Encoding << '\n';
+                << it->Encoding << '\t'
+                << it->Type << '\n';
       }
       Output->flush();
     }
@@ -307,6 +315,50 @@ static const unsigned char ONE = 1;
   ssbuf << EXPR; \
   writeErr() += ssbuf.str();
 
+FileHeader::Commands getCommand(const FileHeader& hdr) {
+  return FileHeader::Commands(hdr.Cmd);
+}
+
+void sendStats(tcp::socket& sock) {
+  std::stringstream buf;
+  writeErr() += "asked for stats\n";
+  std::string stats;
+  Registry::get().getStats(stats);
+  uint64 bytes = stats.size();
+  boost::asio::write(sock, boost::asio::buffer(&bytes, sizeof(bytes)));
+  byte ack;
+  if (boost::asio::read(sock, boost::asio::buffer(&ack, sizeof(ack))) == sizeof(ack)) {
+    boost::asio::write(sock, boost::asio::buffer(stats));
+    SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
+  }
+}
+
+void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<ServerWriter> output, std::shared_ptr<ContextHandle> searcher,
+  byte* data, LG_HITCALLBACK_FN callback)
+{
+  std::stringstream buf;
+  SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");
+  output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
+  output->setType(hdr.Type);
+  std::size_t len = 0;
+  uint64 offset = hdr.StartOffset,
+         totalRead = 0;
+  while (totalRead < hdr.Length) {
+    len = sock.read_some(boost::asio::buffer(data, std::min(BUF_SIZE, hdr.Length - totalRead)));
+    lg_search(searcher.get(), (char*) data, (char*) data + len, offset, output.get(), callback);
+    // writeErr() << "read " << len << " bytes\n";
+    // writeErr().write((const char*)data.get(), len);
+    // writeErr() << '\n';
+    totalRead += len;
+    offset += len;
+  }
+  lg_closeout_search(searcher.get(), output.get(), callback);
+  lg_reset_context(searcher.get());
+  if (0 == hdr.Type) {
+    output->writeEndHit(hdr.Length);
+  }
+}
+
 void processConn(
   std::shared_ptr<tcp::socket> sock,
   std::shared_ptr<ProgramHandle> prog,
@@ -323,56 +375,29 @@ void processConn(
 
 	std::stringstream buf;
 
-  std::size_t len = 0;
-  uint64 totalRead = 0,
-         numReads = 0;
   try {
     while (true) {
       FileHeader hdr;
       hdr.ID = 0;
       hdr.Length = 0;
       if (boost::asio::read(*sock, boost::asio::buffer(&hdr, sizeof(FileHeader))) == sizeof(FileHeader)) {
-        if (0xffffffffffffffffull == hdr.ID) {
-          if (0ull == hdr.Length) {
+        FileHeader::Commands cmd = getCommand(hdr);
+        switch (cmd) {
+          case FileHeader::SEARCH:
+            searchStream(*sock, hdr, output, searcher, data.get(), callback);
+            break;
+          case FileHeader::GETSTATS:
+            sendStats(*sock);
+            break;
+          case FileHeader::HANGUP:
             writeErr() += "received conn shutdown sequence, acknowledging and waiting for close\n";
             boost::asio::write(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
-            continue;
-          }
-          else if (0xffffffffffffffffull == hdr.Length) {
+            break;
+          case FileHeader::SHUTDOWN:
             writeErr() += "received hard shutdown command, terminating\n";
-            cleanSeppuku(0);
-          }
-          else if (1ull == hdr.Length) {
-          	writeErr() += "asked for stats\n";
-            std::string stats;
-            Registry::get().getStats(stats);
-            uint64 bytes = stats.size();
-            boost::asio::write(*sock, boost::asio::buffer(&bytes, sizeof(bytes)));
-            byte ack;
-            if (boost::asio::read(*sock, boost::asio::buffer(&ack, sizeof(ack))) == sizeof(ack)) {
-	            boost::asio::write(*sock, boost::asio::buffer(stats));
-  	          SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
-    	      }
-  	        continue;
-          }
+            cleanSeppuku(0); // die
+            break;
         }
-        SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");
-        output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
-        ++numReads;
-        uint64 offset = 0;
-        while (offset < hdr.Length) {
-          len = sock->read_some(boost::asio::buffer(data.get(), std::min(BUF_SIZE, hdr.Length-offset)));
-          ++numReads;
-          lg_search(searcher.get(), (char*) data.get(), (char*) data.get() + len, offset, output.get(), callback);
-          // writeErr() << "read " << len << " bytes\n";
-          // writeErr().write((const char*)data.get(), len);
-          // writeErr() << '\n';
-          totalRead += len;
-          offset += len;
-        }
-        lg_closeout_search(searcher.get(), output.get(), callback);
-        lg_reset_context(searcher.get());
-        output->writeEndHit(hdr.Length);
       }
       else {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket\n");
@@ -383,7 +408,7 @@ void processConn(
   catch (std::exception& e) {
     SAFEWRITE(buf, "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n');
   }
-  SAFEWRITE(buf, "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n");
+//  SAFEWRITE(buf, "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n");
   output->flush();
 }
 
