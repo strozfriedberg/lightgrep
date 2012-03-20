@@ -9,7 +9,8 @@ Parser::EncodingMap createEncodingMap() {
   Parser::EncodingMap map;
   map[LG_ENC_ASCII].reset(new ASCII);
   map[LG_ENC_UTF_8].reset(new UTF8);
-  map[LG_ENC_UTF_16].reset(new UTF16);
+  map[LG_ENC_UTF_16].reset(new UTF16LE);
+  map[LG_ENC_UTF_16].reset(new UTF16BE);
   return map;
 }
 
@@ -49,8 +50,17 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
   else if (pattern.Encoding == "UTF-8") {
     enc.reset(new UTF8);
   }
-  else if (pattern.Encoding == "UTF-16") {
-    enc.reset(new UTF16);
+  else if (pattern.Encoding == "UTF-16LE") {
+    enc.reset(new UTF16LE);
+  }
+  else if (pattern.Encoding == "UTF-16BE") {
+    enc.reset(new UTF16BE);
+  }
+  else if (pattern.Encoding == "UTF-32LE") {
+    enc.reset(new UTF32LE);
+  }
+  else if (pattern.Encoding == "UTF-32BE") {
+    enc.reset(new UTF32BE);
   }
   else {
     enc.reset(new ICUEncoder(pattern.Encoding.c_str()));
