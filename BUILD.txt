@@ -38,6 +38,9 @@ C:\boost\> .\bjam --stagedir=C:\lib --with-program_options --with-system --with-
                   -s BOOST_NO_RVALUE_REFERENCES
                   stage
 
+bjam cmd line (full):
+.\bjam --stagedir=C:\lib --with-program_options --with-system --with-thread --with-filesystem link=static runtime-link=static variant=release threading=multi toolset=gcc address-model=[32|64] define=BOOST_USE_WINDOWS_H define=BOOST_THREAD_USE_LIB -s BOOST_NO_RVALUE_REFERENCES stage
+
 You may also want to use the '--layout=system' option, or you can make copies of the libraries that remove version and build information from their filenames.
 
 This will build the requisite libraries and place them in C:\lib (or wherever you choose to put the libs), but will avoid copying all the header files into a new place (as the bjam 'install' command does). Use shared or static link modes as appropriate.
