@@ -19,8 +19,19 @@ public:
   std::set<std::string>::size_type SampleLimit;
   std::multiset<NFA::VertexDescriptor>::size_type LoopLimit;
 
-  std::string Command,
-              Input,
+  enum CommandTypes {
+    SEARCH,
+    GRAPH,
+    PROGRAM,
+    SAMPLES,
+    VALIDATE,
+    SERVER,
+    HELP,
+    ENCODINGS,
+    BOGUS
+  } Command;
+
+  std::string Input,
               Output,
               Encoding,
               ServerLog,

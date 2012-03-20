@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <map>
 #include <set>
 #include <string>
 
@@ -37,6 +38,8 @@ std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
 void parse_opts(int argc, char** argv,
                 po::options_description& desc, Options& opts) {
 
+  std::string command;
+
   po::positional_options_description posOpts;
   posOpts.add("pargs", -1);
 
@@ -51,8 +54,9 @@ void parse_opts(int argc, char** argv,
   // Command selection options
   po::options_description general("Command selection");
   general.add_options()
-    ("command,c", po::value<std::string>(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
+    ("command,c", po::value<std::string>(&command)->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
     ("help", "produce help message")
+    ("list-encodings", "list known encodings")
     ;
 
   // Pattern options
@@ -106,15 +110,40 @@ void parse_opts(int argc, char** argv,
   );
   po::notify(optsMap);
 
+// FIXME: do something to exclude multiple command specfications
+
+  opts.Command = Options::BOGUS;
+
   // convert help option to command
   if (optsMap.count("help")) {
-    opts.Command = "help";
+    opts.Command = Options::HELP;
   }
 
-  if (opts.Command == "search"   || opts.Command == "graph" ||
-      opts.Command == "prog"     || opts.Command == "samp"  ||
-      opts.Command == "validate" || opts.Command == "server")
-  {
+  // convert list-encodings option to command
+  if (optsMap.count("list-encodings")) {
+    opts.Command =  Options::ENCODINGS;
+  }
+
+  if (!command.empty()) {
+    const std::map<std::string,Options::CommandTypes> cmds;
+    cmds.insert(std::make_pair("search",   Options::SEARCH));
+    cmds.insert(std::make_pair("graph",    Options::GRAPH));
+    cmds.insert(std::make_pair("prog",     Options::PROGRAM));
+    cmds.insert(std::make_pair("samp",     Options::SAMPLES));
+    cmds.insert(std::make_pair("validate", Options::VALIDATE));
+    cmds.insert(std::make_pair("server",   Options::SERVER));
+
+    auto i = cmds.find(command);
+    opts.Command = i != cmds.end() ? i->second : Options::BOGUS;
+  }
+
+  switch (opts.Command) {
+  case Options::SEARCH:
+  case Options::GRAPH:
+  case Options::PROGRAM:
+  case Options::SAMPLES:
+  case Options::VALIDATE:
+  case Options::SERVER:
     // determine the source of our patterns
     if (!optsMap["pattern"].empty()) {
       // keywords from --pattern
@@ -180,7 +209,7 @@ void parse_opts(int argc, char** argv,
       throw po::error("--with-filename and --no-filename are incompatible options");
     }
 
-    if (opts.Command == "search") {
+    if (opts.Command == Options::SEARCH) {
       // filename printing defaults off for single files, on for multiple files
       opts.PrintPath = optsMap.count("with-filename") > 0;
 
@@ -200,8 +229,9 @@ void parse_opts(int argc, char** argv,
         opts.Inputs.push_back("-");
       }
     }
-    else if (opts.Command == "samp") {
-      opts.SampleLimit = std::numeric_limits<std::set<std::string>::size_type>::max();
+    else if (opts.Command == Options::SAMPLES) {
+      opts.SampleLimit =
+        std::numeric_limits<std::set<std::string>::size_type>::max();
       opts.LoopLimit = 1;
 
       if (!pargs.empty()) {
@@ -219,11 +249,15 @@ void parse_opts(int argc, char** argv,
     if (!pargs.empty()) {
       throw po::too_many_positional_options_error();
     }
-  }
-  else if (opts.Command == "help") {
+
+    break;
+
+  case Options::HELP:
+  case Options::ENCODINGS:
     // nothing else to do
-  }
-  else {
-    throw po::invalid_option_value(opts.Command);
+    break;
+
+  default:
+    throw po::invalid_option_value(command);
   }
 }
