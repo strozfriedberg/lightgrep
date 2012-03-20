@@ -480,28 +480,28 @@ int main(int argc, char** argv) {
   try {
     parse_opts(argc, argv, desc, opts);
 
-    if (opts.Command == "search") {
-      search(opts);
-    }
-    else if (opts.Command == "server") {
-      startServer(opts);
-    }
-    else if (opts.Command == "help") {
-      printHelp(desc);
-    }
-    else if (opts.Command == "graph") {
+    switch (opts.Command) {
+    case Options::SEARCH:
+      searches(opts);
+      break;
+    case Options::GRAPH:
       return writeGraphviz(opts) ? 0: 1;
-    }
-    else if (opts.Command == "prog") {
+    case Options::PROGRAM:
       writeProgram(opts);
-    }
-    else if (opts.Command == "samp") {
+      break;
+    case Options::SAMPLES:
       writeSampleMatches(opts);
-    }
-    else if (opts.Command == "validate") {
+      break;
+    case Options::VALIDATE:
       validate(opts);
-    }
-    else {
+      break;
+    case Options::SERVER:
+      startServer(opts);
+      break;
+    case Options::HELP:
+      printHelp(desc);
+      break;
+    default:
       // this should be impossible
       std::cerr << "Unrecognized command. Use --help for list of options."
                 << std::endl;
