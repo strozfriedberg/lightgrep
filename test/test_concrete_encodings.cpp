@@ -5,35 +5,86 @@
 #include "concrete_encodings.h"
 
 SCOPE_TEST(testASCII) {
-  ASCII a;
-  SCOPE_ASSERT_EQUAL(1u, a.maxByteLength());
+  ASCII enc;
+  SCOPE_ASSERT_EQUAL(1u, enc.maxByteLength());
+
   byte buf[1];
   uint32 len;
  
   // too low
-  SCOPE_ASSERT_EQUAL(0, a.write(-1, buf));
+  SCOPE_ASSERT_EQUAL(0, enc.write(-1, buf));
 
   // just right 
   for (uint32 i = 0; i < 256; ++i) {
-    len = a.write(i, buf);
+    len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
     SCOPE_ASSERT_EQUAL(i, buf[0]);
   }
 
   // too high
-  SCOPE_ASSERT_EQUAL(0, a.write(256, buf));
+  SCOPE_ASSERT_EQUAL(0, enc.write(256, buf));
 }
 
 SCOPE_TEST(testUTF8) {
   UTF8 enc;
-
   SCOPE_ASSERT_EQUAL(4, enc.maxByteLength());
 
-// FIXME: complete this test!
-
-/*
   byte buf[4];
   uint32 len;
+  int32 val;
+
+  // too low
+  SCOPE_ASSERT_EQUAL(0, enc.write(-1, buf));
+
+  // one byte representations
+  for (uint32 i = 0; i < 0x80; ++i) {
+    len = enc.write(i, buf);
+    SCOPE_ASSERT_EQUAL(1u, len);
+    SCOPE_ASSERT_EQUAL(i, buf[0]);
+  }
+
+  // two-byte representations
+  for (uint32 i = 0x80; i < 0x800; ++i) {
+    len = enc.write(i, buf);
+    val = ((buf[0] & 0x1F) << 6) | (buf[1] & 0x3F);
+    SCOPE_ASSERT_EQUAL(2u, len);
+    SCOPE_ASSERT_EQUAL(i, val);
+  }
+
+  // low three-byte representations
+  for (uint32 i = 0x800; i < 0xD800; ++i) {
+    len = enc.write(i, buf);
+    val = ((buf[0] & 0x0F) << 12) | ((buf[1] & 0x3F) << 6) | (buf[2] & 0x3F);
+    SCOPE_ASSERT_EQUAL(3u, len);
+    SCOPE_ASSERT_EQUAL(i, val);
+  }
+
+  // UTF-16 surrogates, invalid
+  for (uint32 i = 0xD800; i < 0xE000; ++i) {
+    SCOPE_ASSERT_EQUAL(0, enc.write(i, buf));
+  }
+
+  // high three-byte representations
+  for (uint32 i = 0xE000; i < 0x10000; ++i) {
+    len = enc.write(i, buf);
+    val = ((buf[0] & 0x0F) << 12) | ((buf[1] & 0x3F) << 6) | (buf[2] & 0x3F);
+    SCOPE_ASSERT_EQUAL(3u, len);
+    SCOPE_ASSERT_EQUAL(i, val);
+  }
+
+  // four-byte representations
+  for (uint32 i = 0x10000; i < 0x110000; ++i) {
+    len = enc.write(i, buf);
+    val = ((buf[0] & 0x07) << 18) | ((buf[1] & 0x3F) << 12) |
+          ((buf[2] & 0x3F) <<  6) |  (buf[3] & 0x3F);
+    SCOPE_ASSERT_EQUAL(4u, len);
+    SCOPE_ASSERT_EQUAL(i, val);
+  }
+
+  // too high
+  SCOPE_ASSERT_EQUAL(0, enc.write(0x110000, buf));
+
+/*
   for (uint32 i = 0; i < 0x110000; ++i) {
     len = enc.write(i, buf);
   }
