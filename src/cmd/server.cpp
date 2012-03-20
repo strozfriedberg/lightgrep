@@ -184,8 +184,8 @@ struct HitInfo {
          Offset,
          Length;
   uint32 Label,
-         Encoding;
-  byte   Type;
+         Encoding,
+         Type;
 };
 #pragma pack()
 //********************************************************
