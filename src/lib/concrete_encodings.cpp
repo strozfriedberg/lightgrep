@@ -104,11 +104,16 @@ uint32 ASCII::maxByteLength() const {
 }
 
 uint32 ASCII::write(int cp, byte buf[]) const {
-  if (cp < 256) {
+  if (cp < 0) {
+    return 0;
+  }
+  else if (cp < 256) {
     buf[0] = cp;
     return 1;
   }
-  return 0;
+  else {
+    return 0;
+  }
 }
 
 uint32 UTF8::maxByteLength() const {
@@ -150,18 +155,6 @@ uint32 UTF8::write(int cp, byte buf[]) const {
     // too large
     return 0;
   }
-}
-
-uint32 UTF16::maxByteLength() const {
-  return 2;
-}
-
-uint32 UTF16::write(int cp, byte buf[]) const {
-  if (-1 < cp && cp < 65536) {
-    *(unsigned short*)buf = cp;
-    return 2;
-  }
-  return 0;
 }
 
 /*
