@@ -4,6 +4,11 @@
 #include <iostream>
 #include <stdexcept>
 
+// FIXME: Maybe we should set endianness with a compile-time flag? This
+// would let us do the fast thing (casting & assignment) for conversions
+// from code points to UTF-16 and UTF-32, instead of assigning each byte
+// individually, in the case where our architecture and the encoding are
+// same-endian.
 bool is_little_endian() {
   const uint16_t twobytes = 1;
   return reinterpret_cast<const byte*>(&twobytes)[0];
