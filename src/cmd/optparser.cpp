@@ -48,23 +48,41 @@ void parse_opts(int argc, char** argv,
   hidden.add_options()
     ("pargs", po::value<std::vector<std::string>>(&pargs)->multitoken(), "positional arguments");
 
-  desc.add_options()
-    ("help", "produce help message")
-    ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
+  // Command selection options
+  po::options_description general("Command selection");
+  general.add_options()
     ("command,c", po::value<std::string>(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
+    ("help", "produce help message")
+    ;
+
+  // Pattern options
+  po::options_description pats("Pattern selection and interpretation");
+  pats.add_options()
     ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles), "path to file containing keywords")
     ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns), "a keyword on the command-line")
-    ("input", po::value<std::string>(&opts.Input)->default_value("-"), "file to search")
-    ("output,o", po::value<std::string>(&opts.Output)->default_value("-"), "output file (stdout default)")
-    ("no-output", "do not output hits (good for profiling)")
-    ("no-det", "do not determinize NFAs")
+    ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
-    ("binary", "Output program as binary")
+    ;
+
+  // I/O options
+  po::options_description io("Input and output");
+  io.add_options()
+    ("input", po::value<std::string>(&opts.Input)->default_value("-"), "file to search")
+    ("output,o", po::value<std::string>(&opts.Output)->default_value("-"), "output file (stdout default)")
+>>>>>>> Divided command-lineoptions into sections. Makes them easier to browse.
     ("recursive,r", "traverse directories recursively")
-    ("block-size", po::value<unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
+    ("no-output", "do not output hits (good for profiling)")
+    ("block-size", po::value<unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
+    ;
+
+  // Other options
+  po::options_description misc("Miscellaneous");
+  misc.add_options()
+    ("no-det", "do not determinize NFAs")
+    ("binary", "Output program as binary")
     ("server-log", po::value<std::string>(&opts.ServerLog), "Server output to file")
     ("program-file", po::value<std::string>(&opts.ProgramFile), "Read search program from file")
     #ifdef LBT_TRACE_ENABLED
@@ -72,6 +90,8 @@ void parse_opts(int argc, char** argv,
     ("end-debug", po::value<uint64>(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
     #endif
     ;
+
+  desc.add(general).add(pats).add(io).add(misc);
 
   po::options_description allOpts;
   allOpts.add(desc).add(hidden);
@@ -91,10 +111,9 @@ void parse_opts(int argc, char** argv,
     opts.Command = "help";
   }
 
-  if (opts.Command == "search" || opts.Command == "graph" ||
-      opts.Command == "prog"   || opts.Command == "samp"  ||
-      opts.Command == "validate" ||
-      opts.Command == "server")
+  if (opts.Command == "search"   || opts.Command == "graph" ||
+      opts.Command == "prog"     || opts.Command == "samp"  ||
+      opts.Command == "validate" || opts.Command == "server")
   {
     // determine the source of our patterns
     if (!optsMap["pattern"].empty()) {
@@ -208,4 +227,3 @@ void parse_opts(int argc, char** argv,
     throw po::invalid_option_value(opts.Command);
   }
 }
-
