@@ -559,7 +559,7 @@ SCOPE_TEST(parse2ByteUnicode) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  nfab.setEncoding(std::shared_ptr<Encoding>(new UTF16));
+  nfab.setEncoding(std::shared_ptr<Encoding>(new UTF16LE));
   SCOPE_ASSERT(parse("ab", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
