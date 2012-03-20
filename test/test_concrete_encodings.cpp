@@ -83,12 +83,6 @@ SCOPE_TEST(testUTF8) {
 
   // too high
   SCOPE_ASSERT_EQUAL(0, enc.write(0x110000, buf));
-
-/*
-  for (uint32 i = 0; i < 0x110000; ++i) {
-    len = enc.write(i, buf);
-  }
-*/  
 }
 
 template <bool LE>
