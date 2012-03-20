@@ -65,9 +65,7 @@ public:
   std::shared_ptr<std::ofstream> File;
   std::vector<uint64> FileCounts,
                       HitCounts;
-  uint64              TotalBytes,
-                      TotalFiles,
-                      ResponsiveFiles,
+  uint64              ResponsiveFiles,
                       TotalHits;
 
   bool init(const std::string& path, uint32 numKeywords) {
@@ -81,7 +79,7 @@ public:
     signal(SIGTERM, cleanSeppuku);
     FileCounts.resize(numKeywords, 0);
     HitCounts.resize(numKeywords, 0);
-    TotalBytes = TotalFiles = ResponsiveFiles = TotalHits = 0;
+    ResponsiveFiles = TotalHits = 0;
     return true;
   }
 
@@ -89,8 +87,6 @@ public:
     std::stringstream buf;
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      buf << "Total Bytes" << std::ends << TotalBytes << std::ends;
-      buf << "Total Files" << std::ends << TotalFiles << std::ends;
       buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
       buf << "Total Hits" << std::ends << TotalHits << std::ends;
       buf << "File Counts" << std::ends;
@@ -111,10 +107,8 @@ public:
     output = buf.str();
   }
 
-  void updateHits(const std::vector<uint32>& hitsForFile, uint64 fileLen) {
+  void updateHits(const std::vector<uint32>& hitsForFile) {
     boost::mutex::scoped_lock lock(*Mutex);
-    TotalBytes += fileLen;
-    ++TotalFiles;
     uint64 c = 0;
     bool hadHits = false;
     for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
@@ -221,7 +215,7 @@ public:
     Hit.Encoding = 0;
     Hit.Type = 0;
     write(Hit);
-    Registry::get().updateHits(HitsForFile, fileLen);
+    Registry::get().updateHits(HitsForFile);
     HitsForFile.assign(HitsForFile.size(), 0);
     Hit.ID = std::numeric_limits<uint64>::max();
   }
