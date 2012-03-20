@@ -476,7 +476,7 @@ void startServer(const Options& opts) {
 
 int main(int argc, char** argv) {
   Options opts;
-  po::options_description desc("Allowed Options");
+  po::options_description desc;
   try {
     parse_opts(argc, argv, desc, opts);
 
