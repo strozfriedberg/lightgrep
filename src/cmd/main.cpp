@@ -85,13 +85,18 @@ bool addPattern(
     return true;
   }
   else {
-    std::cerr << lg_error(parser) << " on pattern "
-              << i << ", '" << pinfo.Patterns[i].Expression << "'" << std::endl;
     return false;
   }
 }
 
-std::shared_ptr<ParserHandle> parsePatterns(PatternInfo& pinfo, uint32& numErrors) {
+void stdParseErrorHandler(const Pattern& p, const std::string& err) {
+  std::cerr << err << " on pattern "
+              << p.Index << ", '" << p.Expression << "'" << std::endl;
+}
+
+std::shared_ptr<ParserHandle> parsePatterns(PatternInfo& pinfo, uint32& numErrors,
+                                            std::function<void (const Pattern&, const std::string&)> onError = stdParseErrorHandler)
+{
   numErrors = 0;
   if (pinfo.Patterns.empty()) {
     return std::shared_ptr<ParserHandle>();
@@ -118,6 +123,7 @@ std::shared_ptr<ParserHandle> parsePatterns(PatternInfo& pinfo, uint32& numError
     }
     else {
       ++numErrors;
+      onError(pinfo.Patterns[i], lg_error(parser.get()));
     }    
   }
   // don't enable these unless debugging -- will mess up enscript
@@ -372,6 +378,18 @@ void writeProgram(const Options& opts) {
   out << *p << std::endl;
 }
 
+void validate(const Options& opts) {
+  PatternInfo pinfo;
+  pinfo.Patterns = opts.getKeys();
+  if (pinfo.Patterns.empty()) {
+    return;
+  }
+  uint32 numErrors = 0;
+  parsePatterns(pinfo, numErrors, [](const Pattern& p, const std::string&) {
+    std::cerr << p.Index << ": pattern \"" << p.Expression << "\" is invalid for encoding " << p.Encoding << std::endl;
+  });
+}
+
 void writeSampleMatches(const Options& opts) {
   if (opts.getKeys().empty()) {
     return;
@@ -436,6 +454,9 @@ int main(int argc, char** argv) {
     }
     else if (opts.Command == "samp") {
       writeSampleMatches(opts);
+    }
+    else if (opts.Command == "validate") {
+      validate(opts);
     }
     else {
       // this should be impossible
