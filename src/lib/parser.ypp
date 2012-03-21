@@ -552,7 +552,7 @@ namespace {
   }
 
   void yyerror(const char* msg) {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
       msg << ", at offset " << (Text - TextBegin)
     );
   }
