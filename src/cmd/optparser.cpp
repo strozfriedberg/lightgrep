@@ -59,7 +59,7 @@ void parse_opts(int argc, char** argv,
   po::options_description general("Command selection");
   general.add_options()
     ("command,c", po::value<std::string>(&command)->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
-    ("help", "produce help message")
+    ("help", "display this help message")
     ("list-encodings", "list known encodings")
     ;
 
@@ -124,6 +124,7 @@ void parse_opts(int argc, char** argv,
   //
 
 // FIXME: do something to exclude multiple command specfications
+
   opts.Command = Options::BOGUS;
 
   // convert help option to command
