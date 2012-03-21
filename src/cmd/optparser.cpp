@@ -124,6 +124,11 @@ void parse_opts(int argc, char** argv,
 
 // FIXME: do something to exclude multiple command specfications
 
+  //
+  // determine which command we got
+  //
+
+// FIXME: do something to exclude multiple command specfications
   opts.Command = Options::BOGUS;
 
   // convert help option to command
