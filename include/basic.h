@@ -20,3 +20,8 @@ typedef long long int64;
   throw exceptType(buf.str())
 
 #define THROW_RUNTIME_ERROR_WITH_OUTPUT(expression) THROW_WITH_OUTPUT(std::runtime_error, expression)
+
+#define THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(expression) \
+  std::stringstream buf; \
+  buf << expression; \
+  throw std::runtime_error(buf.str())
