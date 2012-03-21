@@ -50,7 +50,7 @@ void parse_opts(int argc, char** argv,
   desc.add_options()
     ("help", "produce help message")
     ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
-    ("command,c", po::value<std::string>(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|server]")
+    ("command,c", po::value<std::string>(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
     ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles), "path to file containing keywords")
     ("input", po::value<std::string>(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value<std::string>(&opts.Output)->default_value("-"), "output file (stdout default)")
@@ -96,6 +96,7 @@ void parse_opts(int argc, char** argv,
 
   if (opts.Command == "search" || opts.Command == "graph" ||
       opts.Command == "prog"   || opts.Command == "samp"  ||
+      opts.Command == "validate" ||
       opts.Command == "server")
   {
     // determine the source of our patterns
