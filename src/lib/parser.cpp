@@ -52,7 +52,7 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
     }
   }
   if (!good) {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
       "Unrecognized encoding '" << pattern.Encoding << "'"
     );
   }
@@ -79,9 +79,9 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
       return;
     }
     else {
-      THROW_RUNTIME_ERROR_WITH_OUTPUT("Empty matches");
+      THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("Empty matches");
     }
   }
 
-  THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not parse");
+  THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("Could not parse");
 }
