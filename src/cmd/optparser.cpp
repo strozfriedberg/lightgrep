@@ -68,7 +68,7 @@ void parse_opts(int argc, char** argv,
   pats.add_options()
     ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles), "path to file containing keywords")
     ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns), "a keyword on the command-line")
-    ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
+    ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ASCII"), "encodings to use (e.g., ASCII, UTF-8)")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ;
@@ -78,7 +78,6 @@ void parse_opts(int argc, char** argv,
   io.add_options()
     ("input", po::value<std::string>(&opts.Input)->default_value("-"), "file to search")
     ("output,o", po::value<std::string>(&opts.Output)->default_value("-"), "output file (stdout default)")
->>>>>>> Divided command-lineoptions into sections. Makes them easier to browse.
     ("recursive,r", "traverse directories recursively")
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
