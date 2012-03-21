@@ -38,6 +38,10 @@ std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
 void parse_opts(int argc, char** argv,
                 po::options_description& desc, Options& opts) {
 
+  //
+  // set up argument parsing
+  //
+
   std::string command;
 
   po::positional_options_description posOpts;
@@ -95,10 +99,15 @@ void parse_opts(int argc, char** argv,
     #endif
     ;
 
+  // desc collects all of the options in case of --help
   desc.add(general).add(pats).add(io).add(misc);
 
   po::options_description allOpts;
   allOpts.add(desc).add(hidden);
+
+  //
+  // do option parsing
+  //
 
   po::variables_map optsMap;
   po::store(
@@ -110,8 +119,12 @@ void parse_opts(int argc, char** argv,
   );
   po::notify(optsMap);
 
-// FIXME: do something to exclude multiple command specfications
 
+  //
+  // determine which command we got
+  //
+
+// FIXME: do something to exclude multiple command specfications
   opts.Command = Options::BOGUS;
 
   // convert help option to command
@@ -124,7 +137,7 @@ void parse_opts(int argc, char** argv,
     opts.Command =  Options::ENCODINGS;
   }
 
-  if (!command.empty()) {
+  if (opts.Command == Options::BOGUS) {
     const std::map<std::string,Options::CommandTypes> cmds;
     cmds.insert(std::make_pair("search",   Options::SEARCH));
     cmds.insert(std::make_pair("graph",    Options::GRAPH));
@@ -134,8 +147,14 @@ void parse_opts(int argc, char** argv,
     cmds.insert(std::make_pair("server",   Options::SERVER));
 
     auto i = cmds.find(command);
-    opts.Command = i != cmds.end() ? i->second : Options::BOGUS;
+    if (i != cmds.end()) {
+      opts.Command = i->second;
+    }
   }
+
+  //
+  // sort out the other options based on our command
+  //
 
   switch (opts.Command) {
   case Options::SEARCH:
