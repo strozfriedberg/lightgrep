@@ -11,7 +11,10 @@ elif (isWindows):
 
 mainEnv = env.Clone()
 if (env['customer'] and len(env['customer'])):
-  esc = ''.join([ '\\\\x%x' % ord(c) for c in env['customer']])
+  if (isWindows):
+    esc = ''.join([ '\\x%x' % ord(c) for c in env['customer']])
+  else:
+    esc = ''.join([ '\\\\x%x' % ord(c) for c in env['customer']])
   print("esc customer: %s" % esc)
   mainEnv.Append(CPPDEFINES=['LIGHTGREP_CUSTOMER=%s' % esc])
 
