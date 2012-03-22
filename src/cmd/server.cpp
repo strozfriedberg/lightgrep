@@ -87,20 +87,31 @@ public:
     std::stringstream buf;
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
-      buf << "Total Hits" << std::ends << TotalHits << std::ends;
-      buf << "File Counts" << std::ends;
-      for (unsigned int i = 0; i < FileCounts.size(); ++i) {
-        uint64 c = FileCounts[i];
+      buf.write((char*)&ResponsiveFiles, sizeof(ResponsiveFiles));
+      buf.write((char*)&TotalHits, sizeof(TotalHits));
+      // buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
+      // buf << "Total Hits" << std::ends << TotalHits << std::ends;
+      // buf << "File Counts" << std::ends;
+      uint32 i;
+      uint64 c;
+      for (i = 0; i < FileCounts.size(); ++i) {
+        c = FileCounts[i];
         if (c > 0) {
-          buf << i << '\t' << c << std::ends;
+          // buf << i << '\t' << c << std::ends;
+          buf.write((char*)&i, sizeof(i));
+          buf.write((char*)&c, sizeof(c));
         }
       }
-      buf << "Hit Counts" << std::ends;
-      for (unsigned int i = 0; i < HitCounts.size(); ++i) {
-        uint64 c = HitCounts[i];
+      i = 0xffffffff;
+      c = 0xffffffffffffffff;
+      buf.write((char*)&i, sizeof(i));
+      buf.write((char*)&c, sizeof(c));
+      for (i = 0; i < HitCounts.size(); ++i) {
+        c = HitCounts[i];
         if (c > 0) {
-          buf << i << '\t' << c << std::ends;
+          // buf << i << '\t' << c << std::ends;
+          buf.write((char*)&i, sizeof(i));
+          buf.write((char*)&c, sizeof(c));
         }
       }
     }
@@ -138,7 +149,7 @@ public:
       boost::mutex::scoped_lock lock(*Mutex);
       std::ofstream statsFile("lightgrep_hit_stats.txt", std::ios::out);
       if (statsFile) {
-        statsFile << stats;
+        statsFile.write(stats.data(), stats.size());
         statsFile.close();
       }
     }
