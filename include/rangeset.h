@@ -6,19 +6,27 @@
 #include <initializer_list>
 #include <vector>
 
+#include <boost/iterator/iterator_facade.hpp>
+
 // TODO: ensure T is unsigned
 // TODO: ensure N is appropriate
 
 template <typename T, T N>
 class RangeSet {
 
+private:
+  typedef typename std::vector<T>::iterator internal_iterator;
+  typedef typename std::vector<T>::const_iterator const_internal_iterator;
+
 public:
   typedef typename std::vector<T>::size_type size_type;
 
-  typedef typename std::vector<T>::iterator iterator;
+/*
+  typedef typename internal_iterator iterator;
   typedef typename std::vector<T>::const_iterator const_iterator;
   typedef typename std::vector<T>::reverse_iterator reverse_iterator;
   typedef typename std::vector<T>::const_reverse_iterator const_reverse_iterator;
+*/
 
   RangeSet() {}
 
@@ -94,8 +102,8 @@ public:
   }
 
   RangeSet<T,N>& operator|=(const RangeSet<T,N>& r) {
-    const const_iterator end(r.end());
-    for (const_iterator i(r.begin()); i != end; ++i) {
+    const const_internal_iterator end(r.vec.end());
+    for (const_internal_iterator i(r.vec.begin()); i != end; ++i) {
       insert(*i, *++i);
     }
     return *this;
@@ -128,7 +136,7 @@ public:
   }
 
   bool test(size_type pos) const {
-    const const_iterator i = std::lower_bound(vec.begin(), vec.end(), pos);
+    const const_internal_iterator i(std::lower_bound(vec.begin(), vec.end(), pos));
     if (i == vec.end()) {
       return false;
     }
@@ -199,59 +207,82 @@ public:
 
   size_type count() const {
     size_type c = 0;
-    const const_iterator end(vec.end());
-    for (const_iterator i(vec.begin()); i != end; i += 2) {
+    const const_internal_iterator end(vec.end());
+    for (const_internal_iterator i(vec.begin()); i != end; i += 2) {
       c += *(i+1) - *i;
     }
     return c;
   }
 
-  iterator begin() {
-    return vec.begin();
-  }
+  template <typename V>
+  class const_range_iterator:
+    public boost::iterator_facade<
+      const_range_iterator<V>,
+      std::pair<V,V> const,
+      std::random_access_iterator_tag,
+      std::pair<V,V>
+    >
+  {
+  public:
+    const_range_iterator(): i() {}
+
+    const_range_iterator(const typename std::vector<V>::const_iterator& vi): i(vi) {}
+
+    typedef typename boost::iterator_facade<const_range_iterator<V>, std::pair<V,V> const, std::random_access_iterator_tag, std::pair<V,V>>::difference_type difference_type;
+
+  private:
+    friend class boost::iterator_core_access;
+
+    void increment() { i += 2; }
+
+    void decrement() { i -= 2; }
+
+    void advance(difference_type n) { i += 2*n; }
+
+    difference_type distance_to(const const_range_iterator<V>& o) const {
+      return (o.i - i) / 2;
+    }
+
+    bool equal(const const_range_iterator<V>& o) const { return o.i == i; }
+
+    std::pair<V,V> dereference() const { return std::make_pair(*i, *(i+1)); }
+
+    typename std::vector<V>::const_iterator i;
+  };
+
+  typedef const_range_iterator<T> const_iterator;
+  typedef std::reverse_iterator<const_range_iterator<T>> const_reverse_iterator;
 
   const_iterator begin() const {
-    return vec.begin();
+    return const_iterator(vec.begin());
   }
 
   const_iterator cbegin() const {
-    return vec.cbegin();
-  }
-
-  iterator end() {
-    return vec.end();
+    return const_iterator(vec.cbegin());
   }
 
   const_iterator end() const {
-    return vec.end();
+    return const_iterator(vec.end());
   }
 
   const_iterator cend() const {
-    return vec.cend();
-  }
-
-  reverse_iterator rbegin() {
-    return vec.rbegin();
+    return const_iterator(vec.cend());
   }
 
   const_reverse_iterator rbegin() const {
-    return vec.rbegin();
+    return const_reverse_iterator(vec.rbegin());
   }
 
   const_reverse_iterator crbegin() const {
-    return vec.crbegin();
-  }
-
-  reverse_iterator rend() {
-    return vec.rend();
+    return const_reverse_iterator(vec.crbegin());
   }
 
   const_reverse_iterator rend() const {
-    return vec.rend();
+    return const_reverse_iterator(vec.rend());
   }
 
   const_reverse_iterator crend() const {
-    return vec.crend();
+    return const_reverse_iterator(vec.crend());
   }
 
   size_type size() const {
@@ -313,8 +344,8 @@ public:
       return;
     }
 
-    iterator l(std::lower_bound(vec.begin(), vec.end(), first));
-    iterator u(std::upper_bound(l, vec.end(), last));
+    internal_iterator l(std::lower_bound(vec.begin(), vec.end(), first));
+    internal_iterator u(std::upper_bound(l, vec.end(), last));
 
     if (l == vec.end() || u == vec.begin()) {
       vec.insert(l, { first, last });
@@ -375,9 +406,8 @@ bool operator!=(const std::bitset<N>& b, const RangeSet<T,N>& r) {
 template <typename T, T N>
 std::ostream& operator<<(std::ostream& o, const RangeSet<T,N>& rs) {
   const typename RangeSet<T,N>::const_iterator end(rs.end());
-  for (typename RangeSet<T,N>::const_iterator i(rs.begin()); i != end; ) {
-    o << '[' << *i++ << ',';
-    o << *i++ << ") ";
+  for (typename RangeSet<T,N>::const_iterator i(rs.begin()); i != end; ++i) {
+    o << '[' << i->first << ',' << i->second << ") ";
   }
   return o;
 }

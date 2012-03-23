@@ -58,10 +58,10 @@ SCOPE_TEST(rangeSetSomeTest) {
 
   bitset_equivalence_tester(b, r);
 
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
-  SCOPE_ASSERT_EQUAL(2, r.cend() - r.cbegin());
-  SCOPE_ASSERT_EQUAL(2, r.rend() - r.rbegin());
-  SCOPE_ASSERT_EQUAL(2, r.crend() - r.crbegin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.cend() - r.cbegin());
+  SCOPE_ASSERT_EQUAL(1, r.rend() - r.rbegin());
+  SCOPE_ASSERT_EQUAL(1, r.crend() - r.crbegin());
 }
 
 SCOPE_TEST(rangeSetAllTest) {
@@ -72,10 +72,10 @@ SCOPE_TEST(rangeSetAllTest) {
 
   bitset_equivalence_tester(b, r);
 
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
-  SCOPE_ASSERT_EQUAL(2, r.cend() - r.cbegin());
-  SCOPE_ASSERT_EQUAL(2, r.rend() - r.rbegin());
-  SCOPE_ASSERT_EQUAL(2, r.crend() - r.crbegin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.cend() - r.cbegin());
+  SCOPE_ASSERT_EQUAL(1, r.rend() - r.rbegin());
+  SCOPE_ASSERT_EQUAL(1, r.crend() - r.crbegin());
 }
 
 SCOPE_TEST(rangeSetSetResetTest) {
@@ -137,22 +137,22 @@ SCOPE_TEST(rangeSetInsertDisjointTest) {
   for (uint32 i = 0; i < 5; ++i) { b[i] = true; }
   r.insert(0, 5);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 27; i < 42; ++i) { b[i] = true; }
   r.insert(27, 42);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(4, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
 
   for (uint32 i = 44; i < 48; ++i) { b[i] = true; }
   r.insert(44, 48);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(6, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(3, r.end() - r.begin());
 
   for (uint32 i = 10; i < 13; ++i) { b[i] = true; }
   r.insert(10, 13);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(8, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(4, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertMeetLeftTest) {
@@ -163,12 +163,12 @@ SCOPE_TEST(rangeSetInsertMeetLeftTest) {
   for (uint32 i = 20; i < 25; ++i) { b[i] = true; }
   r.insert(20, 25);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertMeetRightTest) {
@@ -179,12 +179,12 @@ SCOPE_TEST(rangeSetInsertMeetRightTest) {
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 20; i < 25; ++i) { b[i] = true; }
   r.insert(20, 25);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertSuperTest) {
@@ -195,12 +195,12 @@ SCOPE_TEST(rangeSetInsertSuperTest) {
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 10; i < 25; ++i) { b[i] = true; }
   r.insert(10, 25);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertSubTest) {
@@ -211,12 +211,12 @@ SCOPE_TEST(rangeSetInsertSubTest) {
   for (uint32 i = 10; i < 25; ++i) { b[i] = true; }
   r.insert(10, 25);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertEmpty) {
@@ -238,15 +238,15 @@ SCOPE_TEST(rangeSetInsertOutOfOrderTest) {
 
   b[0] = r[0] = true;
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   b[255] = r[255] = true;
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(4, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
 
   b['A'] = r['A'] = true;
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(6, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(3, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertRandomTest) {
