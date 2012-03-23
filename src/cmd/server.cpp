@@ -8,6 +8,14 @@
 #include <iostream>
 #include <memory>
 
+#define BOOST_ENABLE_ASSERT_HANDLER 1
+
+namespace boost {
+  void assertion_failed(char const * expr, char const * function, char const * file, long line) {
+    std::cerr << "boost assert failed: " << expr << " in " << function << " in " << file << ":" << line << std::endl;
+  }
+}
+
 #include <boost/asio.hpp>
 
 #include "handles.h"
@@ -337,10 +345,18 @@ void sendStats(tcp::socket& sock) {
   Registry::get().getStats(stats);
   uint64 bytes = stats.size();
   boost::asio::write(sock, boost::asio::buffer(&bytes, sizeof(bytes)));
-  byte ack;
-  if (boost::asio::read(sock, boost::asio::buffer(&ack, sizeof(ack))) == sizeof(ack)) {
-    boost::asio::write(sock, boost::asio::buffer(stats));
-    SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
+  uint64 ackBytes = 0;
+  if (boost::asio::read(sock, boost::asio::buffer(&ackBytes, sizeof(ackBytes))) == sizeof(ackBytes)) {
+    if (ackBytes == bytes) {
+      boost::asio::write(sock, boost::asio::buffer(stats));
+      SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
+    }
+    else {
+      THROW_RUNTIME_ERROR_WITH_OUTPUT("Ack bytes for stats did not match sent bytes. ackBytes = " << ackBytes << ", sent = " << bytes);
+    }
+  }
+  else {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not read back the acknowledged size of the stats bytes");
   }
 }
 
@@ -411,7 +427,7 @@ void processConn(
         }
       }
       else {
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket\n");
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
       }
       // uint32 i = ntohl(*(uint32*)data);
     }
