@@ -21,13 +21,6 @@ private:
 public:
   typedef typename std::vector<T>::size_type size_type;
 
-/*
-  typedef typename internal_iterator iterator;
-  typedef typename std::vector<T>::const_iterator const_iterator;
-  typedef typename std::vector<T>::reverse_iterator reverse_iterator;
-  typedef typename std::vector<T>::const_reverse_iterator const_reverse_iterator;
-*/
-
   RangeSet() {}
 
   RangeSet(T first, T last): vec{ first, last } {}
