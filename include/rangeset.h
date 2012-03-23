@@ -207,21 +207,20 @@ public:
     return c;
   }
 
-  template <typename V>
   class const_range_iterator:
     public boost::iterator_facade<
-      const_range_iterator<V>,
-      std::pair<V,V> const,
+      const_range_iterator,
+      std::pair<T,T> const,
       std::random_access_iterator_tag,
-      std::pair<V,V>
+      std::pair<T,T>
     >
   {
   public:
     const_range_iterator(): i() {}
 
-    const_range_iterator(const typename std::vector<V>::const_iterator& vi): i(vi) {}
+    const_range_iterator(const const_internal_iterator& vi): i(vi) {}
 
-    typedef typename boost::iterator_facade<const_range_iterator<V>, std::pair<V,V> const, std::random_access_iterator_tag, std::pair<V,V>>::difference_type difference_type;
+    typedef typename boost::iterator_facade<const_range_iterator, std::pair<T,T> const, std::random_access_iterator_tag, std::pair<T,T>>::difference_type difference_type;
 
   private:
     friend class boost::iterator_core_access;
@@ -232,19 +231,19 @@ public:
 
     void advance(difference_type n) { i += 2*n; }
 
-    difference_type distance_to(const const_range_iterator<V>& o) const {
+    difference_type distance_to(const const_range_iterator& o) const {
       return (o.i - i) / 2;
     }
 
-    bool equal(const const_range_iterator<V>& o) const { return o.i == i; }
+    bool equal(const const_range_iterator& o) const { return o.i == i; }
 
-    std::pair<V,V> dereference() const { return std::make_pair(*i, *(i+1)); }
+    std::pair<T,T> dereference() const { return std::make_pair(*i, *(i+1)); }
 
-    typename std::vector<V>::const_iterator i;
+    const_internal_iterator i;
   };
 
-  typedef const_range_iterator<T> const_iterator;
-  typedef std::reverse_iterator<const_range_iterator<T>> const_reverse_iterator;
+  typedef const_range_iterator const_iterator;
+  typedef std::reverse_iterator<const_range_iterator> const_reverse_iterator;
 
   const_iterator begin() const {
     return const_iterator(vec.begin());
