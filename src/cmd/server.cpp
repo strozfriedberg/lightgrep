@@ -465,11 +465,10 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
     }
 
     while (true) {
-      std::auto_ptr<tcp::socket> socket(new tcp::socket(srv));
+      std::shared_ptr<tcp::socket> socket(new tcp::socket(srv));
       SAFEWRITE(buf, "Created socket\n");
       acceptor.accept(*socket);
       SAFEWRITE(buf, "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << "\n");
-      std::shared_ptr<tcp::socket> s(socket.release());
 
       LG_HITCALLBACK_FN callback;
       std::shared_ptr<ServerWriter> writer;
@@ -479,10 +478,10 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
       }
       else {
         callback = &socketWriter;
-        writer.reset(new SocketWriter(s, pinfo));
+        writer.reset(new SocketWriter(socket, pinfo));
       }
 
-      boost::thread spawned(std::bind(processConn, s, prog, writer, callback)); // launches the thread, then detaches
+      boost::thread spawned(std::bind(processConn, socket, prog, writer, callback)); // launches the thread, then detaches
     }
   }
   catch (std::exception& e) {
