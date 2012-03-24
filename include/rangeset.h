@@ -207,12 +207,14 @@ public:
     return c;
   }
 
+  typedef std::pair<T,T> range;
+
   class const_range_iterator:
     public boost::iterator_facade<
       const_range_iterator,
-      std::pair<T,T> const,
+      range const,
       std::random_access_iterator_tag,
-      std::pair<T,T>
+      range
     >
   {
   public:
@@ -220,7 +222,7 @@ public:
 
     const_range_iterator(const const_internal_iterator& vi): i(vi) {}
 
-    typedef typename boost::iterator_facade<const_range_iterator, std::pair<T,T> const, std::random_access_iterator_tag, std::pair<T,T>>::difference_type difference_type;
+    typedef typename boost::iterator_facade<const_range_iterator, range const, std::random_access_iterator_tag, range>::difference_type difference_type;
 
   private:
     friend class boost::iterator_core_access;
@@ -237,7 +239,7 @@ public:
 
     bool equal(const const_range_iterator& o) const { return o.i == i; }
 
-    std::pair<T,T> dereference() const { return std::make_pair(*i, *(i+1)); }
+    range dereference() const { return std::make_pair(*i, *(i+1)); }
 
     const_internal_iterator i;
   };
@@ -327,8 +329,8 @@ public:
     set(pos, !test(pos));
   }
 
-  void insert(const std::pair<T,T>& range) {
-    insert(range.first, range.second);
+  void insert(const range& r) {
+    insert(r.first, r.second);
   }
 
   void insert(const T& first, const T& last) {
