@@ -21,6 +21,8 @@ NFAPtr createGraph(const std::vector<Pattern>& keywords,
 
 class Visitor {
 public:
+  virtual ~Visitor() {}
+
   virtual void discoverVertex(NFA::VertexDescriptor,
                               const NFA&) const {}
 
