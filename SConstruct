@@ -73,7 +73,7 @@ else:
   ldflags = ''
 
 ccflags = '-pedantic -Wall -Wextra -pipe %s' % (flags)
-cppflags = '-std=c++0x'
+cppflags = '-std=c++0x -Wnon-virtual-dtor'
 
 # add vendors/scope and vendors/boost as system include paths, if they exist
 ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
