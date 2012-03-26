@@ -44,6 +44,10 @@ if (isWindows):
   # This define results in BOOST_USE_WINDOWS_H being defined, but only in the right place,
   # so as to limit exposure to name conflicts caused by our friend, windows.h
   defines.append('POLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H')
+
+  if (platform.release() == 'XP'):
+    defines.append('_WIN32_WINNT=0x0501')
+
   if (not env['isShared']):
     defines.append('BOOST_THREAD_USE_LIB')
 else:
