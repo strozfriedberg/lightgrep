@@ -316,7 +316,7 @@ SCOPE_TEST(simpleLitMatch) {
 }
 
 SCOPE_TEST(newThreadInit) {
-  ProgramPtr p(new Program(15, Instruction::makeRaw32(0)));
+  ProgramPtr p(new Program(17, Instruction::makeRaw32(0)));
   Program& prog(*p); 
   prog[0]  = Instruction::makeJumpTableRange('a', 'b');
   prog[1]  = Instruction::makeRaw32(4);
