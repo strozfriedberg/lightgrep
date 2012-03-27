@@ -13,6 +13,10 @@ public:
   uint32  NumChecked;
 
   ByteSet First;
+
+  int bufSize() const {
+  	return sizeof(First) + sizeof(NumChecked) + (size() * sizeof(value_type));
+  }
 };
 
 typedef std::shared_ptr<Program> ProgramPtr;
