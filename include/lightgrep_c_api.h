@@ -92,6 +92,17 @@ extern "C" {
   LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
                                 const LG_ProgramOptions* options);
 
+  // The size, in bytes, of the search program. Used for serialization.
+  int lg_program_size(LG_HPROGRAM hProg);
+
+  // Serialize the program, in binary format, to a buffer. The buffer must be
+  // at least as large as lg_program_size() in bytes.
+  void lg_write_program(void* buffer);
+
+  // Read in a serialized program, given the binary buffer and size. No
+  // versioning check is done so don't keep these around too long.
+  LG_HPROGRAM lg_read_program(void* buffer, int size);
+
   // A Program must live as long as any associated contexts,
   // so only call this at the end.
   int lg_destroy_program(LG_HPROGRAM hProg);

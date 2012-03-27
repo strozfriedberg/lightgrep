@@ -175,6 +175,19 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
   return hProg;
 }
 
+int lg_program_size(LG_HPROGRAM hProg) {
+  return 0;
+}
+
+void lg_write_program(void* buffer) {
+
+}
+
+LG_HPROGRAM lg_read_program(void* buffer, int size) {
+  LG_HPROGRAM hProg = create_handle<ProgramHandle>();
+  return hProg;
+}
+
 int lg_destroy_program(LG_HPROGRAM hProg) {
   return destroy_handle(hProg);
 }
