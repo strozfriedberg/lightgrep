@@ -104,7 +104,8 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
   // to vertices in dst before dstskip go before the insertion point in
   // src, edges to vertices in dst after dstskip go after the insertion
   // point in src.
-  const InListT::const_iterator skip_stop(dst.begin() + dstskip);
+  const InListT::const_iterator skip_stop(
+    dstskip < dst.size() ? dst.begin() + dstskip : dst.end());
 
   for (OutListT::iterator oi(src.begin()); oi != src.end(); ++oi) {
     uint32 pos = oi->second;
