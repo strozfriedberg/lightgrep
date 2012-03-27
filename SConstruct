@@ -73,7 +73,7 @@ else:
   ldflags = ''
 
 ccflags = '-pedantic -Wall -Wextra -pipe %s' % (flags)
-cppflags = '-std=c++0x'
+cppflags = '-std=c++0x -Wnon-virtual-dtor'
 
 # add vendors/scope and vendors/boost as system include paths, if they exist
 ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
@@ -101,7 +101,7 @@ if (not (conf.CheckCXXHeader('boost/scoped_ptr.hpp')
    print('Boost sanity check failed.')
    Exit(1)
 
-if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
+if (not isWindows and 'DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
 liblg = sub('src/lib')
