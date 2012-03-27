@@ -64,7 +64,7 @@ public:
 
   void reset();
 
-  virtual void callback(const ParseNode& n);
+  void callback(const ParseNode& n);
 
   void setEncoding(const std::shared_ptr<Encoding>& e);
   void setCaseInsensitive(bool insensitive); // defaults to true
