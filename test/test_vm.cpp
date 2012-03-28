@@ -174,7 +174,12 @@ SCOPE_TEST(executeBitVector) {
 }
 
 SCOPE_TEST(executeLabel) {
-  ProgramPtr p(new Program(1, Instruction::makeLabel(34)));
+  ProgramPtr p(new Program(3, Instruction::makeRaw32(0)));
+  Program& prog(*p);
+  prog[0] = Instruction::makeLabel(34);
+  prog[1] = Instruction::makeHalt();
+  prog[2] = Instruction::makeFinish();
+
   Vm s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
   SCOPE_ASSERT(s.executeEpsilon(&cur, 57));
