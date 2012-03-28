@@ -291,15 +291,15 @@ SCOPE_TEST(testInit) {
 }
 
 SCOPE_TEST(simpleLitMatch) {
-  ProgramPtr p(new Program(7, Instruction::makeRaw32(0)));
+  ProgramPtr p(new Program(8, Instruction::makeRaw32(0)));
   Program& prog(*p);
   prog[0] = Instruction::makeLit('a');
   prog[1] = Instruction::makeLit('b');
   prog[2] = Instruction::makeLabel(3);
   prog[3] = Instruction::makeMatch();
-  prog[4] = Instruction::makeFork(&prog[4], 6);
-  prog[5] = Instruction::makeHalt();
-  prog[6] = Instruction::makeFinish();
+  prog[4] = Instruction::makeFork(&prog[4], 7);
+  prog[6] = Instruction::makeHalt();
+  prog[7] = Instruction::makeFinish();
 
   byte text[] = {'a', 'b', 'c'};
   Vm v;
