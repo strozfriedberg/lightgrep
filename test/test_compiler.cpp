@@ -506,7 +506,7 @@ SCOPE_TEST(testDeterminize1) {
   edge(1, 2, exp, exp.TransFac->getLit('a'));
   edge(1, 2, exp, exp.TransFac->getLit('a'));
   edge(2, 3, exp, exp.TransFac->getLit('a'));
-  edge(2, 4, exp, exp.TransFac->getLit('a')); 
+  edge(2, 4, exp, exp.TransFac->getLit('a'));
   edge(4, 3, exp, exp.TransFac->getLit('a'));
 
   exp[3].IsMatch = true;
