@@ -2,7 +2,7 @@
 
 #include "basic.h"
 
-class Instruction;
+struct Instruction;
 
 class Transition {
 public:
