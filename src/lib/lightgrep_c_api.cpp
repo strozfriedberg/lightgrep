@@ -169,23 +169,37 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
   if (!hProg) {
     return 0;
   }
-
   exception_trap(std::bind(&create_program, hParser, hProg, options->Determinize), hProg);
 
   return hProg;
 }
-
-int lg_program_size(LG_HPROGRAM hProg) {
-  return 0;
+ 
+void write_program(LG_HPROGRAM hProg, void* buffer) {
+  std::string buf = hProg->Impl->Prog->marshall();
+  memcpy(buffer, buf.data(), buf.size());
+}
+ 
+void read_program(LG_HPROGRAM hProg, void* buffer, int size) {
+  hProg->Impl.reset(new ProgramHandleImpl);
+  std::string s((char*)buffer, size);
+  hProg->Impl->Prog = Program::unmarshall(s);
 }
 
-void lg_write_program(void* buffer) {
-
+int lg_program_size(LG_HPROGRAM hProg) {
+  return exception_trap(std::bind(&Program::bufSize, *hProg->Impl->Prog), hProg);
 }
 
 LG_HPROGRAM lg_read_program(void* buffer, int size) {
   LG_HPROGRAM hProg = create_handle<ProgramHandle>();
+  if (!hProg) {
+    return 0;
+  }
+  exception_trap(std::bind(&read_program, hProg, buffer, size), hProg);
   return hProg;
+}
+
+void lg_write_program(LG_HPROGRAM hProg, void* buffer) {
+  exception_trap(std::bind(write_program, hProg, buffer), hProg);
 }
 
 int lg_destroy_program(LG_HPROGRAM hProg) {
