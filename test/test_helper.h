@@ -2,9 +2,7 @@
 
 #include "automata.h"
 
-void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, TransitionPtr tPtr);
-
-void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, Transition* tPtr);
+void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, Transition* trans);
 
 bool edgeExists(const NFA& g, const NFA::VertexDescriptor source, const NFA::VertexDescriptor target);
 
