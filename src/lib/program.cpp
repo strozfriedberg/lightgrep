@@ -25,9 +25,8 @@ ProgramPtr Program::unmarshall(const std::string& s) {
   std::stringstream buf(s);
   buf.read((char*)&p->NumChecked, sizeof(uint32));
   buf.read((char*)&p->First, sizeof(ByteSet));
-  while (buf) {
-    Instruction i;
-    buf.read((char*)&i, sizeof(Instruction));
+  Instruction i;
+  while (buf.read((char*)&i, sizeof(Instruction))) {
     p->push_back(i);
   }
   std::cerr << "unmarshalled program of size " << s.size() << std::endl;
