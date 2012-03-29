@@ -246,13 +246,52 @@ void searchRecursively(const fs::path& path, SearchController& ctrl, std::shared
   }
 }
 
-void searches(const Options& opts) {
+std::shared_ptr<ProgramHandle> getProgram(const Options& opts, PatternInfo& pinfo) {
+  if (!opts.ProgramFile.empty()) {
+    std::cerr << "creating program from file " << opts.ProgramFile << std::endl;
+    std::ifstream progFile(opts.ProgramFile.c_str(), std::ios::in | std::ios::binary);
+    if (progFile) {
+      // this is seriously tedious compared to, oh, I don't know, file.size()
+      progFile.seekg(0, std::ios::end);
+      std::streampos end = progFile.tellg();
+      progFile.seekg(0, std::ios::beg);
+
+      std::cerr << "program file is " << end << " bytes long" << std::endl;
+
+      std::vector<char> buf(end);
+      progFile.read(&buf[0], end);
+      progFile.close();
+
+      auto encMap(getEncodingsMap());
+      auto foundEnc(encMap.end());
+
+      for (auto p: pinfo.Patterns) {
+        if ((foundEnc = encMap.find(p.Encoding)) != encMap.end()) {
+          pinfo.Table.emplace_back(p.Index, foundEnc->second);
+        }
+      }
+      return std::shared_ptr<ProgramHandle>(lg_read_program(&buf[0], end), lg_destroy_program);
+    }
+    else {
+      std::cerr << "Could not open program file " << opts.ProgramFile << std::endl;
+    }
+    return std::shared_ptr<ProgramHandle>();
+  }
+  else {
+    std::cerr << "creating program from patters" << std::endl;
+    return createProgram(opts, pinfo);
+  }
+}
+
+void search(const Options& opts) {
   // parse patterns and get index and encoding info for hit writer
   PatternInfo pinfo;
   pinfo.Patterns = opts.getKeys();
 
-  std::shared_ptr<ProgramHandle> prog(createProgram(opts, pinfo));
+
+  std::shared_ptr<ProgramHandle> prog(getProgram(opts, pinfo));
   if (!prog) {
+    std::cerr << "Did not get a proper program" << std::endl;
     return;
   }
 
@@ -368,14 +407,21 @@ void writeProgram(const Options& opts) {
     }
  
     NFAPtr g(parser->Impl->Fsm);
-    std::cerr << g->verticesSize() << " vertices" << std::endl;
   }
 
   // break on through the C API to print the program
   ProgramPtr p(prog->Impl->Prog);
   std::cerr << p->size() << " instructions" << std::endl;
+  std::cerr << p->bufSize() << " program size in bytes" << std::endl;
   std::ostream& out(opts.openOutput());
-  out << *p << std::endl;
+  if (opts.Binary) {
+    std::string s = p->marshall();
+    std::cerr << s.size() << " program size in bytes" << std::endl;
+    out.write(s.data(), s.size());
+  }
+  else {
+    out << *p << std::endl;    
+  }
 }
 
 void validate(const Options& opts) {
@@ -438,7 +484,7 @@ int main(int argc, char** argv) {
     parse_opts(argc, argv, desc, opts);
 
     if (opts.Command == "search") {
-      searches(opts);
+      search(opts);
     }
     else if (opts.Command == "server") {
       startServer(opts);
