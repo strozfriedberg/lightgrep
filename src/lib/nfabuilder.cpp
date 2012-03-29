@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <utility>
+#include <cctype>
 
 
 std::ostream& operator<<(std::ostream& out, const InListT& list) {
@@ -145,7 +146,7 @@ void NFABuilder::literal(const ParseNode& n) {
   if (0 == len) {
     // FXIME: should we really be checking this if it's supposed to be
     // an impossible condition?
-    throw std::logic_error("bad things");
+    THROW_WITH_OUTPUT(std::logic_error, "literal value " << n.Val << " could not be encoded (zero-length)");
   }
   else {
     NFA& g(*Fsm);

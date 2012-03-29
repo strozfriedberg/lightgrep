@@ -40,7 +40,7 @@ struct Fragment {
     InList.clear();
     InList.push_back(in);
     OutList.clear();
-    OutList.emplace_back(in, 0);
+    OutList.emplace_back(OutListT::value_type(in, 0));
   }
 
   void reset(const ParseNode& n) {
