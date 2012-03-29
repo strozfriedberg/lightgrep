@@ -44,6 +44,10 @@ if (isWindows):
   # This define results in BOOST_USE_WINDOWS_H being defined, but only in the right place,
   # so as to limit exposure to name conflicts caused by our friend, windows.h
   defines.append('POLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H')
+
+  if (platform.release() == 'XP'):
+    defines.append('_WIN32_WINNT=0x0501')
+
   if (not env['isShared']):
     defines.append('BOOST_THREAD_USE_LIB')
 else:
@@ -73,7 +77,7 @@ else:
   ldflags = ''
 
 ccflags = '-pedantic -Wall -Wextra -pipe %s' % (flags)
-cppflags = '-std=c++0x'
+cppflags = '-std=c++0x -Wnon-virtual-dtor'
 
 # add vendors/scope and vendors/boost as system include paths, if they exist
 ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
@@ -101,7 +105,7 @@ if (not (conf.CheckCXXHeader('boost/scoped_ptr.hpp')
    print('Boost sanity check failed.')
    Exit(1)
 
-if ('DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
+if (not isWindows and 'DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
 liblg = sub('src/lib')
