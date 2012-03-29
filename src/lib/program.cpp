@@ -18,10 +18,7 @@ std::string Program::marshall() const {
   for (auto instruction: *this) {
     buf.write((char*)&instruction, sizeof(instruction));
   }
-  std::streampos len = buf.tellp();
-  std::string ret = buf.str();
-//  ret.erase(ret.begin() + len, ret.end());
-  return ret;
+  return buf.str();
 }
 
 ProgramPtr Program::unmarshall(const std::string& s) {
