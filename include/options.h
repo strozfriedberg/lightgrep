@@ -23,7 +23,8 @@ public:
               Input,
               Output,
               Encoding,
-              ServerLog;
+              ServerLog,
+              ProgramFile;
 
   std::vector<std::string> Inputs,
                            CmdLinePatterns,
@@ -36,7 +37,8 @@ public:
        NoOutput,
        Determinize,
        PrintPath,
-       Recursive;
+       Recursive,
+       Binary;
 
   mutable std::ofstream OutputFile;
 
