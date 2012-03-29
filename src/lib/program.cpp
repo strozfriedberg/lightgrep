@@ -3,6 +3,10 @@
 #include <sstream>
 #include <iostream>
 
+int Program::bufSize() const {
+  return sizeof(ByteSet) + sizeof(uint32) + (size() * sizeof(value_type));
+}
+
 bool Program::operator==(const Program& rhs) const {
   return NumChecked == rhs.NumChecked && First == rhs.First && std::equal(begin(), end(), rhs.begin());
 }
@@ -29,6 +33,5 @@ ProgramPtr Program::unmarshall(const std::string& s) {
   while (buf.read((char*)&i, sizeof(Instruction))) {
     p->push_back(i);
   }
-  std::cerr << "unmarshalled program of size " << s.size() << std::endl;
   return p;
 }
