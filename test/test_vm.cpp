@@ -306,17 +306,17 @@ SCOPE_TEST(simpleLitMatch) {
   prog.First.set('a');
   v.init(p);
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT(!v.search(text, &text[3], 35, &mockCallback, &hits));
+  SCOPE_ASSERT(!v.search(text, text + 3, 35, &mockCallback, &hits));
   v.closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(1u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(35, 37, 3), hits[0]);
   text[1] = 'c';
   hits.clear();
-  SCOPE_ASSERT(!v.search(text, &text[3], 35, &mockCallback, &hits));
+  SCOPE_ASSERT(!v.search(text, text + 3 , 35, &mockCallback, &hits));
 }
 
 SCOPE_TEST(newThreadInit) {
-  ProgramPtr p(new Program(15, Instruction::makeRaw32(0)));
+  ProgramPtr p(new Program(17, Instruction::makeRaw32(0)));
   Program& prog(*p); 
   prog[0]  = Instruction::makeJumpTableRange('a', 'b');
   prog[1]  = Instruction::makeRaw32(4);
