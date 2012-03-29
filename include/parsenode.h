@@ -25,14 +25,14 @@ struct ParseNode {
 
   ParseNode *Left;
 
-  union {
+//  union  {
     ParseNode* Right;
     int Val;
     struct {
       uint32 Min, Max;
     } Rep;
     ByteSet Bits;
-  };
+  //};
 
   ParseNode(): Type(LITERAL), Left(0), Val(0) {}
 

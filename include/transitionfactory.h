@@ -41,7 +41,7 @@ public:
 
 private:
   Transition* get(Transition* t) {
-    const std::set<Transition*>::const_iterator i = Exemplars.find(t);
+    auto i = Exemplars.find(t);
     if (i == Exemplars.end()) {
       return *Exemplars.insert(t->clone()).first;
     }

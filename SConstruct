@@ -57,8 +57,10 @@ vars.Save('build_variables.py', env)
 
 debug = env['debug']
 if (debug == 'true'):
-  flags = '-g -fstack-protector-all'
+  flags = '-g'
   ldflags = ''
+  if (not isWindows):
+    flags += ' -fstack-protector-all'
 elif (debug == 'profile'):
   flags = '-g -pg -O'
   ldflags = '-pg'
@@ -78,6 +80,9 @@ else:
 
 ccflags = '-pedantic -Wall -Wextra -pipe %s' % (flags)
 cppflags = '-std=c++0x -Wnon-virtual-dtor'
+
+if (isWindows):
+  cppflags += ' -mthreads'
 
 # add vendors/scope and vendors/boost as system include paths, if they exist
 ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))

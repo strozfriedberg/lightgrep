@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <ostream>
+#include <functional>
 
 template <typename T,
           template <typename E, typename A = std::allocator<E>> class C>
