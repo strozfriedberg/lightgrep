@@ -420,7 +420,7 @@ void writeProgram(const Options& opts) {
     out.write(s.data(), s.size());
   }
   else {
-    out << *p << std::endl;    
+    out << *p << std::endl;
   }
 }
 
