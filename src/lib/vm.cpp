@@ -468,9 +468,9 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
 
     for (t = First.begin(); t != First.end(); ++t) {
       #ifdef LBT_TRACE_ENABLED
-      Active.emplace_back(t->PC, Thread::NOLABEL, NextId++, offset, Thread::NONE);
+      Active.emplace_back(Thread(t->PC, Thread::NOLABEL, NextId++, offset, Thread::NONE));
       #else
-      Active.emplace_back(t->PC, Thread::NOLABEL, offset, Thread::NONE);
+      Active.emplace_back(Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE));
       #endif
 
       #ifdef LBT_TRACE_ENABLED
@@ -531,7 +531,7 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64 s
 
   if (Prog->First[*beg]) {
     for (ThreadList::const_iterator t(First.begin()); t != First.end(); ++t) {
-      Active.emplace_back(t->PC, Thread::NOLABEL, offset, Thread::NONE);
+      Active.emplace_back(Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE));
     }
 
     for (const byte* cur = beg; cur < end; ++cur, ++offset) {

@@ -32,7 +32,7 @@ using boost::asio::ip::tcp;
 static const uint64 BUF_SIZE = 1024 * 1024;
 
 //********************************************************
-
+/*
 class SafeStream {
 public:
   SafeStream(std::ostream* baseStream, const std::shared_ptr<boost::mutex>& mutex):
@@ -62,7 +62,7 @@ namespace {
 
 SafeStream writeErr() {
   return SafeStream(ErrOut, ErrMutex);
-}
+}*/
 //********************************************************
 
 void cleanSeppuku(int sig);
@@ -155,7 +155,7 @@ public:
     getStats(stats);
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      std::ofstream statsFile("lightgrep_hit_stats.txt", std::ios::out);
+      std::ofstream statsFile("lightgrep_hit_stats.txt", std::ios::out | std::ios::binary);
       if (statsFile) {
         statsFile.write(stats.data(), stats.size());
         statsFile.close();
@@ -174,7 +174,7 @@ private:
 };
 
 void cleanSeppuku(int) {
-  writeErr() += "Received SIGTERM. Shutting down...\n";
+  // writeErr() += "Received SIGTERM. Shutting down...\n";
   Registry::get().cleanup();
   exit(0);
 }
@@ -301,7 +301,7 @@ public:
   virtual void flush() {
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      writeErr() += "Flushing hits file\n";
+      // writeErr() += "Flushing hits file\n";
       for (StaticVector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
         *Output << it->ID << '\t' 
                 << it->Offset << '\t'
@@ -328,19 +328,19 @@ void safeFileWriter(void* userData, const LG_SearchHit* const hit) {
 //********************************************************
 
 static const unsigned char ONE = 1;
-
+/*
 #define SAFEWRITE(ssbuf, EXPR) \
   ssbuf.str(std::string()); \
   ssbuf << EXPR; \
   writeErr() += ssbuf.str();
-
+*/
 FileHeader::Commands getCommand(const FileHeader& hdr) {
   return FileHeader::Commands(hdr.Cmd);
 }
 
 void sendStats(tcp::socket& sock) {
   std::stringstream buf;
-  writeErr() += "asked for stats\n";
+  // writeErr() += "asked for stats\n";
   std::string stats;
   Registry::get().getStats(stats);
   uint64 bytes = stats.size();
@@ -349,7 +349,7 @@ void sendStats(tcp::socket& sock) {
   if (boost::asio::read(sock, boost::asio::buffer(&ackBytes, sizeof(ackBytes))) == sizeof(ackBytes)) {
     if (ackBytes == bytes) {
       boost::asio::write(sock, boost::asio::buffer(stats));
-      SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
+      // SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
     }
     else {
       THROW_RUNTIME_ERROR_WITH_OUTPUT("Ack bytes for stats did not match sent bytes. ackBytes = " << ackBytes << ", sent = " << bytes);
@@ -364,7 +364,7 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   byte* data, LG_HITCALLBACK_FN callback)
 {
   std::stringstream buf;
-  SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");
+  // SAFEWRITE(buf, "told to read " << hdr.Length << " bytes for ID " << hdr.ID << "\n");
   output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
   output->setType(hdr.Type);
   std::size_t len = 0;
@@ -417,11 +417,11 @@ void processConn(
             sendStats(*sock);
             break;
           case FileHeader::HANGUP:
-            writeErr() += "received conn shutdown sequence, acknowledging and waiting for close\n";
+            // writeErr() += "received conn shutdown sequence, acknowledging and waiting for close\n";
             boost::asio::write(*sock, boost::asio::buffer(&ONE, sizeof(ONE)));
             break;
           case FileHeader::SHUTDOWN:
-            writeErr() += "received hard shutdown command, terminating\n";
+            // writeErr() += "received hard shutdown command, terminating\n";
             cleanSeppuku(0); // die
             break;
         }
@@ -433,7 +433,7 @@ void processConn(
     }
   }
   catch (std::exception& e) {
-    SAFEWRITE(buf, "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n');
+    // SAFEWRITE(buf, "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n');
   }
 //  SAFEWRITE(buf, "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n");
   output->flush();
@@ -443,15 +443,15 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
 	std::stringstream buf;
   try {
     boost::asio::io_service srv;
-    if (!opts.ServerLog.empty()) {
-      ErrOut = new std::ofstream(opts.ServerLog.c_str(), std::ios::out);
-    }
-    else {
-      ErrOut = &std::cerr;
-    }
-		SAFEWRITE(buf, "Created service\n");
+    // if (!opts.ServerLog.empty()) {
+    //   ErrOut = new std::ofstream(opts.ServerLog.c_str(), std::ios::out);
+    // }
+    // else {
+    //   ErrOut = &std::cerr;
+    // }
+		// SAFEWRITE(buf, "Created service\n");
     tcp::acceptor acceptor(srv, tcp::endpoint(tcp::v4(), 12777));
-    SAFEWRITE(buf, "Created acceptor\n");
+    // SAFEWRITE(buf, "Created acceptor\n");
 
     bool usesFile = false;
     if (opts.Output != "-") {
@@ -466,9 +466,9 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
 
     while (true) {
       std::shared_ptr<tcp::socket> socket(new tcp::socket(srv));
-      SAFEWRITE(buf, "Created socket\n");
+      // SAFEWRITE(buf, "Created socket\n");
       acceptor.accept(*socket);
-      SAFEWRITE(buf, "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << "\n");
+      // SAFEWRITE(buf, "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << "\n");
 
       LG_HITCALLBACK_FN callback;
       std::shared_ptr<ServerWriter> writer;
@@ -485,11 +485,11 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
     }
   }
   catch (std::exception& e) {
-    writeErr() += std::stringstream() << e.what() << std::endl;
+    // writeErr() += std::stringstream() << e.what() << std::endl;
   }
 
-  if (&std::cerr != ErrOut) {
-    delete ErrOut;
-    ErrOut = 0;
-  }
+  // if (&std::cerr != ErrOut) {
+  //   delete ErrOut;
+  //   ErrOut = 0;
+  // }
 }

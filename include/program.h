@@ -16,10 +16,9 @@ public:
 
   uint32  NumChecked;
 
-  int bufSize() const {
-  	return sizeof(First) + sizeof(NumChecked) + (size() * sizeof(value_type));
-  }
-};
+  ByteSet First;
+
+  int bufSize() const;
   bool operator==(const Program& rhs) const;
 
   std::string marshall() const;

@@ -32,7 +32,11 @@ std::ostream& Options::openOutput() const {
   }
   else {
     OutputFile.clear();
-    OutputFile.open(Output.c_str(), std::ios::out);
+    std::ios_base::openmode mode = std::ios::out;
+    if (Binary) {
+      mode |= std::ios::binary;
+    }
+    OutputFile.open(Output.c_str(), mode);
     if (!OutputFile) {
       THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file " << Output);
     }

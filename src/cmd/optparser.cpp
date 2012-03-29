@@ -58,12 +58,14 @@ void parse_opts(int argc, char** argv,
     ("no-det", "do not determinize NFAs")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
+    ("binary", "Output program as binary")
     ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns), "a keyword on the command-line")
     ("recursive,r", "traverse directories recursively")
     ("block-size", po::value<unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
     ("server-log", po::value<std::string>(&opts.ServerLog), "Server output to file")
+    ("program-file", po::value<std::string>(&opts.ProgramFile), "Read search program from file")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value<uint64>(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value<uint64>(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
@@ -123,6 +125,7 @@ void parse_opts(int argc, char** argv,
 
     opts.CaseInsensitive = optsMap.count("ignore-case") > 0;
     opts.LiteralMode = optsMap.count("fixed-strings") > 0;
+    opts.Binary = optsMap.count("binary") > 0;
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;

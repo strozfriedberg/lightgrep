@@ -20,7 +20,7 @@ void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, Parser& p, ui
     try {
       p.addPattern(keywords[i], keyIdx);
     }
-    catch (std::runtime_error& err) {
+    catch (std::runtime_error&) {
       if (!ignoreBad) {
         throw;
       }
@@ -30,7 +30,7 @@ void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, Parser& p, ui
 
 uint32 totalCharacters(const std::vector<Pattern>& keywords) {
   uint32 ret = 0;
-  for (const Pattern& p : keywords) {
+  for (auto& p : keywords) {
     ret += p.Expression.size();
   }
   return ret;
