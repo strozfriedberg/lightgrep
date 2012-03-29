@@ -222,7 +222,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(std::bind(&VmInterface::startsWith, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
+  exception_trap(std::bind(&VmInterface::startsWith, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData), hCtx);
 }
 
 unsigned int lg_search(LG_HCONTEXT hCtx,
@@ -234,7 +234,7 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
 {
 // FIXME: return Active[0]->Start
 
-  exception_trap(std::bind(&VmInterface::search, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, *callbackFn, userData), hCtx);
+  exception_trap(std::bind(&VmInterface::search, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData), hCtx);
 
   return 0;
 }
@@ -243,6 +243,6 @@ void lg_closeout_search(LG_HCONTEXT hCtx,
                         void* userData,
                         LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(std::bind(&VmInterface::closeOut, hCtx->Impl->Vm, *callbackFn, userData), hCtx);
+  exception_trap(std::bind(&VmInterface::closeOut, hCtx->Impl->Vm, callbackFn, userData), hCtx);
 
 }

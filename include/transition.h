@@ -2,9 +2,7 @@
 
 #include "basic.h"
 
-#include <memory>
-
-class Instruction;
+struct Instruction;
 
 class Transition {
 public:
@@ -24,6 +22,3 @@ private:
   Transition(const Transition&) {}
   Transition& operator=(const Transition&) {return *this;}
 };
-
-typedef std::shared_ptr<Transition> TransitionPtr;
-

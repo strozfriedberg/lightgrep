@@ -2,17 +2,13 @@
 
 #include "test_helper.h"
 
-void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, TransitionPtr tPtr) {
+void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, Transition* trans) {
 
   while (source >= fsm.verticesSize()) fsm.addVertex();
   while (target >= fsm.verticesSize()) fsm.addVertex();
 
   fsm.addEdge(source, target);
-  fsm[target].Trans = tPtr->clone();
-}
-
-void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, Transition* tPtr) {
-  edge(source, target, fsm, TransitionPtr(tPtr));
+  fsm[target].Trans = trans;
 }
 
 bool edgeExists(const NFA& g, const NFA::VertexDescriptor source, const NFA::VertexDescriptor target) {
