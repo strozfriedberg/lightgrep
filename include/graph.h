@@ -52,6 +52,11 @@ private:
     VertexDescriptor Head, Tail;
   };
 
+  VList Vertices;
+  EList Edges;
+
+  EdgeDescriptorStorage<EdgeDescriptor> Store;
+
 public:
   Graph(VertexSizeType vActual = 0): Vertices(vActual, VertexData()) {}
 
@@ -326,11 +331,6 @@ private:
       }
     }
   }
-
-  VList Vertices;
-  EList Edges;
-
-  EdgeDescriptorStorage<EdgeDescriptor> Store;
 };
 
 template <class G, class V, class E, template <typename> class S> std::ostream& operator<<(std::ostream& out, const Graph<G,V,E,S>& g) {
