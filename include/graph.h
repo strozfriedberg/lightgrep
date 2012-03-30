@@ -11,7 +11,7 @@ template <class GraphType,
           class VertexType,
           class EdgeType,
           template <typename> class EdgeDescriptorStorage>
-class Graph : public GraphType
+class Graph: public GraphType
 {
 private:
   struct VertexData;
@@ -37,7 +37,7 @@ public:
 
 private:
 #pragma pack(push, 1)
-  struct VertexData : public VertexType {
+  struct VertexData: public VertexType {
     VertexData(): VertexType() {}
 
     VertexData(const VertexType& v): VertexType(v) {}
@@ -46,7 +46,7 @@ private:
   };
 #pragma pack(pop)
 
-  struct EdgeData : public EdgeType {
+  struct EdgeData: public EdgeType {
     EdgeData(VertexDescriptor head, VertexDescriptor tail, const EdgeType& e): EdgeType(e), Head(head), Tail(tail) {}
 
     VertexDescriptor Head, Tail;
