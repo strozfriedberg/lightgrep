@@ -93,14 +93,25 @@ SCOPE_TEST(executeAny) {
 }
 
 SCOPE_TEST(executeJump) {
-  ProgramPtr p(new Program(2, Instruction()));
-  (*p)[0] = Instruction::makeJump(&(*p)[0], 18);
+  ProgramPtr p(new Program(10, Instruction()));
+  Program& prog(*p);
+  prog[0] = Instruction::makeJump(&(*p)[0], 7);
+  prog[2] = Instruction::makeHalt();
+  prog[3] = Instruction::makeHalt();
+  prog[4] = Instruction::makeHalt();
+  prog[5] = Instruction::makeHalt();
+  prog[5] = Instruction::makeHalt();
+  prog[6] = Instruction::makeHalt();
+  prog[7] = Instruction::makeHalt();
+  prog[8] = Instruction::makeHalt();
+  prog[9] = Instruction::makeFinish();
+
   Vm s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
   SCOPE_ASSERT(s.executeEpsilon(&cur, 0));
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(&(*p)[18], s.active().front().PC);
+  SCOPE_ASSERT_EQUAL(&(*p)[7], s.active().front().PC);
 }
 
 SCOPE_TEST(executeJumpTableRange) {
@@ -174,7 +185,12 @@ SCOPE_TEST(executeBitVector) {
 }
 
 SCOPE_TEST(executeLabel) {
-  ProgramPtr p(new Program(1, Instruction::makeLabel(34)));
+  ProgramPtr p(new Program(3, Instruction::makeRaw32(0)));
+  Program& prog(*p);
+  prog[0] = Instruction::makeLabel(34);
+  prog[1] = Instruction::makeHalt();
+  prog[2] = Instruction::makeFinish();
+
   Vm s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
   SCOPE_ASSERT(s.executeEpsilon(&cur, 57));
@@ -291,15 +307,15 @@ SCOPE_TEST(testInit) {
 }
 
 SCOPE_TEST(simpleLitMatch) {
-  ProgramPtr p(new Program(7, Instruction::makeRaw32(0)));
+  ProgramPtr p(new Program(8, Instruction::makeRaw32(0)));
   Program& prog(*p);
   prog[0] = Instruction::makeLit('a');
   prog[1] = Instruction::makeLit('b');
   prog[2] = Instruction::makeLabel(3);
   prog[3] = Instruction::makeMatch();
-  prog[4] = Instruction::makeFork(&prog[4], 6);
-  prog[5] = Instruction::makeHalt();
-  prog[6] = Instruction::makeFinish();
+  prog[4] = Instruction::makeFork(&prog[4], 7);
+  prog[6] = Instruction::makeHalt();
+  prog[7] = Instruction::makeFinish();
 
   byte text[] = {'a', 'b', 'c'};
   Vm v;
