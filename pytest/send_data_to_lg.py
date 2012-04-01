@@ -3,6 +3,8 @@
 import struct
 import socket
 import random
+import string
+import os
 from multiprocessing import Process
 
 class LGClient:
@@ -16,7 +18,7 @@ class LGClient:
 
   def __init__(self, prefix):
     self.prefix = prefix
-    self.totalStreams = random.randint(1, 10000)
+    self.totalStreams = random.randint(1, 10)
     self.hdr = struct.Struct('<BBQQQ')
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -38,10 +40,16 @@ class LGClient:
 
   def sendStream(self, i):
     id = self.prefix + i
-    len = random.randint(1, 2 << 30)
+    len = random.randint(1, 2 << 28)
     self.sendSearchHeader(id, len)
-    for i in xrange(len):
-      self.sock.sendall(chr(random.getrandbits(8)))
+    pages = len // 4096
+    remainder = len % 4096
+    for i in xrange(pages):
+      data = ''.join(random.choice(string.ascii_lowercase) for x in xrange(4096))
+      self.sock.sendall(data)
+    data = ''.join(random.choice(string.ascii_lowercase) for x in xrange(remainder))
+    self.sock.sendall(data)
+    print("sent %s bytes for id %s" % (len, id))
 
   def run(self):
     self.connect()
