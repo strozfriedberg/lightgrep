@@ -386,7 +386,94 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   }
 }
 
+class LGServer;
+
 void processConn(
+  LGServer* server,
+  std::shared_ptr<tcp::socket> sock,
+  std::shared_ptr<ProgramHandle> prog,
+  std::shared_ptr<ServerWriter> output,
+  LG_HITCALLBACK_FN callback);
+
+class LGServer {
+public:
+  LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts, unsigned short port);
+
+  void run();
+  void stop() { Service.stop(); }
+
+private:
+  void resetAcceptor();
+  void accept(const boost::system::error_code& err);
+
+  const Options&          Opts;
+  std::shared_ptr<ProgramHandle> Prog;
+  const PatternInfo&      PInfo;
+  bool                    UsesFile;
+
+  boost::asio::io_service Service;
+  tcp::acceptor           Acceptor;
+
+  std::shared_ptr<tcp::socket> Socket;
+  std::vector< boost::thread > Threads;
+};
+
+LGServer::LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo,
+  const Options& opts, unsigned short port)
+  : Opts(opts), Prog(prog), PInfo(pinfo), Service(), Acceptor(Service)
+{
+  if (Opts.Output != "-") {
+    if (!Registry::get().init(Opts.Output, PInfo.Patterns.size())) {
+      THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file at " << Opts.Output);
+    }
+  }
+  else {
+    Registry::get().init("", pinfo.Patterns.size());
+  }
+  tcp::endpoint endpoint(tcp::v4(), port);
+
+  Acceptor.open(endpoint.protocol());
+  Acceptor.set_option(tcp::acceptor::reuse_address(true));
+  Acceptor.bind(endpoint);
+  Acceptor.listen();
+
+  resetAcceptor();
+}
+
+void LGServer::run() {
+  Service.run();
+  for (auto& t: Threads) {
+    t.join();
+  }
+}
+
+void LGServer::resetAcceptor() {
+  Socket.reset(new tcp::socket(Service));
+  Acceptor.async_accept(*Socket,
+    boost::bind(&LGServer::accept, this, boost::asio::placeholders::error));
+}
+
+void LGServer::accept(const boost::system::error_code& err) {
+  if (!err) {
+    LG_HITCALLBACK_FN callback;
+    std::shared_ptr<ServerWriter> writer;
+    if (UsesFile) {
+      callback = &safeFileWriter;
+      writer.reset(new SafeFileWriter(Registry::get().File, Registry::get().Mutex, PInfo));
+    }
+    else {
+      callback = &socketWriter;
+      writer.reset(new SocketWriter(Socket, PInfo));
+    }
+    Threads.push_back(boost::thread(
+      std::bind(processConn, this, Socket, Prog, writer, callback))
+    );
+  }
+  resetAcceptor();
+}
+
+void processConn(
+  LGServer* server,
   std::shared_ptr<tcp::socket> sock,
   std::shared_ptr<ProgramHandle> prog,
   std::shared_ptr<ServerWriter> output,
@@ -400,7 +487,7 @@ void processConn(
     lg_destroy_context
   );
 
-	std::stringstream buf;
+  std::stringstream buf;
 
   try {
     while (true) {
@@ -422,7 +509,8 @@ void processConn(
             break;
           case FileHeader::SHUTDOWN:
             // writeErr() += "received hard shutdown command, terminating\n";
-            cleanSeppuku(0); // die
+            server->stop();
+            THROW_RUNTIME_ERROR_WITH_OUTPUT("received shutdown command");
             break;
         }
       }
@@ -442,54 +530,11 @@ void processConn(
 void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
 	std::stringstream buf;
   try {
-    boost::asio::io_service srv;
-    // if (!opts.ServerLog.empty()) {
-    //   ErrOut = new std::ofstream(opts.ServerLog.c_str(), std::ios::out);
-    // }
-    // else {
-    //   ErrOut = &std::cerr;
-    // }
-		// SAFEWRITE(buf, "Created service\n");
-    tcp::acceptor acceptor(srv, tcp::endpoint(tcp::v4(), 12777));
-    // SAFEWRITE(buf, "Created acceptor\n");
-
-    bool usesFile = false;
-    if (opts.Output != "-") {
-      if (!Registry::get().init(opts.Output, pinfo.Patterns.size())) {
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file at " << opts.Output);
-      }
-      usesFile = true;
-    }
-    else {
-      Registry::get().init("", pinfo.Patterns.size());
-    }
-
-    while (true) {
-      std::shared_ptr<tcp::socket> socket(new tcp::socket(srv));
-      // SAFEWRITE(buf, "Created socket\n");
-      acceptor.accept(*socket);
-      // SAFEWRITE(buf, "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << "\n");
-
-      LG_HITCALLBACK_FN callback;
-      std::shared_ptr<ServerWriter> writer;
-      if (usesFile) {
-        callback = &safeFileWriter;
-        writer.reset(new SafeFileWriter(Registry::get().File, Registry::get().Mutex, pinfo));
-      }
-      else {
-        callback = &socketWriter;
-        writer.reset(new SocketWriter(socket, pinfo));
-      }
-
-      boost::thread spawned(std::bind(processConn, socket, prog, writer, callback)); // launches the thread, then detaches
-    }
+    LGServer srv(prog, pinfo, opts, 12777);
+    srv.run();
   }
   catch (std::exception& e) {
     // writeErr() += std::stringstream() << e.what() << std::endl;
   }
-
-  // if (&std::cerr != ErrOut) {
-  //   delete ErrOut;
-  //   ErrOut = 0;
-  // }
+  Registry::get().cleanup();
 }
