@@ -7,7 +7,7 @@ libs.extend([lib + env['boostType'] for lib in
 if (isLinux):
   libs.append('pthread')
 elif (isWindows):
-  libs.append('ws2_32') # so stupid that I have to specify winsock
+  libs.extend(['ws2_32', 'mswsock']) # so stupid that I have to specify winsock
 
 mainEnv = env.Clone()
 if (env['customer'] and len(env['customer'])):
