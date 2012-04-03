@@ -395,12 +395,94 @@ void processConn(
   std::shared_ptr<ServerWriter> output,
   LG_HITCALLBACK_FN callback);
 
+class HitStats {
+public:
+  HitStats(uint32 numKeywords);
+
+  void updateHits(const std::vector<uint32>& hitsForFile);
+
+  std::string getStats() const;
+
+private:
+  std::vector<uint64> FileCounts,
+                      HitCounts;
+  uint64              ResponsiveFiles,
+                      TotalHits;
+};
+
+HitStats::HitStats(uint32 numKeywords):
+  FileCounts(numKeywords, 0),
+  HitCounts(numKeywords, 0),
+  ResponsiveFiles(0), TotalHits(0)
+{}
+
+void HitStats::updateHits(const std::vector<uint32>& hitsForFile) {
+  uint64 c = 0;
+  bool hadHits = false;
+  for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
+    c = hitsForFile[i];
+    if (c > 0) {
+      HitCounts[i] += c;
+      ++FileCounts[i];
+      TotalHits += c;
+      hadHits = true;
+    }
+  }
+  if (hadHits) {
+    ++ResponsiveFiles;
+  }
+}
+
+std::string HitStats::getStats() const {
+  std::stringstream buf;
+  buf.write((char*)&ResponsiveFiles, sizeof(ResponsiveFiles));
+  buf.write((char*)&TotalHits, sizeof(TotalHits));
+  // buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
+  // buf << "Total Hits" << std::ends << TotalHits << std::ends;
+  // buf << "File Counts" << std::ends;
+  uint32 i;
+  uint64 c;
+  for (i = 0; i < FileCounts.size(); ++i) {
+    c = FileCounts[i];
+    if (c > 0) {
+      // buf << i << '\t' << c << std::ends;
+      buf.write((char*)&i, sizeof(i));
+      buf.write((char*)&c, sizeof(c));
+    }
+  }
+  i = 0xffffffff;
+  c = 0xffffffffffffffff;
+  buf.write((char*)&i, sizeof(i));
+  buf.write((char*)&c, sizeof(c));
+  for (i = 0; i < HitCounts.size(); ++i) {
+    c = HitCounts[i];
+    if (c > 0) {
+      // buf << i << '\t' << c << std::ends;
+      buf.write((char*)&i, sizeof(i));
+      buf.write((char*)&c, sizeof(c));
+    }
+  }
+  return buf.str();
+}
+
 class LGServer {
 public:
   LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts, unsigned short port);
 
   void run();
   void stop() { Service.stop(); }
+
+  void writeHits(const std::vector<HitInfo>& hits);
+
+  void updateHits(const std::vector<uint32> hitsForFile) {
+    boost::mutex::scoped_lock lock(Mutex);
+    Stats.updateHits(hitsForFile);
+  }
+
+  std::string getStats() const {
+    boost::mutex::scoped_lock lock(Mutex);
+    return Stats.getStats();
+  }
 
 private:
   void resetAcceptor();
@@ -416,11 +498,14 @@ private:
 
   std::shared_ptr<tcp::socket> Socket;
   std::vector< boost::thread > Threads;
+  mutable boost::mutex         Mutex;
+  HitStats                     Stats;
 };
 
 LGServer::LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo,
   const Options& opts, unsigned short port)
-  : Opts(opts), Prog(prog), PInfo(pinfo), Service(), Acceptor(Service)
+  : Opts(opts), Prog(prog), PInfo(pinfo), Service(), Acceptor(Service),
+    Stats(pinfo.Table.size())
 {
   if (Opts.Output != "-") {
     if (!Registry::get().init(Opts.Output, PInfo.Patterns.size())) {
@@ -470,6 +555,10 @@ void LGServer::accept(const boost::system::error_code& err) {
     );
   }
   resetAcceptor();
+}
+
+void LGServer::writeHits(const std::vector<HitInfo>&) {
+
 }
 
 void processConn(
