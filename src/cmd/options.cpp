@@ -8,7 +8,7 @@
 #include "options.h"
 #include "utility.h"
 
-bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const {
+bool Options::readKeyFile(const std::string& keyFilePath, PatternInfo& keys) const {
   std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
   if (keyFile) {
     uint32 i = 0;
@@ -44,11 +44,13 @@ std::ostream& Options::openOutput() const {
   }
 }
 
-std::vector<Pattern> Options::getKeys() const {
-  std::vector<Pattern> ret;
+PatternInfo Options::getKeys() const {
+  PatternInfo ret;
   if (!CmdLinePatterns.empty()) {
+    uint32 keyIndex = 0;
     for (std::string p : CmdLinePatterns) {
-      parseLine(0, p, ret);
+      parseLine(keyIndex, p, ret);
+      ++keyIndex;
     }
   }
   else {
@@ -73,13 +75,13 @@ void setBool(const std::string& s, bool& b) {
   // don't set if unrecognized
 }
 
-bool Options::parseLine(uint32 keyIndex, const std::string& line, std::vector<Pattern>& keys) const {
+bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& keys) const {
   typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
 
   if (!line.empty()) {
     const tokenizer tokens(line, boost::char_separator<char>("\t"));
     unsigned int num = 0;
-    for (tokenizer::const_iterator it(tokens.begin()); it != tokens.end(); ++it) {
+    for (auto it: tokens) {
       ++num;
     }
     if (num > 0) {
@@ -96,8 +98,9 @@ bool Options::parseLine(uint32 keyIndex, const std::string& line, std::vector<Pa
       if (encList.begin() != encList.end()) {
         for (std::string enc : encList) {
           p.Encoding = enc;
-          keys.push_back(p);
+          keys.Patterns.push_back(p);
         }
+        ++keys.NumUserPatterns;
         return true;
       }
     }
