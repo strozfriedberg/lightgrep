@@ -285,9 +285,7 @@ std::shared_ptr<ProgramHandle> getProgram(const Options& opts, PatternInfo& pinf
 
 void search(const Options& opts) {
   // parse patterns and get index and encoding info for hit writer
-  PatternInfo pinfo;
-  pinfo.Patterns = opts.getKeys();
-
+  PatternInfo pinfo = opts.getKeys();
 
   std::shared_ptr<ProgramHandle> prog(getProgram(opts, pinfo));
   if (!prog) {
@@ -361,8 +359,7 @@ bool writeGraphviz(const Options& opts) {
     return false;
   }
 
-  PatternInfo pinfo;
-  pinfo.Patterns = opts.getKeys();
+  PatternInfo pinfo = opts.getKeys();
 
   // parse patterns
   uint32 numErrors;
@@ -390,8 +387,7 @@ void writeProgram(const Options& opts) {
     return;
   }
 
-  PatternInfo pinfo;
-  pinfo.Patterns = opts.getKeys();
+  PatternInfo pinfo = opts.getKeys();
 
   std::shared_ptr<ProgramHandle> prog;
 
@@ -425,9 +421,8 @@ void writeProgram(const Options& opts) {
 }
 
 void validate(const Options& opts) {
-  PatternInfo pinfo;
-  pinfo.Patterns = opts.getKeys();
-  if (pinfo.Patterns.empty()) {
+  PatternInfo pinfo = opts.getKeys();
+  if (pinfo.empty()) {
     return;
   }
   uint32 numErrors = 0;
@@ -437,11 +432,9 @@ void validate(const Options& opts) {
 }
 
 void writeSampleMatches(const Options& opts) {
-  if (opts.getKeys().empty()) {
-    return;
-  }
+  PatternInfo pinfo = opts.getKeys();
 
-  for (const Pattern& pat : opts.getKeys()) {
+  for (const Pattern& pat : pinfo.Patterns) {
     // parse the pattern
 
     PatternInfo pinfo;
@@ -462,8 +455,7 @@ void writeSampleMatches(const Options& opts) {
 }
 
 void startServer(const Options& opts) {
-  PatternInfo pinfo;
-  pinfo.Patterns = opts.getKeys();
+  PatternInfo pinfo = opts.getKeys();
 
   uint32 numErrors;
   std::shared_ptr<ParserHandle> parser(parsePatterns(pinfo, numErrors));
