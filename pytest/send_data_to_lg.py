@@ -24,6 +24,7 @@ class LGClient:
 
   def connect(self):
     self.sock.connect(('127.0.0.1', 12777))
+    self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
     print("connected to lg as " + str(self.sock.getsockname()))
 
   def sendSearchHeader(self, id, len):
@@ -40,7 +41,7 @@ class LGClient:
 
   def sendStream(self, i):
     id = self.prefix + i
-    len = random.randint(1, 2 << 28)
+    len = random.randint(1, 2 << 16)
     self.sendSearchHeader(id, len)
     pages = len // 4096
     remainder = len % 4096
