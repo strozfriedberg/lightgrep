@@ -371,6 +371,7 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   uint64 offset = hdr.StartOffset,
          totalRead = 0;
   while (totalRead < hdr.Length) {
+    boost::this_thread::interruption_point();
     len = sock.read_some(boost::asio::buffer(data, std::min(BUF_SIZE, hdr.Length - totalRead)));
     SAFEWRITE(buf, hdr.ID << " read " << len << " bytes\n");
     lg_search(searcher.get(), (char*) data, (char*) data + len, offset, output.get(), callback);
@@ -472,7 +473,12 @@ public:
   LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts, unsigned short port);
 
   void run();
-  void stop() { Service.stop(); }
+  void stop() {
+    Service.stop();
+    for (auto& t : Threads) {
+      t.interrupt();
+    }
+  }
 
   void writeHits(const std::vector<HitInfo>& hits);
 
