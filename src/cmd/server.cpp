@@ -521,7 +521,6 @@ LGServer::LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo
   tcp::endpoint endpoint(tcp::v4(), port);
 
   Acceptor.open(endpoint.protocol());
-  Acceptor.set_option(tcp::acceptor::reuse_address(true));
   Acceptor.bind(endpoint);
   Acceptor.listen();
 
@@ -621,7 +620,13 @@ void processConn(
 }
 
 void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
-	std::stringstream buf;
+  if (!opts.ServerLog.empty()) {
+    ErrOut = new std::ofstream(opts.ServerLog.c_str(), std::ios::out);
+  }
+  else {
+    ErrOut = &std::cerr;
+  }
+
   try {
     LGServer srv(prog, pinfo, opts, 12777);
     srv.run();
