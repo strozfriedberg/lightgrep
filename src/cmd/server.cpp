@@ -653,6 +653,7 @@ void processConn(
 void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
   if (!opts.ServerLog.empty()) {
     ErrOut = new std::ofstream(opts.ServerLog.c_str(), std::ios::out);
+    ErrOut->rdbuf()->pubsetbuf(0, 0); // unbuffered
   }
   else {
     ErrOut = &std::cerr;
@@ -665,5 +666,10 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
   catch (std::exception& e) {
     writeErr() += std::stringstream() << e.what() << std::endl;
   }
+
   Registry::get().cleanup();
+
+  if (!opts.ServerLog.empty()) {
+    delete ErrOut;
+  }
 }
