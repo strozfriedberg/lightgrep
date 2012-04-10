@@ -78,6 +78,7 @@ else:
   flags = '-O3'
   ldflags = ''
 
+ldflags += ' -static-libstdc++'
 ccflags = '-pedantic -Wall -Wextra -pipe %s' % (flags)
 cppflags = '-std=c++0x -Wnon-virtual-dtor'
 
