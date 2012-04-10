@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <utility>
+#include <cctype>
 
 
 std::ostream& operator<<(std::ostream& out, const InListT& list) {
@@ -104,7 +105,8 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
   // to vertices in dst before dstskip go before the insertion point in
   // src, edges to vertices in dst after dstskip go after the insertion
   // point in src.
-  const InListT::const_iterator skip_stop(dst.begin() + dstskip);
+  const InListT::const_iterator skip_stop(
+    dstskip < dst.size() ? dst.begin() + dstskip : dst.end());
 
   for (OutListT::iterator oi(src.begin()); oi != src.end(); ++oi) {
     uint32 pos = oi->second;
@@ -144,7 +146,7 @@ void NFABuilder::literal(const ParseNode& n) {
   if (0 == len) {
     // FXIME: should we really be checking this if it's supposed to be
     // an impossible condition?
-    throw std::logic_error("bad things");
+    THROW_WITH_OUTPUT(std::logic_error, "literal value " << n.Val << " could not be encoded (zero-length)");
   }
   else {
     NFA& g(*Fsm);

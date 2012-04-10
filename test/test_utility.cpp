@@ -64,7 +64,7 @@ bool buildNFA(NFA& fsm, const std::string& dot) {
 
     const char lit = boost::lexical_cast<char>(boost::get(edge_label, *e));
 
-    edge(u, v, fsm, new LitState(lit));
+    edge(u, v, fsm, fsm.TransFac->getLit(lit));
   }
 
   return true;
@@ -79,10 +79,10 @@ std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
 SCOPE_TEST(acOrbcProgram) {
   NFA fsm(4);
 
-  edge(0, 1, fsm, new LitState('a')); // ac|bc
-  edge(0, 2, fsm, new LitState('b'));
-  edge(1, 3, fsm, new LitState('c'));
-  edge(2, 3, fsm, new LitState('c'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a')); // ac|bc
+  edge(0, 2, fsm, fsm.TransFac->getLit('b'));
+  edge(1, 3, fsm, fsm.TransFac->getLit('c'));
+  edge(2, 3, fsm, fsm.TransFac->getLit('c'));
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
 
@@ -99,9 +99,9 @@ SCOPE_TEST(acOrbcProgram) {
 
 SCOPE_TEST(keywordLabelsProgram) {
   NFA fsm(4);
-  edge(0, 1, fsm, new LitState('a'));
-  edge(0, 2, fsm, new LitState('b'));
-  edge(2, 3, fsm, new LitState('c'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(0, 2, fsm, fsm.TransFac->getLit('b'));
+  edge(2, 3, fsm, fsm.TransFac->getLit('c'));
 
   fsm[1].Label = 0;
   fsm[3].Label = 1;
@@ -191,8 +191,8 @@ SCOPE_TEST(twoUnicode) {
 
 SCOPE_TEST(firstBitset) {
   NFA fsm(3);
-  edge(0, 1, fsm, new LitState('A'));
-  edge(0, 2, fsm, new LitState('B'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('A'));
+  edge(0, 2, fsm, fsm.TransFac->getLit('B'));
 
   ByteSet accepted = firstBytes(fsm);
   for (unsigned int i = 0; i < 256; ++i) {
@@ -216,7 +216,7 @@ SCOPE_TEST(simpleCollapse) {
 
 SCOPE_TEST(codeGen2DiscoverVertex) {
   NFA fsm(2);
-  edge(0, 1, fsm, new LitState('a'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
   std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
@@ -231,10 +231,10 @@ SCOPE_TEST(codeGen2DiscoverVertex) {
 
 SCOPE_TEST(codeGen2FinishVertex) {
   NFA fsm(5);
-  edge(0, 1, fsm, new LitState('a'));
-  edge(1, 2, fsm, new LitState('b'));
-  edge(2, 3, fsm, new LitState('c'));
-  edge(2, 4, fsm, new LitState('d'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(1, 2, fsm, fsm.TransFac->getLit('b'));
+  edge(2, 3, fsm, fsm.TransFac->getLit('c'));
+  edge(2, 4, fsm, fsm.TransFac->getLit('d'));
   std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
@@ -268,8 +268,8 @@ SCOPE_TEST(codeGen2FinishVertex) {
 
 SCOPE_TEST(alternationCodeGen2FinishVertex) {
   NFA fsm(3);
-  edge(0, 1, fsm, new LitState('a'));
-  edge(0, 2, fsm, new LitState('b'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(0, 2, fsm, fsm.TransFac->getLit('b'));
   std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
@@ -293,9 +293,9 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
 
 SCOPE_TEST(layoutWithCheckHalt) {
   NFA fsm(3);
-  edge(0, 1, fsm, new LitState('a'));
-  edge(1, 2, fsm, new LitState('b'));
-  edge(2, 2, fsm, new LitState('b'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(1, 2, fsm, fsm.TransFac->getLit('b'));
+  edge(2, 2, fsm, fsm.TransFac->getLit('b'));
 
   fsm[2].Label = 0;
   fsm[2].IsMatch = true;
@@ -314,7 +314,7 @@ SCOPE_TEST(layoutWithCheckHalt) {
 
 SCOPE_TEST(twoStateBetterLayout) {
   NFA fsm(2);
-  edge(0, 1, fsm, new LitState('a'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
@@ -326,10 +326,10 @@ SCOPE_TEST(twoStateBetterLayout) {
 
 SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
   NFA g(4);
-  edge(0, 1, g, new LitState('a'));
-  edge(0, 2, g, new LitState('b'));
-  edge(0, 3, g, new LitState('c'));
-  edge(0, 4, g, new LitState('e'));
+  edge(0, 1, g, g.TransFac->getLit('a'));
+  edge(0, 2, g, g.TransFac->getLit('b'));
+  edge(0, 3, g, g.TransFac->getLit('c'));
+  edge(0, 4, g, g.TransFac->getLit('e'));
 
   std::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.verticesSize()));
   CodeGenVisitor vis(cgh);
@@ -343,8 +343,8 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
 
 SCOPE_TEST(alternationBetterLayout) {
   NFA fsm(3);
-  edge(0, 1, fsm, new LitState('a'));
-  edge(0, 2, fsm, new LitState('b'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(0, 2, fsm, fsm.TransFac->getLit('b'));
 
   fsm[1].Label = 0;
   fsm[2].Label = 0;
@@ -363,16 +363,16 @@ SCOPE_TEST(alternationBetterLayout) {
 }
 
 void createTrie(NFA& fsm) {
-  edge(0, 1, fsm, new LitState('a'));
-  edge(1, 2, fsm, new LitState('b'));
-  edge(2, 3, fsm, new LitState('l'));
-  edge(3, 4, fsm, new LitState('e'));
-  edge(2, 5, fsm, new LitState('e'));
-  edge(5, 6, fsm, new LitState('t'));
-  edge(0, 7, fsm, new LitState('b'));
-  edge(7, 8, fsm, new LitState('i'));
-  edge(8, 9, fsm, new LitState('t'));
-  edge(9, 10, fsm, new LitState('e'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(1, 2, fsm, fsm.TransFac->getLit('b'));
+  edge(2, 3, fsm, fsm.TransFac->getLit('l'));
+  edge(3, 4, fsm, fsm.TransFac->getLit('e'));
+  edge(2, 5, fsm, fsm.TransFac->getLit('e'));
+  edge(5, 6, fsm, fsm.TransFac->getLit('t'));
+  edge(0, 7, fsm, fsm.TransFac->getLit('b'));
+  edge(7, 8, fsm, fsm.TransFac->getLit('i'));
+  edge(8, 9, fsm, fsm.TransFac->getLit('t'));
+  edge(9, 10, fsm, fsm.TransFac->getLit('e'));
 }
 
 SCOPE_TEST(betterLayout) {
@@ -409,8 +409,8 @@ SCOPE_TEST(betterLayout) {
 
 SCOPE_TEST(generateCheckHalt) {
   NFA fsm(2);
-  edge(0, 1, fsm, new LitState('a'));
-  edge(1, 1, fsm, new LitState('a'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(1, 1, fsm, fsm.TransFac->getLit('a'));
 
   fsm[1].Label = 0;
   fsm[1].IsMatch = true;
@@ -447,10 +447,10 @@ SCOPE_TEST(testInitVM) {
 
 SCOPE_TEST(testPivotTransitions) {
   NFA fsm(5);
-  edge(0, 1, fsm, new LitState('a'));
-  edge(0, 2, fsm, new LitState('a'));
-  edge(0, 3, fsm, new LitState('z'));
-  edge(0, 4, fsm, new LitState('z'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(0, 2, fsm, fsm.TransFac->getLit('a'));
+  edge(0, 3, fsm, fsm.TransFac->getLit('z'));
+  edge(0, 4, fsm, fsm.TransFac->getLit('z'));
 
   fsm[1].IsMatch = true;
   fsm[1].Label = 0;
@@ -485,7 +485,7 @@ SCOPE_TEST(testBitVectorGeneration) {
   bits.set('4');
   bits.set('8');
   NFA fsm(2);
-  edge(0, 1, fsm, new CharClassState(bits));
+  edge(0, 1, fsm, fsm.TransFac->getCharClass(bits));
   fsm[1].Label = 0;
   fsm[1].IsMatch = true;
 
@@ -503,26 +503,25 @@ SCOPE_TEST(testBitVectorGeneration) {
 
 SCOPE_TEST(testMaxOutbound) {
   NFA fsm(5);
-  edge(0, 1, fsm, new LitState('a'));
-  edge(0, 2, fsm, new LitState('a'));
-  edge(0, 3, fsm, new LitState('b'));
-  edge(0, 4, fsm, new LitState('c'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(0, 2, fsm, fsm.TransFac->getLit('a'));
+  edge(0, 3, fsm, fsm.TransFac->getLit('b'));
+  edge(0, 4, fsm, fsm.TransFac->getLit('c'));
   std::vector<std::vector<NFA::VertexDescriptor>> tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(2u, maxOutbound(tbl));
 }
 
 SCOPE_TEST(generateJumpTableRange) {
   NFA fsm(7); // a(b|c|d|g)f
-  edge(0, 1, fsm, new LitState('a'));
-  edge(1, 2, fsm, new LitState('b'));
-  edge(1, 3, fsm, new LitState('c'));
-  edge(1, 4, fsm, new LitState('d'));
-  edge(1, 5, fsm, new LitState('g'));
-  std::shared_ptr<LitState> f(new LitState('f'));
-  edge(2, 6, fsm, f);
-  edge(3, 6, fsm, f);
-  edge(4, 6, fsm, f);
-  edge(5, 6, fsm, f);
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(1, 2, fsm, fsm.TransFac->getLit('b'));
+  edge(1, 3, fsm, fsm.TransFac->getLit('c'));
+  edge(1, 4, fsm, fsm.TransFac->getLit('d'));
+  edge(1, 5, fsm, fsm.TransFac->getLit('g'));
+  edge(2, 6, fsm, fsm.TransFac->getLit('f'));
+  edge(3, 6, fsm, fsm.TransFac->getLit('f'));
+  edge(4, 6, fsm, fsm.TransFac->getLit('f'));
+  edge(5, 6, fsm, fsm.TransFac->getLit('f'));
 
   fsm[1].Label = 0;
   fsm[6].IsMatch = true;
@@ -560,18 +559,17 @@ SCOPE_TEST(generateJumpTableRange) {
 
 SCOPE_TEST(generateJumpTableRangePreLabel) {
   NFA fsm(7); // a(b|c|d|g)fg + a(b|c|d|g)fh
-  edge(0, 1, fsm, new LitState('a'));
-  edge(1, 2, fsm, new LitState('b'));
-  edge(1, 3, fsm, new LitState('c'));
-  edge(1, 4, fsm, new LitState('d'));
-  edge(1, 5, fsm, new LitState('g'));
-  std::shared_ptr<LitState> f(new LitState('f'));
-  edge(2, 6, fsm, f);
-  edge(3, 6, fsm, f);
-  edge(4, 6, fsm, f);
-  edge(5, 6, fsm, f);
-  edge(6, 7, fsm, new LitState('g'));
-  edge(6, 8, fsm, new LitState('h'));
+  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(1, 2, fsm, fsm.TransFac->getLit('b'));
+  edge(1, 3, fsm, fsm.TransFac->getLit('c'));
+  edge(1, 4, fsm, fsm.TransFac->getLit('d'));
+  edge(1, 5, fsm, fsm.TransFac->getLit('g'));
+  edge(2, 6, fsm, fsm.TransFac->getLit('f'));
+  edge(3, 6, fsm, fsm.TransFac->getLit('f'));
+  edge(4, 6, fsm, fsm.TransFac->getLit('f'));
+  edge(5, 6, fsm, fsm.TransFac->getLit('f'));
+  edge(6, 7, fsm, fsm.TransFac->getLit('g'));
+  edge(6, 8, fsm, fsm.TransFac->getLit('h'));
 
   fsm[7].Label = 0;
   fsm[8].Label = 1;
@@ -610,11 +608,10 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
 
 SCOPE_TEST(testFirstChildNext) {
   NFA g;
-  edge(0, 1, g, new LitState('0'));
-  edge(1, 2, g, new LitState('0'));
-  std::shared_ptr<LitState> zero(new LitState('0'));
-  edge(1, 3, g, zero);
-  edge(2, 3, g, zero);
+  edge(0, 1, g, g.TransFac->getLit('0'));
+  edge(1, 2, g, g.TransFac->getLit('0'));
+  edge(1, 3, g, g.TransFac->getLit('0'));
+  edge(2, 3, g, g.TransFac->getLit('0'));
 
   g[1].Label = 0;
   g[3].IsMatch = true;
@@ -637,13 +634,11 @@ SCOPE_TEST(testFirstChildNext) {
 
 SCOPE_TEST(testFirstChildPrev) {
   NFA g;
-  edge(0, 1, g, new LitState('0'));
-  std::shared_ptr<RangeState> dot(new RangeState(0, 255));
-  edge(1, 2, g, dot);
-  edge(2, 2, g, dot);
-  std::shared_ptr<LitState> zero(new LitState('0'));
-  edge(2, 3, g, zero);
-  edge(1, 3, g, zero);
+  edge(0, 1, g, g.TransFac->getLit('0'));
+  edge(1, 2, g, g.TransFac->getRange(0, 255));
+  edge(2, 2, g, g.TransFac->getRange(0, 255));
+  edge(2, 3, g, g.TransFac->getLit('0'));
+  edge(1, 3, g, g.TransFac->getLit('0'));
 
   g[1].Label = 0;
   g[3].IsMatch = true;

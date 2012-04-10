@@ -4,7 +4,7 @@
 
 #include "automata.h"
 #include "basic.h"
-#include "pattern.h"
+#include "patterninfo.h"
 
 #include <iosfwd>
 #include <set>
@@ -23,7 +23,8 @@ public:
               Input,
               Output,
               Encoding,
-              ServerLog;
+              ServerLog,
+              ProgramFile;
 
   std::vector<std::string> Inputs,
                            CmdLinePatterns,
@@ -36,14 +37,15 @@ public:
        NoOutput,
        Determinize,
        PrintPath,
-       Recursive;
+       Recursive,
+       Binary;
 
   mutable std::ofstream OutputFile;
 
   std::ostream& openOutput() const;
 
-  std::vector<Pattern> getKeys() const;
+  PatternInfo getKeys() const;
 
-  bool readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const;
-  bool parseLine(uint32 keyIndex, const std::string& line, std::vector<Pattern>& keys) const;
+  bool readKeyFile(const std::string& keyFilePath, PatternInfo& keys) const;
+  bool parseLine(uint32 keyIndex, const std::string& line, PatternInfo& keys) const;
 };
