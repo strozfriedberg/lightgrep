@@ -8,6 +8,14 @@
 #include <iostream>
 #include <memory>
 
+#define BOOST_ENABLE_ASSERT_HANDLER 1
+
+namespace boost {
+  void assertion_failed(char const * expr, char const * function, char const * file, long line) {
+    std::cerr << "boost assert failed: " << expr << " in " << function << " in " << file << ":" << line << std::endl;
+  }
+}
+
 #include <boost/asio.hpp>
 
 #include "handles.h"
@@ -87,20 +95,31 @@ public:
     std::stringstream buf;
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
-      buf << "Total Hits" << std::ends << TotalHits << std::ends;
-      buf << "File Counts" << std::ends;
-      for (unsigned int i = 0; i < FileCounts.size(); ++i) {
-        uint64 c = FileCounts[i];
+      buf.write((char*)&ResponsiveFiles, sizeof(ResponsiveFiles));
+      buf.write((char*)&TotalHits, sizeof(TotalHits));
+      // buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
+      // buf << "Total Hits" << std::ends << TotalHits << std::ends;
+      // buf << "File Counts" << std::ends;
+      uint32 i;
+      uint64 c;
+      for (i = 0; i < FileCounts.size(); ++i) {
+        c = FileCounts[i];
         if (c > 0) {
-          buf << i << '\t' << c << std::ends;
+          // buf << i << '\t' << c << std::ends;
+          buf.write((char*)&i, sizeof(i));
+          buf.write((char*)&c, sizeof(c));
         }
       }
-      buf << "Hit Counts" << std::ends;
-      for (unsigned int i = 0; i < HitCounts.size(); ++i) {
-        uint64 c = HitCounts[i];
+      i = 0xffffffff;
+      c = 0xffffffffffffffff;
+      buf.write((char*)&i, sizeof(i));
+      buf.write((char*)&c, sizeof(c));
+      for (i = 0; i < HitCounts.size(); ++i) {
+        c = HitCounts[i];
         if (c > 0) {
-          buf << i << '\t' << c << std::ends;
+          // buf << i << '\t' << c << std::ends;
+          buf.write((char*)&i, sizeof(i));
+          buf.write((char*)&c, sizeof(c));
         }
       }
     }
@@ -136,9 +155,9 @@ public:
     getStats(stats);
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      std::ofstream statsFile("lightgrep_hit_stats.txt", std::ios::out);
+      std::ofstream statsFile("lightgrep_hit_stats.txt", std::ios::out | std::ios::binary);
       if (statsFile) {
-        statsFile << stats;
+        statsFile.write(stats.data(), stats.size());
         statsFile.close();
       }
     }
@@ -192,7 +211,7 @@ struct HitInfo {
 
 class ServerWriter: public PatternInfo {
 public:
-  ServerWriter(const PatternInfo& pinfo): PatternInfo(pinfo), NumHits(0), HitsForFile(pinfo.Patterns.size(), 0) {}
+  ServerWriter(const PatternInfo& pinfo): PatternInfo(pinfo), NumHits(0), HitsForFile(pinfo.NumUserPatterns, 0) {}
   virtual ~ServerWriter() {}
 
   virtual void collect(const LG_SearchHit& hit) {
@@ -326,10 +345,18 @@ void sendStats(tcp::socket& sock) {
   Registry::get().getStats(stats);
   uint64 bytes = stats.size();
   boost::asio::write(sock, boost::asio::buffer(&bytes, sizeof(bytes)));
-  byte ack;
-  if (boost::asio::read(sock, boost::asio::buffer(&ack, sizeof(ack))) == sizeof(ack)) {
-    boost::asio::write(sock, boost::asio::buffer(stats));
-    SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
+  uint64 ackBytes = 0;
+  if (boost::asio::read(sock, boost::asio::buffer(&ackBytes, sizeof(ackBytes))) == sizeof(ackBytes)) {
+    if (ackBytes == bytes) {
+      boost::asio::write(sock, boost::asio::buffer(stats));
+      SAFEWRITE(buf, "wrote " << stats.size() << " bytes of stats on socket\n");
+    }
+    else {
+      THROW_RUNTIME_ERROR_WITH_OUTPUT("Ack bytes for stats did not match sent bytes. ackBytes = " << ackBytes << ", sent = " << bytes);
+    }
+  }
+  else {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not read back the acknowledged size of the stats bytes");
   }
 }
 
@@ -344,9 +371,11 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   uint64 offset = hdr.StartOffset,
          totalRead = 0;
   while (totalRead < hdr.Length) {
+    boost::this_thread::interruption_point();
     len = sock.read_some(boost::asio::buffer(data, std::min(BUF_SIZE, hdr.Length - totalRead)));
+    SAFEWRITE(buf, hdr.ID << " read " << len << " bytes\n");
     lg_search(searcher.get(), (char*) data, (char*) data + len, offset, output.get(), callback);
-    // writeErr() << "read " << len << " bytes\n";
+    SAFEWRITE(buf, hdr.ID << " searched " << len << " bytes\n")
     // writeErr().write((const char*)data.get(), len);
     // writeErr() << '\n';
     totalRead += len;
@@ -357,9 +386,192 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   if (0 == hdr.Type) {
     output->writeEndHit(hdr.Length);
   }
+  SAFEWRITE(buf, "done with " << hdr.ID << "\n");
+}
+
+class LGServer;
+
+void processConn(
+  LGServer* server,
+  std::shared_ptr<tcp::socket> sock,
+  std::shared_ptr<ProgramHandle> prog,
+  std::shared_ptr<ServerWriter> output,
+  LG_HITCALLBACK_FN callback);
+
+class HitStats {
+public:
+  HitStats(uint32 numKeywords);
+
+  void updateHits(const std::vector<uint32>& hitsForFile);
+
+  std::string getStats() const;
+
+private:
+  std::vector<uint64> FileCounts,
+                      HitCounts;
+  uint64              ResponsiveFiles,
+                      TotalHits;
+};
+
+HitStats::HitStats(uint32 numKeywords):
+  FileCounts(numKeywords, 0),
+  HitCounts(numKeywords, 0),
+  ResponsiveFiles(0), TotalHits(0)
+{}
+
+void HitStats::updateHits(const std::vector<uint32>& hitsForFile) {
+  uint64 c = 0;
+  bool hadHits = false;
+  for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
+    c = hitsForFile[i];
+    if (c > 0) {
+      HitCounts[i] += c;
+      ++FileCounts[i];
+      TotalHits += c;
+      hadHits = true;
+    }
+  }
+  if (hadHits) {
+    ++ResponsiveFiles;
+  }
+}
+
+std::string HitStats::getStats() const {
+  std::stringstream buf;
+  buf.write((char*)&ResponsiveFiles, sizeof(ResponsiveFiles));
+  buf.write((char*)&TotalHits, sizeof(TotalHits));
+  // buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
+  // buf << "Total Hits" << std::ends << TotalHits << std::ends;
+  // buf << "File Counts" << std::ends;
+  uint32 i;
+  uint64 c;
+  for (i = 0; i < FileCounts.size(); ++i) {
+    c = FileCounts[i];
+    if (c > 0) {
+      // buf << i << '\t' << c << std::ends;
+      buf.write((char*)&i, sizeof(i));
+      buf.write((char*)&c, sizeof(c));
+    }
+  }
+  i = 0xffffffff;
+  c = 0xffffffffffffffff;
+  buf.write((char*)&i, sizeof(i));
+  buf.write((char*)&c, sizeof(c));
+  for (i = 0; i < HitCounts.size(); ++i) {
+    c = HitCounts[i];
+    if (c > 0) {
+      // buf << i << '\t' << c << std::ends;
+      buf.write((char*)&i, sizeof(i));
+      buf.write((char*)&c, sizeof(c));
+    }
+  }
+  return buf.str();
+}
+
+class LGServer {
+public:
+  LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts, unsigned short port);
+
+  void run();
+  void stop() {
+    Service.stop();
+    for (auto& t : Threads) {
+      t.interrupt();
+    }
+  }
+
+  void writeHits(const std::vector<HitInfo>& hits);
+
+  void updateHits(const std::vector<uint32> hitsForFile) {
+    boost::mutex::scoped_lock lock(Mutex);
+    Stats.updateHits(hitsForFile);
+  }
+
+  std::string getStats() const {
+    boost::mutex::scoped_lock lock(Mutex);
+    return Stats.getStats();
+  }
+
+private:
+  void resetAcceptor();
+  void accept(const boost::system::error_code& err);
+
+  const Options&          Opts;
+  std::shared_ptr<ProgramHandle> Prog;
+  const PatternInfo&      PInfo;
+  bool                    UsesFile;
+
+  boost::asio::io_service Service;
+  tcp::acceptor           Acceptor;
+
+  std::shared_ptr<tcp::socket> Socket;
+  std::vector< boost::thread > Threads;
+  mutable boost::mutex         Mutex;
+  HitStats                     Stats;
+};
+
+LGServer::LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo,
+  const Options& opts, unsigned short port)
+  : Opts(opts), Prog(prog), PInfo(pinfo), Service(), Acceptor(Service),
+    Stats(pinfo.Table.size())
+{
+  if (Opts.Output != "-") {
+    if (!Registry::get().init(Opts.Output, PInfo.NumUserPatterns)) {
+      THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file at " << Opts.Output);
+    }
+    UsesFile = true;
+  }
+  else {
+    Registry::get().init("", pinfo.NumUserPatterns);
+  }
+  tcp::endpoint endpoint(tcp::v4(), port);
+
+  Acceptor.open(endpoint.protocol());
+  Acceptor.bind(endpoint);
+  Acceptor.listen();
+
+  resetAcceptor();
+}
+
+void LGServer::run() {
+  Service.run();
+  for (auto& t: Threads) {
+    t.join();
+  }
+}
+
+void LGServer::resetAcceptor() {
+  Socket.reset(new tcp::socket(Service));
+  Acceptor.async_accept(*Socket,
+    boost::bind(&LGServer::accept, this, boost::asio::placeholders::error));
+}
+
+void LGServer::accept(const boost::system::error_code& err) {
+  if (!err) {
+    writeErr() += "New connection\n";
+    LG_HITCALLBACK_FN callback;
+    std::shared_ptr<ServerWriter> writer;
+    if (UsesFile) {
+      callback = &safeFileWriter;
+      writer.reset(new SafeFileWriter(Registry::get().File, Registry::get().Mutex, PInfo));
+    }
+    else {
+      callback = &socketWriter;
+      writer.reset(new SocketWriter(Socket, PInfo));
+    }
+    Threads.push_back(boost::thread(
+      std::bind(processConn, this, Socket, Prog, writer, callback))
+    );
+  }
+  resetAcceptor();
+}
+
+void LGServer::writeHits(const std::vector<HitInfo>&) {
+
 }
 
 void processConn(
+  LGServer* server,
   std::shared_ptr<tcp::socket> sock,
   std::shared_ptr<ProgramHandle> prog,
   std::shared_ptr<ServerWriter> output,
@@ -373,7 +585,7 @@ void processConn(
     lg_destroy_context
   );
 
-	std::stringstream buf;
+  std::stringstream buf;
 
   try {
     while (true) {
@@ -395,75 +607,38 @@ void processConn(
             break;
           case FileHeader::SHUTDOWN:
             writeErr() += "received hard shutdown command, terminating\n";
-            cleanSeppuku(0); // die
+            server->stop();
+            THROW_RUNTIME_ERROR_WITH_OUTPUT("received shutdown command");
             break;
         }
       }
       else {
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket\n");
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
       }
       // uint32 i = ntohl(*(uint32*)data);
     }
   }
   catch (std::exception& e) {
-    SAFEWRITE(buf, "broke out of reading socket " << sock->remote_endpoint() << ". " << e.what() << '\n');
+    SAFEWRITE(buf, "broke out of reading socket. " << e.what() << '\n');
   }
-//  SAFEWRITE(buf, "thread dying, " << totalRead << " bytes read, " << numReads << " reads, " << output->numHits() << " numHits\n");
+  SAFEWRITE(buf, "thread dying\n");
   output->flush();
 }
 
 void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
-	std::stringstream buf;
+  if (!opts.ServerLog.empty()) {
+    ErrOut = new std::ofstream(opts.ServerLog.c_str(), std::ios::out);
+  }
+  else {
+    ErrOut = &std::cerr;
+  }
+
   try {
-    boost::asio::io_service srv;
-    if (!opts.ServerLog.empty()) {
-      ErrOut = new std::ofstream(opts.ServerLog.c_str(), std::ios::out);
-    }
-    else {
-      ErrOut = &std::cerr;
-    }
-		SAFEWRITE(buf, "Created service\n");
-    tcp::acceptor acceptor(srv, tcp::endpoint(tcp::v4(), 12777));
-    SAFEWRITE(buf, "Created acceptor\n");
-
-    bool usesFile = false;
-    if (opts.Output != "-") {
-      if (!Registry::get().init(opts.Output, pinfo.Patterns.size())) {
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file at " << opts.Output);
-      }
-      usesFile = true;
-    }
-    else {
-      Registry::get().init("", pinfo.Patterns.size());
-    }
-
-    while (true) {
-      std::auto_ptr<tcp::socket> socket(new tcp::socket(srv));
-      SAFEWRITE(buf, "Created socket\n");
-      acceptor.accept(*socket);
-      SAFEWRITE(buf, "Accepted socket from " << socket->remote_endpoint() << " on " << socket->local_endpoint() << "\n");
-      std::shared_ptr<tcp::socket> s(socket.release());
-
-      LG_HITCALLBACK_FN callback;
-      std::shared_ptr<ServerWriter> writer;
-      if (usesFile) {
-        callback = &safeFileWriter;
-        writer.reset(new SafeFileWriter(Registry::get().File, Registry::get().Mutex, pinfo));
-      }
-      else {
-        callback = &socketWriter;
-        writer.reset(new SocketWriter(s, pinfo));
-      }
-
-      boost::thread spawned(std::bind(processConn, s, prog, writer, callback)); // launches the thread, then detaches
-    }
+    LGServer srv(prog, pinfo, opts, 12777);
+    srv.run();
   }
   catch (std::exception& e) {
     writeErr() += std::stringstream() << e.what() << std::endl;
   }
-
-  if (&std::cerr != ErrOut) {
-    delete ErrOut;
-    ErrOut = 0;
-  }
+  Registry::get().cleanup();
 }

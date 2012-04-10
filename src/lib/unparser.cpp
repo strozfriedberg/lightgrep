@@ -120,7 +120,7 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
     }
 
     if (i == 256 || bs[i-1] ^ bs[i]) {
-      const uint32 len = std::min(i - left, (uint32) 3);
+      const int len = std::min(i - left, (uint32) 3);
       sizediff += bs[i-1] ? len : -len;
       left = i;
     }
@@ -234,7 +234,7 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
   if (hyphen) {
     if (caret) {
       // if we haven't written anything, reverse the hyphen and caret
-      if (ss.tellp() == 0) {
+      if (0 == ss.tellp()) {
         ss << byteToCharacterString('-') << byteToCharacterString('^');
       }
       else {
@@ -248,7 +248,7 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
   // if there was a caret, put it at the end
   else if (caret) {
     // if we haven't written anything, escape the caret
-    if (ss.tellp() == 0) {
+    if (0 == ss.tellp()) {
       ss << '\\';
     }
     ss << byteToCharacterString('^');

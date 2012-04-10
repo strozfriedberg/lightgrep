@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
     ("help,h", "print help")
     ("test", "run unit tests (same as test command)")
     ("long-test", "run long test")
+    ("debug", "print debuging info")
     ;
 
   po::options_description opts;

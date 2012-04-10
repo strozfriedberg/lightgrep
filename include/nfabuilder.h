@@ -40,7 +40,7 @@ struct Fragment {
     InList.clear();
     InList.push_back(in);
     OutList.clear();
-    OutList.emplace_back(in, 0);
+    OutList.emplace_back(OutListT::value_type(in, 0));
   }
 
   void reset(const ParseNode& n) {
@@ -64,7 +64,7 @@ public:
 
   void reset();
 
-  virtual void callback(const ParseNode& n);
+  void callback(const ParseNode& n);
 
   void setEncoding(const std::shared_ptr<Encoding>& e);
   void setCaseInsensitive(bool insensitive); // defaults to true

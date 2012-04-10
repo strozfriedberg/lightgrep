@@ -7,7 +7,7 @@ libs.extend([lib + env['boostType'] for lib in
 if (isLinux):
   libs.append('pthread')
 elif (isWindows):
-  libs.append('ws2_32') # so stupid that I have to specify winsock
+  libs.extend(['ws2_32', 'mswsock']) # so stupid that I have to specify winsock
 
 mainEnv = env.Clone()
 if (env['customer'] and len(env['customer'])):
@@ -20,7 +20,18 @@ if (env['customer'] and len(env['customer'])):
 
 main = mainEnv.StaticObject('main.cpp')
 
-not_main = [ f for f in Glob('*.cpp') if 'main.cpp' not in str(f) ]
+# serverEnv = env.Clone()
+# servercflags = env['CCFLAGS']
+# print(servercflags)
+# print(str(servercflags).replace('-O3', '-g -O1'))
+# serverEnv.Replace(CCFLAGS=str(env['CCFLAGS']).replace('-O3', '-g -O1'))
+# server = serverEnv.StaticObject('server.cpp')
 
+# not_main = [ f for f in Glob('*.cpp') if 'main.cpp' not in str(f) and 'server.cpp' not in str(f)]
+not_main = [ f for f in Glob('*.cpp') if 'main.cpp' not in str(f)]
+
+print([str(n) for n in not_main])
+
+# ret = env.Program('lightgrep', main + server + not_main, LIBS=libs)
 ret = env.Program('lightgrep', main + not_main, LIBS=libs)
 Return('ret')

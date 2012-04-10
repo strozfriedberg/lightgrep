@@ -20,6 +20,8 @@ struct Handle {
     Error.reserve(256);
   }
 
+  virtual ~Handle() {}
+
   virtual bool ok() const = 0;
   virtual void destroy() = 0;
   const char* error() const { return Error.c_str(); }
