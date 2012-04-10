@@ -473,12 +473,17 @@ public:
   LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts, unsigned short port);
 
   void run();
+
   void stop() {
     Service.stop();
     for (auto& t : Threads) {
       t.interrupt();
     }
   }
+
+  void threadCleanup(boost::thread::id id);
+ 
+  void requestCleanup(boost::thread::id id);
 
   void writeHits(const std::vector<HitInfo>& hits);
 
@@ -535,9 +540,11 @@ LGServer::LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo
 
 void LGServer::run() {
   Service.run();
+/*
   for (auto& t: Threads) {
     t.join();
   }
+*/
 }
 
 void LGServer::resetAcceptor() {
@@ -566,6 +573,21 @@ void LGServer::accept(const boost::system::error_code& err) {
   resetAcceptor();
 }
 
+void LGServer::threadCleanup(boost::thread::id id) {
+  for (boost::thread& t : Threads) {
+    if (t.get_id() == id) {
+      t.join();
+      std::swap(t, Threads.back());
+      Threads.pop_back();
+      break;
+    }
+  }
+}
+
+void LGServer::requestCleanup(boost::thread::id id) {
+  Service.post(std::bind(&LGServer::threadCleanup, this, id));
+} 
+
 void LGServer::writeHits(const std::vector<HitInfo>&) {
 
 }
@@ -577,17 +599,17 @@ void processConn(
   std::shared_ptr<ServerWriter> output,
   LG_HITCALLBACK_FN callback)
 {
-  boost::scoped_array<byte> data(new byte[BUF_SIZE]);
-
-  LG_ContextOptions ctxOpts;
-  std::shared_ptr<ContextHandle> searcher(
-    lg_create_context(prog.get(), &ctxOpts),
-    lg_destroy_context
-  );
-
   std::stringstream buf;
 
   try {
+    boost::scoped_array<byte> data(new byte[BUF_SIZE]);
+
+    LG_ContextOptions ctxOpts;
+    std::shared_ptr<ContextHandle> searcher(
+      lg_create_context(prog.get(), &ctxOpts),
+      lg_destroy_context
+    );
+
     while (true) {
       FileHeader hdr;
       hdr.ID = 0;
@@ -621,8 +643,11 @@ void processConn(
   catch (std::exception& e) {
     SAFEWRITE(buf, "broke out of reading socket. " << e.what() << '\n');
   }
+
   SAFEWRITE(buf, "thread dying\n");
   output->flush();
+
+  server->requestCleanup(boost::this_thread::get_id());
 }
 
 void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
