@@ -1,7 +1,9 @@
 #pragma once
 
+#include "automata.h"
 #include "basic.h"
 #include "encoding.h"
+#include "fragment.h"
 
 #include <unicode/ucnv.h>
 
