@@ -42,12 +42,7 @@ public:
 private:
   Transition* get(Transition* t) {
     auto i = Exemplars.find(t);
-    if (i == Exemplars.end()) {
-      return *Exemplars.insert(t->clone()).first;
-    }
-    else {
-      return *i;
-    }
+    return i == Exemplars.end() ? *Exemplars.insert(t->clone()).first : *i;
   }
 
   std::set<Transition*,TransitionComparator> Exemplars;
