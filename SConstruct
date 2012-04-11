@@ -80,17 +80,17 @@ else:
 
 ldflags += ' -static-libstdc++'
 ccflags = '-pedantic -Wall -Wextra -pipe %s' % (flags)
-cppflags = '-std=c++0x -Wnon-virtual-dtor'
+cxxflags = '-std=c++0x -Wnon-virtual-dtor'
 
 if (isWindows):
-  cppflags += ' -mthreads'
+  cxxflags += ' -mthreads'
 
 # add vendors/scope and vendors/boost as system include paths, if they exist
 ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
 
 env['DEBUG_MODE'] = debug
 env.Replace(CCFLAGS=ccflags)
-env.Replace(CPPFLAGS=cppflags)
+env.Replace(CXXFLAGS=cxxflags)
 env.Replace(CPPDEFINES=defines)
 env.Append(CPPPATH=['#/include'])
 env.Append(LIBPATH=['#/lib'])
