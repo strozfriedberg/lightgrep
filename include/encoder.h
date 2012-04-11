@@ -5,12 +5,12 @@
 
 #include <map>
 
-class Encoding {
+class Encoder {
 public:
   virtual uint32 maxByteLength() const = 0;
   virtual uint32 write(int cp, byte buf[]) const = 0;
 
-  virtual ~Encoding() {}
+  virtual ~Encoder() {}
 };
 
 
