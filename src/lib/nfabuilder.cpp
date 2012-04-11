@@ -212,9 +212,8 @@ void NFABuilder::charClass(const ParseNode& n) {
 
     ByteSet bs;
 
-    const UnicodeSet::const_iterator rend(n.Bits.end());
-    for (UnicodeSet::const_iterator r(n.Bits.begin()); r != rend; ++r) {
-      const uint32 l = *r, h = *++r;
+    for (const UnicodeSet::range& r : n.Bits) {
+      const uint32 l = r.first, h = r.second;
       for (uint32 cp = l; cp < h; ++cp) {
         const uint32 len = Enc->write(cp, TempBuf.get());
 

@@ -1039,9 +1039,8 @@ SCOPE_TEST(xxxx) {
 
   ByteSet bs;
 
-  const UnicodeSet::const_iterator rend(us.end());
-  for (UnicodeSet::const_iterator r(us.begin()); r != rend; ++r) {
-    const uint32 l = *r, h = *++r;
+  for (const UnicodeSet::range& r : us) {
+    const uint32 l = r.first, h = r.second;
     for (uint32 cp = l; cp < h; ++cp) {
       len = enc.write(cp, b);
      
