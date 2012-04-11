@@ -143,7 +143,7 @@ void parse_opts(int argc, char** argv,
   }
 
   if (opts.Command == Options::BOGUS) {
-    const std::map<std::string,Options::CommandTypes> cmds;
+    std::map<std::string,Options::CommandTypes> cmds;
     cmds.insert(std::make_pair("search",   Options::SEARCH));
     cmds.insert(std::make_pair("graph",    Options::GRAPH));
     cmds.insert(std::make_pair("prog",     Options::PROGRAM));

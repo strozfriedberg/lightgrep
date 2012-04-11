@@ -316,7 +316,7 @@ cc_char:
 cc_named:
   SET
   {
-    $$ = add("charclass", ParseNode::CHAR_CLASS, USet);
+    $$ = add(ParseNode(ParseNode::CHAR_CLASS, USet));
   }
 ;
 %%

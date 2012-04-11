@@ -110,50 +110,6 @@ struct ParseNode {
     }
   }
 
-  ParseNode(NodeType t, const UnicodeSet& b):
-    Type(t), Left(0), Bits(b) {}
-
-  ParseNode(const ParseNode& n): Type(n.Type), Left(n.Left) {
-    init_union(n);
-  }
-
-  ~ParseNode() {
-    // we have to call the dtor for UnicodeSet ourselves,
-    // because it has a nontrivial dtor and is part of a union
-    if (Type == CHAR_CLASS) {
-      Bits.~UnicodeSet();
-    }
-  }
-
-  ParseNode& operator=(const ParseNode& n) {
-    // self-assignment is bad, due to the placement new in init_union
-    if (this != &n) {
-      Type = n.Type;
-      Left = n.Left;
-      init_union(n);
-    }
-    return *this;
-  }
-
-  void init_union(const ParseNode& n) {
-    switch (Type) {
-    case ALTERNATION:
-    case CONCATENATION:
-      Right = n.Right;
-      break;
-    case REPETITION:
-    case REPETITION_NG:
-      Rep = n.Rep;
-      break;
-    case CHAR_CLASS:
-      new(&Bits) UnicodeSet(n.Bits);
-      break;
-    default:
-      Val = n.Val;
-      break;
-    }
-  }
-
   void range(uint32 first, uint32 last) {
     Bits.insert(first, last + 1);
   }

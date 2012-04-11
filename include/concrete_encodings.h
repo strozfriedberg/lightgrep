@@ -13,7 +13,7 @@ public:
   virtual uint32 write(int cp, byte buf[]) const;
 };
 
-class UTF16: public Encoding {
+class UTF8: public Encoding {
 public:
   virtual uint32 maxByteLength() const;
   virtual uint32 write(int cp, byte buf[]) const;

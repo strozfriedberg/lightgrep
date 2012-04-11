@@ -294,6 +294,7 @@ std::shared_ptr<ProgramHandle> getProgram(const Options& opts, PatternInfo& pinf
       progFile.read(&buf[0], end);
       progFile.close();
 
+/*
       auto encMap(getEncodingsMap());
       auto foundEnc(encMap.end());
 
@@ -302,6 +303,8 @@ std::shared_ptr<ProgramHandle> getProgram(const Options& opts, PatternInfo& pinf
           pinfo.Table.emplace_back(p.Index, foundEnc->second);
         }
       }
+*/
+
       return std::shared_ptr<ProgramHandle>(lg_read_program(&buf[0], end), lg_destroy_program);
     }
     else {
@@ -513,7 +516,7 @@ int main(int argc, char** argv) {
 
     switch (opts.Command) {
     case Options::SEARCH:
-      searches(opts);
+      search(opts);
       break;
     case Options::GRAPH:
       return writeGraphviz(opts) ? 0: 1;
