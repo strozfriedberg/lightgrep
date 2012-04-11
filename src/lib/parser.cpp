@@ -1,9 +1,8 @@
-#include "parser.h"
+#include "concrete_encoders.h"
+#include "encoder.h"
 #include "encodings.h"
-#include "encoding.h"
-#include "concrete_encodings.h"
+#include "parser.h"
 #include "rewriter.h"
-
 
 Parser::EncodingMap createEncodingMap() {
   Parser::EncodingMap map;
@@ -43,7 +42,7 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
   Nfab.setCurLabel(patIndex);
   Nfab.setCaseInsensitive(pattern.CaseInsensitive);
 
-  std::shared_ptr<Encoding> enc;
+  std::shared_ptr<Encoder> enc;
   if (pattern.Encoding == "US-ASCII") {
     enc.reset(new ASCII);
   }
@@ -66,7 +65,7 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
     enc.reset(new ICUEncoder(pattern.Encoding.c_str()));
   }
 
-  Nfab.setEncoding(enc);
+  Nfab.setEncoder(enc);
 
 /*
   bool good = false;
