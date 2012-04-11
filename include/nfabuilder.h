@@ -2,7 +2,7 @@
 
 #include "automata.h"
 #include "basic.h"
-#include "encoding.h"
+#include "encoder.h"
 #include "fragment.h"
 #include "parsenode.h"
 #include "parsetree.h"
@@ -21,7 +21,7 @@ public:
 
   void callback(const ParseNode& n);
 
-  void setEncoding(const std::shared_ptr<Encoding>& e);
+  void setEncoder(const std::shared_ptr<Encoder>& e);
   void setCaseInsensitive(bool insensitive); // defaults to true
   void setSizeHint(uint64 reserveSize);
 
@@ -66,7 +66,7 @@ private:
   bool IsGood, CaseInsensitive;
   uint32 CurLabel;
   uint64 ReserveSize;
-  std::shared_ptr<Encoding> Enc;
+  std::shared_ptr<Encoder> Enc;
   NFAPtr Fsm;
   std::stack<Fragment> Stack;
   std::stack<const ParseNode*, std::vector<const ParseNode*>> ChildStack, ParentStack;

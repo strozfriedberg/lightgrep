@@ -2,18 +2,18 @@
 
 #include "automata.h"
 #include "basic.h"
-#include "encoding.h"
+#include "encoder.h"
 #include "fragment.h"
 
 #include <unicode/ucnv.h>
 
-class ASCII: public Encoding {
+class ASCII: public Encoder {
 public:
   virtual uint32 maxByteLength() const;
   virtual uint32 write(int cp, byte buf[]) const;
 };
 
-class UTF8: public Encoding {
+class UTF8: public Encoder {
 public:
   virtual uint32 maxByteLength() const;
   virtual uint32 write(int cp, byte buf[]) const;
@@ -24,7 +24,7 @@ private:
 };
 
 template <bool LE>
-class UTF16: public Encoding {
+class UTF16: public Encoder {
 public:
   virtual uint32 maxByteLength() const {
     return 4;
@@ -73,7 +73,7 @@ typedef UTF16<true> UTF16LE;
 typedef UTF16<false> UTF16BE;
 
 template <bool LE>
-class UTF32: public Encoding {
+class UTF32: public Encoder {
 public:
   virtual uint32 maxByteLength() const {
     return 4;
@@ -112,7 +112,7 @@ public:
 typedef UTF32<true> UTF32LE;
 typedef UTF32<false> UTF32BE;
 
-class ICUEncoder: public Encoding {
+class ICUEncoder: public Encoder {
 public:
   ICUEncoder(const char* name);
   virtual ~ICUEncoder();

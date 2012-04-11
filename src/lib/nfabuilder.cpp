@@ -1,6 +1,6 @@
 #include "nfabuilder.h"
 
-#include "concrete_encodings.h"
+#include "concrete_encoders.h"
 #include "states.h"
 #include "transitionfactory.h"
 #include "utility.h"
@@ -50,7 +50,7 @@ NFABuilder::NFABuilder():
   Fsm(new NFA(1)),
   TransFac(new TransitionFactory())
 {
-  setEncoding(std::shared_ptr<Encoding>(new ASCII));
+  setEncoder(std::shared_ptr<Encoder>(new ASCII));
   init();
 }
 
@@ -78,7 +78,7 @@ void NFABuilder::init() {
   Fsm->TransFac = TransFac;
 }
 
-void NFABuilder::setEncoding(const std::shared_ptr<Encoding>& e) {
+void NFABuilder::setEncoder(const std::shared_ptr<Encoder>& e) {
   Enc = e;
   TempBuf.reset(new byte[Enc->maxByteLength() + 20]);
 }

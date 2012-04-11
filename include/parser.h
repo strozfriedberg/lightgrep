@@ -2,6 +2,7 @@
 
 #include "automata.h"
 #include "compiler.h"
+#include "encoder.h"
 #include "nfabuilder.h"
 #include "pattern.h"
 #include "parsenode.h"
@@ -18,7 +19,7 @@ public:
   Compiler   Comp;
   NFAPtr     Fsm;
 
-  typedef std::map<uint32, std::shared_ptr<Encoding>> EncodingMap;
+  typedef std::map<uint32, std::shared_ptr<Encoder>> EncodingMap;
 
   EncodingsCodeMap EncCodes;
   EncodingMap      Encoders;

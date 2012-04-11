@@ -2,7 +2,7 @@
 #include <scope/test.h>
 
 #include "automata.h"
-#include "concrete_encodings.h"
+#include "concrete_encoders.h"
 #include "nfabuilder.h"
 #include "parser.h"
 #include "parsetree.h"
@@ -559,7 +559,7 @@ SCOPE_TEST(parse2ByteUnicode) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  nfab.setEncoding(std::shared_ptr<Encoding>(new UTF16LE));
+  nfab.setEncoder(std::shared_ptr<Encoder>(new UTF16LE));
   SCOPE_ASSERT(parse("ab", false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 

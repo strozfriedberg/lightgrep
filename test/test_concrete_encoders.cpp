@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "concrete_encodings.h"
+#include "concrete_encoders.h"
 
 SCOPE_TEST(testASCII) {
   ASCII enc;
