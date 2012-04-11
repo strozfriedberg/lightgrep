@@ -18,9 +18,7 @@ public:
 
   ByteSet First;
 
-  int bufSize() const {
-  	return sizeof(First) + sizeof(NumChecked) + (size() * sizeof(value_type));
-  }
+  int bufSize() const; 
 
   bool operator==(const Program& rhs) const;
 
