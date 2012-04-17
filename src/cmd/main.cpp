@@ -417,10 +417,6 @@ bool writeGraphviz(const Options& opts) {
   return false;
 }
 
-void readProgram(ProgramPtr p, const Options& opts) {
-
-}
-
 void writeProgram(const Options& opts) {
   if (opts.getKeys().empty()) {
     return;
