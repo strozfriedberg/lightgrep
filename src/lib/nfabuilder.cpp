@@ -174,6 +174,8 @@ void NFABuilder::dot(const ParseNode& n) {
   Stack.push(TempFrag);
 }
 
+// FIXME: This code is repeated several places. Break out range-finding
+// and smallest-Transition-finding code so it lives in one place.
 std::pair<byte,byte> isRange(const ByteSet& bs) {
   uint32 num = 0;
   byte first = 0, last = 0;
