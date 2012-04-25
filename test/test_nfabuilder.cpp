@@ -671,6 +671,34 @@ SCOPE_TEST(parseCaseInsensitive) {
   SCOPE_ASSERT_EQUAL(Instruction::makeEither('B', 'b'), i);
 }
 
+SCOPE_TEST(parseCaseInsensitiveCC) {
+  NFABuilder nfab;
+  ParseTree tree;
+  NFA& fsm(*nfab.getFsm());
+  nfab.setCaseInsensitive(true);
+  SCOPE_ASSERT(parse("[a-z]", false, tree));
+  SCOPE_ASSERT(nfab.build(tree));
+
+  SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
+  SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
+
+  SCOPE_ASSERT(!fsm[0].IsMatch);
+  SCOPE_ASSERT(fsm[1].IsMatch);
+
+  SCOPE_ASSERT(!fsm[0].Trans);
+
+  ByteSet ebs, abs;
+  for (byte i = 'A'; i <= 'Z'; ++i) {
+    ebs.set(i);
+    ebs.set(i + 32);
+  }
+  fsm[1].Trans->getBits(abs);
+  SCOPE_ASSERT_EQUAL(ebs, abs);
+}
+
 SCOPE_TEST(parseSZeroMatchState) {
   NFABuilder nfab;
   ParseTree tree;
