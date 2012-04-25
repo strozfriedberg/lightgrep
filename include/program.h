@@ -18,7 +18,8 @@ public:
 
   ByteSet First;
 
-  int bufSize() const;
+  int bufSize() const; 
+
   bool operator==(const Program& rhs) const;
 
   std::string marshall() const;

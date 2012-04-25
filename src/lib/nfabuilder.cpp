@@ -174,16 +174,17 @@ void NFABuilder::dot(const ParseNode& n) {
   Stack.push(TempFrag);
 }
 
-void NFABuilder::charClass(const ParseNode& n) {
-  NFA::VertexDescriptor v = Fsm->addVertex();
+// FIXME: This code is repeated several places. Break out range-finding
+// and smallest-Transition-finding code so it lives in one place.
+std::pair<byte,byte> isRange(const ByteSet& bs) {
   uint32 num = 0;
   byte first = 0, last = 0;
   for (uint32 i = 0; i < 256; ++i) {
-    if (n.Bits.test(i)) {
+    if (bs.test(i)) {
       if (!num) {
         first = i;
       }
-      if (++num == n.Bits.count()) {
+      if (++num == bs.count()) {
         last = i;
         break;
       }
@@ -193,11 +194,41 @@ void NFABuilder::charClass(const ParseNode& n) {
     }
   }
 
-  if (num == n.Bits.count()) {
-    (*Fsm)[v].Trans = Fsm->TransFac->getRange(first, last);
+  return num == bs.count() ?
+    std::make_pair(first, last) : std::make_pair<byte,byte>(0, 0);
+}
+
+void NFABuilder::charClass(const ParseNode& n) {
+  NFA::VertexDescriptor v = Fsm->addVertex();
+
+  std::pair<byte,byte> r = isRange(n.Bits);
+
+  if (r.first != 0 && r.second != 0) {
+    (*Fsm)[v].Trans = Fsm->TransFac->getRange(r.first, r.second);
   }
   else {
     (*Fsm)[v].Trans = Fsm->TransFac->getCharClass(n.Bits);
+  }
+
+  if (CaseInsensitive) {
+    ByteSet bs;
+    (*Fsm)[v].Trans->getBits(bs);
+
+    for (byte i = 'A'; i <= 'Z'; ++i) {
+      if (bs.test(i) || bs.test(i + 32)) {
+        bs.set(i);
+        bs.set(i + 32);
+      }
+    }
+
+    r = isRange(bs);
+
+    if (r.first != 0 && r.second != 0) {
+      (*Fsm)[v].Trans = Fsm->TransFac->getRange(r.first, r.second);
+    }
+    else {
+      (*Fsm)[v].Trans = Fsm->TransFac->getCharClass(bs);
+    }
   }
 
   Fsm->Deterministic = false;
