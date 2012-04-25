@@ -80,7 +80,10 @@ else:
 
 ldflags += ' -static-libstdc++'
 ccflags = '-pedantic -Wall -Wextra -pipe %s' % (flags)
-cppflags = '-std=c++0x -Wnon-virtual-dtor'
+cxxflags = '-std=c++0x -Wnon-virtual-dtor'
+
+if (isWindows):
+  cxxflags += ' -mthreads'
 
 if (isWindows):
   cppflags += ' -mthreads'
@@ -90,7 +93,7 @@ ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 
 
 env['DEBUG_MODE'] = debug
 env.Replace(CCFLAGS=ccflags)
-env.Replace(CPPFLAGS=cppflags)
+env.Replace(CXXFLAGS=cxxflags)
 env.Replace(CPPDEFINES=defines)
 env.Append(CPPPATH=['#/include'])
 env.Append(LIBPATH=['#/lib'])
