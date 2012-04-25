@@ -85,9 +85,6 @@ cxxflags = '-std=c++0x -Wnon-virtual-dtor'
 if (isWindows):
   cxxflags += ' -mthreads'
 
-if (isWindows):
-  cppflags += ' -mthreads'
-
 # add vendors/scope and vendors/boost as system include paths, if they exist
 ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
 
