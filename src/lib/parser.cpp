@@ -4,6 +4,8 @@
 #include "parser.h"
 #include "rewriter.h"
 
+#include <string>
+
 Parser::EncodingMap createEncodingMap() {
   Parser::EncodingMap map;
   map[LG_ENC_ASCII].reset(new ASCII);
@@ -87,7 +89,7 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
 */
 
   // parse the pattern
-  if (parse(pattern.Expression, pattern.FixedString, Tree)) {
+  if (parse(pattern, Tree)) {
     // rewrite the parse tree, if necessary
     bool rewrite = false;
 
