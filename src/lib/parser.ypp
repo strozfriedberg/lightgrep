@@ -2,6 +2,7 @@
 #include "parsenode.h"
 #include "parsetree.h"
 #include "parseutil.h"
+#include "pattern.h"
 #include "unicode.h"
 
 #include <string>
@@ -20,6 +21,7 @@ namespace {
   UnicodeSet USet;
 
   bool LiteralMode;
+  bool CaseInsensitive;
 
 /*  template <class... Args>
   ParseNode* add(const char*, Args&&... args) {
@@ -541,8 +543,10 @@ namespace {
   }
 }
 
-bool parse(const std::string& text, bool litMode, ParseTree& tree) {
+bool parse(const std::string& text, bool litMode,
+           bool caseInsensitive, ParseTree& tree) {
   LiteralMode = litMode;
+  CaseInsensitive = caseInsensitive;
 
   std::vector<int> cp;
   transform_utf8_to_unicode(text.begin(), text.end(), std::back_inserter(cp));
@@ -559,3 +563,12 @@ bool parse(const std::string& text, bool litMode, ParseTree& tree) {
   Tree = 0;
   return ret == 0;
 }
+
+bool parse(const std::string& text, bool litMode, ParseTree& tree) {
+  return parse(text, litMode, false, tree);
+}
+
+bool parse(const Pattern& p, ParseTree& tree) {
+  return parse(p.Expression, p.FixedString, p.CaseInsensitive, tree);
+}
+
