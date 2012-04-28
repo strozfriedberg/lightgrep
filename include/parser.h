@@ -5,8 +5,9 @@
 #include "encoder.h"
 #include "nfabuilder.h"
 #include "pattern.h"
-#include "parsenode.h"
 #include "parsetree.h"
+
+bool parse(const Pattern& pattern, ParseTree& tree);
 
 bool parse(const std::string& text, bool litMode, ParseTree& tree);
 
