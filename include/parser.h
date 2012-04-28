@@ -9,7 +9,7 @@
 
 bool parse(const Pattern& pattern, ParseTree& tree);
 
-bool parse(const std::string& text, bool litMode, ParseTree& tree);
+bool parse(const std::string& text, bool litMode, bool caseInsensitive, ParseTree& tree);
 
 class Parser {
 public:

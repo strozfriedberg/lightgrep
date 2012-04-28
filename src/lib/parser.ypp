@@ -564,10 +564,6 @@ bool parse(const std::string& text, bool litMode,
   return ret == 0;
 }
 
-bool parse(const std::string& text, bool litMode, ParseTree& tree) {
-  return parse(text, litMode, false, tree);
-}
-
 bool parse(const Pattern& p, ParseTree& tree) {
   return parse(p.Expression, p.FixedString, p.CaseInsensitive, tree);
 }
