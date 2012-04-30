@@ -13,7 +13,6 @@ struct ParseNode {
     REGEXP,
     ALTERNATION,
     CONCATENATION,
-    GROUP,
     REPETITION,
     REPETITION_NG,
     DOT,
