@@ -36,16 +36,16 @@ struct ParseNode {
 
   UnicodeSet Bits;
 
-  ParseNode(): Type(LITERAL), Left(0), Val(0) {}
+  ParseNode(): Type(LITERAL), Left(nullptr), Val(0) {}
 
-  ParseNode(NodeType t, uint32 v): Type(t), Left(0), Val(v), Bits() {
+  ParseNode(NodeType t, uint32 v): Type(t), Left(nullptr), Val(v), Bits() {
     if (Type == CHAR_CLASS) {
       Bits.set(v);
     }
   }
 
   ParseNode(NodeType t, ParseNode* l):
-    Type(t), Left(l), Right(0) {}
+    Type(t), Left(l), Right(nullptr) {}
 
   ParseNode(NodeType t, ParseNode* l, ParseNode* r):
     Type(t), Left(l), Right(r) {}
@@ -58,13 +58,13 @@ struct ParseNode {
   }
 
   ParseNode(NodeType t, uint32 first, uint32 last):
-    Type(t), Left(0), Bits(first, last + 1) {}
+    Type(t), Left(nullptr), Bits(first, last + 1) {}
 
   explicit ParseNode(NodeType t, const ByteSet& b):
-    Type(t), Left(0), Bits(b) {}
+    Type(t), Left(nullptr), Bits(b) {}
 
   ParseNode(NodeType t, const UnicodeSet& b):
-    Type(t), Left(0), Bits(b) {}
+    Type(t), Left(nullptr), Bits(b) {}
 
   ParseNode(const ParseNode& n): Type(n.Type), Left(n.Left) {
     init_union(n);
