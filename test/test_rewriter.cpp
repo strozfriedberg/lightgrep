@@ -137,7 +137,7 @@ SCOPE_TEST(spliceOutParentLeftTest) {
   splice_out_parent(tree.Root, con, l);
 
   SCOPE_ASSERT_EQUAL(l, tree.Root->Left);
-  SCOPE_ASSERT_EQUAL((ParseNode*) 0, tree.Root->Right);
+  SCOPE_ASSERT_EQUAL((ParseNode*) nullptr, tree.Root->Right);
 }
 
 SCOPE_TEST(spliceOutParentRightTest) {
