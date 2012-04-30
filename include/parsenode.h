@@ -57,13 +57,13 @@ struct ParseNode {
   }
 
   ParseNode(NodeType t, uint32 first, uint32 last):
-    Type(t), Left(nullptr), Bits(first, last + 1) {}
+    Type(t), Left(nullptr), Right(nullptr), Bits(first, last + 1) {}
 
   explicit ParseNode(NodeType t, const ByteSet& b):
-    Type(t), Left(nullptr), Bits(b) {}
+    Type(t), Left(nullptr), Right(nullptr), Bits(b) {}
 
   ParseNode(NodeType t, const UnicodeSet& b):
-    Type(t), Left(nullptr), Bits(b) {}
+    Type(t), Left(nullptr), Right(nullptr), Bits(b) {}
 
   ParseNode(const ParseNode& n): Type(n.Type), Left(n.Left) {
     init_union(n);
@@ -91,6 +91,9 @@ struct ParseNode {
 
   void init_union(const ParseNode& n) {
     switch (Type) {
+    case REGEXP:
+      Right = nullptr;
+      break;
     case ALTERNATION:
     case CONCATENATION:
       Right = n.Right;
@@ -102,6 +105,7 @@ struct ParseNode {
     case CHAR_CLASS:
 //      new(&Bits) UnicodeSet(n.Bits);
       Bits = n.Bits;
+      Right = nullptr;
       break;
     default:
       Val = n.Val;
