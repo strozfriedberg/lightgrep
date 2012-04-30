@@ -39,8 +39,6 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
     return out << '|';
   case ParseNode::CONCATENATION:
     return out << '&';
-  case ParseNode::GROUP:
-    return out << '(';
   case ParseNode::REPETITION:
     repetition(out, n.Rep.Min, n.Rep.Max);
     return out;
