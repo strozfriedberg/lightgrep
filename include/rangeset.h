@@ -20,15 +20,22 @@ private:
 
 public:
   typedef typename std::vector<T>::size_type size_type;
+  typedef std::pair<T,T> range;
 
   RangeSet() {}
 
-  RangeSet(T first, T last): vec{ first, last } {}
+  RangeSet(T first, T last): vec{first, last} {}
 
-  RangeSet(T val): vec{ val, val+1 } {}
+  RangeSet(T val): vec{val, val+1} {}
 
 // TODO: ensure init.size() is even
   RangeSet(std::initializer_list<T> init): vec(init) {}
+
+  RangeSet(std::initializer_list<range> init) {
+    for (const range& r : init) {
+      insert(r);
+    }
+  }
 
 // TODO: ensure BN <= N
   template <size_t BN>
@@ -206,8 +213,6 @@ public:
     }
     return c;
   }
-
-  typedef std::pair<T,T> range;
 
   class const_range_iterator:
     public boost::iterator_facade<
