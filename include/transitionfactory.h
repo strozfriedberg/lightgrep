@@ -47,6 +47,62 @@ public:
     return get(&CharClass);
   }
 
+  template <class SetType>
+  Transition* getSmallest(const SetType& bytes) {
+    enum {
+      NONE,
+      ONE,
+      RANGE,
+      TWO
+    } type = NONE;
+
+    byte low, high;
+
+    // This is a little state machine for classifying our byte set.
+    for (size_t i = 0; i < 256; ++i) {
+      if (bytes.test(i)) {
+        switch (type) {
+        case NONE:
+          low = high = i;
+          type = ONE;
+          break;
+        case ONE:
+          if (++high != i) {
+            high = i;
+            type = TWO;
+          }
+          else {
+            type = RANGE;
+          }
+          break;
+        case RANGE:
+          if (++high == i) {
+            break;
+          }
+        case TWO:
+          // cc is a union of disjoint ranges
+          return getCharClass(bytes);
+        }
+      }
+    }
+
+    switch (type) {
+    case NONE:
+      return getCharClass(bytes);
+    case ONE:
+      return getLit(low);
+    case RANGE:
+// TODO: Check whether there is any performance difference between EITHER
+// and RANGE for two-element ranges.
+      return getRange(low, high);
+    case TWO:
+      return getEither(low, high);
+    }
+
+    // This is impossible, it's here just to shut the compiler up.
+    return getCharClass(bytes);
+  }
+
 private:
   Transition* get(Transition* t) {
     auto i = Exemplars.find(t);

@@ -1,0 +1,48 @@
+#include <scope/test.h>
+
+#include "states.h"
+#include "transition.h"
+#include "transitionfactory.h"
+
+template <class StateType>
+void smallestTester(const ByteSet& ebs) {
+  TransitionFactory tfac;
+  StateType* state = dynamic_cast<StateType*>(tfac.getSmallest(ebs));
+  SCOPE_ASSERT(state);
+  ByteSet abs;
+  state->getBits(abs);
+  SCOPE_ASSERT_EQUAL(ebs, abs);
+}
+
+SCOPE_TEST(getSmallestNoneTest) {
+  const ByteSet ebs;
+  smallestTester<CharClassState>(ebs);
+}
+
+SCOPE_TEST(getSmallestOneTest) {
+  const ByteSet ebs('z');
+  smallestTester<CharClassState>(ebs);
+}
+
+SCOPE_TEST(getSmallestTwoTest) {
+  ByteSet ebs;
+  ebs.set('a');
+  ebs.set('z');
+  smallestTester<EitherState>(ebs);
+}
+
+SCOPE_TEST(getSmallestRangeTest) {
+  ByteSet ebs;
+  for (byte b = 'a'; b <= 'z'; ++b) {
+    ebs.set(b);
+  }
+  smallestTester<RangeState>(ebs);
+}
+
+SCOPE_TEST(getSmallestManyTest) {
+  ByteSet ebs;
+  ebs.set('A');
+  ebs.set('a');
+  ebs.set('b');
+  smallestTester<CharClassState>(ebs);
+}
