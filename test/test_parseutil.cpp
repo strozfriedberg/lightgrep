@@ -175,3 +175,177 @@ SCOPE_TEST(parseNamedCodePointNameTest) {
   fixture(parseNamedCodePoint<SItr>, "bogus", -1, -1);
   fixture(parseNamedCodePoint<SItr>, "{}", -1, -1);
 }
+
+SCOPE_TEST(caseDesensitize_a_Test) {
+  UnicodeSet aset('a');
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  UnicodeSet eset;
+  eset.set('A');
+  eset.set('a');
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_A_Test) {
+  UnicodeSet aset('A');
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  UnicodeSet eset;
+  eset.set('A');
+  eset.set('a');
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitizeASCII_DollarSign_Test) {
+  UnicodeSet aset('$');
+  SCOPE_ASSERT(!caseDesensitize(aset));
+
+  UnicodeSet eset('$');
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitizeASCII_Aa_Test) {
+  UnicodeSet aset;
+  aset.set('A');
+  aset.set('a');
+  SCOPE_ASSERT(!caseDesensitize(aset));
+
+  UnicodeSet eset;
+  eset.set('A');
+  eset.set('a');
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_a_to_z_Test) {
+  UnicodeSet aset('a', 'z' + 1);
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  UnicodeSet eset{
+    {'A', 'Z' + 1},
+    {'a', 'z' + 1},
+    {0x17F, 0x180},  // LATIN SMALL LETTER LONG S
+    {0x212A, 0x212B} // KELVIN SIGN
+  };
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_A_to_Z_Test) {
+  UnicodeSet aset('A', 'Z' + 1);
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  UnicodeSet eset{
+    {'A', 'Z' + 1},
+    {'a', 'z' + 1},
+    {0x17F, 0x180},  // LATIN SMALL LETTER LONG S
+    {0x212A, 0x212B} // KELVIN SIGN
+  };
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_Sigma_Test) {
+  UnicodeSet aset(U'Σ');
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  // NB: ς is the version of σ which ends words in Greek.
+
+  UnicodeSet eset;
+  eset.set(U'Σ'); // GREEK CAPITAL LETTER SIGMA
+  eset.set(U'σ'); // GREEK SMALL LETTER SIGMA
+  eset.set(U'ς'); // GREEK SMALL LETTER FINAL SIGMA
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_sigma_Test) {
+  UnicodeSet aset(U'σ');
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  // NB: ς is the version of σ which ends words in Greek.
+
+  UnicodeSet eset;
+  eset.set(U'Σ'); // GREEK CAPITAL LETTER SIGMA
+  eset.set(U'σ'); // GREEK SMALL LETTER SIGMA
+  eset.set(U'ς'); // GREEK SMALL LETTER FINAL SIGMA
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_final_sigma_Test) {
+  UnicodeSet aset(U'ς');
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  // NB: ς is the version of σ which ends words in Greek.
+
+  UnicodeSet eset;
+  eset.set(U'Σ'); // GREEK CAPITAL LETTER SIGMA
+  eset.set(U'σ'); // GREEK SMALL LETTER SIGMA
+  eset.set(U'ς'); // GREEK SMALL LETTER FINAL SIGMA
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_eszett_Test) {
+  UnicodeSet aset(U'ß');
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  // NB: For UTS #18 Level 2 conformance, ß must also match SS.
+  // See also Section 5.18 of the Unicode Standard for a discussion
+  // of the Eszett.
+
+  UnicodeSet eset;
+  eset.set(U'ß'); // LATIN SMALL LETTER SHARP S
+  eset.set(U'ẞ'); // LATIN CAPITAL LETTER SHARP S
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_Eszett_Test) {
+  UnicodeSet aset(U'ẞ');
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  // NB: For UTS #18 Level 2 conformance, ß must also match SS.
+  // See also Section 5.18 of the Unicode Standard for a discussion
+  // of the Eszett.
+
+  UnicodeSet eset;
+  eset.set(U'ß'); // LATIN SMALL LETTER SHARP S
+  eset.set(U'ẞ'); // LATIN CAPITAL LETTER SHARP S
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+SCOPE_TEST(caseDesensitize_dz_digraph_Test) {
+  UnicodeSet aset(U'ǳ');
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  // NB: Dz is a titlecase version of the dz and DZ digraphs used in
+  // various Slavic languages written in the Latin alphabet.
+
+  UnicodeSet eset;
+  eset.set(U'ǳ'); // LATIN SMALL LETTER DZ
+  eset.set(U'Ǳ'); // LATIN CAPITAL LETTER DZ
+  eset.set(U'ǲ'); // LATIN CAPITAL LETTER D WITH SMALL LETTER Z
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_DZ_digraph_Test) {
+  UnicodeSet aset(U'Ǳ');
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  // NB: Dz is a titlecase version of the dz and DZ digraphs used in
+  // various Slavic languages written in the Latin alphabet.
+
+  UnicodeSet eset;
+  eset.set(U'ǳ'); // LATIN SMALL LETTER DZ
+  eset.set(U'Ǳ'); // LATIN CAPITAL LETTER DZ
+  eset.set(U'ǲ'); // LATIN CAPITAL LETTER D WITH SMALL LETTER Z
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_Dz_digraph_Test) {
+  UnicodeSet aset(U'ǲ');
+  SCOPE_ASSERT(caseDesensitize(aset));
+
+  // NB: Dz is a titlecase version of the dz and DZ digraphs used in
+  // various Slavic languages written in the Latin alphabet.
+
+  UnicodeSet eset;
+  eset.set(U'ǳ'); // LATIN SMALL LETTER DZ
+  eset.set(U'Ǳ'); // LATIN CAPITAL LETTER DZ
+  eset.set(U'ǲ'); // LATIN CAPITAL LETTER D WITH SMALL LETTER Z
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}

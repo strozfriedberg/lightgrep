@@ -22,7 +22,6 @@ public:
   void callback(const ParseNode& n);
 
   void setEncoder(const std::shared_ptr<Encoder>& e);
-  void setCaseInsensitive(bool insensitive); // defaults to true
   void setSizeHint(uint64 reserveSize);
 
   void alternate(const ParseNode& n);
@@ -55,15 +54,13 @@ public:
 private:
   void init();
 
-  void setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, byte val);
-
   void patch_mid(OutListT& src, const InListT& dst, uint32 dstskip);
   void patch_pre(OutListT& src, const InListT& dst);
   void patch_post(OutListT& src, const InListT& dst);
 
   void traverse(const ParseNode* root);
 
-  bool IsGood, CaseInsensitive;
+  bool IsGood;
   uint32 CurLabel;
   uint64 ReserveSize;
   std::shared_ptr<Encoder> Enc;
