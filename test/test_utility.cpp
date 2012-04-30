@@ -123,7 +123,7 @@ SCOPE_TEST(keywordLabelsProgram) {
 template<class T>
 std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
   std::vector<Pattern> ret;
-  for (auto p : list) {
+  for (const auto& p : list) {
     ret.emplace_back(p);
   }
   return ret;
@@ -194,7 +194,7 @@ SCOPE_TEST(firstBitset) {
   edge(0, 1, fsm, fsm.TransFac->getLit('A'));
   edge(0, 2, fsm, fsm.TransFac->getLit('B'));
 
-  ByteSet accepted = firstBytes(fsm);
+  const ByteSet accepted = firstBytes(fsm);
   for (unsigned int i = 0; i < 256; ++i) {
     if (i == 'A' || i == 'B') {
       SCOPE_ASSERT(accepted[i]);
