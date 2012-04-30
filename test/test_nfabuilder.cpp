@@ -653,8 +653,7 @@ SCOPE_TEST(parseCaseInsensitive) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  nfab.setCaseInsensitive(true);
-  SCOPE_ASSERT(parse("ab", false, false, tree));
+  SCOPE_ASSERT(parse("ab", false, true, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, fsm.verticesSize());

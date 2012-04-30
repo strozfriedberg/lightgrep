@@ -42,7 +42,6 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
   // prepare the NFA builder
   Nfab.reset();
   Nfab.setCurLabel(patIndex);
-  Nfab.setCaseInsensitive(pattern.CaseInsensitive);
 
   std::shared_ptr<Encoder> enc;
   if (pattern.Encoding == "US-ASCII") {
