@@ -41,10 +41,22 @@ int parseOctChar(int c) {
   return ('0' <= c && c <= '7') ? c - '0' : -1;
 }
 
+void convUnicodeSet(::UnicodeSet& dst, const icu_46::UnicodeSet& src) {
+  const int rc = src.getRangeCount();
+  for (int i = 0; i < rc; ++i) {
+    dst.insert(src.getRangeStart(i), src.getRangeEnd(i)+1);
+  }
+}
+
+void convUnicodeSet(icu_46::UnicodeSet& dst, const ::UnicodeSet& src) {
+  for (const ::UnicodeSet::range& r : src) {
+    dst.add(r.first, r.second-1);
+  }
+}
+
 int propertyGetter(const std::string& prop, ::UnicodeSet& us) {
   // ask ICU for the set corresponding to this property
   const UnicodeString ustr(prop.c_str(), -1, US_INV);
-  std::cerr << prop << std::endl;
   UErrorCode err = U_ZERO_ERROR;
   icu_46::UnicodeSet icu_us(ustr, err);
   if (U_FAILURE(err)) {
@@ -52,10 +64,20 @@ int propertyGetter(const std::string& prop, ::UnicodeSet& us) {
     return -1;
   }
 
-  const int rc = icu_us.getRangeCount();
-  for (int i = 0; i < rc; ++i) {
-    us.insert(icu_us.getRangeStart(i), icu_us.getRangeEnd(i)+1);
+  convUnicodeSet(us, icu_us);
+  return 1;
+}
+
+bool caseDesensitize(::UnicodeSet& us) {
+  icu_46::UnicodeSet icu_us;
+  convUnicodeSet(icu_us, us);
+  icu_us.closeOver(USET_CASE_INSENSITIVE);
+
+  if (icu_us.size() == (int32) us.count()) {
+    // the given set was already closed under case-insensitivity
+    return false;
   }
 
-  return 1;
+  convUnicodeSet(us, icu_us);
+  return true;
 }

@@ -23,10 +23,12 @@ namespace {
   bool LiteralMode;
   bool CaseInsensitive;
 
-/*  template <class... Args>
+/*
+  template <class... Args>
   ParseNode* add(const char*, Args&&... args) {
     return Tree->add(args...);
-  }*/
+  }
+*/
 
   ParseNode* add(const ParseNode& n) {
     return Tree->add(n);
@@ -162,7 +164,20 @@ atom:
 literal:
   character
   {
-    $$ = add(ParseNode(ParseNode::LITERAL, $1));
+    if (CaseInsensitive) {
+      USet.reset();
+      USet.set($1);
+      if (caseDesensitize(USet)) {
+        // TODO: Maybe handle the commmon ASCII case without going via USet?
+        $$ = add(ParseNode(ParseNode::CHAR_CLASS, USet));
+      }
+      else {
+        $$ = add(ParseNode(ParseNode::LITERAL, $1));
+      }
+    }
+    else {
+      $$ = add(ParseNode(ParseNode::LITERAL, $1));
+    }
   }
 | '.'
   {
@@ -171,13 +186,35 @@ literal:
 | '[' '^' charclass ']'
   {
     $$ = $3;
+
+    // NB: PCRE applies case-insensitivity first, then negation. This is
+    // important, as these two operations do not commute on a cc such as
+    // [^a]. Let U be the set of all Unicode code points. Negating first
+    // gives U / {a}, which becomes U again when closing under case-
+    // insensitivity, due to A being a member of U / {a}, while closing
+    // under case-insensitivity first gives {A, a}, which becomes
+    // U / {A, a} after negation.
+
+    if (CaseInsensitive) {
+      caseDesensitize($$->Bits);
+    }
+
     $$->Bits.flip();
   }
 | '[' charclass ']'
   {
     $$ = $2;
+
+    if (CaseInsensitive) {
+      caseDesensitize($$->Bits);
+    }
   }
 | cc_named
+  {
+    if (CaseInsensitive) {
+      caseDesensitize($$->Bits);
+    }
+  }
 ;
 
 character:
@@ -352,7 +389,6 @@ namespace {
 // FIXME: Add \c.
 // FIXME: \b is not parsed correctly---should be backspace (0x08) inside
 //  character classes, and a wordbreak assertion elsewhere.
-// FIXME: Support \x, \xh?
 
   int consumeEscape() {
     if (Text >= TextEnd) {

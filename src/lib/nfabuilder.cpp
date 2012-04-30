@@ -44,7 +44,6 @@ std::ostream& operator<<(std::ostream& out, const Fragment& f) {
 }
 
 NFABuilder::NFABuilder():
-  CaseInsensitive(false),
   CurLabel(0),
   ReserveSize(0),
   Fsm(new NFA(1)),
@@ -83,22 +82,8 @@ void NFABuilder::setEncoder(const std::shared_ptr<Encoder>& e) {
   TempBuf.reset(new byte[Enc->maxByteLength() + 20]);
 }
 
-void NFABuilder::setCaseInsensitive(bool insensitive) {
-  CaseInsensitive = insensitive;
-}
-
 void NFABuilder::setSizeHint(uint64 reserveSize) {
   ReserveSize = reserveSize;
-}
-
-void NFABuilder::setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, byte val) {
-  if (!CaseInsensitive || !std::isalpha(val)) {
-    g[v].Trans = g.TransFac->getLit(val);
-  }
-  else {
-    g[v].Trans = g.TransFac->getEither(std::toupper(val), std::tolower(val));
-    g.Deterministic = false;
-  }
 }
 
 void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
@@ -153,11 +138,11 @@ void NFABuilder::literal(const ParseNode& n) {
     NFA& g(*Fsm);
     NFA::VertexDescriptor first, prev, last;
     first = prev = last = g.addVertex();
-    setLiteralTransition(g, first, TempBuf[0]);
+    g[first].Trans = g.TransFac->getLit(TempBuf[0]);
     for (uint32 i = 1; i < len; ++i) {
       last = g.addVertex();
       g.addEdge(prev, last);
-      setLiteralTransition(g, last, TempBuf[i]);
+      g[last].Trans = g.TransFac->getLit(TempBuf[i]);
       prev = last;
     }
     TempFrag.reset(n);
@@ -178,6 +163,8 @@ void NFABuilder::dot(const ParseNode& n) {
 void NFABuilder::charClass(const ParseNode& n) {
   if (Enc->maxByteLength() == 1) {
     NFA::VertexDescriptor v = Fsm->addVertex();
+    (*Fsm)[v].Trans = Fsm->TransFac->getSmallest(n.Bits);
+/*
     uint32 num = 0;
     byte first = 0, last = 0;
     for (uint32 i = 0; i < 256; ++i) {
@@ -201,6 +188,7 @@ void NFABuilder::charClass(const ParseNode& n) {
     else {
       (*Fsm)[v].Trans = Fsm->TransFac->getCharClass(n.Bits);
     }
+*/
 
     TempFrag.initFull(v, n); 
   }
