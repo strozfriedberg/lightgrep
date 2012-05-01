@@ -15,7 +15,7 @@ static const int LG_ENC_UTF_16BE = 3;
 static const int LG_ENC_UTF_32LE = 4;
 static const int LG_ENC_UTF_32BE = 5;
 
-static const char* LG_SUPPORTED_ENCODINGS[] = {
+static const char* const LG_SUPPORTED_ENCODINGS[] = {
 // The encoding specified in LG_KeyOptions MUST be one of these ASCII strings:
   "ASCII",    // 0
   "UTF-8",    // 1

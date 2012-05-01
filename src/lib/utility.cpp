@@ -41,9 +41,9 @@ void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
 
   for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
     uint32 encIdx = 0;
-    const char** end = LG_SUPPORTED_ENCODINGS + sizeof(LG_SUPPORTED_ENCODINGS);
-    const char** ptr = std::find(LG_SUPPORTED_ENCODINGS, end,
-                                 keyInfo.Patterns[i].Encoding);
+    const char* const* end = LG_SUPPORTED_ENCODINGS + sizeof(LG_SUPPORTED_ENCODINGS);
+    const char* const* ptr = std::find(LG_SUPPORTED_ENCODINGS, end,
+                                       keyInfo.Patterns[i].Encoding);
     if (ptr != end) {
       encIdx = ptr - LG_SUPPORTED_ENCODINGS;
     }
