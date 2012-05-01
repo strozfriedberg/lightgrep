@@ -9,7 +9,9 @@ int Program::bufSize() const {
 }
 
 bool Program::operator==(const Program& rhs) const {
-  return NumChecked == rhs.NumChecked && First == rhs.First && std::equal(begin(), end(), rhs.begin());
+  return NumChecked == rhs.NumChecked &&
+         First == rhs.First &&
+         std::equal(begin(), end(), rhs.begin());
 }
 
 std::string Program::marshall() const {
