@@ -197,37 +197,9 @@ void parse_opts(int argc, char** argv,
     opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;
 
-
-
+    // uppercase the encoding name
     std::transform(opts.Encoding.begin(), opts.Encoding.end(),
                    opts.Encoding.begin(), toupper);
-
-/*
-    const EncodingsCodeMap::const_iterator i(ENCODINGS.find(key));
-    if (i != ENCODINGS.end()) {
-
-    }
-    else {
-
-    }
-*/
-
-/*
-    if (opts.Encoding == "ascii") {
-      opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
-    }
-    else if (opts.Encoding == "ucs16") {
-      opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
-    }
-    else if (opts.Encoding == "both") {
-      std::stringstream buf;
-      buf << LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII] << "," << LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
-      opts.Encoding = buf.str();
-    }
-    else {
-      THROW_WITH_OUTPUT(po::error, "did not recognize encoding '" << opts.Encoding << "'");
-    }
-*/
 
     if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
       throw po::error("--with-filename and --no-filename are incompatible options");
