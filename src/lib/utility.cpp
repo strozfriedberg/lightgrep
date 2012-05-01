@@ -1,4 +1,3 @@
-
 #include "codegen.h"
 #include "concrete_encoders.h"
 #include "compiler.h"
@@ -36,16 +35,19 @@ uint32 totalCharacters(const std::vector<Pattern>& keywords) {
   return ret;
 }
 
+// FIXME: this duplicates a lot of parsePatterns() in main.cpp
 void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
   addKeys(keyInfo.Patterns, ignoreBad, p, keyIdx);
-//  EncodingsCodeMap encMap = getEncodingsMap();
 
   for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
     uint32 encIdx = 0;
-    EncodingsCodeMap::const_iterator it(ENCODINGS.find(keyInfo.Patterns[i].Encoding));
-    if (it != ENCODINGS.end()) {
-      encIdx = it->second;
+    const char** end = LG_SUPPORTED_ENCODINGS + sizeof(LG_SUPPORTED_ENCODINGS);
+    const char** ptr = std::find(LG_SUPPORTED_ENCODINGS, end,
+                                 keyInfo.Patterns[i].Encoding);
+    if (ptr != end) {
+      encIdx = ptr - LG_SUPPORTED_ENCODINGS;
     }
+
     keyInfo.Table.emplace_back(i, encIdx);
   }
 }
