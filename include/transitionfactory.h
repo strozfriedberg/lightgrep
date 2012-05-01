@@ -56,7 +56,7 @@ public:
       TWO
     } type = NONE;
 
-    byte low, high;
+    byte low = 0, high = 0;
 
     // This is a little state machine for classifying our byte set.
     for (size_t i = 0; i < 256; ++i) {
