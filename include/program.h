@@ -13,8 +13,10 @@ typedef std::shared_ptr<Program> ProgramPtr;
 
 class Program: public std::vector<Instruction> {
 public:
-  Program(size_t num, const Instruction& val): std::vector<Instruction>(num, val) {}
-  Program(): std::vector<Instruction>() {}
+  Program(size_t num, const Instruction& val):
+    std::vector<Instruction>(num, val), NumChecked(0), First() {}
+
+  Program(): std::vector<Instruction>(), NumChecked(0), First() {}
 
   uint32  NumChecked;
 
