@@ -125,8 +125,11 @@ void stdParseErrorHandler(const Pattern& p, const std::string& err) {
               << p.Index << ", '" << p.Expression << "'" << std::endl;
 }
 
-std::shared_ptr<ParserHandle> parsePatterns(PatternInfo& pinfo, uint32& numErrors,
-                                            std::function<void (const Pattern&, const std::string&)> onError = stdParseErrorHandler)
+std::shared_ptr<ParserHandle> parsePatterns(
+  PatternInfo& pinfo,
+  uint32& numErrors,
+  std::function<void (const Pattern&, const std::string&)> onError =
+    stdParseErrorHandler)
 {
   numErrors = 0;
   if (pinfo.Patterns.empty()) {
@@ -141,15 +144,17 @@ std::shared_ptr<ParserHandle> parsePatterns(PatternInfo& pinfo, uint32& numError
 
   // parse patterns
   uint32 patIdx = 0;
-//  EncodingsCodeMap encMap(getEncodingsMap());
-  EncodingsCodeMap::const_iterator foundEnc;
-  const EncodingsCodeMap::const_iterator encEnd(ENCODINGS.end());
 
   for (uint32 i = 0; i < pinfo.Patterns.size(); ++i) {
     uint32 encIdx = 0;
-    if ((foundEnc = ENCODINGS.find(pinfo.Patterns[i].Encoding)) != encEnd) {
-      encIdx = foundEnc->second;
+
+    const char** end = LG_SUPPORTED_ENCODINGS + sizeof(LG_SUPPORTED_ENCODINGS);
+    const char** ptr = std::find(LG_SUPPORTED_ENCODINGS, end,
+                                 pinfo.Patterns[i].Encoding);
+    if (ptr != end) {
+      encIdx = ptr - LG_SUPPORTED_ENCODINGS;
     }
+
     if (addPattern(parser.get(), i, patIdx, encIdx, pinfo)) {
       ++patIdx;
     }

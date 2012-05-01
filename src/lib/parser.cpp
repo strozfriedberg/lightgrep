@@ -46,6 +46,9 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
     Nfab.setEncoder(i->second);
   }
   else {
+// FIXME: This doesn't properly square with LG_SUPPORTED_ENCODINGS: Any
+// encoder added this way won't have an entry in LG_SUPPORTED_ENCODINGS,
+// which will cause hitwriter to overshoot the end.
     std::shared_ptr<Encoder> enc(new ICUEncoder(pattern.Encoding.c_str()));
     Encoders.insert(std::make_pair(pattern.Encoding, enc));
     Nfab.setEncoder(enc);
