@@ -25,7 +25,7 @@ struct ParseNode {
 
   ParseNode *Left;
 
-  union  {
+  union {
     ParseNode* Right;
     int Val;
     struct {
