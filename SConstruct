@@ -122,6 +122,8 @@ c_example = sub('c_example')
 
 test = sub('test')
 
+enc = sub('src/enc')
+
 cmd = sub('src/cmd')
 
 env.Command('unittests', test, '$SOURCE --test')
