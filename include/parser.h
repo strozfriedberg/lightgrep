@@ -7,6 +7,9 @@
 #include "pattern.h"
 #include "parsetree.h"
 
+#include <memory>
+#include <string>
+
 bool parse(const Pattern& pattern, ParseTree& tree);
 
 bool parse(const std::string& text, bool litMode, bool caseInsensitive, ParseTree& tree);
@@ -20,10 +23,7 @@ public:
   Compiler   Comp;
   NFAPtr     Fsm;
 
-  typedef std::map<uint32, std::shared_ptr<Encoder>> EncodingMap;
-
-  EncodingsCodeMap EncCodes;
-  EncodingMap      Encoders;
+  std::map<std::string,std::shared_ptr<Encoder>> Encoders;
 
   void addPattern(const Pattern& pattern, uint32 patIndex);
 };

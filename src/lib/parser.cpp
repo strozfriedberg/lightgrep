@@ -5,20 +5,18 @@
 #include "rewriter.h"
 
 #include <string>
-
-Parser::EncodingMap createEncodingMap() {
-  Parser::EncodingMap map;
-  map[LG_ENC_ASCII].reset(new ASCII);
-  map[LG_ENC_UTF_8].reset(new UTF8);
-  map[LG_ENC_UTF_16].reset(new UTF16LE);
-  map[LG_ENC_UTF_16].reset(new UTF16BE);
-  return map;
-}
+#include <memory>
 
 Parser::Parser(uint32 sizeHint):
   Fsm(new NFA(1, sizeHint)),
-//  EncCodes(getEncodingsMap()),  // names -> uint
-  Encoders(createEncodingMap()) // uint  -> Encoding object
+  Encoders{
+    { "ASCII",    std::make_shared<ASCII>()   },
+    { "UTF-8",    std::make_shared<UTF8>()    },
+    { "UTF-16LE", std::make_shared<UTF16LE>() },
+    { "UTF-16BE", std::make_shared<UTF16BE>() },
+    { "UTF-32LE", std::make_shared<UTF32LE>() },
+    { "UTF-32BE", std::make_shared<UTF32BE>() }
+  }
 {
   Fsm->TransFac = Nfab.getTransFac();
 }
@@ -38,54 +36,20 @@ bool contains_possible_counted_repetition(const std::string& pattern) {
 
 void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
 {
-//  std::cerr << "[" << patIndex << "]: " << pattern << std::endl;
   // prepare the NFA builder
   Nfab.reset();
   Nfab.setCurLabel(patIndex);
 
-  std::shared_ptr<Encoder> enc;
-  if (pattern.Encoding == "US-ASCII") {
-    enc.reset(new ASCII);
-  }
-  else if (pattern.Encoding == "UTF-8") {
-    enc.reset(new UTF8);
-  }
-  else if (pattern.Encoding == "UTF-16LE") {
-    enc.reset(new UTF16LE);
-  }
-  else if (pattern.Encoding == "UTF-16BE") {
-    enc.reset(new UTF16BE);
-  }
-  else if (pattern.Encoding == "UTF-32LE") {
-    enc.reset(new UTF32LE);
-  }
-  else if (pattern.Encoding == "UTF-32BE") {
-    enc.reset(new UTF32BE);
+  // set the character encoding
+  auto i = Encoders.find(pattern.Encoding);
+  if (i != Encoders.end()) {
+    Nfab.setEncoder(i->second);
   }
   else {
-    enc.reset(new ICUEncoder(pattern.Encoding.c_str()));
+    std::shared_ptr<Encoder> enc(new ICUEncoder(pattern.Encoding.c_str()));
+    Encoders.insert(std::make_pair(pattern.Encoding, enc));
+    Nfab.setEncoder(enc);
   }
-
-  Nfab.setEncoder(enc);
-
-/*
-  bool good = false;
-
-  EncodingsCodeMap::const_iterator foundName(ENCODINGS.find(pattern.Encoding));
-  if (foundName != ENCODINGS.end()) {
-    EncodingMap::const_iterator foundEncoder(Encoders.find(foundName->second));
-    if (foundEncoder != Encoders.end()) {
-      Nfab.setEncoding(foundEncoder->second);
-      good = true;
-    }
-  }
-
-  if (!good) {
-    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
-      "Unrecognized encoding '" << pattern.Encoding << "'"
-    );
-  }
-*/
 
   // parse the pattern
   if (parse(pattern, Tree)) {
