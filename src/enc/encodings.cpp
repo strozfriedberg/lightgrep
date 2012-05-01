@@ -59,10 +59,12 @@ int main(int, char**) {
 
   // print the name to encoding id map
   std::cout <<
-"static const struct {\n"
+"typedef struct {\n"
 "  const char* const name;\n"
 "  size_t idx;\n"
-"} LG_SUPPORTED_ENCODINGS[] = {";
+"} LG_SUPPORTED_ENCODING;\n"
+"\n"
+"static const LG_SUPPORTED_ENCODING LG_SUPPORTED_ENCODINGS[] = {";
 
   auto itr = idmap.begin();
   const auto end = idmap.end();
