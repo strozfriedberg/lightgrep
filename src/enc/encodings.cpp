@@ -138,11 +138,31 @@ int main(int, char**) {
       const char* a = ucnv_getAlias(n, j, &err);
       throw_on_error(err);
 
+      // check whether this alias is ambiguous
+      bool ambiguous = false;
+      std::string prev_sn;
+      for (const std::string& s : standards) {
+        const char* sn = ucnv_getStandardName(a, s.c_str(), &err);
+        throw_on_error(err);
+
+        if (sn) {
+          if (prev_sn.empty()) {
+            prev_sn = sn;
+          }
+          else if (prev_sn != sn) {
+            ambiguous = true;
+            break;
+          }
+        }
+      }
+
+      // create a valid variable name
       std::string alias(a);
       std::transform(alias.begin(), alias.end(), alias.begin(), toupper);
       std::replace_if(alias.begin(), alias.end(),
                       [](char c){ return !isalnum(c); }, '_');
 
+      // collect the standards defining this alias
       bool java = false, javaonly = true, nostd = true;
       std::stringstream ss;
       ss << " //";
@@ -152,13 +172,14 @@ int main(int, char**) {
 
         bool first = true;
         const char* standardName;
-        while ((standardName = uenum_next(nameEnum, NULL, &err))) {
+        while ((standardName = uenum_next(nameEnum, nullptr, &err))) {
           if (!strcmp(standardName, a)) {
             if (!s.empty()) {
               ss << ' ' << s;
 
               if (first) {
                 ss << '*';
+                ambiguous = false;
               }
 
               nostd = false;
@@ -179,10 +200,13 @@ int main(int, char**) {
       // Comment out:
       //  * names duplicated by case-folding
       //  * names defined by no standard
+      //  * names ambiguous between two canonical encodings
       //  * names defined by Java only
-      if (!aliases.insert(alias).second || nostd || (java && javaonly)) {
+      if (!aliases.insert(alias).second || nostd || ambiguous || (java && javaonly)) {
         std::cout << "// ";
-        ss.str("");
+        if (ss.str().length() == 3) {
+          ss.str("");
+        }
       }
       std::cout << "static const int LG_ENC_" << alias
                 << " = " << i << ';' << ss.str() << '\n';
