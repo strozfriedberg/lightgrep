@@ -14,7 +14,7 @@ public:
           bool fixed = false,
           bool insensitive = false,
           uint32 index = 0,
-          const std::string& enc = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII]):
+          const std::string& enc = LG_CANONICAL_ENCODINGS[LG_ENC_ASCII]):
     Expression(expr),
     FixedString(fixed),
     CaseInsensitive(insensitive),

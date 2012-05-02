@@ -114,6 +114,8 @@ if (not (conf.CheckCXXHeader('boost/scoped_ptr.hpp')
 if (not isWindows and 'DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
 
+enc = sub('src/enc')
+
 liblg = sub('src/lib')
 
 libDir = env.Install('lib', liblg)
@@ -121,8 +123,6 @@ libDir = env.Install('lib', liblg)
 c_example = sub('c_example')
 
 test = sub('test')
-
-enc = sub('src/enc')
 
 cmd = sub('src/cmd')
 
