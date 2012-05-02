@@ -11,6 +11,12 @@
 
 #include "basic.h"
 
+void throw_on_error(UErrorCode err) {
+  if (U_FAILURE(err)) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("ICU error: " << u_errorName(err));
+  }
+}
+
 int main(int, char**) {
   // print copyright notice, ifdef guards, open extern "C" block
   std::cout <<
@@ -40,21 +46,14 @@ int main(int, char**) {
     longest = std::max(longest, longest_canonical);
 
     const int32 alen = ucnv_countAliases(n, &err);
-    if (U_FAILURE(err)) {
-      // should not happen
-      THROW_RUNTIME_ERROR_WITH_OUTPUT("ICU error: " << u_errorName(err));
-    }
+    throw_on_error(err);
 
     for (int32 j = 0; j < alen; ++j) {
       const char* a = ucnv_getAlias(n, j, &err);
+      throw_on_error(err);
       idmap.insert(std::make_pair(a, i));
 
       longest = std::max(longest, strlen(a));
-
-      if (U_FAILURE(err)) {
-        // should not happen
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("ICU error: " << u_errorName(err));
-      }
     }
   }
 
@@ -111,6 +110,14 @@ int main(int, char**) {
 "};\n"
 "\n";
 
+  // get standard names
+  const uint32 slen = ucnv_countStandards();
+  std::vector<std::string> standards;
+  for (uint32 i = 0; i < slen; ++i) {
+    standards.emplace_back(ucnv_getStandard(i, &err));
+    throw_on_error(err);
+  }
+
   // print the encoding constants
   for (int32 i = 0; i < clen; ++i) {
     if (i > 0) {
@@ -121,32 +128,64 @@ int main(int, char**) {
     const char* n = ucnv_getAvailableName(i);
     std::cout << "// " << n << '\n';
 
-    // collect the aliases 
     std::set<std::string> aliases;
 
+    // print the aliases 
     const int32 alen = ucnv_countAliases(n, &err);
-    if (U_FAILURE(err)) {
-      // should not happen
-      THROW_RUNTIME_ERROR_WITH_OUTPUT("ICU error: " << u_errorName(err));
-    }
+    throw_on_error(err);
 
     for (int32 j = 0; j < alen; ++j) {
-      std::string alias(ucnv_getAlias(n, j, &err));
+      const char* a = ucnv_getAlias(n, j, &err);
+      throw_on_error(err);
+
+      std::string alias(a);
       std::transform(alias.begin(), alias.end(), alias.begin(), toupper);
       std::replace_if(alias.begin(), alias.end(),
                       [](char c){ return !isalnum(c); }, '_');
 
-      aliases.insert(alias);
+      bool java = false, javaonly = true, nostd = true;
+      std::stringstream ss;
+      ss << " //";
+      for (const std::string& s : standards) {
+        UEnumeration *nameEnum = ucnv_openStandardNames(n, s.c_str(), &err);
+        throw_on_error(err);
 
-      if (U_FAILURE(err)) {
-        // should not happen
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("ICU error: " << u_errorName(err));
+        bool first = true;
+        const char* standardName;
+        while ((standardName = uenum_next(nameEnum, NULL, &err))) {
+          if (!strcmp(standardName, a)) {
+            if (!s.empty()) {
+              ss << ' ' << s;
+
+              if (first) {
+                ss << '*';
+              }
+
+              nostd = false;
+            }
+
+            if (s == "JAVA") {
+              java = true;
+            }
+            else {
+              javaonly = false;
+            }
+          }
+
+          first = false;
+        }
       }
-    }
 
-    // print the aliases
-    for (const std::string& a : aliases) {
-      std::cout << "static const int LG_ENC_" << a << " = " << i << ";\n";
+      // Comment out:
+      //  * names duplicated by case-folding
+      //  * names defined by no standard
+      //  * names defined by Java only
+      if (!aliases.insert(alias).second || nostd || (java && javaonly)) {
+        std::cout << "// ";
+        ss.str("");
+      }
+      std::cout << "static const int LG_ENC_" << alias
+                << " = " << i << ';' << ss.str() << '\n';
     }
   }
 
