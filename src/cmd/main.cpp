@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <fstream>
 #include <functional>
@@ -148,12 +149,29 @@ std::shared_ptr<ParserHandle> parsePatterns(
   for (uint32 i = 0; i < pinfo.Patterns.size(); ++i) {
     uint32 encIdx = 0;
 
-    const char* const* end = LG_SUPPORTED_ENCODINGS + sizeof(LG_SUPPORTED_ENCODINGS);
-    const char* const* ptr = std::find(LG_SUPPORTED_ENCODINGS, end,
-                                       pinfo.Patterns[i].Encoding);
+    const char* enc = pinfo.Patterns[i].Encoding.c_str();
+
+    const LG_SUPPORTED_ENCODING* end = LG_SUPPORTED_ENCODINGS + sizeof(LG_SUPPORTED_ENCODINGS) / sizeof(LG_SUPPORTED_ENCODING);
+    const LG_SUPPORTED_ENCODING* ptr = std::find_if(
+      LG_SUPPORTED_ENCODINGS, end,
+      [=](const LG_SUPPORTED_ENCODING& e) {
+        const char* a = e.name;
+        const char* b = enc;
+
+        while (*a && *b) {
+          if (tolower(*a++) != tolower(*b++)) {
+            return false;
+          }
+        }
+
+        return !*a && !*b;
+      }
+    );
     if (ptr != end) {
-      encIdx = ptr - LG_SUPPORTED_ENCODINGS;
+      encIdx = ptr->idx;
     }
+
+std::cerr << encIdx << std::endl;
 
     if (addPattern(parser.get(), i, patIdx, encIdx, pinfo)) {
       ++patIdx;
