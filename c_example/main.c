@@ -49,7 +49,7 @@ int main() {
       strlen(keys[i]),
       i,
       &keyOpts,
-      LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII]
+      LG_CANONICAL_ENCODINGS[LG_ENC_ASCII]
     )) {
       fprintf(stderr, "Parser error on keyword %d, %s: %s", i, keys[i], lg_error(parser));
       isgood = 0;
