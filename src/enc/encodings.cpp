@@ -3,8 +3,9 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
-#include <string>
 #include <map>
+#include <set>
+#include <string>
 
 #include <unicode/ucnv.h>
 
@@ -120,7 +121,9 @@ int main(int, char**) {
     const char* n = ucnv_getAvailableName(i);
     std::cout << "// " << n << '\n';
 
-    // print the aliases for the encoding
+    // collect the aliases 
+    std::set<std::string> aliases;
+
     const int32 alen = ucnv_countAliases(n, &err);
     if (U_FAILURE(err)) {
       // should not happen
@@ -133,12 +136,17 @@ int main(int, char**) {
       std::replace_if(alias.begin(), alias.end(),
                       [](char c){ return !isalnum(c); }, '_');
 
-      std::cout << "static const int LG_ENC_" << alias << " = " << i << ";\n";
+      aliases.insert(alias);
 
       if (U_FAILURE(err)) {
         // should not happen
         THROW_RUNTIME_ERROR_WITH_OUTPUT("ICU error: " << u_errorName(err));
       }
+    }
+
+    // print the aliases
+    for (const std::string& a : aliases) {
+      std::cout << "static const int LG_ENC_" << a << " = " << i << ";\n";
     }
   }
 
