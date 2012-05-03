@@ -184,11 +184,10 @@ void NFABuilder::charClass(const ParseNode& n) {
         bs.reset();    
 
         // find byte 0 in the in list
-        const InListT::const_iterator iend(TempFrag.InList.end());
-        for (InListT::const_iterator i(TempFrag.InList.begin()); i != iend; ++i) {
-          (*Fsm)[*i].Trans->getBits(bs);
+        for (const auto& v : TempFrag.InList) {
+          (*Fsm)[v].Trans->getBits(bs);
           if (bs[TempBuf[0]]) {
-            head = *i;
+            head = v;
             break;
           }
         }
