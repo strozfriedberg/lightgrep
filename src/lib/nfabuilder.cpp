@@ -164,32 +164,6 @@ void NFABuilder::charClass(const ParseNode& n) {
   if (Enc->maxByteLength() == 1) {
     NFA::VertexDescriptor v = Fsm->addVertex();
     (*Fsm)[v].Trans = Fsm->TransFac->getSmallest(n.Bits);
-/*
-    uint32 num = 0;
-    byte first = 0, last = 0;
-    for (uint32 i = 0; i < 256; ++i) {
-      if (n.Bits.test(i)) {
-        if (!num) {
-          first = i;
-        }
-        if (++num == n.Bits.count()) {
-          last = i;
-          break;
-        }
-      }
-      else {
-        num = 0;
-      }
-    }
-
-    if (num == n.Bits.count()) {
-      (*Fsm)[v].Trans = Fsm->TransFac->getRange(first, last);
-    }
-    else {
-      (*Fsm)[v].Trans = Fsm->TransFac->getCharClass(n.Bits);
-    }
-*/
-
     TempFrag.initFull(v, n); 
   }
   else {
@@ -274,27 +248,6 @@ NEXT:
           }
         }
       }
-    }
-  }
-
-  if (CaseInsensitive) {
-    ByteSet bs;
-    (*Fsm)[v].Trans->getBits(bs);
-
-    for (byte i = 'A'; i <= 'Z'; ++i) {
-      if (bs.test(i) || bs.test(i + 32)) {
-        bs.set(i);
-        bs.set(i + 32);
-      }
-    }
-
-    r = isRange(bs);
-
-    if (r.first != 0 && r.second != 0) {
-      (*Fsm)[v].Trans = Fsm->TransFac->getRange(r.first, r.second);
-    }
-    else {
-      (*Fsm)[v].Trans = Fsm->TransFac->getCharClass(bs);
     }
   }
 
