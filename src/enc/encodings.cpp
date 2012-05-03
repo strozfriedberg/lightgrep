@@ -33,7 +33,7 @@ int main(int, char**) {
   // collect the encoding names and their canonical ids
   std::map<std::string,uint32> idmap;
   size_t longest = 0, longest_canonical = 0;
- 
+
   UErrorCode err = U_ZERO_ERROR;
 
   const int32 clen = ucnv_countAvailable();
@@ -42,7 +42,7 @@ int main(int, char**) {
     const char* n = ucnv_getAvailableName(i);
     idmap.insert(std::make_pair(n, i));
 
-    longest_canonical = std::max(longest_canonical, strlen(n)); 
+    longest_canonical = std::max(longest_canonical, strlen(n));
     longest = std::max(longest, longest_canonical);
 
     const int32 alen = ucnv_countAliases(n, &err);
@@ -130,7 +130,7 @@ int main(int, char**) {
 
     std::set<std::string> aliases;
 
-    // print the aliases 
+    // print the aliases
     const int32 alen = ucnv_countAliases(n, &err);
     throw_on_error(err);
 
@@ -221,7 +221,7 @@ int main(int, char**) {
 "#endif\n"
 "\n"
 "#endif /* __ENCODINGS_H_ */"
-  << std::endl;  
- 
+  << std::endl;
+
   return 0;
 }

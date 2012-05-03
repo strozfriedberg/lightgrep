@@ -336,7 +336,7 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
       if (_executeEpSequence<X == 0 ? 0 : X-1>(base, t, offset)) {
         if (t->PC->OpCode != FINISH_OP) {
           _markSeen(t->Label);
-        }      
+        }
 
         _markLive(t->Label);
         Next.push_back(*t);

@@ -164,7 +164,7 @@ void NFABuilder::charClass(const ParseNode& n) {
   if (Enc->maxByteLength() == 1) {
     NFA::VertexDescriptor v = Fsm->addVertex();
     (*Fsm)[v].Trans = Fsm->TransFac->getSmallest(n.Bits);
-    TempFrag.initFull(v, n); 
+    TempFrag.initFull(v, n);
   }
   else {
     TempFrag.N = n;
