@@ -2,9 +2,9 @@
 
 #include <boost/scoped_array.hpp>
 
-void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& f) const {
-  f.InList.clear();
-  f.OutList.clear();
+void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
+  frag.InList.clear();
+  frag.OutList.clear();
 
   boost::scoped_array<byte> buf(new byte[maxByteLength() + 20]);
   ByteSet bs;
@@ -19,7 +19,7 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& f) const {
       bs.reset();
 
       // find byte 0 in the in list
-      for (const auto& v : f.InList) {
+      for (const auto& v : frag.InList) {
         g[v].Trans->getBits(bs);
         if (bs[buf[0]]) {
           head = v;
@@ -31,11 +31,11 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& f) const {
       if (!head) {
         head = g.addVertex();
         g[head].Trans = g.TransFac->getLit(buf[0]);
-        f.InList.push_back(head);
+        frag.InList.push_back(head);
 
         if (len == 1) {
           // add trailing byte to out list
-          f.OutList.emplace_back(head, 0);
+          frag.OutList.emplace_back(head, 0);
         }
       }
 
@@ -78,7 +78,7 @@ NEXT:
           g[tail].Trans = g.TransFac->getCharClass(bs);
 
           // add trailing byte to out list
-          f.OutList.emplace_back(tail, 0);
+          frag.OutList.emplace_back(tail, 0);
         }
       }
     }
