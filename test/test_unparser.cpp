@@ -253,7 +253,7 @@ SCOPE_TEST(parseUnparse_LPa1RP1__Test) {
 
 SCOPE_TEST(parseUnparse_CCaCaret_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("[a^]", false, tree));
+  SCOPE_ASSERT(parse("[a^]", false, false, tree));
   SCOPE_ASSERT_EQUAL("[a^]", unparse(tree));
 }
 
