@@ -16,7 +16,7 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& f) const {
 
       NFA::VertexDescriptor head = 0, tail;
 
-      bs.reset();    
+      bs.reset();
 
       // find byte 0 in the in list
       for (const auto& v : f.InList) {
@@ -32,7 +32,7 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& f) const {
         head = g.addVertex();
         g[head].Trans = g.TransFac->getLit(buf[0]);
         f.InList.push_back(head);
-    
+
         if (len == 1) {
           // add trailing byte to out list
           f.OutList.emplace_back(head, 0);
@@ -41,7 +41,7 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& f) const {
 
       tail = head;
 
-      // move on to middle bytes, if any 
+      // move on to middle bytes, if any
       for (uint32 i = 1; i < len - 1; ++i) {
         bs.reset();
         const uint32 odeg = g.outDegree(head);
@@ -56,7 +56,7 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& f) const {
         tail = g.addVertex();
         g.addEdge(head, tail);
         g[tail].Trans = g.TransFac->getLit(buf[i]);
-        
+
 NEXT:
         head = tail;
       }

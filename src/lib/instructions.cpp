@@ -196,7 +196,7 @@ std::istream& operator>>(std::istream& in, Instruction& instr) {
   if (opname == "Literal") {
     uint32 b;
     in >> std::hex >> b;
-    instr = Instruction::makeLit(b); 
+    instr = Instruction::makeLit(b);
   }
   else if (opname == "Either") {
     uint32 a, b;
@@ -209,10 +209,10 @@ std::istream& operator>>(std::istream& in, Instruction& instr) {
     instr = Instruction::makeRange(first, last);
   }
   else if (opname == "Any") {
-    instr = Instruction::makeAny(); 
+    instr = Instruction::makeAny();
   }
   else if (opname == "BitVector") {
-    instr = Instruction::makeBitVector();  
+    instr = Instruction::makeBitVector();
   }
   else if (opname == "Jump") {
     instr.OpCode = JUMP_OP;
@@ -253,5 +253,5 @@ std::istream& operator>>(std::istream& in, Instruction& instr) {
     instr = Instruction::makeRaw32(val);
   }
 
-  return in;  
+  return in;
 }

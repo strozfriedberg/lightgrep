@@ -482,7 +482,7 @@ public:
   }
 
   void threadCleanup(boost::thread::id id);
- 
+
   void requestCleanup(boost::thread::id id);
 
   void writeHits(const std::vector<HitInfo>& hits);
@@ -586,7 +586,7 @@ void LGServer::threadCleanup(boost::thread::id id) {
 
 void LGServer::requestCleanup(boost::thread::id id) {
   Service.post(std::bind(&LGServer::threadCleanup, this, id));
-} 
+}
 
 void LGServer::writeHits(const std::vector<HitInfo>&) {
 
