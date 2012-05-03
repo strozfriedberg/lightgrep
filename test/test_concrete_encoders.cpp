@@ -2,7 +2,11 @@
 
 #include <iostream>
 
+#include "automata.h"
 #include "concrete_encoders.h"
+#include "fragment.h"
+
+#include "utility.h"
 
 SCOPE_TEST(testASCII) {
   ASCII enc;
@@ -10,11 +14,11 @@ SCOPE_TEST(testASCII) {
 
   byte buf[1];
   uint32 len;
- 
+
   // too low
   SCOPE_ASSERT_EQUAL(0, enc.write(-1, buf));
 
-  // just right 
+  // just right
   for (uint32 i = 0; i < 256; ++i) {
     len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
@@ -83,6 +87,102 @@ SCOPE_TEST(testUTF8) {
 
   // too high
   SCOPE_ASSERT_EQUAL(0, enc.write(0x110000, buf));
+}
+
+SCOPE_TEST(testUTF8Graph0) {
+  UTF8 enc;
+
+  UnicodeSet us;
+  us.set(0x40000);  // F1 80 80 80
+  us.set(0x80001);  // F2 80 80 81
+
+  NFA ag(1);
+  Fragment afrag;
+  enc.write(us, ag, afrag);
+
+  for (NFA::VertexDescriptor v : afrag.InList) {
+    ag.addEdge(0, v);
+  }
+
+  for (const auto& p : afrag.OutList) {
+    ag[p.first].IsMatch = true;
+  }
+
+  writeGraphviz(std::cout, ag);
+
+/*
+  NFA eg(8);
+
+  eg[0].Trans = eg.TransFac->getLit(0xF1);
+  eg.addEdge(0, 1);
+  eg[1].Trans = eg.TransFac->getLit(0x80);
+  eg.addEdge(1, 2);
+  eg[2].Trans = eg.TransFac->getLit(0x80);
+  eg.addEdge(3, 4);
+  eg[3].Trans = eg.TransFac->getLit(0x80);
+
+  eg[4].Trans = eg.TransFac->getLit(0xF2);
+  eg.addEdge(4, 5);
+  eg[5].Trans = eg.TransFac->getLit(0x80);
+  eg.addEdge(5, 6);
+  eg[6].Trans = eg.TransFac->getLit(0x80);
+  eg.addEdge(6, 7);
+  eg[7].Trans = eg.TransFac->getLit(0x81);
+
+  Fragment efrag;
+  efrag.InList.push_back(0);
+  efrag.InList.push_back(4);
+  efrag.OutList.emplace_back(3, 0);
+  efrag.OutList.emplace_back(7, 0);
+
+  SCOPE_ASSERT_EQUAL(eg, ag);
+  SCOPE_ASSERT_EQUAL(efrag, afrag);
+*/
+}
+
+SCOPE_TEST(testUTF8Graph1) {
+  UTF8 enc;
+
+  UnicodeSet us;
+  us.set(0x40000);  // F1 80 80 80
+  us.set(0x80000);  // F2 80 80 80
+
+  NFA ag(1);
+  Fragment afrag;
+  enc.write(us, ag, afrag);
+
+  for (NFA::VertexDescriptor v : afrag.InList) {
+    ag.addEdge(0, v);
+  }
+
+  for (const auto& p : afrag.OutList) {
+    ag[p.first].IsMatch = true;
+  }
+
+  writeGraphviz(std::cout, ag);
+}
+
+SCOPE_TEST(testUTF8Graph2) {
+  UTF8 enc;
+
+  UnicodeSet us;
+  us.set(0x400);    // D0 80
+  us.set(0x1000);   // E1 80 80
+  us.set(0x40000);  // F1 80 80 80
+
+  NFA ag(1);
+  Fragment afrag;
+  enc.write(us, ag, afrag);
+
+  for (NFA::VertexDescriptor v : afrag.InList) {
+    ag.addEdge(0, v);
+  }
+
+  for (const auto& p : afrag.OutList) {
+    ag[p.first].IsMatch = true;
+  }
+
+  writeGraphviz(std::cout, ag);
 }
 
 template <bool LE>
@@ -167,7 +267,7 @@ void utf32TestFixture(const UTF32<LE>& enc) {
 
     val =            buf[LE ? 0 : 3]         |
           (((uint32) buf[LE ? 1 : 2]) <<  8) |
-          (((uint32) buf[LE ? 2 : 1]) << 16) | 
+          (((uint32) buf[LE ? 2 : 1]) << 16) |
           (((uint32) buf[LE ? 3 : 0]) << 24);
 
     SCOPE_ASSERT_EQUAL(4, len);
@@ -185,7 +285,7 @@ void utf32TestFixture(const UTF32<LE>& enc) {
 
     val =            buf[LE ? 0 : 3]         |
           (((uint32) buf[LE ? 1 : 2]) <<  8) |
-          (((uint32) buf[LE ? 2 : 1]) << 16) | 
+          (((uint32) buf[LE ? 2 : 1]) << 16) |
           (((uint32) buf[LE ? 3 : 0]) << 24);
 
     SCOPE_ASSERT_EQUAL(4, len);
