@@ -1026,7 +1026,7 @@ SCOPE_TEST(parse_xLPaORaQQRPy) {
 
 SCOPE_TEST(xxxx) {
   UnicodeSet us;
-  us['a'] = us['b'] = us['c'] = us[7433] = us[7432] = true; 
+  us['a'] = us['b'] = us['c'] = us[7433] = us[7432] = true;
 
   UTF8 enc;
   byte b[4];
@@ -1041,7 +1041,7 @@ SCOPE_TEST(xxxx) {
     const uint32 l = r.first, h = r.second;
     for (uint32 cp = l; cp < h; ++cp) {
       len = enc.write(cp, b);
-     
+
       NFA::VertexDescriptor head = 0, tail;
       for (uint32 i = 0; i < len; ++i) {
         const uint32 odeg = g.outDegree(head);
@@ -1056,7 +1056,7 @@ SCOPE_TEST(xxxx) {
         tail = g.addVertex();
         g.addEdge(head, tail);
         g[tail].Trans = tfac.getLit(b[i]);
-        
+
 NEXT:
         head = tail;
       }

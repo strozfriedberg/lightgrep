@@ -71,9 +71,9 @@ int main() {
 
     char filesigText[] = "lambs love mary.";
     printf("using startsWith\n");
-    
+
     lg_starts_with(searcher, filesigText, filesigText + 16, 0, (void*)23, getHit);
-    
+
     printf("done with startsWith\n");
 
     printf("beginning search\n");
@@ -81,13 +81,13 @@ int main() {
     // search texts as if they were a contiguous array
     char *mary[2] = {"Mary had a little l", "amb"},
          *twinkle[3] = {"Twin", "kle twink", "le, little star"};
-    
+
     printf("searching 'Mary had a little lamb'\n");
-    
+
     searchText(mary, 2, searcher);
-  
+
     printf("searching 'Twinkle twinkle, little star'\n");
-    
+
     searchText(twinkle, 3, searcher);
 
     printf("done with search\n");

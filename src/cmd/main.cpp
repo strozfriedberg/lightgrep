@@ -179,7 +179,7 @@ std::cerr << encIdx << std::endl;
     else {
       ++numErrors;
       onError(pinfo.Patterns[i], lg_error(parser.get()));
-    }    
+    }
   }
   // don't enable these unless debugging -- will mess up enscript
 /*  std::cerr << pinfo.Patterns.size() << " Patterns" << std::endl;

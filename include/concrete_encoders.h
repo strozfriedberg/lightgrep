@@ -85,9 +85,9 @@ public:
       return 0;
     }
     else if (cp < 0xD800) {
-      buf[LE ? 0 : 3] =  cp        & 0xFF; 
+      buf[LE ? 0 : 3] =  cp        & 0xFF;
       buf[LE ? 1 : 2] = (cp >>  8) & 0xFF;
-      buf[LE ? 2 : 1] = (cp >> 16) & 0xFF; 
+      buf[LE ? 2 : 1] = (cp >> 16) & 0xFF;
       buf[LE ? 3 : 0] = (cp >> 24) & 0xFF;
       return 4;
     }
@@ -96,9 +96,9 @@ public:
       return 0;
     }
     else if (cp < 0x110000) {
-      buf[LE ? 0 : 3] =  cp        & 0xFF; 
+      buf[LE ? 0 : 3] =  cp        & 0xFF;
       buf[LE ? 1 : 2] = (cp >>  8) & 0xFF;
-      buf[LE ? 2 : 1] = (cp >> 16) & 0xFF; 
+      buf[LE ? 2 : 1] = (cp >> 16) & 0xFF;
       buf[LE ? 3 : 0] = (cp >> 24) & 0xFF;
       return 4;
     }

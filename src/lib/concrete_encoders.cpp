@@ -35,7 +35,7 @@ ICUEncoder::ICUEncoder(const char* name) {
   }
 
   // Tell ICU to halt conversion on code points unrepresentable in the
-  // target encoding. 
+  // target encoding.
   ucnv_setFromUCallBack(
     dst_conv,
     UCNV_FROM_U_CALLBACK_STOP,
@@ -48,7 +48,7 @@ ICUEncoder::ICUEncoder(const char* name) {
   if (U_FAILURE(err)) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not set callback. Wat?");
   }
- 
+
   max_bytes = ucnv_getMaxCharSize(dst_conv);
 }
 
@@ -84,7 +84,7 @@ uint32 ICUEncoder::write(int cp, byte buf[]) const {
     pivot + sizeof(pivot),
     true,
     false,
-    &err        
+    &err
   );
 
   return U_FAILURE(err) ? 0 : dst - reinterpret_cast<char*>(buf);
@@ -192,7 +192,7 @@ bool findMid(byte sb, const NFA& g, const NFA::VertexDescriptor head, NFA::Verte
     bs.reset();
     g[mid].Trans->getBits(bs);
     if (bs[sb]) {
-      return true; 
+      return true;
     }
   }
   return false;
@@ -291,11 +291,11 @@ void UTF8::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
     }
 
     for ( ; l <= h; l = n + 1) {
-      // find next break in the encoding after l 
+      // find next break in the encoding after l
       n = std::min(h, nextBreak(l));
 
-      std::cerr << std::hex << l << ',' << n << " = "; 
- 
+      std::cerr << std::hex << l << ',' << n << " = ";
+
       // [lb,nb] is a contiguous block in the encoding
       const uint32 llen = write(l, lb);
       const uint32 nlen = write(n, nb);
@@ -373,7 +373,7 @@ void UTF8::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
           g[tail].Trans = g.TransFac->getRange(lb[llen-1], nb[nlen-1]);
           frag.OutList.emplace_back(tail, 0);
           g.addEdge(head, tail);
-        }  
+        }
 /*
         if (findTail(bs, g, frag, tail)) {
           uint32 i = 0;
@@ -404,7 +404,7 @@ void UTF8::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
 */
       }
       else {
-        bs.reset(); 
+        bs.reset();
 
         if (frag.InList.empty()) {
           head = g.addVertex();
@@ -467,7 +467,7 @@ void UTF8::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
     frag.InList.push_back(head);
     frag.OutList.emplace_back(head, 0);
 
-    // collect the bytes 
+    // collect the bytes
     for ( ; r != rend; ++r) {
       lb = r->first;
       ub = std::min(r->second-1, 0x7Fu);
@@ -517,7 +517,7 @@ void UTF8::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
         case MANY:
           break;
         }
-        break; 
+        break;
       }
 
       for (uint32 i = lb; i <= ub; ++i) {
@@ -538,8 +538,8 @@ void UTF8::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
       {
         for (uint32 i = 0; i < 256; ++i) {
           if (bs[i]) {
-            for (uint32 j = i + 1; j < 256; ++j) {        
-              if (bs[j]) {  
+            for (uint32 j = i + 1; j < 256; ++j) {
+              if (bs[j]) {
                 g[head].Trans = g.TransFac->getEither(i, j);
                 i = j = 256;  // i.e., break both loops
               }
@@ -642,7 +642,7 @@ void UTF8::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
         head = g.addVertex();
         g[head].Trans = g.TransFac->getLit(buf[0]);
         frag.InList.push_back(head);
-    
+
         if (len == 1) {
           // add trailing byte to out list
           frag.OutList.emplace_back(head, 0);
@@ -651,7 +651,7 @@ void UTF8::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
 
       tail = head;
 
-      // move on to middle bytes, if any 
+      // move on to middle bytes, if any
       for (uint32 i = 1; i < len - 1; ++i) {
         bs.reset();
         const uint32 odeg = g.outDegree(head);
@@ -666,7 +666,7 @@ void UTF8::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
         tail = g.addVertex();
         g.addEdge(head, tail);
         g[tail].Trans = g.TransFac->getLit(buf[i]);
-        
+
 NEXT:
         head = tail;
       }
