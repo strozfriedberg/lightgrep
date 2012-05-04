@@ -374,34 +374,33 @@ void UTF8::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
           frag.OutList.emplace_back(tail, 0);
           g.addEdge(head, tail);
         }
-/*
-        if (findTail(bs, g, frag, tail)) {
-          uint32 i = 0;
-          for ( ; i < g.outDegree(head); ++i) {
-            if (g.outVertex(head, i) == tail) {
-              break;
-            }
-          }
-          if (i == g.outDegree(head)) {
-            g.addEdge(head, tail);
-          }
-        }
-        else if (g.outDegree(head) > 0) {
-          tail = g.outVertex(head, 0);
-          bs.reset();
-          g[tail].Trans->getBits(bs);
-          for (uint32 i = lb[llen-1]; i <= nb[nlen-1]; ++i) {
-            bs.set(i);
-          }
-          g[tail].Trans = g.TransFac->getCharClass(bs);
-        }
-        else {
-          tail = g.addVertex();
-          g[tail].Trans = g.TransFac->getRange(lb[llen-1], nb[nlen-1]);
-          frag.OutList.emplace_back(tail, 0);
-          g.addEdge(head, tail);
-        }
-*/
+
+//        if (findTail(bs, g, frag, tail)) {
+//          uint32 i = 0;
+//          for ( ; i < g.outDegree(head); ++i) {
+//            if (g.outVertex(head, i) == tail) {
+//              break;
+//            }
+//          }
+//          if (i == g.outDegree(head)) {
+//            g.addEdge(head, tail);
+//          }
+//        }
+//        else if (g.outDegree(head) > 0) {
+//          tail = g.outVertex(head, 0);
+//          bs.reset();
+//          g[tail].Trans->getBits(bs);
+//          for (uint32 i = lb[llen-1]; i <= nb[nlen-1]; ++i) {
+//            bs.set(i);
+//          }
+//          g[tail].Trans = g.TransFac->getCharClass(bs);
+//        }
+//        else {
+//          tail = g.addVertex();
+//          g[tail].Trans = g.TransFac->getRange(lb[llen-1], nb[nlen-1]);
+//          frag.OutList.emplace_back(tail, 0);
+//          g.addEdge(head, tail);
+//        }
       }
       else {
         bs.reset();
