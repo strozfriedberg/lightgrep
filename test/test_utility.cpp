@@ -478,14 +478,14 @@ SCOPE_TEST(testPivotTransitions) {
 }
 
 SCOPE_TEST(testBitVectorGeneration) {
-  ByteSet    bits;
+  ByteSet bits;
   bits.reset();
   bits.set('0');
   bits.set('2');
   bits.set('4');
   bits.set('8');
   NFA fsm(2);
-  edge(0, 1, fsm, fsm.TransFac->getCharClass(bits));
+  edge(0, 1, fsm, fsm.TransFac->getByteSet(bits));
   fsm[1].Label = 0;
   fsm[1].IsMatch = true;
 
