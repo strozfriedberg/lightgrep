@@ -17,10 +17,6 @@ class UTF8: public Encoder {
 public:
   virtual uint32 maxByteLength() const;
   virtual uint32 write(int cp, byte buf[]) const;
-  virtual void write(const UnicodeSet& uset, NFA& g, Fragment& f) const;
-
-private:
-  int nextBreak(int cp) const;
 };
 
 template <bool LE>
