@@ -97,7 +97,7 @@ SCOPE_TEST(charClassState) {
   set.set('a');
   set.set('B');
   set.set('b');
-  const CharClassState s(set);
+  const ByteSetState s(set);
   ByteSet bits;
   bits.reset();
   s.getBits(bits);

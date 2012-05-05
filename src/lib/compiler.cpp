@@ -213,7 +213,7 @@ void Compiler::pruneBranches(NFA& g) {
 /*
       else if (nbs != obs) {
         Transition* ot = g[tail];
-        Transition* nt = new CharClassState(nbs);
+        Transition* nt = new ByteSetState(nbs);
         nt->IsMatch = ot->IsMatch;
         nt->Label = ot->Label;
         g.setTran(tail, nt);
@@ -443,7 +443,7 @@ void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor 
     // new sublist dst vertex
     dstList2Dst[ss] = dstTail = dst.addVertex();
     dstStack.push(ss);
-    dst[dstTail].Trans = dst.TransFac->getCharClass(bs);
+    dst[dstTail].Trans = dst.TransFac->getByteSet(bs);
   }
   else {
     // old sublist vertex
@@ -556,7 +556,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     handleSubsetState(src, dst, srcHeadList, dstHead, dstStack, outBytes, dstList2Dst);
   }
 
-  // collapse CharClassStates where possible
+  // collapse ByteSetStates where possible
   // isn't necessary, but improves the GraphViz output
   const uint32 dstSize = dst.verticesSize();
   for (uint32 i = 1; i < dstSize; ++i) {

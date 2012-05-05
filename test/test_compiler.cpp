@@ -574,7 +574,7 @@ SCOPE_TEST(testDeterminize4) {
   NFA exp(2);
   ByteSet bytes;
   bytes['a'] = bytes['b'] = true;
-  edge(0, 1, exp, exp.TransFac->getCharClass(bytes));
+  edge(0, 1, exp, exp.TransFac->getByteSet(bytes));
 
   exp[1].IsMatch = true;
   exp[1].Label = 0;

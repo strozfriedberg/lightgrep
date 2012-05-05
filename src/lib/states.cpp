@@ -73,18 +73,18 @@ std::string RangeState::label() const {
   return buf.str();
 }
 
-bool CharClassState::toInstruction(Instruction* addr) const {
+bool ByteSetState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeBitVector();
   ByteSet* setPtr = reinterpret_cast<ByteSet*>(addr+1);
   *setPtr = Allowed;
   return true;
 }
 
-CharClassState* CharClassState::clone(void* buffer) const {
-  return 0 == buffer ? new CharClassState(*this): new(buffer) CharClassState(*this);
+ByteSetState* ByteSetState::clone(void* buffer) const {
+  return 0 == buffer ? new ByteSetState(*this): new(buffer) ByteSetState(*this);
 }
 
-std::string CharClassState::label() const {
+std::string ByteSetState::label() const {
   // make the label string
   std::stringstream ss;
 
