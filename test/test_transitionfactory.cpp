@@ -16,12 +16,12 @@ void smallestTester(const ByteSet& ebs) {
 
 SCOPE_TEST(getSmallestNoneTest) {
   const ByteSet ebs;
-  smallestTester<CharClassState>(ebs);
+  smallestTester<ByteSetState>(ebs);
 }
 
 SCOPE_TEST(getSmallestOneTest) {
   const ByteSet ebs('z');
-  smallestTester<CharClassState>(ebs);
+  smallestTester<ByteSetState>(ebs);
 }
 
 SCOPE_TEST(getSmallestTwoTest) {
@@ -44,5 +44,5 @@ SCOPE_TEST(getSmallestManyTest) {
   ebs.set('A');
   ebs.set('a');
   ebs.set('b');
-  smallestTester<CharClassState>(ebs);
+  smallestTester<ByteSetState>(ebs);
 }

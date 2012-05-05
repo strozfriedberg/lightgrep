@@ -11,7 +11,7 @@
 class TransitionFactory {
 public:
   TransitionFactory():
-    Lit(0), Either(0, 0), Range(0, 0), CharClass(ByteSet()) {}
+    Lit(0), Either(0, 0), Range(0, 0), BSet(ByteSet()) {}
 
   ~TransitionFactory() {
     std::for_each(Exemplars.begin(), Exemplars.end(),
@@ -35,16 +35,16 @@ public:
     return get(&Range);
   }
 
-  Transition* getCharClass(const ByteSet& bytes) {
-    CharClass.Allowed = bytes;
-    return get(&CharClass);
+  Transition* getByteSet(const ByteSet& bytes) {
+    BSet.Allowed = bytes;
+    return get(&BSet);
   }
 
-  Transition* getCharClass(const UnicodeSet& bytes) {
+  Transition* getByteSet(const UnicodeSet& bytes) {
     for (uint32 i = 0; i < 256; ++i) {
-      CharClass.Allowed[i] = bytes[i];
+      BSet.Allowed[i] = bytes[i];
     }
-    return get(&CharClass);
+    return get(&BSet);
   }
 
   template <class SetType>
@@ -81,14 +81,14 @@ public:
           }
         case TWO:
           // cc is a union of disjoint ranges
-          return getCharClass(bytes);
+          return getByteSet(bytes);
         }
       }
     }
 
     switch (type) {
     case NONE:
-      return getCharClass(bytes);
+      return getByteSet(bytes);
     case ONE:
       return getLit(low);
     case RANGE:
@@ -100,7 +100,7 @@ public:
     }
 
     // This is impossible, it's here just to shut the compiler up.
-    return getCharClass(bytes);
+    return getByteSet(bytes);
   }
 
 private:
@@ -115,5 +115,5 @@ private:
   LitState Lit;
   EitherState Either;
   RangeState Range;
-  CharClassState CharClass;
+  ByteSetState BSet;
 };
