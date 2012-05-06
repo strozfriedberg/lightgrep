@@ -138,7 +138,7 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
             );
 
             if (oi == frag.OutList.end()) {
-              g[tail].Trans = g.TransFac->getCharClass(bs);
+              g[tail].Trans = g.TransFac->getByteSet(bs);
             }
             else {
               tail = oi->first;
@@ -184,7 +184,7 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
             bs.reset();
             g[tail].Trans->getBits(bs);
             bs.set(buf[ipos]);
-            g[tail].Trans = g.TransFac->getCharClass(bs);
+            g[tail].Trans = g.TransFac->getByteSet(bs);
           }
         }
       }
