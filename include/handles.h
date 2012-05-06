@@ -3,8 +3,6 @@
 #include <memory>
 #include <string>
 
-#include <boost/scoped_ptr.hpp>
-
 #include "basic.h"
 #include "compiler.h"
 #include "graph.h"
@@ -30,10 +28,10 @@ struct Handle {
 };
 
 template <typename T> struct HandleBase: public Handle {
-  virtual bool ok() const { return Impl; }
+  virtual bool ok() const { return static_cast<bool>(Impl); }
   virtual void destroy() { Impl.reset(); }
 
-  boost::scoped_ptr<T> Impl;
+  std::unique_ptr<T> Impl;
 };
 
 struct ParserHandle: public HandleBase<Parser> {};
