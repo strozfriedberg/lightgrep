@@ -8,10 +8,8 @@
 #include "parsetree.h"
 #include "transitionfactory.h"
 
-#include <stack>
-
-#include <boost/scoped_array.hpp>
 #include <memory>
+#include <stack>
 
 class NFABuilder {
 public:
@@ -68,7 +66,7 @@ private:
   std::stack<Fragment> Stack;
   std::stack<const ParseNode*, std::vector<const ParseNode*>> ChildStack, ParentStack;
 
-  boost::scoped_array<byte> TempBuf;
+  std::unique_ptr<byte[]> TempBuf;
   std::shared_ptr<TransitionFactory> TransFac;
 
   Fragment TempFrag;

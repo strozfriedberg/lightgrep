@@ -103,7 +103,7 @@ Help(vars.GenerateHelpText(env))
 
 conf = Configure(env)
 boostType = env['boostType']
-if (not (conf.CheckCXXHeader('boost/scoped_ptr.hpp')
+if (not (conf.CheckCXXHeader('boost/program_options.hpp')
    and conf.CheckLib('boost_system' + boostType)
    and conf.CheckLib('boost_thread' + boostType)
    and conf.CheckLib('boost_filesystem' + boostType)

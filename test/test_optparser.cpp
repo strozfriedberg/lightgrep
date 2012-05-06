@@ -3,8 +3,8 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
-#include <boost/scoped_array.hpp>
 #include <boost/program_options.hpp>
 
 #include "options.h"
@@ -20,8 +20,8 @@
     total_len += strlen(cargv[i]) + 1; \
   } \
 \
-  boost::scoped_array<char> cs(new char[total_len]); \
-  boost::scoped_array<char*> ss(new char*[argc]); \
+  std::unique_ptr<char[]> cs(new char[total_len]); \
+  std::unique_ptr<char*[]> ss(new char*[argc]); \
 \
   char** argv = ss.get(); \
   argv[0] = cs.get(); \
