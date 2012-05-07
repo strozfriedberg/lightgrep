@@ -11,12 +11,14 @@ class ASCII: public Encoder {
 public:
   virtual uint32 maxByteLength() const;
   virtual uint32 write(int cp, byte buf[]) const;
+  using Encoder::write;
 };
 
 class UTF8: public Encoder {
 public:
   virtual uint32 maxByteLength() const;
   virtual uint32 write(int cp, byte buf[]) const;
+  using Encoder::write;
 };
 
 template <bool LE>
@@ -63,6 +65,8 @@ public:
       return 0;
     }
   }
+
+  using Encoder::write;
 };
 
 typedef UTF16<true> UTF16LE;
@@ -103,6 +107,8 @@ public:
       return 0;
     }
   }
+
+  using Encoder::write;
 };
 
 typedef UTF32<true> UTF32LE;
@@ -115,6 +121,7 @@ public:
 
   virtual uint32 maxByteLength() const;
   virtual uint32 write(int cp, byte buf[]) const;
+  using Encoder::write;
 
 private:
   UConverter* src_conv;
