@@ -171,8 +171,6 @@ std::shared_ptr<ParserHandle> parsePatterns(
       encIdx = ptr->idx;
     }
 
-std::cerr << encIdx << std::endl;
-
     if (addPattern(parser.get(), i, patIdx, encIdx, pinfo)) {
       ++patIdx;
     }
