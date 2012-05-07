@@ -3,7 +3,7 @@
 #include <bitset>
 #include <cstring>
 
-class ByteSet : public std::bitset<256> {
+class ByteSet: public std::bitset<256> {
 public:
   ByteSet(): std::bitset<256>() {}
 
