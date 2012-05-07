@@ -65,8 +65,6 @@ bool mismatch_except_at(std::vector<ByteSet>::size_type n,
 }
 
 struct Skip {
-  Skip(): count(0), skip(0) {}
-
   Skip(uint32 s): count(0), skip(s) {}
 
   template <typename T>
