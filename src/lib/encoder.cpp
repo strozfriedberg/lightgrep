@@ -10,52 +10,6 @@
 
 #include <boost/iterator/filter_iterator.hpp>
 
-uint32 findTerminalSegment(NFA::VertexDescriptor& tail, const byte* buf, const size_t blen, const NFA& g, const Fragment& frag) {
-  ByteSet bs;
-
-  // find a match for the last byte
-  const auto oi = std::find_if(
-    frag.OutList.begin(), frag.OutList.end(),
-    [&](const std::pair<NFA::VertexDescriptor,uint32>& p) {
-      bs.reset();
-      g[p.first].Trans->getBits(bs);
-      return bs.test(buf[blen-1]) && bs.count() == 1;
-    }
-  );
-
-  if (oi == frag.OutList.end()) {
-    // matching final segment is empty
-    return blen;
-  }
-
-  tail = oi->first;
-
-  // find a match for previous bytes
-  NFA::VertexDescriptor head = 0;
-
-  for (size_t b = 1; b < blen + 1; ++b) {
-    const uint32 ideg = g.inDegree(tail);
-    for (uint32 e = 0; e < ideg; ++e) {
-      head = g.inVertex(tail, e);
-      bs.reset();
-      g[head].Trans->getBits(bs);
-      if (bs.test(buf[blen-b]) && bs.count() == 1) {
-        break;
-      }
-      head = 0;
-    }
-
-    if (head) {
-      tail = head;
-    }
-    else {
-      return blen-b;
-    }
-  }
-
-  return 0;
-}
-
 std::ostream& operator<<(std::ostream& out, const ByteSet& bs) {
   out << '[';
   uint32 low = 256;
@@ -126,7 +80,6 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
   frag.OutList.clear();
 
   std::unique_ptr<byte[]> buf(new byte[maxByteLength()]);
-
   std::vector<std::vector<ByteSet>> va, vb, vo;
 
   // collect the encodings
@@ -184,8 +137,6 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
     vb.clear();
   }
 
-//std::cerr << vo << std::endl;
-
   ByteSet bs;
 
   // create a graph from the collapsed ranges
@@ -219,8 +170,29 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
       frag.OutList.emplace_back(tail, 0);
     }
 
-    // build previous vertices
+    // walk backwards until a transition mismatch
     for (--b; b >= 0; --b) {
+      head = 0;
+      const uint32 ideg = g.inDegree(tail);
+      for (uint32 i = 0; i < ideg; ++i) {
+        head = g.inVertex(tail, i);
+        bs.reset();
+        g[head].Trans->getBits(bs);
+        if (bs == enc[b]) {
+          tail = head;
+          break;
+        }
+        head = 0;
+      }
+
+      if (!head) {
+        // tail is as far back as we can go
+        break;
+      }
+    }
+
+    // build previous vertices
+    for ( ; b >= 0; --b) {
       head = g.addVertex();
       g[head].Trans = g.TransFac->getSmallest(enc[b]);
       g.addEdge(head, tail);
@@ -228,67 +200,5 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
     }
 
     frag.InList.push_back(tail);
-
-/*
-
-      // walk backwards until a mismatch
-      uint32 b = enc.size() - 2;
-      do {
-        head = 0;
-        const uint32 ideg = g.inDegree(tail);
-        for (uint32 i = 0; i < ideg; ++i) {
-          head = g.inVertex(tail, i);
-          bs.reset();
-          g[head].Trans->getBits(bs);
-          if (bs == enc[b]) {
-            tail = head;
-            --b;
-            break;
-          }
-          head = 0;
-        }
-      } while (head);
-
-      const NFA::VertexDescriptor tbeg = tail;
-
-      // build nodes through position b
-
-      // leading vertex
-      tail = g.addVertex();
-      g[tail].Trans = g.TransFac->getSmallest(enc[0]);
-      frag.InList.push_back(tail);
-
-      // successive vertices
-      const uint32 elen = enc.size();
-      for (uint32 i = 1; i <= b; ++i) {
-        head = tail;
-        tail = g.addVertex();
-        g[tail].Trans = g.TransFac->getSmallest(enc[i]);
-        g.addEdge(head, tail);
-      }
-
-      // connect to tbeg
-      g.addEdge(head, tbeg);
-    }
-    else {
-*/
-/*
-      // leading vertex
-      tail = g.addVertex();
-      g[tail].Trans = g.TransFac->getSmallest(enc[0]);
-      frag.InList.push_back(tail);
-
-      // successive vertices
-      const uint32 elen = enc.size();
-      for (uint32 i = 1; i < elen; ++i) {
-        head = tail;
-        tail = g.addVertex();
-        g[tail].Trans = g.TransFac->getSmallest(enc[i]);
-        g.addEdge(head, tail);
-      }
-
-      frag.OutList.emplace_back(tail, 0);
-*/
-//    }
   }
 }
