@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+#include <boost/iterator/filter_iterator.hpp>
+
 uint32 findInitialSegment(NFA::VertexDescriptor& head, const byte* buf, const size_t blen, const NFA& g, const Fragment& frag) {
   ByteSet bs;
 
@@ -154,6 +156,17 @@ bool mismatch_except_at(std::vector<ByteSet>::size_type n,
     (n > 0 && !std::equal(a.end()-n, a.end(), b.end()-n));
 }
 
+struct Skip {
+  Skip(): count(0), skip(0) {}
+
+  Skip(uint32 s): count(0), skip(s) {}
+
+  template <typename T>
+  bool operator()(const T&) { return count++ != skip; }
+
+  uint32 count, skip;
+};
+
 void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
   frag.InList.clear();
   frag.OutList.clear();
@@ -179,17 +192,23 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
     }
   }
 
-  // sort the encodings by length, then lexicographically
-  std::sort(va.begin(), va.end(),
-    [](const std::vector<ByteSet>& a, const std::vector<ByteSet>& b) {
-      return a.size() < b.size() || (a.size() == b.size() &&
-        std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end()));
-    }
-  );
-
   // collapse ranges
   const uint32 mlen = maxByteLength();
   for (uint32 n = 0; n < mlen; ++n) {
+    // sort encodings by length, then lexicographically, skipping position n
+    std::sort(va.begin(), va.end(),
+      [=](const std::vector<ByteSet>& a, const std::vector<ByteSet>& b) {
+        return a.size() < b.size() || (a.size() == b.size() &&
+          std::lexicographical_compare(
+            boost::make_filter_iterator(Skip(a.size()-n-1), a.begin(), a.end()),
+            boost::make_filter_iterator(Skip(a.size()-n-1), a.end(), a.end()),
+            boost::make_filter_iterator(Skip(a.size()-n-1), b.begin(), b.end()),
+            boost::make_filter_iterator(Skip(a.size()-n-1), b.end(), b.end())
+          )
+        );
+      }
+    );
+
     for (auto i = va.begin(); i != va.end(); ) {
       // find the limit of encodings matching i everywhere except position n
       auto j = std::find_if(i, va.end(),
