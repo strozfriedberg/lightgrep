@@ -50,6 +50,19 @@ std::ostream& operator<<(std::ostream& out, const std::vector<std::vector<ByteSe
   return out;
 }
 
+/*
+struct EqualExceptAt {
+  EqualExceptAt(uint32 i): n(i) {}
+
+  template <typename T>
+  bool operator()(const T& a, const T& b) {
+    a.size() == b.size() &&
+    (a.size() <= n+1 && !std::equal(a.begin(), a.end()-n-1, b.begin())) ||
+    (n > 0 && !std::equal(a.end()-n, a.end(), b.end()-n));
+  }
+};
+*/
+
 bool mismatch_except_at(std::vector<ByteSet>::size_type n,
                         const std::vector<ByteSet>& a,
                         const std::vector<ByteSet>& b)
@@ -77,22 +90,39 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
   frag.InList.clear();
   frag.OutList.clear();
 
-  std::unique_ptr<byte[]> buf(new byte[maxByteLength()]);
   std::vector<std::vector<ByteSet>> va, vb, vo;
 
   // collect the encodings
-  for (const UnicodeSet::range& r : uset) {
-    const uint32 l = r.first, h = r.second;
-    for (uint32 cp = l; cp < h; ++cp) {
-      const uint32 len = write(cp, buf.get());
-      if (len == 0) {
-        // cp is invalid, skip it
-        continue;
-      }
+  {
+    std::unique_ptr<byte[]> cur(new byte[maxByteLength()]);
+    std::unique_ptr<byte[]> prev(new byte[maxByteLength()]);
 
-      va.emplace_back(len);
-      for (uint32 i = 0; i < len; ++i) {
-        va.back()[i].set(buf[i]);
+    uint32 clen, plen = 0;
+
+    for (const UnicodeSet::range& r : uset) {
+      const uint32 l = r.first, h = r.second;
+      for (uint32 cp = l; cp < h; ++cp) {
+        clen = write(cp, cur.get());
+        if (clen == 0) {
+          // cp is invalid, skip it
+          continue;
+        }
+
+        if (clen == plen &&
+            std::equal(cur.get(), cur.get()+clen-1, prev.get())) {
+          // join the previous cp if we are the same up to the last byte
+          va.back().back().set(cur[clen-1]);
+        }
+        else {
+          // otherwise add a new encoding to the list
+          va.emplace_back(clen);
+          for (uint32 i = 0; i < clen; ++i) {
+            va.back()[i].set(cur[i]);
+          }
+
+          prev.swap(cur);
+          plen = clen;
+        }
       }
     }
   }
