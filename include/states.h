@@ -24,7 +24,10 @@ public:
     return *beg == Lit ? beg + 1 : beg;
   }
 
-  virtual void getBytes(ByteSet& bits) const { bits.set(Lit); }
+  virtual ByteSet& orBytes(ByteSet& bs) const {
+    bs.set(Lit);
+    return bs;
+  }
 
   virtual size_t objSize() const { return sizeof(*this); }
 
@@ -54,7 +57,11 @@ public:
     return *beg == Lit1 || *beg == Lit2 ? beg + 1 : beg;
   }
 
-  virtual void getBytes(ByteSet& bits) const { bits.set(Lit1); bits.set(Lit2); }
+  virtual ByteSet& orBytes(ByteSet& bs) const {
+    bs.set(Lit1);
+    bs.set(Lit2);
+    return bs;
+  }
 
   virtual byte type() const { return EitherStateType; }
 
@@ -84,8 +91,9 @@ public:
     return First <= *beg && *beg <= Last ? beg+1: beg;
   }
 
-  virtual void getBytes(ByteSet& bits) const {
-    for (uint32 i = First; i <= Last; ++i) { bits.set(i); };
+  virtual ByteSet& orBytes(ByteSet& bs) const {
+    for (uint32 i = First; i <= Last; ++i) { bs.set(i); };
+    return bs;
   }
 
   virtual byte type() const { return RangeStateType; }
@@ -123,7 +131,10 @@ public:
     return Allowed[*beg] ? beg+1 : beg;
   }
 
-  virtual void getBytes(ByteSet& bits) const { bits = Allowed; }
+  virtual ByteSet& orBytes(ByteSet& bs) const {
+    bs |= Allowed;
+    return bs;
+  }
 
   virtual byte type() const { return ByteSetStateType; }
 

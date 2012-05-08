@@ -42,7 +42,6 @@ bool Compiler::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Tra
   {
     const std::map<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor>>::const_iterator i(Dst2Src.find(dstTail));
     if (i == Dst2Src.end() || 1 == src.inDegree(i->second.front())) {
-      dstBits.reset();
       dstTrans->getBytes(dstBits);
       return dstBits == srcBits;
     }
@@ -200,7 +199,6 @@ void Compiler::pruneBranches(NFA& g) {
         next.push(tail);
       }
 
-      obs.reset();
       g[tail].Trans->getBytes(obs);
 
 //      nbs = obs & ~mbs;
@@ -387,7 +385,6 @@ void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor src
   for (uint32 j = 0; j < odeg; ++j) {
     const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, j);
 
-    outBytes.reset();
     src[srcTail].Trans->getBytes(outBytes);
 
     for (uint32 b = 0; b < 256; ++b) {
@@ -462,7 +459,6 @@ void collapseCharacterClass(NFA& g, NFA::VertexDescriptor v, ByteSet& outBytes) 
   int32 first = -1;
   int32 last = -1;
 
-  outBytes.reset();
   g[v].Trans->getBytes(outBytes);
 
   for (int32 b = 0; b < 256; ++b) {
