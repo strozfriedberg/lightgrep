@@ -36,12 +36,40 @@ public:
     }
   }
 
+  virtual void write(std::vector<std::vector<ByteSet>>& v, const UnicodeSet& uset) const {
+    byte cur[4];
+    byte prev[4];
+    bool hasprev = false;
+
+    for (const UnicodeSet::range& r : uset) {
+      const uint32 l = r.first, h = r.second;
+      for (uint32 cp = l; cp < h; ++cp) {
+        if (write(cp, cur) == 0) {
+          // cp is invalid, skip it
+          continue;
+        }
+
+        if (hasprev &&
+            std::equal(cur+(LE ? 1 : 0), cur+(LE ? 4 : 3), prev+(LE ? 1 : 0))) {
+          // join the previous cp if we are the same up to the last byte
+          v.back()[LE ? 0 : 3].set(cur[LE ? 0 : 3]);
+        }
+        else {
+          // otherwise add a new encoding to the list
+          v.emplace_back(4);
+          for (uint32 i = 0; i < 4; ++i) {
+            v.back()[i].set(cur[i]);
+          }
+
+          std::swap(prev, cur);
+          hasprev = true;
+        }
+      }
+    }
+  }
+
   using Encoder::write;
 };
 
-class UTF32LE: public UTF32Base<true> {
-protected:
-  virtual void collectEncodings(std::vector<std::vector<ByteSet>>& va, const UnicodeSet& uset) const;
-};
-
+typedef UTF32Base<true>  UTF32LE;
 typedef UTF32Base<false> UTF32BE;
