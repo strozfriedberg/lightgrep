@@ -89,7 +89,6 @@ SCOPE_TEST(testUTF8) {
   SCOPE_ASSERT_EQUAL(0, enc.write(0x110000, buf));
 }
 
-/*
 SCOPE_TEST(testUTF8Graph0) {
   UTF8 enc;
 
@@ -183,7 +182,6 @@ SCOPE_TEST(testUTF8Graph2) {
 
   writeGraphviz(std::cout, ag);
 }
-*/
 
 template <bool LE>
 void utf16TestFixture(const UTF16<LE>& enc) {
