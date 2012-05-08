@@ -92,6 +92,40 @@ struct Skip {
   uint32 count, skip;
 };
 
+void Encoder::write(std::vector<std::vector<ByteSet>>& va, const UnicodeSet& uset) const {
+  std::unique_ptr<byte[]> cur(new byte[maxByteLength()]);
+  std::unique_ptr<byte[]> prev(new byte[maxByteLength()]);
+
+  uint32 clen, plen = 0;
+
+  for (const UnicodeSet::range& r : uset) {
+    const uint32 l = r.first, h = r.second;
+    for (uint32 cp = l; cp < h; ++cp) {
+      clen = write(cp, cur.get());
+      if (clen == 0) {
+        // cp is invalid, skip it
+        continue;
+      }
+
+      if (clen == plen &&
+          std::equal(cur.get(), cur.get()+clen-1, prev.get())) {
+        // join the previous cp if we are the same up to the last byte
+        va.back().back().set(cur[clen-1]);
+      }
+      else {
+        // otherwise add a new encoding to the list
+        va.emplace_back(clen);
+        for (uint32 i = 0; i < clen; ++i) {
+          va.back()[i].set(cur[i]);
+        }
+
+        prev.swap(cur);
+        plen = clen;
+      }
+    }
+  }
+}
+
 void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
   frag.InList.clear();
   frag.OutList.clear();
@@ -99,41 +133,11 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
   std::vector<std::vector<ByteSet>> va, vb, vo;
 
   // collect the encodings
-  {
-    std::unique_ptr<byte[]> cur(new byte[maxByteLength()]);
-    std::unique_ptr<byte[]> prev(new byte[maxByteLength()]);
+  write(va, uset);
 
-    uint32 clen, plen = 0;
+//std::cerr << va << std::endl;
 
-    for (const UnicodeSet::range& r : uset) {
-      const uint32 l = r.first, h = r.second;
-      for (uint32 cp = l; cp < h; ++cp) {
-        clen = write(cp, cur.get());
-        if (clen == 0) {
-          // cp is invalid, skip it
-          continue;
-        }
-
-        if (clen == plen &&
-            std::equal(cur.get(), cur.get()+clen-1, prev.get())) {
-          // join the previous cp if we are the same up to the last byte
-          va.back().back().set(cur[clen-1]);
-        }
-        else {
-          // otherwise add a new encoding to the list
-          va.emplace_back(clen);
-          for (uint32 i = 0; i < clen; ++i) {
-            va.back()[i].set(cur[i]);
-          }
-
-          prev.swap(cur);
-          plen = clen;
-        }
-      }
-    }
-  }
-
-  // collapse ranges
+  // collapse encodings
   const uint32 mlen = maxByteLength();
   for (uint32 n = 0; n < mlen; ++n) {
     // sort encodings by length, then lexicographically, skipping position n
