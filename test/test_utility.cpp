@@ -183,7 +183,7 @@ SCOPE_TEST(twoUnicode) {
     ebs.reset();
 
     ebs[exp[i-1]] = true;
-    g[i].Trans->getBits(abs);
+    g[i].Trans->getBytes(abs);
 
     SCOPE_ASSERT_EQUAL(ebs, abs);
   }

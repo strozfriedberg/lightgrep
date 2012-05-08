@@ -22,7 +22,7 @@ SCOPE_TEST(litAccept) {
   ch[0] = 'b';
   SCOPE_ASSERT_EQUAL(ch, lit.allowed(ch, ch+1));
   ByteSet bits(0);
-  lit.getBits(bits);
+  lit.getBytes(bits);
   SCOPE_ASSERT_EQUAL(1u, bits.count());
   SCOPE_ASSERT(bits.test('a'));
   SCOPE_ASSERT(bits.any());
@@ -48,7 +48,7 @@ SCOPE_TEST(eitherAccept) {
   SCOPE_ASSERT_EQUAL(&ch+1, e.allowed(&ch, &ch+1));
 
   ByteSet bits(0);
-  e.getBits(bits);
+  e.getBytes(bits);
   SCOPE_ASSERT_EQUAL(2u, bits.count());
   SCOPE_ASSERT(bits.test('a'));
   SCOPE_ASSERT(bits.test('A'));
@@ -67,7 +67,7 @@ SCOPE_TEST(rangeAccept) {
   const RangeState r('0', '9');
   byte ch;
   ByteSet bits(0);
-  r.getBits(bits);
+  r.getBytes(bits);
   SCOPE_ASSERT_EQUAL(10u, bits.count());
   for (unsigned int i = 0; i < 256; ++i) {
     ch = i;
@@ -100,7 +100,7 @@ SCOPE_TEST(charClassState) {
   const ByteSetState s(set);
   ByteSet bits;
   bits.reset();
-  s.getBits(bits);
+  s.getBytes(bits);
   SCOPE_ASSERT_EQUAL(set, bits);
   SCOPE_ASSERT_EQUAL(9u, s.numInstructions());
   Program p(9, Instruction::makeHalt());
