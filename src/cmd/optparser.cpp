@@ -82,16 +82,22 @@ void parse_opts(int argc, char** argv,
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
     ("no-output", "do not output hits (good for profiling)")
-    ("block-size", po::value<unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
+    ("block-size", po::value<uint32>(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ;
+
+  // Server options
+  po::options_description server("Server");
+  server.add_options()
+    ("address", po::value<std::string>(&opts.ServerAddr)->default_value("localhost"), "specify address")
+    ("port", po::value<unsigned short>(&opts.ServerPort)->default_value(12777), "specify port number")
+    ("server-log", po::value<std::string>(&opts.ServerLog), "file for server logging");
 
   // Other options
   po::options_description misc("Miscellaneous");
   misc.add_options()
     ("no-det", "do not determinize NFAs")
     ("binary", "Output program as binary")
-    ("server-log", po::value<std::string>(&opts.ServerLog), "Server output to file")
-    ("program-file", po::value<std::string>(&opts.ProgramFile), "Read search program from file")
+    ("program-file", po::value<std::string>(&opts.ProgramFile), "read search program from file")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value<uint64>(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value<uint64>(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
@@ -99,7 +105,11 @@ void parse_opts(int argc, char** argv,
     ;
 
   // desc collects all of the options in case of --help
-  desc.add(general).add(pats).add(io).add(misc);
+  desc.add(general)
+      .add(pats)
+      .add(io)
+      .add(server)
+      .add(misc);
 
   po::options_description allOpts;
   allOpts.add(desc).add(hidden);
@@ -123,12 +133,7 @@ void parse_opts(int argc, char** argv,
   //
 
 // FIXME: do something to exclude multiple command specfications
-
-  //
-  // determine which command we got
-  //
-
-// FIXME: do something to exclude multiple command specfications
+// FIXME: do something to complain about inapplicable options
 
   opts.Command = Options::BOGUS;
 

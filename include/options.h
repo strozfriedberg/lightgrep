@@ -34,6 +34,7 @@ public:
   std::string Input,
               Output,
               Encoding,
+              ServerAddr,
               ServerLog,
               ProgramFile;
 
@@ -42,6 +43,8 @@ public:
                            KeyFiles;
 
   uint32 BlockSize;
+
+  unsigned short ServerPort;
 
   bool CaseInsensitive,
        LiteralMode,
