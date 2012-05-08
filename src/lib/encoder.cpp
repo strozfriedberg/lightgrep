@@ -182,7 +182,7 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
       frag.OutList.begin(), frag.OutList.end(),
       [&](const std::pair<NFA::VertexDescriptor,uint32>& p) {
         bs.reset();
-        g[p.first].Trans->getBits(bs);
+        g[p.first].Trans->getBytes(bs);
         return bs == enc[b];
       }
     );
@@ -205,7 +205,7 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
       for (uint32 i = 0; i < ideg; ++i) {
         head = g.inVertex(tail, i);
         bs.reset();
-        g[head].Trans->getBits(bs);
+        g[head].Trans->getBytes(bs);
         if (bs == enc[b]) {
           tail = head;
           break;

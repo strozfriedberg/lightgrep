@@ -46,7 +46,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, 
       }
 
       bs.reset();
-      g[c].Trans->getBits(bs);
+      g[c].Trans->getBytes(bs);
 
       for (uint32 b = 0; b < 256; ++b) {
         if (bs[b]) {

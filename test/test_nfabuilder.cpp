@@ -517,7 +517,7 @@ SCOPE_TEST(parseDot) {
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(1));
 
   ByteSet set;
-  fsm[1].Trans->getBits(set);
+  fsm[1].Trans->getBytes(set);
   SCOPE_ASSERT_EQUAL(256u, set.count());
 }
 
@@ -533,7 +533,7 @@ SCOPE_TEST(parseHexCode) {
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
 
   ByteSet set;
-  fsm[1].Trans->getBits(set);
+  fsm[1].Trans->getBytes(set);
   SCOPE_ASSERT_EQUAL(1u, set.count());
   SCOPE_ASSERT(set[' ']);
 }
@@ -577,7 +577,7 @@ SCOPE_TEST(parseHighHex) {
 
   ByteSet expected, actual;
   expected.set(0xe5);
-  fsm[1].Trans->getBits(actual);
+  fsm[1].Trans->getBytes(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
@@ -597,7 +597,7 @@ SCOPE_TEST(parseSimpleCharClass) {
   expected.set('a');
   expected.set('B');
   expected.set('b');
-  fsm[1].Trans->getBits(actual);
+  fsm[1].Trans->getBytes(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
   SCOPE_ASSERT_EQUAL("ABab/0", fsm[1].label());
 }
@@ -617,7 +617,7 @@ SCOPE_TEST(parseUnprintableCharClass) {
   expected.set('A');
   expected.set(0x00);
   expected.set(0xFF);
-  fsm[1].Trans->getBits(actual);
+  fsm[1].Trans->getBytes(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
   SCOPE_ASSERT_EQUAL("\\x00A\\xFF/0", fsm[1].label());
 }
@@ -645,7 +645,7 @@ SCOPE_TEST(parseNegatedRanges) {
       expected.set(i, true);
     }
   }
-  fsm[1].Trans->getBits(actual);
+  fsm[1].Trans->getBytes(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
@@ -693,7 +693,7 @@ SCOPE_TEST(parseCaseInsensitiveCC) {
     ebs.set(i);
     ebs.set(i + 32);
   }
-  fsm[1].Trans->getBits(abs);
+  fsm[1].Trans->getBytes(abs);
   SCOPE_ASSERT_EQUAL(ebs, abs);
 }
 

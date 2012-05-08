@@ -6,9 +6,9 @@
 
 #include "test_helper.h"
 
-ByteSet getBits(Transition& t) {
+ByteSet getBytes(Transition& t) {
   ByteSet b;
-  t.getBits(b);
+  t.getBytes(b);
   return b;
 }
 
@@ -44,8 +44,8 @@ SCOPE_TEST(testMerge_aaOrab_toEmpty) {
   SCOPE_ASSERT_EQUAL(1u, dst.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, dst.outDegree(3));
 
-  SCOPE_ASSERT_EQUAL(getBits(*a), getBits(*dst[2].Trans));
-  SCOPE_ASSERT_EQUAL(getBits(*b), getBits(*dst[3].Trans));
+  SCOPE_ASSERT_EQUAL(getBytes(*a), getBytes(*dst[2].Trans));
+  SCOPE_ASSERT_EQUAL(getBytes(*b), getBytes(*dst[3].Trans));
 }
 
 SCOPE_TEST(testMerge) {
