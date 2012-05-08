@@ -653,8 +653,11 @@ void processConn(
 }
 
 void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
+  std::unique_ptr<std::ostream> outptr;
+
   if (!opts.ServerLog.empty()) {
-    ErrOut = new std::ofstream(opts.ServerLog.c_str(), std::ios::out);
+    outptr.reset(new std::ofstream(opts.ServerLog.c_str(), std::ios::out));
+    ErrOut = outptr.get();
     ErrOut->rdbuf()->pubsetbuf(0, 0); // unbuffered
   }
   else {
@@ -670,8 +673,4 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
   }
 
   Registry::get().cleanup();
-
-  if (!opts.ServerLog.empty()) {
-    delete ErrOut;
-  }
 }
