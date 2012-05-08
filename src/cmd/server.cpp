@@ -18,6 +18,7 @@ namespace boost {
 }
 
 #include <boost/asio.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "handles.h"
 #include "hitwriter.h"
@@ -471,7 +472,7 @@ std::string HitStats::getStats() const {
 
 class LGServer {
 public:
-  LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts, unsigned short port);
+  LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts);
 
   void run();
 
@@ -519,23 +520,35 @@ private:
 LGServer::LGServer(
   std::shared_ptr<ProgramHandle> prog,
   const PatternInfo& pinfo,
-  const Options& opts, unsigned short port)
+  const Options& opts)
   : Opts(opts), Prog(prog), PInfo(pinfo), Service(), Acceptor(Service),
     Stats(pinfo.Table.size())
 {
   if (Opts.Output != "-") {
     if (!Registry::get().init(Opts.Output, PInfo.NumUserPatterns)) {
-      THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file at " << Opts.Output);
+      THROW_RUNTIME_ERROR_WITH_OUTPUT(
+        "Could not open output file at " << Opts.Output
+      );
     }
     UsesFile = true;
   }
   else {
     Registry::get().init("", pinfo.NumUserPatterns);
   }
-  tcp::endpoint endpoint(tcp::v4(), port);
 
-  Acceptor.open(endpoint.protocol());
-  Acceptor.bind(endpoint);
+  // resolve the server address
+  tcp::resolver resolver(Service);
+  tcp::resolver::query q(Opts.ServerAddr,
+                         boost::lexical_cast<std::string>(opts.ServerPort));
+  tcp::resolver::iterator i = resolver.resolve(q), end;
+  if (i == end) {
+    // this should not happen, since resolve throws on error
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("resolver returned no addresses");
+  }
+
+  // bind to the port and listen
+  Acceptor.open(i->endpoint().protocol());
+  Acceptor.bind(i->endpoint());
   Acceptor.listen();
 
   resetAcceptor();
@@ -666,7 +679,7 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
   }
 
   try {
-    LGServer srv(prog, pinfo, opts, 12777);
+    LGServer srv(prog, pinfo, opts);
     srv.run();
   }
   catch (const std::exception& e) {
