@@ -12,11 +12,12 @@
 
 std::ostream& operator<<(std::ostream& out, const ByteSet& bs) {
   out << '[';
-  uint32 low = 256;
+
+  int32 low = -1;
   bool first = true;
   for (uint32 i = 0; i < 256; ++i) {
     if (bs.test(i)) {
-      if (low > 255) {
+      if (low < 0) {
         if (!first) {
           out << ',';
         }
@@ -25,13 +26,18 @@ std::ostream& operator<<(std::ostream& out, const ByteSet& bs) {
         first = false;
       }
     }
-    else if (low < 256) {
+    else if (low >= 0) {
       if ((i-1) > low) {
         out << '-' << std::setfill('0') << std::setw(2) << (i-1);
       }
-      low = 256;
+      low = -1;
     }
   }
+
+  if (low >= 0) {
+    out << '-' << std::setfill('0') << std::setw(2) << 255;
+  }
+
   out << ']';
   return out;
 }
