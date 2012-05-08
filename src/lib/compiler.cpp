@@ -440,7 +440,7 @@ void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor 
     // new sublist dst vertex
     dstList2Dst[ss] = dstTail = dst.addVertex();
     dstStack.push(ss);
-    dst[dstTail].Trans = dst.TransFac->getByteSet(bs);
+    dst[dstTail].Trans = dst.TransFac->getSmallest(bs);
   }
   else {
     // old sublist vertex
@@ -453,40 +453,6 @@ void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor 
   }
 
   dst.addEdge(dstHead, dstTail);
-}
-
-void collapseCharacterClass(NFA& g, NFA::VertexDescriptor v, ByteSet& outBytes) {
-  int32 first = -1;
-  int32 last = -1;
-
-  g[v].Trans->getBytes(outBytes);
-
-  for (int32 b = 0; b < 256; ++b) {
-    if (outBytes[b]) {
-      if (first == -1) {
-        // start of a range
-        first = last = b;
-      }
-      else if (last != b - 1) {
-        // not a range
-        first = -1;
-        break;
-      }
-      else {
-        // ongoing range
-        last = b;
-      }
-    }
-  }
-
-  if (first != -1) {
-    if (first == last) {
-      g[v].Trans = g.TransFac->getLit(first);
-    }
-    else {
-      g[v].Trans = g.TransFac->getRange(first, last);
-    }
-  }
 }
 
 void handleSubsetState(const NFA& src, NFA& dst, const VDList& srcHeadList, const NFA::VertexDescriptor dstHead, std::stack<SubsetState>& dstStack, ByteSet& outBytes, SubsetStateToState& dstList2Dst) {
@@ -550,12 +516,5 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     const NFA::VertexDescriptor dstHead = dstList2Dst[ss];
 
     handleSubsetState(src, dst, srcHeadList, dstHead, dstStack, outBytes, dstList2Dst);
-  }
-
-  // collapse ByteSetStates where possible
-  // isn't necessary, but improves the GraphViz output
-  const uint32 dstSize = dst.verticesSize();
-  for (uint32 i = 1; i < dstSize; ++i) {
-    collapseCharacterClass(dst, i, outBytes);
   }
 }
