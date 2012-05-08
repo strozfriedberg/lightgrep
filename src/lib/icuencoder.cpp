@@ -1,8 +1,4 @@
-#include "concrete_encoders.h"
-#include "unicode.h"
-
-#include <iostream>
-#include <stdexcept>
+#include "icuencoder.h"
 
 // FIXME: Maybe we should set endianness with a compile-time flag? This
 // would let us do the fast thing (casting & assignment) for conversions
@@ -87,73 +83,4 @@ uint32 ICUEncoder::write(int cp, byte buf[]) const {
   );
 
   return U_FAILURE(err) ? 0 : dst - reinterpret_cast<char*>(buf);
-}
-
-uint32 ASCII::maxByteLength() const {
-  return 1;
-}
-
-uint32 ASCII::write(int cp, byte buf[]) const {
-  if (cp < 0) {
-    return 0;
-  }
-  else if (cp < 256) {
-    buf[0] = cp;
-    return 1;
-  }
-  else {
-    return 0;
-  }
-}
-
-uint32 UTF8::maxByteLength() const {
-  return 4;
-}
-
-uint32 UTF8::write(int cp, byte buf[]) const {
-  if (cp < 0) {
-    // too small
-    return 0;
-  }
-  else if (cp < 0x80) {
-    // one byte
-    buf[0] = (byte) cp;
-    return 1;
-  }
-  else if (cp < 0x800) {
-    // two bytes
-    buf[0] = 0xC0 | ((cp >> 6) & 0x1F);
-    buf[1] = 0x80 | ( cp       & 0x3F);
-    return 2;
-  }
-  else if (cp < 0xD800) {
-    // three bytes
-    buf[0] = 0xE0 | ((cp >> 12) & 0x0F);
-    buf[1] = 0x80 | ((cp >>  6) & 0x3F);
-    buf[2] = 0x80 | ( cp        & 0x3F);
-    return 3;
-  }
-  else if (cp < 0xE000) {
-    // UTF-16 surrogates, invalid
-    return 0;
-  }
-  else if (cp < 0x10000) {
-    // three bytes
-    buf[0] = 0xE0 | ((cp >> 12) & 0x0F);
-    buf[1] = 0x80 | ((cp >>  6) & 0x3F);
-    buf[2] = 0x80 | ( cp        & 0x3F);
-    return 3;
-  }
-  else if (cp < 0x110000) {
-    // four bytes
-    buf[0] = 0xF0 | ((cp >> 18) & 0x07);
-    buf[1] = 0x80 | ((cp >> 12) & 0x3F);
-    buf[2] = 0x80 | ((cp >>  6) & 0x3F);
-    buf[3] = 0x80 | ( cp        & 0x3F);
-    return 4;
-  }
-  else {
-    // too large
-    return 0;
-  }
 }
