@@ -605,7 +605,7 @@ void processConn(
   std::stringstream buf;
 
   try {
-    boost::scoped_array<byte> data(new byte[BUF_SIZE]);
+    std::unique_ptr<byte[]> data(new byte[BUF_SIZE]);
 
     LG_ContextOptions ctxOpts;
     std::shared_ptr<ContextHandle> searcher(
