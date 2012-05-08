@@ -277,12 +277,9 @@ void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor) {
   }
 }
 
-void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph) {
-  ByteSet tBits;
+void nextBytes(ByteSet& bset, NFA::VertexDescriptor v, const NFA& graph) {
   for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
-    tBits.reset();
-    graph[graph.outVertex(v, ov)].Trans->getBytes(tBits);
-    set |= tBits;
+    graph[graph.outVertex(v, ov)].Trans->orBytes(bset);
   }
 }
 
@@ -309,7 +306,6 @@ std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescripto
   for (uint32 i = 0; i < graph.outDegree(source); ++i) {
     NFA::VertexDescriptor ov = graph.outVertex(source, i);
 
-    permitted.reset();
     graph[ov].Trans->getBytes(permitted);
     for (uint32 i = 0; i < 256; ++i) {
       if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
