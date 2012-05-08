@@ -10,7 +10,7 @@ void smallestTester(const ByteSet& ebs) {
   StateType* state = dynamic_cast<StateType*>(tfac.getSmallest(ebs));
   SCOPE_ASSERT(state);
   ByteSet abs;
-  state->getBits(abs);
+  state->getBytes(abs);
   SCOPE_ASSERT_EQUAL(ebs, abs);
 }
 
