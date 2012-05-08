@@ -515,7 +515,9 @@ private:
   HitStats                     Stats;
 };
 
-LGServer::LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo,
+LGServer::LGServer(
+  std::shared_ptr<ProgramHandle> prog,
+  const PatternInfo& pinfo,
   const Options& opts, unsigned short port)
   : Opts(opts), Prog(prog), PInfo(pinfo), Service(), Acceptor(Service),
     Stats(pinfo.Table.size())
