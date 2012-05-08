@@ -2,9 +2,8 @@
 
 #include "utf16.h"
 
-/*
 template <bool LE>
-void utf16TestFixture(const UTF16<LE>& enc) {
+void utf16TestFixture(const UTF16Base<LE>& enc) {
   SCOPE_ASSERT_EQUAL(4u, enc.maxByteLength());
 
   byte buf[4];
@@ -67,5 +66,3 @@ SCOPE_TEST(testUTF16BE) {
   UTF16BE enc;
   utf16TestFixture(enc);
 }
-
-*/
