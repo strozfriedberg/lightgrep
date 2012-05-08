@@ -34,7 +34,7 @@ std::ostream& operator<<(std::ostream& out, const ByteSet& bs) {
     }
   }
 
-  if (low >= 0) {
+  if (0 <= low && low < 255) {
     out << '-' << std::setfill('0') << std::setw(2) << 255;
   }
 
