@@ -642,7 +642,7 @@ void processConn(
       // uint32 i = ntohl(*(uint32*)data);
     }
   }
-  catch (std::exception& e) {
+  catch (const std::exception& e) {
     SAFEWRITE(buf, "broke out of reading socket. " << e.what() << '\n');
   }
 
@@ -665,7 +665,7 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
     LGServer srv(prog, pinfo, opts, 12777);
     srv.run();
   }
-  catch (std::exception& e) {
+  catch (const std::exception& e) {
     writeErr() += std::stringstream() << e.what() << std::endl;
   }
 

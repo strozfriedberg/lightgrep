@@ -20,7 +20,7 @@ void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, Parser& p, ui
     try {
       p.addPattern(keywords[i], keyIdx);
     }
-    catch (std::runtime_error&) {
+    catch (const std::runtime_error&) {
       if (!ignoreBad) {
         throw;
       }

@@ -562,7 +562,7 @@ int main(int argc, char** argv) {
       return 1;
     }
   }
-  catch (std::exception& err) {
+  catch (const std::exception& err) {
     std::cerr << "Error: " << err.what() << "\n\n";
     printHelp(desc);
     return 1;
