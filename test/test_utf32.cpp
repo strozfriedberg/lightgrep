@@ -1,8 +1,9 @@
 #include <scope/test.h>
 
-/*
+#include "utf32.h"
+
 template <bool LE>
-void utf32TestFixture(const UTF32<LE>& enc) {
+void utf32TestFixture(const UTF32Base<LE>& enc) {
   SCOPE_ASSERT_EQUAL(4u, enc.maxByteLength());
 
   byte buf[4];
@@ -56,4 +57,3 @@ SCOPE_TEST(testUTF32BE) {
   UTF32BE enc;
   utf32TestFixture(enc);
 }
-*/
