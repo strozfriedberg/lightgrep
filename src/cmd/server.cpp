@@ -7,6 +7,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <mutex>
 
 #define BOOST_ENABLE_ASSERT_HANDLER 1
 
@@ -35,29 +36,29 @@ static const uint64 BUF_SIZE = 1024 * 1024;
 
 class SafeStream {
 public:
-  SafeStream(std::ostream* baseStream, const std::shared_ptr<boost::mutex>& mutex):
+  SafeStream(std::ostream* baseStream, const std::shared_ptr<std::mutex>& mutex):
     BaseStream(baseStream), Mutex(mutex) {}
 
   SafeStream& operator+=(const std::ostream& buf) {
-    boost::mutex::scoped_lock lock(*Mutex);
+    std::lock_guard<std::mutex> lock(*Mutex);
     *BaseStream << buf;
     return *this;
   }
 
   SafeStream& operator+=(const std::string& str) {
-    boost::mutex::scoped_lock lock(*Mutex);
+    std::lock_guard<std::mutex> lock(*Mutex);
     *BaseStream << str;
     return *this;
   }
 
 private:
   std::ostream* BaseStream;
-  std::shared_ptr<boost::mutex> Mutex;
+  std::shared_ptr<std::mutex> Mutex;
 };
 
 namespace {
   static std::ostream* ErrOut = &std::cerr;
-  static std::shared_ptr<boost::mutex> ErrMutex(new boost::mutex);
+  static std::shared_ptr<std::mutex> ErrMutex(new std::mutex);
 }
 
 SafeStream writeErr() {
@@ -69,7 +70,7 @@ void cleanSeppuku(int sig);
 
 class Registry {
 public:
-  std::shared_ptr<boost::mutex> Mutex;
+  std::shared_ptr<std::mutex> Mutex;
   std::shared_ptr<std::ofstream> File;
   std::vector<uint64> FileCounts,
                       HitCounts;
@@ -83,7 +84,7 @@ public:
         return false;
       }
     }
-    Mutex.reset(new boost::mutex);
+    Mutex.reset(new std::mutex);
     signal(SIGTERM, cleanSeppuku);
     FileCounts.resize(numKeywords, 0);
     HitCounts.resize(numKeywords, 0);
@@ -94,7 +95,7 @@ public:
   void getStats(std::string& output) {
     std::stringstream buf;
     {
-      boost::mutex::scoped_lock lock(*Mutex);
+      std::lock_guard<std::mutex> lock(*Mutex);
       buf.write((char*)&ResponsiveFiles, sizeof(ResponsiveFiles));
       buf.write((char*)&TotalHits, sizeof(TotalHits));
       // buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
@@ -127,7 +128,7 @@ public:
   }
 
   void updateHits(const std::vector<uint32>& hitsForFile) {
-    boost::mutex::scoped_lock lock(*Mutex);
+    std::lock_guard<std::mutex> lock(*Mutex);
     uint64 c = 0;
     bool hadHits = false;
     for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
@@ -146,7 +147,7 @@ public:
 
   void cleanup() {
     if (File) {
-      boost::mutex::scoped_lock lock(*Mutex);
+      std::lock_guard<std::mutex> lock(*Mutex);
       File->flush();
       File->close();
       File.reset();
@@ -154,7 +155,7 @@ public:
     std::string stats;
     getStats(stats);
     {
-      boost::mutex::scoped_lock lock(*Mutex);
+      std::lock_guard<std::mutex> lock(*Mutex);
       std::ofstream statsFile("lightgrep_hit_stats.txt", std::ios::out | std::ios::binary);
       if (statsFile) {
         statsFile.write(stats.data(), stats.size());
@@ -279,7 +280,7 @@ void socketWriter(void* userData, const LG_SearchHit* const hit) {
 
 class SafeFileWriter: public ServerWriter {
 public:
-  SafeFileWriter(std::shared_ptr<std::ofstream> output, std::shared_ptr<boost::mutex> m, const PatternInfo& pinfo):
+  SafeFileWriter(std::shared_ptr<std::ofstream> output, std::shared_ptr<std::mutex> m, const PatternInfo& pinfo):
     ServerWriter(pinfo),
     Mutex(m),
     Output(output),
@@ -300,7 +301,7 @@ public:
 
   virtual void flush() {
     {
-      boost::mutex::scoped_lock lock(*Mutex);
+      std::lock_guard<std::mutex> lock(*Mutex);
       writeErr() += "Flushing hits file\n";
       for (StaticVector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
         *Output << it->ID << '\t'
@@ -316,7 +317,7 @@ public:
   }
 
 private:
-  std::shared_ptr<boost::mutex> Mutex;
+  std::shared_ptr<std::mutex> Mutex;
   std::shared_ptr<std::ofstream> Output;
   StaticVector<HitInfo>    Buffer;
 };
@@ -488,12 +489,12 @@ public:
   void writeHits(const std::vector<HitInfo>& hits);
 
   void updateHits(const std::vector<uint32> hitsForFile) {
-    boost::mutex::scoped_lock lock(Mutex);
+    std::lock_guard<std::mutex> lock(Mutex);
     Stats.updateHits(hitsForFile);
   }
 
   std::string getStats() const {
-    boost::mutex::scoped_lock lock(Mutex);
+    std::lock_guard<std::mutex> lock(Mutex);
     return Stats.getStats();
   }
 
@@ -511,7 +512,7 @@ private:
 
   std::shared_ptr<tcp::socket> Socket;
   std::vector< boost::thread > Threads;
-  mutable boost::mutex         Mutex;
+  mutable std::mutex           Mutex;
   HitStats                     Stats;
 };
 
