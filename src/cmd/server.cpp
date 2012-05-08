@@ -670,7 +670,8 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
     srv.run();
   }
   catch (const std::exception& e) {
-    writeErr() += std::stringstream() << e.what() << std::endl;
+    std::stringstream buf;
+    SAFEWRITE(buf, e.what() << '\n');
   }
 
   Registry::get().cleanup();
