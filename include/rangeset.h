@@ -39,7 +39,10 @@ public:
 
   template <size_t BN>
   RangeSet(const std::bitset<BN>& b) {
-    static_assert(BN <= N, "BN > N");
+    static_assert(
+      BN <= N,
+      "std::bitset is larger than the RangeSet constructed from it"
+    );
 
     for (unsigned int i = 0; i < BN; ++i) {
       if (b[i]) {
