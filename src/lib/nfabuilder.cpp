@@ -134,22 +134,21 @@ void NFABuilder::literal(const ParseNode& n) {
     // an impossible condition?
     THROW_WITH_OUTPUT(std::logic_error, "literal value " << n.Val << " could not be encoded (zero-length)");
   }
-  else {
-    NFA& g(*Fsm);
-    NFA::VertexDescriptor first, prev, last;
-    first = prev = last = g.addVertex();
-    g[first].Trans = g.TransFac->getLit(TempBuf[0]);
-    for (uint32 i = 1; i < len; ++i) {
-      last = g.addVertex();
-      g.addEdge(prev, last);
-      g[last].Trans = g.TransFac->getLit(TempBuf[i]);
-      prev = last;
-    }
-    TempFrag.reset(n);
-    TempFrag.InList.push_back(first);
-    TempFrag.OutList.emplace_back(last, 0);
-    Stack.push(TempFrag);
+
+  NFA& g(*Fsm);
+  NFA::VertexDescriptor first, prev, last;
+  first = prev = last = g.addVertex();
+  g[first].Trans = g.TransFac->getLit(TempBuf[0]);
+  for (uint32 i = 1; i < len; ++i) {
+    last = g.addVertex();
+    g.addEdge(prev, last);
+    g[last].Trans = g.TransFac->getLit(TempBuf[i]);
+    prev = last;
   }
+  TempFrag.reset(n);
+  TempFrag.InList.push_back(first);
+  TempFrag.OutList.emplace_back(last, 0);
+  Stack.push(TempFrag);
 }
 
 void NFABuilder::dot(const ParseNode& n) {
