@@ -10,6 +10,9 @@ public:
   virtual ~ICUEncoder();
 
   virtual uint32 maxByteLength() const;
+
+  virtual const UnicodeSet& validCodePoints() const { return valid; };
+
   virtual uint32 write(int cp, byte buf[]) const;
   using Encoder::write;
 
@@ -18,4 +21,5 @@ private:
   UConverter* dst_conv;
   UChar* pivot;
   uint32 max_bytes;
+  UnicodeSet valid;
 };

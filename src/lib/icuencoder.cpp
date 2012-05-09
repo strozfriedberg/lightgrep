@@ -1,4 +1,7 @@
 #include "icuencoder.h"
+#include "icuutil.h"
+
+#include <unicode/uniset.h>
 
 // FIXME: Maybe we should set endianness with a compile-time flag? This
 // would let us do the fast thing (casting & assignment) for conversions
@@ -10,7 +13,7 @@ bool is_little_endian() {
   return reinterpret_cast<const byte*>(&twobytes)[0];
 }
 
-ICUEncoder::ICUEncoder(const char* name) {
+ICUEncoder::ICUEncoder(const char* name): valid() {
   UErrorCode err = U_ZERO_ERROR;
 
   // ICU pivots through UTF-16 when transcoding; this converter is used
@@ -45,10 +48,23 @@ ICUEncoder::ICUEncoder(const char* name) {
   );
 
   if (U_FAILURE(err)) {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not set callback. Wat?");
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "Could not set callback. WAT? " << u_errorName(err)
+    );
   }
 
   max_bytes = ucnv_getMaxCharSize(dst_conv);
+
+  // get the set of valid code points
+  icu::UnicodeSet us;
+  ucnv_getUnicodeSet(dst_conv, us.toUSet(), UCNV_ROUNDTRIP_SET, &err);
+  if (U_FAILURE(err)) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "Could not get set of valid code points. WAT? " << u_errorName(err)
+    );
+  }
+
+  convUnicodeSet(valid, us);
 }
 
 ICUEncoder::~ICUEncoder() {
