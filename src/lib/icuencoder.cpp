@@ -17,7 +17,9 @@ ICUEncoder::ICUEncoder(const char* name) {
   // to turn our code points (single characters in UTF-32) into UTF-16.
   src_conv = ucnv_open(is_little_endian() ? "UTF-32LE" : "UTF-32BE", &err);
   if (U_FAILURE(err)) {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT("Your ICU is missing UTF-32. Wat?");
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "Your ICU is missing UTF-32. WAT? " << u_errorName(err)
+    );
   }
 
   // The pivot buffer used by ICU.
@@ -26,7 +28,9 @@ ICUEncoder::ICUEncoder(const char* name) {
   // The converter used to translate UTF-16 into our desired encoding.
   dst_conv = ucnv_open(name, &err);
   if (U_FAILURE(err)) {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT("Unrecognized encoding '" << name << "'");
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "Unrecognized encoding '" << name << "':" << u_errorName(err)
+    );
   }
 
   // Tell ICU to halt conversion on code points unrepresentable in the
