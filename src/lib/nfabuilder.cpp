@@ -161,17 +161,8 @@ void NFABuilder::dot(const ParseNode& n) {
 }
 
 void NFABuilder::charClass(const ParseNode& n) {
-  if (Enc->maxByteLength() == 1) {
-    NFA::VertexDescriptor v = Fsm->addVertex();
-    (*Fsm)[v].Trans = Fsm->TransFac->getSmallest(n.Bits);
-    TempFrag.initFull(v, n);
-  }
-  else {
-    TempFrag.N = n;
-    TempFrag.Skippable = NOSKIP;
-    Enc->write(n.Bits, *Fsm, TempFrag);
-  }
-
+  TempFrag.reset(n);
+  Enc->write(n.Bits, *Fsm, TempFrag);
   Fsm->Deterministic = false;
   Stack.push(TempFrag);
 }
