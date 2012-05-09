@@ -41,29 +41,10 @@ void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
   addKeys(keyInfo.Patterns, ignoreBad, p, keyIdx);
 
   for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
-    uint32 encIdx = 0;
+    int32 encIdx = lg_get_encoding_id(keyInfo.Patterns[i].Encoding.c_str());
 
-    const char* enc = keyInfo.Patterns[i].Encoding.c_str();
-
-    const LG_SUPPORTED_ENCODING* end = LG_SUPPORTED_ENCODINGS + sizeof(LG_SUPPORTED_ENCODINGS) / sizeof(LG_SUPPORTED_ENCODING);
-    const LG_SUPPORTED_ENCODING* ptr = std::find_if(
-      LG_SUPPORTED_ENCODINGS, end,
-      [=](const LG_SUPPORTED_ENCODING& e) {
-        const char* a = e.name;
-        const char* b = enc;
-
-        while (*a && *b) {
-          if (tolower(*a++) != tolower(*b++)) {
-            return false;
-          }
-        }
-
-        return !*a && !*b;
-      }
-    );
-
-    if (ptr != end) {
-      encIdx = ptr->idx;
+    if (encIdx == -1) {
+      encIdx = 0;
     }
 
     keyInfo.Table.emplace_back(i, encIdx);

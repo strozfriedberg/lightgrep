@@ -9,7 +9,7 @@ extern "C" {
 
 typedef struct {
   const char* const name;
-  size_t idx;
+  unsigned int idx;
 } LG_SUPPORTED_ENCODING;
 
 static const LG_SUPPORTED_ENCODING LG_SUPPORTED_ENCODINGS[] = {
@@ -3125,6 +3125,8 @@ static const int LG_ENC_IBM_16804 = 211; // IBM*
 
 // ebcdic-xml-us
 // static const int LG_ENC_EBCDIC_XML_US = 227;
+
+int lg_get_encoding_id(const char* const name);
 
 #ifdef __cplusplus
 }

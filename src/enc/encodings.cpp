@@ -216,6 +216,8 @@ int main(int, char**) {
   // close the extern block and ifdefs
   std::cout <<
 "\n"
+"int lg_get_encoding_id(const char* const name);\n"
+"\n"
 "#ifdef __cplusplus\n"
 "}\n"
 "#endif\n"
