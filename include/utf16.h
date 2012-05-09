@@ -5,7 +5,11 @@
 template <bool LE>
 class UTF16Base: public Encoder {
 public:
+  UTF16Base(): valid(0, 0x110000) {}
+
   virtual uint32 maxByteLength() const { return 4; }
+
+  virtual const UnicodeSet& validCodePoints() const { return valid; };
 
   virtual uint32 write(int cp, byte buf[]) const {
     if (cp < 0) {
@@ -119,6 +123,9 @@ public:
   }
 
   using Encoder::write;
+
+private:
+  const UnicodeSet valid;
 };
 
 typedef UTF16Base<true>  UTF16LE;
