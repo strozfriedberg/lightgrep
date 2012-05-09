@@ -129,10 +129,11 @@ void NFABuilder::patch_post(OutListT& src, const InListT& dst) {
 
 void NFABuilder::literal(const ParseNode& n) {
   const uint32 len = Enc->write(n.Val, TempBuf.get());
-  if (0 == len) {
-    // FXIME: should we really be checking this if it's supposed to be
-    // an impossible condition?
-    THROW_WITH_OUTPUT(std::logic_error, "literal value " << n.Val << " could not be encoded (zero-length)");
+  if (len == 0) {
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
+      "code point U+" << std::hex << n.Val << std::dec
+                      << " does not exist in this encoding"
+    );
   }
 
   NFA& g(*Fsm);
