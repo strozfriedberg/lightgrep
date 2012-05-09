@@ -41,8 +41,10 @@ public:
   }
 
   Transition* getByteSet(const UnicodeSet& bytes) {
+    // NB: This should be used *only* when we intend to intersect
+    // the input set with [0x00,0xFF].
     for (uint32 i = 0; i < 256; ++i) {
-      BSet.Allowed[i] = bytes[i];
+      BSet.Allowed.set(i, bytes.test(i));
     }
     return get(&BSet);
   }

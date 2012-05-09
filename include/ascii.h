@@ -11,7 +11,7 @@ public:
   virtual const UnicodeSet& validCodePoints() const { return valid; };
 
   virtual uint32 write(int cp, byte buf[]) const;
-  using Encoder::write;
+  virtual void write(const UnicodeSet& uset, NFA& g, Fragment& frag) const;
 
 private:
   const UnicodeSet valid;
