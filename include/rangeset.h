@@ -37,9 +37,10 @@ public:
     }
   }
 
-// TODO: ensure BN <= N
   template <size_t BN>
   RangeSet(const std::bitset<BN>& b) {
+    static_assert(BN <= N, "BN > N");
+
     for (unsigned int i = 0; i < BN; ++i) {
       if (b[i]) {
         unsigned int j = i + 1;
