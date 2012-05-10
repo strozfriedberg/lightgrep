@@ -132,8 +132,6 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
   // collect the encodings
   write(va, uset);
 
-//std::cerr << va << std::endl;
-
   // collapse encodings
   const uint32 mlen = maxByteLength();
   for (uint32 n = 0; n < mlen; ++n) {
