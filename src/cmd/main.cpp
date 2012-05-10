@@ -141,7 +141,7 @@ std::shared_ptr<ParserHandle> parsePatterns(
   const uint32 tlen = std::max(1u, totalCharacters(pinfo.Patterns));
 
   std::shared_ptr<ParserHandle> parser(lg_create_parser(tlen),
-                                         lg_destroy_parser);
+                                       lg_destroy_parser);
 
   // parse patterns
   uint32 patIdx = 0;
