@@ -13,7 +13,6 @@
 
 template <typename T, T N>
 class RangeSet {
-
 private:
   typedef typename std::vector<T>::iterator internal_iterator;
   typedef typename std::vector<T>::const_iterator const_internal_iterator;
@@ -231,7 +230,12 @@ public:
 
     const_range_iterator(const const_internal_iterator& vi): i(vi) {}
 
-    typedef typename boost::iterator_facade<const_range_iterator, range const, std::random_access_iterator_tag, range>::difference_type difference_type;
+    typedef typename boost::iterator_facade<
+      const_range_iterator,
+      range const,
+      std::random_access_iterator_tag,
+      range
+    >::difference_type difference_type;
 
   private:
     friend class boost::iterator_core_access;
