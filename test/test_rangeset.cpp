@@ -295,22 +295,22 @@ SCOPE_TEST(rangeSetReferenceAssignmentTest) {
 }
 
 SCOPE_TEST(rangeSetIntersectionAssignmentEmptyTest) {
-  RangeSet<uint32,256> a(0x00, 0x100), b(0x100, 0x110000);
+  RangeSet<uint32,256> a(0, 100), b(100, 200);
   SCOPE_ASSERT((a &= b).none());
 }
 
 SCOPE_TEST(rangeSetIntersectionAssignmentNonemptyTest) {
-  RangeSet<uint32,256> a(0x00, 0x101), b(0x100, 0x110000), c(0x100);
+  RangeSet<uint32,256> a(0, 101), b(100, 200), c(100);
   SCOPE_ASSERT_EQUAL(c, a &= b);
 }
 
 SCOPE_TEST(rangeSetIntersectionEmptyTest) {
-  RangeSet<uint32,256> a(0x00, 0x100), b(0x100, 0x110000);
+  RangeSet<uint32,256> a(0, 100), b(100, 200);
   SCOPE_ASSERT((a & b).none());
 }
 
 SCOPE_TEST(rangeSetIntersectionNonemptyTest) {
-  RangeSet<uint32,256> a(0x00, 0x101), b(0x100, 0x110000), c(0x100);
+  RangeSet<uint32,256> a(0, 101), b(100, 200), c(100);
   SCOPE_ASSERT_EQUAL(c, a & b);
 }
 
@@ -320,13 +320,12 @@ SCOPE_TEST(rangeSetUnionAssignmentEmptyTest) {
 }
 
 SCOPE_TEST(rangeSetUnionAssignmentNonemptyDisjointTest) {
-  RangeSet<uint32,256> a(0x00, 0x10), b(0x20, 0x30),
-                       c{{0x00, 0x10},{0x20, 0x30}};
+  RangeSet<uint32,256> a(0, 10), b(20, 30), c{{0, 10}, {20, 30}};
   SCOPE_ASSERT_EQUAL(c, a |= b);
 }
 
 SCOPE_TEST(rangeSetUnionAssignmentNonemptyTest) {
-  RangeSet<uint32,256> a(0x00, 0x10), b(0x08, 0x20), c(0x00, 0x20);
+  RangeSet<uint32,256> a(0, 10), b(8, 20), c(0, 20);
   SCOPE_ASSERT_EQUAL(c, a |= b);
 }
 
@@ -336,13 +335,12 @@ SCOPE_TEST(rangeSetUnionEmptyTest) {
 }
 
 SCOPE_TEST(rangeSetUnionNonemptyDisjointTest) {
-  RangeSet<uint32,256> a(0x00, 0x10), b(0x20, 0x30),
-                       c{{0x00, 0x10},{0x20, 0x30}};
+  RangeSet<uint32,256> a(0, 10), b(20, 30), c{{0, 10},{20, 30}};
   SCOPE_ASSERT_EQUAL(c, a | b);
 }
 
 SCOPE_TEST(rangeSetUnionNonemptyTest) {
-  RangeSet<uint32,256> a(0x00, 0x10), b(0x08, 0x20), c(0x00, 0x20);
+  RangeSet<uint32,256> a(0, 10), b(8, 20), c(0, 20);
   SCOPE_ASSERT_EQUAL(c, a | b);
 }
 
