@@ -127,13 +127,10 @@ void Encoder::write(std::vector<std::vector<ByteSet>>& va, const UnicodeSet& use
 }
 
 void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
-  // intersect the requested set with the code points valid in this encoding
-  const UnicodeSet vset(uset & validCodePoints());
-
   std::vector<std::vector<ByteSet>> va, vb, vo;
 
   // collect the encodings
-  write(va, vset);
+  write(va, uset);
 
 //std::cerr << va << std::endl;
 
