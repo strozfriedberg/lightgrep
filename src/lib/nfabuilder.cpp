@@ -1,6 +1,5 @@
-#include "nfabuilder.h"
-
 #include "concrete_encoders.h"
+#include "nfabuilder.h"
 #include "states.h"
 #include "transitionfactory.h"
 #include "utility.h"
@@ -79,7 +78,7 @@ void NFABuilder::init() {
 
 void NFABuilder::setEncoder(const std::shared_ptr<Encoder>& e) {
   Enc = e;
-  TempBuf.reset(new byte[Enc->maxByteLength() + 20]);
+  TempBuf.reset(new byte[Enc->maxByteLength()]);
 }
 
 void NFABuilder::setSizeHint(uint64 reserveSize) {
@@ -161,8 +160,15 @@ void NFABuilder::dot(const ParseNode& n) {
 }
 
 void NFABuilder::charClass(const ParseNode& n) {
+  const UnicodeSet uset(n.Bits & Enc->validCodePoints());
+  if (uset.none()) {
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
+      "intersection of character class with this encoding is empty"
+    );
+  }
+
   TempFrag.reset(n);
-  Enc->write(n.Bits, *Fsm, TempFrag);
+  Enc->write(uset, *Fsm, TempFrag);
   Fsm->Deterministic = false;
   Stack.push(TempFrag);
 }
