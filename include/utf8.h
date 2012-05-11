@@ -4,7 +4,7 @@
 
 class UTF8: public Encoder {
 public:
-  UTF8(): valid(0, 0x110000) {}
+  UTF8(): valid{{0, 0xD800}, {0xE000, 0x110000}} {}
 
   virtual uint32 maxByteLength() const { return 4; }
 
