@@ -86,7 +86,7 @@ if (isWindows):
   cxxflags += ' -mthreads'
 
 # add vendors/scope and vendors/boost as system include paths, if they exist
-ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
+ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost', 'vendors/icu/include']))
 
 env['DEBUG_MODE'] = debug
 env.Replace(CCFLAGS=ccflags)
@@ -94,6 +94,8 @@ env.Replace(CXXFLAGS=cxxflags)
 env.Replace(CPPDEFINES=defines)
 env.Append(CPPPATH=['#/include'])
 env.Append(LIBPATH=['#/lib'])
+if (p.exists('vendors/icu/lib')):
+  env.Append(LIBPATH=['#/vendors/icu/lib'])
 env.Append(LINKFLAGS=ldflags)
 
 print("CC = " + env['CC'])
