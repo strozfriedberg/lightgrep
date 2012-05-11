@@ -5,7 +5,7 @@
 template <bool LE>
 class UTF32Base: public Encoder {
 public:
-  UTF32Base(): valid(0, 0x110000) {}
+  UTF32Base(): valid{{0, 0xD800}, {0xE000, 0x110000}} {}
 
   virtual uint32 maxByteLength() const { return 4; }
 
