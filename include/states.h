@@ -92,8 +92,7 @@ public:
   }
 
   virtual ByteSet& orBytes(ByteSet& bs) const {
-    for (uint32 i = First; i <= Last; ++i) { bs.set(i); };
-    return bs;
+    return bs.set(First, Last+1, true);
   }
 
   virtual byte type() const { return RangeStateType; }
