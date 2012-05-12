@@ -34,16 +34,6 @@ public:
       set(beg, value);
     }
 
-/*
-    unsigned char* buf = reinterpret_cast<unsigned char*>(this);
-    if (beg % 8 > 0) {
-      *(buf + beg/8) |= (1 << (8-beg%8)) - 1;
-    }
-    std::fill(buf + (beg+1)/8, buf + (end/8), value ? 0xFF : 0);
-    if (end % 8 > 0) {
-      *(buf + end/8) |= (1 << (end%8)) - 1;
-    }
-*/
     return *this;
   }
 
