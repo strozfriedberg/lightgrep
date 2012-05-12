@@ -11,8 +11,11 @@ public:
   virtual const UnicodeSet& validCodePoints() const { return valid; };
 
   virtual uint32 write(int cp, byte buf[]) const;
+  void write(std::vector<std::vector<ByteSet>>& va, const UnicodeSet& uset) const;
   using Encoder::write;
 
 private:
+  void writeRange(std::vector<std::vector<ByteSet>>& va, UnicodeSet::const_iterator& i, const UnicodeSet::const_iterator& iend, uint32& l, uint32& h, byte* cur, uint32 len, uint32 blimit) const;
+
   const UnicodeSet valid;
 };

@@ -47,3 +47,85 @@ uint32 UTF8::write(int cp, byte buf[]) const {
     return 0;
   }
 }
+
+void UTF8::writeRange(std::vector<std::vector<ByteSet>>& va, UnicodeSet::const_iterator& i, const UnicodeSet::const_iterator& iend, uint32& l, uint32& h, byte* cur, uint32 len, uint32 blimit) const {
+  while (l < blimit) {
+    // write the encoding for the next code point
+    write(l, cur);
+    va.emplace_back(len);
+    std::vector<ByteSet>& v = va.back();
+
+    for (uint32 j = 0; j < len; ++j) {
+      v[j].set(cur[j]);
+    }
+
+    // write the encoding for all code points with the same initial len bytes
+    ++l;
+    if (len == 1) {
+      // the one-byte encodings form a single contiguous block
+      const uint32 m = std::min(h, blimit);
+      v[len-1].set(l, m, true);
+      l = m;
+    }
+    else if (l < std::min(h, blimit) && l % 64 > 0) {
+      const uint32 m = std::min({ h, blimit, (l/64+1)*64 });
+      v[len-1].set((l & 0x3F) | 0x80, (((m-1) & 0x3F) | 0x80)+1, true);
+      l = m;
+    }
+
+    // figure out where to look for the next code point
+    if (l < h) {
+      if (l >= blimit) {
+        return;
+      }
+    }
+    else {
+      ++i;
+      if (i == iend) {
+        return;
+      }
+      l = i->first;
+      h = i->second;
+    }
+  }
+}
+
+void UTF8::write(std::vector<std::vector<ByteSet>>& va, const UnicodeSet& uset) const {
+  auto i = uset.begin();
+  const auto iend = uset.end();
+  if (i == iend) {
+    return;
+  }
+
+  uint32 l = i->first, h = i->second;
+  byte cur[4];
+
+  // handle one-byte encodings
+  writeRange(va, i, iend, l, h, cur, 1, 0x80);
+
+  // handle two-byte encodings
+  writeRange(va, i, iend, l, h, cur, 2, 0x800);
+
+  // handle three-byte encodings, low block
+  writeRange(va, i, iend, l, h, cur, 3, 0xD800);
+
+  // skip the UTF-16 surrogates
+  if (l < 0xE000) {
+    for (++i; i != iend; ++i) {
+      l = i->first;
+      h = i->second;
+      if (h > 0xE000) {
+        if (l < 0xE000) {
+          l = 0xE000;
+        }
+        break;
+      }
+    }
+  }
+
+  // handle three-byte encodings, high block
+  writeRange(va, i, iend, l, h, cur, 3, 0x10000);
+
+  // handle four-byte encodings
+  writeRange(va, i, iend, l, h, cur, 4, 0x110000);
+}
