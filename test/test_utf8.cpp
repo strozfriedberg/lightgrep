@@ -1,14 +1,10 @@
 #include <scope/test.h>
 
-#include <iomanip>
-#include <iostream>
-
-#include "automata.h"
-#include "fragment.h"
-#include "utf8.h"
-#include "utility.h"
-
+//#include "automata.h"
 #include "container_out.h"
+//#include "fragment.h"
+#include "utf8.h"
+//#include "utility.h"
 
 SCOPE_TEST(testUTF8) {
   UTF8 enc;
@@ -130,6 +126,7 @@ SCOPE_TEST(testUTF8Range3) {
 
   UnicodeSet us{{0, 0x110000}};
 
+  // all valid UTF-8 ranges
   std::vector<std::vector<ByteSet>> e{
     { {{0x00, 0x80}} },
     { {{0xC2, 0xE0}}, {{0x80, 0xC0}} },
