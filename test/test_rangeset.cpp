@@ -7,7 +7,7 @@
 #include "rangeset.h"
 
 SCOPE_TEST(rangeSetEqualsTest) {
-  RangeSet<uint32,256> r, s, u{0,1};
+  RangeSet<uint32,256> r, s, u{{0,1}};
   // reflexive
   SCOPE_ASSERT(s == s);
   SCOPE_ASSERT(r == r);
@@ -51,7 +51,7 @@ SCOPE_TEST(rangeSetNoneTest) {
 }
 
 SCOPE_TEST(rangeSetSomeTest) {
-  RangeSet<uint32,256> r{1,3};
+  RangeSet<uint32,256> r{{1,3}};
 
   std::bitset<256> b;
   b[1] = b[2] = true;
@@ -65,7 +65,7 @@ SCOPE_TEST(rangeSetSomeTest) {
 }
 
 SCOPE_TEST(rangeSetAllTest) {
-  RangeSet<uint32,256> r{0,256};
+  RangeSet<uint32,256> r{{0,256}};
 
   std::bitset<256> b;
   b.set();
@@ -104,7 +104,7 @@ SCOPE_TEST(rangeSetFlipAllNoneTest) {
 }
 
 SCOPE_TEST(rangeSetFlipIntermediateTest) {
-  RangeSet<uint32,256> r{1,13,34,128};
+  RangeSet<uint32,256> r{{1,13},{34,128}};
   std::bitset<256> b;
   for (uint32 i = 1; i < 13; ++i) { b[i] = true; }
   for (uint32 i = 34; i < 128; ++i) { b[i] = true; }
@@ -116,7 +116,7 @@ SCOPE_TEST(rangeSetFlipIntermediateTest) {
 }
 
 SCOPE_TEST(rangeSetCopyConstructorTest) {
-  RangeSet<uint32,256> r{87,93,134,245,250,256};
+  RangeSet<uint32,256> r{{87,93},{134,245},{250,256}};
   RangeSet<uint32,256> s(r);
   SCOPE_ASSERT(r == s);
 }
