@@ -634,17 +634,12 @@ SCOPE_TEST(parseNegatedRanges) {
   SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(1));
 
   ByteSet expected, actual;
-  for (uint32 i = 0; i < 256; ++i) {
-    if (('a' <= i && i <= 'z')
-      || ('A' <= i && i <= 'Z')
-      || ('0' <= i && i <= '9'))
-    {
-      expected.set(i, false);
-    }
-    else {
-      expected.set(i, true);
-    }
-  }
+
+  expected.set();
+  expected.set('0', '9' + 1, false);
+  expected.set('A', 'Z' + 1, false);
+  expected.set('a', 'z' + 1, false);
+
   fsm[1].Trans->getBytes(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -689,10 +684,10 @@ SCOPE_TEST(parseCaseInsensitiveCC) {
   SCOPE_ASSERT(!fsm[0].Trans);
 
   ByteSet ebs, abs;
-  for (byte i = 'A'; i <= 'Z'; ++i) {
-    ebs.set(i);
-    ebs.set(i + 32);
-  }
+
+  ebs.set('A', 'Z' + 1, true);
+  ebs.set('a', 'z' + 1, true);
+
   fsm[1].Trans->getBytes(abs);
   SCOPE_ASSERT_EQUAL(ebs, abs);
 }
