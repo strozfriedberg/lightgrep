@@ -20,6 +20,9 @@ public:
   }
 
   ByteSet& set(size_t beg, size_t end, bool value) {
+    // This is evil, and depends on std::bitset<256> being laid out as an
+    // array of 32 bytes and having no other state. If this is not the case,
+    // this will fail catastrophically.
     for ( ; beg < end && beg % 8 > 0; ++beg) {
       set(beg, value);
     }
