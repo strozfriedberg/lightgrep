@@ -13,9 +13,18 @@ uint32 ASCII::write(int cp, byte buf[]) const {
   }
 }
 
-void ASCII::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
-  const NFA::VertexDescriptor v = g.addVertex();
-  g[v].Trans = g.TransFac->getSmallest(uset); // & [0x00,0xFF]
-  frag.InList.push_back(v);
-  frag.OutList.emplace_back(v, 0);
+void ASCII::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v) const {
+  v.emplace_back(1);
+  for (const UnicodeSet::range& r : uset) {
+    if (r.first > 0xFF) {
+      break;
+    }
+    else if (r.second > 0xFF) {
+      v[0][0].set(r.first, 0x100, true);
+      break;
+    }
+    else {
+      v[0][0].set(r.first, r.second, true);
+    }
+  }
 }

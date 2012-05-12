@@ -36,7 +36,10 @@ public:
     }
   }
 
-  virtual void write(std::vector<std::vector<ByteSet>>& va, const UnicodeSet& uset) const {
+  using UTFBase::write;
+
+protected:
+  virtual void collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {
     auto i = uset.begin();
     const auto iend = uset.end();
     if (i == iend) {
@@ -56,9 +59,6 @@ public:
     writeRange(va, i, iend, l, h, cur, 4, 0x110000);
   }
 
-  using UTFBase::write;
-
-protected:
   virtual void writeRangeBlock(std::vector<ByteSet>& v, uint32& l, uint32 h, uint32, uint32 blimit) const {
     if (l < std::min(h, blimit) && l % 256 > 0) {
       const uint32 m = std::min({ h, blimit, (l/256+1)*256 });
