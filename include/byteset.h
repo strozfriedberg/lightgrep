@@ -2,13 +2,28 @@
 
 #include <bitset>
 #include <cstring>
+#include <initializer_list>
 #include <ostream>
 
 class ByteSet: public std::bitset<256> {
 public:
   ByteSet(): std::bitset<256>() {}
 
-  ByteSet(unsigned char val): std::bitset<256>() { set(val); }
+  ByteSet(unsigned char val): std::bitset<256>() {
+    set(val);
+  }
+
+  ByteSet(std::initializer_list<unsigned char> init) {
+    for (unsigned char b : init) {
+      set(b);
+    }
+  }
+
+  ByteSet(std::initializer_list<std::pair<size_t,size_t>> init) {
+    for (const std::pair<size_t,size_t>& p : init) {
+      set(p.first, p.second, true);
+    }
+  }
 
   int compare(const ByteSet& other) const {
     // This is evil, and depends on std::bitset<256> being laid out as an
