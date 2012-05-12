@@ -4,9 +4,9 @@
 
 class UTFBase: public Encoder {
 public:
-  UTFBase(): valid{{0, 0xD800}, {0xE000, 0x110000}} {}
+  UTFBase(): Valid{{0, 0xD800}, {0xE000, 0x110000}} {}
 
-  virtual const UnicodeSet& validCodePoints() const { return valid; };
+  virtual const UnicodeSet& validCodePoints() const { return Valid; };
 
   using Encoder::write;
 
@@ -18,5 +18,5 @@ protected:
   virtual void skipRange(UnicodeSet::const_iterator& i, const UnicodeSet::const_iterator& iend, uint32& l, uint32& h, uint32 ubound) const; 
 
 private:
-  const UnicodeSet valid;
+  const UnicodeSet Valid;
 };

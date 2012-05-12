@@ -1,9 +1,14 @@
 #include <scope/test.h>
 
+#include <iomanip>
+#include <iostream>
+
 #include "automata.h"
 #include "fragment.h"
 #include "utf8.h"
 #include "utility.h"
+
+#include "container_out.h"
 
 SCOPE_TEST(testUTF8) {
   UTF8 enc;
@@ -65,6 +70,84 @@ SCOPE_TEST(testUTF8) {
   SCOPE_ASSERT_EQUAL(0, enc.write(0x110000, buf));
 }
 
+SCOPE_TEST(testUTF8Range0) {
+  UTF8 enc;
+
+  UnicodeSet us;
+  us.set(0x40000);  // F1 80 80 80
+  us.set(0x80001);  // F2 80 80 81
+
+  std::vector<std::vector<ByteSet>> e{
+    { 0xF1, 0x80, 0x80, 0x80 },
+    { 0xF2, 0x80, 0x80, 0x81 }
+  };
+
+  std::vector<std::vector<ByteSet>> a;
+  enc.write(us, a);
+
+  SCOPE_ASSERT_EQUAL(e, a);
+}
+
+SCOPE_TEST(testUTF8Range1) {
+  UTF8 enc;
+
+  UnicodeSet us;
+  us.set(0x40000);  // F1 80 80 80
+  us.set(0x80000);  // F2 80 80 80
+
+  std::vector<std::vector<ByteSet>> e{
+    { {{0xF1, 0xF3}}, 0x80, 0x80, 0x80 }
+  };
+
+  std::vector<std::vector<ByteSet>> a;
+  enc.write(us, a);
+
+  SCOPE_ASSERT_EQUAL(e, a);
+}
+
+SCOPE_TEST(testUTF8Range2) {
+  UTF8 enc;
+
+  UnicodeSet us;
+  us.set(0x400);    // D0 80
+  us.set(0x1000);   // E1 80 80
+  us.set(0x40000);  // F1 80 80 80
+
+  std::vector<std::vector<ByteSet>> e{
+    { 0xD0, 0x80 },
+    { 0xE1, 0x80, 0x80 },
+    { 0xF1, 0x80, 0x80, 0x80 }
+  };
+
+  std::vector<std::vector<ByteSet>> a;
+  enc.write(us, a);
+
+  SCOPE_ASSERT_EQUAL(e, a);
+}
+
+SCOPE_TEST(testUTF8Range3) {
+  UTF8 enc;
+
+  UnicodeSet us{{0, 0x110000}};
+
+  std::vector<std::vector<ByteSet>> e{
+    { {{0x00, 0x80}} },
+    { {{0xC2, 0xE0}}, {{0x80, 0xC0}} },
+    {   0xE0,         {{0xA0, 0xC0}}, {{0x80, 0xC0}} },
+    {   0xED,         {{0x80, 0xA0}}, {{0x80, 0xC0}} },
+    { {{0xE1,0xED}, {0xEE,0xF0}}, {{0x80, 0xC0}}, {{0x80, 0xC0}} },
+    {   0xF0,         {{0x90, 0xC0}}, {{0x80, 0xC0}}, {{0x80, 0xC0}} },
+    {   0xF4,         {{0x80, 0x90}}, {{0x80, 0xC0}}, {{0x80, 0xC0}} },
+    { {{0xF1, 0xF4}}, {{0x80, 0xC0}}, {{0x80, 0xC0}}, {{0x80, 0xC0}} }
+  };
+
+  std::vector<std::vector<ByteSet>> a;
+  enc.write(us, a);
+
+  SCOPE_ASSERT_EQUAL(e, a);
+}
+
+/*
 SCOPE_TEST(testUTF8Graph0) {
   UTF8 enc;
 
@@ -158,3 +241,4 @@ SCOPE_TEST(testUTF8Graph2) {
 
   writeGraphviz(std::cout, ag);
 }
+*/

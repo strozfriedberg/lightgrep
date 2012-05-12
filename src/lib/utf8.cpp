@@ -48,7 +48,7 @@ uint32 UTF8::write(int cp, byte buf[]) const {
   }
 }
 
-void UTF8::write(std::vector<std::vector<ByteSet>>& va, const UnicodeSet& uset) const {
+void UTF8::collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {
   auto i = uset.begin();
   const auto iend = uset.end();
   if (i == iend) {

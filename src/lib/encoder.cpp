@@ -10,38 +10,6 @@
 
 #include <boost/iterator/filter_iterator.hpp>
 
-std::ostream& operator<<(std::ostream& out, const ByteSet& bs) {
-  out << '[';
-
-  int32 low = -1;
-  bool first = true;
-  for (uint32 i = 0; i < 256; ++i) {
-    if (bs.test(i)) {
-      if (low < 0) {
-        if (!first) {
-          out << ',';
-        }
-        out << std::setfill('0') << std::setw(2) << i;
-        low = i;
-        first = false;
-      }
-    }
-    else if (low >= 0) {
-      if ((i-1) > low) {
-        out << '-' << std::setfill('0') << std::setw(2) << (i-1);
-      }
-      low = -1;
-    }
-  }
-
-  if (0 <= low && low < 255) {
-    out << '-' << std::setfill('0') << std::setw(2) << 255;
-  }
-
-  out << ']';
-  return out;
-}
-
 std::ostream& operator<<(std::ostream& out, const std::vector<ByteSet>& v) {
   std::copy(v.begin(), v.end(), std::ostream_iterator<ByteSet>(out, " "));
   return out;
@@ -92,7 +60,7 @@ struct Skip {
   uint32 count, skip;
 };
 
-void Encoder::write(std::vector<std::vector<ByteSet>>& va, const UnicodeSet& uset) const {
+void Encoder::collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {
   std::unique_ptr<byte[]> cur(new byte[maxByteLength()]);
   std::unique_ptr<byte[]> prev(new byte[maxByteLength()]);
 
@@ -126,11 +94,11 @@ void Encoder::write(std::vector<std::vector<ByteSet>>& va, const UnicodeSet& use
   }
 }
 
-void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
-  std::vector<std::vector<ByteSet>> va, vb, vo;
+void Encoder::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
+  std::vector<std::vector<ByteSet>> va, vb;
 
   // collect the encodings
-  write(va, uset);
+  collectRanges(uset, va);
 
   // collapse encodings
   const uint32 mlen = maxByteLength();
@@ -164,67 +132,5 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
 
     va.swap(vb);
     vb.clear();
-  }
-
-  ByteSet bs;
-
-  // create a graph from the collapsed ranges
-  for (const std::vector<ByteSet>& enc : vo) {
-    NFA::VertexDescriptor head, tail;
-
-    //
-    // find a matching suffix
-    //
-
-    int32 b = enc.size()-1;
-
-    // find a match for the last transition
-    const auto oi = std::find_if(
-      frag.OutList.begin(), frag.OutList.end(),
-      [&](const std::pair<NFA::VertexDescriptor,uint32>& p) {
-        return g[p.first].Trans->getBytes(bs) == enc[b];
-      }
-    );
-
-    if (oi != frag.OutList.end()) {
-      // match, use this tail
-      tail = oi->first;
-    }
-    else {
-      // build a new tail
-      tail = g.addVertex();
-      g[tail].Trans = g.TransFac->getSmallest(enc[b]);
-      frag.OutList.emplace_back(tail, 0);
-    }
-
-    // walk backwards until a transition mismatch
-    for (--b; b >= 0; --b) {
-      head = 0;
-      const uint32 ideg = g.inDegree(tail);
-      for (uint32 i = 0; i < ideg; ++i) {
-        head = g.inVertex(tail, i);
-        g[head].Trans->getBytes(bs);
-        if (bs == enc[b]) {
-          tail = head;
-          break;
-        }
-        head = 0;
-      }
-
-      if (!head) {
-        // tail is as far back as we can go
-        break;
-      }
-    }
-
-    // build previous vertices
-    for ( ; b >= 0; --b) {
-      head = g.addVertex();
-      g[head].Trans = g.TransFac->getSmallest(enc[b]);
-      g.addEdge(head, tail);
-      tail = head;
-    }
-
-    frag.InList.push_back(tail);
   }
 }
