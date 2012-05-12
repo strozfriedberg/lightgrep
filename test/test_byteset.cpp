@@ -14,15 +14,15 @@ SCOPE_TEST(byteSetDWordComparisionTest) {
   // This tests that we are getting comparision per dword, instead of a
   // lexicographical order. It's not essential that this be the case, but
   // we want to know if there's an unexpected change.
-  ByteSet a(1), b(2);
+  ByteSet a(0), b(1);
   SCOPE_ASSERT(a < b);
 }
 
 SCOPE_TEST(fastByteSetOrderTest) {
   SCOPE_ASSERT(ByteSet(0xFE) < ByteSet(0xFF));
 
-  ByteSet none(0), test(1), all;
-  all.flip();
+  ByteSet none, test(1), all;
+  all.set();
 
   do {
     SCOPE_ASSERT(none < test);
@@ -57,11 +57,11 @@ SCOPE_TEST(byteSetRangeSetTest) {
   for (uint32 i = 0; i <= 256; ++i) {
     for (uint32 j = i; j <= 256; ++j) {
       // do a range set
-      a.reset().flip();
+      a.set();
       a.set(i, j, false);
 
       // do a standard, one-at-a-time set
-      b.reset().flip();
+      b.set();
       for (uint32 k = i; k < j; ++k) {
         b.set(k, false);
       }
