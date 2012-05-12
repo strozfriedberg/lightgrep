@@ -1,15 +1,11 @@
 #pragma once
 
-#include "encoder.h"
+#include "utfbase.h"
 
 template <bool LE>
-class UTF32Base: public Encoder {
+class UTF32Base: public UTFBase {
 public:
-  UTF32Base(): valid{{0, 0xD800}, {0xE000, 0x110000}} {}
-
   virtual uint32 maxByteLength() const { return 4; }
-
-  virtual const UnicodeSet& validCodePoints() const { return valid; };
 
   virtual uint32 write(int cp, byte buf[]) const {
     if (cp < 0) {
@@ -40,42 +36,36 @@ public:
     }
   }
 
-  virtual void write(std::vector<std::vector<ByteSet>>& v, const UnicodeSet& uset) const {
-    byte cur[4];
-    byte prev[4];
-    bool hasprev = false;
-
-    for (const UnicodeSet::range& r : uset) {
-      const uint32 l = r.first, h = r.second;
-      for (uint32 cp = l; cp < h; ++cp) {
-        if (write(cp, cur) == 0) {
-          // cp is invalid, skip it
-          continue;
-        }
-
-        if (hasprev &&
-            std::equal(cur+(LE ? 1 : 0), cur+(LE ? 4 : 3), prev+(LE ? 1 : 0))) {
-          // join the previous cp if we are the same up to the last byte
-          v.back()[LE ? 0 : 3].set(cur[LE ? 0 : 3]);
-        }
-        else {
-          // otherwise add a new encoding to the list
-          v.emplace_back(4);
-          for (uint32 i = 0; i < 4; ++i) {
-            v.back()[i].set(cur[i]);
-          }
-
-          std::swap(prev, cur);
-          hasprev = true;
-        }
-      }
+  virtual void write(std::vector<std::vector<ByteSet>>& va, const UnicodeSet& uset) const {
+    auto i = uset.begin();
+    const auto iend = uset.end();
+    if (i == iend) {
+      return;
     }
+
+    uint32 l = i->first, h = i->second;
+    byte cur[4];
+
+    // handle low four-byte encodings
+    writeRange(va, i, iend, l, h, cur, 4, 0xD800);
+
+    // skip the UTF-16 surrogates
+    skipRange(i, iend, l, h, 0xE000);
+
+    // handle hight four-byte encodings
+    writeRange(va, i, iend, l, h, cur, 4, 0x110000);
   }
 
-  using Encoder::write;
+  using UTFBase::write;
 
-private:
-  const UnicodeSet valid;
+protected:
+  virtual void writeRangeBlock(std::vector<ByteSet>& v, uint32& l, uint32 h, uint32, uint32 blimit) const {
+    if (l < std::min(h, blimit) && l % 256 > 0) {
+      const uint32 m = std::min({ h, blimit, (l/256+1)*256 });
+      v[LE ? 0 : 3].set(l & 0xFF, ((m-1) & 0xFF)+1, true);
+      l = m;
+    }
+  }
 };
 
 typedef UTF32Base<true>  UTF32LE;
