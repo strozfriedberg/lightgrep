@@ -36,6 +36,7 @@ SCOPE_TEST(fastByteSetOrderTest) {
 SCOPE_TEST(byteSetRangeSetTest) {
   ByteSet a, b;
 
+  // set true ranges on false bits
   for (uint32 i = 0; i <= 256; ++i) {
     for (uint32 j = i; j <= 256; ++j) {
       // do a range set
@@ -46,6 +47,23 @@ SCOPE_TEST(byteSetRangeSetTest) {
       b.reset();
       for (uint32 k = i; k < j; ++k) {
         b.set(k, true);
+      }
+
+      SCOPE_ASSERT_EQUAL(b, a);
+    }
+  }
+
+  // set false ranges on true bits
+  for (uint32 i = 0; i <= 256; ++i) {
+    for (uint32 j = i; j <= 256; ++j) {
+      // do a range set
+      a.reset().flip();
+      a.set(i, j, false);
+
+      // do a standard, one-at-a-time set
+      b.reset().flip();
+      for (uint32 k = i; k < j; ++k) {
+        b.set(k, false);
       }
 
       SCOPE_ASSERT_EQUAL(b, a);
