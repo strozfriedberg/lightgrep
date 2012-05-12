@@ -2,12 +2,13 @@
 
 #include <bitset>
 #include <cstring>
+#include <ostream>
 
 class ByteSet: public std::bitset<256> {
 public:
   ByteSet(): std::bitset<256>() {}
 
-  ByteSet(unsigned long val): std::bitset<256>(val) {}
+  ByteSet(unsigned char val): std::bitset<256>() { set(val); }
 
   int compare(const ByteSet& other) const {
     // This is evil, and depends on std::bitset<256> being laid out as an
@@ -65,4 +66,7 @@ public:
   bool operator!=(const ByteSet& other) const {
     return compare(other) != 0;
   }
+
 };
+
+std::ostream& operator<<(std::ostream& out, const ByteSet& bs);
