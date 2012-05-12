@@ -149,20 +149,16 @@ void Encoder::write(const UnicodeSet& uset, NFA& g, Fragment& frag) const {
       }
     );
 
-    for (auto i = va.begin(); i != va.end(); ) {
-      // find the limit of encodings matching i everywhere except position n
-      auto j = std::find_if(i, va.end(),
-        [=](const std::vector<ByteSet>& b) {
-          return mismatch_except_at(n, *i, b);
-        }
-      );
-
-      // collapse the range from i to j
+    const auto iend = va.end();
+    for (auto i = va.begin(); i != iend; ) {
       std::vector<ByteSet>& v = *i;
-      for (++i; i != j; ++i) {
+      // collapse all the encodings matching v everywhere except position n
+      for (++i; i != iend && !mismatch_except_at(n, v, *i); ++i) {
         v[v.size()-n-1] |= (*i)[i->size()-n-1];
       }
 
+      // put this collapsed encoding in the output, if we've reached the
+      // front, or in the work vector for the next round
       (n == v.size() - 1 ? vo : vb).push_back(std::move(v));
     }
 
