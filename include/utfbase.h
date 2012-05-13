@@ -1,14 +1,14 @@
 #pragma once
 
-#include "encoder.h"
+#include "encoderbase.h"
 
-class UTFBase: public Encoder {
+class UTFBase: public EncoderBase {
 public:
   UTFBase(): Valid{{0, 0xD800}, {0xE000, 0x110000}} {}
 
   virtual const UnicodeSet& validCodePoints() const { return Valid; };
 
-  using Encoder::write;
+  using EncoderBase::write;
 
 protected:
   virtual void writeRangeBlock(std::vector<ByteSet>& v, uint32& l, uint32 h, uint32 len, uint32 blimit) const = 0;
