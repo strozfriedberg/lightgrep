@@ -115,8 +115,11 @@ void Encoder::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v
       const uint32 elen = vi->size();
       const uint32 skip = elen-n-1;
 
-      // sort encodings lexicographically, skipping position n from the end
-      std::sort(vi, sb, EncodingRangeComparator(elen, skip));
+      // length-1 encodings collapse totally, no need to sort them
+      if (elen > 1) {
+        // sort encodings lexicographically, skipping position n from the end
+        std::sort(vi, sb, EncodingRangeComparator(elen, skip));
+      }
 
       // try collapsing each successive encoding, up to the size boundary
       while (vi != sb) {
