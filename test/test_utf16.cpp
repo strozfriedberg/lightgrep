@@ -1,5 +1,6 @@
 #include <scope/test.h>
 
+#include "container_out.h"
 #include "utf16.h"
 
 template <bool LE>
@@ -65,4 +66,38 @@ SCOPE_TEST(testUTF16LE) {
 SCOPE_TEST(testUTF16BE) {
   UTF16BE enc;
   utf16TestFixture(enc);
+}
+
+SCOPE_TEST(testUTF16LERangeFull) {
+  UTF16LE enc;
+
+  UnicodeSet us{{0, 0x110000}};
+
+  // all valid UTF-16LE ranges
+  std::vector<std::vector<ByteSet>> e{
+    { {{0x00,0x100}}, {{0x00,0xD8}, {0xE0,0x100}} },
+    { {{0x00,0x100}}, {{0xD8,0xDC}}, {{0x00,0x100}}, {{0xDC,0xE0}} }
+  };
+
+  std::vector<std::vector<ByteSet>> a;
+  enc.write(us, a);
+
+  SCOPE_ASSERT_EQUAL(e, a);
+}
+
+SCOPE_TEST(testUTF16BERangeFull) {
+  UTF16BE enc;
+
+  UnicodeSet us{{0, 0x110000}};
+
+  // all valid UTF-16BE ranges
+  std::vector<std::vector<ByteSet>> e{
+    { {{0x00,0xD8}, {0xE0,0x100}}, {{0x00,0x100}} },
+    { {{0xD8,0xDC}}, {{0x00,0x100}}, {{0xDC,0xE0}}, {{0x00,0x100}} }
+  };
+
+  std::vector<std::vector<ByteSet>> a;
+  enc.write(us, a);
+
+  SCOPE_ASSERT_EQUAL(e, a);
 }
