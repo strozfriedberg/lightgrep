@@ -63,7 +63,7 @@ SCOPE_TEST(testUTF32LERangeFull) {
   UTF32LE enc;
 
   UnicodeSet us{{0, 0x110000}};
-  
+
   // all valid UTF-32LE ranges
   std::vector<std::vector<ByteSet>> e{
     { {{0x00,0x100}}, {{0xD8,0xE0}}, {{0x01,0x11}}, 0x00 },
@@ -80,11 +80,11 @@ SCOPE_TEST(testUTF32BERangeFull) {
   UTF32BE enc;
 
   UnicodeSet us{{0, 0x110000}};
-  
+
   // all valid UTF-32BE ranges
   std::vector<std::vector<ByteSet>> e{
     { 0x00, 0x00, {{0x00,0xD8},{0xE0,0x100}}, {{0x00,0x100}} },
-    { 0x00, {{0x01,0x11}}, {{0x00,0x100}}, {{0x00,0x100}} } 
+    { 0x00, {{0x01,0x11}}, {{0x00,0x100}}, {{0x00,0x100}} }
   };
 
   std::vector<std::vector<ByteSet>> a;
