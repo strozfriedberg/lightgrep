@@ -22,63 +22,6 @@ std::ostream& operator<<(std::ostream& out, const std::vector<std::vector<ByteSe
   return out;
 }
 
-bool equal_except_at(std::vector<ByteSet>::size_type n,
-                     const std::vector<ByteSet>& a,
-                     const std::vector<ByteSet>& b)
-{
-  // a and b are equal everwhere, disregarding position n
-  return
-    (a.size() <= n+1 || std::equal(a.begin(), a.end()-n-1, b.begin())) &&
-    (n == 0 || std::equal(a.end()-n, a.end(), b.end()-n));
-}
-
-template <typename Itr>
-class skip_iterator:
-  public std::iterator<std::forward_iterator_tag, typename Itr::value_type>
-{
-public:
-  skip_iterator(): inner(), count(1), skip(0) { ++inner; }
-
-  skip_iterator(Itr i, uint32 c, uint32 s): inner(i), count(c), skip(s) {
-    if (skip == count) { ++inner; ++count; }
-  }
-
-  skip_iterator(const skip_iterator& i):
-    inner(i.inner), count(i.count), skip(i.skip) {}
-
-  bool operator==(const skip_iterator& i) const {
-    return inner == i.inner;
-  }
-
-  bool operator!=(const skip_iterator& i) const {
-    return inner != i.inner;
-  }
-
-  typename Itr::reference operator*() const {
-    return *inner;
-  }
-
-  skip_iterator& operator++() {
-    inner += 1 + ((++count == skip));
-    return *this;
-  }
-
-  skip_iterator operator++(int) {
-    skip_iterator ret(*this);
-    operator++();
-    return ret;
-  }
-
-private:
-  Itr inner;
-  uint32 count, skip;
-};
-
-template <typename Itr>
-skip_iterator<Itr> make_skip_iterator(Itr i, uint32 count, uint32 skip) {
-  return skip_iterator<Itr>(i, count, skip);
-}
-
 void Encoder::collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {
   std::unique_ptr<byte[]> cur(new byte[maxByteLength()]);
   std::unique_ptr<byte[]> prev(new byte[maxByteLength()]);
@@ -120,6 +63,35 @@ void Encoder::collectRanges(const UnicodeSet& uset, std::vector<std::vector<Byte
   );
 }
 
+struct EncodingRangeComparator {
+  EncodingRangeComparator(uint32 l, uint32 s): len(l), skip(s) {}
+
+  bool operator()(const std::vector<ByteSet>& a,
+                  const std::vector<ByteSet>& b) const
+  {
+    // This is evil. We're taking advantage of the fact that std::vector
+    // is laid out in a contiguous block, that ByteSet is just a block of
+    // 32 bytes.
+    const int pre = memcmp(a.data(), b.data(), skip*sizeof(ByteSet));
+    return
+      pre < 0 ? true :
+      (pre > 0 ? false :
+      memcmp(a.data()+skip+1, b.data()+skip+1, (len-skip)*sizeof(ByteSet)) < 0);
+  }
+
+  const uint32 len, skip;
+};
+
+bool equal_except_at(std::vector<ByteSet>::size_type n,
+                     const std::vector<ByteSet>& a,
+                     const std::vector<ByteSet>& b)
+{
+  // a and b are equal everwhere, disregarding position n
+  return
+    (a.size() <= n+1 || std::equal(a.begin(), a.end()-n-1, b.begin())) &&
+    (n == 0 || std::equal(a.end()-n, a.end(), b.end()-n));
+}
+
 void Encoder::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
   std::vector<std::vector<ByteSet>> va, vb;
 
@@ -141,19 +113,9 @@ void Encoder::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v
       }
 
       const uint32 elen = vi->size();
-      const uint32 spos = elen-n-1;
 
       // sort encodings lexicographically, skipping position n from the end
-      std::sort(vi, sb,
-        [=](const std::vector<ByteSet>& a, const std::vector<ByteSet>& b) {
-          return std::lexicographical_compare(
-            make_skip_iterator(a.begin(),  0, spos),
-            make_skip_iterator(a.end(), elen, spos),
-            make_skip_iterator(b.begin(),  0, spos),
-            make_skip_iterator(b.end(), elen, spos)
-          );
-        }
-      );
+      std::sort(vi, sb, EncodingRangeComparator(elen, elen-n-1));
 
       // try collapsing each successive encoding, up to the size boundary
       while (vi != sb) {
