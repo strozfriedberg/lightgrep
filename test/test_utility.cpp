@@ -493,7 +493,7 @@ SCOPE_TEST(testBitVectorGeneration) {
   Program& prog(*p);
   SCOPE_ASSERT_EQUAL(14u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeBitVector(), prog[0]);
-  SCOPE_ASSERT_EQUAL(bits, *reinterpret_cast<ByteSet*>(&prog[1]));
+  SCOPE_ASSERT_EQUAL(bits, reinterpret_cast<ByteSet&>(prog[1]));
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[10]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[11]);
