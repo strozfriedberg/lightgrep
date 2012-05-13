@@ -1,5 +1,6 @@
 #pragma once
 
+#include "caching_encoder.h"
 #include "utfbase.h"
 
 template <bool LE>
@@ -70,3 +71,31 @@ protected:
 
 typedef UTF32Base<true>  UTF32LE;
 typedef UTF32Base<false> UTF32BE;
+
+class CachingUTF32LE: public CachingEncoder<UTF32LE> {
+public:
+  CachingUTF32LE(): CachingEncoder<UTF32LE>({
+    // \p{Any}, .
+    {
+      {{0, 0xD800}, {0xE000, 0x110000}},
+      {
+        { {{0x00,0x100}}, {{0xD8,0xE0}}, {{0x01,0x11}}, 0x00 },
+        { {{0x00,0x100}}, {{0x00,0xD8},{0xE0,0x100}}, {{0x00,0x11}}, 0x00 }
+      }
+    }
+  }) {}
+};
+
+class CachingUTF32BE: public CachingEncoder<UTF32BE> {
+public:
+  CachingUTF32BE(): CachingEncoder<UTF32BE>({
+    // \p{Any}, .
+    {
+      {{0, 0xD800}, {0xE000, 0x110000}},
+      {
+        { 0x00, 0x00, {{0x00,0xD8},{0xE0,0x100}}, {{0x00,0x100}} },
+        { 0x00, {{0x01,0x11}}, {{0x00,0x100}}, {{0x00,0x100}} }
+      }
+    }
+  }) {}
+};
