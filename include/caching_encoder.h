@@ -7,10 +7,11 @@
 template <class BaseEncoder>
 class CachingEncoder: public BaseEncoder {
 public:
+  template <typename... BaseArgs>
   CachingEncoder(
-    const std::map<UnicodeSet,std::vector<std::vector<ByteSet>>> cache =
-          std::map<UnicodeSet,std::vector<std::vector<ByteSet>>>()
-  ): Cache(cache) {}
+    const std::map<UnicodeSet,std::vector<std::vector<ByteSet>>> cache,
+    BaseArgs... args
+  ): BaseEncoder(args...), Cache(cache) {}
 
   virtual void write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
     auto i = Cache.find(uset);

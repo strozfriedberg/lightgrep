@@ -46,7 +46,9 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
     Nfab.setEncoder(i->second);
   }
   else {
-    std::shared_ptr<Encoder> enc(new ICUEncoder(pattern.Encoding.c_str()));
+    std::shared_ptr<Encoder> enc(
+      new CachingICUEncoder(pattern.Encoding.c_str())
+    );
     Encoders.insert(std::make_pair(pattern.Encoding, enc));
     Nfab.setEncoder(enc);
   }
