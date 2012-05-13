@@ -1,5 +1,6 @@
 #pragma once
 
+#include "caching_encoder.h"
 #include "encoderbase.h"
 
 #include <unicode/ucnv.h>
@@ -20,4 +21,9 @@ private:
   UChar* pivot;
   uint32 max_bytes;
   UnicodeSet valid;
+};
+
+class CachingICUEncoder: public CachingEncoder<ICUEncoder> {
+public:
+  CachingICUEncoder(const char* const name): CachingEncoder<ICUEncoder>({}, name) {}
 };
