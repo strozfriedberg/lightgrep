@@ -1,8 +1,8 @@
 #pragma once
 
-#include "encoder.h"
+#include "encoderbase.h"
 
-class ASCII: public Encoder {
+class ASCII: public EncoderBase {
 public:
   ASCII(): Valid(0, 0x100) {}
 

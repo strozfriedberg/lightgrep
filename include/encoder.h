@@ -15,8 +15,5 @@ public:
 
   virtual uint32 write(int cp, byte buf[]) const = 0;
 
-  virtual void write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v) const;
-
-protected:
-  virtual void collectRanges(const UnicodeSet& user, std::vector<std::vector<ByteSet>>& v) const;
+  virtual void write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v) const = 0;
 };
