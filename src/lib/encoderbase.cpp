@@ -1,4 +1,4 @@
-#include "encoder.h"
+#include "encoderbase.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -22,7 +22,7 @@ std::ostream& operator<<(std::ostream& out, const std::vector<std::vector<ByteSe
   return out;
 }
 
-void Encoder::collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {
+void EncoderBase::collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {
   std::unique_ptr<byte[]> cur(new byte[maxByteLength()]);
   std::unique_ptr<byte[]> prev(new byte[maxByteLength()]);
 
@@ -92,7 +92,15 @@ bool equal_except_at(std::vector<ByteSet>::size_type n,
     (n == 0 || std::equal(a.end()-n, a.end(), b.end()-n));
 }
 
-void Encoder::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
+void EncoderBase::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
+/*
+  auto i = Cache.find(uset);
+  if (i != Cache.end()) {
+    vo = i->second;
+    return;
+  }
+*/
+
   std::vector<std::vector<ByteSet>> va, vb;
 
   // collect the encodings
@@ -138,4 +146,6 @@ void Encoder::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v
     va.swap(vb);
     vb.clear();
   }
+
+//  Cache.insert(std::make_pair(uset, vo));
 }

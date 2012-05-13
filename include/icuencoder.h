@@ -1,10 +1,10 @@
 #pragma once
 
-#include "encoder.h"
+#include "encoderbase.h"
 
 #include <unicode/ucnv.h>
 
-class ICUEncoder: public Encoder {
+class ICUEncoder: public EncoderBase {
 public:
   ICUEncoder(const char* name);
   virtual ~ICUEncoder();
@@ -14,7 +14,7 @@ public:
   virtual const UnicodeSet& validCodePoints() const { return valid; };
 
   virtual uint32 write(int cp, byte buf[]) const;
-  using Encoder::write;
+  using EncoderBase::write;
 
 private:
   UConverter* src_conv;
