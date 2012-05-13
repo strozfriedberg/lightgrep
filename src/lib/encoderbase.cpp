@@ -93,13 +93,11 @@ bool equal_except_at(std::vector<ByteSet>::size_type n,
 }
 
 void EncoderBase::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
-/*
   auto i = Cache.find(uset);
   if (i != Cache.end()) {
     vo = i->second;
     return;
   }
-*/
 
   std::vector<std::vector<ByteSet>> va, vb;
 
@@ -147,5 +145,5 @@ void EncoderBase::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>
     vb.clear();
   }
 
-//  Cache.insert(std::make_pair(uset, vo));
+  Cache.insert(std::make_pair(uset, vo));
 }
