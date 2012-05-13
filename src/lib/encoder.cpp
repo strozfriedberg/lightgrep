@@ -92,6 +92,13 @@ void Encoder::collectRanges(const UnicodeSet& uset, std::vector<std::vector<Byte
       }
     }
   }
+
+  // sort encoding ranges by size
+  std::sort(va.begin(), va.end(),
+    [](const std::vector<ByteSet>& a, const std::vector<ByteSet>& b) {
+      return a.size() < b.size();
+    }
+  );
 }
 
 void Encoder::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
@@ -103,31 +110,42 @@ void Encoder::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v
   // collapse encodings
   const uint32 mlen = maxByteLength();
   for (uint32 n = 0; n < mlen; ++n) {
-    // sort encodings by length, then lexicographically, skipping position n
-    std::sort(va.begin(), va.end(),
-      [=](const std::vector<ByteSet>& a, const std::vector<ByteSet>& b) {
-        return a.size() < b.size() || (a.size() == b.size() &&
-          std::lexicographical_compare(
+    for (auto vi = va.begin(); vi != va.end(); ) {
+      // find next size boundary
+      auto sb = std::adjacent_find(vi, va.end(),
+        [](const std::vector<ByteSet>& a, const std::vector<ByteSet>& b) {
+          return a.size() != b.size();
+        }
+      );
+      if (sb != va.end()) {
+        ++sb;
+      }
+
+      // sort encodings lexicographically, skipping position n
+      std::sort(vi, sb,
+        [=](const std::vector<ByteSet>& a, const std::vector<ByteSet>& b) {
+          return std::lexicographical_compare(
             boost::make_filter_iterator(Skip(a.size()-n-1), a.begin(), a.end()),
             boost::make_filter_iterator(Skip(a.size()-n-1), a.end(), a.end()),
             boost::make_filter_iterator(Skip(a.size()-n-1), b.begin(), b.end()),
             boost::make_filter_iterator(Skip(a.size()-n-1), b.end(), b.end())
-          )
-        );
-      }
-    );
+          );
+        }
+      );
 
-    const auto iend = va.end();
-    for (auto i = va.begin(); i != iend; ) {
-      std::vector<ByteSet>& v = *i;
-      // collapse all the encodings matching v everywhere except position n
-      for (++i; i != iend && !mismatch_except_at(n, v, *i); ++i) {
-        v[v.size()-n-1] |= (*i)[i->size()-n-1];
-      }
+      // try collapsing each successive encoding, up to the size boundary
+      const uint32 elen = vi->size();
+      while (vi != sb) {
+        std::vector<ByteSet>& e = *vi;
+        // collapse all the encodings matching v everywhere except position n
+        for (++vi; vi != sb && !mismatch_except_at(n, e, *vi); ++vi) {
+          e[elen-n-1] |= (*vi)[elen-n-1];
+        }
 
-      // put this collapsed encoding in the output, if we've reached the
-      // front, or in the work vector for the next round
-      (n == v.size() - 1 ? vo : vb).push_back(std::move(v));
+        // put this collapsed encoding in the output, if we've reached the
+        // front, or in the work vector for the next round
+        (n == elen - 1 ? vo : vb).push_back(std::move(e));
+      }
     }
 
     va.swap(vb);
