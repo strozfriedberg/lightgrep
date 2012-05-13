@@ -181,7 +181,7 @@ Instruction Instruction::makeFinish() {
 
 Instruction Instruction::makeRaw32(uint32 val) {
   Instruction i;
-  *reinterpret_cast<uint32*>(&i) = val;
+  reinterpret_cast<uint32&>(i) = val;
   return i;
 }
 
