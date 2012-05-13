@@ -20,6 +20,9 @@ void UTFBase::writeRange(std::vector<std::vector<ByteSet>>& va, UnicodeSet::cons
         return;
       }
     }
+    else if (i == iend) {
+      return;
+    }
     else {
       ++i;
       if (i == iend) {
@@ -33,6 +36,10 @@ void UTFBase::writeRange(std::vector<std::vector<ByteSet>>& va, UnicodeSet::cons
 
 void UTFBase::skipRange(UnicodeSet::const_iterator& i, const UnicodeSet::const_iterator& iend, uint32& l, uint32& h, uint32 ubound) const {
   if (l < ubound) {
+    if (i == iend) {
+      return;
+    }
+
     for (++i; i != iend; ++i) {
       l = i->first;
       h = i->second;
