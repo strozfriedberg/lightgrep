@@ -6,7 +6,7 @@
 
 class ICUEncoder: public EncoderBase {
 public:
-  ICUEncoder(const char* name);
+  ICUEncoder(const char* const name);
   virtual ~ICUEncoder();
 
   virtual uint32 maxByteLength() const;
