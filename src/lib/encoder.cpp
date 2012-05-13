@@ -24,31 +24,14 @@ std::ostream& operator<<(std::ostream& out, const std::vector<std::vector<ByteSe
   return out;
 }
 
-/*
-struct EqualExceptAt {
-  EqualExceptAt(uint32 i): n(i) {}
-
-  template <typename T>
-  bool operator()(const T& a, const T& b) {
-    a.size() == b.size() &&
-    (a.size() <= n+1 && !std::equal(a.begin(), a.end()-n-1, b.begin())) ||
-    (n > 0 && !std::equal(a.end()-n, a.end(), b.end()-n));
-  }
-};
-*/
-
-bool mismatch_except_at(std::vector<ByteSet>::size_type n,
-                        const std::vector<ByteSet>& a,
-                        const std::vector<ByteSet>& b)
+bool equal_except_at(std::vector<ByteSet>::size_type n,
+                     const std::vector<ByteSet>& a,
+                     const std::vector<ByteSet>& b)
 {
-  // a mismatches b (except at position n) if:
-  //  * a and b are different lengths, or
-  //  * the prefixes of a and b before n differ, or
-  //  * the suffixes of a and b after n differ
+  // a and b are equal everwhere, disregarding position n
   return
-    a.size() != b.size() ||
-    (a.size() > n+1 && !std::equal(a.begin(), a.end()-n-1, b.begin())) ||
-    (n > 0 && !std::equal(a.end()-n, a.end(), b.end()-n));
+    (a.size() <= n+1 || std::equal(a.begin(), a.end()-n-1, b.begin())) &&
+    (n == 0 || std::equal(a.end()-n, a.end(), b.end()-n));
 }
 
 struct Skip {
@@ -138,7 +121,7 @@ void Encoder::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v
       while (vi != sb) {
         std::vector<ByteSet>& e = *vi;
         // collapse all the encodings matching v everywhere except position n
-        for (++vi; vi != sb && !mismatch_except_at(n, e, *vi); ++vi) {
+        for (++vi; vi != sb && equal_except_at(n, e, *vi); ++vi) {
           e[elen-n-1] |= (*vi)[elen-n-1];
         }
 
