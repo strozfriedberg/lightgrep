@@ -121,7 +121,7 @@ SCOPE_TEST(testUTF8Range2) {
   SCOPE_ASSERT_EQUAL(e, a);
 }
 
-SCOPE_TEST(testUTF8Range3) {
+SCOPE_TEST(testUTF8RangeFull) {
   UTF8 enc;
 
   UnicodeSet us{{0, 0x110000}};
