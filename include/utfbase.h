@@ -7,7 +7,7 @@ public:
   using EncoderBase::write;
 
 protected:
-  UTFBase(): EncoderBase({{0, 0xD800}, {0xE000, 0x110000}}) {}
+  UTFBase(): EncoderBase(UnicodeSet{{0, 0xD800}, {0xE000, 0x110000}}) {}
 
   virtual void writeRangeBlock(std::vector<ByteSet>& v, uint32& l, uint32 h, uint32 len, uint32 blimit) const = 0;
 

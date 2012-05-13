@@ -2,8 +2,6 @@
 
 #include "encoder.h"
 
-#include <map>
-
 class EncoderBase: public Encoder {
 public:
   virtual const UnicodeSet& validCodePoints() const { return Valid; };
@@ -15,12 +13,9 @@ public:
 protected:
   EncoderBase(const UnicodeSet& valid = UnicodeSet()): Valid(valid) {}
 
-  EncoderBase(const EncoderBase& other):
-    Valid(other.Valid), Cache(other.Cache) {}
+  EncoderBase(const EncoderBase& other): Valid(other.Valid) {}
 
   virtual void collectRanges(const UnicodeSet& user, std::vector<std::vector<ByteSet>>& v) const;
 
   const UnicodeSet Valid;
-
-  mutable std::map<UnicodeSet,std::vector<std::vector<ByteSet>>> Cache;
 };

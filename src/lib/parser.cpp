@@ -11,11 +11,11 @@ Parser::Parser(uint32 sizeHint):
   Fsm(new NFA(1, sizeHint)),
   Encoders{
     { "ASCII",    std::make_shared<ASCII>()   },
-    { "UTF-8",    std::make_shared<UTF8>()    },
-    { "UTF-16LE", std::make_shared<UTF16LE>() },
-    { "UTF-16BE", std::make_shared<UTF16BE>() },
-    { "UTF-32LE", std::make_shared<UTF32LE>() },
-    { "UTF-32BE", std::make_shared<UTF32BE>() }
+    { "UTF-8",    std::make_shared<CachingUTF8>()    },
+    { "UTF-16LE", std::make_shared<CachingUTF16LE>() },
+    { "UTF-16BE", std::make_shared<CachingUTF16BE>() },
+    { "UTF-32LE", std::make_shared<CachingUTF32LE>() },
+    { "UTF-32BE", std::make_shared<CachingUTF32BE>() }
   }
 {
   Fsm->TransFac = Nfab.getTransFac();
