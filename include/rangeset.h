@@ -30,7 +30,7 @@ public:
   RangeSet(std::initializer_list<T> init) {
     vec.reserve(2*init.size());
     for (const T& val : init) {
-      insert(val); 
+      insert(val);
     }
   }
 
