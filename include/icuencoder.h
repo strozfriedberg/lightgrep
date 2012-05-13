@@ -11,8 +11,6 @@ public:
 
   virtual uint32 maxByteLength() const;
 
-  virtual const UnicodeSet& validCodePoints() const { return valid; };
-
   virtual uint32 write(int cp, byte buf[]) const;
   using EncoderBase::write;
 
