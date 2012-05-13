@@ -8,8 +8,6 @@
 #include <utility>
 #include <vector>
 
-#include <boost/iterator/filter_iterator.hpp>
-
 std::ostream& operator<<(std::ostream& out, const std::vector<ByteSet>& v) {
   std::copy(v.begin(), v.end(), std::ostream_iterator<ByteSet>(out, " "));
   return out;
@@ -34,14 +32,52 @@ bool equal_except_at(std::vector<ByteSet>::size_type n,
     (n == 0 || std::equal(a.end()-n, a.end(), b.end()-n));
 }
 
-struct Skip {
-  Skip(uint32 s): count(0), skip(s) {}
+template <typename Itr>
+class skip_iterator:
+  public std::iterator<std::forward_iterator_tag, typename Itr::value_type>
+{
+public:
+  skip_iterator(): inner(), count(1), skip(0) { ++inner; }
 
-  template <typename T>
-  bool operator()(const T&) { return count++ != skip; }
+  skip_iterator(Itr i, uint32 c, uint32 s): inner(i), count(c), skip(s) {
+    if (skip == count) { ++inner; ++count; }
+  }
 
+  skip_iterator(const skip_iterator& i):
+    inner(i.inner), count(i.count), skip(i.skip) {}
+
+  bool operator==(const skip_iterator& i) const {
+    return inner == i.inner;
+  }
+
+  bool operator!=(const skip_iterator& i) const {
+    return inner != i.inner;
+  }
+
+  typename Itr::reference operator*() const {
+    return *inner;
+  }
+
+  skip_iterator& operator++() {
+    inner += 1 + ((++count == skip));
+    return *this;
+  }
+
+  skip_iterator operator++(int) {
+    skip_iterator ret(*this);
+    operator++();
+    return ret;
+  }
+
+private:
+  Itr inner;
   uint32 count, skip;
 };
+
+template <typename Itr>
+skip_iterator<Itr> make_skip_iterator(Itr i, uint32 count, uint32 skip) {
+  return skip_iterator<Itr>(i, count, skip);
+}
 
 void Encoder::collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {
   std::unique_ptr<byte[]> cur(new byte[maxByteLength()]);
@@ -104,20 +140,22 @@ void Encoder::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v
         ++sb;
       }
 
-      // sort encodings lexicographically, skipping position n
+      const uint32 elen = vi->size();
+      const uint32 spos = elen-n-1;
+
+      // sort encodings lexicographically, skipping position n from the end
       std::sort(vi, sb,
         [=](const std::vector<ByteSet>& a, const std::vector<ByteSet>& b) {
           return std::lexicographical_compare(
-            boost::make_filter_iterator(Skip(a.size()-n-1), a.begin(), a.end()),
-            boost::make_filter_iterator(Skip(a.size()-n-1), a.end(), a.end()),
-            boost::make_filter_iterator(Skip(a.size()-n-1), b.begin(), b.end()),
-            boost::make_filter_iterator(Skip(a.size()-n-1), b.end(), b.end())
+            make_skip_iterator(a.begin(),  0, spos),
+            make_skip_iterator(a.end(), elen, spos),
+            make_skip_iterator(b.begin(),  0, spos),
+            make_skip_iterator(b.end(), elen, spos)
           );
         }
       );
 
       // try collapsing each successive encoding, up to the size boundary
-      const uint32 elen = vi->size();
       while (vi != sb) {
         std::vector<ByteSet>& e = *vi;
         // collapse all the encodings matching v everywhere except position n
