@@ -3,6 +3,7 @@
 #include "encoder.h"
 
 #include <map>
+#include <type_traits>
 
 template <class BaseEncoder>
 class CachingEncoder: public BaseEncoder {
@@ -11,7 +12,14 @@ public:
   CachingEncoder(
     const std::map<UnicodeSet,std::vector<std::vector<ByteSet>>> cache,
     BaseArgs... args
-  ): BaseEncoder(args...), Cache(cache) {}
+  ): BaseEncoder(args...), Cache(cache)
+  {
+    // ensure that CachingEncoder is an Encoder
+    static_assert(
+      std::is_base_of<Encoder,CachingEncoder<BaseEncoder>>::value,
+      "CachingEncoder is not an Encoder!"
+    );
+  }
 
   virtual void write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
     auto i = Cache.find(uset);
