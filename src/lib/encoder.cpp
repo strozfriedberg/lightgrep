@@ -76,7 +76,7 @@ struct EncodingRangeComparator {
     return
       pre < 0 ? true :
       (pre > 0 ? false :
-      memcmp(a.data()+skip+1, b.data()+skip+1, (len-skip)*sizeof(ByteSet)) < 0);
+      memcmp(a.data()+skip+1, b.data()+skip+1, (len-skip-1)*sizeof(ByteSet)) < 0);
   }
 
   const uint32 len, skip;
