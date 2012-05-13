@@ -13,7 +13,7 @@ bool is_little_endian() {
   return reinterpret_cast<const byte*>(&twobytes)[0];
 }
 
-ICUEncoder::ICUEncoder(const char* name) {
+ICUEncoder::ICUEncoder(const char* const name) {
   UErrorCode err = U_ZERO_ERROR;
 
   // ICU pivots through UTF-16 when transcoding; this converter is used
