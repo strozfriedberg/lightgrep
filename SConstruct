@@ -86,7 +86,7 @@ if (isWindows):
   cxxflags += ' -mthreads'
 
 # add vendors/scope and vendors/boost as system include paths, if they exist
-ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
+ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost', 'vendors/icu']))
 
 env['DEBUG_MODE'] = debug
 env.Replace(CCFLAGS=ccflags)
