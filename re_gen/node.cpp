@@ -39,8 +39,6 @@ std::ostream& operator<<(std::ostream& out, const Node& n) {
     return out << '|';
   case Node::CONCATENATION:
     return out << '&';
-  case Node::GROUP:
-    return out << '(';
   case Node::REPETITION:
     repetition(out, n.Min, n.Max);
     return out;

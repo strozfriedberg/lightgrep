@@ -4,7 +4,9 @@
 #include "optparser.h"
 #include "encodings.h"
 
+#include <algorithm>
 #include <vector>
+#include <map>
 #include <set>
 #include <string>
 
@@ -36,6 +38,12 @@ std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
 void parse_opts(int argc, char** argv,
                 po::options_description& desc, Options& opts) {
 
+  //
+  // set up argument parsing
+  //
+
+  std::string command;
+
   po::positional_options_description posOpts;
   posOpts.add("pargs", -1);
 
@@ -47,33 +55,68 @@ void parse_opts(int argc, char** argv,
   hidden.add_options()
     ("pargs", po::value<std::vector<std::string>>(&pargs)->multitoken(), "positional arguments");
 
-  desc.add_options()
-    ("help", "produce help message")
-    ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ascii"), "encodings to use [ascii|ucs16|both]")
-    ("command,c", po::value<std::string>(&opts.Command)->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
+  // Command selection options
+  po::options_description general("Command selection");
+  general.add_options()
+    ("command,c", po::value<std::string>(&command)->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
+    ("help", "display this help message")
+    ("list-encodings", "list known encodings")
+    ;
+
+  // Pattern options
+  po::options_description pats("Pattern selection and interpretation");
+  pats.add_options()
     ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles), "path to file containing keywords")
-    ("input", po::value<std::string>(&opts.Input)->default_value("-"), "file to search")
-    ("output,o", po::value<std::string>(&opts.Output)->default_value("-"), "output file (stdout default)")
-    ("no-output", "do not output hits (good for profiling)")
-    ("no-det", "do not determinize NFAs")
+    ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns), "a keyword on the command-line")
+    ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ASCII"), "encodings to use (e.g., ASCII, UTF-8)")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
-    ("binary", "Output program as binary")
-    ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns), "a keyword on the command-line")
+    ;
+
+  // I/O options
+  po::options_description io("Input and output");
+  io.add_options()
+    ("input", po::value<std::string>(&opts.Input)->default_value("-"), "file to search")
+    ("output,o", po::value<std::string>(&opts.Output)->default_value("-"), "output file (stdout default)")
     ("recursive,r", "traverse directories recursively")
-    ("block-size", po::value<unsigned int >(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
-    ("server-log", po::value<std::string>(&opts.ServerLog), "Server output to file")
-    ("program-file", po::value<std::string>(&opts.ProgramFile), "Read search program from file")
+    ("no-output", "do not output hits (good for profiling)")
+    ("block-size", po::value<uint32>(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
+    ;
+
+  // Server options
+  po::options_description server("Server");
+  server.add_options()
+    ("address", po::value<std::string>(&opts.ServerAddr)->default_value("localhost"), "specify address")
+    ("port", po::value<unsigned short>(&opts.ServerPort)->default_value(12777), "specify port number")
+    ("server-log", po::value<std::string>(&opts.ServerLog), "file for server logging");
+
+  // Other options
+  po::options_description misc("Miscellaneous");
+  misc.add_options()
+    ("no-det", "do not determinize NFAs")
+    ("binary", "Output program as binary")
+    ("program-file", po::value<std::string>(&opts.ProgramFile), "read search program from file")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value<uint64>(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value<uint64>(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
     #endif
     ;
 
+  // desc collects all of the options in case of --help
+  desc.add(general)
+      .add(pats)
+      .add(io)
+      .add(server)
+      .add(misc);
+
   po::options_description allOpts;
   allOpts.add(desc).add(hidden);
+
+  //
+  // do option parsing
+  //
 
   po::variables_map optsMap;
   po::store(
@@ -85,22 +128,51 @@ void parse_opts(int argc, char** argv,
   );
   po::notify(optsMap);
 
-  // convert test and help options to commands
+  //
+  // determine which command we got
+  //
+
+// FIXME: do something to exclude multiple command specfications
+// FIXME: do something to complain about inapplicable options
+
+  opts.Command = Options::BOGUS;
+
+  // convert help option to command
   if (optsMap.count("help")) {
-    opts.Command = "help";
-  }
-  else if (optsMap.count("test")) {
-    opts.Command = "test";
-  }
-  else if (optsMap.count("long-test")) {
-    opts.Command = "long-test";
+    opts.Command = Options::HELP;
   }
 
-  if (opts.Command == "search" || opts.Command == "graph" ||
-      opts.Command == "prog"   || opts.Command == "samp"  ||
-      opts.Command == "validate" ||
-      opts.Command == "server")
-  {
+  // convert list-encodings option to command
+  if (optsMap.count("list-encodings")) {
+    opts.Command =  Options::ENCODINGS;
+  }
+
+  if (opts.Command == Options::BOGUS) {
+    std::map<std::string,Options::CommandTypes> cmds;
+    cmds.insert(std::make_pair("search",   Options::SEARCH));
+    cmds.insert(std::make_pair("graph",    Options::GRAPH));
+    cmds.insert(std::make_pair("prog",     Options::PROGRAM));
+    cmds.insert(std::make_pair("samp",     Options::SAMPLES));
+    cmds.insert(std::make_pair("validate", Options::VALIDATE));
+    cmds.insert(std::make_pair("server",   Options::SERVER));
+
+    auto i = cmds.find(command);
+    if (i != cmds.end()) {
+      opts.Command = i->second;
+    }
+  }
+
+  //
+  // sort out the other options based on our command
+  //
+
+  switch (opts.Command) {
+  case Options::SEARCH:
+  case Options::GRAPH:
+  case Options::PROGRAM:
+  case Options::SAMPLES:
+  case Options::VALIDATE:
+  case Options::SERVER:
     // determine the source of our patterns
     if (!optsMap["pattern"].empty()) {
       // keywords from --pattern
@@ -129,26 +201,16 @@ void parse_opts(int argc, char** argv,
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;
-    if (opts.Encoding == "ascii") {
-      opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII];
-    }
-    else if (opts.Encoding == "ucs16") {
-      opts.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
-    }
-    else if (opts.Encoding == "both") {
-      std::stringstream buf;
-      buf << LG_SUPPORTED_ENCODINGS[LG_ENC_ASCII] << "," << LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
-      opts.Encoding = buf.str();
-    }
-    else {
-      THROW_WITH_OUTPUT(po::error, "did not recognize encoding '" << opts.Encoding << "'");
-    }
+
+    // uppercase the encoding name
+    std::transform(opts.Encoding.begin(), opts.Encoding.end(),
+                   opts.Encoding.begin(), toupper);
 
     if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
       throw po::error("--with-filename and --no-filename are incompatible options");
     }
 
-    if (opts.Command == "search") {
+    if (opts.Command == Options::SEARCH) {
       // filename printing defaults off for single files, on for multiple files
       opts.PrintPath = optsMap.count("with-filename") > 0;
 
@@ -168,8 +230,9 @@ void parse_opts(int argc, char** argv,
         opts.Inputs.push_back("-");
       }
     }
-    else if (opts.Command == "samp") {
-      opts.SampleLimit = std::numeric_limits<std::set<std::string>::size_type>::max();
+    else if (opts.Command == Options::SAMPLES) {
+      opts.SampleLimit =
+        std::numeric_limits<std::set<std::string>::size_type>::max();
       opts.LoopLimit = 1;
 
       if (!pargs.empty()) {
@@ -187,12 +250,15 @@ void parse_opts(int argc, char** argv,
     if (!pargs.empty()) {
       throw po::too_many_positional_options_error();
     }
-  }
-  else if (opts.Command == "help") {
+
+    break;
+
+  case Options::HELP:
+  case Options::ENCODINGS:
     // nothing else to do
-  }
-  else {
-    throw po::invalid_option_value(opts.Command);
+    break;
+
+  default:
+    throw po::invalid_option_value(command);
   }
 }
-

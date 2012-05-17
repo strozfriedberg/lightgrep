@@ -54,7 +54,7 @@ def main():
         print '''SCOPE_TEST(autoPatternTest{setnum}) {{
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse(R"({pat})", false, tree));
+  SCOPE_ASSERT(parse(R"({pat})", false, false, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }}
 '''.format(setnum=setnum, pat=pats[0])

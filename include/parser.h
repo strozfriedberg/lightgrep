@@ -2,12 +2,17 @@
 
 #include "automata.h"
 #include "compiler.h"
+#include "encoder.h"
 #include "nfabuilder.h"
 #include "pattern.h"
-#include "parsenode.h"
 #include "parsetree.h"
 
-bool parse(const std::string& text, bool litMode, ParseTree& tree);
+#include <memory>
+#include <string>
+
+bool parse(const Pattern& pattern, ParseTree& tree);
+
+bool parse(const std::string& text, bool litMode, bool caseInsensitive, ParseTree& tree);
 
 class Parser {
 public:
@@ -18,10 +23,7 @@ public:
   Compiler   Comp;
   NFAPtr     Fsm;
 
-  typedef std::map<uint32, std::shared_ptr<Encoding>> EncodingMap;
-
-  EncodingsCodeMap EncCodes;
-  EncodingMap      Encoders;
+  std::map<std::string,std::shared_ptr<Encoder>> Encoders;
 
   void addPattern(const Pattern& pattern, uint32 patIndex);
 };

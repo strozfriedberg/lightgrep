@@ -4,7 +4,7 @@
 
 #include <stack>
 
-struct Info { 
+struct Info {
   NFA::VertexDescriptor v;
   std::vector<uint32> seen;
   std::string m;
@@ -25,7 +25,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, 
 
   while (!stack.empty()) {
     Info pi = stack.top();
-    stack.pop();    
+    stack.pop();
     NFA::VertexDescriptor v = pi.v;
     std::string& m(pi.m);
     std::vector<uint32>& seen(pi.seen);
@@ -45,8 +45,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, 
         continue;
       }
 
-      bs.reset();
-      g[c].Trans->getBits(bs);
+      g[c].Trans->getBytes(bs);
 
       for (uint32 b = 0; b < 256; ++b) {
         if (bs[b]) {

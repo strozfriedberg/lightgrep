@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include <boost/scoped_array.hpp>
+#include <memory>
 
 #include "basic.h"
 
@@ -39,7 +39,7 @@ public:
   }
 
 private:
-  boost::scoped_array<uint32> Data;
+  std::unique_ptr<uint32[]> Data;
   uint32 End,
          Max;
 };

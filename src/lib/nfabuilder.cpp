@@ -1,10 +1,10 @@
+#include "concrete_encoders.h"
 #include "nfabuilder.h"
-
-#include "concrete_encodings.h"
 #include "states.h"
 #include "transitionfactory.h"
 #include "utility.h"
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <utility>
@@ -43,13 +43,12 @@ std::ostream& operator<<(std::ostream& out, const Fragment& f) {
 }
 
 NFABuilder::NFABuilder():
-  CaseInsensitive(false),
   CurLabel(0),
   ReserveSize(0),
   Fsm(new NFA(1)),
   TransFac(new TransitionFactory())
 {
-  setEncoding(std::shared_ptr<Encoding>(new Ascii));
+  setEncoder(std::shared_ptr<Encoder>(new ASCII));
   init();
 }
 
@@ -77,27 +76,13 @@ void NFABuilder::init() {
   Fsm->TransFac = TransFac;
 }
 
-void NFABuilder::setEncoding(const std::shared_ptr<Encoding>& e) {
+void NFABuilder::setEncoder(const std::shared_ptr<Encoder>& e) {
   Enc = e;
   TempBuf.reset(new byte[Enc->maxByteLength()]);
 }
 
-void NFABuilder::setCaseInsensitive(bool insensitive) {
-  CaseInsensitive = insensitive;
-}
-
 void NFABuilder::setSizeHint(uint64 reserveSize) {
   ReserveSize = reserveSize;
-}
-
-void NFABuilder::setLiteralTransition(NFA& g, const NFA::VertexDescriptor& v, byte val) {
-  if (!CaseInsensitive || !std::isalpha(val)) {
-    g[v].Trans = g.TransFac->getLit(val);
-  }
-  else {
-    g[v].Trans = g.TransFac->getEither(std::toupper(val), std::tolower(val));
-    g.Deterministic = false;
-  }
 }
 
 void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
@@ -143,97 +128,120 @@ void NFABuilder::patch_post(OutListT& src, const InListT& dst) {
 
 void NFABuilder::literal(const ParseNode& n) {
   const uint32 len = Enc->write(n.Val, TempBuf.get());
-  if (0 == len) {
-    // FXIME: should we really be checking this if it's supposed to be
-    // an impossible condition?
-    THROW_WITH_OUTPUT(std::logic_error, "literal value " << n.Val << " could not be encoded (zero-length)");
+  if (len == 0) {
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
+      "code point U+" << std::hex << n.Val << std::dec
+                      << " does not exist in this encoding"
+    );
   }
-  else {
-    NFA& g(*Fsm);
-    NFA::VertexDescriptor first, prev, last;
-    first = prev = last = g.addVertex();
-    setLiteralTransition(g, first, TempBuf[0]);
-    for (uint32 i = 1; i < len; ++i) {
-      last = g.addVertex();
-      g.addEdge(prev, last);
-      setLiteralTransition(g, last, TempBuf[i]);
-      prev = last;
-    }
-    TempFrag.reset(n);
-    TempFrag.InList.push_back(first);
-    TempFrag.OutList.emplace_back(last, 0);
-    Stack.push(TempFrag);
+
+  NFA& g(*Fsm);
+  NFA::VertexDescriptor first, prev, last;
+  first = prev = last = g.addVertex();
+  g[first].Trans = g.TransFac->getByte(TempBuf[0]);
+  for (uint32 i = 1; i < len; ++i) {
+    last = g.addVertex();
+    g.addEdge(prev, last);
+    g[last].Trans = g.TransFac->getByte(TempBuf[i]);
+    prev = last;
   }
+  TempFrag.reset(n);
+  TempFrag.InList.push_back(first);
+  TempFrag.OutList.emplace_back(last, 0);
+  Stack.push(TempFrag);
 }
 
 void NFABuilder::dot(const ParseNode& n) {
+  ParseNode fake(ParseNode::CHAR_CLASS, 0, 0x10FFFF);
+  charClass(fake);
+/*
   NFA::VertexDescriptor v = Fsm->addVertex();
   (*Fsm)[v].Trans = Fsm->TransFac->getRange(0, 255);
   Fsm->Deterministic = false;
   TempFrag.initFull(v, n);
   Stack.push(TempFrag);
-}
-
-// FIXME: This code is repeated several places. Break out range-finding
-// and smallest-Transition-finding code so it lives in one place.
-std::pair<byte,byte> isRange(const ByteSet& bs) {
-  uint32 num = 0;
-  byte first = 0, last = 0;
-  for (uint32 i = 0; i < 256; ++i) {
-    if (bs.test(i)) {
-      if (!num) {
-        first = i;
-      }
-      if (++num == bs.count()) {
-        last = i;
-        break;
-      }
-    }
-    else {
-      num = 0;
-    }
-  }
-
-  return num == bs.count() ?
-    std::make_pair(first, last) : std::make_pair<byte,byte>(0, 0);
+*/
 }
 
 void NFABuilder::charClass(const ParseNode& n) {
-  NFA::VertexDescriptor v = Fsm->addVertex();
-
-  std::pair<byte,byte> r = isRange(n.Bits);
-
-  if (r.first != 0 && r.second != 0) {
-    (*Fsm)[v].Trans = Fsm->TransFac->getRange(r.first, r.second);
-  }
-  else {
-    (*Fsm)[v].Trans = Fsm->TransFac->getCharClass(n.Bits);
+  const UnicodeSet uset(n.Bits & Enc->validCodePoints());
+  if (uset.none()) {
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
+      "intersection of character class with this encoding is empty"
+    );
   }
 
-  if (CaseInsensitive) {
-    ByteSet bs;
-    (*Fsm)[v].Trans->getBits(bs);
+  // convert the code point set into collapsed encoding ranges
+  TempEncRanges.clear();
+  Enc->write(uset, TempEncRanges);
 
-    for (byte i = 'A'; i <= 'Z'; ++i) {
-      if (bs.test(i) || bs.test(i + 32)) {
-        bs.set(i);
-        bs.set(i + 32);
+  ByteSet bs;
+  TempFrag.reset(n);
+
+  // create a graph from the collapsed ranges
+  for (const std::vector<ByteSet>& enc : TempEncRanges) {
+    NFA::VertexDescriptor head, tail;
+
+    //
+    // find a suffix of enc in this fragment
+    //
+
+    int32 b = enc.size()-1;
+
+    // find a match for the last transition
+    const auto oi = std::find_if(
+      TempFrag.OutList.begin(), TempFrag.OutList.end(),
+      [&](const std::pair<NFA::VertexDescriptor,uint32>& p) {
+        return (*Fsm)[p.first].Trans->getBytes(bs) == enc[b];
+      }
+    );
+
+    if (oi != TempFrag.OutList.end()) {
+      // match, use this tail
+      tail = oi->first;
+
+      // walk backwards until a transition mismatch
+      for (--b; b >= 0; --b) {
+        head = 0;
+        const uint32 ideg = Fsm->inDegree(tail);
+        for (uint32 i = 0; i < ideg; ++i) {
+          head = Fsm->inVertex(tail, i);
+          (*Fsm)[head].Trans->getBytes(bs);
+          if (bs == enc[b]) {
+            tail = head;
+            break;
+          }
+          head = 0;
+        }
+
+        if (!head) {
+          // tail is as far back as we can go
+          break;
+        }
       }
     }
-
-    r = isRange(bs);
-
-    if (r.first != 0 && r.second != 0) {
-      (*Fsm)[v].Trans = Fsm->TransFac->getRange(r.first, r.second);
-    }
     else {
-      (*Fsm)[v].Trans = Fsm->TransFac->getCharClass(bs);
+      // no match, build a new tail
+      tail = Fsm->addVertex();
+      (*Fsm)[tail].Trans = Fsm->TransFac->getSmallest(enc[b--]);
+      TempFrag.OutList.emplace_back(tail, 0);
     }
+
+    //
+    // build from the start of enc to meet the existing suffix
+    //
+
+    for ( ; b >= 0; --b) {
+      head = Fsm->addVertex();
+      (*Fsm)[head].Trans = Fsm->TransFac->getSmallest(enc[b]);
+      Fsm->addEdge(head, tail);
+      tail = head;
+    }
+
+    TempFrag.InList.push_back(tail);
   }
 
   Fsm->Deterministic = false;
-
-  TempFrag.initFull(v, n);
   Stack.push(TempFrag);
 }
 
@@ -497,12 +505,12 @@ void NFABuilder::traverse(const ParseNode* root) {
               new ParseNode(ParseNode::CONCATENATION, n->Left, none))
             );
             ParseNode* con = synth.back().get();
-            
+
             synth.push_back(std::shared_ptr<ParseNode>(
               new ParseNode(n->Type, con, 0, 1))
             );
             ParseNode* question = synth.back().get();
-            
+
             parent->Right = question;
             parent = con;
           }
@@ -510,7 +518,7 @@ void NFABuilder::traverse(const ParseNode* root) {
           synth.push_back(std::shared_ptr<ParseNode>(
             new ParseNode(n->Type, n->Left, 0, 1))
           );
-          ParseNode* question = synth.back().get(); 
+          ParseNode* question = synth.back().get();
           parent->Right = question;
         }
 

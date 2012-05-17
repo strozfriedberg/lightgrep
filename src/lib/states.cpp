@@ -27,23 +27,23 @@ void printRange(std::ostream& out, byte beg, byte end) {
   }
 }
 
-bool LitState::toInstruction(Instruction* addr) const {
-  *addr = Instruction::makeLit(Lit);
+bool ByteState::toInstruction(Instruction* addr) const {
+  *addr = Instruction::makeByte(Byte);
   return true;
 }
 
-LitState* LitState::clone(void* buffer) const {
-  return buffer == 0 ? new LitState(*this): new(buffer) LitState(*this);
+ByteState* ByteState::clone(void* buffer) const {
+  return buffer == 0 ? new ByteState(*this): new(buffer) ByteState(*this);
 }
 
-std::string LitState::label() const {
+std::string ByteState::label() const {
   std::stringstream buf;
-  printByte(buf, Lit);
+  printByte(buf, Byte);
   return buf.str();
 }
 
 bool EitherState::toInstruction(Instruction* addr) const {
-  *addr = Instruction::makeEither(Lit1, Lit2);
+  *addr = Instruction::makeEither(Byte1, Byte2);
   return true;
 }
 
@@ -53,8 +53,8 @@ EitherState* EitherState::clone(void* buffer) const {
 
 std::string EitherState::label() const {
   std::stringstream buf;
-  printByte(buf, Lit1);
-  printByte(buf, Lit2);
+  printByte(buf, Byte1);
+  printByte(buf, Byte2);
   return buf.str();
 }
 
@@ -73,18 +73,18 @@ std::string RangeState::label() const {
   return buf.str();
 }
 
-bool CharClassState::toInstruction(Instruction* addr) const {
+bool ByteSetState::toInstruction(Instruction* addr) const {
   *addr = Instruction::makeBitVector();
   ByteSet* setPtr = reinterpret_cast<ByteSet*>(addr+1);
   *setPtr = Allowed;
   return true;
 }
 
-CharClassState* CharClassState::clone(void* buffer) const {
-  return 0 == buffer ? new CharClassState(*this): new(buffer) CharClassState(*this);
+ByteSetState* ByteSetState::clone(void* buffer) const {
+  return 0 == buffer ? new ByteSetState(*this): new(buffer) ByteSetState(*this);
 }
 
-std::string CharClassState::label() const {
+std::string ByteSetState::label() const {
   // make the label string
   std::stringstream ss;
 

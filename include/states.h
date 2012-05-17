@@ -9,37 +9,40 @@ struct TransitionComparator;
 class TransitionFactory;
 
 enum TransitionType {
-  LitStateType,
+  ByteStateType,
   EitherStateType,
   RangeStateType,
-  CharClassStateType
+  ByteSetStateType
 };
 
-class LitState: public Transition {
+class ByteState: public Transition {
 public:
-  LitState(byte lit): Lit(lit) {}
-  virtual ~LitState() {}
+  ByteState(byte b): Byte(b) {}
+  virtual ~ByteState() {}
 
   virtual const byte* allowed(const byte* beg, const byte*) const {
-    return *beg == Lit ? beg + 1 : beg;
+    return *beg == Byte ? beg + 1 : beg;
   }
 
-  virtual void getBits(ByteSet& bits) const { bits.set(Lit); }
+  virtual ByteSet& orBytes(ByteSet& bs) const {
+    bs.set(Byte);
+    return bs;
+  }
 
   virtual size_t objSize() const { return sizeof(*this); }
 
-  virtual byte type() const { return LitStateType; }
+  virtual byte type() const { return ByteStateType; }
 
-  virtual LitState* clone(void* buffer) const;
+  virtual ByteState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 1; };
   virtual bool toInstruction(Instruction* addr) const;
   virtual std::string label() const;
 
 private:
-  LitState(const LitState& x): Transition(), Lit(x.Lit) {}
+  ByteState(const ByteState& x): Transition(), Byte(x.Byte) {}
 
-  byte Lit;
+  byte Byte;
 
   friend struct TransitionComparator;
   friend class TransitionFactory;
@@ -47,14 +50,18 @@ private:
 
 class EitherState: public Transition {
 public:
-  EitherState(byte one, byte two): Lit1(one), Lit2(two) {}
+  EitherState(byte one, byte two): Byte1(one), Byte2(two) {}
   virtual ~EitherState() {}
 
   virtual const byte* allowed(const byte* beg, const byte*) const {
-    return *beg == Lit1 || *beg == Lit2 ? beg + 1 : beg;
+    return *beg == Byte1 || *beg == Byte2 ? beg + 1 : beg;
   }
 
-  virtual void getBits(ByteSet& bits) const { bits.set(Lit1); bits.set(Lit2); }
+  virtual ByteSet& orBytes(ByteSet& bs) const {
+    bs.set(Byte1);
+    bs.set(Byte2);
+    return bs;
+  }
 
   virtual byte type() const { return EitherStateType; }
 
@@ -67,9 +74,10 @@ public:
   virtual std::string label() const;
 
 private:
-  EitherState(const EitherState& x): Transition(), Lit1(x.Lit1), Lit2(x.Lit2) {}
+  EitherState(const EitherState& x):
+    Transition(), Byte1(x.Byte1), Byte2(x.Byte2) {}
 
-  byte Lit1, Lit2;
+  byte Byte1, Byte2;
 
   friend struct TransitionComparator;
   friend class TransitionFactory;
@@ -84,8 +92,8 @@ public:
     return First <= *beg && *beg <= Last ? beg+1: beg;
   }
 
-  virtual void getBits(ByteSet& bits) const {
-    for (uint32 i = First; i <= Last; ++i) { bits.set(i); };
+  virtual ByteSet& orBytes(ByteSet& bs) const {
+    return bs.set(First, Last+1, true);
   }
 
   virtual byte type() const { return RangeStateType; }
@@ -107,29 +115,39 @@ private:
   friend class TransitionFactory;
 };
 
-class CharClassState: public Transition {
+class ByteSetState: public Transition {
 public:
-  CharClassState(const ByteSet& allowed): Allowed(allowed) {}
-  virtual ~CharClassState() {}
+  ByteSetState(const ByteSet& allowed): Allowed(allowed) {}
+
+  ByteSetState(const UnicodeSet& allowed) {
+    for (uint32 i = 0; i < 256; ++i) {
+      Allowed[i] = allowed[i];
+    }
+  }
+
+  virtual ~ByteSetState() {}
 
   virtual const byte* allowed(const byte* beg, const byte*) const {
     return Allowed[*beg] ? beg+1 : beg;
   }
 
-  virtual void getBits(ByteSet& bits) const { bits = Allowed; }
+  virtual ByteSet& orBytes(ByteSet& bs) const {
+    bs |= Allowed;
+    return bs;
+  }
 
-  virtual byte type() const { return CharClassStateType; }
+  virtual byte type() const { return ByteSetStateType; }
 
   virtual size_t objSize() const { return sizeof(*this); }
 
-  virtual CharClassState* clone(void* buffer) const;
+  virtual ByteSetState* clone(void* buffer) const;
 
   virtual size_t numInstructions() const { return 9; }
   virtual bool toInstruction(Instruction* addr) const;
   virtual std::string label() const;
 
 private:
-  CharClassState(const CharClassState& x): Transition(), Allowed(x.Allowed) {}
+  ByteSetState(const ByteSetState& x): Transition(), Allowed(x.Allowed) {}
 
   ByteSet Allowed;
 
@@ -141,53 +159,53 @@ struct TransitionComparator {
   //
   // This defines a total ordering over Transitions, such that
   //
-  //   LitState < EitherState < RangeState < CharClassState
+  //   ByteState < EitherState < RangeState < ByteSetState
   //
   // and for two Transitions of the same type, the one with the
   // lexicographically least data is the lesser.
   //
   bool operator()(const Transition* a, const Transition* b) const {
     switch (a->type()) {
-    case LitStateType:
+    case ByteStateType:
       switch (b->type()) {
-      case LitStateType:
-        return static_cast<const LitState*>(a)->Lit <
-               static_cast<const LitState*>(b)->Lit;
+      case ByteStateType:
+        return static_cast<const ByteState*>(a)->Byte <
+               static_cast<const ByteState*>(b)->Byte;
       case EitherStateType:
       case RangeStateType:
-      case CharClassStateType:
+      case ByteSetStateType:
         return true;
       default:
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Impossible! " << b->type());
       }
     case EitherStateType:
       switch (b->type()) {
-      case LitStateType:
+      case ByteStateType:
         return false;
       case EitherStateType:
         {
           const EitherState* ae = static_cast<const EitherState*>(a);
           const EitherState* be = static_cast<const EitherState*>(b);
 
-          if (ae->Lit1 < be->Lit1) {
+          if (ae->Byte1 < be->Byte1) {
             return true;
           }
-          else if (ae->Lit1 > be->Lit1) {
+          else if (ae->Byte1 > be->Byte1) {
             return false;
           }
           else {
-            return ae->Lit2 < be->Lit2;
+            return ae->Byte2 < be->Byte2;
           }
         }
       case RangeStateType:
-      case CharClassStateType:
+      case ByteSetStateType:
         return true;
       default:
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Impossible! " << b->type());
       }
     case RangeStateType:
       switch (b->type()) {
-      case LitStateType:
+      case ByteStateType:
       case EitherStateType:
         return false;
       case RangeStateType:
@@ -205,20 +223,20 @@ struct TransitionComparator {
             return ar->Last < br->Last;
           }
         }
-      case CharClassStateType:
+      case ByteSetStateType:
         return true;
       default:
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Impossible! " << b->type());
       }
-    case CharClassStateType:
+    case ByteSetStateType:
       switch (b->type()) {
-      case LitStateType:
+      case ByteStateType:
       case EitherStateType:
       case RangeStateType:
         return false;
-      case CharClassStateType:
-        return static_cast<const CharClassState*>(a)->Allowed <
-               static_cast<const CharClassState*>(b)->Allowed;
+      case ByteSetStateType:
+        return static_cast<const ByteSetState*>(a)->Allowed <
+               static_cast<const ByteSetState*>(b)->Allowed;
       default:
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Impossible! " << b->type());
       }
@@ -227,4 +245,3 @@ struct TransitionComparator {
     }
   }
 };
-

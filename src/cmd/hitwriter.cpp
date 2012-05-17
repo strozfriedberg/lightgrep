@@ -14,7 +14,7 @@ void writeHit(HitWriterInfo* hi, const LG_SearchHit* const hit) {
           << hit->End << '\t'
           << info.first << '\t'
           << hi->Patterns[info.first].Expression << '\t'
-          << LG_SUPPORTED_ENCODINGS[info.second] << '\n';
+          << LG_CANONICAL_ENCODINGS[info.second] << '\n';
   ++hi->NumHits;
 }
 

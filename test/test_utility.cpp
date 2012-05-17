@@ -64,7 +64,7 @@ bool buildNFA(NFA& fsm, const std::string& dot) {
 
     const char lit = boost::lexical_cast<char>(boost::get(edge_label, *e));
 
-    edge(u, v, fsm, fsm.TransFac->getLit(lit));
+    edge(u, v, fsm, fsm.TransFac->getByte(lit));
   }
 
   return true;
@@ -79,19 +79,19 @@ std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
 SCOPE_TEST(acOrbcProgram) {
   NFA fsm(4);
 
-  edge(0, 1, fsm, fsm.TransFac->getLit('a')); // ac|bc
-  edge(0, 2, fsm, fsm.TransFac->getLit('b'));
-  edge(1, 3, fsm, fsm.TransFac->getLit('c'));
-  edge(2, 3, fsm, fsm.TransFac->getLit('c'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a')); // ac|bc
+  edge(0, 2, fsm, fsm.TransFac->getByte('b'));
+  edge(1, 3, fsm, fsm.TransFac->getByte('c'));
+  edge(2, 3, fsm, fsm.TransFac->getByte('c'));
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
 
   SCOPE_ASSERT_EQUAL(10u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[0], 5), prog[0]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[3]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), prog[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('c'), prog[3]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[4]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('b'), prog[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[6], 2), prog[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[8]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[9]);
@@ -99,9 +99,9 @@ SCOPE_TEST(acOrbcProgram) {
 
 SCOPE_TEST(keywordLabelsProgram) {
   NFA fsm(4);
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(0, 2, fsm, fsm.TransFac->getLit('b'));
-  edge(2, 3, fsm, fsm.TransFac->getLit('c'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(0, 2, fsm, fsm.TransFac->getByte('b'));
+  edge(2, 3, fsm, fsm.TransFac->getByte('c'));
 
   fsm[1].Label = 0;
   fsm[3].Label = 1;
@@ -111,10 +111,10 @@ SCOPE_TEST(keywordLabelsProgram) {
 
   SCOPE_ASSERT_EQUAL(9u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[0], 5), prog[0]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[3]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[4]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('b'), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('c'), prog[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(1), prog[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[7]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[8]);
@@ -123,7 +123,7 @@ SCOPE_TEST(keywordLabelsProgram) {
 template<class T>
 std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
   std::vector<Pattern> ret;
-  for (auto p : list) {
+  for (const auto& p : list) {
     ret.emplace_back(p);
   }
   return ret;
@@ -132,12 +132,12 @@ std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
 SCOPE_TEST(twoUnicode) {
   std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
   for (Pattern& p : pats) {
-    p.Encoding = LG_SUPPORTED_ENCODINGS[LG_ENC_UTF_16];
+    p.Encoding = LG_CANONICAL_ENCODINGS[LG_ENC_UTF_16LE];
   }
 
   NFAPtr fsm = createGraph(pats);
   NFA& g = *fsm;
-  
+
   SCOPE_ASSERT_EQUAL(7u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
@@ -183,7 +183,7 @@ SCOPE_TEST(twoUnicode) {
     ebs.reset();
 
     ebs[exp[i-1]] = true;
-    g[i].Trans->getBits(abs);
+    g[i].Trans->getBytes(abs);
 
     SCOPE_ASSERT_EQUAL(ebs, abs);
   }
@@ -191,10 +191,10 @@ SCOPE_TEST(twoUnicode) {
 
 SCOPE_TEST(firstBitset) {
   NFA fsm(3);
-  edge(0, 1, fsm, fsm.TransFac->getLit('A'));
-  edge(0, 2, fsm, fsm.TransFac->getLit('B'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('A'));
+  edge(0, 2, fsm, fsm.TransFac->getByte('B'));
 
-  ByteSet accepted = firstBytes(fsm);
+  const ByteSet accepted = firstBytes(fsm);
   for (unsigned int i = 0; i < 256; ++i) {
     if (i == 'A' || i == 'B') {
       SCOPE_ASSERT(accepted[i]);
@@ -216,7 +216,7 @@ SCOPE_TEST(simpleCollapse) {
 
 SCOPE_TEST(codeGen2DiscoverVertex) {
   NFA fsm(2);
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
   std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
@@ -231,10 +231,10 @@ SCOPE_TEST(codeGen2DiscoverVertex) {
 
 SCOPE_TEST(codeGen2FinishVertex) {
   NFA fsm(5);
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(1, 2, fsm, fsm.TransFac->getLit('b'));
-  edge(2, 3, fsm, fsm.TransFac->getLit('c'));
-  edge(2, 4, fsm, fsm.TransFac->getLit('d'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(1, 2, fsm, fsm.TransFac->getByte('b'));
+  edge(2, 3, fsm, fsm.TransFac->getByte('c'));
+  edge(2, 4, fsm, fsm.TransFac->getByte('d'));
   std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
@@ -268,8 +268,8 @@ SCOPE_TEST(codeGen2FinishVertex) {
 
 SCOPE_TEST(alternationCodeGen2FinishVertex) {
   NFA fsm(3);
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(0, 2, fsm, fsm.TransFac->getLit('b'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(0, 2, fsm, fsm.TransFac->getByte('b'));
   std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
   CodeGenVisitor vis(cg);
 
@@ -293,9 +293,9 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
 
 SCOPE_TEST(layoutWithCheckHalt) {
   NFA fsm(3);
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(1, 2, fsm, fsm.TransFac->getLit('b'));
-  edge(2, 2, fsm, fsm.TransFac->getLit('b'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(1, 2, fsm, fsm.TransFac->getByte('b'));
+  edge(2, 2, fsm, fsm.TransFac->getByte('b'));
 
   fsm[2].Label = 0;
   fsm[2].IsMatch = true;
@@ -314,22 +314,22 @@ SCOPE_TEST(layoutWithCheckHalt) {
 
 SCOPE_TEST(twoStateBetterLayout) {
   NFA fsm(2);
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
 
   ProgramPtr p = createProgram(fsm);
   Program& prog(*p);
   SCOPE_ASSERT_EQUAL(3u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[2]);
 }
 
 SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
   NFA g(4);
-  edge(0, 1, g, g.TransFac->getLit('a'));
-  edge(0, 2, g, g.TransFac->getLit('b'));
-  edge(0, 3, g, g.TransFac->getLit('c'));
-  edge(0, 4, g, g.TransFac->getLit('e'));
+  edge(0, 1, g, g.TransFac->getByte('a'));
+  edge(0, 2, g, g.TransFac->getByte('b'));
+  edge(0, 3, g, g.TransFac->getByte('c'));
+  edge(0, 4, g, g.TransFac->getByte('e'));
 
   std::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.verticesSize()));
   CodeGenVisitor vis(cgh);
@@ -343,8 +343,8 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
 
 SCOPE_TEST(alternationBetterLayout) {
   NFA fsm(3);
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(0, 2, fsm, fsm.TransFac->getLit('b'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(0, 2, fsm, fsm.TransFac->getByte('b'));
 
   fsm[1].Label = 0;
   fsm[2].Label = 0;
@@ -354,25 +354,25 @@ SCOPE_TEST(alternationBetterLayout) {
 
   SCOPE_ASSERT_EQUAL(8u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[0], 4), prog[0]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[3]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('b'), prog[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[7]);
 }
 
 void createTrie(NFA& fsm) {
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(1, 2, fsm, fsm.TransFac->getLit('b'));
-  edge(2, 3, fsm, fsm.TransFac->getLit('l'));
-  edge(3, 4, fsm, fsm.TransFac->getLit('e'));
-  edge(2, 5, fsm, fsm.TransFac->getLit('e'));
-  edge(5, 6, fsm, fsm.TransFac->getLit('t'));
-  edge(0, 7, fsm, fsm.TransFac->getLit('b'));
-  edge(7, 8, fsm, fsm.TransFac->getLit('i'));
-  edge(8, 9, fsm, fsm.TransFac->getLit('t'));
-  edge(9, 10, fsm, fsm.TransFac->getLit('e'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(1, 2, fsm, fsm.TransFac->getByte('b'));
+  edge(2, 3, fsm, fsm.TransFac->getByte('l'));
+  edge(3, 4, fsm, fsm.TransFac->getByte('e'));
+  edge(2, 5, fsm, fsm.TransFac->getByte('e'));
+  edge(5, 6, fsm, fsm.TransFac->getByte('t'));
+  edge(0, 7, fsm, fsm.TransFac->getByte('b'));
+  edge(7, 8, fsm, fsm.TransFac->getByte('i'));
+  edge(8, 9, fsm, fsm.TransFac->getByte('t'));
+  edge(9, 10, fsm, fsm.TransFac->getByte('e'));
 }
 
 SCOPE_TEST(betterLayout) {
@@ -391,26 +391,26 @@ SCOPE_TEST(betterLayout) {
 
   SCOPE_ASSERT_EQUAL(18u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[0], 8), prog[0]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[2]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[3]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), prog[2]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('b'), prog[3]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[4], 12), prog[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[6], 14), prog[6]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[8]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('i'), prog[9]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('t'), prog[10]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('e'), prog[11]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('l'), prog[12]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('e'), prog[13]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('e'), prog[14]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('t'), prog[15]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('b'), prog[8]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('i'), prog[9]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('t'), prog[10]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('e'), prog[11]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('l'), prog[12]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('e'), prog[13]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('e'), prog[14]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('t'), prog[15]);
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[16]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[17]);
 }
 
 SCOPE_TEST(generateCheckHalt) {
   NFA fsm(2);
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(1, 1, fsm, fsm.TransFac->getLit('a'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(1, 1, fsm, fsm.TransFac->getByte('a'));
 
   fsm[1].Label = 0;
   fsm[1].IsMatch = true;
@@ -421,7 +421,7 @@ SCOPE_TEST(generateCheckHalt) {
 
   // std::cout << prog;
   SCOPE_ASSERT_EQUAL(10u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[3]);
@@ -447,10 +447,10 @@ SCOPE_TEST(testInitVM) {
 
 SCOPE_TEST(testPivotTransitions) {
   NFA fsm(5);
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(0, 2, fsm, fsm.TransFac->getLit('a'));
-  edge(0, 3, fsm, fsm.TransFac->getLit('z'));
-  edge(0, 4, fsm, fsm.TransFac->getLit('z'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(0, 2, fsm, fsm.TransFac->getByte('a'));
+  edge(0, 3, fsm, fsm.TransFac->getByte('z'));
+  edge(0, 4, fsm, fsm.TransFac->getByte('z'));
 
   fsm[1].IsMatch = true;
   fsm[1].Label = 0;
@@ -478,14 +478,14 @@ SCOPE_TEST(testPivotTransitions) {
 }
 
 SCOPE_TEST(testBitVectorGeneration) {
-  ByteSet    bits;
+  ByteSet bits;
   bits.reset();
   bits.set('0');
   bits.set('2');
   bits.set('4');
   bits.set('8');
   NFA fsm(2);
-  edge(0, 1, fsm, fsm.TransFac->getCharClass(bits));
+  edge(0, 1, fsm, fsm.TransFac->getByteSet(bits));
   fsm[1].Label = 0;
   fsm[1].IsMatch = true;
 
@@ -493,7 +493,7 @@ SCOPE_TEST(testBitVectorGeneration) {
   Program& prog(*p);
   SCOPE_ASSERT_EQUAL(14u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeBitVector(), prog[0]);
-  SCOPE_ASSERT_EQUAL(bits, *reinterpret_cast<ByteSet*>(&prog[1]));
+  SCOPE_ASSERT_EQUAL(bits, reinterpret_cast<ByteSet&>(prog[1]));
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[10]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[11]);
@@ -503,25 +503,25 @@ SCOPE_TEST(testBitVectorGeneration) {
 
 SCOPE_TEST(testMaxOutbound) {
   NFA fsm(5);
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(0, 2, fsm, fsm.TransFac->getLit('a'));
-  edge(0, 3, fsm, fsm.TransFac->getLit('b'));
-  edge(0, 4, fsm, fsm.TransFac->getLit('c'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(0, 2, fsm, fsm.TransFac->getByte('a'));
+  edge(0, 3, fsm, fsm.TransFac->getByte('b'));
+  edge(0, 4, fsm, fsm.TransFac->getByte('c'));
   std::vector<std::vector<NFA::VertexDescriptor>> tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(2u, maxOutbound(tbl));
 }
 
 SCOPE_TEST(generateJumpTableRange) {
   NFA fsm(7); // a(b|c|d|g)f
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(1, 2, fsm, fsm.TransFac->getLit('b'));
-  edge(1, 3, fsm, fsm.TransFac->getLit('c'));
-  edge(1, 4, fsm, fsm.TransFac->getLit('d'));
-  edge(1, 5, fsm, fsm.TransFac->getLit('g'));
-  edge(2, 6, fsm, fsm.TransFac->getLit('f'));
-  edge(3, 6, fsm, fsm.TransFac->getLit('f'));
-  edge(4, 6, fsm, fsm.TransFac->getLit('f'));
-  edge(5, 6, fsm, fsm.TransFac->getLit('f'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(1, 2, fsm, fsm.TransFac->getByte('b'));
+  edge(1, 3, fsm, fsm.TransFac->getByte('c'));
+  edge(1, 4, fsm, fsm.TransFac->getByte('d'));
+  edge(1, 5, fsm, fsm.TransFac->getByte('g'));
+  edge(2, 6, fsm, fsm.TransFac->getByte('f'));
+  edge(3, 6, fsm, fsm.TransFac->getByte('f'));
+  edge(4, 6, fsm, fsm.TransFac->getByte('f'));
+  edge(5, 6, fsm, fsm.TransFac->getByte('f'));
 
   fsm[1].Label = 0;
   fsm[6].IsMatch = true;
@@ -530,7 +530,7 @@ SCOPE_TEST(generateJumpTableRange) {
   Program& prog(*p);
 
   SCOPE_ASSERT_EQUAL(25u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJumpTableRange('b', 'g'), prog[2]);
   SCOPE_ASSERT_EQUAL(10, *(uint32*) &prog[3]); // b
@@ -539,18 +539,18 @@ SCOPE_TEST(generateJumpTableRange) {
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[6]); // e
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[7]); // f
   SCOPE_ASSERT_EQUAL(10, *(uint32*) &prog[8]); // g
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[9]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('f'), prog[10]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('b'), prog[9]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('f'), prog[10]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[11]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[12]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[13]);
 // From here on, this is garbage---maybe don't even test this?
 /*
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('c'), prog[13]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('c'), prog[13]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[14], 9), prog[14]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('d'), prog[14]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('d'), prog[14]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[15], 9), prog[15]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('g'), prog[17]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('g'), prog[17]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[18], 9), prog[18]);
 */
   SCOPE_ASSERT_EQUAL(Instruction::makeHalt(), prog[23]);
@@ -559,17 +559,17 @@ SCOPE_TEST(generateJumpTableRange) {
 
 SCOPE_TEST(generateJumpTableRangePreLabel) {
   NFA fsm(7); // a(b|c|d|g)fg + a(b|c|d|g)fh
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(1, 2, fsm, fsm.TransFac->getLit('b'));
-  edge(1, 3, fsm, fsm.TransFac->getLit('c'));
-  edge(1, 4, fsm, fsm.TransFac->getLit('d'));
-  edge(1, 5, fsm, fsm.TransFac->getLit('g'));
-  edge(2, 6, fsm, fsm.TransFac->getLit('f'));
-  edge(3, 6, fsm, fsm.TransFac->getLit('f'));
-  edge(4, 6, fsm, fsm.TransFac->getLit('f'));
-  edge(5, 6, fsm, fsm.TransFac->getLit('f'));
-  edge(6, 7, fsm, fsm.TransFac->getLit('g'));
-  edge(6, 8, fsm, fsm.TransFac->getLit('h'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(1, 2, fsm, fsm.TransFac->getByte('b'));
+  edge(1, 3, fsm, fsm.TransFac->getByte('c'));
+  edge(1, 4, fsm, fsm.TransFac->getByte('d'));
+  edge(1, 5, fsm, fsm.TransFac->getByte('g'));
+  edge(2, 6, fsm, fsm.TransFac->getByte('f'));
+  edge(3, 6, fsm, fsm.TransFac->getByte('f'));
+  edge(4, 6, fsm, fsm.TransFac->getByte('f'));
+  edge(5, 6, fsm, fsm.TransFac->getByte('f'));
+  edge(6, 7, fsm, fsm.TransFac->getByte('g'));
+  edge(6, 8, fsm, fsm.TransFac->getByte('h'));
 
   fsm[7].Label = 0;
   fsm[8].Label = 1;
@@ -580,7 +580,7 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
   Program& prog(*p);
 
   SCOPE_ASSERT_EQUAL(34u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJumpTableRange('b', 'g'), prog[1]);
   SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[2]); // b
   SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[3]); // c
@@ -588,17 +588,17 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[5]); // e
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[6]); // f
   SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[7]); // g
-//  SCOPE_ASSERT_EQUAL(Instruction::makeLit('b'), prog[8]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('f'), prog[9]);
+//  SCOPE_ASSERT_EQUAL(Instruction::makeByte('b'), prog[8]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('f'), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[10]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[11], 28), prog[11]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[13], 24), prog[13]);
 // intervening crap
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('g'), prog[24]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('g'), prog[24]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[25]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[26]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[27]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('h'), prog[28]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('h'), prog[28]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(1), prog[29]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[30]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[31]);
@@ -608,10 +608,10 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
 
 SCOPE_TEST(testFirstChildNext) {
   NFA g;
-  edge(0, 1, g, g.TransFac->getLit('0'));
-  edge(1, 2, g, g.TransFac->getLit('0'));
-  edge(1, 3, g, g.TransFac->getLit('0'));
-  edge(2, 3, g, g.TransFac->getLit('0'));
+  edge(0, 1, g, g.TransFac->getByte('0'));
+  edge(1, 2, g, g.TransFac->getByte('0'));
+  edge(1, 3, g, g.TransFac->getByte('0'));
+  edge(2, 3, g, g.TransFac->getByte('0'));
 
   g[1].Label = 0;
   g[3].IsMatch = true;
@@ -620,11 +620,11 @@ SCOPE_TEST(testFirstChildNext) {
   Program& prog(*p);
 
   SCOPE_ASSERT_EQUAL(11u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('0'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[2], 5), prog[2]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[4]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[5]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('0'), prog[4]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('0'), prog[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[7]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[8]);
@@ -634,11 +634,11 @@ SCOPE_TEST(testFirstChildNext) {
 
 SCOPE_TEST(testFirstChildPrev) {
   NFA g;
-  edge(0, 1, g, g.TransFac->getLit('0'));
+  edge(0, 1, g, g.TransFac->getByte('0'));
   edge(1, 2, g, g.TransFac->getRange(0, 255));
   edge(2, 2, g, g.TransFac->getRange(0, 255));
-  edge(2, 3, g, g.TransFac->getLit('0'));
-  edge(1, 3, g, g.TransFac->getLit('0'));
+  edge(2, 3, g, g.TransFac->getByte('0'));
+  edge(1, 3, g, g.TransFac->getByte('0'));
 
   g[1].Label = 0;
   g[3].IsMatch = true;
@@ -647,14 +647,14 @@ SCOPE_TEST(testFirstChildPrev) {
   Program& prog(*p);
 
   SCOPE_ASSERT_EQUAL(16u, prog.size());
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[0]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('0'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[2], 10), prog[2]);
   SCOPE_ASSERT_EQUAL(Instruction::makeAny(), prog[4]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[5]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFork(&prog[6], 10), prog[6]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJump(&prog[8], 4), prog[8]);
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('0'), prog[10]);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('0'), prog[10]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(2), prog[11]);
   SCOPE_ASSERT_EQUAL(Instruction::makeMatch(), prog[12]);
   SCOPE_ASSERT_EQUAL(Instruction::makeFinish(), prog[13]);

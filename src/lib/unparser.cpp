@@ -313,7 +313,12 @@ void unparse(std::ostream& out, const ParseNode* n) {
     break;
 
   case ParseNode::CHAR_CLASS:
-    out << '[' << byteSetToCharacterClass(n->Bits) << ']';
+    {
+      ByteSet bs;
+      for (uint32 i = 0; i < 256; ++i) { bs[i] = n->Bits[i]; }
+
+      out << '[' << byteSetToCharacterClass(bs) << ']';
+    }
     break;
 
   case ParseNode::LITERAL:

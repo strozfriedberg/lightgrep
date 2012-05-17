@@ -17,194 +17,194 @@ SCOPE_TEST(unparseEmptyTest) {
 
 SCOPE_TEST(parseUnparse_comma_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse(",", false, tree));
+  SCOPE_ASSERT(parse(",", false, false, tree));
   SCOPE_ASSERT_EQUAL(",", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_hyphen_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("-", false, tree));
+  SCOPE_ASSERT(parse("-", false, false, tree));
   SCOPE_ASSERT_EQUAL("-", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LC_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("{", false, tree));
+  SCOPE_ASSERT(parse("{", false, false, tree));
   SCOPE_ASSERT_EQUAL("{", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_RC_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("}", false, tree));
+  SCOPE_ASSERT(parse("}", false, false, tree));
   SCOPE_ASSERT_EQUAL("}", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_a_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a", false, tree));
+  SCOPE_ASSERT(parse("a", false, false, tree));
   SCOPE_ASSERT_EQUAL("a", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aQ_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a?", false, tree));
+  SCOPE_ASSERT(parse("a?", false, false, tree));
   SCOPE_ASSERT_EQUAL("a?", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aS_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a*", false, tree));
+  SCOPE_ASSERT(parse("a*", false, false, tree));
   SCOPE_ASSERT_EQUAL("a*", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aP_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a+", false, tree));
+  SCOPE_ASSERT(parse("a+", false, false, tree));
   SCOPE_ASSERT_EQUAL("a+", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aQQ_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a??", false, tree));
+  SCOPE_ASSERT(parse("a??", false, false, tree));
   SCOPE_ASSERT_EQUAL("a??", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aSQ_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a*?", false, tree));
+  SCOPE_ASSERT(parse("a*?", false, false, tree));
   SCOPE_ASSERT_EQUAL("a*?", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aPQ_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a+?", false, tree));
+  SCOPE_ASSERT(parse("a+?", false, false, tree));
   SCOPE_ASSERT_EQUAL("a+?", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_ab_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("ab", false, tree));
+  SCOPE_ASSERT(parse("ab", false, false, tree));
   SCOPE_ASSERT_EQUAL("ab", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aSb_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a*b", false, tree));
+  SCOPE_ASSERT(parse("a*b", false, false, tree));
   SCOPE_ASSERT_EQUAL("a*b", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_abS_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("ab*", false, tree));
+  SCOPE_ASSERT(parse("ab*", false, false, tree));
   SCOPE_ASSERT_EQUAL("ab*", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aSbS_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a*b*", false, tree));
+  SCOPE_ASSERT(parse("a*b*", false, false, tree));
   SCOPE_ASSERT_EQUAL("a*b*", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aOrb_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a|b", false, tree));
+  SCOPE_ASSERT(parse("a|b", false, false, tree));
   SCOPE_ASSERT_EQUAL("a|b", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aSOrb_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a*|b", false, tree));
+  SCOPE_ASSERT(parse("a*|b", false, false, tree));
   SCOPE_ASSERT_EQUAL("a*|b", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aOrbS_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a|b*", false, tree));
+  SCOPE_ASSERT(parse("a|b*", false, false, tree));
   SCOPE_ASSERT_EQUAL("a|b*", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aSOrbS_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a*|b*", false, tree));
+  SCOPE_ASSERT(parse("a*|b*", false, false, tree));
   SCOPE_ASSERT_EQUAL("a*|b*", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LPaRP_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a)", false, tree));
+  SCOPE_ASSERT(parse("(a)", false, false, tree));
   SCOPE_ASSERT_EQUAL("a", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LPabRPS_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("(ab)*", false, tree));
+  SCOPE_ASSERT(parse("(ab)*", false, false, tree));
   SCOPE_ASSERT_EQUAL("(ab)*", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LPaOrbRPc_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a|b)c", false, tree));
+  SCOPE_ASSERT(parse("(a|b)c", false, false, tree));
   SCOPE_ASSERT_EQUAL("(a|b)c", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_aOrbOrc_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a|b|c", false, tree));
+  SCOPE_ASSERT(parse("a|b|c", false, false, tree));
   SCOPE_ASSERT_EQUAL("a|b|c", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_abOrcd_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("ab|cd", false, tree));
+  SCOPE_ASSERT(parse("ab|cd", false, false, tree));
   SCOPE_ASSERT_EQUAL("ab|cd", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LBaRB_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("[a]", false, tree));
+  SCOPE_ASSERT(parse("[a]", false, false, tree));
   SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LBabcRB_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("[abc]", false, tree));
+  SCOPE_ASSERT(parse("[abc]", false, false, tree));
   SCOPE_ASSERT_EQUAL("[abc]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LBabcdRB_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("[abcd]", false, tree));
+  SCOPE_ASSERT(parse("[abcd]", false, false, tree));
   SCOPE_ASSERT_EQUAL("[a-d]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LBdcbaRB_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("[dcba]", false, tree));
+  SCOPE_ASSERT(parse("[dcba]", false, false, tree));
   SCOPE_ASSERT_EQUAL("[a-d]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_a3_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a{3}", false, tree));
+  SCOPE_ASSERT(parse("a{3}", false, false, tree));
   SCOPE_ASSERT_EQUAL("a{3}", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_a42_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a{42}", false, tree));
+  SCOPE_ASSERT(parse("a{42}", false, false, tree));
   SCOPE_ASSERT_EQUAL("a{42}", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_a0_7_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a{0,7}", false, tree));
+  SCOPE_ASSERT(parse("a{0,7}", false, false, tree));
   SCOPE_ASSERT_EQUAL("a{0,7}", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_a4_3_Test) {
   ParseTree tree;
   try {
-    parse("a{4,3}", false, tree);
+    parse("a{4,3}", false, false, tree);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -214,7 +214,7 @@ SCOPE_TEST(parseUnparse_a4_3_Test) {
 SCOPE_TEST(parseUnparse_a4_3Q_Test) {
   ParseTree tree;
   try {
-    parse("a{4,3}?", false, tree);
+    parse("a{4,3}?", false, false, tree);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -223,80 +223,80 @@ SCOPE_TEST(parseUnparse_a4_3Q_Test) {
 
 SCOPE_TEST(parseUnparse_a42__Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("a{42,}", false, tree));
+  SCOPE_ASSERT(parse("a{42,}", false, false, tree));
   SCOPE_ASSERT_EQUAL("a{42,}", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LPabRP3_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("(ab){3}", false, tree));
+  SCOPE_ASSERT(parse("(ab){3}", false, false, tree));
   SCOPE_ASSERT_EQUAL("(ab){3}", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LPabRP5_7_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("(ab){5,7}", false, tree));
+  SCOPE_ASSERT(parse("(ab){5,7}", false, false, tree));
   SCOPE_ASSERT_EQUAL("(ab){5,7}", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LPabRP42__Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("(ab){42,}", false, tree));
+  SCOPE_ASSERT(parse("(ab){42,}", false, false, tree));
   SCOPE_ASSERT_EQUAL("(ab){42,}", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_LPa1RP1__Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a{1}){1}", false, tree));
+  SCOPE_ASSERT(parse("(a{1}){1}", false, false, tree));
   SCOPE_ASSERT_EQUAL("(a{1}){1}", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCaCaret_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("[a^]", false, tree));
+  SCOPE_ASSERT(parse("[a^]", false, false, tree));
   SCOPE_ASSERT_EQUAL("[a^]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCd_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\d", false, tree));
+  SCOPE_ASSERT(parse("\\d", false, false, tree));
   SCOPE_ASSERT_EQUAL("[0-9]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCD_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\D", false, tree));
+  SCOPE_ASSERT(parse("\\D", false, false, tree));
   SCOPE_ASSERT_EQUAL("[^0-9]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCs_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\s", false, tree));
+  SCOPE_ASSERT(parse("\\s", false, false, tree));
   SCOPE_ASSERT_EQUAL("[\\t\\n\\f\\r ]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCS_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\S", false, tree));
+  SCOPE_ASSERT(parse("\\S", false, false, tree));
   SCOPE_ASSERT_EQUAL("[^\\t\\n\\f\\r ]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCw_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\w", false, tree));
+  SCOPE_ASSERT(parse("\\w", false, false, tree));
   SCOPE_ASSERT_EQUAL("[0-9A-Z_a-z]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCW_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\W", false, tree));
+  SCOPE_ASSERT(parse("\\W", false, false, tree));
   SCOPE_ASSERT_EQUAL("[^0-9A-Z_a-z]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_BSx_Test) {
   ParseTree tree;
   try {
-    parse("\\x", false, tree);
+    parse("\\x", false, false, tree);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -306,7 +306,7 @@ SCOPE_TEST(parseUnparse_BSx_Test) {
 SCOPE_TEST(parseUnparse_BSx0_Test) {
   ParseTree tree;
   try {
-    parse("\\x0", false, tree);
+    parse("\\x0", false, false, tree);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -315,50 +315,50 @@ SCOPE_TEST(parseUnparse_BSx0_Test) {
 
 SCOPE_TEST(parseUnparse_BSx00_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\x00", false, tree));
+  SCOPE_ASSERT(parse("\\x00", false, false, tree));
   SCOPE_ASSERT_EQUAL("\\x00", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_BS0_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\0", false, tree));
+  SCOPE_ASSERT(parse("\\0", false, false, tree));
   SCOPE_ASSERT_EQUAL("\\x00", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_BS00_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\00", false, tree));
+  SCOPE_ASSERT(parse("\\00", false, false, tree));
   SCOPE_ASSERT_EQUAL("\\x00", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_BS000_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\000", false, tree));
+  SCOPE_ASSERT(parse("\\000", false, false, tree));
   SCOPE_ASSERT_EQUAL("\\x00", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_BS0000_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\0000", false, tree));
+  SCOPE_ASSERT(parse("\\0000", false, false, tree));
   SCOPE_ASSERT_EQUAL("\\x000", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_BS08_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\08", false, tree));
+  SCOPE_ASSERT(parse("\\08", false, false, tree));
   SCOPE_ASSERT_EQUAL("\\x008", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_BS377_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\377", false, tree));
+  SCOPE_ASSERT(parse("\\377", false, false, tree));
   SCOPE_ASSERT_EQUAL("\\xFF", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_BS400_Test) {
   ParseTree tree;
   try {
-    parse("\\400", false, tree);
+    parse("\\400", false, false, tree);
     SCOPE_ASSERT(false);
   }
   catch (const std::runtime_error&) {
@@ -369,7 +369,7 @@ SCOPE_TEST(parseUnparse_BS400_Test) {
 SCOPE_TEST(parseUnparse_BSq_Test) {
   ParseTree tree;
   try {
-    parse("\\q", false, tree);
+    parse("\\q", false, false, tree);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -379,7 +379,7 @@ SCOPE_TEST(parseUnparse_BSq_Test) {
 SCOPE_TEST(parseUnparse_xBSq_Test) {
   ParseTree tree;
   try {
-    parse("x\\q", false, tree);
+    parse("x\\q", false, false, tree);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -389,7 +389,7 @@ SCOPE_TEST(parseUnparse_xBSq_Test) {
 SCOPE_TEST(parseUnparse_invalid_utf8_Test) {
   ParseTree tree;
   try {
-    parse("\xFF", false, tree);
+    parse("\xFF", false, false, tree);
   }
   catch (const std::runtime_error&) {
     // expected

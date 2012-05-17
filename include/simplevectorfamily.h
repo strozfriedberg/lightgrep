@@ -13,7 +13,7 @@ struct SimpleVectorFamily {
   typename Holder::size_type size(const Holder& l) const {
     return l.size();
   }
-  
+
   void add(Holder& l, T e) {
     l.push_back(e);
   }

@@ -1,6 +1,8 @@
 %{
 #include "parsenode.h"
 #include "parsetree.h"
+#include "parseutil.h"
+#include "pattern.h"
 #include "unicode.h"
 
 #include <string>
@@ -16,12 +18,17 @@ namespace {
 
   ParseTree* Tree;
 
-  bool LiteralMode;
+  UnicodeSet USet;
 
-/*  template <class... Args>
+  bool LiteralMode;
+  bool CaseInsensitive;
+
+/*
+  template <class... Args>
   ParseNode* add(const char*, Args&&... args) {
     return Tree->add(args...);
-  }*/
+  }
+*/
 
   ParseNode* add(const ParseNode& n) {
     return Tree->add(n);
@@ -33,12 +40,13 @@ namespace {
 %union {
   unsigned int c;
   ParseNode* node;
+  UnicodeSet* s;
 }
 
 %token <c> CHAR
 %token <c> DIGIT
-%token <c> NAMED
 %token <c> BAD
+%token <s> SET;
 
 %type <node> regexp alt concat rep number atom literal charclass charclass_right cc_named
 %type <c>    character cc_char cc_char_first cc_char_not_first
@@ -156,7 +164,20 @@ atom:
 literal:
   character
   {
-    $$ = add(ParseNode(ParseNode::LITERAL, $1));
+    if (CaseInsensitive) {
+      USet.reset();
+      USet.set($1);
+      if (caseDesensitize(USet)) {
+        // TODO: Maybe handle the commmon ASCII case without going via USet?
+        $$ = add(ParseNode(ParseNode::CHAR_CLASS, USet));
+      }
+      else {
+        $$ = add(ParseNode(ParseNode::LITERAL, $1));
+      }
+    }
+    else {
+      $$ = add(ParseNode(ParseNode::LITERAL, $1));
+    }
   }
 | '.'
   {
@@ -165,13 +186,35 @@ literal:
 | '[' '^' charclass ']'
   {
     $$ = $3;
+
+    // NB: PCRE applies case-insensitivity first, then negation. This is
+    // important, as these two operations do not commute on a cc such as
+    // [^a]. Let U be the set of all Unicode code points. Negating first
+    // gives U / {a}, which becomes U again when closing under case-
+    // insensitivity, due to A being a member of U / {a}, while closing
+    // under case-insensitivity first gives {A, a}, which becomes
+    // U / {A, a} after negation.
+
+    if (CaseInsensitive) {
+      caseDesensitize($$->Bits);
+    }
+
     $$->Bits.flip();
   }
 | '[' charclass ']'
   {
     $$ = $2;
+
+    if (CaseInsensitive) {
+      caseDesensitize($$->Bits);
+    }
   }
 | cc_named
+  {
+    if (CaseInsensitive) {
+      caseDesensitize($$->Bits);
+    }
+  }
 ;
 
 character:
@@ -310,129 +353,42 @@ cc_char:
 ;
 
 cc_named:
-  NAMED
+  SET
   {
-    switch ($1) {
-      case 'd':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, '0', '9'));
-        break;
-      }
-      case 'D':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, '0', '9'));
-        $$->Bits.flip();
-        break;
-      }
-      case 's':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, ' '));
-        $$->Bits.set('\t');
-        $$->Bits.set('\n');
-        $$->Bits.set('\f');
-        $$->Bits.set('\r');
-        break;
-      }
-      case 'S':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, ' '));
-        $$->Bits.set('\t');
-        $$->Bits.set('\n');
-        $$->Bits.set('\f');
-        $$->Bits.set('\r');
-        $$->Bits.flip();
-        break;
-      }
-      case 'w':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, '_'));
-        $$->range('a', 'z');
-        $$->range('A', 'Z');
-        $$->range('0', '9');
-        break;
-      }
-      case 'W':
-      {
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, '_'));
-        $$->range('a', 'z');
-        $$->range('A', 'Z');
-        $$->range('0', '9');
-        $$->Bits.flip();
-        break;
-      }
-    }
+    $$ = add(ParseNode(ParseNode::CHAR_CLASS, USet));
   }
 ;
 %%
 
 namespace {
-  int parseOctChar(int c) {
-    return ('0' <= c && c <= '7') ? c - '0' : -1;
-  }
 
-  int consumeOctCode() {
-    int oct = 0;
-    int digit;
-
-    for (uint32 i = 0; i < 3 && Text < TextEnd; ++i) {
-      digit = parseOctChar(*Text);
-      if (digit == -1) {
-        break;
-      }
-
-      oct = (oct << 3) | digit;
-      ++Text;
-    }
-
-    if (oct > 0377) {
+  template <typename F>
+  int consumeSingleton(F func) {
+    const int val = func(Text, TextEnd);
+    if (val < 0) {
       return BAD;
     }
-
-    yylval.c = oct;
-    return CHAR;
-  }
-
-  int parseHexChar(int c) {
-    int val = -1;
-    if ('0' <= c && c <= '9') {
-      val = (c - '0');
-    }
-    else if ('a' <= c && c <= 'f') {
-      val = (c - 'a' + 10);
-    }
-    else if ('A' <= c && c <= 'F') {
-      val = (c - 'A' + 10);
-    }
-    return val;
-  }
-
-  int consumeHexCode() {
-    if (Text + 1 < TextEnd) {
-      int one = *Text++,
-          two = *Text++;
-
-      int val = parseHexChar(one),
-          ret;
-      if (val < 0) {
-        return BAD;
-      }
-      ret = val;
-      ret <<= 4;
-      val = parseHexChar(two);
-      if (val < 0) {
-        return BAD;
-      }
-      ret += val;
-      yylval.c = ret;
+    else {
+      yylval.c = val;
       return CHAR;
     }
-    return BAD;
+  }
+
+  template <typename F>
+  int consumeSet(F func) {
+    const int val = func(Text, TextEnd, USet);
+    if (val < 0) {
+      return BAD;
+    }
+    else {
+      yylval.s = &USet;
+      return SET;
+    }
   }
 
 // FIXME: Add \c.
 // FIXME: \b is not parsed correctly---should be backspace (0x08) inside
 //  character classes, and a wordbreak assertion elsewhere.
-// FIXME: Support \x, \xh?
 
   int consumeEscape() {
     if (Text >= TextEnd) {
@@ -481,17 +437,61 @@ namespace {
 
       // named character classes
       case 'd':
+        USet.reset();
+        USet.insert('0', '9' + 1);
+        yylval.s = &USet;
+        return SET;
+
       case 'D':
+        USet.reset();
+        USet.insert('0', '9' + 1);
+        USet.flip();
+        yylval.s = &USet;
+        return SET;
+
       case 's':
+        USet.reset();
+        USet.set('\t');
+        USet.set('\n');
+        USet.set('\f');
+        USet.set('\r');
+        USet.set(' ');
+        yylval.s = &USet;
+        return SET;
+
       case 'S':
+        USet.reset();
+        USet.set('\t');
+        USet.set('\n');
+        USet.set('\f');
+        USet.set('\r');
+        USet.set(' ');
+        USet.flip();
+        yylval.s = &USet;
+        return SET;
+
       case 'w':
+        USet.reset();
+        USet.insert('0', '9' + 1);
+        USet.insert('A', 'Z' + 1);
+        USet.set('_');
+        USet.insert('a', 'z' + 1);
+        yylval.s = &USet;
+        return SET;
+
       case 'W':
-        yylval.c = c;
-        return NAMED;
+        USet.reset();
+        USet.insert('0', '9' + 1);
+        USet.insert('A', 'Z' + 1);
+        USet.set('_');
+        USet.insert('a', 'z' + 1);
+        USet.flip();
+        yylval.s = &USet;
+        return SET;
 
       // hexadecimal characters
       case 'x':
-        return consumeHexCode();
+        return consumeSingleton(parseHex<const int*>);
 
       // octal characters
       case '0':
@@ -503,7 +503,17 @@ namespace {
       case '6':
       case '7':
         --Text;
-        return consumeOctCode();
+        return consumeSingleton(parseOct<const int*>);
+
+      // named Unicode code points
+      case 'N':
+        return consumeSingleton(parseNamedCodePoint<const int*>);
+
+      // Unicode properties
+      case 'p':
+      case 'P':
+        Text -= 2;
+        return consumeSet(parseProperty<const int*>);
 
       default:
         return BAD;
@@ -513,10 +523,9 @@ namespace {
   int yylex(void) {
     if (Text < TextEnd) {
       const int c = *Text++;
-      if (c < 1 || c > 0x7F) {
+      if (c < 1) {
         //   -1 indicates bogus UTF-8
         //    0 is a prohibited mid-string null byte
-        // > 7F is a code point which is not 7-bit ASCII
         return BAD;
       }
       else if (LiteralMode) {
@@ -570,8 +579,10 @@ namespace {
   }
 }
 
-bool parse(const std::string& text, bool litMode, ParseTree& tree) {
+bool parse(const std::string& text, bool litMode,
+           bool caseInsensitive, ParseTree& tree) {
   LiteralMode = litMode;
+  CaseInsensitive = caseInsensitive;
 
   std::vector<int> cp;
   transform_utf8_to_unicode(text.begin(), text.end(), std::back_inserter(cp));
@@ -588,3 +599,8 @@ bool parse(const std::string& text, bool litMode, ParseTree& tree) {
   Tree = 0;
   return ret == 0;
 }
+
+bool parse(const Pattern& p, ParseTree& tree) {
+  return parse(p.Expression, p.FixedString, p.CaseInsensitive, tree);
+}
+

@@ -1,22 +1,22 @@
-#include "parser.h"
+#include "concrete_encoders.h"
+#include "encoder.h"
 #include "encodings.h"
-#include "encoding.h"
-#include "concrete_encodings.h"
+#include "parser.h"
 #include "rewriter.h"
 
-
-Parser::EncodingMap createEncodingMap() {
-  Parser::EncodingMap map;
-  map[LG_ENC_ASCII].reset(new Ascii);
-  map[LG_ENC_UTF_16].reset(new UCS16);
-  map[LG_ENC_UTF_8].reset(new Ascii);
-  return map;
-}
+#include <string>
+#include <memory>
 
 Parser::Parser(uint32 sizeHint):
   Fsm(new NFA(1, sizeHint)),
-  EncCodes(getEncodingsMap()),  // names -> uint
-  Encoders(createEncodingMap()) // uint  -> Encoding object
+  Encoders{
+    { "ASCII",    std::make_shared<ASCII>()   },
+    { "UTF-8",    std::make_shared<CachingUTF8>()    },
+    { "UTF-16LE", std::make_shared<CachingUTF16LE>() },
+    { "UTF-16BE", std::make_shared<CachingUTF16BE>() },
+    { "UTF-32LE", std::make_shared<CachingUTF32LE>() },
+    { "UTF-32BE", std::make_shared<CachingUTF32BE>() }
+  }
 {
   Fsm->TransFac = Nfab.getTransFac();
 }
@@ -36,29 +36,25 @@ bool contains_possible_counted_repetition(const std::string& pattern) {
 
 void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
 {
-//  std::cerr << "[" << patIndex << "]: " << pattern << std::endl; 
   // prepare the NFA builder
   Nfab.reset();
   Nfab.setCurLabel(patIndex);
-  Nfab.setCaseInsensitive(pattern.CaseInsensitive);
 
-  bool good = false;
-  EncodingsCodeMap::const_iterator foundName(EncCodes.find(pattern.Encoding));
-  if (foundName != EncCodes.end()) {
-    EncodingMap::const_iterator    foundEncoder(Encoders.find(foundName->second));
-    if (foundEncoder != Encoders.end()) {
-      Nfab.setEncoding(foundEncoder->second);
-      good = true;
-    }
+  // set the character encoding
+  auto i = Encoders.find(pattern.Encoding);
+  if (i != Encoders.end()) {
+    Nfab.setEncoder(i->second);
   }
-  if (!good) {
-    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
-      "Unrecognized encoding '" << pattern.Encoding << "'"
+  else {
+    std::shared_ptr<Encoder> enc(
+      new CachingICUEncoder(pattern.Encoding.c_str())
     );
+    Encoders.insert(std::make_pair(pattern.Encoding, enc));
+    Nfab.setEncoder(enc);
   }
 
   // parse the pattern
-  if (parse(pattern.Expression, pattern.FixedString, Tree)) {
+  if (parse(pattern, Tree)) {
     // rewrite the parse tree, if necessary
     bool rewrite = false;
 

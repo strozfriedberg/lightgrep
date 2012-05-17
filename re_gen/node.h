@@ -12,7 +12,6 @@ struct Node {
     REGEXP,
     ALTERNATION,
     CONCATENATION,
-    GROUP,
     REPETITION,
     REPETITION_NG,
     ELEMENT,
