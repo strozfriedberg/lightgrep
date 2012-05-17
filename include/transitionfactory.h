@@ -11,21 +11,21 @@
 class TransitionFactory {
 public:
   TransitionFactory():
-    Lit(0), Either(0, 0), Range(0, 0), BSet(ByteSet()) {}
+    Byte(0), Either(0, 0), Range(0, 0), BSet(ByteSet()) {}
 
   ~TransitionFactory() {
     std::for_each(Exemplars.begin(), Exemplars.end(),
                   std::default_delete<Transition>());
   }
 
-  Transition* getLit(byte lit) {
-    Lit.Lit = lit;
-    return get(&Lit);
+  Transition* getByte(byte b) {
+    Byte.Byte = b;
+    return get(&Byte);
   }
 
-  Transition* getEither(byte lit1, byte lit2) {
-    Either.Lit1 = lit1;
-    Either.Lit2 = lit2;
+  Transition* getEither(byte b1, byte b2) {
+    Either.Byte1 = b1;
+    Either.Byte2 = b2;
     return get(&Either);
   }
 
@@ -92,7 +92,7 @@ public:
     case NONE:
       return getByteSet(bytes);
     case ONE:
-      return getLit(low);
+      return getByte(low);
     case RANGE:
 // TODO: Check whether there is any performance difference between EITHER
 // and RANGE for two-element ranges.
@@ -114,7 +114,7 @@ private:
   std::set<Transition*,TransitionComparator> Exemplars;
 
   // Local states so we don't have to create one on each lookup
-  LitState Lit;
+  ByteState Byte;
   EitherState Either;
   RangeState Range;
   ByteSetState BSet;

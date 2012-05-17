@@ -217,9 +217,9 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
   const Instruction& instr = *t->PC;
 
   switch (instr.OpCode) {
-  case LIT_OP:
-    if (*cur == instr.Op.Literal) {
-      t->advance(InstructionSize<LIT_OP>::VAL);
+  case BYTE_OP:
+    if (*cur == instr.Op.Byte) {
+      t->advance(InstructionSize<BYTE_OP>::VAL);
       return true;
     }
     break;

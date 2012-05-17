@@ -138,11 +138,11 @@ void NFABuilder::literal(const ParseNode& n) {
   NFA& g(*Fsm);
   NFA::VertexDescriptor first, prev, last;
   first = prev = last = g.addVertex();
-  g[first].Trans = g.TransFac->getLit(TempBuf[0]);
+  g[first].Trans = g.TransFac->getByte(TempBuf[0]);
   for (uint32 i = 1; i < len; ++i) {
     last = g.addVertex();
     g.addEdge(prev, last);
-    g[last].Trans = g.TransFac->getLit(TempBuf[i]);
+    g[last].Trans = g.TransFac->getByte(TempBuf[i]);
     prev = last;
   }
   TempFrag.reset(n);

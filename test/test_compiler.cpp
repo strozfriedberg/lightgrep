@@ -16,8 +16,8 @@ SCOPE_TEST(testMerge_aaOrab_toEmpty) {
   Compiler comp;
   NFA dst(1), src(5);
 
-  Transition* a = src.TransFac->getLit('a');
-  Transition* b = src.TransFac->getLit('b');
+  Transition* a = src.TransFac->getByte('a');
+  Transition* b = src.TransFac->getByte('b');
 
   // aa|ab
   edge(0, 1, src, a);
@@ -53,23 +53,23 @@ SCOPE_TEST(testMerge) {
   NFA fsm, key(5);
 
   // a(b|c)d+
-  edge(0, 1, key, key.TransFac->getLit('a'));
-  edge(1, 2, key, key.TransFac->getLit('b'));
-  edge(1, 3, key, key.TransFac->getLit('c'));
-  edge(2, 4, key, key.TransFac->getLit('d'));
-  edge(3, 4, key, key.TransFac->getLit('d'));
-  edge(4, 4, key, key.TransFac->getLit('d'));
+  edge(0, 1, key, key.TransFac->getByte('a'));
+  edge(1, 2, key, key.TransFac->getByte('b'));
+  edge(1, 3, key, key.TransFac->getByte('c'));
+  edge(2, 4, key, key.TransFac->getByte('d'));
+  edge(3, 4, key, key.TransFac->getByte('d'));
+  edge(4, 4, key, key.TransFac->getByte('d'));
 
   key[4].IsMatch = true;
   key[4].Label = 2;
 
   // ace
   // azy
-  edge(0, 1, fsm, fsm.TransFac->getLit('a'));
-  edge(1, 2, fsm, fsm.TransFac->getLit('c'));
-  edge(2, 3, fsm, fsm.TransFac->getLit('e'));
-  edge(1, 4, fsm, fsm.TransFac->getLit('z'));
-  edge(4, 5, fsm, fsm.TransFac->getLit('y'));
+  edge(0, 1, fsm, fsm.TransFac->getByte('a'));
+  edge(1, 2, fsm, fsm.TransFac->getByte('c'));
+  edge(2, 3, fsm, fsm.TransFac->getByte('e'));
+  edge(1, 4, fsm, fsm.TransFac->getByte('z'));
+  edge(4, 5, fsm, fsm.TransFac->getByte('y'));
 
   fsm[3].IsMatch = true;
   fsm[3].Label = 0;
@@ -139,15 +139,15 @@ SCOPE_TEST(testMergeLabelsSimple) {
   NFA src(3), dst(3), exp(4);
 
   // ab
-  edge(0, 1, src, src.TransFac->getLit('a'));
-  edge(1, 2, src, src.TransFac->getLit('b'));
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('b'));
 
   src[2].Label = 1;
   src[2].IsMatch = true;
 
   // ac
-  edge(0, 1, dst, dst.TransFac->getLit('a'));
-  edge(1, 2, dst, dst.TransFac->getLit('c'));
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+  edge(1, 2, dst, dst.TransFac->getByte('c'));
 
   dst[2].Label = 0;
   dst[2].IsMatch = true;
@@ -155,9 +155,9 @@ SCOPE_TEST(testMergeLabelsSimple) {
   c.mergeIntoFSM(dst, src);
 
   // ab + ac
-  edge(0, 1, exp, exp.TransFac->getLit('a'));
-  edge(1, 2, exp, exp.TransFac->getLit('c'));
-  edge(1, 3, exp, exp.TransFac->getLit('b'));
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(1, 2, exp, exp.TransFac->getByte('c'));
+  edge(1, 3, exp, exp.TransFac->getByte('b'));
 
   exp[1].Label = NONE;
   exp[2].Label = 0;
@@ -176,17 +176,17 @@ SCOPE_TEST(testMergeLabelsComplex) {
   NFA src(4), dst(4), exp(6);
 
   // abd
-  edge(0, 1, src, src.TransFac->getLit('a'));
-  edge(1, 2, src, src.TransFac->getLit('b'));
-  edge(2, 3, src, src.TransFac->getLit('d'));
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('b'));
+  edge(2, 3, src, src.TransFac->getByte('d'));
 
   src[3].Label = 0;
   src[3].IsMatch = true;
 
   // acd
-  edge(0, 1, dst, dst.TransFac->getLit('a'));
-  edge(1, 2, dst, dst.TransFac->getLit('c'));
-  edge(2, 3, dst, dst.TransFac->getLit('d'));
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+  edge(1, 2, dst, dst.TransFac->getByte('c'));
+  edge(2, 3, dst, dst.TransFac->getByte('d'));
 
   dst[3].Label = 1;
   dst[3].IsMatch = true;
@@ -195,11 +195,11 @@ SCOPE_TEST(testMergeLabelsComplex) {
   c.labelGuardStates(dst);
 
   // abd + acd
-  edge(0, 1, exp, exp.TransFac->getLit('a'));
-  edge(1, 2, exp, exp.TransFac->getLit('c'));
-  edge(2, 3, exp, exp.TransFac->getLit('d'));
-  edge(1, 4, exp, exp.TransFac->getLit('b'));
-  edge(4, 5, exp, exp.TransFac->getLit('d'));
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(1, 2, exp, exp.TransFac->getByte('c'));
+  edge(2, 3, exp, exp.TransFac->getByte('d'));
+  edge(1, 4, exp, exp.TransFac->getByte('b'));
+  edge(4, 5, exp, exp.TransFac->getByte('d'));
 
   exp[1].Label = NONE;
   exp[2].Label = 1;
@@ -220,36 +220,36 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   NFA key[4], exp;
 
   // a(b|c)a
-  edge(0, 1, key[0], key[0].TransFac->getLit('a'));
-  edge(1, 2, key[0], key[0].TransFac->getLit('b'));
-  edge(1, 3, key[0], key[0].TransFac->getLit('c'));
-  edge(2, 4, key[0], key[0].TransFac->getLit('a'));
-  edge(3, 4, key[0], key[0].TransFac->getLit('a'));
+  edge(0, 1, key[0], key[0].TransFac->getByte('a'));
+  edge(1, 2, key[0], key[0].TransFac->getByte('b'));
+  edge(1, 3, key[0], key[0].TransFac->getByte('c'));
+  edge(2, 4, key[0], key[0].TransFac->getByte('a'));
+  edge(3, 4, key[0], key[0].TransFac->getByte('a'));
 
   key[0][4].Label = 0;
   key[0][4].IsMatch = true;
 
   // ac+
-  edge(0, 1, key[1], key[1].TransFac->getLit('a'));
-  edge(1, 2, key[1], key[1].TransFac->getLit('c'));
-  edge(2, 2, key[1], key[1].TransFac->getLit('c'));
+  edge(0, 1, key[1], key[1].TransFac->getByte('a'));
+  edge(1, 2, key[1], key[1].TransFac->getByte('c'));
+  edge(2, 2, key[1], key[1].TransFac->getByte('c'));
 
   key[1][2].Label = 1;
   key[1][2].IsMatch = true;
 
   // ab?a
-  edge(0, 1, key[2], key[1].TransFac->getLit('a'));
-  edge(1, 2, key[2], key[1].TransFac->getLit('b'));
-  edge(1, 3, key[2], key[1].TransFac->getLit('a'));
-  edge(2, 3, key[2], key[1].TransFac->getLit('a'));
+  edge(0, 1, key[2], key[1].TransFac->getByte('a'));
+  edge(1, 2, key[2], key[1].TransFac->getByte('b'));
+  edge(1, 3, key[2], key[1].TransFac->getByte('a'));
+  edge(2, 3, key[2], key[1].TransFac->getByte('a'));
 
   key[2][3].Label = 2;
   key[2][3].IsMatch = true;
 
   // two
-  edge(0, 1, key[3], key[3].TransFac->getLit('t'));
-  edge(1, 2, key[3], key[3].TransFac->getLit('w'));
-  edge(2, 3, key[3], key[3].TransFac->getLit('o'));
+  edge(0, 1, key[3], key[3].TransFac->getByte('t'));
+  edge(1, 2, key[3], key[3].TransFac->getByte('w'));
+  edge(2, 3, key[3], key[3].TransFac->getByte('o'));
 
   key[3][3].Label = 3;
   key[3][3].IsMatch = true;
@@ -262,30 +262,30 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   comp.labelGuardStates(key[0]);
 
   // expected merged NFA
-  edge(0, 1, exp, exp.TransFac->getLit('a'));
-  edge(1, 2, exp, exp.TransFac->getLit('b'));
-  edge(1, 3, exp, exp.TransFac->getLit('c'));
-  edge(2, 4, exp, exp.TransFac->getLit('a'));
-  edge(3, 4, exp, exp.TransFac->getLit('a'));
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(1, 2, exp, exp.TransFac->getByte('b'));
+  edge(1, 3, exp, exp.TransFac->getByte('c'));
+  edge(2, 4, exp, exp.TransFac->getByte('a'));
+  edge(3, 4, exp, exp.TransFac->getByte('a'));
 
   exp[4].Label = 0;
   exp[4].IsMatch = true;
 
-  edge(1, 5, exp, exp.TransFac->getLit('c'));
-  edge(5, 5, exp, exp.TransFac->getLit('c'));
+  edge(1, 5, exp, exp.TransFac->getByte('c'));
+  edge(5, 5, exp, exp.TransFac->getByte('c'));
 
   exp[5].Label = 1;
   exp[5].IsMatch = true;
 
-  edge(2, 6, exp, exp.TransFac->getLit('a'));
-  edge(1, 6, exp, exp.TransFac->getLit('a'));
+  edge(2, 6, exp, exp.TransFac->getByte('a'));
+  edge(1, 6, exp, exp.TransFac->getByte('a'));
 
   exp[6].Label = 2;
   exp[6].IsMatch = true;
 
-  edge(0, 7, exp, exp.TransFac->getLit('t'));
-  edge(7, 8, exp, exp.TransFac->getLit('w'));
-  edge(8, 9, exp, exp.TransFac->getLit('o'));
+  edge(0, 7, exp, exp.TransFac->getByte('t'));
+  edge(7, 8, exp, exp.TransFac->getByte('w'));
+  edge(8, 9, exp, exp.TransFac->getByte('o'));
 
   exp[9].Label = 3;
   exp[9].IsMatch = true;
@@ -309,11 +309,11 @@ SCOPE_TEST(testPropagateMatchLabels) {
   Compiler comp;
   NFA g;
 
-  edge(0, 1, g, g.TransFac->getLit('x'));
-  edge(0, 2, g, g.TransFac->getLit('x'));
-  edge(0, 3, g, g.TransFac->getLit('y'));
-  edge(3, 4, g, g.TransFac->getLit('y'));
-  edge(4, 5, g, g.TransFac->getLit('y'));
+  edge(0, 1, g, g.TransFac->getByte('x'));
+  edge(0, 2, g, g.TransFac->getByte('x'));
+  edge(0, 3, g, g.TransFac->getByte('y'));
+  edge(3, 4, g, g.TransFac->getByte('y'));
+  edge(4, 5, g, g.TransFac->getByte('y'));
 
   g[1].Label = 0;
   g[2].Label = 1;
@@ -336,11 +336,11 @@ SCOPE_TEST(testRemoveNonMinimalLabels) {
   Compiler comp;
   NFA g;
 
-  edge(0, 1, g, g.TransFac->getLit('x'));
-  edge(0, 2, g, g.TransFac->getLit('x'));
-  edge(0, 3, g, g.TransFac->getLit('y'));
-  edge(3, 4, g, g.TransFac->getLit('y'));
-  edge(4, 5, g, g.TransFac->getLit('y'));
+  edge(0, 1, g, g.TransFac->getByte('x'));
+  edge(0, 2, g, g.TransFac->getByte('x'));
+  edge(0, 3, g, g.TransFac->getByte('y'));
+  edge(3, 4, g, g.TransFac->getByte('y'));
+  edge(4, 5, g, g.TransFac->getByte('y'));
 
   g[1].Label = 0;
   g[2].Label = 1;
@@ -365,11 +365,11 @@ SCOPE_TEST(testLabelGuardStates) {
   Compiler comp;
   NFA g;
 
-  edge(0, 1, g, g.TransFac->getLit('x'));
-  edge(0, 2, g, g.TransFac->getLit('x'));
-  edge(0, 3, g, g.TransFac->getLit('y'));
-  edge(3, 4, g, g.TransFac->getLit('y'));
-  edge(4, 5, g, g.TransFac->getLit('y'));
+  edge(0, 1, g, g.TransFac->getByte('x'));
+  edge(0, 2, g, g.TransFac->getByte('x'));
+  edge(0, 3, g, g.TransFac->getByte('y'));
+  edge(3, 4, g, g.TransFac->getByte('y'));
+  edge(4, 5, g, g.TransFac->getByte('y'));
 
   g[1].Label = 0;
   g[1].IsMatch = true;
@@ -395,13 +395,13 @@ SCOPE_TEST(testSubstringKey) {
   NFA k0, k1, exp;
 
   // an
-  edge(0, 1, k0, k0.TransFac->getLit('a'));
-  edge(1, 2, k0, k0.TransFac->getLit('n'));
+  edge(0, 1, k0, k0.TransFac->getByte('a'));
+  edge(1, 2, k0, k0.TransFac->getByte('n'));
   k0[2].IsMatch = true;
   k0[2].Label = 0;
 
   // a
-  edge(0, 1, k1, k1.TransFac->getLit('a'));
+  edge(0, 1, k1, k1.TransFac->getByte('a'));
   k1[1].IsMatch = true;
   k1[1].Label = 1;
 
@@ -410,9 +410,9 @@ SCOPE_TEST(testSubstringKey) {
   comp.labelGuardStates(k0);
 
   // expected merged NFA
-  edge(0, 1, exp, exp.TransFac->getLit('a'));
-  edge(1, 2, exp, exp.TransFac->getLit('n'));
-  edge(0, 3, exp, exp.TransFac->getLit('a'));
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(1, 2, exp, exp.TransFac->getByte('n'));
+  edge(0, 3, exp, exp.TransFac->getByte('a'));
 
   exp[1].Label = 0;
   exp[2].Label = NONE;
@@ -436,11 +436,11 @@ SCOPE_TEST(testCreateXXYYY) {
   NFA& g = *gp;
 
   NFA exp;
-  edge(0, 1, exp, exp.TransFac->getLit('x'));
-  edge(0, 2, exp, exp.TransFac->getLit('x'));
-  edge(0, 3, exp, exp.TransFac->getLit('y'));
-  edge(3, 4, exp, exp.TransFac->getLit('y'));
-  edge(4, 5, exp, exp.TransFac->getLit('y'));
+  edge(0, 1, exp, exp.TransFac->getByte('x'));
+  edge(0, 2, exp, exp.TransFac->getByte('x'));
+  edge(0, 3, exp, exp.TransFac->getByte('y'));
+  edge(3, 4, exp, exp.TransFac->getByte('y'));
+  edge(4, 5, exp, exp.TransFac->getByte('y'));
 
   exp[1].Label = 1;
   exp[2].Label = 0;
@@ -459,12 +459,12 @@ SCOPE_TEST(testCreateXXYYY) {
 
 SCOPE_TEST(testDeterminize0) {
   NFA g(7);
-  edge(0, 1, g, g.TransFac->getLit('a'));
-  edge(1, 2, g, g.TransFac->getLit('1'));
-  edge(1, 3, g, g.TransFac->getLit('2'));
+  edge(0, 1, g, g.TransFac->getByte('a'));
+  edge(1, 2, g, g.TransFac->getByte('1'));
+  edge(1, 3, g, g.TransFac->getByte('2'));
   edge(0, 4, g, g.TransFac->getEither('a', 'b'));
-  edge(4, 5, g, g.TransFac->getLit('3'));
-  edge(4, 6, g, g.TransFac->getLit('4'));
+  edge(4, 5, g, g.TransFac->getByte('3'));
+  edge(4, 6, g, g.TransFac->getByte('4'));
 
   NFA h(1);
 
@@ -472,14 +472,14 @@ SCOPE_TEST(testDeterminize0) {
   comp.subsetDFA(h, g);
 
   NFA exp;
-  edge(0, 1, exp, exp.TransFac->getLit('a'));
-  edge(0, 2, exp, exp.TransFac->getLit('b'));
-  edge(2, 3, exp, exp.TransFac->getLit('3'));
-  edge(2, 4, exp, exp.TransFac->getLit('4'));
-  edge(1, 5, exp, exp.TransFac->getLit('1'));
-  edge(1, 6, exp, exp.TransFac->getLit('2'));
-  edge(1, 3, exp, exp.TransFac->getLit('3'));
-  edge(1, 4, exp, exp.TransFac->getLit('4'));
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(0, 2, exp, exp.TransFac->getByte('b'));
+  edge(2, 3, exp, exp.TransFac->getByte('3'));
+  edge(2, 4, exp, exp.TransFac->getByte('4'));
+  edge(1, 5, exp, exp.TransFac->getByte('1'));
+  edge(1, 6, exp, exp.TransFac->getByte('2'));
+  edge(1, 3, exp, exp.TransFac->getByte('3'));
+  edge(1, 4, exp, exp.TransFac->getByte('4'));
 
   ASSERT_EQUAL_GRAPHS(exp, h);
   ASSERT_EQUAL_LABELS(exp, h);
@@ -488,11 +488,11 @@ SCOPE_TEST(testDeterminize0) {
 
 SCOPE_TEST(testDeterminize1) {
   NFA g(5);
-  edge(0, 2, g, g.TransFac->getLit('a'));
-  edge(0, 1, g, g.TransFac->getLit('a'));
-  edge(1, 2, g, g.TransFac->getLit('a'));
-  edge(2, 3, g, g.TransFac->getLit('a'));
-  edge(3, 4, g, g.TransFac->getLit('a'));
+  edge(0, 2, g, g.TransFac->getByte('a'));
+  edge(0, 1, g, g.TransFac->getByte('a'));
+  edge(1, 2, g, g.TransFac->getByte('a'));
+  edge(2, 3, g, g.TransFac->getByte('a'));
+  edge(3, 4, g, g.TransFac->getByte('a'));
 
   g[4].IsMatch = true;
   g[4].Label = 0;
@@ -502,12 +502,12 @@ SCOPE_TEST(testDeterminize1) {
   comp.subsetDFA(h, g);
 
   NFA exp(5);
-  edge(0, 1, exp, exp.TransFac->getLit('a'));
-  edge(1, 2, exp, exp.TransFac->getLit('a'));
-  edge(1, 2, exp, exp.TransFac->getLit('a'));
-  edge(2, 3, exp, exp.TransFac->getLit('a'));
-  edge(2, 4, exp, exp.TransFac->getLit('a'));
-  edge(4, 3, exp, exp.TransFac->getLit('a'));
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(1, 2, exp, exp.TransFac->getByte('a'));
+  edge(1, 2, exp, exp.TransFac->getByte('a'));
+  edge(2, 3, exp, exp.TransFac->getByte('a'));
+  edge(2, 4, exp, exp.TransFac->getByte('a'));
+  edge(4, 3, exp, exp.TransFac->getByte('a'));
 
   exp[3].IsMatch = true;
   exp[3].Label = 0;
@@ -519,10 +519,10 @@ SCOPE_TEST(testDeterminize1) {
 
 SCOPE_TEST(testDeterminize2) {
   NFA g(3);
-  edge(0, 1, g, g.TransFac->getLit('a'));
-  edge(0, 2, g, g.TransFac->getLit('a'));
-  edge(1, 3, g, g.TransFac->getLit('a'));
-  edge(2, 3, g, g.TransFac->getLit('a'));
+  edge(0, 1, g, g.TransFac->getByte('a'));
+  edge(0, 2, g, g.TransFac->getByte('a'));
+  edge(1, 3, g, g.TransFac->getByte('a'));
+  edge(2, 3, g, g.TransFac->getByte('a'));
 
   g[3].IsMatch = true;
   g[3].Label = 0;
@@ -532,8 +532,8 @@ SCOPE_TEST(testDeterminize2) {
   comp.subsetDFA(h, g);
 
   NFA exp(2);
-  edge(0, 1, exp, exp.TransFac->getLit('a'));
-  edge(1, 2, exp, exp.TransFac->getLit('a'));
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(1, 2, exp, exp.TransFac->getByte('a'));
 
   exp[2].IsMatch = true;
   exp[2].Label = 0;
@@ -545,8 +545,8 @@ SCOPE_TEST(testDeterminize2) {
 
 SCOPE_TEST(testDeterminize3) {
   NFA g(2);
-  edge(0, 1, g, g.TransFac->getLit('a'));
-  edge(1, 1, g, g.TransFac->getLit('a'));
+  edge(0, 1, g, g.TransFac->getByte('a'));
+  edge(1, 1, g, g.TransFac->getByte('a'));
 
   g[1].IsMatch = true;
   g[1].Label = 0;
@@ -586,12 +586,12 @@ SCOPE_TEST(testDeterminize4) {
 
 SCOPE_TEST(testDeterminize5) {
   NFA g(4);
-  edge(0, 1, g, g.TransFac->getLit('d'));
-  edge(1, 2, g, g.TransFac->getLit('d'));
-  edge(1, 1, g, g.TransFac->getLit('d'));
-  edge(1, 3, g, g.TransFac->getLit('x'));
-  edge(2, 1, g, g.TransFac->getLit('d'));
-  edge(2, 3, g, g.TransFac->getLit('x'));
+  edge(0, 1, g, g.TransFac->getByte('d'));
+  edge(1, 2, g, g.TransFac->getByte('d'));
+  edge(1, 1, g, g.TransFac->getByte('d'));
+  edge(1, 3, g, g.TransFac->getByte('x'));
+  edge(2, 1, g, g.TransFac->getByte('d'));
+  edge(2, 3, g, g.TransFac->getByte('x'));
 
   g[3].IsMatch = true;
   g[3].Label = 0;
@@ -601,13 +601,13 @@ SCOPE_TEST(testDeterminize5) {
   comp.subsetDFA(h, g);
 
   NFA exp(5);
-  edge(0, 1, exp, exp.TransFac->getLit('d'));
-  edge(1, 2, exp, exp.TransFac->getLit('x'));
-  edge(1, 3, exp, exp.TransFac->getLit('d'));
-  edge(3, 2, exp, exp.TransFac->getLit('x'));
-  edge(3, 4, exp, exp.TransFac->getLit('d'));
-  edge(4, 2, exp, exp.TransFac->getLit('x'));
-  edge(4, 3, exp, exp.TransFac->getLit('d'));
+  edge(0, 1, exp, exp.TransFac->getByte('d'));
+  edge(1, 2, exp, exp.TransFac->getByte('x'));
+  edge(1, 3, exp, exp.TransFac->getByte('d'));
+  edge(3, 2, exp, exp.TransFac->getByte('x'));
+  edge(3, 4, exp, exp.TransFac->getByte('d'));
+  edge(4, 2, exp, exp.TransFac->getByte('x'));
+  edge(4, 3, exp, exp.TransFac->getByte('d'));
 
   exp[2].IsMatch = true;
   exp[2].Label = 0;
@@ -619,8 +619,8 @@ SCOPE_TEST(testDeterminize5) {
 
 SCOPE_TEST(testPruneBranches) {
   NFA g(3);
-  edge(0, 1, g, g.TransFac->getLit('a'));
-  edge(0, 2, g, g.TransFac->getLit('a'));
+  edge(0, 1, g, g.TransFac->getByte('a'));
+  edge(0, 2, g, g.TransFac->getByte('a'));
 
   g[1].IsMatch = true;
   g[1].Label = 0;
@@ -629,9 +629,9 @@ SCOPE_TEST(testPruneBranches) {
   comp.pruneBranches(g);
 
   NFA exp(3);
-  edge(0, 1, exp, exp.TransFac->getLit('a'));
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
 
-  exp[2].Trans = exp.TransFac->getLit('a');
+  exp[2].Trans = exp.TransFac->getByte('a');
 
   exp[1].IsMatch = true;
   exp[1].Label = 0;

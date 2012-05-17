@@ -27,8 +27,8 @@ std::string Instruction::toString() const {
   std::string ret;
   std::stringstream buf;
   switch (OpCode) {
-  case LIT_OP:
-    buf << "Literal 0x" << HexCode<byte>(Op.Literal) << "/'" << Op.Literal << '\'';
+  case BYTE_OP:
+    buf << "Byte 0x" << HexCode<byte>(Op.Byte) << "/'" << Op.Byte << '\'';
     break;
   case EITHER_OP:
     buf << "Either 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "', 0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
@@ -73,10 +73,10 @@ std::string Instruction::toString() const {
   return ret;
 }
 
-Instruction Instruction::makeLit(byte b) {
+Instruction Instruction::makeByte(byte b) {
   Instruction i;
-  i.OpCode = LIT_OP;
-  i.Op.Literal = b;
+  i.OpCode = BYTE_OP;
+  i.Op.Byte = b;
   return i;
 }
 
@@ -193,10 +193,10 @@ std::istream& operator>>(std::istream& in, Instruction& instr) {
   std::string opname;
   in >> opname;
 
-  if (opname == "Literal") {
+  if (opname == "Byte") {
     uint32 b;
     in >> std::hex >> b;
-    instr = Instruction::makeLit(b);
+    instr = Instruction::makeByte(b);
   }
   else if (opname == "Either") {
     uint32 a, b;

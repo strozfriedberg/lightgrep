@@ -21,7 +21,7 @@ SCOPE_TEST(getSmallestNoneTest) {
 
 SCOPE_TEST(getSmallestOneTest) {
   const ByteSet ebs('z');
-  smallestTester<LitState>(ebs);
+  smallestTester<ByteState>(ebs);
 }
 
 SCOPE_TEST(getSmallestTwoTest) {
