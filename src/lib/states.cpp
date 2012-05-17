@@ -27,23 +27,23 @@ void printRange(std::ostream& out, byte beg, byte end) {
   }
 }
 
-bool LitState::toInstruction(Instruction* addr) const {
-  *addr = Instruction::makeLit(Lit);
+bool ByteState::toInstruction(Instruction* addr) const {
+  *addr = Instruction::makeByte(Byte);
   return true;
 }
 
-LitState* LitState::clone(void* buffer) const {
-  return buffer == 0 ? new LitState(*this): new(buffer) LitState(*this);
+ByteState* ByteState::clone(void* buffer) const {
+  return buffer == 0 ? new ByteState(*this): new(buffer) ByteState(*this);
 }
 
-std::string LitState::label() const {
+std::string ByteState::label() const {
   std::stringstream buf;
-  printByte(buf, Lit);
+  printByte(buf, Byte);
   return buf.str();
 }
 
 bool EitherState::toInstruction(Instruction* addr) const {
-  *addr = Instruction::makeEither(Lit1, Lit2);
+  *addr = Instruction::makeEither(Byte1, Byte2);
   return true;
 }
 
@@ -53,8 +53,8 @@ EitherState* EitherState::clone(void* buffer) const {
 
 std::string EitherState::label() const {
   std::stringstream buf;
-  printByte(buf, Lit1);
-  printByte(buf, Lit2);
+  printByte(buf, Byte1);
+  printByte(buf, Byte2);
   return buf.str();
 }
 
