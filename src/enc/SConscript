@@ -1,0 +1,4 @@
+Import('env')
+libs = ['icuuc', 'icudata']
+ret = env.Program('encodings', Glob('*.cpp'), LIBS=libs)
+Return('ret')

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <istream>
+#include <ostream>
 #include <vector>
 
 #include "instructions.h"
@@ -11,14 +13,16 @@ typedef std::shared_ptr<Program> ProgramPtr;
 
 class Program: public std::vector<Instruction> {
 public:
-  Program(size_t num, const Instruction& val): std::vector<Instruction>(num, val) {}
-  Program(): std::vector<Instruction>() {}
+  Program(size_t num, const Instruction& val):
+    std::vector<Instruction>(num, val), NumChecked(0), First() {}
+
+  Program(): std::vector<Instruction>(), NumChecked(0), First() {}
 
   uint32  NumChecked;
 
   ByteSet First;
 
-  int bufSize() const; 
+  int bufSize() const;
 
   bool operator==(const Program& rhs) const;
 
@@ -27,3 +31,5 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& out, const Program& prog);
+
+std::istream& operator>>(std::istream& in, Program& prog);

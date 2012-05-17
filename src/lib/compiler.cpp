@@ -42,8 +42,7 @@ bool Compiler::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Tra
   {
     const std::map<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor>>::const_iterator i(Dst2Src.find(dstTail));
     if (i == Dst2Src.end() || 1 == src.inDegree(i->second.front())) {
-      dstBits.reset();
-      dstTrans->getBits(dstBits);
+      dstTrans->getBytes(dstBits);
       return dstBits == srcBits;
     }
   }
@@ -70,7 +69,7 @@ Compiler::StatePair Compiler::processChild(const NFA& src, NFA& dst, uint32 si, 
     const Transition* srcTrans(src[srcTail].Trans);
 
     ByteSet srcBits;
-    srcTrans->getBits(srcBits);
+    srcTrans->getBytes(srcBits);
 
     // try to match it with a successor of the destination vertex,
     // preserving the relative order of the source vertex's successors
@@ -200,8 +199,7 @@ void Compiler::pruneBranches(NFA& g) {
         next.push(tail);
       }
 
-      obs.reset();
-      g[tail].Trans->getBits(obs);
+      g[tail].Trans->getBytes(obs);
 
 //      nbs = obs & ~mbs;
       obs &= ~mbs;
@@ -213,7 +211,7 @@ void Compiler::pruneBranches(NFA& g) {
 /*
       else if (nbs != obs) {
         Transition* ot = g[tail];
-        Transition* nt = new CharClassState(nbs);
+        Transition* nt = new ByteSetState(nbs);
         nt->IsMatch = ot->IsMatch;
         nt->Label = ot->Label;
         g.setTran(tail, nt);
@@ -387,8 +385,7 @@ void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor src
   for (uint32 j = 0; j < odeg; ++j) {
     const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, j);
 
-    outBytes.reset();
-    src[srcTail].Trans->getBits(outBytes);
+    src[srcTail].Trans->getBytes(outBytes);
 
     for (uint32 b = 0; b < 256; ++b) {
       if (outBytes[b]) {
@@ -443,7 +440,7 @@ void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor 
     // new sublist dst vertex
     dstList2Dst[ss] = dstTail = dst.addVertex();
     dstStack.push(ss);
-    dst[dstTail].Trans = dst.TransFac->getCharClass(bs);
+    dst[dstTail].Trans = dst.TransFac->getSmallest(bs);
   }
   else {
     // old sublist vertex
@@ -456,41 +453,6 @@ void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor 
   }
 
   dst.addEdge(dstHead, dstTail);
-}
-
-void collapseCharacterClass(NFA& g, NFA::VertexDescriptor v, ByteSet& outBytes) {
-  int32 first = -1;
-  int32 last = -1;
-
-  outBytes.reset();
-  g[v].Trans->getBits(outBytes);
-
-  for (int32 b = 0; b < 256; ++b) {
-    if (outBytes[b]) {
-      if (first == -1) {
-        // start of a range
-        first = last = b;
-      }
-      else if (last != b - 1) {
-        // not a range
-        first = -1;
-        break;
-      }
-      else {
-        // ongoing range
-        last = b;
-      }
-    }
-  }
-
-  if (first != -1) {
-    if (first == last) {
-      g[v].Trans = g.TransFac->getLit(first);
-    }
-    else {
-      g[v].Trans = g.TransFac->getRange(first, last);
-    }
-  }
 }
 
 void handleSubsetState(const NFA& src, NFA& dst, const VDList& srcHeadList, const NFA::VertexDescriptor dstHead, std::stack<SubsetState>& dstStack, ByteSet& outBytes, SubsetStateToState& dstList2Dst) {
@@ -554,12 +516,5 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
     const NFA::VertexDescriptor dstHead = dstList2Dst[ss];
 
     handleSubsetState(src, dst, srcHeadList, dstHead, dstStack, outBytes, dstList2Dst);
-  }
-
-  // collapse CharClassStates where possible
-  // isn't necessary, but improves the GraphViz output
-  const uint32 dstSize = dst.verticesSize();
-  for (uint32 i = 1; i < dstSize; ++i) {
-    collapseCharacterClass(dst, i, outBytes);
   }
 }

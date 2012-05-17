@@ -42,7 +42,7 @@ SCOPE_TEST(smallvector1Insert) {
   std::vector<std::vector<int>> store;
   ExternalOverflow<int,1> eo(store);
   SmallVector<int,1,ExternalOverflow> v(eo);
-  
+
   for (int32 i = 0; i < 10; ++i) {
     v.insert(v.begin(), i);
   }
@@ -58,7 +58,7 @@ SCOPE_TEST(smallvector1Erase) {
   std::vector<std::vector<int>> store;
   ExternalOverflow<int,1> eo(store);
   SmallVector<int,1,ExternalOverflow> v(eo);
-  
+
   for (int32 i = 0; i < 10; ++i) {
     v.push_back(i);
   }
@@ -68,7 +68,7 @@ SCOPE_TEST(smallvector1Erase) {
   for (int32 i = 0; i < 5; ++i) {
     v.erase(v.begin());
   }
-  
+
   SCOPE_ASSERT_EQUAL(5, v.size());
 
   for (int32 i = 0; i < 5; ++i) {

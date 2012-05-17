@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basic.h"
+#include "rangeset.h"
 
 #include <iostream>
 #include <limits>
@@ -12,7 +13,6 @@ struct ParseNode {
     REGEXP,
     ALTERNATION,
     CONCATENATION,
-    GROUP,
     REPETITION,
     REPETITION_NG,
     DOT,
@@ -23,33 +23,48 @@ struct ParseNode {
 
   NodeType Type;
 
+/*
+  TOOD: For minimum size, the union should be:
+
+  union {
+    struct {
+      ParseNode* Left;
+      union {
+        ParseNode* Right;
+        struct {
+          uint32 Min, Max;
+        } Rep;
+      };
+    } Inner;
+
+    int Val;
+    UnicodeSet Bits;
+  };
+
+*/
+
   ParseNode *Left;
 
-//  union  {
+  union {
     ParseNode* Right;
     int Val;
     struct {
       uint32 Min, Max;
     } Rep;
-    ByteSet Bits;
-  //};
+  };
 
-  ParseNode(): Type(LITERAL), Left(0), Val(0) {}
+  UnicodeSet Bits;
 
-  ParseNode(NodeType t, uint32 v): Type(t), Left(0) {
+  ParseNode(): Type(LITERAL), Left(nullptr), Val(0) {}
+
+  ParseNode(NodeType t, uint32 v): Type(t), Left(nullptr), Val(v), Bits() {
     if (Type == CHAR_CLASS) {
-      // Use placement new to initialize Bits; note that this does not
-      // allocate memory, so we don't have to delete anything.
-      new(&(this->Bits)) ByteSet();
       Bits.set(v);
-    }
-    else {
-      Val = v;
     }
   }
 
   ParseNode(NodeType t, ParseNode* l):
-    Type(t), Left(l), Right(0) {}
+    Type(t), Left(l), Right(nullptr) {}
 
   ParseNode(NodeType t, ParseNode* l, ParseNode* r):
     Type(t), Left(l), Right(r) {}
@@ -62,19 +77,64 @@ struct ParseNode {
   }
 
   ParseNode(NodeType t, uint32 first, uint32 last):
-    Type(t), Left(0), Bits()
-  {
-    Bits.reset();
-    range(first, last);
-  }
+    Type(t), Left(nullptr), Right(nullptr), Bits(first, last + 1) {}
 
   explicit ParseNode(NodeType t, const ByteSet& b):
-    Type(t), Left(0), Bits(b) {}
+    Type(t), Left(nullptr), Right(nullptr), Bits(b) {}
+
+  ParseNode(NodeType t, const UnicodeSet& b):
+    Type(t), Left(nullptr), Right(nullptr), Bits(b) {}
+
+  ParseNode(const ParseNode& n): Type(n.Type), Left(n.Left) {
+    init_union(n);
+  }
+
+  ~ParseNode() {
+/*
+    // we have to call the dtor for UnicodeSet ourselves,
+    // because it has a nontrivial dtor and is part of a union
+    if (Type == CHAR_CLASS) {
+      Bits.~UnicodeSet();
+    }
+*/
+  }
+
+  ParseNode& operator=(const ParseNode& n) {
+    // self-assignment is bad, due to the placement new in init_union
+    if (this != &n) {
+      Type = n.Type;
+      Left = n.Left;
+      init_union(n);
+    }
+    return *this;
+  }
+
+  void init_union(const ParseNode& n) {
+    switch (Type) {
+    case REGEXP:
+      Right = nullptr;
+      break;
+    case ALTERNATION:
+    case CONCATENATION:
+      Right = n.Right;
+      break;
+    case REPETITION:
+    case REPETITION_NG:
+      Rep = n.Rep;
+      break;
+    case CHAR_CLASS:
+//      new(&Bits) UnicodeSet(n.Bits);
+      Bits = n.Bits;
+      Right = nullptr;
+      break;
+    default:
+      Val = n.Val;
+      break;
+    }
+  }
 
   void range(uint32 first, uint32 last) {
-    for (uint32 i = first; i <= last; ++i) {
-      Bits.set(i);
-    }
+    Bits.insert(first, last + 1);
   }
 };
 

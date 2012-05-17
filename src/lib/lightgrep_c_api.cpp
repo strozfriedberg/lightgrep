@@ -46,7 +46,7 @@ template <typename T> bool exception_trap(T func, Handle* h) {
   catch (...) {
     paranoid_copy_error_string(h->Error, OH_SHIT);
   }
-  
+
   return false;
 }
 
@@ -173,12 +173,12 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
 
   return hProg;
 }
- 
+
 void write_program(LG_HPROGRAM hProg, void* buffer) {
   std::string buf = hProg->Impl->Prog->marshall();
   memcpy(buffer, buf.data(), buf.size());
 }
- 
+
 void read_program(LG_HPROGRAM hProg, void* buffer, int size) {
   hProg->Impl.reset(new ProgramHandleImpl);
   std::string s((char*)buffer, size);

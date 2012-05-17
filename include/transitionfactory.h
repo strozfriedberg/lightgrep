@@ -10,21 +10,22 @@
 
 class TransitionFactory {
 public:
-  TransitionFactory(): Lit(0), Either(0, 0), Range(0, 0), CharClass(ByteSet()) {}
+  TransitionFactory():
+    Byte(0), Either(0, 0), Range(0, 0), BSet(ByteSet()) {}
 
   ~TransitionFactory() {
     std::for_each(Exemplars.begin(), Exemplars.end(),
                   std::default_delete<Transition>());
   }
 
-  Transition* getLit(byte lit) {
-    Lit.Lit = lit;
-    return get(&Lit);
+  Transition* getByte(byte b) {
+    Byte.Byte = b;
+    return get(&Byte);
   }
 
-  Transition* getEither(byte lit1, byte lit2) {
-    Either.Lit1 = lit1;
-    Either.Lit2 = lit2;
+  Transition* getEither(byte b1, byte b2) {
+    Either.Byte1 = b1;
+    Either.Byte2 = b2;
     return get(&Either);
   }
 
@@ -34,9 +35,74 @@ public:
     return get(&Range);
   }
 
-  Transition* getCharClass(const ByteSet& bytes) {
-    CharClass.Allowed = bytes;
-    return get(&CharClass);
+  Transition* getByteSet(const ByteSet& bset) {
+    BSet.Allowed = bset;
+    return get(&BSet);
+  }
+
+  Transition* getByteSet(const UnicodeSet& bset) {
+    // NB: This should be used *only* when we intend to intersect
+    // the input set with [0x00,0xFF].
+    for (uint32 i = 0; i < 256; ++i) {
+      BSet.Allowed.set(i, bset.test(i));
+    }
+    return get(&BSet);
+  }
+
+  template <class SetType>
+  Transition* getSmallest(const SetType& bset) {
+    enum {
+      NONE,
+      ONE,
+      RANGE,
+      TWO
+    } type = NONE;
+
+    byte low = 0, high = 0;
+
+    // This is a little state machine for classifying our byte set.
+    for (size_t i = 0; i < 256; ++i) {
+      if (bset.test(i)) {
+        switch (type) {
+        case NONE:
+          low = high = i;
+          type = ONE;
+          break;
+        case ONE:
+          if (++high != i) {
+            high = i;
+            type = TWO;
+          }
+          else {
+            type = RANGE;
+          }
+          break;
+        case RANGE:
+          if (++high == i) {
+            break;
+          }
+        case TWO:
+          // cc is a union of disjoint ranges
+          return getByteSet(bset);
+        }
+      }
+    }
+
+    switch (type) {
+    case NONE:
+      return getByteSet(bset);
+    case ONE:
+      return getByte(low);
+    case RANGE:
+// TODO: Check whether there is any performance difference between EITHER
+// and RANGE for two-element ranges.
+      return getRange(low, high);
+    case TWO:
+      return getEither(low, high);
+    }
+
+    // This is impossible, it's here just to shut the compiler up.
+    return getByteSet(bset);
   }
 
 private:
@@ -48,8 +114,8 @@ private:
   std::set<Transition*,TransitionComparator> Exemplars;
 
   // Local states so we don't have to create one on each lookup
-  LitState Lit;
+  ByteState Byte;
   EitherState Either;
   RangeState Range;
-  CharClassState CharClass;
+  ByteSetState BSet;
 };

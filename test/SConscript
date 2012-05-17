@@ -1,5 +1,6 @@
 Import('env')
-libs = ['lightgrep', 'boost_program_options' + env['boostType']]
+libs = ['lightgrep', 'icuuc', 'icudata',
+	'boost_program_options' + env['boostType']]
 optSrcs = env.Glob('#/src/cmd/opt*.cpp')
 testSrcs = env.Glob('*.cpp')
 testSrcs.extend(optSrcs)

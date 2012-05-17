@@ -1,6 +1,5 @@
-
 #include "codegen.h"
-#include "concrete_encodings.h"
+#include "concrete_encoders.h"
 #include "compiler.h"
 #include "encodings.h"
 #include "nfabuilder.h"
@@ -8,6 +7,7 @@
 #include "rewriter.h"
 
 #include <algorithm>
+#include <cctype>
 #include <functional>
 #include <queue>
 #include <sstream>
@@ -20,7 +20,7 @@ void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, Parser& p, ui
     try {
       p.addPattern(keywords[i], keyIdx);
     }
-    catch (std::runtime_error&) {
+    catch (const std::runtime_error&) {
       if (!ignoreBad) {
         throw;
       }
@@ -36,16 +36,17 @@ uint32 totalCharacters(const std::vector<Pattern>& keywords) {
   return ret;
 }
 
+// FIXME: this duplicates a lot of parsePatterns() in main.cpp
 void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
   addKeys(keyInfo.Patterns, ignoreBad, p, keyIdx);
-  EncodingsCodeMap encMap = getEncodingsMap();
 
   for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
-    uint32 encIdx = 0;
-    EncodingsCodeMap::const_iterator it(encMap.find(keyInfo.Patterns[i].Encoding));
-    if (it != encMap.end()) {
-      encIdx = it->second;
+    int32 encIdx = lg_get_encoding_id(keyInfo.Patterns[i].Encoding.c_str());
+
+    if (encIdx == -1) {
+      encIdx = 0;
     }
+
     keyInfo.Table.emplace_back(i, encIdx);
   }
 }
@@ -116,15 +117,15 @@ void createJumpTable(std::shared_ptr<CodeGenHelper> cg, Instruction const* const
   for (uint32 i = first; i <= last; ++i) {
     if (tbl[i].empty()) {
       const uint32 addr = 0xffffffff;
-      *cur++ = *reinterpret_cast<const Instruction*>(&addr);
+      *cur++ = reinterpret_cast<const Instruction&>(addr);
     }
     else if (1 == tbl[i].size()) {
       const uint32 addr = figureOutLanding(cg, *tbl[i].begin(), graph);
-      *cur++ = *reinterpret_cast<const Instruction*>(&addr);
+      *cur++ = reinterpret_cast<const Instruction&>(addr);
     }
     else {
       const uint32 addr = startIndex + (indirectTbl - start);
-      *cur++ = *reinterpret_cast<const Instruction*>(&addr);
+      *cur++ = reinterpret_cast<const Instruction&>(addr);
 
       // write the indirect table in reverse edge order because
       // parent threads have priority over forked children
@@ -257,12 +258,9 @@ void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor) {
   }
 }
 
-void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph) {
-  ByteSet tBits;
+void nextBytes(ByteSet& bset, NFA::VertexDescriptor v, const NFA& graph) {
   for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
-    tBits.reset();
-    graph[graph.outVertex(v, ov)].Trans->getBits(tBits);
-    set |= tBits;
+    graph[graph.outVertex(v, ov)].Trans->orBytes(bset);
   }
 }
 
@@ -289,8 +287,7 @@ std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescripto
   for (uint32 i = 0; i < graph.outDegree(source); ++i) {
     NFA::VertexDescriptor ov = graph.outVertex(source, i);
 
-    permitted.reset();
-    graph[ov].Trans->getBits(permitted);
+    graph[ov].Trans->getBytes(permitted);
     for (uint32 i = 0; i < 256; ++i) {
       if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
         ret[i].push_back(ov);

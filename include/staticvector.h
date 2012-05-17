@@ -2,6 +2,8 @@
 
 #include "basic.h"
 
+#include <memory>
+
 // this ONLY works for POD types, especially clear()
 template<class T>
 class StaticVector {
@@ -76,7 +78,7 @@ public:
   }
 
 private:
-  boost::scoped_array<T> Array;
+  std::unique_ptr<T[]> Array;
   unsigned int Capacity;
   T *Begin,
     *End;

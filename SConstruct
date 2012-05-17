@@ -86,7 +86,7 @@ if (isWindows):
   cxxflags += ' -mthreads'
 
 # add vendors/scope and vendors/boost as system include paths, if they exist
-ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost']))
+ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost', 'vendors/icu']))
 
 env['DEBUG_MODE'] = debug
 env.Replace(CCFLAGS=ccflags)
@@ -94,6 +94,8 @@ env.Replace(CXXFLAGS=cxxflags)
 env.Replace(CPPDEFINES=defines)
 env.Append(CPPPATH=['#/include'])
 env.Append(LIBPATH=['#/lib'])
+if (p.exists('vendors/icu/lib')):
+  env.Append(LIBPATH=['#/vendors/icu/lib'])
 env.Append(LINKFLAGS=ldflags)
 
 print("CC = " + env['CC'])
@@ -103,7 +105,7 @@ Help(vars.GenerateHelpText(env))
 
 conf = Configure(env)
 boostType = env['boostType']
-if (not (conf.CheckCXXHeader('boost/scoped_ptr.hpp')
+if (not (conf.CheckCXXHeader('boost/program_options.hpp')
    and conf.CheckLib('boost_system' + boostType)
    and conf.CheckLib('boost_thread' + boostType)
    and conf.CheckLib('boost_filesystem' + boostType)
@@ -113,6 +115,8 @@ if (not (conf.CheckCXXHeader('boost/scoped_ptr.hpp')
 
 if (not isWindows and 'DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
+
+enc = sub('src/enc')
 
 liblg = sub('src/lib')
 

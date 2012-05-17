@@ -14,7 +14,7 @@
 void fixture(const char* pattern, const char** expected, uint32 max_matches, uint32 max_loops) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse(pattern, false, tree));
+  SCOPE_ASSERT(parse(pattern, false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   std::set<std::string> aset;
