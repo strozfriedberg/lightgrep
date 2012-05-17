@@ -94,6 +94,8 @@ env.Replace(CXXFLAGS=cxxflags)
 env.Replace(CPPDEFINES=defines)
 env.Append(CPPPATH=['#/include'])
 env.Append(LIBPATH=['#/lib'])
+if (p.exists('vendors/icu/lib')):
+  env.Append(LIBPATH=['#/vendors/icu/lib'])
 env.Append(LINKFLAGS=ldflags)
 
 print("CC = " + env['CC'])
