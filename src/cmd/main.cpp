@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <fstream>
 #include <functional>
@@ -10,6 +11,8 @@
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
 #include <boost/graph/graphviz.hpp>
+
+#include <unicode/ucnv.h>
 
 #include "encodings.h"
 #include "handles.h"
@@ -60,6 +63,35 @@ void printHelp(const po::options_description& desc) {
     << desc << std::endl;
 }
 
+void printEncodings() {
+  UErrorCode err = U_ZERO_ERROR;
+
+  const int32 clen = ucnv_countAvailable();
+  for (int32 i = 0; i < clen; ++i) {
+    // print the canonical name for the encoding
+    const char* n = ucnv_getAvailableName(i);
+    std::cout << n << '\n';
+
+    // print the aliases for the encoding
+    const int32 alen = ucnv_countAliases(n, &err);
+    if (U_FAILURE(err)) {
+      // should not happen
+      THROW_RUNTIME_ERROR_WITH_OUTPUT("ICU error: " << u_errorName(err));
+    }
+
+    for (int32 j = 0; j < alen; ++j) {
+      std::cout << '\t' << ucnv_getAlias(n, j, &err) << '\n';
+
+      if (U_FAILURE(err)) {
+        // should not happen
+        THROW_RUNTIME_ERROR_WITH_OUTPUT("ICU error: " << u_errorName(err));
+      }
+    }
+  }
+
+  std::cout << std::endl;
+}
+
 bool addPattern(
   LG_HPARSER parser,
   uint32 i,
@@ -94,8 +126,11 @@ void stdParseErrorHandler(const Pattern& p, const std::string& err) {
               << p.Index << ", '" << p.Expression << "'" << std::endl;
 }
 
-std::shared_ptr<ParserHandle> parsePatterns(PatternInfo& pinfo, uint32& numErrors,
-                                            std::function<void (const Pattern&, const std::string&)> onError = stdParseErrorHandler)
+std::shared_ptr<ParserHandle> parsePatterns(
+  PatternInfo& pinfo,
+  uint32& numErrors,
+  std::function<void (const Pattern&, const std::string&)> onError =
+    stdParseErrorHandler)
 {
   numErrors = 0;
   if (pinfo.Patterns.empty()) {
@@ -106,25 +141,24 @@ std::shared_ptr<ParserHandle> parsePatterns(PatternInfo& pinfo, uint32& numError
   const uint32 tlen = std::max(1u, totalCharacters(pinfo.Patterns));
 
   std::shared_ptr<ParserHandle> parser(lg_create_parser(tlen),
-                                         lg_destroy_parser);
+                                       lg_destroy_parser);
 
   // parse patterns
   uint32 patIdx = 0;
-  EncodingsCodeMap encMap(getEncodingsMap());
-  EncodingsCodeMap::const_iterator foundEnc;
 
   for (uint32 i = 0; i < pinfo.Patterns.size(); ++i) {
-    uint32 encIdx = 0;
-    if ((foundEnc = encMap.find(pinfo.Patterns[i].Encoding)) != encMap.end()) {
-      encIdx = foundEnc->second;
+    int32 encIdx = lg_get_encoding_id(pinfo.Patterns[i].Encoding.c_str());
+    if (encIdx == -1) {
+      encIdx = 0;
     }
+
     if (addPattern(parser.get(), i, patIdx, encIdx, pinfo)) {
       ++patIdx;
     }
     else {
       ++numErrors;
       onError(pinfo.Patterns[i], lg_error(parser.get()));
-    }    
+    }
   }
   // don't enable these unless debugging -- will mess up enscript
 /*  std::cerr << pinfo.Patterns.size() << " Patterns" << std::endl;
@@ -155,7 +189,7 @@ std::shared_ptr<ProgramHandle> createProgram(const Options& opts, PatternInfo& p
       std::cerr << g->verticesSize() << " vertices" << std::endl;
 
       ProgramPtr p(prog->Impl->Prog);
-      std::cerr << p->size() << " instructions" << std::endl;    
+      std::cerr << p->size() << " instructions" << std::endl;
     }
     else {
       std::cerr << lg_error(prog.get()) << std::endl;
@@ -262,6 +296,7 @@ std::shared_ptr<ProgramHandle> getProgram(const Options& opts, PatternInfo& pinf
       progFile.read(&buf[0], end);
       progFile.close();
 
+/*
       auto encMap(getEncodingsMap());
       auto foundEnc(encMap.end());
 
@@ -270,6 +305,8 @@ std::shared_ptr<ProgramHandle> getProgram(const Options& opts, PatternInfo& pinf
           pinfo.Table.emplace_back(p.Index, foundEnc->second);
         }
       }
+*/
+
       return std::shared_ptr<ProgramHandle>(lg_read_program(&buf[0], end), lg_destroy_program);
     }
     else {
@@ -401,7 +438,7 @@ void writeProgram(const Options& opts) {
       std::cerr << lg_error(prog.get()) << std::endl;
       return;
     }
- 
+
     NFAPtr g(parser->Impl->Fsm);
   }
 
@@ -471,39 +508,42 @@ void startServer(const Options& opts) {
 
 int main(int argc, char** argv) {
   Options opts;
-  po::options_description desc("Allowed Options");
+  po::options_description desc;
   try {
     parse_opts(argc, argv, desc, opts);
 
-    if (opts.Command == "search") {
+    switch (opts.Command) {
+    case Options::SEARCH:
       search(opts);
-    }
-    else if (opts.Command == "server") {
-      startServer(opts);
-    }
-    else if (opts.Command == "help") {
-      printHelp(desc);
-    }
-    else if (opts.Command == "graph") {
+      break;
+    case Options::GRAPH:
       return writeGraphviz(opts) ? 0: 1;
-    }
-    else if (opts.Command == "prog") {
+    case Options::PROGRAM:
       writeProgram(opts);
-    }
-    else if (opts.Command == "samp") {
+      break;
+    case Options::SAMPLES:
       writeSampleMatches(opts);
-    }
-    else if (opts.Command == "validate") {
+      break;
+    case Options::VALIDATE:
       validate(opts);
-    }
-    else {
+      break;
+    case Options::SERVER:
+      startServer(opts);
+      break;
+    case Options::HELP:
+      printHelp(desc);
+      break;
+    case Options::ENCODINGS:
+      printEncodings();
+      break;
+    default:
       // this should be impossible
       std::cerr << "Unrecognized command. Use --help for list of options."
                 << std::endl;
       return 1;
     }
   }
-  catch (std::exception& err) {
+  catch (const std::exception& err) {
     std::cerr << "Error: " << err.what() << "\n\n";
     printHelp(desc);
     return 1;

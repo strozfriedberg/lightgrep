@@ -49,7 +49,7 @@ inline byte expected_length(byte b) {
   }
   else {
     return 4;
-  } 
+  }
 }
 
 template <class Expected, class Actual>
@@ -273,7 +273,7 @@ void utf8_to_unicode_tester(Converter conv) {
   // ED [A0,BF] [80,BF] are UTF-16 surrogates
   // everything else is a bad continuation
   invalid_range<3>("\xED\xA0\x00", "\xED\xFF\xFF", conv);
- 
+
   // [EE,F0) have the full range of continuation bytes
   for (b[0] = 0xEE; b[0] < 0xF0; ++b[0]) {
     ContinuationTester<2,3,Converter>()(b, conv);
@@ -281,7 +281,7 @@ void utf8_to_unicode_tester(Converter conv) {
 
   //
   // [0xF0,0xF5) begin valid 4-byte sequences
-  // 
+  //
 
   // F0 lacks some continuation bytes due to overlong forms
 

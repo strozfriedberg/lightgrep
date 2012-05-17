@@ -37,7 +37,7 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
       cp = -1;
       return 1;
     }
-    
+
     cp &= 0x1F;
     CONTINUATION(cp, i, end, 2);
 
@@ -75,19 +75,64 @@ int utf8_to_unicode(int& cp, Iterator i, const Iterator& end) {
     cp = -1;
     return 1;
   }
-} 
+}
 
 #undef CONTINUATION
+
+template <class Iterator>
+int unicode_to_ascii(byte& b, Iterator& i, const Iterator& end) {
+  if (i == end) {
+    return -1;
+  }
+
+  const int cp = *i++;
+  if (cp < 0 || 0xFF < cp) {
+    return -1;
+  }
+
+  b = cp;
+  return 1;
+}
+
+template <class Decoder, class InputIterator, class OutputIterator>
+OutputIterator transform_to_unicode(InputIterator ibegin,
+                                    InputIterator iend,
+                                    OutputIterator obegin,
+                                    Decoder decoder)
+{
+  int cp;
+  while (ibegin != iend) {
+    ibegin += decoder(cp, ibegin, iend);
+    *obegin++ = cp;
+  }
+  return obegin;
+}
 
 template <class InputIterator, class OutputIterator>
 OutputIterator transform_utf8_to_unicode(InputIterator ibegin,
                                          InputIterator iend,
                                          OutputIterator obegin)
 {
-  int cp;
+  return transform_to_unicode(ibegin, iend, obegin,
+                              utf8_to_unicode<InputIterator>);
+}
+
+/*
+template <class InputIterator, class OutputIterator>
+OutputIterator transform_unicode_to_ascii(InputIterator ibegin,
+                                          InputIterator iend,
+                                          OutputIterator obegin)
+{
+  byte b;
+  int ret;
   while (ibegin != iend) {
-    ibegin += utf8_to_unicode(cp, ibegin, iend);
-    *obegin++ = cp;
+    ret = unicode_to_ascii(b, ibegin, iend);
+    if (ret < 0) {
+
+    }
+    ibegin += unicode_to_ascii(b, ibegin, iend);
+    *obegin++ = b;
   }
   return obegin;
 }
+*/

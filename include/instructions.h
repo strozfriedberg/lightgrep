@@ -2,9 +2,12 @@
 
 #include "basic.h"
 
+#include <istream>
+#include <ostream>
+
 enum OpCodes {
   UNINITIALIZED = 0,
-  LIT_OP,
+  BYTE_OP,
   EITHER_OP,
   RANGE_OP,
   ANY_OP,
@@ -20,16 +23,11 @@ enum OpCodes {
   ILLEGAL
 };
 
-template<int OPCODE>
-struct InstructionSize {
-  enum {
-    VAL = 1
-  };
-};
+template<int OPCODE> struct InstructionSize { enum { VAL = 1 }; };
 
 template<> struct InstructionSize<BIT_VECTOR_OP> { enum { VAL = 9 }; };
-template<> struct InstructionSize<JUMP_OP> { enum { VAL = 2 }; };
 template<> struct InstructionSize<FORK_OP> { enum { VAL = 2 }; };
+template<> struct InstructionSize<JUMP_OP> { enum { VAL = 2 }; };
 
 #pragma pack(push, 1)
 struct ByteRange {
@@ -39,7 +37,7 @@ struct ByteRange {
 union Operand {
   unsigned  Offset : 24;
   ByteRange Range;
-  byte      Literal;
+  byte      Byte;
 };
 
 struct Instruction {
@@ -50,14 +48,14 @@ struct Instruction {
 
   byte wordSize() const {
     switch (OpCode) {
-      case BIT_VECTOR_OP:
-        return InstructionSize<BIT_VECTOR_OP>::VAL;
-      case JUMP_OP:
-        return InstructionSize<JUMP_OP>::VAL;
-      case FORK_OP:
-        return InstructionSize<FORK_OP>::VAL;
-      default:
-        return InstructionSize<UNINITIALIZED>::VAL;
+    case BIT_VECTOR_OP:
+      return InstructionSize<BIT_VECTOR_OP>::VAL;
+    case JUMP_OP:
+      return InstructionSize<JUMP_OP>::VAL;
+    case FORK_OP:
+      return InstructionSize<FORK_OP>::VAL;
+    default:
+      return InstructionSize<UNINITIALIZED>::VAL;
     }
   }
 
@@ -67,7 +65,7 @@ struct Instruction {
 
   bool operator==(const Instruction& x) const { return *((uint32*)this) == *((uint32*)&x); } // total hack
 
-  static Instruction makeLit(byte b);
+  static Instruction makeByte(byte b);
   static Instruction makeEither(byte one, byte two);
   static Instruction makeRange(byte first, byte last);
   static Instruction makeAny();
@@ -86,3 +84,4 @@ struct Instruction {
 #pragma pack(pop)
 
 std::ostream& operator<<(std::ostream& out, const Instruction& instr);
+std::istream& operator>>(std::istream& in, Instruction& instr);

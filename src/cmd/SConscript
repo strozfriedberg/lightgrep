@@ -1,7 +1,7 @@
 import re
 
 Import('env', 'isWindows', 'isLinux')
-libs = ['lightgrep']
+libs = ['lightgrep', 'icuuc', 'icudata']
 libs.extend([lib + env['boostType'] for lib in
                  ['boost_system', 'boost_thread', 'boost_program_options', 'boost_filesystem']])
 if (isLinux):

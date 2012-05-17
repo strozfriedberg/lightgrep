@@ -11,7 +11,7 @@ template <class GraphType,
           class VertexType,
           class EdgeType,
           template <typename> class EdgeDescriptorStorage>
-class Graph : public GraphType
+class Graph: public GraphType
 {
 private:
   struct VertexData;
@@ -37,7 +37,7 @@ public:
 
 private:
 #pragma pack(push, 1)
-  struct VertexData : public VertexType {
+  struct VertexData: public VertexType {
     VertexData(): VertexType() {}
 
     VertexData(const VertexType& v): VertexType(v) {}
@@ -46,11 +46,16 @@ private:
   };
 #pragma pack(pop)
 
-  struct EdgeData : public EdgeType {
+  struct EdgeData: public EdgeType {
     EdgeData(VertexDescriptor head, VertexDescriptor tail, const EdgeType& e): EdgeType(e), Head(head), Tail(tail) {}
 
     VertexDescriptor Head, Tail;
   };
+
+  VList Vertices;
+  EList Edges;
+
+  EdgeDescriptorStorage<EdgeDescriptor> Store;
 
 public:
   Graph(VertexSizeType vActual = 0): Vertices(vActual, VertexData()) {}
@@ -143,10 +148,10 @@ public:
   EdgeIterator eEnd() {
     return Edges.end();
   }
- 
+
   ConstEdgeIterator eEnd() const {
     return Edges.end();
-  }  
+  }
 
   VertexIterator ivBegin(VertexDescriptor tail) {
     return Store.ivbegin(this);
@@ -326,11 +331,6 @@ private:
       }
     }
   }
-
-  VList Vertices;
-  EList Edges;
-
-  EdgeDescriptorStorage<EdgeDescriptor> Store;
 };
 
 template <class G, class V, class E, template <typename> class S> std::ostream& operator<<(std::ostream& out, const Graph<G,V,E,S>& g) {

@@ -17,6 +17,7 @@ namespace boost {
 }
 
 #include <boost/asio.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "handles.h"
 #include "hitwriter.h"
@@ -303,7 +304,7 @@ public:
       boost::mutex::scoped_lock lock(*Mutex);
       writeErr() += "Flushing hits file\n";
       for (StaticVector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
-        *Output << it->ID << '\t' 
+        *Output << it->ID << '\t'
                 << it->Offset << '\t'
                 << it->Length << '\t'
                 << it->Label << '\t'
@@ -470,7 +471,7 @@ std::string HitStats::getStats() const {
 
 class LGServer {
 public:
-  LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts, unsigned short port);
+  LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts);
 
   void run();
 
@@ -482,7 +483,7 @@ public:
   }
 
   void threadCleanup(boost::thread::id id);
- 
+
   void requestCleanup(boost::thread::id id);
 
   void writeHits(const std::vector<HitInfo>& hits);
@@ -515,24 +516,38 @@ private:
   HitStats                     Stats;
 };
 
-LGServer::LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo,
-  const Options& opts, unsigned short port)
+LGServer::LGServer(
+  std::shared_ptr<ProgramHandle> prog,
+  const PatternInfo& pinfo,
+  const Options& opts)
   : Opts(opts), Prog(prog), PInfo(pinfo), Service(), Acceptor(Service),
     Stats(pinfo.Table.size())
 {
   if (Opts.Output != "-") {
     if (!Registry::get().init(Opts.Output, PInfo.NumUserPatterns)) {
-      THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not open output file at " << Opts.Output);
+      THROW_RUNTIME_ERROR_WITH_OUTPUT(
+        "Could not open output file at " << Opts.Output
+      );
     }
     UsesFile = true;
   }
   else {
     Registry::get().init("", pinfo.NumUserPatterns);
   }
-  tcp::endpoint endpoint(tcp::v4(), port);
 
-  Acceptor.open(endpoint.protocol());
-  Acceptor.bind(endpoint);
+  // resolve the server address
+  tcp::resolver resolver(Service);
+  tcp::resolver::query q(Opts.ServerAddr,
+                         boost::lexical_cast<std::string>(opts.ServerPort));
+  tcp::resolver::iterator i = resolver.resolve(q), end;
+  if (i == end) {
+    // this should not happen, since resolve throws on error
+    THROW_RUNTIME_ERROR_WITH_OUTPUT("resolver returned no addresses");
+  }
+
+  // bind to the port and listen
+  Acceptor.open(i->endpoint().protocol());
+  Acceptor.bind(i->endpoint());
   Acceptor.listen();
 
   resetAcceptor();
@@ -586,7 +601,7 @@ void LGServer::threadCleanup(boost::thread::id id) {
 
 void LGServer::requestCleanup(boost::thread::id id) {
   Service.post(std::bind(&LGServer::threadCleanup, this, id));
-} 
+}
 
 void LGServer::writeHits(const std::vector<HitInfo>&) {
 
@@ -602,7 +617,7 @@ void processConn(
   std::stringstream buf;
 
   try {
-    boost::scoped_array<byte> data(new byte[BUF_SIZE]);
+    std::unique_ptr<byte[]> data(new byte[BUF_SIZE]);
 
     LG_ContextOptions ctxOpts;
     std::shared_ptr<ContextHandle> searcher(
@@ -640,7 +655,7 @@ void processConn(
       // uint32 i = ntohl(*(uint32*)data);
     }
   }
-  catch (std::exception& e) {
+  catch (const std::exception& e) {
     SAFEWRITE(buf, "broke out of reading socket. " << e.what() << '\n');
   }
 
@@ -651,8 +666,11 @@ void processConn(
 }
 
 void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
+  std::unique_ptr<std::ostream> outptr;
+
   if (!opts.ServerLog.empty()) {
-    ErrOut = new std::ofstream(opts.ServerLog.c_str(), std::ios::out);
+    outptr.reset(new std::ofstream(opts.ServerLog.c_str(), std::ios::out));
+    ErrOut = outptr.get();
     ErrOut->rdbuf()->pubsetbuf(0, 0); // unbuffered
   }
   else {
@@ -660,16 +678,13 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
   }
 
   try {
-    LGServer srv(prog, pinfo, opts, 12777);
+    LGServer srv(prog, pinfo, opts);
     srv.run();
   }
-  catch (std::exception& e) {
-    writeErr() += std::stringstream() << e.what() << std::endl;
+  catch (const std::exception& e) {
+    std::stringstream buf;
+    SAFEWRITE(buf, e.what() << '\n');
   }
 
   Registry::get().cleanup();
-
-  if (!opts.ServerLog.empty()) {
-    delete ErrOut;
-  }
 }

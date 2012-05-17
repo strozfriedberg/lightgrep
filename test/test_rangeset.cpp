@@ -7,7 +7,7 @@
 #include "rangeset.h"
 
 SCOPE_TEST(rangeSetEqualsTest) {
-  RangeSet<uint32,256> r, s, u{0,1};
+  RangeSet<uint32,256> r, s, u{{0,1}};
   // reflexive
   SCOPE_ASSERT(s == s);
   SCOPE_ASSERT(r == r);
@@ -51,31 +51,31 @@ SCOPE_TEST(rangeSetNoneTest) {
 }
 
 SCOPE_TEST(rangeSetSomeTest) {
-  RangeSet<uint32,256> r{1,3};
+  RangeSet<uint32,256> r{{1,3}};
 
   std::bitset<256> b;
   b[1] = b[2] = true;
 
   bitset_equivalence_tester(b, r);
 
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
-  SCOPE_ASSERT_EQUAL(2, r.cend() - r.cbegin());
-  SCOPE_ASSERT_EQUAL(2, r.rend() - r.rbegin());
-  SCOPE_ASSERT_EQUAL(2, r.crend() - r.crbegin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.cend() - r.cbegin());
+  SCOPE_ASSERT_EQUAL(1, r.rend() - r.rbegin());
+  SCOPE_ASSERT_EQUAL(1, r.crend() - r.crbegin());
 }
 
 SCOPE_TEST(rangeSetAllTest) {
-  RangeSet<uint32,256> r{0,256};
+  RangeSet<uint32,256> r{{0,256}};
 
   std::bitset<256> b;
   b.set();
 
   bitset_equivalence_tester(b, r);
 
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
-  SCOPE_ASSERT_EQUAL(2, r.cend() - r.cbegin());
-  SCOPE_ASSERT_EQUAL(2, r.rend() - r.rbegin());
-  SCOPE_ASSERT_EQUAL(2, r.crend() - r.crbegin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.cend() - r.cbegin());
+  SCOPE_ASSERT_EQUAL(1, r.rend() - r.rbegin());
+  SCOPE_ASSERT_EQUAL(1, r.crend() - r.crbegin());
 }
 
 SCOPE_TEST(rangeSetSetResetTest) {
@@ -104,7 +104,7 @@ SCOPE_TEST(rangeSetFlipAllNoneTest) {
 }
 
 SCOPE_TEST(rangeSetFlipIntermediateTest) {
-  RangeSet<uint32,256> r{1,13,34,128};
+  RangeSet<uint32,256> r{{1,13},{34,128}};
   std::bitset<256> b;
   for (uint32 i = 1; i < 13; ++i) { b[i] = true; }
   for (uint32 i = 34; i < 128; ++i) { b[i] = true; }
@@ -116,7 +116,7 @@ SCOPE_TEST(rangeSetFlipIntermediateTest) {
 }
 
 SCOPE_TEST(rangeSetCopyConstructorTest) {
-  RangeSet<uint32,256> r{87,93,134,245,250,256};
+  RangeSet<uint32,256> r{{87,93},{134,245},{250,256}};
   RangeSet<uint32,256> s(r);
   SCOPE_ASSERT(r == s);
 }
@@ -137,22 +137,22 @@ SCOPE_TEST(rangeSetInsertDisjointTest) {
   for (uint32 i = 0; i < 5; ++i) { b[i] = true; }
   r.insert(0, 5);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 27; i < 42; ++i) { b[i] = true; }
   r.insert(27, 42);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(4, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
 
   for (uint32 i = 44; i < 48; ++i) { b[i] = true; }
   r.insert(44, 48);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(6, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(3, r.end() - r.begin());
 
   for (uint32 i = 10; i < 13; ++i) { b[i] = true; }
   r.insert(10, 13);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(8, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(4, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertMeetLeftTest) {
@@ -163,12 +163,12 @@ SCOPE_TEST(rangeSetInsertMeetLeftTest) {
   for (uint32 i = 20; i < 25; ++i) { b[i] = true; }
   r.insert(20, 25);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
-  SCOPE_ASSERT(b == r); 
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertMeetRightTest) {
@@ -179,12 +179,12 @@ SCOPE_TEST(rangeSetInsertMeetRightTest) {
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 20; i < 25; ++i) { b[i] = true; }
   r.insert(20, 25);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertSuperTest) {
@@ -195,12 +195,12 @@ SCOPE_TEST(rangeSetInsertSuperTest) {
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 10; i < 25; ++i) { b[i] = true; }
   r.insert(10, 25);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertSubTest) {
@@ -211,12 +211,12 @@ SCOPE_TEST(rangeSetInsertSubTest) {
   for (uint32 i = 10; i < 25; ++i) { b[i] = true; }
   r.insert(10, 25);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertEmpty) {
@@ -238,15 +238,15 @@ SCOPE_TEST(rangeSetInsertOutOfOrderTest) {
 
   b[0] = r[0] = true;
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   b[255] = r[255] = true;
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(4, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
 
   b['A'] = r['A'] = true;
   SCOPE_ASSERT(b == r);
-  SCOPE_ASSERT_EQUAL(6, r.end() - r.begin());
+  SCOPE_ASSERT_EQUAL(3, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertRandomTest) {
@@ -282,4 +282,74 @@ SCOPE_TEST(rangeSetInsertRandomTest) {
       }
     }
   }
+}
+
+SCOPE_TEST(rangeSetReferenceAssignmentTest) {
+  RangeSet<uint32,256> r;
+  r['a'] = r['b'] = r['c'] = true;
+
+  std::bitset<256> b;
+  b['a'] = b['b'] = b['c'] = true;
+
+  SCOPE_ASSERT(b == r);
+}
+
+SCOPE_TEST(rangeSetIntersectionAssignmentEmptyTest) {
+  RangeSet<uint32,256> a(0, 100), b(100, 200);
+  SCOPE_ASSERT((a &= b).none());
+}
+
+SCOPE_TEST(rangeSetIntersectionAssignmentNonemptyTest) {
+  RangeSet<uint32,256> a(0, 101), b(100, 200), c(100);
+  SCOPE_ASSERT_EQUAL(c, a &= b);
+}
+
+SCOPE_TEST(rangeSetIntersectionEmptyTest) {
+  RangeSet<uint32,256> a(0, 100), b(100, 200);
+  SCOPE_ASSERT((a & b).none());
+}
+
+SCOPE_TEST(rangeSetIntersectionNonemptyTest) {
+  RangeSet<uint32,256> a(0, 101), b(100, 200), c(100);
+  SCOPE_ASSERT_EQUAL(c, a & b);
+}
+
+SCOPE_TEST(rangeSetUnionAssignmentEmptyTest) {
+  RangeSet<uint32,256> a, b;
+  SCOPE_ASSERT((a |= b).none());
+}
+
+SCOPE_TEST(rangeSetUnionAssignmentNonemptyDisjointTest) {
+  RangeSet<uint32,256> a(0, 10), b(20, 30), c{{0, 10}, {20, 30}};
+  SCOPE_ASSERT_EQUAL(c, a |= b);
+}
+
+SCOPE_TEST(rangeSetUnionAssignmentNonemptyTest) {
+  RangeSet<uint32,256> a(0, 10), b(8, 20), c(0, 20);
+  SCOPE_ASSERT_EQUAL(c, a |= b);
+}
+
+SCOPE_TEST(rangeSetUnionEmptyTest) {
+  RangeSet<uint32,256> a, b;
+  SCOPE_ASSERT((a | b).none());
+}
+
+SCOPE_TEST(rangeSetUnionNonemptyDisjointTest) {
+  RangeSet<uint32,256> a(0, 10), b(20, 30), c{{0, 10},{20, 30}};
+  SCOPE_ASSERT_EQUAL(c, a | b);
+}
+
+SCOPE_TEST(rangeSetUnionNonemptyTest) {
+  RangeSet<uint32,256> a(0, 10), b(8, 20), c(0, 20);
+  SCOPE_ASSERT_EQUAL(c, a | b);
+}
+
+SCOPE_TEST(rangeSetComplementEmptyTest) {
+  RangeSet<uint32,256> a(0, 256);
+  SCOPE_ASSERT((~a).none());
+}
+
+SCOPE_TEST(rangeSetComplementNonemptyTest) {
+  RangeSet<uint32,256> a(0, 128), b(128, 256);
+  SCOPE_ASSERT_EQUAL(b, ~a);
 }

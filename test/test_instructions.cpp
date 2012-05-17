@@ -5,12 +5,12 @@
 
 #include <stdexcept>
 
-SCOPE_TEST(makeLit) {
-  Instruction i = Instruction::makeLit('a');
-  SCOPE_ASSERT_EQUAL(LIT_OP, i.OpCode);
+SCOPE_TEST(makeByte) {
+  Instruction i = Instruction::makeByte('a');
+  SCOPE_ASSERT_EQUAL(BYTE_OP, i.OpCode);
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL('a', i.Op.Literal);
-  SCOPE_ASSERT_EQUAL("Literal 0x61/'a'", i.toString());
+  SCOPE_ASSERT_EQUAL('a', i.Op.Byte);
+  SCOPE_ASSERT_EQUAL("Byte 0x61/'a'", i.toString());
 }
 
 SCOPE_TEST(makeJump) {

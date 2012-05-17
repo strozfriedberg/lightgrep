@@ -1,5 +1,5 @@
 Import('env', 'isWindows', 'isLinux')
-libs = ['lightgrep', 'libstdc++']
+libs = ['lightgrep', 'icuuc', 'icudata', 'libstdc++']
 env = env.Clone(CXXFLAGS='')
 env.Append(CCFLAGS=' -std=c99')
 ret = env.Program('c_example', Glob('*.c'), LIBS=libs, LINKFLAGS='-static-libgcc')

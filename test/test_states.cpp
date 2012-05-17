@@ -15,14 +15,14 @@ void testClone(const TransitionType& toCopy, byte* text) {
   SCOPE_ASSERT_EQUAL(text+1, dupe->allowed(text, text+1));
 }
 
-SCOPE_TEST(litAccept) {
-  const LitState lit('a');
+SCOPE_TEST(byteAccept) {
+  const ByteState lit('a');
   byte ch[2] = "a";
   SCOPE_ASSERT_EQUAL(ch+1, lit.allowed(ch, ch+1));
   ch[0] = 'b';
   SCOPE_ASSERT_EQUAL(ch, lit.allowed(ch, ch+1));
   ByteSet bits(0);
-  lit.getBits(bits);
+  lit.getBytes(bits);
   SCOPE_ASSERT_EQUAL(1u, bits.count());
   SCOPE_ASSERT(bits.test('a'));
   SCOPE_ASSERT(bits.any());
@@ -31,7 +31,7 @@ SCOPE_TEST(litAccept) {
   Instruction instr;
   SCOPE_ASSERT_EQUAL(1u, lit.numInstructions());
   SCOPE_ASSERT(lit.toInstruction(&instr));
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), instr);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), instr);
 
   ch[0] = 'a';
   testClone(lit, ch);
@@ -48,7 +48,7 @@ SCOPE_TEST(eitherAccept) {
   SCOPE_ASSERT_EQUAL(&ch+1, e.allowed(&ch, &ch+1));
 
   ByteSet bits(0);
-  e.getBits(bits);
+  e.getBytes(bits);
   SCOPE_ASSERT_EQUAL(2u, bits.count());
   SCOPE_ASSERT(bits.test('a'));
   SCOPE_ASSERT(bits.test('A'));
@@ -67,7 +67,7 @@ SCOPE_TEST(rangeAccept) {
   const RangeState r('0', '9');
   byte ch;
   ByteSet bits(0);
-  r.getBits(bits);
+  r.getBytes(bits);
   SCOPE_ASSERT_EQUAL(10u, bits.count());
   for (unsigned int i = 0; i < 256; ++i) {
     ch = i;
@@ -97,10 +97,10 @@ SCOPE_TEST(charClassState) {
   set.set('a');
   set.set('B');
   set.set('b');
-  const CharClassState s(set);
+  const ByteSetState s(set);
   ByteSet bits;
   bits.reset();
-  s.getBits(bits);
+  s.getBytes(bits);
   SCOPE_ASSERT_EQUAL(set, bits);
   SCOPE_ASSERT_EQUAL(9u, s.numInstructions());
   Program p(9, Instruction::makeHalt());
