@@ -138,11 +138,11 @@ void NFABuilder::literal(const ParseNode& n) {
   NFA& g(*Fsm);
   NFA::VertexDescriptor first, prev, last;
   first = prev = last = g.addVertex();
-  g[first].Trans = g.TransFac->getLit(TempBuf[0]);
+  g[first].Trans = g.TransFac->getByte(TempBuf[0]);
   for (uint32 i = 1; i < len; ++i) {
     last = g.addVertex();
     g.addEdge(prev, last);
-    g[last].Trans = g.TransFac->getLit(TempBuf[i]);
+    g[last].Trans = g.TransFac->getByte(TempBuf[i]);
     prev = last;
   }
   TempFrag.reset(n);
@@ -171,8 +171,76 @@ void NFABuilder::charClass(const ParseNode& n) {
     );
   }
 
+  // convert the code point set into collapsed encoding ranges
+  TempEncRanges.clear();
+  Enc->write(uset, TempEncRanges);
+
+  ByteSet bs;
   TempFrag.reset(n);
-  Enc->write(uset, *Fsm, TempFrag);
+
+  // create a graph from the collapsed ranges
+  for (const std::vector<ByteSet>& enc : TempEncRanges) {
+    NFA::VertexDescriptor head, tail;
+
+    //
+    // find a suffix of enc in this fragment
+    //
+
+    int32 b = enc.size()-1;
+
+    // find a match for the last transition
+    const auto oi = std::find_if(
+      TempFrag.OutList.begin(), TempFrag.OutList.end(),
+      [&](const std::pair<NFA::VertexDescriptor,uint32>& p) {
+        return (*Fsm)[p.first].Trans->getBytes(bs) == enc[b];
+      }
+    );
+
+    if (oi != TempFrag.OutList.end()) {
+      // match, use this tail
+      tail = oi->first;
+
+      // walk backwards until a transition mismatch
+      for (--b; b >= 0; --b) {
+        head = 0;
+        const uint32 ideg = Fsm->inDegree(tail);
+        for (uint32 i = 0; i < ideg; ++i) {
+          head = Fsm->inVertex(tail, i);
+          (*Fsm)[head].Trans->getBytes(bs);
+          if (bs == enc[b]) {
+            tail = head;
+            break;
+          }
+          head = 0;
+        }
+
+        if (!head) {
+          // tail is as far back as we can go
+          break;
+        }
+      }
+    }
+    else {
+      // no match, build a new tail
+      tail = Fsm->addVertex();
+      (*Fsm)[tail].Trans = Fsm->TransFac->getSmallest(enc[b--]);
+      TempFrag.OutList.emplace_back(tail, 0);
+    }
+
+    //
+    // build from the start of enc to meet the existing suffix
+    //
+
+    for ( ; b >= 0; --b) {
+      head = Fsm->addVertex();
+      (*Fsm)[head].Trans = Fsm->TransFac->getSmallest(enc[b]);
+      Fsm->addEdge(head, tail);
+      tail = head;
+    }
+
+    TempFrag.InList.push_back(tail);
+  }
+
   Fsm->Deterministic = false;
   Stack.push(TempFrag);
 }

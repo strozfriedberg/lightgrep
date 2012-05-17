@@ -63,11 +63,12 @@ private:
   uint64 ReserveSize;
   std::shared_ptr<Encoder> Enc;
   NFAPtr Fsm;
-  std::stack<Fragment> Stack;
-  std::stack<const ParseNode*, std::vector<const ParseNode*>> ChildStack, ParentStack;
-
-  std::unique_ptr<byte[]> TempBuf;
   std::shared_ptr<TransitionFactory> TransFac;
 
+  // these are all temporaries we need frequently
+  std::unique_ptr<byte[]> TempBuf;
   Fragment TempFrag;
+  std::vector<std::vector<ByteSet>> TempEncRanges;
+  std::stack<Fragment> Stack;
+  std::stack<const ParseNode*, std::vector<const ParseNode*>> ChildStack, ParentStack;
 };

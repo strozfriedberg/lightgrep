@@ -1,9 +1,7 @@
 #pragma once
 
-#include "automata.h"
 #include "basic.h"
 #include "byteset.h"
-#include "fragment.h"
 
 #include <vector>
 
@@ -17,7 +15,5 @@ public:
 
   virtual uint32 write(int cp, byte buf[]) const = 0;
 
-  virtual void write(const UnicodeSet& uset, NFA& g, Fragment& frag) const;
-
-  virtual void write(std::vector<std::vector<ByteSet>>& v, const UnicodeSet& uset) const;
+  virtual void write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v) const = 0;
 };

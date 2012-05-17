@@ -23,6 +23,26 @@ struct ParseNode {
 
   NodeType Type;
 
+/*
+  TOOD: For minimum size, the union should be:
+
+  union {
+    struct {
+      ParseNode* Left;
+      union {
+        ParseNode* Right;
+        struct {
+          uint32 Min, Max;
+        } Rep;
+      };
+    } Inner;
+
+    int Val;
+    UnicodeSet Bits;
+  };
+
+*/
+
   ParseNode *Left;
 
   union {
