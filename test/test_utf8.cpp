@@ -168,21 +168,21 @@ SCOPE_TEST(testUTF8Graph0) {
 
 //  NFA eg(8);
 //
-//  eg[0].Trans = eg.TransFac->getLit(0xF1);
+//  eg[0].Trans = eg.TransFac->getByte(0xF1);
 //  eg.addEdge(0, 1);
-//  eg[1].Trans = eg.TransFac->getLit(0x80);
+//  eg[1].Trans = eg.TransFac->getByte(0x80);
 //  eg.addEdge(1, 2);
-//  eg[2].Trans = eg.TransFac->getLit(0x80);
+//  eg[2].Trans = eg.TransFac->getByte(0x80);
 //  eg.addEdge(3, 4);
-//  eg[3].Trans = eg.TransFac->getLit(0x80);
+//  eg[3].Trans = eg.TransFac->getByte(0x80);
 //
-//  eg[4].Trans = eg.TransFac->getLit(0xF2);
+//  eg[4].Trans = eg.TransFac->getByte(0xF2);
 //  eg.addEdge(4, 5);
-//  eg[5].Trans = eg.TransFac->getLit(0x80);
+//  eg[5].Trans = eg.TransFac->getByte(0x80);
 //  eg.addEdge(5, 6);
-//  eg[6].Trans = eg.TransFac->getLit(0x80);
+//  eg[6].Trans = eg.TransFac->getByte(0x80);
 //  eg.addEdge(6, 7);
-//  eg[7].Trans = eg.TransFac->getLit(0x81);
+//  eg[7].Trans = eg.TransFac->getByte(0x81);
 //
 //  Fragment efrag;
 //  efrag.InList.push_back(0);
