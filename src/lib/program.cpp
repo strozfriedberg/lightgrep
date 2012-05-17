@@ -65,12 +65,12 @@ std::ostream& operator<<(std::ostream& out, const Program& prog) {
 
       for (uint32 j = start; j <= end; ++j) {
         ++i;
-        printIndex(out, i) << std::setfill(' ') << std::setw(3) << j << ": " << *reinterpret_cast<const uint32*>(&prog[i]) << '\n';
+        printIndex(out, i) << std::setfill(' ') << std::setw(3) << j << ": " << reinterpret_cast<const uint32&>(prog[i]) << '\n';
       }
     }
     else if (prog[i].OpCode == JUMP_OP || prog[i].OpCode == FORK_OP) {
       ++i;
-      printIndex(out, i) << *reinterpret_cast<const uint32*>(&prog[i]) << '\n';
+      printIndex(out, i) << reinterpret_cast<const uint32&>(prog[i]) << '\n';
     }
   }
 

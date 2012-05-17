@@ -4,7 +4,7 @@
 
 ProgramPtr makeProgram() {
   ProgramPtr p1(new Program());
-  p1->push_back(Instruction::makeLit('a'));
+  p1->push_back(Instruction::makeByte('a'));
   p1->push_back(Instruction::makeLabel(0));
   p1->push_back(Instruction::makeMatch());
   p1->First.set('a');
