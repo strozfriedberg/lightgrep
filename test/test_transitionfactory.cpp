@@ -21,7 +21,7 @@ SCOPE_TEST(getSmallestNoneTest) {
 
 SCOPE_TEST(getSmallestOneTest) {
   const ByteSet ebs('z');
-  smallestTester<ByteSetState>(ebs);
+  smallestTester<ByteState>(ebs);
 }
 
 SCOPE_TEST(getSmallestTwoTest) {
@@ -33,9 +33,7 @@ SCOPE_TEST(getSmallestTwoTest) {
 
 SCOPE_TEST(getSmallestRangeTest) {
   ByteSet ebs;
-  for (byte b = 'a'; b <= 'z'; ++b) {
-    ebs.set(b);
-  }
+  ebs.set('a', 'z' + 1, true);
   smallestTester<RangeState>(ebs);
 }
 

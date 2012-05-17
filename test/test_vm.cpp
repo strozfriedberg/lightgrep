@@ -5,9 +5,9 @@
 
 #include <iostream>
 
-SCOPE_TEST(executeLit) {
+SCOPE_TEST(executeByte) {
   byte b = 'a';
-  ProgramPtr p(new Program(1, Instruction::makeLit('a')));
+  ProgramPtr p(new Program(1, Instruction::makeByte('a')));
   Vm         s(p);
   Thread cur(&(*p)[0]);
   SCOPE_ASSERT(s.execute(&cur, &b));
@@ -192,7 +192,7 @@ SCOPE_TEST(executeLabel) {
 
 SCOPE_TEST(executeMatch) {
   ProgramPtr p(new Program(2, Instruction::makeMatch()));
-  (*p)[0] = Instruction::makeLit('a'); // just to keep Vm::init() from executing the match
+  (*p)[0] = Instruction::makeByte('a'); // just to keep Vm::init() from executing the match
   Vm s(p);
 
   Thread cur(&(*p)[1], 0, 0, Thread::NONE);
@@ -205,8 +205,8 @@ SCOPE_TEST(executeMatch) {
 SCOPE_TEST(executeFork) {
   ProgramPtr p(new Program(4, Instruction()));
   (*p)[0] = Instruction::makeFork(&(*p)[0], 3);
-  (*p)[2] = Instruction::makeLit('a');
-  (*p)[3] = Instruction::makeLit('a');
+  (*p)[2] = Instruction::makeByte('a');
+  (*p)[3] = Instruction::makeByte('a');
   Vm s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
   SCOPE_ASSERT(s.executeEpsilon(&cur, 47));
@@ -254,12 +254,12 @@ SCOPE_TEST(runFrame) {
   Program&   prog(*p);
   // not a complete program, but good enough for executing a frame
   prog[0] = Instruction::makeJump(&prog[0], 2);
-  prog[2] = Instruction::makeLit('a');
+  prog[2] = Instruction::makeByte('a');
   prog[3] = Instruction::makeFork(&prog[3], 8);
   prog[5] = Instruction::makeLabel(1);
   prog[6] = Instruction::makeMatch();
-  prog[7] = Instruction::makeLit('b');
-  prog[8] = Instruction::makeLit('c');
+  prog[7] = Instruction::makeByte('b');
+  prog[8] = Instruction::makeByte('c');
   prog.First.set('a');
 
   byte b = 'a';
@@ -277,12 +277,12 @@ SCOPE_TEST(testInit) {
   prog[0]  = Instruction::makeFork(&prog[0], 7);   // 0
   prog[2]  = Instruction::makeFork(&prog[2], 6);   // 1
   prog[4]  = Instruction::makeJump(&prog[4], 11);   // 2
-  prog[6]  = Instruction::makeLit('a');  // 3
+  prog[6]  = Instruction::makeByte('a');  // 3
   prog[7]  = Instruction::makeFork(&prog[7], 12);   // 4
   prog[9]  = Instruction::makeJump(&prog[9], 13);   // 5
-  prog[11] = Instruction::makeLit('b');  // 6
-  prog[12] = Instruction::makeLit('c');  // 7
-  prog[13] = Instruction::makeLit('d');  // 8
+  prog[11] = Instruction::makeByte('b');  // 6
+  prog[12] = Instruction::makeByte('c');  // 7
+  prog[13] = Instruction::makeByte('d');  // 8
   prog.First.set('a');
   prog.First.set('b');
   prog.First.set('c');
@@ -300,8 +300,8 @@ SCOPE_TEST(testInit) {
 SCOPE_TEST(simpleLitMatch) {
   ProgramPtr p(new Program(8, Instruction::makeRaw32(0)));
   Program& prog(*p);
-  prog[0] = Instruction::makeLit('a');
-  prog[1] = Instruction::makeLit('b');
+  prog[0] = Instruction::makeByte('a');
+  prog[1] = Instruction::makeByte('b');
   prog[2] = Instruction::makeLabel(3);
   prog[3] = Instruction::makeMatch();
   prog[4] = Instruction::makeFork(&prog[4], 7);
@@ -328,13 +328,13 @@ SCOPE_TEST(newThreadInit) {
   prog[0]  = Instruction::makeJumpTableRange('a', 'b');
   prog[1]  = Instruction::makeRaw32(4);
   prog[2]  = Instruction::makeRaw32(9);
-  prog[3]  = Instruction::makeLit('a');
+  prog[3]  = Instruction::makeByte('a');
   prog[4]  = Instruction::makeLabel(1);
   prog[5]  = Instruction::makeMatch();
   prog[6]  = Instruction::makeFork(&prog[6], 16);
   prog[8]  = Instruction::makeHalt();
-  prog[9]  = Instruction::makeLit('b');
-  prog[10]  = Instruction::makeLit('c');
+  prog[9]  = Instruction::makeByte('b');
+  prog[10]  = Instruction::makeByte('c');
   prog[11] = Instruction::makeLabel(0);
   prog[12] = Instruction::makeMatch();
   prog[13] = Instruction::makeFork(&prog[13], 16);
@@ -383,18 +383,18 @@ SCOPE_TEST(threeKeywords) {
 
   prog[0]  = Instruction::makeFork(&prog[0], 4);
   prog[2]  = Instruction::makeJump(&prog[2], 10);
-  prog[4]  = Instruction::makeLit('a');
+  prog[4]  = Instruction::makeByte('a');
   prog[5]  = Instruction::makeLabel(0);
   prog[6]  = Instruction::makeMatch();
   prog[7]  = Instruction::makeFork(&prog[7], 24);
   prog[9]  = Instruction::makeHalt();
-  prog[10] = Instruction::makeLit('b');
+  prog[10] = Instruction::makeByte('b');
   prog[11] = Instruction::makeFork(&prog[11], 18);
   prog[13] = Instruction::makeLabel(1);
   prog[14] = Instruction::makeMatch();
   prog[15] = Instruction::makeFork(&prog[15], 24);
   prog[17] = Instruction::makeHalt();
-  prog[18] = Instruction::makeLit('c');
+  prog[18] = Instruction::makeByte('c');
   prog[19] = Instruction::makeLabel(2);
   prog[20] = Instruction::makeMatch();
   prog[21] = Instruction::makeFork(&prog[21], 24);
@@ -418,8 +418,8 @@ SCOPE_TEST(threeKeywords) {
 SCOPE_TEST(stitchedText) {
   ProgramPtr p(new Program(8, Instruction::makeRaw32(0)));
   Program& prog(*p);
-  prog[0] = Instruction::makeLit('a');
-  prog[1] = Instruction::makeLit('b');
+  prog[0] = Instruction::makeByte('a');
+  prog[1] = Instruction::makeByte('b');
   prog[2] = Instruction::makeLabel(0);
   prog[3] = Instruction::makeMatch();
   prog[4] = Instruction::makeFork(&prog[4], 7);

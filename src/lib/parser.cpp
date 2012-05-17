@@ -11,11 +11,11 @@ Parser::Parser(uint32 sizeHint):
   Fsm(new NFA(1, sizeHint)),
   Encoders{
     { "ASCII",    std::make_shared<ASCII>()   },
-    { "UTF-8",    std::make_shared<UTF8>()    },
-    { "UTF-16LE", std::make_shared<UTF16LE>() },
-    { "UTF-16BE", std::make_shared<UTF16BE>() },
-    { "UTF-32LE", std::make_shared<UTF32LE>() },
-    { "UTF-32BE", std::make_shared<UTF32BE>() }
+    { "UTF-8",    std::make_shared<CachingUTF8>()    },
+    { "UTF-16LE", std::make_shared<CachingUTF16LE>() },
+    { "UTF-16BE", std::make_shared<CachingUTF16BE>() },
+    { "UTF-32LE", std::make_shared<CachingUTF32LE>() },
+    { "UTF-32BE", std::make_shared<CachingUTF32BE>() }
   }
 {
   Fsm->TransFac = Nfab.getTransFac();
@@ -46,10 +46,9 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
     Nfab.setEncoder(i->second);
   }
   else {
-// FIXME: This doesn't properly square with LG_SUPPORTED_ENCODINGS: Any
-// encoder added this way won't have an entry in LG_SUPPORTED_ENCODINGS,
-// which will cause hitwriter to overshoot the end.
-    std::shared_ptr<Encoder> enc(new ICUEncoder(pattern.Encoding.c_str()));
+    std::shared_ptr<Encoder> enc(
+      new CachingICUEncoder(pattern.Encoding.c_str())
+    );
     Encoders.insert(std::make_pair(pattern.Encoding, enc));
     Nfab.setEncoder(enc);
   }

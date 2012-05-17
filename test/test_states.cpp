@@ -15,8 +15,8 @@ void testClone(const TransitionType& toCopy, byte* text) {
   SCOPE_ASSERT_EQUAL(text+1, dupe->allowed(text, text+1));
 }
 
-SCOPE_TEST(litAccept) {
-  const LitState lit('a');
+SCOPE_TEST(byteAccept) {
+  const ByteState lit('a');
   byte ch[2] = "a";
   SCOPE_ASSERT_EQUAL(ch+1, lit.allowed(ch, ch+1));
   ch[0] = 'b';
@@ -31,7 +31,7 @@ SCOPE_TEST(litAccept) {
   Instruction instr;
   SCOPE_ASSERT_EQUAL(1u, lit.numInstructions());
   SCOPE_ASSERT(lit.toInstruction(&instr));
-  SCOPE_ASSERT_EQUAL(Instruction::makeLit('a'), instr);
+  SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), instr);
 
   ch[0] = 'a';
   testClone(lit, ch);

@@ -8,7 +8,7 @@ import math
 
 InstructionCodes = {  
   0:'UNINITIALIZED',
-  1:'LIT_OP',
+  1:'BYTE_OP',
   2:'EITHER_OP',
   3:'RANGE_OP',
   4:'ANY_OP',
