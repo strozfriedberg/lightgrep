@@ -35,22 +35,22 @@ public:
     return get(&Range);
   }
 
-  Transition* getByteSet(const ByteSet& bytes) {
-    BSet.Allowed = bytes;
+  Transition* getByteSet(const ByteSet& bset) {
+    BSet.Allowed = bset;
     return get(&BSet);
   }
 
-  Transition* getByteSet(const UnicodeSet& bytes) {
+  Transition* getByteSet(const UnicodeSet& bset) {
     // NB: This should be used *only* when we intend to intersect
     // the input set with [0x00,0xFF].
     for (uint32 i = 0; i < 256; ++i) {
-      BSet.Allowed.set(i, bytes.test(i));
+      BSet.Allowed.set(i, bset.test(i));
     }
     return get(&BSet);
   }
 
   template <class SetType>
-  Transition* getSmallest(const SetType& bytes) {
+  Transition* getSmallest(const SetType& bset) {
     enum {
       NONE,
       ONE,
@@ -62,7 +62,7 @@ public:
 
     // This is a little state machine for classifying our byte set.
     for (size_t i = 0; i < 256; ++i) {
-      if (bytes.test(i)) {
+      if (bset.test(i)) {
         switch (type) {
         case NONE:
           low = high = i;
@@ -83,14 +83,14 @@ public:
           }
         case TWO:
           // cc is a union of disjoint ranges
-          return getByteSet(bytes);
+          return getByteSet(bset);
         }
       }
     }
 
     switch (type) {
     case NONE:
-      return getByteSet(bytes);
+      return getByteSet(bset);
     case ONE:
       return getByte(low);
     case RANGE:
@@ -102,7 +102,7 @@ public:
     }
 
     // This is impossible, it's here just to shut the compiler up.
-    return getByteSet(bytes);
+    return getByteSet(bset);
   }
 
 private:
