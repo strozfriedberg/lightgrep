@@ -315,7 +315,7 @@ std::shared_ptr<ProgramHandle> getProgram(const Options& opts, PatternInfo& pinf
     return std::shared_ptr<ProgramHandle>();
   }
   else {
-    std::cerr << "creating program from patters" << std::endl;
+    std::cerr << "creating program from patterns" << std::endl;
     return createProgram(opts, pinfo);
   }
 }
