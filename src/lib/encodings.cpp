@@ -11,6 +11,7 @@ int lg_get_encoding_id(const char* const name) {
   std::string ns(name);
   std::transform(ns.begin(), ns.end(), ns.begin(), tolower);
 
+// TODO: encodings are sorted by name, so do a binary search
   const LG_SUPPORTED_ENCODING* ptr = std::find_if(
     beg,
     end,
