@@ -32,7 +32,7 @@ ICUEncoder::ICUEncoder(const char* const name) {
   dst_conv = ucnv_open(name, &err);
   if (U_FAILURE(err)) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT(
-      "Unrecognized encoding '" << name << "':" << u_errorName(err)
+      "Unrecognized encoding '" << name << "': " << u_errorName(err)
     );
   }
 
