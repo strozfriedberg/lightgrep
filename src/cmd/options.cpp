@@ -85,29 +85,43 @@ bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& k
     const tokenizer::const_iterator endTok(tokens.end());
     if (curTok != endTok) {
       Pattern p(*curTok, LiteralMode, CaseInsensitive, keyIndex, "");
-      std::string encodings(Encoding); // comma-separated
 
-      if (++curTok != endTok) {
+      if (++curTok == endTok) {
+        // encoding names are in Encodings
+        if (Encodings.empty()) {
+          return false;
+        }
+
+        for (std::string enc : Encodings) {
+          p.Encoding = enc;
+          keys.Patterns.push_back(p);
+        }
+      }
+      else {
+        // encoding names are at the end of the line
         setBool(*curTok, p.FixedString);
         if (++curTok == endTok) {
           return false;
         }
         setBool(*curTok, p.CaseInsensitive);
+
         if (++curTok == endTok) {
           return false;
         }
-        encodings = *curTok;
-      }
-      
-      const tokenizer encList(encodings, char_separator(","));
-      if (encList.begin() != encList.end()) {
+
+        const tokenizer encList(*curTok, char_separator(","));
+        if (encList.begin() == encList.end()) {
+          return false;
+        }
+
         for (std::string enc : encList) {
           p.Encoding = enc;
           keys.Patterns.push_back(p);
         }
-        ++keys.NumUserPatterns;
-        return true;
       }
+
+      ++keys.NumUserPatterns;
+      return true;
     }
   }
   return false;

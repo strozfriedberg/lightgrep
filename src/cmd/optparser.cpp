@@ -68,7 +68,7 @@ void parse_opts(int argc, char** argv,
   pats.add_options()
     ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles), "path to file containing keywords")
     ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns), "a keyword on the command-line")
-    ("encoding,e", po::value<std::string>(&opts.Encoding)->default_value("ASCII"), "encodings to use (e.g., ASCII, UTF-8)")
+    ("encoding,e", po::value<std::vector<std::string>>(&opts.Encodings)->default_value(std::vector<std::string>{"ASCII"}, "ASCII"), "encoding to use (e.g., ASCII, UTF-8)")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ;
@@ -202,9 +202,10 @@ void parse_opts(int argc, char** argv,
     opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;
 
-    // uppercase the encoding name
-    std::transform(opts.Encoding.begin(), opts.Encoding.end(),
-                   opts.Encoding.begin(), toupper);
+    // uppercase encoding names
+    for (std::string& e : opts.Encodings) {
+      std::transform(e.begin(), e.end(), e.begin(), toupper);
+    }
 
     if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
       throw po::error("--with-filename and --no-filename are incompatible options");
