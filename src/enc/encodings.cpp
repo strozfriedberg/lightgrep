@@ -30,7 +30,12 @@ int main(int, char**) {
 "#endif\n"
 "\n";
 
-  // collect the encoding names and their canonical ids
+  // UTR22 > IANA > MIME > IBM > WINDOWS > JAVA > ""
+  const std::vector<std::string> standards{
+    "UTR22", "IANA", "MIME", "IBM", "WINDOWS", "JAVA", ""
+  };
+
+  std::vector<std::string> canonical;
   std::map<std::string,uint32> idmap;
   size_t longest = 0, longest_canonical = 0;
 
@@ -38,22 +43,48 @@ int main(int, char**) {
 
   const int32 clen = ucnv_countAvailable();
   for (int32 i = 0; i < clen; ++i) {
-    // get the canonical name for the encoding
-    const char* n = ucnv_getAvailableName(i);
-    idmap.insert(std::make_pair(n, i));
+    // get the canonical name for the ith encoding
+    const char* cname = ucnv_getAvailableName(i);
+    canonical.emplace_back(cname);
 
-    longest_canonical = std::max(longest_canonical, strlen(n));
-    longest = std::max(longest, longest_canonical);
-
-    const int32 alen = ucnv_countAliases(n, &err);
+    const int32 alen = ucnv_countAliases(cname, &err);
     throw_on_error(err);
 
-    for (int32 j = 0; j < alen; ++j) {
-      const char* a = ucnv_getAlias(n, j, &err);
-      throw_on_error(err);
-      idmap.insert(std::make_pair(a, i));
+    longest_canonical = std::max(longest_canonical, strlen(cname));
+    longest = std::max(longest, longest_canonical);
 
-      longest = std::max(longest, strlen(a));
+    for (int32 j = 0; j < alen; ++j) {
+      // get the jth alias for this encoding 
+      const char* aname = ucnv_getAlias(cname, j, &err);
+      throw_on_error(err);
+
+      // add this alias if not already present
+      auto x = idmap.insert({aname, i});
+      if (x.second) {
+        longest = std::max(longest, strlen(aname));
+      }
+      else {
+        // check which standards define the old and new aliases
+        for (const std::string& std : standards) {
+          const char* sname = std.c_str();
+
+          const char* olds = ucnv_getStandardName(x.first->first.c_str(), sname, &err);
+          throw_on_error(err);
+
+          const char* news = ucnv_getStandardName(aname, sname, &err);
+          throw_on_error(err);
+
+          if (olds) {
+            // olds exists in std, keep it
+            break;
+          }
+          else if (news) {
+            // olds does not exist in std, but news does, replace olds
+            idmap[aname] = i;
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -61,7 +92,7 @@ int main(int, char**) {
   std::cout <<
 "typedef struct {\n"
 "  const char* const name;\n"
-"  size_t idx;\n"
+"  unsigned int idx;\n"
 "} LG_SUPPORTED_ENCODING;\n"
 "\n"
 "static const LG_SUPPORTED_ENCODING LG_SUPPORTED_ENCODINGS[] = {";
@@ -97,7 +128,7 @@ int main(int, char**) {
 
   longest_canonical += 3;
   for (int32 i = 0; i < clen; ++i) {
-    std::string n = ucnv_getAvailableName(i);
+    std::string n(canonical[i]);
     n = '"' + n + '"';
     if (i + 1 < clen) {
       n += ',';
@@ -107,114 +138,80 @@ int main(int, char**) {
   }
 
   std::cout <<
-"};\n"
-"\n";
+"};";
 
-  // get standard names
-  const uint32 slen = ucnv_countStandards();
-  std::vector<std::string> standards;
-  for (uint32 i = 0; i < slen; ++i) {
-    standards.emplace_back(ucnv_getStandard(i, &err));
-    throw_on_error(err);
-  }
+  // sort the aliases by the indices of their canonical names
+  std::vector<std::pair<std::string,uint32>> aliases(idmap.begin(), idmap.end());
+  std::sort(aliases.begin(), aliases.end(),
+    [](const std::pair<std::string,uint32>& a,
+       const std::pair<std::string,uint32>& b)
+    {
+      return a.second < b.second || (a.second == b.second && a.first < b.first);
+    }
+  );
+  
+  std::pair<std::string,uint32> prev{"", std::numeric_limits<uint32>::max()};
 
-  // print the encoding constants
-  for (int32 i = 0; i < clen; ++i) {
-    if (i > 0) {
-      std::cout << '\n';
+  for (const auto& p : aliases) {
+    // print the canonical name for the encoding
+    if (p.second != prev.second) {
+      std::cout << "\n\n// " << canonical[p.second];
+      prev.second = p.second;
     }
 
-    // print the canonical name for the encoding
-    const char* n = ucnv_getAvailableName(i);
-    std::cout << "// " << n << '\n';
+    // create a valid variable name
+    std::string alias(p.first);
+    std::transform(alias.begin(), alias.end(), alias.begin(), toupper);
+    std::replace_if(alias.begin(), alias.end(),
+      [](char c){ return !isalnum(c); }, '_'
+    );
 
-    std::set<std::string> aliases;
+    std::stringstream ss;
+    if (prev.first != alias) {
+      ss << " //";
+    }
 
-    // print the aliases
-    const int32 alen = ucnv_countAliases(n, &err);
-    throw_on_error(err);
-
-    for (int32 j = 0; j < alen; ++j) {
-      const char* a = ucnv_getAlias(n, j, &err);
+    for (const std::string& s : standards) {
+      UEnumeration *nameEnum =
+        ucnv_openStandardNames(canonical[prev.second].c_str(), s.c_str(), &err);
       throw_on_error(err);
 
-      // check whether this alias is ambiguous
-      bool ambiguous = false;
-      std::string prev_sn;
-      for (const std::string& s : standards) {
-        const char* sn = ucnv_getStandardName(a, s.c_str(), &err);
-        throw_on_error(err);
+      bool first = true;
+      const char* standardName;
+      while ((standardName = uenum_next(nameEnum, nullptr, &err))) {
+        if (!strcmp(standardName, p.first.c_str())) {
+          if (!s.empty()) {
+            ss << ' ' << s;
 
-        if (sn) {
-          if (prev_sn.empty()) {
-            prev_sn = sn;
-          }
-          else if (prev_sn != sn) {
-            ambiguous = true;
-            break;
-          }
-        }
-      }
-
-      // create a valid variable name
-      std::string alias(a);
-      std::transform(alias.begin(), alias.end(), alias.begin(), toupper);
-      std::replace_if(alias.begin(), alias.end(),
-                      [](char c){ return !isalnum(c); }, '_');
-
-      // collect the standards defining this alias
-      bool java = false, javaonly = true, nostd = true;
-      std::stringstream ss;
-      ss << " //";
-      for (const std::string& s : standards) {
-        UEnumeration *nameEnum = ucnv_openStandardNames(n, s.c_str(), &err);
-        throw_on_error(err);
-
-        bool first = true;
-        const char* standardName;
-        while ((standardName = uenum_next(nameEnum, nullptr, &err))) {
-          if (!strcmp(standardName, a)) {
-            if (!s.empty()) {
-              ss << ' ' << s;
-
-              if (first) {
-                ss << '*';
-                ambiguous = false;
-              }
-
-              nostd = false;
-            }
-
-            if (s == "JAVA") {
-              java = true;
-            }
-            else {
-              javaonly = false;
+            if (first) {
+              ss << '*';
             }
           }
-
-          first = false;
         }
-      }
 
-      // Comment out:
-      //  * names duplicated by case-folding
-      //  * names defined by no standard
-      //  * names ambiguous between two canonical encodings
-      //  * names defined by Java only
-      if (!aliases.insert(alias).second || nostd || ambiguous || (java && javaonly)) {
-        std::cout << "// ";
-        if (ss.str().length() == 3) {
-          ss.str("");
-        }
+        first = false;
       }
-      std::cout << "static const int LG_ENC_" << alias
-                << " = " << i << ';' << ss.str() << '\n';
+    
+      uenum_close(nameEnum);
+    }
+
+    if (ss.str().length() == 3) {
+      ss.str("");
+    }
+
+    if (prev.first == alias) {
+      std::cout << ss.str();
+    }
+    else {
+      std::cout << "\nstatic const int LG_ENC_" << alias
+                << " = " << p.second << ';' << ss.str();
+      prev.first = alias;
     }
   }
 
   // close the extern block and ifdefs
   std::cout <<
+"\n"
 "\n"
 "int lg_get_encoding_id(const char* const name);\n"
 "\n"
