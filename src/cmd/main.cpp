@@ -141,12 +141,14 @@ std::shared_ptr<ParserHandle> parsePatterns(
   uint32 patIdx = 0;
 
   for (uint32 i = 0; i < pinfo.Patterns.size(); ++i) {
-    int32 encIdx = lg_get_encoding_id(pinfo.Patterns[i].Encoding.c_str());
+    const int32 encIdx = lg_get_encoding_id(pinfo.Patterns[i].Encoding.c_str());
     if (encIdx == -1) {
-      encIdx = 0;
+      ++numErrors;
+      onError(pinfo.Patterns[i],
+        "unrecognized encoding '" + pinfo.Patterns[i].Encoding + "'"
+      );
     }
-
-    if (addPattern(parser.get(), i, patIdx, encIdx, pinfo)) {
+    else if (addPattern(parser.get(), i, patIdx, encIdx, pinfo)) {
       ++patIdx;
     }
     else {
