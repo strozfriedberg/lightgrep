@@ -76,25 +76,30 @@ void setBool(const std::string& s, bool& b) {
 }
 
 bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& keys) const {
-  typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
+  typedef boost::char_separator<char> char_separator;
+  typedef boost::tokenizer<char_separator> tokenizer;
 
   if (!line.empty()) {
-    const tokenizer tokens(line, boost::char_separator<char>("\t"));
-    unsigned int num = 0;
-    for (auto it: tokens) {
-      ++num;
-    }
-    if (num > 0) {
-      tokenizer::const_iterator curTok(tokens.begin());
-      Pattern p(*curTok++, LiteralMode, CaseInsensitive, keyIndex, "");
+    const tokenizer tokens(line, char_separator("\t"));
+    tokenizer::const_iterator curTok(tokens.begin());
+    const tokenizer::const_iterator endTok(tokens.end());
+    if (curTok != endTok) {
+      Pattern p(*curTok, LiteralMode, CaseInsensitive, keyIndex, "");
       std::string encodings(Encoding); // comma-separated
 
-      if (4 == num) {
-        setBool(*curTok++, p.FixedString);
-        setBool(*curTok++, p.CaseInsensitive);
+      if (++curTok != endTok) {
+        setBool(*curTok, p.FixedString);
+        if (++curTok == endTok) {
+          return false;
+        }
+        setBool(*curTok, p.CaseInsensitive);
+        if (++curTok == endTok) {
+          return false;
+        }
         encodings = *curTok;
       }
-      const tokenizer encList(encodings, boost::char_separator<char>(","));
+      
+      const tokenizer encList(encodings, char_separator(","));
       if (encList.begin() != encList.end()) {
         for (std::string enc : encList) {
           p.Encoding = enc;
