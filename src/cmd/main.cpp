@@ -292,17 +292,6 @@ std::shared_ptr<ProgramHandle> getProgram(const Options& opts, PatternInfo& pinf
       progFile.read(&buf[0], end);
       progFile.close();
 
-/*
-      auto encMap(getEncodingsMap());
-      auto foundEnc(encMap.end());
-
-      for (auto p: pinfo.Patterns) {
-        if ((foundEnc = encMap.find(p.Encoding)) != encMap.end()) {
-          pinfo.Table.emplace_back(p.Index, foundEnc->second);
-        }
-      }
-*/
-
       return std::shared_ptr<ProgramHandle>(lg_read_program(&buf[0], end), lg_destroy_program);
     }
     else {
