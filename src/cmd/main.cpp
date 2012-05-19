@@ -12,8 +12,6 @@
 #include <boost/timer.hpp>
 #include <boost/graph/graphviz.hpp>
 
-#include <unicode/ucnv.h>
-
 #include "encodings.h"
 #include "handles.h"
 #include "hitwriter.h"
@@ -64,28 +62,24 @@ void printHelp(const po::options_description& desc) {
 }
 
 void printEncodings() {
-  UErrorCode err = U_ZERO_ERROR;
+  const uint32 slen =
+    sizeof(LG_SUPPORTED_ENCODINGS) / sizeof(LG_SUPPORTED_ENCODINGS[0]);
+  const uint32 clen =
+    sizeof(LG_CANONICAL_ENCODINGS) / sizeof(LG_CANONICAL_ENCODINGS[0]);
 
-  const int32 clen = ucnv_countAvailable();
-  for (int32 i = 0; i < clen; ++i) {
+  // group the aliases by the indices of their canonical names
+  std::vector<std::vector<std::string>> aliases(clen);
+  for (uint32 i = 0; i < slen; ++i) {
+    aliases[LG_SUPPORTED_ENCODINGS[i].idx].emplace_back(LG_SUPPORTED_ENCODINGS[i].name);
+  }
+
+  for (uint32 i = 0; i < clen; ++i) {
     // print the canonical name for the encoding
-    const char* n = ucnv_getAvailableName(i);
-    std::cout << n << '\n';
+    std::cout << LG_CANONICAL_ENCODINGS[i] << '\n';
 
     // print the aliases for the encoding
-    const int32 alen = ucnv_countAliases(n, &err);
-    if (U_FAILURE(err)) {
-      // should not happen
-      THROW_RUNTIME_ERROR_WITH_OUTPUT("ICU error: " << u_errorName(err));
-    }
-
-    for (int32 j = 0; j < alen; ++j) {
-      std::cout << '\t' << ucnv_getAlias(n, j, &err) << '\n';
-
-      if (U_FAILURE(err)) {
-        // should not happen
-        THROW_RUNTIME_ERROR_WITH_OUTPUT("ICU error: " << u_errorName(err));
-      }
+    for (const std::string& alias : aliases[i]) {
+      std::cout << '\t' << alias << '\n';
     }
   }
 
