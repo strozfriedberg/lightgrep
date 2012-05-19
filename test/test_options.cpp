@@ -17,7 +17,7 @@ SCOPE_TEST(parsePatternNoOpts) {
   Options opts;
   opts.LiteralMode = false;
   opts.CaseInsensitive = false;
-  opts.Encoding = "UTF-8";
+  opts.Encodings = { "UTF-8" };
 
   std::string line("Expression");
   PatternInfo ps;
