@@ -3081,6 +3081,7 @@ static const int LG_ENC_IBM_16804_X110_1999_SWAPLFNL = 226;
 
 // ebcdic-xml-us
 static const int LG_ENC_EBCDIC_XML_US = 227;
+
 int lg_get_encoding_id(const char* const name);
 
 #ifdef __cplusplus
