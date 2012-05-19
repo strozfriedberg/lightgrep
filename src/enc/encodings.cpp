@@ -30,9 +30,17 @@ int main(int, char**) {
 "#endif\n"
 "\n";
 
+  // Preference ordering for standards, to resolve name conficts
+  //
   // UTR22 > IANA > MIME > IBM > WINDOWS > JAVA > ""
+  //
   const std::vector<std::string> standards{
     "UTR22", "IANA", "MIME", "IBM", "WINDOWS", "JAVA", ""
+  };
+
+  // Encodings to skip
+  const std::set<std::string> skip{
+    "UTF-16", "UTF-32", "UTF-16,version=1", "UTF-16,version=2"
   };
 
   std::vector<std::string> canonical;
@@ -45,6 +53,12 @@ int main(int, char**) {
   for (int32 i = 0; i < clen; ++i) {
     // get the canonical name for the ith encoding
     const char* cname = ucnv_getAvailableName(i);
+
+    // skip encodings we want to omit
+    if (skip.find(cname) != skip.end()) {
+      continue;
+    }
+
     canonical.emplace_back(cname);
 
     const int32 alen = ucnv_countAliases(cname, &err);
@@ -59,7 +73,7 @@ int main(int, char**) {
       throw_on_error(err);
 
       // add this alias if not already present
-      auto x = idmap.insert({aname, i});
+      auto x = idmap.insert({aname, canonical.size()-1});
       if (x.second) {
         longest = std::max(longest, strlen(aname));
       }
@@ -127,7 +141,7 @@ int main(int, char**) {
 "static const char* const LG_CANONICAL_ENCODINGS[] = {\n";
 
   longest_canonical += 3;
-  for (int32 i = 0; i < clen; ++i) {
+  for (int32 i = 0; i < canonical.size(); ++i) {
     std::string n(canonical[i]);
     n = '"' + n + '"';
     if (i + 1 < clen) {
