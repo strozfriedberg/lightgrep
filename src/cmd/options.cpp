@@ -92,7 +92,7 @@ bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& k
           return false;
         }
 
-        for (std::string enc : Encodings) {
+        for (const std::string& enc : Encodings) {
           p.Encoding = enc;
           keys.Patterns.push_back(p);
         }
@@ -114,7 +114,7 @@ bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& k
           return false;
         }
 
-        for (std::string enc : encList) {
+        for (const std::string& enc : encList) {
           p.Encoding = enc;
           keys.Patterns.push_back(p);
         }
