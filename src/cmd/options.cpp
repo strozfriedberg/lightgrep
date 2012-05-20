@@ -76,33 +76,52 @@ void setBool(const std::string& s, bool& b) {
 }
 
 bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& keys) const {
-  typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
+  typedef boost::char_separator<char> char_separator;
+  typedef boost::tokenizer<char_separator> tokenizer;
 
   if (!line.empty()) {
-    const tokenizer tokens(line, boost::char_separator<char>("\t"));
-    unsigned int num = 0;
-    for (auto it: tokens) {
-      ++num;
-    }
-    if (num > 0) {
-      tokenizer::const_iterator curTok(tokens.begin());
-      Pattern p(*curTok++, LiteralMode, CaseInsensitive, keyIndex, "");
-      std::string encodings(Encoding); // comma-separated
+    const tokenizer tokens(line, char_separator("\t"));
+    tokenizer::const_iterator curTok(tokens.begin());
+    const tokenizer::const_iterator endTok(tokens.end());
+    if (curTok != endTok) {
+      Pattern p(*curTok, LiteralMode, CaseInsensitive, keyIndex, "");
 
-      if (4 == num) {
-        setBool(*curTok++, p.FixedString);
-        setBool(*curTok++, p.CaseInsensitive);
-        encodings = *curTok;
+      if (++curTok == endTok) {
+        // encoding names are in Encodings
+        if (Encodings.empty()) {
+          return false;
+        }
+
+        for (std::string enc : Encodings) {
+          p.Encoding = enc;
+          keys.Patterns.push_back(p);
+        }
       }
-      const tokenizer encList(encodings, boost::char_separator<char>(","));
-      if (encList.begin() != encList.end()) {
+      else {
+        // encoding names are at the end of the line
+        setBool(*curTok, p.FixedString);
+        if (++curTok == endTok) {
+          return false;
+        }
+        setBool(*curTok, p.CaseInsensitive);
+
+        if (++curTok == endTok) {
+          return false;
+        }
+
+        const tokenizer encList(*curTok, char_separator(","));
+        if (encList.begin() == encList.end()) {
+          return false;
+        }
+
         for (std::string enc : encList) {
           p.Encoding = enc;
           keys.Patterns.push_back(p);
         }
-        ++keys.NumUserPatterns;
-        return true;
       }
+
+      ++keys.NumUserPatterns;
+      return true;
     }
   }
   return false;
