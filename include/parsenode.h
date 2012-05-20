@@ -18,6 +18,7 @@ struct ParseNode {
     DOT,
     CHAR_CLASS,
     LITERAL,
+    BYTE,
     TEMPORARY
   };
 
@@ -38,7 +39,7 @@ struct ParseNode {
     } Inner;
 
     int Val;
-    UnicodeSet Bits;
+    UnicodeSet CodePoints;
   };
 
 */
@@ -48,18 +49,22 @@ struct ParseNode {
   union {
     ParseNode* Right;
     int Val;
+    ByteSet Bytes;
     struct {
       uint32 Min, Max;
     } Rep;
   };
 
-  UnicodeSet Bits;
+  UnicodeSet CodePoints;
 
   ParseNode(): Type(LITERAL), Left(nullptr), Val(0) {}
 
-  ParseNode(NodeType t, uint32 v): Type(t), Left(nullptr), Val(v), Bits() {
+  ParseNode(NodeType t, uint32 v):
+    Type(t), Left(nullptr), Val(v), CodePoints()
+  {
     if (Type == CHAR_CLASS) {
-      Bits.set(v);
+      CodePoints.set(v);
+      Bytes.reset();
     }
   }
 
@@ -77,13 +82,16 @@ struct ParseNode {
   }
 
   ParseNode(NodeType t, uint32 first, uint32 last):
-    Type(t), Left(nullptr), Right(nullptr), Bits(first, last + 1) {}
+    Type(t), Left(nullptr), Bytes(), CodePoints(first, last + 1) {}
 
   explicit ParseNode(NodeType t, const ByteSet& b):
-    Type(t), Left(nullptr), Right(nullptr), Bits(b) {}
+    Type(t), Left(nullptr), Bytes(), CodePoints(b) {}
 
-  ParseNode(NodeType t, const UnicodeSet& b):
-    Type(t), Left(nullptr), Right(nullptr), Bits(b) {}
+  ParseNode(NodeType t, const UnicodeSet& u):
+    Type(t), Left(nullptr), Bytes(), CodePoints(u) {}
+
+  ParseNode(NodeType t, const UnicodeSet& u, const ByteSet& b):
+    Type(t), Left(nullptr), Bytes(b), CodePoints(u) {}
 
   ParseNode(const ParseNode& n): Type(n.Type), Left(n.Left) {
     init_union(n);
@@ -123,9 +131,9 @@ struct ParseNode {
       Rep = n.Rep;
       break;
     case CHAR_CLASS:
-//      new(&Bits) UnicodeSet(n.Bits);
-      Bits = n.Bits;
-      Right = nullptr;
+//      new(&CodePoints) UnicodeSet(n.CodePoints);
+      CodePoints = n.CodePoints;
+      Bytes = n.Bytes;
       break;
     default:
       Val = n.Val;
@@ -134,7 +142,7 @@ struct ParseNode {
   }
 
   void range(uint32 first, uint32 last) {
-    Bits.insert(first, last + 1);
+    CodePoints.insert(first, last + 1);
   }
 
   bool operator==(const ParseNode& o) const {
@@ -158,7 +166,7 @@ struct ParseNode {
       return Rep.Min == o.Rep.Min && Rep.Max == o.Rep.Max &&
              !Left ? !o.Left : (o.Left ? *Left == *o.Left : false);
     case CHAR_CLASS:
-      return Bits == o.Bits;
+      return CodePoints == o.CodePoints && Bytes == o.Bytes;
     default:
       return Val == o.Val;
     }
