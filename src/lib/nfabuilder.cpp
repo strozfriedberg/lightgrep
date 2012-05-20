@@ -550,7 +550,6 @@ bool NFABuilder::build(const ParseTree& tree) {
 }
 
 void NFABuilder::callback(const ParseNode& n) {
-//  std::cerr << n << std::endl;
   switch (n.Type) {
     case ParseNode::REGEXP:
       finish(n);

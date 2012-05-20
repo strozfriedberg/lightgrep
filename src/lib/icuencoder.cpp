@@ -31,9 +31,14 @@ ICUEncoder::ICUEncoder(const char* const name) {
   // The converter used to translate UTF-16 into our desired encoding.
   dst_conv = ucnv_open(name, &err);
   if (U_FAILURE(err)) {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT(
-      "Unrecognized encoding '" << name << "':" << u_errorName(err)
-    );
+    if (err == U_FILE_ACCESS_ERROR) {
+      THROW_RUNTIME_ERROR_WITH_OUTPUT("Unrecognized encoding '" << name << "'");
+    }
+    else {
+      THROW_RUNTIME_ERROR_WITH_OUTPUT(
+        "Unrecognized encoding '" << name << "': " << u_errorName(err)
+      );
+    }
   }
 
   // Tell ICU to halt conversion on code points unrepresentable in the

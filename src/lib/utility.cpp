@@ -44,7 +44,7 @@ void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
     int32 encIdx = lg_get_encoding_id(keyInfo.Patterns[i].Encoding.c_str());
 
     if (encIdx == -1) {
-      encIdx = 0;
+      continue;
     }
 
     keyInfo.Table.emplace_back(i, encIdx);
