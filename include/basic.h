@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <sstream>
+#include <memory>
 
 #include "byteset.h"
 #include "lightgrep_c_api.h"
