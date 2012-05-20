@@ -3,6 +3,7 @@
 #include "basic.h"
 #include "parsenode.h"
 
+#include <ostream>
 #include <vector>
 
 class ParseTree {
@@ -41,6 +42,12 @@ public:
     Store.reserve(2*len);
   }
 
+  bool operator==(const ParseTree& other) const {
+    return !Root ? !other.Root : (other.Root ? *Root == *other.Root : false);
+  }
+
 private:
   std::vector<ParseNode> Store;
 };
+
+std::ostream& operator<<(std::ostream& out, const ParseTree& tree);
