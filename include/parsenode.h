@@ -136,10 +136,36 @@ struct ParseNode {
   void range(uint32 first, uint32 last) {
     Bits.insert(first, last + 1);
   }
+
+  bool operator==(const ParseNode& o) const {
+    if (this == &o) {
+      return true;
+    }
+
+    if (Type != o.Type) {
+      return false;
+    }
+
+    switch (Type) {
+    case REGEXP:
+      return !Left ? !o.Left : (o.Left ? *Left == *o.Left : false);
+    case ALTERNATION:
+    case CONCATENATION:
+      return (!Left ? !o.Left : (o.Left ? *Left == *o.Left : false)) &&
+             (!Right ? !o.Right : (o.Right ? *Right == *o.Right : false));
+    case REPETITION:
+    case REPETITION_NG:
+      return Rep.Min == o.Rep.Min && Rep.Max == o.Rep.Max &&
+             !Left ? !o.Left : (o.Left ? *Left == *o.Left : false);
+    case CHAR_CLASS:
+      return Bits == o.Bits;
+    default:
+      return Val == o.Val;
+    }
+  }
 };
 
 std::ostream& operator<<(std::ostream& out, const ParseNode& n);
 
-void printTree(std::ostream& out, const ParseNode& n);
 void printTreeDetails(std::ostream& out, const ParseNode& n);
 void repetition(std::ostream& out, uint32 min, uint32 max);
