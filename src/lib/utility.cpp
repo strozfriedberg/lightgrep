@@ -36,8 +36,7 @@ uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
       ret <<= 1;
     }
     else if (p.Encoding == "UTF-8") {
-      ret *= 3;
-      ret >>= 1;
+      ret += ret >> 1;
     }
     else if (p.Encoding == "UTF-32LE" || p.Encoding == "UTF-32BE") {
       ret <<= 2;
