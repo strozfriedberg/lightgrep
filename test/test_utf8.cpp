@@ -73,7 +73,7 @@ SCOPE_TEST(testUTF8Range0) {
   us.set(0x40000);  // F1 80 80 80
   us.set(0x80001);  // F2 80 80 81
 
-  std::vector<std::vector<ByteSet>> e{
+  const std::vector<std::vector<ByteSet>> e{
     { 0xF1, 0x80, 0x80, 0x80 },
     { 0xF2, 0x80, 0x80, 0x81 }
   };
@@ -91,7 +91,7 @@ SCOPE_TEST(testUTF8Range1) {
   us.set(0x40000);  // F1 80 80 80
   us.set(0x80000);  // F2 80 80 80
 
-  std::vector<std::vector<ByteSet>> e{
+  const std::vector<std::vector<ByteSet>> e{
     { {{0xF1, 0xF3}}, 0x80, 0x80, 0x80 }
   };
 
@@ -109,7 +109,7 @@ SCOPE_TEST(testUTF8Range2) {
   us.set(0x1000);   // E1 80 80
   us.set(0x40000);  // F1 80 80 80
 
-  std::vector<std::vector<ByteSet>> e{
+  const std::vector<std::vector<ByteSet>> e{
     { 0xD0, 0x80 },
     { 0xE1, 0x80, 0x80 },
     { 0xF1, 0x80, 0x80, 0x80 }
@@ -127,7 +127,7 @@ SCOPE_TEST(testUTF8RangeFull) {
   UnicodeSet us{{0, 0x110000}};
 
   // all valid UTF-8 ranges
-  std::vector<std::vector<ByteSet>> e{
+  const std::vector<std::vector<ByteSet>> e{
     { {{0x00, 0x80}} },
     { {{0xC2, 0xE0}}, {{0x80, 0xC0}} },
     {   0xE0,         {{0xA0, 0xC0}}, {{0x80, 0xC0}} },
@@ -136,6 +136,23 @@ SCOPE_TEST(testUTF8RangeFull) {
     {   0xF0,         {{0x90, 0xC0}}, {{0x80, 0xC0}}, {{0x80, 0xC0}} },
     {   0xF4,         {{0x80, 0x90}}, {{0x80, 0xC0}}, {{0x80, 0xC0}} },
     { {{0xF1, 0xF4}}, {{0x80, 0xC0}}, {{0x80, 0xC0}}, {{0x80, 0xC0}} }
+  };
+
+  std::vector<std::vector<ByteSet>> a;
+  enc.write(us, a);
+
+  SCOPE_ASSERT_EQUAL(e, a);
+}
+
+SCOPE_TEST(testUTF8Disjoint) {
+  UTF8 enc;
+
+  UnicodeSet us;
+  us.set(0x41);
+  us.set(0x61);
+
+  const std::vector<std::vector<ByteSet>> e{
+    { {{0x41, 0x42}, {0x61, 0x62}} }
   };
 
   std::vector<std::vector<ByteSet>> a;

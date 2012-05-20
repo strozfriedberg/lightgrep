@@ -33,14 +33,14 @@ public:
 
   std::string Input,
               Output,
-              Encoding,
               ServerAddr,
               ServerLog,
               ProgramFile;
 
   std::vector<std::string> Inputs,
                            CmdLinePatterns,
-                           KeyFiles;
+                           KeyFiles,
+                           Encodings;
 
   uint32 BlockSize;
 

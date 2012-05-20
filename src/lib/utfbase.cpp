@@ -1,7 +1,7 @@
 #include "utfbase.h"
 
 void UTFBase::writeRange(std::vector<std::vector<ByteSet>>& va, UnicodeSet::const_iterator& i, const UnicodeSet::const_iterator& iend, uint32& l, uint32& h, byte* cur, uint32 len, uint32 blimit) const {
-  while (l < blimit) {
+  while (l < std::min(h, blimit)) {
     // write the encoding for the next code point
     write(l, cur);
     va.emplace_back(len);
