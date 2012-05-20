@@ -64,11 +64,9 @@ PatternInfo Options::getKeys() const {
 void setBool(const std::string& s, bool& b) {
   if (0 == s.compare("1")) {
     b = true;
-    return;
   }
   else if (0 == s.compare("0")) {
     b = false;
-    return;
   }
   // don't set if unrecognized
 }
