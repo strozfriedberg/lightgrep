@@ -13,7 +13,7 @@
 
 struct SearchInfo {};
 
-uint32 totalCharacters(const std::vector<Pattern>& keywords);
+uint32 estimateGraphSize(const std::vector<Pattern>& keywords);
 
 NFAPtr createGraph(const std::vector<Pattern>& keywords,
                    bool determinize = true,

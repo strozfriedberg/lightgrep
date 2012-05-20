@@ -132,7 +132,7 @@ std::shared_ptr<ParserHandle> parsePatterns(
   }
 
   // find total length of patterns -- or 1 if tlen is 0
-  const uint32 tlen = std::max(1u, totalCharacters(pinfo.Patterns));
+  const uint32 tlen = std::max(1u, estimateGraphSize(pinfo.Patterns));
 
   std::shared_ptr<ParserHandle> parser(lg_create_parser(tlen),
                                        lg_destroy_parser);
@@ -149,6 +149,7 @@ std::shared_ptr<ParserHandle> parsePatterns(
       );
     }
     else if (addPattern(parser.get(), i, patIdx, encIdx, pinfo)) {
+      // std::cerr << i << " parsed " << pinfo.Patterns[i].Expression << ", for " << pinfo.Patterns[i].Encoding << std::endl;
       ++patIdx;
     }
     else {
@@ -157,9 +158,9 @@ std::shared_ptr<ParserHandle> parsePatterns(
     }
   }
   // don't enable these unless debugging -- will mess up enscript
-/*  std::cerr << pinfo.Patterns.size() << " Patterns" << std::endl;
-  std::cerr << patIdx << " Byte Patterns" << std::endl;
-  std::cerr << numErrors << " Errors" << std::endl;*/
+  // std::cerr << pinfo.Patterns.size() << " Patterns" << std::endl;
+  // std::cerr << patIdx << " Byte Patterns" << std::endl;
+  // std::cerr << numErrors << " Errors" << std::endl;
   return parser;
 }
 
@@ -278,7 +279,7 @@ void searchRecursively(const fs::path& path, SearchController& ctrl, std::shared
 
 std::shared_ptr<ProgramHandle> getProgram(const Options& opts, PatternInfo& pinfo) {
   if (!opts.ProgramFile.empty()) {
-    std::cerr << "creating program from file " << opts.ProgramFile << std::endl;
+    // std::cerr << "creating program from file " << opts.ProgramFile << std::endl;
     std::ifstream progFile(opts.ProgramFile.c_str(), std::ios::in | std::ios::binary);
     if (progFile) {
       // this is seriously tedious compared to, oh, I don't know, file.size()
@@ -300,7 +301,7 @@ std::shared_ptr<ProgramHandle> getProgram(const Options& opts, PatternInfo& pinf
     return std::shared_ptr<ProgramHandle>();
   }
   else {
-    std::cerr << "creating program from patterns" << std::endl;
+    // std::cerr << "creating program from patterns" << std::endl;
     return createProgram(opts, pinfo);
   }
 }
