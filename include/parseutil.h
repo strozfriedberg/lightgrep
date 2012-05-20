@@ -11,10 +11,15 @@
 
 int parseHexChar(int c);
 
+// Should accept \\x[0-9A-Fa-f]{2}
 template <typename Iterator>
-int parseHexShort(Iterator& i, const Iterator& end) {
+int parseHexByte(Iterator& i, const Iterator& iend) {
+  if (i == iend) {
+    return -1;
+  }
+
   int val = parseHexChar(*i++);
-  if (val < 0 || i == end) {
+  if (val < 0 || i == iend) {
     return -1;
   }
   val <<= 4;
@@ -22,8 +27,13 @@ int parseHexShort(Iterator& i, const Iterator& end) {
   return val < 0 ? -1 : val;
 }
 
+// Should accept \\x\{[0-9A-Fa-f]{0,6}\}
 template <typename Iterator>
-int parseHexLong(Iterator& i, const Iterator& iend) {
+int parseHexCodePoint(Iterator& i, const Iterator& iend) {
+  if (i == iend || *i == '}') {
+    return -1;
+  }
+
   const Iterator end = std::min(i + 7, iend);
   for (int c, val = 0; i != end; ) {
     c = *i++;
@@ -66,20 +76,14 @@ int parseHexLong(Iterator& i, const Iterator& iend) {
     }
   }
   return -1;
-}
 
-// Should accept: \\x[0-9A-Fa-f]{2} and \\x\{[0-9A-Fa-f]{0,6}\}
-template <typename Iterator>
-int parseHex(Iterator& i, const Iterator& end) {
-  return i == end ? -1 :
-    (*i == '{' ? parseHexLong(++i, end) : parseHexShort(i, end));
 }
 
 int parseOctChar(int c);
 
 // Should accept \\[0-7]{1,3}
 template <typename Iterator>
-int parseOct(Iterator& i, const Iterator& iend) {
+int parseOctByte(Iterator& i, const Iterator& iend) {
   int oct = 0;
 
   const Iterator end = std::min(i + 3, iend);
@@ -139,8 +143,8 @@ int parseNamedCodePoint(Iterator& i, const Iterator& end) {
   }
 
   if (i + 1 < end && *i == 'U' && *(i+1) == '+') {
-    // this is U+hhhh, parseHexLong handles the closing '}'
-    return parseHexLong(i += 2, end);
+    // this is U+hhhh, parseHexCodePoint handles the closing '}'
+    return parseHexCodePoint(i += 2, end);
   }
 
   std::string name;

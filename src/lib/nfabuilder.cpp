@@ -151,6 +151,13 @@ void NFABuilder::literal(const ParseNode& n) {
   Stack.push(TempFrag);
 }
 
+void NFABuilder::rawByte(const ParseNode& n) {
+  NFA::VertexDescriptor v = Fsm->addVertex();
+  (*Fsm)[v].Trans = Fsm->TransFac->getByte(n.Val);
+  TempFrag.initFull(v, n);
+  Stack.push(TempFrag);
+}
+
 void NFABuilder::dot(const ParseNode& n) {
   ParseNode fake(ParseNode::CHAR_CLASS, 0, 0x10FFFF);
   charClass(fake);
@@ -164,7 +171,7 @@ void NFABuilder::dot(const ParseNode& n) {
 }
 
 void NFABuilder::charClass(const ParseNode& n) {
-  const UnicodeSet uset(n.Bits & Enc->validCodePoints());
+  const UnicodeSet uset(n.CodePoints & Enc->validCodePoints());
   if (uset.none()) {
     THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
       "intersection of character class with this encoding is empty"
@@ -574,6 +581,9 @@ void NFABuilder::callback(const ParseNode& n) {
       break;
     case ParseNode::LITERAL:
       literal(n);
+      break;
+    case ParseNode::BYTE:
+      rawByte(n);
       break;
     default:
       break;

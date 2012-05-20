@@ -606,7 +606,7 @@ SCOPE_TEST(parseUnprintableCharClass) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("[A\\xFF\\x00]", false, false, tree));
+  SCOPE_ASSERT(parse("[A\\x{FF}\\x{00}]", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -1017,4 +1017,81 @@ SCOPE_TEST(parse_xLPaORaQQRPy) {
   SCOPE_ASSERT(!g[2].IsMatch);
   SCOPE_ASSERT(!g[3].IsMatch);
   SCOPE_ASSERT(g[4].IsMatch);
+}
+
+SCOPE_TEST(parseEncodingByteBreakout) {
+  // 0x80 is not a valid UTF-8 byte by itself, we use \x to break it out
+
+  NFABuilder nfab;
+  nfab.setEncoder(std::shared_ptr<Encoder>(new UTF8));
+
+  NFA& g(*nfab.getFsm());
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x80", false, false, tree));
+  SCOPE_ASSERT(nfab.build(tree));
+
+  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+
+  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+
+  SCOPE_ASSERT(!g[0].IsMatch);
+  SCOPE_ASSERT(g[1].IsMatch);
+
+  SCOPE_ASSERT(!g[0].Trans);
+
+  ByteSet expected, actual;
+  expected.set(0x80);
+  g[1].Trans->getBytes(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseEncodingNotByteBreakout) {
+  // 0x80 is a valid UTF-8 code point, referred to by \x{80}
+
+  NFABuilder nfab;
+  nfab.setEncoder(std::shared_ptr<Encoder>(new UTF8));
+
+  NFA& g(*nfab.getFsm());
+  ParseTree tree;
+  SCOPE_ASSERT(parse("\\x{80}", false, false, tree));
+  SCOPE_ASSERT(nfab.build(tree));
+
+  SCOPE_ASSERT_EQUAL(3, g.verticesSize());
+
+  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1, g.inVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(2));
+
+  SCOPE_ASSERT(!g[0].IsMatch);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(g[2].IsMatch);
+
+  SCOPE_ASSERT(!g[0].Trans);
+
+  ByteSet expected, actual;
+  expected.set(0xC2);
+  g[1].Trans->getBytes(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+
+  expected.reset();
+  actual.reset();
+
+  expected.set(0x80);
+  g[2].Trans->getBytes(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
 }

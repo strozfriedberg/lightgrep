@@ -315,13 +315,19 @@ void unparse(std::ostream& out, const ParseNode* n) {
   case ParseNode::CHAR_CLASS:
     {
       ByteSet bs;
-      for (uint32 i = 0; i < 256; ++i) { bs[i] = n->Bits[i]; }
+      for (uint32 i = 0; i < 256; ++i) {
+        bs.set(i, n->CodePoints.test(i));
+      }
 
       out << '[' << byteSetToCharacterClass(bs) << ']';
     }
     break;
 
   case ParseNode::LITERAL:
+    out << byteToLiteralString(n->Val);
+    break;
+
+  case ParseNode::BYTE:
     out << byteToLiteralString(n->Val);
     break;
 
