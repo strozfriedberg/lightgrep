@@ -43,10 +43,11 @@ namespace {
   UnicodeSet* s;
 }
 
+%token <c> BYTE
 %token <c> CHAR
 %token <c> DIGIT
 %token <c> BAD
-%token <s> SET;
+%token <s> SET
 
 %type <node> regexp alt concat rep number atom literal charclass charclass_right cc_named
 %type <c>    character cc_char cc_char_first cc_char_not_first
@@ -162,7 +163,11 @@ atom:
 ;
 
 literal:
-  character
+  BYTE
+  {
+    $$ = add(ParseNode(ParseNode::BYTE, $1));
+  }
+| character
   {
     if (CaseInsensitive) {
       USet.reset();
@@ -196,23 +201,23 @@ literal:
     // U / {A, a} after negation.
 
     if (CaseInsensitive) {
-      caseDesensitize($$->Bits);
+      caseDesensitize($$->CodePoints);
     }
 
-    $$->Bits.flip();
+    $$->CodePoints.flip();
   }
 | '[' charclass ']'
   {
     $$ = $2;
 
     if (CaseInsensitive) {
-      caseDesensitize($$->Bits);
+      caseDesensitize($$->CodePoints);
     }
   }
 | cc_named
   {
     if (CaseInsensitive) {
-      caseDesensitize($$->Bits);
+      caseDesensitize($$->CodePoints);
     }
   }
 ;
@@ -251,12 +256,12 @@ charclass:
 | cc_char_first charclass_right
   {
     $$ = $2;
-    $$->Bits.set($1);
+    $$->CodePoints.set($1);
   }
 | cc_named charclass_right
   {
     $$ = $2;
-    $$->Bits |= $1->Bits;
+    $$->CodePoints |= $1->CodePoints;
   }
 ;
 
@@ -269,17 +274,17 @@ charclass_right:
 | cc_char_not_first charclass_right
   {
     $$ = $2;
-    $$->Bits.set($1);
+    $$->CodePoints.set($1);
   }
 | cc_named charclass_right
   {
     $$ = $2;
-    $$->Bits |= $1->Bits;
+    $$->CodePoints |= $1->CodePoints;
   }
 | /* empty */
   {
     $$ = add(ParseNode(ParseNode::CHAR_CLASS, 'x'));
-    $$->Bits['x'] = false;
+    $$->CodePoints['x'] = false;
   }
 ;
 
@@ -363,14 +368,14 @@ cc_named:
 namespace {
 
   template <typename F>
-  int consumeSingleton(F func) {
+  int consumeSingleton(F func, yytokentype type) {
     const int val = func(Text, TextEnd);
     if (val < 0) {
       return BAD;
     }
     else {
       yylval.c = val;
-      return CHAR;
+      return type;
     }
   }
 
@@ -491,7 +496,16 @@ namespace {
 
       // hexadecimal characters
       case 'x':
-        return consumeSingleton(parseHex<const int*>);
+        if (Text == TextEnd) {
+          return BAD;
+        }
+        else if (*Text == '{') {
+          ++Text;
+          return consumeSingleton(parseHexCodePoint<const int*>, CHAR);
+        }
+        else {
+          return consumeSingleton(parseHexByte<const int*>, BYTE);
+        }
 
       // octal characters
       case '0':
@@ -503,11 +517,11 @@ namespace {
       case '6':
       case '7':
         --Text;
-        return consumeSingleton(parseOct<const int*>);
+        return consumeSingleton(parseOctByte<const int*>, BYTE);
 
       // named Unicode code points
       case 'N':
-        return consumeSingleton(parseNamedCodePoint<const int*>);
+        return consumeSingleton(parseNamedCodePoint<const int*>, CHAR);
 
       // Unicode properties
       case 'p':
