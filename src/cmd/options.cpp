@@ -62,13 +62,11 @@ PatternInfo Options::getKeys() const {
 }
 
 void setBool(const std::string& s, bool& b) {
-  int zeroCmp = s.compare("0"),
-      oneCmp  = s.compare("1");
-  if (0 == oneCmp) {
+  if (0 == s.compare("1")) {
     b = true;
     return;
   }
-  else if (0 == zeroCmp) {
+  else if (0 == s.compare("0")) {
     b = false;
     return;
   }
