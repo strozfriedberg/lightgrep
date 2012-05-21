@@ -158,7 +158,7 @@ void NFABuilder::rawByte(const ParseNode& n) {
   Stack.push(TempFrag);
 }
 
-void NFABuilder::dot(const ParseNode& n) {
+void NFABuilder::dot(const ParseNode&) {
   ParseNode fake(ParseNode::CHAR_CLASS, 0, 0x10FFFF);
   charClass(fake);
 /*
