@@ -192,19 +192,25 @@ literal:
   {
     $$ = $3;
 
-    // NB: PCRE applies case-insensitivity first, then negation. This is
-    // important, as these two operations do not commute on a cc such as
-    // [^a]. Let U be the set of all Unicode code points. Negating first
-    // gives U / {a}, which becomes U again when closing under case-
-    // insensitivity, due to A being a member of U / {a}, while closing
-    // under case-insensitivity first gives {A, a}, which becomes
-    // U / {A, a} after negation.
+    if ($$->CodePoints.any()) {
+      // NB: PCRE applies case-insensitivity first, then negation. This is
+      // important, as these two operations do not commute on a cc such as
+      // [^a]. Let U be the set of all Unicode code points. Negating first
+      // gives U / {a}, which becomes U again when closing under case-
+      // insensitivity, due to A being a member of U / {a}, while closing
+      // under case-insensitivity first gives {A, a}, which becomes
+      // U / {A, a} after negation.
 
-    if (CaseInsensitive) {
-      caseDesensitize($$->CodePoints);
+      if (CaseInsensitive) {
+        caseDesensitize($$->CodePoints);
+      }
+
+      $$->CodePoints.flip();
     }
 
-    $$->CodePoints.flip();
+    if ($$->Bytes.any()) {
+      $$->Bytes.flip();
+    }
   }
 | '[' charclass ']'
   {
