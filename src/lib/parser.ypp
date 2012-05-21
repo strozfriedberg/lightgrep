@@ -250,8 +250,13 @@ character:
 charclass:
   cc_char_first '-' cc_char_not_first charclass_right
   {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror("syntax error");
+    }
+
     $$ = $4;
-    $$->range($1, $3);
+    $$->CodePoints.insert($1, $3 + 1);
   }
 | cc_char_first charclass_right
   {
@@ -263,13 +268,43 @@ charclass:
     $$ = $2;
     $$->CodePoints |= $1->CodePoints;
   }
+| BYTE charclass_right
+  {
+    $$ = $2;
+    $$->Bytes.set($1);
+  }
+| BYTE '-' BYTE charclass_right
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror("syntax error");
+    }
+
+    $$ = $4;
+    $$->Bytes.set($1, $3 + 1, true);
+  }
+| BYTE '-' cc_char_not_first charclass_right
+  {
+    // ranges must have endpoints of the same type
+    yyerror("syntax error");
+  }
+| cc_char_first '-' BYTE charclass_right
+  {
+    // ranges must have endpoints of the same type
+    yyerror("syntax error");
+  }
 ;
 
 charclass_right:
   cc_char_not_first '-' cc_char_not_first charclass_right
   {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror("syntax error");
+    }
+
     $$ = $4;
-    $$->range($1, $3);
+    $$->CodePoints.insert($1, $3 + 1);
   }
 | cc_char_not_first charclass_right
   {
@@ -281,10 +316,34 @@ charclass_right:
     $$ = $2;
     $$->CodePoints |= $1->CodePoints;
   }
+| BYTE charclass_right
+  {
+    $$ = $2;
+    $$->Bytes.set($1);
+  }
+| BYTE '-' BYTE charclass_right
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror("syntax error");
+    }
+
+    $$ = $4;
+    $$->Bytes.set($1, $3 + 1, true);
+  }
+| BYTE '-' cc_char_not_first charclass_right
+  {
+    // ranges must have endpoints of the same type
+    yyerror("syntax error");
+  }
+| cc_char_not_first '-' BYTE charclass_right
+  {
+    // ranges must have endpoints of the same type
+    yyerror("syntax error");
+  }
 | /* empty */
   {
     $$ = add(ParseNode(ParseNode::CHAR_CLASS, 'x'));
-    $$->CodePoints['x'] = false;
   }
 ;
 
@@ -363,6 +422,7 @@ cc_named:
     $$ = add(ParseNode(ParseNode::CHAR_CLASS, USet));
   }
 ;
+
 %%
 
 namespace {
