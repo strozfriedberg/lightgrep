@@ -39,7 +39,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, 
 
     const uint32 odeg = g.outDegree(v);
     for (uint32 i = 0; i < odeg; ++i) {
-      NFA::VertexDescriptor c = g.outVertex(v, odeg - i - 1);
+      const NFA::VertexDescriptor c = g.outVertex(v, odeg - i - 1);
 
       if (pi.seen[c] > max_loops) {
         continue;
@@ -51,7 +51,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, 
         if (bs[b]) {
           Info ci;
           ci.v = c;
-          ci.m = m + byteToLiteralString(b);
+          ci.m = m + (char) b;
           ci.seen = seen;
           ++ci.seen[c];
           stack.push(ci);

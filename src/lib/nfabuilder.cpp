@@ -151,7 +151,14 @@ void NFABuilder::literal(const ParseNode& n) {
   Stack.push(TempFrag);
 }
 
-void NFABuilder::dot(const ParseNode& n) {
+void NFABuilder::rawByte(const ParseNode& n) {
+  NFA::VertexDescriptor v = Fsm->addVertex();
+  (*Fsm)[v].Trans = Fsm->TransFac->getByte(n.Val);
+  TempFrag.initFull(v, n);
+  Stack.push(TempFrag);
+}
+
+void NFABuilder::dot(const ParseNode&) {
   ParseNode fake(ParseNode::CHAR_CLASS, 0, 0x10FFFF);
   charClass(fake);
 /*
@@ -164,81 +171,113 @@ void NFABuilder::dot(const ParseNode& n) {
 }
 
 void NFABuilder::charClass(const ParseNode& n) {
-  const UnicodeSet uset(n.Bits & Enc->validCodePoints());
+  const UnicodeSet uset(n.CodePoints & Enc->validCodePoints());
+
   if (uset.none()) {
-    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
-      "intersection of character class with this encoding is empty"
-    );
+    if (!n.Breakout.Additive || n.Breakout.Bytes.none()) {
+      THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
+        "intersection of character class with this encoding is empty"
+      );
+    }
+
+    // the breakout bytes are the entire character class
+    NFA::VertexDescriptor v = Fsm->addVertex();
+    (*Fsm)[v].Trans = Fsm->TransFac->getSmallest(n.Breakout.Bytes);
+    TempFrag.initFull(v, n);
   }
+  else {
+    // convert the code point set into collapsed encoding ranges
+    TempEncRanges.clear();
+    Enc->write(uset, TempEncRanges);
 
-  // convert the code point set into collapsed encoding ranges
-  TempEncRanges.clear();
-  Enc->write(uset, TempEncRanges);
-
-  ByteSet bs;
-  TempFrag.reset(n);
-
-  // create a graph from the collapsed ranges
-  for (const std::vector<ByteSet>& enc : TempEncRanges) {
-    NFA::VertexDescriptor head, tail;
-
-    //
-    // find a suffix of enc in this fragment
-    //
-
-    int32 b = enc.size()-1;
-
-    // find a match for the last transition
-    const auto oi = std::find_if(
-      TempFrag.OutList.begin(), TempFrag.OutList.end(),
-      [&](const std::pair<NFA::VertexDescriptor,uint32>& p) {
-        return (*Fsm)[p.first].Trans->getBytes(bs) == enc[b];
+    // handle the breakout bytes
+    if (n.Breakout.Bytes.any()) {
+      if (n.Breakout.Additive) {
+        // add breakout bytes to encodings
+        if (TempEncRanges[0].size() == 1) {
+          TempEncRanges[0][0] |= n.Breakout.Bytes;
+        }
+        else {
+          TempEncRanges.emplace_back(1);
+          TempEncRanges.back()[0] = n.Breakout.Bytes;
+        }
       }
-    );
+      else {
+        // subtract breakout bytes from encodings
+        if (TempEncRanges[0].size() == 1) {
+          TempEncRanges[0][0] &= ~n.Breakout.Bytes;
+          if (TempEncRanges[0][0].none()) {
+            TempEncRanges.erase(TempEncRanges.begin());
+          }
+        }
+      }
+    }
 
-    if (oi != TempFrag.OutList.end()) {
-      // match, use this tail
-      tail = oi->first;
+    ByteSet bs;
+    TempFrag.reset(n);
 
-      // walk backwards until a transition mismatch
-      for (--b; b >= 0; --b) {
-        head = 0;
-        const uint32 ideg = Fsm->inDegree(tail);
-        for (uint32 i = 0; i < ideg; ++i) {
-          head = Fsm->inVertex(tail, i);
-          (*Fsm)[head].Trans->getBytes(bs);
-          if (bs == enc[b]) {
-            tail = head;
+    // create a graph from the collapsed ranges
+    for (const std::vector<ByteSet>& enc : TempEncRanges) {
+      NFA::VertexDescriptor head, tail;
+
+      //
+      // find a suffix of enc in this fragment
+      //
+
+      int32 b = enc.size()-1;
+
+      // find a match for the last transition
+      const auto oi = std::find_if(
+        TempFrag.OutList.begin(), TempFrag.OutList.end(),
+        [&](const std::pair<NFA::VertexDescriptor,uint32>& p) {
+          return (*Fsm)[p.first].Trans->getBytes(bs) == enc[b];
+        }
+      );
+
+      if (oi != TempFrag.OutList.end()) {
+        // match, use this tail
+        tail = oi->first;
+
+        // walk backwards until a transition mismatch
+        for (--b; b >= 0; --b) {
+          head = 0;
+          const uint32 ideg = Fsm->inDegree(tail);
+          for (uint32 i = 0; i < ideg; ++i) {
+            head = Fsm->inVertex(tail, i);
+            (*Fsm)[head].Trans->getBytes(bs);
+            if (bs == enc[b]) {
+              tail = head;
+              break;
+            }
+            head = 0;
+          }
+
+          if (!head) {
+            // tail is as far back as we can go
             break;
           }
-          head = 0;
-        }
-
-        if (!head) {
-          // tail is as far back as we can go
-          break;
         }
       }
-    }
-    else {
-      // no match, build a new tail
-      tail = Fsm->addVertex();
-      (*Fsm)[tail].Trans = Fsm->TransFac->getSmallest(enc[b--]);
-      TempFrag.OutList.emplace_back(tail, 0);
-    }
+      else {
+        // no match, build a new tail
+        tail = Fsm->addVertex();
+        (*Fsm)[tail].Trans = Fsm->TransFac->getSmallest(enc[b--]);
+        TempFrag.OutList.emplace_back(tail, 0);
+      }
 
-    //
-    // build from the start of enc to meet the existing suffix
-    //
+      //
+      // build from the start of enc to meet the existing suffix
+      //
 
-    for ( ; b >= 0; --b) {
-      head = Fsm->addVertex();
-      (*Fsm)[head].Trans = Fsm->TransFac->getSmallest(enc[b]);
-      Fsm->addEdge(head, tail);
-      tail = head;
+      for ( ; b >= 0; --b) {
+        head = Fsm->addVertex();
+        (*Fsm)[head].Trans = Fsm->TransFac->getSmallest(enc[b]);
+        Fsm->addEdge(head, tail);
+        tail = head;
+      }
+
+      TempFrag.InList.push_back(tail);
     }
-
-    TempFrag.InList.push_back(tail);
   }
 
   Fsm->Deterministic = false;
@@ -574,6 +613,9 @@ void NFABuilder::callback(const ParseNode& n) {
       break;
     case ParseNode::LITERAL:
       literal(n);
+      break;
+    case ParseNode::BYTE:
+      rawByte(n);
       break;
     default:
       break;
