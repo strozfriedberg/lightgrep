@@ -28,11 +28,25 @@ void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, Parser& p, ui
   }
 }
 
-uint32 totalCharacters(const std::vector<Pattern>& keywords) {
+uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
   uint32 ret = 0;
   for (auto& p : keywords) {
-    ret += p.Expression.size();
+    uint32 pSize = p.Expression.size();
+    if (p.Encoding == "UTF-16LE" || p.Encoding == "UTF-16BE") {
+      ret <<= 1;
+    }
+    else if (p.Encoding == "UTF-8") {
+      ret *= 3;
+      ret >>= 1;
+    }
+    else if (p.Encoding == "UTF-32LE" || p.Encoding == "UTF-32BE") {
+      ret <<= 2;
+    }
+    ret += pSize;
   }
+  uint32 fudgeFactor = ret;
+  fudgeFactor >>= 2;
+  ret += fudgeFactor;
   return ret;
 }
 
@@ -52,7 +66,7 @@ void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
 }
 
 NFAPtr createGraph(PatternInfo& keyInfo, bool determinize, bool ignoreBadParse) {
-  Parser p(totalCharacters(keyInfo.Patterns));
+  Parser p(estimateGraphSize(keyInfo.Patterns));
   uint32 keyIdx = 0;
 
   addKeys(keyInfo, ignoreBadParse, p, keyIdx);

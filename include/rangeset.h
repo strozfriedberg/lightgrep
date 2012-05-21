@@ -30,7 +30,7 @@ public:
   RangeSet(std::initializer_list<T> init) {
     vec.reserve(2*init.size());
     for (const T& val : init) {
-      insert(val);
+      insert(val, val+1);
     }
   }
 
@@ -419,7 +419,7 @@ template <typename T, T N>
 std::ostream& operator<<(std::ostream& o, const RangeSet<T,N>& rs) {
   const typename RangeSet<T,N>::const_iterator end(rs.end());
   for (typename RangeSet<T,N>::const_iterator i(rs.begin()); i != end; ++i) {
-    o << '[' << i->first << ',' << i->second << ") ";
+    o << '[' << std::hex << i->first << ',' << i->second << std::dec << ") ";
   }
   return o;
 }

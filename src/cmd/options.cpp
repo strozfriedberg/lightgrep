@@ -62,15 +62,11 @@ PatternInfo Options::getKeys() const {
 }
 
 void setBool(const std::string& s, bool& b) {
-  int zeroCmp = s.compare("0"),
-      oneCmp  = s.compare("1");
-  if (0 == oneCmp) {
+  if (0 == s.compare("1")) {
     b = true;
-    return;
   }
-  else if (0 == zeroCmp) {
+  else if (0 == s.compare("0")) {
     b = false;
-    return;
   }
   // don't set if unrecognized
 }
@@ -92,7 +88,7 @@ bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& k
           return false;
         }
 
-        for (std::string enc : Encodings) {
+        for (const std::string& enc : Encodings) {
           p.Encoding = enc;
           keys.Patterns.push_back(p);
         }
@@ -114,7 +110,7 @@ bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& k
           return false;
         }
 
-        for (std::string enc : encList) {
+        for (const std::string& enc : encList) {
           p.Encoding = enc;
           keys.Patterns.push_back(p);
         }
