@@ -516,9 +516,9 @@ SCOPE_TEST(parseDot) {
   SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(1));
   SCOPE_ASSERT_EQUAL(2u, fsm.inDegree(1));
 
-  ByteSet set;
-  fsm[1].Trans->getBytes(set);
-  SCOPE_ASSERT_EQUAL(256u, set.count());
+  ByteSet expected{{0x00,0x80}}, actual;
+  fsm[1].Trans->getBytes(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
 SCOPE_TEST(parseHexCode) {
@@ -606,7 +606,7 @@ SCOPE_TEST(parseUnprintableCharClass) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("[A\\x{FF}\\x{00}]", false, false, tree));
+  SCOPE_ASSERT(parse("[A\\xFF\\x00]", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -639,6 +639,7 @@ SCOPE_TEST(parseNegatedRanges) {
   expected.set('0', '9' + 1, false);
   expected.set('A', 'Z' + 1, false);
   expected.set('a', 'z' + 1, false);
+  expected.set(0x80, 0x100, false); // out-of-range
 
   fsm[1].Trans->getBytes(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
