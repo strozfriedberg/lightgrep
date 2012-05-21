@@ -48,7 +48,9 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
   case ParseNode::DOT:
     return out << '.';
   case ParseNode::CHAR_CLASS:
-    return out << n.CodePoints << ", " << n.Bytes;
+    return out << n.CodePoints
+               << (n.Breakout.Additive ? '+' : '-') << ' '
+               << n.Breakout.Bytes;
   case ParseNode::LITERAL:
   case ParseNode::BYTE:
     return out << std::hex << n.Val << std::dec;
