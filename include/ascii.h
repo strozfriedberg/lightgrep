@@ -4,7 +4,7 @@
 
 class ASCII: public EncoderBase {
 public:
-  ASCII(): EncoderBase(UnicodeSet{{0, 0x100}}) {}
+  ASCII(): EncoderBase(UnicodeSet{{0, 0x80}}) {}
 
   virtual uint32 maxByteLength() const { return 1; }
 
