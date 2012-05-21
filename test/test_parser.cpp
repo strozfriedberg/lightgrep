@@ -449,7 +449,7 @@ SCOPE_TEST(parseNegCC_FF_BreakoutCaseInsensitiveTest) {
   expected.Root = expected.add(
     ParseNode(ParseNode::REGEXP,
       expected.add(
-        ParseNode(ParseNode::CHAR_CLASS, ByteSet(0xFF))
+        ParseNode(ParseNode::CHAR_CLASS, ~ByteSet(0xFF))
       )
     )
   );
@@ -606,7 +606,7 @@ SCOPE_TEST(parseNegCC_00to7F_AtoZ_BreakoutTest) {
     )
   );
 
-  const std::string p = "[\\x00-\\x7FA-Z]";
+  const std::string p = "[^\\x00-\\x7FA-Z]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
