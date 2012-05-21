@@ -48,10 +48,10 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
   case ParseNode::DOT:
     return out << '.';
   case ParseNode::CHAR_CLASS:
-    return out << n.CodePoints;
+    return out << n.CodePoints << ", " << n.Bytes;
   case ParseNode::LITERAL:
   case ParseNode::BYTE:
-    return out << (char) n.Val;
+    return out << std::hex << n.Val << std::dec;
   case ParseNode::TEMPORARY:
     return out << "TEMPORARY";
   default:

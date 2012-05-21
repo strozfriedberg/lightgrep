@@ -63,7 +63,6 @@ struct ParseNode {
     Type(t), Left(nullptr), Val(v), CodePoints()
   {
     if (Type == CHAR_CLASS) {
-      CodePoints.set(v);
       Bytes.reset();
     }
   }
@@ -85,7 +84,7 @@ struct ParseNode {
     Type(t), Left(nullptr), Bytes(), CodePoints(first, last + 1) {}
 
   explicit ParseNode(NodeType t, const ByteSet& b):
-    Type(t), Left(nullptr), Bytes(), CodePoints(b) {}
+    Type(t), Left(nullptr), Bytes(b), CodePoints() {}
 
   ParseNode(NodeType t, const UnicodeSet& u):
     Type(t), Left(nullptr), Bytes(), CodePoints(u) {}
@@ -139,10 +138,6 @@ struct ParseNode {
       Val = n.Val;
       break;
     }
-  }
-
-  void range(uint32 first, uint32 last) {
-    CodePoints.insert(first, last + 1);
   }
 
   bool operator==(const ParseNode& o) const {
