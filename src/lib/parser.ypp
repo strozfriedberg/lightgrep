@@ -206,10 +206,25 @@ literal:
       }
 
       $$->CodePoints.flip();
-    }
+      if ($$->CodePoints.none()) {
+        // empty character class
+        yyerror("syntax error");
+      }
 
-    if ($$->Bytes.any()) {
-      $$->Bytes.flip();
+      if ($$->Breakout.Bytes.any()) {
+        $$->Breakout.Additive = false;
+      }
+    }
+    else if ($$->Breakout.Bytes.any()) {
+      $$->Breakout.Bytes.flip();
+      if ($$->Breakout.Bytes.none()) {
+        // empty character class
+        yyerror("syntax error");
+      }
+    }
+    else {
+      // empty character class
+      yyerror("syntax error");
     }
   }
 | '[' charclass ']'
@@ -277,7 +292,7 @@ charclass:
 | BYTE charclass_right
   {
     $$ = $2;
-    $$->Bytes.set($1);
+    $$->Breakout.Bytes.set($1);
   }
 | BYTE '-' BYTE charclass_right
   {
@@ -287,7 +302,7 @@ charclass:
     }
 
     $$ = $4;
-    $$->Bytes.set($1, $3 + 1, true);
+    $$->Breakout.Bytes.set($1, $3 + 1, true);
   }
 | BYTE '-' cc_char_not_first charclass_right
   {
@@ -325,7 +340,7 @@ charclass_right:
 | BYTE charclass_right
   {
     $$ = $2;
-    $$->Bytes.set($1);
+    $$->Breakout.Bytes.set($1);
   }
 | BYTE '-' BYTE charclass_right
   {
@@ -335,7 +350,7 @@ charclass_right:
     }
 
     $$ = $4;
-    $$->Bytes.set($1, $3 + 1, true);
+    $$->Breakout.Bytes.set($1, $3 + 1, true);
   }
 | BYTE '-' cc_char_not_first charclass_right
   {

@@ -1034,7 +1034,7 @@ SCOPE_TEST(parseEncodingByteBreakout) {
 
   SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
 
   SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
@@ -1066,7 +1066,7 @@ SCOPE_TEST(parseEncodingNotByteBreakout) {
 
   SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
 
   SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
@@ -1093,5 +1093,147 @@ SCOPE_TEST(parseEncodingNotByteBreakout) {
 
   expected.set(0x80);
   g[2].Trans->getBytes(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseEncodingCCCodePointWithBreakout) {
+  NFABuilder nfab;
+  nfab.setEncoder(std::shared_ptr<Encoder>(new UTF8));
+
+  NFA& g(*nfab.getFsm());
+  ParseTree tree;
+  SCOPE_ASSERT(parse("[A\\xFF]", false, false, tree));
+  SCOPE_ASSERT(nfab.build(tree));
+
+  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+
+  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+
+  SCOPE_ASSERT(!g[0].IsMatch);
+  SCOPE_ASSERT(g[1].IsMatch);
+
+  SCOPE_ASSERT(!g[0].Trans);
+
+  ByteSet expected{'A', 0xFF}, actual;
+  g[1].Trans->getBytes(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseEncodingCCCodePoint2ByteWithBreakout) {
+  NFABuilder nfab;
+  nfab.setEncoder(std::shared_ptr<Encoder>(new UTF8));
+
+  NFA& g(*nfab.getFsm());
+  ParseTree tree;
+  SCOPE_ASSERT(parse("[\\x{80}\\xFF]", false, false, tree));
+  SCOPE_ASSERT(nfab.build(tree));
+
+  SCOPE_ASSERT_EQUAL(4, g.verticesSize());
+
+  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(2, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(3, g.outVertex(0, 1));
+
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(2, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(0, g.inVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(2, 0));
+
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(3));
+  SCOPE_ASSERT_EQUAL(0, g.inVertex(3, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(3));
+
+  SCOPE_ASSERT(!g[0].IsMatch);
+  SCOPE_ASSERT(g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(g[3].IsMatch);
+
+  SCOPE_ASSERT(!g[0].Trans);
+
+  ByteSet expected{0x80}, actual;
+  g[1].Trans->getBytes(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+
+  expected.reset();
+  actual.reset();
+
+  expected.set(0xC2);
+  g[2].Trans->getBytes(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+
+  expected.reset();
+  actual.reset();
+
+  expected.set(0xFF);
+  g[3].Trans->getBytes(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseEncodingCCBreakoutOnly) {
+  NFABuilder nfab;
+  nfab.setEncoder(std::shared_ptr<Encoder>(new UTF8));
+
+  NFA& g(*nfab.getFsm());
+  ParseTree tree;
+  SCOPE_ASSERT(parse("[\\xFF]", false, false, tree));
+  SCOPE_ASSERT(nfab.build(tree));
+
+  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+
+  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+
+  SCOPE_ASSERT(!g[0].IsMatch);
+  SCOPE_ASSERT(g[1].IsMatch);
+
+  SCOPE_ASSERT(!g[0].Trans);
+
+  ByteSet expected{0xFF}, actual;
+  g[1].Trans->getBytes(actual);
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseEncodingNegCCCodePointWithBreakout) {
+  NFABuilder nfab;
+  nfab.setEncoder(std::shared_ptr<Encoder>(new UTF8));
+
+  NFA& g(*nfab.getFsm());
+  ParseTree tree;
+  SCOPE_ASSERT(parse("[^\\x{02}-\\x{10FFFF}\\x01]", false, false, tree));
+  SCOPE_ASSERT(nfab.build(tree));
+
+  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+
+  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+
+  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+
+  SCOPE_ASSERT(!g[0].IsMatch);
+  SCOPE_ASSERT(g[1].IsMatch);
+
+  SCOPE_ASSERT(!g[0].Trans);
+
+  ByteSet expected{0x00}, actual;
+  g[1].Trans->getBytes(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
