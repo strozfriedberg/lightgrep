@@ -53,7 +53,9 @@ SCOPE_TEST(parseCC_ZtoA_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseCC_A_CaseInsensitiveTest) {
@@ -203,7 +205,7 @@ SCOPE_TEST(parseCC_00toFF_BreakoutTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(parseCC_FFto00_Test) {
+SCOPE_TEST(parseCC_FFto00_BreakoutTest) {
   const std::string p = "[\\xFF-\\x00]";
   ParseTree actual;
   actual.init(p.length());
@@ -213,7 +215,9 @@ SCOPE_TEST(parseCC_FFto00_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseCC_A_FF_BreakoutTest) {
@@ -296,7 +300,7 @@ SCOPE_TEST(parseCC_00toFF_AtoZ_BreakoutTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(parseCC_AtoFF_Test) {
+SCOPE_TEST(parseCC_AtoFF_BreakoutTest) {
   const std::string p = "[A-\\xFF]";
   ParseTree actual;
   actual.init(p.length());
@@ -306,10 +310,12 @@ SCOPE_TEST(parseCC_AtoFF_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parseCC_00toA_Test) {
+SCOPE_TEST(parseCC_00toA_BreakoutTest) {
   const std::string p = "[\\x00-A]";
   ParseTree actual;
   actual.init(p.length());
@@ -319,7 +325,9 @@ SCOPE_TEST(parseCC_00toA_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseNegCC_A_Test) {
@@ -372,7 +380,9 @@ SCOPE_TEST(parseNegCC_ZtoA_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseNegCC_A_CaseInsensitiveTest) {
@@ -462,7 +472,7 @@ SCOPE_TEST(parseNegCC_FF_BreakoutCaseInsensitiveTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(parseNegCC_00toFF_Test) {
+SCOPE_TEST(parseNegCC_00toFF_BreakoutTest) {
   const std::string p = "[^\\x00-\\xFF]";
   ParseTree actual;
   actual.init(p.length());
@@ -472,7 +482,9 @@ SCOPE_TEST(parseNegCC_00toFF_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseNegCC_00to7F_BreakoutTest) {
@@ -495,7 +507,7 @@ SCOPE_TEST(parseNegCC_00to7F_BreakoutTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(parseNegCC_FFto00_Test) {
+SCOPE_TEST(parseNegCC_FFto00_BreakoutTest) {
   const std::string p = "[^\\xFF-\\x00]";
   ParseTree actual;
   actual.init(p.length());
@@ -505,7 +517,9 @@ SCOPE_TEST(parseNegCC_FFto00_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseNegCC_A_FF_BreakoutTest) {
@@ -515,7 +529,7 @@ SCOPE_TEST(parseNegCC_A_FF_BreakoutTest) {
   expected.Root = expected.add(
     ParseNode(ParseNode::REGEXP,
       expected.add(
-        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{'A'}, ~ByteSet(0xFF))
+        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{'A'}, ByteSet(0xFF), false)
       )
     )
   );
@@ -535,7 +549,7 @@ SCOPE_TEST(parseNegCC_A_FF_BreakoutCaseInsensitiveTest) {
   expected.Root = expected.add(
     ParseNode(ParseNode::REGEXP,
       expected.add(
-        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{'A', 'a'}, ~ByteSet(0xFF))
+        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{'A', 'a'}, ByteSet(0xFF), false)
       )
     )
   );
@@ -548,17 +562,24 @@ SCOPE_TEST(parseNegCC_A_FF_BreakoutCaseInsensitiveTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(parseNegCC_AtoZ_00toFF_Test) {
+SCOPE_TEST(parseNegCC_AtoZ_00toFF_BreakoutTest) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{{'A', 'Z' + 1}}, ByteSet{{0x00, 0x100}}, false)
+      )
+    )
+  );
+
   const std::string p = "[^A-Z\\x00-\\xFF]";
   ParseTree actual;
   actual.init(p.length());
+  SCOPE_ASSERT(parse(p, false, false, actual));
 
-  try {
-    parse(p, false, false, actual);
-  }
-  catch (const std::runtime_error&) {
-    // expected
-  }
+  SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
 SCOPE_TEST(parseNegCC_AtoZ_00to7F_BreakoutTest) {
@@ -568,7 +589,7 @@ SCOPE_TEST(parseNegCC_AtoZ_00to7F_BreakoutTest) {
   expected.Root = expected.add(
     ParseNode(ParseNode::REGEXP,
       expected.add(
-        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{{'A', 'Z' + 1}}, ~ByteSet{{0x00, 0x80}})
+        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{{'A', 'Z' + 1}}, ByteSet{{0x00, 0x80}}, false)
       )
     )
   );
@@ -581,17 +602,24 @@ SCOPE_TEST(parseNegCC_AtoZ_00to7F_BreakoutTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(parseNegCC_00toFF_AtoZ_Test) {
+SCOPE_TEST(parseNegCC_00toFF_AtoZ_BreakoutTest) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{{'A', 'Z' + 1}}, ByteSet{{0x00, 0x100}}, false)
+      )
+    )
+  );
+
   const std::string p = "[^\\x00-\\xFFA-Z]";
   ParseTree actual;
   actual.init(p.length());
+  SCOPE_ASSERT(parse(p, false, false, actual));
 
-  try {
-    parse(p, false, false, actual);
-  }
-  catch (const std::runtime_error&) {
-    // expected
-  }
+  SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
 SCOPE_TEST(parseNegCC_00to7F_AtoZ_BreakoutTest) {
@@ -601,7 +629,7 @@ SCOPE_TEST(parseNegCC_00to7F_AtoZ_BreakoutTest) {
   expected.Root = expected.add(
     ParseNode(ParseNode::REGEXP,
       expected.add(
-        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{{'A', 'Z' + 1}}, ~ByteSet{{0x00, 0x80}})
+        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{{'A', 'Z' + 1}}, ByteSet{{0x00, 0x80}}, false)
       )
     )
   );
@@ -614,7 +642,7 @@ SCOPE_TEST(parseNegCC_00to7F_AtoZ_BreakoutTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(parseNegCC_AtoFF_Test) {
+SCOPE_TEST(parseNegCC_AtoFF_BreakoutTest) {
   const std::string p = "[^A-\\xFF]";
   ParseTree actual;
   actual.init(p.length());
@@ -624,10 +652,12 @@ SCOPE_TEST(parseNegCC_AtoFF_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parseNegCC_00toA_Test) {
+SCOPE_TEST(parseNegCC_00toA_BreakoutTest) {
   const std::string p = "[^\\x00-A]";
   ParseTree actual;
   actual.init(p.length());
@@ -637,5 +667,7 @@ SCOPE_TEST(parseNegCC_00toA_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }

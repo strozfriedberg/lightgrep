@@ -49,7 +49,10 @@ struct ParseNode {
   union {
     ParseNode* Right;
     int Val;
-    ByteSet Bytes;
+    struct {
+      ByteSet Bytes;
+      bool Additive;
+    } Breakout;
     struct {
       uint32 Min, Max;
     } Rep;
@@ -63,7 +66,8 @@ struct ParseNode {
     Type(t), Left(nullptr), Val(v), CodePoints()
   {
     if (Type == CHAR_CLASS) {
-      Bytes.reset();
+      Breakout.Bytes.reset();
+      Breakout.Additive = true;
     }
   }
 
@@ -81,16 +85,32 @@ struct ParseNode {
   }
 
   ParseNode(NodeType t, uint32 first, uint32 last):
-    Type(t), Left(nullptr), Bytes(), CodePoints(first, last + 1) {}
+    Type(t), Left(nullptr), CodePoints(first, last + 1)
+  {
+    Breakout.Bytes.reset();
+    Breakout.Additive = true;
+  }
 
   explicit ParseNode(NodeType t, const ByteSet& b):
-    Type(t), Left(nullptr), Bytes(b), CodePoints() {}
+    Type(t), Left(nullptr), CodePoints()
+  {
+    Breakout.Bytes = b;
+    Breakout.Additive = true;
+  }
 
   ParseNode(NodeType t, const UnicodeSet& u):
-    Type(t), Left(nullptr), Bytes(), CodePoints(u) {}
+    Type(t), Left(nullptr), CodePoints(u)
+  {
+    Breakout.Bytes.reset();
+    Breakout.Additive = true;
+  }
 
-  ParseNode(NodeType t, const UnicodeSet& u, const ByteSet& b):
-    Type(t), Left(nullptr), Bytes(b), CodePoints(u) {}
+  ParseNode(NodeType t, const UnicodeSet& u, const ByteSet& b, bool additive = true):
+    Type(t), Left(nullptr), CodePoints(u)
+  {
+    Breakout.Bytes = b;
+    Breakout.Additive = additive;
+  }
 
   ParseNode(const ParseNode& n): Type(n.Type), Left(n.Left) {
     init_union(n);
@@ -132,7 +152,8 @@ struct ParseNode {
     case CHAR_CLASS:
 //      new(&CodePoints) UnicodeSet(n.CodePoints);
       CodePoints = n.CodePoints;
-      Bytes = n.Bytes;
+      Breakout.Bytes = n.Breakout.Bytes;
+      Breakout.Additive = n.Breakout.Additive;
       break;
     default:
       Val = n.Val;
@@ -161,7 +182,9 @@ struct ParseNode {
       return Rep.Min == o.Rep.Min && Rep.Max == o.Rep.Max &&
              !Left ? !o.Left : (o.Left ? *Left == *o.Left : false);
     case CHAR_CLASS:
-      return CodePoints == o.CodePoints && Bytes == o.Bytes;
+      return CodePoints == o.CodePoints &&
+             Breakout.Additive == o.Breakout.Additive &&
+             Breakout.Bytes == o.Breakout.Bytes;
     default:
       return Val == o.Val;
     }
