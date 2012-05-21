@@ -464,7 +464,17 @@ void writeSampleMatches(const Options& opts) {
     pinfo.Patterns.push_back(pat);
 
     uint32 numErrors;
-    std::shared_ptr<ParserHandle> parser(parsePatterns(pinfo, numErrors));
+
+// FIXME: Error output should not go to the same place as regular output,
+// unless the user specifically sets it to.
+    std::shared_ptr<ParserHandle> parser(
+      parsePatterns(pinfo, numErrors,
+        [&](const Pattern& p, const std::string& err) {
+          opts.openOutput() << err << " on pattern " << p.Index << ", '" << p.Expression << "'" << std::endl;
+        }
+      )
+    );
+
     if (numErrors == 0) {
       // break on through the C API to get the graph
       NFAPtr g(parser->Impl->Fsm);
