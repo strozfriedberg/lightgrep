@@ -486,7 +486,7 @@ void writeSampleMatches(const Options& opts) {
             std::cerr << "Error: " << u_errorName(ec) << std::endl;
           }
 
-          out << std::string(buf.get(), len) << std::endl;
+          out << std::string(buf.get(), len) << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
         }
       )
     );
@@ -498,8 +498,11 @@ void writeSampleMatches(const Options& opts) {
       std::set<std::string> matches;
       matchgen(*g, matches, opts.SampleLimit, opts.LoopLimit);
 
-      std::copy(matches.begin(), matches.end(), std::ostream_iterator<std::string>(out, "\n"));
+      for (const std::string& m : matches) {
+        out << m << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
+      }
     }
+    out.flush();
   }
 }
 
