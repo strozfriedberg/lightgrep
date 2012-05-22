@@ -459,6 +459,7 @@ void validate(const Options& opts) {
 void writeSampleMatches(const Options& opts) {
   PatternInfo pinfo = opts.getKeys();
 
+	std::ostream& out(opts.openOutput());
   for (const Pattern& pat : pinfo.Patterns) {
     // parse the pattern
 
@@ -467,8 +468,6 @@ void writeSampleMatches(const Options& opts) {
 
     uint32 numErrors;
 
-// FIXME: Error output should not go to the same place as regular output,
-// unless the user specifically sets it to.
     std::shared_ptr<ParserHandle> parser(
       parsePatterns(pinfo, numErrors,
         [&](const Pattern& p, const std::string& err) {
@@ -483,7 +482,7 @@ void writeSampleMatches(const Options& opts) {
             std::cerr << "Error: " << u_errorName(ec) << std::endl;
           }
 
-          opts.openOutput() << std::string(buf.get(), len) << std::endl;
+          out << std::string(buf.get(), len) << std::endl;
         }
       )
     );
@@ -495,7 +494,7 @@ void writeSampleMatches(const Options& opts) {
       std::set<std::string> matches;
       matchgen(*g, matches, opts.SampleLimit, opts.LoopLimit);
 
-      std::copy(matches.begin(), matches.end(), std::ostream_iterator<std::string>(opts.openOutput(), "\n"));
+      std::copy(matches.begin(), matches.end(), std::ostream_iterator<std::string>(out, "\n"));
     }
   }
 }
