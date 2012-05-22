@@ -12,6 +12,8 @@
 #include <boost/timer.hpp>
 #include <boost/graph/graphviz.hpp>
 
+#include <unicode/ucnv.h>
+
 #include "encodings.h"
 #include "handles.h"
 #include "hitwriter.h"
@@ -470,7 +472,18 @@ void writeSampleMatches(const Options& opts) {
     std::shared_ptr<ParserHandle> parser(
       parsePatterns(pinfo, numErrors,
         [&](const Pattern& p, const std::string& err) {
-          opts.openOutput() << err << " on pattern " << p.Index << ", '" << p.Expression << "'" << std::endl;
+          std::stringstream ss;
+          ss << err << " on pattern " << p.Index << ", '" << p.Expression << "'";
+          std::string msg(ss.str());
+
+          std::unique_ptr<char[]> buf(new char[4*msg.length()+1]);
+          UErrorCode ec = U_ZERO_ERROR;
+          const uint32 len = ucnv_convert("UTF-16LE", "UTF-8", buf.get(), 4*msg.length()+1, msg.c_str(), -1, &ec);
+          if (U_FAILURE(ec)) {
+            std::cerr << "Error: " << u_errorName(ec) << std::endl;
+          }
+
+          opts.openOutput() << std::string(buf.get(), len) << std::endl;
         }
       )
     );
