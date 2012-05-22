@@ -460,6 +460,10 @@ void writeSampleMatches(const Options& opts) {
   PatternInfo pinfo = opts.getKeys();
 
 	std::ostream& out(opts.openOutput());
+
+  // Write a LE BOM because EnCase is retarded and expectes a BOM for UTF-16LE
+  out << (char) 0xFF << (char) 0xFE;
+
   for (const Pattern& pat : pinfo.Patterns) {
     // parse the pattern
 
