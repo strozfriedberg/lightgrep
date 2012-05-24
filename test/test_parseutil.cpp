@@ -73,7 +73,7 @@ SCOPE_TEST(parseHexShortTest) {
       }
 
       const char* h = b;
-      SCOPE_ASSERT_EQUAL(exp, parseHexShort(h, h+2));
+      SCOPE_ASSERT_EQUAL(exp, parseHexByte(h, h+2));
 
       if (exp != -1) {
         SCOPE_ASSERT_EQUAL(b+2, h);
@@ -93,35 +93,23 @@ void fixture(F func, const std::string& s, int exp, int len) {
   }
 }
 
-SCOPE_TEST(parseHexLongTest) {
-  fixture(parseHexLong<SItr>, "",         -1,       -1);
-  fixture(parseHexLong<SItr>, "}",        0x0,       1);
-  fixture(parseHexLong<SItr>, "1",        -1,       -1);
-  fixture(parseHexLong<SItr>, "1}",       0x1,       2);
-  fixture(parseHexLong<SItr>, "11",       -1,       -1);
-  fixture(parseHexLong<SItr>, "11}",      0x11,      3);
-  fixture(parseHexLong<SItr>, "111",      -1,       -1);
-  fixture(parseHexLong<SItr>, "111}",     0x111,     4);
-  fixture(parseHexLong<SItr>, "1111",     -1,       -1);
-  fixture(parseHexLong<SItr>, "1111}",    0x1111,    5);
-  fixture(parseHexLong<SItr>, "11111",    -1,       -1);
-  fixture(parseHexLong<SItr>, "11111}",   0x11111,   6);
-  fixture(parseHexLong<SItr>, "111111",   -1,       -1);
-  fixture(parseHexLong<SItr>, "111111}",  0x111111,  7);
-  fixture(parseHexLong<SItr>, "1111111",  -1,       -1);
-  fixture(parseHexLong<SItr>, "1111111}", -1,       -1);  // > 6 hex digits
-}
-
-SCOPE_TEST(parseHexTest) {
-  fixture(parseHex<SItr>, "", -1, -1);
-  fixture(parseHex<SItr>, "0", -1, -1);
-  fixture(parseHex<SItr>, "00", 0, 2);
-  fixture(parseHex<SItr>, "{0}", 0, 3);
-  fixture(parseHex<SItr>, "{0", -1, -1);
-  fixture(parseHex<SItr>, "0}", -1, -1);
-  fixture(parseHex<SItr>, "00}", 0, 2);
-  fixture(parseHex<SItr>, "{000000}", 0, 8);
-  fixture(parseHex<SItr>, "0000000", 0, 2);
+SCOPE_TEST(parseHexCodePointTest) {
+  fixture(parseHexCodePoint<SItr>, "",         -1,       -1);
+  fixture(parseHexCodePoint<SItr>, "}",        -1,       -1);
+  fixture(parseHexCodePoint<SItr>, "1",        -1,       -1);
+  fixture(parseHexCodePoint<SItr>, "1}",       0x1,       2);
+  fixture(parseHexCodePoint<SItr>, "11",       -1,       -1);
+  fixture(parseHexCodePoint<SItr>, "11}",      0x11,      3);
+  fixture(parseHexCodePoint<SItr>, "111",      -1,       -1);
+  fixture(parseHexCodePoint<SItr>, "111}",     0x111,     4);
+  fixture(parseHexCodePoint<SItr>, "1111",     -1,       -1);
+  fixture(parseHexCodePoint<SItr>, "1111}",    0x1111,    5);
+  fixture(parseHexCodePoint<SItr>, "11111",    -1,       -1);
+  fixture(parseHexCodePoint<SItr>, "11111}",   0x11111,   6);
+  fixture(parseHexCodePoint<SItr>, "111111",   -1,       -1);
+  fixture(parseHexCodePoint<SItr>, "111111}",  0x111111,  7);
+  fixture(parseHexCodePoint<SItr>, "1111111",  -1,       -1);
+  fixture(parseHexCodePoint<SItr>, "1111111}", -1,       -1);  // > 6 digits
 }
 
 SCOPE_TEST(parseOctCharTest) {
@@ -145,15 +133,15 @@ SCOPE_TEST(parseOctCharTest) {
   }
 }
 
-SCOPE_TEST(parseOctTest) {
-  fixture(parseOct<SItr>, "0",  00, 1);
-  fixture(parseOct<SItr>, "01", 01, 2);
-  fixture(parseOct<SItr>, "01a", 01, 2);
-  fixture(parseOct<SItr>, "0a1", 00, 1);
-  fixture(parseOct<SItr>, "000", 00, 3);
-  fixture(parseOct<SItr>, "0001", 00, 3);
-  fixture(parseOct<SItr>, "377", 0377, 3);
-  fixture(parseOct<SItr>, "400", -1, -1); // > 377 is multi-byte
+SCOPE_TEST(parseOctByteTest) {
+  fixture(parseOctByte<SItr>, "0",      00,  1);
+  fixture(parseOctByte<SItr>, "01",     01,  2);
+  fixture(parseOctByte<SItr>, "01a",    01,  2);
+  fixture(parseOctByte<SItr>, "0a1",    00,  1);
+  fixture(parseOctByte<SItr>, "000",    00,  3);
+  fixture(parseOctByte<SItr>, "0001",   00,  3);
+  fixture(parseOctByte<SItr>, "377",  0377,  3);
+  fixture(parseOctByte<SItr>, "400",    -1, -1); // > 377 is multi-byte
 }
 
 SCOPE_TEST(parseNamedCodePointNumberTest) {

@@ -33,13 +33,14 @@ uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
   for (auto& p : keywords) {
     uint32 pSize = p.Expression.size();
     if (p.Encoding == "UTF-16LE" || p.Encoding == "UTF-16BE") {
-      ret <<= 1;
+      pSize <<= 1;
     }
     else if (p.Encoding == "UTF-8") {
-      ret += ret >> 1;
+      pSize *= 3;
+      pSize >>= 1;
     }
     else if (p.Encoding == "UTF-32LE" || p.Encoding == "UTF-32BE") {
-      ret <<= 2;
+      pSize <<= 2;
     }
     ret += pSize;
   }

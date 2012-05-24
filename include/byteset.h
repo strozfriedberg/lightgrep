@@ -82,6 +82,11 @@ public:
     return compare(other) != 0;
   }
 
+  ByteSet operator~() const {
+    ByteSet ret(*this);
+    ret.flip();
+    return ret;
+  }
 };
 
 std::ostream& operator<<(std::ostream& out, const ByteSet& bs);

@@ -12,6 +12,8 @@
 #include <boost/timer.hpp>
 #include <boost/graph/graphviz.hpp>
 
+#include <unicode/ucnv.h>
+
 #include "encodings.h"
 #include "handles.h"
 #include "hitwriter.h"
@@ -457,6 +459,11 @@ void validate(const Options& opts) {
 void writeSampleMatches(const Options& opts) {
   PatternInfo pinfo = opts.getKeys();
 
+	std::ostream& out(opts.openOutput());
+
+  // Write a LE BOM because EnCase is retarded and expectes a BOM for UTF-16LE
+  out << (char) 0xFF << (char) 0xFE;
+
   for (const Pattern& pat : pinfo.Patterns) {
     // parse the pattern
 
@@ -464,7 +471,26 @@ void writeSampleMatches(const Options& opts) {
     pinfo.Patterns.push_back(pat);
 
     uint32 numErrors;
-    std::shared_ptr<ParserHandle> parser(parsePatterns(pinfo, numErrors));
+
+    std::shared_ptr<ParserHandle> parser(
+      parsePatterns(pinfo, numErrors,
+        [&](const Pattern& p, const std::string& err) {
+          std::stringstream ss;
+          ss << err << " on pattern " << p.Index << ", '" << p.Expression << "'";
+          std::string msg(ss.str());
+
+          std::unique_ptr<char[]> buf(new char[4*msg.length()+1]);
+          UErrorCode ec = U_ZERO_ERROR;
+          const uint32 len = ucnv_convert("UTF-16LE", "UTF-8", buf.get(), 4*msg.length()+1, msg.c_str(), -1, &ec);
+          if (U_FAILURE(ec)) {
+            std::cerr << "Error: " << u_errorName(ec) << std::endl;
+          }
+
+          out << std::string(buf.get(), len) << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
+        }
+      )
+    );
+
     if (numErrors == 0) {
       // break on through the C API to get the graph
       NFAPtr g(parser->Impl->Fsm);
@@ -472,8 +498,11 @@ void writeSampleMatches(const Options& opts) {
       std::set<std::string> matches;
       matchgen(*g, matches, opts.SampleLimit, opts.LoopLimit);
 
-      std::copy(matches.begin(), matches.end(), std::ostream_iterator<std::string>(opts.openOutput(), "\n"));
+      for (const std::string& m : matches) {
+        out << m << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
+      }
     }
+    out.flush();
   }
 }
 

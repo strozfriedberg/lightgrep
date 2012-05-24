@@ -232,7 +232,7 @@ void Compiler::labelGuardStates(NFA& g) {
 }
 
 void Compiler::propagateMatchLabels(NFA& g) {
-  uint32 i = 0;
+  // uint32 count = 0;
 
   std::stack<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor>> next, unext;
 
@@ -240,7 +240,7 @@ void Compiler::propagateMatchLabels(NFA& g) {
     // skip non-match vertices
     if (!g[m].IsMatch) continue;
 
-    // if (++i % 10000 == 0) {
+    // if (++count % 10000 == 0) {
     //   std::cerr << "handled " << i << " labeled vertices" << std::endl;
     // }
 
@@ -509,7 +509,7 @@ void Compiler::subsetDFA(NFA& dst, const NFA& src) {
   ByteSet outBytes;
 
   // process each subset state
-  uint32 num = 0;
+  // uint32 num = 0;
   while (!dstStack.empty()) {
     // if (++num % 10000 == 0) {
     //   std::cerr << "processed " << num << " subset states so far" << std::endl;

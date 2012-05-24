@@ -419,7 +419,7 @@ template <typename T, T N>
 std::ostream& operator<<(std::ostream& o, const RangeSet<T,N>& rs) {
   const typename RangeSet<T,N>::const_iterator end(rs.end());
   for (typename RangeSet<T,N>::const_iterator i(rs.begin()); i != end; ++i) {
-    o << '[' << i->first << ',' << i->second << ") ";
+    o << '[' << std::hex << i->first << ',' << i->second << std::dec << ") ";
   }
   return o;
 }
