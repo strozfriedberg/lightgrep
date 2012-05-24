@@ -1,63 +1,160 @@
 #include "basic.h"
 #include "matchgen.h"
-#include "unparser.h"
 
-#include <stack>
-
-struct Info {
-  NFA::VertexDescriptor v;
-  std::vector<uint32> seen;
-  std::string m;
-};
+#include <iostream>
+#include <random>
 
 void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, uint32 max_loops) {
   if (max_matches == 0) {
     return;
   }
 
-  std::stack<Info> stack;
-  Info i;
-  i.v = 0;
-  i.seen.assign(g.verticesSize(), 0);
-  stack.push(i);
-
+  std::default_random_engine rng;
   ByteSet bs;
 
-  while (!stack.empty()) {
-    Info pi = stack.top();
-    stack.pop();
-    NFA::VertexDescriptor v = pi.v;
-    std::string& m(pi.m);
-    std::vector<uint32>& seen(pi.seen);
+  for (uint32 i = 0; i < max_matches; ++i) {
+    NFA::VertexDescriptor v = 0;
+    std::string match;
 
-    if (g[v].IsMatch) {
-      matches.insert(m);
-      if (matches.size() >= max_matches) {
-        return;
-      }
-    }
+    std::vector<uint32> seen;
+    seen.assign(g.verticesSize(), 0);
 
-    const uint32 odeg = g.outDegree(v);
-    for (uint32 i = 0; i < odeg; ++i) {
-      const NFA::VertexDescriptor c = g.outVertex(v, odeg - i - 1);
+    bool done = true;
 
-      if (pi.seen[c] > max_loops) {
-        continue;
-      }
-
-      g[c].Trans->getBytes(bs);
-
-      for (uint32 b = 0; b < 256; ++b) {
-        if (bs[b]) {
-          Info ci;
-          ci.v = c;
-          ci.m = m + (char) b;
-          ci.seen = seen;
-          ++ci.seen[c];
-          stack.push(ci);
+    do {
+      // check that there is at least one out vertex not seen too often
+      bool ok = false;
+      for (uint32 j = 0; j < g.outDegree(v); ++j) {
+        if (seen[g.outVertex(v, j)] < max_loops) {
+          ok = true;
           break;
         }
       }
-    }
+
+      if (!ok) {
+        break;
+      }
+
+      // select a random out vertex
+      std::uniform_int_distribution<uint32> uout(0, g.outDegree(v) - 1);
+
+      NFA::VertexDescriptor w;
+      do {
+        w = g.outVertex(v, uout(rng));
+      } while (seen[w] > max_loops);
+
+      v = w; 
+      ++seen[v];
+
+      // select a random transition to that vertex
+      bs.reset(); 
+      g[v].Trans->getBytes(bs);
+
+      // can we select alphanumeric?
+      std::vector<byte> bytes;
+      for (byte j = '0'; j <= '9'; ++j) {
+        if (bs.test(j)) {
+          bytes.push_back(j);
+        }
+      }
+
+      for (byte j = 'A'; j <= 'Z'; ++j) {
+        if (bs.test(j)) {
+          bytes.push_back(j);
+        }
+      }
+
+      for (byte j = 'a'; j <= 'z'; ++j) {
+        if (bs.test(j)) {
+          bytes.push_back(j);
+        }
+      }
+
+      if (!bytes.empty()) {
+        std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
+        match += bytes[ubyte(rng)];
+      }
+      else {
+        bytes.clear();
+
+        // can we select other printable characters?
+        for (byte j = '!'; j <= '/'; ++j) {
+          if (bs.test(j)) {
+            bytes.push_back(j);
+          }
+        }
+
+        for (byte j = ':'; j <= '@'; ++j) {
+          if (bs.test(j)) {
+            bytes.push_back(j);
+          }
+        }
+
+        for (byte j = '['; j <= '`'; ++j) {
+          if (bs.test(j)) {
+            bytes.push_back(j);
+          }
+        }
+
+        for (byte j = '{'; j <= '~'; ++j) {
+          if (bs.test(j)) {
+            bytes.push_back(j);
+          }
+        }
+
+        if (!bytes.empty()) {
+          std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
+          match += bytes[ubyte(rng)];
+        }
+        else {
+          bytes.clear();
+
+          // no printable characters in this range
+          for (byte j = 0x00; j <= ' '; ++j) {
+            if (bs.test(j)) {
+              bytes.push_back(j);
+            }
+          }
+
+          for (uint32 j = 0x7F; j <= 0xFF; ++j) {
+            if (bs.test(j)) {
+              bytes.push_back(j);
+            }
+          }
+
+          std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
+          match += bytes[ubyte(rng)];
+        }
+      }
+
+      if (g[v].IsMatch) {
+        done = true;
+
+        // check whether we could extend this match
+        for (uint32 j = 0; j < g.outDegree(v); ++j) {
+          if (seen[g.outVertex(v, j)] < max_loops) {
+            done = false;
+            break;
+          }
+        }
+
+        if (done) {
+          // we can't extend the match, report it
+          matches.insert(match);
+        }
+        else {
+          std::bernoulli_distribution umatch(0.25);
+          if (umatch(rng)) {
+            // we can extend the match, but don't want to
+            matches.insert(match);
+            done = true;
+          }
+        }
+      }
+      else {
+        // no match, keep going
+        done = false;
+      }
+    } while (!done);
   }
 }

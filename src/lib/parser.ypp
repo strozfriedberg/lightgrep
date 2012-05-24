@@ -43,10 +43,11 @@ namespace {
   UnicodeSet* s;
 }
 
+%token <c> BYTE
 %token <c> CHAR
 %token <c> DIGIT
 %token <c> BAD
-%token <s> SET;
+%token <s> SET
 
 %type <node> regexp alt concat rep number atom literal charclass charclass_right cc_named
 %type <c>    character cc_char cc_char_first cc_char_not_first
@@ -162,7 +163,11 @@ atom:
 ;
 
 literal:
-  character
+  BYTE
+  {
+    $$ = add(ParseNode(ParseNode::BYTE, $1));
+  }
+| character
   {
     if (CaseInsensitive) {
       USet.reset();
@@ -187,32 +192,53 @@ literal:
   {
     $$ = $3;
 
-    // NB: PCRE applies case-insensitivity first, then negation. This is
-    // important, as these two operations do not commute on a cc such as
-    // [^a]. Let U be the set of all Unicode code points. Negating first
-    // gives U / {a}, which becomes U again when closing under case-
-    // insensitivity, due to A being a member of U / {a}, while closing
-    // under case-insensitivity first gives {A, a}, which becomes
-    // U / {A, a} after negation.
+    if ($$->CodePoints.any()) {
+      // NB: PCRE applies case-insensitivity first, then negation. This is
+      // important, as these two operations do not commute on a cc such as
+      // [^a]. Let U be the set of all Unicode code points. Negating first
+      // gives U / {a}, which becomes U again when closing under case-
+      // insensitivity, due to A being a member of U / {a}, while closing
+      // under case-insensitivity first gives {A, a}, which becomes
+      // U / {A, a} after negation.
 
-    if (CaseInsensitive) {
-      caseDesensitize($$->Bits);
+      if (CaseInsensitive) {
+        caseDesensitize($$->CodePoints);
+      }
+
+      $$->CodePoints.flip();
+      if ($$->CodePoints.none()) {
+        // empty character class
+        yyerror("syntax error");
+      }
+
+      if ($$->Breakout.Bytes.any()) {
+        $$->Breakout.Additive = false;
+      }
     }
-
-    $$->Bits.flip();
+    else if ($$->Breakout.Bytes.any()) {
+      $$->Breakout.Bytes.flip();
+      if ($$->Breakout.Bytes.none()) {
+        // empty character class
+        yyerror("syntax error");
+      }
+    }
+    else {
+      // empty character class
+      yyerror("syntax error");
+    }
   }
 | '[' charclass ']'
   {
     $$ = $2;
 
     if (CaseInsensitive) {
-      caseDesensitize($$->Bits);
+      caseDesensitize($$->CodePoints);
     }
   }
 | cc_named
   {
     if (CaseInsensitive) {
-      caseDesensitize($$->Bits);
+      caseDesensitize($$->CodePoints);
     }
   }
 ;
@@ -245,41 +271,100 @@ character:
 charclass:
   cc_char_first '-' cc_char_not_first charclass_right
   {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror("syntax error");
+    }
+
     $$ = $4;
-    $$->range($1, $3);
+    $$->CodePoints.insert($1, $3 + 1);
   }
 | cc_char_first charclass_right
   {
     $$ = $2;
-    $$->Bits.set($1);
+    $$->CodePoints.set($1);
   }
 | cc_named charclass_right
   {
     $$ = $2;
-    $$->Bits |= $1->Bits;
+    $$->CodePoints |= $1->CodePoints;
+  }
+| BYTE charclass_right
+  {
+    $$ = $2;
+    $$->Breakout.Bytes.set($1);
+  }
+| BYTE '-' BYTE charclass_right
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror("syntax error");
+    }
+
+    $$ = $4;
+    $$->Breakout.Bytes.set($1, $3 + 1, true);
+  }
+| BYTE '-' cc_char_not_first charclass_right
+  {
+    // ranges must have endpoints of the same type
+    yyerror("syntax error");
+  }
+| cc_char_first '-' BYTE charclass_right
+  {
+    // ranges must have endpoints of the same type
+    yyerror("syntax error");
   }
 ;
 
 charclass_right:
   cc_char_not_first '-' cc_char_not_first charclass_right
   {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror("syntax error");
+    }
+
     $$ = $4;
-    $$->range($1, $3);
+    $$->CodePoints.insert($1, $3 + 1);
   }
 | cc_char_not_first charclass_right
   {
     $$ = $2;
-    $$->Bits.set($1);
+    $$->CodePoints.set($1);
   }
 | cc_named charclass_right
   {
     $$ = $2;
-    $$->Bits |= $1->Bits;
+    $$->CodePoints |= $1->CodePoints;
+  }
+| BYTE charclass_right
+  {
+    $$ = $2;
+    $$->Breakout.Bytes.set($1);
+  }
+| BYTE '-' BYTE charclass_right
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror("syntax error");
+    }
+
+    $$ = $4;
+    $$->Breakout.Bytes.set($1, $3 + 1, true);
+  }
+| BYTE '-' cc_char_not_first charclass_right
+  {
+    // ranges must have endpoints of the same type
+    yyerror("syntax error");
+  }
+| cc_char_not_first '-' BYTE charclass_right
+  {
+    // ranges must have endpoints of the same type
+    yyerror("syntax error");
   }
 | /* empty */
   {
     $$ = add(ParseNode(ParseNode::CHAR_CLASS, 'x'));
-    $$->Bits['x'] = false;
   }
 ;
 
@@ -358,19 +443,20 @@ cc_named:
     $$ = add(ParseNode(ParseNode::CHAR_CLASS, USet));
   }
 ;
+
 %%
 
 namespace {
 
   template <typename F>
-  int consumeSingleton(F func) {
+  int consumeSingleton(F func, yytokentype type) {
     const int val = func(Text, TextEnd);
     if (val < 0) {
       return BAD;
     }
     else {
       yylval.c = val;
-      return CHAR;
+      return type;
     }
   }
 
@@ -491,7 +577,16 @@ namespace {
 
       // hexadecimal characters
       case 'x':
-        return consumeSingleton(parseHex<const int*>);
+        if (Text == TextEnd) {
+          return BAD;
+        }
+        else if (*Text == '{') {
+          ++Text;
+          return consumeSingleton(parseHexCodePoint<const int*>, CHAR);
+        }
+        else {
+          return consumeSingleton(parseHexByte<const int*>, BYTE);
+        }
 
       // octal characters
       case '0':
@@ -503,11 +598,11 @@ namespace {
       case '6':
       case '7':
         --Text;
-        return consumeSingleton(parseOct<const int*>);
+        return consumeSingleton(parseOctByte<const int*>, BYTE);
 
       // named Unicode code points
       case 'N':
-        return consumeSingleton(parseNamedCodePoint<const int*>);
+        return consumeSingleton(parseNamedCodePoint<const int*>, CHAR);
 
       // Unicode properties
       case 'p':

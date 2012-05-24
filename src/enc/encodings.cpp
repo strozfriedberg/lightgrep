@@ -141,7 +141,8 @@ int main(int, char**) {
 "static const char* const LG_CANONICAL_ENCODINGS[] = {\n";
 
   longest_canonical += 3;
-  for (int32 i = 0; i < canonical.size(); ++i) {
+  const int32 csize = canonical.size();
+  for (int32 i = 0; i < csize; ++i) {
     std::string n(canonical[i]);
     n = '"' + n + '"';
     if (i + 1 < clen) {
