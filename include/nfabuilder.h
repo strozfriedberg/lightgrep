@@ -33,6 +33,7 @@ public:
   void question_ng(const ParseNode& n);
   void repetition_ng(const ParseNode& n);
   void literal(const ParseNode& n);
+  void rawByte(const ParseNode& n);
   void dot(const ParseNode& n);
   void charClass(const ParseNode& n);
 
