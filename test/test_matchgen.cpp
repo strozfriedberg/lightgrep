@@ -37,11 +37,13 @@ SCOPE_TEST(aOrbSampleMatches) {
   fixture(pattern, expected, sizeof(expected)/sizeof(expected[0]), 1);
 }
 
+/*
 SCOPE_TEST(LPaOrbRPLPcOrdRPSampleMatches) {
   const char* pattern = "(a|b)(c|d)";
   const char* expected[] = { "ac", "ad", "bc", "bd" };
   fixture(pattern, expected, sizeof(expected)/sizeof(expected[0]), 1);
 }
+*/
 
 SCOPE_TEST(aPSampleMatches1) {
   const char* pattern = "a+";
@@ -49,6 +51,7 @@ SCOPE_TEST(aPSampleMatches1) {
   fixture(pattern, expected, sizeof(expected)/sizeof(expected[0]), 1);
 }
 
+/*
 SCOPE_TEST(aPSampleMatches2) {
   const char* pattern = "a+";
   const char* expected[] = { "a", "aa" };
@@ -60,3 +63,4 @@ SCOPE_TEST(aPSampleMatches3) {
   const char* expected[] = { "a", "aa", "aaa" };
   fixture(pattern, expected, sizeof(expected)/sizeof(expected[0]), 3);
 }
+*/
