@@ -5,7 +5,8 @@
 #include <random>
 
 bool checkForRoadLessTaken(const NFA& g, const std::vector<uint32>& seen,
-                          const uint32 maxLoops, const NFA::VertexDescriptor v) {
+                          const uint32 maxLoops, const NFA::VertexDescriptor v)
+{
   for (uint32 i = 0; i < g.outDegree(v); ++i) {
     if (seen[g.outVertex(v, i)] < maxLoops) {
       return true;
@@ -22,11 +23,21 @@ void addRange(std::vector<byte>& bytes, byte begin, byte end, const ByteSet& all
   }
 }
 
+NFA::VertexDescriptor chooseRandomTarget(const NFA& g, const std::vector<uint32>& seen,
+                          NFA::VertexDescriptor v, uint32 maxLoops, std::default_random_engine& rng)
+{
+  std::uniform_int_distribution<uint32> uout(0, g.outDegree(v) - 1);
+  NFA::VertexDescriptor w;
+  do {
+    w = g.outVertex(v, uout(rng));
+  } while (seen[w] > maxLoops);
+  return w;
+}
+
 void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, uint32 maxLoops) {
   if (maxMatches == 0) {
     return;
   }
-
   std::default_random_engine rng;
   ByteSet allowed;
   std::vector<uint32> seen;
@@ -39,21 +50,12 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
     seen.assign(g.verticesSize(), 0);
 
     bool done = true;
-
     do {
       // check that there is at least one out vertex not seen too often
       if (!checkForRoadLessTaken(g, seen, maxLoops, v)) {
         break;
       }
-      // select a random out vertex
-      std::uniform_int_distribution<uint32> uout(0, g.outDegree(v) - 1);
-
-      NFA::VertexDescriptor w;
-      do {
-        w = g.outVertex(v, uout(rng));
-      } while (seen[w] > maxLoops);
-
-      v = w; 
+      v = chooseRandomTarget(g, seen, v, maxLoops, rng);
       ++seen[v];
 
       // select a random transition to that vertex
@@ -97,7 +99,6 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
               bytes.push_back(j);
             }
           }
-
           std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
           match += bytes[ubyte(rng)];
         }
