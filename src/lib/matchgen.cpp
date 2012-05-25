@@ -43,6 +43,42 @@ const Element& chooseRandom(const std::vector<Element>& c, std::default_random_e
   return c[uout(rng)];
 }
 
+byte chooseByte(const ByteSet& allowed, std::default_random_engine& rng) {
+  std::vector<byte> bytes;
+
+  // can we select alphanumeric?
+  addRange(bytes, {std::make_pair('0', '9'), std::make_pair('A', 'Z'),
+                   std::make_pair('a', 'z')}, allowed);
+
+  if (!bytes.empty()) {
+    return chooseRandom(bytes, rng);
+  }
+  else {
+    // can we select other printable characters?
+    addRange(bytes, {std::make_pair('!', '/'), std::make_pair(':', '@'),
+                    std::make_pair('[', '`'), std::make_pair('{', '~')}, allowed);
+
+    if (!bytes.empty()) {
+      return chooseRandom(bytes, rng);
+    }
+    else {
+      // no printable characters in this range
+      addRange(bytes, {std::make_pair(0, ' ')}, allowed);
+
+      // FIXME: oddly, if I replace the below loop with
+      // addRange(bytes, 0x7f, 0xff, allowed) then
+      // ./lightgrep.exe -c samp -i -e UTF-8 -p "[a-z\d]{3,5}" 10
+      // hangs.
+      for (uint32 j = 0x7F; j <= 0xFF; ++j) {
+        if (allowed.test(j)) {
+          bytes.push_back(j);
+        }
+      }
+      return chooseRandom(bytes, rng);
+    }
+  }
+}
+
 void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, uint32 maxLoops) {
   if (maxMatches == 0) {
     return;
@@ -51,7 +87,6 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
   std::bernoulli_distribution umatch(0.25);
   ByteSet allowed;
   std::vector<uint32> seen;
-  std::vector<byte> bytes;
 
   for (uint32 i = 0; i < maxMatches; ++i) {
     NFA::VertexDescriptor v = 0;
@@ -71,39 +106,9 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
       // select a random transition to that vertex
       allowed.reset(); 
       g[v].Trans->getBytes(allowed);
-      bytes.clear();
 
-      // can we select alphanumeric?
-      addRange(bytes, {std::make_pair('0', '9'), std::make_pair('A', 'Z'),
-                       std::make_pair('a', 'z')}, allowed);
+      match += chooseByte(allowed, rng);
 
-      if (!bytes.empty()) {
-        match += chooseRandom(bytes, rng);
-      }
-      else {
-        // can we select other printable characters?
-        addRange(bytes, {std::make_pair('!', '/'), std::make_pair(':', '@'),
-                        std::make_pair('[', '`'), std::make_pair('{', '~')}, allowed);
-
-        if (!bytes.empty()) {
-          match += chooseRandom(bytes, rng);
-        }
-        else {
-          // no printable characters in this range
-          addRange(bytes, {std::make_pair(0, ' ')}, allowed);
-
-          // FIXME: oddly, if I replace the below loop with
-          // addRange(bytes, 0x7f, 0xff, allowed) then
-          // ./lightgrep.exe -c samp -i -e UTF-8 -p "[a-z\d]{3,5}" 10
-          // hangs.
-          for (uint32 j = 0x7F; j <= 0xFF; ++j) {
-            if (allowed.test(j)) {
-              bytes.push_back(j);
-            }
-          }
-          match += chooseRandom(bytes, rng);
-        }
-      }
       if (g[v].IsMatch) {
         // check whether we could extend this match
         if (!checkForRoadLessTaken(g, seen, maxLoops, v)
