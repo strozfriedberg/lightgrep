@@ -21,12 +21,12 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
 
   std::default_random_engine rng;
   ByteSet bs;
+  std::vector<uint32> seen;
 
   for (uint32 i = 0; i < maxMatches; ++i) {
     NFA::VertexDescriptor v = 0;
     std::string match;
 
-    std::vector<uint32> seen;
     seen.assign(g.verticesSize(), 0);
 
     bool done = true;
