@@ -22,6 +22,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
   std::default_random_engine rng;
   ByteSet bs;
   std::vector<uint32> seen;
+  std::vector<byte> bytes;
 
   for (uint32 i = 0; i < maxMatches; ++i) {
     NFA::VertexDescriptor v = 0;
@@ -36,7 +37,6 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
       if (!checkForRoadLessTaken(g, seen, maxLoops, v)) {
         break;
       }
-
       // select a random out vertex
       std::uniform_int_distribution<uint32> uout(0, g.outDegree(v) - 1);
 
@@ -51,9 +51,9 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
       // select a random transition to that vertex
       bs.reset(); 
       g[v].Trans->getBytes(bs);
+      bytes.clear();
 
       // can we select alphanumeric?
-      std::vector<byte> bytes;
       for (byte j = '0'; j <= '9'; ++j) {
         if (bs.test(j)) {
           bytes.push_back(j);
