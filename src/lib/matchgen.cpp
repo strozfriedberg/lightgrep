@@ -6,8 +6,8 @@
 
 bool checkForRoadLessTaken(const NFA& g, const std::vector<uint32>& seen,
                           const uint32 maxLoops, const NFA::VertexDescriptor v) {
-  for (uint32 j = 0; j < g.outDegree(v); ++j) {
-    if (seen[g.outVertex(v, j)] < maxLoops) {
+  for (uint32 i = 0; i < g.outDegree(v); ++i) {
+    if (seen[g.outVertex(v, i)] < maxLoops) {
       return true;
     }
   }
