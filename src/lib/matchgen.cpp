@@ -37,6 +37,12 @@ NFA::VertexDescriptor chooseRandomTarget(const NFA& g, const std::vector<uint32>
   return w;
 }
 
+template <class Element>
+const Element& chooseRandom(const std::vector<Element>& c, std::default_random_engine& rng) {
+  std::uniform_int_distribution<uint32> uout(0, c.size() - 1);
+  return c[uout(rng)];
+}
+
 void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, uint32 maxLoops) {
   if (maxMatches == 0) {
     return;
@@ -71,8 +77,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
                        std::make_pair('a', 'z')}, allowed);
 
       if (!bytes.empty()) {
-        std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
-        match += bytes[ubyte(rng)];
+        match += chooseRandom(bytes, rng);
       }
       else {
         // can we select other printable characters?
@@ -80,8 +85,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
                         std::make_pair('[', '`'), std::make_pair('{', '~')}, allowed);
 
         if (!bytes.empty()) {
-          std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
-          match += bytes[ubyte(rng)];
+          match += chooseRandom(bytes, rng);
         }
         else {
           // no printable characters in this range
@@ -96,11 +100,9 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
               bytes.push_back(j);
             }
           }
-          std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
-          match += bytes[ubyte(rng)];
+          match += chooseRandom(bytes, rng);
         }
       }
-
       if (g[v].IsMatch) {
         // check whether we could extend this match
         if (!checkForRoadLessTaken(g, seen, maxLoops, v)) {
