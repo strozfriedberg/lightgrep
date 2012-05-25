@@ -18,7 +18,7 @@ bool checkForRoadLessTaken(const NFA& g, const std::vector<uint32>& seen,
 template<class ArrayType>
 void addRange(std::vector<byte>& bytes, const ArrayType& ranges, const ByteSet& allowed) {
   for (auto range: ranges) {
-    for (byte b = range.first; b <= range.second; ++b) {
+    for (int b = range.first; b <= range.second; ++b) {
       if (allowed.test(b)) {
         bytes.push_back(b);
       }
@@ -63,17 +63,9 @@ byte chooseByte(const ByteSet& allowed, std::default_random_engine& rng) {
     }
     else {
       // no printable characters in this range
-      addRange(bytes, {std::make_pair(0, ' ')}, allowed);
+      addRange(bytes, {std::make_pair<byte, byte>(0, ' '), 
+                      std::make_pair<byte, byte>(0x7f, 0xff)}, allowed);
 
-      // FIXME: oddly, if I replace the below loop with
-      // addRange(bytes, 0x7f, 0xff, allowed) then
-      // ./lightgrep.exe -c samp -i -e UTF-8 -p "[a-z\d]{3,5}" 10
-      // hangs.
-      for (uint32 j = 0x7F; j <= 0xFF; ++j) {
-        if (allowed.test(j)) {
-          bytes.push_back(j);
-        }
-      }
       return chooseRandom(bytes, rng);
     }
   }
