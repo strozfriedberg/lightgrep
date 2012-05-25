@@ -28,7 +28,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
   }
 
   std::default_random_engine rng;
-  ByteSet bs;
+  ByteSet allowed;
   std::vector<uint32> seen;
   std::vector<byte> bytes;
 
@@ -57,14 +57,14 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
       ++seen[v];
 
       // select a random transition to that vertex
-      bs.reset(); 
-      g[v].Trans->getBytes(bs);
+      allowed.reset(); 
+      g[v].Trans->getBytes(allowed);
       bytes.clear();
 
       // can we select alphanumeric?
-      addRange(bytes, '0', '9', bs);
-      addRange(bytes, 'A', 'Z', bs);
-      addRange(bytes, 'a', 'z', bs);
+      addRange(bytes, '0', '9', allowed);
+      addRange(bytes, 'A', 'Z', allowed);
+      addRange(bytes, 'a', 'z', allowed);
 
       if (!bytes.empty()) {
         std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
@@ -74,10 +74,10 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
         bytes.clear();
 
         // can we select other printable characters?
-        addRange(bytes, '!', '/', bs);
-        addRange(bytes, ':', '@', bs);
-        addRange(bytes, '[', '`', bs);
-        addRange(bytes, '{', '~', bs);
+        addRange(bytes, '!', '/', allowed);
+        addRange(bytes, ':', '@', allowed);
+        addRange(bytes, '[', '`', allowed);
+        addRange(bytes, '{', '~', allowed);
 
         if (!bytes.empty()) {
           std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
@@ -87,14 +87,13 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
           bytes.clear();
 
           // no printable characters in this range
-          for (byte j = 0x00; j <= ' '; ++j) {
-            if (bs.test(j)) {
-              bytes.push_back(j);
-            }
-          }
-
+          addRange(bytes, 0, ' ', allowed);
+          // FIXME: oddly, if I replace the below loop with
+          // addRange(bytes, 0x7f, 0xff, allowed) then
+          // ./lightgrep.exe -c samp -i -e UTF-8 -p "[a-z\d]{3,5}" 10
+          // hangs.
           for (uint32 j = 0x7F; j <= 0xFF; ++j) {
-            if (bs.test(j)) {
+            if (allowed.test(j)) {
               bytes.push_back(j);
             }
           }
@@ -105,17 +104,8 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
       }
 
       if (g[v].IsMatch) {
-        done = true;
-
         // check whether we could extend this match
-        for (uint32 j = 0; j < g.outDegree(v); ++j) {
-          if (seen[g.outVertex(v, j)] < maxLoops) {
-            done = false;
-            break;
-          }
-        }
-
-        if (done) {
+        if (!checkForRoadLessTaken(g, seen, maxLoops, v)) {
           // we can't extend the match, report it
           matches.insert(match);
         }
