@@ -15,10 +15,13 @@ bool checkForRoadLessTaken(const NFA& g, const std::vector<uint32>& seen,
   return false;
 }
 
-void addRange(std::vector<byte>& bytes, byte begin, byte end, const ByteSet& allowed) {
-  for (byte b = begin; b <= end; ++b) {
-    if (allowed.test(b)) {
-      bytes.push_back(b);
+template<class ArrayType>
+void addRange(std::vector<byte>& bytes, const ArrayType& ranges, const ByteSet& allowed) {
+  for (auto range: ranges) {
+    for (byte b = range.first; b <= range.second; ++b) {
+      if (allowed.test(b)) {
+        bytes.push_back(b);
+      }
     }
   }
 }
@@ -64,9 +67,8 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
       bytes.clear();
 
       // can we select alphanumeric?
-      addRange(bytes, '0', '9', allowed);
-      addRange(bytes, 'A', 'Z', allowed);
-      addRange(bytes, 'a', 'z', allowed);
+      addRange(bytes, {std::make_pair('0', '9'), std::make_pair('A', 'Z'),
+                       std::make_pair('a', 'z')}, allowed);
 
       if (!bytes.empty()) {
         std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
@@ -74,10 +76,8 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
       }
       else {
         // can we select other printable characters?
-        addRange(bytes, '!', '/', allowed);
-        addRange(bytes, ':', '@', allowed);
-        addRange(bytes, '[', '`', allowed);
-        addRange(bytes, '{', '~', allowed);
+        addRange(bytes, {std::make_pair('!', '/'), std::make_pair(':', '@'),
+                        std::make_pair('[', '`'), std::make_pair('{', '~')}, allowed);
 
         if (!bytes.empty()) {
           std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
@@ -85,7 +85,8 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
         }
         else {
           // no printable characters in this range
-          addRange(bytes, 0, ' ', allowed);
+          addRange(bytes, {std::make_pair(0, ' ')}, allowed);
+
           // FIXME: oddly, if I replace the below loop with
           // addRange(bytes, 0x7f, 0xff, allowed) then
           // ./lightgrep.exe -c samp -i -e UTF-8 -p "[a-z\d]{3,5}" 10
