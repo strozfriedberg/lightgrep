@@ -48,6 +48,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
     return;
   }
   std::default_random_engine rng;
+  std::bernoulli_distribution umatch(0.25);
   ByteSet allowed;
   std::vector<uint32> seen;
   std::vector<byte> bytes;
@@ -58,7 +59,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
 
     seen.assign(g.verticesSize(), 0);
 
-    bool done = true;
+    bool done = false;
     do {
       // check that there is at least one out vertex not seen too often
       if (!checkForRoadLessTaken(g, seen, maxLoops, v)) {
@@ -105,22 +106,13 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
       }
       if (g[v].IsMatch) {
         // check whether we could extend this match
-        if (!checkForRoadLessTaken(g, seen, maxLoops, v)) {
+        if (!checkForRoadLessTaken(g, seen, maxLoops, v)
+          || umatch(rng)) // or can, but don't want to
+        {
           // we can't extend the match, report it
           matches.insert(match);
+          done = true;
         }
-        else {
-          std::bernoulli_distribution umatch(0.25);
-          if (umatch(rng)) {
-            // we can extend the match, but don't want to
-            matches.insert(match);
-            done = true;
-          }
-        }
-      }
-      else {
-        // no match, keep going
-        done = false;
       }
     } while (!done);
   }
