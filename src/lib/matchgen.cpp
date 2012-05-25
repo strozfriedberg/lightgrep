@@ -73,8 +73,6 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
         match += bytes[ubyte(rng)];
       }
       else {
-        bytes.clear();
-
         // can we select other printable characters?
         addRange(bytes, '!', '/', allowed);
         addRange(bytes, ':', '@', allowed);
@@ -86,8 +84,6 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
           match += bytes[ubyte(rng)];
         }
         else {
-          bytes.clear();
-
           // no printable characters in this range
           addRange(bytes, 0, ' ', allowed);
           // FIXME: oddly, if I replace the below loop with
