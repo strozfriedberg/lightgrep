@@ -14,6 +14,14 @@ bool checkForRoadLessTaken(const NFA& g, const std::vector<uint32>& seen,
   return false;
 }
 
+void addRange(std::vector<byte>& bytes, byte begin, byte end, const ByteSet& allowed) {
+  for (byte b = begin; b <= end; ++b) {
+    if (allowed.test(b)) {
+      bytes.push_back(b);
+    }
+  }
+}
+
 void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, uint32 maxLoops) {
   if (maxMatches == 0) {
     return;
@@ -54,23 +62,9 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
       bytes.clear();
 
       // can we select alphanumeric?
-      for (byte j = '0'; j <= '9'; ++j) {
-        if (bs.test(j)) {
-          bytes.push_back(j);
-        }
-      }
-
-      for (byte j = 'A'; j <= 'Z'; ++j) {
-        if (bs.test(j)) {
-          bytes.push_back(j);
-        }
-      }
-
-      for (byte j = 'a'; j <= 'z'; ++j) {
-        if (bs.test(j)) {
-          bytes.push_back(j);
-        }
-      }
+      addRange(bytes, '0', '9', bs);
+      addRange(bytes, 'A', 'Z', bs);
+      addRange(bytes, 'a', 'z', bs);
 
       if (!bytes.empty()) {
         std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
@@ -80,29 +74,10 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, u
         bytes.clear();
 
         // can we select other printable characters?
-        for (byte j = '!'; j <= '/'; ++j) {
-          if (bs.test(j)) {
-            bytes.push_back(j);
-          }
-        }
-
-        for (byte j = ':'; j <= '@'; ++j) {
-          if (bs.test(j)) {
-            bytes.push_back(j);
-          }
-        }
-
-        for (byte j = '['; j <= '`'; ++j) {
-          if (bs.test(j)) {
-            bytes.push_back(j);
-          }
-        }
-
-        for (byte j = '{'; j <= '~'; ++j) {
-          if (bs.test(j)) {
-            bytes.push_back(j);
-          }
-        }
+        addRange(bytes, '!', '/', bs);
+        addRange(bytes, ':', '@', bs);
+        addRange(bytes, '[', '`', bs);
+        addRange(bytes, '{', '~', bs);
 
         if (!bytes.empty()) {
           std::uniform_int_distribution<std::vector<byte>::size_type> ubyte(0, bytes.size() - 1);
