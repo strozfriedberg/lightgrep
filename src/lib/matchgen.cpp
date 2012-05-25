@@ -4,15 +4,25 @@
 #include <iostream>
 #include <random>
 
-void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, uint32 max_loops) {
-  if (max_matches == 0) {
+bool checkForRoadLessTaken(const NFA& g, const std::vector<uint32>& seen,
+                          const uint32 maxLoops, const NFA::VertexDescriptor v) {
+  for (uint32 j = 0; j < g.outDegree(v); ++j) {
+    if (seen[g.outVertex(v, j)] < maxLoops) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, uint32 maxLoops) {
+  if (maxMatches == 0) {
     return;
   }
 
   std::default_random_engine rng;
   ByteSet bs;
 
-  for (uint32 i = 0; i < max_matches; ++i) {
+  for (uint32 i = 0; i < maxMatches; ++i) {
     NFA::VertexDescriptor v = 0;
     std::string match;
 
@@ -23,15 +33,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, 
 
     do {
       // check that there is at least one out vertex not seen too often
-      bool ok = false;
-      for (uint32 j = 0; j < g.outDegree(v); ++j) {
-        if (seen[g.outVertex(v, j)] < max_loops) {
-          ok = true;
-          break;
-        }
-      }
-
-      if (!ok) {
+      if (!checkForRoadLessTaken(g, seen, maxLoops, v)) {
         break;
       }
 
@@ -41,7 +43,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, 
       NFA::VertexDescriptor w;
       do {
         w = g.outVertex(v, uout(rng));
-      } while (seen[w] > max_loops);
+      } while (seen[w] > maxLoops);
 
       v = w; 
       ++seen[v];
@@ -132,7 +134,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches, uint32 max_matches, 
 
         // check whether we could extend this match
         for (uint32 j = 0; j < g.outDegree(v); ++j) {
-          if (seen[g.outVertex(v, j)] < max_loops) {
+          if (seen[g.outVertex(v, j)] < maxLoops) {
             done = false;
             break;
           }
