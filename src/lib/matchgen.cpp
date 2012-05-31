@@ -27,7 +27,7 @@ void addRange(std::vector<byte>& bytes, std::initializer_list<std::pair<byte,byt
 
 NFA::VertexDescriptor chooseRandomTarget(
   const NFA& g, const std::vector<uint32>& seen,
-                          NFA::VertexDescriptor v, uint32 maxLoops, std::default_random_engine& rng)
+  NFA::VertexDescriptor v, uint32 maxLoops, std::default_random_engine& rng)
 {
   std::uniform_int_distribution<uint32> uout(0, g.outDegree(v) - 1);
   NFA::VertexDescriptor w;
