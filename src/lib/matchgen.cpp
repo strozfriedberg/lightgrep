@@ -37,12 +37,6 @@ NFA::VertexDescriptor chooseRandomTarget(
   return w;
 }
 
-template <class Element>
-const Element& chooseRandom(const std::vector<Element>& c, std::default_random_engine& rng) {
-  std::uniform_int_distribution<uint32> uout(0, c.size() - 1);
-  return c[uout(rng)];
-}
-
 byte chooseByte(const ByteSet& allowed, std::default_random_engine& rng) {
   std::vector<byte> bytes;
 
@@ -59,7 +53,8 @@ byte chooseByte(const ByteSet& allowed, std::default_random_engine& rng) {
     }
   }
 
-  return chooseRandom(bytes, rng);
+  std::uniform_int_distribution<uint32> uout(0, bytes.size() - 1);
+  return bytes[uout(rng)];
 }
 
 void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, uint32 maxLoops) {
