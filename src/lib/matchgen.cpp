@@ -48,8 +48,8 @@ byte chooseByte(const ByteSet& allowed, std::default_random_engine& rng) {
     addRange(bytes, {{'!', '/'}, {':', '@'}, {'[', '`'}, {'{', '~'}}, allowed);
 
     if (bytes.empty()) {
-      // no printable characters in this range
-      addRange(bytes, {{0, ' '}, {0x7f, 0xff}}, allowed);
+      // no visible characters in this range
+      addRange(bytes, {{0, ' '}, {0x7F, 0xFF}}, allowed);
     }
   }
 
@@ -57,10 +57,12 @@ byte chooseByte(const ByteSet& allowed, std::default_random_engine& rng) {
   return bytes[uout(rng)];
 }
 
-void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, uint32 maxLoops) {
+void matchgen(const NFA& g, std::set<std::string>& matches,
+              const uint32 maxMatches, const uint32 maxLoops) {
   if (maxMatches == 0) {
     return;
   }
+
   std::default_random_engine rng;
   std::bernoulli_distribution umatch(0.25);
   ByteSet allowed;
