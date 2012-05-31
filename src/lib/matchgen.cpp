@@ -15,9 +15,8 @@ bool checkForRoadLessTaken(const NFA& g, const std::vector<uint32>& seen,
   return false;
 }
 
-template<class ArrayType>
-void addRange(std::vector<byte>& bytes, const ArrayType& ranges, const ByteSet& allowed) {
-  for (auto range: ranges) {
+void addRange(std::vector<byte>& bytes, std::initializer_list<std::pair<byte,byte>> ranges, const ByteSet& allowed) {
+  for (auto range : ranges) {
     for (int b = range.first; b <= range.second; ++b) {
       if (allowed.test(b)) {
         bytes.push_back(b);
@@ -48,24 +47,21 @@ byte chooseByte(const ByteSet& allowed, std::default_random_engine& rng) {
   std::vector<byte> bytes;
 
   // can we select alphanumeric?
-  addRange(bytes, {std::make_pair('0', '9'), std::make_pair('A', 'Z'),
-                   std::make_pair('a', 'z')}, allowed);
+  addRange(bytes, {{'0', '9'}, {'A', 'Z'}, {'a', 'z'}}, allowed);
 
   if (!bytes.empty()) {
     return chooseRandom(bytes, rng);
   }
   else {
     // can we select other printable characters?
-    addRange(bytes, {std::make_pair('!', '/'), std::make_pair(':', '@'),
-                    std::make_pair('[', '`'), std::make_pair('{', '~')}, allowed);
+    addRange(bytes, {{'!', '/'}, {':', '@'}, {'[', '`'}, {'{', '~'}}, allowed);
 
     if (!bytes.empty()) {
       return chooseRandom(bytes, rng);
     }
     else {
       // no printable characters in this range
-      addRange(bytes, {std::make_pair<byte, byte>(0, ' '), 
-                      std::make_pair<byte, byte>(0x7f, 0xff)}, allowed);
+      addRange(bytes, {{0, ' '}, {0x7f, 0xff}}, allowed);
 
       return chooseRandom(bytes, rng);
     }
