@@ -49,23 +49,17 @@ byte chooseByte(const ByteSet& allowed, std::default_random_engine& rng) {
   // can we select alphanumeric?
   addRange(bytes, {{'0', '9'}, {'A', 'Z'}, {'a', 'z'}}, allowed);
 
-  if (!bytes.empty()) {
-    return chooseRandom(bytes, rng);
-  }
-  else {
+  if (bytes.empty()) {
     // can we select other printable characters?
     addRange(bytes, {{'!', '/'}, {':', '@'}, {'[', '`'}, {'{', '~'}}, allowed);
 
-    if (!bytes.empty()) {
-      return chooseRandom(bytes, rng);
-    }
-    else {
+    if (bytes.empty()) {
       // no printable characters in this range
       addRange(bytes, {{0, ' '}, {0x7f, 0xff}}, allowed);
-
-      return chooseRandom(bytes, rng);
     }
   }
+
+  return chooseRandom(bytes, rng);
 }
 
 void matchgen(const NFA& g, std::set<std::string>& matches, uint32 maxMatches, uint32 maxLoops) {
