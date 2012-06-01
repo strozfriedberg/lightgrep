@@ -28,4 +28,3 @@ void pathWriter(void* userData, const LG_SearchHit* const hit) {
   hi->Out << hi->Path << '\t';
   writeHit(hi, hit);
 }
-

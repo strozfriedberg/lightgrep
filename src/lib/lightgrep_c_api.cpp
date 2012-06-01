@@ -229,8 +229,11 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
     return 0;
   }
 
-  exception_trap(std::bind(&create_context, hProg, hCtx, options->TraceBegin, options->TraceEnd), hCtx);
+  const uint64
+    begin = options ? options->TraceBegin : std::numeric_limits<uint64>::max(), 
+    end = options ? options->TraceEnd : std::numeric_limits<uint64>::max();
 
+  exception_trap(std::bind(&create_context, hProg, hCtx, begin, end), hCtx);
   return hCtx;
 }
 
