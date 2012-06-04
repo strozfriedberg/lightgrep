@@ -68,6 +68,7 @@ bool has_zero_length_match(const ParseNode *n) {
   case ParseNode::DOT:
   case ParseNode::CHAR_CLASS:
   case ParseNode::LITERAL:
+  case ParseNode::BYTE:
     return false;
 
   default:
@@ -98,6 +99,7 @@ bool prefers_zero_length_match(const ParseNode* n) {
   case ParseNode::DOT:
   case ParseNode::CHAR_CLASS:
   case ParseNode::LITERAL:
+  case ParseNode::BYTE:
     return false;
 
   default:
@@ -127,6 +129,7 @@ bool has_only_zero_length_match(const ParseNode* n) {
   case ParseNode::DOT:
   case ParseNode::CHAR_CLASS:
   case ParseNode::LITERAL:
+  case ParseNode::BYTE:
     return false;
 
   default:
@@ -189,6 +192,7 @@ bool reduce_empty_subtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
     case ParseNode::DOT:
     case ParseNode::CHAR_CLASS:
     case ParseNode::LITERAL:
+    case ParseNode::BYTE:
       // branch finished
       ret = false;
       break;
@@ -283,6 +287,7 @@ bool reduce_useless_repetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
   case ParseNode::DOT:
   case ParseNode::CHAR_CLASS:
   case ParseNode::LITERAL:
+  case ParseNode::BYTE:
     // branch finished
     ret = false;
     break;
@@ -384,6 +389,7 @@ bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& 
   case ParseNode::DOT:
   case ParseNode::CHAR_CLASS:
   case ParseNode::LITERAL:
+  case ParseNode::BYTE:
     // branch finished
     ret = false;
     break;
