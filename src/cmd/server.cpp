@@ -76,8 +76,9 @@ public:
                       HitCounts;
   uint64              ResponsiveFiles,
                       TotalHits;
+  unsigned short      Port;
 
-  bool init(const std::string& path, uint32 numKeywords) {
+  bool init(const std::string& path, uint32 numKeywords, unsigned short port) {
     if (!path.empty()) {
       File.reset(new std::ofstream(path.c_str(), std::ios::out));
       if (!*File) {
@@ -89,6 +90,7 @@ public:
     FileCounts.resize(numKeywords, 0);
     HitCounts.resize(numKeywords, 0);
     ResponsiveFiles = TotalHits = 0;
+    Port = port;
     return true;
   }
 
@@ -154,9 +156,12 @@ public:
     }
     std::string stats;
     getStats(stats);
+    std::stringstream buf;
+    buf << "lightgrep_hit_stats-" << Port << ".txt";
+    std::string filename = buf.str();
     {
       boost::mutex::scoped_lock lock(*Mutex);
-      std::ofstream statsFile("lightgrep_hit_stats.txt", std::ios::out | std::ios::binary);
+      std::ofstream statsFile(filename.c_str(), std::ios::out | std::ios::binary);
       if (statsFile) {
         statsFile.write(stats.data(), stats.size());
         statsFile.close();
@@ -524,7 +529,7 @@ LGServer::LGServer(
     Stats(pinfo.Table.size())
 {
   if (Opts.Output != "-") {
-    if (!Registry::get().init(Opts.Output, PInfo.NumUserPatterns)) {
+    if (!Registry::get().init(Opts.Output, PInfo.NumUserPatterns, opts.ServerPort)) {
       THROW_RUNTIME_ERROR_WITH_OUTPUT(
         "Could not open output file at " << Opts.Output
       );
@@ -532,7 +537,7 @@ LGServer::LGServer(
     UsesFile = true;
   }
   else {
-    Registry::get().init("", pinfo.NumUserPatterns);
+    Registry::get().init("", pinfo.NumUserPatterns, opts.ServerPort);
   }
 
   // resolve the server address
