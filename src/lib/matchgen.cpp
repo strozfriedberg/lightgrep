@@ -1,9 +1,8 @@
 #include "basic.h"
 #include "matchgen.h"
 
-#include <iostream>
 #include <random>
-#include <stack>
+#include <vector>
 
 void addRange(std::vector<byte>& bytes, std::initializer_list<std::pair<byte,byte>> ranges, const ByteSet& allowed) {
   for (auto range : ranges) {
@@ -44,10 +43,12 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
   }
 
   std::default_random_engine rng;
-  std::bernoulli_distribution extend(0.50);
+  std::bernoulli_distribution extend(0.75);
 
   std::vector<NFA::VertexDescriptor> seen, path;
 
+  const ByteSet alnum{{'0', '9'+1}, {'A', 'Z'+1}, {'a', 'z'+1}},
+                punct{{'!', '/'+1}, {':', '@'+1}, {'[', '`'+1}, {'{', '~'+1}};
   ByteSet allowed;
 
   for (uint32 i = 0; i < maxMatches; ++i) {
@@ -94,7 +95,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
         else {
           break;
         }
-      }      
+      }
 
       // find a successor
       uint32 scount = 0;
@@ -102,18 +103,35 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
       for (uint32 j = 0; j < g.outDegree(v); ++j) {
         const NFA::VertexDescriptor w = g.outVertex(v, j);
         if (seen[w] < maxLoops) {
-          // We don't know how many eligible successors there will be,
-          // so we let the nth one we see replace the previously
-          // selected one with probability 1/n. This gives us a uniform
-          // distribution over all eligible successors and produces a
-          // successor in a single pass.
-          std::bernoulli_distribution change(1.0/++scount);
+          // Successively replacing the chosen element with the nth
+          // element in a series with probability 1/n is the same as
+          // choosing uniformly over the whole series, but permits it
+          // to be done in one pass when the maximum n is unknown
+          // beforehand.
+          // 
+          // This is a modification of that, where we reduce the
+          // probability of replacement for edges which have no
+          // (ASCII) alphanumeric or printable bytes.
+          double p = 1.0/++scount;
+
+          if (scount > 1) {
+            g[w].Trans->getBytes(allowed);
+            if ((alnum & allowed).none()) {
+              p /= 2.0;
+  
+              if ((punct & allowed).none()) {
+                p /= 8.0;
+              }
+            }
+          }
+
+          std::bernoulli_distribution change(p);
           if (change(rng)) {
             s = w;
           }
         }
-      }
-
+      }   
+      
       if (scount == 0) {
         // backtrack if all successors exhausted
         path.pop_back();
