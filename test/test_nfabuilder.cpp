@@ -606,7 +606,7 @@ SCOPE_TEST(parseUnprintableCharClass) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("[A\\xFF\\x00]", false, false, tree));
+  SCOPE_ASSERT(parse("[A\\zFF\\z00]", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -1021,14 +1021,14 @@ SCOPE_TEST(parse_xLPaORaQQRPy) {
 }
 
 SCOPE_TEST(parseEncodingByteBreakout) {
-  // 0x80 is not a valid UTF-8 byte by itself, we use \x to break it out
+  // 0x80 is not a valid UTF-8 byte by itself, we use \z to break it out
 
   NFABuilder nfab;
   nfab.setEncoder(std::shared_ptr<Encoder>(new UTF8));
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\x80", false, false, tree));
+  SCOPE_ASSERT(parse("\\z80", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2, g.verticesSize());
@@ -1103,7 +1103,7 @@ SCOPE_TEST(parseEncodingCCCodePointWithBreakout) {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("[A\\xFF]", false, false, tree));
+  SCOPE_ASSERT(parse("[A\\zFF]", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2, g.verticesSize());
@@ -1132,7 +1132,7 @@ SCOPE_TEST(parseEncodingCCCodePoint2ByteWithBreakout) {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("[\\x{80}\\xFF]", false, false, tree));
+  SCOPE_ASSERT(parse("[\\x{80}\\zFF]", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4, g.verticesSize());
@@ -1187,7 +1187,7 @@ SCOPE_TEST(parseEncodingCCBreakoutOnly) {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("[\\xFF]", false, false, tree));
+  SCOPE_ASSERT(parse("[\\zFF]", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2, g.verticesSize());
