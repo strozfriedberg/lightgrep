@@ -10,7 +10,7 @@
 Parser::Parser(uint32 sizeHint):
   Fsm(new NFA(1, sizeHint)),
   Encoders{
-    { "ASCII",    std::make_shared<ASCII>()   },
+    { "ASCII",    std::make_shared<ASCII>()          },
     { "UTF-8",    std::make_shared<CachingUTF8>()    },
     { "UTF-16LE", std::make_shared<CachingUTF16LE>() },
     { "UTF-16BE", std::make_shared<CachingUTF16BE>() },
