@@ -117,7 +117,7 @@ SCOPE_TEST(parse_FF_BreakoutTest) {
     )
   );
 
-  const std::string p = "\\xFF";
+  const std::string p = "\\zFF";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -137,7 +137,7 @@ SCOPE_TEST(parse_FF_BreakoutCaseInsensitiveTest) {
     )
   );
 
-  const std::string p = "\\xFF";
+  const std::string p = "\\zFF";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, true, actual));
@@ -157,7 +157,7 @@ SCOPE_TEST(parseCC_FF_BreakoutTest) {
     )
   );
 
-  const std::string p = "[\\xFF]";
+  const std::string p = "[\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -177,7 +177,7 @@ SCOPE_TEST(parseCC_FF_BreakoutCaseInsensitiveTest) {
     )
   );
 
-  const std::string p = "[\\xFF]";
+  const std::string p = "[\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, true, actual));
@@ -197,7 +197,7 @@ SCOPE_TEST(parseCC_00toFF_BreakoutTest) {
     )
   );
 
-  const std::string p = "[\\x00-\\xFF]";
+  const std::string p = "[\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -206,7 +206,7 @@ SCOPE_TEST(parseCC_00toFF_BreakoutTest) {
 }
 
 SCOPE_TEST(parseCC_FFto00_BreakoutTest) {
-  const std::string p = "[\\xFF-\\x00]";
+  const std::string p = "[\\zFF-\\z00]";
   ParseTree actual;
   actual.init(p.length());
 
@@ -232,7 +232,7 @@ SCOPE_TEST(parseCC_A_FF_BreakoutTest) {
     )
   );
 
-  const std::string p = "[A\\xFF]";
+  const std::string p = "[A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -252,7 +252,7 @@ SCOPE_TEST(parseCC_A_FF_BreakoutCaseInsensitiveTest) {
     )
   );
 
-  const std::string p = "[A\\xFF]";
+  const std::string p = "[A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, true, actual));
@@ -272,7 +272,7 @@ SCOPE_TEST(parseCC_AtoZ_00toFF_BreakoutTest) {
     )
   );
 
-  const std::string p = "[A-Z\\x00-\\xFF]";
+  const std::string p = "[A-Z\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -292,7 +292,7 @@ SCOPE_TEST(parseCC_00toFF_AtoZ_BreakoutTest) {
     )
   );
 
-  const std::string p = "[\\x00-\\xFFA-Z]";
+  const std::string p = "[\\z00-\\zFFA-Z]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -301,7 +301,7 @@ SCOPE_TEST(parseCC_00toFF_AtoZ_BreakoutTest) {
 }
 
 SCOPE_TEST(parseCC_AtoFF_BreakoutTest) {
-  const std::string p = "[A-\\xFF]";
+  const std::string p = "[A-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
 
@@ -316,7 +316,7 @@ SCOPE_TEST(parseCC_AtoFF_BreakoutTest) {
 }
 
 SCOPE_TEST(parseCC_00toA_BreakoutTest) {
-  const std::string p = "[\\x00-A]";
+  const std::string p = "[\\z00-A]";
   ParseTree actual;
   actual.init(p.length());
 
@@ -444,7 +444,7 @@ SCOPE_TEST(parseNegCC_FF_BreakoutTest) {
     )
   );
 
-  const std::string p = "[^\\xFF]";
+  const std::string p = "[^\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -464,7 +464,7 @@ SCOPE_TEST(parseNegCC_FF_BreakoutCaseInsensitiveTest) {
     )
   );
 
-  const std::string p = "[^\\xFF]";
+  const std::string p = "[^\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, true, actual));
@@ -473,7 +473,7 @@ SCOPE_TEST(parseNegCC_FF_BreakoutCaseInsensitiveTest) {
 }
 
 SCOPE_TEST(parseNegCC_00toFF_BreakoutTest) {
-  const std::string p = "[^\\x00-\\xFF]";
+  const std::string p = "[^\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
 
@@ -499,7 +499,7 @@ SCOPE_TEST(parseNegCC_00to7F_BreakoutTest) {
     )
   );
 
-  const std::string p = "[^\\x00-\\x7F]";
+  const std::string p = "[^\\z00-\\z7F]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -508,7 +508,7 @@ SCOPE_TEST(parseNegCC_00to7F_BreakoutTest) {
 }
 
 SCOPE_TEST(parseNegCC_FFto00_BreakoutTest) {
-  const std::string p = "[^\\xFF-\\x00]";
+  const std::string p = "[^\\zFF-\\z00]";
   ParseTree actual;
   actual.init(p.length());
 
@@ -534,7 +534,7 @@ SCOPE_TEST(parseNegCC_A_FF_BreakoutTest) {
     )
   );
 
-  const std::string p = "[^A\\xFF]";
+  const std::string p = "[^A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -554,7 +554,7 @@ SCOPE_TEST(parseNegCC_A_FF_BreakoutCaseInsensitiveTest) {
     )
   );
 
-  const std::string p = "[^A\\xFF]";
+  const std::string p = "[^A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, true, actual));
@@ -574,7 +574,7 @@ SCOPE_TEST(parseNegCC_AtoZ_00toFF_BreakoutTest) {
     )
   );
 
-  const std::string p = "[^A-Z\\x00-\\xFF]";
+  const std::string p = "[^A-Z\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -594,7 +594,7 @@ SCOPE_TEST(parseNegCC_AtoZ_00to7F_BreakoutTest) {
     )
   );
 
-  const std::string p = "[^A-Z\\x00-\\x7F]";
+  const std::string p = "[^A-Z\\z00-\\z7F]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -614,7 +614,7 @@ SCOPE_TEST(parseNegCC_00toFF_AtoZ_BreakoutTest) {
     )
   );
 
-  const std::string p = "[^\\x00-\\xFFA-Z]";
+  const std::string p = "[^\\z00-\\zFFA-Z]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -634,7 +634,7 @@ SCOPE_TEST(parseNegCC_00to7F_AtoZ_BreakoutTest) {
     )
   );
 
-  const std::string p = "[^\\x00-\\x7FA-Z]";
+  const std::string p = "[^\\z00-\\z7FA-Z]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse(p, false, false, actual));
@@ -643,7 +643,7 @@ SCOPE_TEST(parseNegCC_00to7F_AtoZ_BreakoutTest) {
 }
 
 SCOPE_TEST(parseNegCC_AtoFF_BreakoutTest) {
-  const std::string p = "[^A-\\xFF]";
+  const std::string p = "[^A-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
 
@@ -658,7 +658,7 @@ SCOPE_TEST(parseNegCC_AtoFF_BreakoutTest) {
 }
 
 SCOPE_TEST(parseNegCC_00toA_BreakoutTest) {
-  const std::string p = "[^\\x00-A]";
+  const std::string p = "[^\\z00-A]";
   ParseTree actual;
   actual.init(p.length());
 
