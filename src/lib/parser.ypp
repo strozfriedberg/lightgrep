@@ -585,8 +585,12 @@ namespace {
           return consumeSingleton(parseHexCodePoint<const int*>, CHAR);
         }
         else {
-          return consumeSingleton(parseHexByte<const int*>, BYTE);
+          return consumeSingleton(parseHexByte<const int*>, CHAR);
         }
+
+      // breakout bytes
+      case 'z':
+        return consumeSingleton(parseHexByte<const int*>, BYTE);
 
       // octal characters
       case '0':
@@ -598,7 +602,7 @@ namespace {
       case '6':
       case '7':
         --Text;
-        return consumeSingleton(parseOctByte<const int*>, BYTE);
+        return consumeSingleton(parseOctByte<const int*>, CHAR);
 
       // named Unicode code points
       case 'N':
