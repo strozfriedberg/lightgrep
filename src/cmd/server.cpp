@@ -516,7 +516,7 @@ private:
   tcp::acceptor           Acceptor;
 
   std::shared_ptr<tcp::socket> Socket;
-  std::vector< boost::thread > Threads;
+  std::vector<boost::thread>   Threads;
   mutable boost::mutex         Mutex;
   HitStats                     Stats;
 };
