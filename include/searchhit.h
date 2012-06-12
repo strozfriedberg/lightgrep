@@ -2,8 +2,6 @@
 
 #include "basic.h"
 
-#include <boost/function.hpp>
-
 class SearchHit: public LG_SearchHit {
 public:
   SearchHit() {}
@@ -31,7 +29,7 @@ public:
   }
 };
 
-template<class OutStream>
+template <class OutStream>
 OutStream& operator<<(OutStream& out, const SearchHit& hit) {
   out << '(' << hit.Start << ", " << hit.End << ", " << hit.KeywordIndex << ')';
   return out;
