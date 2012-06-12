@@ -582,6 +582,17 @@ SCOPE_FIXTURE_CTOR(dot4OraQaSearch, STest, STest(R"(.{4}|a?a)")) {
   SCOPE_ASSERT_EQUAL(SearchHit(24, 28, 0), fixture.Hits[6]);
 }
 
+SCOPE_FIXTURE_CTOR(nestedAlternationTest, STest, STest(R"(vegeta((ble)|(rian)|(t((ive)|(e)|(ion)))))")) {
+  const byte* text = (const byte*) "vegetable vegetarian vegetative vegetate vegetation";
+  fixture.search(text, text + 51, 0);
+  SCOPE_ASSERT_EQUAL(5, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 9, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(10, 20, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(21, 31, 0), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(32, 40, 0), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(41, 51, 0), fixture.Hits[4]);
+}
+
 /*
 SCOPE_FIXTURE_CTOR(hitCaching, STest, STest("[a-zA-Z]+ing")) {
   // 2011-05-06. This pattern causes Vm to continue buffering hits in the Matches vector until closeOut().

@@ -1,20 +1,8 @@
 #include "basic.h"
 #include "matchgen.h"
 
-#include <iostream>
 #include <random>
-#include <tuple>
-
-bool checkForRoadLessTaken(const NFA& g, const std::vector<uint32>& seen,
-                          const uint32 maxLoops, const NFA::VertexDescriptor v)
-{
-  for (uint32 i = 0; i < g.outDegree(v); ++i) {
-    if (seen[g.outVertex(v, i)] < maxLoops) {
-      return true;
-    }
-  }
-  return false;
-}
+#include <vector>
 
 void addRange(std::vector<byte>& bytes, std::initializer_list<std::pair<byte,byte>> ranges, const ByteSet& allowed) {
   for (auto range : ranges) {
@@ -48,42 +36,6 @@ byte chooseByte(const ByteSet& allowed, RNG& rng) {
   return bytes[uout(rng)];
 }
 
-template <class RNG>
-std::tuple<NFA::VertexDescriptor,byte> chooseRandomTarget(
-  const NFA& g, const std::vector<uint32>& seen,
-  const NFA::VertexDescriptor v, const uint32 maxLoops, RNG& rng)
-{
-  ByteSet bs;
-
-  // collect all of the bytes from undervisited edges leaving v
-  NFA::VertexDescriptor w;
-  const uint32 odeg = g.outDegree(v);
-  for (uint32 i = 0; i < odeg; ++i) {
-    w = g.outVertex(v, i);
-    if (seen[w] <= maxLoops) {
-      g[w].Trans->orBytes(bs);
-    }
-  }
-
-  // pick a byte
-  const byte b = chooseByte(bs, rng);
-
-  // then return the first undervisited neighbor of v reachable on that byte
-  bs.reset();
-  for (uint32 i = 0; i < odeg; ++i) {
-    w = g.outVertex(v, i);
-    if (seen[w] <= maxLoops && g[w].Trans->getBytes(bs).test(b)) {
-      return std::make_tuple(w, b);
-    }
-  }
-
-  // this cannot happen
-  THROW_WITH_OUTPUT(
-    std::logic_error,
-    "byte value " << std::hex << (int) b << " not found!"
-  );
-}
-
 void matchgen(const NFA& g, std::set<std::string>& matches,
               const uint32 maxMatches, const uint32 maxLoops) {
   if (maxMatches == 0) {
@@ -91,37 +43,103 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
   }
 
   std::default_random_engine rng;
-  std::bernoulli_distribution umatch(0.25);
+  std::bernoulli_distribution extend(0.75);
+
+  std::vector<NFA::VertexDescriptor> seen, path;
+
+  const ByteSet alnum{{'0', '9'+1}, {'A', 'Z'+1}, {'a', 'z'+1}},
+                punct{{'!', '/'+1}, {':', '@'+1}, {'[', '`'+1}, {'{', '~'+1}};
   ByteSet allowed;
-  std::vector<uint32> seen;
 
   for (uint32 i = 0; i < maxMatches; ++i) {
     NFA::VertexDescriptor v = 0;
-    std::string match;
 
     seen.assign(g.verticesSize(), 0);
+    path.clear();
 
     for (;;) {
-      // check that there is at least one out vertex not seen too often
-      if (!checkForRoadLessTaken(g, seen, maxLoops, v)) {
-        break;
-      }
-
-      // select a random neighbor and byte
-      byte b;
-      std::tie(v, b) = chooseRandomTarget(g, seen, v, maxLoops, rng);
+      // visit state v
+      path.push_back(v);
       ++seen[v];
-      match += b;
 
+      // if we've reached a match state, produce a match
       if (g[v].IsMatch) {
-        // check whether we could extend this match
-        if (!checkForRoadLessTaken(g, seen, maxLoops, v)
-            || umatch(rng)) // or can, but don't want to
-        {
-          // we can't extend the match, report it
-          matches.insert(match);
+        std::string match;
+        for (const NFA::VertexDescriptor w : path) {
+          // follow the path, writing the match as we go
+          if (g[w].Trans) {
+            g[w].Trans->getBytes(allowed);
+            match += chooseByte(allowed, rng);
+          }          
+        }
+
+        // report the match
+        matches.insert(match);
+
+        // should we try to extend the match?
+        if (extend(rng)) {
+          // are there any eligible successors?
+          bool found = false;
+          for (uint32 j = 0; j < g.outDegree(v); ++j) {
+            const NFA::VertexDescriptor w = g.outVertex(v, j);
+            if (seen[w] < maxLoops) {
+              found = true;
+              break;
+            }
+          }
+
+          if (!found) {
+            break;
+          }
+        }
+        else {
           break;
         }
+      }
+
+      // find a successor
+      uint32 scount = 0;
+      NFA::VertexDescriptor s = 0;
+      for (uint32 j = 0; j < g.outDegree(v); ++j) {
+        const NFA::VertexDescriptor w = g.outVertex(v, j);
+        if (seen[w] < maxLoops) {
+          // Successively replacing the chosen element with the nth
+          // element in a series with probability 1/n is the same as
+          // choosing uniformly over the whole series, but permits it
+          // to be done in one pass when the maximum n is unknown
+          // beforehand.
+          // 
+          // This is a modification of that, where we reduce the
+          // probability of replacement for edges which have no
+          // (ASCII) alphanumeric or printable bytes.
+          double p = 1.0/++scount;
+
+          if (scount > 1) {
+            g[w].Trans->getBytes(allowed);
+            if ((alnum & allowed).none()) {
+              p /= 2.0;
+  
+              if ((punct & allowed).none()) {
+                p /= 8.0;
+              }
+            }
+          }
+
+          std::bernoulli_distribution change(p);
+          if (change(rng)) {
+            s = w;
+          }
+        }
+      }   
+      
+      if (scount == 0) {
+        // backtrack if all successors exhausted
+        path.pop_back();
+        v = path.back();
+      }
+      else {
+        // otherwise move on to s
+        v = s;
       }
     }
   }
