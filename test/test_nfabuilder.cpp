@@ -542,7 +542,7 @@ SCOPE_TEST(parseHexDotPlus) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("\\x20\\xFF.+\\x20", false, false, tree));
+  SCOPE_ASSERT(parse("\\x20\\zFF.+\\x20", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
@@ -570,13 +570,13 @@ SCOPE_TEST(parseHighHex) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("\\xe5", false, false, tree));
+  SCOPE_ASSERT(parse("\\zE5", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
 
   ByteSet expected, actual;
-  expected.set(0xe5);
+  expected.set(0xE5);
   fsm[1].Trans->getBytes(actual);
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
