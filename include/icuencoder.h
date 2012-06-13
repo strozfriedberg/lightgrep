@@ -12,10 +12,13 @@ public:
 
   virtual uint32 maxByteLength() const;
 
+  virtual std::string name() const;
+
   virtual uint32 write(int cp, byte buf[]) const;
   using EncoderBase::write;
 
 private:
+  std::string enc_name;
   UConverter* src_conv;
   UConverter* dst_conv;
   UChar* pivot;

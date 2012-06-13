@@ -13,7 +13,7 @@ bool is_little_endian() {
   return reinterpret_cast<const byte*>(&twobytes)[0];
 }
 
-ICUEncoder::ICUEncoder(const char* const name) {
+ICUEncoder::ICUEncoder(const char* const name): enc_name(name) {
   UErrorCode err = U_ZERO_ERROR;
 
   // ICU pivots through UTF-16 when transcoding; this converter is used
@@ -78,9 +78,9 @@ ICUEncoder::~ICUEncoder() {
   delete[] pivot;
 }
 
-uint32 ICUEncoder::maxByteLength() const {
-  return max_bytes;
-}
+uint32 ICUEncoder::maxByteLength() const { return max_bytes; }
+
+std::string ICUEncoder::name() const { return enc_name; }
 
 uint32 ICUEncoder::write(int cp, byte buf[]) const {
   char* dst = reinterpret_cast<char*>(buf);
