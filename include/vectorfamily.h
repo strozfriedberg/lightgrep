@@ -20,6 +20,8 @@ public:
 #pragma pack(push, 1)
   struct Holder {
     typedef typename std::vector<Vec>::size_type size_type;
+    typedef T* iterator;
+    typedef T const* const_iterator;
 
     T What;
     byte Which;
@@ -160,7 +162,7 @@ public:
     }
   }
 
-  T* find(Holder& l, T e) {
+  typename Holder::iterator find(Holder& l, T e) {
     switch (l.Which) {
     case ZERO:
       return end(l);
@@ -171,7 +173,7 @@ public:
     }
   }
 
-  T const* find(const Holder& l, T e) const {
+  typename Holder::const_iterator find(const Holder& l, T e) const {
     switch (l.Which) {
     case ZERO:
       return end(l);
@@ -182,7 +184,7 @@ public:
     }
   }
 
-  T* begin(Holder& l) {
+  typename Holder::iterator begin(Holder& l) {
     switch (l.Which) {
     case ZERO:
     case ONE:
@@ -192,7 +194,7 @@ public:
     }
   }
 
-  T const* begin(const Holder& l) const {
+  typename Holder::const_iterator begin(const Holder& l) const {
     switch (l.Which) {
     case ZERO:
     case ONE:
@@ -202,7 +204,7 @@ public:
     }
   }
 
-  T* end(Holder& l) {
+  typename Holder::iterator end(Holder& l) {
     switch (l.Which) {
     case ZERO:
       return &l.What;
@@ -213,7 +215,7 @@ public:
     }
   }
 
-  T const* end(const Holder& l) const {
+  typename Holder::const_iterator end(const Holder& l) const {
     switch (l.Which) {
     case ZERO:
       return &l.What;

@@ -51,28 +51,28 @@ struct SimpleVectorFamily {
     return l[i];
   }
 
-  T* find(Holder& l, T e) {
-    return &*std::find(l.begin(), l.end(), e);
+  typename Holder::iterator find(Holder& l, T e) {
+    return std::find(l.begin(), l.end(), e);
   }
 
-  T const* find(const Holder& l, T e) const {
-    return &*std::find(l.begin(), l.end(), e);
+  typename Holder::const_iterator find(const Holder& l, T e) const {
+    return std::find(l.begin(), l.end(), e);
   }
 
-  T* begin(Holder& l) {
-    return &*l.begin();
+  typename Holder::iterator begin(Holder& l) {
+    return l.begin();
   }
 
-  T const* begin(const Holder& l) const {
-    return &*l.begin();
+  typename Holder::const_iterator begin(const Holder& l) const {
+    return l.begin();
   }
 
-  T* end(Holder& l) {
-    return &*l.end();
+  typename Holder::iterator end(Holder& l) {
+    return l.end();
   }
 
-  T const* end(const Holder& l) const {
-    return &*l.end();
+  typename Holder::const_iterator end(const Holder& l) const {
+    return l.end();
   }
 };
 

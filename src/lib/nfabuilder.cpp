@@ -131,7 +131,7 @@ void NFABuilder::literal(const ParseNode& n) {
   if (len == 0) {
     THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
       "code point U+" << std::hex << n.Val << std::dec
-                      << " does not exist in this encoding"
+                      << " does not exist in " << Enc->name()
     );
   }
 
@@ -176,7 +176,7 @@ void NFABuilder::charClass(const ParseNode& n) {
   if (uset.none()) {
     if (!n.Breakout.Additive || n.Breakout.Bytes.none()) {
       THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
-        "intersection of character class with this encoding is empty"
+        "intersection of character class with " << Enc->name() << " is empty"
       );
     }
 
@@ -208,6 +208,14 @@ void NFABuilder::charClass(const ParseNode& n) {
           TempEncRanges[0][0] &= ~n.Breakout.Bytes;
           if (TempEncRanges[0][0].none()) {
             TempEncRanges.erase(TempEncRanges.begin());
+
+            // ensure that at least one initial byte remains
+            if (TempEncRanges.empty()) {
+              THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
+                "intersection of character class with " << Enc->name()
+                                                        << " is empty"
+              );
+            }
           }
         }
       }

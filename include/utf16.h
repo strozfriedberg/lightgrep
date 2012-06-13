@@ -8,6 +8,8 @@ class UTF16Base: public UTFBase {
 public:
   virtual uint32 maxByteLength() const { return 4; }
 
+  virtual std::string name() const { return LE ? "UTF-16LE" : "UTF-16BE"; }
+
   virtual uint32 write(int cp, byte buf[]) const {
     if (cp < 0) {
       // too small
