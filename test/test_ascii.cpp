@@ -13,12 +13,12 @@ SCOPE_TEST(testASCII) {
   SCOPE_ASSERT_EQUAL(0, enc.write(-1, buf));
 
   // just right
-  for (uint32 i = 0; i < 0x100; ++i) {
+  for (uint32 i = 0; i < 0x80; ++i) {
     len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
     SCOPE_ASSERT_EQUAL(i, buf[0]);
   }
 
   // too high
-  SCOPE_ASSERT_EQUAL(0, enc.write(0x100, buf));
+  SCOPE_ASSERT_EQUAL(0, enc.write(0x80, buf));
 }
