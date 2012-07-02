@@ -80,9 +80,9 @@ else:
   flags = '-O3'
   ldflags = ''
 
-ldflags += ' -static-libstdc++ %s' % env['LDFLAGS']
-ccflags = '-pedantic -Wall -Wextra -pipe %s' % (flags)
-cxxflags = '-std=c++0x -Wnon-virtual-dtor %s' % env['CXXFLAGS']
+ldflags += ' -static-libstdc++ ' + env['LDFLAGS']
+ccflags = '-pedantic -Wall -Wextra -pipe ' + flags
+cxxflags = '-std=c++11 -Wnon-virtual-dtor ' + env['CXXFLAGS']
 
 if (isWindows):
   cxxflags += ' -mthreads'
@@ -102,6 +102,8 @@ env.Append(LINKFLAGS=ldflags)
 
 print("CC = " + env['CC'])
 print("CXX = " + env['CXX'])
+print("CXXFLAGS = " + env['CXXFLAGS'])
+print("LDFLAGS = " + env['LDFLAGS'])
 
 Help(vars.GenerateHelpText(env))
 
