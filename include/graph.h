@@ -66,10 +66,7 @@ public:
     }
 
     Vertices.resize(vActual, VertexData());
-
-    if (eReserve > 0) {
-      Edges.reserve(eReserve);
-    }
+    Edges.reserve(eReserve);
   }
 
   //
