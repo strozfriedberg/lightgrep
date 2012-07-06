@@ -308,7 +308,7 @@ bool reduce_useless_repetitions(ParseNode* root) {
 
 bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& branch) {
   /*
-     As a postfix, S{n,m}?T = S{n}T, when T admits zero-length matches.
+     As a suffix, S{n,m}?T = S{n}T, when T admits zero-length matches.
 
      In the tree, the adjacency can show up as either S{n,m}? and T as
      children of the same concatenation, or as T being the right uncle
@@ -322,7 +322,7 @@ bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& 
                       |
                       S
 
-     As a postfix, S{n,m}? = S{n}. This is a special case of the above,
+     As a suffix, S{n,m}? = S{n}. This is a special case of the above,
      letting T = R{0}.
   */
 
