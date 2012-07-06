@@ -255,11 +255,10 @@ void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor) {
   seen[start] = true;
 
   while (!next.empty()) {
-    NFA::VertexDescriptor h = next.front();
+    const NFA::VertexDescriptor h = next.front();
     next.pop();
 
-    for (uint32 ov = 0; ov < graph.outDegree(h); ++ov) {
-      NFA::VertexDescriptor t = graph.outVertex(h, ov);
+    for (const NFA::VertexDescriptor t : graph.outVertices(h)) {
       if (!seen[t]) {
         // One might think that we discover a vertex at the tail of an
         // edge first, but one would be wrong...
@@ -272,9 +271,9 @@ void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor) {
   }
 }
 
-void nextBytes(ByteSet& bset, NFA::VertexDescriptor v, const NFA& graph) {
-  for (uint32 ov = 0; ov < graph.outDegree(v); ++ov) {
-    graph[graph.outVertex(v, ov)].Trans->orBytes(bset);
+void nextBytes(ByteSet& bset, NFA::VertexDescriptor head, const NFA& graph) {
+  for (const NFA::VertexDescriptor tail : graph.outVertices(head)) {
+    graph[tail].Trans->orBytes(bset);
   }
 }
 
@@ -298,9 +297,7 @@ std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescripto
   std::vector<std::vector<NFA::VertexDescriptor>> ret(256);
   ByteSet permitted;
 
-  for (uint32 i = 0; i < graph.outDegree(source); ++i) {
-    NFA::VertexDescriptor ov = graph.outVertex(source, i);
-
+  for (const NFA::VertexDescriptor ov : graph.outVertices(source)) {
     graph[ov].Trans->getBytes(permitted);
     for (uint32 i = 0; i < 256; ++i) {
       if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
@@ -352,13 +349,13 @@ void writeEdge(std::ostream& out, NFA::VertexDescriptor v, NFA::VertexDescriptor
 void writeGraphviz(std::ostream& out, const NFA& graph) {
   out << "digraph G {\n  rankdir=LR;\n  ranksep=equally;\n  node [shape=\"circle\"];" << std::endl;
 
-  for (uint32 i = 0; i < graph.verticesSize(); ++i) {
-    writeVertex(out, i, graph);
+  for (const NFA::VertexDescriptor v : graph.vertices()) {
+    writeVertex(out, v, graph);
   }
 
-  for (uint32 i = 0; i < graph.verticesSize(); ++i) {
-    for (uint32 j = 0; j < graph.outDegree(i); ++j) {
-      writeEdge(out, i, graph.outVertex(i, j), j, graph);
+  for (const NFA::VertexDescriptor head : graph.vertices()) {
+    for (uint32 j = 0; j < graph.outDegree(head); ++j) {
+      writeEdge(out, head, graph.outVertex(head, j), j, graph);
     }
   }
 
