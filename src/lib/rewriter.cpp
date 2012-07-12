@@ -244,7 +244,7 @@ bool prune_useless_repetitions(ParseNode* n, const std::stack<ParseNode*>& branc
       parent->Right = n->Left;
     }
 
-    // recurse, to handle nested repetitions
+    // recurse, to handle consecutive repetitions
     prune_useless_repetitions(n->Left, branch);
     return true;
   }
@@ -304,6 +304,157 @@ bool reduce_useless_repetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
 bool reduce_useless_repetitions(ParseNode* root) {
   std::stack<ParseNode*> branch;
   return reduce_useless_repetitions(root, branch);
+}
+
+bool combinable(ParseNode* x, ParseNode* y) {
+  return 
+  (
+    (x->Type == ParseNode::REPETITION && y->Type == ParseNode::REPETITION) ||
+    (x->Type == ParseNode::REPETITION_NG && y->Type == ParseNode::REPETITION_NG)
+  ) && *x == *y;
+}
+
+bool combine_consecutive_repetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
+  // T{a,b}T{c,d} == T{a+c,b+d}
+  // T{a,b}?T{c,d}? == T{a+c,b+d}?
+
+  bool ret = false;
+  branch.push(n);
+
+  switch (n->Type) {
+  case ParseNode::REGEXP:
+    if (!n->Left) {
+      return ret;
+    }
+  case ParseNode::REPETITION:
+  case ParseNode::REPETITION_NG:
+    ret = combine_consecutive_repetitions(n->Left, branch);
+    break;
+
+  case ParseNode::ALTERNATION:
+    ret = combine_consecutive_repetitions(n->Left, branch);
+    ret |= combine_consecutive_repetitions(n->Right, branch);
+    break;
+
+  case ParseNode::CONCATENATION:
+    ret = combine_consecutive_repetitions(n->Left, branch);
+    ret |= combine_consecutive_repetitions(n->Right, branch);
+
+    if (combinable(n->Left, n->Right)) {
+      // the repetitions are siblings
+      n->Left->Rep.Min += n->Right->Rep.Min;
+      n->Left->Rep.Max =
+        (n->Left->Rep.Max == UNBOUNDED || n->Right->Rep.Max == UNBOUNDED)
+        ? UNBOUNDED : n->Left->Rep.Max + n->Right->Rep.Max;
+
+      branch.pop();
+      splice_out_parent(branch.top(), n, n->Left);
+      branch.push(n->Left);
+      ret = true;
+    }
+    else if (n->Left->Type == ParseNode::CONCATENATION &&
+             combinable(n->Left->Right, n->Right)) {
+      // the second repetition is the right uncle of the first
+      n->Right->Rep.Min += n->Left->Right->Rep.Min;
+      n->Right->Rep.Max =
+        (n->Right->Rep.Max == UNBOUNDED || n->Left->Right->Rep.Max == UNBOUNDED)
+        ? UNBOUNDED : n->Right->Rep.Max + n->Left->Right->Rep.Max;
+      n->Left = n->Left->Left;
+      ret = true;
+    }
+    break;
+
+  case ParseNode::DOT:
+  case ParseNode::CHAR_CLASS:
+  case ParseNode::LITERAL:
+  case ParseNode::BYTE:
+    // branch finished
+    ret = false;
+    break;
+
+  default:
+    // WTF?
+    throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
+  }
+
+  branch.pop();
+  return ret;
+}
+
+bool combine_consecutive_repetitions(ParseNode* root) {
+  std::stack<ParseNode*> branch;
+  return combine_consecutive_repetitions(root, branch);
+}
+
+bool make_binops_right_associative(ParseNode* n, std::stack<ParseNode*>& branch) {
+  bool ret = false;
+  branch.push(n);
+
+  switch (n->Type) {
+  case ParseNode::REGEXP:
+    if (!n->Left) {
+      return ret;
+    }
+  case ParseNode::REPETITION:
+  case ParseNode::REPETITION_NG:
+    ret = make_binops_right_associative(n->Left, branch);
+    break;
+
+  case ParseNode::ALTERNATION:
+  case ParseNode::CONCATENATION:
+    ret = make_binops_right_associative(n->Left, branch);
+    ret |= make_binops_right_associative(n->Right, branch);
+
+    if (n->Left->Type == n->Type) {
+      /* 
+        Adjust consecutive binary nodes so that consecutive same-type
+        binary ops are the right children of their parents.
+
+                  a            a
+                  |            |
+                  b     =>     c
+                 / \          / \
+                c   d        e   b
+               / \              / \
+              e   f            f   d
+
+      */
+
+      branch.pop();
+      ParseNode* a = branch.top(); 
+      ParseNode* b = n;
+      ParseNode* c = n->Left; 
+      ParseNode* f = n->Left->Right;
+
+      (b == a->Left ? a->Left : a->Right) = c;
+      c->Right = b;
+      b->Left = f;
+
+      branch.push(c);
+      ret = true;
+    }
+    break;
+
+  case ParseNode::DOT:
+  case ParseNode::CHAR_CLASS:
+  case ParseNode::LITERAL:
+  case ParseNode::BYTE:
+    // branch finished
+    ret = false;
+    break;
+
+  default:
+    // WTF?
+    throw std::logic_error(boost::lexical_cast<std::string>(n->Type));
+  }
+
+  branch.pop();
+  return ret;
+}
+
+bool make_binops_right_associative(ParseNode* root) {
+  std::stack<ParseNode*> branch;
+  return make_binops_right_associative(root, branch);
 }
 
 bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& branch) {

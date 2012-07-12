@@ -468,3 +468,38 @@ SCOPE_TEST(reduceEmptySubtrees_aaa0OraOraa0_Test) {
   SCOPE_ASSERT(reduce_empty_subtrees(tree.Root));
   SCOPE_ASSERT_EQUAL("aa|a|a", unparse(tree));
 }
+
+SCOPE_TEST(combineConsecutiveRepetitions_LPabRPPLPabRPP_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("(ab)+(ab)+", false, false, tree));
+  SCOPE_ASSERT(combine_consecutive_repetitions(tree.Root));
+  SCOPE_ASSERT_EQUAL("(ab){2,}", unparse(tree));
+}
+
+SCOPE_TEST(makeBinopsRightAssociative_LPabRPc_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("(ab)c", false, false, tree));
+  SCOPE_ASSERT(make_binops_right_associative(tree.Root));
+  SCOPE_ASSERT_EQUAL("abc", unparse(tree));
+}
+
+SCOPE_TEST(makeBinopsRightAssociative_aLPbcRP_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a(bc)", false, false, tree));
+  SCOPE_ASSERT(!make_binops_right_associative(tree.Root));
+  SCOPE_ASSERT_EQUAL("abc", unparse(tree));
+}
+
+SCOPE_TEST(makeBinopsRightAssociative_LPaOrbRPOrc_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("(a|b)|c", false, false, tree));
+  SCOPE_ASSERT(make_binops_right_associative(tree.Root));
+  SCOPE_ASSERT_EQUAL("a|b|c", unparse(tree));
+}
+
+SCOPE_TEST(makeBinopsRightAssociative_aOrLPbOrcRP_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a|(b|c)", false, false, tree));
+  SCOPE_ASSERT(!make_binops_right_associative(tree.Root));
+  SCOPE_ASSERT_EQUAL("a|b|c", unparse(tree));
+}
