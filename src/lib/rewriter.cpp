@@ -307,7 +307,7 @@ bool reduce_useless_repetitions(ParseNode* root) {
 }
 
 bool combinable(ParseNode* x, ParseNode* y) {
-  return 
+  return
   (
     (x->Type == ParseNode::REPETITION && y->Type == ParseNode::REPETITION) ||
     (x->Type == ParseNode::REPETITION_NG && y->Type == ParseNode::REPETITION_NG)
@@ -406,7 +406,7 @@ bool make_binops_right_associative(ParseNode* n, std::stack<ParseNode*>& branch)
     ret |= make_binops_right_associative(n->Right, branch);
 
     if (n->Left->Type == n->Type) {
-      /* 
+      /*
         Adjust consecutive binary nodes so that consecutive same-type
         binary ops are the right children of their parents.
 
@@ -421,9 +421,9 @@ bool make_binops_right_associative(ParseNode* n, std::stack<ParseNode*>& branch)
       */
 
       branch.pop();
-      ParseNode* a = branch.top(); 
+      ParseNode* a = branch.top();
       ParseNode* b = n;
-      ParseNode* c = n->Left; 
+      ParseNode* c = n->Left;
       ParseNode* f = n->Left->Right;
 
       (b == a->Left ? a->Left : a->Right) = c;

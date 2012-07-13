@@ -68,7 +68,7 @@ int main(int, char**) {
     longest = std::max(longest, longest_canonical);
 
     for (int32 j = 0; j < alen; ++j) {
-      // get the jth alias for this encoding 
+      // get the jth alias for this encoding
       const char* aname = ucnv_getAlias(cname, j, &err);
       throw_on_error(err);
 
@@ -164,7 +164,7 @@ int main(int, char**) {
       return a.second < b.second || (a.second == b.second && a.first < b.first);
     }
   );
-  
+
   std::pair<std::string,uint32> prev{"", std::numeric_limits<uint32>::max()};
 
   for (const auto& p : aliases) {
@@ -206,7 +206,7 @@ int main(int, char**) {
 
         first = false;
       }
-    
+
       uenum_close(nameEnum);
     }
 

@@ -70,7 +70,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
           if (g[w].Trans) {
             g[w].Trans->getBytes(allowed);
             match += chooseByte(allowed, rng);
-          }          
+          }
         }
 
         // report the match
@@ -103,7 +103,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
           // choosing uniformly over the whole series, but permits it
           // to be done in one pass when the maximum n is unknown
           // beforehand.
-          // 
+          //
           // This is a modification of that, where we reduce the
           // probability of replacement for edges which have no
           // (ASCII) alphanumeric or printable bytes.
@@ -113,7 +113,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
             g[w].Trans->getBytes(allowed);
             if ((alnum & allowed).none()) {
               p /= 2.0;
-  
+
               if ((punct & allowed).none()) {
                 p /= 8.0;
               }
@@ -125,8 +125,8 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
             s = w;
           }
         }
-      }   
-      
+      }
+
       if (scount == 0) {
         // backtrack if all successors exhausted
         path.pop_back();

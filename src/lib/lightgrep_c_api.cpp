@@ -230,7 +230,7 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
   }
 
   const uint64
-    begin = options ? options->TraceBegin : std::numeric_limits<uint64>::max(), 
+    begin = options ? options->TraceBegin : std::numeric_limits<uint64>::max(),
     end = options ? options->TraceEnd : std::numeric_limits<uint64>::max();
 
   exception_trap(std::bind(&create_context, hProg, hCtx, begin, end), hCtx);
