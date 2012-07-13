@@ -114,7 +114,7 @@ void specialVisit(const NFA& graph, NFA::VertexDescriptor startVertex, CodeGenVi
     }
   }
 
-  for (const NFA::VertexDescriptor v : inOrder) { 
+  for (const NFA::VertexDescriptor v : inOrder) {
     vis.finish_vertex(v, graph);
   }
 }
