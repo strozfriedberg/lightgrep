@@ -233,8 +233,9 @@ bool reduce_empty_subtrees(ParseNode* root) {
 }
 
 bool prune_useless_repetitions(ParseNode* n, const std::stack<ParseNode*>& branch) {
-  if ((n->Type == ParseNode::REPETITION || n->Type == ParseNode::REPETITION_NG) &&
-       n->Rep.Min == 1 && n->Rep.Max == 1) {
+  if ((n->Type == ParseNode::REPETITION ||
+       n->Type == ParseNode::REPETITION_NG) &&
+      n->Rep.Min == 1 && n->Rep.Max == 1) {
     // remove {1,1}, {1,1}?
     ParseNode* parent = branch.top();
     if (n == parent->Left) {
