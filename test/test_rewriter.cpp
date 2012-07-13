@@ -476,6 +476,22 @@ SCOPE_TEST(combineConsecutiveRepetitions_LPabRPPLPabRPP_Test) {
   SCOPE_ASSERT_EQUAL("(ab){2,}", unparse(tree));
 }
 
+SCOPE_TEST(reduceTrailingNongreedyThenGreedy_LPabRPQQab_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("(ab)??ab", false, false, tree));
+  SCOPE_ASSERT(make_binops_right_associative(tree.Root));
+  SCOPE_ASSERT(reduce_trailing_nongreedy_then_greedy(tree.Root));
+  SCOPE_ASSERT_EQUAL("(ab){1}", unparse(tree));
+}
+
+SCOPE_TEST(reduceTrailingNongreedyThenGreedy_aDotaaaQQaDot_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse("a.aaa??a.", false, false, tree));
+  SCOPE_ASSERT(make_binops_right_associative(tree.Root));
+  SCOPE_ASSERT(!reduce_trailing_nongreedy_then_greedy(tree.Root));
+  SCOPE_ASSERT_EQUAL("a.aaa??a.", unparse(tree));
+}
+
 SCOPE_TEST(makeBinopsRightAssociative_LPabRPc_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse("(ab)c", false, false, tree));
