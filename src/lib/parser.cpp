@@ -34,8 +34,7 @@ bool contains_possible_counted_repetition(const std::string& pattern) {
   return cr > 0 && cr != std::string::npos;
 }
 
-void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
-{
+void Parser::addPattern(const Pattern& pattern, uint32 patIndex) {
   // prepare the NFA builder
   Nfab.reset();
   Nfab.setCurLabel(patIndex);
@@ -63,6 +62,7 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex)
 
     if (contains_possible_nongreedy(pattern.Expression)) {
       rewrite |= reduce_trailing_nongreedy_then_empty(Tree.Root);
+      rewrite |= reduce_trailing_nongreedy_then_greedy(Tree.Root);
     }
 
     if (rewrite || contains_possible_counted_repetition(pattern.Expression)) {

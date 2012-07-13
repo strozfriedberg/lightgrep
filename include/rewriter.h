@@ -9,6 +9,7 @@ bool has_zero_length_match(const ParseNode* root);
 bool reduce_empty_subtrees(ParseNode* root);
 bool reduce_useless_repetitions(ParseNode* root);
 bool reduce_trailing_nongreedy_then_empty(ParseNode* root);
+bool reduce_trailing_nongreedy_then_greedy(ParseNode* root);
 
 bool combine_consecutive_repetitions(ParseNode* root);
 bool make_binops_right_associative(ParseNode* root);
