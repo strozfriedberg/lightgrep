@@ -57,8 +57,8 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex) {
     // rewrite the parse tree, if necessary
     bool rewrite = false;
 
-    rewrite = combine_consecutive_repetitions(Tree.Root);
-    rewrite |= make_binops_right_associative(Tree.Root);
+    rewrite = make_binops_right_associative(Tree.Root);
+    rewrite |= combine_consecutive_repetitions(Tree.Root);
 
     if (contains_possible_nongreedy(pattern.Expression)) {
       rewrite |= reduce_trailing_nongreedy_then_empty(Tree.Root);
