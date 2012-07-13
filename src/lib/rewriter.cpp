@@ -353,14 +353,14 @@ bool combine_consecutive_repetitions(ParseNode* n, std::stack<ParseNode*>& branc
       branch.push(n->Left);
       ret = true;
     }
-    else if (n->Left->Type == ParseNode::CONCATENATION &&
-             combinable(n->Left->Right, n->Right)) {
-      // the second repetition is the right uncle of the first
-      n->Right->Rep.Min += n->Left->Right->Rep.Min;
-      n->Right->Rep.Max =
-        (n->Right->Rep.Max == UNBOUNDED || n->Left->Right->Rep.Max == UNBOUNDED)
-        ? UNBOUNDED : n->Right->Rep.Max + n->Left->Right->Rep.Max;
-      n->Left = n->Left->Left;
+    else if (n->Right->Type == ParseNode::CONCATENATION &&
+             combinable(n->Left, n->Right->Left)) {
+      // the second repetition is the left nephew of the first
+      n->Left->Rep.Min += n->Right->Left->Rep.Min;
+      n->Left->Rep.Max =
+        (n->Left->Rep.Max == UNBOUNDED || n->Right->Left->Rep.Max == UNBOUNDED)
+        ? UNBOUNDED : n->Left->Rep.Max + n->Right->Left->Rep.Max;
+      n->Right = n->Right->Right;
       ret = true;
     }
     break;
@@ -556,6 +556,9 @@ bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& 
 
      As a suffix, S{n,m}? = S{n}. This is a special case of the above,
      letting T = R{0}.
+
+     However, the second tree is impossible if we first rewrite trees
+     to be right-associative for contatenation.
   */
 
   bool ret = false;
@@ -593,21 +596,6 @@ bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& 
         n->Left->Rep.Max = n->Left->Rep.Min;
 
         ret = true;
-      }
-      else if (n->Left->Type == ParseNode::CONCATENATION &&
-               n->Left->Right->Type == ParseNode::REPETITION_NG) {
-        // the right grandchild is S{n,m}?, the right child is T
-
-        // replace S{n,m}? with S{n}
-        n->Left->Right->Type = ParseNode::REPETITION;
-        n->Left->Right->Rep.Max = n->Left->Right->Rep.Min;
-
-        ret = true;
-
-        // check the left left, if trailed by an empty-matching subpattern
-        if (has_zero_length_match(n->Left->Right)) {
-          reduce_trailing_nongreedy_then_empty(n->Left->Left, branch);
-        }
       }
       else {
         // check the left, it is trailed by an empty-matching subpattern
