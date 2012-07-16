@@ -33,7 +33,7 @@ def run_grep(grep, pats, text, emptymsg):
 
     retval = proc.wait()
     if retval:
-      raise Exception('{} returned {}, {}'.format(grep, retval, sgerr))
+      raise Exception('{} returned {}, {}'.format(grep, retval, gerr))
 
   finally:
     if pf:
