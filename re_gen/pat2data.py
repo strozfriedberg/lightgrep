@@ -2,8 +2,8 @@
 
 #
 # Expects one tab-separated pattern set per line on stdin, text as only
-# command-line argument. Writes tests to stdout in multipattern "long"
-# test format.
+# command-line argument or as last element of each line. Writes tests to
+# stdout in multipattern "long" test format.
 #
 
 import os.path
@@ -19,14 +19,18 @@ def main():
   lstruct = struct.Struct('=L')
   mstruct = struct.Struct('=QQQ')
 
-  # get the text
-  text = sys.argv[1]
-
   setnum = 0
 
   for line in sys.stdin:
     # read the patterns
     pats = line.rstrip('\n').split('\t')
+
+    # get the text from the command line if specified
+    if len(sys.argv) == 2:
+      text = sys.argv[1]
+    else:
+      text = pats[-1]
+      pats = pats[0:-1]
 
     # get matches from shitgrep
     matches = lgtestlib.run_shitgrep(sg, pats, text)
