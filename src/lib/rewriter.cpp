@@ -496,6 +496,7 @@ bool reduce_trailing_nongreedy_then_greedy(ParseNode* n, std::stack<ParseNode*>&
         branch.pop();
         splice_out_parent(branch.top(), n, n->Left);
         reduce_trailing_nongreedy_then_greedy(n->Left, branch);
+        branch.push(n->Left);
 
         ret = true;
       }
@@ -511,6 +512,7 @@ bool reduce_trailing_nongreedy_then_greedy(ParseNode* n, std::stack<ParseNode*>&
         branch.pop();
         splice_out_parent(branch.top(), n, n->Left);
         reduce_trailing_nongreedy_then_greedy(n->Left, branch);
+        branch.push(n->Left);
         ret = true;
       }
     }
