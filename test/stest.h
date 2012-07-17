@@ -23,7 +23,6 @@ struct STest {
     init(keys);
   }
 
-  // This overload prevents type deduction warnings with GCC 4.6.
   STest(std::initializer_list<const char*> keys) {
     init(keys);
   }
