@@ -16,6 +16,7 @@ def main():
   sg = os.path.dirname(__file__) + '/shitgrep'
 
   # compile the output structs
+  bstruct = struct.Struct('B')
   lstruct = struct.Struct('=L')
   mstruct = struct.Struct('=QQQ')
 
@@ -44,6 +45,10 @@ def main():
     for pat in pats:
       sys.stdout.write(lstruct.pack(len(pat)))
       sys.stdout.write(pat)
+      sys.stdout.write(bstruct.pack(0))
+      sys.stdout.write(bstruct.pack(0))
+      sys.stdout.write(lstruct.pack(len('ASCII')))
+      sys.stdout.write('ASCII')
     sys.stdout.write(lstruct.pack(len(text)))
     sys.stdout.write(text)
     sys.stdout.write(lstruct.pack(len(matches)))

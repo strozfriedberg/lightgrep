@@ -27,6 +27,11 @@ struct STest {
     init(keys);
   }
 
+  STest(const std::vector<Pattern>& patterns) {
+    std::vector<Pattern> pats(patterns);
+    init(pats);
+  }
+
   template <typename T>
   STest(const T& keys) {
     init(keys);
@@ -42,6 +47,10 @@ struct STest {
     std::transform(keys.begin(), keys.end(),
                    std::back_inserter(pats), PatternMaker());
 
+    init(pats);
+  }
+
+  void init(std::vector<Pattern>& pats) {
     Fsm = createGraph(pats, true, true);
     if (Fsm) {
       Prog = createProgram(*Fsm);

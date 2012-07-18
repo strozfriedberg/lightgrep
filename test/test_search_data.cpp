@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "basic.h"
+#include "pattern.h"
 #include "stest.h"
 
 void longTest() {
@@ -16,7 +17,7 @@ void longTest() {
   while (std::cin.peek() != -1) {
     // read number of patterns
     std::cin.read(reinterpret_cast<char*>(&patcount), sizeof(patcount));
-    std::vector<std::string> patterns;
+    std::vector<Pattern> patterns;
     patterns.reserve(patcount);
 
     for (uint32 i = 0; i < patcount; ++i) {
@@ -24,9 +25,23 @@ void longTest() {
       std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
       std::string pattern(len, '\0');
       std::cin.read(&pattern[0], len);
-      patterns.push_back(pattern);
 
-      std::cout << pattern << ' ';
+      // read fixed
+      bool fixed;
+      std::cin.read(reinterpret_cast<char*>(&fixed), 1);
+
+      // read case-insensitive
+      bool case_insensitive;
+      std::cin.read(reinterpret_cast<char*>(&case_insensitive), 1);
+
+      // read encoding
+      std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
+      std::string encoding(len, '\0');
+      std::cin.read(&encoding[0], len);
+
+      patterns.emplace_back(pattern, fixed, case_insensitive, 0, encoding);
+
+      std::cout << pattern << ' ' << encoding << ' ';
     }
 
     // read text
