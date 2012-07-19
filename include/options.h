@@ -35,7 +35,8 @@ public:
               Output,
               ServerAddr,
               ServerLog,
-              ProgramFile;
+              ProgramFile,
+              StatsFileName;
 
   std::vector<std::string> Inputs,
                            CmdLinePatterns,
