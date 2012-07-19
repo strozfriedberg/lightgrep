@@ -90,7 +90,8 @@ void parse_opts(int argc, char** argv,
   server.add_options()
     ("address", po::value<std::string>(&opts.ServerAddr)->default_value("localhost"), "specify address")
     ("port", po::value<unsigned short>(&opts.ServerPort)->default_value(12777), "specify port number")
-    ("server-log", po::value<std::string>(&opts.ServerLog), "file for server logging");
+    ("server-log", po::value<std::string>(&opts.ServerLog), "file for server logging")
+    ("statsfile", po::value<std::string>(&opts.StatsFileName), "file for writing out final hit stats");
 
   // Other options
   po::options_description misc("Miscellaneous");
