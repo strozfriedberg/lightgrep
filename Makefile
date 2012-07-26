@@ -35,7 +35,7 @@ override LDLIBS+=-L$(BINDIR)/$(LIBDIR)
 # Determine locations for source, object, binary, and dependency files
 #
 
-MODULES=CEX CMD ENC LIB TEST
+MODULES=CEX CMD ENC LIB TEST VAL
 
 # find all source files and generate object file names
 define sources-and-objects
@@ -64,6 +64,10 @@ CMD_LIBS=-lboost_system-mt -lboost_thread-mt -lboost_program_options-mt -lboost_
 ENC_BINARY=$(BINDIR)/$(ENCDIR)/encodings
 ENC_LIBS=-licuuc -licudata
 
+VAL_BINARY=$(BINDIR)/$(ENCDIR)/valid
+VAL_OBJECTS+=$(LIB_BINARY)
+VAL_LIBS=-llightgrep -licuuc -licudata
+
 TEST_BINARY=$(BINDIR)/test/test
 TEST_OBJECTS+=$(LIB_BINARY) $(BINDIR)/$(CMDDIR)/options.o $(BINDIR)/$(CMDDIR)/optparser.o
 TEST_LIBS=-lboost_program_options-mt -llightgrep -licuuc -licudata
@@ -72,7 +76,7 @@ TEST_LIBS=-lboost_program_options-mt -llightgrep -licuuc -licudata
 # Top-level targets
 #
 
-all: makedirs lib enc cmd c_example test
+all: lib enc cmd c_example test
 
 debug: CFLAGS+=-g
 debug: CFLAGS:=$(filter-out -O3, $(CFLAGS))
@@ -91,6 +95,8 @@ lib: $(LIB_BINARY)
 test: $(TEST_BINARY)
 	$(TEST_BINARY) --test
 
+val: $(VAL_BINARY)
+
 -include $(DEPS)
 
 clean-objs:
@@ -99,13 +105,11 @@ clean-objs:
 clean:
 	$(RM) -r $(BINDIR)/*
 
-.PHONY: all c_example clean debug enc lib makedirs test $(DEPS)
+.PHONY: all c_example clean debug enc lib test $(DEPS)
 
 #
 # Directory targets
 #
-
-makedirs: $(BUILDDIRS)
 
 $(BUILDDIRS):
 	mkdir -p $@
@@ -134,12 +138,12 @@ $(foreach m,CEX CMD ENC TEST,$(eval $(call o-bin-goal,$(m))))
 #
 
 define c-o-goal
-$(BINDIR)/$1/%.o: $1/%.c
+$(BINDIR)/$1/%.o: $1/%.c | $(BINDIR)/$1
 	$$(CC) -o $$@ -c $$(CPPFLAGS) $$(CFLAGS) $$(INCLUDES) $$<
 endef
 
 define cpp-o-goal
-$(BINDIR)/$1/%.o: $1/%.cpp
+$(BINDIR)/$1/%.o: $1/%.cpp | $(BINDIR)/$1
 	$$(CXX) -o $$@ -c $$(CPPFLAGS) $$(CXXFLAGS) $$(INCLUDES) $$<
 endef
 
@@ -153,5 +157,5 @@ $(BINDIR)/$(LIBDIR)/parser.tab.o: $(BINDIR)/$(LIBDIR)/parser.tab.cpp
 # Generated source files
 #
 
-$(BINDIR)/$(LIBDIR)/parser.tab.cpp: $(LIBDIR)/parser.ypp
+$(BINDIR)/$(LIBDIR)/parser.tab.cpp: $(LIBDIR)/parser.ypp | $(@D)
 	$(BISON) -r solved $< -o $@
