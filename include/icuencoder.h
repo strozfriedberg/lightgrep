@@ -23,7 +23,6 @@ private:
   UConverter* dst_conv;
   UChar* pivot;
   uint32 max_bytes;
-  UnicodeSet valid;
 };
 
 class CachingICUEncoder: public CachingEncoder<ICUEncoder> {
