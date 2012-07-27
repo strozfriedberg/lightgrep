@@ -72,6 +72,8 @@ ICUEncoder::ICUEncoder(const char* const name): enc_name(name) {
   convUnicodeSet(const_cast<typename ::UnicodeSet&>(Valid), us);
 }
 
+ICUEncoder::ICUEncoder(const std::string& name): ICUEncoder(name.c_str()) {}
+
 ICUEncoder::~ICUEncoder() {
   ucnv_close(src_conv);
   ucnv_close(dst_conv);
