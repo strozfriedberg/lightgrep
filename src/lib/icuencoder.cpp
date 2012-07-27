@@ -58,7 +58,7 @@ ICUEncoder::ICUEncoder(const char* const name): enc_name(name) {
     );
   }
 
-  max_bytes = ucnv_getMaxCharSize(dst_conv);
+  max_bytes = UCNV_GET_MAX_BYTES_FOR_STRING(1, ucnv_getMaxCharSize(dst_conv));
 
   // get the set of valid code points
   icu::UnicodeSet us;
