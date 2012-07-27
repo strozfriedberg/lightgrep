@@ -46,8 +46,10 @@ int main(int, char**) {
     "UTF-16,version=1",
     "UTF-16,version=2",
     // skip these because they have system-dependent behavior
-    "UTF16_PlatformEndian",
     "UTF16_OppositeEndian",
+    "UTF16_PlatformEndian",
+    "UTF32_OppositeEndian",
+    "UTF32_PlatformEndian",
     // skip these because we can't handle stateful encodings yet
     "BOCU-1",
     "IMAP-mailbox-name",
