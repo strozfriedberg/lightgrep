@@ -1,7 +1,7 @@
-#include <cstring>
 #include <iostream>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -15,7 +15,7 @@
 #include "utf16.h"
 #include "utf32.h"
 
-void write_tests(Encoder& utf8, byte* buf_utf8, Encoder& enc, byte* buf_enc) {
+void write_tests(Encoder& enc, byte* buf_enc) {
   UnicodeSet valid(enc.validCodePoints());
 
   std::cerr << enc.name() << ": " << valid << std::endl;
@@ -26,39 +26,14 @@ void write_tests(Encoder& utf8, byte* buf_utf8, Encoder& enc, byte* buf_enc) {
       const uint32 pat_count = 1;
       std::cout.write(reinterpret_cast<const char*>(&pat_count), sizeof(pat_count));
 
-      // write pattern
-      uint32 len_utf8 = utf8.write(r.first, buf_utf8);
+      // write pattern as a code point: \x{hhhh}
+      std::ostringstream ss;
+      ss << "\\x{" << std::hex << r.first << '}';
+      const std::string pat(ss.str());
+      const uint32 len_pat = pat.length();
 
-      switch (r.first) {
-      // escape metacharacters
-      case 0:
-        ++len_utf8;
-        std::cout.write(reinterpret_cast<const char*>(&len_utf8), sizeof(len_utf8));
-        --len_utf8;
-        std::cout << "\\0";
-        break;
-      case '.':
-      case '*':
-      case '+':
-      case '?':
-      case '\\':
-      case '[':
-      case '|':
-      case '(':
-      case ')':
-      case '^':
-        ++len_utf8;
-        std::cout.write(reinterpret_cast<const char*>(&len_utf8), sizeof(len_utf8));
-        --len_utf8;
-        std::cout << '\\';
-        std::cout.write(reinterpret_cast<char*>(buf_utf8), len_utf8);
-        break;
-      // let everytyhing else through as-is
-      default:
-        std::cout.write(reinterpret_cast<const char*>(&len_utf8), sizeof(len_utf8));
-        std::cout.write(reinterpret_cast<char*>(buf_utf8), len_utf8);
-        break;
-      }
+      std::cout.write(reinterpret_cast<const char*>(&len_pat), sizeof(len_pat));
+      std::cout << pat;
 
       // write options
       std::cout.put(0);
@@ -209,7 +184,7 @@ int main(int argc, char** argv) {
   for (const std::string& ename : encodings) {
     std::shared_ptr<Encoder> enc(getEncoder(ename));
     std::unique_ptr<byte[]> buf_enc(new byte[enc->maxByteLength()+20]);
-    write_tests(utf8, buf_utf8.get(), *enc.get(), buf_enc.get());
+    write_tests(*enc.get(), buf_enc.get());
   } 
 
   return 0;
