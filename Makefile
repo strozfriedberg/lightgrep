@@ -9,12 +9,15 @@ CMDDIR=$(SRCDIR)/cmd
 ENCDIR=$(SRCDIR)/enc
 LIBDIR=$(SRCDIR)/lib
 TESTDIR=test
+VALDIR=$(SRCDIR)/val
 
 BINDIR=bin
 INCDIR=include
 
-SRCDIRS=$(CEXDIR) $(CMDDIR) $(ENCDIR) $(LIBDIR) $(TESTDIR)
-BUILDDIRS=$(addprefix $(BINDIR)/, $(SRCDIRS))
+LIBMODS=LIB
+BINMODS=CEX CMD ENC TEST VAL
+
+MODULES=$(LIBMODS) $(BINMODS)
 
 #
 # Build programs and flags
@@ -35,7 +38,9 @@ override LDLIBS+=-L$(BINDIR)/$(LIBDIR)
 # Determine locations for source, object, binary, and dependency files
 #
 
-MODULES=CEX CMD ENC LIB TEST VAL
+# collect the source and build directories for the modules
+SRCDIRS=$(foreach m,$(MODULES), $($(m)DIR))
+BUILDDIRS=$(addprefix $(BINDIR)/, $(SRCDIRS))
 
 # find all source files and generate object file names
 define sources-and-objects
@@ -53,7 +58,7 @@ DEPS:=$(DEPS:%.o=%.d)
 LIB_BINARY=$(BINDIR)/$(LIBDIR)/liblightgrep.a
 LIB_OBJECTS+=$(BINDIR)/$(LIBDIR)/parser.tab.o
 
-CEX_BINARY=$(BINDIR)/c_example/c_example
+CEX_BINARY=$(BINDIR)/$(CEXDIR)/c_example
 CEX_OBJECTS+=$(LIB_BINARY)
 CEX_LIBS=-llightgrep -licuuc -licudata
 
@@ -64,7 +69,7 @@ CMD_LIBS=-lboost_system-mt -lboost_thread-mt -lboost_program_options-mt -lboost_
 ENC_BINARY=$(BINDIR)/$(ENCDIR)/encodings
 ENC_LIBS=-licuuc -licudata
 
-VAL_BINARY=$(BINDIR)/$(ENCDIR)/valid
+VAL_BINARY=$(BINDIR)/$(VALDIR)/valid
 VAL_OBJECTS+=$(LIB_BINARY)
 VAL_LIBS=-llightgrep -licuuc -licudata
 
@@ -76,7 +81,7 @@ TEST_LIBS=-lboost_program_options-mt -llightgrep -licuuc -licudata
 # Top-level targets
 #
 
-all: lib enc cmd c_example test
+all: lib enc cmd c_example test val
 
 debug: CFLAGS+=-g
 debug: CFLAGS:=$(filter-out -O3, $(CFLAGS))
@@ -100,12 +105,12 @@ val: $(VAL_BINARY)
 -include $(DEPS)
 
 clean-objs:
-	$(RM) $(BINDIR)/{$(CEXDIR),$(CMDDIR),$(LIBDIR),$(ENCDIR),$(TESTDIR)}/*.{o,a}
+	$(RM) $(BINDIR)/{$(CEXDIR),$(CMDDIR),$(LIBDIR),$(ENCDIR),$(TESTDIR),$(VALDIR)}/*.{o,a}
 
 clean:
 	$(RM) -r $(BINDIR)/*
 
-.PHONY: all c_example clean debug enc lib test $(DEPS)
+.PHONY: all c_example clean debug enc lib test val $(DEPS)
 
 #
 # Directory targets
@@ -124,14 +129,14 @@ $($(1)_BINARY): $($(1)_OBJECTS)
 	$(RANLIB) $$@
 endef
 
-$(foreach m,LIB,$(eval $(call o-a-goal,$(m))))
+$(foreach m,$(LIBMODS),$(eval $(call o-a-goal,$(m))))
 
 define o-bin-goal
 $($(1)_BINARY): $($(1)_OBJECTS)
 	$$(CXX) -o $$@ $$(filter-out $(LIB_BINARY), $$^) $$(LDFLAGS) $($(1)_LDFLAGS) $$(LDLIBS) $($(1)_LIBS)
 endef
 
-$(foreach m,CEX CMD ENC TEST,$(eval $(call o-bin-goal,$(m))))
+$(foreach m,$(BINMODS),$(eval $(call o-bin-goal,$(m))))
 
 #
 # Object targets
