@@ -104,9 +104,6 @@ val: $(VAL_BINARY)
 
 -include $(DEPS)
 
-clean-objs:
-	$(RM) $(BINDIR)/{$(CEXDIR),$(CMDDIR),$(LIBDIR),$(ENCDIR),$(TESTDIR),$(VALDIR)}/*.{o,a}
-
 clean:
 	$(RM) -r $(BINDIR)/*
 
