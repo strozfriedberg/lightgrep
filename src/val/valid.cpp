@@ -72,9 +72,10 @@ void write_tests(Encoder& utf8, byte* buf_utf8, Encoder& enc, byte* buf_enc) {
       // write text
       const uint32 len_enc = enc.write(r.first, buf_enc);
 
-if (len_enc == 0) {
-  std::cerr << enc.name() << ' ' << std::hex << r.first << std::endl;
-}
+      if (len_enc == 0) {
+        // ack, this is bogus!
+        std::cerr << enc.name() << ' ' << std::hex << r.first << std::endl;
+      }
 
       std::cout.write(reinterpret_cast<const char*>(&len_enc), sizeof(len_enc));
       std::cout.write(reinterpret_cast<char*>(buf_enc), len_enc);
