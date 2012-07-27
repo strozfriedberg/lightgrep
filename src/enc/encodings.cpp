@@ -66,8 +66,13 @@ int main(int, char**) {
     "ISCII,version=8",
     "ISO_2022,locale=ko,version=0",
     "ISO_2022,locale=zh,version=2",
+    "LMBCS-1",
     "SCSU",
-    "UTF-7"
+    "UTF-7",
+    "ibm-1390_P110-2003",
+    "ibm-1399_P110-2003",
+    "ibm-16684_P110-2003",
+    "x11-compound-text"
   };
 
   std::vector<std::string> canonical;
