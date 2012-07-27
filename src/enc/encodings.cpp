@@ -42,9 +42,11 @@ int main(int, char**) {
   const std::set<std::string> skip{
     // skip these because they have BOMs
     "UTF-16",
-    "UTF-32",
     "UTF-16,version=1",
     "UTF-16,version=2",
+    "UTF-16LE,version=1",
+    "UTF-16BE,version=1",
+    "UTF-32",
     // skip these because they have system-dependent behavior
     "UTF16_OppositeEndian",
     "UTF16_PlatformEndian",
