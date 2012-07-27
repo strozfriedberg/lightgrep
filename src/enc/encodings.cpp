@@ -40,7 +40,30 @@ int main(int, char**) {
 
   // Encodings to skip
   const std::set<std::string> skip{
-    "UTF-16", "UTF-32", "UTF-16,version=1", "UTF-16,version=2"
+    // skip these because they have BOMs
+    "UTF-16",
+    "UTF-32",
+    "UTF-16,version=1",
+    "UTF-16,version=2",
+    // skip these because they have system-dependent behavior
+    "UTF16_PlatformEndian",
+    "UTF16_OppositeEndian",
+    // skip these because we can't handle stateful encodings yet
+    "BOCU-1",
+    "IMAP-mailbox-name",
+    "ISCII,version=0",
+    "ISCII,version=1",
+    "ISCII,version=2",
+    "ISCII,version=3",
+    "ISCII,version=4",
+    "ISCII,version=5",
+    "ISCII,version=6",
+    "ISCII,version=7",
+    "ISCII,version=8",
+    "ISO_2022,locale=ko,version=0",
+    "ISO_2022,locale=zh,version=2",
+    "SCSU",
+    "UTF-7"
   };
 
   std::vector<std::string> canonical;
