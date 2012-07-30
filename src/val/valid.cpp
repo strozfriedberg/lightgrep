@@ -61,8 +61,12 @@ void write_tests(Encoder& enc, byte* buf_other, byte* buf_enc) {
 
       // can't use encoding of first code point in these cases, as its
       // last byte is the same as the first byte of the target code point
-      if ((r.first == 0 && enc.name() == "UTF-32LE") ||
-          (r.first == 0x6883 && enc.name() == "ibm-5478_P100-1995")) {
+      if (r.first == 0 && enc.name() == "UTF-32LE") {
+        // high byte of UTF-32LE is always empty, so we have to fill it
+        *reinterpret_cast<uint32*>(buf_other) = 0xFFFFFFFF;
+        reset_other = true;
+      }
+      else if (r.first == 0x6883 && enc.name() == "ibm-5478_P100-1995") {
         len_other = enc.write(last, buf_other);
         reset_other = true;
       }
