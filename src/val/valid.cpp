@@ -147,6 +147,7 @@ int main(int argc, char** argv) {
 
       // stateful
       "BOCU-1",               // IBM MIME-friendly Unicode encoding
+      "HZ",
       "IMAP-mailbox-name",    // modified UTF-7
       "ISCII,version=0",      // Indian Script Code for Information Interchange
       "ISCII,version=1",
@@ -157,16 +158,32 @@ int main(int argc, char** argv) {
       "ISCII,version=6",
       "ISCII,version=7",
       "ISCII,version=8",
-      "ISO_2022,locale=ko,version=0", // also not 1-1
-      "ISO_2022,locale=zh,version=2", // also not 1-1
+      "ISO_2022,locale=ja,version=0",
+      "ISO_2022,locale=ja,version=1",
+      "ISO_2022,locale=ja,version=2",
+      "ISO_2022,locale=ja,version=3",
+      "ISO_2022,locale=ja,version=4",
+      "ISO_2022,locale=ko,version=0",
+      "ISO_2022,locale=ko,version=1",
+      "ISO_2022,locale=zh,version=0",
+      "ISO_2022,locale=zh,version=1",
+      "ISO_2022,locale=zh,version=2",
       "LMBCS-1",  // Louts Multi-Byte Character Set
                   // http://web.archive.org/web/20050516054001/http://www.batutis.com/i18n/papers/lmbcs/LMBCS.html
       "SCSU",                 // Symbian, SQL Server 2008, Reuters
       "UTF-7",                // crazy
-      "ibm-1390_P110-2003",   // Japanese EBCDIC, extends IBM 930
-      "ibm-1399_P110-2003",   // Japanese EBCDIC, extends IBM 939
-      "ibm-16684_P110-2003",  // Japanese EBCDIC, extends IBM 300
-      "x11-compound-text",    // http://www.x.org/docs/CTEXT/ctext.pdf
+      "ibm-930_P120-1999",
+      "ibm-933_P110-1995",
+      "ibm-935_P110-1999",
+      "ibm-937_P110-1999",
+      "ibm-939_P120-1999",
+      "ibm-1364_P110-2007",
+      "ibm-1371_P100-1999",
+      "ibm-1388_P103-2001",
+      "ibm-1390_P110-2003",
+      "ibm-1399_P110-2003",
+      "ibm-16684_P110-2003",
+      "x11-compound-text"     // http://www.x.org/docs/CTEXT/ctext.pdf
     };
 
     const int32 clen = ucnv_countAvailable();
