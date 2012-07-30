@@ -15,10 +15,15 @@
 #include "utf16.h"
 #include "utf32.h"
 
-void write_tests(Encoder& enc, byte* buf_enc) {
+void write_tests(Encoder& enc, byte* buf_other, byte* buf_enc) {
   UnicodeSet valid(enc.validCodePoints());
 
-  std::cerr << enc.name() << ": " << valid << std::endl;
+  std::cerr << enc.name() << std::endl;
+
+  // get the first and last code points for padding
+  const uint32 first = valid.begin()->first;
+  const uint32 last = (--valid.end())->second - 1;
+  uint32 len_other = enc.write(last, buf_other);
 
   for (UnicodeSet::range r : valid) {
     for ( ; r.first < r.second; ++r.first) {
@@ -52,18 +57,37 @@ void write_tests(Encoder& enc, byte* buf_enc) {
         std::cerr << enc.name() << ' ' << std::hex << r.first << std::endl;
       }
 
-      std::cout.write(reinterpret_cast<const char*>(&len_enc), sizeof(len_enc));
+      bool reset_other = r.first == first;
+
+      // can't use encoding of first code point in these cases, as its
+      // last byte is the same as the first byte of the target code point
+      if ((r.first == 0 && enc.name() == "UTF-32LE") ||
+          (r.first == 0x6883 && enc.name() == "ibm-5478_P100-1995")) {
+        len_other = enc.write(last, buf_other);
+        reset_other = true;
+      }
+
+      // write the text as xAx
+      const uint32 len_tot = 2*len_other + len_enc;
+      std::cout.write(reinterpret_cast<const char*>(&len_tot), sizeof(len_tot));
+      std::cout.write(reinterpret_cast<char*>(buf_other), len_other);
       std::cout.write(reinterpret_cast<char*>(buf_enc), len_enc);
+      std::cout.write(reinterpret_cast<char*>(buf_other), len_other);
 
       // write match count
       const uint32 match_count = 1;
       std::cout.write(reinterpret_cast<const char*>(&match_count), sizeof(match_count));
 
       // write matches
-      const uint64 match_beg = 0, match_end = len_enc, pat_num = 0;
+      const uint64 match_beg = len_other, match_end = len_other + len_enc, pat_num = 0;
       std::cout.write(reinterpret_cast<const char*>(&match_beg), sizeof(match_beg));
       std::cout.write(reinterpret_cast<const char*>(&match_end), sizeof(match_end));
       std::cout.write(reinterpret_cast<const char*>(&pat_num), sizeof(pat_num));
+
+      if (reset_other) {
+        // switch padding to first code point
+        len_other = enc.write(first, buf_other);
+      }
     }
   }
 }
@@ -200,8 +224,9 @@ int main(int argc, char** argv) {
   // generate test data for each requested encoding
   for (const std::string& ename : encodings) {
     std::shared_ptr<Encoder> enc(getEncoder(ename));
-    std::unique_ptr<byte[]> buf_enc(new byte[enc->maxByteLength()+20]);
-    write_tests(*enc.get(), buf_enc.get());
+    std::unique_ptr<byte[]> buf_other(new byte[enc->maxByteLength()]);
+    std::unique_ptr<byte[]> buf_enc(new byte[enc->maxByteLength()]);
+    write_tests(*enc.get(), buf_other.get(), buf_enc.get());
   } 
 
   return 0;
