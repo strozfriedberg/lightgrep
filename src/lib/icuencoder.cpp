@@ -1,7 +1,7 @@
 #include "icuencoder.h"
 #include "icuutil.h"
 
-#include <unicode/uniset.h>
+#include <unicode/uset.h>
 
 // FIXME: Maybe we should set endianness with a compile-time flag? This
 // would let us do the fast thing (casting & assignment) for conversions
@@ -61,15 +61,15 @@ ICUEncoder::ICUEncoder(const char* const name): enc_name(name) {
   max_bytes = UCNV_GET_MAX_BYTES_FOR_STRING(1, ucnv_getMaxCharSize(dst_conv));
 
   // get the set of valid code points
-  icu::UnicodeSet us;
-  ucnv_getUnicodeSet(dst_conv, us.toUSet(), UCNV_ROUNDTRIP_SET, &err);
+  std::unique_ptr<USet, void(*)(USet*)> us(uset_openEmpty(), uset_close);
+  ucnv_getUnicodeSet(dst_conv, us.get(), UCNV_ROUNDTRIP_SET, &err);
   if (U_FAILURE(err)) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT(
       "Could not get set of valid code points. WAT? " << u_errorName(err)
     );
   }
 
-  convUnicodeSet(const_cast<typename ::UnicodeSet&>(Valid), us);
+  convUnicodeSet(const_cast<UnicodeSet&>(Valid), us.get());
 }
 
 ICUEncoder::ICUEncoder(const std::string& name): ICUEncoder(name.c_str()) {}
