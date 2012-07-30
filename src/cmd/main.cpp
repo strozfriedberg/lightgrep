@@ -72,7 +72,13 @@ void printEncodings() {
   // group the aliases by the indices of their canonical names
   std::vector<std::vector<std::string>> aliases(clen);
   for (uint32 i = 0; i < slen; ++i) {
-    aliases[LG_SUPPORTED_ENCODINGS[i].idx].emplace_back(LG_SUPPORTED_ENCODINGS[i].name);
+    if (std::strcmp(
+          LG_SUPPORTED_ENCODINGS[i].name,
+          LG_CANONICAL_ENCODINGS[LG_SUPPORTED_ENCODINGS[i].idx]
+        ) != 0
+    ) {
+      aliases[LG_SUPPORTED_ENCODINGS[i].idx].emplace_back(LG_SUPPORTED_ENCODINGS[i].name);
+    }
   }
 
   for (uint32 i = 0; i < clen; ++i) {
