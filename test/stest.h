@@ -23,9 +23,13 @@ struct STest {
     init(keys);
   }
 
-  // This overload prevents type deduction warnings with GCC 4.6.
   STest(std::initializer_list<const char*> keys) {
     init(keys);
+  }
+
+  STest(const std::vector<Pattern>& patterns) {
+    std::vector<Pattern> pats(patterns);
+    init(pats);
   }
 
   template <typename T>
@@ -43,6 +47,10 @@ struct STest {
     std::transform(keys.begin(), keys.end(),
                    std::back_inserter(pats), PatternMaker());
 
+    init(pats);
+  }
+
+  void init(std::vector<Pattern>& pats) {
     Fsm = createGraph(pats, true, true);
     if (Fsm) {
       Prog = createProgram(*Fsm);

@@ -34,7 +34,9 @@ vars.AddVariables(
   ('debug', 'Default false. Can be true|profile|coverage|perf|trace', 'false'),
   ('boostType', 'Suffix to add to Boost libraries to enable finding them', ''),
   ('CC', 'set the name of the C compiler to use (scons finds default)', ''),
-  ('CXX', 'set the name of the C++ compiler to use (scons finds default)', '')
+  ('CXX', 'set the name of the C++ compiler to use (scons finds default)', ''),
+  ('CXXFLAGS', 'add flags for the C++ compiler to CXXFLAGS', ''),
+  ('LDFLAGS', 'add flags for the linker to LDFLAGS', '')
 )
 
 # we inherit the OS environment to get PATH, so ccache works
@@ -78,9 +80,9 @@ else:
   flags = '-O3'
   ldflags = ''
 
-ldflags += ' -static-libstdc++'
-ccflags = '-pedantic -Wall -Wextra -pipe %s' % (flags)
-cxxflags = '-std=c++0x -Wnon-virtual-dtor'
+ldflags += ' -static-libstdc++ ' + env['LDFLAGS']
+ccflags = '-pedantic -Wall -Wextra -pipe ' + flags
+cxxflags = '-std=c++11 -Wnon-virtual-dtor ' + env['CXXFLAGS']
 
 if (isWindows):
   cxxflags += ' -mthreads'
@@ -100,6 +102,8 @@ env.Append(LINKFLAGS=ldflags)
 
 print("CC = " + env['CC'])
 print("CXX = " + env['CXX'])
+print("CXXFLAGS = " + env['CXXFLAGS'])
+print("LDFLAGS = " + env['LDFLAGS'])
 
 Help(vars.GenerateHelpText(env))
 

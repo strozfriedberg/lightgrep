@@ -2,8 +2,8 @@
 
 #include "basic.h"
 
-#include <unicode/uniset.h>
+#include <unicode/uset.h>
 
-void convUnicodeSet(::UnicodeSet& dst, const icu::UnicodeSet& src);
+void convUnicodeSet(UnicodeSet& dst, const USet* src);
 
-void convUnicodeSet(icu::UnicodeSet& dst, const ::UnicodeSet& src);
+void convUnicodeSet(USet* dst, const UnicodeSet& src);

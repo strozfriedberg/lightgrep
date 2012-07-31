@@ -40,7 +40,56 @@ int main(int, char**) {
 
   // Encodings to skip
   const std::set<std::string> skip{
-    "UTF-16", "UTF-32", "UTF-16,version=1", "UTF-16,version=2"
+    // skip these because they have BOMs
+    "UTF-16",
+    "UTF-16,version=1",
+    "UTF-16,version=2",
+    "UTF-16LE,version=1",
+    "UTF-16BE,version=1",
+    "UTF-32",
+    // skip these because they have system-dependent behavior
+    "UTF16_OppositeEndian",
+    "UTF16_PlatformEndian",
+    "UTF32_OppositeEndian",
+    "UTF32_PlatformEndian",
+    // skip these because we can't handle stateful encodings yet
+    "BOCU-1",
+    "HZ",
+    "IMAP-mailbox-name",
+    "ISCII,version=0",
+    "ISCII,version=1",
+    "ISCII,version=2",
+    "ISCII,version=3",
+    "ISCII,version=4",
+    "ISCII,version=5",
+    "ISCII,version=6",
+    "ISCII,version=7",
+    "ISCII,version=8",
+    "ISO_2022,locale=ja,version=0",
+    "ISO_2022,locale=ja,version=1",
+    "ISO_2022,locale=ja,version=2",
+    "ISO_2022,locale=ja,version=3",
+    "ISO_2022,locale=ja,version=4",
+    "ISO_2022,locale=ko,version=0",
+    "ISO_2022,locale=ko,version=1",
+    "ISO_2022,locale=zh,version=0",
+    "ISO_2022,locale=zh,version=1",
+    "ISO_2022,locale=zh,version=2",
+    "LMBCS-1",
+    "SCSU",
+    "UTF-7",
+    "ibm-930_P120-1999",
+    "ibm-933_P110-1995",
+    "ibm-935_P110-1999",
+    "ibm-937_P110-1999",
+    "ibm-939_P120-1999",
+    "ibm-1364_P110-2007",
+    "ibm-1371_P100-1999",
+    "ibm-1388_P103-2001",
+    "ibm-1390_P110-2003",
+    "ibm-1399_P110-2003",
+    "ibm-16684_P110-2003",
+    "x11-compound-text"
   };
 
   std::vector<std::string> canonical;
@@ -68,7 +117,7 @@ int main(int, char**) {
     longest = std::max(longest, longest_canonical);
 
     for (int32 j = 0; j < alen; ++j) {
-      // get the jth alias for this encoding 
+      // get the jth alias for this encoding
       const char* aname = ucnv_getAlias(cname, j, &err);
       throw_on_error(err);
 
@@ -164,7 +213,7 @@ int main(int, char**) {
       return a.second < b.second || (a.second == b.second && a.first < b.first);
     }
   );
-  
+
   std::pair<std::string,uint32> prev{"", std::numeric_limits<uint32>::max()};
 
   for (const auto& p : aliases) {
@@ -206,7 +255,7 @@ int main(int, char**) {
 
         first = false;
       }
-    
+
       uenum_close(nameEnum);
     }
 
