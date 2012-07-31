@@ -21,6 +21,8 @@ public:
   using EncoderBase::write;
 
 private:
+  void init(const char* const name);
+
   std::string enc_name;
   UConverter* src_conv;
   UConverter* dst_conv;
