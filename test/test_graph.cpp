@@ -1,12 +1,15 @@
 #include <scope/test.h>
 
+#include <algorithm>
+#include <vector>
+
 #include "graph.h"
 #include "simplevectorfamily.h"
 
 struct X {};
 
 template <typename T>
-struct S : public SimpleVectorFamily<T> {};
+struct S: public SimpleVectorFamily<T> {};
 
 SCOPE_TEST(graphNullaryCtor) {
   Graph<X,X,X,S> g;
@@ -154,3 +157,32 @@ SCOPE_TEST(graphClearEdges) {
   SCOPE_ASSERT_EQUAL(0, g.edgesSize());
 }
 
+SCOPE_TEST(graphInVertices) {
+  typedef Graph<X,X,X,S> G;
+
+  G g(5);
+  g.addEdge(0, 1);
+  g.addEdge(2, 1);
+  g.addEdge(3, 1);
+  g.addEdge(4, 1);
+
+  const G::NeighborList nl(g.inVertices(1));
+  const std::vector<G::VertexDescriptor> act(nl.begin(), nl.end());
+  const std::vector<G::VertexDescriptor> exp{0,2,3,4};
+  SCOPE_ASSERT_EQUAL(exp, act);
+}
+
+SCOPE_TEST(graphOutVertices) {
+  typedef Graph<X,X,X,S> G;
+
+  G g(5);
+  g.addEdge(0, 1);
+  g.addEdge(1, 2);
+  g.addEdge(1, 3);
+  g.addEdge(1, 4);
+
+  const G::NeighborList nl(g.outVertices(1));
+  const std::vector<G::VertexDescriptor> act(nl.begin(), nl.end());
+  const std::vector<G::VertexDescriptor> exp{2,3,4};
+  SCOPE_ASSERT_EQUAL(exp, act);
+}

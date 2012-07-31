@@ -1,4 +1,4 @@
-%{
+%code requires {
 #include "parsenode.h"
 #include "parsetree.h"
 #include "parseutil.h"
@@ -9,19 +9,31 @@
 #include <vector>
 
 namespace {
-  static int yylex(void);
-  static void yyerror(const char*);
+  struct Context {
+    const int* Text;
+    const int* TextBegin;
+    const int* TextEnd;
 
-  const int* Text;
-  const int* TextBegin;
-  const int* TextEnd;
+    ParseTree* Tree;
 
-  ParseTree* Tree;
+    UnicodeSet USet;
 
-  UnicodeSet USet;
+    bool LiteralMode;
+    bool CaseInsensitive;
 
-  bool LiteralMode;
-  bool CaseInsensitive;
+    ParseNode* add(const ParseNode& n) {
+      return Tree->add(n);
+    }
+  };
+
+  union YYSTYPE {
+    unsigned int c;
+    ParseNode* node;
+    UnicodeSet* s;
+  };
+
+  static int yylex(YYSTYPE* yylval, Context* ctx);
+  static void yyerror(Context* ctx, const char* msg);
 
 /*
   template <class... Args>
@@ -29,19 +41,13 @@ namespace {
     return Tree->add(args...);
   }
 */
-
-  ParseNode* add(const ParseNode& n) {
-    return Tree->add(n);
-  }
 }
 
-%}
-
-%union {
-  unsigned int c;
-  ParseNode* node;
-  UnicodeSet* s;
 }
+
+%define api.pure
+%lex-param { Context* ctx }
+%parse-param { Context* ctx }
 
 %token <c> BYTE
 %token <c> CHAR
@@ -59,14 +65,14 @@ namespace {
 regexp:
   alt
   {
-    Tree->Root = $$ = add(ParseNode(ParseNode::REGEXP, $1));
+    ctx->Tree->Root = $$ = ctx->add(ParseNode(ParseNode::REGEXP, $1));
   }
 
 alt:
   concat
 | alt '|' concat
   {
-    $$ = add(ParseNode(ParseNode::ALTERNATION, $1, $3));
+    $$ = ctx->add(ParseNode(ParseNode::ALTERNATION, $1, $3));
   }
 ;
 
@@ -74,7 +80,7 @@ concat:
   rep
 | concat rep
   {
-    $$ = add(ParseNode(ParseNode::CONCATENATION, $1, $2));
+    $$ = ctx->add(ParseNode(ParseNode::CONCATENATION, $1, $2));
   }
 ;
 
@@ -82,62 +88,62 @@ rep:
   atom
 | atom '*' '?'
   {
-    $$ = add(ParseNode(ParseNode::REPETITION_NG, $1, 0, UNBOUNDED));
+    $$ = ctx->add(ParseNode(ParseNode::REPETITION_NG, $1, 0, UNBOUNDED));
   }
 | atom '+' '?'
   {
-    $$ = add(ParseNode(ParseNode::REPETITION_NG, $1, 1, UNBOUNDED));
+    $$ = ctx->add(ParseNode(ParseNode::REPETITION_NG, $1, 1, UNBOUNDED));
   }
 | atom '?' '?'
   {
-    $$ = add(ParseNode(ParseNode::REPETITION_NG, $1, 0, 1));
+    $$ = ctx->add(ParseNode(ParseNode::REPETITION_NG, $1, 0, 1));
   }
 | atom '{' number '}' '?'
   {
-    $$ = add(ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, $3->Val));
+    $$ = ctx->add(ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, $3->Val));
   }
 | atom '{' number ',' '}' '?'
   {
-    $$ = add(ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, UNBOUNDED));
+    $$ = ctx->add(ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, UNBOUNDED));
   }
 | atom '{' number ',' number '}' '?'
   {
     if ($3->Val > $5->Val) {
       // {n,m} is ill-formed when n > m
-      yyerror("syntax error");
+      yyerror(ctx, "syntax error");
     }
     else {
-      $$ = add(ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, $5->Val));
+      $$ = ctx->add(ParseNode(ParseNode::REPETITION_NG, $1, $3->Val, $5->Val));
     }
   }
 | atom '*'
   {
-    $$ = add(ParseNode(ParseNode::REPETITION, $1, 0, UNBOUNDED));
+    $$ = ctx->add(ParseNode(ParseNode::REPETITION, $1, 0, UNBOUNDED));
   }
 | atom '+'
   {
-    $$ = add(ParseNode(ParseNode::REPETITION, $1, 1, UNBOUNDED));
+    $$ = ctx->add(ParseNode(ParseNode::REPETITION, $1, 1, UNBOUNDED));
   }
 | atom '?'
   {
-    $$ = add(ParseNode(ParseNode::REPETITION, $1, 0, 1));
+    $$ = ctx->add(ParseNode(ParseNode::REPETITION, $1, 0, 1));
   }
 | atom '{' number '}'
   {
-    $$ = add(ParseNode(ParseNode::REPETITION, $1, $3->Val, $3->Val));
+    $$ = ctx->add(ParseNode(ParseNode::REPETITION, $1, $3->Val, $3->Val));
   }
 | atom '{' number ',' '}'
   {
-    $$ = add(ParseNode(ParseNode::REPETITION, $1, $3->Val, UNBOUNDED));
+    $$ = ctx->add(ParseNode(ParseNode::REPETITION, $1, $3->Val, UNBOUNDED));
   }
 | atom '{' number ',' number '}'
   {
     if ($3->Val > $5->Val) {
       // {n,m} is ill-formed when n > m
-      yyerror("syntax error");
+      yyerror(ctx, "syntax error");
     }
     else {
-      $$ = add(ParseNode(ParseNode::REPETITION, $1, $3->Val, $5->Val));
+      $$ = ctx->add(ParseNode(ParseNode::REPETITION, $1, $3->Val, $5->Val));
     }
   }
 ;
@@ -145,7 +151,7 @@ rep:
 number:
   DIGIT
   {
-    $$ = add(ParseNode(ParseNode::TEMPORARY, $1 - 48));
+    $$ = ctx->add(ParseNode(ParseNode::TEMPORARY, $1 - 48));
   }
 | number DIGIT
   {
@@ -165,28 +171,28 @@ atom:
 literal:
   BYTE
   {
-    $$ = add(ParseNode(ParseNode::BYTE, $1));
+    $$ = ctx->add(ParseNode(ParseNode::BYTE, $1));
   }
 | character
   {
-    if (CaseInsensitive) {
-      USet.reset();
-      USet.set($1);
-      if (caseDesensitize(USet)) {
+    if (ctx->CaseInsensitive) {
+      ctx->USet.reset();
+      ctx->USet.set($1);
+      if (caseDesensitize(ctx->USet)) {
         // TODO: Maybe handle the commmon ASCII case without going via USet?
-        $$ = add(ParseNode(ParseNode::CHAR_CLASS, USet));
+        $$ = ctx->add(ParseNode(ParseNode::CHAR_CLASS, ctx->USet));
       }
       else {
-        $$ = add(ParseNode(ParseNode::LITERAL, $1));
+        $$ = ctx->add(ParseNode(ParseNode::LITERAL, $1));
       }
     }
     else {
-      $$ = add(ParseNode(ParseNode::LITERAL, $1));
+      $$ = ctx->add(ParseNode(ParseNode::LITERAL, $1));
     }
   }
 | '.'
   {
-    $$ = add(ParseNode(ParseNode::DOT, '.'));
+    $$ = ctx->add(ParseNode(ParseNode::DOT, '.'));
   }
 | '[' '^' charclass ']'
   {
@@ -201,14 +207,14 @@ literal:
       // under case-insensitivity first gives {A, a}, which becomes
       // U / {A, a} after negation.
 
-      if (CaseInsensitive) {
+      if (ctx->CaseInsensitive) {
         caseDesensitize($$->CodePoints);
       }
 
       $$->CodePoints.flip();
       if ($$->CodePoints.none()) {
         // empty character class
-        yyerror("syntax error");
+        yyerror(ctx, "syntax error");
       }
 
       if ($$->Breakout.Bytes.any()) {
@@ -219,25 +225,25 @@ literal:
       $$->Breakout.Bytes.flip();
       if ($$->Breakout.Bytes.none()) {
         // empty character class
-        yyerror("syntax error");
+        yyerror(ctx, "syntax error");
       }
     }
     else {
       // empty character class
-      yyerror("syntax error");
+      yyerror(ctx, "syntax error");
     }
   }
 | '[' charclass ']'
   {
     $$ = $2;
 
-    if (CaseInsensitive) {
+    if (ctx->CaseInsensitive) {
       caseDesensitize($$->CodePoints);
     }
   }
 | cc_named
   {
-    if (CaseInsensitive) {
+    if (ctx->CaseInsensitive) {
       caseDesensitize($$->CodePoints);
     }
   }
@@ -273,7 +279,7 @@ charclass:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      yyerror("syntax error");
+      yyerror(ctx, "syntax error");
     }
 
     $$ = $4;
@@ -298,7 +304,7 @@ charclass:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      yyerror("syntax error");
+      yyerror(ctx, "syntax error");
     }
 
     $$ = $4;
@@ -307,12 +313,12 @@ charclass:
 | BYTE '-' cc_char_not_first charclass_right
   {
     // ranges must have endpoints of the same type
-    yyerror("syntax error");
+    yyerror(ctx, "syntax error");
   }
 | cc_char_first '-' BYTE charclass_right
   {
     // ranges must have endpoints of the same type
-    yyerror("syntax error");
+    yyerror(ctx, "syntax error");
   }
 ;
 
@@ -321,7 +327,7 @@ charclass_right:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      yyerror("syntax error");
+      yyerror(ctx, "syntax error");
     }
 
     $$ = $4;
@@ -346,7 +352,7 @@ charclass_right:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      yyerror("syntax error");
+      yyerror(ctx, "syntax error");
     }
 
     $$ = $4;
@@ -355,16 +361,16 @@ charclass_right:
 | BYTE '-' cc_char_not_first charclass_right
   {
     // ranges must have endpoints of the same type
-    yyerror("syntax error");
+    yyerror(ctx, "syntax error");
   }
 | cc_char_not_first '-' BYTE charclass_right
   {
     // ranges must have endpoints of the same type
-    yyerror("syntax error");
+    yyerror(ctx, "syntax error");
   }
 | /* empty */
   {
-    $$ = add(ParseNode(ParseNode::CHAR_CLASS, 'x'));
+    $$ = ctx->add(ParseNode(ParseNode::CHAR_CLASS, 'x'));
   }
 ;
 
@@ -440,7 +446,7 @@ cc_char:
 cc_named:
   SET
   {
-    $$ = add(ParseNode(ParseNode::CHAR_CLASS, USet));
+    $$ = ctx->add(ParseNode(ParseNode::CHAR_CLASS, ctx->USet));
   }
 ;
 
@@ -449,25 +455,25 @@ cc_named:
 namespace {
 
   template <typename F>
-  int consumeSingleton(F func, yytokentype type) {
-    const int val = func(Text, TextEnd);
+  int consumeSingleton(F func, yytokentype type, YYSTYPE* yylval, Context* ctx) {
+    const int val = func(ctx->Text, ctx->TextEnd);
     if (val < 0) {
       return BAD;
     }
     else {
-      yylval.c = val;
+      yylval->c = val;
       return type;
     }
   }
 
   template <typename F>
-  int consumeSet(F func) {
-    const int val = func(Text, TextEnd, USet);
+  int consumeSet(F func, YYSTYPE* yylval, Context* ctx) {
+    const int val = func(ctx->Text, ctx->TextEnd, ctx->USet);
     if (val < 0) {
       return BAD;
     }
     else {
-      yylval.s = &USet;
+      yylval->s = &ctx->USet;
       return SET;
     }
   }
@@ -476,12 +482,12 @@ namespace {
 // FIXME: \b is not parsed correctly---should be backspace (0x08) inside
 //  character classes, and a wordbreak assertion elsewhere.
 
-  int consumeEscape() {
-    if (Text >= TextEnd) {
+  int consumeEscape(YYSTYPE* yylval, Context* ctx) {
+    if (ctx->Text >= ctx->TextEnd) {
       return BAD;
     }
 
-    const int c = *Text++;
+    const int c = *ctx->Text++;
     switch (c) {
       // metacharacters as themselves
       case '|':
@@ -498,99 +504,99 @@ namespace {
       case '{':
       case '}':
       case '\\':
-        yylval.c = c;
+        yylval->c = c;
         return CHAR;
 
       // ASCII escapes
       case 'a':
-        yylval.c = '\a';
+        yylval->c = '\a';
         return CHAR;
       case 'e':
-        yylval.c = 0x1B;
+        yylval->c = 0x1B;
         return CHAR;
       case 'f':
-        yylval.c = '\f';
+        yylval->c = '\f';
         return CHAR;
       case 'n':
-        yylval.c = '\n';
+        yylval->c = '\n';
         return CHAR;
       case 'r':
-        yylval.c = '\r';
+        yylval->c = '\r';
         return CHAR;
       case 't':
-        yylval.c = '\t';
+        yylval->c = '\t';
         return CHAR;
 
       // named character classes
       case 'd':
-        USet.reset();
-        USet.insert('0', '9' + 1);
-        yylval.s = &USet;
+        ctx->USet.reset();
+        ctx->USet.insert('0', '9' + 1);
+        yylval->s = &ctx->USet;
         return SET;
 
       case 'D':
-        USet.reset();
-        USet.insert('0', '9' + 1);
-        USet.flip();
-        yylval.s = &USet;
+        ctx->USet.reset();
+        ctx->USet.insert('0', '9' + 1);
+        ctx->USet.flip();
+        yylval->s = &ctx->USet;
         return SET;
 
       case 's':
-        USet.reset();
-        USet.set('\t');
-        USet.set('\n');
-        USet.set('\f');
-        USet.set('\r');
-        USet.set(' ');
-        yylval.s = &USet;
+        ctx->USet.reset();
+        ctx->USet.set('\t');
+        ctx->USet.set('\n');
+        ctx->USet.set('\f');
+        ctx->USet.set('\r');
+        ctx->USet.set(' ');
+        yylval->s = &ctx->USet;
         return SET;
 
       case 'S':
-        USet.reset();
-        USet.set('\t');
-        USet.set('\n');
-        USet.set('\f');
-        USet.set('\r');
-        USet.set(' ');
-        USet.flip();
-        yylval.s = &USet;
+        ctx->USet.reset();
+        ctx->USet.set('\t');
+        ctx->USet.set('\n');
+        ctx->USet.set('\f');
+        ctx->USet.set('\r');
+        ctx->USet.set(' ');
+        ctx->USet.flip();
+        yylval->s = &ctx->USet;
         return SET;
 
       case 'w':
-        USet.reset();
-        USet.insert('0', '9' + 1);
-        USet.insert('A', 'Z' + 1);
-        USet.set('_');
-        USet.insert('a', 'z' + 1);
-        yylval.s = &USet;
+        ctx->USet.reset();
+        ctx->USet.insert('0', '9' + 1);
+        ctx->USet.insert('A', 'Z' + 1);
+        ctx->USet.set('_');
+        ctx->USet.insert('a', 'z' + 1);
+        yylval->s = &ctx->USet;
         return SET;
 
       case 'W':
-        USet.reset();
-        USet.insert('0', '9' + 1);
-        USet.insert('A', 'Z' + 1);
-        USet.set('_');
-        USet.insert('a', 'z' + 1);
-        USet.flip();
-        yylval.s = &USet;
+        ctx->USet.reset();
+        ctx->USet.insert('0', '9' + 1);
+        ctx->USet.insert('A', 'Z' + 1);
+        ctx->USet.set('_');
+        ctx->USet.insert('a', 'z' + 1);
+        ctx->USet.flip();
+        yylval->s = &ctx->USet;
         return SET;
 
       // hexadecimal characters
       case 'x':
-        if (Text == TextEnd) {
+        if (ctx->Text == ctx->TextEnd) {
           return BAD;
         }
-        else if (*Text == '{') {
-          ++Text;
-          return consumeSingleton(parseHexCodePoint<const int*>, CHAR);
+        else if (*ctx->Text == '{') {
+          ++ctx->Text;
+          return consumeSingleton(parseHexCodePoint<const int*>, CHAR, yylval, ctx);
         }
         else {
-          return consumeSingleton(parseHexByte<const int*>, CHAR);
+          return consumeSingleton(parseHexByte<const int*>, CHAR, yylval, ctx);
         }
 
       // breakout bytes
       case 'z':
-        return consumeSingleton(parseHexByte<const int*>, BYTE);
+        return consumeSingleton(parseHexByte<const int*>, BYTE, yylval, ctx);
 
       // octal characters
       case '0':
@@ -601,34 +607,34 @@ namespace {
       case '5':
       case '6':
       case '7':
-        --Text;
-        return consumeSingleton(parseOctByte<const int*>, CHAR);
+        --ctx->Text;
+        return consumeSingleton(parseOctByte<const int*>, CHAR, yylval, ctx);
 
       // named Unicode code points
       case 'N':
-        return consumeSingleton(parseNamedCodePoint<const int*>, CHAR);
+        return consumeSingleton(parseNamedCodePoint<const int*>, CHAR, yylval, ctx);
 
       // Unicode properties
       case 'p':
       case 'P':
-        Text -= 2;
-        return consumeSet(parseProperty<const int*>);
+        ctx->Text -= 2;
+        return consumeSet(parseProperty<const int*>, yylval, ctx);
 
       default:
         return BAD;
     }
   }
 
-  int yylex(void) {
-    if (Text < TextEnd) {
-      const int c = *Text++;
+  int yylex(YYSTYPE* yylval, Context* ctx) {
+    if (ctx->Text < ctx->TextEnd) {
+      const int c = *ctx->Text++;
       if (c < 1) {
         //   -1 indicates bogus UTF-8
         //    0 is a prohibited mid-string null byte
         return BAD;
       }
-      else if (LiteralMode) {
-        yylval.c = c;
+      else if (ctx->LiteralMode) {
+        yylval->c = c;
         return CHAR;
       }
       else {
@@ -649,7 +655,7 @@ namespace {
         case ',':
           return c;
         case '\\':
-          return consumeEscape();
+          return consumeEscape(yylval, ctx);
         case '0':
         case '1':
         case '2':
@@ -660,10 +666,10 @@ namespace {
         case '7':
         case '8':
         case '9':
-          yylval.c = c;
+          yylval->c = c;
           return DIGIT;
         default:
-          yylval.c = c;
+          yylval->c = c;
           return CHAR;
         }
       }
@@ -671,32 +677,34 @@ namespace {
     return -1;
   }
 
-  void yyerror(const char* msg) {
+  void yyerror(Context* ctx, const char* msg) {
     THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
-      msg << ", at offset " << (Text - TextBegin)
+      msg << ", at offset " << (ctx->Text - ctx->TextBegin)
     );
   }
 }
 
-bool parse(const std::string& text, bool litMode,
-           bool caseInsensitive, ParseTree& tree) {
-  LiteralMode = litMode;
-  CaseInsensitive = caseInsensitive;
-
+bool parse(
+  const std::string& text,
+  bool litMode,
+  bool caseInsensitive,
+  ParseTree& tree)
+{
   std::vector<int> cp;
   transform_utf8_to_unicode(text.begin(), text.end(), std::back_inserter(cp));
 
-  TextBegin = Text = cp.data();
-  TextEnd = Text + cp.size();
+  Context ctx;
 
-  Tree = &tree;
-  Tree->init(cp.size());
+  ctx.LiteralMode = litMode;
+  ctx.CaseInsensitive = caseInsensitive;
 
-  const int ret = yyparse();
+  ctx.TextBegin = ctx.Text = cp.data();
+  ctx.TextEnd = ctx.Text + cp.size();
 
-  Text = 0;
-  Tree = 0;
-  return ret == 0;
+  ctx.Tree = &tree;
+  ctx.Tree->init(cp.size());
+
+  return yyparse(&ctx) == 0;
 }
 
 bool parse(const Pattern& p, ParseTree& tree) {

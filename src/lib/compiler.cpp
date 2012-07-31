@@ -126,6 +126,14 @@ Compiler::StatePair Compiler::processChild(const NFA& src, NFA& dst, uint32 si, 
     dst.insertEdge(dstHead, dstTail, di);
   }
 
+/*
+  const auto dstHeadOut(dst.outVertices(dstHead));
+  const auto dstHeadOutEnd(dstHeadOut.end());
+  if (std::find(dstHeadOut.begin(), dstHeadOutEnd, dstTail) != dstHeadOutEnd) {
+    dst.insertEdge(dstHead, dstTail, di);
+  }
+*/
+
   DstPos[dstHead] = di;
   return StatePair(dstTail, srcTail);
 }
@@ -252,13 +260,11 @@ void Compiler::propagateMatchLabels(NFA& g) {
     next.push(m);
 
     while (!next.empty()) {
-      NFA::VertexDescriptor t = next.top();
+      const NFA::VertexDescriptor t = next.top();
       next.pop();
 
       // check each parent of the current state
-      for (uint32 i = 0; i < g.inDegree(t); ++i) {
-        NFA::VertexDescriptor h = g.inVertex(t, i);
-
+      for (const NFA::VertexDescriptor h : g.inVertices(t)) {
         if (!g[h].Trans) {
           // Skip the initial state.
           continue;
@@ -284,13 +290,12 @@ void Compiler::propagateMatchLabels(NFA& g) {
           unext.push(h);
 
           while (!unext.empty()) {
-            NFA::VertexDescriptor u = unext.top();
+            const NFA::VertexDescriptor u = unext.top();
             unext.pop();
 
             g[u].Label = UNLABELABLE;
 
-            for (uint32 j = 0; j < g.inDegree(u); ++j) {
-              NFA::VertexDescriptor uh = g.inVertex(u, j);
+            for (const NFA::VertexDescriptor uh : g.inVertices(u)) {
               if (g[uh].Trans && g[uh].Label != UNLABELABLE) {
                 // Walking on all nodes not already marked unlabelable
                 unext.push(uh);
@@ -318,26 +323,24 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
     NFA::VertexDescriptor h = next.top();
     next.pop();
 
-    for (uint32 i = 0; i < g.outDegree(h); ++i) {
-      NFA::VertexDescriptor t = g.outVertex(h, i);
+    for (const NFA::VertexDescriptor t : g.outVertices(h)) {
+      if (!visited[t]) {
+        if (g[t].Label == UNLABELABLE) {
+          g[t].Label = NONE;
+          next.push(t);
+        }
+        else {
+          heads.insert(t);
+        }
 
-      if (visited[t]) continue;
-
-      if (g[t].Label == UNLABELABLE) {
-        g[t].Label = NONE;
-        next.push(t);
+        visited[t] = true;
       }
-      else {
-        heads.insert(t);
-      }
-
-      visited[t] = true;
     }
   }
 
   // Push all of the minimal guard states we found back onto the stack.
-  for (std::set<NFA::VertexDescriptor>::const_iterator vi(heads.begin()); vi != heads.end(); ++vi) {
-    next.push(*vi);
+  for (const NFA::VertexDescriptor v : heads) {
+    next.push(v);
   }
 
   // Unlabel every remaining node not in heads.
@@ -345,16 +348,14 @@ void Compiler::removeNonMinimalLabels(NFA& g) {
     const NFA::VertexDescriptor h = next.top();
     next.pop();
 
-    for (uint32 i = 0; i < g.outDegree(h); ++i) {
-      NFA::VertexDescriptor t = g.outVertex(h, i);
-
-      if (visited[t]) continue;
-
-      // NB: Any node which should be labeled, we've already visited,
-      // so we can unlabel everything we reach this way.
-      g[t].Label = NONE;
-      next.push(t);
-      visited[t] = true;
+    for (const NFA::VertexDescriptor t : g.outVertices(h)) {
+      if (!visited[t]) {
+        // NB: Any node which should be labeled, we've already visited,
+        // so we can unlabel everything we reach this way.
+        g[t].Label = NONE;
+        next.push(t);
+        visited[t] = true;
+      }
     }
   }
 }
@@ -381,10 +382,7 @@ struct SubsetStateComp {
 
 void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor srcHead, ByteToVertices& srcTailLists, ByteSet& outBytes) {
   // for each srcTail, add it to srcHead's per-byte outneighborhood
-  const uint32 odeg = src.outDegree(srcHead);
-  for (uint32 j = 0; j < odeg; ++j) {
-    const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, j);
-
+  for (const NFA::VertexDescriptor srcTail : src.outVertices(srcHead)) {
     src[srcTail].Trans->getBytes(outBytes);
 
     for (uint32 b = 0; b < 256; ++b) {

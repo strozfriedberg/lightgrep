@@ -1,4 +1,3 @@
-
 #include <algorithm>
 #include <iostream>
 #include <iterator>
@@ -8,6 +7,7 @@
 #include <utility>
 
 #include "basic.h"
+#include "pattern.h"
 #include "stest.h"
 
 void longTest() {
@@ -16,22 +16,36 @@ void longTest() {
   uint32 len, patcount;
   while (std::cin.peek() != -1) {
     // read number of patterns
-    std::cin.read((char*)&patcount, sizeof(patcount));
-    std::vector<std::string> patterns;
+    std::cin.read(reinterpret_cast<char*>(&patcount), sizeof(patcount));
+    std::vector<Pattern> patterns;
     patterns.reserve(patcount);
 
     for (uint32 i = 0; i < patcount; ++i) {
       // read pattern
-      std::cin.read((char*)&len, sizeof(len));
+      std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
       std::string pattern(len, '\0');
       std::cin.read(&pattern[0], len);
-      patterns.push_back(pattern);
 
-      std::cout << pattern << ' ';
+      // read fixed
+      bool fixed;
+      std::cin.read(reinterpret_cast<char*>(&fixed), 1);
+
+      // read case-insensitive
+      bool case_insensitive;
+      std::cin.read(reinterpret_cast<char*>(&case_insensitive), 1);
+
+      // read encoding
+      std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
+      std::string encoding(len, '\0');
+      std::cin.read(&encoding[0], len);
+
+      patterns.emplace_back(pattern, fixed, case_insensitive, 0, encoding);
+
+      std::cout << pattern << ' ' << encoding << ' ';
     }
 
     // read text
-    std::cin.read((char*)&len, sizeof(len));
+    std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
     std::string text(len, '\0');
     std::cin.read(&text[0], len);
 
@@ -40,13 +54,13 @@ void longTest() {
     // home, boys and girls.
 
     // read hits
-    std::cin.read((char*)&len, sizeof(len));
+    std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
     std::vector<SearchHit> expected(len);
-    std::cin.read((char*)&expected[0], len*sizeof(SearchHit));
+    std::cin.read(reinterpret_cast<char*>(&expected[0]), len*sizeof(SearchHit));
 
     // run lg on the text with the patterns
     STest test(patterns);
-    const byte* text_ptr = (const byte*) text.data();
+    const byte* text_ptr = reinterpret_cast<const byte*>(text.data());
     test.search(text_ptr, text_ptr + text.length(), 0);
 
     std::vector<SearchHit>& actual = test.Hits;

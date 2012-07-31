@@ -249,12 +249,10 @@ void NFABuilder::charClass(const ParseNode& n) {
         // walk backwards until a transition mismatch
         for (--b; b >= 0; --b) {
           head = 0;
-          const uint32 ideg = Fsm->inDegree(tail);
-          for (uint32 i = 0; i < ideg; ++i) {
-            head = Fsm->inVertex(tail, i);
-            (*Fsm)[head].Trans->getBytes(bs);
+          for (const NFA::VertexDescriptor h : Fsm->inVertices(tail)) {
+            (*Fsm)[h].Trans->getBytes(bs);
             if (bs == enc[b]) {
-              tail = head;
+              tail = head = h;
               break;
             }
             head = 0;

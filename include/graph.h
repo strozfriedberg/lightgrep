@@ -4,8 +4,11 @@
 
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <limits>
 #include <vector>
+
+#include <boost/iterator/iterator_facade.hpp>
 
 template <class GraphType,
           class VertexType,
@@ -66,10 +69,7 @@ public:
     }
 
     Vertices.resize(vActual, VertexData());
-
-    if (eReserve > 0) {
-      Edges.reserve(eReserve);
-    }
+    Edges.reserve(eReserve);
   }
 
   //
@@ -120,103 +120,160 @@ public:
   // iterators
   //
 
-/*
-  VertexIterator vBegin() {
-    return Vertices.begin();
-  }
+  class NeighborList {
+  public:
+    typedef typename EdgeDescriptorStorage<EdgeDescriptor>::ListType::const_iterator base_iterator;
 
-  ConstVertexIterator vBegin() const {
-    return Vertices.begin();
+    NeighborList(const EList& e, base_iterator eb, base_iterator ee, bool in):
+      Edges(e), ebeg(eb), eend(ee), In(in) {}
+
+    class ConstIterator:
+      public boost::iterator_facade<
+        ConstIterator,
+        VertexDescriptor const,
+        std::random_access_iterator_tag,
+        VertexDescriptor const
+      >
+    {
+    public:
+      ConstIterator() {}
+
+      ConstIterator(const ConstIterator& other):
+        edges(other.edges), e(other.e), in(other.in) {}
+
+      ConstIterator(const EList& ed, base_iterator ei, bool heads):
+        edges(ed), e(ei), in(heads) {}
+
+      typedef typename boost::iterator_facade<
+        ConstIterator,
+        VertexDescriptor const,
+        std::random_access_iterator_tag,
+        VertexDescriptor const
+      >::difference_type difference_type;
+
+    private:
+      friend class boost::iterator_core_access;
+
+      void increment() { ++e; }
+
+      void decrement() { --e; }
+
+      void advance(difference_type n) { e += n; }
+
+      difference_type distance_to(const ConstIterator& o) const {
+        return o.e - e;
+      }
+
+      bool equal(const ConstIterator& o) const { return e == o.e; }
+
+      VertexDescriptor dereference() const {
+        return in ? edges[*e].Head : edges[*e].Tail;
+      }
+
+      const EList& edges;
+      base_iterator e;
+      const bool in;
+    };
+
+    typedef std::reverse_iterator<ConstIterator> ConstReverseIterator;
+
+    ConstIterator begin() const {
+      return ConstIterator(Edges, ebeg, In);
+    }
+
+    ConstIterator end() const {
+      return ConstIterator(Edges, eend, In);
+    }
+
+    ConstReverseIterator rbegin() const {
+      return ConstReverseIterator(end());
+    }
+
+    ConstReverseIterator rend() const {
+      return ConstReverseIterator(begin());
+    }
+
+  private:
+    const EList& Edges;
+    const base_iterator ebeg, eend;
+    const bool In;
   };
 
-  VertexIterator vEnd() {
-    return Vertices.end();
+  NeighborList inVertices(VertexDescriptor tail) const {
+    return NeighborList(Edges, Store.begin(Vertices[tail].In), Store.end(Vertices[tail].In), true);
   }
 
-  ConstVertexIterator vEnd() const {
-    return Vertices.end();
+  NeighborList outVertices(VertexDescriptor head) const {
+    return NeighborList(Edges, Store.begin(Vertices[head].Out), Store.end(Vertices[head].Out), false);
+  }
+
+  class VertexList {
+  public:
+    VertexList(const VList& vertices): Vertices(vertices) {}
+
+    class ConstIterator:
+      public boost::iterator_facade<
+        ConstIterator,
+        VertexDescriptor const,
+        std::random_access_iterator_tag
+      >
+    {
+    public:
+      ConstIterator(): v(0) {}
+
+      ConstIterator(VertexDescriptor vd): v(vd) {}
+
+      typedef typename boost::iterator_facade<
+        ConstIterator,
+        VertexDescriptor const,
+        std::random_access_iterator_tag
+      >::difference_type difference_type;
+
+    private:
+      friend class boost::iterator_core_access;
+
+      void increment() { ++v; }
+
+      void decrement() { --v; }
+
+      void advance(difference_type n) { v += n; }
+
+      difference_type distance_to(const ConstIterator& o) const {
+        return o.v - v;
+      }
+
+      bool equal(const ConstIterator& o) const { return o.v == v; }
+
+      const VertexDescriptor& dereference() const { return v; }
+
+      VertexDescriptor v;
+    };
+
+    typedef std::reverse_iterator<ConstIterator> ConstReverseIterator;
+
+    ConstIterator begin() const {
+      return ConstIterator(0);
+    }
+
+    ConstIterator end() const {
+      return ConstIterator(Vertices.size());
+    }
+
+    ConstReverseIterator rbegin() const {
+      return ConstReverseIterator(end());
+    }
+
+    ConstReverseIterator rend() const {
+      return ConstReverseIterator(begin());
+    }
+
+  private:
+    const VList& Vertices;
   };
 
-  EdgeIterator eBegin() {
-    return Edges.begin();
+  VertexList vertices() const {
+    return VertexList(Vertices);
   }
-
-  ConstEdgeIterator eBegin() const {
-    return Edges.begin();
-  }
-
-  EdgeIterator eEnd() {
-    return Edges.end();
-  }
-
-  ConstEdgeIterator eEnd() const {
-    return Edges.end();
-  }
-
-  VertexIterator ivBegin(VertexDescriptor tail) {
-    return Store.ivbegin(this);
-  }
-
-  ConstVertexIterator ivBegin() const {
-    return store.ivbegin(this);
-  }
-
-  VertexIterator ivEnd() {
-    return store.ivend(this);
-  }
-
-  ConstVertexIterator ivEnd() const {
-    return store.ivend(this);
-  }
-
-  VertexIterator ovBegin() {
-    return store.ovbegin(this);
-  }
-
-  ConstVertexIterator ovBegin() const {
-    return store.ovbegin(this);
-  }
-
-  VertexIterator ovEnd() {
-    return store.ovend(this);
-  }
-
-  ConstVertexIterator ovEnd() const {
-    return store.ovend(this);
-  }
-
-  EdgeIterator ieBegin() {
-    return store.iebegin(this);
-  }
-
-  ConstEdgeIterator ieBegin() const {
-    return store.iebegin(this);
-  }
-
-  EdgeIterator ieEnd() {
-    return store.ieend(this);
-  }
-
-  ConstEdgeIterator ieEnd() const {
-    return store.ieend(this);
-  }
-
-  EdgeIterator oeBegin() {
-    return store.oebegin(this);
-  }
-
-  ConstEdgeIterator oeBegin() const {
-    return store.oebegin(this);
-  }
-
-  EdgeIterator oeEnd() {
-    return store.oeend(this);
-  }
-
-  ConstEdgeIterator oeEnd() const {
-    return store.oeend(this);
-  }
-*/
 
   //
   // modifiers

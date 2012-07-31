@@ -70,7 +70,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
           if (g[w].Trans) {
             g[w].Trans->getBytes(allowed);
             match += chooseByte(allowed, rng);
-          }          
+          }
         }
 
         // report the match
@@ -79,16 +79,12 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
         // should we try to extend the match?
         if (extend(rng)) {
           // are there any eligible successors?
-          bool found = false;
-          for (uint32 j = 0; j < g.outDegree(v); ++j) {
-            const NFA::VertexDescriptor w = g.outVertex(v, j);
-            if (seen[w] < maxLoops) {
-              found = true;
-              break;
-            }
-          }
-
-          if (!found) {
+          const NFA::NeighborList outs(g.outVertices(v));
+          if (outs.end() == std::find_if(outs.begin(), outs.end(),
+            [&](const NFA::VertexDescriptor w) {
+              return seen[w] < maxLoops;
+            })
+          ) {
             break;
           }
         }
@@ -100,15 +96,14 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
       // find a successor
       uint32 scount = 0;
       NFA::VertexDescriptor s = 0;
-      for (uint32 j = 0; j < g.outDegree(v); ++j) {
-        const NFA::VertexDescriptor w = g.outVertex(v, j);
+      for (const NFA::VertexDescriptor w : g.outVertices(v)) {
         if (seen[w] < maxLoops) {
           // Successively replacing the chosen element with the nth
           // element in a series with probability 1/n is the same as
           // choosing uniformly over the whole series, but permits it
           // to be done in one pass when the maximum n is unknown
           // beforehand.
-          // 
+          //
           // This is a modification of that, where we reduce the
           // probability of replacement for edges which have no
           // (ASCII) alphanumeric or printable bytes.
@@ -118,7 +113,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
             g[w].Trans->getBytes(allowed);
             if ((alnum & allowed).none()) {
               p /= 2.0;
-  
+
               if ((punct & allowed).none()) {
                 p /= 8.0;
               }
@@ -130,8 +125,8 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
             s = w;
           }
         }
-      }   
-      
+      }
+
       if (scount == 0) {
         // backtrack if all successors exhausted
         path.pop_back();
