@@ -92,17 +92,15 @@ void specialVisit(const NFA& graph, NFA::VertexDescriptor startVertex, CodeGenVi
   statesToVisit.push_back(startVertex);
 
   while (!statesToVisit.empty()) {
-    NFA::VertexDescriptor v = statesToVisit.front();
+    const NFA::VertexDescriptor v = statesToVisit.front();
     statesToVisit.pop_front();
 
     vis.discover_vertex(v, graph);
     inOrder.push_back(v);
 
-    const uint32 numOut = graph.outDegree(v);
-    const bool nobranch = numOut < 2;
+    const bool nobranch = graph.outDegree(v) < 2;
 
-    for (uint32 i = 0; i < numOut; ++i) {
-      NFA::VertexDescriptor t = graph.outVertex(v, i);
+    for (const NFA::VertexDescriptor t : graph.outVertices(v)) {
       if (!discovered[t]) {
         discovered[t].flip();
 
@@ -116,7 +114,7 @@ void specialVisit(const NFA& graph, NFA::VertexDescriptor startVertex, CodeGenVi
     }
   }
 
-  for (uint32 i = 0; i < inOrder.size(); ++i) {
-    vis.finish_vertex(inOrder[i], graph);
+  for (const NFA::VertexDescriptor v : inOrder) {
+    vis.finish_vertex(v, graph);
   }
 }

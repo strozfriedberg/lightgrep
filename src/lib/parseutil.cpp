@@ -2,9 +2,10 @@
 #include "icuutil.h"
 
 #include <iostream>
+#include <memory>
 
-#include <unicode/uniset.h>
-#include <unicode/unistr.h>
+#include <unicode/uset.h>
+#include <unicode/ustring.h>
 
 int parseHexChar(int c) {
   switch (c) {
@@ -44,29 +45,44 @@ int parseOctChar(int c) {
 
 int propertyGetter(const std::string& prop, ::UnicodeSet& us) {
   // ask ICU for the set corresponding to this property
-  const UnicodeString ustr(prop.c_str(), -1, US_INV);
   UErrorCode err = U_ZERO_ERROR;
-  icu::UnicodeSet icu_us(ustr, err);
+
+  const uint32 ustrlen = 2*prop.length();
+  std::unique_ptr<UChar[]> ustr(new UChar[ustrlen]);
+  u_strFromUTF8(
+    ustr.get(), ustrlen, nullptr, prop.c_str(), prop.length(), &err
+  );
+
   if (U_FAILURE(err)) {
-// FIXME: should do something other than print!
-    std::cerr << u_errorName(err) << std::endl;
-    return -1;
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "Failed to convert string: " << u_errorName(err);
+    );
   }
 
-  convUnicodeSet(us, icu_us);
+  std::unique_ptr<USet, void(*)(USet*)> icu_us(
+    uset_openPattern(ustr.get(), ustrlen, &err), uset_close
+  );
+
+  if (U_FAILURE(err)) {
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "Unrecognized property \"" << prop << "\": " << u_errorName(err)
+    );
+  }
+
+  convUnicodeSet(us, icu_us.get());
   return 1;
 }
 
-bool caseDesensitize(::UnicodeSet& us) {
-  icu::UnicodeSet icu_us;
-  convUnicodeSet(icu_us, us);
-  icu_us.closeOver(USET_CASE_INSENSITIVE);
+bool caseDesensitize(UnicodeSet& us) {
+  std::unique_ptr<USet, void(*)(USet*)> icu_us(uset_openEmpty(), uset_close);
+  convUnicodeSet(icu_us.get(), us);
+  uset_closeOver(icu_us.get(), USET_CASE_INSENSITIVE);
 
-  if (icu_us.size() == (int32) us.count()) {
+  if (uset_size(icu_us.get()) == (int32) us.count()) {
     // the given set was already closed under case-insensitivity
     return false;
   }
 
-  convUnicodeSet(us, icu_us);
+  convUnicodeSet(us, icu_us.get());
   return true;
 }
