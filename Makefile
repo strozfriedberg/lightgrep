@@ -28,11 +28,34 @@ BISON=bison
 RANLIB=ranlib
 
 override CPPFLAGS+=-MMD -MP
-override CFLAGS+=-std=c11 -O3 -W -Wall -Wextra -pedantic -pipe
-override CXXFLAGS+=-std=c++11 -O3 -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
-override INCLUDES+=-isystem vendors/scope -I$(INCDIR)
+override CFLAGS+=-std=c1x -O3 -W -Wall -Wextra -pedantic -pipe
+override CXXFLAGS+=-std=c++0x -O3 -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
+override INCLUDES+=-isystem vendors/boost -isystem vendors/icu -isystem vendors/scope -I$(INCDIR)
 override LDFLAGS+=-static-libstdc++
-override LDLIBS+=-L$(BINDIR)/$(LIBDIR)
+override LDLIBS+=-Llib -L$(BINDIR)/$(LIBDIR)
+
+BOOST_TYPE=-mt
+
+#
+# Determine the OS we are building on/for
+#
+UNAME_O=$(strip $(shell uname -o))
+ifeq ($(UNAME_O),GNU/Linux)
+IS_LINUX=1
+else ifeq ($(UNAME_O),Msys)
+IS_WINDOWS=1
+endif
+
+ifdef IS_WINDOWS
+override CPPFLAGS+=-DPOLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H
+ifdef IS_SHARED
+override CPPFLAGS+=-DBOOST_THREAD_USE_LIB
+endif
+ifdef IS_WINDOWS_XP
+override CPPFLAGS+=-D_WIN32_WINNT=0x0501
+endif
+override CXXFLAGS+=-mthreads
+endif
 
 #
 # Determine locations for source, object, binary, and dependency files
@@ -64,7 +87,12 @@ CEX_LIBS=-llightgrep -licuuc -licudata
 
 CMD_BINARY=$(BINDIR)/$(CMDDIR)/lightgrep
 CMD_OBJECTS+=$(LIB_BINARY)
-CMD_LIBS=-lboost_system-mt -lboost_thread-mt -lboost_program_options-mt -lboost_filesystem-mt -llightgrep -licuuc -licudata -lpthread
+CMD_LIBS=-lboost_system$(BOOST_TYPE) -lboost_thread$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -lboost_filesystem$(BOOST_TYPE) -llightgrep -licuuc -licudata
+ifdef IS_LINUX
+CMD_LIBS+=-lpthread
+else ifdef $(IS_WINDOWS)
+CMD_LIBS+=-lws2_32 -lmswsock
+endif
 
 ENC_BINARY=$(BINDIR)/$(ENCDIR)/encodings
 ENC_LIBS=-licuuc -licudata
@@ -75,7 +103,10 @@ VAL_LIBS=-llightgrep -licuuc -licudata
 
 TEST_BINARY=$(BINDIR)/test/test
 TEST_OBJECTS+=$(LIB_BINARY) $(BINDIR)/$(CMDDIR)/options.o $(BINDIR)/$(CMDDIR)/optparser.o
-TEST_LIBS=-lboost_program_options-mt -llightgrep -licuuc -licudata
+TEST_LIBS=-lboost_system$(BOOST_TYPE) -lboost_thread$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -llightgrep -licuuc -licudata
+ifdef IS_LINUX
+TEST_LIBS+=-lpthread
+endif
 
 #
 # Top-level targets
@@ -89,11 +120,15 @@ debug: CXXFLAGS+=-g
 debug: CXXFLAGS:=$(filter-out -O3, $(CXXFLAGS))
 debug: all
 
+trace: CPPFLAGS+=-DLBT_TRACE_ENABLED
+trace: CXXFLAGS+=-g
+trace: all
+
 c_example: $(CEX_BINARY) 
 
 cmd: $(CMD_BINARY) 
 
-enc: $(ENC_BINARY) 
+enc: $(ENC_BINARY)
 
 lib: $(LIB_BINARY) 
 
@@ -107,7 +142,7 @@ val: $(VAL_BINARY)
 clean:
 	$(RM) -r $(BINDIR)/*
 
-.PHONY: all c_example clean debug enc lib test val $(DEPS)
+.PHONY: all c_example clean debug enc lib test trace val
 
 #
 # Directory targets
