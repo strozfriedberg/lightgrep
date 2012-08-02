@@ -126,7 +126,7 @@ trace: all
 
 c_example: $(CEX_BINARY) 
 
-cmd: $(CMD_BINARY) 
+cmd: $(CMD_BINARY)
 
 enc: $(ENC_BINARY)
 
