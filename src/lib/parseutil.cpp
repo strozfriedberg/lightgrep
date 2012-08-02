@@ -43,7 +43,7 @@ int parseOctChar(int c) {
   return ('0' <= c && c <= '7') ? c - '0' : -1;
 }
 
-int propertyGetter(const std::string& prop, ::UnicodeSet& us) {
+int propertyGetter(const std::string& prop, UnicodeSet& us) {
   // ask ICU for the set corresponding to this property
   UErrorCode err = U_ZERO_ERROR;
 
