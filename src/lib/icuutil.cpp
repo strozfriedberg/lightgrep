@@ -12,8 +12,8 @@ void convUnicodeSet(UnicodeSet& dst, const USet* src) {
       "uset_serialize failed: " << u_errorName(err)
     );
   }
- 
-  // allocate and fill the data array 
+
+  // allocate and fill the data array
   err = U_ZERO_ERROR;
   std::unique_ptr<uint16[]> dat(new uint16[len_dat]);
   uset_serialize(src, dat.get(), len_dat, &err);
