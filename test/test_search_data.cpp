@@ -109,7 +109,7 @@ protected:
 };
 
 void longTest() {
-  executor ex(8);
+  executor ex(boost::thread::hardware_concurrency());
 
   uint32 count = 0;
 
