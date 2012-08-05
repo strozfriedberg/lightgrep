@@ -1,6 +1,13 @@
-Import('env')
-libs = ['lightgrep', 'icuuc', 'icudata',
-	'boost_program_options' + env['boostType']]
+Import('env', 'isWindows', 'isLinux')
+
+libs = ['lightgrep', 'icuuc', 'icudata', 'm', 'dl']
+libs.extend([lib + env['boostType'] for lib in
+    ['boost_program_options', 'boost_thread', 'boost_system']])
+if (isLinux):
+  libs.append('pthread')
+elif (isWindows):
+  libs.extend(['ws2_32', 'mswsock']) # so stupid that I have to specify winsock
+
 optSrcs = env.Glob('#/src/cmd/opt*.cpp')
 testSrcs = env.Glob('*.cpp')
 testSrcs.extend(optSrcs)
