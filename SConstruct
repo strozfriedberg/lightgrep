@@ -50,8 +50,6 @@ if (isWindows):
   if (platform.release() == 'XP'):
     defines.append('_WIN32_WINNT=0x0501')
 
-  if (not env['isShared']):
-    defines.append('BOOST_THREAD_USE_LIB')
 else:
   env = Environment(ENV=os.environ, variables = vars)
 
@@ -80,7 +78,13 @@ else:
   flags = '-O3'
   ldflags = ''
 
-ldflags += ' -static-libstdc++ ' + env['LDFLAGS']
+isShared = env['isShared']
+if (not isShared):
+  ldflags += ' -static-libstdc++ -static-libgcc -static'
+  if (isWindows):
+    defines.append('BOOST_THREAD_USE_LIB')
+
+ldflags += env['LDFLAGS']
 ccflags = '-pedantic -Wall -Wextra -pipe ' + flags
 cxxflags = '-std=c++11 -Wnon-virtual-dtor ' + env['CXXFLAGS']
 
@@ -88,7 +92,7 @@ if (isWindows):
   cxxflags += ' -mthreads'
 
 # add vendors/scope and vendors/boost as system include paths, if they exist
-ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost', 'vendors/icu']))
+ccflags += ''.join(' -isystem ' + d for d in filter(p.exists, ['vendors/scope', 'vendors/boost', 'vendors/icu/include']))
 
 env['DEBUG_MODE'] = debug
 env.Replace(CCFLAGS=ccflags)
@@ -96,8 +100,6 @@ env.Replace(CXXFLAGS=cxxflags)
 env.Replace(CPPDEFINES=defines)
 env.Append(CPPPATH=['#/include'])
 env.Append(LIBPATH=['#/lib'])
-if (p.exists('vendors/icu/lib')):
-  env.Append(LIBPATH=['#/vendors/icu/lib'])
 env.Append(LINKFLAGS=ldflags)
 
 print("CC = " + env['CC'])
