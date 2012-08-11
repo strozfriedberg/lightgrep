@@ -5,5 +5,5 @@ parser = myEnv.Command('#/bin/src/lib/parser.tab.cpp', 'parser.ypp', 'bison -r s
 if (env['isShared']):
   ret = myEnv.SharedLibrary('lightgrep', Glob('*.cpp'))
 else:
-  ret = myEnv.Library('lightgrep', Glob('*.cpp'), LINKFLAGS='-static-libgcc')
+  ret = myEnv.Library('lightgrep', Glob('*.cpp'))
 Return('ret')
