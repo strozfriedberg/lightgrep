@@ -111,8 +111,6 @@ protected:
 void longTest() {
   executor ex(boost::thread::hardware_concurrency());
 
-  uint32 count = 0;
-
   uint32 len, patcount;
   while (std::cin.peek() != -1) {
     TestCase tcase;
@@ -148,21 +146,11 @@ void longTest() {
     tcase.text.assign(len, '\0');
     std::cin.read(&tcase.text[0], len);
 
-    // NB: Yes, we are reading data directly into the storage for a
-    // std::vector. We are trained professionals. Don't try this at
-    // home, boys and girls.
-
     // read hits
     std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
     tcase.expected.resize(len);
     std::cin.read(reinterpret_cast<char*>(&tcase.expected[0]), len*sizeof(SearchHit));
 
     ex.submit(tcase);
-
-/*
-    if (++count % 1000 == 0) {
-      std::cerr << count << std::endl;
-    }
-*/
   }
 }
