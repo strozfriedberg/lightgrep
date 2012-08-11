@@ -87,7 +87,7 @@ if (not isShared):
 
 ldflags += env['LDFLAGS']
 ccflags = '-pedantic -Wall -Wextra -pipe ' + flags
-cxxflags = '-std=c++11 -Wnon-virtual-dtor ' + env['CXXFLAGS']
+cxxflags = '-std=c++0x -Wnon-virtual-dtor ' + env['CXXFLAGS']
 
 if (isWindows):
   cxxflags += ' -mthreads'
