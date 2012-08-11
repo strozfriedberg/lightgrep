@@ -112,13 +112,6 @@ Help(vars.GenerateHelpText(env))
 
 conf = Configure(env)
 boostType = env['boostType']
-if (not (conf.CheckCXXHeader('boost/program_options.hpp')
-   and conf.CheckLib('boost_system' + boostType)
-   and conf.CheckLib('boost_thread' + boostType)
-   and conf.CheckLib('boost_filesystem' + boostType)
-   and conf.CheckLib('boost_program_options' + boostType))):
-   print('Boost sanity check failed.')
-   Exit(1)
 
 if (not isWindows and 'DYLD_LIBRARY_PATH' not in os.environ and 'LD_LIBRARY_PATH' not in os.environ):
   print("** You probably need to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH **")
