@@ -80,8 +80,9 @@ else:
 
 isShared = env['isShared']
 if (not isShared):
-  ldflags += ' -static-libstdc++ -static-libgcc -static'
+  ldflags += ' -static'
   if (isWindows):
+    ldflags += ' -static-libstdc++ -static-libgcc'
     defines.append('BOOST_THREAD_USE_LIB')
 
 ldflags += env['LDFLAGS']
