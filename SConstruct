@@ -6,6 +6,7 @@ import re
 
 isWindows = False
 isLinux = False
+isDarwin = False
 bits = '32'
 
 def shellCall(cmd):
@@ -13,7 +14,7 @@ def shellCall(cmd):
   os.system(cmd)
 
 def sub(src):
-  vars = ['env', 'isWindows', 'isLinux']
+  vars = ['env', 'isWindows', 'isLinux', 'isDarwin']
   return env.SConscript(p.join(src, 'SConscript'), exports=vars, variant_dir=p.join('bin', src), duplicate=0)
 
 arch = platform.platform()
@@ -23,9 +24,9 @@ if (platform.machine().find('64') > -1):
 
 isWindows = arch.find('Windows') > -1
 isLinux = arch.find('Linux') > -1
+isDarwin = arch.find('Darwin') > -1
 
 defines = [] # a list of defined symbols, as strings, for the preprocessor
-
 
 vars = Variables('build_variables.py')
 vars.AddVariables(
@@ -49,7 +50,6 @@ if (isWindows):
 
   if (platform.release() == 'XP'):
     defines.append('_WIN32_WINNT=0x0501')
-
 else:
   env = Environment(ENV=os.environ, variables = vars)
 
@@ -100,13 +100,13 @@ env.Replace(CCFLAGS=ccflags)
 env.Replace(CXXFLAGS=cxxflags)
 env.Replace(CPPDEFINES=defines)
 env.Append(CPPPATH=['#/include'])
-env.Append(LIBPATH=['#/lib'])
+env.Replace(LIBPATH=['#/lib'])
 env.Append(LINKFLAGS=ldflags)
 
 print("CC = " + env['CC'])
 print("CXX = " + env['CXX'])
 print("CXXFLAGS = " + env['CXXFLAGS'])
-print("LDFLAGS = " + env['LDFLAGS'])
+print("LDFLAGS = " + env['LINKFLAGS'])
 
 Help(vars.GenerateHelpText(env))
 
