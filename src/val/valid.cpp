@@ -48,7 +48,7 @@ void write_tests(Encoder& enc, byte* buf_other, byte* buf_enc) {
       const uint32 len_name = enc.name().length();
       std::cout.write(reinterpret_cast<const char*>(&len_name), sizeof(len_name));
       std::cout << enc.name();
-       
+
       // write text
       const uint32 len_enc = enc.write(r.first, buf_enc);
 
@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
     std::unique_ptr<byte[]> buf_other(new byte[enc->maxByteLength()]);
     std::unique_ptr<byte[]> buf_enc(new byte[enc->maxByteLength()]);
     write_tests(*enc.get(), buf_other.get(), buf_enc.get());
-  } 
+  }
 
   return 0;
 }

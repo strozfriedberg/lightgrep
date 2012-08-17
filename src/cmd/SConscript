@@ -1,9 +1,9 @@
 import re
 
 Import('env', 'isWindows', 'isLinux')
-libs = ['lightgrep', 'icuuc', 'icudata']
+libs = ['lightgrep', 'icuuc', 'icudata', 'm', 'dl']
 libs.extend([lib + env['boostType'] for lib in
-                 ['boost_system', 'boost_thread', 'boost_program_options', 'boost_filesystem']])
+  ['boost_system', 'boost_thread', 'boost_program_options', 'boost_filesystem']])
 if (isLinux):
   libs.append('pthread')
 elif (isWindows):
@@ -19,6 +19,7 @@ if (env['customer'] and len(env['customer'])):
   mainEnv.Append(CPPDEFINES=['LIGHTGREP_CUSTOMER=%s' % esc])
 
 main = mainEnv.StaticObject('main.cpp')
+
 
 # serverEnv = env.Clone()
 # servercflags = env['CCFLAGS']
