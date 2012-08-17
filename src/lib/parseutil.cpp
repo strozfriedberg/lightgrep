@@ -43,14 +43,14 @@ int parseOctChar(int c) {
   return ('0' <= c && c <= '7') ? c - '0' : -1;
 }
 
-int propertyGetter(const std::string& prop, ::UnicodeSet& us) {
+int propertyGetter(const std::string& prop, UnicodeSet& us) {
   // ask ICU for the set corresponding to this property
   UErrorCode err = U_ZERO_ERROR;
 
-  const uint32 ustrlen = 2*prop.length();
-  std::unique_ptr<UChar[]> ustr(new UChar[ustrlen]);
+  const size_t ustrlen = prop.length();
+  std::unique_ptr<UChar[]> ustr(new UChar[ustrlen+1]);
   u_strFromUTF8(
-    ustr.get(), ustrlen, nullptr, prop.c_str(), prop.length(), &err
+    ustr.get(), ustrlen+1, nullptr, prop.c_str(), -1, &err
   );
 
   if (U_FAILURE(err)) {
@@ -60,7 +60,7 @@ int propertyGetter(const std::string& prop, ::UnicodeSet& us) {
   }
 
   std::unique_ptr<USet, void(*)(USet*)> icu_us(
-    uset_openPattern(ustr.get(), ustrlen, &err), uset_close
+    uset_openPattern(ustr.get(), -1, &err), uset_close
   );
 
   if (U_FAILURE(err)) {

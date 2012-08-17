@@ -466,16 +466,21 @@ namespace {
     }
   }
 
-  template <typename F>
-  int consumeSet(F func, YYSTYPE* yylval, Context* ctx) {
-    const int val = func(ctx->Text, ctx->TextEnd, ctx->USet);
+  template <typename F, typename Itr>
+  int consumeSet(F func, YYSTYPE* yylval, Itr& beg, const Itr& end, UnicodeSet& us) {
+    const int val = func(beg, end, us);
     if (val < 0) {
       return BAD;
     }
     else {
-      yylval->s = &ctx->USet;
+      yylval->s = &us;
       return SET;
     }
+  }
+
+  template <typename F>
+  int consumeSet(F func, YYSTYPE* yylval, Context* ctx) {
+    return consumeSet(func, yylval, ctx->Text, ctx->TextEnd, ctx->USet);
   }
 
 // FIXME: Add \c.
