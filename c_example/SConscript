@@ -1,8 +1,10 @@
-Import('env', 'isWindows', 'isLinux')
+Import('env', 'isWindows', 'isLinux', 'isDarwin')
 env = env.Clone(CXXFLAGS='')
 env.Append(CCFLAGS=' -std=c99')
 
-libs = ['lightgrep', 'icuuc', 'icudata', 'm', 'dl', 'libstdc++']
+libs = ['lightgrep', 'icuuc', 'icudata']
+if (isDarwin == False):
+  libs.extend(['m', 'dl'])
 if (isLinux):
   libs.append('pthread')
 elif (isWindows):
