@@ -1,6 +1,12 @@
 Import('env', 'isWindows', 'isLinux')
-libs = ['lightgrep', 'icuuc', 'icudata', 'libstdc++']
 env = env.Clone(CXXFLAGS='')
 env.Append(CCFLAGS=' -std=c99')
-ret = env.Program('c_example', Glob('*.c'), LIBS=libs, LINKFLAGS='-static-libgcc')
+
+libs = ['lightgrep', 'icuuc', 'icudata', 'm', 'dl', 'libstdc++']
+if (isLinux):
+  libs.append('pthread')
+elif (isWindows):
+  libs.extend(['ws2_32', 'mswsock']) # so stupid that I have to specify winsock
+
+ret = env.Program('c_example', Glob('*.c'), LIBS=libs)
 Return('ret')

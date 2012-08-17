@@ -14,6 +14,14 @@ bool is_little_endian() {
 }
 
 ICUEncoder::ICUEncoder(const char* const name): enc_name(name) {
+  init(name);
+}
+
+ICUEncoder::ICUEncoder(const std::string& name): enc_name(name) {
+  init(name.c_str());
+}
+
+void ICUEncoder::init(const char* const name) {
   UErrorCode err = U_ZERO_ERROR;
 
   // ICU pivots through UTF-16 when transcoding; this converter is used
@@ -71,8 +79,6 @@ ICUEncoder::ICUEncoder(const char* const name): enc_name(name) {
 
   convUnicodeSet(const_cast<UnicodeSet&>(Valid), us.get());
 }
-
-ICUEncoder::ICUEncoder(const std::string& name): ICUEncoder(name.c_str()) {}
 
 ICUEncoder::~ICUEncoder() {
   ucnv_close(src_conv);
