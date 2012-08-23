@@ -1,7 +1,7 @@
 #include <scope/test.h>
 
 #include "codegen.h"
-#include "compiler.h"
+#include "nfaoptimizer.h"
 #include "states.h"
 
 #include "test_helper.h"
@@ -13,7 +13,7 @@ ByteSet getBytes(Transition& t) {
 }
 
 SCOPE_TEST(testMerge_aaOrab_toEmpty) {
-  Compiler comp;
+  NFAOptimizer comp;
   NFA dst(1), src(5);
 
   Transition* a = src.TransFac->getByte('a');
@@ -49,7 +49,7 @@ SCOPE_TEST(testMerge_aaOrab_toEmpty) {
 }
 
 SCOPE_TEST(testMerge) {
-  Compiler comp;
+  NFAOptimizer comp;
   NFA fsm, key(5);
 
   // a(b|c)d+
@@ -135,7 +135,7 @@ SCOPE_TEST(testMerge) {
 }
 
 SCOPE_TEST(testMergeLabelsSimple) {
-  Compiler c;
+  NFAOptimizer c;
   NFA src(3), dst(3), exp(4);
 
   // ab
@@ -172,7 +172,7 @@ SCOPE_TEST(testMergeLabelsSimple) {
 }
 
 SCOPE_TEST(testMergeLabelsComplex) {
-  Compiler c;
+  NFAOptimizer c;
   NFA src(4), dst(4), exp(6);
 
   // abd
@@ -216,7 +216,7 @@ SCOPE_TEST(testMergeLabelsComplex) {
 }
 
 SCOPE_TEST(testGuardLabelsFourKeys) {
-  Compiler comp;
+  NFAOptimizer comp;
   NFA key[4], exp;
 
   // a(b|c)a
@@ -306,7 +306,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
 }
 
 SCOPE_TEST(testPropagateMatchLabels) {
-  Compiler comp;
+  NFAOptimizer comp;
   NFA g;
 
   edge(0, 1, g, g.TransFac->getByte('x'));
@@ -333,7 +333,7 @@ SCOPE_TEST(testPropagateMatchLabels) {
 }
 
 SCOPE_TEST(testRemoveNonMinimalLabels) {
-  Compiler comp;
+  NFAOptimizer comp;
   NFA g;
 
   edge(0, 1, g, g.TransFac->getByte('x'));
@@ -362,7 +362,7 @@ SCOPE_TEST(testRemoveNonMinimalLabels) {
 }
 
 SCOPE_TEST(testLabelGuardStates) {
-  Compiler comp;
+  NFAOptimizer comp;
   NFA g;
 
   edge(0, 1, g, g.TransFac->getByte('x'));
@@ -391,7 +391,7 @@ SCOPE_TEST(testLabelGuardStates) {
 }
 
 SCOPE_TEST(testSubstringKey) {
-  Compiler comp;
+  NFAOptimizer comp;
   NFA k0, k1, exp;
 
   // an
@@ -468,7 +468,7 @@ SCOPE_TEST(testDeterminize0) {
 
   NFA h(1);
 
-  Compiler comp;
+  NFAOptimizer comp;
   comp.subsetDFA(h, g);
 
   NFA exp;
@@ -498,7 +498,7 @@ SCOPE_TEST(testDeterminize1) {
   g[4].Label = 0;
 
   NFA h(1);
-  Compiler comp;
+  NFAOptimizer comp;
   comp.subsetDFA(h, g);
 
   NFA exp(5);
@@ -528,7 +528,7 @@ SCOPE_TEST(testDeterminize2) {
   g[3].Label = 0;
 
   NFA h(1);
-  Compiler comp;
+  NFAOptimizer comp;
   comp.subsetDFA(h, g);
 
   NFA exp(2);
@@ -552,7 +552,7 @@ SCOPE_TEST(testDeterminize3) {
   g[1].Label = 0;
 
   NFA h(1);
-  Compiler comp;
+  NFAOptimizer comp;
   comp.subsetDFA(h, g);
 
   ASSERT_EQUAL_GRAPHS(g, h);
@@ -568,7 +568,7 @@ SCOPE_TEST(testDeterminize4) {
   g[1].Label = 0;
 
   NFA h(1);
-  Compiler comp;
+  NFAOptimizer comp;
   comp.subsetDFA(h, g);
 
   NFA exp(2);
@@ -597,7 +597,7 @@ SCOPE_TEST(testDeterminize5) {
   g[3].Label = 0;
 
   NFA h(1);
-  Compiler comp;
+  NFAOptimizer comp;
   comp.subsetDFA(h, g);
 
   NFA exp(5);
@@ -625,7 +625,7 @@ SCOPE_TEST(testPruneBranches) {
   g[1].IsMatch = true;
   g[1].Label = 0;
 
-  Compiler comp;
+  NFAOptimizer comp;
   comp.pruneBranches(g);
 
   NFA exp(3);
