@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "automata.h"
-#include "compiler.h"
+#include "nfaoptimizer.h"
 #include "nfabuilder.h"
 #include "vm_interface.h"
 #include "patterninfo.h"

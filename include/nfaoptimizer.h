@@ -7,7 +7,7 @@
 #include <set>
 #include <stack>
 
-class Compiler {
+class NFAOptimizer {
 public:
   typedef std::pair<NFA::VertexDescriptor, NFA::VertexDescriptor> StatePair;
   typedef std::pair<NFA::VertexDescriptor, uint32> EdgePair;

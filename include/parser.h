@@ -1,7 +1,7 @@
 #pragma once
 
 #include "automata.h"
-#include "compiler.h"
+#include "nfaoptimizer.h"
 #include "encoder.h"
 #include "nfabuilder.h"
 #include "pattern.h"
@@ -20,7 +20,7 @@ public:
 
   ParseTree  Tree;
   NFABuilder Nfab;
-  Compiler   Comp;
+  NFAOptimizer   Comp;
   NFAPtr     Fsm;
 
   std::map<std::string,std::shared_ptr<Encoder>> Encoders;

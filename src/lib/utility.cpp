@@ -1,6 +1,6 @@
 #include "codegen.h"
 #include "concrete_encoders.h"
-#include "compiler.h"
+#include "nfaoptimizer.h"
 #include "encodings.h"
 #include "nfabuilder.h"
 #include "parser.h"

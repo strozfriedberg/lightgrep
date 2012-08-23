@@ -4,7 +4,7 @@
 #include <string>
 
 #include "basic.h"
-#include "compiler.h"
+#include "nfaoptimizer.h"
 #include "graph.h"
 #include "nfabuilder.h"
 #include "parsetree.h"
