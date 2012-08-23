@@ -1,4 +1,4 @@
-#include "compiler.h"
+#include "nfaoptimizer.h"
 #include "sequences.h"
 #include "states.h"
 #include "utility.h"
@@ -16,7 +16,7 @@ static const NFA::VertexDescriptor UNLABELABLE = 0xFFFFFFFE;
 
 const uint32 NOLABEL = std::numeric_limits<uint32>::max();
 
-bool Compiler::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const ByteSet& srcBits) const {
+bool NFAOptimizer::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const ByteSet& srcBits) const {
   // Explanation of the condition:
   //
   // Vertices match if:
@@ -50,7 +50,7 @@ bool Compiler::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Tra
   return false;
 }
 
-Compiler::StatePair Compiler::processChild(const NFA& src, NFA& dst, uint32 si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead) {
+NFAOptimizer::StatePair NFAOptimizer::processChild(const NFA& src, NFA& dst, uint32 si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead) {
   const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, si);
 
   NFA::VertexDescriptor dstTail = Src2Dst[srcTail];
@@ -138,7 +138,7 @@ Compiler::StatePair Compiler::processChild(const NFA& src, NFA& dst, uint32 si, 
   return StatePair(dstTail, srcTail);
 }
 
-void Compiler::mergeIntoFSM(NFA& dst, const NFA& src) {
+void NFAOptimizer::mergeIntoFSM(NFA& dst, const NFA& src) {
   Src2Dst.assign(src.verticesSize(), NONE);
   Dst2Src.clear();
   DstPos.clear();
@@ -181,7 +181,7 @@ void Compiler::mergeIntoFSM(NFA& dst, const NFA& src) {
   dst.Deterministic &= src.Deterministic;
 }
 
-void Compiler::pruneBranches(NFA& g) {
+void NFAOptimizer::pruneBranches(NFA& g) {
   std::stack<NFA::VertexDescriptor> next;
   std::set<NFA::VertexDescriptor> seen;
 
@@ -234,12 +234,12 @@ void Compiler::pruneBranches(NFA& g) {
   }
 }
 
-void Compiler::labelGuardStates(NFA& g) {
+void NFAOptimizer::labelGuardStates(NFA& g) {
   propagateMatchLabels(g);
   removeNonMinimalLabels(g);
 }
 
-void Compiler::propagateMatchLabels(NFA& g) {
+void NFAOptimizer::propagateMatchLabels(NFA& g) {
   // uint32 count = 0;
 
   std::stack<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor>> next, unext;
@@ -308,7 +308,7 @@ void Compiler::propagateMatchLabels(NFA& g) {
   }
 }
 
-void Compiler::removeNonMinimalLabels(NFA& g) {
+void NFAOptimizer::removeNonMinimalLabels(NFA& g) {
   // Make a list of all tails of edges where the head is an ancestor of
   // multiple match states, but the tail is an ancestor of only one.
   std::vector<bool> visited(g.verticesSize());
@@ -494,7 +494,7 @@ void handleSubsetState(const NFA& src, NFA& dst, const VDList& srcHeadList, cons
   }
 }
 
-void Compiler::subsetDFA(NFA& dst, const NFA& src) {
+void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src) {
   // std::cerr << "starting subsetDFA" << std::endl;
   std::stack<SubsetState> dstStack;
   SubsetStateToState dstList2Dst;
