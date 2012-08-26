@@ -6,6 +6,7 @@
 #include "parser.h"
 #include "rewriter.h"
 #include "compiler.h"
+#include "program.h"
 
 #include <algorithm>
 #include <cctype>

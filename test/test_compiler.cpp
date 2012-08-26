@@ -2,6 +2,7 @@
 
 #include "test_helper.h"
 #include "compiler.h"
+#include "program.h"
 
 SCOPE_TEST(acOrbcProgram) {
   NFA fsm(4);

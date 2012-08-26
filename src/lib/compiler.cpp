@@ -1,6 +1,7 @@
 #include "compiler.h"
 
 #include "codegen.h"
+#include "program.h"
 
 uint32 figureOutLanding(std::shared_ptr<CodeGenHelper> cg, NFA::VertexDescriptor v, const NFA& graph) {
   // If the jump is to a state that has only a single out edge, and there's

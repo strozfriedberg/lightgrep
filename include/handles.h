@@ -1,15 +1,9 @@
 #pragma once
 
-#include <memory>
-#include <string>
-
 #include "basic.h"
-#include "nfaoptimizer.h"
-#include "graph.h"
-#include "nfabuilder.h"
-#include "parsetree.h"
-#include "vm_interface.h"
+#include "fwd_pointers.h"
 #include "parser.h"
+#include "vm_interface.h"
 
 struct Handle {
   Handle() {
@@ -37,7 +31,7 @@ template <typename T> struct HandleBase: public Handle {
 struct ParserHandle: public HandleBase<Parser> {};
 
 struct ProgramHandleImpl {
-  ProgramHandleImpl(): Prog(new Program) {};
+  ProgramHandleImpl();
 
   ProgramPtr Prog;
 };

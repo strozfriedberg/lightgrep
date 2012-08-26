@@ -2,8 +2,7 @@
 
 #include "basic.h"
 
-#include "program.h"
-#include "automata.h"
+#include "fwd_pointers.h"
 
 class Compiler {
 public:
