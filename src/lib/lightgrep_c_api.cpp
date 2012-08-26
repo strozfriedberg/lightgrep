@@ -9,6 +9,7 @@
 #include "parsetree.h"
 #include "utility.h"
 #include "vm_interface.h"
+#include "compiler.h"
 
 #include <cstring>
 #include <functional>
@@ -158,7 +159,7 @@ void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
   hProg->Impl.reset(new ProgramHandleImpl);
   ProgramPtr& prog(hProg->Impl->Prog);
 
-  prog = createProgram(*g);
+  prog = Compiler::createProgram(*g);
   prog->First = firstBytes(*g);
 }
 
