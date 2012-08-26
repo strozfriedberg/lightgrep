@@ -2,6 +2,7 @@
 
 #include "utility.h"
 #include "compiler.h"
+#include "program.h"
 
 void collector(void* userData, const LG_SearchHit* const hit) {
   STest* stest = static_cast<STest*>(userData);

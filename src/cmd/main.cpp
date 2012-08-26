@@ -23,6 +23,7 @@
 #include "optparser.h"
 #include "patterninfo.h"
 #include "utility.h"
+#include "program.h"
 
 #include "include_boost_thread.h"
 

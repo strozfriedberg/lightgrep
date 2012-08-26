@@ -1,8 +1,10 @@
 #pragma once
 
 #include <stdexcept>
+#include <string>
 #include <sstream>
 #include <memory>
+#include <limits>
 
 #include "byteset.h"
 #include "lightgrep_c_api.h"

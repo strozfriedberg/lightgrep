@@ -10,13 +10,11 @@
 #include "utility.h"
 #include "vm_interface.h"
 #include "compiler.h"
+#include "program.h"
 
 #include <cstring>
 #include <functional>
 #include <iostream>
-#include <memory>
-#include <sstream>
-#include <stdexcept>
 
 const char OH_SHIT[] = "Unspecified exception";
 

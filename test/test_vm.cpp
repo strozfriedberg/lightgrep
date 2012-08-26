@@ -2,6 +2,7 @@
 
 #include "vm.h"
 #include "mockcallback.h"
+#include "program.h"
 
 #include <iostream>
 

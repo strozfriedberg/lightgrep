@@ -28,5 +28,4 @@ struct Glushkov {
 struct Empty {};
 
 typedef Graph<Properties,Glushkov,Empty,VectorFamily> NFA;
-typedef std::shared_ptr<NFA> NFAPtr;
 
