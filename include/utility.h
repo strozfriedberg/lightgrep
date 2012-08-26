@@ -33,8 +33,6 @@ public:
 
 void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor);
 
-ProgramPtr createProgram(const NFA& graph);
-
 ByteSet firstBytes(const NFA& graph);
 void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph);
 

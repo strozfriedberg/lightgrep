@@ -8,7 +8,6 @@
 #include "parser.h"
 #include "pattern.h"
 #include "vm_interface.h"
-#include "utility.h"
 
 void collector(void* userData, const LG_SearchHit* const hit);
 
@@ -18,19 +17,11 @@ struct STest {
   ProgramPtr Prog;
   std::shared_ptr<VmInterface> Grep;
 
-  STest(const char* key) {
-    std::initializer_list<const char*> keys = { key };
-    init(keys);
-  }
+  STest(const char* key);
 
-  STest(std::initializer_list<const char*> keys) {
-    init(keys);
-  }
+  STest(std::initializer_list<const char*> keys);
 
-  STest(const std::vector<Pattern>& patterns) {
-    std::vector<Pattern> pats(patterns);
-    init(pats);
-  }
+  STest(const std::vector<Pattern>& patterns);
 
   template <typename T>
   STest(const T& keys) {
@@ -50,22 +41,9 @@ struct STest {
     init(pats);
   }
 
-  void init(std::vector<Pattern>& pats) {
-    Fsm = createGraph(pats, true, true);
-    if (Fsm) {
-      Prog = createProgram(*Fsm);
-      Prog->First = firstBytes(*Fsm);
-      Grep = VmInterface::create();
-      Grep->init(Prog);
-    }
-  }
+  void init(std::vector<Pattern>& pats);
 
-  void search(const byte* begin, const byte* end, uint64 offset) {
-    Grep->search(begin, end, offset, collector, this);
-    Grep->closeOut(collector, this);
-  }
+  void search(const byte* begin, const byte* end, uint64 offset);
 
-  void startsWith(const byte* begin, const byte* end, uint64 offset) {
-    Grep->startsWith(begin, end, offset, collector, this);
-  }
+  void startsWith(const byte* begin, const byte* end, uint64 offset);
 };
