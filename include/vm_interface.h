@@ -1,7 +1,7 @@
 #pragma once
 
 #include "basic.h"
-#include "program.h"
+#include "fwd_pointers.h"
 #include "thread.h"
 #include "searchhit.h"
 

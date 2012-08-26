@@ -4,7 +4,7 @@
 #include <initializer_list>
 #include <vector>
 
-#include "automata.h"
+#include "fwd_pointers.h"
 #include "parser.h"
 #include "pattern.h"
 #include "vm_interface.h"

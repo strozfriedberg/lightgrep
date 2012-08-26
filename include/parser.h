@@ -1,6 +1,6 @@
 #pragma once
 
-#include "automata.h"
+#include "fwd_pointers.h"
 #include "nfaoptimizer.h"
 #include "encoder.h"
 #include "nfabuilder.h"

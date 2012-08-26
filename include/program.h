@@ -1,15 +1,14 @@
 #pragma once
 
+
+
 #include <memory>
 #include <istream>
 #include <ostream>
 #include <vector>
 
 #include "instructions.h"
-
-class Program;
-
-typedef std::shared_ptr<Program> ProgramPtr;
+#include "fwd_pointers.h"
 
 class Program: public std::vector<Instruction> {
 public:

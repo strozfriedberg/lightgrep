@@ -1,5 +1,6 @@
 #include "basic.h"
 #include "matchgen.h"
+#include "automata.h"
 
 #include <random>
 #include <vector>
