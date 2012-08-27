@@ -4,20 +4,20 @@
 #include "program.h"
 #include "utility.h"
 
-uint32 figureOutLanding(std::shared_ptr<CodeGenHelper> cg, NFA::VertexDescriptor v, const NFA& graph) {
+uint32 figureOutLanding(const CodeGenHelper& cg, NFA::VertexDescriptor v, const NFA& graph) {
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
   if (1 == graph.outDegree(v) &&
       NOLABEL == graph[v].Label && !graph[v].IsMatch) {
-    return cg->Snippets[graph.outVertex(v, 0)].Start;
+    return cg.Snippets[graph.outVertex(v, 0)].Start;
   }
   else {
-    return cg->Snippets[v].Start + cg->Snippets[v].NumEval;
+    return cg.Snippets[v].Start + cg.Snippets[v].NumEval;
   }
 }
 
 // JumpTables are either ranged, or full-size, and can have indirect tables at the end when there are multiple transitions out on a single byte value
-void createJumpTable(std::shared_ptr<CodeGenHelper> cg, Instruction const* const base, Instruction* const start, NFA::VertexDescriptor v, const NFA& graph) {
+void createJumpTable(const CodeGenHelper& cg, Instruction const* const base, Instruction* const start, NFA::VertexDescriptor v, const NFA& graph) {
   const uint32 startIndex = start - base;
   Instruction* cur = start,
              * indirectTbl;
@@ -69,11 +69,64 @@ void createJumpTable(std::shared_ptr<CodeGenHelper> cg, Instruction const* const
     }
   }
 
-  if (indirectTbl - base != cg->Snippets[v].end()) {
+  if (indirectTbl - base != cg.Snippets[v].end()) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT("whoa, big trouble in Little China on " << v << "... Start = "
-      << cg->Snippets[v].Start << ", NumEval = " << cg->Snippets[v].NumEval
-      << ", NumOther = " << cg->Snippets[v].NumOther << ", but indirectTbl is at " << (indirectTbl - base) << std::endl
+      << cg.Snippets[v].Start << ", NumEval = " << cg.Snippets[v].NumEval
+      << ", NumOther = " << cg.Snippets[v].NumOther << ", but indirectTbl is at " << (indirectTbl - base) << std::endl
     );
+  }
+}
+
+void encodeState(const NFA& graph, NFA::VertexDescriptor v, const CodeGenHelper& cg, Instruction const* const base, Instruction* curOp) {
+  const NFA::Vertex& state(graph[v]);
+  if (state.Trans) {
+    state.Trans->toInstruction(curOp);
+    curOp += state.Trans->numInstructions();
+    // std::cerr << "wrote " << i << std::endl;
+
+    if (state.Label != NOLABEL) {
+      *curOp++ = Instruction::makeLabel(state.Label);
+    }
+    if (cg.Snippets[v].CheckIndex != NONE) {
+      *curOp++ = Instruction::makeCheckHalt(cg.Snippets[v].CheckIndex);
+    }
+    if (state.IsMatch) {
+      *curOp++ = Instruction::makeMatch();
+
+      if (graph.outDegree(v)) {
+        // nonterminal match, fork to FINISH_OP
+        *curOp = Instruction::makeFork(curOp, cg.Guard+1);
+        curOp += 2;
+      }
+      else {
+        // terminal match, FINISH_OP is next
+        *curOp++ = Instruction::makeFinish();
+      }
+    }
+  }
+
+  if (JUMP_TABLE_RANGE_OP == cg.Snippets[v].Op) {
+    createJumpTable(cg, base, curOp, v, graph);
+  }
+  else {
+    const uint32 v_odeg = graph.outDegree(v);
+    if (v_odeg > 0) {
+      NFA::VertexDescriptor curTarget;
+
+      // layout non-initial children in reverse order
+      for (uint32 i = v_odeg-1; i > 0; --i) {
+        curTarget = graph.outVertex(v, i);
+        *curOp = Instruction::makeFork(curOp, cg.Snippets[curTarget].Start);
+        curOp += 2;
+      }
+
+      // layout first child, falling through if possible
+      curTarget = graph.outVertex(v, 0);
+      if (cg.DiscoverRanks[v] + 1 != cg.DiscoverRanks[curTarget] ) {
+        *curOp = Instruction::makeJump(curOp, cg.Snippets[curTarget].Start);
+        curOp += 2;
+      }
+    }
   }
 }
 
@@ -98,66 +151,10 @@ ProgramPtr Compiler::createProgram(const NFA& graph) {
     // if (++i % 10000 == 0) {
     //   std::cerr << "have compiled " << i << " states so far" << std::endl;
     // }
-    Instruction* curOp = &(*ret)[cg->Snippets[v].Start];
-    Transition* t(graph[v].Trans);
-    if (t) {
-      t->toInstruction(curOp);
-      curOp += t->numInstructions();
-      // std::cerr << "wrote " << i << std::endl;
-
-      if (graph[v].Label != NOLABEL) {
-        *curOp++ = Instruction::makeLabel(graph[v].Label);
-      }
-
-      if (cg->Snippets[v].CheckIndex != NONE) {
-        *curOp++ = Instruction::makeCheckHalt(cg->Snippets[v].CheckIndex);
-      }
-
-      if (graph[v].IsMatch) {
-        *curOp++ = Instruction::makeMatch();
-
-        if (graph.outDegree(v)) {
-          // nonterminal match, fork to FINISH_OP
-          *curOp = Instruction::makeFork(curOp, cg->Guard+1);
-          curOp += 2;
-        }
-        else {
-          // terminal match, FINISH_OP is next
-          *curOp++ = Instruction::makeFinish();
-        }
-      }
-    }
-
-    if (JUMP_TABLE_RANGE_OP == cg->Snippets[v].Op) {
-      createJumpTable(cg, &(*ret)[0], curOp, v, graph);
-      continue;
-    }
-
-    const uint32 v_odeg = graph.outDegree(v);
-    if (v_odeg > 0) {
-      NFA::VertexDescriptor curTarget;
-
-      // layout non-initial children in reverse order
-      for (uint32 i = v_odeg-1; i > 0; --i) {
-        curTarget = graph.outVertex(v, i);
-        *curOp = Instruction::makeFork(curOp, cg->Snippets[curTarget].Start);
-        curOp += 2;
-      }
-
-      // layout first child, falling through if possible
-      curTarget = graph.outVertex(v, 0);
-      if (cg->DiscoverRanks[v] + 1 != cg->DiscoverRanks[curTarget] ) {
-        *curOp = Instruction::makeJump(curOp, cg->Snippets[curTarget].Start);
-        curOp += 2;
-      }
-    }
+    encodeState(graph, v, *cg, &(*ret)[0], &(*ret)[cg->Snippets[v].Start]);
   }
-
-//  if (!(Instruction::makeHalt() == ret->back())) {
   // penultimate instruction will always be Halt, so Vm can jump there
   ret->push_back(Instruction::makeHalt());
-//  }
-
   // last instruction will always be Finish, for handling matches
   ret->push_back(Instruction::makeFinish());
 
