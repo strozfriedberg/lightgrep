@@ -3,44 +3,37 @@
 #include "basic.h"
 #include "parsenode.h"
 
-#include <ostream>
+#include <iosfwd>
 #include <vector>
 
 class ParseTree {
 public:
   ParseNode* Root;
 
-  ParseNode* add(const ParseNode& n) {
-    Store.emplace_back(n);
-    return &Store[Store.size()-1];
-  }
+  ParseNode* add(const ParseNode& n);
 
-  void init(uint32 len) {
-    //
-    // Sizing explanation:
-    //
-    // * Every character in a pattern contributes at most one node to
-    // the parse tree. Some characters, such as parentheses, the square
-    // brackets for character classes, and the nongreedy marker '?'
-    // contribute none.
-    //
-    // * Concatenation is implicit in patterns. Each intercharacter
-    // position potentially contributes one node to the parse tree.
-    //
-    // * The root is one node in the parse tree.
-    //
-    // The worst case is a pattern made up of n literals, which will
-    // generate n nodes for the literals, n-1 nodes for the concatenations,
-    // and one node for the root. n + n - 1 + 1 = 2n.
-    //
-    // Therefore, sizing the vector to twice the length of the pattern
-    // ensures that the vector will never resize on us and invalidate our
-    // ParseNode pointers.
-    //
-    Root = 0;
-    Store.clear();
-    Store.reserve(2*len);
-  }
+  //
+  // Sizing explanation:
+  //
+  // * Every character in a pattern contributes at most one node to
+  // the parse tree. Some characters, such as parentheses, the square
+  // brackets for character classes, and the nongreedy marker '?'
+  // contribute none.
+  //
+  // * Concatenation is implicit in patterns. Each intercharacter
+  // position potentially contributes one node to the parse tree.
+  //
+  // * The root is one node in the parse tree.
+  //
+  // The worst case is a pattern made up of n literals, which will
+  // generate n nodes for the literals, n-1 nodes for the concatenations,
+  // and one node for the root. n + n - 1 + 1 = 2n.
+  //
+  // Therefore, sizing the vector to twice the length of the pattern
+  // ensures that the vector will never resize on us and invalidate our
+  // ParseNode pointers.
+  //
+  void init(uint32 len);
 
   bool operator==(const ParseTree& other) const {
     return !Root ? !other.Root : (other.Root ? *Root == *other.Root : false);

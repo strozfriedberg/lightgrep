@@ -1,10 +1,9 @@
 #pragma once
 
-#include "automata.h"
 #include "basic.h"
+#include "automata.h"
 #include "parsenode.h"
 
-#include <limits>
 #include <vector>
 
 typedef std::vector<NFA::VertexDescriptor> InListT;

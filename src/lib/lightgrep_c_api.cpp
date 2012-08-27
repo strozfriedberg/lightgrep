@@ -158,7 +158,6 @@ void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
   ProgramPtr& prog(hProg->Impl->Prog);
 
   prog = Compiler::createProgram(*g);
-  prog->First = firstBytes(*g);
 }
 
 LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
