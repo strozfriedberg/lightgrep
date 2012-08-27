@@ -102,3 +102,11 @@ SCOPE_TEST(makeAny) {
   SCOPE_ASSERT_EQUAL(0u, i.Op.Offset);
   SCOPE_ASSERT_EQUAL("Any", i.toString());
 }
+
+SCOPE_TEST(makeAdjustStart) {
+  Instruction i = Instruction::makeAdjustStart(4);
+  SCOPE_ASSERT_EQUAL(ADJUST_START_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL(4u, i.Op.Offset);
+  SCOPE_ASSERT_EQUAL("AdjustStart -4", i.toString());
+}

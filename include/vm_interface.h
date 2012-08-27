@@ -2,7 +2,6 @@
 
 #include "basic.h"
 #include "fwd_pointers.h"
-#include "thread.h"
 #include "searchhit.h"
 
 class VmInterface {

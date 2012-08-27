@@ -18,6 +18,7 @@ enum OpCodes {
   CHECK_HALT_OP,
   LABEL_OP,
   MATCH_OP,
+  ADJUST_START_OP,
   HALT_OP,
   ILLEGAL
 };
@@ -75,6 +76,7 @@ struct Instruction {
   static Instruction makeMatch();
   static Instruction makeFork(Instruction* ptr, uint32 offset);
   static Instruction makeCheckHalt(uint32 checkIndex);
+  static Instruction makeAdjustStart(uint32 offset);
   static Instruction makeHalt();
   static Instruction makeFinish();
   static Instruction makeRaw32(uint32 val);
