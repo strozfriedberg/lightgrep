@@ -2,6 +2,7 @@
 #include <scope/test.h>
 
 #include "instructions.h"
+#include "byteset.h"
 
 #include <stdexcept>
 

@@ -2,6 +2,7 @@
 
 #include "basic.h"
 #include "byteset.h"
+#include "rangeset.h"
 
 #include <vector>
 

@@ -1,14 +1,13 @@
 #pragma once
 
-
-
-#include <memory>
 #include <istream>
 #include <ostream>
 #include <vector>
 
+#include "basic.h"
 #include "instructions.h"
 #include "fwd_pointers.h"
+#include "byteset.h"
 
 class Program: public std::vector<Instruction> {
 public:

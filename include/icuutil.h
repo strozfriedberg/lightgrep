@@ -1,8 +1,9 @@
 #pragma once
 
 #include "basic.h"
+#include "rangeset.h"
 
-#include <unicode/uset.h>
+class USet;
 
 void convUnicodeSet(UnicodeSet& dst, const USet* src);
 

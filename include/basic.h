@@ -6,20 +6,14 @@
 #include <memory>
 #include <limits>
 
-#include "byteset.h"
-#include "lightgrep_c_api.h"
-#include "rangeset.h"
-
-typedef RangeSet<uint32,0x110000> UnicodeSet;
-
 typedef unsigned char byte;
 
 typedef unsigned short uint16;
 
-//typedef unsigned int uint32;
+typedef unsigned int uint32;
 typedef int int32;
 
-//typedef unsigned long long uint64;
+typedef unsigned long long uint64;
 typedef long long int64;
 
 #define THROW_WITH_OUTPUT(exceptType, expression) \
