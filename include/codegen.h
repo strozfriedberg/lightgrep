@@ -1,13 +1,12 @@
 #pragma once
 
-#include <limits>
-#include <memory>
-#include <vector>
+#include "basic.h"
 
 #include "automata.h"
-#include "basic.h"
 #include "instructions.h"
 #include "utility.h"
+
+#include <vector>
 
 static const uint32 NONE = std::numeric_limits<uint32>::max();
 static const uint32 NOLABEL = std::numeric_limits<uint32>::max();

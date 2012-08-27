@@ -1,12 +1,12 @@
-#include "concrete_encoders.h"
 #include "nfabuilder.h"
+#include "concrete_encoders.h"
+#include "parsetree.h"
 #include "states.h"
 #include "transitionfactory.h"
 #include "utility.h"
 
 #include <algorithm>
 #include <iostream>
-#include <memory>
 #include <utility>
 #include <cctype>
 

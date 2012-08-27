@@ -2,6 +2,7 @@
 
 #include "codegen.h"
 #include "program.h"
+#include "utility.h"
 
 uint32 figureOutLanding(std::shared_ptr<CodeGenHelper> cg, NFA::VertexDescriptor v, const NFA& graph) {
   // If the jump is to a state that has only a single out edge, and there's
@@ -82,6 +83,9 @@ void createJumpTable(std::shared_ptr<CodeGenHelper> cg, Instruction const* const
 ProgramPtr Compiler::createProgram(const NFA& graph) {
   // std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
+
+  ret->First = firstBytes(graph);
+
   const uint32 numVs = graph.verticesSize();
   std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
   CodeGenVisitor vis(cg);

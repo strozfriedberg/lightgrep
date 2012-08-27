@@ -1,10 +1,11 @@
 #pragma once
 
-#include <string>
+#include "basic.h"
+#include "pattern.h"
+
 #include <vector>
 #include <utility>
 
-#include "pattern.h"
 
 class PatternInfo {
 public:

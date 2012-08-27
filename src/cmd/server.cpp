@@ -1,12 +1,13 @@
 #include "basic.h"
 
+#include "lightgrep_c_api.h"
+
 #include <algorithm>
 #include <cstdlib>
 #include <csignal>
 #include <fstream>
 #include <functional>
 #include <iostream>
-#include <memory>
 
 #define BOOST_ENABLE_ASSERT_HANDLER 1
 

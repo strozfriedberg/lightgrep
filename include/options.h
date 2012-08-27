@@ -2,8 +2,8 @@
 
 // must include <fstream> before this header, because of <iosfwd> usage
 
-#include "automata.h"
 #include "basic.h"
+#include "automata.h"
 #include "patterninfo.h"
 
 #include <iosfwd>
