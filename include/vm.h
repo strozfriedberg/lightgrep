@@ -7,6 +7,7 @@
 #include "staticvector.h"
 #include "vm_interface.h"
 #include "byteset.h"
+#include "thread.h"
 
 class Vm: public VmInterface {
 public:
