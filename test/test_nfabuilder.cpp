@@ -8,6 +8,7 @@
 #include "parsetree.h"
 #include "states.h"
 #include "utility.h"
+#include "instructions.h"
 
 #include "test_helper.h"
 
