@@ -1,7 +1,7 @@
-// Copyright 2011, Lightbox Technologies, Inc. All Rights Reserved.
+// Copyright 2012, Lightbox Technologies, Inc. All Rights Reserved.
 
-#ifndef __LIGHTGREP_C_API_H_
-#define __LIGHTGREP_C_API_H_
+#ifndef LIGHTGREP_C_API_H_
+#define LIGHTGREP_C_API_H_
 
 // for size_t
 #ifdef __cplusplus
@@ -10,15 +10,10 @@
 #include <string.h>
 #endif
 
+#include "lightgrep_search_hit.h"
+
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#ifndef uint64
-  typedef unsigned long long uint64;
-#endif
-#ifndef uint32
-  typedef unsigned int uint32;
 #endif
 
   struct ParserHandle;
@@ -42,19 +37,6 @@ extern "C" {
     uint64 TraceBegin,    // starting offset of trace output
            TraceEnd;      // ending offset of trace output
   } LG_ContextOptions;
-
-  typedef struct {
-    uint64  Start,        // starting offset of the hit
-            End;          // one past the hit, i.e., End - Start = Length
-    uint32  KeywordIndex; // index of keyword that hit
-  } LG_SearchHit;
-
-  // function you specify to handle the search hit, e.g.,
-  // void gotASearchHit(void* userData, const LG_SearchHit const* hit) {
-  //   print("hit at %d, ending %d, on keyword %d",
-  //         hit->Start, hit->End, hit->KeywordIndex);
-  // }
-  typedef void (*LG_HITCALLBACK_FN)(void* userData, const LG_SearchHit* const hit);
 
   int lg_ok(void* handle);
 
@@ -161,4 +143,4 @@ extern "C" {
 }
 #endif
 
-#endif /* __LIGHTGREP_C_API_H_ */
+#endif /* LIGHTGREP_C_API_H_ */

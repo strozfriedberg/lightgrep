@@ -1,5 +1,7 @@
 #pragma once
 
+#include "basic.h"
+
 #include <algorithm>
 #include <bitset>
 #include <iterator>
@@ -423,3 +425,5 @@ std::ostream& operator<<(std::ostream& o, const RangeSet<T,N>& rs) {
   }
   return o;
 }
+
+typedef RangeSet<uint32,0x110000> UnicodeSet;

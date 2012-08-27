@@ -1,6 +1,6 @@
 #include "icuutil.h"
 
-#include <memory>
+#include <unicode/uset.h>
 
 void convUnicodeSet(UnicodeSet& dst, const USet* src) {
   UErrorCode err = U_ZERO_ERROR;

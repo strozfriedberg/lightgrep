@@ -1,8 +1,10 @@
 #include <scope/test.h>
 
-#include <memory>
-
+#include "rangeset.h"
 #include "icuutil.h"
+
+#include <unicode/uset.h>
+#include <memory>
 
 SCOPE_TEST(testUnicodeSetICUToLGDstEmpty) {
   std::unique_ptr<USet, void(*)(USet*)> src(uset_open(0x27, 0x3F), uset_close);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basic.h"
+#include "lightgrep_search_hit.h"
 
 class SearchHit: public LG_SearchHit {
 public:
@@ -36,4 +37,3 @@ OutStream& operator<<(OutStream& out, const SearchHit& hit) {
 }
 
 typedef LG_HITCALLBACK_FN HitCallback;
-

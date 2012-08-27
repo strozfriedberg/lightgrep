@@ -2,8 +2,7 @@
 
 #include "byteset.h"
 #include "transition.h"
-
-#include <limits>
+#include "rangeset.h"
 
 struct TransitionComparator;
 class TransitionFactory;

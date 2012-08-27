@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basic.h"
+#include "byteset.h"
 
 struct Instruction;
 

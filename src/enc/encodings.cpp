@@ -1,3 +1,5 @@
+#include "basic.h"
+
 #include <algorithm>
 #include <cctype>
 #include <functional>
@@ -5,11 +7,9 @@
 #include <iostream>
 #include <map>
 #include <set>
-#include <string>
+#include <cstring>
 
 #include <unicode/ucnv.h>
-
-#include "basic.h"
 
 void throw_on_error(UErrorCode err) {
   if (U_FAILURE(err)) {
