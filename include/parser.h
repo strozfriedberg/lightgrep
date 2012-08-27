@@ -1,14 +1,13 @@
 #pragma once
 
+#include "basic.h"
 #include "fwd_pointers.h"
 #include "nfaoptimizer.h"
-#include "encoder.h"
 #include "nfabuilder.h"
 #include "pattern.h"
 #include "parsetree.h"
 
-#include <memory>
-#include <string>
+class Encoder;
 
 bool parse(const Pattern& pattern, ParseTree& tree);
 

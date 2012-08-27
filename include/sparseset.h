@@ -1,9 +1,8 @@
 #pragma once
 
-#include <algorithm>
-#include <memory>
-
 #include "basic.h"
+
+#include <algorithm>
 
 // for the time-being, we're only going to support uint32, but could obviously template
 // also, this doesn't work so well (er, at all) with values > 2^31-1

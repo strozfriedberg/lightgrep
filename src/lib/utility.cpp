@@ -1,19 +1,12 @@
-#include "codegen.h"
-#include "concrete_encoders.h"
-#include "nfaoptimizer.h"
-#include "encodings.h"
-#include "nfabuilder.h"
+#include "utility.h"
+
 #include "parser.h"
-#include "rewriter.h"
 #include "compiler.h"
-#include "program.h"
 
 #include <algorithm>
 #include <cctype>
 #include <functional>
 #include <queue>
-#include <sstream>
-#include <stdexcept>
 
 #include <boost/graph/graphviz.hpp>
 
@@ -133,7 +126,6 @@ std::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, Search
   std::shared_ptr<VmInterface> vm = VmInterface::create();
   NFAPtr fsm = createGraph(keywords);
   ProgramPtr prog = Compiler::createProgram(*fsm);
-  prog->First = firstBytes(*fsm);
   vm->init(prog);
   return vm;
 }

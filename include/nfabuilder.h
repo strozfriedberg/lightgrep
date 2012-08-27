@@ -2,13 +2,14 @@
 
 #include "basic.h"
 #include "fwd_pointers.h"
-#include "encoder.h"
 #include "fragment.h"
-#include "parsenode.h"
-#include "parsetree.h"
-#include "transitionfactory.h"
 
 #include <stack>
+
+class ParseNode;
+class Encoder;
+class ParseTree;
+class TransitionFactory;
 
 class NFABuilder {
 public:

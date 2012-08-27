@@ -2,8 +2,7 @@
 
 #include "basic.h"
 
-#include <istream>
-#include <ostream>
+#include <iosfwd>
 
 enum OpCodes {
   UNINITIALIZED = 0,

@@ -2,7 +2,6 @@
 
 #include "utility.h"
 #include "compiler.h"
-#include "program.h"
 
 void collector(void* userData, const LG_SearchHit* const hit) {
   STest* stest = static_cast<STest*>(userData);
@@ -27,7 +26,6 @@ void STest::init(std::vector<Pattern>& pats) {
   Fsm = createGraph(pats, true, true);
   if (Fsm) {
     Prog = Compiler::createProgram(*Fsm);
-    Prog->First = firstBytes(*Fsm);
     Grep = VmInterface::create();
     Grep->init(Prog);
   }
