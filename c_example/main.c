@@ -13,7 +13,7 @@ void getHit(void* userData, const LG_SearchHit* const hit) {
 
 static const uint32 NUM_KEYS = 3;
 
-void searchText(char** textArray, unsigned int numStrings, LG_HCONTEXT searcher) {
+void searchText(const char** textArray, unsigned int numStrings, LG_HCONTEXT searcher) {
   // reset the search context for re-use (not necessary on first use, but harmless)
   lg_reset_context(searcher);
   uint64 offset = 0,
@@ -37,7 +37,7 @@ int main() {
   keyOpts.CaseInsensitive = 1;
   keyOpts.FixedString = 0;
 
-  char *keys[] = {"mary", "lamb", "[a-z]+"};
+  const char *keys[] = {"mary", "lamb", "[a-z]+"};
 
   // add the keywords to the parser one at a time
   int isgood = 1;
@@ -79,8 +79,8 @@ int main() {
     printf("beginning search\n");
 
     // search texts as if they were a contiguous array
-    char *mary[2] = {"Mary had a little l", "amb"},
-         *twinkle[3] = {"Twin", "kle twink", "le, little star"};
+    const char *mary[2] = {"Mary had a little l", "amb"},
+               *twinkle[3] = {"Twin", "kle twink", "le, little star"};
 
     printf("searching 'Mary had a little lamb'\n");
 

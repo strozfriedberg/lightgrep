@@ -2,9 +2,9 @@
 
 #include "basic.h"
 #include "rangeset.h"
+#include "byteset.h"
 
-#include <iostream>
-#include <limits>
+#include <ostream>
 
 static const uint32 UNBOUNDED = std::numeric_limits<uint32>::max();
 
