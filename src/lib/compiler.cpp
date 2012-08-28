@@ -4,6 +4,8 @@
 #include "program.h"
 #include "utility.h"
 
+#include <tuple>
+
 uint32 figureOutLanding(const CodeGenHelper& cg, NFA::VertexDescriptor v, const NFA& graph) {
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
@@ -17,13 +19,7 @@ uint32 figureOutLanding(const CodeGenHelper& cg, NFA::VertexDescriptor v, const 
   }
 }
 
-// JumpTables are either ranged, or full-size, and can have indirect tables at the end when there are multiple transitions out on a single byte value
-void createJumpTable(const CodeGenHelper& cg, Instruction const* const base, Instruction* const start, NFA::VertexDescriptor v, const NFA& graph) {
-  const uint32 startIndex = start - base;
-  Instruction* cur = start,
-             * indirectTbl;
-
-  std::vector<std::vector<NFA::VertexDescriptor>> tbl(pivotStates(v, graph));
+std::tuple<uint32, uint32> minAndMaxValues(const std::vector<std::vector<NFA::VertexDescriptor>>& tbl) {
   uint32 first = 0,
          last  = 255;
 
@@ -33,13 +29,25 @@ void createJumpTable(const CodeGenHelper& cg, Instruction const* const base, Ins
       break;
     }
   }
-
   for (uint32 i = 255; i > first; --i) {
     if (!tbl[i].empty()) {
       last = i;
       break;
     }
   }
+  return std::make_tuple(first, last);
+}
+
+// JumpTables are either ranged, or full-size, and can have indirect tables at the end when there are multiple transitions out on a single byte value
+void createJumpTable(const CodeGenHelper& cg, Instruction const* const base, Instruction* const start, NFA::VertexDescriptor v, const NFA& graph) {
+  const uint32 startIndex = start - base;
+  Instruction* cur = start,
+             * indirectTbl;
+
+  auto tbl(pivotStates(v, graph));
+
+  uint32 first, last;
+  std::tie(first, last) = minAndMaxValues(tbl);
 
   *cur++ = Instruction::makeJumpTableRange(first, last);
   indirectTbl = start + 2 + (last - first);
