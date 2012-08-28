@@ -7,6 +7,7 @@
 uint32 figureOutLanding(const CodeGenHelper& cg, NFA::VertexDescriptor v, const NFA& graph) {
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
+  // i.e., this eliminates an indirect jump... it causes dead code.
   if (1 == graph.outDegree(v) &&
       NOLABEL == graph[v].Label && !graph[v].IsMatch) {
     return cg.Snippets[graph.outVertex(v, 0)].Start;
@@ -77,6 +78,10 @@ void createJumpTable(const CodeGenHelper& cg, Instruction const* const base, Ins
   }
 }
 
+bool targetCodeFollowsSource(const CodeGenHelper& cg, const NFA::VertexDescriptor source, const NFA::VertexDescriptor target) {
+  return cg.DiscoverRanks[source] + 1 == cg.DiscoverRanks[target];
+}
+
 void encodeState(const NFA& graph, NFA::VertexDescriptor v, const CodeGenHelper& cg, Instruction const* const base, Instruction* curOp) {
   const NFA::Vertex& state(graph[v]);
   if (state.Trans) {
@@ -122,7 +127,7 @@ void encodeState(const NFA& graph, NFA::VertexDescriptor v, const CodeGenHelper&
 
       // layout first child, falling through if possible
       curTarget = graph.outVertex(v, 0);
-      if (cg.DiscoverRanks[v] + 1 != cg.DiscoverRanks[curTarget] ) {
+      if (!targetCodeFollowsSource(cg, v, curTarget)) { // else: fall through happens
         *curOp = Instruction::makeJump(curOp, cg.Snippets[curTarget].Start);
         curOp += 2;
       }
