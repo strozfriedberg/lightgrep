@@ -7,7 +7,7 @@ std::ostream& operator<<(std::ostream& out, const ByteSet& bs) {
 
   int low = -1;
   bool first = true;
-  for (unsigned int i = 0; i < 256; ++i) {
+  for (int i = 0; i < 256; ++i) {
     if (bs.test(i)) {
       if (low < 0) {
         if (!first) {
