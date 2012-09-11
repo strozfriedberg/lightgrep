@@ -63,7 +63,7 @@ extern "C" {
     size_t length,                 // the length of the keyword, in bytes
     unsigned int keyIndex,         // unique for this keyword
     const LG_KeyOptions* options,  // parsing options
-    const char* Encoding           // Encoding of keyword to search for, using
+    const char* encoding           // Encoding of keyword to search for, using
     // IANA names c.f. http://www.iana.org/assignments/character-sets
     // encodings.h has the list of supported encodings
   );
