@@ -35,6 +35,11 @@ public class LightgrepTest {
   }
 
   @Test
+  public void destroyNullParserTest() {
+    Lightgrep.lg_destroy_parser(null);
+  }
+
+  @Test
   public void addKeywordTest() {
     ParserHandle hParser = null;
     try {

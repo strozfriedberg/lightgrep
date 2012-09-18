@@ -38,6 +38,8 @@ static jmethodID callbackCallback;
 
 static const char* callbackClassName = "com/lightboxtechnologies/lightgrep/Lightgrep$Callback";
 
+static const char* nullPointerExceptionClassName = "java/lang/NullPointerException";
+
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_Lightgrep_init(JNIEnv* env, jclass) {
   // cache the field and method IDs we use to prevent lookup every time
   jclass c;
@@ -94,8 +96,13 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_Lightgrep_lg_1
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_Lightgrep_lg_1destroy_1parser(JNIEnv* env, jclass, jobject hParser) {
-  jlong ptr = env->GetLongField(hParser, handleField);
-  return lg_destroy_parser(reinterpret_cast<LG_HPARSER>(ptr));
+  if (hParser) {
+    jlong ptr = env->GetLongField(hParser, handleField);
+    return lg_destroy_parser(reinterpret_cast<LG_HPARSER>(ptr));
+  }
+  else {
+    return 1;
+  }
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_Lightgrep_lg_1add_1keyword(JNIEnv* env, jclass, jobject hParser, jstring keyword, jint keyIndex, jobject options, jstring encoding) {
