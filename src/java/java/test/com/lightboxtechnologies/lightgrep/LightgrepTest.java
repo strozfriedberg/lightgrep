@@ -55,16 +55,12 @@ public class LightgrepTest {
     hParser.createProgram(popts);
   }
 
-/*
-// FIXME: make calls to handles after destroy() throw IllegalStateException
   @Test
   public void doubleDestroyParserTest() {
     final ParserHandle hParser = new ParserHandle(1);
     hParser.destroy();
-// FIXME: why does this crash?
-//    hParser.destroy();
+    hParser.destroy();
   }
-*/
 
   @Test
   public void addKeywordGoodTest() throws Exception {
@@ -208,7 +204,6 @@ public class LightgrepTest {
     }
   }
 
-/*
   @Test
   public void doubleDestroyProgramTest() throws Exception {
     final ParserHandle hParser = new ParserHandle(4);
@@ -229,9 +224,7 @@ public class LightgrepTest {
     finally {
       hParser.destroy();
     }
-
   }
-*/
 
   @Test(expected=IllegalStateException.class)
   public void noSizeAfterDestroyProgramTest() throws Exception {
@@ -679,6 +672,39 @@ public class LightgrepTest {
         final HitCallback cb = new DummyCallback();
 
         hCtx.startsWith(buf, 0, buf.length, 0, cb);
+      }
+      finally {
+        hProg.destroy();
+      }
+    }
+    finally {
+      hParser.destroy();
+    }
+  }
+
+  @Test
+  public void doubleDestroyContextTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(4);
+    try {
+      final KeyOptions kopts = new KeyOptions();
+      kopts.FixedString = false;
+      kopts.CaseInsensitive = false;
+
+      hParser.addKeyword("meh", 0, kopts, "ASCII");
+
+      final ProgramOptions popts = new ProgramOptions();
+      popts.Determinize = true;
+
+      final ProgramHandle hProg = hParser.createProgram(popts);
+      try {
+        final ContextOptions copts = new ContextOptions();
+// FIXME: scary, do these become 2^64-1 when cast to unit64?
+        copts.TraceBegin = Long.MIN_VALUE;
+        copts.TraceEnd = Long.MIN_VALUE;
+
+        final ContextHandle hCtx = hProg.createContext(copts);
+        hCtx.destroy();
+        hCtx.destroy();
       }
       finally {
         hProg.destroy();

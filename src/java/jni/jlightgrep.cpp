@@ -246,9 +246,13 @@ JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_cre
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_destroy(JNIEnv* env, jobject hParser) {
-  jlong ptr = env->GetLongField(hParser, parserHandlePointerField);
-  lg_destroy_parser(reinterpret_cast<LG_HPARSER>(ptr));
-  env->SetLongField(hParser, parserHandlePointerField, 0);
+  LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
+    env->GetLongField(hParser, parserHandlePointerField)
+  );
+  if (ptr) {
+    lg_destroy_parser(ptr);
+    env->SetLongField(hParser, parserHandlePointerField, 0);
+  }
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addKeyword(JNIEnv* env, jobject hParser, jstring keyword, jint keyIndex, jobject options, jstring encoding) {
@@ -356,9 +360,13 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_c
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_destroy(JNIEnv* env, jobject hProg) {
-  jlong ptr = env->GetLongField(hProg, programHandlePointerField);
-  lg_destroy_program(reinterpret_cast<LG_HPROGRAM>(ptr));
-  env->SetLongField(hProg, programHandlePointerField, 0);
+  LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
+    env->GetLongField(hProg, programHandlePointerField)
+  );
+  if (ptr) {
+    lg_destroy_program(ptr);
+    env->SetLongField(hProg, programHandlePointerField, 0);
+  }
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_size(JNIEnv* env, jobject hProg) {
@@ -496,9 +504,13 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_destroy(JNIEnv* env, jobject hCtx) {
-  jlong ptr = env->GetLongField(hCtx, contextHandlePointerField);
-  lg_destroy_context(reinterpret_cast<LG_HCONTEXT>(ptr));
-  env->SetLongField(hCtx, contextHandlePointerField, 0);
+  LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
+     env->GetLongField(hCtx, contextHandlePointerField)
+  );
+  if (ptr) {
+    lg_destroy_context(ptr);
+    env->SetLongField(hCtx, contextHandlePointerField, 0);
+  }
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_reset(JNIEnv* env, jobject hCtx) {
