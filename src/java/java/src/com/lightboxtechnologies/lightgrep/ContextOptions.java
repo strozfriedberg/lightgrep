@@ -6,7 +6,4 @@ public class ContextOptions {
   }
   
   static native void init();
-
-  public long TraceBegin;
-  public long TraceEnd;
 }

@@ -2,6 +2,7 @@
 #include "jlightgrep.h"
 
 #include <functional>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -157,16 +158,8 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramOptions_in
   }
 }
 
-static jfieldID contextOptionsTraceBeginField;
-static jfieldID contextOptionsTraceEndField;
-
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextOptions_init(JNIEnv* env, jclass cl) {
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextOptions_init(JNIEnv*, jclass) {
   try {
-    contextOptionsTraceBeginField = env->GetFieldID(cl, "TraceBegin", "J");
-    throwIfException(env); 
-
-    contextOptionsTraceBeginField = env->GetFieldID(cl, "TraceEnd", "J");
-    throwIfException(env);
   }
   catch (const PendingException&) {
   } 
@@ -488,8 +481,8 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     throwIfDestroyed(env, ptr);
 
     LG_ContextOptions opts{
-      (uint64) env->GetLongField(options, contextOptionsTraceBeginField),
-      (uint64) env->GetLongField(options, contextOptionsTraceEndField),
+      std::numeric_limits<uint64>::max(),
+      std::numeric_limits<uint64>::max()
     };
 
     LG_HCONTEXT hCtx = lg_create_context(ptr, &opts);

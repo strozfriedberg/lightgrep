@@ -290,9 +290,6 @@ public class LightgrepTest {
       hProg.destroy();
 
       final ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-      copts.TraceBegin = Long.MIN_VALUE;
-      copts.TraceEnd = Long.MIN_VALUE;
 
       hProg.createContext(copts);
     }
@@ -515,9 +512,6 @@ public class LightgrepTest {
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
         final ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -552,9 +546,6 @@ public class LightgrepTest {
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
         final ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
 
         final ContextHandle hCtx = hProg.createContext(copts);
         hCtx.destroy();
@@ -589,9 +580,6 @@ public class LightgrepTest {
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
         final ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
 
         final ContextHandle hCtx = hProg.createContext(copts);
         hCtx.destroy();
@@ -626,9 +614,6 @@ public class LightgrepTest {
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
         final ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
 
         final ContextHandle hCtx = hProg.createContext(copts);
         hCtx.destroy();
@@ -661,9 +646,6 @@ public class LightgrepTest {
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
         final ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
 
         final ContextHandle hCtx = hProg.createContext(copts);
         hCtx.destroy();
@@ -698,9 +680,6 @@ public class LightgrepTest {
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
         final ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
 
         final ContextHandle hCtx = hProg.createContext(copts);
         hCtx.destroy();
@@ -757,9 +736,6 @@ public class LightgrepTest {
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
         final ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -805,10 +781,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -851,10 +824,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -901,10 +871,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -941,10 +908,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -983,10 +947,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1025,10 +986,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1067,10 +1025,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1109,10 +1064,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1151,10 +1103,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1196,10 +1145,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1236,9 +1182,6 @@ public class LightgrepTest {
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
         final ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1279,9 +1222,6 @@ public class LightgrepTest {
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
         final ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1322,10 +1262,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1362,10 +1299,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1404,10 +1338,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1446,10 +1377,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1488,10 +1416,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1530,10 +1455,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
@@ -1572,10 +1494,7 @@ public class LightgrepTest {
 
       final ProgramHandle hProg = hParser.createProgram(popts);
       try {
-        ContextOptions copts = new ContextOptions();
-// FIXME: scary, do these become 2^64-1 when cast to unit64?
-        copts.TraceBegin = Long.MIN_VALUE;
-        copts.TraceEnd = Long.MIN_VALUE;
+        final ContextOptions copts = new ContextOptions();
 
         final ContextHandle hCtx = hProg.createContext(copts);
         try {
