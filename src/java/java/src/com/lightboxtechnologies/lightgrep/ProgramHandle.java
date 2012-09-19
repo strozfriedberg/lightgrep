@@ -2,8 +2,10 @@ package com.lightboxtechnologies.lightgrep;
 
 public class ProgramHandle implements Handle {
   static {
-    System.loadLibrary("jlightgrep");
+    LibraryLoader.init();
   }
+
+  static native void init();
 
   private final long Pointer;
 

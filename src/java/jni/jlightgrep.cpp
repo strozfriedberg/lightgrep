@@ -6,89 +6,114 @@
 #include <sstream>
 #include <tuple>
 
-static jfieldID parserHandlePointerField;
-static jfieldID programHandlePointerField;
-static jfieldID contextHandlePointerField;
-
-static jmethodID programHandleCtor;
-static jmethodID contextHandleCtor;
-
-static const char* parserHandleClassName = "com/lightboxtechnologies/lightgrep/ParserHandle";
 static const char* programHandleClassName = "com/lightboxtechnologies/lightgrep/ProgramHandle";
 static const char* contextHandleClassName = "com/lightboxtechnologies/lightgrep/ContextHandle";
 
-static jfieldID keyOptionsFixedStringField;
-static jfieldID keyOptionsCaseInsensitiveField;
-static jfieldID programOptionsDeterminizeField;
-static jfieldID contextOptionsTraceBeginField;
-static jfieldID contextOptionsTraceEndField;
-
-static const char* keyOptionsClassName = "com/lightboxtechnologies/lightgrep/KeyOptions";
-static const char* programOptionsClassName = "com/lightboxtechnologies/lightgrep/ProgramOptions";
-static const char* contextOptionsClassName = "com/lightboxtechnologies/lightgrep/ContextOptions";
-
-static jmethodID searchHitCtor;
-static jfieldID searchHitStartField;
-static jfieldID searchHitEndField;
-static jfieldID searchHitKeywordIndexField;
-
-static const char* searchHitClassName = "com/lightboxtechnologies/lightgrep/SearchHit";
-
-static jmethodID hitCallbackCallback;
-
 static const char* hitCallbackClassName = "com/lightboxtechnologies/lightgrep/HitCallback";
+static const char* searchHitClassName = "com/lightboxtechnologies/lightgrep/SearchHit";
 
 static const char* nullPointerExceptionClassName = "java/lang/NullPointerException";
 static const char* indexOutOfBoundsExceptionClassName = "java/lang/IndexOutOfBoundsException";
 static const char* keywordExceptionClassName = "com/lightboxtechnologies/lightgrep/KeywordException";
 static const char* programExceptionClassName = "com/lightboxtechnologies/lightgrep/ProgramException";
 
-// FIXME: ack, need to load these in the <cinit> for each class!
+//
+// We cache field and method IDs in static init() methods for each class,
+// in order to ensure that they get reset if a class is reloaded.
+//
+
+static jfieldID parserHandlePointerField;
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_init(JNIEnv* env, jclass cl) {
+  parserHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
+}
+
+static jfieldID programHandlePointerField;
+static jmethodID programHandleCtor;
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_init(JNIEnv* env, jclass cl) {
+  programHandleCtor = env->GetMethodID(cl, "<init>", "(J)V"); 
+  programHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
+}
+
+static jfieldID contextHandlePointerField;
+static jmethodID contextHandleCtor;
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_init(JNIEnv* env, jclass cl) {
+  contextHandleCtor = env->GetMethodID(cl, "<init>", "(J)V");
+  contextHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
+}
+
+static jfieldID keyOptionsFixedStringField;
+static jfieldID keyOptionsCaseInsensitiveField;
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_KeyOptions_init(JNIEnv* env, jclass cl) {
+  keyOptionsFixedStringField = env->GetFieldID(cl, "FixedString", "Z");
+  keyOptionsCaseInsensitiveField = env->GetFieldID(cl, "FixedString", "Z");
+}
+
+static jfieldID programOptionsDeterminizeField;
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramOptions_init(JNIEnv* env, jclass cl) {
+  programOptionsDeterminizeField = env->GetFieldID(cl, "Determinize", "Z");
+}
+
+static jfieldID contextOptionsTraceBeginField;
+static jfieldID contextOptionsTraceEndField;
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextOptions_init(JNIEnv* env, jclass cl) {
+  contextOptionsTraceBeginField = env->GetFieldID(cl, "TraceBegin", "J");
+  contextOptionsTraceBeginField = env->GetFieldID(cl, "TraceEnd", "J");
+}
+
+static jclass hitCallbackClass;
+static jmethodID hitCallbackCallback;
+
+static jclass searchHitClass;
+static jmethodID searchHitCtor;
+static jfieldID searchHitStartField;
+static jfieldID searchHitEndField;
+static jfieldID searchHitKeywordIndexField;
+
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* jvm, void*) {
   JNIEnv* env;
   if (jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
     return JNI_ERR;
   }
 
-  // cache the field and method IDs we use to prevent lookup every time
-  jclass c;
+  // We make a global reference for HitCallback because it's not possible
+  // to put a static block or any method implementations into an interface,
+  // which prevents us from reseting the callback() method ID in the event
+  // that HitCallback is unloaded and reloaded. The global reference blocks
+  // this by preventing HitCallback from being unloaded.
+  jclass cl = env->FindClass(hitCallbackClassName);
+  hitCallbackClass = reinterpret_cast<jclass>(env->NewGlobalRef(cl));
+  hitCallbackCallback = env->GetMethodID(hitCallbackClass, "callback", "(Lcom/lightboxtechnologies/lightgrep/SearchHit;)V");
 
-  c = env->FindClass(parserHandleClassName);
-  parserHandlePointerField = env->GetFieldID(c, "Pointer", "J");
-
-  c = env->FindClass(programHandleClassName);
-  programHandleCtor = env->GetMethodID(c, "<init>", "(J)V"); 
-  programHandlePointerField = env->GetFieldID(c, "Pointer", "J");
-
-  c = env->FindClass(contextHandleClassName);
-  contextHandleCtor = env->GetMethodID(c, "<init>", "(J)V");
-  contextHandlePointerField = env->GetFieldID(c, "Pointer", "J");
-
-  c = env->FindClass(keyOptionsClassName);
-  keyOptionsFixedStringField = env->GetFieldID(c, "FixedString", "Z");
-  keyOptionsCaseInsensitiveField = env->GetFieldID(c, "FixedString", "Z");
-
-  c = env->FindClass(programOptionsClassName);
-  programOptionsDeterminizeField = env->GetFieldID(c, "Determinize", "Z");
-
-  c = env->FindClass(contextOptionsClassName);
-  contextOptionsTraceBeginField = env->GetFieldID(c, "TraceBegin", "J");
-  contextOptionsTraceBeginField = env->GetFieldID(c, "TraceEnd", "J");
-
-  c = env->FindClass(searchHitClassName);
-  searchHitCtor = env->GetMethodID(c, "<init>", "(JJI)V");
-  searchHitStartField = env->GetFieldID(c, "Start", "J");
-  searchHitEndField = env->GetFieldID(c, "End", "J");
-  searchHitKeywordIndexField = env->GetFieldID(c, "KeywordIndex", "I");
-
-  c = env->FindClass(hitCallbackClassName);
-  hitCallbackCallback = env->GetMethodID(c, "callback", "(Lcom/lightboxtechnologies/lightgrep/SearchHit;)V");
+  // We make a global reference for SearchHit to avoid calling FindClass
+  // for it on every hit in the callbackShim.
+  cl = env->FindClass(searchHitClassName);
+  searchHitClass = reinterpret_cast<jclass>(env->NewGlobalRef(cl));
+  searchHitCtor = env->GetMethodID(searchHitClass, "<init>", "(JJI)V");
+  searchHitStartField = env->GetFieldID(searchHitClass, "Start", "J");
+  searchHitEndField = env->GetFieldID(searchHitClass, "End", "J");
+  searchHitKeywordIndexField = env->GetFieldID(searchHitClass, "KeywordIndex", "I");
 
   return JNI_VERSION_1_6;
 }
 
+JNIEXPORT void JNI_OnUnload(JavaVM* jvm, void*) {
+  JNIEnv* env;
+  if (jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+// FIXME: uh, not sure what to do if this fails
+  }
+
+  env->DeleteGlobalRef(hitCallbackClass);
+  env->DeleteGlobalRef(searchHitClass);
+}
+
 template <typename V>
-bool throwIfNull(JNIEnv* env, const char* varname, const V* var) {
+static bool throwIfNull(JNIEnv* env, const char* varname, const V* var) {
   if (var == nullptr) {
     std::ostringstream ss;
     ss << varname << " == null";
@@ -105,7 +130,7 @@ bool throwIfNull(JNIEnv* env, const char* varname, const V* var) {
 }
 
 template <typename V>
-bool throwIfNegative(JNIEnv* env, const char* varname, V var) {
+static bool throwIfNegative(JNIEnv* env, const char* varname, V var) {
   if (var < 0) {
     std::ostringstream ss;
     ss << varname << " == " << var << " < 0";
@@ -122,7 +147,7 @@ bool throwIfNegative(JNIEnv* env, const char* varname, V var) {
 }
 
 template <typename O, typename S>
-bool throwIfBufferTooSmall(JNIEnv* env, const char* bufname, jbyteArray buffer, const char* offname, O offset, const char* sname, S size) {
+static bool throwIfBufferTooSmall(JNIEnv* env, const char* bufname, jbyteArray buffer, const char* offname, O offset, const char* sname, S size) {
   const jsize buflen = env->GetArrayLength(buffer);
   if (buflen - offset < size) {
     std::ostringstream ss;
@@ -367,13 +392,13 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_res
   lg_reset_context(reinterpret_cast<LG_HCONTEXT>(ptr));
 }
 
-void callbackShim(void* userData, const LG_SearchHit* const hit) {
+static void callbackShim(void* userData, const LG_SearchHit* const hit) {
   JNIEnv* env;
   jobject cb;
   std::tie(env, cb) = *reinterpret_cast<std::tuple<JNIEnv*,jobject>*>(userData);
 
   jobject hobj = env->NewObject(
-    env->FindClass(searchHitClassName),
+    searchHitClass,
     searchHitCtor,
     (jlong) hit->Start,
     (jlong) hit->End,
