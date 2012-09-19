@@ -18,18 +18,20 @@ public class ProgramHandle implements Handle {
   public native int size();
 
   /**
-   * @throws NullPointerException
+   * @throws IllegalStateException
    * @throws IndexOutOfBoundsException
+   * @throws NullPointerException
    */
   public native void write(byte[] buffer, int offset);
 
   /**
-   * @throws NullPointerException
    * @throws IndexOutOfBoundsException 
+   * @throws NullPointerException
    */
   public static native ProgramHandle read(byte[] buffer, int offset, int size);
 
   /**
+   * @throws IllegalStateException
    * @throws NullPointerException
    */
   public native ContextHandle createContext(ContextOptions options);

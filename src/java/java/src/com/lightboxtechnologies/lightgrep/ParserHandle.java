@@ -26,15 +26,17 @@ public class ParserHandle implements Handle {
   public native void destroy();
  
   /**
-   * @throws NullPointerException
+   * @throws IllegalStateException
    * @throws IndexOutOfBoundsException
    * @throws KeywordException
+   * @throws NullPointerException
    */ 
   public native int addKeyword(String keyword, int keyIndex, KeyOptions options, String encoding) throws KeywordException;
 
   /**
-   * @throws NullPointerException
+   * @throws IllegalStateException
    * @throws KeywordException
+   * @throws NullPointerException
    */
   public native ProgramHandle createProgram(ProgramOptions options) throws KeywordException;
 }

@@ -16,6 +16,7 @@ static const char* hitCallbackClassName = "com/lightboxtechnologies/lightgrep/Hi
 static const char* searchHitClassName = "com/lightboxtechnologies/lightgrep/SearchHit";
 
 static const char* nullPointerExceptionClassName = "java/lang/NullPointerException";
+static const char* illegalStateExceptionClassName = "java/lang/IllegalStateException";
 static const char* indexOutOfBoundsExceptionClassName = "java/lang/IndexOutOfBoundsException";
 static const char* keywordExceptionClassName = "com/lightboxtechnologies/lightgrep/KeywordException";
 static const char* programExceptionClassName = "com/lightboxtechnologies/lightgrep/ProgramException";
@@ -73,6 +74,17 @@ static void throwIfBufferTooSmall(JNIEnv* env, const char* bufname, jbyteArray b
   }
 }
 
+template <typename V>
+static void throwIfDestroyed(JNIEnv* env, const V* ptr) {
+  if (!ptr) {
+    throwException(
+      env,
+      illegalStateExceptionClassName,
+      "Tried calling method on destroyed handle"
+    );
+  }
+}
+
 //
 // We cache field and method IDs in static init() methods for each class,
 // in order to ensure that they get reset if a class is reloaded.
@@ -85,7 +97,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_init
     parserHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
     throwIfException(env);
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
   }
 }
 
@@ -100,7 +112,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_ini
     programHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
     throwIfException(env);
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
   }
 }
 
@@ -115,7 +127,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_ini
     contextHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
     throwIfException(env);
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
   }
 }
 
@@ -130,7 +142,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_KeyOptions_init(J
     keyOptionsCaseInsensitiveField = env->GetFieldID(cl, "FixedString", "Z");
     throwIfException(env); 
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
   }
 }
 
@@ -141,7 +153,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramOptions_in
     programOptionsDeterminizeField = env->GetFieldID(cl, "Determinize", "Z");
     throwIfException(env); 
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
   }
 }
 
@@ -156,7 +168,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextOptions_in
     contextOptionsTraceBeginField = env->GetFieldID(cl, "TraceEnd", "J");
     throwIfException(env);
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
   } 
 }
 
@@ -212,7 +224,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* jvm, void*) {
 
     return JNI_VERSION_1_6;
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
     return JNI_ERR;
   }
 }
@@ -236,6 +248,7 @@ JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_cre
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_destroy(JNIEnv* env, jobject hParser) {
   jlong ptr = env->GetLongField(hParser, parserHandlePointerField);
   lg_destroy_parser(reinterpret_cast<LG_HPARSER>(ptr));
+  env->SetLongField(hParser, parserHandlePointerField, 0);
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addKeyword(JNIEnv* env, jobject hParser, jstring keyword, jint keyIndex, jobject options, jstring encoding) {
@@ -250,6 +263,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
     LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
       env->GetLongField(hParser, parserHandlePointerField)
     );
+    throwIfDestroyed(env, ptr); 
 
     using namespace std::placeholders;
 
@@ -294,7 +308,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
 
     return ret;
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
     return 0;
   }
 }
@@ -322,6 +336,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_c
     LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
       env->GetLongField(hParser, parserHandlePointerField)
     );
+    throwIfDestroyed(env, ptr); 
 
     LG_ProgramOptions opts{
       env->GetBooleanField(options, programOptionsDeterminizeField) != 0
@@ -335,7 +350,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_c
     }
     return makeProgramHandle(env, hProg);
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
     return nullptr;
   }
 }
@@ -343,11 +358,20 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_c
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_destroy(JNIEnv* env, jobject hProg) {
   jlong ptr = env->GetLongField(hProg, programHandlePointerField);
   lg_destroy_program(reinterpret_cast<LG_HPROGRAM>(ptr));
+  env->SetLongField(hProg, programHandlePointerField, 0);
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_size(JNIEnv* env, jobject hProg) {
-  jlong ptr = env->GetLongField(hProg, programHandlePointerField); 
-  return lg_program_size(reinterpret_cast<LG_HPROGRAM>(ptr));
+  try {
+    LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
+      env->GetLongField(hProg, programHandlePointerField)
+    );
+    throwIfDestroyed(env, ptr);
+    return lg_program_size(ptr);
+  }
+  catch (const PendingException&) {
+    return -1;
+  }
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_write(JNIEnv* env, jobject hProg, jbyteArray buffer, jint offset) {
@@ -359,6 +383,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
     LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
       env->GetLongField(hProg, programHandlePointerField)
     );
+    throwIfDestroyed(env, ptr);
 
     throwIfBufferTooSmall(
       env,
@@ -385,7 +410,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
     // finally actually do something
     lg_write_program(ptr, buf);
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
   }
 }
 
@@ -424,7 +449,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     }
     return makeProgramHandle(env, hProg);
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
     return nullptr;
   }
 }
@@ -452,6 +477,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
       env->GetLongField(hProg, programHandlePointerField)
     );
+    throwIfDestroyed(env, ptr);
 
     LG_ContextOptions opts{
       (uint64) env->GetLongField(options, contextOptionsTraceBeginField),
@@ -464,7 +490,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     }
     return makeContextHandle(env, hCtx);
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
     return nullptr;
   }
 }
@@ -472,11 +498,19 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_destroy(JNIEnv* env, jobject hCtx) {
   jlong ptr = env->GetLongField(hCtx, contextHandlePointerField);
   lg_destroy_context(reinterpret_cast<LG_HCONTEXT>(ptr));
+  env->SetLongField(hCtx, contextHandlePointerField, 0);
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_reset(JNIEnv* env, jobject hCtx) {
-  jlong ptr = env->GetLongField(hCtx, contextHandlePointerField); 
-  lg_reset_context(reinterpret_cast<LG_HCONTEXT>(ptr));
+  try {
+    LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
+      env->GetLongField(hCtx, contextHandlePointerField)
+    );
+    throwIfDestroyed(env, ptr);
+    lg_reset_context(ptr);
+  }
+  catch (const PendingException&) {
+  }
 }
 
 static void callbackShim(void* userData, const LG_SearchHit* const hit) {
@@ -521,6 +555,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, contextHandlePointerField)
     );
+    throwIfDestroyed(env, ptr);
 
     using namespace std::placeholders;
 
@@ -548,7 +583,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
       callbackShim
     );
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
     return 0;
   }
 }
@@ -562,13 +597,14 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_clo
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, contextHandlePointerField)
     );
+    throwIfDestroyed(env, ptr);
 
     std::tuple<JNIEnv*,jobject> userData{env, callback};
 
     // finally actually do something
     lg_closeout_search(ptr, &userData, callbackShim);
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
   }
 }
 
@@ -591,6 +627,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, contextHandlePointerField)
     );
+    throwIfDestroyed(env, ptr);
 
     using namespace std::placeholders;
 
@@ -618,7 +655,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
       callbackShim
     );
   }
-  catch (const PendingException& e) {
+  catch (const PendingException&) {
   }
 }
 

@@ -23,8 +23,40 @@ public class LightgrepTest {
     }
   }
 
-// FIXME: make calls to handles after destroy() throw IllegalStateException
+  @Test(expected=IllegalStateException.class)
+  public void noAddKeywordAfterDestroyParserTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(1);
+    hParser.destroy();
+
+    final KeyOptions kopts = new KeyOptions();
+    kopts.FixedString = false;
+    kopts.CaseInsensitive = false;
+
+    hParser.addKeyword("meh", 0, kopts, "ASCII");
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void noCreateProgramAfterDestroyParserTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(1);
+    try {
+      final KeyOptions kopts = new KeyOptions();
+      kopts.FixedString = false;
+      kopts.CaseInsensitive = false;
+
+      hParser.addKeyword("meh", 0, kopts, "ASCII");
+    }
+    finally {
+      hParser.destroy();
+    }
+
+    final ProgramOptions popts = new ProgramOptions();
+    popts.Determinize = true;
+
+    hParser.createProgram(popts);
+  }
+
 /*
+// FIXME: make calls to handles after destroy() throw IllegalStateException
   @Test
   public void doubleDestroyParserTest() {
     final ParserHandle hParser = new ParserHandle(1);
@@ -201,6 +233,80 @@ public class LightgrepTest {
   }
 */
 
+  @Test(expected=IllegalStateException.class)
+  public void noSizeAfterDestroyProgramTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(4);
+    try {
+      final KeyOptions kopts = new KeyOptions();
+      kopts.FixedString = false;
+      kopts.CaseInsensitive = false;
+
+      hParser.addKeyword("meh", 0, kopts, "ASCII");
+
+      final ProgramOptions popts = new ProgramOptions();
+      popts.Determinize = true;
+
+      final ProgramHandle hProg = hParser.createProgram(popts);
+      hProg.destroy();
+
+      hProg.size();
+    }
+    finally {
+      hParser.destroy();
+    }
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void noWriteAfterProgramDestroyTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(4);
+    try {
+      final KeyOptions kopts = new KeyOptions();
+      kopts.FixedString = false;
+      kopts.CaseInsensitive = false;
+
+      hParser.addKeyword("meh", 0, kopts, "ASCII");
+
+      final ProgramOptions popts = new ProgramOptions();
+      popts.Determinize = true;
+
+      final ProgramHandle hProg = hParser.createProgram(popts);
+      final byte[] buf = new byte[hProg.size()];
+      hProg.destroy();
+
+      hProg.write(buf, 0);
+    }
+    finally {
+      hParser.destroy();
+    }
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void noCreateContextAfterProgramDestroyTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(4);
+    try {
+      final KeyOptions kopts = new KeyOptions();
+      kopts.FixedString = false;
+      kopts.CaseInsensitive = false;
+
+      hParser.addKeyword("meh", 0, kopts, "ASCII");
+
+      final ProgramOptions popts = new ProgramOptions();
+      popts.Determinize = true;
+
+      final ProgramHandle hProg = hParser.createProgram(popts);
+      hProg.destroy();
+
+      final ContextOptions copts = new ContextOptions();
+// FIXME: scary, do these become 2^64-1 when cast to unit64?
+      copts.TraceBegin = Long.MIN_VALUE;
+      copts.TraceEnd = Long.MIN_VALUE;
+
+      hProg.createContext(copts);
+    }
+    finally {
+      hParser.destroy();
+    }
+  }
   @Test
   public void writeProgramGoodTest() throws Exception {
     final ParserHandle hParser = new ParserHandle(4);
@@ -427,6 +533,152 @@ public class LightgrepTest {
         finally {
           hCtx.destroy();
         }
+      }
+      finally {
+        hProg.destroy();
+      }
+    }
+    finally {
+      hParser.destroy();
+    }
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void noResetAfterDestroyContextTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(4);
+    try {
+      final KeyOptions kopts = new KeyOptions();
+      kopts.FixedString = false;
+      kopts.CaseInsensitive = false;
+
+      hParser.addKeyword("meh", 0, kopts, "ASCII");
+
+      final ProgramOptions popts = new ProgramOptions();
+      popts.Determinize = true;
+
+      final ProgramHandle hProg = hParser.createProgram(popts);
+      try {
+        final ContextOptions copts = new ContextOptions();
+// FIXME: scary, do these become 2^64-1 when cast to unit64?
+        copts.TraceBegin = Long.MIN_VALUE;
+        copts.TraceEnd = Long.MIN_VALUE;
+
+        final ContextHandle hCtx = hProg.createContext(copts);
+        hCtx.destroy();
+        hCtx.reset();
+      }
+      finally {
+        hProg.destroy();
+      }
+    }
+    finally {
+      hParser.destroy();
+    }
+  }
+
+  private static class DummyCallback implements HitCallback {
+    public void callback(SearchHit hit) {}
+  } 
+
+  @Test(expected=IllegalStateException.class)
+  public void noSearchAfterDestroyContextTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(4);
+    try {
+      final KeyOptions kopts = new KeyOptions();
+      kopts.FixedString = false;
+      kopts.CaseInsensitive = false;
+
+      hParser.addKeyword("meh", 0, kopts, "ASCII");
+
+      final ProgramOptions popts = new ProgramOptions();
+      popts.Determinize = true;
+
+      final ProgramHandle hProg = hParser.createProgram(popts);
+      try {
+        final ContextOptions copts = new ContextOptions();
+// FIXME: scary, do these become 2^64-1 when cast to unit64?
+        copts.TraceBegin = Long.MIN_VALUE;
+        copts.TraceEnd = Long.MIN_VALUE;
+
+        final ContextHandle hCtx = hProg.createContext(copts);
+        hCtx.destroy();
+
+        final byte[] buf = "a".getBytes("ASCII");
+        final HitCallback cb = new DummyCallback();
+
+        hCtx.search(buf, 0, buf.length, 0, cb);
+      }
+      finally {
+        hProg.destroy();
+      }
+    }
+    finally {
+      hParser.destroy();
+    }
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void noCloseoutSearchAfterDestroyContextTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(4);
+    try {
+      final KeyOptions kopts = new KeyOptions();
+      kopts.FixedString = false;
+      kopts.CaseInsensitive = false;
+
+      hParser.addKeyword("meh", 0, kopts, "ASCII");
+
+      final ProgramOptions popts = new ProgramOptions();
+      popts.Determinize = true;
+
+      final ProgramHandle hProg = hParser.createProgram(popts);
+      try {
+        final ContextOptions copts = new ContextOptions();
+// FIXME: scary, do these become 2^64-1 when cast to unit64?
+        copts.TraceBegin = Long.MIN_VALUE;
+        copts.TraceEnd = Long.MIN_VALUE;
+
+        final ContextHandle hCtx = hProg.createContext(copts);
+        hCtx.destroy();
+
+        final HitCallback cb = new DummyCallback();
+        hCtx.closeoutSearch(cb);
+      }
+      finally {
+        hProg.destroy();
+      }
+    }
+    finally {
+      hParser.destroy();
+    }
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void noStartsWithAfterDestroyContextTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(4);
+    try {
+      final KeyOptions kopts = new KeyOptions();
+      kopts.FixedString = false;
+      kopts.CaseInsensitive = false;
+
+      hParser.addKeyword("meh", 0, kopts, "ASCII");
+
+      final ProgramOptions popts = new ProgramOptions();
+      popts.Determinize = true;
+
+      final ProgramHandle hProg = hParser.createProgram(popts);
+      try {
+        final ContextOptions copts = new ContextOptions();
+// FIXME: scary, do these become 2^64-1 when cast to unit64?
+        copts.TraceBegin = Long.MIN_VALUE;
+        copts.TraceEnd = Long.MIN_VALUE;
+
+        final ContextHandle hCtx = hProg.createContext(copts);
+        hCtx.destroy();
+
+        final byte[] buf = "a".getBytes("ASCII");
+        final HitCallback cb = new DummyCallback();
+
+        hCtx.startsWith(buf, 0, buf.length, 0, cb);
       }
       finally {
         hProg.destroy();
