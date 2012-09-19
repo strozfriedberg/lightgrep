@@ -6,7 +6,7 @@
 #include <sstream>
 #include <tuple>
 
-static const char* ALL_IS_LOST = "You fucked it up! Her life was in your hands!";
+static const char* ALL_IS_LOST = "Fuck it, Dude. Let's go bowling.";
 
 static const char* programHandleClassName = "com/lightboxtechnologies/lightgrep/ProgramHandle";
 static const char* contextHandleClassName = "com/lightboxtechnologies/lightgrep/ContextHandle";
@@ -19,14 +19,6 @@ static const char* indexOutOfBoundsExceptionClassName = "java/lang/IndexOutOfBou
 static const char* outOfMemoryErrorClassName = "java/lang/OutOfMemoryError";
 static const char* keywordExceptionClassName = "com/lightboxtechnologies/lightgrep/KeywordException";
 static const char* programExceptionClassName = "com/lightboxtechnologies/lightgrep/ProgramException";
-
-// FIXME: throws
-// NewObject
-// CallVoidMethod
-
-// FIXME: failng return values
-// GetPrimitiveArrayCritical == nullptr
-// NewObject == nullptr
 
 //
 // We cache field and method IDs in static init() methods for each class,
@@ -237,7 +229,6 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
 
   if (!kw) {
     // FIXME: does this mean an OOME has been thrown already?
-    throwException(env, outOfMemoryErrorClassName, "");
     return 0;
   }
 
@@ -253,7 +244,6 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
 
   if (!enc) {
     // FIXME: does this mean an OOME has been thrown already?
-    throwException(env, outOfMemoryErrorClassName, "");
     return 0;
   }
 
@@ -349,6 +339,11 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
     std::bind(&JNIEnv::ReleasePrimitiveArrayCritical, env, buffer, _1, 0)
   );
 
+  if (!data) {
+    // FIXME: does this mean an OOME has been thrown already?
+    return;
+  }
+
   // finally actually do something
   lg_write_program(ptr, reinterpret_cast<char*>(data.get()) + (uint32) offset);
 }
@@ -376,6 +371,11 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     env->GetPrimitiveArrayCritical(buffer, nullptr),
     std::bind(&JNIEnv::ReleasePrimitiveArrayCritical, env, buffer, _1, 0)
   );
+
+  if (!data) {
+    // FIXME: does this mean an OOME has been thrown already?
+    return nullptr;
+  }
 
   char* buf = reinterpret_cast<char*>(data.get()) + (uint32) offset;
 
@@ -485,7 +485,10 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
     std::bind(&JNIEnv::ReleasePrimitiveArrayCritical, env, buffer, _1, JNI_ABORT)
   );
 
-// FIXME: check for OOM. Wtf do we do then?
+  if (!data) {
+    // FIXME: does this mean an OOME has been thrown already?
+    return 0;
+  }
     
   const char* buf = reinterpret_cast<const char*>(data.get()) + offset;
  
@@ -549,7 +552,10 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
     std::bind(&JNIEnv::ReleasePrimitiveArrayCritical, env, buffer, _1, JNI_ABORT)
   );
 
-// FIXME: check for OOM. Wtf do we do then?
+  if (!data) {
+    // FIXME: does this mean an OOME has been thrown already?
+    return;
+  }
 
   const char* buf = reinterpret_cast<const char*>(data.get()) + offset;
 
