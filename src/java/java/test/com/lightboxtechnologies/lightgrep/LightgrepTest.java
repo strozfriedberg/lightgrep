@@ -897,6 +897,51 @@ public class LightgrepTest {
     }
   }
 
+  private static class CallbackExploder implements HitCallback {
+    public void callback(SearchHit hit) {
+      throw new RuntimeException("Out of cheese");
+    }
+  }
+
+  @Test(expected=RuntimeException.class)
+  public void searchBadCallbackTest() throws Exception {
+    final ParserHandle hParser = new ParserHandle(4);
+    try {
+      final KeyOptions kopts = new KeyOptions();
+      kopts.FixedString = false;
+      kopts.CaseInsensitive = false;
+
+      hParser.addKeyword("a+b", 0, kopts, "ASCII");
+
+      final ProgramOptions popts = new ProgramOptions();
+      popts.Determinize = true;        
+
+      final ProgramHandle hProg = hParser.createProgram(popts);
+      try {
+        ContextOptions copts = new ContextOptions();
+// FIXME: scary, do these become 2^64-1 when cast to unit64?
+        copts.TraceBegin = Long.MIN_VALUE;
+        copts.TraceEnd = Long.MIN_VALUE;
+
+        final ContextHandle hCtx = hProg.createContext(copts);
+        try {
+          final byte[] buf = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
+
+          hCtx.search(buf, 0, buf.length, 0, new CallbackExploder());
+        }
+        finally {
+          hCtx.destroy();
+        }
+      }
+      finally {
+        hProg.destroy();
+      }
+    }
+    finally {
+      hParser.destroy();
+    }
+  }
+
   @Test
   public void startsWithNoHitsTest() throws Exception {
     final ParserHandle hParser = new ParserHandle(4);
