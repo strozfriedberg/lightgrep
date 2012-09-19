@@ -6,6 +6,8 @@
 #include <sstream>
 #include <tuple>
 
+static const char* ALL_IS_LOST = "You fucked it up! Her life was in your hands!";
+
 static const char* programHandleClassName = "com/lightboxtechnologies/lightgrep/ProgramHandle";
 static const char* contextHandleClassName = "com/lightboxtechnologies/lightgrep/ContextHandle";
 
@@ -14,8 +16,17 @@ static const char* searchHitClassName = "com/lightboxtechnologies/lightgrep/Sear
 
 static const char* nullPointerExceptionClassName = "java/lang/NullPointerException";
 static const char* indexOutOfBoundsExceptionClassName = "java/lang/IndexOutOfBoundsException";
+static const char* outOfMemoryErrorClassName = "java/lang/OutOfMemoryError";
 static const char* keywordExceptionClassName = "com/lightboxtechnologies/lightgrep/KeywordException";
 static const char* programExceptionClassName = "com/lightboxtechnologies/lightgrep/ProgramException";
+
+// FIXME: throws
+// NewObject
+// CallVoidMethod
+
+// FIXME: failng return values
+// GetPrimitiveArrayCritical == nullptr
+// NewObject == nullptr
 
 //
 // We cache field and method IDs in static init() methods for each class,
@@ -32,7 +43,9 @@ static jfieldID programHandlePointerField;
 static jmethodID programHandleCtor;
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_init(JNIEnv* env, jclass cl) {
-  programHandleCtor = env->GetMethodID(cl, "<init>", "(J)V"); 
+  programHandleCtor = env->GetMethodID(cl, "<init>", "(J)V");
+  if (env->ExceptionCheck()) return;
+
   programHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
 }
 
@@ -41,6 +54,8 @@ static jmethodID contextHandleCtor;
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_init(JNIEnv* env, jclass cl) {
   contextHandleCtor = env->GetMethodID(cl, "<init>", "(J)V");
+  if (env->ExceptionCheck()) return;
+
   contextHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
 }
 
@@ -49,6 +64,8 @@ static jfieldID keyOptionsCaseInsensitiveField;
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_KeyOptions_init(JNIEnv* env, jclass cl) {
   keyOptionsFixedStringField = env->GetFieldID(cl, "FixedString", "Z");
+  if (env->ExceptionCheck()) return;
+
   keyOptionsCaseInsensitiveField = env->GetFieldID(cl, "FixedString", "Z");
 }
 
@@ -63,6 +80,8 @@ static jfieldID contextOptionsTraceEndField;
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextOptions_init(JNIEnv* env, jclass cl) {
   contextOptionsTraceBeginField = env->GetFieldID(cl, "TraceBegin", "J");
+  if (env->ExceptionCheck()) return;
+
   contextOptionsTraceBeginField = env->GetFieldID(cl, "TraceEnd", "J");
 }
 
@@ -87,17 +106,33 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* jvm, void*) {
   // that HitCallback is unloaded and reloaded. The global reference blocks
   // this by preventing HitCallback from being unloaded.
   jclass cl = env->FindClass(hitCallbackClassName);
+  if (env->ExceptionCheck()) return JNI_ERR;
+
   hitCallbackClass = reinterpret_cast<jclass>(env->NewGlobalRef(cl));
+  if (!hitCallbackClass) return JNI_ERR;
+
   hitCallbackCallback = env->GetMethodID(hitCallbackClass, "callback", "(Lcom/lightboxtechnologies/lightgrep/SearchHit;)V");
+  if (env->ExceptionCheck()) return JNI_ERR;
 
   // We make a global reference for SearchHit to avoid calling FindClass
   // for it on every hit in the callbackShim.
   cl = env->FindClass(searchHitClassName);
+  if (env->ExceptionCheck()) return JNI_ERR;
+
   searchHitClass = reinterpret_cast<jclass>(env->NewGlobalRef(cl));
+  if (!searchHitClass) return JNI_ERR;
+
   searchHitCtor = env->GetMethodID(searchHitClass, "<init>", "(JJI)V");
+  if (env->ExceptionCheck()) return JNI_ERR;
+
   searchHitStartField = env->GetFieldID(searchHitClass, "Start", "J");
+  if (env->ExceptionCheck()) return JNI_ERR;
+
   searchHitEndField = env->GetFieldID(searchHitClass, "End", "J");
+  if (env->ExceptionCheck()) return JNI_ERR;
+
   searchHitKeywordIndexField = env->GetFieldID(searchHitClass, "KeywordIndex", "I");
+  if (env->ExceptionCheck()) return JNI_ERR;
 
   return JNI_VERSION_1_6;
 }
@@ -105,11 +140,22 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* jvm, void*) {
 JNIEXPORT void JNI_OnUnload(JavaVM* jvm, void*) {
   JNIEnv* env;
   if (jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
-// FIXME: uh, not sure what to do if this fails
+    // FIXME: Everything is hosed if this happens. We can't even throw an
+    // exception back into Java, since to do that we'd need a valid JNIEnv.
+    return;
   }
 
   env->DeleteGlobalRef(hitCallbackClass);
   env->DeleteGlobalRef(searchHitClass);
+}
+
+static void throwException(JNIEnv* env, const char* exClassName, const char* message) {
+  jclass ex = env->FindClass(exClassName);
+  if (!env->ExceptionCheck()) {
+    if (env->ThrowNew(ex, message)) {
+      env->FatalError(ALL_IS_LOST);
+    }
+  }
 }
 
 template <typename V>
@@ -118,10 +164,7 @@ static bool throwIfNull(JNIEnv* env, const char* varname, const V* var) {
     std::ostringstream ss;
     ss << varname << " == null";
 
-    env->ThrowNew(
-      env->FindClass(nullPointerExceptionClassName),
-      ss.str().c_str()
-    );
+    throwException(env, nullPointerExceptionClassName, ss.str().c_str());
     return true;
   }
   else {
@@ -135,10 +178,7 @@ static bool throwIfNegative(JNIEnv* env, const char* varname, V var) {
     std::ostringstream ss;
     ss << varname << " == " << var << " < 0";
 
-    env->ThrowNew(
-      env->FindClass(indexOutOfBoundsExceptionClassName),
-      ss.str().c_str()
-    );
+    throwException(env, indexOutOfBoundsExceptionClassName, ss.str().c_str());
     return true;
   }
   else {
@@ -156,10 +196,7 @@ static bool throwIfBufferTooSmall(JNIEnv* env, const char* bufname, jbyteArray b
        << bufname << ".length - " << offname << " < "
        << sname << " == " << size;
 
-    env->ThrowNew(
-      env->FindClass(indexOutOfBoundsExceptionClassName),
-      ss.str().c_str()
-    );
+    throwException(env, indexOutOfBoundsExceptionClassName, ss.str().c_str());
     return true;
   }
   else {
@@ -187,7 +224,9 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
   }
 
   // convert all of the Java objects to C
-  jlong ptr = env->GetLongField(hParser, parserHandlePointerField);
+  LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
+    env->GetLongField(hParser, parserHandlePointerField)
+  );
 
   using namespace std::placeholders;
 
@@ -195,6 +234,12 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
     env->GetStringUTFChars(keyword, nullptr),
     std::bind(&JNIEnv::ReleaseStringUTFChars, env, keyword, _1)
   );
+
+  if (!kw) {
+    // FIXME: does this mean an OOME has been thrown already?
+    throwException(env, outOfMemoryErrorClassName, "");
+    return 0;
+  }
 
   LG_KeyOptions opts{
     env->GetBooleanField(options, keyOptionsFixedStringField) != 0,
@@ -206,9 +251,15 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
     std::bind(&JNIEnv::ReleaseStringUTFChars, env, encoding, _1)
   );
 
+  if (!enc) {
+    // FIXME: does this mean an OOME has been thrown already?
+    throwException(env, outOfMemoryErrorClassName, "");
+    return 0;
+  }
+
   // finally actually do something
   const int ret = lg_add_keyword(
-    reinterpret_cast<LG_HPARSER>(ptr),
+    ptr,
     kw.get(),
     std::strlen(kw.get()),
     (uint32) keyIndex,
@@ -217,13 +268,17 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
   );
 
   if (!ret) {
-    env->ThrowNew(
-      env->FindClass(keywordExceptionClassName),
-      lg_error(reinterpret_cast<LG_HPARSER>(ptr))
-    );
+    throwException(env, keywordExceptionClassName, lg_error(ptr));
   }
 
   return ret;
+}
+
+static jobject makeProgramHandle(JNIEnv* env, LG_HPROGRAM hProg) {
+  jclass cl = env->FindClass(programHandleClassName);
+  if (env->ExceptionCheck()) return nullptr;
+
+  return env->NewObject(cl, programHandleCtor, reinterpret_cast<jlong>(hProg));
 }
 
 JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_createProgram(JNIEnv* env, jobject hParser, jobject options) {
@@ -245,17 +300,10 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_c
   LG_HPROGRAM hProg = lg_create_program(ptr, &opts);
 // FIXME: don't use lg_ok
   if (lg_ok(hProg)) {
-    return env->NewObject(
-      env->FindClass(programHandleClassName),
-      programHandleCtor,
-      reinterpret_cast<jlong>(hProg)
-    );
+    return makeProgramHandle(env, hProg);
   }
   else {
-    env->ThrowNew(
-      env->FindClass(keywordExceptionClassName),
-      lg_error(reinterpret_cast<LG_HPARSER>(ptr))
-    );
+    throwException(env, keywordExceptionClassName, lg_error(hProg));
     return nullptr;
   }
 }
@@ -334,19 +382,19 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
   // finally actually do something
   LG_HPROGRAM hProg = lg_read_program(buf, (uint32) size);
   if (lg_ok(hProg)) {
-    return env->NewObject(
-      env->FindClass(programHandleClassName),
-      programHandleCtor,
-      reinterpret_cast<jlong>(hProg)
-    );
+    return makeProgramHandle(env, hProg);
   }
   else {
-    env->ThrowNew(
-      env->FindClass(programExceptionClassName),
-      lg_error(hProg)
-    );
+    throwException(env, programExceptionClassName, lg_error(hProg));
     return nullptr;
   }
+}
+
+static jobject makeContextHandle(JNIEnv* env, LG_HCONTEXT hCtx) {
+  jclass cl = env->FindClass(contextHandleClassName);
+  if (env->ExceptionCheck()) return nullptr;
+
+  return env->NewObject(cl, contextHandleCtor, reinterpret_cast<jlong>(hCtx));
 }
 
 JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_createContext(JNIEnv* env, jobject hProg, jobject options) {
@@ -367,17 +415,10 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
 
   LG_HCONTEXT hCtx = lg_create_context(ptr, &opts);
   if (lg_ok(hCtx)) {
-    return env->NewObject(
-      env->FindClass(contextHandleClassName),
-      contextHandleCtor,
-      reinterpret_cast<jlong>(hCtx)
-    );
+    return makeContextHandle(env, hCtx);
   }
   else {
-    env->ThrowNew(
-      env->FindClass(programExceptionClassName),
-      lg_error(hCtx)
-    );
+    throwException(env, programExceptionClassName, lg_error(hCtx));
     return nullptr;
   }
 }
@@ -405,7 +446,13 @@ static void callbackShim(void* userData, const LG_SearchHit* const hit) {
     (jint) hit->KeywordIndex
   );
 
-  env->CallVoidMethod(cb, hitCallbackCallback, hobj);  
+// FIXME: is this actually effective?
+  if (env->ExceptionCheck()) return;
+  if (hobj == nullptr) env->FatalError(ALL_IS_LOST);
+  
+  env->CallVoidMethod(cb, hitCallbackCallback, hobj);
+// FIXME: do we need an exception check here? what about at the start
+// of this function?
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_search(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
