@@ -62,7 +62,7 @@ static void throwIfNegative(JNIEnv* env, const char* varname, V var) {
 }
 
 template <typename O, typename S>
-static void throwIfBufferTooSmall(JNIEnv* env, const char* bufname, jbyteArray buffer, const char* offname, O offset, const char* sname, S size) {
+static void throwIfByteArrayTooSmall(JNIEnv* env, const char* bufname, jbyteArray buffer, const char* offname, O offset, const char* sname, S size) {
   const jsize buflen = env->GetArrayLength(buffer);
   if (buflen - offset < size) {
     std::ostringstream ss;
@@ -386,7 +386,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
     );
     throwIfDestroyed(env, ptr);
 
-    throwIfBufferTooSmall(
+    throwIfByteArrayTooSmall(
       env,
       "buffer", buffer,
       "offset", offset,
@@ -421,7 +421,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     throwIfNull(env, "buffer", buffer);
     throwIfNegative(env, "offset", offset);
     throwIfNegative(env, "size", size);
-    throwIfBufferTooSmall(
+    throwIfByteArrayTooSmall(
       env,
       "buffer", buffer,
       "offset", offset,
@@ -547,7 +547,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
     throwIfNull(env, "buffer", buffer);
     throwIfNegative(env, "offset", offset);
     throwIfNegative(env, "size", size);
-    throwIfBufferTooSmall(
+    throwIfByteArrayTooSmall(
       env,
       "buffer", buffer,
       "offset", offset,
@@ -619,7 +619,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
     throwIfNull(env, "buffer", buffer);
     throwIfNegative(env, "offset", offset);
     throwIfNegative(env, "size", size);
-    throwIfBufferTooSmall(
+    throwIfByteArrayTooSmall(
       env,
       "buffer", buffer,
       "offset", offset,
