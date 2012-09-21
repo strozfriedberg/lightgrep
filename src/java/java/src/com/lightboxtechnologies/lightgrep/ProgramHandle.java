@@ -1,5 +1,7 @@
 package com.lightboxtechnologies.lightgrep;
 
+import static com.lightboxtechnologies.lightgrep.Throws.*;
+
 public class ProgramHandle implements Handle {
   static {
     LibraryLoader.init();
@@ -22,17 +24,35 @@ public class ProgramHandle implements Handle {
    * @throws IndexOutOfBoundsException
    * @throws NullPointerException
    */
-  public native void write(byte[] buffer, int offset);
+  public void write(byte[] buffer, int offset) {
+    throwIfNull("buffer", buffer);
+    throwIfNegative("offset", offset);
+    writeImpl(buffer, offset);
+  }
+
+  private native void writeImpl(byte[] buffer, int offset);
 
   /**
    * @throws IndexOutOfBoundsException 
    * @throws NullPointerException
    */
-  public static native ProgramHandle read(byte[] buffer, int offset, int size);
+  public static ProgramHandle read(byte[] buffer, int offset, int size) {
+    throwIfNull("buffer", buffer);
+    throwIfNegative("offset", offset);
+    throwIfNegative("size", size);
+    return readImpl(buffer, offset, size);
+  }
+
+  private static native ProgramHandle readImpl(byte[] buffer, int offset, int size);
 
   /**
    * @throws IllegalStateException
    * @throws NullPointerException
    */
-  public native ContextHandle createContext(ContextOptions options);
+  public ContextHandle createContext(ContextOptions options) {
+    throwIfNull("options", options);
+    return createContextImpl(options);
+  }
+
+  private native ContextHandle createContextImpl(ContextOptions options);
 }

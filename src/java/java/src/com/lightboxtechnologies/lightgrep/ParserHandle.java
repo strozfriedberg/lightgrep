@@ -1,5 +1,7 @@
 package com.lightboxtechnologies.lightgrep;
 
+import static com.lightboxtechnologies.lightgrep.Throws.*;
+
 public class ParserHandle implements Handle {
   static {
     LibraryLoader.init();
@@ -23,6 +25,11 @@ public class ParserHandle implements Handle {
 
   private static native long create(int numFsmStateSizeHint);
 
+  /**
+   * Releases resources held by the {@code ParserHandle}. {@code destroy()}
+   * is idempotent. Other methods <b>MUST NOT</b> be called on a
+   * {@code ParserHandle} which has been destroyed.
+   */
   public native void destroy();
  
   /**
@@ -31,12 +38,25 @@ public class ParserHandle implements Handle {
    * @throws KeywordException
    * @throws NullPointerException
    */ 
-  public native int addKeyword(String keyword, int keyIndex, KeyOptions options, String encoding) throws KeywordException;
+  public int addKeyword(String keyword, int keyIndex, KeyOptions options, String encoding) throws KeywordException {
+    throwIfNull("keyword", keyword);
+    throwIfNegative("keyIndex", keyIndex); 
+    throwIfNull("options", options);
+    throwIfNull("encoding", encoding);
+    return addKeywordImpl(keyword, keyIndex, options, encoding);
+  }
+
+  private native int addKeywordImpl(String keyword, int keyIndex, KeyOptions options, String encoding) throws KeywordException;
 
   /**
    * @throws IllegalStateException
    * @throws KeywordException
    * @throws NullPointerException
    */
-  public native ProgramHandle createProgram(ProgramOptions options) throws KeywordException;
+  public ProgramHandle createProgram(ProgramOptions options) throws KeywordException {
+    throwIfNull("options", options);
+    return createProgramImpl(options);
+  }
+
+  private native ProgramHandle createProgramImpl(ProgramOptions options) throws KeywordException;
 }

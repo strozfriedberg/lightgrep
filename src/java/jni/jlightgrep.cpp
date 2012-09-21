@@ -248,14 +248,8 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_dest
   }
 }
 
-JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addKeyword(JNIEnv* env, jobject hParser, jstring keyword, jint keyIndex, jobject options, jstring encoding) {
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addKeywordImpl(JNIEnv* env, jobject hParser, jstring keyword, jint keyIndex, jobject options, jstring encoding) {
   try {
-    // validate all of the arguments so we don't crash the JVM
-    throwIfNull(env, "keyword", keyword);
-    throwIfNegative(env, "keyIndex", keyIndex);
-    throwIfNull(env, "options", options);
-    throwIfNull(env, "encoding", encoding);
-
     // convert all of the Java objects to C
     LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
       env->GetLongField(hParser, parserHandlePointerField)
@@ -324,11 +318,8 @@ static jobject makeProgramHandle(JNIEnv* env, LG_HPROGRAM hProg) {
   return obj;
 }
 
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_createProgram(JNIEnv* env, jobject hParser, jobject options) {
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_createProgramImpl(JNIEnv* env, jobject hParser, jobject options) {
   try {
-    // validate all of the arguments so we don't crash the JVM
-    throwIfNull(env, "options", options);
-  
     // convert all of the Java objects to C
     LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
       env->GetLongField(hParser, parserHandlePointerField)
@@ -375,12 +366,9 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_siz
   }
 }
 
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_write(JNIEnv* env, jobject hProg, jbyteArray buffer, jint offset) {
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_writeImpl(JNIEnv* env, jobject hProg, jbyteArray buffer, jint offset) {
   try {
     // validate all of the arguments so we don't crash the JVM
-    throwIfNull(env, "buffer", buffer);
-    throwIfNegative(env, "offset", offset);
-
     LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
       env->GetLongField(hProg, programHandlePointerField)
     );
@@ -415,12 +403,9 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
   }
 }
 
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_read(JNIEnv* env, jclass, jbyteArray buffer, jint offset, jint size) {
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_readImpl(JNIEnv* env, jclass, jbyteArray buffer, jint offset, jint size) {
   try {
     // validate all of the arguments so we don't crash the JVM
-    throwIfNull(env, "buffer", buffer);
-    throwIfNegative(env, "offset", offset);
-    throwIfNegative(env, "size", size);
     throwIfByteArrayTooSmall(
       env,
       "buffer", buffer,
@@ -469,11 +454,8 @@ static jobject makeContextHandle(JNIEnv* env, LG_HCONTEXT hCtx) {
   return obj;
 }
 
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_createContext(JNIEnv* env, jobject hProg, jobject options) {
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_createContextImpl(JNIEnv* env, jobject hProg, jobject options) {
   try {
-    // validate all of the arguments so we don't crash the JVM
-    throwIfNull(env, "options", options);
-  
     // convert all of the Java objects to C
     LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
       env->GetLongField(hProg, programHandlePointerField)
@@ -541,20 +523,15 @@ static void callbackShim(void* userData, const LG_SearchHit* const hit) {
   throwIfException(env);
 }
 
-JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_search(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_searchImpl(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
   try {
     // validate all of the arguments so we don't crash the JVM
-    throwIfNull(env, "buffer", buffer);
-    throwIfNegative(env, "offset", offset);
-    throwIfNegative(env, "size", size);
     throwIfByteArrayTooSmall(
       env,
       "buffer", buffer,
       "offset", offset,
       "size", size
     );
-    throwIfNegative(env, "startOffset", startOffset);
-    throwIfNull(env, "callback", callback);
 
     // convert all of the Java objects to C
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
@@ -593,11 +570,8 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
   }
 }
 
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_closeoutSearch(JNIEnv* env, jobject hCtx, jobject callback) {
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_closeoutSearchImpl(JNIEnv* env, jobject hCtx, jobject callback) {
   try {
-    // validate all of the arguments so we don't crash the JVM
-    throwIfNull(env, "callback", callback);
-
     // convert all of the Java objects to C
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, contextHandlePointerField)
@@ -613,20 +587,15 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_clo
   }
 }
 
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_startsWith(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_startsWithImpl(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
   try {
     // validate all of the arguments so we don't crash the JVM
-    throwIfNull(env, "buffer", buffer);
-    throwIfNegative(env, "offset", offset);
-    throwIfNegative(env, "size", size);
     throwIfByteArrayTooSmall(
       env,
       "buffer", buffer,
       "offset", offset,
       "size", size
     );
-    throwIfNegative(env, "startOffset", startOffset);
-    throwIfNull(env, "callback", callback);
 
     // convert all of the Java objects to C
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
