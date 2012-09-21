@@ -16,9 +16,6 @@ static const char* contextHandleClassName = "com/lightboxtechnologies/lightgrep/
 static const char* hitCallbackClassName = "com/lightboxtechnologies/lightgrep/HitCallback";
 static const char* searchHitClassName = "com/lightboxtechnologies/lightgrep/SearchHit";
 
-static const char* nullPointerExceptionClassName = "java/lang/NullPointerException";
-static const char* illegalStateExceptionClassName = "java/lang/IllegalStateException";
-static const char* indexOutOfBoundsExceptionClassName = "java/lang/IndexOutOfBoundsException";
 static const char* keywordExceptionClassName = "com/lightboxtechnologies/lightgrep/KeywordException";
 static const char* programExceptionClassName = "com/lightboxtechnologies/lightgrep/ProgramException";
 
@@ -394,7 +391,7 @@ static jobject makeContextHandle(JNIEnv* env, LG_HCONTEXT hCtx) {
   return obj;
 }
 
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_createContextImpl(JNIEnv* env, jobject hProg, jobject options) {
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_createContextImpl(JNIEnv* env, jobject hProg, jobject) {
   try {
     // convert all of the Java objects to C
     LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
