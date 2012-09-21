@@ -41,20 +41,6 @@ static void throwException(JNIEnv* env, const char* exClassName, const char* mes
   throw PendingException();
 }
 
-template <typename O, typename S>
-static void throwIfByteArrayTooSmall(JNIEnv* env, const char* bufname, jbyteArray buffer, const char* offname, O offset, const char* sname, S size) {
-  const jsize buflen = env->GetArrayLength(buffer);
-  if (buflen - offset < size) {
-    std::ostringstream ss;
-    ss << bufname << ".length == " << buflen << ", "
-       << offname << " == " << offset << ", "
-       << bufname << ".length - " << offname << " < "
-       << sname << " == " << size;
-
-    throwException(env, indexOutOfBoundsExceptionClassName, ss.str().c_str());
-  }
-}
-
 //
 // We cache field and method IDs in static init() methods for each class,
 // in order to ensure that they get reset if a class is reloaded.
@@ -334,19 +320,11 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_siz
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_writeImpl(JNIEnv* env, jobject hProg, jbyteArray buffer, jint offset) {
   try {
-    // validate all of the arguments so we don't crash the JVM
+    // convert all of the Java objects to C
     LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
       env->GetLongField(hProg, programHandlePointerField)
     );
 
-    throwIfByteArrayTooSmall(
-      env,
-      "buffer", buffer,
-      "offset", offset,
-      "program size", lg_program_size(ptr)
-    );
-
-    // convert all of the Java objects to C
     using namespace std::placeholders;
 
     std::unique_ptr<void,std::function<void(void*)>> data(
@@ -370,34 +348,31 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
 
 JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_readImpl(JNIEnv* env, jclass, jbyteArray buffer, jint offset, jint size) {
   try {
-    // validate all of the arguments so we don't crash the JVM
-    throwIfByteArrayTooSmall(
-      env,
-      "buffer", buffer,
-      "offset", offset,
-      "size", size
-    );
+    LG_HPROGRAM hProg = nullptr;
 
-    // convert all of the Java objects to C
-    using namespace std::placeholders;
+    {
+      // convert all of the Java objects to C
+      using namespace std::placeholders;
 
-    std::unique_ptr<void,std::function<void(void*)>> data(
-      env->GetPrimitiveArrayCritical(buffer, nullptr),
-      std::bind(&JNIEnv::ReleasePrimitiveArrayCritical, env, buffer, _1, 0)
-    );
+      std::unique_ptr<void,std::function<void(void*)>> data(
+        env->GetPrimitiveArrayCritical(buffer, nullptr),
+        std::bind(&JNIEnv::ReleasePrimitiveArrayCritical, env, buffer, _1, 0)
+      );
 
-    if (!data) {
-      // OutOfMemoryError already thrown
-      throw PendingException();
+      if (!data) {
+        // OutOfMemoryError already thrown
+        throw PendingException();
+      }
+
+      char* buf = reinterpret_cast<char*>(data.get()) + (uint32) offset;
+
+      // finally actually do something
+      hProg = lg_read_program(buf, (uint32) size);
+      if (!lg_ok(hProg)) {
+        throwException(env, programExceptionClassName, lg_error(hProg));
+      }
     }
 
-    char* buf = reinterpret_cast<char*>(data.get()) + (uint32) offset;
-
-    // finally actually do something
-    LG_HPROGRAM hProg = lg_read_program(buf, (uint32) size);
-    if (!lg_ok(hProg)) {
-      throwException(env, programExceptionClassName, lg_error(hProg));
-    }
     return makeProgramHandle(env, hProg);
   }
   catch (const PendingException&) {
@@ -488,14 +463,6 @@ static void callbackShim(void* userData, const LG_SearchHit* const hit) {
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_searchImpl(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
   try {
-    // validate all of the arguments so we don't crash the JVM
-    throwIfByteArrayTooSmall(
-      env,
-      "buffer", buffer,
-      "offset", offset,
-      "size", size
-    );
-
     // convert all of the Java objects to C
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, contextHandlePointerField)
@@ -550,14 +517,6 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_clo
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_startsWithImpl(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
   try {
-    // validate all of the arguments so we don't crash the JVM
-    throwIfByteArrayTooSmall(
-      env,
-      "buffer", buffer,
-      "offset", offset,
-      "size", size
-    );
-
     // convert all of the Java objects to C
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, contextHandlePointerField)

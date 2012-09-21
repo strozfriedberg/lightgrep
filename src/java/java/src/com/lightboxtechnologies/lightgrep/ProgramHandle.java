@@ -33,6 +33,9 @@ public class ProgramHandle extends Handle {
   public void write(byte[] buffer, int offset) {
     throwIfNull("buffer", buffer);
     throwIfNegative("offset", offset);
+    throwIfByteArrayTooSmall(
+      "buffer", buffer, "offset", offset, "program size", size()
+    );
     throwIfDestroyed(this);
     writeImpl(buffer, offset);
   }
@@ -47,6 +50,7 @@ public class ProgramHandle extends Handle {
     throwIfNull("buffer", buffer);
     throwIfNegative("offset", offset);
     throwIfNegative("size", size);
+    throwIfByteArrayTooSmall("buffer", buffer, "offset", offset, "size", size);
     return readImpl(buffer, offset, size);
   }
 

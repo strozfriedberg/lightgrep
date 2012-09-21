@@ -24,6 +24,7 @@ public class ContextHandle extends Handle {
     throwIfNull("buffer", buffer);
     throwIfNegative("offset", offset);
     throwIfNegative("size", size);
+    throwIfByteArrayTooSmall("buffer", buffer, "offset", offset, "size", size);
     throwIfNegative("startOffset", startOffset);
     throwIfNull("callback", callback);
     throwIfDestroyed(this);
@@ -48,7 +49,7 @@ public class ContextHandle extends Handle {
     throwIfNull("buffer", buffer);
     throwIfNegative("offset", offset);
     throwIfNegative("size", size);
-
+    throwIfByteArrayTooSmall("buffer", buffer, "offset", offset, "size", size);
     throwIfNegative("startOffset", startOffset);
     throwIfNull("callback", callback);
     throwIfDestroyed(this);

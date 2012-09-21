@@ -26,4 +26,15 @@ class Throws {
       );
     }
   }
+
+  public static void throwIfByteArrayTooSmall(String bufname, byte[] buffer, String offname, int offset, String sname, int size) {
+  if (buffer.length - offset < size) {
+    throw new IndexOutOfBoundsException(
+      bufname + ".length == " + buffer.length + ", " +
+      offname + " == " + offset + ", " +
+      bufname + ".length - " + offname + " < " +
+      sname + " == " + size
+    );
+  }
+}
 }
