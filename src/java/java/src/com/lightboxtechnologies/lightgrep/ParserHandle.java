@@ -7,8 +7,6 @@ public class ParserHandle extends Handle {
     LibraryLoader.init();
   }
 
-  static native void init();
-
   /**
    * @throws IllegalArgumentException
    */

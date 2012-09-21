@@ -1,6 +1,12 @@
 package com.lightboxtechnologies.lightgrep;
 
 abstract class Handle {
+  static {
+    LibraryLoader.init();
+  }
+
+  static native void init();
+
   Handle(long ptr) {
     Pointer = ptr;
   }
