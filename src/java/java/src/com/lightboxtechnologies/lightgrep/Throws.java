@@ -18,4 +18,12 @@ class Throws {
       throw new IndexOutOfBoundsException(varname + " == " + var + " < 0");
     }
   }
+
+  public static void throwIfDestroyed(Handle h) {
+    if (h.isDestroyed()) {
+      throw new IllegalStateException(
+        "Tried calling method on destroyed handle"
+      );
+    }
+  }
 }

@@ -2,17 +2,15 @@ package com.lightboxtechnologies.lightgrep;
 
 import static com.lightboxtechnologies.lightgrep.Throws.*;
 
-public class ContextHandle implements Handle {
+public class ContextHandle extends Handle {
   static {
     LibraryLoader.init();
   }
 
   static native void init();
 
-  private final long Pointer;
-
   private ContextHandle(long ptr) {
-    Pointer = ptr;
+    super(ptr);
   }
 
   public native void destroy();
@@ -28,12 +26,18 @@ public class ContextHandle implements Handle {
     throwIfNegative("size", size);
     throwIfNegative("startOffset", startOffset);
     throwIfNull("callback", callback);
+    throwIfDestroyed(this);
     startsWithImpl(buffer, offset, size, startOffset, callback);
   }
 
   private native void startsWithImpl(byte[] buffer, int offset, int size, long startOffset, HitCallback callback);
 
-  public native void reset();
+  public void reset() {
+    throwIfDestroyed(this);
+    resetImpl();
+  }
+
+  private native void resetImpl();
 
   /**
    * @throws IllegalStateException
@@ -47,6 +51,7 @@ public class ContextHandle implements Handle {
 
     throwIfNegative("startOffset", startOffset);
     throwIfNull("callback", callback);
+    throwIfDestroyed(this);
     return searchImpl(buffer, offset, size, startOffset, callback);
   }
 
@@ -58,6 +63,7 @@ public class ContextHandle implements Handle {
    */
   public void closeoutSearch(HitCallback callback) {
     throwIfNull("callback", callback);
+    throwIfDestroyed(this);
     closeoutSearchImpl(callback);
   }
 

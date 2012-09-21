@@ -2,24 +2,25 @@ package com.lightboxtechnologies.lightgrep;
 
 import static com.lightboxtechnologies.lightgrep.Throws.*;
 
-public class ParserHandle implements Handle {
+public class ParserHandle extends Handle {
   static {
     LibraryLoader.init();
   }
 
   static native void init();
 
-  private final long Pointer;
-
   /**
    * @throws IllegalArgumentException
    */
   public ParserHandle(int numFsmStateSizeHint) {
+    super(0);
+
     if (numFsmStateSizeHint < 0) {
       throw new IllegalArgumentException(
         "numFsmStateSizeHint == " + numFsmStateSizeHint + " < 0"
       );
     }
+
     Pointer = ParserHandle.create(numFsmStateSizeHint);
   }
 
@@ -43,6 +44,7 @@ public class ParserHandle implements Handle {
     throwIfNegative("keyIndex", keyIndex); 
     throwIfNull("options", options);
     throwIfNull("encoding", encoding);
+    throwIfDestroyed(this);
     return addKeywordImpl(keyword, keyIndex, options, encoding);
   }
 
@@ -55,6 +57,7 @@ public class ParserHandle implements Handle {
    */
   public ProgramHandle createProgram(ProgramOptions options) throws KeywordException {
     throwIfNull("options", options);
+    throwIfDestroyed(this);
     return createProgramImpl(options);
   }
 

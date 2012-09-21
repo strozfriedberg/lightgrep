@@ -2,22 +2,28 @@ package com.lightboxtechnologies.lightgrep;
 
 import static com.lightboxtechnologies.lightgrep.Throws.*;
 
-public class ProgramHandle implements Handle {
+public class ProgramHandle extends Handle {
   static {
     LibraryLoader.init();
   }
 
   static native void init();
 
-  private final long Pointer;
-
   private ProgramHandle(long ptr) {
-    Pointer = ptr;
+    super(ptr);
   }
 
   public native void destroy();
 
-  public native int size();
+  /**
+   * @throws IllegalStateException
+   */
+  public int size() {
+    throwIfDestroyed(this);
+    return sizeImpl();
+  }
+
+  private native int sizeImpl();
 
   /**
    * @throws IllegalStateException
@@ -27,6 +33,7 @@ public class ProgramHandle implements Handle {
   public void write(byte[] buffer, int offset) {
     throwIfNull("buffer", buffer);
     throwIfNegative("offset", offset);
+    throwIfDestroyed(this);
     writeImpl(buffer, offset);
   }
 
@@ -51,6 +58,7 @@ public class ProgramHandle implements Handle {
    */
   public ContextHandle createContext(ContextOptions options) {
     throwIfNull("options", options);
+    throwIfDestroyed(this);
     return createContextImpl(options);
   }
 

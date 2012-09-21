@@ -41,26 +41,6 @@ static void throwException(JNIEnv* env, const char* exClassName, const char* mes
   throw PendingException();
 }
 
-template <typename V>
-static void throwIfNull(JNIEnv* env, const char* varname, const V* var) {
-  if (var == nullptr) {
-    std::ostringstream ss;
-    ss << varname << " == null";
-
-    throwException(env, nullPointerExceptionClassName, ss.str().c_str());
-  }
-}
-
-template <typename V>
-static void throwIfNegative(JNIEnv* env, const char* varname, V var) {
-  if (var < 0) {
-    std::ostringstream ss;
-    ss << varname << " == " << var << " < 0";
-
-    throwException(env, indexOutOfBoundsExceptionClassName, ss.str().c_str());
-  }
-}
-
 template <typename O, typename S>
 static void throwIfByteArrayTooSmall(JNIEnv* env, const char* bufname, jbyteArray buffer, const char* offname, O offset, const char* sname, S size) {
   const jsize buflen = env->GetArrayLength(buffer);
@@ -72,17 +52,6 @@ static void throwIfByteArrayTooSmall(JNIEnv* env, const char* bufname, jbyteArra
        << sname << " == " << size;
 
     throwException(env, indexOutOfBoundsExceptionClassName, ss.str().c_str());
-  }
-}
-
-template <typename V>
-static void throwIfDestroyed(JNIEnv* env, const V* ptr) {
-  if (!ptr) {
-    throwException(
-      env,
-      illegalStateExceptionClassName,
-      "Tried calling method on destroyed handle"
-    );
   }
 }
 
@@ -254,7 +223,6 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
     LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
       env->GetLongField(hParser, parserHandlePointerField)
     );
-    throwIfDestroyed(env, ptr); 
 
     using namespace std::placeholders;
 
@@ -324,7 +292,6 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_c
     LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
       env->GetLongField(hParser, parserHandlePointerField)
     );
-    throwIfDestroyed(env, ptr); 
 
     LG_ProgramOptions opts{
       env->GetBooleanField(options, programOptionsDeterminizeField) != 0
@@ -353,12 +320,11 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_des
   }
 }
 
-JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_size(JNIEnv* env, jobject hProg) {
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_sizeImpl(JNIEnv* env, jobject hProg) {
   try {
     LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
       env->GetLongField(hProg, programHandlePointerField)
     );
-    throwIfDestroyed(env, ptr);
     return lg_program_size(ptr);
   }
   catch (const PendingException&) {
@@ -372,7 +338,6 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
     LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
       env->GetLongField(hProg, programHandlePointerField)
     );
-    throwIfDestroyed(env, ptr);
 
     throwIfByteArrayTooSmall(
       env,
@@ -460,7 +425,6 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
       env->GetLongField(hProg, programHandlePointerField)
     );
-    throwIfDestroyed(env, ptr);
 
     LG_ContextOptions opts{
       std::numeric_limits<uint64>::max(),
@@ -488,12 +452,11 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_des
   }
 }
 
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_reset(JNIEnv* env, jobject hCtx) {
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_resetImpl(JNIEnv* env, jobject hCtx) {
   try {
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, contextHandlePointerField)
     );
-    throwIfDestroyed(env, ptr);
     lg_reset_context(ptr);
   }
   catch (const PendingException&) {
@@ -537,7 +500,6 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, contextHandlePointerField)
     );
-    throwIfDestroyed(env, ptr);
 
     using namespace std::placeholders;
 
@@ -576,7 +538,6 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_clo
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, contextHandlePointerField)
     );
-    throwIfDestroyed(env, ptr);
 
     std::tuple<JNIEnv*,jobject> userData{env, callback};
 
@@ -601,7 +562,6 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, contextHandlePointerField)
     );
-    throwIfDestroyed(env, ptr);
 
     using namespace std::placeholders;
 
