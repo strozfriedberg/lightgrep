@@ -11,6 +11,5 @@ class LibraryLoader {
     
     KeyOptions.init();
     ProgramOptions.init();
-    ContextOptions.init();
   }
 }

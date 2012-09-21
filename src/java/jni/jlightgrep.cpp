@@ -102,13 +102,6 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramOptions_in
   }
 }
 
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextOptions_init(JNIEnv*, jclass) {
-  try {
-  }
-  catch (const PendingJavaException&) {
-  } 
-}
-
 static jclass hitCallbackClass;
 static jmethodID hitCallbackCallback;
 
