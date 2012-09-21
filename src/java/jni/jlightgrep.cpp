@@ -17,11 +17,11 @@ static const char* searchHitClassName = "com/lightboxtechnologies/lightgrep/Sear
 static const char* keywordExceptionClassName = "com/lightboxtechnologies/lightgrep/KeywordException";
 static const char* programExceptionClassName = "com/lightboxtechnologies/lightgrep/ProgramException";
 
-class PendingException {};
+class PendingJavaException {};
 
 void throwIfException(JNIEnv* env) {
   if (env->ExceptionCheck()) {
-    throw PendingException();
+    throw PendingJavaException();
   }
 }
 
@@ -33,7 +33,7 @@ static void throwException(JNIEnv* env, const char* exClassName, const char* mes
     }
   }
 
-  throw PendingException();
+  throw PendingJavaException();
 }
 
 //
@@ -48,7 +48,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_init
     parserHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
     throwIfException(env);
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
   }
 }
 
@@ -63,7 +63,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_ini
     programHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
     throwIfException(env);
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
   }
 }
 
@@ -78,7 +78,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_ini
     contextHandlePointerField = env->GetFieldID(cl, "Pointer", "J");
     throwIfException(env);
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
   }
 }
 
@@ -93,7 +93,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_KeyOptions_init(J
     keyOptionsCaseInsensitiveField = env->GetFieldID(cl, "FixedString", "Z");
     throwIfException(env); 
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
   }
 }
 
@@ -104,14 +104,14 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramOptions_in
     programOptionsDeterminizeField = env->GetFieldID(cl, "Determinize", "Z");
     throwIfException(env); 
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
   }
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextOptions_init(JNIEnv*, jclass) {
   try {
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
   } 
 }
 
@@ -128,7 +128,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* jvm, void*) {
   try {
     JNIEnv* env;
     if (jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
-      throw PendingException();
+      throw PendingJavaException();
     }
 
     // We make a global reference for HitCallback because it's not possible
@@ -140,7 +140,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* jvm, void*) {
     throwIfException(env);
 
     hitCallbackClass = reinterpret_cast<jclass>(env->NewGlobalRef(cl));
-    if (!hitCallbackClass) throw PendingException();
+    if (!hitCallbackClass) throw PendingJavaException();
 
     hitCallbackCallback = env->GetMethodID(hitCallbackClass, "callback", "(Lcom/lightboxtechnologies/lightgrep/SearchHit;)V");
     throwIfException(env);
@@ -167,7 +167,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* jvm, void*) {
 
     return JNI_VERSION_1_6;
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
     return JNI_ERR;
   }
 }
@@ -214,7 +214,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
 
     if (!kw) {
       // OutOfMemoryError already thrown
-      throw PendingException();
+      throw PendingJavaException();
     }
 
     LG_KeyOptions opts{
@@ -229,7 +229,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
 
     if (!enc) {
       // OutOfMemoryError already thrown
-      throw PendingException(); 
+      throw PendingJavaException(); 
     }
 
     // finally actually do something
@@ -248,7 +248,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
 
     return ret;
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
     return 0;
   }
 }
@@ -286,7 +286,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_c
     }
     return makeProgramHandle(env, hProg);
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
     return nullptr;
   }
 }
@@ -308,7 +308,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_siz
     );
     return lg_program_size(ptr);
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
     return -1;
   }
 }
@@ -329,7 +329,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
 
     if (!data) {
       // OutOfMemoryError already thrown
-      throw PendingException();
+      throw PendingJavaException();
     }
 
     char* buf = reinterpret_cast<char*>(data.get()) + (uint32) offset;
@@ -337,7 +337,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
     // finally actually do something
     lg_write_program(ptr, buf);
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
   }
 }
 
@@ -356,7 +356,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
 
       if (!data) {
         // OutOfMemoryError already thrown
-        throw PendingException();
+        throw PendingJavaException();
       }
 
       char* buf = reinterpret_cast<char*>(data.get()) + (uint32) offset;
@@ -370,7 +370,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
 
     return makeProgramHandle(env, hProg);
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
     return nullptr;
   }
 }
@@ -407,7 +407,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     }
     return makeContextHandle(env, hCtx);
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
     return nullptr;
   }
 }
@@ -429,7 +429,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_res
     );
     lg_reset_context(ptr);
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
   }
 }
 
@@ -472,7 +472,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
 
     if (!data) {
       // OutOfMemoryError already thrown
-      throw PendingException();
+      throw PendingJavaException();
     }
     
     const char* buf = reinterpret_cast<const char*>(data.get()) + offset;
@@ -489,7 +489,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
       callbackShim
     );
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
     return 0;
   }
 }
@@ -506,7 +506,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_clo
     // finally actually do something
     lg_closeout_search(ptr, &userData, callbackShim);
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
   }
 }
 
@@ -526,7 +526,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
 
     if (!data) {
       // OutOfMemoryError already thrown
-      throw PendingException();
+      throw PendingJavaException();
     }
 
     const char* buf = reinterpret_cast<const char*>(data.get()) + offset;
@@ -543,7 +543,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
       callbackShim
     );
   }
-  catch (const PendingException&) {
+  catch (const PendingJavaException&) {
   }
 }
 
