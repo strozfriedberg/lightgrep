@@ -521,9 +521,9 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
 
     using namespace std::placeholders;
 
-    std::unique_ptr<void,std::function<void(void*)>> data(
-      env->GetPrimitiveArrayCritical(buffer, nullptr),
-      std::bind(&JNIEnv::ReleasePrimitiveArrayCritical, env, buffer, _1, JNI_ABORT)
+    std::unique_ptr<jbyte,std::function<void(jbyte*)>> data(
+      env->GetByteArrayElements(buffer, nullptr),
+      std::bind(&JNIEnv::ReleaseByteArrayElements, env, buffer, _1, JNI_ABORT)
     );
 
     if (!data) {
