@@ -8,8 +8,6 @@
 
 static const char* ALL_IS_LOST = "Fuck it, Dude. Let's go bowling.";
 
-static const char* handleClassName = "com/lightboxtechnologies/lightgrep/Handle";
-
 static const char* programHandleClassName = "com/lightboxtechnologies/lightgrep/ProgramHandle";
 static const char* contextHandleClassName = "com/lightboxtechnologies/lightgrep/ContextHandle";
 
