@@ -4,8 +4,6 @@
 #include <functional>
 #include <limits>
 #include <memory>
-#include <sstream>
-#include <stdexcept>
 #include <tuple>
 
 static const char* ALL_IS_LOST = "Fuck it, Dude. Let's go bowling.";
