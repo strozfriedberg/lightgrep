@@ -184,7 +184,8 @@ void read_program(LG_HPROGRAM hProg, void* buffer, int size) {
 }
 
 int lg_program_size(LG_HPROGRAM hProg) {
-  return exception_trap(std::bind(&Program::bufSize, *hProg->Impl->Prog), hProg);
+//  return exception_trap(std::bind(&Program::bufSize, *hProg->Impl->Prog), hProg);
+  return hProg->Impl->Prog->bufSize();
 }
 
 LG_HPROGRAM lg_read_program(void* buffer, int size) {
