@@ -174,7 +174,7 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
 
 void write_program(LG_HPROGRAM hProg, void* buffer) {
   std::string buf = hProg->Impl->Prog->marshall();
-  memcpy(buffer, buf.data(), buf.size());
+  std::memcpy(buffer, buf.data(), buf.size());
 }
 
 void read_program(LG_HPROGRAM hProg, void* buffer, int size) {
