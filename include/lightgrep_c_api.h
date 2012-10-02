@@ -63,7 +63,7 @@ extern "C" {
     size_t length,                 // the length of the keyword, in bytes
     unsigned int keyIndex,         // unique for this keyword
     const LG_KeyOptions* options,  // parsing options
-    const char* Encoding           // Encoding of keyword to search for, using
+    const char* encoding           // Encoding of keyword to search for, using
     // IANA names c.f. http://www.iana.org/assignments/character-sets
     // encodings.h has the list of supported encodings
   );
@@ -79,7 +79,7 @@ extern "C" {
 
   // Serialize the program, in binary format, to a buffer. The buffer must be
   // at least as large as lg_program_size() in bytes.
-  void lg_write_program(void* buffer);
+  void lg_write_program(LG_HPROGRAM hProg, void* buffer);
 
   // Read in a serialized program, given the binary buffer and size. No
   // versioning check is done so don't keep these around too long.
