@@ -96,13 +96,10 @@ void create_parser_impl(LG_HPARSER hParser, unsigned int sizeHint) {
 }
 
 // TODO:
-// 1. Should API functions return 0 or < 0 on failure? 0
-// 2. Should all API functions return an error code?
-// 3. How should we indicate that (outer) handle deletion failed?
-// 4. ok() doesn't work, due to not resetting Impl on failure.
-// 5. Could we use boost::thread_specific_ptr for returning error strings?
-// 6. Use boost::thread_specific_ptr, get rid of inner handles.
-// 7. Add doxygen docs for C API.
+// * Review uses of exception_trap. We're likely using it in places where
+// it's not necessary.
+// * Get rid of the two-layer handle structure, let the user pass in an
+// error struct for error reporting.
 
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
   LG_HPARSER hParser = create_handle<ParserHandle>();
