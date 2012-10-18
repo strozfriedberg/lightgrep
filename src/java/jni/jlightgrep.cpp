@@ -221,7 +221,6 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addK
     const int ret = lg_add_keyword(
       ptr,
       kw.get(),
-      std::strlen(kw.get()),
       (uint32) keyIndex,
       &opts,
       enc.get()
