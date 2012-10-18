@@ -46,7 +46,6 @@ int main() {
     if (!lg_add_keyword(
       parser,
       keys[i],
-      strlen(keys[i]),
       i,
       &keyOpts,
       LG_CANONICAL_ENCODINGS[LG_ENC_ASCII]
