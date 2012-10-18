@@ -111,7 +111,6 @@ bool addPattern(
   if (lg_add_keyword(
     parser,
     pat.Expression.c_str(),
-    pat.Expression.size(),
     patIdx,
     &keyOpts,
     pat.Encoding.c_str()

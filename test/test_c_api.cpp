@@ -9,14 +9,19 @@ SCOPE_TEST(testDedupeOnDiffEncodings) {
   opts.FixedString = 1;
   opts.CaseInsensitive = 0;
 
-  lg_add_keyword(parser.get(), "apple", 5, 0, &opts, "ASCII");
-  lg_add_keyword(parser.get(), "apple", 5, 0, &opts, "UTF-8");
+  lg_add_keyword(parser.get(), "apple", 0, &opts, "ASCII");
+  lg_add_keyword(parser.get(), "apple", 0, &opts, "UTF-8");
 
   LG_ProgramOptions progOpts;
   progOpts.Determinize = 1;
-  std::shared_ptr<ProgramHandle> prog(lg_create_program(parser.get(), &progOpts),
-                                   lg_destroy_program);
 
-  std::shared_ptr<ContextHandle> ctx(lg_create_context(prog.get(), 0),
-                                    lg_destroy_context);
+  std::shared_ptr<ProgramHandle> prog(
+    lg_create_program(parser.get(), &progOpts),
+    lg_destroy_program
+  );
+
+  std::shared_ptr<ContextHandle> ctx(
+    lg_create_context(prog.get(), 0),
+    lg_destroy_context
+  );
 }

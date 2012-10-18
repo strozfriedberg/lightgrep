@@ -120,13 +120,12 @@ int lg_destroy_parser(LG_HPARSER hParser) {
 
 int lg_add_keyword(LG_HPARSER hParser,
                    const char* keyword,
-                   size_t length,
                    unsigned int keyIndex,
                    const LG_KeyOptions* options,
                    const char* encoding)
 {
   Pattern p(
-    std::string(keyword, 0, length),
+    keyword,
     options->FixedString,
     options->CaseInsensitive,
     keyIndex,
