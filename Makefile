@@ -168,7 +168,9 @@ $(ENC_BIN): LDLIBS=$(ENC_LDLIBS)
 $(ENC_BIN): $(ENC_OBJS)
 	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
 
+ifndef IS_WINDOWS
 bin/src/lib/liblightgrep.so: CXXFLAGS+=-fPIC
+endif
 bin/src/lib/liblightgrep.so: $(LIB_SHARED_OBJS)
 	$(CXX) -o $@ -shared $^
 
