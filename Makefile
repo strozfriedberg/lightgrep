@@ -6,10 +6,13 @@
 UNAME_S=$(strip $(shell uname -s))
 ifeq ($(UNAME_S),Linux)
 IS_LINUX=1
+BINEXT=
 else ifeq ($(UNAME_S:MINGW%=MINGW),MINGW)
 IS_WINDOWS=1
+BINEXT=.exe
 else ifeq ($(UNAME_S),Darwin)
 IS_MACOSX=1
+BINEXT=
 endif
 
 #
@@ -79,6 +82,7 @@ TEST_LDLIBS+=-lpthread
 else ifdef IS_WINDOWS
 TEST_LDLIBS+=-lws2_32 -lmswsock
 endif
+TEST_BIN=bin/test/test$(BINEXT)
 
 #
 # Setup for enc
@@ -87,6 +91,7 @@ ENC_SRCS=$(wildcard src/enc/*.cpp)
 ENC_OBJS=$(ENC_SRCS:%.cpp=bin/%.o)
 ENC_LDFLAGS=-L$(ICU_LIBDIR)
 ENC_LDLIBS=-licuuc -licudata
+ENC_BIN=bin/src/enc/encodings$(BINEXT)
 
 #
 # Setup for val
@@ -95,6 +100,7 @@ VAL_SRCS=$(wildcard src/val/*.cpp)
 VAL_OBJS=$(VAL_SRCS:%.cpp=bin/%.o)
 VAL_LDFLAGS=-L$(ICU_LIBDIR) -Lbin/src/lib
 VAL_LDLIBS=-licuuc -licudata -llightgrep
+VAL_BIN=bin/src/val/valid$(BINEXT)
 
 #
 # Setup for c_example
@@ -107,6 +113,8 @@ CEX_STATIC_LDLIBS=-llightgrep -licuuc -licudata -lstdc++ -ldl -lm
 ifdef IS_LINUX
 CEX_STATIC_LDLIBS+=-lpthread
 endif
+CEX_SHARED_BIN=bin/c_example/main_shared$(BINEXT)
+CEX_STATIC_BIN=bin/c_example/main_static$(BINEXT)
 
 #
 # Goals
@@ -126,59 +134,57 @@ perf: CFLAGS+=-g
 perf: CXXFLAGS+=-g
 perf: all
 
-cex: bin/c_example/main_shared bin/c_example/main_static
+cex: $(CEX_SHARED_BIN) $(CEX_STATIC_BIN)
 
-enc: bin/src/enc/encodings
+enc: $(ENC_BIN)
 
 shared-lib: bin/src/lib/liblightgrep.so
 
 static-lib: bin/src/lib/liblightgrep.a
 
-test: bin/test/test
+test: $(TEST_BIN)
 	LD_LIBRARY_PATH=lib:bin/src/lib $< --test
 
-val: bin/src/val/valid
+val: $(VAL_BIN)
 
 -include $(DEPS)
 
-bin/c_example/main_shared: LDFLAGS=$(CEX_LDFLAGS)
-bin/c_example/main_shared: LDLIBS=$(CEX_SHARED_LDLIBS)
-bin/c_example/main_shared: $(CEX_OBJS) bin/src/lib/liblightgrep.so
+$(CEX_SHARED_BIN): LDFLAGS=$(CEX_LDFLAGS)
+$(CEX_SHARED_BIN): LDLIBS=$(CEX_SHARED_LDLIBS)
+$(CEX_SHARED_BIN): $(CEX_OBJS) bin/src/lib/liblightgrep.so
 	$(CC) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
 
-bin/c_example/main_static: LDFLAGS=-static $(CEX_LDFLAGS)
+$(CEX_STATIC_BIN): LDFLAGS=-static $(CEX_LDFLAGS)
 ifdef IS_WINDOWS
-bin/c_example/main_static: LDFLAGS+=-static-libstdc++ -static-libgcc
+$(CEX_STATIC_BIN): LDFLAGS+=-static-libstdc++ -static-libgcc
+$(CEX_STATIC_BIN): CPPFLAGS+=-DBOOST_THREAD_USE_LIB
 endif
-bin/c_example/main_static: LDLIBS=$(CEX_STATIC_LDLIBS)
-bin/c_example/main_static: $(CEX_OBJS) bin/src/lib/liblightgrep.a
+$(CEX_STATIC_BIN): LDLIBS=$(CEX_STATIC_LDLIBS)
+$(CEX_STATIC_BIN): $(CEX_OBJS) bin/src/lib/liblightgrep.a
 	$(CC) -o $@ $(filter-out %.a,$^) $(LDFLAGS) $(LDLIBS)
 
-bin/src/enc/encodings: LDFLAGS=$(ENC_LDFLAGS)
-bin/src/enc/encodings: LDLIBS=$(ENC_LDLIBS)
-bin/src/enc/encodings: $(ENC_OBJS)
+$(ENC_BIN): LDFLAGS=$(ENC_LDFLAGS)
+$(ENC_BIN): LDLIBS=$(ENC_LDLIBS)
+$(ENC_BIN): $(ENC_OBJS)
 	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
 
 bin/src/lib/liblightgrep.so: CXXFLAGS+=-fPIC
 bin/src/lib/liblightgrep.so: $(LIB_SHARED_OBJS)
 	$(CXX) -o $@ -shared $^
 
-ifdef IS_WINDOWS
-bin/src/lib/liblightgrep.a: CPPFLAGS+=-DBOOST_THREAD_USE_LIB
-endif
 bin/src/lib/liblightgrep.a: $(LIB_STATIC_OBJS)
 	$(AR) rc $@ $^
 	$(RANLIB) $@
 
-bin/test/test: INCLUDES+=-Itest
-bin/test/test: LDFLAGS=$(TEST_LDFLAGS)
-bin/test/test: LDLIBS=$(TEST_LDLIBS)
-bin/test/test: $(TEST_OBJS) bin/src/lib/liblightgrep.so
+$(TEST_BIN): INCLUDES+=-Itest
+$(TEST_BIN): LDFLAGS=$(TEST_LDFLAGS)
+$(TEST_BIN): LDLIBS=$(TEST_LDLIBS)
+$(TEST_BIN): $(TEST_OBJS) bin/src/lib/liblightgrep.so
 	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
 
-bin/src/val/valid: LDFLAGS=$(VAL_LDFLAGS)
-bin/src/val/valid: LDLIBS=$(VAL_LDLIBS)
-bin/src/val/valid: $(VAL_OBJS) bin/src/lib/liblightgrep.so
+$(VAL_BIN): LDFLAGS=$(VAL_LDFLAGS)
+$(VAL_BIN): LDLIBS=$(VAL_LDLIBS)
+$(VAL_BIN): $(VAL_OBJS) bin/src/lib/liblightgrep.so
 	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
 
 bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
