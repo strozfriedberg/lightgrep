@@ -1,198 +1,163 @@
+.SUFFIXES:
+
 #
-# Directories
+# Directory configuration
 #
-
-SRCDIR=src
-
-CEXDIR=c_example
-CMDDIR=$(SRCDIR)/cmd
-ENCDIR=$(SRCDIR)/enc
-LIBDIR=$(SRCDIR)/lib
-TESTDIR=test
-VALDIR=$(SRCDIR)/val
-
 BINDIR=bin
 INCDIR=include
-
-LIBMODS=LIB
-BINMODS=CEX CMD ENC TEST VAL
-
-MODULES=$(LIBMODS) $(BINMODS)
+SRCDIR=src
 
 #
-# Build programs and flags
+# Setup for liblightgrep
+#
+LIB_SRCS=$(wildcard src/lib/*.cpp) 
+LIB_SHARED_OBJS=$(LIB_SRCS:%.cpp=bin/%.os) bin/src/lib/parser.tab.os
+LIB_STATIC_OBJS=$(LIB_SRCS:%.cpp=bin/%.o) bin/src/lib/parser.tab.o
+
+#
+# Setup for test
+#
+TEST_SRCS=$(wildcard test/*.cpp)
+TEST_OBJS=$(TEST_SRCS:%.cpp=bin/%.o)
+TEST_LDFLAGS=$(foreach dir,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib),-L$(dir))
+TEST_LDLIBS=-lboost_system$(BOOST_TYPE) -lboost_thread$(BOOST_TYPE) -lboost_chrono$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -llightgrep -licuuc -licudata -lpthread
+
+#
+# Setup for enc
+#
+ENC_SRCS=$(wildcard src/enc/*.cpp)
+ENC_OBJS=$(ENC_SRCS:%.cpp=bin/%.o)
+ENC_LDFLAGS=-L$(ICU_LIBDIR)
+ENC_LDLIBS=-licuuc -licudata
+
+#
+# Setup for val
+#
+VAL_SRCS=$(wildcard src/val/*.cpp)
+VAL_OBJS=$(VAL_SRCS:%.cpp=bin/%.o)
+VAL_LDFLAGS=-L$(ICU_LIBDIR) -Lbin/src/lib
+VAL_LDLIBS=-licuuc -licudata -llightgrep
+
+#
+# Setup for c_example
+#
+CEX_SRCS=$(wildcard c_example/*.c)
+CEX_OBJS=$(CEX_SRCS:%.c=bin/%.o)
+CEX_LDFLAGS=-L$(ICU_LIBDIR) -Lbin/src/lib
+CEX_LDLIBS=-licuuc -licudata -llightgrep
+
+#
+# External library configuration
+#
+BOOST_INCDIR=vendors/boost
+BOOST_LIBDIR=lib
+BOOST_TYPE=
+
+ICU_INCDIR=vendors/icu/include
+ICU_LIBDIR=lib
+
+SCOPE_INCDIR=vendors/scope
+
+#
+# C/C++ compilation and linking
 #
 CC=gcc
 CXX=g++
+CPPFLAGS=-MMD -MP
+CFLAGS=-std=c1x -O3 -W -Wall -Wextra -pedantic -pipe
+CXXFLAGS=-std=c++0x -O3 -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
+INCLUDES=$(foreach dir,$(sort $(BOOST_INCDIR) $(ICU_INCDIR) $(SCOPE_INCDIR)),-isystem $(dir)) -I$(INCDIR)
+LDFLAGS=
+LDLIBS=
+
+DEPS=$(patsubst %.o,%.d,$(CEX_OBJS) $(ENC_OBJS) $(LIB_STATIC_OBJS) $(TEST_OBJS) $(VAL_OBJS)) $(LIB_SHARED_OBJS:%.os=%.d)
+
+#
+# Other programs
+#
 BISON=bison
 RANLIB=ranlib
-
-override CPPFLAGS+=-MMD -MP
-override CFLAGS+=-std=c1x -O3 -W -Wall -Wextra -pedantic -pipe
-override CXXFLAGS+=-std=c++0x -O3 -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
-override INCLUDES+=-isystem vendors/boost -isystem vendors/icu -isystem vendors/scope -I$(INCDIR)
-override LDFLAGS+=-static-libstdc++
-override LDLIBS+=-Llib -L$(BINDIR)/$(LIBDIR)
-
-BOOST_TYPE=-mt
+MKDIR=mkdir
 
 #
-# Determine the OS we are building on/for
+# Goals
 #
-UNAME_O=$(strip $(shell uname -o))
-ifeq ($(UNAME_O),GNU/Linux)
-IS_LINUX=1
-else ifeq ($(UNAME_O),Msys)
-IS_WINDOWS=1
-endif
+all: cex enc shared-lib static-lib test val
 
-ifdef IS_WINDOWS
-override CPPFLAGS+=-DPOLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H
-ifdef IS_SHARED
-override CPPFLAGS+=-DBOOST_THREAD_USE_LIB
-endif
-ifdef IS_WINDOWS_XP
-override CPPFLAGS+=-D_WIN32_WINNT=0x0501
-endif
-override CXXFLAGS+=-mthreads
-endif
+cex: bin/c_example/c_example
 
-#
-# Determine locations for source, object, binary, and dependency files
-#
+enc: bin/src/enc/encodings
 
-# collect the source and build directories for the modules
-SRCDIRS=$(foreach m,$(MODULES), $($(m)DIR))
-BUILDDIRS=$(addprefix $(BINDIR)/, $(SRCDIRS))
+shared-lib: bin/src/lib/liblightgrep.so
 
-# find all source files and generate object file names
-define sources-and-objects
-$(1)_SOURCES=$$(wildcard $$($(1)DIR)/*.cpp) $$(wildcard $$($(1)DIR)/*.c)
-$(1)_OBJECTS=$$(patsubst %,$(BINDIR)/%.o,$$(basename $$($(1)_SOURCES)))
-endef
+static-lib: bin/src/lib/liblightgrep.a
 
-$(foreach m,$(MODULES), $(eval $(call sources-and-objects,$(m))))
+test: bin/test/test
+	LD_LIBRARY_PATH=lib:bin/src/lib $< --test
 
-# generate names for the dependency files
-DEPS=$(foreach m,$(MODULES), $($(m)_OBJECTS))
-DEPS:=$(DEPS:%.o=%.d)
-
-# name the binaries, extra objects, libraries, and flags for each module
-LIB_BINARY=$(BINDIR)/$(LIBDIR)/liblightgrep.a
-LIB_OBJECTS+=$(BINDIR)/$(LIBDIR)/parser.tab.o
-
-CEX_BINARY=$(BINDIR)/$(CEXDIR)/c_example
-CEX_OBJECTS+=$(LIB_BINARY)
-CEX_LIBS=-llightgrep -licuuc -licudata
-
-CMD_BINARY=$(BINDIR)/$(CMDDIR)/lightgrep
-CMD_OBJECTS+=$(LIB_BINARY)
-CMD_LIBS=-lboost_system$(BOOST_TYPE) -lboost_thread$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -lboost_filesystem$(BOOST_TYPE) -llightgrep -licuuc -licudata
-ifdef IS_LINUX
-CMD_LIBS+=-lpthread
-else ifdef $(IS_WINDOWS)
-CMD_LIBS+=-lws2_32 -lmswsock
-endif
-
-ENC_BINARY=$(BINDIR)/$(ENCDIR)/encodings
-ENC_LIBS=-licuuc -licudata
-
-VAL_BINARY=$(BINDIR)/$(VALDIR)/valid
-VAL_OBJECTS+=$(LIB_BINARY)
-VAL_LIBS=-llightgrep -licuuc -licudata
-
-TEST_BINARY=$(BINDIR)/test/test
-TEST_OBJECTS+=$(LIB_BINARY) $(BINDIR)/$(CMDDIR)/options.o $(BINDIR)/$(CMDDIR)/optparser.o
-TEST_LIBS=-lboost_system$(BOOST_TYPE) -lboost_thread$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -llightgrep -licuuc -licudata
-ifdef IS_LINUX
-TEST_LIBS+=-lpthread
-endif
-
-#
-# Top-level targets
-#
-
-all: lib enc cmd c_example test val
-
-debug: CFLAGS+=-g
-debug: CFLAGS:=$(filter-out -O3, $(CFLAGS))
-debug: CXXFLAGS+=-g
-debug: CXXFLAGS:=$(filter-out -O3, $(CXXFLAGS))
-debug: all
-
-trace: CPPFLAGS+=-DLBT_TRACE_ENABLED
-trace: CXXFLAGS+=-g
-trace: all
-
-c_example: $(CEX_BINARY) 
-
-cmd: $(CMD_BINARY)
-
-enc: $(ENC_BINARY)
-
-lib: $(LIB_BINARY) 
-
-test: $(TEST_BINARY)
-	$(TEST_BINARY) --test
-
-val: $(VAL_BINARY)
+val: bin/src/val/valid
 
 -include $(DEPS)
+
+bin/c_example/c_example: LDFLAGS=$(CEX_LDFLAGS)
+bin/c_example/c_example: LDLIBS=$(CEX_LDLIBS)
+bin/c_example/c_example: $(CEX_OBJS) bin/src/lib/liblightgrep.so
+	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
+
+bin/src/enc/encodings: LDFLAGS=$(ENC_LDFLAGS)
+bin/src/enc/encodings: LDLIBS=$(ENC_LDLIBS)
+bin/src/enc/encodings: $(ENC_OBJS)
+	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
+
+bin/src/lib/liblightgrep.so: $(LIB_SHARED_OBJS)
+	$(CXX) -o $@ -shared $^
+
+bin/src/lib/liblightgrep.a: $(LIB_STATIC_OBJS)
+	$(AR) rc $@ $^
+	$(RANLIB) $@
+
+bin/test/test: INCLUDES+=-Itest
+bin/test/test: LDFLAGS=$(TEST_LDFLAGS)
+bin/test/test: LDLIBS=$(TEST_LDLIBS)
+bin/test/test: $(TEST_OBJS) bin/src/lib/liblightgrep.so
+	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
+
+bin/src/val/valid: LDFLAGS=$(VAL_LDFLAGS)
+bin/src/val/valid: LDLIBS=$(VAL_LDLIBS)
+bin/src/val/valid: $(VAL_OBJS) bin/src/lib/liblightgrep.so
+	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
+
+bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
+	$(MKDIR) -p $@
 
 clean:
 	$(RM) -r $(BINDIR)/*
 
-.PHONY: all c_example clean debug enc lib test trace val
+.PHONY: all cex clean enc shared-lib static-lib test val
 
 #
-# Directory targets
+# Patterns
 #
+.SECONDEXPANSION:
+bin/%.o: %.c | $$(@D)
+	$(CC) -o $@ -c $(CPPFLAGS) $(CFLAGS) $(INCLUDES) $<
 
-$(BUILDDIRS):
-	mkdir -p $@
+.SECONDEXPANSION:
+bin/%.os: %.cpp | $$(@D)
+	$(CXX) -o $@ -c $(CPPFLAGS) $(CXXFLAGS) -fPIC $(INCLUDES) $<
 
-#
-# Binary targets
-#
-
-define o-a-goal
-$($(1)_BINARY): $($(1)_OBJECTS)
-	$(AR) rc $$@ $$^
-	$(RANLIB) $$@
-endef
-
-$(foreach m,$(LIBMODS),$(eval $(call o-a-goal,$(m))))
-
-define o-bin-goal
-$($(1)_BINARY): $($(1)_OBJECTS)
-	$$(CXX) -o $$@ $$(filter-out $(LIB_BINARY), $$^) $$(LDFLAGS) $($(1)_LDFLAGS) $$(LDLIBS) $($(1)_LIBS)
-endef
-
-$(foreach m,$(BINMODS),$(eval $(call o-bin-goal,$(m))))
-
-#
-# Object targets
-#
-
-define c-o-goal
-$(BINDIR)/$1/%.o: $1/%.c | $(BINDIR)/$1
-	$$(CC) -o $$@ -c $$(CPPFLAGS) $$(CFLAGS) $$(INCLUDES) $$<
-endef
-
-define cpp-o-goal
-$(BINDIR)/$1/%.o: $1/%.cpp | $(BINDIR)/$1
-	$$(CXX) -o $$@ -c $$(CPPFLAGS) $$(CXXFLAGS) $$(INCLUDES) $$<
-endef
-
-$(foreach sdir,$(SRCDIRS),$(eval $(call c-o-goal,$(sdir))))
-$(foreach sdir,$(SRCDIRS),$(eval $(call cpp-o-goal,$(sdir))))
-
-$(BINDIR)/$(LIBDIR)/parser.tab.o: $(BINDIR)/$(LIBDIR)/parser.tab.cpp
+.SECONDEXPANSION:
+bin/%.o: %.cpp | $$(@D)
 	$(CXX) -o $@ -c $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $<
 
-#
-# Generated source files
-#
-
-$(BINDIR)/$(LIBDIR)/parser.tab.cpp: $(LIBDIR)/parser.ypp | $(@D)
+.SECONDEXPANSION:
+bin/%.tab.cpp: %.ypp | $$(@D)
 	$(BISON) -r solved $< -o $@
+
+.PRECIOUS: %.tab.cpp
+
+%.tab.os: %.tab.cpp
+	$(CXX) -o $@ -c $(CPPFLAGS) $(CXXFLAGS) -fPIC $(INCLUDES) $<
+
+%.tab.o: %.tab.cpp
+	$(CXX) -o $@ -c $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $<
