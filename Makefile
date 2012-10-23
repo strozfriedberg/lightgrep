@@ -59,7 +59,7 @@ MKDIR=mkdir
 #
 # Setup for liblightgrep
 #
-LIB_SRCS=$(wildcard src/lib/*.cpp) 
+LIB_SRCS=$(wildcard src/lib/*.cpp)
 LIB_SHARED_OBJS=$(LIB_SRCS:%.cpp=bin/%.os) bin/src/lib/parser.tab.os
 LIB_STATIC_OBJS=$(LIB_SRCS:%.cpp=bin/%.o) bin/src/lib/parser.tab.o
 
@@ -120,7 +120,7 @@ debug: CXXFLAGS+=-g
 debug: CXXFLAGS:=$(filter-out -O3, $(CXXFLAGS))
 ifndef IS_WINDOWS
 debug: CXXFLAGS+=-fstack-protector-all
-endif 
+endif
 debug: all
 
 perf: CFLAGS+=-g
