@@ -62,6 +62,8 @@ MKDIR=mkdir
 LIB_SRCS=$(wildcard src/lib/*.cpp)
 LIB_SHARED_OBJS=$(LIB_SRCS:%.cpp=bin/%.os) bin/src/lib/parser.tab.os
 LIB_STATIC_OBJS=$(LIB_SRCS:%.cpp=bin/%.o) bin/src/lib/parser.tab.o
+LIB_SHARED=bin/src/lib/liblightgrep.so
+LIB_STATIC=bin/src/lib/liblightgrep.a
 
 #
 # Setup for test
@@ -131,9 +133,9 @@ cex: $(CEX_SHARED_BIN) $(CEX_STATIC_BIN)
 
 enc: $(ENC_BIN)
 
-shared-lib: bin/src/lib/liblightgrep.so
+shared-lib: $(LIB_SHARED)
 
-static-lib: bin/src/lib/liblightgrep.a
+static-lib: $(LIB_STATIC)
 
 test: $(TEST_BIN)
 	LD_LIBRARY_PATH=lib:bin/src/lib $< --test
@@ -144,7 +146,7 @@ val: $(VAL_BIN)
 
 $(CEX_SHARED_BIN): LDFLAGS=$(CEX_LDFLAGS)
 $(CEX_SHARED_BIN): LDLIBS=$(CEX_SHARED_LDLIBS)
-$(CEX_SHARED_BIN): $(CEX_OBJS) bin/src/lib/liblightgrep.so
+$(CEX_SHARED_BIN): $(CEX_OBJS) $(LIB_SHARED)
 	$(CC) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
 
 $(CEX_STATIC_BIN): LDFLAGS=-static $(CEX_LDFLAGS)
@@ -153,7 +155,7 @@ $(CEX_STATIC_BIN): LDFLAGS+=-static-libstdc++ -static-libgcc
 $(CEX_STATIC_BIN): CPPFLAGS+=-DBOOST_THREAD_USE_LIB
 endif
 $(CEX_STATIC_BIN): LDLIBS=$(CEX_STATIC_LDLIBS)
-$(CEX_STATIC_BIN): $(CEX_OBJS) bin/src/lib/liblightgrep.a
+$(CEX_STATIC_BIN): $(CEX_OBJS) $(LIB_STATIC)
 	$(CC) -o $@ $(filter-out %.a,$^) $(LDFLAGS) $(LDLIBS)
 
 $(ENC_BIN): LDFLAGS=$(ENC_LDFLAGS)
@@ -162,24 +164,24 @@ $(ENC_BIN): $(ENC_OBJS)
 	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
 
 ifndef IS_WINDOWS
-bin/src/lib/liblightgrep.so: CXXFLAGS+=-fPIC
+$(LIB_SHARED): CXXFLAGS+=-fPIC
 endif
-bin/src/lib/liblightgrep.so: $(LIB_SHARED_OBJS)
+$(LIB_SHARED): $(LIB_SHARED_OBJS)
 	$(CXX) -o $@ -shared $^
 
-bin/src/lib/liblightgrep.a: $(LIB_STATIC_OBJS)
+$(LIB_STATIC): $(LIB_STATIC_OBJS)
 	$(AR) rc $@ $^
 	$(RANLIB) $@
 
 $(TEST_BIN): INCLUDES+=-Itest
 $(TEST_BIN): LDFLAGS=$(TEST_LDFLAGS)
 $(TEST_BIN): LDLIBS=$(TEST_LDLIBS)
-$(TEST_BIN): $(TEST_OBJS) bin/src/lib/liblightgrep.so
+$(TEST_BIN): $(TEST_OBJS) $(LIB_SHARED)
 	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
 
 $(VAL_BIN): LDFLAGS=$(VAL_LDFLAGS)
 $(VAL_BIN): LDLIBS=$(VAL_LDLIBS)
-$(VAL_BIN): $(VAL_OBJS) bin/src/lib/liblightgrep.so
+$(VAL_BIN): $(VAL_OBJS) $(LIB_SHARED)
 	$(CXX) -o $@ $(filter-out %.so,$^) $(LDFLAGS) $(LDLIBS)
 
 bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
