@@ -35,7 +35,7 @@ CXX=g++
 CPPFLAGS=-MMD -MP
 CFLAGS=-std=c1x -O3 -W -Wall -Wextra -pedantic -pipe
 CXXFLAGS=-std=c++0x -O3 -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
-INCLUDES=$(foreach dir,$(sort $(BOOST_INCDIR) $(ICU_INCDIR) $(SCOPE_INCDIR)),-isystem $(dir)) -Iinclude
+INCLUDES=$(addprefix -isystem ,$(sort $(BOOST_INCDIR) $(ICU_INCDIR) $(SCOPE_INCDIR))) -Iinclude
 LDFLAGS=
 LDLIBS=
 
@@ -68,7 +68,7 @@ LIB_STATIC_OBJS=$(LIB_SRCS:%.cpp=bin/%.o) bin/src/lib/parser.tab.o
 #
 TEST_SRCS=$(wildcard test/*.cpp)
 TEST_OBJS=$(TEST_SRCS:%.cpp=bin/%.o)
-TEST_LDFLAGS=$(foreach dir,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib),-L$(dir))
+TEST_LDFLAGS=$(addprefix -L,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib))
 TEST_LDLIBS=-llightgrep -lboost_system$(BOOST_TYPE) -lboost_thread$(BOOST_TYPE) -lboost_chrono$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -licuuc -licudata
 ifdef IS_LINUX
 TEST_LDLIBS+=-lpthread
@@ -100,7 +100,7 @@ VAL_BIN=bin/src/val/valid$(BINEXT)
 #
 CEX_SRCS=$(wildcard c_example/*.c)
 CEX_OBJS=$(CEX_SRCS:%.c=bin/%.o)
-CEX_LDFLAGS=$(foreach dir,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib),-L$(dir))
+CEX_LDFLAGS=$(addprefix -L,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib))
 CEX_SHARED_LDLIBS=-licuuc -licudata -llightgrep
 CEX_STATIC_LDLIBS=-llightgrep -licuuc -licudata -lstdc++ -ldl -lm
 ifdef IS_LINUX
