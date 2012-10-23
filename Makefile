@@ -16,13 +16,6 @@ BINEXT=
 endif
 
 #
-# Directory configuration
-#
-BINDIR=bin
-INCDIR=include
-SRCDIR=src
-
-#
 # External library configuration
 #
 BOOST_INCDIR=vendors/boost
@@ -42,7 +35,7 @@ CXX=g++
 CPPFLAGS=-MMD -MP
 CFLAGS=-std=c1x -O3 -W -Wall -Wextra -pedantic -pipe
 CXXFLAGS=-std=c++0x -O3 -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
-INCLUDES=$(foreach dir,$(sort $(BOOST_INCDIR) $(ICU_INCDIR) $(SCOPE_INCDIR)),-isystem $(dir)) -I$(INCDIR)
+INCLUDES=$(foreach dir,$(sort $(BOOST_INCDIR) $(ICU_INCDIR) $(SCOPE_INCDIR)),-isystem $(dir)) -Iinclude
 LDFLAGS=
 LDLIBS=
 
@@ -193,7 +186,7 @@ bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
 	$(MKDIR) -p $@
 
 clean:
-	$(RM) -r $(BINDIR)/*
+	$(RM) -r bin/*
 
 .PHONY: all cex clean debug enc shared-lib static-lib test val
 
