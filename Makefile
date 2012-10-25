@@ -215,7 +215,7 @@ bin/%.o: %.cpp | $$(@D)
 bin/%.tab.cpp: %.ypp | $$(@D)
 	$(BISON) -r solved $< -o $@
 
-.PRECIOUS: %.tab.cpp
+.PRECIOUS: bin/%.tab.cpp
 
 %.tab.os: %.tab.cpp
 	$(CXX) -o $@ -c $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $<
