@@ -18,7 +18,7 @@ endif
 #
 # External library configuration
 #
-BOOST_INCDIR=../lg-libs/boost
+BOOST_INCDIR=../lg-libs/boost_1_51_0
 BOOST_LIBDIR=../lg-libs/lib
 BOOST_TYPE=
 
