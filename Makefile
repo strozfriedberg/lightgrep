@@ -140,7 +140,7 @@ shared-lib: $(LIB_SHARED)
 static-lib: $(LIB_STATIC)
 
 test: $(TEST_BIN)
-	LD_LIBRARY_PATH=lib:bin/src/lib $< --test
+	LD_LIBRARY_PATH=$(BOOST_LIBDIR):$(ICU_LIBDIR):bin/src/lib $< --test
 
 val: $(VAL_BIN)
 
