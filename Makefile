@@ -1,5 +1,7 @@
 .SUFFIXES:
 
+include Makefile.conf
+
 #
 # Determine the OS we are targeting
 #
@@ -16,22 +18,8 @@ BINEXT=
 endif
 
 #
-# External library configuration
-#
-BOOST_INCDIR=../vendors/boost_1_51_0
-BOOST_LIBDIR=../vendors/lib
-BOOST_TYPE=
-
-ICU_INCDIR=../vendors/icu/include
-ICU_LIBDIR=../vendors/lib
-
-SCOPE_INCDIR=../vendors/scope
-
-#
 # C/C++ compilation and linking
 #
-CC=gcc
-CXX=g++
 CPPFLAGS=-MMD -MP
 CFLAGS=-std=c1x -O3 -W -Wall -Wextra -pedantic -pipe
 CXXFLAGS=-std=c++0x -O3 -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
