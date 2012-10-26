@@ -19,6 +19,8 @@ endif
 
 override CXXFLAGS+=-std=c++0x -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
 
+INCLUDES=$(addprefix -isystem ,$(sort $(BOOST_INCDIR) $(ICU_INCDIR) $(SCOPE_INCDIR))) -Iinclude
+
 ifdef IS_WINDOWS
 CXXFLAGS+=-mthreads
 CFLAGS+=-mthreads
