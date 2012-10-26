@@ -18,14 +18,14 @@ endif
 #
 # External library configuration
 #
-BOOST_INCDIR=../lg-libs/boost_1_51_0
-BOOST_LIBDIR=../lg-libs/lib
+BOOST_INCDIR=../vendors/boost_1_51_0
+BOOST_LIBDIR=../vendors/lib
 BOOST_TYPE=
 
-ICU_INCDIR=../lg-libs/icu/include
-ICU_LIBDIR=../lg-libs/lib
+ICU_INCDIR=../vendors/icu/include
+ICU_LIBDIR=../vendors/lib
 
-SCOPE_INCDIR=../lg-libs/scope
+SCOPE_INCDIR=../vendors/scope
 
 #
 # C/C++ compilation and linking
