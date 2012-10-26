@@ -16,13 +16,13 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
-
 #include <iostream>
 #include <random>
 
 #include "basic.h"
 #include "rangeset.h"
+
+#include <scope/test.h>
 
 SCOPE_TEST(rangeSetEqualsTest) {
   RangeSet<uint32,256> r, s, u{{0,1}};
@@ -40,19 +40,19 @@ SCOPE_TEST(rangeSetEqualsTest) {
   SCOPE_ASSERT(u != s);
 }
 
-template <typename T, T N>
-void bitset_equivalence_tester(const std::bitset<N>& b, RangeSet<T,N>& r) {
+template <typename BType, typename RType>
+void bitset_equivalence_tester(const BType& b, const RType& r) {
   SCOPE_ASSERT_EQUAL(b.any(), r.any());
   SCOPE_ASSERT_EQUAL(b.all(), r.all());
   SCOPE_ASSERT_EQUAL(b.none(), r.none());
   SCOPE_ASSERT_EQUAL(b.size(), r.size());
   SCOPE_ASSERT_EQUAL(b.count(), r.count());
 
-  for (uint32 i = 0; i < N; ++i) {
+  for (uint32 i = 0; i < b.size(); ++i) {
     SCOPE_ASSERT_EQUAL(b[i], r[i]);
   }
 
-  SCOPE_ASSERT(b == r);
+  // SCOPE_ASSERT(r == b);
   SCOPE_ASSERT(r == b);
 }
 
@@ -100,13 +100,13 @@ SCOPE_TEST(rangeSetSetResetTest) {
   RangeSet<uint32,256> r;
   std::bitset<256> b;
 
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   b.set();
   r.set();
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   b.reset();
   r.reset();
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
 }
 
 SCOPE_TEST(rangeSetFlipAllNoneTest) {
@@ -127,10 +127,10 @@ SCOPE_TEST(rangeSetFlipIntermediateTest) {
   for (uint32 i = 1; i < 13; ++i) { b[i] = true; }
   for (uint32 i = 34; i < 128; ++i) { b[i] = true; }
 
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   b.flip();
   r.flip();
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
 }
 
 SCOPE_TEST(rangeSetCopyConstructorTest) {
@@ -144,126 +144,126 @@ SCOPE_TEST(rangeSetBitsetConstructorTest) {
   for (uint32 i = 0; i < 32; ++i) { b[i] = true; }
   b[38] = b[254] = b[255] = true;
   RangeSet<uint32,256> r(b);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
 }
 
 SCOPE_TEST(rangeSetInsertDisjointTest) {
   RangeSet<uint32,256> r;
   std::bitset<256> b;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
 
   for (uint32 i = 0; i < 5; ++i) { b[i] = true; }
   r.insert(0, 5);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 27; i < 42; ++i) { b[i] = true; }
   r.insert(27, 42);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
 
   for (uint32 i = 44; i < 48; ++i) { b[i] = true; }
   r.insert(44, 48);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(3, r.end() - r.begin());
 
   for (uint32 i = 10; i < 13; ++i) { b[i] = true; }
   r.insert(10, 13);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(4, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertMeetLeftTest) {
   RangeSet<uint32,256> r;
   std::bitset<256> b;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
 
   for (uint32 i = 20; i < 25; ++i) { b[i] = true; }
   r.insert(20, 25);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertMeetRightTest) {
   RangeSet<uint32,256> r;
   std::bitset<256> b;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
 
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 20; i < 25; ++i) { b[i] = true; }
   r.insert(20, 25);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertSuperTest) {
   RangeSet<uint32,256> r;
   std::bitset<256> b;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
 
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 10; i < 25; ++i) { b[i] = true; }
   r.insert(10, 25);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertSubTest) {
   RangeSet<uint32,256> r;
   std::bitset<256> b;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
 
   for (uint32 i = 10; i < 25; ++i) { b[i] = true; }
   r.insert(10, 25);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   for (uint32 i = 15; i < 20; ++i) { b[i] = true; }
   r.insert(15, 20);
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertEmpty) {
   RangeSet<uint32,256> r;
   std::bitset<256> b;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(0, r.end() - r.begin());
 
   r.insert(42, 42);
   std::cerr << r << std::endl;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(0, r.end() - r.begin());
 }
 
 SCOPE_TEST(rangeSetInsertOutOfOrderTest) {
   RangeSet<uint32,256> r;
   std::bitset<256> b;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
 
   b[0] = r[0] = true;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(1, r.end() - r.begin());
 
   b[255] = r[255] = true;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(2, r.end() - r.begin());
 
   b['A'] = r['A'] = true;
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
   SCOPE_ASSERT_EQUAL(3, r.end() - r.begin());
 }
 
@@ -279,7 +279,7 @@ SCOPE_TEST(rangeSetInsertRandomTest) {
   for (uint32 i = 0; i < 1000; ++i) {
     r.reset();
     b.reset();
-    SCOPE_ASSERT(b == r);
+    SCOPE_ASSERT(r == b);
 
     addends.clear();
 
@@ -289,7 +289,7 @@ SCOPE_TEST(rangeSetInsertRandomTest) {
       r.insert(range);
       addends.insert(addends.end(), { range.first, range.second });
 
-      if (b != r) {
+      if (r != b) {
         std::cerr << "addends: ";
         std::copy(addends.begin(), addends.end(),
                   std::ostream_iterator<uint32>(std::cerr, " "));
@@ -309,7 +309,7 @@ SCOPE_TEST(rangeSetReferenceAssignmentTest) {
   std::bitset<256> b;
   b['a'] = b['b'] = b['c'] = true;
 
-  SCOPE_ASSERT(b == r);
+  SCOPE_ASSERT(r == b);
 }
 
 SCOPE_TEST(rangeSetIntersectionAssignmentEmptyTest) {
