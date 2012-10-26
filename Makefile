@@ -22,7 +22,7 @@ endif
 #
 CPPFLAGS=-MMD -MP
 CFLAGS=-std=c1x -O3 -W -Wall -Wextra -pedantic -pipe
-CXXFLAGS=-std=-O3
+CXXFLAGS=-O3
 INCLUDES=$(addprefix -isystem ,$(sort $(BOOST_INCDIR) $(ICU_INCDIR) $(SCOPE_INCDIR))) -Iinclude
 LDFLAGS=
 LDLIBS=
