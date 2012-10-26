@@ -17,16 +17,6 @@ IS_MACOSX=1
 BINEXT=
 endif
 
-#
-# C/C++ compilation and linking
-#
-CPPFLAGS=-MMD -MP
-CFLAGS=-std=c1x -O3 -W -Wall -Wextra -pedantic -pipe
-CXXFLAGS=-O3
-INCLUDES=$(addprefix -isystem ,$(sort $(BOOST_INCDIR) $(ICU_INCDIR) $(SCOPE_INCDIR))) -Iinclude
-LDFLAGS=
-LDLIBS=
-
 override CXXFLAGS+=-std=c++0x -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
 
 ifdef IS_WINDOWS
