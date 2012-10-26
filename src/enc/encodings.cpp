@@ -26,6 +26,7 @@
 #include <map>
 #include <set>
 #include <cstring>
+#include <vector>
 
 #include <unicode/ucnv.h>
 
