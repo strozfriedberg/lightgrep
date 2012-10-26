@@ -1,6 +1,5 @@
 .*.swp
 bin/*
-lib/*
 tmp/*
-vendors/*
+vendors
 *.pyc
