@@ -22,10 +22,12 @@ endif
 #
 CPPFLAGS=-MMD -MP
 CFLAGS=-std=c1x -O3 -W -Wall -Wextra -pedantic -pipe
-CXXFLAGS=-std=c++0x -O3 -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
+CXXFLAGS=-std=-O3
 INCLUDES=$(addprefix -isystem ,$(sort $(BOOST_INCDIR) $(ICU_INCDIR) $(SCOPE_INCDIR))) -Iinclude
 LDFLAGS=
 LDLIBS=
+
+override CXXFLAGS+=-std=c++0x -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
 
 ifndef IS_MACOSX
 BUILD_STATIC=1
