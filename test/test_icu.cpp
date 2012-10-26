@@ -16,14 +16,14 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "basic.h"
+#include "container_out.h"
+
 #include <scope/test.h>
 
 #include <set>
 
 #include <unicode/ucnv.h>
-
-#include "basic.h"
-#include "container_out.h"
 
 SCOPE_TEST(testICUStandards) {
   // check that ICU is defining exactly the standards we expect
