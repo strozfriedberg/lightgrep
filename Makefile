@@ -29,14 +29,6 @@ LDLIBS=
 
 override CXXFLAGS+=-std=c++0x -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
 
-ifndef IS_MACOSX
-BUILD_STATIC=1
-endif
-
-ifndef IS_WINDOWS
-BUILD_SHARED=1
-endif
-
 ifdef IS_WINDOWS
 CXXFLAGS+=-mthreads
 CFLAGS+=-mthreads
