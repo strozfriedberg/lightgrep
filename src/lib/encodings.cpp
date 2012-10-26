@@ -19,6 +19,7 @@
 #include "encodings.h"
 
 #include <algorithm>
+#include <string>
 
 int lg_get_encoding_id(const char* const name) {
   const LG_SUPPORTED_ENCODING* beg = LG_SUPPORTED_ENCODINGS;
