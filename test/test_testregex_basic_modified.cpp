@@ -18,6 +18,7 @@
 
 #include <scope/test.h>
 
+#include "parser.h"
 #include "nfabuilder.h"
 #include "parsetree.h"
 

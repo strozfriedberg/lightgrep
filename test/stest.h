@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "fwd_pointers.h"
-#include "parser.h"
 #include "pattern.h"
 #include "vm_interface.h"
 
@@ -64,4 +63,6 @@ struct STest {
   void search(const byte* begin, const byte* end, uint64 offset);
 
   void startsWith(const byte* begin, const byte* end, uint64 offset);
+
+  static bool parsesButNotValid(const std::string& pattern);
 };

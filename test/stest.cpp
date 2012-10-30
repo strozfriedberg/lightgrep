@@ -18,6 +18,7 @@
 
 #include "stest.h"
 
+#include "parser.h"
 #include "utility.h"
 #include "compiler.h"
 
@@ -56,4 +57,10 @@ void STest::search(const byte* begin, const byte* end, uint64 offset) {
 
 void STest::startsWith(const byte* begin, const byte* end, uint64 offset) {
   Grep->startsWith(begin, end, offset, collector, this);
+}
+
+bool STest::parsesButNotValid(const std::string& pattern) {
+  NFABuilder nfab;
+  ParseTree  tree;
+  return parse(pattern, false, false, tree) && !nfab.build(tree);
 }
