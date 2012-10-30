@@ -24,7 +24,7 @@
 
 #include <stack>
 
-class ParseNode;
+struct ParseNode;
 class Encoder;
 class ParseTree;
 class TransitionFactory;
