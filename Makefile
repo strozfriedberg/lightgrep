@@ -125,11 +125,11 @@ CEX_STATIC_BIN=bin/c_example/main_static$(BINEXT)
 # Goals
 #
 
-ifdef BUILD_SHARED
+ifeq ($(BUILD_SHARED),1)
 ALL+=shared
 endif
 
-ifdef BUILD_STATIC
+ifeq ($(BUILD_STATIC),1)
 ALL+=static
 endif
 
