@@ -18,16 +18,10 @@
 
 #include <scope/test.h>
 
-#include "nfabuilder.h"
-#include "parsetree.h"
-
 #include "stest.h"
 
 SCOPE_TEST(autoPatternTest250) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("aa|b?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(aa|b?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest251, STest, STest("aa|b+?")) {
@@ -48,24 +42,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest251, STest, STest("aa|b+?")) {
 }
 
 SCOPE_TEST(autoPatternTest252) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("aa|b*?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(aa|b*?)"));
 }
 
 SCOPE_TEST(autoPatternTest253) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("aa|b??", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(aa|b??)"));
 }
 
 SCOPE_TEST(autoPatternTest254) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("aa|b{0,1}", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(aa|b{0,1})"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest255, STest, STest("aa|b{2}")) {
@@ -104,10 +89,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest257, STest, STest("aa|b{2,}")) {
 }
 
 SCOPE_TEST(autoPatternTest258) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("aa|b{0,1}?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(aa|b{0,1}?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest259, STest, STest("aa|b{2}?")) {
@@ -161,17 +143,11 @@ SCOPE_FIXTURE_CTOR(autoPatternTest262, STest, STest("ab|b+")) {
 }
 
 SCOPE_TEST(autoPatternTest263) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|b*", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|b*)"));
 }
 
 SCOPE_TEST(autoPatternTest264) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|b?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|b?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest265, STest, STest("ab|b+?")) {
@@ -190,24 +166,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest265, STest, STest("ab|b+?")) {
 }
 
 SCOPE_TEST(autoPatternTest266) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|b*?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|b*?)"));
 }
 
 SCOPE_TEST(autoPatternTest267) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|b??", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|b??)"));
 }
 
 SCOPE_TEST(autoPatternTest268) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|b{0,1}", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|b{0,1})"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest269, STest, STest("ab|b{2}")) {
@@ -245,10 +212,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest271, STest, STest("ab|b{2,}")) {
 }
 
 SCOPE_TEST(autoPatternTest272) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|b{0,1}?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|b{0,1}?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest273, STest, STest("ab|b{2}?")) {
@@ -302,17 +266,11 @@ SCOPE_FIXTURE_CTOR(autoPatternTest276, STest, STest("ab|c+")) {
 }
 
 SCOPE_TEST(autoPatternTest277) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|c*", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|c*)"));
 }
 
 SCOPE_TEST(autoPatternTest278) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|c?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|c?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest279, STest, STest("ab|c+?")) {
@@ -334,24 +292,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest279, STest, STest("ab|c+?")) {
 }
 
 SCOPE_TEST(autoPatternTest280) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|c*?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|c*?)"));
 }
 
 SCOPE_TEST(autoPatternTest281) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|c??", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|c??)"));
 }
 
 SCOPE_TEST(autoPatternTest282) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|c{0,1}", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|c{0,1})"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest283, STest, STest("ab|c{2}")) {
@@ -393,10 +342,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest285, STest, STest("ab|c{2,}")) {
 }
 
 SCOPE_TEST(autoPatternTest286) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("ab|c{0,1}?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(ab|c{0,1}?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest287, STest, STest("ab|c{2}?")) {
@@ -2048,17 +1994,11 @@ SCOPE_FIXTURE_CTOR(autoPatternTest445, STest, STest("a+a*")) {
 }
 
 SCOPE_TEST(autoPatternTest446) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a*a*", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a*a*)"));
 }
 
 SCOPE_TEST(autoPatternTest447) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a?a*", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a?a*)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest448, STest, STest("a+?a*")) {
@@ -2075,24 +2015,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest448, STest, STest("a+?a*")) {
 }
 
 SCOPE_TEST(autoPatternTest449) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a*?a*", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a*?a*)"));
 }
 
 SCOPE_TEST(autoPatternTest450) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a??a*", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a??a*)"));
 }
 
 SCOPE_TEST(autoPatternTest451) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a{0,1}a*", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a{0,1}a*)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest452, STest, STest("a{2}a*")) {
@@ -2125,10 +2056,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest454, STest, STest("a{2,}a*")) {
 }
 
 SCOPE_TEST(autoPatternTest455) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a{0,1}?a*", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a{0,1}?a*)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest456, STest, STest("a{2}?a*")) {
@@ -2174,17 +2102,11 @@ SCOPE_FIXTURE_CTOR(autoPatternTest459, STest, STest("a+a?")) {
 }
 
 SCOPE_TEST(autoPatternTest460) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a*a?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a*a?)"));
 }
 
 SCOPE_TEST(autoPatternTest461) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a?a?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a?a?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest462, STest, STest("a+?a?")) {
@@ -2202,24 +2124,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest462, STest, STest("a+?a?")) {
 }
 
 SCOPE_TEST(autoPatternTest463) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a*?a?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a*?a?)"));
 }
 
 SCOPE_TEST(autoPatternTest464) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a??a?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a??a?)"));
 }
 
 SCOPE_TEST(autoPatternTest465) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a{0,1}a?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a{0,1}a?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest466, STest, STest("a{2}a?")) {
@@ -2252,10 +2165,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest468, STest, STest("a{2,}a?")) {
 }
 
 SCOPE_TEST(autoPatternTest469) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a{0,1}?a?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a{0,1}?a?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest470, STest, STest("a{2}?a?")) {
@@ -2451,17 +2361,11 @@ SCOPE_FIXTURE_CTOR(autoPatternTest487, STest, STest("a+a*?")) {
 }
 
 SCOPE_TEST(autoPatternTest488) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a*a*?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a*a*?)"));
 }
 
 SCOPE_TEST(autoPatternTest489) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a?a*?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a?a*?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest490, STest, STest("a+?a*?")) {
@@ -2481,24 +2385,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest490, STest, STest("a+?a*?")) {
 }
 
 SCOPE_TEST(autoPatternTest491) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a*?a*?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a*?a*?)"));
 }
 
 SCOPE_TEST(autoPatternTest492) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a??a*?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a??a*?)"));
 }
 
 SCOPE_TEST(autoPatternTest493) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a{0,1}a*?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a{0,1}a*?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest494, STest, STest("a{2}a*?")) {
@@ -2532,10 +2427,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest496, STest, STest("a{2,}a*?")) {
 }
 
 SCOPE_TEST(autoPatternTest497) {
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse("a{0,1}?a*?", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"(a{0,1}?a*?)"));
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest498, STest, STest("a{2}?a*?")) {

@@ -52,10 +52,7 @@ def main():
       if len(pats) == 1:
         # test single patterns for zero-length matches
         print '''SCOPE_TEST(autoPatternTest{setnum}) {{
-  NFABuilder nfab;
-  ParseTree tree;
-  SCOPE_ASSERT(parse(R"({pat})", false, false, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  SCOPE_ASSERT(STest::parsesButNotValid(R"({pat})"));
 }}
 '''.format(setnum=setnum, pat=pats[0])
 
