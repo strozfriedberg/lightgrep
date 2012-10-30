@@ -46,8 +46,8 @@ MKDIR=mkdir
 LIB_SRCS=$(wildcard src/lib/*.cpp)
 LIB_SHARED_OBJS=$(LIB_SRCS:%.cpp=bin/%.os) bin/src/lib/parser.tab.os
 LIB_STATIC_OBJS=$(LIB_SRCS:%.cpp=bin/%.o) bin/src/lib/parser.tab.o
-LIB_SHARED_LDFLAGS=-L$(ICU_LIBDIR)
-LIB_SHARED_LDLIBS=-licuuc -licudata
+LIB_SHARED_LDFLAGS=-shared -fPIC -L$(ICU_LIBDIR) $(LDFLAGS)
+LIB_SHARED_LDLIBS=-licuuc -licudata $(LDLIBS)
 LIB_SHARED=bin/src/lib/liblightgrep$(SHARED_LIB_EXT)
 LIB_STATIC=bin/src/lib/liblightgrep$(STATIC_LIB_EXT)
 
@@ -56,15 +56,15 @@ LIB_STATIC=bin/src/lib/liblightgrep$(STATIC_LIB_EXT)
 #
 TEST_SRCS=$(wildcard test/*.cpp)
 TEST_OBJS=$(TEST_SRCS:%.cpp=bin/%.o)
-TEST_SHARED_LDFLAGS=$(addprefix -L,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib))
-TEST_SHARED_LDLIBS=-llightgrep -lboost_thread$(BOOST_TYPE) -lboost_chrono$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -lboost_system$(BOOST_TYPE) -licuuc -licudata
+TEST_SHARED_LDFLAGS=$(addprefix -L,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib)) $(LDFLAGS)
+TEST_SHARED_LDLIBS=-llightgrep -lboost_thread$(BOOST_TYPE) -lboost_chrono$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -lboost_system$(BOOST_TYPE) -licuuc -licudata $(LDLIBS)
 ifdef IS_LINUX
 TEST_SHARED_LDLIBS+=-lpthread
 else ifdef IS_WINDOWS
 TEST_SHARED_LDLIBS+=-lws2_32 -lmswsock
 endif
 
-TEST_STATIC_LDFLAGS=-static $(TEST_SHARED_LDFLAGS)
+TEST_STATIC_LDFLAGS=-static-libstdc++ -static-libgcc -static $(TEST_SHARED_LDFLAGS)
 TEST_STATIC_LDLIBS=$(TEST_SHARED_LDLIBS) -ldl
 
 TEST_SHARED_BIN=bin/test/test_shared$(BINEXT)
@@ -75,8 +75,8 @@ TEST_STATIC_BIN=bin/test/test_static$(BINEXT)
 #
 ENC_SRCS=$(wildcard src/enc/*.cpp)
 ENC_OBJS=$(ENC_SRCS:%.cpp=bin/%.o)
-ENC_SHARED_LDFLAGS=-L$(ICU_LIBDIR)
-ENC_SHARED_LDLIBS=-licuuc -licudata
+ENC_SHARED_LDFLAGS=-L$(ICU_LIBDIR) $(LDFLAGS)
+ENC_SHARED_LDLIBS=-licuuc -licudata $(LDLIBS)
 ENC_STATIC_LDFLAGS+=-static $(ENC_SHARED_LDFLAGS)
 ENC_STATIC_LDLIBS=$(ENC_SHARED_LDLIBS) -ldl
 ifdef IS_LINUX
@@ -93,8 +93,8 @@ ENC_STATIC_BIN=bin/src/enc/encodings_static$(BINEXT)
 #
 VAL_SRCS=$(wildcard src/val/*.cpp)
 VAL_OBJS=$(VAL_SRCS:%.cpp=bin/%.o)
-VAL_SHARED_LDFLAGS=-L$(ICU_LIBDIR) -Lbin/src/lib
-VAL_SHARED_LDLIBS=-llightgrep -licuuc -licudata
+VAL_SHARED_LDFLAGS=-L$(ICU_LIBDIR) -Lbin/src/lib $(LDFLAGS)
+VAL_SHARED_LDLIBS=-llightgrep -licuuc -licudata $(LDLIBS)
 VAL_STATIC_LDFLAGS=-static $(VAL_SHARED_LDFLAGS)
 VAL_STATIC_LDLIBS=$(VAL_SHARED_LDLIBS) -ldl
 ifdef IS_LINUX
@@ -111,8 +111,9 @@ VAL_STATIC_BIN=bin/src/val/valid_static$(BINEXT)
 #
 CEX_SRCS=$(wildcard c_example/*.c)
 CEX_OBJS=$(CEX_SRCS:%.c=bin/%.o)
-CEX_LDFLAGS=$(addprefix -L,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib))
-CEX_SHARED_LDLIBS=-licuuc -licudata -llightgrep
+CEX_SHARED_LDFLAGS=$(addprefix -L,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib)) $(LDFLAGS)
+CEX_SHARED_LDLIBS=-licuuc -licudata -llightgrep $(LDLIBS)
+CEX_STATIC_LDFLAGS=-static -static-libstdc++ -static-libgcc $(CEX_SHARED_LDFLAGS)
 CEX_STATIC_LDLIBS=-llightgrep -licuuc -licudata -lstdc++ -ldl -lm
 ifdef IS_LINUX
 CEX_STATIC_LDLIBS+=-lpthread
@@ -177,38 +178,27 @@ DEPS=$(patsubst %.o,%.d,$(CEX_OBJS) $(ENC_OBJS) $(LIB_STATIC_OBJS) $(TEST_OBJS) 
 
 -include $(DEPS)
 
-$(CEX_SHARED_BIN): override LDFLAGS+=$(CEX_LDFLAGS)
-$(CEX_SHARED_BIN): LDLIBS+=$(CEX_SHARED_LDLIBS)
 $(CEX_SHARED_BIN): $(CEX_OBJS) $(LIB_SHARED)
-	$(CC) -o $@ $(CEX_OBJS) $(LDFLAGS) $(LDLIBS)
+	$(CC) -o $@ $(CEX_OBJS) $(CEX_SHARED_LDFLAGS) $(CEX_SHARED_LDLIBS)
 
-$(CEX_STATIC_BIN): override LDFLAGS+=-static $(CEX_LDFLAGS)
 ifdef IS_WINDOWS
-$(CEX_STATIC_BIN): override LDFLAGS+=-static-libstdc++ -static-libgcc
 $(CEX_STATIC_BIN): override CPPFLAGS+=-DBOOST_THREAD_USE_LIB
 endif
-$(CEX_STATIC_BIN): LDLIBS=$(CEX_STATIC_LDLIBS)
 $(CEX_STATIC_BIN): $(CEX_OBJS) $(LIB_STATIC)
-	$(CC) -o $@ $(CEX_OBJS) $(LDFLAGS) $(LDLIBS)
+	$(CC) -o $@ $(CEX_OBJS) $(CEX_STATIC_LDFLAGS) $(CEX_STATIC_LDLIBS)
 
-$(ENC_SHARED_BIN): override LDFLAGS+=$(ENC_SHARED_LDFLAGS)
-$(ENC_SHARED_BIN): LDLIBS=$(ENC_SHARED_LDLIBS)
 $(ENC_SHARED_BIN): $(ENC_OBJS)
-	$(CXX) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+	$(CXX) -o $@ $^ $(ENC_SHARED_LDFLAGS) $(ENC_SHARED_LDLIBS)
 
 $(ENC_STATIC_BIN): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
-$(ENC_STATIC_BIN): override LDFLAGS+=$(ENC_STATIC_LDFLAGS)
-$(ENC_STATIC_BIN): LDLIBS=$(ENC_STATIC_LDLIBS)
 $(ENC_STATIC_BIN): $(ENC_OBJS)
-	$(CXX) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+	$(CXX) -o $@ $^ $(ENC_STATIC_LDFLAGS) $(ENC_STATIC_LDLIBS)
 
 ifndef IS_WINDOWS
 $(LIB_SHARED): override CXXFLAGS+=-fPIC
 endif
-$(LIB_SHARED): override LDFLAGS+=$(LIB_SHARED_LDFLAGS)
-$(LIB_SHARED): LDLIBS=$(LIB_SHARED_LDLIBS)
 $(LIB_SHARED): $(LIB_SHARED_OBJS)
-	$(CXX) -o $@ -shared $^ $(LDFLAGS) $(LDLIBS)
+	$(CXX) -o $@ -shared -fPIC $^ $(LIB_SHARED_LDFLAGS) $(LIB_SHARED_LDLIBS)
 
 $(LIB_STATIC): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
 $(LIB_STATIC): $(LIB_STATIC_OBJS)
@@ -222,17 +212,12 @@ $(TEST_SHARED_BIN): override CPPFLAGS+=-DPOLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H
 #endif
 endif
 $(TEST_SHARED_BIN): override INCLUDES+=-Itest
-$(TEST_SHARED_BIN): override LDFLAGS+=$(TEST_SHARED_LDFLAGS)
-$(TEST_SHARED_BIN): LDLIBS=$(TEST_SHARED_LDLIBS)
 $(TEST_SHARED_BIN): $(TEST_OBJS) $(LIB_SHARED)
-	$(CXX) -o $@ $(TEST_OBJS) $(LDFLAGS) $(LDLIBS)
+	$(CXX) -o $@ $(TEST_OBJS) $(TEST_SHARED_LDFLAGS) $(TEST_SHARED_LDLIBS)
 
 $(TEST_STATIC_BIN): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
 $(TEST_STATIC_BIN): override INCLUDES+=-Itest
-$(TEST_STATIC_BIN): override LDFLAGS+=$(TEST_STATIC_LDFLAGS)
-$(TEST_STATIC_BIN): LDLIBS=$(TEST_STATIC_LDLIBS)
 ifdef IS_WINDOWS
-$(TEST_STATIC_BIN): override LDFLAGS+=-static-libstdc++ -static-libgcc
 $(TEST_STATIC_BIN): override CPPFLAGS+=-DBOOST_THREAD_USE_LIB
 $(TEST_STATIC_BIN): override CPPFLAGS+=-DPOLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H
 #ifdef IS_WINDOWS_XP
@@ -240,18 +225,14 @@ $(TEST_STATIC_BIN): override CPPFLAGS+=-DPOLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H
 #endif
 endif
 $(TEST_STATIC_BIN): $(TEST_OBJS) $(LIB_STATIC)
-	$(CXX) -o $@ $(TEST_OBJS) $(LDFLAGS) $(LDLIBS)
+	$(CXX) -o $@ $(TEST_OBJS) $(TEST_STATIC_LDFLAGS) $(TEST_STATIC_LDLIBS)
 
-$(VAL_SHARED_BIN): override LDFLAGS+=$(VAL_SHARED_LDFLAGS)
-$(VAL_SHARED_BIN): LDLIBS=$(VAL_SHARED_LDLIBS)
 $(VAL_SHARED_BIN): $(VAL_OBJS) $(LIB_SHARED)
-	$(CXX) -o $@ $(VAL_OBJS) $(LDFLAGS) $(LDLIBS)
+	$(CXX) -o $@ $(VAL_OBJS) $(VAL_SHARED_LDFLAGS) $(VAL_SHARED_LDLIBS)
 
 $(VAL_STATIC_BIN): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
-$(VAL_STATIC_BIN): override LDFLAGS+=$(VAL_STATIC_LDFLAGS)
-$(VAL_STATIC_BIN): LDLIBS=$(VAL_STATIC_LDLIBS)
 $(VAL_STATIC_BIN): $(VAL_OBJS) $(LIB_STATIC)
-	$(CXX) -o $@ $(VAL_OBJS) $(LDFLAGS) $(LDLIBS)
+	$(CXX) -o $@ $(VAL_OBJS) $(VAL_STATIC_LDFLAGS) $(VAL_STATIC_LDLIBS)
 
 bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
 	$(MKDIR) -p $@
