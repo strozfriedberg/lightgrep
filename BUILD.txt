@@ -29,7 +29,7 @@ Boost on Windows
 To build Boost on Windows, try the following (assuming that you've unzipped boost to C:\boost):
 
 C:\> cd boost
-C:\boost\> .\bootstrap.bat   # builds boost's jam build tool
+C:\boost\> .\bootstrap.bat mingw   # builds boost's jam build tool
 C:\boost\> .\bjam --stagedir=C:\lib --with-program_options --with-system --with-thread
                   --with-filesystem
                   link=static runtime-link=static variant=release
