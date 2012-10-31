@@ -46,7 +46,7 @@ MKDIR=mkdir
 LIB_SRCS=$(wildcard src/lib/*.cpp)
 LIB_SHARED_OBJS=$(LIB_SRCS:%.cpp=bin/%.os) bin/src/lib/parser.tab.os
 LIB_STATIC_OBJS=$(LIB_SRCS:%.cpp=bin/%.o) bin/src/lib/parser.tab.o
-LIB_SHARED_LDFLAGS=-shared -fPIC -L$(ICU_LIBDIR) $(LDFLAGS)
+LIB_SHARED_LDFLAGS=-L$(ICU_LIBDIR) $(LDFLAGS)
 LIB_SHARED_LDLIBS=-licuuc -licudata $(LDLIBS)
 LIB_SHARED=bin/src/lib/liblightgrep$(SHARED_LIB_EXT)
 LIB_STATIC=bin/src/lib/liblightgrep$(STATIC_LIB_EXT)
