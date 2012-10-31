@@ -240,7 +240,7 @@ bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
 clean:
 	$(RM) -r bin/*
 
-.PHONY: all cex clean debug enc shared-lib static-lib test val
+.PHONY: all cex-shared cex-static clean debug enc-shared enc-static lib-shared lib-static perf shared static test-shared test-static val-shared val-static
 
 #
 # Patterns
