@@ -56,88 +56,96 @@ LIB_STATIC=bin/src/lib/liblightgrep$(STATIC_LIB_EXT)
 #
 TEST_SRCS=$(wildcard test/*.cpp)
 TEST_OBJS=$(TEST_SRCS:%.cpp=bin/%.o)
-TEST_SHARED_LDFLAGS=$(addprefix -L,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib)) $(LDFLAGS)
-TEST_SHARED_LDLIBS=-llightgrep -lboost_thread$(BOOST_TYPE) -lboost_chrono$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -lboost_system$(BOOST_TYPE) -licuuc -licudata $(LDLIBS)
+TEST_LDFLAGS=$(addprefix -L,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib)) $(LDFLAGS)
+TEST_LDLIBS=-llightgrep -lboost_thread$(BOOST_TYPE) -lboost_chrono$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -lboost_system$(BOOST_TYPE) -licuuc -licudata $(LDLIBS)
 ifdef IS_LINUX
-TEST_SHARED_LDLIBS+=-lpthread
+TEST_LDLIBS+=-lpthread
 else ifdef IS_WINDOWS
-TEST_SHARED_LDLIBS+=-lws2_32 -lmswsock
+TEST_LDLIBS+=-lws2_32 -lmswsock
 endif
 
-TEST_STATIC_LDFLAGS=-static-libstdc++ -static-libgcc -static $(TEST_SHARED_LDFLAGS)
-TEST_STATIC_LDLIBS=$(TEST_SHARED_LDLIBS) -ldl
+ifndef BUILD_SHARED
+TEST_LDFLAGS+=-static-libstdc++ -static-libgcc -static
+TEST_LDLIBS+=-ldl
+endif
 
-TEST_SHARED_BIN=bin/test/test_shared$(BINEXT)
-TEST_STATIC_BIN=bin/test/test_static$(BINEXT)
+TEST_BIN=bin/test/test$(BINEXT)
 
 #
 # Setup for enc
 #
 ENC_SRCS=$(wildcard src/enc/*.cpp)
 ENC_OBJS=$(ENC_SRCS:%.cpp=bin/%.o)
-ENC_SHARED_LDFLAGS=-L$(ICU_LIBDIR) $(LDFLAGS)
-ENC_SHARED_LDLIBS=-licuuc -licudata $(LDLIBS)
-ENC_STATIC_LDFLAGS+=-static $(ENC_SHARED_LDFLAGS)
-ENC_STATIC_LDLIBS=$(ENC_SHARED_LDLIBS) -ldl
+ENC_LDFLAGS=-L$(ICU_LIBDIR) $(LDFLAGS)
+ENC_LDLIBS=-licuuc -licudata $(LDLIBS)
+
+ifndef BUILD_SHARED
+ENC_LDFLAGS+=-static-libstdc++ -static-libgcc -static
+ENC_LDLIBS+=-ldl
 ifdef IS_LINUX
-ENC_STATIC_LDLIBS+=-lpthread
+ENC_LDLIBS+=-lpthread
 else ifdef IS_WINDOWS
-ENC_STATIC_LDLIBS+=-lws2_32 -lmswsock
+ENC_LDLIBS+=-lws2_32 -lmswsock
+endif
 endif
 
-ENC_SHARED_BIN=bin/src/enc/encodings_shared$(BINEXT)
-ENC_STATIC_BIN=bin/src/enc/encodings_static$(BINEXT)
+ENC_BIN=bin/src/enc/encodings$(BINEXT)
 
 #
 # Setup for val
 #
 VAL_SRCS=$(wildcard src/val/*.cpp)
 VAL_OBJS=$(VAL_SRCS:%.cpp=bin/%.o)
-VAL_SHARED_LDFLAGS=-L$(ICU_LIBDIR) -Lbin/src/lib $(LDFLAGS)
-VAL_SHARED_LDLIBS=-llightgrep -licuuc -licudata $(LDLIBS)
-VAL_STATIC_LDFLAGS=-static $(VAL_SHARED_LDFLAGS)
-VAL_STATIC_LDLIBS=$(VAL_SHARED_LDLIBS) -ldl
+VAL_LDFLAGS=-L$(ICU_LIBDIR) -Lbin/src/lib $(LDFLAGS)
+VAL_LDLIBS=-llightgrep -licuuc -licudata $(LDLIBS)
+
+ifndef BUILD_SHARED
+VAL_LDFLAGS+=-static-libstdc++ -static-libgcc -static
+VAL_LDLIBS+=-ldl
 ifdef IS_LINUX
-VAL_STATIC_LDLIBS+=-lpthread
+VAL_LDLIBS+=-lpthread
 else ifdef IS_WINDOWS
-VAL_STATIC_LDLIBS+=-lws2_32 -lmswsock
+VAL_LDLIBS+=-lws2_32 -lmswsock
+endif
 endif
 
-VAL_SHARED_BIN=bin/src/val/valid_shared$(BINEXT)
-VAL_STATIC_BIN=bin/src/val/valid_static$(BINEXT)
+VAL_BIN=bin/src/val/valid$(BINEXT)
 
 #
 # Setup for c_example
 #
 CEX_SRCS=$(wildcard c_example/*.c)
 CEX_OBJS=$(CEX_SRCS:%.c=bin/%.o)
-CEX_SHARED_LDFLAGS=$(addprefix -L,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib)) $(LDFLAGS)
-CEX_SHARED_LDLIBS=-licuuc -licudata -llightgrep $(LDLIBS)
-CEX_STATIC_LDFLAGS=-static -static-libstdc++ -static-libgcc $(CEX_SHARED_LDFLAGS)
-CEX_STATIC_LDLIBS=-llightgrep -licuuc -licudata -lstdc++ -ldl -lm
+CEX_LDFLAGS=$(addprefix -L,$(sort $(BOOST_LIBDIR) $(ICU_LIBDIR) bin/src/lib)) $(LDFLAGS)
+CEX_LDLIBS=-licuuc -licudata -llightgrep $(LDLIBS)
+
+ifndef BUILD_SHARED
+CEX_LDFLAGS+=-static-libstdc++ -static-libgcc -static
+CEX_LDLIBS+=-ldl -lm
 ifdef IS_LINUX
-CEX_STATIC_LDLIBS+=-lpthread
+VAL_LDLIBS+=-lpthread
+else ifdef IS_WINDOWS
+VAL_LDLIBS+=-lws2_32 -lmswsock
 endif
-CEX_SHARED_BIN=bin/c_example/main_shared$(BINEXT)
-CEX_STATIC_BIN=bin/c_example/main_static$(BINEXT)
+endif
+
+CEX_BIN=bin/c_example/main$(BINEXT)
 
 #
 # Goals
 #
 
+ALL=cex enc test val
+
 ifeq ($(BUILD_SHARED),1)
-ALL+=shared
+ALL:=lib-shared $(ALL)
 endif
 
 ifeq ($(BUILD_STATIC),1)
-ALL+=static
+ALL:=lib-static $(ALL)
 endif
 
-all: $(ALL)
-
-shared: cex-shared enc-shared lib-shared test-shared val-shared
-
-static: cex-static enc-static lib-static test-static val-static
+all: $(ALL) 
 
 debug: CFLAGS+=-g
 debug: CFLAGS:=$(filter-out -O3, $(CFLAGS))
@@ -152,47 +160,42 @@ perf: CFLAGS+=-g
 perf: CXXFLAGS+=-g
 perf: all
 
-cex-shared: $(CEX_SHARED_BIN)
+cex: $(CEX_BIN)
 
-cex-static: $(CEX_STATIC_BIN)
-
-enc-shared: $(ENC_SHARED_BIN)
-
-enc-static: $(ENC_STATIC_BIN)
+enc: $(ENC_BIN)
 
 lib-shared: $(LIB_SHARED)
 
 lib-static: $(LIB_STATIC)
 
-test-shared: $(TEST_SHARED_BIN)
+test: $(TEST_BIN)
 	LD_LIBRARY_PATH=$(BOOST_LIBDIR):$(ICU_LIBDIR):bin/src/lib $< --test
 
-test-static: $(TEST_STATIC_BIN)
-	$< --test
-
-val-shared: $(VAL_SHARED_BIN)
-
-val-static: $(VAL_STATIC_BIN)
+val: $(VAL_BIN)
 
 DEPS=$(patsubst %.o,%.d,$(CEX_OBJS) $(ENC_OBJS) $(LIB_STATIC_OBJS) $(TEST_OBJS) $(VAL_OBJS)) $(LIB_SHARED_OBJS:%.os=%.d)
 
 -include $(DEPS)
 
-$(CEX_SHARED_BIN): $(CEX_OBJS) $(LIB_SHARED)
-	$(CC) -o $@ $(CEX_OBJS) $(CEX_SHARED_LDFLAGS) $(CEX_SHARED_LDLIBS)
 
+ifndef BUILD_SHARED
+$(CEX_BIN): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
 ifdef IS_WINDOWS
-$(CEX_STATIC_BIN): override CPPFLAGS+=-DBOOST_THREAD_USE_LIB
+$(CEX_BIN): override CPPFLAGS+=-DBOOST_THREAD_USE_LIB
 endif
-$(CEX_STATIC_BIN): $(CEX_OBJS) $(LIB_STATIC)
-	$(CC) -o $@ $(CEX_OBJS) $(CEX_STATIC_LDFLAGS) $(CEX_STATIC_LDLIBS)
+$(CEX_BIN): $(CEX_OBJS) $(LIB_STATIC)
+else
+$(CEX_BIN): $(CEX_OBJS) $(LIB_SHARED)
+endif
+	$(CC) -o $@ $(CEX_OBJS) $(CEX_LDFLAGS) $(CEX_LDLIBS)
 
-$(ENC_SHARED_BIN): $(ENC_OBJS)
-	$(CXX) -o $@ $^ $(ENC_SHARED_LDFLAGS) $(ENC_SHARED_LDLIBS)
-
-$(ENC_STATIC_BIN): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
-$(ENC_STATIC_BIN): $(ENC_OBJS)
-	$(CXX) -o $@ $^ $(ENC_STATIC_LDFLAGS) $(ENC_STATIC_LDLIBS)
+ifndef BUILD_SHARED
+$(ENC_BIN): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
+$(ENC_BIN): $(ENC_OBJS) $(LIB_STATIC)
+else
+$(ENC_BIN): $(ENC_OBJS) $(LIB_SHARED)
+endif
+	$(CXX) -o $@ $^ $(ENC_LDFLAGS) $(ENC_LDLIBS)
 
 ifndef IS_WINDOWS
 $(LIB_SHARED): override CXXFLAGS+=-fPIC
@@ -206,33 +209,30 @@ $(LIB_STATIC): $(LIB_STATIC_OBJS)
 	$(RANLIB) $@
 
 ifdef IS_WINDOWS
-$(TEST_SHARED_BIN): override CPPFLAGS+=-DPOLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H
+$(TEST_BIN): override CPPFLAGS+=-DPOLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H
 #ifdef IS_WINDOWS_XP
 #CPPFLAGS+=-D_WIN32_WINNT=0x0501
 #endif
 endif
-$(TEST_SHARED_BIN): override INCLUDES+=-Itest
-$(TEST_SHARED_BIN): $(TEST_OBJS) $(LIB_SHARED)
-	$(CXX) -o $@ $(TEST_OBJS) $(TEST_SHARED_LDFLAGS) $(TEST_SHARED_LDLIBS)
-
-$(TEST_STATIC_BIN): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
-$(TEST_STATIC_BIN): override INCLUDES+=-Itest
+$(TEST_BIN): override INCLUDES+=-Itest
+ifndef BUILD_SHARED
+$(TEST_BIN): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
 ifdef IS_WINDOWS
-$(TEST_STATIC_BIN): override CPPFLAGS+=-DBOOST_THREAD_USE_LIB
-$(TEST_STATIC_BIN): override CPPFLAGS+=-DPOLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H
-#ifdef IS_WINDOWS_XP
-#CPPFLAGS+=-D_WIN32_WINNT=0x0501
-#endif
+$(TEST_BIN): override CPPFLAGS+=-DBOOST_THREAD_USE_LIB
 endif
-$(TEST_STATIC_BIN): $(TEST_OBJS) $(LIB_STATIC)
-	$(CXX) -o $@ $(TEST_OBJS) $(TEST_STATIC_LDFLAGS) $(TEST_STATIC_LDLIBS)
+$(TEST_BIN): $(TEST_OBJS) $(LIB_STATIC)
+else
+$(TEST_BIN): $(TEST_OBJS) $(LIB_SHARED)
+endif
+	$(CXX) -o $@ $(TEST_OBJS) $(TEST_LDFLAGS) $(TEST_LDLIBS)
 
-$(VAL_SHARED_BIN): $(VAL_OBJS) $(LIB_SHARED)
-	$(CXX) -o $@ $(VAL_OBJS) $(VAL_SHARED_LDFLAGS) $(VAL_SHARED_LDLIBS)
-
-$(VAL_STATIC_BIN): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
-$(VAL_STATIC_BIN): $(VAL_OBJS) $(LIB_STATIC)
-	$(CXX) -o $@ $(VAL_OBJS) $(VAL_STATIC_LDFLAGS) $(VAL_STATIC_LDLIBS)
+ifndef BUILD_SHARED
+$(VAL_BIN): override CPPFLAGS+=-DU_STATIC_IMPLEMENTATION
+$(VAL_BIN): $(VAL_OBJS) $(LIB_STATIC)
+else
+$(VAL_BIN): $(VAL_OBJS) $(LIB_SHARED)
+endif
+	$(CXX) -o $@ $(VAL_OBJS) $(VAL_LDFLAGS) $(VAL_LDLIBS)
 
 bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
 	$(MKDIR) -p $@
@@ -240,7 +240,7 @@ bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
 clean:
 	$(RM) -r bin/*
 
-.PHONY: all cex-shared cex-static clean debug enc-shared enc-static lib-shared lib-static perf shared static test-shared test-static val-shared val-static
+.PHONY: all cex cex clean debug enc lib-shared lib-static perf shared static test test val
 
 #
 # Patterns
