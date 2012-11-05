@@ -177,15 +177,7 @@ void NFABuilder::rawByte(const ParseNode& n) {
 }
 
 void NFABuilder::dot(const ParseNode&) {
-  ParseNode fake(ParseNode::CHAR_CLASS, 0, 0x10FFFF);
-  charClass(fake);
-/*
-  NFA::VertexDescriptor v = Fsm->addVertex();
-  (*Fsm)[v].Trans = Fsm->TransFac->getRange(0, 255);
-  Fsm->Deterministic = false;
-  TempFrag.initFull(v, n);
-  Stack.push(TempFrag);
-*/
+  charClass(ParseNode(ParseNode::CHAR_CLASS, 0, 0x10FFFF));
 }
 
 void NFABuilder::charClass(const ParseNode& n) {
