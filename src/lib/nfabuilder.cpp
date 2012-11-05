@@ -29,7 +29,7 @@
 #include <cctype>
 
 
-std::ostream& operator<<(std::ostream& out, const InListT& list) {
+static std::ostream& operator<<(std::ostream& out, const InListT& list) {
   out << '[';
   for (InListT::const_iterator it(list.begin()); it != list.end(); ++it) {
     if (it != list.begin()) {
@@ -41,7 +41,7 @@ std::ostream& operator<<(std::ostream& out, const InListT& list) {
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const OutListT& list) {
+static std::ostream& operator<<(std::ostream& out, const OutListT& list) {
   out << '[';
   for (OutListT::const_iterator i(list.begin()); i != list.end(); ++i) {
     if (i != list.begin()) {
@@ -54,7 +54,7 @@ std::ostream& operator<<(std::ostream& out, const OutListT& list) {
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const Fragment& f) {
+static std::ostream& operator<<(std::ostream& out, const Fragment& f) {
   out << "in " << f.InList << ", out " << f.OutList
       << ", skip " << f.Skippable;
   return out;
