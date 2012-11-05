@@ -26,12 +26,12 @@
 #include <utility>
 #include <vector>
 
-std::ostream& operator<<(std::ostream& out, const std::vector<ByteSet>& v) {
+static std::ostream& operator<<(std::ostream& out, const std::vector<ByteSet>& v) {
   std::copy(v.begin(), v.end(), std::ostream_iterator<ByteSet>(out, " "));
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const std::vector<std::vector<ByteSet>>& v) {
+static std::ostream& operator<<(std::ostream& out, const std::vector<std::vector<ByteSet>>& v) {
   out << std::hex;
   std::copy(
     v.begin(), v.end(), std::ostream_iterator<std::vector<ByteSet>>(out, "\n")
@@ -100,9 +100,9 @@ struct EncodingRangeComparator {
   const uint32 len, skip;
 };
 
-bool equal_except_at(std::vector<ByteSet>::size_type n,
-                     const std::vector<ByteSet>& a,
-                     const std::vector<ByteSet>& b)
+static bool equal_except_at(std::vector<ByteSet>::size_type n,
+                            const std::vector<ByteSet>& a,
+                            const std::vector<ByteSet>& b)
 {
   // a and b are equal everwhere, disregarding position n
   return
