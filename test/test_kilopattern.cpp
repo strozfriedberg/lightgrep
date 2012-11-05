@@ -1027,7 +1027,7 @@ SCOPE_FIXTURE_CTOR(thousandPatternSearch, STest, STest({
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   std::vector<SearchHit>& actual = fixture.Hits;
-  SCOPE_ASSERT_EQUAL(7485, actual.size());
+  SCOPE_ASSERT_EQUAL(7485u, actual.size());
 
   std::vector<SearchHit> expected{
     {0, 1, 6},

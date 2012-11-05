@@ -66,7 +66,7 @@ def main():
       print '''SCOPE_FIXTURE_CTOR(autoPatternTest{setnum}, STest, STest({stest})) {{
   const byte* text = (const byte*) "{text}";
   fixture.search(text, text + {textlen}, 0);
-  SCOPE_ASSERT_EQUAL({matchcount}, fixture.Hits.size());'''.format(setnum=setnum, stest=stest, text=text, textlen=len(text), matchcount=len(matches))
+  SCOPE_ASSERT_EQUAL({matchcount}u, fixture.Hits.size());'''.format(setnum=setnum, stest=stest, text=text, textlen=len(text), matchcount=len(matches))
 
       for i, m in enumerate(matches):
         print '  SCOPE_ASSERT_EQUAL(SearchHit({}, {}, {}), fixture.Hits[{}]);'.format(m[0], m[1], m[2], i)

@@ -72,7 +72,7 @@ def main():
   const byte* text = (const byte*) "{text}";
   fixture.search(text, text + {textlen}, 0);
   std::vector<SearchHit>& actual(fixture.Hits);
-  SCOPE_ASSERT_EQUAL({matchcount}, actual.size());
+  SCOPE_ASSERT_EQUAL({matchcount}u, actual.size());
 
   std::vector<SearchHit> expected{'''
 

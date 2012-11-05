@@ -26,11 +26,11 @@ void utf16TestFixture(const UTF16Base<LE>& enc) {
   SCOPE_ASSERT_EQUAL(4u, enc.maxByteLength());
 
   byte buf[4];
-  int32 val;
+  uint32 val;
   uint32 len;
 
   // too low
-  SCOPE_ASSERT_EQUAL(0, enc.write(-1, buf));
+  SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
 
   // low direct representations
   for (uint32 i = 0; i < 0xD800; ++i) {
@@ -44,7 +44,7 @@ void utf16TestFixture(const UTF16Base<LE>& enc) {
 
   // UTF-16 surrogates, invalid
   for (uint32 i = 0xD800; i < 0xE000; ++i) {
-    SCOPE_ASSERT_EQUAL(0, enc.write(i, buf));
+    SCOPE_ASSERT_EQUAL(0u, enc.write(i, buf));
   }
 
   // high direct representations
@@ -68,12 +68,12 @@ void utf16TestFixture(const UTF16Base<LE>& enc) {
 
     val = (lead << 10) + trail + 0x10000 - (0xD800 << 10) - 0xDC00;
 
-    SCOPE_ASSERT_EQUAL(4, len);
+    SCOPE_ASSERT_EQUAL(4u, len);
     SCOPE_ASSERT_EQUAL(i, val);
   }
 
   // too high
-  SCOPE_ASSERT_EQUAL(0, enc.write(0x110000, buf));
+  SCOPE_ASSERT_EQUAL(0u, enc.write(0x110000, buf));
 }
 
 SCOPE_TEST(testUTF16LE) {

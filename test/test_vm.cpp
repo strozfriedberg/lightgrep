@@ -367,33 +367,33 @@ SCOPE_TEST(newThreadInit) {
   v.init(p);
 
   v.executeFrame(&text[0], 13, 0, 0);
-  SCOPE_ASSERT_EQUAL(1, v.active().size());
+  SCOPE_ASSERT_EQUAL(1u, v.active().size());
   SCOPE_ASSERT_EQUAL(Thread(0, 1, 13, 13), v.active()[0]);
-  SCOPE_ASSERT_EQUAL(0, v.next().size());
+  SCOPE_ASSERT_EQUAL(0u, v.next().size());
 
   v.cleanup();
-  SCOPE_ASSERT_EQUAL(0, v.active().size());
-  SCOPE_ASSERT_EQUAL(0, v.next().size());
+  SCOPE_ASSERT_EQUAL(0u, v.active().size());
+  SCOPE_ASSERT_EQUAL(0u, v.next().size());
 
   v.executeFrame(&text[1], 14, 0, 0);
-  SCOPE_ASSERT_EQUAL(1, v.active().size());
+  SCOPE_ASSERT_EQUAL(1u, v.active().size());
   SCOPE_ASSERT_EQUAL(Thread(0, 1, 14, 14), v.active()[0]);
-  SCOPE_ASSERT_EQUAL(0, v.next().size());
+  SCOPE_ASSERT_EQUAL(0u, v.next().size());
 
   v.cleanup();
-  SCOPE_ASSERT_EQUAL(0, v.active().size());
-  SCOPE_ASSERT_EQUAL(0, v.next().size());
+  SCOPE_ASSERT_EQUAL(0u, v.active().size());
+  SCOPE_ASSERT_EQUAL(0u, v.next().size());
 
   v.executeFrame(&text[2], 15, 0, 0);
-  SCOPE_ASSERT_EQUAL(1, v.active().size());
+  SCOPE_ASSERT_EQUAL(1u, v.active().size());
   SCOPE_ASSERT_EQUAL(Thread(&(*p)[9], Thread::NOLABEL, 15, Thread::NONE), v.active()[0]);
-  SCOPE_ASSERT_EQUAL(1, v.next().size());
+  SCOPE_ASSERT_EQUAL(1u, v.next().size());
   SCOPE_ASSERT_EQUAL(Thread(&(*p)[9], Thread::NOLABEL, 15, Thread::NONE), v.next()[0]);
 
   v.cleanup();
-  SCOPE_ASSERT_EQUAL(1, v.active().size());
+  SCOPE_ASSERT_EQUAL(1u, v.active().size());
   SCOPE_ASSERT_EQUAL(Thread(&(*p)[9], Thread::NOLABEL, 15, Thread::NONE), v.active()[0]);
-  SCOPE_ASSERT_EQUAL(0, v.next().size());
+  SCOPE_ASSERT_EQUAL(0u, v.next().size());
 }
 
 SCOPE_TEST(threeKeywords) {

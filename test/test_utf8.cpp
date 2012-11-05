@@ -26,14 +26,14 @@
 
 SCOPE_TEST(testUTF8) {
   UTF8 enc;
-  SCOPE_ASSERT_EQUAL(4, enc.maxByteLength());
+  SCOPE_ASSERT_EQUAL(4u, enc.maxByteLength());
 
   byte buf[4];
   uint32 len;
-  int32 val;
+  uint32 val;
 
   // too low
-  SCOPE_ASSERT_EQUAL(0, enc.write(-1, buf));
+  SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
 
   // one byte representations
   for (uint32 i = 0; i < 0x80; ++i) {
@@ -60,7 +60,7 @@ SCOPE_TEST(testUTF8) {
 
   // UTF-16 surrogates, invalid
   for (uint32 i = 0xD800; i < 0xE000; ++i) {
-    SCOPE_ASSERT_EQUAL(0, enc.write(i, buf));
+    SCOPE_ASSERT_EQUAL(0u, enc.write(i, buf));
   }
 
   // high three-byte representations
@@ -81,7 +81,7 @@ SCOPE_TEST(testUTF8) {
   }
 
   // too high
-  SCOPE_ASSERT_EQUAL(0, enc.write(0x110000, buf));
+  SCOPE_ASSERT_EQUAL(0u, enc.write(0x110000, buf));
 }
 
 SCOPE_TEST(testUTF8Range0) {

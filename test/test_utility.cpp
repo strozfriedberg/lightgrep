@@ -116,24 +116,24 @@ SCOPE_TEST(twoUnicode) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(2));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(4, g.outVertex(2, 1));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(4u, g.outVertex(2, 1));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(3));
-  SCOPE_ASSERT_EQUAL(6, g.outVertex(3, 0));
+  SCOPE_ASSERT_EQUAL(6u, g.outVertex(3, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(4));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(4));
-  SCOPE_ASSERT_EQUAL(5, g.outVertex(4, 0));
+  SCOPE_ASSERT_EQUAL(5u, g.outVertex(4, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(5));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(5));
@@ -296,11 +296,11 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
   std::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.verticesSize()));
   CodeGenVisitor vis(cgh);
 
-  SCOPE_ASSERT_EQUAL(6, vis.calcJumpTableSize(0, g, g.outDegree(0)));
+  SCOPE_ASSERT_EQUAL(6u, vis.calcJumpTableSize(0, g, g.outDegree(0)));
   SCOPE_ASSERT_EQUAL(JUMP_TABLE_RANGE_OP, cgh->Snippets[0].Op);
-  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(1, g, g.outDegree(1)));
-  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(2, g, g.outDegree(2)));
-  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(3, g, g.outDegree(3)));
+  SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(1, g, g.outDegree(1)));
+  SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(2, g, g.outDegree(2)));
+  SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(3, g, g.outDegree(3)));
 }
 
 SCOPE_TEST(testInitVM) {

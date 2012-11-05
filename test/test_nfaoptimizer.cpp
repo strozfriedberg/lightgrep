@@ -343,11 +343,11 @@ SCOPE_TEST(testPropagateMatchLabels) {
 
   comp.propagateMatchLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0, g[1].Label);
-  SCOPE_ASSERT_EQUAL(1, g[2].Label);
-  SCOPE_ASSERT_EQUAL(2, g[3].Label);
-  SCOPE_ASSERT_EQUAL(2, g[4].Label);
-  SCOPE_ASSERT_EQUAL(2, g[5].Label);
+  SCOPE_ASSERT_EQUAL(0u, g[1].Label);
+  SCOPE_ASSERT_EQUAL(1u, g[2].Label);
+  SCOPE_ASSERT_EQUAL(2u, g[3].Label);
+  SCOPE_ASSERT_EQUAL(2u, g[4].Label);
+  SCOPE_ASSERT_EQUAL(2u, g[5].Label);
 }
 
 SCOPE_TEST(testRemoveNonMinimalLabels) {
@@ -372,9 +372,9 @@ SCOPE_TEST(testRemoveNonMinimalLabels) {
 
   comp.removeNonMinimalLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0, g[1].Label);
-  SCOPE_ASSERT_EQUAL(1, g[2].Label);
-  SCOPE_ASSERT_EQUAL(2, g[3].Label);
+  SCOPE_ASSERT_EQUAL(0u, g[1].Label);
+  SCOPE_ASSERT_EQUAL(1u, g[2].Label);
+  SCOPE_ASSERT_EQUAL(2u, g[3].Label);
   SCOPE_ASSERT_EQUAL(NONE, g[4].Label);
   SCOPE_ASSERT_EQUAL(NONE, g[5].Label);
 }
@@ -401,9 +401,9 @@ SCOPE_TEST(testLabelGuardStates) {
   comp.propagateMatchLabels(g);
   comp.removeNonMinimalLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0, g[1].Label);
-  SCOPE_ASSERT_EQUAL(1, g[2].Label);
-  SCOPE_ASSERT_EQUAL(2, g[3].Label);
+  SCOPE_ASSERT_EQUAL(0u, g[1].Label);
+  SCOPE_ASSERT_EQUAL(1u, g[2].Label);
+  SCOPE_ASSERT_EQUAL(2u, g[3].Label);
   SCOPE_ASSERT_EQUAL(NONE, g[4].Label);
   SCOPE_ASSERT_EQUAL(NONE, g[5].Label);
 }

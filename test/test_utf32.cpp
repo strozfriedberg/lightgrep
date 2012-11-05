@@ -30,7 +30,7 @@ void utf32TestFixture(const UTF32Base<LE>& enc) {
   uint32 len;
 
   // too low
-  SCOPE_ASSERT_EQUAL(0, enc.write(-1, buf));
+  SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
 
   // low, valid
   for (uint32 i = 0; i < 0xD800; ++i) {
@@ -41,13 +41,13 @@ void utf32TestFixture(const UTF32Base<LE>& enc) {
           (((uint32) buf[LE ? 2 : 1]) << 16) |
           (((uint32) buf[LE ? 3 : 0]) << 24);
 
-    SCOPE_ASSERT_EQUAL(4, len);
+    SCOPE_ASSERT_EQUAL(4u, len);
     SCOPE_ASSERT_EQUAL(i, val);
   }
 
   // UTF-16 surrogates, invalid
   for (uint32 i = 0xD800; i < 0xE000; ++i) {
-    SCOPE_ASSERT_EQUAL(0, enc.write(i, buf));
+    SCOPE_ASSERT_EQUAL(0u, enc.write(i, buf));
   }
 
   // high, valid
@@ -59,12 +59,12 @@ void utf32TestFixture(const UTF32Base<LE>& enc) {
           (((uint32) buf[LE ? 2 : 1]) << 16) |
           (((uint32) buf[LE ? 3 : 0]) << 24);
 
-    SCOPE_ASSERT_EQUAL(4, len);
+    SCOPE_ASSERT_EQUAL(4u, len);
     SCOPE_ASSERT_EQUAL(i, val);
   }
 
   // too high
-  SCOPE_ASSERT_EQUAL(0, enc.write(0x110000, buf));
+  SCOPE_ASSERT_EQUAL(0u, enc.write(0x110000, buf));
 }
 
 SCOPE_TEST(testUTF32LE) {
