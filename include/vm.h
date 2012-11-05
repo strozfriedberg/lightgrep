@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "sparseset.h"
-#include "staticvector.h"
 #include "vm_interface.h"
 #include "byteset.h"
 #include "thread.h"
