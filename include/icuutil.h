@@ -21,7 +21,7 @@
 #include "basic.h"
 #include "rangeset.h"
 
-class USet;
+struct USet;
 
 void convUnicodeSet(UnicodeSet& dst, const USet* src);
 
