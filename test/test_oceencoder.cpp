@@ -25,12 +25,12 @@
 #include "oceencoder.h"
 
 SCOPE_TEST(testOCEEncoderASCIIName) {
-  OCEEncoder<ASCII> enc;
+  OCEEncoder enc{ASCII()};
   SCOPE_ASSERT_EQUAL("OCE(ASCII)", enc.name());
 }
 
 SCOPE_TEST(testOCEEncoderWriteSingleASCII) {
-  OCEEncoder<ASCII> enc;
+  OCEEncoder enc{ASCII()};
   SCOPE_ASSERT_EQUAL(1u, enc.maxByteLength());
 
   byte buf[1];
@@ -43,7 +43,7 @@ SCOPE_TEST(testOCEEncoderWriteSingleASCII) {
   for (uint32 i = 0; i < 0x80; ++i) {
     len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
-    SCOPE_ASSERT_EQUAL(OCEEncoder<ASCII>::OCE[i], buf[0]);
+    SCOPE_ASSERT_EQUAL(OCEEncoder::OCE[i], buf[0]);
   }
 
   // too high
@@ -51,7 +51,7 @@ SCOPE_TEST(testOCEEncoderWriteSingleASCII) {
 }
 
 SCOPE_TEST(testOCEEncoderWriteSetASCII) {
-  OCEEncoder<ASCII> enc;
+  OCEEncoder enc{ASCII()};
  
   const std::vector<std::vector<ByteSet>> expected{
     {

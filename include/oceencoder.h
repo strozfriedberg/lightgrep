@@ -18,58 +18,32 @@
 
 #pragma once
 
-#include "encoder.h"
+#include <memory>
 
-#include <algorithm>
-#include <sstream>
-#include <type_traits>
+#include "encoderbase.h"
 
-class OCEEncoderBase {
+// FIXME: Inheriting from EncoderBase means we have a Valid member which
+// we don't use. We could avoid this by moving the Valid member into a
+// subclass of EncoderBase (what to call it?).
+class OCEEncoder: public EncoderBase {
 public:
+  template <class BaseEncoder>
+  OCEEncoder(BaseEncoder&& enc):
+    BaseEnc(new BaseEncoder(std::forward<BaseEncoder>(enc))) {}
+
+  virtual uint32 maxByteLength() const;
+
+  virtual std::string name() const;
+
+  virtual const UnicodeSet& validCodePoints() const;
+
+  virtual uint32 write(int cp, byte buf[]) const;
+
+  using EncoderBase::write;
+
   // OCE: bytes -> bytes
   static const byte OCE[];
-};
 
-template <class BaseEncoder>
-class OCEEncoder: public OCEEncoderBase, public BaseEncoder {
-public:
-  template <typename... BaseArgs>
-  OCEEncoder(BaseArgs... args): BaseEncoder(args...) {
-    // ensure that OCEEncoder is an Encoder
-    static_assert(
-      std::is_base_of<Encoder,OCEEncoder<BaseEncoder>>::value,
-      "OCEEncoder is not an Encoder!"
-    );
-  }
-  
-  virtual std::string name() const {
-    std::ostringstream ss;
-    ss << "OCE(" << BaseEncoder::name() << ')';
-    return ss.str();
-  }
-
-  virtual uint32 write(int cp, byte buf[]) const {
-    const uint32 ret = BaseEncoder::write(cp, buf);
-    std::transform(buf, buf+ret, buf, [](byte b){ return OCE[b]; });
-    return ret;
-  }
-
-  virtual void write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v) const {
-    std::vector<std::vector<ByteSet>> u;
-    BaseEncoder::write(uset, u);
-
-    for (const std::vector<ByteSet>& e : u) {
-      v.emplace_back();
-
-      for (const ByteSet& bs : e) {
-        ByteSet oce_bs;
-        for (uint32 i = 0; i < 256; ++i) {
-          if (bs.test(i)) {
-            oce_bs.set(OCE[i]);
-          }
-        }
-        v.back().push_back(oce_bs);
-      }
-    }
-  }
+private:
+  std::unique_ptr<Encoder> BaseEnc;
 };

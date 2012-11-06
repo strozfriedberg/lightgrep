@@ -16,9 +16,32 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <algorithm>
+#include <sstream>
+
 #include "oceencoder.h"
 
-const byte OCEEncoderBase::OCE[] = {
+uint32 OCEEncoder::maxByteLength() const {
+  return BaseEnc->maxByteLength();
+}
+
+std::string OCEEncoder::name() const {
+  std::ostringstream ss;
+  ss << "OCE(" << BaseEnc->name() << ')';
+  return ss.str();
+}
+
+const UnicodeSet& OCEEncoder::validCodePoints() const {
+  return BaseEnc->validCodePoints();
+}
+
+uint32 OCEEncoder::write(int cp, byte buf[]) const {
+  const uint32 ret = BaseEnc->write(cp, buf);
+  std::transform(buf, buf+ret, buf, [](byte b){ return OCE[b]; });
+  return ret;
+}
+
+const byte OCEEncoder::OCE[] = {
   0x47, 0xF1, 0xB4, 0xE6, 0x0B, 0x6A, 0x72, 0x48,
   0x85, 0x4E, 0x9E, 0xEB, 0xE2, 0xF8, 0x94, 0x53,
   0xE0, 0xBB, 0xA0, 0x02, 0xE8, 0x5A, 0x09, 0xAB,
