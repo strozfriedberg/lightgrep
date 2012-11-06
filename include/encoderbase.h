@@ -29,11 +29,25 @@ public:
   using Encoder::write;
 
 protected:
-  EncoderBase(const UnicodeSet& valid = UnicodeSet()): Valid(valid) {}
+  EncoderBase(): EncoderBase(UnicodeSet()) {}
+
+  EncoderBase(UnicodeSet&& valid): Valid(std::forward<UnicodeSet>(valid)) {}
 
   EncoderBase(const EncoderBase& other): Valid(other.Valid) {}
 
+  EncoderBase(EncoderBase&& other): Valid(std::move(other.Valid)) {}
+
+  EncoderBase& operator=(const EncoderBase& other) {
+    Valid = other.Valid;
+    return *this;
+  }
+
+  EncoderBase& operator=(EncoderBase&& other) {
+    Valid = std::move(other.Valid);
+    return *this;
+  }
+
   virtual void collectRanges(const UnicodeSet& user, std::vector<std::vector<ByteSet>>& v) const;
 
-  const UnicodeSet Valid;
+  UnicodeSet Valid;
 };
