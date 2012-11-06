@@ -39,13 +39,13 @@ Parser::Parser(uint32 sizeHint):
   Fsm->TransFac = Nfab.getTransFac();
 }
 
-bool contains_possible_nongreedy(const std::string& pattern) {
+static bool contains_possible_nongreedy(const std::string& pattern) {
   // The trailing '?' of a nongreedy operator must have at least
   // two characters preceeding it.
   return pattern.find('?', 2) != std::string::npos;
 }
 
-bool contains_possible_counted_repetition(const std::string& pattern) {
+static bool contains_possible_counted_repetition(const std::string& pattern) {
   // The '{' of a counted repetition operator must have at least one
   // character preceeding it and two characters following it.
   const std::string::size_type cr = pattern.rfind('{', pattern.length()-3);
