@@ -24,6 +24,8 @@
 template <bool LE>
 class UTF32Base: public UTFBase {
 public:
+  virtual UTF32Base<LE>* clone() const { return new UTF32Base<LE>(); }
+
   virtual uint32 maxByteLength() const { return 4; }
 
   virtual std::string name() const { return LE ? "UTF-32LE" : "UTF-32BE"; }

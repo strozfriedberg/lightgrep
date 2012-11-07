@@ -29,7 +29,26 @@ class OCEEncoder: public EncoderBase {
 public:
   template <class BaseEncoder>
   OCEEncoder(BaseEncoder&& enc):
+    EncoderBase(),
     BaseEnc(new BaseEncoder(std::forward<BaseEncoder>(enc))) {}
+
+  OCEEncoder(const OCEEncoder& other):
+    EncoderBase(),
+    BaseEnc(other.BaseEnc->clone()) {}
+
+  OCEEncoder& operator=(const OCEEncoder& other) {
+    EncoderBase::operator=(other);
+    BaseEnc = std::unique_ptr<Encoder>(other.BaseEnc->clone());
+    return *this;
+  }
+
+  OCEEncoder(OCEEncoder&& other) = default;
+
+  OCEEncoder& operator=(OCEEncoder&& other) = default;
+
+  virtual OCEEncoder* clone() const {
+    return new OCEEncoder(*this);
+  }
 
   virtual uint32 maxByteLength() const;
 

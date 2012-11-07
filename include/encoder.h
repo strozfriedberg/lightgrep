@@ -28,6 +28,8 @@ class Encoder {
 public:
   virtual ~Encoder() {}
 
+  virtual Encoder* clone() const = 0;
+
   virtual uint32 maxByteLength() const = 0;
 
   virtual std::string name() const = 0;

@@ -24,6 +24,8 @@ class ASCII: public EncoderBase {
 public:
   ASCII(): EncoderBase(UnicodeSet{{0, 0x80}}) {}
 
+  virtual ASCII* clone() const { return new ASCII(); }
+
   virtual uint32 maxByteLength() const { return 1; }
 
   virtual std::string name() const { return "ASCII"; }

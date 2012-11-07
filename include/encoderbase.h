@@ -33,19 +33,13 @@ protected:
 
   EncoderBase(UnicodeSet&& valid): Valid(std::forward<UnicodeSet>(valid)) {}
 
-  EncoderBase(const EncoderBase& other): Valid(other.Valid) {}
+  EncoderBase(const EncoderBase&) = default;
 
-  EncoderBase(EncoderBase&& other): Valid(std::move(other.Valid)) {}
+  EncoderBase(EncoderBase&&) = default;
 
-  EncoderBase& operator=(const EncoderBase& other) {
-    Valid = other.Valid;
-    return *this;
-  }
+  EncoderBase& operator=(const EncoderBase&) = default;
 
-  EncoderBase& operator=(EncoderBase&& other) {
-    Valid = std::move(other.Valid);
-    return *this;
-  }
+  EncoderBase& operator=(EncoderBase&&) = default;
 
   virtual void collectRanges(const UnicodeSet& user, std::vector<std::vector<ByteSet>>& v) const;
 

@@ -23,6 +23,8 @@
 
 class UTF8: public UTFBase {
 public:
+  virtual UTF8* clone() const { return new UTF8(); }
+
   virtual uint32 maxByteLength() const { return 4; }
 
   virtual std::string name() const { return "UTF-8"; }
