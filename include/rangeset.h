@@ -86,19 +86,13 @@ public:
     }
   }
 
-  RangeSet(const RangeSet<T,N>& r): vec(r.vec) {}
+  RangeSet(const RangeSet<T,N>&) = default;
 
-  RangeSet(RangeSet<T,N>&& r): vec(std::move(r.vec)) {}
+  RangeSet(RangeSet<T,N>&&) = default;
 
-  RangeSet<T,N>& operator=(const RangeSet<T,N>& r) {
-    vec = r.vec;
-    return *this;
-  }
+  RangeSet<T,N>& operator=(const RangeSet<T,N>&) = default;
 
-  RangeSet<T,N>& operator=(RangeSet<T,N>&& r) {
-    vec = std::move(r.vec);
-    return *this;
-  }
+  RangeSet<T,N>& operator=(RangeSet<T,N>&&) = default;
 
   bool operator==(const RangeSet<T,N>& r) const {
     return vec == r.vec;
