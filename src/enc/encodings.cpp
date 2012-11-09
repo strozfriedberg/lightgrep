@@ -178,7 +178,12 @@ int main(int, char**) {
   // add extra encodings to the id and canonical maps
   for (const std::string& extra : add) {
     canonical.push_back(extra);
-    idmap.insert({extra, canonical.size()-1});
+    auto x = idmap.insert({extra, canonical.size()-1});
+    if (!x.second) {
+      THROW_RUNTIME_ERROR_WITH_OUTPUT(
+        "Extra encoding '" << extra << "' conficts with existing encoding!"
+      );
+    }
   }
 
   // print the name to encoding id map
