@@ -33,6 +33,7 @@
 #include <cstring>
 #include <functional>
 #include <iostream>
+#include <vector>
 
 const char OH_SHIT[] = "Unspecified exception";
 
@@ -139,12 +140,25 @@ int lg_add_keyword(LG_HPARSER hParser,
                    const LG_KeyOptions* options,
                    const char* encoding)
 {
+  return lg_add_keyword_ex(hParser, keyword, keyIndex, options, &encoding, 1);
+}
+
+int lg_add_keyword_ex(LG_HPARSER hParser,
+                   const char* keyword,
+                   unsigned int keyIndex,
+                   const LG_KeyOptions* options,
+                   const char** encodings,
+                   unsigned int encnum)
+{
+// TODO: Adjust Pattern to take a list of encodings
+// TODO: Adjust Parser::addPattern to constuct an encoder chain
+
   Pattern p(
     keyword,
     options->FixedString,
     options->CaseInsensitive,
     keyIndex,
-    encoding
+    std::vector<std::string>(encodings, encodings+encnum)
   );
   return exception_trap(std::bind(&Parser::addPattern, hParser->Impl.get(), std::cref(p), keyIndex), hParser);
 }

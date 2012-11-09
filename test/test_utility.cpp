@@ -103,10 +103,50 @@ std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
   return ret;
 }
 
+SCOPE_TEST(oceUTF8) {
+  const std::vector<Pattern> pats{
+    {"xxx", false, false, 0, std::vector<std::string>{"OCE", "UTF-8"}}
+  };
+
+  NFAPtr fsm = createGraph(pats);
+  NFA& g = *fsm;
+
+  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
+
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(2, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(3));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
+
+  SCOPE_ASSERT(!g[0].IsMatch);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(g[3].IsMatch);
+
+  SCOPE_ASSERT(!g[0].Trans);
+ 
+  const ByteSet ebs{0x75};
+  ByteSet abs;
+  for (uint i = 1; i < 4; ++i) {
+    g[i].Trans->getBytes(abs);
+    SCOPE_ASSERT_EQUAL(ebs, abs);
+  }
+}
+
 SCOPE_TEST(twoUnicode) {
   std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
   for (Pattern& p : pats) {
-    p.Encoding = LG_CANONICAL_ENCODINGS[LG_ENC_UTF_16LE];
+    p.Encoding.emplace_back(LG_CANONICAL_ENCODINGS[LG_ENC_UTF_16LE]);
   }
 
   NFAPtr fsm = createGraph(pats);

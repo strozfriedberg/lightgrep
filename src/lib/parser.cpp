@@ -19,6 +19,7 @@
 #include "concrete_encoders.h"
 #include "encoder.h"
 #include "encodings.h"
+#include "oceencoder.h"
 #include "parser.h"
 #include "rewriter.h"
 
@@ -58,17 +59,27 @@ void Parser::addPattern(const Pattern& pattern, uint32 patIndex) {
   Nfab.setCurLabel(patIndex);
 
   // set the character encoding
-  auto i = Encoders.find(pattern.Encoding);
+
+  std::unique_ptr<Encoder> enc; 
+  auto e = pattern.Encoding.crbegin();
+
+  auto i = Encoders.find(*e);
   if (i != Encoders.end()) {
-    Nfab.setEncoder(i->second);
+    enc.reset(i->second->clone());
   }
   else {
-    std::shared_ptr<Encoder> enc(
-      new CachingICUEncoder(pattern.Encoding.c_str())
-    );
-    Encoders.insert(std::make_pair(pattern.Encoding, enc));
-    Nfab.setEncoder(enc);
+    enc.reset(new ICUEncoder(e->c_str()));
   }
+
+  ++e;
+  for (auto end = pattern.Encoding.crend(); e != end; ++e) {
+    if (*e == "OCE") {
+// FIXME: leak?
+      enc.reset(new OCEEncoder(std::move(enc)));
+    }
+  }
+
+  Nfab.setEncoder(std::shared_ptr<Encoder>(std::move(enc)));
 
   // parse the pattern
   if (parse(pattern, Tree)) {

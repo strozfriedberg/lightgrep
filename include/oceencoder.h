@@ -27,10 +27,13 @@
 // subclass of EncoderBase (what to call it?).
 class OCEEncoder: public EncoderBase {
 public:
-  template <class BaseEncoder>
-  OCEEncoder(BaseEncoder&& enc):
+  OCEEncoder(std::unique_ptr<Encoder> enc):
     EncoderBase(),
-    BaseEnc(new BaseEncoder(std::forward<BaseEncoder>(enc))) {}
+    BaseEnc(std::move(enc)) {}
+
+  OCEEncoder(const Encoder& enc):
+    EncoderBase(),
+    BaseEnc(enc.clone()) {}
 
   OCEEncoder(const OCEEncoder& other):
     EncoderBase(),

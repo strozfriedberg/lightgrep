@@ -45,14 +45,15 @@ uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
   uint32 ret = 0;
   for (auto& p : keywords) {
     uint32 pSize = p.Expression.size();
-    if (p.Encoding == "UTF-16LE" || p.Encoding == "UTF-16BE") {
+    const std::string& enc = p.Encoding.back();
+    if (enc == "UTF-16LE" || enc == "UTF-16BE") {
       pSize <<= 1;
     }
-    else if (p.Encoding == "UTF-8") {
+    else if (enc == "UTF-8") {
       pSize *= 3;
       pSize >>= 1;
     }
-    else if (p.Encoding == "UTF-32LE" || p.Encoding == "UTF-32BE") {
+    else if (enc == "UTF-32LE" || enc == "UTF-32BE") {
       pSize <<= 2;
     }
     ret += pSize;
@@ -68,7 +69,7 @@ void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
   addKeys(keyInfo.Patterns, ignoreBad, p, keyIdx);
 
   for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
-    int32 encIdx = lg_get_encoding_id(keyInfo.Patterns[i].Encoding.c_str());
+    int32 encIdx = lg_get_encoding_id(keyInfo.Patterns[i].Encoding.back().c_str());
 
     if (encIdx == -1) {
       continue;

@@ -50,7 +50,15 @@ struct TestCase {
     std::ostringstream ss;
 
     for (const Pattern& p : patterns) {
-      ss << p.Expression << ' ' << p.Encoding << ' ';
+      ss << p.Expression << ' ';
+
+      for (const std::string& enc : p.Encoding) {
+        ss << enc << '(';
+      }
+
+      for (uint i = 0; i < p.Encoding.size(); ++i) {
+        ss << ')';
+      }
     }
 
     STest test(patterns);

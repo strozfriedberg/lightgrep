@@ -21,12 +21,14 @@
 #include "basic.h"
 #include "encodings.h"
 
+#include <vector>
+
 class Pattern {
 public:
   std::string Expression;
   bool FixedString, CaseInsensitive;
   uint32 Index;
-  std::string Encoding;
+  std::vector<std::string> Encoding;
 
   Pattern(const std::string& expr = "",
           bool fixed = false,
@@ -37,7 +39,26 @@ public:
     FixedString(fixed),
     CaseInsensitive(insensitive),
     Index(index),
-    Encoding(enc) {}
+    Encoding{enc} {}
+
+  Pattern(const std::string& expr,
+          bool fixed,
+          bool insensitive,
+          uint32 index,
+          const std::vector<std::string>& encs):
+    Expression(expr),
+    FixedString(fixed),
+    CaseInsensitive(insensitive),
+    Index(index),
+    Encoding(encs) {}
+
+  Pattern(const Pattern&) = default;
+
+  Pattern(Pattern&&) = default;
+
+  Pattern& operator=(const Pattern&) = default;
+
+  Pattern& operator=(Pattern&&) = default;
 
   bool operator==(const Pattern& p) const {
     return FixedString == p.FixedString &&

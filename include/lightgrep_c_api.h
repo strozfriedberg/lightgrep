@@ -83,6 +83,15 @@ extern "C" {
     // encodings.h has the list of supported encodings
   );
 
+  int lg_add_keyword_ex(
+    LG_HPARSER hParser,
+    const char* keyword,
+    unsigned int keyIndex,
+    const LG_KeyOptions* options,
+    const char** encodings,
+    unsigned int encnum
+  );
+
   // Create a "Program" from a parser, which efficiently encodes the logic for
   // recognizing all the specified keywords. Once a program has been created,
   // the parser can be discarded.
