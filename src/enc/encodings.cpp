@@ -111,6 +111,11 @@ int main(int, char**) {
     "x11-compound-text"
   };
 
+  // Encodings to add
+  const std::vector<std::string> add{
+    "OCE" // Outlook Compressible Encryption
+  };
+
   std::vector<std::string> canonical;
   std::map<std::string,uint32> idmap;
   size_t longest = 0, longest_canonical = 0;
@@ -168,6 +173,12 @@ int main(int, char**) {
         }
       }
     }
+  }
+
+  // add extra encodings to the id and canonical maps
+  for (const std::string& extra : add) {
+    canonical.push_back(extra);
+    idmap.insert({extra, canonical.size()-1});
   }
 
   // print the name to encoding id map
