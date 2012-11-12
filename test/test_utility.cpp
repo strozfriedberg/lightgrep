@@ -135,7 +135,7 @@ SCOPE_TEST(oceUTF8) {
 
   SCOPE_ASSERT(!g[0].Trans);
  
-  const ByteSet ebs{0x75};
+  const ByteSet ebs{0x8D};
   ByteSet abs;
   for (uint i = 1; i < 4; ++i) {
     g[i].Trans->getBytes(abs);
