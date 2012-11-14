@@ -4,5 +4,5 @@ compiler:
   - clang
 before_install:
   - git submodule update --init
-install: sudo apt-get install boost icu
+install: sudo apt-get install libboost-all-dev libicu-dev
 script: make
