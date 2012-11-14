@@ -4,7 +4,8 @@ compiler:
   - clang
 before_install:
   - git submodule update --init
-  - sudo add-apt-repository ppa:mapnik/boost
+  - sudo echo "deb http://ppa.launchpad.net/mapnik/boost/ubuntu precise main" >> /etc/apt/sources.list
+  - sudo echo "deb-src http://ppa.launchpad.net/mapnik/boost/ubuntu precise main" >> /etc/apt/sources.list
   - sudo apt-get update
 install: sudo apt-get install libicu-dev boost1.49
 script: make
