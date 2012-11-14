@@ -4,5 +4,7 @@ compiler:
   - clang
 before_install:
   - git submodule update --init
-install: sudo apt-get install libboost1.46-dev libicu-dev
+  - sudo add-apt-repository ppa:mapnik/boost
+  - sudo apt-get update
+install: sudo apt-get install libicu-dev boost1.49
 script: make
