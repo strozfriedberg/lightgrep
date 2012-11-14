@@ -289,7 +289,7 @@ $$($(1)_BIN): $$($(1)_OBJS)
 	$$(RANLIB) $$@
 endef
 
-#$(info $(call build-exe,ENC))
+#$(info $(call build-bin,ENC))
 
 $(eval $(call build-bin,CEX))
 $(eval $(call build-bin,ENC))
