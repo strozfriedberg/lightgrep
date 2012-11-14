@@ -35,75 +35,71 @@
 #include <iostream>
 #include <vector>
 
-const char OH_SHIT[] = "Unspecified exception";
+void lg_free_error(LG_Error* err) {
+  if (err) {
+    delete err->Message;
+  }
+  delete err;
+}
 
-void paranoid_copy_error_string(std::string& err, const char* msg) {
+template <typename F>
+bool exception_trap(F func) {
   try {
-    try {
-      err = msg;
-    }
-    catch (const std::bad_alloc&) {
-      // We don't have enough memory to copy the error string,
-      // so copy up to the the capacity we already have.
-      err.assign(msg, err.capacity());
-    }
+    func();
+    return true;
   }
   catch (...) {
-    // This should be impossible.
+    return false;
   }
 }
 
-template <typename T> bool exception_trap(T func, Handle* h) {
+void fill_error(LG_Error** err, const char* msg) {
+  if (err) {
+    try {
+     *err = new LG_Error;
+     (*err)->Message = new char[std::strlen(msg)];
+      std::strcpy((*err)->Message, msg);
+    }
+    catch (const std::bad_alloc&) {
+      // Not enough memory to copy the error message. Everything is hosed.
+    }
+    catch (...) {
+      // Should be impossible.
+    }
+  }
+}
+
+template <typename F>
+bool exception_trap(F func, LG_Error** err) {
   try {
     func();
     return true;
   }
   catch (const std::exception& e) {
-    paranoid_copy_error_string(h->Error, e.what());
+    fill_error(err, e.what());
   }
   catch (...) {
-    paranoid_copy_error_string(h->Error, OH_SHIT);
+    fill_error(err, "Unspecified exception");
   }
 
   return false;
 }
 
-bool destroy_handle(Handle* h) {
-  if (exception_trap(std::bind(&Handle::destroy, h), h)) {
-    try {
-      delete h;
-    }
-    catch (...) {
-    }
-
+template <class H>
+bool destroy_handle(H* h) {
+  try {
+    delete h;
     return true;
   }
-  else {
+  catch (...) {
     return false;
   }
 }
 
-template <typename T> T* create_handle() {
+template <class H>
+H* create_handle() {
   try {
-    return new T;
-  }
-  catch (...) {
-    return 0;
-  }
-}
-
-int lg_ok(void* vp) {
-  try {
-    return vp && static_cast<Handle*>(vp)->ok();
-  }
-  catch (...) {
-    return 0;
-  }
-}
-
-const char* lg_error(void* vp) {
-  try {
-    return vp ? static_cast<Handle*>(vp)->error() : 0;
+    return new H;
   }
   catch (...) {
     return 0;
@@ -117,8 +113,6 @@ void create_parser_impl(LG_HPARSER hParser, unsigned int sizeHint) {
 // TODO:
 // * Review uses of exception_trap. We're likely using it in places where
 // it's not necessary.
-// * Get rid of the two-layer handle structure, let the user pass in an
-// error struct for error reporting.
 
 LG_HPARSER lg_create_parser(unsigned int sizeHint) {
   LG_HPARSER hParser = create_handle<ParserHandle>();
@@ -126,7 +120,7 @@ LG_HPARSER lg_create_parser(unsigned int sizeHint) {
     return 0;
   }
 
-  exception_trap(std::bind(&create_parser_impl, hParser, sizeHint), hParser);
+  exception_trap(std::bind(&create_parser_impl, hParser, sizeHint));
   return hParser;
 }
 
@@ -138,9 +132,10 @@ int lg_add_keyword(LG_HPARSER hParser,
                    const char* keyword,
                    unsigned int keyIndex,
                    const LG_KeyOptions* options,
-                   const char* encoding)
+                   const char* encoding,
+                   LG_Error** err)
 {
-  return lg_add_keyword_ex(hParser, keyword, keyIndex, options, &encoding, 1);
+  return lg_add_keyword_ex(hParser, keyword, keyIndex, options, &encoding, 1, err);
 }
 
 int lg_add_keyword_ex(LG_HPARSER hParser,
@@ -148,7 +143,8 @@ int lg_add_keyword_ex(LG_HPARSER hParser,
                    unsigned int keyIndex,
                    const LG_KeyOptions* options,
                    const char** encodings,
-                   unsigned int encnum)
+                   unsigned int encnum,
+                   LG_Error** err)
 {
 // TODO: Adjust Pattern to take a list of encodings
 // TODO: Adjust Parser::addPattern to constuct an encoder chain
@@ -160,7 +156,7 @@ int lg_add_keyword_ex(LG_HPARSER hParser,
     keyIndex,
     std::vector<std::string>(encodings, encodings+encnum)
   );
-  return exception_trap(std::bind(&Parser::addPattern, hParser->Impl.get(), std::cref(p), keyIndex), hParser);
+  return exception_trap(std::bind(&Parser::addPattern, hParser->Impl.get(), std::cref(p), keyIndex), err);
 }
 
 void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
@@ -182,8 +178,7 @@ void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
 
   comp.labelGuardStates(*g);
 
-  hProg->Impl.reset(new ProgramHandleImpl);
-  ProgramPtr& prog(hProg->Impl->Prog);
+  ProgramPtr& prog(hProg->Impl);
 
   prog = Compiler::createProgram(*g);
 }
@@ -195,24 +190,23 @@ LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
   if (!hProg) {
     return 0;
   }
-  exception_trap(std::bind(&create_program, hParser, hProg, options->Determinize), hProg);
+  exception_trap(std::bind(&create_program, hParser, hProg, options->Determinize));
 
   return hProg;
 }
 
 void write_program(LG_HPROGRAM hProg, void* buffer) {
-  std::string buf = hProg->Impl->Prog->marshall();
+  std::string buf = hProg->Impl->marshall();
   std::memcpy(buffer, buf.data(), buf.size());
 }
 
 void read_program(LG_HPROGRAM hProg, void* buffer, int size) {
-  hProg->Impl.reset(new ProgramHandleImpl);
   std::string s((char*)buffer, size);
-  hProg->Impl->Prog = Program::unmarshall(s);
+  hProg->Impl = Program::unmarshall(s);
 }
 
 int lg_program_size(LG_HPROGRAM hProg) {
-  return hProg->Impl->Prog->bufSize();
+  return hProg->Impl->bufSize();
 }
 
 LG_HPROGRAM lg_read_program(void* buffer, int size) {
@@ -220,12 +214,12 @@ LG_HPROGRAM lg_read_program(void* buffer, int size) {
   if (!hProg) {
     return 0;
   }
-  exception_trap(std::bind(&read_program, hProg, buffer, size), hProg);
+  exception_trap(std::bind(&read_program, hProg, buffer, size));
   return hProg;
 }
 
 void lg_write_program(LG_HPROGRAM hProg, void* buffer) {
-  exception_trap(std::bind(write_program, hProg, buffer), hProg);
+  exception_trap(std::bind(write_program, hProg, buffer));
 }
 
 int lg_destroy_program(LG_HPROGRAM hProg) {
@@ -240,11 +234,11 @@ void create_context(LG_HPROGRAM hProg, LG_HCONTEXT hCtx,
   #endif
   )
 {
-  hCtx->Impl.reset(new ContextHandleImpl);
+  hCtx->Impl = VmInterface::create();
   #ifdef LBT_TRACE_ENABLED
-  hCtx->Impl->Vm->setDebugRange(beginTrace, endTrace);
+  hCtx->Impl->setDebugRange(beginTrace, endTrace);
   #endif
-  hCtx->Impl->Vm->init(hProg->Impl->Prog);
+  hCtx->Impl->init(hProg->Impl);
 }
 
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
@@ -259,7 +253,7 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
     begin = options ? options->TraceBegin : std::numeric_limits<uint64>::max(),
     end = options ? options->TraceEnd : std::numeric_limits<uint64>::max();
 
-  exception_trap(std::bind(&create_context, hProg, hCtx, begin, end), hCtx);
+  exception_trap(std::bind(&create_context, hProg, hCtx, begin, end));
   return hCtx;
 }
 
@@ -268,7 +262,7 @@ int lg_destroy_context(LG_HCONTEXT hCtx) {
 }
 
 void lg_reset_context(LG_HCONTEXT hCtx) {
-  exception_trap(std::bind(&VmInterface::reset, hCtx->Impl->Vm), hCtx);
+  exception_trap(std::bind(&VmInterface::reset, hCtx->Impl));
 }
 
 void lg_starts_with(LG_HCONTEXT hCtx,
@@ -278,7 +272,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(std::bind(&VmInterface::startsWith, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData), hCtx);
+  exception_trap(std::bind(&VmInterface::startsWith, hCtx->Impl, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData));
 }
 
 unsigned int lg_search(LG_HCONTEXT hCtx,
@@ -290,7 +284,7 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
 {
 // FIXME: return Active[0]->Start
 
-  exception_trap(std::bind(&VmInterface::search, hCtx->Impl->Vm, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData), hCtx);
+  exception_trap(std::bind(&VmInterface::search, hCtx->Impl, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData));
 
   return 0;
 }
@@ -299,6 +293,5 @@ void lg_closeout_search(LG_HCONTEXT hCtx,
                         void* userData,
                         LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(std::bind(&VmInterface::closeOut, hCtx->Impl->Vm, callbackFn, userData), hCtx);
-
+  exception_trap(std::bind(&VmInterface::closeOut, hCtx->Impl, callbackFn, userData));
 }

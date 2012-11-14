@@ -54,9 +54,11 @@ extern "C" {
            TraceEnd;      // ending offset of trace output
   } LG_ContextOptions;
 
-  int lg_ok(void* handle);
+  typedef struct LG_Error {
+    char* Message;
+  } LG_Error;
 
-  const char* lg_error(void* handle);
+  void lg_free_error(LG_Error* err);
 
   // Returns a handle to a parser for assembling all the keywords you'd like
   // to search for. The parameter lets you pass a hint as to the size of the
@@ -78,9 +80,10 @@ extern "C" {
     const char* keyword,           // the expression to search for, in UTF-8
     unsigned int keyIndex,         // unique for this keyword
     const LG_KeyOptions* options,  // parsing options
-    const char* encoding           // Encoding of keyword to search for, using
+    const char* encoding,          // Encoding of keyword to search for, using
     // IANA names c.f. http://www.iana.org/assignments/character-sets
     // encodings.h has the list of supported encodings
+    LG_Error** err
   );
 
   int lg_add_keyword_ex(
@@ -89,7 +92,8 @@ extern "C" {
     unsigned int keyIndex,
     const LG_KeyOptions* options,
     const char** encodings,
-    unsigned int encnum
+    unsigned int encnum,
+    LG_Error** err
   );
 
   // Create a "Program" from a parser, which efficiently encodes the logic for

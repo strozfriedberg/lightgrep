@@ -54,24 +54,28 @@ int main() {
   keyOpts.CaseInsensitive = 1;
   keyOpts.FixedString = 0;
 
-  const char *keys[] = {"mary", "lamb", "[a-z]+"};
+  const char* keys[] = {"mary", "lamb", "[a-z]+"};
 
   // add the keywords to the parser one at a time
   int isgood = 1;
   unsigned int i;
+  LG_Error* err = 0;
   for (i = 0; i < NUM_KEYS; ++i) {
     if (!lg_add_keyword(
       parser,
       keys[i],
       i,
       &keyOpts,
-      LG_CANONICAL_ENCODINGS[LG_ENC_ASCII]
+      LG_CANONICAL_ENCODINGS[LG_ENC_ASCII],
+      &err
     )) {
-      fprintf(stderr, "Parser error on keyword %d, %s: %s", i, keys[i], lg_error(parser));
+      fprintf(stderr, "Parser error on keyword %d, %s: %s", i, keys[i], err->Message);
       isgood = 0;
+      lg_free_error(err);
       break;
     }
   }
+
   if (isgood) {
     // create a "program" from the parsed keywords
     LG_ProgramOptions opts;
@@ -112,5 +116,6 @@ int main() {
     lg_destroy_program(prog);
     return 0;
   }
+
   return 1;
 }

@@ -43,9 +43,10 @@ void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, Parser& p, ui
 
 uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
   uint32 ret = 0;
-  for (auto& p : keywords) {
+  for (const auto& p : keywords) {
     uint32 pSize = p.Expression.size();
     const std::string& enc = p.Encoding.back();
+// FIXME: Shouldn't we use something from the Encoders for this?
     if (enc == "UTF-16LE" || enc == "UTF-16BE") {
       pSize <<= 1;
     }
@@ -69,13 +70,23 @@ void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
   addKeys(keyInfo.Patterns, ignoreBad, p, keyIdx);
 
   for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
-    int32 encIdx = lg_get_encoding_id(keyInfo.Patterns[i].Encoding.back().c_str());
+    int32 encIdx = -1;
+    std::vector<uint32> encs;
 
-    if (encIdx == -1) {
-      continue;
+    for (const std::string& e : keyInfo.Patterns[i].Encoding) {
+      encIdx = lg_get_encoding_id(e.c_str());
+
+      if (encIdx == -1) {
+        break;
+      }
+      else {
+        encs.push_back(encIdx);
+      }
     }
 
-    keyInfo.Table.emplace_back(i, encIdx);
+    if (encIdx != -1) {
+      keyInfo.Table.emplace_back(i, encs);
+    }
   }
 }
 

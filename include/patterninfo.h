@@ -35,5 +35,5 @@ public:
 
   uint32 NumUserPatterns;
   std::vector<Pattern> Patterns;
-  std::vector<std::pair<uint32,std::string>> Table;
+  std::vector<std::pair<uint32,std::vector<uint32>>> Table;
 };

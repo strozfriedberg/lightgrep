@@ -21,14 +21,17 @@
 #include "lightgrep_c_api.h"
 #include "basic.h"
 
+// TODO: complete this test?
+
 SCOPE_TEST(testDedupeOnDiffEncodings) {
   std::shared_ptr<ParserHandle> parser(lg_create_parser(0), lg_destroy_parser);
   LG_KeyOptions opts;
   opts.FixedString = 1;
   opts.CaseInsensitive = 0;
+  LG_Error** err = nullptr;
 
-  lg_add_keyword(parser.get(), "apple", 0, &opts, "ASCII");
-  lg_add_keyword(parser.get(), "apple", 0, &opts, "UTF-8");
+  lg_add_keyword(parser.get(), "apple", 0, &opts, "ASCII", err);
+  lg_add_keyword(parser.get(), "apple", 0, &opts, "UTF-8", err);
 
   LG_ProgramOptions progOpts;
   progOpts.Determinize = 1;
