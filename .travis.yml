@@ -4,5 +4,5 @@ compiler:
   - clang
 before_install:
   - git submodule update --init
-install: apt-get install boost, icu
+install: apt-get install boost icu
 script: make
