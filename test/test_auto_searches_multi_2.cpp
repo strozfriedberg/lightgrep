@@ -181,11 +181,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest254, STest, STest({"a??a", "a|ba??"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest255, STest, STest({"a*|(b)", "aa|b??"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest256, STest, STest({"a*?a|b", "a+|(a)"})) {
@@ -404,11 +400,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest263, STest, STest({"a+|(b)", "a?a+?"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest264, STest, STest({"a|a|b*", "a?a*?"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest265, STest, STest({"a|b|c|c", "a|aa+?"})) {
@@ -941,11 +933,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest283, STest, STest({"a*?a+?", "aab?"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest284, STest, STest({"a??b*?", "a*|a+"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest285, STest, STest({"a|b|cb", "a|b|b+?"})) {
@@ -1054,11 +1042,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest288, STest, STest({"a*?bb", "(a|a)"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest289, STest, STest({"a??b??", "a??|b|c"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest290, STest, STest({"a+?|a*", "a+bb"})) {
@@ -1592,11 +1576,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest311, STest, STest({"a*b*", "a+b|a"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest312, STest, STest({"a??|b", "a|b|b*"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest313, STest, STest({"a|b|c|.", "a+|b*?"})) {
@@ -1668,11 +1648,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest314, STest, STest({"a|bb|c", "ab+?"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest315, STest, STest({"a?|a+?", "a??|b|c"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest316, STest, STest({"a+|aa", "a|bc*?"})) {
@@ -1710,19 +1686,11 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest316, STest, STest({"a+|aa", "a|bc*?"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest317, STest, STest({"a??|a+?", "ab|c*?"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest318, STest, STest({"a??b??", "a?|b?"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest319, STest, STest({"aa(a)", "a|ab+?"})) {
@@ -2018,8 +1986,6 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest331, STest, STest({"a+?|a*", "abbc"})) {
   const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest332, STest, STest({"a*?bc", "a|baa"})) {
@@ -2076,11 +2042,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest334, STest, STest({"a*?b|a", "a??|a+"})) 
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest335, STest, STest({"ab|a?", "a+|b?"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest336, STest, STest({"a*?|b??", "a+?|b|c"})) {
@@ -2389,11 +2351,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest348, STest, STest({"aab", "a+?"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest349, STest, STest({"a?b*?", "a?|a*"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest350, STest, STest({"(a)??", "a|aa|b"})) {
@@ -2520,11 +2478,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest354, STest, STest({"abb?", "aab??"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest355, STest, STest({"a?|a|a", "a??|b?"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest356, STest, STest({"a+|a*?", "a|b|ba"})) {
@@ -2784,11 +2738,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest367, STest, STest({"a??a*", "a*a+?"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest368, STest, STest({"a?a?", "a+?|a*"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest369, STest, STest({"a?a|a", "ab|aa"})) {
@@ -2926,11 +2876,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest375, STest, STest({"a*b", "a+(a)"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest376, STest, STest({"a|a|b*?", "a?|b*?"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest377, STest, STest({"abc|c", "abb+"})) {
@@ -3142,11 +3088,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest387, STest, STest({"a+a?", "a*?|b|a"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest388, STest, STest({"a*?|a|b", "a|b|a??"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest389, STest, STest({"a?|bc", "a+|a|a"})) {
@@ -3338,11 +3280,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest398, STest, STest({"aaab", "a*|b??"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest399, STest, STest({"a?|a|a", "a?|a??"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest400, STest, STest({"aa|a?", "a*?(b)"})) {
@@ -3547,19 +3485,11 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest407, STest, STest({"a?|b*?", "ab|b+?"})) 
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest408, STest, STest({"a+|a??", "a?b?"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest409, STest, STest({"a?|b*?", "a|b|a??"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest410, STest, STest({"ab|a", "ab|a+"})) {
@@ -3900,11 +3830,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest423, STest, STest({"aab|a", "aaa+?"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest424, STest, STest({"a??|a*?", "a?|b??"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest425, STest, STest({"ab|b+", "a+?|ab"})) {
@@ -3968,11 +3894,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest427, STest, STest({"ab|c|b", "a?|ab"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest428, STest, STest({"a*?b*", "a*?|a*?"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest429, STest, STest({"a+?a?", "a|b|b?"})) {
@@ -4832,11 +4754,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest462, STest, STest({"abc?", "a+?b??"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest463, STest, STest({"(a)*?", "a??|b|b"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest464, STest, STest({"a+?a+?", "a|ba+"})) {
@@ -4933,11 +4851,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest468, STest, STest({"a|a|bb", "a+bb"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest469, STest, STest({"a*|bb", "a??|(a)"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest470, STest, STest({"a|a|(a)", "aa|aa"})) {
@@ -5178,27 +5092,15 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest477, STest, STest({"ab|b", "a+b|a"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest478, STest, STest({"a*?|(a)", "a??|b|b"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest479, STest, STest({"a*b*", "a?|a"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest480, STest, STest({"aa|a??", "a??|ba"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest481, STest, STest({"a+?|(a)", "a?a+?"})) {
@@ -5315,19 +5217,11 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest486, STest, STest({"a|bb+?", "aba|b"})) {
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest487, STest, STest({"a*?a??", "a*?|b*"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest488, STest, STest({"ab|c*", "a*|a|b"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest489, STest, STest({"a|bc|a", "ab|bc"})) {
@@ -5521,11 +5415,7 @@ SCOPE_FIXTURE_CTOR(autoMultipatternTest496, STest, STest({"a|bc*?", "a*?b+?"})) 
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest497, STest, STest({"a?|a", "a?|b*"})) {
-  const byte* text = (const byte*) "aaabaacabbabcacbaccbbbcbccca";
-  fixture.search(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
-  std::sort(fixture.Hits.begin(), fixture.Hits.end());
-
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoMultipatternTest498, STest, STest({"a?a", "a+?b|b"})) {

@@ -23,6 +23,7 @@
 
 // TODO: complete this test?
 
+/*
 SCOPE_TEST(testDedupeOnDiffEncodings) {
   std::shared_ptr<ParserHandle> parser(lg_create_parser(0), lg_destroy_parser);
   LG_KeyOptions opts;
@@ -46,3 +47,4 @@ SCOPE_TEST(testDedupeOnDiffEncodings) {
     lg_destroy_context
   );
 }
+*/

@@ -19,7 +19,10 @@
 #include <scope/test.h>
 
 #include "codegen.h"
+#include "nfabuilder.h"
 #include "nfaoptimizer.h"
+#include "parser.h"
+#include "parsetree.h"
 #include "states.h"
 
 #include "test_helper.h"
@@ -445,13 +448,8 @@ SCOPE_TEST(testSubstringKey) {
 }
 
 SCOPE_TEST(testCreateXXYYY) {
-  std::vector<Pattern> kws;
-  kws.emplace_back("x");
-  kws.emplace_back("x");
-  kws.emplace_back("yyy");
-
-  NFAPtr gp(createGraph(kws));
-  NFA& g = *gp;
+  NFAPtr gptr(createGraph(makePatterns({"x", "x", "yyy"}), true));
+  NFA& g = *gptr;
 
   NFA exp;
   edge(0, 1, exp, exp.TransFac->getByte('x'));

@@ -20,49 +20,48 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <memory>
 #include <vector>
 
-#include "fwd_pointers.h"
+#include "lightgrep_c_api.h"
 #include "pattern.h"
-#include "vm_interface.h"
+#include "searchhit.h"
 
 void collector(void* userData, const LG_SearchHit* const hit);
 
-struct STest {
+class STest {
+public:
   std::vector<SearchHit> Hits;
-  NFAPtr Fsm;
-  ProgramPtr Prog;
-  std::shared_ptr<VmInterface> Grep;
 
-  STest(const char* key);
+  STest(const char* key): STest(std::initializer_list<const char*>{key}) {}
 
-  STest(std::initializer_list<const char*> keys);
+  STest(std::initializer_list<const char*> keys): STest(make_patterns(keys)) {}
+
+  template <typename T>
+  STest(const T& keys): STest(make_patterns(keys)) {}
 
   STest(const std::vector<Pattern>& patterns);
 
-  template <typename T>
-  STest(const T& keys) {
-    init(keys);
-  }
+  void search(const byte* begin, const byte* end, uint64 offset);
 
+  void startsWith(const byte* begin, const byte* end, uint64 offset);
+
+  bool parsesButNotValid() const;
+
+private:
   template <typename T>
-  void init(const T& keys) {
+  static std::vector<Pattern> make_patterns(const T& keys) {
     struct PatternMaker {
-      Pattern operator()(const std::string& s) { return Pattern(s); }
+      Pattern operator()(const std::string& s) const { return Pattern(s); }
     };
 
     std::vector<Pattern> pats;
     std::transform(keys.begin(), keys.end(),
                    std::back_inserter(pats), PatternMaker());
 
-    init(pats);
+    return pats;
   }
 
-  void init(std::vector<Pattern>& pats);
-
-  void search(const byte* begin, const byte* end, uint64 offset);
-
-  void startsWith(const byte* begin, const byte* end, uint64 offset);
-
-  static bool parsesButNotValid(const std::string& pattern);
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> Prog;
+  std::unique_ptr<ContextHandle,void(*)(ContextHandle*)> Ctx;
 };

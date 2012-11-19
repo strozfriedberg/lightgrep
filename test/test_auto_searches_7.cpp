@@ -1761,12 +1761,12 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1591, STest, STest("a|a+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_TEST(autoPatternTest1592) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|a*)"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1592, STest, STest(R"(a|a*)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_TEST(autoPatternTest1593) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|a?)"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1593, STest, STest(R"(a|a?)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1594, STest, STest("a|a+?")) {
@@ -1785,16 +1785,16 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1594, STest, STest("a|a+?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_TEST(autoPatternTest1595) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|a*?)"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1595, STest, STest(R"(a|a*?)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_TEST(autoPatternTest1596) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|a??)"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1596, STest, STest(R"(a|a??)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_TEST(autoPatternTest1597) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|a{0,1})"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1597, STest, STest(R"(a|a{0,1})")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1598, STest, STest("a|a{2}")) {
@@ -1845,8 +1845,8 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1600, STest, STest("a|a{2,}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_TEST(autoPatternTest1601) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|a{0,1}?)"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1601, STest, STest(R"(a|a{0,1}?)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1602, STest, STest("a|a{2}?")) {
@@ -1919,12 +1919,12 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1605, STest, STest("a|b+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[15]);
 }
 
-SCOPE_TEST(autoPatternTest1606) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|b*)"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1606, STest, STest(R"(a|b*)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_TEST(autoPatternTest1607) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|b?)"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1607, STest, STest(R"(a|b?)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1608, STest, STest("a|b+?")) {
@@ -1952,16 +1952,16 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1608, STest, STest("a|b+?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_TEST(autoPatternTest1609) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|b*?)"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1609, STest, STest(R"(a|b*?)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_TEST(autoPatternTest1610) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|b??)"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1610, STest, STest(R"(a|b??)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_TEST(autoPatternTest1611) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|b{0,1})"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1611, STest, STest(R"(a|b{0,1})")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1612, STest, STest("a|b{2}")) {
@@ -2023,8 +2023,8 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1614, STest, STest("a|b{2,}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[11]);
 }
 
-SCOPE_TEST(autoPatternTest1615) {
-  SCOPE_ASSERT(STest::parsesButNotValid(R"(a|b{0,1}?)"));
+SCOPE_FIXTURE_CTOR(autoPatternTest1615, STest, STest(R"(a|b{0,1}?)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
 SCOPE_FIXTURE_CTOR(autoPatternTest1616, STest, STest("a|b{2}?")) {

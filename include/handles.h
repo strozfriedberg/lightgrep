@@ -19,12 +19,25 @@
 #pragma once
 
 #include "basic.h"
+#include "fsmthingy.h"
 #include "fwd_pointers.h"
-#include "parser.h"
+#include "parsetree.h"
 #include "vm_interface.h"
 
-struct ParserHandle {
-  std::unique_ptr<Parser> Impl;
+struct PatternHandle {
+  std::string Expression;
+  ParseTree Tree;
+  bool FixedString, CaseInsensitive;
+};
+
+struct PatternMapHandle {
+  uint32 NumUserPatterns;
+  std::vector<LG_PatternInfo> Patterns;
+  std::vector<uint32> Table;
+};
+
+struct FSMHandle {
+  std::unique_ptr<FSMThingy> Impl;
 };
 
 struct ProgramHandle {

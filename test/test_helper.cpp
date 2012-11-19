@@ -18,6 +18,14 @@
 
 #include <scope/test.h>
 
+#include <memory>
+
+#include "concrete_encoders.h"
+#include "nfabuilder.h"
+#include "nfaoptimizer.h"
+#include "parser.h"
+#include "parsetree.h"
+
 #include "test_helper.h"
 
 void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, Transition* trans) {
@@ -73,4 +81,58 @@ void ASSERT_EQUAL_MATCHES(const NFA& a, const NFA& b) {
       SCOPE_ASSERT_EQUAL(a[v].IsMatch, b[v].IsMatch);
     }
   }
+}
+
+NFAPtr createGraph(const std::vector<Pattern>& pats, bool determinize) {
+  NFABuilder nfab;
+  ParseTree tree;
+  NFAOptimizer comp;
+  NFAPtr g(new NFA(1));
+
+  for (uint32 i = 0; i < pats.size(); ++i) {
+    parse(pats[i], tree);
+
+    nfab.reset();
+    nfab.setCurLabel(i);
+
+    std::shared_ptr<Encoder> enc;
+    const std::string& ename = pats[i].Encoding.front();
+    if (ename == "ASCII") {
+      enc.reset(new ASCII());
+    }
+    else if (ename == "UTF-8") {
+      enc.reset(new UTF8());
+    }
+    else if (ename == "UTF-16LE") {
+      enc.reset(new UTF16LE());
+    }
+    else if (ename == "UTF-16BE") {
+      enc.reset(new UTF16BE());
+    }
+    else if (ename == "UTF-32LE") {
+      enc.reset(new UTF32LE());
+    }
+    else if (ename == "UTF-32BE") {
+      enc.reset(new UTF32BE());
+    }
+    else {
+      enc.reset(new ICUEncoder(ename));
+    }
+
+    nfab.setEncoder(enc);
+
+    if (nfab.build(tree)) {
+      comp.pruneBranches(*nfab.getFsm());
+      comp.mergeIntoFSM(*g, *nfab.getFsm());
+    }
+  }
+
+  if (determinize) {
+    NFA dfa(1);
+    comp.subsetDFA(dfa, *g);
+    comp.labelGuardStates(dfa);
+    *g = dfa;
+  }
+
+  return g;
 }

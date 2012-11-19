@@ -28,8 +28,6 @@ void getHit(void* userData, const LG_SearchHit* const hit) {
   printf("userData: %p, hit: (%u, %u, %u)\n", userData, (unsigned int)hit->Start, (unsigned int)hit->End, hit->KeywordIndex);
 }
 
-static const uint32 NUM_KEYS = 3;
-
 void searchText(const char** textArray, unsigned int numStrings, LG_HCONTEXT searcher) {
   // reset the search context for re-use (not necessary on first use, but harmless)
   lg_reset_context(searcher);
@@ -48,42 +46,69 @@ void searchText(const char** textArray, unsigned int numStrings, LG_HCONTEXT sea
 }
 
 int main() {
-  // create a parser
-  LG_HPARSER    parser = lg_create_parser(0);
+  const char* keys[] = {"mary", "lamb", "[a-z]+"};
+  const unsigned int kcount = sizeof(keys)/sizeof(keys[0]);
+
+  // pattern info is stored in the pattern map
+  LG_HPATTERNMAP pmap = lg_create_pattern_map(kcount);
+
+  // find the total length (in characters) of the patterns
+  unsigned int klen = 0;
+  for (unsigned int i = 0; i < kcount; ++i) {
+    klen += strlen(keys[i]);
+  }
+
+  LG_HFSM fsm = lg_create_fsm(klen);
+
+  // declare a pattern handle, which we'll reuse for each pattern
+  LG_HPATTERN pattern = 0;
+
   LG_KeyOptions keyOpts;
   keyOpts.CaseInsensitive = 1;
   keyOpts.FixedString = 0;
 
-  const char* keys[] = {"mary", "lamb", "[a-z]+"};
+  LG_EncodingChain enc = { "ASCII" };
 
-  // add the keywords to the parser one at a time
+  // parse the keywords one at a time
   int isgood = 1;
-  unsigned int i;
   LG_Error* err = 0;
-  for (i = 0; i < NUM_KEYS; ++i) {
-    if (!lg_add_keyword(
-      parser,
-      keys[i],
-      i,
-      &keyOpts,
-      LG_CANONICAL_ENCODINGS[LG_ENC_ASCII],
-      &err
-    )) {
-      fprintf(stderr, "Parser error on keyword %d, %s: %s", i, keys[i], err->Message);
+  for (unsigned int i = 0; i < kcount; ++i) {
+    pattern = lg_parse_pattern(pattern, keys[i], &keyOpts, &err);
+
+    if (err) {
+      fprintf(
+        stderr, "Parse error on keyword %d, %s: %s", i, keys[i], err->Message
+      );
+      isgood = 0;
+      lg_free_error(err);
+      break;
+    }
+
+    lg_add_pattern(fsm, pmap, pattern, &enc, &err);
+
+    if (err) {
+      fprintf(
+        stderr, "Parse error on keyword %d, %s: %s", i, keys[i], err->Message
+      );
       isgood = 0;
       lg_free_error(err);
       break;
     }
   }
 
+  // discard the pattern handle now that we've parsed all patterns
+  lg_destroy_pattern(pattern);
+  pattern = 0;
+
+  int ret = 1;
   if (isgood) {
     // create a "program" from the parsed keywords
     LG_ProgramOptions opts;
-    LG_HPROGRAM prog = lg_create_program(parser, &opts);
+    LG_HPROGRAM prog = lg_create_program(fsm, &opts);
 
-    // discard the parser now that we have a program
-    lg_destroy_parser(parser);
-    parser = 0;
+    // discard the FSM now that we have a program
+    lg_destroy_fsm(fsm);
+    fsm = 0;
 
     // create a search context
     LG_ContextOptions ctxOpts;
@@ -114,8 +139,11 @@ int main() {
 
     lg_destroy_context(searcher);
     lg_destroy_program(prog);
-    return 0;
+
+    ret = 0;
   }
 
-  return 1;
+  lg_destroy_pattern_map(pmap);
+
+  return ret;
 }

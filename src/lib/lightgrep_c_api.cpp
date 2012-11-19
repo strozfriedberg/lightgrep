@@ -21,14 +21,15 @@
 #include "lightgrep_c_api.h"
 
 #include "automata.h"
-#include "nfaoptimizer.h"
+#include "compiler.h"
 #include "handles.h"
 #include "nfabuilder.h"
+#include "nfaoptimizer.h"
+#include "parser.h"
 #include "parsetree.h"
+#include "program.h"
 #include "utility.h"
 #include "vm_interface.h"
-#include "compiler.h"
-#include "program.h"
 
 #include <cstring>
 #include <functional>
@@ -69,6 +70,22 @@ void fill_error(LG_Error** err, const char* msg) {
   }
 }
 
+template <typename R, typename F>
+R trap(F func, R succ, R fail, LG_Error** err) {
+  try {
+    func();
+    return succ;
+  }
+  catch (const std::exception& e) {
+    fill_error(err, e.what());
+  }
+  catch (...) {
+    fill_error(err, "Unspecified exception");
+  }
+
+  return fail;
+}
+
 template <typename F>
 bool exception_trap(F func, LG_Error** err) {
   try {
@@ -86,113 +103,139 @@ bool exception_trap(F func, LG_Error** err) {
 }
 
 template <class H>
-bool destroy_handle(H* h) {
-  try {
-    delete h;
-    return true;
-  }
-  catch (...) {
-    return false;
-  }
-}
-
-template <class H>
 H* create_handle() {
   try {
     return new H;
   }
   catch (...) {
-    return 0;
+    return nullptr;
   }
-}
-
-void create_parser_impl(LG_HPARSER hParser, unsigned int sizeHint) {
-  hParser->Impl.reset(new Parser(sizeHint));
 }
 
 // TODO:
 // * Review uses of exception_trap. We're likely using it in places where
 // it's not necessary.
 
-LG_HPARSER lg_create_parser(unsigned int sizeHint) {
-  LG_HPARSER hParser = create_handle<ParserHandle>();
-  if (!hParser) {
-    return 0;
+LG_HPATTERN lg_parse_pattern(LG_HPATTERN hPattern,
+                             const char* pattern,
+                             const LG_KeyOptions* options,
+                             LG_Error** err)
+{
+  // create a pattern handle if we're not given one
+  if (!hPattern) {
+    try {
+      hPattern = new PatternHandle();
+    }
+    catch (...) {
+      return nullptr;
+    }
   }
 
-  exception_trap(std::bind(&create_parser_impl, hParser, sizeHint));
-  return hParser;
-}
+  // set up the pattern handle
+  hPattern->Expression = pattern;
+  hPattern->FixedString = options->FixedString;
+  hPattern->CaseInsensitive = options->CaseInsensitive;
 
-int lg_destroy_parser(LG_HPARSER hParser) {
-  return destroy_handle(hParser);
-}
-
-int lg_add_keyword(LG_HPARSER hParser,
-                   const char* keyword,
-                   unsigned int keyIndex,
-                   const LG_KeyOptions* options,
-                   const char* encoding,
-                   LG_Error** err)
-{
-  return lg_add_keyword_ex(hParser, keyword, keyIndex, options, &encoding, 1, err);
-}
-
-int lg_add_keyword_ex(LG_HPARSER hParser,
-                   const char* keyword,
-                   unsigned int keyIndex,
-                   const LG_KeyOptions* options,
-                   const char** encodings,
-                   unsigned int encnum,
-                   LG_Error** err)
-{
-// TODO: Adjust Pattern to take a list of encodings
-// TODO: Adjust Parser::addPattern to constuct an encoder chain
-
-  Pattern p(
-    keyword,
-    options->FixedString,
-    options->CaseInsensitive,
-    keyIndex,
-    std::vector<std::string>(encodings, encodings+encnum)
+  return trap(
+    [hPattern](){
+      parse_and_reduce(
+        hPattern->Expression,
+        hPattern->FixedString,
+        hPattern->CaseInsensitive,
+        hPattern->Tree
+      );
+    },
+    hPattern,
+    hPattern,
+    err
   );
-  return exception_trap(std::bind(&Parser::addPattern, hParser->Impl.get(), std::cref(p), keyIndex), err);
 }
 
-void create_program(LG_HPARSER hParser, LG_HPROGRAM hProg, bool determinize)
+void lg_destroy_pattern(LG_HPATTERN hPattern) {
+  delete hPattern;
+}
+
+LG_HPATTERNMAP lg_create_pattern_map(unsigned int numTotalPatternsSizeHint) {
+// TODO: use the size hint
+  try {
+    return new PatternMapHandle();
+  }
+  catch (...) {
+    return nullptr;
+  }
+}
+
+void lg_destroy_pattern_map(LG_HPATTERNMAP hPatternMap) {
+  delete hPatternMap;
+}
+
+LG_HFSM lg_create_fsm(unsigned int numFsmStateSizeHint) {
+  try {
+    return new FSMHandle{std::unique_ptr<FSMThingy>(new FSMThingy(numFsmStateSizeHint))};
+  }
+  catch (...) {
+    return nullptr;
+  }
+}
+
+void lg_destroy_fsm(LG_HFSM hFsm) {
+  delete hFsm;
+}
+
+int lg_add_pattern(LG_HFSM hFsm,
+                   LG_HPATTERNMAP hMap,
+                   LG_HPATTERN hPattern,
+                   const LG_EncodingChain* chain,
+                   LG_Error** err)
 {
-  NFAPtr& g(hParser->Impl->Fsm);
+  const uint32 index = hMap->Table.size();
 
-  if (g->verticesSize() < 2) {
-    throw std::runtime_error("No valid patterns were parsed");
-  }
+  hMap->Patterns.push_back({
+    hPattern->Expression.c_str(),
+    chain,
+    nullptr
+  });
+  hMap->Table.push_back(index);
 
-  NFAOptimizer& comp(hParser->Impl->Comp);
-
-  if (determinize && !g->Deterministic) {
-    NFAPtr dfa(new NFA(1, 2 * g->verticesSize(), g->edgesSize()));
-    dfa->TransFac = g->TransFac;
-    comp.subsetDFA(*dfa, *g);
-    g = dfa;
-  }
-
-  comp.labelGuardStates(*g);
-
-  ProgramPtr& prog(hProg->Impl);
-
-  prog = Compiler::createProgram(*g);
+  return trap(
+    [hFsm,hPattern,chain,index](){
+      hFsm->Impl->addPattern(hPattern->Tree, chain->CharByteEncoder, index);
+    },
+    (int) index,
+    -1,
+    err
+  );
 }
 
-LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
+const LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
+                                      unsigned int patternIndex)
+{
+// TODO: exception trap
+  return &hMap->Patterns[patternIndex];
+}
+
+void create_program(LG_HFSM hFsm, LG_HPROGRAM hProg, bool determinize)
+{
+  hFsm->Impl->finalizeGraph(determinize);
+  hProg->Impl = Compiler::createProgram(*hFsm->Impl->Fsm);
+}
+
+LG_HPROGRAM lg_create_program(LG_HFSM hFsm,
                               const LG_ProgramOptions* options)
 {
   LG_HPROGRAM hProg = create_handle<ProgramHandle>();
   if (!hProg) {
-    return 0;
+    return nullptr;
   }
-  exception_trap(std::bind(&create_program, hParser, hProg, options->Determinize));
 
-  return hProg;
+// TODO: fix exception trap
+  if (exception_trap(std::bind(&create_program, hFsm, hProg, options->Determinize))) {
+    return hProg;
+  }
+  else {
+    lg_destroy_program(hProg);
+    return nullptr;
+  }
 }
 
 void write_program(LG_HPROGRAM hProg, void* buffer) {
@@ -212,7 +255,7 @@ int lg_program_size(LG_HPROGRAM hProg) {
 LG_HPROGRAM lg_read_program(void* buffer, int size) {
   LG_HPROGRAM hProg = create_handle<ProgramHandle>();
   if (!hProg) {
-    return 0;
+    return nullptr;
   }
   exception_trap(std::bind(&read_program, hProg, buffer, size));
   return hProg;
@@ -222,8 +265,8 @@ void lg_write_program(LG_HPROGRAM hProg, void* buffer) {
   exception_trap(std::bind(write_program, hProg, buffer));
 }
 
-int lg_destroy_program(LG_HPROGRAM hProg) {
-  return destroy_handle(hProg);
+void lg_destroy_program(LG_HPROGRAM hProg) {
+  delete hProg;
 }
 
 void create_context(LG_HPROGRAM hProg, LG_HCONTEXT hCtx,
@@ -246,7 +289,7 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
 {
   LG_HCONTEXT hCtx = create_handle<ContextHandle>();
   if (!hCtx) {
-    return 0;
+    return nullptr;
   }
 
   const uint64
@@ -257,8 +300,8 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
   return hCtx;
 }
 
-int lg_destroy_context(LG_HCONTEXT hCtx) {
-  return destroy_handle(hCtx);
+void lg_destroy_context(LG_HCONTEXT hCtx) {
+  delete hCtx;
 }
 
 void lg_reset_context(LG_HCONTEXT hCtx) {

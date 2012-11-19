@@ -29,9 +29,11 @@
 #include <boost/property_map/dynamic_property_map.hpp>
 
 #include "codegen.h"
+#include "compiler.h"
 #include "nfaoptimizer.h"
 #include "states.h"
 #include "mockcallback.h"
+#include "vm_interface.h"
 
 #include "test_helper.h"
 
@@ -41,6 +43,7 @@ std::ostream& operator<<(std::ostream& os, const std::shared_ptr<TransitionPtr>&
 }
 */
 
+// FIXME: clean this up
 /*
 bool buildNFA(NFA& fsm, const std::string& dot) {
   std::istringstream is(dot);
@@ -94,15 +97,7 @@ std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
   return out;
 }
 
-template<class T>
-std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
-  std::vector<Pattern> ret;
-  for (const auto& p : list) {
-    ret.emplace_back(p);
-  }
-  return ret;
-}
-
+/*
 SCOPE_TEST(oceUTF8) {
   const std::vector<Pattern> pats{
     {"xxx", false, false, 0, std::vector<std::string>{"OCE", "UTF-8"}}
@@ -142,14 +137,15 @@ SCOPE_TEST(oceUTF8) {
     SCOPE_ASSERT_EQUAL(ebs, abs);
   }
 }
+*/
 
 SCOPE_TEST(twoUnicode) {
   std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
   for (Pattern& p : pats) {
-    p.Encoding.emplace_back(LG_CANONICAL_ENCODINGS[LG_ENC_UTF_16LE]);
+    p.Encoding.front() = LG_CANONICAL_ENCODINGS[LG_ENC_UTF_16LE];
   }
 
-  NFAPtr fsm = createGraph(pats);
+  NFAPtr fsm = createGraph(pats, true);
   NFA& g = *fsm;
 
   SCOPE_ASSERT_EQUAL(7u, g.verticesSize());
@@ -220,7 +216,7 @@ SCOPE_TEST(firstBitset) {
 }
 
 SCOPE_TEST(simpleCollapse) {
-  NFAPtr fsm = createGraph(makePatterns({"ab", "ac"}));
+  NFAPtr fsm = createGraph(makePatterns({"ab", "ac"}), true);
   SCOPE_ASSERT_EQUAL(4u, fsm->verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
@@ -344,14 +340,17 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
 }
 
 SCOPE_TEST(testInitVM) {
-  SearchInfo info;
-  std::shared_ptr<VmInterface> search = initVM(makePatterns({"one", "two"}), info);
-               //012345678901234
-  byte text[] = "a onetwothree";
+  std::shared_ptr<VmInterface> vm = VmInterface::create();
+  NFAPtr fsm = createGraph(makePatterns({"one", "two"}), true);
+  ProgramPtr prog = Compiler::createProgram(*fsm);
+  vm->init(prog);
+
+                    // 0123456789012
+  const byte text[] = "a onetwothree";
 
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT(!search->search(&text[0], &text[13], 0, &mockCallback, &hits));
-  search->closeOut(&mockCallback, &hits);
+  SCOPE_ASSERT(!vm->search(&text[0], &text[13], 0, &mockCallback, &hits));
+  vm->closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(2u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 5, 0), hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(5, 8, 1), hits[1]);
