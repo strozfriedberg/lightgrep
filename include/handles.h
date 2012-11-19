@@ -18,6 +18,9 @@
 
 #pragma once
 
+#include <cstring>
+#include <memory>
+
 #include "basic.h"
 #include "fsmthingy.h"
 #include "fwd_pointers.h"
@@ -31,9 +34,21 @@ struct PatternHandle {
 };
 
 struct PatternMapHandle {
-  uint32 NumUserPatterns;
   std::vector<LG_PatternInfo> Patterns;
-  std::vector<uint32> Table;
+
+  void addPattern(const char* pattern, const LG_EncodingChain* chain) {
+    std::unique_ptr<char[]> patcopy(new char[std::strlen(pattern)+1]);
+    std::strcpy(patcopy.get(), pattern);
+    Patterns.push_back({patcopy.get(), chain, nullptr});
+    patcopy.release();
+  }
+
+  ~PatternMapHandle() {
+    for (LG_PatternInfo& pi : Patterns) {
+      delete[] pi.Pattern;
+//      delete pi.EncodingChain;
+    }
+  }
 };
 
 struct FSMHandle {

@@ -102,6 +102,21 @@ bool exception_trap(F func, LG_Error** err) {
   return false;
 }
 
+template <typename F, typename R>
+R trap_with_retval(F func, R fail, LG_Error** err) {
+  try {
+    return func();
+  }
+  catch (const std::exception& e) {
+    fill_error(err, e.what());
+  }
+  catch (...) {
+    fill_error(err, "Unspecified exception");
+  }
+
+  return fail;
+}
+
 template <class H>
 H* create_handle() {
   try {
@@ -176,35 +191,31 @@ void lg_destroy_fsm(LG_HFSM hFsm) {
   delete hFsm;
 }
 
+int add_pattern(LG_HFSM hFsm, LG_HPATTERNMAP hMap, LG_HPATTERN hPattern, const LG_EncodingChain* chain) {
+  const uint32 label = hMap->Patterns.size();
+  hMap->addPattern(hPattern->Expression.c_str(), chain);
+  hFsm->Impl->addPattern(hPattern->Tree, chain->CharByteEncoder, label);
+  return (int) label;
+}
+
 int lg_add_pattern(LG_HFSM hFsm,
                    LG_HPATTERNMAP hMap,
                    LG_HPATTERN hPattern,
                    const LG_EncodingChain* chain,
                    LG_Error** err)
 {
-  const uint32 index = hMap->Table.size();
-
-  hMap->Patterns.push_back({
-    hPattern->Expression.c_str(),
-    chain,
-    nullptr
-  });
-  hMap->Table.push_back(index);
-
-  return trap(
-    [hFsm,hPattern,chain,index](){
-      hFsm->Impl->addPattern(hPattern->Tree, chain->CharByteEncoder, index);
+  return trap_with_retval(
+    [hFsm,hMap,hPattern,chain]() {
+      return add_pattern(hFsm, hMap, hPattern, chain);
     },
-    (int) index,
     -1,
     err
   );
 }
 
-const LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
-                                      unsigned int patternIndex)
+LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
+                                unsigned int patternIndex)
 {
-// TODO: exception trap
   return &hMap->Patterns[patternIndex];
 }
 

@@ -108,8 +108,8 @@ extern "C" {
                      const LG_EncodingChain* chain,
                      LG_Error** err);
 
-  const LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
-                                        unsigned int patternIndex);
+  LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
+                                  unsigned int patternIndex);
 
   // Create a "Program" from a parser, which efficiently encodes the logic for
   // recognizing all the specified keywords. Once a program has been created,
