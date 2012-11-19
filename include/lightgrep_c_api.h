@@ -76,14 +76,15 @@ extern "C" {
 
   void lg_free_error(LG_Error* err);
 
-  // Returns 0 on failure; otherwise, returns the LG_HPATTERN passed in,
-  // if any, or a new one if hPattern is null.
-  LG_HPATTERN lg_parse_pattern(LG_HPATTERN hPattern,
-                               const char* pattern,
-                               const LG_KeyOptions* options,
-                               LG_Error** err);
+  LG_HPATTERN lg_create_pattern();
 
   void lg_destroy_pattern(LG_HPATTERN hPattern);
+
+  // Returns zero on failure, positive otherwise.
+  int lg_parse_pattern(LG_HPATTERN hPattern,
+                       const char* pattern,
+                       const LG_KeyOptions* options,
+                       LG_Error** err);
 
   LG_HPATTERNMAP lg_create_pattern_map(unsigned int numTotalPatternsSizeHint);
 

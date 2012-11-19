@@ -112,25 +112,23 @@ H* create_handle() {
   }
 }
 
+LG_HPATTERN lg_create_pattern() {
+  return create_handle<PatternHandle>();
+}
+
+void lg_destroy_pattern(LG_HPATTERN hPattern) {
+  delete hPattern;
+}
+
 // TODO:
 // * Review uses of exception_trap. We're likely using it in places where
 // it's not necessary.
 
-LG_HPATTERN lg_parse_pattern(LG_HPATTERN hPattern,
-                             const char* pattern,
-                             const LG_KeyOptions* options,
-                             LG_Error** err)
+int lg_parse_pattern(LG_HPATTERN hPattern,
+                     const char* pattern,
+                     const LG_KeyOptions* options,
+                     LG_Error** err)
 {
-  // create a pattern handle if we're not given one
-  if (!hPattern) {
-    try {
-      hPattern = new PatternHandle();
-    }
-    catch (...) {
-      return nullptr;
-    }
-  }
-
   // set up the pattern handle
   hPattern->Expression = pattern;
   hPattern->FixedString = options->FixedString;
@@ -145,14 +143,10 @@ LG_HPATTERN lg_parse_pattern(LG_HPATTERN hPattern,
         hPattern->Tree
       );
     },
-    hPattern,
-    hPattern,
+    1,
+    0,
     err
   );
-}
-
-void lg_destroy_pattern(LG_HPATTERN hPattern) {
-  delete hPattern;
 }
 
 LG_HPATTERNMAP lg_create_pattern_map(unsigned int numTotalPatternsSizeHint) {

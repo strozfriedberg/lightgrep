@@ -60,8 +60,8 @@ int main() {
 
   LG_HFSM fsm = lg_create_fsm(klen);
 
-  // declare a pattern handle, which we'll reuse for each pattern
-  LG_HPATTERN pattern = 0;
+  // create a pattern handle, which we'll reuse for each pattern
+  LG_HPATTERN pattern = lg_create_pattern();
 
   LG_KeyOptions keyOpts;
   keyOpts.CaseInsensitive = 1;
@@ -73,7 +73,7 @@ int main() {
   int isgood = 1;
   LG_Error* err = 0;
   for (unsigned int i = 0; i < kcount; ++i) {
-    pattern = lg_parse_pattern(pattern, keys[i], &keyOpts, &err);
+    lg_parse_pattern(pattern, keys[i], &keyOpts, &err);
 
     if (err) {
       fprintf(

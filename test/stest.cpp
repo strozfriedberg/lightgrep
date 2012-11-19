@@ -27,8 +27,8 @@ STest::STest(const std::vector<Pattern>& pats):
   Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
 {
   std::unique_ptr<PatternHandle,void(*)(PatternHandle*)> pat(
-    nullptr,
-    nullptr
+    lg_create_pattern(),
+    lg_destroy_pattern
   );
 
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
@@ -49,15 +49,7 @@ STest::STest(const std::vector<Pattern>& pats):
     keyOpts.CaseInsensitive = p.CaseInsensitive;
     keyOpts.FixedString = p.FixedString;
 
-    if (pat) {
-      lg_parse_pattern(pat.get(), p.Expression.c_str(), &keyOpts, &err);
-    }
-    else {
-      pat = std::unique_ptr<PatternHandle,void(*)(PatternHandle*)>(
-        lg_parse_pattern(nullptr, p.Expression.c_str(), &keyOpts, &err),
-        lg_destroy_pattern
-      );
-    }
+    lg_parse_pattern(pat.get(), p.Expression.c_str(), &keyOpts, &err);
 
     if (err) {
       lg_free_error(err);
