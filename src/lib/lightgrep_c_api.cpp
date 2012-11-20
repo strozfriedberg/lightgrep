@@ -178,6 +178,10 @@ void lg_destroy_pattern_map(LG_HPATTERNMAP hPatternMap) {
   delete hPatternMap;
 }
 
+int lg_pattern_map_size(const LG_HPATTERNMAP hPatternMap) {
+  return hPatternMap->Patterns.size();
+}
+
 LG_HFSM lg_create_fsm(unsigned int numFsmStateSizeHint) {
   try {
     return new FSMHandle{std::unique_ptr<FSMThingy>(new FSMThingy(numFsmStateSizeHint))};
@@ -253,7 +257,7 @@ void read_program(LG_HPROGRAM hProg, void* buffer, int size) {
   hProg->Impl = Program::unmarshall(s);
 }
 
-int lg_program_size(LG_HPROGRAM hProg) {
+int lg_program_size(const LG_HPROGRAM hProg) {
   return hProg->Impl->bufSize();
 }
 

@@ -24,6 +24,7 @@
 #include "basic.h"
 #include "fsmthingy.h"
 #include "fwd_pointers.h"
+#include "lightgrep_c_api.h"
 #include "parsetree.h"
 #include "vm_interface.h"
 

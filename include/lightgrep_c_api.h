@@ -90,6 +90,8 @@ extern "C" {
 
   void lg_destroy_pattern_map(LG_HPATTERNMAP hPatternMap);
 
+  int lg_pattern_map_size(const LG_HPATTERNMAP hPatternMap);
+
   // The parameter lets you pass a hint as to the size of the finite state
   // machine that will be created from the keywords. This is important if
   // there will be a lot of keywords, as it helps minimize heap allocation
@@ -118,7 +120,7 @@ extern "C" {
                                 const LG_ProgramOptions* options);
 
   // The size, in bytes, of the search program. Used for serialization.
-  int lg_program_size(LG_HPROGRAM hProg);
+  int lg_program_size(const LG_HPROGRAM hProg);
 
   // Serialize the program, in binary format, to a buffer. The buffer must be
   // at least as large as lg_program_size() in bytes.
