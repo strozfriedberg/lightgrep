@@ -140,6 +140,7 @@ extern "C" {
   // contiguous. Uses a fixed amount of RAM.
   LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
                                 const LG_ContextOptions* options);
+
   void lg_destroy_context(LG_HCONTEXT hCtx);
 
   // Finds matches beginning at the first byte. It works like lg_search(), but
