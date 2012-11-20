@@ -40,14 +40,23 @@ struct PatternMapHandle {
   void addPattern(const char* pattern, const LG_EncodingChain* chain) {
     std::unique_ptr<char[]> patcopy(new char[std::strlen(pattern)+1]);
     std::strcpy(patcopy.get(), pattern);
-    Patterns.push_back({patcopy.get(), chain, nullptr});
+
+    std::unique_ptr<char[]> cbecopy(new char[std::strlen(chain->CharByteEncoder)+1]);
+    std::strcpy(cbecopy.get(), chain->CharByteEncoder);
+
+    std::unique_ptr<LG_EncodingChain> chcopy(new LG_EncodingChain{cbecopy.get()});
+
+    Patterns.push_back({patcopy.get(), chcopy.get(), nullptr});
     patcopy.release();
+    cbecopy.release();
+    chcopy.release();
   }
 
   ~PatternMapHandle() {
     for (LG_PatternInfo& pi : Patterns) {
       delete[] pi.Pattern;
-//      delete pi.EncodingChain;
+      delete[] pi.EncodingChain->CharByteEncoder;
+      delete pi.EncodingChain;
     }
   }
 };
