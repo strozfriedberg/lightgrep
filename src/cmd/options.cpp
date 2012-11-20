@@ -11,9 +11,9 @@ bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& 
   std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
   if (keyFile) {
     uint32 i = 0;
+    char line[8192];
     while (keyFile) {
-      char line[8192];
-      keyFile.getline(line, 8192);
+      keyFile.getline(line, sizeof(line));
       std::string lineS(line);
       parseLine(i++, lineS, keys);
     }
