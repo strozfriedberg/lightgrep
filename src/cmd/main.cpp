@@ -333,9 +333,8 @@ void search(const Options& opts) {
     const std::vector<Pattern> pats = opts.getKeys();
 
     UPtr<FSMHandle> fsm(nullptr, nullptr);
-    uint32 numErrors;
 
-    std::tie(pmap, fsm, numErrors) = parsePatterns(pats);
+    std::tie(pmap, fsm, std::ignore) = parsePatterns(pats);
 
     // build a program from parsed patterns
     if (fsm) {
@@ -450,9 +449,8 @@ void writeProgram(const Options& opts) {
   const std::vector<Pattern> pats(opts.getKeys());
 
   UPtr<FSMHandle> fsm(nullptr, nullptr);
-  uint32 numErrors;
 
-  std::tie(std::ignore, fsm, numErrors) = parsePatterns(pats);
+  std::tie(std::ignore, fsm, std::ignore) = parsePatterns(pats);
 
   if (!fsm) {
     return;
