@@ -370,6 +370,7 @@ void search(const Options& opts) {
   ctxOpts.TraceBegin = opts.DebugBegin;
   ctxOpts.TraceEnd = opts.DebugEnd;
 
+// FIXME: any reason this needs to be shared?
   std::shared_ptr<ContextHandle> searcher(
     lg_create_context(prog.get(), &ctxOpts),
     lg_destroy_context
