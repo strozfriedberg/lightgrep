@@ -4,7 +4,7 @@
 
 #include "basic.h"
 #include "automata.h"
-#include "patterninfo.h"
+#include "pattern.h"
 
 #include <iosfwd>
 #include <set>
@@ -59,8 +59,9 @@ public:
 
   std::ostream& openOutput() const;
 
-  PatternInfo getKeys() const;
+  std::vector<Pattern> getKeys() const;
 
-  bool readKeyFile(const std::string& keyFilePath, PatternInfo& keys) const;
-  bool parseLine(uint32 keyIndex, const std::string& line, PatternInfo& keys) const;
+  bool readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const;
+
+  bool parseLine(uint32 keyIndex, const std::string& line, std::vector<Pattern>& keys) const;
 };

@@ -6,9 +6,8 @@
 #include <boost/tokenizer.hpp>
 
 #include "options.h"
-#include "utility.h"
 
-bool Options::readKeyFile(const std::string& keyFilePath, PatternInfo& keys) const {
+bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const {
   std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
   if (keyFile) {
     uint32 i = 0;
@@ -44,17 +43,16 @@ std::ostream& Options::openOutput() const {
   }
 }
 
-PatternInfo Options::getKeys() const {
-  PatternInfo ret;
+std::vector<Pattern> Options::getKeys() const {
+  std::vector<Pattern> ret;
   if (!CmdLinePatterns.empty()) {
     uint32 keyIndex = 0;
-    for (std::string p : CmdLinePatterns) {
-      parseLine(keyIndex, p, ret);
-      ++keyIndex;
+    for (const std::string& p : CmdLinePatterns) {
+      parseLine(keyIndex++, p, ret);
     }
   }
   else {
-    for (std::string kf : KeyFiles) {
+    for (const std::string& kf : KeyFiles) {
       readKeyFile(kf, ret);
     }
   }
@@ -71,7 +69,7 @@ void setBool(const std::string& s, bool& b) {
   // don't set if unrecognized
 }
 
-bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& keys) const {
+bool Options::parseLine(uint32 keyIndex, const std::string& line, std::vector<Pattern>& keys) const {
   typedef boost::char_separator<char> char_separator;
   typedef boost::tokenizer<char_separator> tokenizer;
 
@@ -80,7 +78,7 @@ bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& k
     tokenizer::const_iterator curTok(tokens.begin());
     const tokenizer::const_iterator endTok(tokens.end());
     if (curTok != endTok) {
-      Pattern p(*curTok, LiteralMode, CaseInsensitive, keyIndex, "");
+      Pattern p(*curTok, LiteralMode, CaseInsensitive, keyIndex);
 
       if (++curTok == endTok) {
         // encoding names are in Encodings
@@ -89,8 +87,8 @@ bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& k
         }
 
         for (const std::string& enc : Encodings) {
-          p.Encoding = enc;
-          keys.Patterns.push_back(p);
+          p.Encoding = { enc };
+          keys.push_back(p);
         }
       }
       else {
@@ -111,12 +109,11 @@ bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& k
         }
 
         for (const std::string& enc : encList) {
-          p.Encoding = enc;
-          keys.Patterns.push_back(p);
+          p.Encoding = { enc };
+          keys.push_back(p);
         }
       }
 
-      ++keys.NumUserPatterns;
       return true;
     }
   }

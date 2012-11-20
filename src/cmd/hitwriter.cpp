@@ -1,5 +1,4 @@
 #include "hitwriter.h"
-#include "encodings.h"
 
 #include <ostream>
 
@@ -9,12 +8,14 @@ void nullWriter(void*userData, const LG_SearchHit* const) {
 }
 
 void writeHit(HitWriterInfo* hi, const LG_SearchHit* const hit) {
-  const std::pair<uint32,uint32>& info(hi->Table[hit->KeywordIndex]);
+  const LG_PatternInfo* info = lg_pattern_info(hi->Map, hit->KeywordIndex);
+
   hi->Out << hit->Start << '\t'
           << hit->End << '\t'
-          << info.first << '\t'
-          << hi->Patterns[info.first].Expression << '\t'
-          << LG_CANONICAL_ENCODINGS[info.second] << '\n';
+          << reinterpret_cast<uint64>(info->UserData) << '\t'
+          << info->Pattern << '\t'
+          << info->EncodingChain->CharByteEncoder << '\n';
+
   ++hi->NumHits;
 }
 
