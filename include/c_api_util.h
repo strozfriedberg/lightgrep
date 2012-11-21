@@ -18,6 +18,59 @@
 
 #pragma once
 
+#include "basic.h"
 #include "lightgrep_c_api.h"
 
 void fill_error(LG_Error** err, const char* msg);
+
+template <typename F>
+auto trap_with_retval(F func, decltype(func()) fail, LG_Error** err) -> decltype(func()) {
+  try {
+    return func();
+  }
+  catch (const std::exception& e) {
+    fill_error(err, e.what());
+  }
+  catch (...) {
+    fill_error(err, "Unspecified exception");
+  }
+
+  return fail;
+}
+
+template <typename F>
+auto trap_with_retval(F func, decltype(func()) fail) -> decltype(func()) {
+  try {
+    return func();
+  }
+  catch (...) {
+    return fail;
+  }
+}
+
+template <typename R, typename F>
+R trap_with_vals(F func, R succ, R fail, LG_Error** err) {
+  try {
+    func();
+    return succ;
+  }
+  catch (const std::exception& e) {
+    fill_error(err, e.what());
+  }
+  catch (...) {
+    fill_error(err, "Unspecified exception");
+  }
+
+  return fail;
+}
+
+template <typename R, typename F>
+R trap_with_vals(F func, R succ, R fail) {
+  try {
+    func();
+    return succ;
+  }
+  catch (...) {
+    return fail;
+  }
+}

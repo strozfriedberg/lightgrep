@@ -57,22 +57,6 @@ bool exception_trap(F func) {
   }
 }
 
-template <typename R, typename F>
-R trap(F func, R succ, R fail, LG_Error** err) {
-  try {
-    func();
-    return succ;
-  }
-  catch (const std::exception& e) {
-    fill_error(err, e.what());
-  }
-  catch (...) {
-    fill_error(err, "Unspecified exception");
-  }
-
-  return fail;
-}
-
 template <typename F>
 bool exception_trap(F func, LG_Error** err) {
   try {
@@ -87,21 +71,6 @@ bool exception_trap(F func, LG_Error** err) {
   }
 
   return false;
-}
-
-template <typename F, typename R>
-R trap_with_retval(F func, R fail, LG_Error** err) {
-  try {
-    return func();
-  }
-  catch (const std::exception& e) {
-    fill_error(err, e.what());
-  }
-  catch (...) {
-    fill_error(err, "Unspecified exception");
-  }
-
-  return fail;
 }
 
 template <class H>
@@ -136,7 +105,7 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
   hPattern->FixedString = options->FixedString;
   hPattern->CaseInsensitive = options->CaseInsensitive;
 
-  return trap(
+  return trap_with_vals(
     [hPattern](){
       parse_and_reduce(
         hPattern->Expression,
