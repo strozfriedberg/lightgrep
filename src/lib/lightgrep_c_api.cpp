@@ -21,6 +21,7 @@
 #include "lightgrep_c_api.h"
 
 #include "automata.h"
+#include "c_api_util.h"
 #include "compiler.h"
 #include "handles.h"
 #include "nfabuilder.h"
@@ -43,6 +44,8 @@ void lg_free_error(LG_Error* err) {
   delete err;
 }
 
+// TODO: Make local functions static or put them in an unnamed ns
+
 template <typename F>
 bool exception_trap(F func) {
   try {
@@ -51,22 +54,6 @@ bool exception_trap(F func) {
   }
   catch (...) {
     return false;
-  }
-}
-
-void fill_error(LG_Error** err, const char* msg) {
-  if (err) {
-    try {
-     *err = new LG_Error;
-     (*err)->Message = new char[std::strlen(msg)];
-      std::strcpy((*err)->Message, msg);
-    }
-    catch (const std::bad_alloc&) {
-      // Not enough memory to copy the error message. Everything is hosed.
-    }
-    catch (...) {
-      // Should be impossible.
-    }
   }
 }
 
