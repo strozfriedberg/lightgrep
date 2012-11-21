@@ -50,13 +50,8 @@ extern "C" {
   } LG_KeyOptions;
 
   typedef struct {
-// TODO: fill in char->char, byte->byte encs
-    const char* CharByteEncoder;
-  } LG_EncodingChain;
-
-  typedef struct {
     const char* Pattern;
-    const LG_EncodingChain* EncodingChain;
+    const char* EncodingChain;
     void* UserData;
   } LG_PatternInfo;
 
@@ -107,7 +102,7 @@ extern "C" {
   int lg_add_pattern(LG_HFSM hFsm,
                      LG_HPATTERNMAP hMap,
                      LG_HPATTERN hPattern,
-                     const LG_EncodingChain* chain,
+                     const char* encoding,
                      LG_Error** err);
 
   LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,

@@ -67,8 +67,6 @@ int main() {
   keyOpts.CaseInsensitive = 1;
   keyOpts.FixedString = 0;
 
-  LG_EncodingChain enc = { "ASCII" };
-
   // parse the keywords one at a time
   int isgood = 1;
   LG_Error* err = 0;
@@ -84,7 +82,7 @@ int main() {
       break;
     }
 
-    lg_add_pattern(fsm, pmap, pattern, &enc, &err);
+    lg_add_pattern(fsm, pmap, pattern, "ASCII", &err);
 
     if (err) {
       fprintf(

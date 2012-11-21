@@ -151,22 +151,22 @@ void lg_destroy_fsm(LG_HFSM hFsm) {
   delete hFsm;
 }
 
-int add_pattern(LG_HFSM hFsm, LG_HPATTERNMAP hMap, LG_HPATTERN hPattern, const LG_EncodingChain* chain) {
+int add_pattern(LG_HFSM hFsm, LG_HPATTERNMAP hMap, LG_HPATTERN hPattern, const char* encoding) {
   const uint32 label = hMap->Patterns.size();
-  hMap->addPattern(hPattern->Expression.c_str(), chain);
-  hFsm->Impl->addPattern(hPattern->Tree, chain->CharByteEncoder, label);
+  hMap->addPattern(hPattern->Expression.c_str(), encoding);
+  hFsm->Impl->addPattern(hPattern->Tree, encoding, label);
   return (int) label;
 }
 
 int lg_add_pattern(LG_HFSM hFsm,
                    LG_HPATTERNMAP hMap,
                    LG_HPATTERN hPattern,
-                   const LG_EncodingChain* chain,
+                   const char* encoding,
                    LG_Error** err)
 {
   return trap_with_retval(
-    [hFsm,hMap,hPattern,chain]() {
-      return add_pattern(hFsm, hMap, hPattern, chain);
+    [hFsm,hMap,hPattern,encoding]() {
+      return add_pattern(hFsm, hMap, hPattern, encoding);
     },
     -1,
     err

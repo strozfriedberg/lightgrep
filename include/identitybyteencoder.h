@@ -22,29 +22,26 @@
 
 #include "byteencoder.h"
 
-class OCEEncoder: public ByteEncoder {
+class IdentityByteEncoder: public ByteEncoder {
 public:
-  OCEEncoder(std::unique_ptr<Encoder> enc):
-    ByteEncoder("OCE", std::move(enc)) {}
+  IdentityByteEncoder(std::unique_ptr<Encoder> enc):
+    ByteEncoder("identity", std::move(enc)) {}
 
-  OCEEncoder(const Encoder& enc):
-    ByteEncoder("OCE", enc) {}
+  IdentityByteEncoder(const Encoder& enc):
+    ByteEncoder("identity", enc) {}
 
-  OCEEncoder(const OCEEncoder&) = default;
+  IdentityByteEncoder(const IdentityByteEncoder&) = default;
 
-  OCEEncoder& operator=(const OCEEncoder&) = default;
+  IdentityByteEncoder& operator=(const IdentityByteEncoder&) = default;
 
-  OCEEncoder(OCEEncoder&&) = default;
+  IdentityByteEncoder(IdentityByteEncoder&&) = default;
 
-  OCEEncoder& operator=(OCEEncoder&&) = default;
+  IdentityByteEncoder& operator=(IdentityByteEncoder&&) = default;
 
-  virtual OCEEncoder* clone() const {
-    return new OCEEncoder(*this);
+  virtual IdentityByteEncoder* clone() const {
+    return new IdentityByteEncoder(*this);
   }
 
-  // OCE: bytes -> bytes
-  static const byte OCE[];
-
 protected:
-  virtual void byteTransform(byte buf[], uint32 blen) const;
+  virtual void byteTransform(byte[], uint32) const {}
 };

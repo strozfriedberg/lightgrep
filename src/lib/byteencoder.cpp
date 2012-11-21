@@ -16,35 +16,26 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include <memory>
+#include <sstream>
 
 #include "byteencoder.h"
 
-class OCEEncoder: public ByteEncoder {
-public:
-  OCEEncoder(std::unique_ptr<Encoder> enc):
-    ByteEncoder("OCE", std::move(enc)) {}
+uint32 ByteEncoder::maxByteLength() const {
+  return BaseEnc->maxByteLength();
+}
 
-  OCEEncoder(const Encoder& enc):
-    ByteEncoder("OCE", enc) {}
+std::string ByteEncoder::name() const {
+  std::ostringstream ss;
+  ss << BaseEnc->name() << '|' << Name;
+  return ss.str();
+}
 
-  OCEEncoder(const OCEEncoder&) = default;
+const UnicodeSet& ByteEncoder::validCodePoints() const {
+  return BaseEnc->validCodePoints();
+}
 
-  OCEEncoder& operator=(const OCEEncoder&) = default;
-
-  OCEEncoder(OCEEncoder&&) = default;
-
-  OCEEncoder& operator=(OCEEncoder&&) = default;
-
-  virtual OCEEncoder* clone() const {
-    return new OCEEncoder(*this);
-  }
-
-  // OCE: bytes -> bytes
-  static const byte OCE[];
-
-protected:
-  virtual void byteTransform(byte buf[], uint32 blen) const;
-};
+uint32 ByteEncoder::write(int cp, byte buf[]) const {
+  const uint32 ret = BaseEnc->write(cp, buf);
+  byteTransform(buf, ret);
+  return ret;
+}

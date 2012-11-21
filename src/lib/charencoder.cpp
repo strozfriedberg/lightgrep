@@ -16,35 +16,16 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include <sstream>
 
-#include <memory>
+#include "charencoder.h"
 
-#include "byteencoder.h"
+std::string CharEncoder::name() const {
+  std::ostringstream ss;
+  ss << Name << '|' << BaseEnc->name();
+  return ss.str();
+}
 
-class OCEEncoder: public ByteEncoder {
-public:
-  OCEEncoder(std::unique_ptr<Encoder> enc):
-    ByteEncoder("OCE", std::move(enc)) {}
-
-  OCEEncoder(const Encoder& enc):
-    ByteEncoder("OCE", enc) {}
-
-  OCEEncoder(const OCEEncoder&) = default;
-
-  OCEEncoder& operator=(const OCEEncoder&) = default;
-
-  OCEEncoder(OCEEncoder&&) = default;
-
-  OCEEncoder& operator=(OCEEncoder&&) = default;
-
-  virtual OCEEncoder* clone() const {
-    return new OCEEncoder(*this);
-  }
-
-  // OCE: bytes -> bytes
-  static const byte OCE[];
-
-protected:
-  virtual void byteTransform(byte buf[], uint32 blen) const;
-};
+uint32 CharEncoder::write(int cp, byte buf[]) const {
+  return BaseEnc->write(charTransform(cp), buf);
+}

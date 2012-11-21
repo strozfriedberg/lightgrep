@@ -16,35 +16,28 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#ifndef LIGHTGREP_C_CHAR_CHAR_TRANS_H_
+#define LIGHTGREP_C_CHAR_CHAR_TRANS_H_
 
-#include <memory>
+#include "lightgrep_c_util.h"
 
-#include "byteencoder.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-class OCEEncoder: public ByteEncoder {
-public:
-  OCEEncoder(std::unique_ptr<Encoder> enc):
-    ByteEncoder("OCE", std::move(enc)) {}
-
-  OCEEncoder(const Encoder& enc):
-    ByteEncoder("OCE", enc) {}
-
-  OCEEncoder(const OCEEncoder&) = default;
-
-  OCEEncoder& operator=(const OCEEncoder&) = default;
-
-  OCEEncoder(OCEEncoder&&) = default;
-
-  OCEEncoder& operator=(OCEEncoder&&) = default;
-
-  virtual OCEEncoder* clone() const {
-    return new OCEEncoder(*this);
-  }
-
-  // OCE: bytes -> bytes
-  static const byte OCE[];
-
-protected:
-  virtual void byteTransform(byte buf[], uint32 blen) const;
+static const LG_TRANS LG_CHAR_CHAR_TRANSFORMATIONS[] = {
+  { "identity", 0 }
 };
+
+static const char* const LG_CANONICAL_CHAR_CHAR_TRANSFORMATIONS[] = {
+  "identity" // 0
+};
+
+// identity
+static const int LG_CHAR_CHAR_IDENTITY = 0;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LIGHTGREP_C_CHAR_CHAR_TRANS_H_ */

@@ -17,28 +17,11 @@
 */
 
 #include <algorithm>
-#include <sstream>
 
 #include "oceencoder.h"
 
-uint32 OCEEncoder::maxByteLength() const {
-  return BaseEnc->maxByteLength();
-}
-
-std::string OCEEncoder::name() const {
-  std::ostringstream ss;
-  ss << "OCE(" << BaseEnc->name() << ')';
-  return ss.str();
-}
-
-const UnicodeSet& OCEEncoder::validCodePoints() const {
-  return BaseEnc->validCodePoints();
-}
-
-uint32 OCEEncoder::write(int cp, byte buf[]) const {
-  const uint32 ret = BaseEnc->write(cp, buf);
-  std::transform(buf, buf+ret, buf, [](byte b){ return OCE[b]; });
-  return ret;
+void OCEEncoder::byteTransform(byte buf[], uint32 blen) const {
+  std::transform(buf, buf+blen, buf, [](byte b){ return OCE[b]; });
 }
 
 const byte OCEEncoder::OCE[] = {
