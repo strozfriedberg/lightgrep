@@ -32,13 +32,6 @@ public:
     BaseEnc(enc.clone())
   {}
 
-/*
-  DecoratingEncoder(Encoder&& enc):
-    Encoder(),
-    BaseEnc(enc.clone())
-  {}
-*/
-
   DecoratingEncoder(const DecoratingEncoder& other):
     Encoder(other),
     BaseEnc(other.BaseEnc->clone())
