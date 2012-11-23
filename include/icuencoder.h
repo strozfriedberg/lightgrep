@@ -39,9 +39,9 @@ public:
     return *this;
   }
 
-  ICUEncoder(ICUEncoder&& other) = default;
+  ICUEncoder(ICUEncoder&&) = default;
 
-  ICUEncoder& operator=(ICUEncoder&& other) = default;
+  ICUEncoder& operator=(ICUEncoder&&) = default;
 
   virtual ICUEncoder* clone() const { return new ICUEncoder(*this); }
 
