@@ -28,14 +28,14 @@
 // subclass of EncoderBase (what to call it?).
 class ByteEncoder: public EncoderBase {
 public:
-  ByteEncoder(const std::string& name, std::unique_ptr<Encoder> enc):
+  ByteEncoder(std::string&& name, std::unique_ptr<Encoder> enc):
     EncoderBase(),
-    Name(name),
+    Name(std::forward<std::string>(name)),
     BaseEnc(std::move(enc)) {}
 
-  ByteEncoder(const std::string& name, const Encoder& enc):
+  ByteEncoder(std::string&& name, const Encoder& enc):
     EncoderBase(),
-    Name(name),
+    Name(std::forward<std::string>(name)),
     BaseEnc(enc.clone()) {}
 
   ByteEncoder(const ByteEncoder& other):

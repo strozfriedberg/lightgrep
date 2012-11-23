@@ -24,14 +24,14 @@
 
 class CharEncoder: public EncoderBase {
 public:
-  CharEncoder(const std::string& name, std::unique_ptr<Encoder> enc):
+  CharEncoder(std::string&& name, std::unique_ptr<Encoder> enc):
     EncoderBase(),
-    Name(name),
+    Name(std::forward<std::string>(name)),
     BaseEnc(std::move(enc)) {}
 
-  CharEncoder(const std::string& name, const Encoder& enc):
+  CharEncoder(std::string&& name, const Encoder& enc):
     EncoderBase(),
-    Name(name),
+    Name(std::forward<std::string>(name)),
     BaseEnc(enc.clone()) {}
 
   CharEncoder(const CharEncoder& other):
