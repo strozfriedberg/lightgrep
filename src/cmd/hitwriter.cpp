@@ -14,7 +14,7 @@ void writeHit(HitWriterInfo* hi, const LG_SearchHit* const hit) {
           << hit->End << '\t'
           << reinterpret_cast<uint64>(info->UserData) << '\t'
           << info->Pattern << '\t'
-          << info->EncodingChain->CharByteEncoder << '\n';
+          << info->EncodingChain << '\n';
 
   ++hi->NumHits;
 }

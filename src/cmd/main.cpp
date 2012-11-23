@@ -236,10 +236,7 @@ parsePatterns(
         continue;
       }
 
-      // FIXME: read the chain properly once we add support
-      LG_EncodingChain enc = { p.Encoding.front().c_str() };
-
-      lg_add_pattern(fsm.get(), pmap.get(), pat.get(), &enc, &err);
+      lg_add_pattern(fsm.get(), pmap.get(), pat.get(), p.Encoding.c_str(), &err);
       if (err) {
         ++numErrors;
         onError(p, err->Message);

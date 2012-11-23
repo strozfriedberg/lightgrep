@@ -234,7 +234,7 @@ public:
     Hit.Offset = hit.Start;
     Hit.Length = hit.End - hit.Start;
     Hit.Label = reinterpret_cast<uint64>(info->UserData);
-    Hit.Encoding = lg_get_encoding_id(info->EncodingChain->CharByteEncoder);
+//    Hit.Encoding = lg_get_encoding_id(info->EncodingChain);
     ++HitsForFile[Hit.Label];
     write(Hit);
   }
