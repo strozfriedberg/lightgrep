@@ -23,11 +23,6 @@
 #include <functional>
 #include <sstream>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/property_map/dynamic_property_map.hpp>
-
 #include "codegen.h"
 #include "compiler.h"
 #include "nfaoptimizer.h"
@@ -40,55 +35,6 @@
 /*
 std::ostream& operator<<(std::ostream& os, const std::shared_ptr<TransitionPtr>& p) {
   return os;
-}
-*/
-
-// FIXME: clean this up
-/*
-bool buildNFA(NFA& fsm, const std::string& dot) {
-  std::istringstream is(dot);
-
-  // Vertex properties
-  typedef boost::property<boost::vertex_name_t, std::string> vertex_p;
-  // Edge properties
-  typedef boost::property<boost::edge_name_t, std::string> edge_p;
-  // adjacency_list-based type
-  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
-                                vertex_p, edge_p> graph_t;
-
-  // Construct an empty graph and prepare the dynamic_property_maps
-  graph_t src(0);
-  boost::dynamic_properties dp;
-
-  boost::property_map<graph_t, boost::vertex_name_t>::type node_label =
-    get(boost::vertex_name, src);
-  dp.property("node_id", node_label);
-
-  boost::property_map<graph_t, boost::edge_name_t>::type edge_label =
-    get(boost::edge_name, src);
-  dp.property("label", edge_label);
-
-  if (!boost::read_graphviz(is, src, dp, "node_id")) return false;
-
-  // Convert this graph to a NFA (annoying!)
-
-  typedef boost::graph_traits<graph_t>::vertex vertex_t;
-  typedef boost::graph_traits<graph_t>::edge_iterator edge_iterator;
-
-  edge_iterator e, e_end;
-  for (boost::tie(e, e_end) = boost::edges(src); e != e_end; ++e) {
-    const unsigned int u = boost::lexical_cast<unsigned int>(
-      boost::get(node_label, boost::source(*e, src)));
-
-    const unsigned int v = boost::lexical_cast<unsigned int>(
-      boost::get(node_label, boost::target(*e, src)));
-
-    const char lit = boost::lexical_cast<char>(boost::get(edge_label, *e));
-
-    edge(u, v, fsm, fsm.TransFac->getByte(lit));
-  }
-
-  return true;
 }
 */
 
