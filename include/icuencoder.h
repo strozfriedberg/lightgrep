@@ -56,6 +56,7 @@ public:
 
   ICUEncoder& operator=(const ICUEncoder& other) {
     EncoderBase::operator=(other);
+    enc_name = other.enc_name;
     init(other.enc_name.c_str());
     return *this;
   }
