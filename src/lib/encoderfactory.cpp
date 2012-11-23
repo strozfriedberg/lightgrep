@@ -17,6 +17,7 @@
 */
 
 #include "ascii.h"
+#include "concrete_encoders.h"
 #include "encoderfactory.h"
 #include "lightgrep_c_util.h"
 #include "lightgrep_c_char_char_trans.h"
@@ -35,7 +36,24 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 
+EncoderFactory::EncoderFactory():
+  Cache{
+    { "ASCII",    std::make_shared<ASCII>()          },
+    { "UTF-8",    std::make_shared<CachingUTF8>()    },
+    { "UTF-16LE", std::make_shared<CachingUTF16LE>() },
+    { "UTF-16BE", std::make_shared<CachingUTF16BE>() },
+    { "UTF-32LE", std::make_shared<CachingUTF32LE>() },
+    { "UTF-32BE", std::make_shared<CachingUTF32BE>() }
+  }
+{}
+
 std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
+  // return a cached encoder if we have one
+  auto i = Cache.find(chain);
+  if (i != Cache.end()) {
+    return i->second;
+  }
+
   typedef boost::char_separator<char> char_separator;
   typedef boost::tokenizer<char_separator> tokenizer;
 

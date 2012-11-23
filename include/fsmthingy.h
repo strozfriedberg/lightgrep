@@ -17,8 +17,6 @@ public:
   NFAOptimizer Comp;
   NFAPtr Fsm;
 
-  std::map<std::string,std::shared_ptr<Encoder>> Encoders;
-
   void addPattern(const ParseTree& tree, const char* chain, uint32 label);
 
   void finalizeGraph(bool determinize);

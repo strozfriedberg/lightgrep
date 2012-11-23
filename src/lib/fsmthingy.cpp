@@ -16,7 +16,6 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "concrete_encoders.h"
 #include "encoder.h"
 #include "fsmthingy.h"
 
@@ -25,15 +24,7 @@
 #include <vector>
 
 FSMThingy::FSMThingy(uint32 sizeHint):
-  Fsm(new NFA(1, sizeHint)),
-  Encoders{
-    { "ASCII",    std::make_shared<ASCII>()          },
-    { "UTF-8",    std::make_shared<CachingUTF8>()    },
-    { "UTF-16LE", std::make_shared<CachingUTF16LE>() },
-    { "UTF-16BE", std::make_shared<CachingUTF16BE>() },
-    { "UTF-32LE", std::make_shared<CachingUTF32LE>() },
-    { "UTF-32BE", std::make_shared<CachingUTF32BE>() }
-  }
+  Fsm(new NFA(1, sizeHint))
 {
   Fsm->TransFac = Nfab.getTransFac();
 }
