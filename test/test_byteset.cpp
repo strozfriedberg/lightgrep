@@ -25,7 +25,7 @@
 
 SCOPE_TEST(byteSetSizeTest) {
   // Our usage of memcmp assumes that ByteSet is laid out as a byte[32].
-  SCOPE_ASSERT_EQUAL(32, sizeof(ByteSet));
+  SCOPE_ASSERT_EQUAL(32u, sizeof(ByteSet));
 }
 
 SCOPE_TEST(byteSetDWordComparisionTest) {

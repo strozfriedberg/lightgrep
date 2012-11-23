@@ -86,6 +86,14 @@ public:
     }
   }
 
+  RangeSet(const RangeSet<T,N>&) = default;
+
+  RangeSet(RangeSet<T,N>&&) = default;
+
+  RangeSet<T,N>& operator=(const RangeSet<T,N>&) = default;
+
+  RangeSet<T,N>& operator=(RangeSet<T,N>&&) = default;
+
   bool operator==(const RangeSet<T,N>& r) const {
     return vec == r.vec;
   }

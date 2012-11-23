@@ -18,48 +18,53 @@
 
 #pragma once
 
+#include <cstring>
+#include <memory>
+
 #include "basic.h"
+#include "fsmthingy.h"
 #include "fwd_pointers.h"
-#include "parser.h"
+#include "lightgrep_c_api.h"
+#include "parsetree.h"
 #include "vm_interface.h"
 
-struct Handle {
-  Handle() {
-    // Reserving space makes it more likely that we can return
-    // an error message on std::bad_alloc.
-    Error.reserve(256);
+struct PatternHandle {
+  std::string Expression;
+  ParseTree Tree;
+  bool FixedString, CaseInsensitive;
+};
+
+struct PatternMapHandle {
+  std::vector<LG_PatternInfo> Patterns;
+
+  void addPattern(const char* pattern, const char* chain) {
+    std::unique_ptr<char[]> patcopy(new char[std::strlen(pattern)+1]);
+    std::strcpy(patcopy.get(), pattern);
+
+    std::unique_ptr<char[]> chcopy(new char[std::strlen(chain)+1]);
+    std::strcpy(chcopy.get(), chain);
+
+    Patterns.push_back({patcopy.get(), chcopy.get(), nullptr});
+    patcopy.release();
+    chcopy.release();
   }
 
-  virtual ~Handle() {}
-
-  virtual bool ok() const = 0;
-  virtual void destroy() = 0;
-  const char* error() const { return Error.c_str(); }
-
-  std::string Error;
+  ~PatternMapHandle() {
+    for (LG_PatternInfo& pi : Patterns) {
+      delete[] pi.Pattern;
+      delete[] pi.EncodingChain;
+    }
+  }
 };
 
-template <typename T> struct HandleBase: public Handle {
-  virtual bool ok() const { return static_cast<bool>(Impl); }
-  virtual void destroy() { Impl.reset(); }
-
-  std::unique_ptr<T> Impl;
+struct FSMHandle {
+  std::unique_ptr<FSMThingy> Impl;
 };
 
-struct ParserHandle: public HandleBase<Parser> {};
-
-struct ProgramHandleImpl {
-  ProgramHandleImpl();
-
-  ProgramPtr Prog;
+struct ProgramHandle {
+  ProgramPtr Impl;
 };
 
-struct ProgramHandle: public HandleBase<ProgramHandleImpl> {};
-
-struct ContextHandleImpl {
-  ContextHandleImpl(): Vm(VmInterface::create()) {}
-
-  std::shared_ptr<VmInterface> Vm;
+struct ContextHandle {
+  std::shared_ptr<VmInterface> Impl;
 };
-
-struct ContextHandle: public HandleBase<ContextHandleImpl> {};

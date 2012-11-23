@@ -72,15 +72,15 @@ def main():
   const byte* text = (const byte*) "{text}";
   fixture.search(text, text + {textlen}, 0);
   std::vector<SearchHit>& actual(fixture.Hits);
-  SCOPE_ASSERT_EQUAL({matchcount}, actual.size());
+  SCOPE_ASSERT_EQUAL({matchcount}u, actual.size());
 
-  std::vector<SearchHit> expected;
-  expected.reserve({matchcount});'''.format(setnum=setnum, stest=stest, text=text, textlen=len(text), matchcount=len(matches))
+  std::vector<SearchHit> expected{'''
 
       for i, m in enumerate(matches):
-        print '  expected.emplace_back({}, {}, {});'.format(m[0], m[1], m[2], i)
+        print '    {{{}, {}, {}}},'.format(m[0], m[1], m[2], i)
 
-      print '''
+      print '''  };  
+
   std::sort(actual.begin(), actual.end());
   std::sort(expected.begin(), expected.begin());
 

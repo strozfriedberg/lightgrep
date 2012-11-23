@@ -215,12 +215,12 @@ SCOPE_TEST(generateJumpTableRange) {
   SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeLabel(0), prog[1]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJumpTableRange('b', 'g'), prog[2]);
-  SCOPE_ASSERT_EQUAL(10, *(uint32*) &prog[3]); // b
-  SCOPE_ASSERT_EQUAL(10, *(uint32*) &prog[4]); // c
-  SCOPE_ASSERT_EQUAL(10, *(uint32*) &prog[5]); // d
+  SCOPE_ASSERT_EQUAL(10u, *(uint32*) &prog[3]); // b
+  SCOPE_ASSERT_EQUAL(10u, *(uint32*) &prog[4]); // c
+  SCOPE_ASSERT_EQUAL(10u, *(uint32*) &prog[5]); // d
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[6]); // e
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[7]); // f
-  SCOPE_ASSERT_EQUAL(10, *(uint32*) &prog[8]); // g
+  SCOPE_ASSERT_EQUAL(10u, *(uint32*) &prog[8]); // g
   SCOPE_ASSERT_EQUAL(Instruction::makeByte('b'), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeByte('f'), prog[10]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[11]);
@@ -264,12 +264,12 @@ SCOPE_TEST(generateJumpTableRangePreLabel) {
   SCOPE_ASSERT_EQUAL(34u, prog.size());
   SCOPE_ASSERT_EQUAL(Instruction::makeByte('a'), prog[0]);
   SCOPE_ASSERT_EQUAL(Instruction::makeJumpTableRange('b', 'g'), prog[1]);
-  SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[2]); // b
-  SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[3]); // c
-  SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[4]); // d
+  SCOPE_ASSERT_EQUAL(9u, *(uint32*) &prog[2]); // b
+  SCOPE_ASSERT_EQUAL(9u, *(uint32*) &prog[3]); // c
+  SCOPE_ASSERT_EQUAL(9u, *(uint32*) &prog[4]); // d
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[5]); // e
   SCOPE_ASSERT_EQUAL(0xffffffff, *(uint32*) &prog[6]); // f
-  SCOPE_ASSERT_EQUAL(9, *(uint32*) &prog[7]); // g
+  SCOPE_ASSERT_EQUAL(9u, *(uint32*) &prog[7]); // g
 //  SCOPE_ASSERT_EQUAL(Instruction::makeByte('b'), prog[8]);
   SCOPE_ASSERT_EQUAL(Instruction::makeByte('f'), prog[9]);
   SCOPE_ASSERT_EQUAL(Instruction::makeCheckHalt(1), prog[10]);

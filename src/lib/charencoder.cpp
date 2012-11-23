@@ -16,8 +16,16 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "handles.h"
+#include <sstream>
 
-#include "program.h"
+#include "charencoder.h"
 
-ProgramHandleImpl::ProgramHandleImpl(): Prog(new Program()) {}
+std::string CharEncoder::name() const {
+  std::ostringstream ss;
+  ss << Name << '|' << BaseEnc->name();
+  return ss.str();
+}
+
+uint32 CharEncoder::write(int cp, byte buf[]) const {
+  return BaseEnc->write(charTransform(cp), buf);
+}

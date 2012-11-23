@@ -21,6 +21,7 @@
 #include "caching_encoder.h"
 #include "encoderbase.h"
 
+#include <memory>
 #include <string>
 
 #include <unicode/ucnv.h>
@@ -28,23 +29,38 @@
 class ICUEncoder: public EncoderBase {
 public:
   ICUEncoder(const char* const name);
+
   ICUEncoder(const std::string& name);
-  virtual ~ICUEncoder();
+
+  ICUEncoder(const ICUEncoder& other): ICUEncoder(other.enc_name) {}
+
+  ICUEncoder& operator=(const ICUEncoder& other) {
+    init(other.enc_name.c_str());
+    return *this;
+  }
+
+  ICUEncoder(ICUEncoder&& other) = default;
+
+  ICUEncoder& operator=(ICUEncoder&& other) = default;
+
+  virtual ICUEncoder* clone() const { return new ICUEncoder(*this); }
 
   virtual uint32 maxByteLength() const;
 
   virtual std::string name() const;
 
   virtual uint32 write(int cp, byte buf[]) const;
+
   using EncoderBase::write;
 
 private:
   void init(const char* const name);
 
   std::string enc_name;
-  UConverter* src_conv;
-  UConverter* dst_conv;
-  UChar* pivot;
+  std::unique_ptr<UConverter,void(*)(UConverter*)> src_conv{nullptr, nullptr};
+  std::unique_ptr<UConverter,void(*)(UConverter*)> dst_conv{nullptr, nullptr};
+  std::unique_ptr<UChar[]> pivot;
+
   uint32 max_bytes;
 };
 

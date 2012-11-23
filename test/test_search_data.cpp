@@ -33,11 +33,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
-#ifdef POLLUTE_GLOBAL_NAMESPACE_WITH_WINDOWS_H
-#define BOOST_USE_WINDOWS_H
-#endif
-
-#include <boost/thread.hpp>
+#include "include_boost_thread.h"
 
 struct TestCase {
   std::vector<Pattern> patterns;

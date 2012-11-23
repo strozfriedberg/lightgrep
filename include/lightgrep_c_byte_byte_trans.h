@@ -16,24 +16,33 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#ifndef LIGHTGREP_C_BYTE_BYTE_TRANS_H_
+#define LIGHTGREP_C_BYTE_BYTE_TRANS_H_
 
-#include "basic.h"
-#include "pattern.h"
+#include "lightgrep_c_util.h"
 
-#include <vector>
-#include <utility>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-
-class PatternInfo {
-public:
-  PatternInfo(): NumUserPatterns(0) {}
-
-  virtual ~PatternInfo() {}
-
-  bool empty() const { return 0 == NumUserPatterns; }
-
-  uint32 NumUserPatterns;
-  std::vector<Pattern> Patterns;
-  std::vector<std::pair<uint32, uint32>> Table;
+static const LG_TRANS LG_BYTE_BYTE_TRANSFORMATIONS[] = {
+  { "identity", 0 },
+  { "OCE",      1 }
 };
+
+static const char* const LG_CANONICAL_BYTE_BYTE_TRANSFORMATIONS[] = {
+  "identity", // 0
+  "OCE",      // 1
+};
+
+// identity
+static const int LG_BYTE_BYTE_IDENTITY = 0;
+
+// OCE
+static const int LG_BYTE_BYTE_OCE = 1;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LIGHTGREP_C_BYTE_BYTE_TRANS_H_ */

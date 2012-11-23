@@ -23,15 +23,12 @@
 #include <functional>
 #include <sstream>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/property_map/dynamic_property_map.hpp>
-
 #include "codegen.h"
+#include "compiler.h"
 #include "nfaoptimizer.h"
 #include "states.h"
 #include "mockcallback.h"
+#include "vm_interface.h"
 
 #include "test_helper.h"
 
@@ -41,66 +38,49 @@ std::ostream& operator<<(std::ostream& os, const std::shared_ptr<TransitionPtr>&
 }
 */
 
-/*
-bool buildNFA(NFA& fsm, const std::string& dot) {
-  std::istringstream is(dot);
-
-  // Vertex properties
-  typedef boost::property<boost::vertex_name_t, std::string> vertex_p;
-  // Edge properties
-  typedef boost::property<boost::edge_name_t, std::string> edge_p;
-  // adjacency_list-based type
-  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
-                                vertex_p, edge_p> graph_t;
-
-  // Construct an empty graph and prepare the dynamic_property_maps
-  graph_t src(0);
-  boost::dynamic_properties dp;
-
-  boost::property_map<graph_t, boost::vertex_name_t>::type node_label =
-    get(boost::vertex_name, src);
-  dp.property("node_id", node_label);
-
-  boost::property_map<graph_t, boost::edge_name_t>::type edge_label =
-    get(boost::edge_name, src);
-  dp.property("label", edge_label);
-
-  if (!boost::read_graphviz(is, src, dp, "node_id")) return false;
-
-  // Convert this graph to a NFA (annoying!)
-
-  typedef boost::graph_traits<graph_t>::vertex vertex_t;
-  typedef boost::graph_traits<graph_t>::edge_iterator edge_iterator;
-
-  edge_iterator e, e_end;
-  for (boost::tie(e, e_end) = boost::edges(src); e != e_end; ++e) {
-    const unsigned int u = boost::lexical_cast<unsigned int>(
-      boost::get(node_label, boost::source(*e, src)));
-
-    const unsigned int v = boost::lexical_cast<unsigned int>(
-      boost::get(node_label, boost::target(*e, src)));
-
-    const char lit = boost::lexical_cast<char>(boost::get(edge_label, *e));
-
-    edge(u, v, fsm, fsm.TransFac->getByte(lit));
-  }
-
-  return true;
-}
-*/
-
 std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
   out << "(" << state.Start << ", " << state.NumEval << ", " << state.NumOther << ", " << state.CheckIndex << ")";
   return out;
 }
 
-template<class T>
-std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
-  std::vector<Pattern> ret;
-  for (const auto& p : list) {
-    ret.emplace_back(p);
+SCOPE_TEST(oceUTF8) {
+  const std::vector<Pattern> pats{
+    {"xxx", false, false, 0, "UTF-8|OCE"}
+  };
+
+  NFAPtr fsm = createGraph(pats, true);
+  NFA& g = *fsm;
+
+  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
+
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(2, 0));
+
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(3));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
+
+  SCOPE_ASSERT(!g[0].IsMatch);
+  SCOPE_ASSERT(!g[1].IsMatch);
+  SCOPE_ASSERT(!g[2].IsMatch);
+  SCOPE_ASSERT(g[3].IsMatch);
+
+  SCOPE_ASSERT(!g[0].Trans);
+ 
+  const ByteSet ebs{0x8D};
+  ByteSet abs;
+  for (uint i = 1; i < 4; ++i) {
+    g[i].Trans->getBytes(abs);
+    SCOPE_ASSERT_EQUAL(ebs, abs);
   }
-  return ret;
 }
 
 SCOPE_TEST(twoUnicode) {
@@ -109,31 +89,31 @@ SCOPE_TEST(twoUnicode) {
     p.Encoding = LG_CANONICAL_ENCODINGS[LG_ENC_UTF_16LE];
   }
 
-  NFAPtr fsm = createGraph(pats);
+  NFAPtr fsm = createGraph(pats, true);
   NFA& g = *fsm;
 
   SCOPE_ASSERT_EQUAL(7u, g.verticesSize());
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(2));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(4, g.outVertex(2, 1));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(4u, g.outVertex(2, 1));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(3));
-  SCOPE_ASSERT_EQUAL(6, g.outVertex(3, 0));
+  SCOPE_ASSERT_EQUAL(6u, g.outVertex(3, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(4));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(4));
-  SCOPE_ASSERT_EQUAL(5, g.outVertex(4, 0));
+  SCOPE_ASSERT_EQUAL(5u, g.outVertex(4, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(5));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(5));
@@ -180,7 +160,7 @@ SCOPE_TEST(firstBitset) {
 }
 
 SCOPE_TEST(simpleCollapse) {
-  NFAPtr fsm = createGraph(makePatterns({"ab", "ac"}));
+  NFAPtr fsm = createGraph(makePatterns({"ab", "ac"}), true);
   SCOPE_ASSERT_EQUAL(4u, fsm->verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
@@ -296,22 +276,25 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
   std::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.verticesSize()));
   CodeGenVisitor vis(cgh);
 
-  SCOPE_ASSERT_EQUAL(6, vis.calcJumpTableSize(0, g, g.outDegree(0)));
+  SCOPE_ASSERT_EQUAL(6u, vis.calcJumpTableSize(0, g, g.outDegree(0)));
   SCOPE_ASSERT_EQUAL(JUMP_TABLE_RANGE_OP, cgh->Snippets[0].Op);
-  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(1, g, g.outDegree(1)));
-  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(2, g, g.outDegree(2)));
-  SCOPE_ASSERT_EQUAL(0, vis.calcJumpTableSize(3, g, g.outDegree(3)));
+  SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(1, g, g.outDegree(1)));
+  SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(2, g, g.outDegree(2)));
+  SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(3, g, g.outDegree(3)));
 }
 
 SCOPE_TEST(testInitVM) {
-  SearchInfo info;
-  std::shared_ptr<VmInterface> search = initVM(makePatterns({"one", "two"}), info);
-               //012345678901234
-  byte text[] = "a onetwothree";
+  std::shared_ptr<VmInterface> vm = VmInterface::create();
+  NFAPtr fsm = createGraph(makePatterns({"one", "two"}), true);
+  ProgramPtr prog = Compiler::createProgram(*fsm);
+  vm->init(prog);
+
+                    // 0123456789012
+  const byte text[] = "a onetwothree";
 
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT(!search->search(&text[0], &text[13], 0, &mockCallback, &hits));
-  search->closeOut(&mockCallback, &hits);
+  SCOPE_ASSERT(!vm->search(&text[0], &text[13], 0, &mockCallback, &hits));
+  vm->closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(2u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 5, 0), hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(5, 8, 1), hits[1]);

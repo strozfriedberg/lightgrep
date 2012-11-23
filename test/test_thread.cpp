@@ -25,7 +25,7 @@ SCOPE_TEST(defaultThreadConstructor) {
   Instruction *nullPtr = 0;
   SCOPE_ASSERT_EQUAL(nullPtr, t.PC);
   SCOPE_ASSERT_EQUAL(Thread::NOLABEL, t.Label);
-  SCOPE_ASSERT_EQUAL(0, t.Start);
+  SCOPE_ASSERT_EQUAL(0u, t.Start);
   SCOPE_ASSERT_EQUAL(Thread::NONE, t.End);
 }
 
@@ -48,7 +48,7 @@ SCOPE_TEST(threadJump) {
   t.jump(basePtr, 5);
   SCOPE_ASSERT_EQUAL(reinterpret_cast<Instruction*>(28), t.PC);
   SCOPE_ASSERT_EQUAL(Thread::NOLABEL, t.Label);
-  SCOPE_ASSERT_EQUAL(0, t.Start);
+  SCOPE_ASSERT_EQUAL(0u, t.Start);
   SCOPE_ASSERT_EQUAL(Thread::NONE, t.End);
 }
 
@@ -57,7 +57,7 @@ SCOPE_TEST(threadFork) {
          child;
   child.fork(parent, 0, 4);
   SCOPE_ASSERT_EQUAL(reinterpret_cast<Instruction*>(16), child.PC);
-  SCOPE_ASSERT_EQUAL(5, child.Label);
-  SCOPE_ASSERT_EQUAL(123, child.Start);
+  SCOPE_ASSERT_EQUAL(5u, child.Label);
+  SCOPE_ASSERT_EQUAL(123u, child.Start);
   SCOPE_ASSERT_EQUAL(Thread::NONE, child.End);
 }

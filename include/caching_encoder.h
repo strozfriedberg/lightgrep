@@ -26,17 +26,30 @@
 template <class BaseEncoder>
 class CachingEncoder: public BaseEncoder {
 public:
+  typedef std::map<UnicodeSet,std::vector<std::vector<ByteSet>>> CacheType;
+
   template <typename... BaseArgs>
-  CachingEncoder(
-    const std::map<UnicodeSet,std::vector<std::vector<ByteSet>>> cache,
-    BaseArgs... args
-  ): BaseEncoder(args...), Cache(cache)
+  CachingEncoder(CacheType&& cache, BaseArgs&&... args):
+    BaseEncoder(std::forward<BaseArgs>(args)...),
+    Cache(std::forward<CacheType>(cache))
   {
     // ensure that CachingEncoder is an Encoder
     static_assert(
       std::is_base_of<Encoder,CachingEncoder<BaseEncoder>>::value,
       "CachingEncoder is not an Encoder!"
     );
+  }
+
+  CachingEncoder(const CachingEncoder<BaseEncoder>&) = default;
+
+  CachingEncoder(CachingEncoder<BaseEncoder>&&) = default;
+
+  CachingEncoder<BaseEncoder>& operator=(const CachingEncoder<BaseEncoder>&) = default;
+
+  CachingEncoder<BaseEncoder>& operator=(CachingEncoder<BaseEncoder>&&) = default;
+
+  virtual CachingEncoder<BaseEncoder>* clone() const {
+    return new CachingEncoder<BaseEncoder>(*this);
   }
 
   virtual void write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
@@ -53,5 +66,5 @@ public:
   using BaseEncoder::write;
 
 private:
-  mutable std::map<UnicodeSet,std::vector<std::vector<ByteSet>>> Cache;
+  mutable CacheType Cache;
 };

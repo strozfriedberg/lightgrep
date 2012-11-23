@@ -247,12 +247,12 @@ SCOPE_TEST(parseaPQb) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(1, 1));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
@@ -312,8 +312,8 @@ SCOPE_TEST(parseaQQb) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 1));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
@@ -339,14 +339,14 @@ SCOPE_TEST(parseaQQbQQc) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 1));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 2));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 2));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 1));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
@@ -373,14 +373,14 @@ SCOPE_TEST(parseaQQbQc) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(0, 1));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 2));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 2));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(1, 1));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
@@ -407,9 +407,9 @@ SCOPE_TEST(parseaQQOrbQQc) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 2));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(0, 2));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
@@ -440,9 +440,9 @@ SCOPE_TEST(parseaOrbQa) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 1));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(0, 2));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(0, 2));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
@@ -473,9 +473,9 @@ SCOPE_TEST(parseaOrbQQa) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(0, 1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 2));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(0, 2));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
@@ -506,13 +506,13 @@ SCOPE_TEST(parseaSQb) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 1));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(1, 1));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
@@ -721,24 +721,24 @@ SCOPE_TEST(parseSZeroMatchState) {
 SCOPE_TEST(parseRepeatedSkippables) {
   // we'll simulate a?b*
   NFABuilder nfab;
-  SCOPE_ASSERT_EQUAL(1, nfab.stack().size());
+  SCOPE_ASSERT_EQUAL(1u, nfab.stack().size());
   nfab.callback(ParseNode(ParseNode::LITERAL, 'a'));
-  SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
+  SCOPE_ASSERT_EQUAL(2u, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
   nfab.callback(ParseNode(ParseNode::REPETITION, nullptr, 0, 1));
-  SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
-  SCOPE_ASSERT_EQUAL(1, nfab.stack().top().Skippable);
+  SCOPE_ASSERT_EQUAL(2u, nfab.stack().size());
+  SCOPE_ASSERT_EQUAL(1u, nfab.stack().top().Skippable);
   nfab.callback(ParseNode(ParseNode::LITERAL, 'b'));
-  SCOPE_ASSERT_EQUAL(3, nfab.stack().size());
+  SCOPE_ASSERT_EQUAL(3u, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
   nfab.callback(ParseNode(ParseNode::REPETITION, nullptr, 0, UNBOUNDED));
-  SCOPE_ASSERT_EQUAL(3, nfab.stack().size());
-  SCOPE_ASSERT_EQUAL(1, nfab.stack().top().Skippable);
+  SCOPE_ASSERT_EQUAL(3u, nfab.stack().size());
+  SCOPE_ASSERT_EQUAL(1u, nfab.stack().top().Skippable);
   nfab.callback(ParseNode(ParseNode::CONCATENATION, nullptr, nullptr));
-  SCOPE_ASSERT_EQUAL(2, nfab.stack().size());
-  SCOPE_ASSERT_EQUAL(2, nfab.stack().top().Skippable);
+  SCOPE_ASSERT_EQUAL(2u, nfab.stack().size());
+  SCOPE_ASSERT_EQUAL(2u, nfab.stack().top().Skippable);
   nfab.callback(ParseNode(ParseNode::CONCATENATION, nullptr, nullptr));
-  SCOPE_ASSERT_EQUAL(1, nfab.stack().size());
+  SCOPE_ASSERT_EQUAL(1u, nfab.stack().size());
   SCOPE_ASSERT_EQUAL(NOSKIP, nfab.stack().top().Skippable);
 }
 
@@ -753,24 +753,24 @@ SCOPE_TEST(parseZeroDotStarZero) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.inVertex(1, 0));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(1, 1));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
-  SCOPE_ASSERT_EQUAL(2, g.inVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(1, g.inVertex(2, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.inVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.inVertex(2, 1));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(2));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(2, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(2, 1));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(3));
-  SCOPE_ASSERT_EQUAL(1, g.inVertex(3, 0));
-  SCOPE_ASSERT_EQUAL(2, g.inVertex(3, 1));
+  SCOPE_ASSERT_EQUAL(1u, g.inVertex(3, 0));
+  SCOPE_ASSERT_EQUAL(2u, g.inVertex(3, 1));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 }
 
@@ -788,7 +788,7 @@ SCOPE_TEST(parseZeroDotStarZero) {
 \
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0)); \
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0)); \
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0)); \
 \
   for (uint32 i = 1; i < n; ++i) { \
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
@@ -821,7 +821,7 @@ SCOPE_TEST(parse_aLCnRC) {
 \
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0)); \
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0)); \
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0)); \
 \
   for (uint32 i = 1; i < n; ++i) { \
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
@@ -852,13 +852,13 @@ SCOPE_TEST(parse_aLC0_RCQb) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 1));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(1, 1));
   SCOPE_ASSERT(!g[1].IsMatch);
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
@@ -916,15 +916,15 @@ SCOPE_TEST(parse_xa0_) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(2, 0));
 
   SCOPE_ASSERT(g[1].IsMatch);
   SCOPE_ASSERT(g[2].IsMatch);
@@ -944,7 +944,7 @@ SCOPE_TEST(parse_xa0_) {
 \
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0)); \
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0)); \
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0)); \
 \
   for (uint32 i = 1; i < n; ++i) { \
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
@@ -983,16 +983,16 @@ SCOPE_TEST(parse_aaQQb) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(2u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 1));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(2, 0));
 
   SCOPE_ASSERT_EQUAL(2u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
@@ -1013,21 +1013,21 @@ SCOPE_TEST(parse_xLPaORaQQRPy) {
 
   SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
   SCOPE_ASSERT_EQUAL(3u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(4, g.outVertex(1, 1));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(1, 2));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(4u, g.outVertex(1, 1));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(1, 2));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
-  SCOPE_ASSERT_EQUAL(4, g.outVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(4u, g.outVertex(2, 0));
 
   SCOPE_ASSERT_EQUAL(1u, g.inDegree(3));
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(3));
-  SCOPE_ASSERT_EQUAL(4, g.outVertex(3, 0));
+  SCOPE_ASSERT_EQUAL(4u, g.outVertex(3, 0));
 
   SCOPE_ASSERT_EQUAL(3u, g.inDegree(4));
   SCOPE_ASSERT_EQUAL(0u, g.outDegree(4));
@@ -1049,15 +1049,15 @@ SCOPE_TEST(parseEncodingByteBreakout) {
   SCOPE_ASSERT(parse("\\z80", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(2u, g.verticesSize());
 
-  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
 
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(1));
 
   SCOPE_ASSERT(!g[0].IsMatch);
   SCOPE_ASSERT(g[1].IsMatch);
@@ -1081,20 +1081,20 @@ SCOPE_TEST(parseEncodingNotByteBreakout) {
   SCOPE_ASSERT(parse("\\x{80}", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(3, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
 
-  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
 
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(1, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
 
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(2));
-  SCOPE_ASSERT_EQUAL(1, g.inVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, g.inVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(2));
 
   SCOPE_ASSERT(!g[0].IsMatch);
   SCOPE_ASSERT(!g[1].IsMatch);
@@ -1124,15 +1124,15 @@ SCOPE_TEST(parseEncodingCCCodePointWithBreakout) {
   SCOPE_ASSERT(parse("[A\\zFF]", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(2u, g.verticesSize());
 
-  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
 
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(1));
 
   SCOPE_ASSERT(!g[0].IsMatch);
   SCOPE_ASSERT(g[1].IsMatch);
@@ -1153,25 +1153,25 @@ SCOPE_TEST(parseEncodingCCCodePoint2ByteWithBreakout) {
   SCOPE_ASSERT(parse("[\\x{80}\\zFF]", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(4, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
 
-  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(2, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(2, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(3, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(2u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(2u, g.outVertex(0, 0));
+  SCOPE_ASSERT_EQUAL(3u, g.outVertex(0, 1));
 
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(2, g.inVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(2u, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(1));
 
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(2));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(1, g.outDegree(2));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
+  SCOPE_ASSERT_EQUAL(0u, g.inVertex(2, 0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(2, 0));
 
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(3));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(3, 0));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(3));
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(3));
+  SCOPE_ASSERT_EQUAL(0u, g.inVertex(3, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
 
   SCOPE_ASSERT(!g[0].IsMatch);
   SCOPE_ASSERT(g[1].IsMatch);
@@ -1208,15 +1208,15 @@ SCOPE_TEST(parseEncodingCCBreakoutOnly) {
   SCOPE_ASSERT(parse("[\\zFF]", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(2u, g.verticesSize());
 
-  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 1));
 
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(1));
 
   SCOPE_ASSERT(!g[0].IsMatch);
   SCOPE_ASSERT(g[1].IsMatch);
@@ -1237,15 +1237,15 @@ SCOPE_TEST(parseEncodingNegCCCodePointWithBreakout) {
   SCOPE_ASSERT(parse("[^\\x{02}-\\x{10FFFF}\\x01]", false, false, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
-  SCOPE_ASSERT_EQUAL(2, g.verticesSize());
+  SCOPE_ASSERT_EQUAL(2u, g.verticesSize());
 
-  SCOPE_ASSERT_EQUAL(0, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 1));
+  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
+  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 1));
 
-  SCOPE_ASSERT_EQUAL(1, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0, g.inVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0, g.outDegree(1));
+  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
+  SCOPE_ASSERT_EQUAL(0u, g.inVertex(1, 0));
+  SCOPE_ASSERT_EQUAL(0u, g.outDegree(1));
 
   SCOPE_ASSERT(!g[0].IsMatch);
   SCOPE_ASSERT(g[1].IsMatch);

@@ -21,6 +21,8 @@
 #include "basic.h"
 #include "encodings.h"
 
+#include <vector>
+
 class Pattern {
 public:
   std::string Expression;
@@ -38,6 +40,14 @@ public:
     CaseInsensitive(insensitive),
     Index(index),
     Encoding(enc) {}
+
+  Pattern(const Pattern&) = default;
+
+  Pattern(Pattern&&) = default;
+
+  Pattern& operator=(const Pattern&) = default;
+
+  Pattern& operator=(Pattern&&) = default;
 
   bool operator==(const Pattern& p) const {
     return FixedString == p.FixedString &&

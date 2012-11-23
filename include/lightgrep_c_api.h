@@ -32,13 +32,17 @@
 extern "C" {
 #endif
 
-  struct ParserHandle;
+  struct PatternHandle;
+  struct PatternMapHandle;
+  struct FSMHandle;
   struct ProgramHandle;
   struct ContextHandle;
 
-  typedef struct ParserHandle*  LG_HPARSER;
-  typedef struct ProgramHandle* LG_HPROGRAM;
-  typedef struct ContextHandle* LG_HCONTEXT;
+  typedef struct PatternHandle*    LG_HPATTERN;
+  typedef struct PatternMapHandle* LG_HPATTERNMAP;
+  typedef struct FSMHandle*        LG_HFSM;
+  typedef struct ProgramHandle*    LG_HPROGRAM;
+  typedef struct ContextHandle*    LG_HCONTEXT;
 
   typedef struct {
     char FixedString;     // 0 => grep, non-zero => fixed-string
@@ -46,51 +50,72 @@ extern "C" {
   } LG_KeyOptions;
 
   typedef struct {
+    const char* Pattern;
+    const char* EncodingChain;
+    void* UserData;
+  } LG_PatternInfo;
+
+  typedef struct {
     char Determinize;     // 0 => build NFA, non-zero => build (pseudo)DFA
   } LG_ProgramOptions;
 
+// TODO: nix these, don't expose trace in the lib
   typedef struct {
     uint64 TraceBegin,    // starting offset of trace output
            TraceEnd;      // ending offset of trace output
   } LG_ContextOptions;
 
-  int lg_ok(void* handle);
+  typedef struct LG_Error {
+    char* Message;
+  } LG_Error;
 
-  const char* lg_error(void* handle);
+  void lg_free_error(LG_Error* err);
 
-  // Returns a handle to a parser for assembling all the keywords you'd like
-  // to search for. The parameter lets you pass a hint as to the size of the
-  // finite state machine that will be created from the keywords. This is
-  // important if there will be a lot of keywords, as it helps minimize heap
-  // allocation and fragmentation. A good rule of thumb is to pass the total
-  // number of characters in all of the keywords. Everything will work fine
-  // with 0, though.
-  LG_HPARSER lg_create_parser(unsigned int numFsmStateSizeHint);
+  LG_HPATTERN lg_create_pattern();
 
-  // Frees all RAM associated with parsing the keywords.
-  // Can, and should, be called after creating an LG_HPROGRAM.
-  int lg_destroy_parser(LG_HPARSER hParser);
+  void lg_destroy_pattern(LG_HPATTERN hPattern);
 
-  // Parse a keyword and add it to the set of keywords associated with the
-  // parser. Returns 1 on success, 0 if there was a parsing error.
-  int lg_add_keyword(
-    LG_HPARSER hParser,
-    const char* keyword,           // the expression to search for, in UTF-8
-    unsigned int keyIndex,         // unique for this keyword
-    const LG_KeyOptions* options,  // parsing options
-    const char* encoding           // Encoding of keyword to search for, using
-    // IANA names c.f. http://www.iana.org/assignments/character-sets
-    // encodings.h has the list of supported encodings
-  );
+  // Returns zero on failure, positive otherwise.
+  int lg_parse_pattern(LG_HPATTERN hPattern,
+                       const char* pattern,
+                       const LG_KeyOptions* options,
+                       LG_Error** err);
+
+  LG_HPATTERNMAP lg_create_pattern_map(unsigned int numTotalPatternsSizeHint);
+
+  void lg_destroy_pattern_map(LG_HPATTERNMAP hPatternMap);
+
+  int lg_pattern_map_size(const LG_HPATTERNMAP hPatternMap);
+
+  // The parameter lets you pass a hint as to the size of the finite state
+  // machine that will be created from the keywords. This is important if
+  // there will be a lot of keywords, as it helps minimize heap allocation
+  // and fragmentation. A good rule of thumb is to pass the total number of
+  // characters in all of the keywords. Everything will work fine with 0,
+  // though.
+  LG_HFSM lg_create_fsm(unsigned int numFsmStateSizeHint);
+
+  void lg_destroy_fsm(LG_HFSM hFsm);
+
+  // Returns negative on falure; otherwise returns unique index for the
+  // pattern-encoding pair.
+  int lg_add_pattern(LG_HFSM hFsm,
+                     LG_HPATTERNMAP hMap,
+                     LG_HPATTERN hPattern,
+                     const char* encoding,
+                     LG_Error** err);
+
+  LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
+                                  unsigned int patternIndex);
 
   // Create a "Program" from a parser, which efficiently encodes the logic for
   // recognizing all the specified keywords. Once a program has been created,
   // the parser can be discarded.
-  LG_HPROGRAM lg_create_program(LG_HPARSER hParser,
+  LG_HPROGRAM lg_create_program(LG_HFSM hFsm,
                                 const LG_ProgramOptions* options);
 
   // The size, in bytes, of the search program. Used for serialization.
-  int lg_program_size(LG_HPROGRAM hProg);
+  int lg_program_size(const LG_HPROGRAM hProg);
 
   // Serialize the program, in binary format, to a buffer. The buffer must be
   // at least as large as lg_program_size() in bytes.
@@ -102,7 +127,7 @@ extern "C" {
 
   // A Program must live as long as any associated contexts,
   // so only call this at the end.
-  int lg_destroy_program(LG_HPROGRAM hProg);
+  void lg_destroy_program(LG_HPROGRAM hProg);
 
   // Create a "search context" from a program. Many search contexts can be
   // associated with a single program. A context lets you search a byte stream
@@ -110,7 +135,8 @@ extern "C" {
   // contiguous. Uses a fixed amount of RAM.
   LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
                                 const LG_ContextOptions* options);
-  int lg_destroy_context(LG_HCONTEXT hCtx);
+
+  void lg_destroy_context(LG_HCONTEXT hCtx);
 
   // Finds matches beginning at the first byte. It works like lg_search(), but
   // neither lg_closeout_search() nor lg_reset() need to be called (these are

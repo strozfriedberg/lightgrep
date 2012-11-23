@@ -19,6 +19,11 @@
 #pragma once
 
 #include "automata.h"
+#include "fwd_pointers.h"
+#include "pattern.h"
+
+#include <initializer_list>
+#include <vector>
 
 void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, Transition* trans);
 
@@ -32,3 +37,13 @@ void ASSERT_EQUAL_LABELS(const NFA& a, const NFA& b);
 
 void ASSERT_EQUAL_MATCHES(const NFA& a, const NFA& b);
 
+NFAPtr createGraph(const std::vector<Pattern>& pats, bool determinize);
+
+template<class T>
+std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
+  std::vector<Pattern> ret;
+  for (const auto& p : list) {
+    ret.emplace_back(p);
+  }
+  return ret;
+}

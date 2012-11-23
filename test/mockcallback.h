@@ -18,5 +18,7 @@
 
 #pragma once
 
+#include "lightgrep_c_api.h"
+
 void mockCallback(void* userData, const LG_SearchHit* const hit);
 

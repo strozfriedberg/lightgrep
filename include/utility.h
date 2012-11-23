@@ -23,16 +23,11 @@
 #include <vector>
 
 #include "automata.h"
-#include "vm_interface.h"
-#include "patterninfo.h"
+#include "pattern.h"
 
 struct SearchInfo {};
 
 uint32 estimateGraphSize(const std::vector<Pattern>& keywords);
-
-NFAPtr createGraph(const std::vector<Pattern>& keywords,
-                   bool determinize = true,
-                   bool ignoreBadParse = false);
 
 class Visitor {
 public:
@@ -49,9 +44,8 @@ public:
 void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor);
 
 ByteSet firstBytes(const NFA& graph);
-void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph);
 
-std::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, SearchInfo& info);
+void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph);
 
 std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescriptor source, const NFA& graph);
 

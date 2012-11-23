@@ -47,31 +47,26 @@ def main():
     # get matches from shitgrep
     matches = lgtestlib.run_shitgrep(sg, pats, text)
 
+    if len(pats) == 1:
+      stest = 'R"({})"'.format(pats[0])
+    else:
+      stest = '{{ R"({})" }}'.format(')", R"('.join(pats))
+
+    print '''SCOPE_FIXTURE_CTOR(autoPatternTest{setnum}, STest, STest({stest})) {{'''.format(setnum=setnum, stest=stest)
+
     if matches is None:
       # every pattern in this set has zero-length matches
-      if len(pats) == 1:
-        # test single patterns for zero-length matches
-        print '''SCOPE_TEST(autoPatternTest{setnum}) {{
-  SCOPE_ASSERT(STest::parsesButNotValid(R"({pat})"));
-}}
-'''.format(setnum=setnum, pat=pats[0])
-
+      print '  SCOPE_ASSERT(fixture.parsesButNotValid());'
     else:
       # this pattern set has no zero-length matches
-      if len(pats) == 1:
-        stest = 'R"({})"'.format(pats[0])
-      else:
-        stest = '{{ R"({})" }}'.format(')", R"('.join(pats))
-
-      print '''SCOPE_FIXTURE_CTOR(autoPatternTest{setnum}, STest, STest({stest})) {{
-  const byte* text = (const byte*) "{text}";
+      print '''  const byte* text = (const byte*) "{text}";
   fixture.search(text, text + {textlen}, 0);
-  SCOPE_ASSERT_EQUAL({matchcount}, fixture.Hits.size());'''.format(setnum=setnum, stest=stest, text=text, textlen=len(text), matchcount=len(matches))
+  SCOPE_ASSERT_EQUAL({matchcount}u, fixture.Hits.size());'''.format(text=text, textlen=len(text), matchcount=len(matches))
 
       for i, m in enumerate(matches):
         print '  SCOPE_ASSERT_EQUAL(SearchHit({}, {}, {}), fixture.Hits[{}]);'.format(m[0], m[1], m[2], i)
 
-      print '}\n'
+    print '}\n'
 
     setnum += 1
 

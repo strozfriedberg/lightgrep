@@ -18,9 +18,6 @@
 
 #include "utility.h"
 
-#include "parser.h"
-#include "compiler.h"
-
 #include <algorithm>
 #include <cctype>
 #include <functional>
@@ -28,31 +25,21 @@
 
 #include <boost/graph/graphviz.hpp>
 
-void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, Parser& p, uint32& keyIdx) {
-  for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
-    try {
-      p.addPattern(keywords[i], keyIdx);
-    }
-    catch (const std::runtime_error&) {
-      if (!ignoreBad) {
-        throw;
-      }
-    }
-  }
-}
-
+// FIXME: This is sort of fucked now that we have encoding chains
 uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
   uint32 ret = 0;
-  for (auto& p : keywords) {
+  for (const auto& p : keywords) {
     uint32 pSize = p.Expression.size();
-    if (p.Encoding == "UTF-16LE" || p.Encoding == "UTF-16BE") {
+    const std::string& enc = p.Encoding;
+// FIXME: Shouldn't we use something from the Encoders for this?
+    if (enc == "UTF-16LE" || enc == "UTF-16BE") {
       pSize <<= 1;
     }
-    else if (p.Encoding == "UTF-8") {
+    else if (enc == "UTF-8") {
       pSize *= 3;
       pSize >>= 1;
     }
-    else if (p.Encoding == "UTF-32LE" || p.Encoding == "UTF-32BE") {
+    else if (enc == "UTF-32LE" || enc == "UTF-32BE") {
       pSize <<= 2;
     }
     ret += pSize;
@@ -61,45 +48,6 @@ uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
   fudgeFactor >>= 2;
   ret += fudgeFactor;
   return ret;
-}
-
-// FIXME: this duplicates a lot of parsePatterns() in main.cpp
-void addKeys(PatternInfo& keyInfo, bool ignoreBad, Parser& p, uint32& keyIdx) {
-  addKeys(keyInfo.Patterns, ignoreBad, p, keyIdx);
-
-  for (uint32 i = 0; i < keyInfo.Patterns.size(); ++i) {
-    int32 encIdx = lg_get_encoding_id(keyInfo.Patterns[i].Encoding.c_str());
-
-    if (encIdx == -1) {
-      continue;
-    }
-
-    keyInfo.Table.emplace_back(i, encIdx);
-  }
-}
-
-NFAPtr createGraph(PatternInfo& keyInfo, bool determinize, bool ignoreBadParse) {
-  Parser p(estimateGraphSize(keyInfo.Patterns));
-  uint32 keyIdx = 0;
-
-  addKeys(keyInfo, ignoreBadParse, p, keyIdx);
-  if (p.Fsm) {
-
-    if (determinize) {
-      NFAPtr dfa(new NFA(1));
-      dfa->TransFac = p.Fsm->TransFac;
-      p.Comp.subsetDFA(*dfa, *p.Fsm);
-      p.Fsm = dfa;
-    }
-    p.Comp.labelGuardStates(*p.Fsm);
-  }
-  return p.Fsm;
-}
-
-NFAPtr createGraph(const std::vector<Pattern>& keywords, bool determinize, bool ignoreBadParse) {
-  PatternInfo keyInfo;
-  keyInfo.Patterns = keywords;
-  return createGraph(keyInfo, determinize, ignoreBadParse);
 }
 
 void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor) {
@@ -138,14 +86,6 @@ ByteSet firstBytes(const NFA& graph) {
   ret.reset();
   nextBytes(ret, 0, graph);
   return ret;
-}
-
-std::shared_ptr<VmInterface> initVM(const std::vector<Pattern>& keywords, SearchInfo&) {
-  std::shared_ptr<VmInterface> vm = VmInterface::create();
-  NFAPtr fsm = createGraph(keywords);
-  ProgramPtr prog = Compiler::createProgram(*fsm);
-  vm->init(prog);
-  return vm;
 }
 
 std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescriptor source, const NFA& graph) {

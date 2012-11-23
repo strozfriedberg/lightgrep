@@ -19,7 +19,10 @@
 #include <scope/test.h>
 
 #include "codegen.h"
+#include "nfabuilder.h"
 #include "nfaoptimizer.h"
+#include "parser.h"
+#include "parsetree.h"
 #include "states.h"
 
 #include "test_helper.h"
@@ -343,11 +346,11 @@ SCOPE_TEST(testPropagateMatchLabels) {
 
   comp.propagateMatchLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0, g[1].Label);
-  SCOPE_ASSERT_EQUAL(1, g[2].Label);
-  SCOPE_ASSERT_EQUAL(2, g[3].Label);
-  SCOPE_ASSERT_EQUAL(2, g[4].Label);
-  SCOPE_ASSERT_EQUAL(2, g[5].Label);
+  SCOPE_ASSERT_EQUAL(0u, g[1].Label);
+  SCOPE_ASSERT_EQUAL(1u, g[2].Label);
+  SCOPE_ASSERT_EQUAL(2u, g[3].Label);
+  SCOPE_ASSERT_EQUAL(2u, g[4].Label);
+  SCOPE_ASSERT_EQUAL(2u, g[5].Label);
 }
 
 SCOPE_TEST(testRemoveNonMinimalLabels) {
@@ -372,9 +375,9 @@ SCOPE_TEST(testRemoveNonMinimalLabels) {
 
   comp.removeNonMinimalLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0, g[1].Label);
-  SCOPE_ASSERT_EQUAL(1, g[2].Label);
-  SCOPE_ASSERT_EQUAL(2, g[3].Label);
+  SCOPE_ASSERT_EQUAL(0u, g[1].Label);
+  SCOPE_ASSERT_EQUAL(1u, g[2].Label);
+  SCOPE_ASSERT_EQUAL(2u, g[3].Label);
   SCOPE_ASSERT_EQUAL(NONE, g[4].Label);
   SCOPE_ASSERT_EQUAL(NONE, g[5].Label);
 }
@@ -401,9 +404,9 @@ SCOPE_TEST(testLabelGuardStates) {
   comp.propagateMatchLabels(g);
   comp.removeNonMinimalLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0, g[1].Label);
-  SCOPE_ASSERT_EQUAL(1, g[2].Label);
-  SCOPE_ASSERT_EQUAL(2, g[3].Label);
+  SCOPE_ASSERT_EQUAL(0u, g[1].Label);
+  SCOPE_ASSERT_EQUAL(1u, g[2].Label);
+  SCOPE_ASSERT_EQUAL(2u, g[3].Label);
   SCOPE_ASSERT_EQUAL(NONE, g[4].Label);
   SCOPE_ASSERT_EQUAL(NONE, g[5].Label);
 }
@@ -445,13 +448,8 @@ SCOPE_TEST(testSubstringKey) {
 }
 
 SCOPE_TEST(testCreateXXYYY) {
-  std::vector<Pattern> kws;
-  kws.emplace_back("x");
-  kws.emplace_back("x");
-  kws.emplace_back("yyy");
-
-  NFAPtr gp(createGraph(kws));
-  NFA& g = *gp;
+  NFAPtr gptr(createGraph(makePatterns({"x", "x", "yyy"}), true));
+  NFA& g = *gptr;
 
   NFA exp;
   edge(0, 1, exp, exp.TransFac->getByte('x'));

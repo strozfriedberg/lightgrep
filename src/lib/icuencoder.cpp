@@ -44,7 +44,10 @@ void ICUEncoder::init(const char* const name) {
 
   // ICU pivots through UTF-16 when transcoding; this converter is used
   // to turn our code points (single characters in UTF-32) into UTF-16.
-  src_conv = ucnv_open(is_little_endian() ? "UTF-32LE" : "UTF-32BE", &err);
+  src_conv = std::unique_ptr<UConverter,void(*)(UConverter*)>(
+    ucnv_open(is_little_endian() ? "UTF-32LE" : "UTF-32BE", &err),
+    ucnv_close
+  );
   if (U_FAILURE(err)) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT(
       "Your ICU is missing UTF-32. WAT? " << u_errorName(err)
@@ -52,10 +55,15 @@ void ICUEncoder::init(const char* const name) {
   }
 
   // The pivot buffer used by ICU.
-  pivot = new UChar[ucnv_getMaxCharSize(src_conv)];
+  pivot = std::unique_ptr<UChar[]>(
+    new UChar[ucnv_getMaxCharSize(src_conv.get())]
+  );
 
   // The converter used to translate UTF-16 into our desired encoding.
-  dst_conv = ucnv_open(name, &err);
+  dst_conv = std::unique_ptr<UConverter,void(*)(UConverter*)>(
+    ucnv_open(name, &err),
+    ucnv_close
+  );
   if (U_FAILURE(err)) {
     if (err == U_FILE_ACCESS_ERROR) {
       THROW_RUNTIME_ERROR_WITH_OUTPUT("Unrecognized encoding '" << name << "'");
@@ -70,7 +78,7 @@ void ICUEncoder::init(const char* const name) {
   // Tell ICU to halt conversion on code points unrepresentable in the
   // target encoding.
   ucnv_setFromUCallBack(
-    dst_conv,
+    dst_conv.get(),
     UCNV_FROM_U_CALLBACK_STOP,
     nullptr,
     nullptr,
@@ -84,11 +92,12 @@ void ICUEncoder::init(const char* const name) {
     );
   }
 
-  max_bytes = UCNV_GET_MAX_BYTES_FOR_STRING(1, ucnv_getMaxCharSize(dst_conv));
+  max_bytes =
+    UCNV_GET_MAX_BYTES_FOR_STRING(1, ucnv_getMaxCharSize(dst_conv.get()));
 
   // get the set of valid code points
   std::unique_ptr<USet, void(*)(USet*)> us(uset_openEmpty(), uset_close);
-  ucnv_getUnicodeSet(dst_conv, us.get(), UCNV_ROUNDTRIP_SET, &err);
+  ucnv_getUnicodeSet(dst_conv.get(), us.get(), UCNV_ROUNDTRIP_SET, &err);
   if (U_FAILURE(err)) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT(
       "Could not get set of valid code points. WAT? " << u_errorName(err)
@@ -96,12 +105,6 @@ void ICUEncoder::init(const char* const name) {
   }
 
   convUnicodeSet(const_cast<UnicodeSet&>(Valid), us.get());
-}
-
-ICUEncoder::~ICUEncoder() {
-  ucnv_close(src_conv);
-  ucnv_close(dst_conv);
-  delete[] pivot;
 }
 
 uint32 ICUEncoder::maxByteLength() const { return max_bytes; }
@@ -112,22 +115,22 @@ uint32 ICUEncoder::write(int cp, byte buf[]) const {
   char* dst = reinterpret_cast<char*>(buf);
   const char* src = reinterpret_cast<const char*>(&cp);
 
-  UChar* psrc = pivot;
-  UChar* pdst = pivot;
+  UChar* psrc = pivot.get();
+  UChar* pdst = pivot.get();
 
   UErrorCode err = U_ZERO_ERROR;
 
   ucnv_convertEx(
-    dst_conv,
-    src_conv,
+    dst_conv.get(),
+    src_conv.get(),
     &dst,
     dst + max_bytes,
     &src,
     src + sizeof(cp),
-    pivot,
+    pivot.get(),
     &psrc,
     &pdst,
-    pivot + sizeof(pivot),
+    pivot.get() + sizeof(pivot.get()),
     true,
     false,
     &err
