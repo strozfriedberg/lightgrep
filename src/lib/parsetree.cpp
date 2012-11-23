@@ -20,7 +20,7 @@
 #include <ostream>
 
 ParseNode* ParseTree::add(const ParseNode& n) {
-  Store.emplace_back(n);
+  Store.push_back(n);
   return &Store[Store.size()-1];
 }
 

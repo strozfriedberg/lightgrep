@@ -28,6 +28,12 @@ class ParseTree {
 public:
   ParseNode* Root;
 
+  template <class... Args>
+  ParseNode* add(Args&&... args) {
+    Store.emplace_back(args...);
+    return &Store[Store.size()-1];
+  }
+
   ParseNode* add(const ParseNode& n);
 
   //
