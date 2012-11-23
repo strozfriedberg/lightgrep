@@ -1,26 +1,18 @@
 .SUFFIXES:
 
-include Makefile.conf
-
 #
 # Set OS-specific variables 
 #
 UNAME_S=$(strip $(shell uname -s))
 ifeq ($(UNAME_S),Linux)
   IS_LINUX=1
-  BINEXT=
-  SHARED_LIB_EXT=.so
-  STATIC_LIB_EXT=.a
+  include Makefile.linux.conf
 else ifeq ($(UNAME_S:MINGW%=MINGW),MINGW)
   IS_WINDOWS=1
-  BINEXT=.exe
-  SHARED_LIB_EXT=.so
-  STATIC_LIB_EXT=.a
+  include Makefile.windows.conf
 else ifeq ($(UNAME_S),Darwin)
   IS_MACOSX=1
-  BINEXT=
-  SHARED_LIB_EXT=.dylib
-  STATIC_LIB_EXT=.a
+  include Makefile.darwin.conf
 endif
 
 #
