@@ -28,7 +28,7 @@ public:
   std::string Expression;
   bool FixedString, CaseInsensitive;
   uint32 Index;
-  std::vector<std::string> Encoding;
+  std::string Encoding;
 
   Pattern(const std::string& expr = "",
           bool fixed = false,
@@ -39,18 +39,7 @@ public:
     FixedString(fixed),
     CaseInsensitive(insensitive),
     Index(index),
-    Encoding{enc} {}
-
-  Pattern(const std::string& expr,
-          bool fixed,
-          bool insensitive,
-          uint32 index,
-          const std::vector<std::string>& encs):
-    Expression(expr),
-    FixedString(fixed),
-    CaseInsensitive(insensitive),
-    Index(index),
-    Encoding(encs) {}
+    Encoding(enc) {}
 
   Pattern(const Pattern&) = default;
 

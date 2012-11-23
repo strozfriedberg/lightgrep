@@ -16,9 +16,6 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <sstream>
-
-#include "ostream_join_iterator.h"
 #include "stest.h"
 
 void collector(void* userData, const LG_SearchHit* const hit) {
@@ -59,13 +56,7 @@ STest::STest(const std::vector<Pattern>& pats):
       continue;
     }
 
-    std::stringstream enc;
-    std::copy(
-      p.Encoding.begin(), p.Encoding.end(),
-      ostream_join_iterator<std::string>(enc, "|")
-    );
-
-    lg_add_pattern(fsm.get(), pmap.get(), pat.get(), enc.str().c_str(), &err);
+    lg_add_pattern(fsm.get(), pmap.get(), pat.get(), p.Encoding.c_str(), &err);
 
     if (err) {
       lg_free_error(err);

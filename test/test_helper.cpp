@@ -96,7 +96,7 @@ NFAPtr createGraph(const std::vector<Pattern>& pats, bool determinize) {
     nfab.setCurLabel(i);
 
     std::shared_ptr<Encoder> enc;
-    const std::string& ename = pats[i].Encoding.front();
+    const std::string& ename = pats[i].Encoding;
     if (ename == "ASCII") {
       enc.reset(new ASCII());
     }

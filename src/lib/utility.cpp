@@ -53,7 +53,7 @@ uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
   uint32 ret = 0;
   for (const auto& p : keywords) {
     uint32 pSize = p.Expression.size();
-    const std::string& enc = p.Encoding.back();
+    const std::string& enc = p.Encoding;
 // FIXME: Shouldn't we use something from the Encoders for this?
     if (enc == "UTF-16LE" || enc == "UTF-16BE") {
       pSize <<= 1;

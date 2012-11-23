@@ -142,7 +142,7 @@ SCOPE_TEST(oceUTF8) {
 SCOPE_TEST(twoUnicode) {
   std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
   for (Pattern& p : pats) {
-    p.Encoding.front() = LG_CANONICAL_ENCODINGS[LG_ENC_UTF_16LE];
+    p.Encoding = LG_CANONICAL_ENCODINGS[LG_ENC_UTF_16LE];
   }
 
   NFAPtr fsm = createGraph(pats, true);
