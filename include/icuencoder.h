@@ -31,7 +31,11 @@ public:
 
   ICUEncoder(const std::string& name);
 
-  ICUEncoder(const ICUEncoder& other): ICUEncoder(other.enc_name) {}
+  ICUEncoder(const ICUEncoder& other): 
+    EncoderBase(other)
+  {
+    init(other.enc_name.c_str());
+  }
 
   ICUEncoder& operator=(const ICUEncoder& other) {
     EncoderBase::operator=(other);
