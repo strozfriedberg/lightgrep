@@ -27,12 +27,29 @@
 
 class ICUEncoder: public EncoderBase {
 public:
-  ICUEncoder(const char* const name);
+  ICUEncoder(const char* const name):
+    EncoderBase(),
+    enc_name(name),
+    src_conv{nullptr, nullptr},
+    dst_conv{nullptr, nullptr}
+  {
+    init(name);
+  }
 
-  ICUEncoder(const std::string& name);
+  ICUEncoder(const std::string& name):
+    EncoderBase(),
+    enc_name(name),
+    src_conv{nullptr, nullptr},
+    dst_conv{nullptr, nullptr}
+  {
+    init(name.c_str());
+  }
 
   ICUEncoder(const ICUEncoder& other): 
-    EncoderBase(other)
+    EncoderBase(other),
+    enc_name(other.enc_name),
+    src_conv{nullptr, nullptr},
+    dst_conv{nullptr, nullptr}
   {
     init(other.enc_name.c_str());
   }
@@ -61,8 +78,8 @@ private:
   void init(const char* const name);
 
   std::string enc_name;
-  std::unique_ptr<UConverter,void(*)(UConverter*)> src_conv{nullptr, nullptr};
-  std::unique_ptr<UConverter,void(*)(UConverter*)> dst_conv{nullptr, nullptr};
+  std::unique_ptr<UConverter,void(*)(UConverter*)> src_conv;
+  std::unique_ptr<UConverter,void(*)(UConverter*)> dst_conv;
   std::unique_ptr<UChar[]> pivot;
 
   uint32_t max_bytes;
