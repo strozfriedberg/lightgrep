@@ -26,19 +26,19 @@
 #include <utility>
 #include <vector>
 
-static std::ostream& operator<<(std::ostream& out, const std::vector<ByteSet>& v) {
-  std::copy(v.begin(), v.end(), std::ostream_iterator<ByteSet>(out, " "));
-  return out;
-}
+// static std::ostream& operator<<(std::ostream& out, const std::vector<ByteSet>& v) {
+//   std::copy(v.begin(), v.end(), std::ostream_iterator<ByteSet>(out, " "));
+//   return out;
+// }
 
-static std::ostream& operator<<(std::ostream& out, const std::vector<std::vector<ByteSet>>& v) {
-  out << std::hex;
-  std::copy(
-    v.begin(), v.end(), std::ostream_iterator<std::vector<ByteSet>>(out, "\n")
-  );
-  out << std::dec;
-  return out;
-}
+// static std::ostream& operator<<(std::ostream& out, const std::vector<std::vector<ByteSet>>& v) {
+//   out << std::hex;
+//   std::copy(
+//     v.begin(), v.end(), std::ostream_iterator<std::vector<ByteSet>>(out, "\n")
+//   );
+//   out << std::dec;
+//   return out;
+// }
 
 void EncoderBase::collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {
   std::unique_ptr<byte[]> cur(new byte[maxByteLength()]);
