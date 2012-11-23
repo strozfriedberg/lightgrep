@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-FSMThingy::FSMThingy(uint32 sizeHint): Fsm(new NFA(1, sizeHint)) {
+FSMThingy::FSMThingy(uint32_t sizeHint): Fsm(new NFA(1, sizeHint)) {
   Fsm->TransFac = Nfab.getTransFac();
 }
 

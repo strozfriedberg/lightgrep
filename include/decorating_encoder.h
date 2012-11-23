@@ -58,7 +58,7 @@ public:
     return new DecoratingEncoder(*this);
   }
 
-  virtual uint32 maxByteLength() const {
+  virtual uint32_t maxByteLength() const {
     return BaseEnc->maxByteLength();
   }
 
@@ -70,7 +70,7 @@ public:
     return BaseEnc->validCodePoints();
   }
 
-  virtual uint32 write(int cp, byte buf[]) const {
+  virtual uint32_t write(int cp, byte buf[]) const {
     return BaseEnc->write(cp, buf); 
   }
 
