@@ -29,12 +29,6 @@ struct SearchInfo {};
 
 uint32 estimateGraphSize(const std::vector<Pattern>& keywords);
 
-/*
-NFAPtr createGraph(const std::vector<Pattern>& keywords,
-                   bool determinize = true,
-                   bool ignoreBadParse = false);
-*/
-
 class Visitor {
 public:
   virtual ~Visitor() {}

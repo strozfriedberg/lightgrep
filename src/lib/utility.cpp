@@ -25,30 +25,7 @@
 
 #include <boost/graph/graphviz.hpp>
 
-/*
-void addKeys(const std::vector<Pattern>& keywords, bool ignoreBad, FSMThingy& f, uint32& keyIdx) {
-  ParseTree tree;
-
-  for (uint32 i = 0; i < keywords.size(); ++i, ++keyIdx) {
-    try {
-      parse_and_reduce(
-        keywords[i].Expression,
-        keywords[i].FixedString,
-        keywords[i].CaseInsensitive,
-        tree
-      );
-
-      f.addPattern(tree, keywords[i].Encoding.front().c_str(), keyIdx);
-    }
-    catch (const std::runtime_error&) {
-      if (!ignoreBad) {
-        throw;
-      }
-    }
-  }
-}
-*/
-
+// FIXME: This is sort of fucked now that we have encoding chains
 uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
   uint32 ret = 0;
   for (const auto& p : keywords) {
@@ -72,48 +49,6 @@ uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
   ret += fudgeFactor;
   return ret;
 }
-
-/*
-NFAPtr createGraph(const std::vector<Pattern>& keywords, bool determinize, bool ignoreBadParse) {
-
-  FSMThingy f(estimateGraphSize(keywords));
-  uint32 keyIdx = 0;
-
-  addKeys(keywords, ignoreBadParse, f, keyIdx);
-
-  for (uint32 i = 0; i < keywords.size(); ++i) {
-    int32 encIdx = -1;
-    std::vector<uint32> encs;
-
-    for (const std::string& e : keywords[i].Encoding) {
-      encIdx = lg_get_encoding_id(e.c_str());
-
-      if (encIdx == -1) {
-        break;
-      }
-      else {
-        encs.push_back(encIdx);
-      }
-    }
-
-//    if (encIdx != -1) {
-//      keyInfo.Table.emplace_back(i, encs);
-//    }
-  }
-
-  if (f.Fsm) {
-    if (determinize) {
-      NFAPtr dfa(new NFA(1));
-      dfa->TransFac = f.Fsm->TransFac;
-      f.Comp.subsetDFA(*dfa, *f.Fsm);
-      f.Fsm = dfa;
-    }
-    f.Comp.labelGuardStates(*f.Fsm);
-  }
-
-  return f.Fsm;
-}
-*/
 
 void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor) {
   std::vector<bool> seen(graph.verticesSize());
