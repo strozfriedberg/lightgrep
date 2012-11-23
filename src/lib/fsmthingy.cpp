@@ -23,9 +23,7 @@
 #include <string>
 #include <vector>
 
-FSMThingy::FSMThingy(uint32 sizeHint):
-  Fsm(new NFA(1, sizeHint))
-{
+FSMThingy::FSMThingy(uint32 sizeHint): Fsm(new NFA(1, sizeHint)) {
   Fsm->TransFac = Nfab.getTransFac();
 }
 
@@ -36,18 +34,6 @@ void FSMThingy::addPattern(const ParseTree& tree, const char* chain, uint32 labe
 
   // set the character encoding
   Nfab.setEncoder(EncFac.get(chain));
-
-/*
-  std::unique_ptr<Encoder> enc; 
-
-  auto i = Encoders.find(ename);
-  if (i != Encoders.end()) {
-    enc.reset(i->second->clone());
-  }
-  else {
-    enc.reset(new ICUEncoder(ename));
-  }
-*/
 
   // build the NFA for this pattern
   if (Nfab.build(tree)) {
