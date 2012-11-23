@@ -189,9 +189,16 @@ void write_program(LG_HPROGRAM hProg, void* buffer) {
   std::memcpy(buffer, buf.data(), buf.size());
 }
 
-void read_program(LG_HPROGRAM hProg, void* buffer, int size) {
-  std::string s((char*)buffer, size);
+LG_HPROGRAM read_program(void* buffer, int size) {
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
+    new ProgramHandle,
+    lg_destroy_program
+  );
+
+  std::string s(static_cast<char*>(buffer), size);
   hProg->Impl = Program::unmarshall(s);
+
+  return hProg.release();
 }
 
 int lg_program_size(const LG_HPROGRAM hProg) {
@@ -199,12 +206,10 @@ int lg_program_size(const LG_HPROGRAM hProg) {
 }
 
 LG_HPROGRAM lg_read_program(void* buffer, int size) {
-  LG_HPROGRAM hProg = create_handle<ProgramHandle>();
-  if (!hProg) {
-    return nullptr;
-  }
-  exception_trap(std::bind(&read_program, hProg, buffer, size));
-  return hProg;
+  return trap_with_retval(
+    [buffer,size](){ return read_program(buffer, size); },
+    nullptr
+  );
 }
 
 void lg_write_program(LG_HPROGRAM hProg, void* buffer) {
@@ -215,7 +220,7 @@ void lg_destroy_program(LG_HPROGRAM hProg) {
   delete hProg;
 }
 
-void create_context(LG_HPROGRAM hProg, LG_HCONTEXT hCtx,
+LG_HCONTEXT create_context(LG_HPROGRAM hProg,
   #ifdef LBT_TRACE_ENABLED
                     uint64 beginTrace, uint64 endTrace
   #else
@@ -223,27 +228,31 @@ void create_context(LG_HPROGRAM hProg, LG_HCONTEXT hCtx,
   #endif
   )
 {
+  std::unique_ptr<ContextHandle,void(*)(ContextHandle*)> hCtx(
+    new ContextHandle,
+    lg_destroy_context
+  );
+
   hCtx->Impl = VmInterface::create();
   #ifdef LBT_TRACE_ENABLED
   hCtx->Impl->setDebugRange(beginTrace, endTrace);
   #endif
   hCtx->Impl->init(hProg->Impl);
+
+  return hCtx.release();
 }
 
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
                               const LG_ContextOptions* options)
 {
-  LG_HCONTEXT hCtx = create_handle<ContextHandle>();
-  if (!hCtx) {
-    return nullptr;
-  }
-
   const uint64
     begin = options ? options->TraceBegin : std::numeric_limits<uint64>::max(),
     end = options ? options->TraceEnd : std::numeric_limits<uint64>::max();
 
-  exception_trap(std::bind(&create_context, hProg, hCtx, begin, end));
-  return hCtx;
+  return trap_with_retval(
+    [hProg,begin,end](){ return create_context(hProg, begin, end); },
+    nullptr
+  );
 }
 
 void lg_destroy_context(LG_HCONTEXT hCtx) {
