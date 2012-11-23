@@ -2,6 +2,7 @@
 
 #include "basic.h"
 #include "encoder.h"
+#include "encoderfactory.h"
 #include "nfabuilder.h"
 #include "nfaoptimizer.h"
 
@@ -11,6 +12,7 @@ class FSMThingy {
 public:
   FSMThingy(uint32 sizeHint);
 
+  EncoderFactory EncFac;
   NFABuilder Nfab;
   NFAOptimizer Comp;
   NFAPtr Fsm;
@@ -20,6 +22,4 @@ public:
   void addPattern(const ParseTree& tree, const char* chain, uint32 label);
 
   void finalizeGraph(bool determinize);
-
-  std::shared_ptr<Encoder> buildEncoder(const std::string& chain);
 };

@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include "concrete_encoders.h"
+#include "encoderfactory.h"
 #include "nfabuilder.h"
 #include "nfaoptimizer.h"
 #include "parser.h"
@@ -84,6 +84,7 @@ void ASSERT_EQUAL_MATCHES(const NFA& a, const NFA& b) {
 }
 
 NFAPtr createGraph(const std::vector<Pattern>& pats, bool determinize) {
+  EncoderFactory encfac;
   NFABuilder nfab;
   ParseTree tree;
   NFAOptimizer comp;
@@ -94,32 +95,7 @@ NFAPtr createGraph(const std::vector<Pattern>& pats, bool determinize) {
 
     nfab.reset();
     nfab.setCurLabel(i);
-
-    std::shared_ptr<Encoder> enc;
-    const std::string& ename = pats[i].Encoding;
-    if (ename == "ASCII") {
-      enc.reset(new ASCII());
-    }
-    else if (ename == "UTF-8") {
-      enc.reset(new UTF8());
-    }
-    else if (ename == "UTF-16LE") {
-      enc.reset(new UTF16LE());
-    }
-    else if (ename == "UTF-16BE") {
-      enc.reset(new UTF16BE());
-    }
-    else if (ename == "UTF-32LE") {
-      enc.reset(new UTF32LE());
-    }
-    else if (ename == "UTF-32BE") {
-      enc.reset(new UTF32BE());
-    }
-    else {
-      enc.reset(new ICUEncoder(ename));
-    }
-
-    nfab.setEncoder(enc);
+    nfab.setEncoder(encfac.get(pats[i].Encoding));
 
     if (nfab.build(tree)) {
       comp.pruneBranches(*nfab.getFsm());

@@ -43,13 +43,12 @@ std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
   return out;
 }
 
-/*
 SCOPE_TEST(oceUTF8) {
   const std::vector<Pattern> pats{
-    {"xxx", false, false, 0, std::vector<std::string>{"OCE", "UTF-8"}}
+    {"xxx", false, false, 0, "UTF-8|OCE"}
   };
 
-  NFAPtr fsm = createGraph(pats);
+  NFAPtr fsm = createGraph(pats, true);
   NFA& g = *fsm;
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -83,7 +82,6 @@ SCOPE_TEST(oceUTF8) {
     SCOPE_ASSERT_EQUAL(ebs, abs);
   }
 }
-*/
 
 SCOPE_TEST(twoUnicode) {
   std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
