@@ -24,8 +24,6 @@
 #include "lightgrep_c_char_byte_trans.h"
 #include "lightgrep_c_byte_byte_trans.h"
 #include "icuencoder.h"
-#include "identitybyteencoder.h"
-#include "identitycharencoder.h"
 #include "oceencoder.h"
 #include "rotencoder.h"
 #include "utf8.h"
@@ -133,7 +131,7 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
 
   for (const std::string& bb : bytebyte) {
     if (bb == "identity") {
-      enc.reset(new IdentityByteEncoder(std::move(enc)));
+      // do nothing
     }
     else if (bb == "OCE") {
       enc.reset(new OCEEncoder(std::move(enc)));
@@ -142,7 +140,7 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
 
   for (auto cc = charchar.crbegin(); cc != charchar.crend(); ++cc) {
     if (*cc == "identity") {
-      enc.reset(new IdentityCharEncoder(std::move(enc)));
+      // do nothing
     }
     else if (cc->substr(0, 3) == "rot") {
       enc.reset(new ROTEncoder(
