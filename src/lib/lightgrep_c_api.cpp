@@ -105,9 +105,8 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
 }
 
 LG_HPATTERNMAP lg_create_pattern_map(unsigned int numTotalPatternsSizeHint) {
-// TODO: use the size hint
   try {
-    return new PatternMapHandle();
+    return new PatternMapHandle(numTotalPatternsSizeHint);
   }
   catch (...) {
     return nullptr;

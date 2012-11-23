@@ -37,6 +37,15 @@ struct PatternHandle {
 struct PatternMapHandle {
   std::vector<LG_PatternInfo> Patterns;
 
+  PatternMapHandle(unsigned int sizeHint): Patterns() { Patterns.reserve(sizeHint); }
+
+  ~PatternMapHandle() {
+    for (LG_PatternInfo& pi : Patterns) {
+      delete[] pi.Pattern;
+      delete[] pi.EncodingChain;
+    }
+  }
+
   void addPattern(const char* pattern, const char* chain) {
     std::unique_ptr<char[]> patcopy(new char[std::strlen(pattern)+1]);
     std::strcpy(patcopy.get(), pattern);
@@ -47,13 +56,6 @@ struct PatternMapHandle {
     Patterns.push_back({patcopy.get(), chcopy.get(), nullptr});
     patcopy.release();
     chcopy.release();
-  }
-
-  ~PatternMapHandle() {
-    for (LG_PatternInfo& pi : Patterns) {
-      delete[] pi.Pattern;
-      delete[] pi.EncodingChain;
-    }
   }
 };
 
