@@ -57,22 +57,6 @@ bool exception_trap(F func) {
   }
 }
 
-template <typename F>
-bool exception_trap(F func, LG_Error** err) {
-  try {
-    func();
-    return true;
-  }
-  catch (const std::exception& e) {
-    fill_error(err, e.what());
-  }
-  catch (...) {
-    fill_error(err, "Unspecified exception");
-  }
-
-  return false;
-}
-
 template <class H>
 H* create_handle() {
   try {
@@ -179,28 +163,25 @@ LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
   return &hMap->Patterns[patternIndex];
 }
 
-void create_program(LG_HFSM hFsm, LG_HPROGRAM hProg, bool determinize)
-{
-  hFsm->Impl->finalizeGraph(determinize);
+LG_HPROGRAM create_program(LG_HFSM hFsm, const LG_ProgramOptions* opts) {
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
+    new ProgramHandle,
+    lg_destroy_program
+  );
+
+  hFsm->Impl->finalizeGraph(opts->Determinize);
   hProg->Impl = Compiler::createProgram(*hFsm->Impl->Fsm);
+
+  return hProg.release();
 }
 
 LG_HPROGRAM lg_create_program(LG_HFSM hFsm,
                               const LG_ProgramOptions* options)
 {
-  LG_HPROGRAM hProg = create_handle<ProgramHandle>();
-  if (!hProg) {
-    return nullptr;
-  }
-
-// TODO: fix exception trap
-  if (exception_trap(std::bind(&create_program, hFsm, hProg, options->Determinize))) {
-    return hProg;
-  }
-  else {
-    lg_destroy_program(hProg);
-    return nullptr;
-  }
+  return trap_with_retval(
+    [hFsm,options](){ return create_program(hFsm, options); },
+    nullptr
+   );
 }
 
 void write_program(LG_HPROGRAM hProg, void* buffer) {
