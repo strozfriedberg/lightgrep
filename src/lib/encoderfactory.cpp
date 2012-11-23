@@ -48,6 +48,8 @@ EncoderFactory::EncoderFactory():
 {}
 
 std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
+// TODO: extract this out to a yacc grammar
+
   // return a cached encoder if we have one
   auto i = Cache.find(chain);
   if (i != Cache.end()) {
