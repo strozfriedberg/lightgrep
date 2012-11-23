@@ -65,6 +65,7 @@ regexp:
   {
     ctx->Tree->Root = $$ = ctx->add(ParseNode::REGEXP, $1);
   }
+;
 
 alt:
   concat
