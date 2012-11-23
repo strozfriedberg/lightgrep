@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/tokenizer.hpp>
-
 FSMThingy::FSMThingy(uint32 sizeHint):
   Fsm(new NFA(1, sizeHint)),
   Encoders{
