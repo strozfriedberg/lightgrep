@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include "caching_encoder.h"
 #include "encoderbase.h"
 
 #include <memory>
@@ -35,6 +34,7 @@ public:
   ICUEncoder(const ICUEncoder& other): ICUEncoder(other.enc_name) {}
 
   ICUEncoder& operator=(const ICUEncoder& other) {
+    EncoderBase::operator=(other);
     init(other.enc_name.c_str());
     return *this;
   }
@@ -62,13 +62,4 @@ private:
   std::unique_ptr<UChar[]> pivot;
 
   uint32 max_bytes;
-};
-
-class CachingICUEncoder: public CachingEncoder<ICUEncoder> {
-public:
-  CachingICUEncoder(const char* const name):
-    CachingEncoder<ICUEncoder>({}, name) {}
-
-  CachingICUEncoder(const std::string& name):
-    CachingEncoder<ICUEncoder>({}, name) {}
 };

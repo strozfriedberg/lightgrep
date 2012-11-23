@@ -18,38 +18,42 @@
 
 #pragma once
 
-#include "encoder.h"
+#include "decorating_encoder.h"
 
 #include <map>
-#include <type_traits>
 
-template <class BaseEncoder>
-class CachingEncoder: public BaseEncoder {
+class CachingEncoder: public DecoratingEncoder {
 public:
   typedef std::map<UnicodeSet,std::vector<std::vector<ByteSet>>> CacheType;
 
-  template <typename... BaseArgs>
-  CachingEncoder(CacheType&& cache, BaseArgs&&... args):
-    BaseEncoder(std::forward<BaseArgs>(args)...),
+  CachingEncoder(std::unique_ptr<Encoder> enc):
+    DecoratingEncoder(std::move(enc))
+  {}
+
+  CachingEncoder(std::unique_ptr<Encoder> enc, CacheType&& cache):
+    DecoratingEncoder(std::move(enc)),
     Cache(std::forward<CacheType>(cache))
-  {
-    // ensure that CachingEncoder is an Encoder
-    static_assert(
-      std::is_base_of<Encoder,CachingEncoder<BaseEncoder>>::value,
-      "CachingEncoder is not an Encoder!"
-    );
-  }
+  {}
 
-  CachingEncoder(const CachingEncoder<BaseEncoder>&) = default;
+  CachingEncoder(const Encoder& enc):
+    DecoratingEncoder(enc)
+  {}
 
-  CachingEncoder(CachingEncoder<BaseEncoder>&&) = default;
+  CachingEncoder(const Encoder& enc, CacheType&& cache):
+    DecoratingEncoder(enc),
+    Cache(std::forward<CacheType>(cache))
+  {}
 
-  CachingEncoder<BaseEncoder>& operator=(const CachingEncoder<BaseEncoder>&) = default;
+  CachingEncoder(const CachingEncoder&) = default;
 
-  CachingEncoder<BaseEncoder>& operator=(CachingEncoder<BaseEncoder>&&) = default;
+  CachingEncoder& operator=(const CachingEncoder&) = default; 
 
-  virtual CachingEncoder<BaseEncoder>* clone() const {
-    return new CachingEncoder<BaseEncoder>(*this);
+  CachingEncoder(CachingEncoder&&) = default;
+
+  CachingEncoder& operator=(CachingEncoder&&) = default;
+
+  virtual CachingEncoder* clone() const {
+    return new CachingEncoder(*this);
   }
 
   virtual void write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
@@ -58,12 +62,10 @@ public:
       vo = i->second;
     }
     else {
-      BaseEncoder::write(uset, vo);
+      BaseEnc->write(uset, vo);
       Cache.insert(std::make_pair(uset, vo));
     }
   }
-
-  using BaseEncoder::write;
 
 private:
   mutable CacheType Cache;

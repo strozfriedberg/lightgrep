@@ -31,13 +31,13 @@ bool is_little_endian() {
   return reinterpret_cast<const byte*>(&twobytes)[0];
 }
 
-ICUEncoder::ICUEncoder(const char* const name): enc_name(name) {
+ICUEncoder::ICUEncoder(const char* const name):
+  EncoderBase(), enc_name(name)
+{
   init(name);
 }
 
-ICUEncoder::ICUEncoder(const std::string& name): enc_name(name) {
-  init(name.c_str());
-}
+ICUEncoder::ICUEncoder(const std::string& name): ICUEncoder(name.c_str()) {}
 
 void ICUEncoder::init(const char* const name) {
   UErrorCode err = U_ZERO_ERROR;

@@ -94,30 +94,36 @@ protected:
 typedef UTF32Base<true>  UTF32LE;
 typedef UTF32Base<false> UTF32BE;
 
-class CachingUTF32LE: public CachingEncoder<UTF32LE> {
+class CachingUTF32LE: public CachingEncoder {
 public:
-  CachingUTF32LE(): CachingEncoder<UTF32LE>({
-    // \p{Any}, .
+  CachingUTF32LE(): CachingEncoder(
+    UTF32LE(),
     {
-      {{0, 0xD800}, {0xE000, 0x110000}},
+      // \p{Any}, .
       {
-        { {{0x00,0x100}}, {{0xD8,0xE0}}, {{0x01,0x11}}, 0x00 },
-        { {{0x00,0x100}}, {{0x00,0xD8},{0xE0,0x100}}, {{0x00,0x11}}, 0x00 }
+        {{0, 0xD800}, {0xE000, 0x110000}},
+        {
+          { {{0x00,0x100}}, {{0xD8,0xE0}}, {{0x01,0x11}}, 0x00 },
+          { {{0x00,0x100}}, {{0x00,0xD8},{0xE0,0x100}}, {{0x00,0x11}}, 0x00 }
+        }
       }
     }
-  }) {}
+  ) {}
 };
 
-class CachingUTF32BE: public CachingEncoder<UTF32BE> {
+class CachingUTF32BE: public CachingEncoder {
 public:
-  CachingUTF32BE(): CachingEncoder<UTF32BE>({
-    // \p{Any}, .
+  CachingUTF32BE(): CachingEncoder(
+    UTF32BE(),
     {
-      {{0, 0xD800}, {0xE000, 0x110000}},
+      // \p{Any}, .
       {
-        { 0x00, 0x00, {{0x00,0xD8},{0xE0,0x100}}, {{0x00,0x100}} },
-        { 0x00, {{0x01,0x11}}, {{0x00,0x100}}, {{0x00,0x100}} }
+        {{0, 0xD800}, {0xE000, 0x110000}},
+        {
+          { 0x00, 0x00, {{0x00,0xD8},{0xE0,0x100}}, {{0x00,0x100}} },
+          { 0x00, {{0x01,0x11}}, {{0x00,0x100}}, {{0x00,0x100}} }
+        }
       }
     }
-  }) {}
+  ) {}
 };

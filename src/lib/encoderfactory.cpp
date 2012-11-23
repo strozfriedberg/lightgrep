@@ -154,5 +154,5 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
     }
   }
 
-  return std::shared_ptr<Encoder>(enc.release());
+  return std::shared_ptr<Encoder>(new CachingEncoder(std::move(enc)));
 }
