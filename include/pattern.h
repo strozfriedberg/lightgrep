@@ -27,13 +27,13 @@ class Pattern {
 public:
   std::string Expression;
   bool FixedString, CaseInsensitive;
-  uint32 Index;
+  uint32_t Index;
   std::string Encoding;
 
   Pattern(const std::string& expr = "",
           bool fixed = false,
           bool insensitive = false,
-          uint32 index = 0,
+          uint32_t index = 0,
           const std::string& enc = LG_CANONICAL_ENCODINGS[LG_ENC_ASCII]):
     Expression(expr),
     FixedString(fixed),

@@ -38,7 +38,7 @@ public:
   void callback(const ParseNode& n);
 
   void setEncoder(const std::shared_ptr<Encoder>& e);
-  void setSizeHint(uint64 reserveSize);
+  void setSizeHint(uint64_t reserveSize);
 
   void alternate(const ParseNode& n);
   void concatenate(const ParseNode& n);
@@ -60,7 +60,7 @@ public:
   NFAPtr getFsm() const { return Fsm; }
   void resetFsm() { Fsm.reset(); }
 
-  void setCurLabel(uint32 lbl) { CurLabel = lbl; }
+  void setCurLabel(uint32_t lbl) { CurLabel = lbl; }
 
   std::stack<Fragment>& stack() { return Stack; }
 
@@ -71,15 +71,15 @@ public:
 private:
   void init();
 
-  void patch_mid(OutListT& src, const InListT& dst, uint32 dstskip);
+  void patch_mid(OutListT& src, const InListT& dst, uint32_t dstskip);
   void patch_pre(OutListT& src, const InListT& dst);
   void patch_post(OutListT& src, const InListT& dst);
 
   void traverse(const ParseNode* root);
 
   bool IsGood;
-  uint32 CurLabel;
-  uint64 ReserveSize;
+  uint32_t CurLabel;
+  uint64_t ReserveSize;
   std::shared_ptr<Encoder> Enc;
   NFAPtr Fsm;
   std::shared_ptr<TransitionFactory> TransFac;

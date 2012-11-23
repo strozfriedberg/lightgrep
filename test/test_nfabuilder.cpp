@@ -790,7 +790,7 @@ SCOPE_TEST(parseZeroDotStarZero) {
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
   SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0)); \
 \
-  for (uint32 i = 1; i < n; ++i) { \
+  for (uint32_t i = 1; i < n; ++i) { \
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
@@ -802,7 +802,7 @@ SCOPE_TEST(parseZeroDotStarZero) {
   SCOPE_ASSERT(g[n].IsMatch);
 
 SCOPE_TEST(parse_aLCnRC) {
-  for (uint32 c = 1; c < 100; ++c) {
+  for (uint32_t c = 1; c < 100; ++c) {
     TEST_REPETITION_N("a", c);
   }
 }
@@ -823,7 +823,7 @@ SCOPE_TEST(parse_aLCnRC) {
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
   SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0)); \
 \
-  for (uint32 i = 1; i < n; ++i) { \
+  for (uint32_t i = 1; i < n; ++i) { \
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
@@ -836,7 +836,7 @@ SCOPE_TEST(parse_aLCnRC) {
   SCOPE_ASSERT(g[n].IsMatch);
 
 SCOPE_TEST(parse_aLCn_RC) {
-  for (uint32 n = 1; n < 100; ++n) {
+  for (uint32_t n = 1; n < 100; ++n) {
     TEST_REPETITION_N_U("a", n);
   }
 }
@@ -882,7 +882,7 @@ SCOPE_TEST(parse_aLC0_RCQb) {
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
   SCOPE_ASSERT_EQUAL(1, g.outVertex(0, 0)); \
 \
-  for (uint32 i = 1; i < n-1; ++i) { \
+  for (uint32_t i = 1; i < n-1; ++i) { \
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
@@ -900,7 +900,7 @@ SCOPE_TEST(parse_aLC0_RCQb) {
   SCOPE_ASSERT(g[n].IsMatch);
 
 SCOPE_TEST(parse_aLCn_RCQb) {
-  for (uint32 n = 1; n < 100; ++n) {
+  for (uint32_t n = 1; n < 100; ++n) {
     TEST_REPETITION_N_U("a", n);
   }
 }
@@ -946,14 +946,14 @@ SCOPE_TEST(parse_xa0_) {
   SCOPE_ASSERT_EQUAL(1u, g.outDegree(0)); \
   SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0)); \
 \
-  for (uint32 i = 1; i < n; ++i) { \
+  for (uint32_t i = 1; i < n; ++i) { \
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
     SCOPE_ASSERT(!g[i].IsMatch); \
   } \
 \
-  for (uint32 i = n; i < m; ++i) { \
+  for (uint32_t i = n; i < m; ++i) { \
     SCOPE_ASSERT_EQUAL(1u, g.inDegree(i)); \
     SCOPE_ASSERT_EQUAL(1u, g.outDegree(i)); \
     SCOPE_ASSERT_EQUAL(i+1, g.outVertex(i, 0)); \
@@ -965,8 +965,8 @@ SCOPE_TEST(parse_xa0_) {
   SCOPE_ASSERT(g[m].IsMatch);
 
 SCOPE_TEST(parse_aLCn_mRC) {
-  for (uint32 n = 1; n < 5; ++n) {
-    for (uint32 m = n; m < 5; ++m) {
+  for (uint32_t n = 1; n < 5; ++n) {
+    for (uint32_t m = n; m < 5; ++m) {
       TEST_REPETITION_N_M("a", n, m);
     }
   }

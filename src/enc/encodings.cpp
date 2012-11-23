@@ -117,13 +117,13 @@ int main(int, char**) {
   };
 
   std::vector<std::string> canonical;
-  std::map<std::string,uint32> idmap;
+  std::map<std::string,uint32_t> idmap;
   size_t longest = 0, longest_canonical = 0;
 
   UErrorCode err = U_ZERO_ERROR;
 
-  const int32 clen = ucnv_countAvailable();
-  for (int32 i = 0; i < clen; ++i) {
+  const int32_t clen = ucnv_countAvailable();
+  for (int32_t i = 0; i < clen; ++i) {
     // get the canonical name for the ith encoding
     const char* cname = ucnv_getAvailableName(i);
 
@@ -134,13 +134,13 @@ int main(int, char**) {
 
     canonical.emplace_back(cname);
 
-    const int32 alen = ucnv_countAliases(cname, &err);
+    const int32_t alen = ucnv_countAliases(cname, &err);
     throw_on_error(err);
 
     longest_canonical = std::max(longest_canonical, strlen(cname));
     longest = std::max(longest, longest_canonical);
 
-    for (int32 j = 0; j < alen; ++j) {
+    for (int32_t j = 0; j < alen; ++j) {
       // get the jth alias for this encoding
       const char* aname = ucnv_getAlias(cname, j, &err);
       throw_on_error(err);
@@ -225,8 +225,8 @@ int main(int, char**) {
 "static const char* const LG_CANONICAL_ENCODINGS[] = {\n";
 
   longest_canonical += 3;
-  const int32 csize = canonical.size();
-  for (int32 i = 0; i < csize; ++i) {
+  const int32_t csize = canonical.size();
+  for (int32_t i = 0; i < csize; ++i) {
     std::string n(canonical[i]);
     n = '"' + n + '"';
     if (i + 1 < clen) {
@@ -240,16 +240,16 @@ int main(int, char**) {
 "};";
 
   // sort the aliases by the indices of their canonical names
-  std::vector<std::pair<std::string,uint32>> aliases(idmap.begin(), idmap.end());
+  std::vector<std::pair<std::string,uint32_t>> aliases(idmap.begin(), idmap.end());
   std::sort(aliases.begin(), aliases.end(),
-    [](const std::pair<std::string,uint32>& a,
-       const std::pair<std::string,uint32>& b)
+    [](const std::pair<std::string,uint32_t>& a,
+       const std::pair<std::string,uint32_t>& b)
     {
       return a.second < b.second || (a.second == b.second && a.first < b.first);
     }
   );
 
-  std::pair<std::string,uint32> prev{"", std::numeric_limits<uint32>::max()};
+  std::pair<std::string,uint32_t> prev{"", std::numeric_limits<uint32_t>::max()};
 
   for (const auto& p : aliases) {
     // print the canonical name for the encoding

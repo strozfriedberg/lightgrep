@@ -32,7 +32,7 @@
 static const NFA::VertexDescriptor NONE = 0xFFFFFFFF;
 static const NFA::VertexDescriptor UNLABELABLE = 0xFFFFFFFE;
 
-const uint32 NOLABEL = std::numeric_limits<uint32>::max();
+const uint32_t NOLABEL = std::numeric_limits<uint32_t>::max();
 
 bool NFAOptimizer::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const ByteSet& srcBits) const {
   // Explanation of the condition:
@@ -68,13 +68,13 @@ bool NFAOptimizer::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const
   return false;
 }
 
-NFAOptimizer::StatePair NFAOptimizer::processChild(const NFA& src, NFA& dst, uint32 si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead) {
+NFAOptimizer::StatePair NFAOptimizer::processChild(const NFA& src, NFA& dst, uint32_t si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead) {
   const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, si);
 
   NFA::VertexDescriptor dstTail = Src2Dst[srcTail];
-  uint32 di = 0;
+  uint32_t di = 0;
 
-  const uint32 dstHeadOutDegree = dst.outDegree(dstHead);
+  const uint32_t dstHeadOutDegree = dst.outDegree(dstHead);
 
   if (dstTail != NONE) {
     for ( ; di < dstHeadOutDegree; ++di) {
@@ -97,7 +97,7 @@ NFAOptimizer::StatePair NFAOptimizer::processChild(const NFA& src, NFA& dst, uin
     bool found = false;
     ByteSet dstBits;
 
-    std::map<NFA::VertexDescriptor, uint32>::const_iterator i(DstPos.find(dstHead));
+    std::map<NFA::VertexDescriptor, uint32_t>::const_iterator i(DstPos.find(dstHead));
     di = i == DstPos.end() ? 0 : i->second;
 
     for ( ; di < dstHeadOutDegree; ++di) {
@@ -165,7 +165,7 @@ void NFAOptimizer::mergeIntoFSM(NFA& dst, const NFA& src) {
   Src2Dst[0] = 0;
 
   // push all outedges of the initial state in the source
-  for (int32 i = src.outDegree(0) - 1; i >= 0; --i) {
+  for (int32_t i = src.outDegree(0) - 1; i >= 0; --i) {
     Edges.push(StatePair(0, i));
   }
 
@@ -173,7 +173,7 @@ void NFAOptimizer::mergeIntoFSM(NFA& dst, const NFA& src) {
     const StatePair& p(Edges.top());
     Edges.pop();
 
-    const uint32 si = p.second;
+    const uint32_t si = p.second;
     const NFA::VertexDescriptor srcHead = p.first;
     const NFA::VertexDescriptor dstHead = Src2Dst[srcHead];
 
@@ -191,7 +191,7 @@ void NFAOptimizer::mergeIntoFSM(NFA& dst, const NFA& src) {
     Src2Dst[srcTail] = dstTail;
     Dst2Src[dstTail].push_back(srcTail);
 
-    for (int32 i = src.outDegree(srcTail) - 1; i >= 0; --i) {
+    for (int32_t i = src.outDegree(srcTail) - 1; i >= 0; --i) {
       Edges.push(StatePair(srcTail, i));
     }
   }
@@ -218,7 +218,7 @@ void NFAOptimizer::pruneBranches(NFA& g) {
 
     // remove same-transition edges following a match vertex,
     // accumulating transition bytes for match edges as we go
-    for (uint32 i = 0; i < g.outDegree(head); ++i) {
+    for (uint32_t i = 0; i < g.outDegree(head); ++i) {
       const NFA::VertexDescriptor tail = g.outVertex(head, i);
 
       if (seen.insert(tail).second) {
@@ -258,7 +258,7 @@ void NFAOptimizer::labelGuardStates(NFA& g) {
 }
 
 void NFAOptimizer::propagateMatchLabels(NFA& g) {
-  // uint32 count = 0;
+  // uint32_t count = 0;
 
   std::stack<NFA::VertexDescriptor, std::vector<NFA::VertexDescriptor>> next, unext;
 
@@ -270,7 +270,7 @@ void NFAOptimizer::propagateMatchLabels(NFA& g) {
     //   std::cerr << "handled " << i << " labeled vertices" << std::endl;
     // }
 
-    const uint32 label = g[m].Label;
+    const uint32_t label = g[m].Label;
 
     // walk label back from this match state to all of its ancestors
     // which have no other match-state descendants
@@ -403,7 +403,7 @@ void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor src
   for (const NFA::VertexDescriptor srcTail : src.outVertices(srcHead)) {
     src[srcTail].Trans->getBytes(outBytes);
 
-    for (uint32 b = 0; b < 256; ++b) {
+    for (uint32_t b = 0; b < 256; ++b) {
       if (outBytes[b]) {
         srcTailLists[b].push_back(srcTail);
       }
@@ -525,7 +525,7 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src) {
   ByteSet outBytes;
 
   // process each subset state
-  // uint32 num = 0;
+  // uint32_t num = 0;
   while (!dstStack.empty()) {
     // if (++num % 10000 == 0) {
     //   std::cerr << "processed " << num << " subset states so far" << std::endl;

@@ -27,11 +27,11 @@
 
 class ROTEncoder: public CharEncoder {
 public:
-  ROTEncoder(uint32 rot, std::unique_ptr<Encoder> enc):
+  ROTEncoder(uint32_t rot, std::unique_ptr<Encoder> enc):
     CharEncoder("rot" + boost::lexical_cast<std::string>(rot), std::move(enc)),
     Rot(rot) {}
 
-  ROTEncoder(uint32 rot, const Encoder& enc):
+  ROTEncoder(uint32_t rot, const Encoder& enc):
     CharEncoder("rot" + boost::lexical_cast<std::string>(rot), enc),
     Rot(rot) {}
 
@@ -47,7 +47,7 @@ public:
     return new ROTEncoder(*this);
   }
 
-  virtual uint32 maxByteLength() const { return BaseEnc->maxByteLength(); }
+  virtual uint32_t maxByteLength() const { return BaseEnc->maxByteLength(); }
 
   virtual const UnicodeSet& validCodePoints() const {
     return BaseEnc->validCodePoints();
@@ -64,5 +64,5 @@ protected:
   }
 
 private:
-  uint32 Rot;
+  uint32_t Rot;
 };

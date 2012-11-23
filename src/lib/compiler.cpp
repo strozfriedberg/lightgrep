@@ -24,7 +24,7 @@
 
 #include <tuple>
 
-uint32 figureOutLanding(const CodeGenHelper& cg, NFA::VertexDescriptor v, const NFA& graph) {
+uint32_t figureOutLanding(const CodeGenHelper& cg, NFA::VertexDescriptor v, const NFA& graph) {
   // If the jump is to a state that has only a single out edge, and there's
   // no label on the state, then jump forward directly to the out-edge state.
   // i.e., this eliminates an indirect jump... it causes dead code.
@@ -37,17 +37,17 @@ uint32 figureOutLanding(const CodeGenHelper& cg, NFA::VertexDescriptor v, const 
   }
 }
 
-std::tuple<uint32, uint32> minAndMaxValues(const std::vector<std::vector<NFA::VertexDescriptor>>& tbl) {
-  uint32 first = 0,
+std::tuple<uint32_t, uint32_t> minAndMaxValues(const std::vector<std::vector<NFA::VertexDescriptor>>& tbl) {
+  uint32_t first = 0,
          last  = 255;
 
-  for (uint32 i = 0; i < 256; ++i) {
+  for (uint32_t i = 0; i < 256; ++i) {
     if (!tbl[i].empty()) {
       first = i;
       break;
     }
   }
-  for (uint32 i = 255; i > first; --i) {
+  for (uint32_t i = 255; i > first; --i) {
     if (!tbl[i].empty()) {
       last = i;
       break;
@@ -58,35 +58,35 @@ std::tuple<uint32, uint32> minAndMaxValues(const std::vector<std::vector<NFA::Ve
 
 // JumpTables are either ranged, or full-size, and can have indirect tables at the end when there are multiple transitions out on a single byte value
 void createJumpTable(const CodeGenHelper& cg, Instruction const* const base, Instruction* const start, NFA::VertexDescriptor v, const NFA& graph) {
-  const uint32 startIndex = start - base;
+  const uint32_t startIndex = start - base;
   Instruction* cur = start,
              * indirectTbl;
 
   auto tbl(pivotStates(v, graph));
 
-  uint32 first, last;
+  uint32_t first, last;
   std::tie(first, last) = minAndMaxValues(tbl);
 
   *cur++ = Instruction::makeJumpTableRange(first, last);
   indirectTbl = start + 2 + (last - first);
 
-  for (uint32 i = first; i <= last; ++i) {
+  for (uint32_t i = first; i <= last; ++i) {
     if (tbl[i].empty()) {
-      const uint32 addr = 0xffffffff;
+      const uint32_t addr = 0xffffffff;
       *cur++ = reinterpret_cast<const Instruction&>(addr);
     }
     else if (1 == tbl[i].size()) {
-      const uint32 addr = figureOutLanding(cg, *tbl[i].begin(), graph);
+      const uint32_t addr = figureOutLanding(cg, *tbl[i].begin(), graph);
       *cur++ = reinterpret_cast<const Instruction&>(addr);
     }
     else {
-      const uint32 addr = startIndex + (indirectTbl - start);
+      const uint32_t addr = startIndex + (indirectTbl - start);
       *cur++ = reinterpret_cast<const Instruction&>(addr);
 
       // write the indirect table in reverse edge order because
       // parent threads have priority over forked children
-      for (int32 j = tbl[i].size() - 1; j >= 0; --j) {
-        const uint32 landing = figureOutLanding(cg, tbl[i][j], graph);
+      for (int32_t j = tbl[i].size() - 1; j >= 0; --j) {
+        const uint32_t landing = figureOutLanding(cg, tbl[i][j], graph);
 
         *indirectTbl = j > 0 ?
           Instruction::makeFork(indirectTbl, landing) :
@@ -140,12 +140,12 @@ void encodeState(const NFA& graph, NFA::VertexDescriptor v, const CodeGenHelper&
     createJumpTable(cg, base, curOp, v, graph);
   }
   else {
-    const uint32 v_odeg = graph.outDegree(v);
+    const uint32_t v_odeg = graph.outDegree(v);
     if (v_odeg > 0) {
       NFA::VertexDescriptor curTarget;
 
       // layout non-initial children in reverse order
-      for (uint32 i = v_odeg-1; i > 0; --i) {
+      for (uint32_t i = v_odeg-1; i > 0; --i) {
         curTarget = graph.outVertex(v, i);
         *curOp = Instruction::makeFork(curOp, cg.Snippets[curTarget].Start);
         curOp += 2;
@@ -170,7 +170,7 @@ ProgramPtr Compiler::createProgram(const NFA& graph) {
 
   ret->First = firstBytes(graph);
 
-  const uint32 numVs = graph.verticesSize();
+  const uint32_t numVs = graph.verticesSize();
   std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);

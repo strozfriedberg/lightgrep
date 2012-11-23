@@ -28,7 +28,7 @@
 class NFAOptimizer {
 public:
   typedef std::pair<NFA::VertexDescriptor, NFA::VertexDescriptor> StatePair;
-  typedef std::pair<NFA::VertexDescriptor, uint32> EdgePair;
+  typedef std::pair<NFA::VertexDescriptor, uint32_t> EdgePair;
 
   void mergeIntoFSM(NFA& dst, const NFA& src);
 
@@ -41,7 +41,7 @@ public:
 
   void pruneBranches(NFA& g);
 
-  StatePair processChild(const NFA& src, NFA& dst, uint32 si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead);
+  StatePair processChild(const NFA& src, NFA& dst, uint32_t si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead);
 
   bool canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const ByteSet& srcBits) const;
 
@@ -50,5 +50,5 @@ private:
   std::vector<NFA::VertexDescriptor> Src2Dst;
   std::stack<EdgePair> Edges;
   std::set<EdgePair> Visited;
-  std::map<NFA::VertexDescriptor, uint32> DstPos;
+  std::map<NFA::VertexDescriptor, uint32_t> DstPos;
 };

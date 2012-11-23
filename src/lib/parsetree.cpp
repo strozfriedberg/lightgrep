@@ -24,7 +24,7 @@ ParseNode* ParseTree::add(const ParseNode& n) {
   return &Store[Store.size()-1];
 }
 
-void ParseTree::init(uint32 len) {
+void ParseTree::init(uint32_t len) {
   Root = 0;
   Store.clear();
   Store.reserve(2*len);

@@ -70,9 +70,9 @@ SCOPE_TEST(parseHexShortTest) {
   char b[3] = { 'h', 'h', '\0' };
 
   b[0] = 0x00;
-  for (uint32 l = 0; l < 256; b[0] = ++l) {
+  for (uint32_t l = 0; l < 256; b[0] = ++l) {
     b[1] = 0x00;
-    for (uint32 r = 0; r < 256; b[1] = ++r) {
+    for (uint32_t r = 0; r < 256; b[1] = ++r) {
       int exp;
       if (
           (('0' <= l && l <= '9') ||

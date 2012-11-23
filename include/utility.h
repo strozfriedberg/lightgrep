@@ -27,7 +27,7 @@
 
 struct SearchInfo {};
 
-uint32 estimateGraphSize(const std::vector<Pattern>& keywords);
+uint32_t estimateGraphSize(const std::vector<Pattern>& keywords);
 
 class Visitor {
 public:
@@ -49,6 +49,6 @@ void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph);
 
 std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescriptor source, const NFA& graph);
 
-uint32 maxOutbound(const std::vector<std::vector<NFA::VertexDescriptor>>& tranTable);
+uint32_t maxOutbound(const std::vector<std::vector<NFA::VertexDescriptor>>& tranTable);
 
 void writeGraphviz(std::ostream& out, const NFA& graph);

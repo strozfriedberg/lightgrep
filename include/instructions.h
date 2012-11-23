@@ -81,24 +81,24 @@ struct Instruction {
 
   std::string toString() const;
 
-  bool operator==(const Instruction& x) const { return *((uint32*)this) == *((uint32*)&x); } // total hack
+  bool operator==(const Instruction& x) const { return *((uint32_t*)this) == *((uint32_t*)&x); } // total hack
 
   static Instruction makeByte(byte b);
   static Instruction makeEither(byte one, byte two);
   static Instruction makeRange(byte first, byte last);
   static Instruction makeAny();
   static Instruction makeBitVector();
-  static Instruction makeJump(Instruction* ptr, uint32 offset);
+  static Instruction makeJump(Instruction* ptr, uint32_t offset);
   static Instruction makeJumpTableRange(byte first, byte last);
-  static Instruction makeLabel(uint32 label);
+  static Instruction makeLabel(uint32_t label);
   static Instruction makeMatch();
-  static Instruction makeFork(Instruction* ptr, uint32 offset);
-  static Instruction makeCheckHalt(uint32 checkIndex);
-  static Instruction makeAdjustStart(uint32 offset);
+  static Instruction makeFork(Instruction* ptr, uint32_t offset);
+  static Instruction makeCheckHalt(uint32_t checkIndex);
+  static Instruction makeAdjustStart(uint32_t offset);
   static Instruction makeHalt();
   static Instruction makeFinish();
-  static Instruction makeRaw32(uint32 val);
-  static Instruction makeRaw24(uint32 val);
+  static Instruction makeRaw32(uint32_t val);
+  static Instruction makeRaw24(uint32_t val);
 };
 #pragma pack(pop)
 

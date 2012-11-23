@@ -26,11 +26,11 @@ class UTF16Base: public UTFBase {
 public:
   virtual UTF16Base<LE>* clone() const { return new UTF16Base<LE>(); }
 
-  virtual uint32 maxByteLength() const { return 4; }
+  virtual uint32_t maxByteLength() const { return 4; }
 
   virtual std::string name() const { return LE ? "UTF-16LE" : "UTF-16BE"; }
 
-  virtual uint32 write(int cp, byte buf[]) const {
+  virtual uint32_t write(int cp, byte buf[]) const {
     if (cp < 0) {
       // too small
       return 0;
@@ -53,8 +53,8 @@ public:
     }
     else if (cp < 0x110000) {
       // surrogate pair representation
-      const uint16 lead = 0xD800 - (0x10000 >> 10) + (cp >> 10);
-      const uint16 trail = 0xDC00 + (cp & 0x3FF);
+      const uint16_t lead = 0xD800 - (0x10000 >> 10) + (cp >> 10);
+      const uint16_t trail = 0xDC00 + (cp & 0x3FF);
 
       buf[LE ? 0 : 1] = lead & 0xFF;
       buf[LE ? 1 : 0] = lead >> 8;
@@ -78,7 +78,7 @@ protected:
       return;
     }
 
-    uint32 l = i->first, h = i->second;
+    uint32_t l = i->first, h = i->second;
     byte cur[4];
 
     // handle low two-byte encodings
@@ -94,9 +94,9 @@ protected:
     writeRange(va, i, iend, l, h, cur, 4, 0x110000);
   }
 
-  virtual void writeRangeBlock(std::vector<ByteSet>& v, uint32& l, uint32 h, uint32 len, uint32 blimit) const {
+  virtual void writeRangeBlock(std::vector<ByteSet>& v, uint32_t& l, uint32_t h, uint32_t len, uint32_t blimit) const {
     if (l < std::min(h, blimit) && l % 256 > 0) {
-      const uint32 m = std::min({ h, blimit, (l/256+1)*256 });
+      const uint32_t m = std::min({ h, blimit, (l/256+1)*256 });
       v[len-(LE ? 2 : 1)].set(l & 0xFF, ((m-1) & 0xFF)+1, true);
       l = m;
     }

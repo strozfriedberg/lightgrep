@@ -132,7 +132,7 @@ SCOPE_TEST(twoUnicode) {
   ByteSet abs, ebs;
 
   const byte exp[] = { 'a', 0, 'a', 'b', 0, 0 };
-  for (uint32 i = 1; i < g.verticesSize(); ++i) {
+  for (uint32_t i = 1; i < g.verticesSize(); ++i) {
     abs.reset();
     ebs.reset();
 
@@ -315,7 +315,7 @@ SCOPE_TEST(testPivotTransitions) {
 
   std::vector<std::vector<NFA::VertexDescriptor>> tbl = pivotStates(0, fsm);
   SCOPE_ASSERT_EQUAL(256u, tbl.size());
-  for (uint32 i = 0; i < 256; ++i) {
+  for (uint32_t i = 0; i < 256; ++i) {
     if (i == 'a') {
       SCOPE_ASSERT_EQUAL(2u, tbl[i].size());
       SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 1) != tbl[i].end());

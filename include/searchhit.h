@@ -26,13 +26,13 @@ public:
   SearchHit() {}
 
   // note that this takes the length
-  SearchHit(uint64 start, uint64 end, uint32 lbl) {
+  SearchHit(uint64_t start, uint64_t end, uint32_t lbl) {
     Start = start;
     End = end;
     KeywordIndex = lbl;
   }
 
-  uint64 length() const {
+  uint64_t length() const {
     return End - Start;
   }
 

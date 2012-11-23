@@ -46,5 +46,5 @@ public:
   static const byte OCE[];
 
 protected:
-  virtual void byteTransform(byte buf[], uint32 blen) const;
+  virtual void byteTransform(byte buf[], uint32_t blen) const;
 };

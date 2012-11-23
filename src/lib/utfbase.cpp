@@ -18,14 +18,14 @@
 
 #include "utfbase.h"
 
-void UTFBase::writeRange(std::vector<std::vector<ByteSet>>& va, UnicodeSet::const_iterator& i, const UnicodeSet::const_iterator& iend, uint32& l, uint32& h, byte* cur, uint32 len, uint32 blimit) const {
+void UTFBase::writeRange(std::vector<std::vector<ByteSet>>& va, UnicodeSet::const_iterator& i, const UnicodeSet::const_iterator& iend, uint32_t& l, uint32_t& h, byte* cur, uint32_t len, uint32_t blimit) const {
   while (l < std::min(h, blimit)) {
     // write the encoding for the next code point
     write(l, cur);
     va.emplace_back(len);
     std::vector<ByteSet>& v = va.back();
 
-    for (uint32 j = 0; j < len; ++j) {
+    for (uint32_t j = 0; j < len; ++j) {
       v[j].set(cur[j]);
     }
 
@@ -52,7 +52,7 @@ void UTFBase::writeRange(std::vector<std::vector<ByteSet>>& va, UnicodeSet::cons
   }
 }
 
-void UTFBase::skipRange(UnicodeSet::const_iterator& i, const UnicodeSet::const_iterator& iend, uint32& l, uint32& h, uint32 ubound) const {
+void UTFBase::skipRange(UnicodeSet::const_iterator& i, const UnicodeSet::const_iterator& iend, uint32_t& l, uint32_t& h, uint32_t ubound) const {
   if (l < ubound) {
     if (i == iend) {
       return;

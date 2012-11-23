@@ -18,7 +18,7 @@
 
 #include "ascii.h"
 
-uint32 ASCII::write(int cp, byte buf[]) const {
+uint32_t ASCII::write(int cp, byte buf[]) const {
   if (cp < 0) {
     return 0;
   }

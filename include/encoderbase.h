@@ -29,7 +29,7 @@ public:
   using Encoder::write;
 
 protected:
-  EncoderBase(): EncoderBase(UnicodeSet()) {}
+  EncoderBase(): Valid() {}
 
   EncoderBase(UnicodeSet&& valid): Valid(std::forward<UnicodeSet>(valid)) {}
 

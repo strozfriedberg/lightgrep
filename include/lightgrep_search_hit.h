@@ -20,23 +20,18 @@
 #define LIGHTGREP_C_SEARCH_HIT_H_
 
 #ifdef __cplusplus
+#include <cinttypes>
 extern "C" {
+#else
+#include <inttypes.h>
 #endif
-
-#ifndef uint64
-  typedef unsigned long long uint64;
-#endif
-#ifndef uint32
-  typedef unsigned int uint32;
-#endif
-
 
 // Basic Search Hit struct
 
   typedef struct {
-    uint64  Start,        // starting offset of the hit
-            End;          // one past the hit, i.e., End - Start = Length
-    uint32  KeywordIndex; // index of keyword that hit
+    uint64_t  Start,        // starting offset of the hit
+              End;          // one past the hit, i.e., End - Start = Length
+    uint32_t  KeywordIndex; // index of keyword that hit
   } LG_SearchHit;
 
   // function you specify to handle the search hit, e.g.,

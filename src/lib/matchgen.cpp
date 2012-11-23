@@ -51,12 +51,12 @@ byte chooseByte(const ByteSet& allowed, RNG& rng) {
     }
   }
 
-  std::uniform_int_distribution<uint32> uout(0, bytes.size() - 1);
+  std::uniform_int_distribution<uint32_t> uout(0, bytes.size() - 1);
   return bytes[uout(rng)];
 }
 
 void matchgen(const NFA& g, std::set<std::string>& matches,
-              const uint32 maxMatches, const uint32 maxLoops) {
+              const uint32_t maxMatches, const uint32_t maxLoops) {
   if (maxMatches == 0) {
     return;
   }
@@ -70,7 +70,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
                 punct{{'!', '/'+1}, {':', '@'+1}, {'[', '`'+1}, {'{', '~'+1}};
   ByteSet allowed;
 
-  for (uint32 i = 0; i < maxMatches; ++i) {
+  for (uint32_t i = 0; i < maxMatches; ++i) {
     NFA::VertexDescriptor v = 0;
 
     seen.assign(g.verticesSize(), 0);
@@ -113,7 +113,7 @@ void matchgen(const NFA& g, std::set<std::string>& matches,
       }
 
       // find a successor
-      uint32 scount = 0;
+      uint32_t scount = 0;
       NFA::VertexDescriptor s = 0;
       for (const NFA::VertexDescriptor w : g.outVertices(v)) {
         if (seen[w] < maxLoops) {

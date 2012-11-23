@@ -43,5 +43,5 @@ public:
   }
 
 protected:
-  virtual void byteTransform(byte[], uint32) const {}
+  virtual void byteTransform(byte[], uint32_t) const {}
 };

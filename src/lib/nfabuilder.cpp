@@ -29,36 +29,36 @@
 #include <cctype>
 
 
-static std::ostream& operator<<(std::ostream& out, const InListT& list) {
-  out << '[';
-  for (InListT::const_iterator it(list.begin()); it != list.end(); ++it) {
-    if (it != list.begin()) {
-      out << ", ";
-    }
-    out << *it;
-  }
-  out << ']';
-  return out;
-}
+// static std::ostream& operator<<(std::ostream& out, const InListT& list) {
+//   out << '[';
+//   for (InListT::const_iterator it(list.begin()); it != list.end(); ++it) {
+//     if (it != list.begin()) {
+//       out << ", ";
+//     }
+//     out << *it;
+//   }
+//   out << ']';
+//   return out;
+// }
 
-static std::ostream& operator<<(std::ostream& out, const OutListT& list) {
-  out << '[';
-  for (OutListT::const_iterator i(list.begin()); i != list.end(); ++i) {
-    if (i != list.begin()) {
-      out << ", ";
-    }
+// static std::ostream& operator<<(std::ostream& out, const OutListT& list) {
+//   out << '[';
+//   for (OutListT::const_iterator i(list.begin()); i != list.end(); ++i) {
+//     if (i != list.begin()) {
+//       out << ", ";
+//     }
 
-    out << '(' << i->first << ',' << i->second << ')';
-  }
-  out << ']';
-  return out;
-}
+//     out << '(' << i->first << ',' << i->second << ')';
+//   }
+//   out << ']';
+//   return out;
+// }
 
-static std::ostream& operator<<(std::ostream& out, const Fragment& f) {
-  out << "in " << f.InList << ", out " << f.OutList
-      << ", skip " << f.Skippable;
-  return out;
-}
+// static std::ostream& operator<<(std::ostream& out, const Fragment& f) {
+//   out << "in " << f.InList << ", out " << f.OutList
+//       << ", skip " << f.Skippable;
+//   return out;
+// }
 
 NFABuilder::NFABuilder():
   CurLabel(0),
@@ -99,11 +99,11 @@ void NFABuilder::setEncoder(const std::shared_ptr<Encoder>& e) {
   TempBuf.reset(new byte[Enc->maxByteLength()]);
 }
 
-void NFABuilder::setSizeHint(uint64 reserveSize) {
+void NFABuilder::setSizeHint(uint64_t reserveSize) {
   ReserveSize = reserveSize;
 }
 
-void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
+void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32_t dstskip) {
   // Make an edge from each vertex in src to each vertex in dst. Edges
   // to vertices in dst before dstskip go before the insertion point in
   // src, edges to vertices in dst after dstskip go after the insertion
@@ -112,7 +112,7 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
     dstskip < dst.size() ? dst.begin() + dstskip : dst.end());
 
   for (OutListT::iterator oi(src.begin()); oi != src.end(); ++oi) {
-    uint32 pos = oi->second;
+    uint32_t pos = oi->second;
 
     InListT::const_iterator ii(dst.begin());
 
@@ -122,7 +122,7 @@ void NFABuilder::patch_mid(OutListT& src, const InListT& dst, uint32 dstskip) {
     }
 
     // save the new insertion point for dst
-    const uint32 spos = pos;
+    const uint32_t spos = pos;
 
     // make edges after dstskip, inserting after src insertion point
     for ( ; ii != dst.end(); ++ii) {
@@ -145,7 +145,7 @@ void NFABuilder::patch_post(OutListT& src, const InListT& dst) {
 }
 
 void NFABuilder::literal(const ParseNode& n) {
-  const uint32 len = Enc->write(n.Val, TempBuf.get());
+  const uint32_t len = Enc->write(n.Val, TempBuf.get());
   if (len == 0) {
     THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
       "code point U+" << std::hex << n.Val << std::dec
@@ -157,7 +157,7 @@ void NFABuilder::literal(const ParseNode& n) {
   NFA::VertexDescriptor first, prev, last;
   first = prev = last = g.addVertex();
   g[first].Trans = g.TransFac->getByte(TempBuf[0]);
-  for (uint32 i = 1; i < len; ++i) {
+  for (uint32_t i = 1; i < len; ++i) {
     last = g.addVertex();
     g.addEdge(prev, last);
     g[last].Trans = g.TransFac->getByte(TempBuf[i]);
@@ -242,12 +242,12 @@ void NFABuilder::charClass(const ParseNode& n) {
       // find a suffix of enc in this fragment
       //
 
-      int32 b = enc.size()-1;
+      int32_t b = enc.size()-1;
 
       // find a match for the last transition
       const auto oi = std::find_if(
         TempFrag.OutList.begin(), TempFrag.OutList.end(),
-        [&](const std::pair<NFA::VertexDescriptor,uint32>& p) {
+        [&](const std::pair<NFA::VertexDescriptor,uint32_t>& p) {
           return (*Fsm)[p.first].Trans->getBytes(bs) == enc[b];
         }
       );
@@ -511,7 +511,7 @@ void NFABuilder::traverse(const ParseNode* root) {
 
         if (n->Rep.Min > 0) {
           // build the mandatory part
-          for (uint32 i = 1; i < n->Rep.Min; ++i) {
+          for (uint32_t i = 1; i < n->Rep.Min; ++i) {
             synth.push_back(std::shared_ptr<ParseNode>(
               new ParseNode(ParseNode::CONCATENATION, n->Left, none))
             );
@@ -555,7 +555,7 @@ void NFABuilder::traverse(const ParseNode* root) {
           }
 
           // build the bounded optional part
-          for (uint32 i = 1; i < n->Rep.Max - n->Rep.Min; ++i) {
+          for (uint32_t i = 1; i < n->Rep.Max - n->Rep.Min; ++i) {
             synth.push_back(std::shared_ptr<ParseNode>(
               new ParseNode(ParseNode::CONCATENATION, n->Left, none))
             );

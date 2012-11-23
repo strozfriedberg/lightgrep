@@ -144,7 +144,7 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
     }
     else if (cc->substr(0, 3) == "rot") {
       enc.reset(new ROTEncoder(
-        boost::lexical_cast<uint32>(cc->substr(3)), std::move(enc)
+        boost::lexical_cast<uint32_t>(cc->substr(3)), std::move(enc)
       ));
     }
     else if (cc->substr(0, 3) == "XOR") {

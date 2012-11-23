@@ -34,37 +34,37 @@ SCOPE_TEST(testROTEncoderWriteSingleASCII) {
   SCOPE_ASSERT_EQUAL(1u, enc.maxByteLength());
 
   byte buf[1];
-  uint32 len;
+  uint32_t len;
 
   // too low
   SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
 
   // just right
-  for (uint32 i = 0; i < 'A'; ++i) {
+  for (uint32_t i = 0; i < 'A'; ++i) {
     len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
     SCOPE_ASSERT_EQUAL(i, buf[0]);
   }
 
-  for (uint32 i = 'A'; i < 'Z' + 1; ++i) {
+  for (uint32_t i = 'A'; i < 'Z' + 1; ++i) {
     len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
     SCOPE_ASSERT_EQUAL('A'+(i-'A'+13)%26, buf[0]);
   }
 
-  for (uint32 i = 'Z' + 1; i < 'a'; ++i) {
+  for (uint32_t i = 'Z' + 1; i < 'a'; ++i) {
     len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
     SCOPE_ASSERT_EQUAL(i, buf[0]);
   }
 
-  for (uint32 i = 'a'; i < 'z' + 1; ++i) {
+  for (uint32_t i = 'a'; i < 'z' + 1; ++i) {
     len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
     SCOPE_ASSERT_EQUAL('a'+(i-'a'+13)%26, buf[0]);
   }
 
-  for (uint32 i = 'z' + 1; i < 0x80; ++i) {
+  for (uint32_t i = 'z' + 1; i < 0x80; ++i) {
     len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
     SCOPE_ASSERT_EQUAL(i, buf[0]);

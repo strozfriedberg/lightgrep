@@ -502,9 +502,9 @@ bool reduce_trailing_nongreedy_then_greedy(ParseNode* n, std::stack<ParseNode*>&
     if (n->Left->Type == ParseNode::REPETITION_NG) {
       if (n->Right->Type == ParseNode::REPETITION &&
           *n->Left->Left == *n->Right->Left) {
-        const uint32 a = n->Left->Rep.Min;
-        const uint32 c = n->Right->Rep.Min;
-        const uint32 d = n->Right->Rep.Max;
+        const uint32_t a = n->Left->Rep.Min;
+        const uint32_t c = n->Right->Rep.Min;
+        const uint32_t d = n->Right->Rep.Max;
 
         n->Left->Rep.Min = a + c;
         n->Left->Rep.Max = d == UNBOUNDED ? UNBOUNDED : a + d;
@@ -518,9 +518,9 @@ bool reduce_trailing_nongreedy_then_greedy(ParseNode* n, std::stack<ParseNode*>&
         ret = true;
       }
       else if (*n->Left->Left == *n->Right) {
-        const uint32 a = n->Left->Rep.Min;
-        const uint32 c = 1;
-        const uint32 d = 1;
+        const uint32_t a = n->Left->Rep.Min;
+        const uint32_t c = 1;
+        const uint32_t d = 1;
 
         n->Left->Rep.Min = a + c;
         n->Left->Rep.Max = a + d;

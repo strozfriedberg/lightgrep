@@ -52,7 +52,7 @@ public:
 
   virtual std::string name() const;
 
-  virtual uint32 write(int cp, byte buf[]) const;
+  virtual uint32_t write(int cp, byte buf[]) const;
 
   using EncoderBase::write;
 
