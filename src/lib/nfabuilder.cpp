@@ -29,36 +29,36 @@
 #include <cctype>
 
 
-static std::ostream& operator<<(std::ostream& out, const InListT& list) {
-  out << '[';
-  for (InListT::const_iterator it(list.begin()); it != list.end(); ++it) {
-    if (it != list.begin()) {
-      out << ", ";
-    }
-    out << *it;
-  }
-  out << ']';
-  return out;
-}
+// static std::ostream& operator<<(std::ostream& out, const InListT& list) {
+//   out << '[';
+//   for (InListT::const_iterator it(list.begin()); it != list.end(); ++it) {
+//     if (it != list.begin()) {
+//       out << ", ";
+//     }
+//     out << *it;
+//   }
+//   out << ']';
+//   return out;
+// }
 
-static std::ostream& operator<<(std::ostream& out, const OutListT& list) {
-  out << '[';
-  for (OutListT::const_iterator i(list.begin()); i != list.end(); ++i) {
-    if (i != list.begin()) {
-      out << ", ";
-    }
+// static std::ostream& operator<<(std::ostream& out, const OutListT& list) {
+//   out << '[';
+//   for (OutListT::const_iterator i(list.begin()); i != list.end(); ++i) {
+//     if (i != list.begin()) {
+//       out << ", ";
+//     }
 
-    out << '(' << i->first << ',' << i->second << ')';
-  }
-  out << ']';
-  return out;
-}
+//     out << '(' << i->first << ',' << i->second << ')';
+//   }
+//   out << ']';
+//   return out;
+// }
 
-static std::ostream& operator<<(std::ostream& out, const Fragment& f) {
-  out << "in " << f.InList << ", out " << f.OutList
-      << ", skip " << f.Skippable;
-  return out;
-}
+// static std::ostream& operator<<(std::ostream& out, const Fragment& f) {
+//   out << "in " << f.InList << ", out " << f.OutList
+//       << ", skip " << f.Skippable;
+//   return out;
+// }
 
 NFABuilder::NFABuilder():
   CurLabel(0),
