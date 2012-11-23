@@ -29,7 +29,7 @@ void printByte(std::ostream& out, byte b) {
   }
   else {
     out << "\\x" << std::setfill('0') << std::setw(2)
-        << std::hex << std::uppercase << (uint32) b << std::dec;
+        << std::hex << std::uppercase << (uint32_t) b << std::dec;
   }
 }
 
@@ -106,9 +106,9 @@ std::string ByteSetState::label() const {
   // make the label string
   std::stringstream ss;
 
-  int32 beg = -1, end;
+  int32_t beg = -1, end;
 
-  for (uint32 i = 0; i < 256; ++i) {
+  for (uint32_t i = 0; i < 256; ++i) {
     if (Allowed.test(i)) {
       if (beg == -1) {
         beg = i;

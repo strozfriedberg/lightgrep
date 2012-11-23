@@ -42,8 +42,8 @@ private:
   typedef typename std::vector<EdgeData> EList;
 
 public:
-  typedef uint32 VertexDescriptor;
-  typedef uint32 EdgeDescriptor;
+  typedef uint32_t VertexDescriptor;
+  typedef uint32_t EdgeDescriptor;
 
   typedef typename VList::size_type VertexSizeType;
   typedef typename EList::size_type EdgeSizeType;

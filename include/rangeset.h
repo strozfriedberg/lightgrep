@@ -452,4 +452,4 @@ std::ostream& operator<<(std::ostream& o, const RangeSet<T,N>& rs) {
   return o;
 }
 
-typedef RangeSet<uint32,0x110000> UnicodeSet;
+typedef RangeSet<uint32_t,0x110000> UnicodeSet;

@@ -23,7 +23,7 @@
 SCOPE_TEST(basicSparseTest) {
   SparseSet s(5);
   SCOPE_ASSERT_EQUAL(0u, s.size());
-  for (uint32 i = 0; i < 5; ++i) {
+  for (uint32_t i = 0; i < 5; ++i) {
     SCOPE_ASSERT(!s.find(i));
   }
   s.insert(3);
@@ -43,7 +43,7 @@ SCOPE_TEST(sparseClear) {
   SCOPE_ASSERT_EQUAL(2u, s.size());
   s.clear();
   SCOPE_ASSERT_EQUAL(0u, s.size());
-  for (uint32 i = 0; i < 5; ++i) {
+  for (uint32_t i = 0; i < 5; ++i) {
     SCOPE_ASSERT(!s.find(i));
   }
 }

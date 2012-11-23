@@ -107,11 +107,11 @@ void ICUEncoder::init(const char* const name) {
   convUnicodeSet(const_cast<UnicodeSet&>(Valid), us.get());
 }
 
-uint32 ICUEncoder::maxByteLength() const { return max_bytes; }
+uint32_t ICUEncoder::maxByteLength() const { return max_bytes; }
 
 std::string ICUEncoder::name() const { return enc_name; }
 
-uint32 ICUEncoder::write(int cp, byte buf[]) const {
+uint32_t ICUEncoder::write(int cp, byte buf[]) const {
   char* dst = reinterpret_cast<char*>(buf);
   const char* src = reinterpret_cast<const char*>(&cp);
 

@@ -26,14 +26,14 @@ void utf16TestFixture(const UTF16Base<LE>& enc) {
   SCOPE_ASSERT_EQUAL(4u, enc.maxByteLength());
 
   byte buf[4];
-  uint32 val;
-  uint32 len;
+  uint32_t val;
+  uint32_t len;
 
   // too low
   SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
 
   // low direct representations
-  for (uint32 i = 0; i < 0xD800; ++i) {
+  for (uint32_t i = 0; i < 0xD800; ++i) {
     len = enc.write(i, buf);
     val = buf[LE ? 1 : 0];
     val <<= 8;
@@ -43,12 +43,12 @@ void utf16TestFixture(const UTF16Base<LE>& enc) {
   }
 
   // UTF-16 surrogates, invalid
-  for (uint32 i = 0xD800; i < 0xE000; ++i) {
+  for (uint32_t i = 0xD800; i < 0xE000; ++i) {
     SCOPE_ASSERT_EQUAL(0u, enc.write(i, buf));
   }
 
   // high direct representations
-  for (uint32 i = 0xE000; i < 0x10000; ++i) {
+  for (uint32_t i = 0xE000; i < 0x10000; ++i) {
     len = enc.write(i, buf);
     val = buf[LE ? 1 : 0];
     val <<= 8;
@@ -57,14 +57,14 @@ void utf16TestFixture(const UTF16Base<LE>& enc) {
     SCOPE_ASSERT_EQUAL(i, val);
   }
 
-  uint32 lead, trail;
+  uint32_t lead, trail;
 
   // surrogate pair representations
-  for (uint32 i = 0x10000; i < 0x110000; ++i) {
+  for (uint32_t i = 0x10000; i < 0x110000; ++i) {
     len = enc.write(i, buf);
 
-    lead = buf[LE ? 0 : 1] | (((uint16) buf[LE ? 1 : 0]) << 8);
-    trail = buf[LE ? 2 : 3] | (((uint16) buf[LE ? 3 : 2]) << 8);
+    lead = buf[LE ? 0 : 1] | (((uint16_t) buf[LE ? 1 : 0]) << 8);
+    trail = buf[LE ? 2 : 3] | (((uint16_t) buf[LE ? 3 : 2]) << 8);
 
     val = (lead << 10) + trail + 0x10000 - (0xD800 << 10) - 0xDC00;
 

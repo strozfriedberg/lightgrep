@@ -31,7 +31,7 @@ void getHit(void* userData, const LG_SearchHit* const hit) {
 void searchText(const char** textArray, unsigned int numStrings, LG_HCONTEXT searcher) {
   // reset the search context for re-use (not necessary on first use, but harmless)
   lg_reset_context(searcher);
-  uint64 offset = 0,
+  uint64_t offset = 0,
          len;
 
   // search text as if it were a contiguous array

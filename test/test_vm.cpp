@@ -69,7 +69,7 @@ SCOPE_TEST(executeRange) {
   ProgramPtr p(new Program(1, Instruction::makeRange('c', 't')));
   Vm         s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
-  for (uint32 j = 0; j < 256; ++j) {
+  for (uint32_t j = 0; j < 256; ++j) {
     s.reset();
     byte b = j;
 
@@ -92,7 +92,7 @@ SCOPE_TEST(executeAny) {
   ProgramPtr p(new Program(1, Instruction::makeAny()));
   Vm         s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
-  for (uint32 i = 0; i < 256; ++i) {
+  for (uint32_t i = 0; i < 256; ++i) {
     s.reset();
     byte b = i;
     SCOPE_ASSERT(s.execute(&cur, &b));
@@ -129,13 +129,13 @@ SCOPE_TEST(executeJumpTableRange) {
   std::vector<bool> checkStates;
   ProgramPtr p(new Program(3, Instruction::makeHalt()));
   (*p)[0] = Instruction::makeJumpTableRange('a', 'b');
-  *(uint32*)&((*p)[1]) = 3;
-  *(uint32*)&((*p)[2]) = 3;
+  *(uint32_t*)&((*p)[1]) = 3;
+  *(uint32_t*)&((*p)[2]) = 3;
 
   Vm s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
 
-  for (uint32 i = 0; i < 256; ++i) {
+  for (uint32_t i = 0; i < 256; ++i) {
     b = i;
     if ('a' == i) {
       SCOPE_ASSERT(s.execute(&cur, &b));
@@ -175,7 +175,7 @@ SCOPE_TEST(executeBitVector) {
   Vm s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
   byte b;
-  for (uint32 i = 0; i < 256; ++i) {
+  for (uint32_t i = 0; i < 256; ++i) {
     b = i;
     if (i == 'A' || i == 'a' || i == 'B' || i == 'b') {
       SCOPE_ASSERT(s.execute(&cur, &b));

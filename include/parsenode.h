@@ -24,7 +24,7 @@
 
 #include <ostream>
 
-static const uint32 UNBOUNDED = std::numeric_limits<uint32>::max();
+static const uint32_t UNBOUNDED = std::numeric_limits<uint32_t>::max();
 
 struct ParseNode {
   enum NodeType {
@@ -51,7 +51,7 @@ struct ParseNode {
       union {
         ParseNode* Right;
         struct {
-          uint32 Min, Max;
+          uint32_t Min, Max;
         } Rep;
       };
     } Inner;
@@ -72,7 +72,7 @@ struct ParseNode {
       bool Additive;
     } Breakout;
     struct {
-      uint32 Min, Max;
+      uint32_t Min, Max;
     } Rep;
   };
 
@@ -80,7 +80,7 @@ struct ParseNode {
 
   ParseNode(): Type(LITERAL), Left(nullptr), Val(0) {}
 
-  ParseNode(NodeType t, uint32 v):
+  ParseNode(NodeType t, uint32_t v):
     Type(t), Left(nullptr), Val(v), CodePoints()
   {
     if (Type == CHAR_CLASS) {
@@ -95,14 +95,14 @@ struct ParseNode {
   ParseNode(NodeType t, ParseNode* l, ParseNode* r):
     Type(t), Left(l), Right(r) {}
 
-  ParseNode(NodeType t, ParseNode* l, uint32 min, uint32 max):
+  ParseNode(NodeType t, ParseNode* l, uint32_t min, uint32_t max):
     Type(t), Left(l)
   {
     Rep.Min = min;
     Rep.Max = max;
   }
 
-  ParseNode(NodeType t, uint32 first, uint32 last):
+  ParseNode(NodeType t, uint32_t first, uint32_t last):
     Type(t), Left(nullptr), CodePoints(first, last + 1)
   {
     Breakout.Bytes.reset();
@@ -212,4 +212,4 @@ struct ParseNode {
 std::ostream& operator<<(std::ostream& out, const ParseNode& n);
 
 void printTreeDetails(std::ostream& out, const ParseNode& n);
-void repetition(std::ostream& out, uint32 min, uint32 max);
+void repetition(std::ostream& out, uint32_t min, uint32_t max);

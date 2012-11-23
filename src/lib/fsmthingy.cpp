@@ -23,13 +23,13 @@
 #include <string>
 #include <vector>
 
-FSMThingy::FSMThingy(uint32 sizeHint):
+FSMThingy::FSMThingy(uint32_t sizeHint):
   Fsm(new NFA(1, sizeHint))
 {
   Fsm->TransFac = Nfab.getTransFac();
 }
 
-void FSMThingy::addPattern(const ParseTree& tree, const char* chain, uint32 label) {
+void FSMThingy::addPattern(const ParseTree& tree, const char* chain, uint32_t label) {
   // prepare the NFA builder
   Nfab.reset();
   Nfab.setCurLabel(label);

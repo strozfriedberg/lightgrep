@@ -24,8 +24,8 @@
 #include "instructions.h"
 
 struct Thread {
-  static const uint32 NOLABEL;
-  static const uint64 NONE;
+  static const uint32_t NOLABEL;
+  static const uint64_t NONE;
 
   Thread():
     PC(0),
@@ -36,15 +36,15 @@ struct Thread {
     Start(0),
     End(NONE) {}
 
-  Thread(const Instruction* pc, uint32 label, uint64 start, uint64 end):
+  Thread(const Instruction* pc, uint32_t label, uint64_t start, uint64_t end):
     PC(pc),
     Label(label),
     Start(start),
     End(end) {}
 
   #ifdef LBT_TRACE_ENABLED
-  Thread(const Instruction* pc, uint32 label,
-         uint64 id, uint64 start, uint64 end):
+  Thread(const Instruction* pc, uint32_t label,
+         uint64_t id, uint64_t start, uint64_t end):
     PC(pc),
     Label(label),
     Id(id),
@@ -84,8 +84,8 @@ struct Thread {
 
 /*
   #ifdef LBT_TRACE_ENABLED
-  void init(const Instruction* pc, uint32 label,
-            uint64 id, uint64 start, uint64 end) {
+  void init(const Instruction* pc, uint32_t label,
+            uint64_t id, uint64_t start, uint64_t end) {
     PC = pc;
     Id = id;
     Label = label;
@@ -94,30 +94,30 @@ struct Thread {
   }
   #endif
 
-  void init(const Instruction* pc, uint32 label, uint64 start, uint64 end) {
+  void init(const Instruction* pc, uint32_t label, uint64_t start, uint64_t end) {
     PC = pc;
     Label = label;
     Start = start;
     End = end;
   }
 
-  void init(const Instruction* base, uint64 start) {
+  void init(const Instruction* base, uint64_t start) {
     PC = base;
     Start = start;
   }
 */
 
-  void jump(const Instruction* base, uint32 offset) {
+  void jump(const Instruction* base, uint32_t offset) {
     PC = base;
     PC += offset;
   }
 
-  void fork(const Thread& parent, const Instruction* base, uint32 offset) {
+  void fork(const Thread& parent, const Instruction* base, uint32_t offset) {
     *this = parent;
     jump(base, offset);
   }
 
-  void advance(uint32 size) {
+  void advance(uint32_t size) {
     PC += size;
   }
 
@@ -126,11 +126,11 @@ struct Thread {
   }
 
   const Instruction* PC;
-  uint32             Label;
+  uint32_t             Label;
   #ifdef LBT_TRACE_ENABLED
-  uint64             Id;
+  uint64_t             Id;
   #endif
-  uint64             Start,
+  uint64_t             Start,
                      End;
 
   #ifdef LBT_TRACE_ENABLED

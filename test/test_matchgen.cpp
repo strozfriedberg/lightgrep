@@ -29,7 +29,7 @@
 #include <iterator>
 #include <set>
 
-void fixture(const char* pattern, const char** expected, uint32 max_matches, uint32 max_loops) {
+void fixture(const char* pattern, const char** expected, uint32_t max_matches, uint32_t max_loops) {
   NFABuilder nfab;
   ParseTree tree;
   SCOPE_ASSERT(parse(pattern, false, false, tree));

@@ -55,15 +55,15 @@ SCOPE_TEST(byteSetRangeSetTest) {
   ByteSet a, b;
 
   // set true ranges on false bits
-  for (uint32 i = 0; i <= 256; ++i) {
-    for (uint32 j = i; j <= 256; ++j) {
+  for (uint32_t i = 0; i <= 256; ++i) {
+    for (uint32_t j = i; j <= 256; ++j) {
       // do a range set
       a.reset();
       a.set(i, j, true);
 
       // do a standard, one-at-a-time set
       b.reset();
-      for (uint32 k = i; k < j; ++k) {
+      for (uint32_t k = i; k < j; ++k) {
         b.set(k, true);
       }
 
@@ -72,15 +72,15 @@ SCOPE_TEST(byteSetRangeSetTest) {
   }
 
   // set false ranges on true bits
-  for (uint32 i = 0; i <= 256; ++i) {
-    for (uint32 j = i; j <= 256; ++j) {
+  for (uint32_t i = 0; i <= 256; ++i) {
+    for (uint32_t j = i; j <= 256; ++j) {
       // do a range set
       a.set();
       a.set(i, j, false);
 
       // do a standard, one-at-a-time set
       b.set();
-      for (uint32 k = i; k < j; ++k) {
+      for (uint32_t k = i; k < j; ++k) {
         b.set(k, false);
       }
 

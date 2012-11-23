@@ -25,9 +25,9 @@
 #include <vector>
 
 typedef std::vector<NFA::VertexDescriptor> InListT;
-typedef std::vector<std::pair<NFA::VertexDescriptor, uint32>> OutListT;
+typedef std::vector<std::pair<NFA::VertexDescriptor, uint32_t>> OutListT;
 
-static const uint32 NOSKIP = std::numeric_limits<uint32>::max();
+static const uint32_t NOSKIP = std::numeric_limits<uint32_t>::max();
 
 struct Fragment {
   Fragment(): Skippable(NOSKIP) {}
@@ -44,7 +44,7 @@ struct Fragment {
   OutListT OutList;
   ParseNode N;
 
-  uint32 Skippable;
+  uint32_t Skippable;
 
   void initFull(NFA::VertexDescriptor in, const ParseNode& n) {
     N = n;

@@ -135,7 +135,7 @@ void lg_destroy_fsm(LG_HFSM hFsm) {
 }
 
 int add_pattern(LG_HFSM hFsm, LG_HPATTERNMAP hMap, LG_HPATTERN hPattern, const char* encoding) {
-  const uint32 label = hMap->Patterns.size();
+  const uint32_t label = hMap->Patterns.size();
   hMap->addPattern(hPattern->Expression.c_str(), encoding);
   hFsm->Impl->addPattern(hPattern->Tree, encoding, label);
   return (int) label;
@@ -221,9 +221,9 @@ void lg_destroy_program(LG_HPROGRAM hProg) {
 
 LG_HCONTEXT create_context(LG_HPROGRAM hProg,
   #ifdef LBT_TRACE_ENABLED
-                    uint64 beginTrace, uint64 endTrace
+                    uint64_t beginTrace, uint64_t endTrace
   #else
-                    uint64, uint64
+                    uint64_t, uint64_t
   #endif
   )
 {
@@ -244,9 +244,9 @@ LG_HCONTEXT create_context(LG_HPROGRAM hProg,
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
                               const LG_ContextOptions* options)
 {
-  const uint64
-    begin = options ? options->TraceBegin : std::numeric_limits<uint64>::max(),
-    end = options ? options->TraceEnd : std::numeric_limits<uint64>::max();
+  const uint64_t
+    begin = options ? options->TraceBegin : std::numeric_limits<uint64_t>::max(),
+    end = options ? options->TraceEnd : std::numeric_limits<uint64_t>::max();
 
   return trap_with_retval(
     [hProg,begin,end](){ return create_context(hProg, begin, end); },
@@ -265,7 +265,7 @@ void lg_reset_context(LG_HCONTEXT hCtx) {
 void lg_starts_with(LG_HCONTEXT hCtx,
                    const char* bufStart,
                    const char* bufEnd,
-                   uint64 startOffset,
+                   uint64_t startOffset,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
@@ -275,7 +275,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
 unsigned int lg_search(LG_HCONTEXT hCtx,
                        const char* bufStart,
                        const char* bufEnd,
-                       const uint64 startOffset,
+                       const uint64_t startOffset,
                        void* userData,
                        LG_HITCALLBACK_FN callbackFn)
 {

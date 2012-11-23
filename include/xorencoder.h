@@ -28,11 +28,11 @@
 class XOREncoder: public ByteEncoder {
 public:
   XOREncoder(byte key, std::unique_ptr<Encoder> enc):
-    ByteEncoder("XOR" + boost::lexical_cast<std::string>((uint32) key), std::move(enc)),
+    ByteEncoder("XOR" + boost::lexical_cast<std::string>((uint32_t) key), std::move(enc)),
     Key(key) {}
 
   XOREncoder(byte key, const Encoder& enc):
-    ByteEncoder("XOR" + boost::lexical_cast<std::string>((uint32) key), enc),
+    ByteEncoder("XOR" + boost::lexical_cast<std::string>((uint32_t) key), enc),
     Key(key) {}
 
   XOREncoder(const XOREncoder&) = default;
@@ -48,7 +48,7 @@ public:
   }
 
 protected:
-  virtual void byteTransform(byte buf[], uint32 blen) const {
+  virtual void byteTransform(byte buf[], uint32_t blen) const {
     const byte key = Key;
     std::transform(buf, buf+blen, buf, [key](byte b){ return b ^ key; });
   }

@@ -143,7 +143,7 @@ SCOPE_FIXTURE_CTOR(dotPlusSearch, STest, STest(".+")) {
 }
 
 SCOPE_FIXTURE_CTOR(pastFourGBSearch, STest, STest("a")) {
-  const uint64 fourgb = 0x0000000100000000;
+  const uint64_t fourgb = 0x0000000100000000;
   const byte* text = (const byte*)"ba";
   fixture.search(text, text + 2, fourgb);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());

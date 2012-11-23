@@ -42,7 +42,7 @@ public:
     return new IdentityCharEncoder(*this);
   }
 
-  virtual uint32 maxByteLength() const { return BaseEnc->maxByteLength(); }
+  virtual uint32_t maxByteLength() const { return BaseEnc->maxByteLength(); }
 
   virtual const UnicodeSet& validCodePoints() const {
     return BaseEnc->validCodePoints();

@@ -44,11 +44,11 @@ void EncoderBase::collectRanges(const UnicodeSet& uset, std::vector<std::vector<
   std::unique_ptr<byte[]> cur(new byte[maxByteLength()]);
   std::unique_ptr<byte[]> prev(new byte[maxByteLength()]);
 
-  uint32 clen, plen = 0;
+  uint32_t clen, plen = 0;
 
   for (const UnicodeSet::range& r : uset) {
-    const uint32 l = r.first, h = r.second;
-    for (uint32 cp = l; cp < h; ++cp) {
+    const uint32_t l = r.first, h = r.second;
+    for (uint32_t cp = l; cp < h; ++cp) {
       clen = write(cp, cur.get());
       if (clen == 0) {
         // cp is invalid, skip it
@@ -63,7 +63,7 @@ void EncoderBase::collectRanges(const UnicodeSet& uset, std::vector<std::vector<
       else {
         // otherwise add a new encoding to the list
         va.emplace_back(clen);
-        for (uint32 i = 0; i < clen; ++i) {
+        for (uint32_t i = 0; i < clen; ++i) {
           va.back()[i].set(cur[i]);
         }
 
@@ -82,7 +82,7 @@ void EncoderBase::collectRanges(const UnicodeSet& uset, std::vector<std::vector<
 }
 
 struct EncodingRangeComparator {
-  EncodingRangeComparator(uint32 l, uint32 s): len(l), skip(s) {}
+  EncodingRangeComparator(uint32_t l, uint32_t s): len(l), skip(s) {}
 
   bool operator()(const std::vector<ByteSet>& a,
                   const std::vector<ByteSet>& b) const
@@ -97,7 +97,7 @@ struct EncodingRangeComparator {
       memcmp(a.data()+skip+1, b.data()+skip+1, (len-skip-1)*sizeof(ByteSet)) < 0);
   }
 
-  const uint32 len, skip;
+  const uint32_t len, skip;
 };
 
 static bool equal_except_at(std::vector<ByteSet>::size_type n,
@@ -117,8 +117,8 @@ void EncoderBase::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>
   collectRanges(uset, va);
 
   // collapse encodings
-  const uint32 mlen = maxByteLength();
-  for (uint32 n = 0; n < mlen; ++n) {
+  const uint32_t mlen = maxByteLength();
+  for (uint32_t n = 0; n < mlen; ++n) {
     for (auto vi = va.begin(); vi != va.end(); ) {
       // find next size boundary
       auto sb = std::adjacent_find(vi, va.end(),
@@ -130,8 +130,8 @@ void EncoderBase::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>
         ++sb;
       }
 
-      const uint32 elen = vi->size();
-      const uint32 skip = elen-n-1;
+      const uint32_t elen = vi->size();
+      const uint32_t skip = elen-n-1;
 
       // length-1 encodings collapse totally, no need to sort them
       if (elen > 1) {

@@ -25,16 +25,16 @@ void CodeGenVisitor::discover_vertex(NFA::VertexDescriptor v, const NFA& graph) 
   Helper->discover(v, graph);
 }
 
-uint32 CodeGenVisitor::calcJumpTableSize(NFA::VertexDescriptor v, const NFA& graph, uint32 outDegree) {
+uint32_t CodeGenVisitor::calcJumpTableSize(NFA::VertexDescriptor v, const NFA& graph, uint32_t outDegree) {
   if (outDegree > 3) {
     TransitionTbl tbl(pivotStates(v, graph));
     if (maxOutbound(tbl) < outDegree) {
-      uint32 sizeIndirectTables = 0,
+      uint32_t sizeIndirectTables = 0,
              num,
              first = 256,
              last  = 0;
 
-      for (uint32 i = 0; i < 256; ++i) {
+      for (uint32_t i = 0; i < 256; ++i) {
         num = tbl[i].size();
         if (num > 1) {
           sizeIndirectTables += num;
@@ -56,11 +56,11 @@ uint32 CodeGenVisitor::calcJumpTableSize(NFA::VertexDescriptor v, const NFA& gra
 void CodeGenVisitor::finish_vertex(NFA::VertexDescriptor v, const NFA& graph) {
   // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
 
-  uint32 label = 0,
+  uint32_t label = 0,
          match = 0,
          eval  = (v == 0 ? 0 : graph[v].Trans->numInstructions());
 
-  const uint32 outDegree = graph.outDegree(v);
+  const uint32_t outDegree = graph.outDegree(v);
 
   if (graph[v].Label != NONE) {
     label = 1;
@@ -72,7 +72,7 @@ void CodeGenVisitor::finish_vertex(NFA::VertexDescriptor v, const NFA& graph) {
     match = 2 + (outDegree > 0);
   }
 
-  uint32 outOps = 0;
+  uint32_t outOps = 0;
 
   if (outDegree) {
     outOps = calcJumpTableSize(v, graph, outDegree);
@@ -89,7 +89,7 @@ void CodeGenVisitor::finish_vertex(NFA::VertexDescriptor v, const NFA& graph) {
     }
   }
 
-  const uint32 totalSize = outOps + label + match +
+  const uint32_t totalSize = outOps + label + match +
                            (Helper->Snippets[v].CheckIndex == NONE ? 0: 1);
 
   Helper->addSnippet(v, eval, totalSize);

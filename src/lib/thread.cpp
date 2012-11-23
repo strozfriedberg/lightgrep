@@ -20,6 +20,6 @@
 
 #include <limits>
 
-const uint32 Thread::NOLABEL = std::numeric_limits<uint32>::max();
-const uint64 Thread::NONE = std::numeric_limits<uint64>::max();
+const uint32_t Thread::NOLABEL = std::numeric_limits<uint32_t>::max();
+const uint64_t Thread::NONE = std::numeric_limits<uint64_t>::max();
 

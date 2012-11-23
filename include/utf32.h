@@ -26,11 +26,11 @@ class UTF32Base: public UTFBase {
 public:
   virtual UTF32Base<LE>* clone() const { return new UTF32Base<LE>(); }
 
-  virtual uint32 maxByteLength() const { return 4; }
+  virtual uint32_t maxByteLength() const { return 4; }
 
   virtual std::string name() const { return LE ? "UTF-32LE" : "UTF-32BE"; }
 
-  virtual uint32 write(int cp, byte buf[]) const {
+  virtual uint32_t write(int cp, byte buf[]) const {
     if (cp < 0) {
       // too small
       return 0;
@@ -69,7 +69,7 @@ protected:
       return;
     }
 
-    uint32 l = i->first, h = i->second;
+    uint32_t l = i->first, h = i->second;
     byte cur[4];
 
     // handle low four-byte encodings
@@ -82,9 +82,9 @@ protected:
     writeRange(va, i, iend, l, h, cur, 4, 0x110000);
   }
 
-  virtual void writeRangeBlock(std::vector<ByteSet>& v, uint32& l, uint32 h, uint32, uint32 blimit) const {
+  virtual void writeRangeBlock(std::vector<ByteSet>& v, uint32_t& l, uint32_t h, uint32_t, uint32_t blimit) const {
     if (l < std::min(h, blimit) && l % 256 > 0) {
-      const uint32 m = std::min({ h, blimit, (l/256+1)*256 });
+      const uint32_t m = std::min({ h, blimit, (l/256+1)*256 });
       v[LE ? 0 : 3].set(l & 0xFF, ((m-1) & 0xFF)+1, true);
       l = m;
     }

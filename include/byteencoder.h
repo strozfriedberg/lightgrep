@@ -54,18 +54,18 @@ public:
 
   ByteEncoder& operator=(ByteEncoder&&) = default;
 
-  virtual uint32 maxByteLength() const;
+  virtual uint32_t maxByteLength() const;
 
   virtual std::string name() const;
 
   virtual const UnicodeSet& validCodePoints() const;
 
-  virtual uint32 write(int cp, byte buf[]) const;
+  virtual uint32_t write(int cp, byte buf[]) const;
 
   using EncoderBase::write;
 
 protected:
-  virtual void byteTransform(byte buf[], uint32 blen) const = 0;
+  virtual void byteTransform(byte buf[], uint32_t blen) const = 0;
 
   std::string Name;
   std::unique_ptr<Encoder> BaseEnc;

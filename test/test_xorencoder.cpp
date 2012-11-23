@@ -34,13 +34,13 @@ SCOPE_TEST(testXOREncoderWriteSingleASCII) {
   SCOPE_ASSERT_EQUAL(1u, enc.maxByteLength());
 
   byte buf[1];
-  uint32 len;
+  uint32_t len;
 
   // too low
   SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
 
   // just right
-  for (uint32 i = 0; i < 0x80; ++i) {
+  for (uint32_t i = 0; i < 0x80; ++i) {
     len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
     SCOPE_ASSERT_EQUAL(i ^ 0x55, buf[0]);

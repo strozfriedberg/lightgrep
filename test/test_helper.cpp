@@ -38,7 +38,7 @@ void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, 
 }
 
 bool edgeExists(const NFA& g, const NFA::VertexDescriptor source, const NFA::VertexDescriptor target) {
-  for (uint32 ov = 0; ov < g.outDegree(source); ++ov) {
+  for (uint32_t ov = 0; ov < g.outDegree(source); ++ov) {
     if (g.outVertex(source, ov) == target) {
       return true;
     }
@@ -47,10 +47,10 @@ bool edgeExists(const NFA& g, const NFA::VertexDescriptor source, const NFA::Ver
 }
 
 void ASSERT_SUPERGRAPH(const NFA& a, const NFA& b) {
-  for (uint32 av = 0; av < a.verticesSize(); ++av) {
+  for (uint32_t av = 0; av < a.verticesSize(); ++av) {
     SCOPE_ASSERT(av < b.verticesSize());
 
-    for (uint32 a_ov = 0; a_ov < a.outDegree(av); ++a_ov) {
+    for (uint32_t a_ov = 0; a_ov < a.outDegree(av); ++a_ov) {
       SCOPE_ASSERT(a.outVertex(av, a_ov) < b.verticesSize());
       SCOPE_ASSERT(edgeExists(b, av, a.outVertex(av, a_ov)));
     }
@@ -65,7 +65,7 @@ void ASSERT_EQUAL_GRAPHS(const NFA& a, const NFA& b) {
 
 void ASSERT_EQUAL_LABELS(const NFA& a, const NFA& b) {
   SCOPE_ASSERT_EQUAL(a.verticesSize(), b.verticesSize());
-  for (uint32 v = 0; v < a.verticesSize(); ++v) {
+  for (uint32_t v = 0; v < a.verticesSize(); ++v) {
     SCOPE_ASSERT((!a[v].Trans && !b[v].Trans) || (a[v].Trans && b[v].Trans));
     if (a[v].Trans && b[v].Trans) {
       SCOPE_ASSERT_EQUAL(a[v].Label, b[v].Label);
@@ -75,7 +75,7 @@ void ASSERT_EQUAL_LABELS(const NFA& a, const NFA& b) {
 
 void ASSERT_EQUAL_MATCHES(const NFA& a, const NFA& b) {
   SCOPE_ASSERT_EQUAL(a.verticesSize(), b.verticesSize());
-  for (uint32 v = 0; v < a.verticesSize(); ++v) {
+  for (uint32_t v = 0; v < a.verticesSize(); ++v) {
     SCOPE_ASSERT((!a[v].Trans && !b[v].Trans) || (a[v].Trans && b[v].Trans));
     if (a[v].Trans && b[v].Trans) {
       SCOPE_ASSERT_EQUAL(a[v].IsMatch, b[v].IsMatch);
@@ -90,7 +90,7 @@ NFAPtr createGraph(const std::vector<Pattern>& pats, bool determinize) {
   NFAOptimizer comp;
   NFAPtr g(new NFA(1));
 
-  for (uint32 i = 0; i < pats.size(); ++i) {
+  for (uint32_t i = 0; i < pats.size(); ++i) {
     parse(pats[i], tree);
 
     nfab.reset();

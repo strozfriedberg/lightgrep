@@ -125,7 +125,7 @@ protected:
 void longTest() {
   executor ex(boost::thread::hardware_concurrency());
 
-  uint32 len, patcount;
+  uint32_t len, patcount;
   while (std::cin.peek() != -1) {
     TestCase tcase;
 
@@ -133,7 +133,7 @@ void longTest() {
     std::cin.read(reinterpret_cast<char*>(&patcount), sizeof(patcount));
     tcase.patterns.reserve(patcount);
 
-    for (uint32 i = 0; i < patcount; ++i) {
+    for (uint32_t i = 0; i < patcount; ++i) {
       // read pattern
       std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
       std::string pattern(len, '\0');

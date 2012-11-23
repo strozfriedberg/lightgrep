@@ -51,7 +51,7 @@ public:
   // ensures that the vector will never resize on us and invalidate our
   // ParseNode pointers.
   //
-  void init(uint32 len);
+  void init(uint32_t len);
 
   bool operator==(const ParseTree& other) const {
     return !Root ? !other.Root : (other.Root ? *Root == *other.Root : false);

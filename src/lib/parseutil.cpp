@@ -96,7 +96,7 @@ bool caseDesensitize(UnicodeSet& us) {
   convUnicodeSet(icu_us.get(), us);
   uset_closeOver(icu_us.get(), USET_CASE_INSENSITIVE);
 
-  if (uset_size(icu_us.get()) == (int32) us.count()) {
+  if (uset_size(icu_us.get()) == (int32_t) us.count()) {
     // the given set was already closed under case-insensitivity
     return false;
   }

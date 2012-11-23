@@ -37,7 +37,7 @@ SCOPE_TEST(makeJump) {
   SCOPE_ASSERT_EQUAL(JUMP_OP, i[0].OpCode);
   SCOPE_ASSERT_EQUAL(2u, i[0].wordSize());
   SCOPE_ASSERT_EQUAL(0u, i[0].Op.Offset);
-  SCOPE_ASSERT_EQUAL(16777216u, *reinterpret_cast<uint32*>(i+1));
+  SCOPE_ASSERT_EQUAL(16777216u, *reinterpret_cast<uint32_t*>(i+1));
   SCOPE_ASSERT_EQUAL("Jump 0x01000000/16777216", i[0].toString());
 }
 
@@ -90,7 +90,7 @@ SCOPE_TEST(makeFork) {
   SCOPE_ASSERT_EQUAL(FORK_OP, i[0].OpCode);
   SCOPE_ASSERT_EQUAL(2u, i[0].wordSize());
   SCOPE_ASSERT_EQUAL(0u, i[0].Op.Offset);
-  SCOPE_ASSERT_EQUAL(16777216u, *reinterpret_cast<uint32*>(i+1));
+  SCOPE_ASSERT_EQUAL(16777216u, *reinterpret_cast<uint32_t*>(i+1));
   SCOPE_ASSERT_EQUAL("Fork 0x01000000/16777216", i[0].toString());
 }
 

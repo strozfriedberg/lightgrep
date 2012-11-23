@@ -20,7 +20,7 @@
 
 #include "byteencoder.h"
 
-uint32 ByteEncoder::maxByteLength() const {
+uint32_t ByteEncoder::maxByteLength() const {
   return BaseEnc->maxByteLength();
 }
 
@@ -34,8 +34,8 @@ const UnicodeSet& ByteEncoder::validCodePoints() const {
   return BaseEnc->validCodePoints();
 }
 
-uint32 ByteEncoder::write(int cp, byte buf[]) const {
-  const uint32 ret = BaseEnc->write(cp, buf);
+uint32_t ByteEncoder::write(int cp, byte buf[]) const {
+  const uint32_t ret = BaseEnc->write(cp, buf);
   byteTransform(buf, ret);
   return ret;
 }

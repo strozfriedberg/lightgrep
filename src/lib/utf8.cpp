@@ -18,7 +18,7 @@
 
 #include "utf8.h"
 
-uint32 UTF8::write(int cp, byte buf[]) const {
+uint32_t UTF8::write(int cp, byte buf[]) const {
   if (cp < 0) {
     // too small
     return 0;
@@ -73,7 +73,7 @@ void UTF8::collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet
     return;
   }
 
-  uint32 l = i->first, h = i->second;
+  uint32_t l = i->first, h = i->second;
   byte cur[4];
 
   // handle one-byte encodings
@@ -95,15 +95,15 @@ void UTF8::collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet
   writeRange(va, i, iend, l, h, cur, 4, 0x110000);
 }
 
-void UTF8::writeRangeBlock(std::vector<ByteSet>& v, uint32& l, uint32 h, uint32 len, uint32 blimit) const {
+void UTF8::writeRangeBlock(std::vector<ByteSet>& v, uint32_t& l, uint32_t h, uint32_t len, uint32_t blimit) const {
   if (len == 1) {
     // the one-byte encodings form a single contiguous block
-    const uint32 m = std::min(h, blimit);
+    const uint32_t m = std::min(h, blimit);
     v[len-1].set(l, m, true);
     l = m;
   }
   else if (l < std::min(h, blimit) && l % 64 > 0) {
-    const uint32 m = std::min({ h, blimit, (l/64+1)*64 });
+    const uint32_t m = std::min({ h, blimit, (l/64+1)*64 });
     v[len-1].set((l & 0x3F) | 0x80, (((m-1) & 0x3F) | 0x80)+1, true);
     l = m;
   }

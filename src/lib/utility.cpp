@@ -26,10 +26,10 @@
 #include <boost/graph/graphviz.hpp>
 
 // FIXME: This is sort of fucked now that we have encoding chains
-uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
-  uint32 ret = 0;
+uint32_t estimateGraphSize(const std::vector<Pattern>& keywords) {
+  uint32_t ret = 0;
   for (const auto& p : keywords) {
-    uint32 pSize = p.Expression.size();
+    uint32_t pSize = p.Expression.size();
     const std::string& enc = p.Encoding;
 // FIXME: Shouldn't we use something from the Encoders for this?
     if (enc == "UTF-16LE" || enc == "UTF-16BE") {
@@ -44,7 +44,7 @@ uint32 estimateGraphSize(const std::vector<Pattern>& keywords) {
     }
     ret += pSize;
   }
-  uint32 fudgeFactor = ret;
+  uint32_t fudgeFactor = ret;
   fudgeFactor >>= 2;
   ret += fudgeFactor;
   return ret;
@@ -94,7 +94,7 @@ std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescripto
 
   for (const NFA::VertexDescriptor ov : graph.outVertices(source)) {
     graph[ov].Trans->getBytes(permitted);
-    for (uint32 i = 0; i < 256; ++i) {
+    for (uint32_t i = 0; i < 256; ++i) {
       if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
         ret[i].push_back(ov);
       }
@@ -103,8 +103,8 @@ std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescripto
   return ret;
 }
 
-uint32 maxOutbound(const std::vector<std::vector<NFA::VertexDescriptor>>& tranTable) {
-  uint32 ret = 0;
+uint32_t maxOutbound(const std::vector<std::vector<NFA::VertexDescriptor>>& tranTable) {
+  uint32_t ret = 0;
   for (const std::vector<NFA::VertexDescriptor>& v : tranTable) {
     ret = v.size() > ret ? v.size() : ret;
   }
@@ -133,7 +133,7 @@ std::string escape(char c, const std::string& text) {
   return repl;
 }
 
-void writeEdge(std::ostream& out, NFA::VertexDescriptor v, NFA::VertexDescriptor u, uint32 priority, const NFA& graph) {
+void writeEdge(std::ostream& out, NFA::VertexDescriptor v, NFA::VertexDescriptor u, uint32_t priority, const NFA& graph) {
   const std::string esclabel = escape('"', escape('\\', graph[u].label()));
 
   out << "  " << v << " -> " << u << " ["
@@ -149,7 +149,7 @@ void writeGraphviz(std::ostream& out, const NFA& graph) {
   }
 
   for (const NFA::VertexDescriptor head : graph.vertices()) {
-    for (uint32 j = 0; j < graph.outDegree(head); ++j) {
+    for (uint32_t j = 0; j < graph.outDegree(head); ++j) {
       writeEdge(out, head, graph.outVertex(head, j), j, graph);
     }
   }

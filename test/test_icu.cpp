@@ -34,8 +34,8 @@ SCOPE_TEST(testICUStandards) {
 
   std::set<std::string> actual;
   UErrorCode err = U_ZERO_ERROR;
-  const uint32 slen = ucnv_countStandards();
-  for (uint32 i = 0; i < slen; ++i) {
+  const uint32_t slen = ucnv_countStandards();
+  for (uint32_t i = 0; i < slen; ++i) {
     actual.insert(ucnv_getStandard(i, &err));
     SCOPE_ASSERT(!U_FAILURE(err));
   }

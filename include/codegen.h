@@ -26,11 +26,11 @@
 
 #include <vector>
 
-static const uint32 NONE = std::numeric_limits<uint32>::max();
-static const uint32 NOLABEL = std::numeric_limits<uint32>::max();
+static const uint32_t NONE = std::numeric_limits<uint32_t>::max();
+static const uint32_t NOLABEL = std::numeric_limits<uint32_t>::max();
 
 struct StateLayoutInfo {
-  uint32 Start,
+  uint32_t Start,
          NumEval,
          NumOther,
          CheckIndex;
@@ -38,11 +38,11 @@ struct StateLayoutInfo {
 
   StateLayoutInfo(): Start(NONE), NumEval(NONE), NumOther(NONE), CheckIndex(NONE), Op(UNINITIALIZED) {}
 
-  StateLayoutInfo(uint32 s, uint32 e, uint32 o, uint32 chk = NONE): Start(s), NumEval(e), NumOther(o), CheckIndex(chk), Op(UNINITIALIZED) {}
+  StateLayoutInfo(uint32_t s, uint32_t e, uint32_t o, uint32_t chk = NONE): Start(s), NumEval(e), NumOther(o), CheckIndex(chk), Op(UNINITIALIZED) {}
 
-  uint32 numTotal() const { return NumEval + NumOther; }
+  uint32_t numTotal() const { return NumEval + NumOther; }
 
-  uint32 end() const { return Start + numTotal(); }
+  uint32_t end() const { return Start + numTotal(); }
 
   bool operator==(const StateLayoutInfo& x) const {
     return Start == x.Start &&
@@ -53,7 +53,7 @@ struct StateLayoutInfo {
 };
 
 struct CodeGenHelper {
-  CodeGenHelper(uint32 numStates): DiscoverRanks(numStates, NONE),
+  CodeGenHelper(uint32_t numStates): DiscoverRanks(numStates, NONE),
     Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
 
   void discover(NFA::VertexDescriptor v, const NFA& graph) {
@@ -63,7 +63,7 @@ struct CodeGenHelper {
     }
   }
 
-  void addSnippet(uint32 state, uint32 numEval, uint32 numOther) {
+  void addSnippet(uint32_t state, uint32_t numEval, uint32_t numOther) {
     StateLayoutInfo& info(Snippets[state]);
     info.Start = Guard;
     info.NumEval = numEval;
@@ -71,9 +71,9 @@ struct CodeGenHelper {
     Guard += info.numTotal();
   }
 
-  std::vector<uint32> DiscoverRanks;
+  std::vector<uint32_t> DiscoverRanks;
   std::vector<StateLayoutInfo> Snippets;
-  uint32 Guard,
+  uint32_t Guard,
          NumDiscovered,
          NumChecked;
 };
@@ -86,7 +86,7 @@ public:
 
   void discover_vertex(NFA::VertexDescriptor v, const NFA& graph);
 
-  uint32 calcJumpTableSize(NFA::VertexDescriptor v, const NFA& graph, uint32 outDegree);
+  uint32_t calcJumpTableSize(NFA::VertexDescriptor v, const NFA& graph, uint32_t outDegree);
 
   void finish_vertex(NFA::VertexDescriptor v, const NFA& graph);
 

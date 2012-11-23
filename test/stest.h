@@ -42,9 +42,9 @@ public:
 
   STest(const std::vector<Pattern>& patterns);
 
-  void search(const byte* begin, const byte* end, uint64 offset);
+  void search(const byte* begin, const byte* end, uint64_t offset);
 
-  void startsWith(const byte* begin, const byte* end, uint64 offset);
+  void startsWith(const byte* begin, const byte* end, uint64_t offset);
 
   bool parsesButNotValid() const;
 

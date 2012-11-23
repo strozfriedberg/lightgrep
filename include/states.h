@@ -137,7 +137,7 @@ public:
   ByteSetState(const ByteSet& allowed): Allowed(allowed) {}
 
   ByteSetState(const UnicodeSet& allowed) {
-    for (uint32 i = 0; i < 256; ++i) {
+    for (uint32_t i = 0; i < 256; ++i) {
       Allowed[i] = allowed[i];
     }
   }

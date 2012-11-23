@@ -20,7 +20,7 @@
 
 #include <limits>
 
-const uint32 Glushkov::NOLABEL = std::numeric_limits<uint32>::max();
+const uint32_t Glushkov::NOLABEL = std::numeric_limits<uint32_t>::max();
 
 std::string Glushkov::label() const {
   std::stringstream buf;

@@ -54,7 +54,7 @@ void close_paren(std::ostream& out, const ParseNode* n) {
   }
 }
 
-std::string byteToLiteralString(uint32 i) {
+std::string byteToLiteralString(uint32_t i) {
   // all the characters fit to print unescaped
   if (i == '\\') {
     return "\\\\";
@@ -83,7 +83,7 @@ std::string byteToLiteralString(uint32 i) {
   }
 }
 
-std::string byteToCharacterString(uint32 i) {
+std::string byteToCharacterString(uint32_t i) {
   // all the characters fit to print unescaped
   if (i == '\\') {
     return "\\\\";
@@ -127,17 +127,17 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
 
   // check relative size of 0 and 1 ranges
   int sizediff = -1; // negated has a 1-char disadvantage due to the '^'
-  uint32 left = 0;
+  uint32_t left = 0;
 
   bool hasBoth = false;
 
-  for (uint32 i = 1; i < 257; ++i) {
+  for (uint32_t i = 1; i < 257; ++i) {
     if (i < 256 && bs[i] ^ bs[0]) {
       hasBoth = true;
     }
 
     if (i == 256 || bs[i-1] ^ bs[i]) {
-      const int len = std::min(i - left, (uint32) 3);
+      const int len = std::min(i - left, (uint32_t) 3);
       sizediff += bs[i-1] ? len : -len;
       left = i;
     }
@@ -163,7 +163,7 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
 
   left = 256;
 
-  for (uint32 i = 0; i < 257; ++i) {
+  for (uint32_t i = 0; i < 257; ++i) {
     if (i < 256 && (invert ^ bs[i])) {
       if (left > 0xFF) {
         // start a new range
@@ -172,7 +172,7 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
     }
     else if (left <= 0xFF) {
       // write a completed range
-      uint32 right = i-1;
+      uint32_t right = i-1;
 
       // shrink ranges so that the hyphen is neither endpoint
       if (left == '-') {
@@ -208,7 +208,7 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
 
       if (right - left + 1 < 4) {
         // enumerate small ranges
-        for (uint32 j = left; j <= right; ++j) {
+        for (uint32_t j = left; j <= right; ++j) {
           if (j == ']') {
             if (first) {
               first = false;
@@ -332,7 +332,7 @@ void unparse(std::ostream& out, const ParseNode* n) {
   case ParseNode::CHAR_CLASS:
     {
       ByteSet bs;
-      for (uint32 i = 0; i < 256; ++i) {
+      for (uint32_t i = 0; i < 256; ++i) {
         bs.set(i, n->CodePoints.test(i));
       }
 

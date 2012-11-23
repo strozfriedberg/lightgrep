@@ -23,7 +23,7 @@
 #include <sstream>
 
 int Program::bufSize() const {
-  return sizeof(ByteSet) + sizeof(uint32) + (size() * sizeof(value_type));
+  return sizeof(ByteSet) + sizeof(uint32_t) + (size() * sizeof(value_type));
 }
 
 bool Program::operator==(const Program& rhs) const {
@@ -45,7 +45,7 @@ std::string Program::marshall() const {
 ProgramPtr Program::unmarshall(const std::string& s) {
   ProgramPtr p(new Program);
   std::stringstream buf(s);
-  buf.read((char*)&p->NumChecked, sizeof(uint32));
+  buf.read((char*)&p->NumChecked, sizeof(uint32_t));
   buf.read((char*)&p->First, sizeof(ByteSet));
   Instruction i;
   while (buf.read((char*)&i, sizeof(Instruction))) {
@@ -54,26 +54,26 @@ ProgramPtr Program::unmarshall(const std::string& s) {
   return p;
 }
 
-std::ostream& printIndex(std::ostream& out, uint32 i) {
+std::ostream& printIndex(std::ostream& out, uint32_t i) {
   out << std::setfill('0') << std::hex << std::setw(8) << i << ' ';
   return out;
 }
 
 std::ostream& operator<<(std::ostream& out, const Program& prog) {
-  for (uint32 i = 0; i < prog.size(); ++i) {
+  for (uint32_t i = 0; i < prog.size(); ++i) {
     printIndex(out, i) << prog[i] << '\n';
 
     if (prog[i].OpCode == BIT_VECTOR_OP) {
-      for (uint32 j = 1; j < 9; ++j) {
+      for (uint32_t j = 1; j < 9; ++j) {
         out << std::hex << std::setfill('0') << std::setw(8)
-            << i + j << '\t' << *(uint32*)(&prog[i]+j) << '\n';
+            << i + j << '\t' << *(uint32_t*)(&prog[i]+j) << '\n';
       }
 
       out << std::dec;
       i += 8;
     }
     else if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
-      uint32 start = 0,
+      uint32_t start = 0,
              end = 255;
 
       if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
@@ -81,14 +81,14 @@ std::ostream& operator<<(std::ostream& out, const Program& prog) {
         end = prog[i].Op.Range.Last;
       }
 
-      for (uint32 j = start; j <= end; ++j) {
+      for (uint32_t j = start; j <= end; ++j) {
         ++i;
-        printIndex(out, i) << std::setfill(' ') << std::setw(3) << j << ": " << reinterpret_cast<const uint32&>(prog[i]) << '\n';
+        printIndex(out, i) << std::setfill(' ') << std::setw(3) << j << ": " << reinterpret_cast<const uint32_t&>(prog[i]) << '\n';
       }
     }
     else if (prog[i].OpCode == JUMP_OP || prog[i].OpCode == FORK_OP) {
       ++i;
-      printIndex(out, i) << reinterpret_cast<const uint32&>(prog[i]) << '\n';
+      printIndex(out, i) << reinterpret_cast<const uint32_t&>(prog[i]) << '\n';
     }
   }
 

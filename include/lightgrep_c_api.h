@@ -19,13 +19,6 @@
 #ifndef LIGHTGREP_C_API_H_
 #define LIGHTGREP_C_API_H_
 
-// for size_t
-#ifdef __cplusplus
-#include <cstring>
-#else
-#include <string.h>
-#endif
-
 #include "lightgrep_search_hit.h"
 
 #ifdef __cplusplus
@@ -61,7 +54,7 @@ extern "C" {
 
 // TODO: nix these, don't expose trace in the lib
   typedef struct {
-    uint64 TraceBegin,    // starting offset of trace output
+    uint64_t TraceBegin,    // starting offset of trace output
            TraceEnd;      // ending offset of trace output
   } LG_ContextOptions;
 
@@ -148,7 +141,7 @@ extern "C" {
   void lg_starts_with(LG_HCONTEXT hCtx,
                       const char* bufStart,
                       const char* bufEnd,
-                      uint64 startOffset,
+                      uint64_t startOffset,
                       void* userData,
                       LG_HITCALLBACK_FN callbackFn);
 
@@ -170,7 +163,7 @@ extern "C" {
   unsigned int lg_search(LG_HCONTEXT hCtx,
                          const char* bufStart,
                          const char* bufEnd,   // pointer past the end of the buffer, i.e. bufEnd - bufStart == length of buffer
-                         const uint64 startOffset,   // Increment this with each call, by the length of the previous buffer. i.e., startOffset += bufEnd - bufStart;
+                         const uint64_t startOffset,   // Increment this with each call, by the length of the previous buffer. i.e., startOffset += bufEnd - bufStart;
                          void* userData,       // pass in what you like, it will be passed through to the callback function
                          LG_HITCALLBACK_FN callbackFn);
 

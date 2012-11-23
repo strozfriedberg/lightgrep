@@ -26,11 +26,11 @@ public:
 
   virtual ASCII* clone() const { return new ASCII(); }
 
-  virtual uint32 maxByteLength() const { return 1; }
+  virtual uint32_t maxByteLength() const { return 1; }
 
   virtual std::string name() const { return "ASCII"; }
 
-  virtual uint32 write(int cp, byte buf[]) const;
+  virtual uint32_t write(int cp, byte buf[]) const;
 
   virtual void write(const UnicodeSet& user, std::vector<std::vector<ByteSet>>& v) const;
 };

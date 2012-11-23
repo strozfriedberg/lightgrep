@@ -32,7 +32,7 @@ struct Properties {
 };
 
 struct Glushkov {
-  static const uint32 NOLABEL;
+  static const uint32_t NOLABEL;
 
   Glushkov(): Trans(0), IsMatch(false), Label(NOLABEL) {}
 
@@ -40,7 +40,7 @@ struct Glushkov {
 
   Transition* Trans;
   bool IsMatch;
-  uint32 Label;
+  uint32_t Label;
 };
 
 struct Empty {};

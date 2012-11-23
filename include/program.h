@@ -34,7 +34,7 @@ public:
 
   Program(): std::vector<Instruction>(), NumChecked(0), First() {}
 
-  uint32  NumChecked;
+  uint32_t  NumChecked;
 
   ByteSet First;
 

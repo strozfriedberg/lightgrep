@@ -100,7 +100,7 @@ SCOPE_TEST(testMerge) {
 
   comp.mergeIntoFSM(fsm, key);
 
-  const uint32 NOLABEL = std::numeric_limits<uint32>::max();
+  const uint32_t NOLABEL = std::numeric_limits<uint32_t>::max();
 
   SCOPE_ASSERT_EQUAL(8u, fsm.verticesSize());
 
@@ -276,7 +276,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   key[3][3].IsMatch = true;
 
   // merge
-  for (uint32 i = 1; i < 4; ++i) {
+  for (uint32_t i = 1; i < 4; ++i) {
     comp.mergeIntoFSM(key[0], key[i]);
   }
 

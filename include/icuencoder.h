@@ -45,11 +45,11 @@ public:
 
   virtual ICUEncoder* clone() const { return new ICUEncoder(*this); }
 
-  virtual uint32 maxByteLength() const;
+  virtual uint32_t maxByteLength() const;
 
   virtual std::string name() const;
 
-  virtual uint32 write(int cp, byte buf[]) const;
+  virtual uint32_t write(int cp, byte buf[]) const;
 
   using EncoderBase::write;
 
@@ -61,7 +61,7 @@ private:
   std::unique_ptr<UConverter,void(*)(UConverter*)> dst_conv{nullptr, nullptr};
   std::unique_ptr<UChar[]> pivot;
 
-  uint32 max_bytes;
+  uint32_t max_bytes;
 };
 
 class CachingICUEncoder: public CachingEncoder<ICUEncoder> {

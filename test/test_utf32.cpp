@@ -26,38 +26,38 @@ void utf32TestFixture(const UTF32Base<LE>& enc) {
   SCOPE_ASSERT_EQUAL(4u, enc.maxByteLength());
 
   byte buf[4];
-  uint32 val;
-  uint32 len;
+  uint32_t val;
+  uint32_t len;
 
   // too low
   SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
 
   // low, valid
-  for (uint32 i = 0; i < 0xD800; ++i) {
+  for (uint32_t i = 0; i < 0xD800; ++i) {
     len = enc.write(i, buf);
 
     val =            buf[LE ? 0 : 3]         |
-          (((uint32) buf[LE ? 1 : 2]) <<  8) |
-          (((uint32) buf[LE ? 2 : 1]) << 16) |
-          (((uint32) buf[LE ? 3 : 0]) << 24);
+          (((uint32_t) buf[LE ? 1 : 2]) <<  8) |
+          (((uint32_t) buf[LE ? 2 : 1]) << 16) |
+          (((uint32_t) buf[LE ? 3 : 0]) << 24);
 
     SCOPE_ASSERT_EQUAL(4u, len);
     SCOPE_ASSERT_EQUAL(i, val);
   }
 
   // UTF-16 surrogates, invalid
-  for (uint32 i = 0xD800; i < 0xE000; ++i) {
+  for (uint32_t i = 0xD800; i < 0xE000; ++i) {
     SCOPE_ASSERT_EQUAL(0u, enc.write(i, buf));
   }
 
   // high, valid
-  for (uint32 i = 0xE000; i < 0x110000; ++i) {
+  for (uint32_t i = 0xE000; i < 0x110000; ++i) {
     len = enc.write(i, buf);
 
     val =            buf[LE ? 0 : 3]         |
-          (((uint32) buf[LE ? 1 : 2]) <<  8) |
-          (((uint32) buf[LE ? 2 : 1]) << 16) |
-          (((uint32) buf[LE ? 3 : 0]) << 24);
+          (((uint32_t) buf[LE ? 1 : 2]) <<  8) |
+          (((uint32_t) buf[LE ? 2 : 1]) << 16) |
+          (((uint32_t) buf[LE ? 3 : 0]) << 24);
 
     SCOPE_ASSERT_EQUAL(4u, len);
     SCOPE_ASSERT_EQUAL(i, val);

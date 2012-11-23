@@ -29,21 +29,21 @@ SCOPE_TEST(testUTF8) {
   SCOPE_ASSERT_EQUAL(4u, enc.maxByteLength());
 
   byte buf[4];
-  uint32 len;
-  uint32 val;
+  uint32_t len;
+  uint32_t val;
 
   // too low
   SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
 
   // one byte representations
-  for (uint32 i = 0; i < 0x80; ++i) {
+  for (uint32_t i = 0; i < 0x80; ++i) {
     len = enc.write(i, buf);
     SCOPE_ASSERT_EQUAL(1u, len);
     SCOPE_ASSERT_EQUAL(i, buf[0]);
   }
 
   // two-byte representations
-  for (uint32 i = 0x80; i < 0x800; ++i) {
+  for (uint32_t i = 0x80; i < 0x800; ++i) {
     len = enc.write(i, buf);
     val = ((buf[0] & 0x1F) << 6) | (buf[1] & 0x3F);
     SCOPE_ASSERT_EQUAL(2u, len);
@@ -51,7 +51,7 @@ SCOPE_TEST(testUTF8) {
   }
 
   // low three-byte representations
-  for (uint32 i = 0x800; i < 0xD800; ++i) {
+  for (uint32_t i = 0x800; i < 0xD800; ++i) {
     len = enc.write(i, buf);
     val = ((buf[0] & 0x0F) << 12) | ((buf[1] & 0x3F) << 6) | (buf[2] & 0x3F);
     SCOPE_ASSERT_EQUAL(3u, len);
@@ -59,12 +59,12 @@ SCOPE_TEST(testUTF8) {
   }
 
   // UTF-16 surrogates, invalid
-  for (uint32 i = 0xD800; i < 0xE000; ++i) {
+  for (uint32_t i = 0xD800; i < 0xE000; ++i) {
     SCOPE_ASSERT_EQUAL(0u, enc.write(i, buf));
   }
 
   // high three-byte representations
-  for (uint32 i = 0xE000; i < 0x10000; ++i) {
+  for (uint32_t i = 0xE000; i < 0x10000; ++i) {
     len = enc.write(i, buf);
     val = ((buf[0] & 0x0F) << 12) | ((buf[1] & 0x3F) << 6) | (buf[2] & 0x3F);
     SCOPE_ASSERT_EQUAL(3u, len);
@@ -72,7 +72,7 @@ SCOPE_TEST(testUTF8) {
   }
 
   // four-byte representations
-  for (uint32 i = 0x10000; i < 0x110000; ++i) {
+  for (uint32_t i = 0x10000; i < 0x110000; ++i) {
     len = enc.write(i, buf);
     val = ((buf[0] & 0x07) << 18) | ((buf[1] & 0x3F) << 12) |
           ((buf[2] & 0x3F) <<  6) |  (buf[3] & 0x3F);

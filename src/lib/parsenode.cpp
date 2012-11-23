@@ -18,7 +18,7 @@
 
 #include "parsenode.h"
 
-void repetition(std::ostream& out, uint32 min, uint32 max) {
+void repetition(std::ostream& out, uint32_t min, uint32_t max) {
   if (min == 0) {
     if (max == 1) {
       // ? is {0,1}

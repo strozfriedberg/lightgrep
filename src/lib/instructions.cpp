@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& out, const HexCode<byte>& hex) {
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const HexCode<uint32>& hex) {
+std::ostream& operator<<(std::ostream& out, const HexCode<uint32_t>& hex) {
   out << std::hex << std::setfill('0') << std::setw(8) << hex.MyI;
   return out;
 }
@@ -58,16 +58,16 @@ std::string Instruction::toString() const {
     buf << "BitVector";
     break;
   case JUMP_OP:
-    buf << "Jump 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
+    buf << "Jump 0x" << HexCode<uint32_t>(*reinterpret_cast<const uint32_t*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32_t*>(this+1));
     break;
   case JUMP_TABLE_RANGE_OP:
     buf << "JmpTblRange 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
     break;
   case FORK_OP:
-    buf << "Fork 0x" << HexCode<uint32>(*reinterpret_cast<const uint32*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32*>(this+1));
+    buf << "Fork 0x" << HexCode<uint32_t>(*reinterpret_cast<const uint32_t*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32_t*>(this+1));
     break;
   case CHECK_HALT_OP:
-    buf << "CheckHalt 0x" << HexCode<uint32>(Op.Offset) << '/' << std::dec << Op.Offset;
+    buf << "CheckHalt 0x" << HexCode<uint32_t>(Op.Offset) << '/' << std::dec << Op.Offset;
     break;
   case LABEL_OP:
     buf << "Label " << Op.Offset;
@@ -130,13 +130,13 @@ Instruction Instruction::makeBitVector() {
   return i;
 }
 
-Instruction Instruction::makeJump(Instruction* ptr, uint32 offset) {
+Instruction Instruction::makeJump(Instruction* ptr, uint32_t offset) {
   // "24 bits ought to be enough for anybody." --Jon Stewart
   // I once implemented a 24-bit VM in Java for a class; that sucked ass -- JLS
   Instruction i;
   i.OpCode = JUMP_OP;
   i.Op.Offset = 0;
-  *reinterpret_cast<uint32*>(ptr+1) = offset;
+  *reinterpret_cast<uint32_t*>(ptr+1) = offset;
   return i;
 }
 
@@ -146,7 +146,7 @@ Instruction Instruction::makeJumpTableRange(byte first, byte last) {
   return i;
 }
 
-Instruction Instruction::makeRaw24(uint32 val) {
+Instruction Instruction::makeRaw24(uint32_t val) {
   if (val >= (1 << 24)) {
     THROW_WITH_OUTPUT(
       std::overflow_error,
@@ -159,7 +159,7 @@ Instruction Instruction::makeRaw24(uint32 val) {
   return i;
 }
 
-Instruction Instruction::makeLabel(uint32 label) {
+Instruction Instruction::makeLabel(uint32_t label) {
   Instruction i = makeRaw24(label);
   i.OpCode = LABEL_OP;
   return i;
@@ -171,19 +171,19 @@ Instruction Instruction::makeMatch() {
   return i;
 }
 
-Instruction Instruction::makeFork(Instruction* ptr, uint32 offset) {
+Instruction Instruction::makeFork(Instruction* ptr, uint32_t offset) {
   Instruction i = makeJump(ptr, offset);
   i.OpCode = FORK_OP;
   return i;
 }
 
-Instruction Instruction::makeCheckHalt(uint32 checkIndex) {
+Instruction Instruction::makeCheckHalt(uint32_t checkIndex) {
   Instruction i = makeRaw24(checkIndex);
   i.OpCode = CHECK_HALT_OP;
   return i;
 }
 
-Instruction Instruction::makeAdjustStart(uint32 offset) {
+Instruction Instruction::makeAdjustStart(uint32_t offset) {
   Instruction i = makeRaw24(offset);
   i.OpCode = ADJUST_START_OP;
   return i;
@@ -203,9 +203,9 @@ Instruction Instruction::makeFinish() {
   return i;
 }
 
-Instruction Instruction::makeRaw32(uint32 val) {
+Instruction Instruction::makeRaw32(uint32_t val) {
   Instruction i;
-  reinterpret_cast<uint32&>(i) = val;
+  reinterpret_cast<uint32_t&>(i) = val;
   return i;
 }
 
@@ -218,17 +218,17 @@ std::istream& operator>>(std::istream& in, Instruction& instr) {
   in >> opname;
 
   if (opname == "Byte") {
-    uint32 b;
+    uint32_t b;
     in >> std::hex >> b;
     instr = Instruction::makeByte(b);
   }
   else if (opname == "Either") {
-    uint32 a, b;
+    uint32_t a, b;
     in >> std::hex >> a >> b;
     instr = Instruction::makeEither(a, b);
   }
   else if (opname == "Range") {
-    uint32 first, last;
+    uint32_t first, last;
     in >> std::hex >> first >> last;
     instr = Instruction::makeRange(first, last);
   }
@@ -243,7 +243,7 @@ std::istream& operator>>(std::istream& in, Instruction& instr) {
     instr.Op.Offset = 0;
   }
   else if (opname == "JumpTblRange") {
-    uint32 first, last;
+    uint32_t first, last;
     in >> std::hex >> first >> last;
     instr = Instruction::makeRange(first, last);
     instr.OpCode = JUMP_TABLE_RANGE_OP;
@@ -253,12 +253,12 @@ std::istream& operator>>(std::istream& in, Instruction& instr) {
     instr.Op.Offset = 0;
   }
   else if (opname == "CheckHalt") {
-    uint32 label;
+    uint32_t label;
     in >> label;
     instr = Instruction::makeCheckHalt(label);
   }
   else if (opname == "Label") {
-    uint32 label;
+    uint32_t label;
     in >> label;
     instr = Instruction::makeLabel(label);
   }
@@ -272,7 +272,7 @@ std::istream& operator>>(std::istream& in, Instruction& instr) {
     instr = Instruction::makeFinish();
   }
   else {
-    uint32 val;
+    uint32_t val;
     in >> val;
     instr = Instruction::makeRaw32(val);
   }
