@@ -27,39 +27,13 @@
 
 class ICUEncoder: public EncoderBase {
 public:
-  ICUEncoder(const char* const name):
-    EncoderBase(),
-    enc_name(name),
-    src_conv{nullptr, nullptr},
-    dst_conv{nullptr, nullptr}
-  {
-    init(name);
-  }
+  ICUEncoder(const char* const name);
 
-  ICUEncoder(const std::string& name):
-    EncoderBase(),
-    enc_name(name),
-    src_conv{nullptr, nullptr},
-    dst_conv{nullptr, nullptr}
-  {
-    init(name.c_str());
-  }
+  ICUEncoder(const std::string& name);
 
-  ICUEncoder(const ICUEncoder& other): 
-    EncoderBase(other),
-    enc_name(other.enc_name),
-    src_conv{nullptr, nullptr},
-    dst_conv{nullptr, nullptr}
-  {
-    init(other.enc_name.c_str());
-  }
+  ICUEncoder(const ICUEncoder& other);
 
-  ICUEncoder& operator=(const ICUEncoder& other) {
-    EncoderBase::operator=(other);
-    enc_name = other.enc_name;
-    init(other.enc_name.c_str());
-    return *this;
-  }
+  ICUEncoder& operator=(const ICUEncoder& other);
 
   ICUEncoder(ICUEncoder&&) = default;
 

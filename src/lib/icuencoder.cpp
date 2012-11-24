@@ -31,6 +31,40 @@ bool is_little_endian() {
   return reinterpret_cast<const byte*>(&twobytes)[0];
 }
 
+ICUEncoder::ICUEncoder(const char* const name):
+  EncoderBase(),
+  enc_name(name),
+  src_conv{nullptr, nullptr},
+  dst_conv{nullptr, nullptr}
+{
+  init(name);
+}
+
+ICUEncoder::ICUEncoder(const std::string& name):
+  EncoderBase(),
+  enc_name(name),
+  src_conv{nullptr, nullptr},
+  dst_conv{nullptr, nullptr}
+{
+  init(name.c_str());
+}
+
+ICUEncoder::ICUEncoder(const ICUEncoder& other): 
+  EncoderBase(other),
+  enc_name(other.enc_name),
+  src_conv{nullptr, nullptr},
+  dst_conv{nullptr, nullptr}
+{
+  init(other.enc_name.c_str());
+}
+
+ICUEncoder& ICUEncoder::operator=(const ICUEncoder& other) {
+  EncoderBase::operator=(other);
+  enc_name = other.enc_name;
+  init(other.enc_name.c_str());
+  return *this;
+}
+
 void ICUEncoder::init(const char* const name) {
   UErrorCode err = U_ZERO_ERROR;
 
