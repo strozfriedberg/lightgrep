@@ -32,7 +32,7 @@ typedef struct {
 
 int lg_get_char_char_transformation_id(const char* const name);
 
-int lg_get_char_byte_transformation_id(const char* const name);
+int lg_get_encoding_id(const char* const name);
 
 int lg_get_byte_byte_transformation_id(const char* const name);
 

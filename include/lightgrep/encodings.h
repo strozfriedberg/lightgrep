@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __LIGHTGREP_C_CHAR_BYTE_TRANS_H_
-#define __LIGHTGREP_C_CHAR_BYTE_TRANS_H_
+#ifndef LIGHTGREP_C_ENCODINGS_H_
+#define LIGHTGREP_C_ENCODINGS_H_
 
 #include "lightgrep_c_util.h"
 
@@ -25,7 +25,7 @@
 extern "C" {
 #endif
 
-static const LG_TRANS LG_CHAR_BYTE_TRANSFORMATIONS[] = {
+static const LG_TRANS LG_ENCODINGS[] = {
   { "037",                                           112 },
   { "1006",                                          105 },
   { "1025",                                          130 },
@@ -1059,7 +1059,7 @@ static const LG_TRANS LG_CHAR_BYTE_TRANSFORMATIONS[] = {
   { "x-windows-950",                                  31 }
 };
 
-static const char* const LG_CANONICAL_CHAR_BYTE_TRANSFORMATIONS[] = {
+static const char* const LG_CANONICAL_ENCODINGS[] = {
   "UTF-8",                        //   0
   "UTF-16BE",                     //   1
   "UTF-16LE",                     //   2
@@ -1246,1399 +1246,1399 @@ static const char* const LG_CANONICAL_CHAR_BYTE_TRANSFORMATIONS[] = {
 };
 
 // UTF-8
-static const int LG_CHAR_BYTE_UTF_8 = 0; // IANA* MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_CP1208 = 0;
-static const int LG_CHAR_BYTE_IBM_1208 = 0; // IBM*
-static const int LG_CHAR_BYTE_IBM_1209 = 0; // IBM
-static const int LG_CHAR_BYTE_IBM_13496 = 0; // IBM
-static const int LG_CHAR_BYTE_IBM_13497 = 0; // IBM
-static const int LG_CHAR_BYTE_IBM_17592 = 0; // IBM
-static const int LG_CHAR_BYTE_IBM_17593 = 0; // IBM
-static const int LG_CHAR_BYTE_IBM_5304 = 0; // IBM
-static const int LG_CHAR_BYTE_IBM_5305 = 0; // IBM
-static const int LG_CHAR_BYTE_UNICODE_1_1_UTF_8 = 0;
-static const int LG_CHAR_BYTE_UNICODE_2_0_UTF_8 = 0;
-static const int LG_CHAR_BYTE_WINDOWS_65001 = 0; // WINDOWS*
-static const int LG_CHAR_BYTE_X_UTF_8J = 0;
+static const int LG_ENCODING_UTF_8 = 0; // IANA* MIME* WINDOWS JAVA*
+static const int LG_ENCODING_CP1208 = 0;
+static const int LG_ENCODING_IBM_1208 = 0; // IBM*
+static const int LG_ENCODING_IBM_1209 = 0; // IBM
+static const int LG_ENCODING_IBM_13496 = 0; // IBM
+static const int LG_ENCODING_IBM_13497 = 0; // IBM
+static const int LG_ENCODING_IBM_17592 = 0; // IBM
+static const int LG_ENCODING_IBM_17593 = 0; // IBM
+static const int LG_ENCODING_IBM_5304 = 0; // IBM
+static const int LG_ENCODING_IBM_5305 = 0; // IBM
+static const int LG_ENCODING_UNICODE_1_1_UTF_8 = 0;
+static const int LG_ENCODING_UNICODE_2_0_UTF_8 = 0;
+static const int LG_ENCODING_WINDOWS_65001 = 0; // WINDOWS*
+static const int LG_ENCODING_X_UTF_8J = 0;
 
 // UTF-16BE
-static const int LG_CHAR_BYTE_UTF_16BE = 1; // IANA* MIME* JAVA*
-static const int LG_CHAR_BYTE_UTF16_BIGENDIAN = 1;
-static const int LG_CHAR_BYTE_UNICODEBIGUNMARKED = 1; // JAVA
-static const int LG_CHAR_BYTE_CP1200 = 1;
-static const int LG_CHAR_BYTE_CP1201 = 1;
-static const int LG_CHAR_BYTE_IBM_1200 = 1; // IBM*
-static const int LG_CHAR_BYTE_IBM_1201 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_13488 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_13489 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_17584 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_17585 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_21680 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_21681 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_25776 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_25777 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_29872 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_29873 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_61955 = 1; // IBM
-static const int LG_CHAR_BYTE_IBM_61956 = 1; // IBM
-static const int LG_CHAR_BYTE_WINDOWS_1201 = 1; // WINDOWS*
-static const int LG_CHAR_BYTE_X_UTF_16BE = 1; // JAVA
+static const int LG_ENCODING_UTF_16BE = 1; // IANA* MIME* JAVA*
+static const int LG_ENCODING_UTF16_BIGENDIAN = 1;
+static const int LG_ENCODING_UNICODEBIGUNMARKED = 1; // JAVA
+static const int LG_ENCODING_CP1200 = 1;
+static const int LG_ENCODING_CP1201 = 1;
+static const int LG_ENCODING_IBM_1200 = 1; // IBM*
+static const int LG_ENCODING_IBM_1201 = 1; // IBM
+static const int LG_ENCODING_IBM_13488 = 1; // IBM
+static const int LG_ENCODING_IBM_13489 = 1; // IBM
+static const int LG_ENCODING_IBM_17584 = 1; // IBM
+static const int LG_ENCODING_IBM_17585 = 1; // IBM
+static const int LG_ENCODING_IBM_21680 = 1; // IBM
+static const int LG_ENCODING_IBM_21681 = 1; // IBM
+static const int LG_ENCODING_IBM_25776 = 1; // IBM
+static const int LG_ENCODING_IBM_25777 = 1; // IBM
+static const int LG_ENCODING_IBM_29872 = 1; // IBM
+static const int LG_ENCODING_IBM_29873 = 1; // IBM
+static const int LG_ENCODING_IBM_61955 = 1; // IBM
+static const int LG_ENCODING_IBM_61956 = 1; // IBM
+static const int LG_ENCODING_WINDOWS_1201 = 1; // WINDOWS*
+static const int LG_ENCODING_X_UTF_16BE = 1; // JAVA
 
 // UTF-16LE
-static const int LG_CHAR_BYTE_UTF_16LE = 2; // IANA* MIME* JAVA*
-static const int LG_CHAR_BYTE_UTF16_LITTLEENDIAN = 2;
-static const int LG_CHAR_BYTE_UNICODELITTLEUNMARKED = 2; // JAVA
-static const int LG_CHAR_BYTE_IBM_1202 = 2; // IBM*
-static const int LG_CHAR_BYTE_IBM_1203 = 2; // IBM
-static const int LG_CHAR_BYTE_IBM_13490 = 2; // IBM
-static const int LG_CHAR_BYTE_IBM_13491 = 2; // IBM
-static const int LG_CHAR_BYTE_IBM_17586 = 2; // IBM
-static const int LG_CHAR_BYTE_IBM_17587 = 2; // IBM
-static const int LG_CHAR_BYTE_IBM_21682 = 2; // IBM
-static const int LG_CHAR_BYTE_IBM_21683 = 2; // IBM
-static const int LG_CHAR_BYTE_IBM_25778 = 2; // IBM
-static const int LG_CHAR_BYTE_IBM_25779 = 2; // IBM
-static const int LG_CHAR_BYTE_IBM_29874 = 2; // IBM
-static const int LG_CHAR_BYTE_IBM_29875 = 2; // IBM
-static const int LG_CHAR_BYTE_WINDOWS_1200 = 2; // WINDOWS*
-static const int LG_CHAR_BYTE_X_UTF_16LE = 2; // JAVA
+static const int LG_ENCODING_UTF_16LE = 2; // IANA* MIME* JAVA*
+static const int LG_ENCODING_UTF16_LITTLEENDIAN = 2;
+static const int LG_ENCODING_UNICODELITTLEUNMARKED = 2; // JAVA
+static const int LG_ENCODING_IBM_1202 = 2; // IBM*
+static const int LG_ENCODING_IBM_1203 = 2; // IBM
+static const int LG_ENCODING_IBM_13490 = 2; // IBM
+static const int LG_ENCODING_IBM_13491 = 2; // IBM
+static const int LG_ENCODING_IBM_17586 = 2; // IBM
+static const int LG_ENCODING_IBM_17587 = 2; // IBM
+static const int LG_ENCODING_IBM_21682 = 2; // IBM
+static const int LG_ENCODING_IBM_21683 = 2; // IBM
+static const int LG_ENCODING_IBM_25778 = 2; // IBM
+static const int LG_ENCODING_IBM_25779 = 2; // IBM
+static const int LG_ENCODING_IBM_29874 = 2; // IBM
+static const int LG_ENCODING_IBM_29875 = 2; // IBM
+static const int LG_ENCODING_WINDOWS_1200 = 2; // WINDOWS*
+static const int LG_ENCODING_X_UTF_16LE = 2; // JAVA
 
 // UTF-32BE
-static const int LG_CHAR_BYTE_UTF_32BE = 3; // IANA*
-static const int LG_CHAR_BYTE_UTF32_BIGENDIAN = 3;
-static const int LG_CHAR_BYTE_IBM_1232 = 3; // IBM*
-static const int LG_CHAR_BYTE_IBM_1233 = 3; // IBM
-static const int LG_CHAR_BYTE_IBM_9424 = 3; // IBM
+static const int LG_ENCODING_UTF_32BE = 3; // IANA*
+static const int LG_ENCODING_UTF32_BIGENDIAN = 3;
+static const int LG_ENCODING_IBM_1232 = 3; // IBM*
+static const int LG_ENCODING_IBM_1233 = 3; // IBM
+static const int LG_ENCODING_IBM_9424 = 3; // IBM
 
 // UTF-32LE
-static const int LG_CHAR_BYTE_UTF_32LE = 4; // IANA*
-static const int LG_CHAR_BYTE_UTF32_LITTLEENDIAN = 4;
-static const int LG_CHAR_BYTE_IBM_1234 = 4; // IBM*
-static const int LG_CHAR_BYTE_IBM_1235 = 4; // IBM
+static const int LG_ENCODING_UTF_32LE = 4; // IANA*
+static const int LG_ENCODING_UTF32_LITTLEENDIAN = 4;
+static const int LG_ENCODING_IBM_1234 = 4; // IBM*
+static const int LG_ENCODING_IBM_1235 = 4; // IBM
 
 // CESU-8
-static const int LG_CHAR_BYTE_CESU_8 = 5; // IANA*
-static const int LG_CHAR_BYTE_IBM_9400 = 5; // IBM*
+static const int LG_ENCODING_CESU_8 = 5; // IANA*
+static const int LG_ENCODING_IBM_9400 = 5; // IBM*
 
 // ISO-8859-1
-static const int LG_CHAR_BYTE_819 = 6; // JAVA
-static const int LG_CHAR_BYTE_8859_1 = 6; // JAVA
-static const int LG_CHAR_BYTE_IBM819 = 6; // IANA
-static const int LG_CHAR_BYTE_ISO_8859_1 = 6; // IANA MIME* JAVA*
-static const int LG_CHAR_BYTE_ISO_8859_1_1987 = 6; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP819 = 6; // IANA JAVA
-static const int LG_CHAR_BYTE_CSISOLATIN1 = 6; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_819 = 6; // IBM* JAVA
-static const int LG_CHAR_BYTE_ISO_IR_100 = 6; // IANA JAVA
-static const int LG_CHAR_BYTE_L1 = 6; // IANA JAVA
-static const int LG_CHAR_BYTE_LATIN1 = 6; // IANA JAVA
+static const int LG_ENCODING_819 = 6; // JAVA
+static const int LG_ENCODING_8859_1 = 6; // JAVA
+static const int LG_ENCODING_IBM819 = 6; // IANA
+static const int LG_ENCODING_ISO_8859_1 = 6; // IANA MIME* JAVA*
+static const int LG_ENCODING_ISO_8859_1_1987 = 6; // IANA* JAVA
+static const int LG_ENCODING_CP819 = 6; // IANA JAVA
+static const int LG_ENCODING_CSISOLATIN1 = 6; // IANA JAVA
+static const int LG_ENCODING_IBM_819 = 6; // IBM* JAVA
+static const int LG_ENCODING_ISO_IR_100 = 6; // IANA JAVA
+static const int LG_ENCODING_L1 = 6; // IANA JAVA
+static const int LG_ENCODING_LATIN1 = 6; // IANA JAVA
 
 // US-ASCII
-static const int LG_CHAR_BYTE_646 = 7; // JAVA
-static const int LG_CHAR_BYTE_ANSI_X3_4_1968 = 7; // IANA* WINDOWS
-static const int LG_CHAR_BYTE_ANSI_X3_4_1986 = 7; // IANA WINDOWS
-static const int LG_CHAR_BYTE_ASCII = 7; // IANA WINDOWS JAVA*
-static const int LG_CHAR_BYTE_IBM367 = 7; // IANA WINDOWS
-static const int LG_CHAR_BYTE_ISO646_US = 7; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_ISO_646_IRV_1991 = 7; // IANA WINDOWS
-static const int LG_CHAR_BYTE_US_ASCII = 7; // IANA MIME* WINDOWS JAVA
-static const int LG_CHAR_BYTE_ASCII7 = 7; // JAVA
-static const int LG_CHAR_BYTE_CP367 = 7; // IANA WINDOWS
-static const int LG_CHAR_BYTE_CSASCII = 7; // IANA WINDOWS
-static const int LG_CHAR_BYTE_IBM_367 = 7; // IBM*
-static const int LG_CHAR_BYTE_ISO_IR_6 = 7; // IANA
-static const int LG_CHAR_BYTE_ISO_646_IRV_1983 = 7; // JAVA
-static const int LG_CHAR_BYTE_US = 7; // IANA
-static const int LG_CHAR_BYTE_WINDOWS_20127 = 7; // WINDOWS*
+static const int LG_ENCODING_646 = 7; // JAVA
+static const int LG_ENCODING_ANSI_X3_4_1968 = 7; // IANA* WINDOWS
+static const int LG_ENCODING_ANSI_X3_4_1986 = 7; // IANA WINDOWS
+static const int LG_ENCODING_ASCII = 7; // IANA WINDOWS JAVA*
+static const int LG_ENCODING_IBM367 = 7; // IANA WINDOWS
+static const int LG_ENCODING_ISO646_US = 7; // IANA WINDOWS JAVA
+static const int LG_ENCODING_ISO_646_IRV_1991 = 7; // IANA WINDOWS
+static const int LG_ENCODING_US_ASCII = 7; // IANA MIME* WINDOWS JAVA
+static const int LG_ENCODING_ASCII7 = 7; // JAVA
+static const int LG_ENCODING_CP367 = 7; // IANA WINDOWS
+static const int LG_ENCODING_CSASCII = 7; // IANA WINDOWS
+static const int LG_ENCODING_IBM_367 = 7; // IBM*
+static const int LG_ENCODING_ISO_IR_6 = 7; // IANA
+static const int LG_ENCODING_ISO_646_IRV_1983 = 7; // JAVA
+static const int LG_ENCODING_US = 7; // IANA
+static const int LG_ENCODING_WINDOWS_20127 = 7; // WINDOWS*
 
 // gb18030
-static const int LG_CHAR_BYTE_GB18030 = 8; // MIME* IANA*
-static const int LG_CHAR_BYTE_IBM_1392 = 8; // IBM*
-static const int LG_CHAR_BYTE_WINDOWS_54936 = 8; // WINDOWS*
+static const int LG_ENCODING_GB18030 = 8; // MIME* IANA*
+static const int LG_ENCODING_IBM_1392 = 8; // IBM*
+static const int LG_ENCODING_WINDOWS_54936 = 8; // WINDOWS*
 
 // ibm-912_P100-1995
-static const int LG_CHAR_BYTE_8859_2 = 9; // JAVA
-static const int LG_CHAR_BYTE_912 = 9; // JAVA
-static const int LG_CHAR_BYTE_ISO_8859_2 = 9; // IANA MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_ISO_8859_2_1987 = 9; // IANA* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP912 = 9; // JAVA
-static const int LG_CHAR_BYTE_CSISOLATIN2 = 9; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM_912 = 9; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_912_P100_1995 = 9; // UTR22*
-static const int LG_CHAR_BYTE_ISO_IR_101 = 9; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_L2 = 9; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_LATIN2 = 9; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_WINDOWS_28592 = 9; // WINDOWS*
+static const int LG_ENCODING_8859_2 = 9; // JAVA
+static const int LG_ENCODING_912 = 9; // JAVA
+static const int LG_ENCODING_ISO_8859_2 = 9; // IANA MIME* WINDOWS JAVA*
+static const int LG_ENCODING_ISO_8859_2_1987 = 9; // IANA* WINDOWS JAVA
+static const int LG_ENCODING_CP912 = 9; // JAVA
+static const int LG_ENCODING_CSISOLATIN2 = 9; // IANA WINDOWS JAVA
+static const int LG_ENCODING_IBM_912 = 9; // IBM* JAVA
+static const int LG_ENCODING_IBM_912_P100_1995 = 9; // UTR22*
+static const int LG_ENCODING_ISO_IR_101 = 9; // IANA WINDOWS JAVA
+static const int LG_ENCODING_L2 = 9; // IANA WINDOWS JAVA
+static const int LG_ENCODING_LATIN2 = 9; // IANA WINDOWS JAVA
+static const int LG_ENCODING_WINDOWS_28592 = 9; // WINDOWS*
 
 // ibm-913_P100-2000
-static const int LG_CHAR_BYTE_8859_3 = 10; // JAVA
-static const int LG_CHAR_BYTE_913 = 10; // JAVA
-static const int LG_CHAR_BYTE_ISO_8859_3 = 10; // IANA MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_ISO_8859_3_1988 = 10; // IANA* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP913 = 10; // JAVA
-static const int LG_CHAR_BYTE_CSISOLATIN3 = 10; // IANA WINDOWS
-static const int LG_CHAR_BYTE_IBM_913 = 10; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_913_P100_2000 = 10; // UTR22*
-static const int LG_CHAR_BYTE_ISO_IR_109 = 10; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_L3 = 10; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_LATIN3 = 10; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_WINDOWS_28593 = 10; // WINDOWS*
+static const int LG_ENCODING_8859_3 = 10; // JAVA
+static const int LG_ENCODING_913 = 10; // JAVA
+static const int LG_ENCODING_ISO_8859_3 = 10; // IANA MIME* WINDOWS JAVA*
+static const int LG_ENCODING_ISO_8859_3_1988 = 10; // IANA* WINDOWS JAVA
+static const int LG_ENCODING_CP913 = 10; // JAVA
+static const int LG_ENCODING_CSISOLATIN3 = 10; // IANA WINDOWS
+static const int LG_ENCODING_IBM_913 = 10; // IBM* JAVA
+static const int LG_ENCODING_IBM_913_P100_2000 = 10; // UTR22*
+static const int LG_ENCODING_ISO_IR_109 = 10; // IANA WINDOWS JAVA
+static const int LG_ENCODING_L3 = 10; // IANA WINDOWS JAVA
+static const int LG_ENCODING_LATIN3 = 10; // IANA WINDOWS JAVA
+static const int LG_ENCODING_WINDOWS_28593 = 10; // WINDOWS*
 
 // ibm-914_P100-1995
-static const int LG_CHAR_BYTE_8859_4 = 11; // JAVA
-static const int LG_CHAR_BYTE_914 = 11; // JAVA
-static const int LG_CHAR_BYTE_ISO_8859_4 = 11; // IANA MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_ISO_8859_4_1988 = 11; // IANA* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP914 = 11; // JAVA
-static const int LG_CHAR_BYTE_CSISOLATIN4 = 11; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM_914 = 11; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_914_P100_1995 = 11; // UTR22*
-static const int LG_CHAR_BYTE_ISO_IR_110 = 11; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_L4 = 11; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_LATIN4 = 11; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_WINDOWS_28594 = 11; // WINDOWS*
+static const int LG_ENCODING_8859_4 = 11; // JAVA
+static const int LG_ENCODING_914 = 11; // JAVA
+static const int LG_ENCODING_ISO_8859_4 = 11; // IANA MIME* WINDOWS JAVA*
+static const int LG_ENCODING_ISO_8859_4_1988 = 11; // IANA* WINDOWS JAVA
+static const int LG_ENCODING_CP914 = 11; // JAVA
+static const int LG_ENCODING_CSISOLATIN4 = 11; // IANA WINDOWS JAVA
+static const int LG_ENCODING_IBM_914 = 11; // IBM* JAVA
+static const int LG_ENCODING_IBM_914_P100_1995 = 11; // UTR22*
+static const int LG_ENCODING_ISO_IR_110 = 11; // IANA WINDOWS JAVA
+static const int LG_ENCODING_L4 = 11; // IANA WINDOWS JAVA
+static const int LG_ENCODING_LATIN4 = 11; // IANA WINDOWS JAVA
+static const int LG_ENCODING_WINDOWS_28594 = 11; // WINDOWS*
 
 // ibm-915_P100-1995
-static const int LG_CHAR_BYTE_8859_5 = 12; // JAVA
-static const int LG_CHAR_BYTE_915 = 12; // JAVA
-static const int LG_CHAR_BYTE_ISO_8859_5 = 12; // IANA MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_ISO_8859_5_1988 = 12; // IANA* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP915 = 12; // JAVA
-static const int LG_CHAR_BYTE_CSISOLATINCYRILLIC = 12; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_CYRILLIC = 12; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM_915 = 12; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_915_P100_1995 = 12; // UTR22*
-static const int LG_CHAR_BYTE_ISO_IR_144 = 12; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_WINDOWS_28595 = 12; // WINDOWS*
+static const int LG_ENCODING_8859_5 = 12; // JAVA
+static const int LG_ENCODING_915 = 12; // JAVA
+static const int LG_ENCODING_ISO_8859_5 = 12; // IANA MIME* WINDOWS JAVA*
+static const int LG_ENCODING_ISO_8859_5_1988 = 12; // IANA* WINDOWS JAVA
+static const int LG_ENCODING_CP915 = 12; // JAVA
+static const int LG_ENCODING_CSISOLATINCYRILLIC = 12; // IANA WINDOWS JAVA
+static const int LG_ENCODING_CYRILLIC = 12; // IANA WINDOWS JAVA
+static const int LG_ENCODING_IBM_915 = 12; // IBM* JAVA
+static const int LG_ENCODING_IBM_915_P100_1995 = 12; // UTR22*
+static const int LG_ENCODING_ISO_IR_144 = 12; // IANA WINDOWS JAVA
+static const int LG_ENCODING_WINDOWS_28595 = 12; // WINDOWS*
 
 // ibm-1089_P100-1995
-static const int LG_CHAR_BYTE_1089 = 13; // JAVA
-static const int LG_CHAR_BYTE_8859_6 = 13; // JAVA
-static const int LG_CHAR_BYTE_ASMO_708 = 13; // IANA JAVA
-static const int LG_CHAR_BYTE_ECMA_114 = 13; // IANA JAVA
-static const int LG_CHAR_BYTE_ISO_8859_6 = 13; // IANA MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_ISO_8859_6_E = 13; // IANA MIME
-static const int LG_CHAR_BYTE_ISO_8859_6_I = 13; // IANA MIME
-static const int LG_CHAR_BYTE_ISO_8859_6_1987 = 13; // IANA* WINDOWS JAVA
-static const int LG_CHAR_BYTE_ARABIC = 13; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP1089 = 13; // JAVA
-static const int LG_CHAR_BYTE_CSISOLATINARABIC = 13; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM_1089 = 13; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_1089_P100_1995 = 13; // UTR22*
-static const int LG_CHAR_BYTE_ISO_IR_127 = 13; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_WINDOWS_28596 = 13; // WINDOWS*
-static const int LG_CHAR_BYTE_X_ISO_8859_6S = 13; // JAVA
+static const int LG_ENCODING_1089 = 13; // JAVA
+static const int LG_ENCODING_8859_6 = 13; // JAVA
+static const int LG_ENCODING_ASMO_708 = 13; // IANA JAVA
+static const int LG_ENCODING_ECMA_114 = 13; // IANA JAVA
+static const int LG_ENCODING_ISO_8859_6 = 13; // IANA MIME* WINDOWS JAVA*
+static const int LG_ENCODING_ISO_8859_6_E = 13; // IANA MIME
+static const int LG_ENCODING_ISO_8859_6_I = 13; // IANA MIME
+static const int LG_ENCODING_ISO_8859_6_1987 = 13; // IANA* WINDOWS JAVA
+static const int LG_ENCODING_ARABIC = 13; // IANA WINDOWS JAVA
+static const int LG_ENCODING_CP1089 = 13; // JAVA
+static const int LG_ENCODING_CSISOLATINARABIC = 13; // IANA WINDOWS JAVA
+static const int LG_ENCODING_IBM_1089 = 13; // IBM* JAVA
+static const int LG_ENCODING_IBM_1089_P100_1995 = 13; // UTR22*
+static const int LG_ENCODING_ISO_IR_127 = 13; // IANA WINDOWS JAVA
+static const int LG_ENCODING_WINDOWS_28596 = 13; // WINDOWS*
+static const int LG_ENCODING_X_ISO_8859_6S = 13; // JAVA
 
 // ibm-9005_X110-2007
-static const int LG_CHAR_BYTE_ECMA_118 = 14; // IANA WINDOWS
-static const int LG_CHAR_BYTE_ELOT_928 = 14; // IANA WINDOWS
-static const int LG_CHAR_BYTE_ISO_8859_7 = 14; // IANA MIME* WINDOWS
-static const int LG_CHAR_BYTE_ISO_8859_7_1987 = 14; // IANA* WINDOWS
-static const int LG_CHAR_BYTE_CSISOLATINGREEK = 14; // IANA WINDOWS
-static const int LG_CHAR_BYTE_GREEK = 14; // IANA WINDOWS
-static const int LG_CHAR_BYTE_GREEK8 = 14; // IANA WINDOWS
-static const int LG_CHAR_BYTE_IBM_9005 = 14; // IBM*
-static const int LG_CHAR_BYTE_IBM_9005_X110_2007 = 14; // UTR22*
-static const int LG_CHAR_BYTE_ISO_IR_126 = 14; // IANA WINDOWS
-static const int LG_CHAR_BYTE_SUN_EU_GREEK = 14;
-static const int LG_CHAR_BYTE_WINDOWS_28597 = 14; // WINDOWS*
+static const int LG_ENCODING_ECMA_118 = 14; // IANA WINDOWS
+static const int LG_ENCODING_ELOT_928 = 14; // IANA WINDOWS
+static const int LG_ENCODING_ISO_8859_7 = 14; // IANA MIME* WINDOWS
+static const int LG_ENCODING_ISO_8859_7_1987 = 14; // IANA* WINDOWS
+static const int LG_ENCODING_CSISOLATINGREEK = 14; // IANA WINDOWS
+static const int LG_ENCODING_GREEK = 14; // IANA WINDOWS
+static const int LG_ENCODING_GREEK8 = 14; // IANA WINDOWS
+static const int LG_ENCODING_IBM_9005 = 14; // IBM*
+static const int LG_ENCODING_IBM_9005_X110_2007 = 14; // UTR22*
+static const int LG_ENCODING_ISO_IR_126 = 14; // IANA WINDOWS
+static const int LG_ENCODING_SUN_EU_GREEK = 14;
+static const int LG_ENCODING_WINDOWS_28597 = 14; // WINDOWS*
 
 // ibm-813_P100-1995
-static const int LG_CHAR_BYTE_813 = 15; // JAVA
-static const int LG_CHAR_BYTE_8859_7 = 15; // JAVA
-static const int LG_CHAR_BYTE_CP813 = 15; // JAVA
-static const int LG_CHAR_BYTE_IBM_813 = 15; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_813_P100_1995 = 15; // UTR22*
+static const int LG_ENCODING_813 = 15; // JAVA
+static const int LG_ENCODING_8859_7 = 15; // JAVA
+static const int LG_ENCODING_CP813 = 15; // JAVA
+static const int LG_ENCODING_IBM_813 = 15; // IBM* JAVA
+static const int LG_ENCODING_IBM_813_P100_1995 = 15; // UTR22*
 
 // ibm-5012_P100-1999
-static const int LG_CHAR_BYTE_8859_8 = 16; // JAVA
-static const int LG_CHAR_BYTE_ISO_8859_8 = 16; // IANA MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_ISO_8859_8_E = 16; // IANA MIME
-static const int LG_CHAR_BYTE_ISO_8859_8_I = 16; // IANA MIME
-static const int LG_CHAR_BYTE_ISO_8859_8_1988 = 16; // IANA* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CSISOLATINHEBREW = 16; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_HEBREW = 16; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_HEBREW8 = 16;
-static const int LG_CHAR_BYTE_IBM_5012 = 16; // IBM*
-static const int LG_CHAR_BYTE_IBM_5012_P100_1999 = 16; // UTR22*
-static const int LG_CHAR_BYTE_ISO_IR_138 = 16; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_WINDOWS_28598 = 16; // WINDOWS*
+static const int LG_ENCODING_8859_8 = 16; // JAVA
+static const int LG_ENCODING_ISO_8859_8 = 16; // IANA MIME* WINDOWS JAVA*
+static const int LG_ENCODING_ISO_8859_8_E = 16; // IANA MIME
+static const int LG_ENCODING_ISO_8859_8_I = 16; // IANA MIME
+static const int LG_ENCODING_ISO_8859_8_1988 = 16; // IANA* WINDOWS JAVA
+static const int LG_ENCODING_CSISOLATINHEBREW = 16; // IANA WINDOWS JAVA
+static const int LG_ENCODING_HEBREW = 16; // IANA WINDOWS JAVA
+static const int LG_ENCODING_HEBREW8 = 16;
+static const int LG_ENCODING_IBM_5012 = 16; // IBM*
+static const int LG_ENCODING_IBM_5012_P100_1999 = 16; // UTR22*
+static const int LG_ENCODING_ISO_IR_138 = 16; // IANA WINDOWS JAVA
+static const int LG_ENCODING_WINDOWS_28598 = 16; // WINDOWS*
 
 // ibm-916_P100-1995
-static const int LG_CHAR_BYTE_916 = 17; // JAVA
-static const int LG_CHAR_BYTE_CP916 = 17; // JAVA
-static const int LG_CHAR_BYTE_IBM_916 = 17; // IBM* JAVA*
-static const int LG_CHAR_BYTE_IBM_916_P100_1995 = 17; // UTR22*
+static const int LG_ENCODING_916 = 17; // JAVA
+static const int LG_ENCODING_CP916 = 17; // JAVA
+static const int LG_ENCODING_IBM_916 = 17; // IBM* JAVA*
+static const int LG_ENCODING_IBM_916_P100_1995 = 17; // UTR22*
 
 // ibm-920_P100-1995
-static const int LG_CHAR_BYTE_8859_9 = 18; // JAVA
-static const int LG_CHAR_BYTE_920 = 18; // JAVA
-static const int LG_CHAR_BYTE_ECMA_128 = 18;
-static const int LG_CHAR_BYTE_ISO_8859_9 = 18; // IANA MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_ISO_8859_9_1989 = 18; // IANA* WINDOWS
-static const int LG_CHAR_BYTE_CP920 = 18; // JAVA
-static const int LG_CHAR_BYTE_CSISOLATIN5 = 18; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_920 = 18; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_920_P100_1995 = 18; // UTR22*
-static const int LG_CHAR_BYTE_ISO_IR_148 = 18; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_L5 = 18; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_LATIN5 = 18; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_TURKISH = 18;
-static const int LG_CHAR_BYTE_TURKISH8 = 18;
-static const int LG_CHAR_BYTE_WINDOWS_28599 = 18; // WINDOWS*
+static const int LG_ENCODING_8859_9 = 18; // JAVA
+static const int LG_ENCODING_920 = 18; // JAVA
+static const int LG_ENCODING_ECMA_128 = 18;
+static const int LG_ENCODING_ISO_8859_9 = 18; // IANA MIME* WINDOWS JAVA*
+static const int LG_ENCODING_ISO_8859_9_1989 = 18; // IANA* WINDOWS
+static const int LG_ENCODING_CP920 = 18; // JAVA
+static const int LG_ENCODING_CSISOLATIN5 = 18; // IANA JAVA
+static const int LG_ENCODING_IBM_920 = 18; // IBM* JAVA
+static const int LG_ENCODING_IBM_920_P100_1995 = 18; // UTR22*
+static const int LG_ENCODING_ISO_IR_148 = 18; // IANA WINDOWS JAVA
+static const int LG_ENCODING_L5 = 18; // IANA WINDOWS JAVA
+static const int LG_ENCODING_LATIN5 = 18; // IANA WINDOWS JAVA
+static const int LG_ENCODING_TURKISH = 18;
+static const int LG_ENCODING_TURKISH8 = 18;
+static const int LG_ENCODING_WINDOWS_28599 = 18; // WINDOWS*
 
 // iso-8859_10-1998
-static const int LG_CHAR_BYTE_ISO_8859_10 = 19; // IANA* MIME*
-static const int LG_CHAR_BYTE_ISO_8859_10_1992 = 19; // IANA
-static const int LG_CHAR_BYTE_CSISOLATIN6 = 19; // IANA
-static const int LG_CHAR_BYTE_ISO_8859_10_1998 = 19; // UTR22*
-static const int LG_CHAR_BYTE_ISO_IR_157 = 19; // IANA
-static const int LG_CHAR_BYTE_L6 = 19; // IANA
-static const int LG_CHAR_BYTE_LATIN6 = 19; // IANA
+static const int LG_ENCODING_ISO_8859_10 = 19; // IANA* MIME*
+static const int LG_ENCODING_ISO_8859_10_1992 = 19; // IANA
+static const int LG_ENCODING_CSISOLATIN6 = 19; // IANA
+static const int LG_ENCODING_ISO_8859_10_1998 = 19; // UTR22*
+static const int LG_ENCODING_ISO_IR_157 = 19; // IANA
+static const int LG_ENCODING_L6 = 19; // IANA
+static const int LG_ENCODING_LATIN6 = 19; // IANA
 
 // iso-8859_11-2001
-static const int LG_CHAR_BYTE_ISO_8859_11 = 20;
-static const int LG_CHAR_BYTE_ISO_8859_11_2001 = 20; // UTR22*
-static const int LG_CHAR_BYTE_THAI8 = 20;
-static const int LG_CHAR_BYTE_X_ISO_8859_11 = 20; // JAVA*
+static const int LG_ENCODING_ISO_8859_11 = 20;
+static const int LG_ENCODING_ISO_8859_11_2001 = 20; // UTR22*
+static const int LG_ENCODING_THAI8 = 20;
+static const int LG_ENCODING_X_ISO_8859_11 = 20; // JAVA*
 
 // ibm-921_P100-1995
-static const int LG_CHAR_BYTE_8859_13 = 21; // JAVA
-static const int LG_CHAR_BYTE_921 = 21;
-static const int LG_CHAR_BYTE_ISO_8859_13 = 21; // IANA* MIME* JAVA*
-static const int LG_CHAR_BYTE_CP921 = 21;
-static const int LG_CHAR_BYTE_IBM_921 = 21; // IBM*
-static const int LG_CHAR_BYTE_IBM_921_P100_1995 = 21; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_28603 = 21; // WINDOWS*
-static const int LG_CHAR_BYTE_X_IBM921 = 21; // JAVA
+static const int LG_ENCODING_8859_13 = 21; // JAVA
+static const int LG_ENCODING_921 = 21;
+static const int LG_ENCODING_ISO_8859_13 = 21; // IANA* MIME* JAVA*
+static const int LG_ENCODING_CP921 = 21;
+static const int LG_ENCODING_IBM_921 = 21; // IBM*
+static const int LG_ENCODING_IBM_921_P100_1995 = 21; // UTR22*
+static const int LG_ENCODING_WINDOWS_28603 = 21; // WINDOWS*
+static const int LG_ENCODING_X_IBM921 = 21; // JAVA
 
 // iso-8859_14-1998
-static const int LG_CHAR_BYTE_ISO_8859_14 = 22; // IANA*
-static const int LG_CHAR_BYTE_ISO_8859_14_1998 = 22; // IANA UTR22*
-static const int LG_CHAR_BYTE_ISO_CELTIC = 22; // IANA
-static const int LG_CHAR_BYTE_ISO_IR_199 = 22; // IANA
-static const int LG_CHAR_BYTE_L8 = 22; // IANA
-static const int LG_CHAR_BYTE_LATIN8 = 22; // IANA
+static const int LG_ENCODING_ISO_8859_14 = 22; // IANA*
+static const int LG_ENCODING_ISO_8859_14_1998 = 22; // IANA UTR22*
+static const int LG_ENCODING_ISO_CELTIC = 22; // IANA
+static const int LG_ENCODING_ISO_IR_199 = 22; // IANA
+static const int LG_ENCODING_L8 = 22; // IANA
+static const int LG_ENCODING_LATIN8 = 22; // IANA
 
 // ibm-923_P100-1998
-static const int LG_CHAR_BYTE_8859_15 = 23; // JAVA
-static const int LG_CHAR_BYTE_923 = 23; // JAVA
-static const int LG_CHAR_BYTE_ISO_8859_15 = 23; // IANA* MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_LATIN_9 = 23; // IANA WINDOWS
-static const int LG_CHAR_BYTE_CP923 = 23; // JAVA
-static const int LG_CHAR_BYTE_CSISOLATIN0 = 23; // JAVA
-static const int LG_CHAR_BYTE_CSISOLATIN9 = 23; // JAVA
-static const int LG_CHAR_BYTE_IBM_923 = 23; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_923_P100_1998 = 23; // UTR22*
-static const int LG_CHAR_BYTE_ISO8859_15_FDIS = 23; // JAVA
-static const int LG_CHAR_BYTE_L9 = 23; // WINDOWS
-static const int LG_CHAR_BYTE_LATIN0 = 23; // JAVA
-static const int LG_CHAR_BYTE_WINDOWS_28605 = 23; // WINDOWS*
+static const int LG_ENCODING_8859_15 = 23; // JAVA
+static const int LG_ENCODING_923 = 23; // JAVA
+static const int LG_ENCODING_ISO_8859_15 = 23; // IANA* MIME* WINDOWS JAVA*
+static const int LG_ENCODING_LATIN_9 = 23; // IANA WINDOWS
+static const int LG_ENCODING_CP923 = 23; // JAVA
+static const int LG_ENCODING_CSISOLATIN0 = 23; // JAVA
+static const int LG_ENCODING_CSISOLATIN9 = 23; // JAVA
+static const int LG_ENCODING_IBM_923 = 23; // IBM* JAVA
+static const int LG_ENCODING_IBM_923_P100_1998 = 23; // UTR22*
+static const int LG_ENCODING_ISO8859_15_FDIS = 23; // JAVA
+static const int LG_ENCODING_L9 = 23; // WINDOWS
+static const int LG_ENCODING_LATIN0 = 23; // JAVA
+static const int LG_ENCODING_WINDOWS_28605 = 23; // WINDOWS*
 
 // ibm-942_P12A-1999
-static const int LG_CHAR_BYTE_CP932 = 24;
-static const int LG_CHAR_BYTE_IBM_932 = 24; // IBM
-static const int LG_CHAR_BYTE_IBM_932_VSUB_VPUA = 24;
-static const int LG_CHAR_BYTE_IBM_942 = 24; // IBM*
-static const int LG_CHAR_BYTE_IBM_942_P12A_1999 = 24; // UTR22*
-static const int LG_CHAR_BYTE_IBM_942_VSUB_VPUA = 24;
-static const int LG_CHAR_BYTE_SHIFT_JIS78 = 24;
-static const int LG_CHAR_BYTE_SJIS78 = 24;
-static const int LG_CHAR_BYTE_X_IBM942 = 24; // JAVA*
-static const int LG_CHAR_BYTE_X_IBM942C = 24; // JAVA
+static const int LG_ENCODING_CP932 = 24;
+static const int LG_ENCODING_IBM_932 = 24; // IBM
+static const int LG_ENCODING_IBM_932_VSUB_VPUA = 24;
+static const int LG_ENCODING_IBM_942 = 24; // IBM*
+static const int LG_ENCODING_IBM_942_P12A_1999 = 24; // UTR22*
+static const int LG_ENCODING_IBM_942_VSUB_VPUA = 24;
+static const int LG_ENCODING_SHIFT_JIS78 = 24;
+static const int LG_ENCODING_SJIS78 = 24;
+static const int LG_ENCODING_X_IBM942 = 24; // JAVA*
+static const int LG_ENCODING_X_IBM942C = 24; // JAVA
 
 // ibm-943_P15A-2003
-static const int LG_CHAR_BYTE_IBM_943C = 25;
-static const int LG_CHAR_BYTE_MS_KANJI = 25; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_SHIFT_JIS = 25; // IANA* MIME* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP943C = 25; // JAVA*
-static const int LG_CHAR_BYTE_CSSHIFTJIS = 25; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_CSWINDOWS31J = 25; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM_943 = 25;
-static const int LG_CHAR_BYTE_IBM_943_P15A_2003 = 25; // UTR22*
-static const int LG_CHAR_BYTE_IBM_943_VSUB_VPUA = 25;
-static const int LG_CHAR_BYTE_MS932 = 25;
-static const int LG_CHAR_BYTE_PCK = 25;
-static const int LG_CHAR_BYTE_SJIS = 25;
-static const int LG_CHAR_BYTE_WINDOWS_31J = 25; // IANA JAVA
-static const int LG_CHAR_BYTE_WINDOWS_932 = 25; // WINDOWS*
-static const int LG_CHAR_BYTE_X_JISAUTODETECT = 25; // JAVA
-static const int LG_CHAR_BYTE_X_MS932_0213 = 25; // JAVA
-static const int LG_CHAR_BYTE_X_MS_CP932 = 25; // WINDOWS
-static const int LG_CHAR_BYTE_X_SJIS = 25; // WINDOWS JAVA
+static const int LG_ENCODING_IBM_943C = 25;
+static const int LG_ENCODING_MS_KANJI = 25; // IANA WINDOWS JAVA
+static const int LG_ENCODING_SHIFT_JIS = 25; // IANA* MIME* WINDOWS JAVA
+static const int LG_ENCODING_CP943C = 25; // JAVA*
+static const int LG_ENCODING_CSSHIFTJIS = 25; // IANA WINDOWS JAVA
+static const int LG_ENCODING_CSWINDOWS31J = 25; // IANA WINDOWS JAVA
+static const int LG_ENCODING_IBM_943 = 25;
+static const int LG_ENCODING_IBM_943_P15A_2003 = 25; // UTR22*
+static const int LG_ENCODING_IBM_943_VSUB_VPUA = 25;
+static const int LG_ENCODING_MS932 = 25;
+static const int LG_ENCODING_PCK = 25;
+static const int LG_ENCODING_SJIS = 25;
+static const int LG_ENCODING_WINDOWS_31J = 25; // IANA JAVA
+static const int LG_ENCODING_WINDOWS_932 = 25; // WINDOWS*
+static const int LG_ENCODING_X_JISAUTODETECT = 25; // JAVA
+static const int LG_ENCODING_X_MS932_0213 = 25; // JAVA
+static const int LG_ENCODING_X_MS_CP932 = 25; // WINDOWS
+static const int LG_ENCODING_X_SJIS = 25; // WINDOWS JAVA
 
 // ibm-943_P130-1999
-static const int LG_CHAR_BYTE_943 = 26; // JAVA
-static const int LG_CHAR_BYTE_CP943 = 26; // JAVA*
-static const int LG_CHAR_BYTE_IBM_943_P130_1999 = 26; // UTR22*
-static const int LG_CHAR_BYTE_IBM_943_VASCII_VSUB_VPUA = 26;
-static const int LG_CHAR_BYTE_X_IBM943 = 26; // JAVA
+static const int LG_ENCODING_943 = 26; // JAVA
+static const int LG_ENCODING_CP943 = 26; // JAVA*
+static const int LG_ENCODING_IBM_943_P130_1999 = 26; // UTR22*
+static const int LG_ENCODING_IBM_943_VASCII_VSUB_VPUA = 26;
+static const int LG_ENCODING_X_IBM943 = 26; // JAVA
 
 // ibm-33722_P12A_P12A-2004_U2
-static const int LG_CHAR_BYTE_EUC_JP = 27; // IANA MIME* WINDOWS
-static const int LG_CHAR_BYTE_EXTENDED_UNIX_CODE_PACKED_FORMAT_FOR_JAPANESE = 27; // IANA* WINDOWS*
-static const int LG_CHAR_BYTE_IBM_EUCJP = 27;
-static const int LG_CHAR_BYTE_X_EUC_JP = 27; // WINDOWS
-static const int LG_CHAR_BYTE_CSEUCPKDFMTJAPANESE = 27; // IANA WINDOWS
-static const int LG_CHAR_BYTE_IBM_33722 = 27;
-static const int LG_CHAR_BYTE_IBM_33722_P12A_P12A_2004_U2 = 27; // UTR22*
-static const int LG_CHAR_BYTE_IBM_33722_VPUA = 27;
-static const int LG_CHAR_BYTE_IBM_5050 = 27;
+static const int LG_ENCODING_EUC_JP = 27; // IANA MIME* WINDOWS
+static const int LG_ENCODING_EXTENDED_UNIX_CODE_PACKED_FORMAT_FOR_JAPANESE = 27; // IANA* WINDOWS*
+static const int LG_ENCODING_IBM_EUCJP = 27;
+static const int LG_ENCODING_X_EUC_JP = 27; // WINDOWS
+static const int LG_ENCODING_CSEUCPKDFMTJAPANESE = 27; // IANA WINDOWS
+static const int LG_ENCODING_IBM_33722 = 27;
+static const int LG_ENCODING_IBM_33722_P12A_P12A_2004_U2 = 27; // UTR22*
+static const int LG_ENCODING_IBM_33722_VPUA = 27;
+static const int LG_ENCODING_IBM_5050 = 27;
 
 // ibm-33722_P120-1999
-static const int LG_CHAR_BYTE_33722 = 28; // JAVA
-static const int LG_CHAR_BYTE_CP33722 = 28; // JAVA*
-static const int LG_CHAR_BYTE_IBM_33722_P120_1999 = 28; // UTR22*
-static const int LG_CHAR_BYTE_IBM_33722_VASCII_VPUA = 28;
-static const int LG_CHAR_BYTE_X_IBM33722 = 28; // JAVA
-static const int LG_CHAR_BYTE_X_IBM33722A = 28; // JAVA
-static const int LG_CHAR_BYTE_X_IBM33722C = 28; // JAVA
+static const int LG_ENCODING_33722 = 28; // JAVA
+static const int LG_ENCODING_CP33722 = 28; // JAVA*
+static const int LG_ENCODING_IBM_33722_P120_1999 = 28; // UTR22*
+static const int LG_ENCODING_IBM_33722_VASCII_VPUA = 28;
+static const int LG_ENCODING_X_IBM33722 = 28; // JAVA
+static const int LG_ENCODING_X_IBM33722A = 28; // JAVA
+static const int LG_ENCODING_X_IBM33722C = 28; // JAVA
 
 // ibm-954_P101-2007
-static const int LG_CHAR_BYTE_EUCJIS = 29; // JAVA
-static const int LG_CHAR_BYTE_IBM_954 = 29; // IBM*
-static const int LG_CHAR_BYTE_IBM_954_P101_2007 = 29; // UTR22*
-static const int LG_CHAR_BYTE_UJIS = 29;
-static const int LG_CHAR_BYTE_X_IBM954 = 29; // JAVA
-static const int LG_CHAR_BYTE_X_IBM954C = 29; // JAVA
+static const int LG_ENCODING_EUCJIS = 29; // JAVA
+static const int LG_ENCODING_IBM_954 = 29; // IBM*
+static const int LG_ENCODING_IBM_954_P101_2007 = 29; // UTR22*
+static const int LG_ENCODING_UJIS = 29;
+static const int LG_ENCODING_X_IBM954 = 29; // JAVA
+static const int LG_ENCODING_X_IBM954C = 29; // JAVA
 
 // ibm-1373_P100-2002
-static const int LG_CHAR_BYTE_IBM_1373 = 30; // IBM*
-static const int LG_CHAR_BYTE_IBM_1373_P100_2002 = 30; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_950 = 30;
+static const int LG_ENCODING_IBM_1373 = 30; // IBM*
+static const int LG_ENCODING_IBM_1373_P100_2002 = 30; // UTR22*
+static const int LG_ENCODING_WINDOWS_950 = 30;
 
 // windows-950-2000
-static const int LG_CHAR_BYTE_BIG5 = 31; // IANA* MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_CSBIG5 = 31; // IANA WINDOWS
-static const int LG_CHAR_BYTE_WINDOWS_950_2000 = 31; // UTR22*
-static const int LG_CHAR_BYTE_X_BIG5 = 31;
-static const int LG_CHAR_BYTE_X_WINDOWS_950 = 31; // JAVA
+static const int LG_ENCODING_BIG5 = 31; // IANA* MIME* WINDOWS JAVA*
+static const int LG_ENCODING_CSBIG5 = 31; // IANA WINDOWS
+static const int LG_ENCODING_WINDOWS_950_2000 = 31; // UTR22*
+static const int LG_ENCODING_X_BIG5 = 31;
+static const int LG_ENCODING_X_WINDOWS_950 = 31; // JAVA
 
 // ibm-950_P110-1999
-static const int LG_CHAR_BYTE_950 = 32; // JAVA
-static const int LG_CHAR_BYTE_CP950 = 32; // JAVA*
-static const int LG_CHAR_BYTE_IBM_950 = 32; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_950_P110_1999 = 32; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM950 = 32; // JAVA
+static const int LG_ENCODING_950 = 32; // JAVA
+static const int LG_ENCODING_CP950 = 32; // JAVA*
+static const int LG_ENCODING_IBM_950 = 32; // IBM* JAVA
+static const int LG_ENCODING_IBM_950_P110_1999 = 32; // UTR22*
+static const int LG_ENCODING_X_IBM950 = 32; // JAVA
 
 // ibm-1375_P100-2007
-static const int LG_CHAR_BYTE_BIG5_HKSCS = 33; // IANA* JAVA*
-static const int LG_CHAR_BYTE_HKSCS_BIG5 = 33;
-static const int LG_CHAR_BYTE_BIG5HK = 33; // JAVA
-static const int LG_CHAR_BYTE_IBM_1375 = 33; // IBM*
-static const int LG_CHAR_BYTE_IBM_1375_P100_2007 = 33; // UTR22*
+static const int LG_ENCODING_BIG5_HKSCS = 33; // IANA* JAVA*
+static const int LG_ENCODING_HKSCS_BIG5 = 33;
+static const int LG_ENCODING_BIG5HK = 33; // JAVA
+static const int LG_ENCODING_IBM_1375 = 33; // IBM*
+static const int LG_ENCODING_IBM_1375_P100_2007 = 33; // UTR22*
 
 // ibm-5471_P100-2006
-static const int LG_CHAR_BYTE_MS950_HKSCS = 34; // JAVA*
-static const int LG_CHAR_BYTE_BIG5_HKSCS_UNICODE3_0 = 34;
-static const int LG_CHAR_BYTE_HKBIG5 = 34;
-static const int LG_CHAR_BYTE_IBM_5471 = 34; // IBM*
-static const int LG_CHAR_BYTE_IBM_5471_P100_2006 = 34; // UTR22*
-static const int LG_CHAR_BYTE_X_MS950_HKSCS = 34; // JAVA
+static const int LG_ENCODING_MS950_HKSCS = 34; // JAVA*
+static const int LG_ENCODING_BIG5_HKSCS_UNICODE3_0 = 34;
+static const int LG_ENCODING_HKBIG5 = 34;
+static const int LG_ENCODING_IBM_5471 = 34; // IBM*
+static const int LG_ENCODING_IBM_5471_P100_2006 = 34; // UTR22*
+static const int LG_ENCODING_X_MS950_HKSCS = 34; // JAVA
 
 // ibm-1386_P100-2001
-static const int LG_CHAR_BYTE_CP1386 = 35;
-static const int LG_CHAR_BYTE_IBM_1386 = 35; // IBM*
-static const int LG_CHAR_BYTE_IBM_1386_P100_2001 = 35; // UTR22*
-static const int LG_CHAR_BYTE_IBM_1386_VSUB_VPUA = 35;
-static const int LG_CHAR_BYTE_WINDOWS_936 = 35;
+static const int LG_ENCODING_CP1386 = 35;
+static const int LG_ENCODING_IBM_1386 = 35; // IBM*
+static const int LG_ENCODING_IBM_1386_P100_2001 = 35; // UTR22*
+static const int LG_ENCODING_IBM_1386_VSUB_VPUA = 35;
+static const int LG_ENCODING_WINDOWS_936 = 35;
 
 // windows-936-2000
-static const int LG_CHAR_BYTE_CP936 = 36; // IANA JAVA
-static const int LG_CHAR_BYTE_GBK = 36; // IANA* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_MS936 = 36; // IANA
-static const int LG_CHAR_BYTE_WINDOWS_936_2000 = 36; // UTR22*
+static const int LG_ENCODING_CP936 = 36; // IANA JAVA
+static const int LG_ENCODING_GBK = 36; // IANA* WINDOWS JAVA*
+static const int LG_ENCODING_MS936 = 36; // IANA
+static const int LG_ENCODING_WINDOWS_936_2000 = 36; // UTR22*
 
 // ibm-1383_P110-1999
-static const int LG_CHAR_BYTE_1383 = 37; // JAVA
-static const int LG_CHAR_BYTE_EUC_CN = 37;
-static const int LG_CHAR_BYTE_GB2312 = 37; // IANA* MIME*
-static const int LG_CHAR_BYTE_CP1383 = 37; // JAVA*
-static const int LG_CHAR_BYTE_CSGB2312 = 37; // IANA
-static const int LG_CHAR_BYTE_HP15CN = 37;
-static const int LG_CHAR_BYTE_IBM_1383 = 37; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_1383_P110_1999 = 37; // UTR22*
-static const int LG_CHAR_BYTE_IBM_1383_VPUA = 37;
-static const int LG_CHAR_BYTE_IBM_EUCCN = 37;
+static const int LG_ENCODING_1383 = 37; // JAVA
+static const int LG_ENCODING_EUC_CN = 37;
+static const int LG_ENCODING_GB2312 = 37; // IANA* MIME*
+static const int LG_ENCODING_CP1383 = 37; // JAVA*
+static const int LG_ENCODING_CSGB2312 = 37; // IANA
+static const int LG_ENCODING_HP15CN = 37;
+static const int LG_ENCODING_IBM_1383 = 37; // IBM* JAVA
+static const int LG_ENCODING_IBM_1383_P110_1999 = 37; // UTR22*
+static const int LG_ENCODING_IBM_1383_VPUA = 37;
+static const int LG_ENCODING_IBM_EUCCN = 37;
 
 // ibm-5478_P100-1995
-static const int LG_CHAR_BYTE_GB2312_1980_0 = 38;
-static const int LG_CHAR_BYTE_GB_2312_80 = 38; // IANA*
-static const int LG_CHAR_BYTE_CHINESE = 38; // IANA
-static const int LG_CHAR_BYTE_CSISO58GB231280 = 38; // IANA
-static const int LG_CHAR_BYTE_GB2312_1980 = 38;
-static const int LG_CHAR_BYTE_IBM_5478 = 38; // IBM*
-static const int LG_CHAR_BYTE_IBM_5478_P100_1995 = 38; // UTR22*
-static const int LG_CHAR_BYTE_ISO_IR_58 = 38; // IANA
+static const int LG_ENCODING_GB2312_1980_0 = 38;
+static const int LG_ENCODING_GB_2312_80 = 38; // IANA*
+static const int LG_ENCODING_CHINESE = 38; // IANA
+static const int LG_ENCODING_CSISO58GB231280 = 38; // IANA
+static const int LG_ENCODING_GB2312_1980 = 38;
+static const int LG_ENCODING_IBM_5478 = 38; // IBM*
+static const int LG_ENCODING_IBM_5478_P100_1995 = 38; // UTR22*
+static const int LG_ENCODING_ISO_IR_58 = 38; // IANA
 
 // ibm-964_P110-1999
-static const int LG_CHAR_BYTE_964 = 39; // JAVA
-static const int LG_CHAR_BYTE_EUC_TW = 39;
-static const int LG_CHAR_BYTE_CNS11643 = 39;
-static const int LG_CHAR_BYTE_CP964 = 39; // JAVA*
-static const int LG_CHAR_BYTE_IBM_964 = 39; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_964_P110_1999 = 39; // UTR22*
-static const int LG_CHAR_BYTE_IBM_964_VPUA = 39;
-static const int LG_CHAR_BYTE_IBM_EUCTW = 39;
-static const int LG_CHAR_BYTE_X_IBM964 = 39; // JAVA
+static const int LG_ENCODING_964 = 39; // JAVA
+static const int LG_ENCODING_EUC_TW = 39;
+static const int LG_ENCODING_CNS11643 = 39;
+static const int LG_ENCODING_CP964 = 39; // JAVA*
+static const int LG_ENCODING_IBM_964 = 39; // IBM* JAVA
+static const int LG_ENCODING_IBM_964_P110_1999 = 39; // UTR22*
+static const int LG_ENCODING_IBM_964_VPUA = 39;
+static const int LG_ENCODING_IBM_EUCTW = 39;
+static const int LG_ENCODING_X_IBM964 = 39; // JAVA
 
 // ibm-949_P110-1999
-static const int LG_CHAR_BYTE_949 = 40; // JAVA
-static const int LG_CHAR_BYTE_CP949 = 40; // JAVA*
-static const int LG_CHAR_BYTE_IBM_949 = 40; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_949_P110_1999 = 40; // UTR22*
-static const int LG_CHAR_BYTE_IBM_949_VASCII_VSUB_VPUA = 40;
-static const int LG_CHAR_BYTE_X_IBM949 = 40; // JAVA
+static const int LG_ENCODING_949 = 40; // JAVA
+static const int LG_ENCODING_CP949 = 40; // JAVA*
+static const int LG_ENCODING_IBM_949 = 40; // IBM* JAVA
+static const int LG_ENCODING_IBM_949_P110_1999 = 40; // UTR22*
+static const int LG_ENCODING_IBM_949_VASCII_VSUB_VPUA = 40;
+static const int LG_ENCODING_X_IBM949 = 40; // JAVA
 
 // ibm-949_P11A-1999
-static const int LG_CHAR_BYTE_IBM_949C = 41; // JAVA
-static const int LG_CHAR_BYTE_CP949C = 41; // JAVA*
-static const int LG_CHAR_BYTE_IBM_949_P11A_1999 = 41; // UTR22*
-static const int LG_CHAR_BYTE_IBM_949_VSUB_VPUA = 41;
-static const int LG_CHAR_BYTE_X_IBM949C = 41; // JAVA
+static const int LG_ENCODING_IBM_949C = 41; // JAVA
+static const int LG_ENCODING_CP949C = 41; // JAVA*
+static const int LG_ENCODING_IBM_949_P11A_1999 = 41; // UTR22*
+static const int LG_ENCODING_IBM_949_VSUB_VPUA = 41;
+static const int LG_ENCODING_X_IBM949C = 41; // JAVA
 
 // ibm-970_P110_P110-2006_U2
-static const int LG_CHAR_BYTE_5601 = 42; // JAVA
-static const int LG_CHAR_BYTE_970 = 42; // JAVA
-static const int LG_CHAR_BYTE_EUC_KR = 42; // IANA* MIME* WINDOWS JAVA
-static const int LG_CHAR_BYTE_KSC_5601 = 42; // JAVA
-static const int LG_CHAR_BYTE_KS_C_5601_1987 = 42; // JAVA
-static const int LG_CHAR_BYTE_CP970 = 42; // JAVA*
-static const int LG_CHAR_BYTE_CSEUCKR = 42; // IANA WINDOWS
-static const int LG_CHAR_BYTE_IBM_970 = 42; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_970_P110_P110_2006_U2 = 42; // UTR22*
-static const int LG_CHAR_BYTE_IBM_970_VPUA = 42;
-static const int LG_CHAR_BYTE_IBM_EUCKR = 42; // JAVA
-static const int LG_CHAR_BYTE_WINDOWS_51949 = 42; // WINDOWS*
-static const int LG_CHAR_BYTE_X_IBM970 = 42; // JAVA
+static const int LG_ENCODING_5601 = 42; // JAVA
+static const int LG_ENCODING_970 = 42; // JAVA
+static const int LG_ENCODING_EUC_KR = 42; // IANA* MIME* WINDOWS JAVA
+static const int LG_ENCODING_KSC_5601 = 42; // JAVA
+static const int LG_ENCODING_KS_C_5601_1987 = 42; // JAVA
+static const int LG_ENCODING_CP970 = 42; // JAVA*
+static const int LG_ENCODING_CSEUCKR = 42; // IANA WINDOWS
+static const int LG_ENCODING_IBM_970 = 42; // IBM* JAVA
+static const int LG_ENCODING_IBM_970_P110_P110_2006_U2 = 42; // UTR22*
+static const int LG_ENCODING_IBM_970_VPUA = 42;
+static const int LG_ENCODING_IBM_EUCKR = 42; // JAVA
+static const int LG_ENCODING_WINDOWS_51949 = 42; // WINDOWS*
+static const int LG_ENCODING_X_IBM970 = 42; // JAVA
 
 // ibm-971_P100-1995
-static const int LG_CHAR_BYTE_IBM_971 = 43; // IBM*
-static const int LG_CHAR_BYTE_IBM_971_P100_1995 = 43;
-static const int LG_CHAR_BYTE_IBM_971_VPUA = 43;
-static const int LG_CHAR_BYTE_X_IBM971 = 43; // JAVA*
+static const int LG_ENCODING_IBM_971 = 43; // IBM*
+static const int LG_ENCODING_IBM_971_P100_1995 = 43;
+static const int LG_ENCODING_IBM_971_VPUA = 43;
+static const int LG_ENCODING_X_IBM971 = 43; // JAVA*
 
 // ibm-1363_P11B-1998
-static const int LG_CHAR_BYTE_KS_C_5601_1989 = 44; // IANA
-static const int LG_CHAR_BYTE_CP1363 = 44; // MIME*
-static const int LG_CHAR_BYTE_CSKSC56011987 = 44; // IANA
-static const int LG_CHAR_BYTE_IBM_1363 = 44;
-static const int LG_CHAR_BYTE_IBM_1363_P11B_1998 = 44; // UTR22*
-static const int LG_CHAR_BYTE_IBM_1363_VSUB_VPUA = 44;
-static const int LG_CHAR_BYTE_ISO_IR_149 = 44; // IANA
-static const int LG_CHAR_BYTE_KOREAN = 44; // IANA
-static const int LG_CHAR_BYTE_KSC = 44;
-static const int LG_CHAR_BYTE_WINDOWS_949 = 44;
-static const int LG_CHAR_BYTE_X_IBM1363C = 44; // JAVA*
+static const int LG_ENCODING_KS_C_5601_1989 = 44; // IANA
+static const int LG_ENCODING_CP1363 = 44; // MIME*
+static const int LG_ENCODING_CSKSC56011987 = 44; // IANA
+static const int LG_ENCODING_IBM_1363 = 44;
+static const int LG_ENCODING_IBM_1363_P11B_1998 = 44; // UTR22*
+static const int LG_ENCODING_IBM_1363_VSUB_VPUA = 44;
+static const int LG_ENCODING_ISO_IR_149 = 44; // IANA
+static const int LG_ENCODING_KOREAN = 44; // IANA
+static const int LG_ENCODING_KSC = 44;
+static const int LG_ENCODING_WINDOWS_949 = 44;
+static const int LG_ENCODING_X_IBM1363C = 44; // JAVA*
 
 // ibm-1363_P110-1997
-static const int LG_CHAR_BYTE_IBM_1363_P110_1997 = 45; // UTR22*
-static const int LG_CHAR_BYTE_IBM_1363_VASCII_VSUB_VPUA = 45;
-static const int LG_CHAR_BYTE_X_IBM1363 = 45; // JAVA*
+static const int LG_ENCODING_IBM_1363_P110_1997 = 45; // UTR22*
+static const int LG_ENCODING_IBM_1363_VASCII_VSUB_VPUA = 45;
+static const int LG_ENCODING_X_IBM1363 = 45; // JAVA*
 
 // windows-949-2000
-static const int LG_CHAR_BYTE_MS949 = 46; // JAVA
-static const int LG_CHAR_BYTE_WINDOWS_949_2000 = 46; // UTR22*
-static const int LG_CHAR_BYTE_X_KSC5601 = 46; // JAVA
+static const int LG_ENCODING_MS949 = 46; // JAVA
+static const int LG_ENCODING_WINDOWS_949_2000 = 46; // UTR22*
+static const int LG_ENCODING_X_KSC5601 = 46; // JAVA
 
 // windows-874-2000
-static const int LG_CHAR_BYTE_MS874 = 47; // JAVA
-static const int LG_CHAR_BYTE_TIS_620 = 47; // WINDOWS
-static const int LG_CHAR_BYTE_WINDOWS_874 = 47; // WINDOWS* JAVA*
-static const int LG_CHAR_BYTE_WINDOWS_874_2000 = 47; // UTR22*
-static const int LG_CHAR_BYTE_X_WINDOWS_874 = 47; // JAVA
+static const int LG_ENCODING_MS874 = 47; // JAVA
+static const int LG_ENCODING_TIS_620 = 47; // WINDOWS
+static const int LG_ENCODING_WINDOWS_874 = 47; // WINDOWS* JAVA*
+static const int LG_ENCODING_WINDOWS_874_2000 = 47; // UTR22*
+static const int LG_ENCODING_X_WINDOWS_874 = 47; // JAVA
 
 // ibm-874_P100-1995
-static const int LG_CHAR_BYTE_CP874 = 48; // JAVA*
-static const int LG_CHAR_BYTE_EUCTH = 48;
-static const int LG_CHAR_BYTE_IBM_874 = 48; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_874_P100_1995 = 48; // UTR22*
-static const int LG_CHAR_BYTE_IBM_9066 = 48; // IBM
-static const int LG_CHAR_BYTE_TIS620_2533 = 48; // JAVA
-static const int LG_CHAR_BYTE_X_IBM874 = 48; // JAVA
+static const int LG_ENCODING_CP874 = 48; // JAVA*
+static const int LG_ENCODING_EUCTH = 48;
+static const int LG_ENCODING_IBM_874 = 48; // IBM* JAVA
+static const int LG_ENCODING_IBM_874_P100_1995 = 48; // UTR22*
+static const int LG_ENCODING_IBM_9066 = 48; // IBM
+static const int LG_ENCODING_TIS620_2533 = 48; // JAVA
+static const int LG_ENCODING_X_IBM874 = 48; // JAVA
 
 // ibm-1162_P100-1999
-static const int LG_CHAR_BYTE_IBM_1162 = 49; // IBM*
-static const int LG_CHAR_BYTE_IBM_1162_P100_1999 = 49; // UTR22*
+static const int LG_ENCODING_IBM_1162 = 49; // IBM*
+static const int LG_ENCODING_IBM_1162_P100_1999 = 49; // UTR22*
 
 // ibm-437_P100-1995
-static const int LG_CHAR_BYTE_437 = 50; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM437 = 50; // IANA* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP437 = 50; // IANA WINDOWS JAVA*
-static const int LG_CHAR_BYTE_CSPC8CODEPAGE437 = 50; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_437 = 50; // IBM*
-static const int LG_CHAR_BYTE_IBM_437_P100_1995 = 50; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_437 = 50; // WINDOWS*
+static const int LG_ENCODING_437 = 50; // IANA WINDOWS JAVA
+static const int LG_ENCODING_IBM437 = 50; // IANA* WINDOWS JAVA
+static const int LG_ENCODING_CP437 = 50; // IANA WINDOWS JAVA*
+static const int LG_ENCODING_CSPC8CODEPAGE437 = 50; // IANA JAVA
+static const int LG_ENCODING_IBM_437 = 50; // IBM*
+static const int LG_ENCODING_IBM_437_P100_1995 = 50; // UTR22*
+static const int LG_ENCODING_WINDOWS_437 = 50; // WINDOWS*
 
 // ibm-720_P100-1997
-static const int LG_CHAR_BYTE_DOS_720 = 51; // WINDOWS
-static const int LG_CHAR_BYTE_IBM_720 = 51; // IBM*
-static const int LG_CHAR_BYTE_IBM_720_P100_1997 = 51; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_720 = 51; // WINDOWS*
-static const int LG_CHAR_BYTE_X_IBM720 = 51; // JAVA*
+static const int LG_ENCODING_DOS_720 = 51; // WINDOWS
+static const int LG_ENCODING_IBM_720 = 51; // IBM*
+static const int LG_ENCODING_IBM_720_P100_1997 = 51; // UTR22*
+static const int LG_ENCODING_WINDOWS_720 = 51; // WINDOWS*
+static const int LG_ENCODING_X_IBM720 = 51; // JAVA*
 
 // ibm-737_P100-1997
-static const int LG_CHAR_BYTE_737 = 52; // JAVA
-static const int LG_CHAR_BYTE_IBM737 = 52; // WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP737 = 52; // JAVA*
-static const int LG_CHAR_BYTE_IBM_737 = 52; // IBM*
-static const int LG_CHAR_BYTE_IBM_737_P100_1997 = 52; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_737 = 52; // WINDOWS*
-static const int LG_CHAR_BYTE_X_IBM737 = 52; // JAVA
+static const int LG_ENCODING_737 = 52; // JAVA
+static const int LG_ENCODING_IBM737 = 52; // WINDOWS JAVA
+static const int LG_ENCODING_CP737 = 52; // JAVA*
+static const int LG_ENCODING_IBM_737 = 52; // IBM*
+static const int LG_ENCODING_IBM_737_P100_1997 = 52; // UTR22*
+static const int LG_ENCODING_WINDOWS_737 = 52; // WINDOWS*
+static const int LG_ENCODING_X_IBM737 = 52; // JAVA
 
 // ibm-775_P100-1996
-static const int LG_CHAR_BYTE_775 = 53; // JAVA
-static const int LG_CHAR_BYTE_IBM775 = 53; // IANA* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP775 = 53; // IANA WINDOWS JAVA*
-static const int LG_CHAR_BYTE_CSPC775BALTIC = 53; // IANA
-static const int LG_CHAR_BYTE_IBM_775 = 53; // IBM*
-static const int LG_CHAR_BYTE_IBM_775_P100_1996 = 53; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_775 = 53; // WINDOWS*
+static const int LG_ENCODING_775 = 53; // JAVA
+static const int LG_ENCODING_IBM775 = 53; // IANA* WINDOWS JAVA
+static const int LG_ENCODING_CP775 = 53; // IANA WINDOWS JAVA*
+static const int LG_ENCODING_CSPC775BALTIC = 53; // IANA
+static const int LG_ENCODING_IBM_775 = 53; // IBM*
+static const int LG_ENCODING_IBM_775_P100_1996 = 53; // UTR22*
+static const int LG_ENCODING_WINDOWS_775 = 53; // WINDOWS*
 
 // ibm-850_P100-1995
-static const int LG_CHAR_BYTE_850 = 54; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM850 = 54; // IANA* MIME* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP850 = 54; // IANA MIME WINDOWS JAVA*
-static const int LG_CHAR_BYTE_CSPC850MULTILINGUAL = 54; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_850 = 54; // IBM*
-static const int LG_CHAR_BYTE_IBM_850_P100_1995 = 54; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_850 = 54; // WINDOWS*
+static const int LG_ENCODING_850 = 54; // IANA JAVA
+static const int LG_ENCODING_IBM850 = 54; // IANA* MIME* WINDOWS JAVA
+static const int LG_ENCODING_CP850 = 54; // IANA MIME WINDOWS JAVA*
+static const int LG_ENCODING_CSPC850MULTILINGUAL = 54; // IANA JAVA
+static const int LG_ENCODING_IBM_850 = 54; // IBM*
+static const int LG_ENCODING_IBM_850_P100_1995 = 54; // UTR22*
+static const int LG_ENCODING_WINDOWS_850 = 54; // WINDOWS*
 
 // ibm-851_P100-1995
-static const int LG_CHAR_BYTE_851 = 55; // IANA
-static const int LG_CHAR_BYTE_IBM851 = 55; // IANA*
-static const int LG_CHAR_BYTE_CP851 = 55; // IANA MIME*
-static const int LG_CHAR_BYTE_CSPC851 = 55; // IANA
-static const int LG_CHAR_BYTE_IBM_851 = 55; // IBM*
-static const int LG_CHAR_BYTE_IBM_851_P100_1995 = 55; // UTR22*
+static const int LG_ENCODING_851 = 55; // IANA
+static const int LG_ENCODING_IBM851 = 55; // IANA*
+static const int LG_ENCODING_CP851 = 55; // IANA MIME*
+static const int LG_ENCODING_CSPC851 = 55; // IANA
+static const int LG_ENCODING_IBM_851 = 55; // IBM*
+static const int LG_ENCODING_IBM_851_P100_1995 = 55; // UTR22*
 
 // ibm-852_P100-1995
-static const int LG_CHAR_BYTE_852 = 56; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM852 = 56; // IANA* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP852 = 56; // IANA WINDOWS JAVA*
-static const int LG_CHAR_BYTE_CSPCP852 = 56; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_852 = 56; // IBM*
-static const int LG_CHAR_BYTE_IBM_852_P100_1995 = 56; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_852 = 56; // WINDOWS*
+static const int LG_ENCODING_852 = 56; // IANA WINDOWS JAVA
+static const int LG_ENCODING_IBM852 = 56; // IANA* WINDOWS JAVA
+static const int LG_ENCODING_CP852 = 56; // IANA WINDOWS JAVA*
+static const int LG_ENCODING_CSPCP852 = 56; // IANA JAVA
+static const int LG_ENCODING_IBM_852 = 56; // IBM*
+static const int LG_ENCODING_IBM_852_P100_1995 = 56; // UTR22*
+static const int LG_ENCODING_WINDOWS_852 = 56; // WINDOWS*
 
 // ibm-855_P100-1995
-static const int LG_CHAR_BYTE_855 = 57; // IANA
-static const int LG_CHAR_BYTE_IBM855 = 57; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP855 = 57; // IANA JAVA*
-static const int LG_CHAR_BYTE_CSIBM855 = 57; // IANA
-static const int LG_CHAR_BYTE_CSPCP855 = 57; // JAVA
-static const int LG_CHAR_BYTE_IBM_855 = 57; // IBM*
-static const int LG_CHAR_BYTE_IBM_855_P100_1995 = 57; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_855 = 57; // WINDOWS*
+static const int LG_ENCODING_855 = 57; // IANA
+static const int LG_ENCODING_IBM855 = 57; // IANA* JAVA
+static const int LG_ENCODING_CP855 = 57; // IANA JAVA*
+static const int LG_ENCODING_CSIBM855 = 57; // IANA
+static const int LG_ENCODING_CSPCP855 = 57; // JAVA
+static const int LG_ENCODING_IBM_855 = 57; // IBM*
+static const int LG_ENCODING_IBM_855_P100_1995 = 57; // UTR22*
+static const int LG_ENCODING_WINDOWS_855 = 57; // WINDOWS*
 
 // ibm-856_P100-1995
-static const int LG_CHAR_BYTE_856 = 58; // JAVA
-static const int LG_CHAR_BYTE_IBM856 = 58; // JAVA
-static const int LG_CHAR_BYTE_CP856 = 58; // JAVA*
-static const int LG_CHAR_BYTE_IBM_856 = 58; // IBM*
-static const int LG_CHAR_BYTE_IBM_856_P100_1995 = 58; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM856 = 58; // JAVA
+static const int LG_ENCODING_856 = 58; // JAVA
+static const int LG_ENCODING_IBM856 = 58; // JAVA
+static const int LG_ENCODING_CP856 = 58; // JAVA*
+static const int LG_ENCODING_IBM_856 = 58; // IBM*
+static const int LG_ENCODING_IBM_856_P100_1995 = 58; // UTR22*
+static const int LG_ENCODING_X_IBM856 = 58; // JAVA
 
 // ibm-857_P100-1995
-static const int LG_CHAR_BYTE_857 = 59; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM857 = 59; // IANA* MIME* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP857 = 59; // IANA MIME JAVA*
-static const int LG_CHAR_BYTE_CSIBM857 = 59; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_857 = 59; // IBM*
-static const int LG_CHAR_BYTE_IBM_857_P100_1995 = 59; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_857 = 59; // WINDOWS*
+static const int LG_ENCODING_857 = 59; // IANA JAVA
+static const int LG_ENCODING_IBM857 = 59; // IANA* MIME* WINDOWS JAVA
+static const int LG_ENCODING_CP857 = 59; // IANA MIME JAVA*
+static const int LG_ENCODING_CSIBM857 = 59; // IANA JAVA
+static const int LG_ENCODING_IBM_857 = 59; // IBM*
+static const int LG_ENCODING_IBM_857_P100_1995 = 59; // UTR22*
+static const int LG_ENCODING_WINDOWS_857 = 59; // WINDOWS*
 
 // ibm-858_P100-1997
-static const int LG_CHAR_BYTE_CCSID00858 = 60; // IANA JAVA
-static const int LG_CHAR_BYTE_CP00858 = 60; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM00858 = 60; // IANA* MIME* JAVA
-static const int LG_CHAR_BYTE_PC_MULTILINGUAL_850_EURO = 60; // IANA
-static const int LG_CHAR_BYTE_CP858 = 60; // MIME JAVA*
-static const int LG_CHAR_BYTE_IBM_858 = 60; // IBM*
-static const int LG_CHAR_BYTE_IBM_858_P100_1997 = 60; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_858 = 60; // WINDOWS*
+static const int LG_ENCODING_CCSID00858 = 60; // IANA JAVA
+static const int LG_ENCODING_CP00858 = 60; // IANA JAVA
+static const int LG_ENCODING_IBM00858 = 60; // IANA* MIME* JAVA
+static const int LG_ENCODING_PC_MULTILINGUAL_850_EURO = 60; // IANA
+static const int LG_ENCODING_CP858 = 60; // MIME JAVA*
+static const int LG_ENCODING_IBM_858 = 60; // IBM*
+static const int LG_ENCODING_IBM_858_P100_1997 = 60; // UTR22*
+static const int LG_ENCODING_WINDOWS_858 = 60; // WINDOWS*
 
 // ibm-860_P100-1995
-static const int LG_CHAR_BYTE_860 = 61; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM860 = 61; // IANA* MIME* JAVA
-static const int LG_CHAR_BYTE_CP860 = 61; // IANA MIME JAVA*
-static const int LG_CHAR_BYTE_CSIBM860 = 61; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_860 = 61; // IBM*
-static const int LG_CHAR_BYTE_IBM_860_P100_1995 = 61; // UTR22*
+static const int LG_ENCODING_860 = 61; // IANA JAVA
+static const int LG_ENCODING_IBM860 = 61; // IANA* MIME* JAVA
+static const int LG_ENCODING_CP860 = 61; // IANA MIME JAVA*
+static const int LG_ENCODING_CSIBM860 = 61; // IANA JAVA
+static const int LG_ENCODING_IBM_860 = 61; // IBM*
+static const int LG_ENCODING_IBM_860_P100_1995 = 61; // UTR22*
 
 // ibm-861_P100-1995
-static const int LG_CHAR_BYTE_861 = 62; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM861 = 62; // IANA* MIME* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP_IS = 62; // IANA JAVA
-static const int LG_CHAR_BYTE_CP861 = 62; // IANA MIME JAVA*
-static const int LG_CHAR_BYTE_CSIBM861 = 62; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_861 = 62; // IBM*
-static const int LG_CHAR_BYTE_IBM_861_P100_1995 = 62; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_861 = 62; // WINDOWS*
+static const int LG_ENCODING_861 = 62; // IANA JAVA
+static const int LG_ENCODING_IBM861 = 62; // IANA* MIME* WINDOWS JAVA
+static const int LG_ENCODING_CP_IS = 62; // IANA JAVA
+static const int LG_ENCODING_CP861 = 62; // IANA MIME JAVA*
+static const int LG_ENCODING_CSIBM861 = 62; // IANA JAVA
+static const int LG_ENCODING_IBM_861 = 62; // IBM*
+static const int LG_ENCODING_IBM_861_P100_1995 = 62; // UTR22*
+static const int LG_ENCODING_WINDOWS_861 = 62; // WINDOWS*
 
 // ibm-862_P100-1995
-static const int LG_CHAR_BYTE_862 = 63; // IANA JAVA
-static const int LG_CHAR_BYTE_DOS_862 = 63; // WINDOWS
-static const int LG_CHAR_BYTE_IBM862 = 63; // IANA* MIME* JAVA
-static const int LG_CHAR_BYTE_CP862 = 63; // IANA MIME JAVA*
-static const int LG_CHAR_BYTE_CSPC862LATINHEBREW = 63; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_862 = 63; // IBM*
-static const int LG_CHAR_BYTE_IBM_862_P100_1995 = 63; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_862 = 63; // WINDOWS*
+static const int LG_ENCODING_862 = 63; // IANA JAVA
+static const int LG_ENCODING_DOS_862 = 63; // WINDOWS
+static const int LG_ENCODING_IBM862 = 63; // IANA* MIME* JAVA
+static const int LG_ENCODING_CP862 = 63; // IANA MIME JAVA*
+static const int LG_ENCODING_CSPC862LATINHEBREW = 63; // IANA JAVA
+static const int LG_ENCODING_IBM_862 = 63; // IBM*
+static const int LG_ENCODING_IBM_862_P100_1995 = 63; // UTR22*
+static const int LG_ENCODING_WINDOWS_862 = 63; // WINDOWS*
 
 // ibm-863_P100-1995
-static const int LG_CHAR_BYTE_863 = 64; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM863 = 64; // IANA* MIME* JAVA
-static const int LG_CHAR_BYTE_CP863 = 64; // IANA MIME JAVA*
-static const int LG_CHAR_BYTE_CSIBM863 = 64; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_863 = 64; // IBM*
-static const int LG_CHAR_BYTE_IBM_863_P100_1995 = 64; // UTR22*
+static const int LG_ENCODING_863 = 64; // IANA JAVA
+static const int LG_ENCODING_IBM863 = 64; // IANA* MIME* JAVA
+static const int LG_ENCODING_CP863 = 64; // IANA MIME JAVA*
+static const int LG_ENCODING_CSIBM863 = 64; // IANA JAVA
+static const int LG_ENCODING_IBM_863 = 64; // IBM*
+static const int LG_ENCODING_IBM_863_P100_1995 = 64; // UTR22*
 
 // ibm-864_X110-1999
-static const int LG_CHAR_BYTE_IBM864 = 65; // IANA* MIME* JAVA
-static const int LG_CHAR_BYTE_CP864 = 65; // IANA MIME JAVA*
-static const int LG_CHAR_BYTE_CSIBM864 = 65; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_864 = 65; // IBM*
-static const int LG_CHAR_BYTE_IBM_864_X110_1999 = 65; // UTR22*
+static const int LG_ENCODING_IBM864 = 65; // IANA* MIME* JAVA
+static const int LG_ENCODING_CP864 = 65; // IANA MIME JAVA*
+static const int LG_ENCODING_CSIBM864 = 65; // IANA JAVA
+static const int LG_ENCODING_IBM_864 = 65; // IBM*
+static const int LG_ENCODING_IBM_864_X110_1999 = 65; // UTR22*
 
 // ibm-865_P100-1995
-static const int LG_CHAR_BYTE_865 = 66; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM865 = 66; // IANA* MIME* JAVA
-static const int LG_CHAR_BYTE_CP865 = 66; // IANA MIME JAVA*
-static const int LG_CHAR_BYTE_CSIBM865 = 66; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_865 = 66; // IBM*
-static const int LG_CHAR_BYTE_IBM_865_P100_1995 = 66; // UTR22*
+static const int LG_ENCODING_865 = 66; // IANA JAVA
+static const int LG_ENCODING_IBM865 = 66; // IANA* MIME* JAVA
+static const int LG_ENCODING_CP865 = 66; // IANA MIME JAVA*
+static const int LG_ENCODING_CSIBM865 = 66; // IANA JAVA
+static const int LG_ENCODING_IBM_865 = 66; // IBM*
+static const int LG_ENCODING_IBM_865_P100_1995 = 66; // UTR22*
 
 // ibm-866_P100-1995
-static const int LG_CHAR_BYTE_866 = 67; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM866 = 67; // IANA* MIME* JAVA
-static const int LG_CHAR_BYTE_CP866 = 67; // IANA MIME WINDOWS JAVA*
-static const int LG_CHAR_BYTE_CSIBM866 = 67; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_866 = 67; // IBM*
-static const int LG_CHAR_BYTE_IBM_866_P100_1995 = 67; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_866 = 67; // WINDOWS*
+static const int LG_ENCODING_866 = 67; // IANA JAVA
+static const int LG_ENCODING_IBM866 = 67; // IANA* MIME* JAVA
+static const int LG_ENCODING_CP866 = 67; // IANA MIME WINDOWS JAVA*
+static const int LG_ENCODING_CSIBM866 = 67; // IANA JAVA
+static const int LG_ENCODING_IBM_866 = 67; // IBM*
+static const int LG_ENCODING_IBM_866_P100_1995 = 67; // UTR22*
+static const int LG_ENCODING_WINDOWS_866 = 67; // WINDOWS*
 
 // ibm-867_P100-1998
-static const int LG_CHAR_BYTE_IBM_867 = 68; // IBM*
-static const int LG_CHAR_BYTE_IBM_867_P100_1998 = 68; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM867 = 68; // JAVA*
+static const int LG_ENCODING_IBM_867 = 68; // IBM*
+static const int LG_ENCODING_IBM_867_P100_1998 = 68; // UTR22*
+static const int LG_ENCODING_X_IBM867 = 68; // JAVA*
 
 // ibm-868_P100-1995
-static const int LG_CHAR_BYTE_868 = 69; // JAVA
-static const int LG_CHAR_BYTE_CP868 = 69; // IANA MIME JAVA*
-static const int LG_CHAR_BYTE_IBM868 = 69; // IANA* MIME* JAVA
-static const int LG_CHAR_BYTE_CP_AR = 69; // IANA
-static const int LG_CHAR_BYTE_CSIBM868 = 69; // IANA
-static const int LG_CHAR_BYTE_IBM_868 = 69; // IBM*
-static const int LG_CHAR_BYTE_IBM_868_P100_1995 = 69; // UTR22*
+static const int LG_ENCODING_868 = 69; // JAVA
+static const int LG_ENCODING_CP868 = 69; // IANA MIME JAVA*
+static const int LG_ENCODING_IBM868 = 69; // IANA* MIME* JAVA
+static const int LG_ENCODING_CP_AR = 69; // IANA
+static const int LG_ENCODING_CSIBM868 = 69; // IANA
+static const int LG_ENCODING_IBM_868 = 69; // IBM*
+static const int LG_ENCODING_IBM_868_P100_1995 = 69; // UTR22*
 
 // ibm-869_P100-1995
-static const int LG_CHAR_BYTE_869 = 70; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM869 = 70; // IANA* MIME* WINDOWS JAVA
-static const int LG_CHAR_BYTE_CP_GR = 70; // IANA JAVA
-static const int LG_CHAR_BYTE_CP869 = 70; // IANA MIME JAVA*
-static const int LG_CHAR_BYTE_CSIBM869 = 70; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_869 = 70; // IBM*
-static const int LG_CHAR_BYTE_IBM_869_P100_1995 = 70; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_869 = 70; // WINDOWS*
+static const int LG_ENCODING_869 = 70; // IANA JAVA
+static const int LG_ENCODING_IBM869 = 70; // IANA* MIME* WINDOWS JAVA
+static const int LG_ENCODING_CP_GR = 70; // IANA JAVA
+static const int LG_ENCODING_CP869 = 70; // IANA MIME JAVA*
+static const int LG_ENCODING_CSIBM869 = 70; // IANA JAVA
+static const int LG_ENCODING_IBM_869 = 70; // IBM*
+static const int LG_ENCODING_IBM_869_P100_1995 = 70; // UTR22*
+static const int LG_ENCODING_WINDOWS_869 = 70; // WINDOWS*
 
 // ibm-878_P100-1996
-static const int LG_CHAR_BYTE_KOI8_R = 71; // IANA* MIME* WINDOWS JAVA*
-static const int LG_CHAR_BYTE_CP878 = 71;
-static const int LG_CHAR_BYTE_CSKOI8R = 71; // IANA WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM_878 = 71; // IBM*
-static const int LG_CHAR_BYTE_IBM_878_P100_1996 = 71; // UTR22*
-static const int LG_CHAR_BYTE_KOI8 = 71; // WINDOWS JAVA
-static const int LG_CHAR_BYTE_WINDOWS_20866 = 71; // WINDOWS*
+static const int LG_ENCODING_KOI8_R = 71; // IANA* MIME* WINDOWS JAVA*
+static const int LG_ENCODING_CP878 = 71;
+static const int LG_ENCODING_CSKOI8R = 71; // IANA WINDOWS JAVA
+static const int LG_ENCODING_IBM_878 = 71; // IBM*
+static const int LG_ENCODING_IBM_878_P100_1996 = 71; // UTR22*
+static const int LG_ENCODING_KOI8 = 71; // WINDOWS JAVA
+static const int LG_ENCODING_WINDOWS_20866 = 71; // WINDOWS*
 
 // ibm-901_P100-1999
-static const int LG_CHAR_BYTE_IBM_901 = 72; // IBM*
-static const int LG_CHAR_BYTE_IBM_901_P100_1999 = 72; // UTR22*
+static const int LG_ENCODING_IBM_901 = 72; // IBM*
+static const int LG_ENCODING_IBM_901_P100_1999 = 72; // UTR22*
 
 // ibm-902_P100-1999
-static const int LG_CHAR_BYTE_IBM_902 = 73; // IBM*
-static const int LG_CHAR_BYTE_IBM_902_P100_1999 = 73; // UTR22*
+static const int LG_ENCODING_IBM_902 = 73; // IBM*
+static const int LG_ENCODING_IBM_902_P100_1999 = 73; // UTR22*
 
 // ibm-922_P100-1999
-static const int LG_CHAR_BYTE_922 = 74; // JAVA
-static const int LG_CHAR_BYTE_IBM922 = 74; // JAVA
-static const int LG_CHAR_BYTE_CP922 = 74; // JAVA*
-static const int LG_CHAR_BYTE_IBM_922 = 74; // IBM*
-static const int LG_CHAR_BYTE_IBM_922_P100_1999 = 74; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM922 = 74; // JAVA
+static const int LG_ENCODING_922 = 74; // JAVA
+static const int LG_ENCODING_IBM922 = 74; // JAVA
+static const int LG_ENCODING_CP922 = 74; // JAVA*
+static const int LG_ENCODING_IBM_922 = 74; // IBM*
+static const int LG_ENCODING_IBM_922_P100_1999 = 74; // UTR22*
+static const int LG_ENCODING_X_IBM922 = 74; // JAVA
 
 // ibm-1168_P100-2002
-static const int LG_CHAR_BYTE_KOI8_U = 75; // IANA* WINDOWS
-static const int LG_CHAR_BYTE_IBM_1168 = 75; // IBM*
-static const int LG_CHAR_BYTE_IBM_1168_P100_2002 = 75; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_21866 = 75; // WINDOWS*
+static const int LG_ENCODING_KOI8_U = 75; // IANA* WINDOWS
+static const int LG_ENCODING_IBM_1168 = 75; // IBM*
+static const int LG_ENCODING_IBM_1168_P100_2002 = 75; // UTR22*
+static const int LG_ENCODING_WINDOWS_21866 = 75; // WINDOWS*
 
 // ibm-4909_P100-1999
-static const int LG_CHAR_BYTE_IBM_4909 = 76; // IBM*
-static const int LG_CHAR_BYTE_IBM_4909_P100_1999 = 76; // UTR22*
+static const int LG_ENCODING_IBM_4909 = 76; // IBM*
+static const int LG_ENCODING_IBM_4909_P100_1999 = 76; // UTR22*
 
 // ibm-5346_P100-1998
-static const int LG_CHAR_BYTE_CP1250 = 77; // WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM_5346 = 77; // IBM*
-static const int LG_CHAR_BYTE_IBM_5346_P100_1998 = 77; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_1250 = 77; // IANA* WINDOWS* JAVA*
+static const int LG_ENCODING_CP1250 = 77; // WINDOWS JAVA
+static const int LG_ENCODING_IBM_5346 = 77; // IBM*
+static const int LG_ENCODING_IBM_5346_P100_1998 = 77; // UTR22*
+static const int LG_ENCODING_WINDOWS_1250 = 77; // IANA* WINDOWS* JAVA*
 
 // ibm-5347_P100-1998
-static const int LG_CHAR_BYTE_ANSI1251 = 78;
-static const int LG_CHAR_BYTE_CP1251 = 78; // WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM_5347 = 78; // IBM*
-static const int LG_CHAR_BYTE_IBM_5347_P100_1998 = 78; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_1251 = 78; // IANA* WINDOWS* JAVA*
+static const int LG_ENCODING_ANSI1251 = 78;
+static const int LG_ENCODING_CP1251 = 78; // WINDOWS JAVA
+static const int LG_ENCODING_IBM_5347 = 78; // IBM*
+static const int LG_ENCODING_IBM_5347_P100_1998 = 78; // UTR22*
+static const int LG_ENCODING_WINDOWS_1251 = 78; // IANA* WINDOWS* JAVA*
 
 // ibm-5348_P100-1997
-static const int LG_CHAR_BYTE_CP1252 = 79; // JAVA
-static const int LG_CHAR_BYTE_IBM_5348 = 79; // IBM*
-static const int LG_CHAR_BYTE_IBM_5348_P100_1997 = 79; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_1252 = 79; // IANA* WINDOWS* JAVA*
+static const int LG_ENCODING_CP1252 = 79; // JAVA
+static const int LG_ENCODING_IBM_5348 = 79; // IBM*
+static const int LG_ENCODING_IBM_5348_P100_1997 = 79; // UTR22*
+static const int LG_ENCODING_WINDOWS_1252 = 79; // IANA* WINDOWS* JAVA*
 
 // ibm-5349_P100-1998
-static const int LG_CHAR_BYTE_CP1253 = 80; // JAVA
-static const int LG_CHAR_BYTE_IBM_5349 = 80; // IBM*
-static const int LG_CHAR_BYTE_IBM_5349_P100_1998 = 80; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_1253 = 80; // IANA* WINDOWS* JAVA*
+static const int LG_ENCODING_CP1253 = 80; // JAVA
+static const int LG_ENCODING_IBM_5349 = 80; // IBM*
+static const int LG_ENCODING_IBM_5349_P100_1998 = 80; // UTR22*
+static const int LG_ENCODING_WINDOWS_1253 = 80; // IANA* WINDOWS* JAVA*
 
 // ibm-5350_P100-1998
-static const int LG_CHAR_BYTE_CP1254 = 81; // JAVA
-static const int LG_CHAR_BYTE_IBM_5350 = 81; // IBM*
-static const int LG_CHAR_BYTE_IBM_5350_P100_1998 = 81; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_1254 = 81; // IANA* WINDOWS* JAVA*
+static const int LG_ENCODING_CP1254 = 81; // JAVA
+static const int LG_ENCODING_IBM_5350 = 81; // IBM*
+static const int LG_ENCODING_IBM_5350_P100_1998 = 81; // UTR22*
+static const int LG_ENCODING_WINDOWS_1254 = 81; // IANA* WINDOWS* JAVA*
 
 // ibm-9447_P100-2002
-static const int LG_CHAR_BYTE_CP1255 = 82; // JAVA
-static const int LG_CHAR_BYTE_IBM_9447 = 82; // IBM*
-static const int LG_CHAR_BYTE_IBM_9447_P100_2002 = 82; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_1255 = 82; // IANA* WINDOWS* JAVA*
+static const int LG_ENCODING_CP1255 = 82; // JAVA
+static const int LG_ENCODING_IBM_9447 = 82; // IBM*
+static const int LG_ENCODING_IBM_9447_P100_2002 = 82; // UTR22*
+static const int LG_ENCODING_WINDOWS_1255 = 82; // IANA* WINDOWS* JAVA*
 
 // ibm-9448_X100-2005
-static const int LG_CHAR_BYTE_CP1256 = 83; // WINDOWS JAVA
-static const int LG_CHAR_BYTE_IBM_9448 = 83; // IBM*
-static const int LG_CHAR_BYTE_IBM_9448_X100_2005 = 83; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_1256 = 83; // IANA* WINDOWS* JAVA*
-static const int LG_CHAR_BYTE_X_WINDOWS_1256S = 83; // JAVA
+static const int LG_ENCODING_CP1256 = 83; // WINDOWS JAVA
+static const int LG_ENCODING_IBM_9448 = 83; // IBM*
+static const int LG_ENCODING_IBM_9448_X100_2005 = 83; // UTR22*
+static const int LG_ENCODING_WINDOWS_1256 = 83; // IANA* WINDOWS* JAVA*
+static const int LG_ENCODING_X_WINDOWS_1256S = 83; // JAVA
 
 // ibm-9449_P100-2002
-static const int LG_CHAR_BYTE_CP1257 = 84; // JAVA
-static const int LG_CHAR_BYTE_IBM_9449 = 84; // IBM*
-static const int LG_CHAR_BYTE_IBM_9449_P100_2002 = 84; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_1257 = 84; // IANA* WINDOWS* JAVA*
+static const int LG_ENCODING_CP1257 = 84; // JAVA
+static const int LG_ENCODING_IBM_9449 = 84; // IBM*
+static const int LG_ENCODING_IBM_9449_P100_2002 = 84; // UTR22*
+static const int LG_ENCODING_WINDOWS_1257 = 84; // IANA* WINDOWS* JAVA*
 
 // ibm-5354_P100-1998
-static const int LG_CHAR_BYTE_CP1258 = 85; // JAVA
-static const int LG_CHAR_BYTE_IBM_5354 = 85; // IBM*
-static const int LG_CHAR_BYTE_IBM_5354_P100_1998 = 85; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_1258 = 85; // IANA* WINDOWS* JAVA*
+static const int LG_ENCODING_CP1258 = 85; // JAVA
+static const int LG_ENCODING_IBM_5354 = 85; // IBM*
+static const int LG_ENCODING_IBM_5354_P100_1998 = 85; // UTR22*
+static const int LG_ENCODING_WINDOWS_1258 = 85; // IANA* WINDOWS* JAVA*
 
 // ibm-1250_P100-1995
-static const int LG_CHAR_BYTE_IBM_1250 = 86; // IBM*
-static const int LG_CHAR_BYTE_IBM_1250_P100_1995 = 86; // UTR22*
+static const int LG_ENCODING_IBM_1250 = 86; // IBM*
+static const int LG_ENCODING_IBM_1250_P100_1995 = 86; // UTR22*
 
 // ibm-1251_P100-1995
-static const int LG_CHAR_BYTE_IBM_1251 = 87; // IBM*
-static const int LG_CHAR_BYTE_IBM_1251_P100_1995 = 87; // UTR22*
+static const int LG_ENCODING_IBM_1251 = 87; // IBM*
+static const int LG_ENCODING_IBM_1251_P100_1995 = 87; // UTR22*
 
 // ibm-1252_P100-2000
-static const int LG_CHAR_BYTE_IBM_1252 = 88; // IBM*
-static const int LG_CHAR_BYTE_IBM_1252_P100_2000 = 88; // UTR22*
+static const int LG_ENCODING_IBM_1252 = 88; // IBM*
+static const int LG_ENCODING_IBM_1252_P100_2000 = 88; // UTR22*
 
 // ibm-1253_P100-1995
-static const int LG_CHAR_BYTE_IBM_1253 = 89; // IBM*
-static const int LG_CHAR_BYTE_IBM_1253_P100_1995 = 89; // UTR22*
+static const int LG_ENCODING_IBM_1253 = 89; // IBM*
+static const int LG_ENCODING_IBM_1253_P100_1995 = 89; // UTR22*
 
 // ibm-1254_P100-1995
-static const int LG_CHAR_BYTE_IBM_1254 = 90; // IBM*
-static const int LG_CHAR_BYTE_IBM_1254_P100_1995 = 90; // UTR22*
+static const int LG_ENCODING_IBM_1254 = 90; // IBM*
+static const int LG_ENCODING_IBM_1254_P100_1995 = 90; // UTR22*
 
 // ibm-1255_P100-1995
-static const int LG_CHAR_BYTE_IBM_1255 = 91; // IBM*
-static const int LG_CHAR_BYTE_IBM_1255_P100_1995 = 91; // UTR22*
+static const int LG_ENCODING_IBM_1255 = 91; // IBM*
+static const int LG_ENCODING_IBM_1255_P100_1995 = 91; // UTR22*
 
 // ibm-5351_P100-1998
-static const int LG_CHAR_BYTE_IBM_5351 = 92; // IBM*
-static const int LG_CHAR_BYTE_IBM_5351_P100_1998 = 92; // UTR22*
+static const int LG_ENCODING_IBM_5351 = 92; // IBM*
+static const int LG_ENCODING_IBM_5351_P100_1998 = 92; // UTR22*
 
 // ibm-1256_P110-1997
-static const int LG_CHAR_BYTE_IBM_1256 = 93; // IBM*
-static const int LG_CHAR_BYTE_IBM_1256_P110_1997 = 93; // UTR22*
+static const int LG_ENCODING_IBM_1256 = 93; // IBM*
+static const int LG_ENCODING_IBM_1256_P110_1997 = 93; // UTR22*
 
 // ibm-5352_P100-1998
-static const int LG_CHAR_BYTE_IBM_5352 = 94; // IBM*
-static const int LG_CHAR_BYTE_IBM_5352_P100_1998 = 94; // UTR22*
+static const int LG_ENCODING_IBM_5352 = 94; // IBM*
+static const int LG_ENCODING_IBM_5352_P100_1998 = 94; // UTR22*
 
 // ibm-1257_P100-1995
-static const int LG_CHAR_BYTE_IBM_1257 = 95; // IBM*
-static const int LG_CHAR_BYTE_IBM_1257_P100_1995 = 95; // UTR22*
+static const int LG_ENCODING_IBM_1257 = 95; // IBM*
+static const int LG_ENCODING_IBM_1257_P100_1995 = 95; // UTR22*
 
 // ibm-5353_P100-1998
-static const int LG_CHAR_BYTE_IBM_5353 = 96; // IBM*
-static const int LG_CHAR_BYTE_IBM_5353_P100_1998 = 96; // UTR22*
+static const int LG_ENCODING_IBM_5353 = 96; // IBM*
+static const int LG_ENCODING_IBM_5353_P100_1998 = 96; // UTR22*
 
 // ibm-1258_P100-1997
-static const int LG_CHAR_BYTE_IBM_1258 = 97; // IBM*
-static const int LG_CHAR_BYTE_IBM_1258_P100_1997 = 97; // UTR22*
+static const int LG_ENCODING_IBM_1258 = 97; // IBM*
+static const int LG_ENCODING_IBM_1258_P100_1997 = 97; // UTR22*
 
 // macos-0_2-10.2
-static const int LG_CHAR_BYTE_CSMACINTOSH = 98; // IANA
-static const int LG_CHAR_BYTE_MAC = 98; // IANA
-static const int LG_CHAR_BYTE_MACINTOSH = 98; // IANA* MIME* WINDOWS
-static const int LG_CHAR_BYTE_MACOS_0_2_10_2 = 98; // UTR22*
-static const int LG_CHAR_BYTE_MACROMAN = 98; // JAVA
-static const int LG_CHAR_BYTE_WINDOWS_10000 = 98; // WINDOWS*
-static const int LG_CHAR_BYTE_X_MACROMAN = 98; // JAVA*
+static const int LG_ENCODING_CSMACINTOSH = 98; // IANA
+static const int LG_ENCODING_MAC = 98; // IANA
+static const int LG_ENCODING_MACINTOSH = 98; // IANA* MIME* WINDOWS
+static const int LG_ENCODING_MACOS_0_2_10_2 = 98; // UTR22*
+static const int LG_ENCODING_MACROMAN = 98; // JAVA
+static const int LG_ENCODING_WINDOWS_10000 = 98; // WINDOWS*
+static const int LG_ENCODING_X_MACROMAN = 98; // JAVA*
 
 // macos-6_2-10.4
-static const int LG_CHAR_BYTE_MACGR = 99;
-static const int LG_CHAR_BYTE_MACOS_6_2_10_4 = 99; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_10006 = 99; // WINDOWS*
-static const int LG_CHAR_BYTE_X_MACGREEK = 99; // JAVA*
-static const int LG_CHAR_BYTE_X_MAC_GREEK = 99; // MIME* WINDOWS
+static const int LG_ENCODING_MACGR = 99;
+static const int LG_ENCODING_MACOS_6_2_10_4 = 99; // UTR22*
+static const int LG_ENCODING_WINDOWS_10006 = 99; // WINDOWS*
+static const int LG_ENCODING_X_MACGREEK = 99; // JAVA*
+static const int LG_ENCODING_X_MAC_GREEK = 99; // MIME* WINDOWS
 
 // macos-7_3-10.2
-static const int LG_CHAR_BYTE_MAC_CYRILLIC = 100;
-static const int LG_CHAR_BYTE_MACCY = 100;
-static const int LG_CHAR_BYTE_MACOS_7_3_10_2 = 100; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_10007 = 100; // WINDOWS*
-static const int LG_CHAR_BYTE_X_MACCYRILLIC = 100; // JAVA
-static const int LG_CHAR_BYTE_X_MACUKRAINE = 100; // JAVA*
-static const int LG_CHAR_BYTE_X_MAC_CYRILLIC = 100; // MIME* WINDOWS
+static const int LG_ENCODING_MAC_CYRILLIC = 100;
+static const int LG_ENCODING_MACCY = 100;
+static const int LG_ENCODING_MACOS_7_3_10_2 = 100; // UTR22*
+static const int LG_ENCODING_WINDOWS_10007 = 100; // WINDOWS*
+static const int LG_ENCODING_X_MACCYRILLIC = 100; // JAVA
+static const int LG_ENCODING_X_MACUKRAINE = 100; // JAVA*
+static const int LG_ENCODING_X_MAC_CYRILLIC = 100; // MIME* WINDOWS
 
 // macos-29-10.2
-static const int LG_CHAR_BYTE_MACCE = 101;
-static const int LG_CHAR_BYTE_MACCENTRALEUROPE = 101;
-static const int LG_CHAR_BYTE_MACOS_29_10_2 = 101; // UTR22*
-static const int LG_CHAR_BYTE_WINDOWS_10029 = 101; // WINDOWS*
-static const int LG_CHAR_BYTE_X_MACCENTRALEUROPE = 101; // JAVA*
-static const int LG_CHAR_BYTE_X_MAC_CE = 101; // WINDOWS
-static const int LG_CHAR_BYTE_X_MAC_CENTRALEURROMAN = 101; // MIME*
+static const int LG_ENCODING_MACCE = 101;
+static const int LG_ENCODING_MACCENTRALEUROPE = 101;
+static const int LG_ENCODING_MACOS_29_10_2 = 101; // UTR22*
+static const int LG_ENCODING_WINDOWS_10029 = 101; // WINDOWS*
+static const int LG_ENCODING_X_MACCENTRALEUROPE = 101; // JAVA*
+static const int LG_ENCODING_X_MAC_CE = 101; // WINDOWS
+static const int LG_ENCODING_X_MAC_CENTRALEURROMAN = 101; // MIME*
 
 // macos-35-10.2
-static const int LG_CHAR_BYTE_MACOS_35_10_2 = 102; // UTR22*
-static const int LG_CHAR_BYTE_MACTR = 102;
-static const int LG_CHAR_BYTE_WINDOWS_10081 = 102; // WINDOWS*
-static const int LG_CHAR_BYTE_X_MACTURKISH = 102; // JAVA*
-static const int LG_CHAR_BYTE_X_MAC_TURKISH = 102; // MIME* WINDOWS
+static const int LG_ENCODING_MACOS_35_10_2 = 102; // UTR22*
+static const int LG_ENCODING_MACTR = 102;
+static const int LG_ENCODING_WINDOWS_10081 = 102; // WINDOWS*
+static const int LG_ENCODING_X_MACTURKISH = 102; // JAVA*
+static const int LG_ENCODING_X_MAC_TURKISH = 102; // MIME* WINDOWS
 
 // ibm-1051_P100-1995
-static const int LG_CHAR_BYTE_CSHPROMAN8 = 103; // IANA
-static const int LG_CHAR_BYTE_HP_ROMAN8 = 103; // IANA*
-static const int LG_CHAR_BYTE_IBM_1051 = 103; // IBM*
-static const int LG_CHAR_BYTE_IBM_1051_P100_1995 = 103; // UTR22*
-static const int LG_CHAR_BYTE_R8 = 103; // IANA
-static const int LG_CHAR_BYTE_ROMAN8 = 103; // IANA
-static const int LG_CHAR_BYTE_X_ROMAN8 = 103;
+static const int LG_ENCODING_CSHPROMAN8 = 103; // IANA
+static const int LG_ENCODING_HP_ROMAN8 = 103; // IANA*
+static const int LG_ENCODING_IBM_1051 = 103; // IBM*
+static const int LG_ENCODING_IBM_1051_P100_1995 = 103; // UTR22*
+static const int LG_ENCODING_R8 = 103; // IANA
+static const int LG_ENCODING_ROMAN8 = 103; // IANA
+static const int LG_ENCODING_X_ROMAN8 = 103;
 
 // ibm-1276_P100-1995
-static const int LG_CHAR_BYTE_ADOBE_STANDARD_ENCODING = 104; // IANA*
-static const int LG_CHAR_BYTE_CSADOBESTANDARDENCODING = 104; // IANA
-static const int LG_CHAR_BYTE_IBM_1276 = 104; // IBM*
-static const int LG_CHAR_BYTE_IBM_1276_P100_1995 = 104; // UTR22*
+static const int LG_ENCODING_ADOBE_STANDARD_ENCODING = 104; // IANA*
+static const int LG_ENCODING_CSADOBESTANDARDENCODING = 104; // IANA
+static const int LG_ENCODING_IBM_1276 = 104; // IBM*
+static const int LG_ENCODING_IBM_1276_P100_1995 = 104; // UTR22*
 
 // ibm-1006_P100-1995
-static const int LG_CHAR_BYTE_1006 = 105; // JAVA
-static const int LG_CHAR_BYTE_IBM1006 = 105; // JAVA
-static const int LG_CHAR_BYTE_CP1006 = 105; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1006 = 105; // IBM*
-static const int LG_CHAR_BYTE_IBM_1006_P100_1995 = 105; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM1006 = 105; // JAVA
+static const int LG_ENCODING_1006 = 105; // JAVA
+static const int LG_ENCODING_IBM1006 = 105; // JAVA
+static const int LG_ENCODING_CP1006 = 105; // JAVA*
+static const int LG_ENCODING_IBM_1006 = 105; // IBM*
+static const int LG_ENCODING_IBM_1006_P100_1995 = 105; // UTR22*
+static const int LG_ENCODING_X_IBM1006 = 105; // JAVA
 
 // ibm-1098_P100-1995
-static const int LG_CHAR_BYTE_1098 = 106; // JAVA
-static const int LG_CHAR_BYTE_IBM1098 = 106; // JAVA
-static const int LG_CHAR_BYTE_CP1098 = 106; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1098 = 106; // IBM*
-static const int LG_CHAR_BYTE_IBM_1098_P100_1995 = 106; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM1098 = 106; // JAVA
+static const int LG_ENCODING_1098 = 106; // JAVA
+static const int LG_ENCODING_IBM1098 = 106; // JAVA
+static const int LG_ENCODING_CP1098 = 106; // JAVA*
+static const int LG_ENCODING_IBM_1098 = 106; // IBM*
+static const int LG_ENCODING_IBM_1098_P100_1995 = 106; // UTR22*
+static const int LG_ENCODING_X_IBM1098 = 106; // JAVA
 
 // ibm-1124_P100-1996
-static const int LG_CHAR_BYTE_1124 = 107; // JAVA
-static const int LG_CHAR_BYTE_CP1124 = 107; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1124 = 107; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_1124_P100_1996 = 107; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM1124 = 107; // JAVA
+static const int LG_ENCODING_1124 = 107; // JAVA
+static const int LG_ENCODING_CP1124 = 107; // JAVA*
+static const int LG_ENCODING_IBM_1124 = 107; // IBM* JAVA
+static const int LG_ENCODING_IBM_1124_P100_1996 = 107; // UTR22*
+static const int LG_ENCODING_X_IBM1124 = 107; // JAVA
 
 // ibm-1125_P100-1997
-static const int LG_CHAR_BYTE_CP1125 = 108;
-static const int LG_CHAR_BYTE_IBM_1125 = 108; // IBM*
-static const int LG_CHAR_BYTE_IBM_1125_P100_1997 = 108; // UTR22*
+static const int LG_ENCODING_CP1125 = 108;
+static const int LG_ENCODING_IBM_1125 = 108; // IBM*
+static const int LG_ENCODING_IBM_1125_P100_1997 = 108; // UTR22*
 
 // ibm-1129_P100-1997
-static const int LG_CHAR_BYTE_IBM_1129 = 109; // IBM*
-static const int LG_CHAR_BYTE_IBM_1129_P100_1997 = 109; // UTR22*
+static const int LG_ENCODING_IBM_1129 = 109; // IBM*
+static const int LG_ENCODING_IBM_1129_P100_1997 = 109; // UTR22*
 
 // ibm-1131_P100-1997
-static const int LG_CHAR_BYTE_CP1131 = 110;
-static const int LG_CHAR_BYTE_IBM_1131 = 110; // IBM*
-static const int LG_CHAR_BYTE_IBM_1131_P100_1997 = 110; // UTR22*
+static const int LG_ENCODING_CP1131 = 110;
+static const int LG_ENCODING_IBM_1131 = 110; // IBM*
+static const int LG_ENCODING_IBM_1131_P100_1997 = 110; // UTR22*
 
 // ibm-1133_P100-1997
-static const int LG_CHAR_BYTE_IBM_1133 = 111; // IBM*
-static const int LG_CHAR_BYTE_IBM_1133_P100_1997 = 111; // UTR22*
+static const int LG_ENCODING_IBM_1133 = 111; // IBM*
+static const int LG_ENCODING_IBM_1133_P100_1997 = 111; // UTR22*
 
 // ibm-37_P100-1995
-static const int LG_CHAR_BYTE_037 = 112; // JAVA
-static const int LG_CHAR_BYTE_IBM037 = 112; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP037 = 112; // JAVA*
-static const int LG_CHAR_BYTE_CP37 = 112;
-static const int LG_CHAR_BYTE_CPIBM37 = 112; // JAVA
-static const int LG_CHAR_BYTE_CSIBM037 = 112; // IANA JAVA
-static const int LG_CHAR_BYTE_EBCDIC_CP_CA = 112; // IANA JAVA
-static const int LG_CHAR_BYTE_EBCDIC_CP_NL = 112; // IANA JAVA
-static const int LG_CHAR_BYTE_EBCDIC_CP_US = 112; // IANA JAVA
-static const int LG_CHAR_BYTE_EBCDIC_CP_WT = 112; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM_037 = 112;
-static const int LG_CHAR_BYTE_IBM_37 = 112; // IBM*
-static const int LG_CHAR_BYTE_IBM_37_P100_1995 = 112; // UTR22*
+static const int LG_ENCODING_037 = 112; // JAVA
+static const int LG_ENCODING_IBM037 = 112; // IANA* JAVA
+static const int LG_ENCODING_CP037 = 112; // JAVA*
+static const int LG_ENCODING_CP37 = 112;
+static const int LG_ENCODING_CPIBM37 = 112; // JAVA
+static const int LG_ENCODING_CSIBM037 = 112; // IANA JAVA
+static const int LG_ENCODING_EBCDIC_CP_CA = 112; // IANA JAVA
+static const int LG_ENCODING_EBCDIC_CP_NL = 112; // IANA JAVA
+static const int LG_ENCODING_EBCDIC_CP_US = 112; // IANA JAVA
+static const int LG_ENCODING_EBCDIC_CP_WT = 112; // IANA JAVA
+static const int LG_ENCODING_IBM_037 = 112;
+static const int LG_ENCODING_IBM_37 = 112; // IBM*
+static const int LG_ENCODING_IBM_37_P100_1995 = 112; // UTR22*
 
 // ibm-273_P100-1995
-static const int LG_CHAR_BYTE_273 = 113; // JAVA
-static const int LG_CHAR_BYTE_CP273 = 113; // IANA JAVA*
-static const int LG_CHAR_BYTE_IBM273 = 113; // IANA* JAVA
-static const int LG_CHAR_BYTE_CSIBM273 = 113; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_DE = 113;
-static const int LG_CHAR_BYTE_IBM_273 = 113; // IBM*
-static const int LG_CHAR_BYTE_IBM_273_P100_1995 = 113; // UTR22*
+static const int LG_ENCODING_273 = 113; // JAVA
+static const int LG_ENCODING_CP273 = 113; // IANA JAVA*
+static const int LG_ENCODING_IBM273 = 113; // IANA* JAVA
+static const int LG_ENCODING_CSIBM273 = 113; // IANA
+static const int LG_ENCODING_EBCDIC_DE = 113;
+static const int LG_ENCODING_IBM_273 = 113; // IBM*
+static const int LG_ENCODING_IBM_273_P100_1995 = 113; // UTR22*
 
 // ibm-277_P100-1995
-static const int LG_CHAR_BYTE_277 = 114; // JAVA
-static const int LG_CHAR_BYTE_EBCDIC_CP_DK = 114; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_NO = 114; // IANA
-static const int LG_CHAR_BYTE_IBM277 = 114; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP277 = 114; // JAVA*
-static const int LG_CHAR_BYTE_CSIBM277 = 114; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_DK = 114;
-static const int LG_CHAR_BYTE_IBM_277 = 114; // IBM*
-static const int LG_CHAR_BYTE_IBM_277_P100_1995 = 114; // UTR22*
+static const int LG_ENCODING_277 = 114; // JAVA
+static const int LG_ENCODING_EBCDIC_CP_DK = 114; // IANA
+static const int LG_ENCODING_EBCDIC_CP_NO = 114; // IANA
+static const int LG_ENCODING_IBM277 = 114; // IANA* JAVA
+static const int LG_ENCODING_CP277 = 114; // JAVA*
+static const int LG_ENCODING_CSIBM277 = 114; // IANA
+static const int LG_ENCODING_EBCDIC_DK = 114;
+static const int LG_ENCODING_IBM_277 = 114; // IBM*
+static const int LG_ENCODING_IBM_277_P100_1995 = 114; // UTR22*
 
 // ibm-278_P100-1995
-static const int LG_CHAR_BYTE_278 = 115; // JAVA
-static const int LG_CHAR_BYTE_IBM278 = 115; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP278 = 115; // JAVA*
-static const int LG_CHAR_BYTE_CSIBM278 = 115; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_FI = 115; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_SE = 115; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_SV = 115; // JAVA
-static const int LG_CHAR_BYTE_IBM_278 = 115; // IBM*
-static const int LG_CHAR_BYTE_IBM_278_P100_1995 = 115; // UTR22*
+static const int LG_ENCODING_278 = 115; // JAVA
+static const int LG_ENCODING_IBM278 = 115; // IANA* JAVA
+static const int LG_ENCODING_CP278 = 115; // JAVA*
+static const int LG_ENCODING_CSIBM278 = 115; // IANA
+static const int LG_ENCODING_EBCDIC_CP_FI = 115; // IANA
+static const int LG_ENCODING_EBCDIC_CP_SE = 115; // IANA
+static const int LG_ENCODING_EBCDIC_SV = 115; // JAVA
+static const int LG_ENCODING_IBM_278 = 115; // IBM*
+static const int LG_ENCODING_IBM_278_P100_1995 = 115; // UTR22*
 
 // ibm-280_P100-1995
-static const int LG_CHAR_BYTE_280 = 116; // JAVA
-static const int LG_CHAR_BYTE_CP280 = 116; // IANA JAVA*
-static const int LG_CHAR_BYTE_IBM280 = 116; // IANA* JAVA
-static const int LG_CHAR_BYTE_CSIBM280 = 116; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_IT = 116; // IANA
-static const int LG_CHAR_BYTE_IBM_280 = 116; // IBM*
-static const int LG_CHAR_BYTE_IBM_280_P100_1995 = 116; // UTR22*
+static const int LG_ENCODING_280 = 116; // JAVA
+static const int LG_ENCODING_CP280 = 116; // IANA JAVA*
+static const int LG_ENCODING_IBM280 = 116; // IANA* JAVA
+static const int LG_ENCODING_CSIBM280 = 116; // IANA
+static const int LG_ENCODING_EBCDIC_CP_IT = 116; // IANA
+static const int LG_ENCODING_IBM_280 = 116; // IBM*
+static const int LG_ENCODING_IBM_280_P100_1995 = 116; // UTR22*
 
 // ibm-284_P100-1995
-static const int LG_CHAR_BYTE_284 = 117; // JAVA
-static const int LG_CHAR_BYTE_CP284 = 117; // IANA JAVA*
-static const int LG_CHAR_BYTE_IBM284 = 117; // IANA* JAVA
-static const int LG_CHAR_BYTE_CPIBM284 = 117; // JAVA
-static const int LG_CHAR_BYTE_CSIBM284 = 117; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_ES = 117; // IANA
-static const int LG_CHAR_BYTE_IBM_284 = 117; // IBM*
-static const int LG_CHAR_BYTE_IBM_284_P100_1995 = 117; // UTR22*
+static const int LG_ENCODING_284 = 117; // JAVA
+static const int LG_ENCODING_CP284 = 117; // IANA JAVA*
+static const int LG_ENCODING_IBM284 = 117; // IANA* JAVA
+static const int LG_ENCODING_CPIBM284 = 117; // JAVA
+static const int LG_ENCODING_CSIBM284 = 117; // IANA
+static const int LG_ENCODING_EBCDIC_CP_ES = 117; // IANA
+static const int LG_ENCODING_IBM_284 = 117; // IBM*
+static const int LG_ENCODING_IBM_284_P100_1995 = 117; // UTR22*
 
 // ibm-285_P100-1995
-static const int LG_CHAR_BYTE_285 = 118; // JAVA
-static const int LG_CHAR_BYTE_CP285 = 118; // IANA JAVA*
-static const int LG_CHAR_BYTE_IBM285 = 118; // IANA* JAVA
-static const int LG_CHAR_BYTE_CPIBM285 = 118; // JAVA
-static const int LG_CHAR_BYTE_CSIBM285 = 118; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_GB = 118; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_GB = 118; // JAVA
-static const int LG_CHAR_BYTE_IBM_285 = 118; // IBM*
-static const int LG_CHAR_BYTE_IBM_285_P100_1995 = 118; // UTR22*
+static const int LG_ENCODING_285 = 118; // JAVA
+static const int LG_ENCODING_CP285 = 118; // IANA JAVA*
+static const int LG_ENCODING_IBM285 = 118; // IANA* JAVA
+static const int LG_ENCODING_CPIBM285 = 118; // JAVA
+static const int LG_ENCODING_CSIBM285 = 118; // IANA
+static const int LG_ENCODING_EBCDIC_CP_GB = 118; // IANA
+static const int LG_ENCODING_EBCDIC_GB = 118; // JAVA
+static const int LG_ENCODING_IBM_285 = 118; // IBM*
+static const int LG_ENCODING_IBM_285_P100_1995 = 118; // UTR22*
 
 // ibm-290_P100-1995
-static const int LG_CHAR_BYTE_EBCDIC_JP_KANA = 119; // IANA
-static const int LG_CHAR_BYTE_IBM290 = 119; // IANA*
-static const int LG_CHAR_BYTE_CP290 = 119; // IANA
-static const int LG_CHAR_BYTE_CSIBM290 = 119; // IANA
-static const int LG_CHAR_BYTE_IBM_290 = 119; // IBM*
-static const int LG_CHAR_BYTE_IBM_290_P100_1995 = 119; // UTR22*
+static const int LG_ENCODING_EBCDIC_JP_KANA = 119; // IANA
+static const int LG_ENCODING_IBM290 = 119; // IANA*
+static const int LG_ENCODING_CP290 = 119; // IANA
+static const int LG_ENCODING_CSIBM290 = 119; // IANA
+static const int LG_ENCODING_IBM_290 = 119; // IBM*
+static const int LG_ENCODING_IBM_290_P100_1995 = 119; // UTR22*
 
 // ibm-297_P100-1995
-static const int LG_CHAR_BYTE_297 = 120; // JAVA
-static const int LG_CHAR_BYTE_IBM297 = 120; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP297 = 120; // IANA JAVA*
-static const int LG_CHAR_BYTE_CPIBM297 = 120; // JAVA
-static const int LG_CHAR_BYTE_CSIBM297 = 120; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_FR = 120; // IANA
-static const int LG_CHAR_BYTE_IBM_297 = 120; // IBM*
-static const int LG_CHAR_BYTE_IBM_297_P100_1995 = 120; // UTR22*
+static const int LG_ENCODING_297 = 120; // JAVA
+static const int LG_ENCODING_IBM297 = 120; // IANA* JAVA
+static const int LG_ENCODING_CP297 = 120; // IANA JAVA*
+static const int LG_ENCODING_CPIBM297 = 120; // JAVA
+static const int LG_ENCODING_CSIBM297 = 120; // IANA
+static const int LG_ENCODING_EBCDIC_CP_FR = 120; // IANA
+static const int LG_ENCODING_IBM_297 = 120; // IBM*
+static const int LG_ENCODING_IBM_297_P100_1995 = 120; // UTR22*
 
 // ibm-420_X120-1999
-static const int LG_CHAR_BYTE_420 = 121; // JAVA
-static const int LG_CHAR_BYTE_IBM420 = 121; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP420 = 121; // IANA JAVA*
-static const int LG_CHAR_BYTE_CSIBM420 = 121; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_AR1 = 121; // IANA
-static const int LG_CHAR_BYTE_IBM_420 = 121; // IBM*
-static const int LG_CHAR_BYTE_IBM_420_X120_1999 = 121; // UTR22*
+static const int LG_ENCODING_420 = 121; // JAVA
+static const int LG_ENCODING_IBM420 = 121; // IANA* JAVA
+static const int LG_ENCODING_CP420 = 121; // IANA JAVA*
+static const int LG_ENCODING_CSIBM420 = 121; // IANA
+static const int LG_ENCODING_EBCDIC_CP_AR1 = 121; // IANA
+static const int LG_ENCODING_IBM_420 = 121; // IBM*
+static const int LG_ENCODING_IBM_420_X120_1999 = 121; // UTR22*
 
 // ibm-424_P100-1995
-static const int LG_CHAR_BYTE_424 = 122; // JAVA
-static const int LG_CHAR_BYTE_IBM424 = 122; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP424 = 122; // IANA JAVA*
-static const int LG_CHAR_BYTE_CSIBM424 = 122; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_HE = 122; // IANA
-static const int LG_CHAR_BYTE_IBM_424 = 122; // IBM*
-static const int LG_CHAR_BYTE_IBM_424_P100_1995 = 122; // UTR22*
+static const int LG_ENCODING_424 = 122; // JAVA
+static const int LG_ENCODING_IBM424 = 122; // IANA* JAVA
+static const int LG_ENCODING_CP424 = 122; // IANA JAVA*
+static const int LG_ENCODING_CSIBM424 = 122; // IANA
+static const int LG_ENCODING_EBCDIC_CP_HE = 122; // IANA
+static const int LG_ENCODING_IBM_424 = 122; // IBM*
+static const int LG_ENCODING_IBM_424_P100_1995 = 122; // UTR22*
 
 // ibm-500_P100-1995
-static const int LG_CHAR_BYTE_500 = 123;
-static const int LG_CHAR_BYTE_CP500 = 123; // IANA JAVA*
-static const int LG_CHAR_BYTE_IBM500 = 123; // IANA* JAVA
-static const int LG_CHAR_BYTE_CSIBM500 = 123; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_BE = 123; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_CH = 123; // IANA
-static const int LG_CHAR_BYTE_IBM_500 = 123; // IBM*
-static const int LG_CHAR_BYTE_IBM_500_P100_1995 = 123; // UTR22*
+static const int LG_ENCODING_500 = 123;
+static const int LG_ENCODING_CP500 = 123; // IANA JAVA*
+static const int LG_ENCODING_IBM500 = 123; // IANA* JAVA
+static const int LG_ENCODING_CSIBM500 = 123; // IANA
+static const int LG_ENCODING_EBCDIC_CP_BE = 123; // IANA
+static const int LG_ENCODING_EBCDIC_CP_CH = 123; // IANA
+static const int LG_ENCODING_IBM_500 = 123; // IBM*
+static const int LG_ENCODING_IBM_500_P100_1995 = 123; // UTR22*
 
 // ibm-803_P100-1999
-static const int LG_CHAR_BYTE_CP803 = 124;
-static const int LG_CHAR_BYTE_IBM_803 = 124; // IBM*
-static const int LG_CHAR_BYTE_IBM_803_P100_1999 = 124; // UTR22*
+static const int LG_ENCODING_CP803 = 124;
+static const int LG_ENCODING_IBM_803 = 124; // IBM*
+static const int LG_ENCODING_IBM_803_P100_1999 = 124; // UTR22*
 
 // ibm-838_P100-1995
-static const int LG_CHAR_BYTE_838 = 125; // JAVA
-static const int LG_CHAR_BYTE_IBM_THAI = 125; // IANA* JAVA
-static const int LG_CHAR_BYTE_IBM838 = 125; // JAVA
-static const int LG_CHAR_BYTE_CP838 = 125; // JAVA*
-static const int LG_CHAR_BYTE_CSIBMTHAI = 125; // IANA
-static const int LG_CHAR_BYTE_IBM_838 = 125; // IBM*
-static const int LG_CHAR_BYTE_IBM_838_P100_1995 = 125; // UTR22*
-static const int LG_CHAR_BYTE_IBM_9030 = 125; // IBM
+static const int LG_ENCODING_838 = 125; // JAVA
+static const int LG_ENCODING_IBM_THAI = 125; // IANA* JAVA
+static const int LG_ENCODING_IBM838 = 125; // JAVA
+static const int LG_ENCODING_CP838 = 125; // JAVA*
+static const int LG_ENCODING_CSIBMTHAI = 125; // IANA
+static const int LG_ENCODING_IBM_838 = 125; // IBM*
+static const int LG_ENCODING_IBM_838_P100_1995 = 125; // UTR22*
+static const int LG_ENCODING_IBM_9030 = 125; // IBM
 
 // ibm-870_P100-1995
-static const int LG_CHAR_BYTE_CP870 = 126; // IANA JAVA*
-static const int LG_CHAR_BYTE_IBM870 = 126; // IANA* JAVA
-static const int LG_CHAR_BYTE_CSIBM870 = 126; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_ROECE = 126; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_YU = 126; // IANA
-static const int LG_CHAR_BYTE_IBM_870 = 126; // IBM*
-static const int LG_CHAR_BYTE_IBM_870_P100_1995 = 126; // UTR22*
+static const int LG_ENCODING_CP870 = 126; // IANA JAVA*
+static const int LG_ENCODING_IBM870 = 126; // IANA* JAVA
+static const int LG_ENCODING_CSIBM870 = 126; // IANA
+static const int LG_ENCODING_EBCDIC_CP_ROECE = 126; // IANA
+static const int LG_ENCODING_EBCDIC_CP_YU = 126; // IANA
+static const int LG_ENCODING_IBM_870 = 126; // IBM*
+static const int LG_ENCODING_IBM_870_P100_1995 = 126; // UTR22*
 
 // ibm-871_P100-1995
-static const int LG_CHAR_BYTE_871 = 127; // JAVA
-static const int LG_CHAR_BYTE_CP871 = 127; // IANA JAVA*
-static const int LG_CHAR_BYTE_IBM871 = 127; // IANA* JAVA
-static const int LG_CHAR_BYTE_CSIBM871 = 127; // IANA JAVA
-static const int LG_CHAR_BYTE_EBCDIC_CP_IS = 127; // IANA JAVA
-static const int LG_CHAR_BYTE_EBCDIC_IS = 127; // JAVA
-static const int LG_CHAR_BYTE_IBM_871 = 127; // IBM*
-static const int LG_CHAR_BYTE_IBM_871_P100_1995 = 127; // UTR22*
+static const int LG_ENCODING_871 = 127; // JAVA
+static const int LG_ENCODING_CP871 = 127; // IANA JAVA*
+static const int LG_ENCODING_IBM871 = 127; // IANA* JAVA
+static const int LG_ENCODING_CSIBM871 = 127; // IANA JAVA
+static const int LG_ENCODING_EBCDIC_CP_IS = 127; // IANA JAVA
+static const int LG_ENCODING_EBCDIC_IS = 127; // JAVA
+static const int LG_ENCODING_IBM_871 = 127; // IBM*
+static const int LG_ENCODING_IBM_871_P100_1995 = 127; // UTR22*
 
 // ibm-875_P100-1995
-static const int LG_CHAR_BYTE_875 = 128; // JAVA
-static const int LG_CHAR_BYTE_IBM875 = 128; // JAVA
-static const int LG_CHAR_BYTE_CP875 = 128; // JAVA*
-static const int LG_CHAR_BYTE_IBM_875 = 128; // IBM*
-static const int LG_CHAR_BYTE_IBM_875_P100_1995 = 128; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM875 = 128; // JAVA
+static const int LG_ENCODING_875 = 128; // JAVA
+static const int LG_ENCODING_IBM875 = 128; // JAVA
+static const int LG_ENCODING_CP875 = 128; // JAVA*
+static const int LG_ENCODING_IBM_875 = 128; // IBM*
+static const int LG_ENCODING_IBM_875_P100_1995 = 128; // UTR22*
+static const int LG_ENCODING_X_IBM875 = 128; // JAVA
 
 // ibm-918_P100-1995
-static const int LG_CHAR_BYTE_CP918 = 129; // IANA JAVA*
-static const int LG_CHAR_BYTE_IBM918 = 129; // IANA* JAVA
-static const int LG_CHAR_BYTE_CSIBM918 = 129; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_CP_AR2 = 129; // IANA
-static const int LG_CHAR_BYTE_IBM_918 = 129; // IBM*
-static const int LG_CHAR_BYTE_IBM_918_P100_1995 = 129; // UTR22*
+static const int LG_ENCODING_CP918 = 129; // IANA JAVA*
+static const int LG_ENCODING_IBM918 = 129; // IANA* JAVA
+static const int LG_ENCODING_CSIBM918 = 129; // IANA
+static const int LG_ENCODING_EBCDIC_CP_AR2 = 129; // IANA
+static const int LG_ENCODING_IBM_918 = 129; // IBM*
+static const int LG_ENCODING_IBM_918_P100_1995 = 129; // UTR22*
 
 // ibm-1025_P100-1995
-static const int LG_CHAR_BYTE_1025 = 130; // JAVA
-static const int LG_CHAR_BYTE_CP1025 = 130; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1025 = 130; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_1025_P100_1995 = 130; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM1025 = 130; // JAVA
+static const int LG_ENCODING_1025 = 130; // JAVA
+static const int LG_ENCODING_CP1025 = 130; // JAVA*
+static const int LG_ENCODING_IBM_1025 = 130; // IBM* JAVA
+static const int LG_ENCODING_IBM_1025_P100_1995 = 130; // UTR22*
+static const int LG_ENCODING_X_IBM1025 = 130; // JAVA
 
 // ibm-1026_P100-1995
-static const int LG_CHAR_BYTE_1026 = 131; // JAVA
-static const int LG_CHAR_BYTE_CP1026 = 131; // IANA JAVA*
-static const int LG_CHAR_BYTE_IBM1026 = 131; // IANA* JAVA
-static const int LG_CHAR_BYTE_CSIBM1026 = 131; // IANA
-static const int LG_CHAR_BYTE_IBM_1026 = 131; // IBM*
-static const int LG_CHAR_BYTE_IBM_1026_P100_1995 = 131; // UTR22*
+static const int LG_ENCODING_1026 = 131; // JAVA
+static const int LG_ENCODING_CP1026 = 131; // IANA JAVA*
+static const int LG_ENCODING_IBM1026 = 131; // IANA* JAVA
+static const int LG_ENCODING_CSIBM1026 = 131; // IANA
+static const int LG_ENCODING_IBM_1026 = 131; // IBM*
+static const int LG_ENCODING_IBM_1026_P100_1995 = 131; // UTR22*
 
 // ibm-1047_P100-1995
-static const int LG_CHAR_BYTE_1047 = 132; // JAVA
-static const int LG_CHAR_BYTE_IBM1047 = 132; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1047 = 132; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1047 = 132; // IBM*
-static const int LG_CHAR_BYTE_IBM_1047_P100_1995 = 132; // UTR22*
+static const int LG_ENCODING_1047 = 132; // JAVA
+static const int LG_ENCODING_IBM1047 = 132; // IANA* JAVA
+static const int LG_ENCODING_CP1047 = 132; // JAVA*
+static const int LG_ENCODING_IBM_1047 = 132; // IBM*
+static const int LG_ENCODING_IBM_1047_P100_1995 = 132; // UTR22*
 
 // ibm-1097_P100-1995
-static const int LG_CHAR_BYTE_1097 = 133; // JAVA
-static const int LG_CHAR_BYTE_CP1097 = 133; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1097 = 133; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_1097_P100_1995 = 133; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM1097 = 133; // JAVA
+static const int LG_ENCODING_1097 = 133; // JAVA
+static const int LG_ENCODING_CP1097 = 133; // JAVA*
+static const int LG_ENCODING_IBM_1097 = 133; // IBM* JAVA
+static const int LG_ENCODING_IBM_1097_P100_1995 = 133; // UTR22*
+static const int LG_ENCODING_X_IBM1097 = 133; // JAVA
 
 // ibm-1112_P100-1995
-static const int LG_CHAR_BYTE_1112 = 134; // JAVA
-static const int LG_CHAR_BYTE_CP1112 = 134; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1112 = 134; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_1112_P100_1995 = 134; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM1112 = 134; // JAVA
+static const int LG_ENCODING_1112 = 134; // JAVA
+static const int LG_ENCODING_CP1112 = 134; // JAVA*
+static const int LG_ENCODING_IBM_1112 = 134; // IBM* JAVA
+static const int LG_ENCODING_IBM_1112_P100_1995 = 134; // UTR22*
+static const int LG_ENCODING_X_IBM1112 = 134; // JAVA
 
 // ibm-1122_P100-1999
-static const int LG_CHAR_BYTE_1122 = 135; // JAVA
-static const int LG_CHAR_BYTE_CP1122 = 135; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1122 = 135; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_1122_P100_1999 = 135; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM1122 = 135; // JAVA
+static const int LG_ENCODING_1122 = 135; // JAVA
+static const int LG_ENCODING_CP1122 = 135; // JAVA*
+static const int LG_ENCODING_IBM_1122 = 135; // IBM* JAVA
+static const int LG_ENCODING_IBM_1122_P100_1999 = 135; // UTR22*
+static const int LG_ENCODING_X_IBM1122 = 135; // JAVA
 
 // ibm-1123_P100-1995
-static const int LG_CHAR_BYTE_1123 = 136; // JAVA
-static const int LG_CHAR_BYTE_CP1123 = 136; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1123 = 136; // IBM* JAVA
-static const int LG_CHAR_BYTE_IBM_1123_P100_1995 = 136; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM1123 = 136; // JAVA
+static const int LG_ENCODING_1123 = 136; // JAVA
+static const int LG_ENCODING_CP1123 = 136; // JAVA*
+static const int LG_ENCODING_IBM_1123 = 136; // IBM* JAVA
+static const int LG_ENCODING_IBM_1123_P100_1995 = 136; // UTR22*
+static const int LG_ENCODING_X_IBM1123 = 136; // JAVA
 
 // ibm-1130_P100-1997
-static const int LG_CHAR_BYTE_IBM_1130 = 137; // IBM*
-static const int LG_CHAR_BYTE_IBM_1130_P100_1997 = 137; // UTR22*
+static const int LG_ENCODING_IBM_1130 = 137; // IBM*
+static const int LG_ENCODING_IBM_1130_P100_1997 = 137; // UTR22*
 
 // ibm-1132_P100-1998
-static const int LG_CHAR_BYTE_IBM_1132 = 138; // IBM*
-static const int LG_CHAR_BYTE_IBM_1132_P100_1998 = 138; // UTR22*
+static const int LG_ENCODING_IBM_1132 = 138; // IBM*
+static const int LG_ENCODING_IBM_1132_P100_1998 = 138; // UTR22*
 
 // ibm-1137_P100-1999
-static const int LG_CHAR_BYTE_IBM_1137 = 139; // IBM*
-static const int LG_CHAR_BYTE_IBM_1137_P100_1999 = 139; // UTR22*
+static const int LG_ENCODING_IBM_1137 = 139; // IBM*
+static const int LG_ENCODING_IBM_1137_P100_1999 = 139; // UTR22*
 
 // ibm-4517_P100-2005
-static const int LG_CHAR_BYTE_IBM_4517 = 140; // IBM*
-static const int LG_CHAR_BYTE_IBM_4517_P100_2005 = 140; // UTR22*
+static const int LG_ENCODING_IBM_4517 = 140; // IBM*
+static const int LG_ENCODING_IBM_4517_P100_2005 = 140; // UTR22*
 
 // ibm-1140_P100-1997
-static const int LG_CHAR_BYTE_CCSID01140 = 141; // IANA JAVA
-static const int LG_CHAR_BYTE_CP01140 = 141; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM01140 = 141; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1140 = 141; // JAVA*
-static const int LG_CHAR_BYTE_EBCDIC_US_37_EURO = 141; // IANA
-static const int LG_CHAR_BYTE_IBM_1140 = 141; // IBM*
-static const int LG_CHAR_BYTE_IBM_1140_P100_1997 = 141; // UTR22*
+static const int LG_ENCODING_CCSID01140 = 141; // IANA JAVA
+static const int LG_ENCODING_CP01140 = 141; // IANA JAVA
+static const int LG_ENCODING_IBM01140 = 141; // IANA* JAVA
+static const int LG_ENCODING_CP1140 = 141; // JAVA*
+static const int LG_ENCODING_EBCDIC_US_37_EURO = 141; // IANA
+static const int LG_ENCODING_IBM_1140 = 141; // IBM*
+static const int LG_ENCODING_IBM_1140_P100_1997 = 141; // UTR22*
 
 // ibm-1141_P100-1997
-static const int LG_CHAR_BYTE_CCSID01141 = 142; // IANA JAVA
-static const int LG_CHAR_BYTE_CP01141 = 142; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM01141 = 142; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1141 = 142; // JAVA*
-static const int LG_CHAR_BYTE_EBCDIC_DE_273_EURO = 142; // IANA
-static const int LG_CHAR_BYTE_IBM_1141 = 142; // IBM*
-static const int LG_CHAR_BYTE_IBM_1141_P100_1997 = 142; // UTR22*
+static const int LG_ENCODING_CCSID01141 = 142; // IANA JAVA
+static const int LG_ENCODING_CP01141 = 142; // IANA JAVA
+static const int LG_ENCODING_IBM01141 = 142; // IANA* JAVA
+static const int LG_ENCODING_CP1141 = 142; // JAVA*
+static const int LG_ENCODING_EBCDIC_DE_273_EURO = 142; // IANA
+static const int LG_ENCODING_IBM_1141 = 142; // IBM*
+static const int LG_ENCODING_IBM_1141_P100_1997 = 142; // UTR22*
 
 // ibm-1142_P100-1997
-static const int LG_CHAR_BYTE_CCSID01142 = 143; // IANA JAVA
-static const int LG_CHAR_BYTE_CP01142 = 143; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM01142 = 143; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1142 = 143; // JAVA*
-static const int LG_CHAR_BYTE_EBCDIC_DK_277_EURO = 143; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_NO_277_EURO = 143; // IANA
-static const int LG_CHAR_BYTE_IBM_1142 = 143; // IBM*
-static const int LG_CHAR_BYTE_IBM_1142_P100_1997 = 143; // UTR22*
+static const int LG_ENCODING_CCSID01142 = 143; // IANA JAVA
+static const int LG_ENCODING_CP01142 = 143; // IANA JAVA
+static const int LG_ENCODING_IBM01142 = 143; // IANA* JAVA
+static const int LG_ENCODING_CP1142 = 143; // JAVA*
+static const int LG_ENCODING_EBCDIC_DK_277_EURO = 143; // IANA
+static const int LG_ENCODING_EBCDIC_NO_277_EURO = 143; // IANA
+static const int LG_ENCODING_IBM_1142 = 143; // IBM*
+static const int LG_ENCODING_IBM_1142_P100_1997 = 143; // UTR22*
 
 // ibm-1143_P100-1997
-static const int LG_CHAR_BYTE_CCSID01143 = 144; // IANA JAVA
-static const int LG_CHAR_BYTE_CP01143 = 144; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM01143 = 144; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1143 = 144; // JAVA*
-static const int LG_CHAR_BYTE_EBCDIC_FI_278_EURO = 144; // IANA
-static const int LG_CHAR_BYTE_EBCDIC_SE_278_EURO = 144; // IANA
-static const int LG_CHAR_BYTE_IBM_1143 = 144; // IBM*
-static const int LG_CHAR_BYTE_IBM_1143_P100_1997 = 144; // UTR22*
+static const int LG_ENCODING_CCSID01143 = 144; // IANA JAVA
+static const int LG_ENCODING_CP01143 = 144; // IANA JAVA
+static const int LG_ENCODING_IBM01143 = 144; // IANA* JAVA
+static const int LG_ENCODING_CP1143 = 144; // JAVA*
+static const int LG_ENCODING_EBCDIC_FI_278_EURO = 144; // IANA
+static const int LG_ENCODING_EBCDIC_SE_278_EURO = 144; // IANA
+static const int LG_ENCODING_IBM_1143 = 144; // IBM*
+static const int LG_ENCODING_IBM_1143_P100_1997 = 144; // UTR22*
 
 // ibm-1144_P100-1997
-static const int LG_CHAR_BYTE_CCSID01144 = 145; // IANA JAVA
-static const int LG_CHAR_BYTE_CP01144 = 145; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM01144 = 145; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1144 = 145; // JAVA*
-static const int LG_CHAR_BYTE_EBCDIC_IT_280_EURO = 145; // IANA
-static const int LG_CHAR_BYTE_IBM_1144 = 145; // IBM*
-static const int LG_CHAR_BYTE_IBM_1144_P100_1997 = 145; // UTR22*
+static const int LG_ENCODING_CCSID01144 = 145; // IANA JAVA
+static const int LG_ENCODING_CP01144 = 145; // IANA JAVA
+static const int LG_ENCODING_IBM01144 = 145; // IANA* JAVA
+static const int LG_ENCODING_CP1144 = 145; // JAVA*
+static const int LG_ENCODING_EBCDIC_IT_280_EURO = 145; // IANA
+static const int LG_ENCODING_IBM_1144 = 145; // IBM*
+static const int LG_ENCODING_IBM_1144_P100_1997 = 145; // UTR22*
 
 // ibm-1145_P100-1997
-static const int LG_CHAR_BYTE_CCSID01145 = 146; // IANA JAVA
-static const int LG_CHAR_BYTE_CP01145 = 146; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM01145 = 146; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1145 = 146; // JAVA*
-static const int LG_CHAR_BYTE_EBCDIC_ES_284_EURO = 146; // IANA
-static const int LG_CHAR_BYTE_IBM_1145 = 146; // IBM*
-static const int LG_CHAR_BYTE_IBM_1145_P100_1997 = 146; // UTR22*
+static const int LG_ENCODING_CCSID01145 = 146; // IANA JAVA
+static const int LG_ENCODING_CP01145 = 146; // IANA JAVA
+static const int LG_ENCODING_IBM01145 = 146; // IANA* JAVA
+static const int LG_ENCODING_CP1145 = 146; // JAVA*
+static const int LG_ENCODING_EBCDIC_ES_284_EURO = 146; // IANA
+static const int LG_ENCODING_IBM_1145 = 146; // IBM*
+static const int LG_ENCODING_IBM_1145_P100_1997 = 146; // UTR22*
 
 // ibm-1146_P100-1997
-static const int LG_CHAR_BYTE_CCSID01146 = 147; // IANA JAVA
-static const int LG_CHAR_BYTE_CP01146 = 147; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM01146 = 147; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1146 = 147; // JAVA*
-static const int LG_CHAR_BYTE_EBCDIC_GB_285_EURO = 147; // IANA
-static const int LG_CHAR_BYTE_IBM_1146 = 147; // IBM*
-static const int LG_CHAR_BYTE_IBM_1146_P100_1997 = 147; // UTR22*
+static const int LG_ENCODING_CCSID01146 = 147; // IANA JAVA
+static const int LG_ENCODING_CP01146 = 147; // IANA JAVA
+static const int LG_ENCODING_IBM01146 = 147; // IANA* JAVA
+static const int LG_ENCODING_CP1146 = 147; // JAVA*
+static const int LG_ENCODING_EBCDIC_GB_285_EURO = 147; // IANA
+static const int LG_ENCODING_IBM_1146 = 147; // IBM*
+static const int LG_ENCODING_IBM_1146_P100_1997 = 147; // UTR22*
 
 // ibm-1147_P100-1997
-static const int LG_CHAR_BYTE_CCSID01147 = 148; // IANA JAVA
-static const int LG_CHAR_BYTE_CP01147 = 148; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM01147 = 148; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1147 = 148; // JAVA*
-static const int LG_CHAR_BYTE_EBCDIC_FR_297_EURO = 148; // IANA
-static const int LG_CHAR_BYTE_IBM_1147 = 148; // IBM*
-static const int LG_CHAR_BYTE_IBM_1147_P100_1997 = 148; // UTR22*
+static const int LG_ENCODING_CCSID01147 = 148; // IANA JAVA
+static const int LG_ENCODING_CP01147 = 148; // IANA JAVA
+static const int LG_ENCODING_IBM01147 = 148; // IANA* JAVA
+static const int LG_ENCODING_CP1147 = 148; // JAVA*
+static const int LG_ENCODING_EBCDIC_FR_297_EURO = 148; // IANA
+static const int LG_ENCODING_IBM_1147 = 148; // IBM*
+static const int LG_ENCODING_IBM_1147_P100_1997 = 148; // UTR22*
 
 // ibm-1148_P100-1997
-static const int LG_CHAR_BYTE_CCSID01148 = 149; // IANA JAVA
-static const int LG_CHAR_BYTE_CP01148 = 149; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM01148 = 149; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1148 = 149; // JAVA*
-static const int LG_CHAR_BYTE_EBCDIC_INTERNATIONAL_500_EURO = 149; // IANA
-static const int LG_CHAR_BYTE_IBM_1148 = 149; // IBM*
-static const int LG_CHAR_BYTE_IBM_1148_P100_1997 = 149; // UTR22*
+static const int LG_ENCODING_CCSID01148 = 149; // IANA JAVA
+static const int LG_ENCODING_CP01148 = 149; // IANA JAVA
+static const int LG_ENCODING_IBM01148 = 149; // IANA* JAVA
+static const int LG_ENCODING_CP1148 = 149; // JAVA*
+static const int LG_ENCODING_EBCDIC_INTERNATIONAL_500_EURO = 149; // IANA
+static const int LG_ENCODING_IBM_1148 = 149; // IBM*
+static const int LG_ENCODING_IBM_1148_P100_1997 = 149; // UTR22*
 
 // ibm-1149_P100-1997
-static const int LG_CHAR_BYTE_CCSID01149 = 150; // IANA JAVA
-static const int LG_CHAR_BYTE_CP01149 = 150; // IANA JAVA
-static const int LG_CHAR_BYTE_IBM01149 = 150; // IANA* JAVA
-static const int LG_CHAR_BYTE_CP1149 = 150; // JAVA*
-static const int LG_CHAR_BYTE_EBCDIC_IS_871_EURO = 150; // IANA
-static const int LG_CHAR_BYTE_IBM_1149 = 150; // IBM*
-static const int LG_CHAR_BYTE_IBM_1149_P100_1997 = 150; // UTR22*
+static const int LG_ENCODING_CCSID01149 = 150; // IANA JAVA
+static const int LG_ENCODING_CP01149 = 150; // IANA JAVA
+static const int LG_ENCODING_IBM01149 = 150; // IANA* JAVA
+static const int LG_ENCODING_CP1149 = 150; // JAVA*
+static const int LG_ENCODING_EBCDIC_IS_871_EURO = 150; // IANA
+static const int LG_ENCODING_IBM_1149 = 150; // IBM*
+static const int LG_ENCODING_IBM_1149_P100_1997 = 150; // UTR22*
 
 // ibm-1153_P100-1999
-static const int LG_CHAR_BYTE_IBM1153 = 151; // JAVA
-static const int LG_CHAR_BYTE_IBM_1153 = 151; // IBM*
-static const int LG_CHAR_BYTE_IBM_1153_P100_1999 = 151; // UTR22*
-static const int LG_CHAR_BYTE_X_IBM1153 = 151; // JAVA*
+static const int LG_ENCODING_IBM1153 = 151; // JAVA
+static const int LG_ENCODING_IBM_1153 = 151; // IBM*
+static const int LG_ENCODING_IBM_1153_P100_1999 = 151; // UTR22*
+static const int LG_ENCODING_X_IBM1153 = 151; // JAVA*
 
 // ibm-1154_P100-1999
-static const int LG_CHAR_BYTE_IBM_1154 = 152; // IBM*
-static const int LG_CHAR_BYTE_IBM_1154_P100_1999 = 152; // UTR22*
+static const int LG_ENCODING_IBM_1154 = 152; // IBM*
+static const int LG_ENCODING_IBM_1154_P100_1999 = 152; // UTR22*
 
 // ibm-1155_P100-1999
-static const int LG_CHAR_BYTE_IBM_1155 = 153; // IBM*
-static const int LG_CHAR_BYTE_IBM_1155_P100_1999 = 153; // UTR22*
+static const int LG_ENCODING_IBM_1155 = 153; // IBM*
+static const int LG_ENCODING_IBM_1155_P100_1999 = 153; // UTR22*
 
 // ibm-1156_P100-1999
-static const int LG_CHAR_BYTE_IBM_1156 = 154; // IBM*
-static const int LG_CHAR_BYTE_IBM_1156_P100_1999 = 154; // UTR22*
+static const int LG_ENCODING_IBM_1156 = 154; // IBM*
+static const int LG_ENCODING_IBM_1156_P100_1999 = 154; // UTR22*
 
 // ibm-1157_P100-1999
-static const int LG_CHAR_BYTE_IBM_1157 = 155; // IBM*
-static const int LG_CHAR_BYTE_IBM_1157_P100_1999 = 155; // UTR22*
+static const int LG_ENCODING_IBM_1157 = 155; // IBM*
+static const int LG_ENCODING_IBM_1157_P100_1999 = 155; // UTR22*
 
 // ibm-1158_P100-1999
-static const int LG_CHAR_BYTE_IBM_1158 = 156; // IBM*
-static const int LG_CHAR_BYTE_IBM_1158_P100_1999 = 156; // UTR22*
+static const int LG_ENCODING_IBM_1158 = 156; // IBM*
+static const int LG_ENCODING_IBM_1158_P100_1999 = 156; // UTR22*
 
 // ibm-1160_P100-1999
-static const int LG_CHAR_BYTE_IBM_1160 = 157; // IBM*
-static const int LG_CHAR_BYTE_IBM_1160_P100_1999 = 157; // UTR22*
+static const int LG_ENCODING_IBM_1160 = 157; // IBM*
+static const int LG_ENCODING_IBM_1160_P100_1999 = 157; // UTR22*
 
 // ibm-1164_P100-1999
-static const int LG_CHAR_BYTE_IBM_1164 = 158; // IBM*
-static const int LG_CHAR_BYTE_IBM_1164_P100_1999 = 158; // UTR22*
+static const int LG_ENCODING_IBM_1164 = 158; // IBM*
+static const int LG_ENCODING_IBM_1164_P100_1999 = 158; // UTR22*
 
 // ibm-5123_P100-1999
-static const int LG_CHAR_BYTE_IBM_5123 = 159; // IBM*
-static const int LG_CHAR_BYTE_IBM_5123_P100_1999 = 159; // UTR22*
+static const int LG_ENCODING_IBM_5123 = 159; // IBM*
+static const int LG_ENCODING_IBM_5123_P100_1999 = 159; // UTR22*
 
 // ibm-8482_P100-1999
-static const int LG_CHAR_BYTE_IBM_8482 = 160; // IBM*
-static const int LG_CHAR_BYTE_IBM_8482_P100_1999 = 160; // UTR22*
+static const int LG_ENCODING_IBM_8482 = 160; // IBM*
+static const int LG_ENCODING_IBM_8482_P100_1999 = 160; // UTR22*
 
 // ibm-4899_P100-1998
-static const int LG_CHAR_BYTE_IBM_4899 = 161; // IBM*
-static const int LG_CHAR_BYTE_IBM_4899_P100_1998 = 161; // UTR22*
+static const int LG_ENCODING_IBM_4899 = 161; // IBM*
+static const int LG_ENCODING_IBM_4899_P100_1998 = 161; // UTR22*
 
 // ibm-4971_P100-1999
-static const int LG_CHAR_BYTE_IBM_4971 = 162; // IBM*
-static const int LG_CHAR_BYTE_IBM_4971_P100_1999 = 162; // UTR22*
+static const int LG_ENCODING_IBM_4971 = 162; // IBM*
+static const int LG_ENCODING_IBM_4971_P100_1999 = 162; // UTR22*
 
 // ibm-9067_X100-2005
-static const int LG_CHAR_BYTE_IBM_9067 = 163; // IBM*
-static const int LG_CHAR_BYTE_IBM_9067_X100_2005 = 163; // UTR22*
+static const int LG_ENCODING_IBM_9067 = 163; // IBM*
+static const int LG_ENCODING_IBM_9067_X100_2005 = 163; // UTR22*
 
 // ibm-12712_P100-1998
-static const int LG_CHAR_BYTE_EBCDIC_HE = 164;
-static const int LG_CHAR_BYTE_IBM_12712 = 164; // IBM*
-static const int LG_CHAR_BYTE_IBM_12712_P100_1998 = 164; // UTR22*
+static const int LG_ENCODING_EBCDIC_HE = 164;
+static const int LG_ENCODING_IBM_12712 = 164; // IBM*
+static const int LG_ENCODING_IBM_12712_P100_1998 = 164; // UTR22*
 
 // ibm-16804_X110-1999
-static const int LG_CHAR_BYTE_EBCDIC_AR = 165;
-static const int LG_CHAR_BYTE_IBM_16804 = 165; // IBM*
-static const int LG_CHAR_BYTE_IBM_16804_X110_1999 = 165; // UTR22*
+static const int LG_ENCODING_EBCDIC_AR = 165;
+static const int LG_ENCODING_IBM_16804 = 165; // IBM*
+static const int LG_ENCODING_IBM_16804_X110_1999 = 165; // UTR22*
 
 // ibm-37_P100-1995,swaplfnl
-static const int LG_CHAR_BYTE_IBM_37_S390 = 166;
-static const int LG_CHAR_BYTE_IBM_37_P100_1995_SWAPLFNL = 166;
+static const int LG_ENCODING_IBM_37_S390 = 166;
+static const int LG_ENCODING_IBM_37_P100_1995_SWAPLFNL = 166;
 
 // ibm-1047_P100-1995,swaplfnl
-static const int LG_CHAR_BYTE_IBM1047_LF = 167; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1047_S390 = 167;
-static const int LG_CHAR_BYTE_IBM_1047_P100_1995_SWAPLFNL = 167;
+static const int LG_ENCODING_IBM1047_LF = 167; // JAVA*
+static const int LG_ENCODING_IBM_1047_S390 = 167;
+static const int LG_ENCODING_IBM_1047_P100_1995_SWAPLFNL = 167;
 
 // ibm-1140_P100-1997,swaplfnl
-static const int LG_CHAR_BYTE_IBM_1140_S390 = 168;
-static const int LG_CHAR_BYTE_IBM_1140_P100_1997_SWAPLFNL = 168;
+static const int LG_ENCODING_IBM_1140_S390 = 168;
+static const int LG_ENCODING_IBM_1140_P100_1997_SWAPLFNL = 168;
 
 // ibm-1141_P100-1997,swaplfnl
-static const int LG_CHAR_BYTE_IBM1141_LF = 169; // JAVA*
-static const int LG_CHAR_BYTE_IBM_1141_S390 = 169;
-static const int LG_CHAR_BYTE_IBM_1141_P100_1997_SWAPLFNL = 169;
+static const int LG_ENCODING_IBM1141_LF = 169; // JAVA*
+static const int LG_ENCODING_IBM_1141_S390 = 169;
+static const int LG_ENCODING_IBM_1141_P100_1997_SWAPLFNL = 169;
 
 // ibm-1142_P100-1997,swaplfnl
-static const int LG_CHAR_BYTE_IBM_1142_S390 = 170;
-static const int LG_CHAR_BYTE_IBM_1142_P100_1997_SWAPLFNL = 170;
+static const int LG_ENCODING_IBM_1142_S390 = 170;
+static const int LG_ENCODING_IBM_1142_P100_1997_SWAPLFNL = 170;
 
 // ibm-1143_P100-1997,swaplfnl
-static const int LG_CHAR_BYTE_IBM_1143_S390 = 171;
-static const int LG_CHAR_BYTE_IBM_1143_P100_1997_SWAPLFNL = 171;
+static const int LG_ENCODING_IBM_1143_S390 = 171;
+static const int LG_ENCODING_IBM_1143_P100_1997_SWAPLFNL = 171;
 
 // ibm-1144_P100-1997,swaplfnl
-static const int LG_CHAR_BYTE_IBM_1144_S390 = 172;
-static const int LG_CHAR_BYTE_IBM_1144_P100_1997_SWAPLFNL = 172;
+static const int LG_ENCODING_IBM_1144_S390 = 172;
+static const int LG_ENCODING_IBM_1144_P100_1997_SWAPLFNL = 172;
 
 // ibm-1145_P100-1997,swaplfnl
-static const int LG_CHAR_BYTE_IBM_1145_S390 = 173;
-static const int LG_CHAR_BYTE_IBM_1145_P100_1997_SWAPLFNL = 173;
+static const int LG_ENCODING_IBM_1145_S390 = 173;
+static const int LG_ENCODING_IBM_1145_P100_1997_SWAPLFNL = 173;
 
 // ibm-1146_P100-1997,swaplfnl
-static const int LG_CHAR_BYTE_IBM_1146_S390 = 174;
-static const int LG_CHAR_BYTE_IBM_1146_P100_1997_SWAPLFNL = 174;
+static const int LG_ENCODING_IBM_1146_S390 = 174;
+static const int LG_ENCODING_IBM_1146_P100_1997_SWAPLFNL = 174;
 
 // ibm-1147_P100-1997,swaplfnl
-static const int LG_CHAR_BYTE_IBM_1147_S390 = 175;
-static const int LG_CHAR_BYTE_IBM_1147_P100_1997_SWAPLFNL = 175;
+static const int LG_ENCODING_IBM_1147_S390 = 175;
+static const int LG_ENCODING_IBM_1147_P100_1997_SWAPLFNL = 175;
 
 // ibm-1148_P100-1997,swaplfnl
-static const int LG_CHAR_BYTE_IBM_1148_S390 = 176;
-static const int LG_CHAR_BYTE_IBM_1148_P100_1997_SWAPLFNL = 176;
+static const int LG_ENCODING_IBM_1148_S390 = 176;
+static const int LG_ENCODING_IBM_1148_P100_1997_SWAPLFNL = 176;
 
 // ibm-1149_P100-1997,swaplfnl
-static const int LG_CHAR_BYTE_IBM_1149_S390 = 177;
-static const int LG_CHAR_BYTE_IBM_1149_P100_1997_SWAPLFNL = 177;
+static const int LG_ENCODING_IBM_1149_S390 = 177;
+static const int LG_ENCODING_IBM_1149_P100_1997_SWAPLFNL = 177;
 
 // ibm-1153_P100-1999,swaplfnl
-static const int LG_CHAR_BYTE_IBM_1153_S390 = 178;
-static const int LG_CHAR_BYTE_IBM_1153_P100_1999_SWAPLFNL = 178;
+static const int LG_ENCODING_IBM_1153_S390 = 178;
+static const int LG_ENCODING_IBM_1153_P100_1999_SWAPLFNL = 178;
 
 // ibm-12712_P100-1998,swaplfnl
-static const int LG_CHAR_BYTE_IBM_12712_S390 = 179;
-static const int LG_CHAR_BYTE_IBM_12712_P100_1998_SWAPLFNL = 179;
+static const int LG_ENCODING_IBM_12712_S390 = 179;
+static const int LG_ENCODING_IBM_12712_P100_1998_SWAPLFNL = 179;
 
 // ibm-16804_X110-1999,swaplfnl
-static const int LG_CHAR_BYTE_IBM_16804_S390 = 180;
-static const int LG_CHAR_BYTE_IBM_16804_X110_1999_SWAPLFNL = 180;
+static const int LG_ENCODING_IBM_16804_S390 = 180;
+static const int LG_ENCODING_IBM_16804_X110_1999_SWAPLFNL = 180;
 
 // ebcdic-xml-us
-static const int LG_CHAR_BYTE_EBCDIC_XML_US = 181;
+static const int LG_ENCODING_EBCDIC_XML_US = 181;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __LIGHTGREP_C_CHAR_BYTE_TRANS_H_ */
+#endif /* LIGHTGREP_C_ENCODINGS_H_ */

@@ -16,14 +16,26 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LIGHTGREP_C_BYTE_BYTE_TRANS_H_
-#define LIGHTGREP_C_BYTE_BYTE_TRANS_H_
+#ifndef LIGHTGREP_C_TRANSFORMS_H_
+#define LIGHTGREP_C_TRANSFORMS_H_
 
 #include "lightgrep_c_util.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+static const LG_TRANS LG_CHAR_CHAR_TRANSFORMATIONS[] = {
+  { "identity", 0 }
+};
+
+static const char* const LG_CANONICAL_CHAR_CHAR_TRANSFORMATIONS[] = {
+  "identity" // 0
+};
+
+// identity
+static const int LG_CHAR_CHAR_IDENTITY = 0;
+
 
 static const LG_TRANS LG_BYTE_BYTE_TRANSFORMATIONS[] = {
   { "identity", 0 },
@@ -41,8 +53,9 @@ static const int LG_BYTE_BYTE_IDENTITY = 0;
 // OCE
 static const int LG_BYTE_BYTE_OCE = 1;
 
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* LIGHTGREP_C_BYTE_BYTE_TRANS_H_ */
+#endif /* LIGHTGREP_C_TRANSFORMS_H_ */

@@ -20,9 +20,8 @@
 #include "concrete_encoders.h"
 #include "encoderfactory.h"
 #include "lightgrep/lightgrep_c_util.h"
-#include "lightgrep/lightgrep_c_char_char_trans.h"
-#include "lightgrep/lightgrep_c_char_byte_trans.h"
-#include "lightgrep/lightgrep_c_byte_byte_trans.h"
+#include "lightgrep/transforms.h"
+#include "lightgrep/encodings.h"
 #include "icuencoder.h"
 #include "oceencoder.h"
 #include "rotencoder.h"
@@ -79,7 +78,7 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
   }
 
   // process the char->byte transformation
-  id = lg_get_char_byte_transformation_id(curTok->c_str());
+  id = lg_get_encoding_id(curTok->c_str());
   if (id < 0) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT(
       "'" << *curTok << "' is neither a valid char->char transformation "
@@ -87,7 +86,7 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
     );
   }
 
-  const std::string charbyte = LG_CANONICAL_CHAR_BYTE_TRANSFORMATIONS[id];
+  const std::string charbyte = LG_CANONICAL_ENCODINGS[id];
   ++curTok;
 
   // process the byte->byte transformations

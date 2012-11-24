@@ -22,9 +22,8 @@
 
 #include "c_api_util.h"
 #include "lightgrep/lightgrep_c_util.h"
-#include "lightgrep/lightgrep_c_char_char_trans.h"
-#include "lightgrep/lightgrep_c_char_byte_trans.h"
-#include "lightgrep/lightgrep_c_byte_byte_trans.h"
+#include "lightgrep/transforms.h"
+#include "lightgrep/encodings.h"
 
 int find_trans_id(const LG_TRANS* beg, const LG_TRANS* end, const char* const name) {
   std::string ns(name);
@@ -59,13 +58,13 @@ int lg_get_char_char_transformation_id(const char* const name) {
   );
 }
 
-int lg_get_char_byte_transformation_id(const char* const name) {
+int lg_get_encoding_id(const char* const name) {
   return trap_with_retval(
     [name](){
       return find_trans_id(
-        LG_CHAR_BYTE_TRANSFORMATIONS,
-        LG_CHAR_BYTE_TRANSFORMATIONS +
-          sizeof(LG_CHAR_BYTE_TRANSFORMATIONS)/sizeof(LG_TRANS),
+        LG_ENCODINGS,
+        LG_ENCODINGS +
+          sizeof(LG_ENCODINGS)/sizeof(LG_TRANS),
         name
       );
     },
