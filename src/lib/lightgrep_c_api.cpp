@@ -121,13 +121,21 @@ int lg_pattern_map_size(const LG_HPATTERNMAP hPatternMap) {
   return hPatternMap->Patterns.size();
 }
 
+LG_HFSM create_fsm(unsigned int numFsmStateSizeHint) {
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> hFsm(
+    new FSMHandle,
+    lg_destroy_fsm
+  );
+
+  hFsm->Impl.reset(new FSMThingy(numFsmStateSizeHint));
+  return hFsm.release();
+}
+
 LG_HFSM lg_create_fsm(unsigned int numFsmStateSizeHint) {
-  try {
-    return new FSMHandle{std::unique_ptr<FSMThingy>(new FSMThingy(numFsmStateSizeHint))};
-  }
-  catch (...) {
-    return nullptr;
-  }
+  return trap_with_retval(
+    [numFsmStateSizeHint](){ return create_fsm(numFsmStateSizeHint); },
+    nullptr
+  );
 }
 
 void lg_destroy_fsm(LG_HFSM hFsm) {
@@ -180,7 +188,7 @@ LG_HPROGRAM lg_create_program(LG_HFSM hFsm,
   return trap_with_retval(
     [hFsm,options](){ return create_program(hFsm, options); },
     nullptr
-   );
+  );
 }
 
 void write_program(LG_HPROGRAM hProg, void* buffer) {
