@@ -33,14 +33,30 @@ class STest {
 public:
   std::vector<SearchHit> Hits;
 
-  STest(const char* key): STest(std::initializer_list<const char*>{key}) {}
+  STest(const char* key):
+    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+  {
+    init(make_patterns(std::initializer_list<const char*>{key}));
+  }
 
-  STest(std::initializer_list<const char*> keys): STest(make_patterns(keys)) {}
+  STest(std::initializer_list<const char*> keys):
+    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+  {
+    init(make_patterns(keys));
+  }
 
   template <typename T>
-  STest(const T& keys): STest(make_patterns(keys)) {}
+  STest(const T& keys):
+    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+  {
+    init(make_patterns(keys));
+  }
 
-  STest(const std::vector<Pattern>& patterns);
+  STest(const std::vector<Pattern>& patterns):
+    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+  {
+    init(patterns);
+  }
 
   void search(const byte* begin, const byte* end, uint64_t offset);
 
@@ -61,6 +77,8 @@ private:
 
     return pats;
   }
+
+  void init(const std::vector<Pattern>& pats);
 
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> Prog;
   std::unique_ptr<ContextHandle,void(*)(ContextHandle*)> Ctx;

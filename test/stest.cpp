@@ -23,9 +23,7 @@ void collector(void* userData, const LG_SearchHit* const hit) {
   stest->Hits.push_back(*static_cast<const SearchHit* const>(hit));
 }
 
-STest::STest(const std::vector<Pattern>& pats):
-  Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
-{
+void STest::init(const std::vector<Pattern>& pats) {
   std::unique_ptr<PatternHandle,void(*)(PatternHandle*)> pat(
     lg_create_pattern(),
     lg_destroy_pattern
