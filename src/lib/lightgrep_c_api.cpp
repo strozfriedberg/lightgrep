@@ -18,7 +18,7 @@
 
 #include "basic.h"
 
-#include "lightgrep_c_api.h"
+#include "lightgrep/api.h"
 
 #include "automata.h"
 #include "c_api_util.h"

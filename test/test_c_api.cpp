@@ -18,7 +18,7 @@
 
 // #include <scope/test.h>
 
-// #include "lightgrep_c_api.h"
+// #include "lightgrep/api.h"
 // #include "basic.h"
 
 // TODO: complete this test?

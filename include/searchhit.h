@@ -19,7 +19,7 @@
 #pragma once
 
 #include "basic.h"
-#include "lightgrep_search_hit.h"
+#include "lightgrep/lightgrep_search_hit.h"
 
 class SearchHit: public LG_SearchHit {
 public:

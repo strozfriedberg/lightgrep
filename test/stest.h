@@ -23,7 +23,7 @@
 #include <memory>
 #include <vector>
 
-#include "lightgrep_c_api.h"
+#include "lightgrep/api.h"
 #include "pattern.h"
 #include "searchhit.h"
 

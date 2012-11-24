@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lightgrep_c_api.h"
-#include "encodings.h"
+#include "lightgrep/api.h"
+#include "lightgrep/encodings.h"
 
 #include <stdio.h>
 #include <string.h>

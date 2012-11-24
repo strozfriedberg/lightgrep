@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "encodings.h"
+#include "lightgrep/encodings.h"
 
 #include <algorithm>
 #include <string>

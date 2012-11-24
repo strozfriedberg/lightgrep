@@ -19,7 +19,7 @@
 #pragma once
 
 #include "basic.h"
-#include "encodings.h"
+#include "lightgrep/encodings.h"
 
 #include <vector>
 

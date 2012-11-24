@@ -21,10 +21,10 @@
 #include <string>
 
 #include "c_api_util.h"
-#include "lightgrep_c_util.h"
-#include "lightgrep_c_char_char_trans.h"
-#include "lightgrep_c_char_byte_trans.h"
-#include "lightgrep_c_byte_byte_trans.h"
+#include "lightgrep/lightgrep_c_util.h"
+#include "lightgrep/lightgrep_c_char_char_trans.h"
+#include "lightgrep/lightgrep_c_char_byte_trans.h"
+#include "lightgrep/lightgrep_c_byte_byte_trans.h"
 
 int find_trans_id(const LG_TRANS* beg, const LG_TRANS* end, const char* const name) {
   std::string ns(name);

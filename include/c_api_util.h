@@ -19,7 +19,7 @@
 #pragma once
 
 #include "basic.h"
-#include "lightgrep_c_api.h"
+#include "lightgrep/api.h"
 
 void fill_error(LG_Error** err, const char* msg);
 
