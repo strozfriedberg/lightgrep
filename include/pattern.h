@@ -19,7 +19,6 @@
 #pragma once
 
 #include "basic.h"
-#include "lightgrep/encodings.h"
 
 #include <vector>
 
@@ -34,7 +33,7 @@ public:
           bool fixed = false,
           bool insensitive = false,
           uint32_t index = 0,
-          const std::string& enc = LG_CANONICAL_ENCODINGS[LG_ENC_ASCII]):
+          const std::string& enc = "US-ASCII"):
     Expression(expr),
     FixedString(fixed),
     CaseInsensitive(insensitive),

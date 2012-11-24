@@ -16,25 +16,25 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lightgrep/encodings.h"
+#include "lightgrep/lightgrep_c_char_byte_trans.h"
 
 #include <algorithm>
 #include <string>
 
 int lg_get_encoding_id(const char* const name) {
-  const LG_SUPPORTED_ENCODING* beg = LG_SUPPORTED_ENCODINGS;
-  const LG_SUPPORTED_ENCODING* end =
-    LG_SUPPORTED_ENCODINGS +
-    sizeof(LG_SUPPORTED_ENCODINGS) / sizeof(LG_SUPPORTED_ENCODING);
+  const LG_TRANS* beg = LG_CHAR_BYTE_TRANSFORMATIONS;
+  const LG_TRANS* end =
+    LG_CHAR_BYTE_TRANSFORMATIONS +
+    sizeof(LG_CHAR_BYTE_TRANSFORMATIONS) / sizeof(LG_TRANS);
 
   std::string ns(name);
   std::transform(ns.begin(), ns.end(), ns.begin(), tolower);
 
 // TODO: encodings are sorted by name, so do a binary search
-  const LG_SUPPORTED_ENCODING* ptr = std::find_if(
+  const LG_TRANS* ptr = std::find_if(
     beg,
     end,
-    [&](const LG_SUPPORTED_ENCODING& e) -> bool {
+    [&](const LG_TRANS& e) -> bool {
       std::string es(e.name);
       std::transform(es.begin(), es.end(), es.begin(), tolower);
       return ns == es;

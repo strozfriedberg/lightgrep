@@ -17,7 +17,6 @@
 */
 
 #include "lightgrep/api.h"
-#include "lightgrep/encodings.h"
 
 #include <stdio.h>
 #include <string.h>

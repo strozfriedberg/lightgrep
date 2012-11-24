@@ -30,6 +30,7 @@
 #include "mockcallback.h"
 #include "vm_interface.h"
 
+#include "lightgrep/lightgrep_c_char_byte_trans.h"
 #include "test_helper.h"
 
 /*
@@ -86,7 +87,7 @@ SCOPE_TEST(oceUTF8) {
 SCOPE_TEST(twoUnicode) {
   std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
   for (Pattern& p : pats) {
-    p.Encoding = LG_CANONICAL_ENCODINGS[LG_ENC_UTF_16LE];
+    p.Encoding = LG_CANONICAL_CHAR_BYTE_TRANSFORMATIONS[LG_CHAR_BYTE_UTF_16LE];
   }
 
   NFAPtr fsm = createGraph(pats, true);
