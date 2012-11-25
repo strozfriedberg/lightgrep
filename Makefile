@@ -1,5 +1,7 @@
 .SUFFIXES:
 
+PREFIX=/usr/local
+
 #
 # Set OS-specific variables 
 #
@@ -226,6 +228,10 @@ DEPS=$(patsubst %.o,%.d,$(CEX_OBJS) $(ENC_OBJS) $(LIB_STATIC_OBJS) $(TEST_OBJS) 
 
 bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
 	$(MKDIR) -p $@
+
+install: lib-shared lib-static
+	cp -R include/lightgrep $(PREFIX)/include/
+	cp $(LIB_SHARED_BIN) $(LIB_STATIC_BIN) $(PREFIX)/lib/
 
 clean:
 	$(RM) -r bin/*
