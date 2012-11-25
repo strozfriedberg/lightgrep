@@ -19,7 +19,7 @@
 #include "ascii.h"
 #include "concrete_encoders.h"
 #include "encoderfactory.h"
-#include "lightgrep/lightgrep_c_util.h"
+#include "lightgrep/util.h"
 #include "lightgrep/transforms.h"
 #include "lightgrep/encodings.h"
 #include "icuencoder.h"

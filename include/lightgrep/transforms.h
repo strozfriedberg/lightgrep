@@ -19,7 +19,7 @@
 #ifndef LIGHTGREP_C_TRANSFORMS_H_
 #define LIGHTGREP_C_TRANSFORMS_H_
 
-#include "lightgrep_c_util.h"
+#include "util.h"
 
 #ifdef __cplusplus
 extern "C" {

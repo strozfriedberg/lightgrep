@@ -21,7 +21,7 @@
 #include <string>
 
 #include "c_api_util.h"
-#include "lightgrep/lightgrep_c_util.h"
+#include "lightgrep/util.h"
 #include "lightgrep/transforms.h"
 #include "lightgrep/encodings.h"
 

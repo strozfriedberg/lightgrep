@@ -19,7 +19,7 @@
 #ifndef LIGHTGREP_C_API_H_
 #define LIGHTGREP_C_API_H_
 
-#include "lightgrep_search_hit.h"
+#include "search_hit.h"
 
 #ifdef __cplusplus
 extern "C" {
