@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+  // Opaque handles to thingies
   struct PatternHandle;
   struct PatternMapHandle;
   struct FSMHandle;
@@ -37,17 +38,20 @@ extern "C" {
   typedef struct ProgramHandle*    LG_HPROGRAM;
   typedef struct ContextHandle*    LG_HCONTEXT;
 
+  // Options for pattern parsing
   typedef struct {
     char FixedString;     // 0 => grep, non-zero => fixed-string
     char CaseInsensitive; // 0 => case sensitive, non-zero => case-insensitive
   } LG_KeyOptions;
 
+  // Encoding options for patterns
   typedef struct {
     const char* Pattern;
     const char* EncodingChain;
     void* UserData;
   } LG_PatternInfo;
 
+  // Options for compiling patterns
   typedef struct {
     char Determinize;     // 0 => build NFA, non-zero => build (pseudo)DFA
   } LG_ProgramOptions;
@@ -58,12 +62,16 @@ extern "C" {
            TraceEnd;      // ending offset of trace output
   } LG_ContextOptions;
 
+  // Error handling
   typedef struct LG_Error {
     char* Message;
   } LG_Error;
 
   void lg_free_error(LG_Error* err);
 
+
+  // Create and destory an LG_HPATTERN.
+  // This can be reused when parsing pattern strings to avoid re-allocating memory.
   LG_HPATTERN lg_create_pattern();
 
   void lg_destroy_pattern(LG_HPATTERN hPattern);
