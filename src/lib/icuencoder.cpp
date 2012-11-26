@@ -21,16 +21,6 @@
 
 #include <unicode/uset.h>
 
-// FIXME: Maybe we should set endianness with a compile-time flag? This
-// would let us do the fast thing (casting & assignment) for conversions
-// from code points to UTF-16 and UTF-32, instead of assigning each byte
-// individually, in the case where our architecture and the encoding are
-// same-endian.
-bool is_little_endian() {
-  const uint16_t twobytes = 1;
-  return reinterpret_cast<const byte*>(&twobytes)[0];
-}
-
 ICUEncoder::ICUEncoder(const char* const name):
   EncoderBase(),
   enc_name(name),
@@ -70,13 +60,15 @@ void ICUEncoder::init(const char* const name) {
 
   // ICU pivots through UTF-16 when transcoding; this converter is used
   // to turn our code points (single characters in UTF-32) into UTF-16.
+  // We use the "PlatformEndian" version of UTF-32 so we don't have to
+  // bother worrrying about endianness ourselves.
   src_conv = std::unique_ptr<UConverter,void(*)(UConverter*)>(
-    ucnv_open(is_little_endian() ? "UTF-32LE" : "UTF-32BE", &err),
+    ucnv_open("UTF32_PlatformEndian", &err),
     ucnv_close
   );
   if (U_FAILURE(err)) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT(
-      "Your ICU is missing UTF-32. WAT? " << u_errorName(err)
+      "Your ICU is missing UTF32_PlatformEndian. WAT? " << u_errorName(err)
     );
   }
 
