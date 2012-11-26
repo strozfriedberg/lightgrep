@@ -19,7 +19,7 @@
 #include <scope/test.h>
 
 #include "container_out.h"
-#include "utf16.h"
+#include "encoders/utf16.h"
 
 template <bool LE>
 void utf16TestFixture(const UTF16Base<LE>& enc) {

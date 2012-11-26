@@ -18,7 +18,7 @@
 
 #include <sstream>
 
-#include "charencoder.h"
+#include "encoders/charencoder.h"
 
 std::string CharEncoder::name() const {
   std::ostringstream ss;

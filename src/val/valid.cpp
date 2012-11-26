@@ -25,13 +25,9 @@
 
 #include <unicode/ucnv.h>
 
-#include "ascii.h"
 #include "basic.h"
-#include "encoder.h"
-#include "icuencoder.h"
-#include "utf8.h"
-#include "utf16.h"
-#include "utf32.h"
+#include "encoders/encoder.h"
+#include "encoders/encoderfactory.h"
 
 void write_tests(Encoder& enc, byte* buf_other, byte* buf_enc) {
   UnicodeSet valid(enc.validCodePoints());
@@ -114,34 +110,7 @@ void write_tests(Encoder& enc, byte* buf_other, byte* buf_enc) {
   }
 }
 
-std::shared_ptr<Encoder> getEncoder(const std::string& name) {
-  if (name == "ASCII") {
-    return std::make_shared<ASCII>();
-  }
-  else if (name == "UTF-8") {
-    return std::make_shared<UTF8>();
-  }
-  else if (name == "UTF-16LE") {
-    return std::make_shared<UTF16LE>();
-  }
-  else if (name == "UTF-16BE") {
-    return std::make_shared<UTF16BE>();
-  }
-  else if (name == "UTF-32LE") {
-    return std::make_shared<UTF32LE>();
-  }
-  else if (name == "UTF-32BE") {
-    return std::make_shared<UTF32BE>();
-  }
-  else {
-    return std::make_shared<ICUEncoder>(name);
-  }
-}
-
 int main(int argc, char** argv) {
-  UTF8 utf8;
-  std::unique_ptr<byte[]> buf_utf8(new byte[utf8.maxByteLength()]);
-
   std::vector<std::string> encodings;
 
   if (argc > 1) {
@@ -244,8 +213,9 @@ int main(int argc, char** argv) {
   }
 
   // generate test data for each requested encoding
+  EncoderFactory efac;
   for (const std::string& ename : encodings) {
-    std::shared_ptr<Encoder> enc(getEncoder(ename));
+    std::shared_ptr<Encoder> enc(efac.get(ename));
     std::unique_ptr<byte[]> buf_other(new byte[enc->maxByteLength()]);
     std::unique_ptr<byte[]> buf_enc(new byte[enc->maxByteLength()]);
     write_tests(*enc.get(), buf_other.get(), buf_enc.get());

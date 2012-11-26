@@ -16,19 +16,19 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ascii.h"
-#include "concrete_encoders.h"
-#include "encoderfactory.h"
+#include "encoders/ascii.h"
+#include "encoders/concrete_encoders.h"
+#include "encoders/encoderfactory.h"
+#include "encoders/icuencoder.h"
+#include "encoders/oceencoder.h"
+#include "encoders/rotencoder.h"
+#include "encoders/utf8.h"
+#include "encoders/utf16.h"
+#include "encoders/utf32.h"
+#include "encoders/xorencoder.h"
 #include "lightgrep/util.h"
 #include "lightgrep/transforms.h"
 #include "lightgrep/encodings.h"
-#include "icuencoder.h"
-#include "oceencoder.h"
-#include "rotencoder.h"
-#include "utf8.h"
-#include "utf16.h"
-#include "utf32.h"
-#include "xorencoder.h"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>

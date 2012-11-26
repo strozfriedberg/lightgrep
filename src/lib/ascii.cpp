@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ascii.h"
+#include "encoders/ascii.h"
 
 uint32_t ASCII::write(int cp, byte buf[]) const {
   if (cp < 0) {

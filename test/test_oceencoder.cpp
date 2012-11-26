@@ -20,9 +20,9 @@
 
 #include <iostream>
 
-#include "ascii.h"
 #include "container_out.h"
-#include "oceencoder.h"
+#include "encoders/ascii.h"
+#include "encoders/oceencoder.h"
 
 SCOPE_TEST(testOCEEncoderASCIIName) {
   OCEEncoder enc{ASCII()};

@@ -16,8 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "encoder.h"
 #include "fsmthingy.h"
+#include "encoders/encoder.h"
 
 #include <memory>
 #include <string>

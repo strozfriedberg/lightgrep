@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "oceencoder.h"
+#include "encoders/oceencoder.h"
 
 void OCEEncoder::byteTransform(byte buf[], uint32_t blen) const {
   std::transform(buf, buf+blen, buf, [](byte b){ return OCE[b]; });

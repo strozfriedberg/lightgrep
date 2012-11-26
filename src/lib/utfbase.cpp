@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "utfbase.h"
+#include "encoders/utfbase.h"
 
 void UTFBase::writeRange(std::vector<std::vector<ByteSet>>& va, UnicodeSet::const_iterator& i, const UnicodeSet::const_iterator& iend, uint32_t& l, uint32_t& h, byte* cur, uint32_t len, uint32_t blimit) const {
   while (l < std::min(h, blimit)) {

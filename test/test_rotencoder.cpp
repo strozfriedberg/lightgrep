@@ -20,9 +20,9 @@
 
 #include <iostream>
 
-#include "ascii.h"
 #include "container_out.h"
-#include "rotencoder.h"
+#include "encoders/ascii.h"
+#include "encoders/rotencoder.h"
 
 SCOPE_TEST(testROTEncoderASCIIName) {
   ROTEncoder enc(13, ASCII());

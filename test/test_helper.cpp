@@ -20,11 +20,11 @@
 
 #include <memory>
 
-#include "encoderfactory.h"
 #include "nfabuilder.h"
 #include "nfaoptimizer.h"
 #include "parser.h"
 #include "parsetree.h"
+#include "encoders/encoderfactory.h"
 
 #include "test_helper.h"
 

@@ -18,7 +18,7 @@
 
 #include <sstream>
 
-#include "byteencoder.h"
+#include "encoders/byteencoder.h"
 
 uint32_t ByteEncoder::maxByteLength() const {
   return BaseEnc->maxByteLength();

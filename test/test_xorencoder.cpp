@@ -20,9 +20,9 @@
 
 #include <iostream>
 
-#include "ascii.h"
 #include "container_out.h"
-#include "xorencoder.h"
+#include "encoders/ascii.h"
+#include "encoders/xorencoder.h"
 
 SCOPE_TEST(testXOREncoderASCIIName) {
   XOREncoder enc(0x55, ASCII());

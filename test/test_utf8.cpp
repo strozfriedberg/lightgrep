@@ -21,8 +21,8 @@
 //#include "automata.h"
 #include "container_out.h"
 //#include "fragment.h"
-#include "utf8.h"
 //#include "utility.h"
+#include "encoders/utf8.h"
 
 SCOPE_TEST(testUTF8) {
   UTF8 enc;

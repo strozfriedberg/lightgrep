@@ -17,11 +17,11 @@
 */
 
 #include "nfabuilder.h"
-#include "concrete_encoders.h"
 #include "parsetree.h"
 #include "states.h"
 #include "transitionfactory.h"
 #include "utility.h"
+#include "encoders/ascii.h"
 
 #include <algorithm>
 #include <iostream>

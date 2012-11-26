@@ -18,7 +18,7 @@
 
 #include <scope/test.h>
 
-#include "ascii.h"
+#include "encoders/ascii.h"
 
 SCOPE_TEST(testASCII) {
   ASCII enc;

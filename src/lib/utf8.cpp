@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "utf8.h"
+#include "encoders/utf8.h"
 
 uint32_t UTF8::write(int cp, byte buf[]) const {
   if (cp < 0) {

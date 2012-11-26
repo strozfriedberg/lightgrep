@@ -1,10 +1,9 @@
 #pragma once
 
 #include "basic.h"
-#include "encoder.h"
-#include "encoderfactory.h"
 #include "nfabuilder.h"
 #include "nfaoptimizer.h"
+#include "encoders/encoderfactory.h"
 
 #include <memory>
 

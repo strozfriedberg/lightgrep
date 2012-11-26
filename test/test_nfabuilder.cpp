@@ -19,13 +19,13 @@
 #include <scope/test.h>
 
 #include "automata.h"
-#include "concrete_encoders.h"
+#include "instructions.h"
 #include "nfabuilder.h"
 #include "parser.h"
 #include "parsetree.h"
 #include "states.h"
 #include "utility.h"
-#include "instructions.h"
+#include "encoders/concrete_encoders.h"
 
 #include "test_helper.h"
 
