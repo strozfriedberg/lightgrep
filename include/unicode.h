@@ -20,6 +20,8 @@
 
 #include <algorithm>
 
+#include "basic.h"
+
 #define CONTINUATION(cp, i, end, used) \
   if (++i == end) { \
     cp = -1; \
