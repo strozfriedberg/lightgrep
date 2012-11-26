@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include "byteencoder.h"
+#include "encoders/byteencoder.h"
 
 class OCEEncoder: public ByteEncoder {
 public:

@@ -21,7 +21,7 @@
 #include <memory>
 
 #include "basic.h"
-#include "charencoder.h"
+#include "encoders/charencoder.h"
 
 #include <boost/lexical_cast.hpp>
 

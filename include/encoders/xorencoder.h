@@ -23,7 +23,7 @@
 
 #include <boost/lexical_cast.hpp>
 
-#include "byteencoder.h"
+#include "encoders/byteencoder.h"
 
 class XOREncoder: public ByteEncoder {
 public:

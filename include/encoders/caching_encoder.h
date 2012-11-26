@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "decorating_encoder.h"
+#include "encoders/decorating_encoder.h"
 
 #include <map>
 

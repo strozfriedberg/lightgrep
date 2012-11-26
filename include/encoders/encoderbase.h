@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "encoder.h"
+#include "encoders/encoder.h"
 
 class EncoderBase: public Encoder {
 public:
