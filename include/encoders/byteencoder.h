@@ -21,7 +21,7 @@
 #include <memory>
 #include <string>
 
-#include "encoderbase.h"
+#include "encoders/encoderbase.h"
 
 // FIXME: Inheriting from EncoderBase means we have a Valid member which
 // we don't use. We could avoid this by moving the Valid member into a

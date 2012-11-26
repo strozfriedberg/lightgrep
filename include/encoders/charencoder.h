@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include "encoderbase.h"
+#include "encoders/encoderbase.h"
 
 class CharEncoder: public EncoderBase {
 public:

@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "caching_encoder.h"
-#include "utfbase.h"
+#include "encoders/caching_encoder.h"
+#include "encoders/utfbase.h"
 
 template <bool LE>
 class UTF32Base: public UTFBase {

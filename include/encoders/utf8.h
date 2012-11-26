@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "caching_encoder.h"
-#include "utfbase.h"
+#include "encoders/caching_encoder.h"
+#include "encoders/utfbase.h"
 
 class UTF8: public UTFBase {
 public:

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "encoderbase.h"
+#include "encoders/encoderbase.h"
 
 class UTFBase: public EncoderBase {
 public:
