@@ -45,9 +45,14 @@ public:
 
   virtual std::string name() const;
 
-  virtual uint32_t write(int cp, byte buf[]) const;
+  virtual uint32_t write(int32_t cp, byte buf[]) const;
 
   using EncoderBase::write;
+
+  virtual uint32_t write(const byte buf[], int32_t& cp) const {
+// TODO: fill this in
+    return 0;
+  }
 
 private:
   void init(const char* const name);

@@ -30,7 +30,7 @@ public:
 
   virtual std::string name() const { return LE ? "UTF-16LE" : "UTF-16BE"; }
 
-  virtual uint32_t write(int cp, byte buf[]) const {
+  virtual uint32_t write(int32_t cp, byte buf[]) const {
     if (cp < 0) {
       // too small
       return 0;
@@ -69,6 +69,42 @@ public:
   }
 
   using UTFBase::write;
+
+  virtual uint32_t write(const byte buf[], int32_t& cp) const {
+    cp = buf[LE ? 0 : 1] | (buf[LE ? 1 : 0] << 8);
+
+    if (cp < 0xD800) {
+      // direct representation
+      return 2;
+    }
+    else if (cp < 0xDC00) {
+      // found lead of UTF-16 surrogate pair
+      const uint16_t lead = cp;
+
+      const uint16_t trail = buf[LE ? 2 : 3] | (buf[LE ? 3 : 2] << 8);
+      if (trail < 0xDC00) {
+        // invalid
+        return 0;
+      }
+      else if (trail < 0xE000) {
+        // found trail of UTF-16 surrogate pair
+        cp = ((lead - (0xD800 - (0x10000 >> 10))) << 10) | (trail - 0xDC00);
+        return 4;
+      }
+      else {
+        // invalid
+        return 0;
+      }
+    }
+    else if (cp < 0xE000) {
+      // invalid
+      return 0;
+    }
+    else {
+      // direct representation
+      return 2;
+    }
+  }
 
 protected:
   virtual void collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {

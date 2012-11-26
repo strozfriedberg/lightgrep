@@ -54,12 +54,21 @@ public:
   }
 
 protected:
-  virtual int charTransform(int cp) const {
+  virtual int32_t charTransform(int32_t cp) const {
     return
       ('A' <= cp && cp <= 'Z') ?
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[(cp-'A'+Rot) % 26] :
       ('a' <= cp && cp <= 'z') ?
         "abcdefghijklmnopqrstuvwxyz"[(cp-'a'+Rot) % 26] :
+      cp;
+  }
+
+  virtual int32_t charUntransform(int32_t cp) const {
+    return
+      ('A' <= cp && cp <= 'Z') ?
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[(cp-'A'+26-Rot) % 26] :
+      ('a' <= cp && cp <= 'z') ?
+        "abcdefghijklmnopqrstuvwxyz"[(cp-'a'+26-Rot) % 26] :
       cp;
   }
 

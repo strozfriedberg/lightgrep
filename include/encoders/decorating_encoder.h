@@ -63,12 +63,16 @@ public:
     return BaseEnc->validCodePoints();
   }
 
-  virtual uint32_t write(int cp, byte buf[]) const {
+  virtual uint32_t write(int32_t cp, byte buf[]) const {
     return BaseEnc->write(cp, buf); 
   }
 
   virtual void write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& vo) const {
     BaseEnc->write(uset, vo);
+  }
+
+  virtual uint32_t write(const byte buf[], int32_t& cp) const {
+    return BaseEnc->write(buf, cp);
   }
 
 protected:

@@ -18,7 +18,7 @@
 
 #include "encoders/ascii.h"
 
-uint32_t ASCII::write(int cp, byte buf[]) const {
+uint32_t ASCII::write(int32_t cp, byte buf[]) const {
   if (cp < 0) {
     return 0;
   }
@@ -44,5 +44,16 @@ void ASCII::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v) 
     else {
       v[0][0].set(r.first, r.second, true);
     }
+  }
+}
+
+uint32_t ASCII::write(const byte buf[], int32_t& cp) const {
+  if (buf[0] < 0x80) {
+    cp = buf[0];
+    return 1;
+  }
+  else {
+    cp = -1;
+    return 0;
   }
 }

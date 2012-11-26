@@ -30,7 +30,9 @@ public:
 
   virtual std::string name() const { return "ASCII"; }
 
-  virtual uint32_t write(int cp, byte buf[]) const;
+  virtual uint32_t write(int32_t cp, byte buf[]) const;
 
   virtual void write(const UnicodeSet& user, std::vector<std::vector<ByteSet>>& v) const;
+
+  virtual uint32_t write(const byte buf[], int32_t& cp) const;
 };

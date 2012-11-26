@@ -60,12 +60,15 @@ public:
 
   virtual const UnicodeSet& validCodePoints() const;
 
-  virtual uint32_t write(int cp, byte buf[]) const;
+  virtual uint32_t write(int32_t cp, byte buf[]) const;
 
   using EncoderBase::write;
 
+  virtual uint32_t write(const byte buf[], int32_t& cp) const;
+
 protected:
   virtual void byteTransform(byte buf[], uint32_t blen) const = 0;
+  virtual void byteUntransform(byte buf[], uint32_t blen) const = 0;
 
   std::string Name;
   std::unique_ptr<Encoder> BaseEnc;

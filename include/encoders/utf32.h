@@ -30,7 +30,7 @@ public:
 
   virtual std::string name() const { return LE ? "UTF-32LE" : "UTF-32BE"; }
 
-  virtual uint32_t write(int cp, byte buf[]) const {
+  virtual uint32_t write(int32_t cp, byte buf[]) const {
     if (cp < 0) {
       // too small
       return 0;
@@ -60,6 +60,22 @@ public:
   }
 
   using UTFBase::write;
+
+  virtual uint32_t write(const byte buf[], int32_t& cp) const {
+    cp = (buf[LE ? 0 : 3]      ) |
+         (buf[LE ? 1 : 2] <<  8) |
+         (buf[LE ? 2 : 1] << 16) |
+         (buf[LE ? 3 : 0] << 24);
+
+    if (cp < 0 || (0xD800 <= cp && cp < 0xE000) || 0x110000 <= cp) {
+      // out of range
+      cp = -1;
+      return 0;
+    }
+    else {
+      return 4;
+    }
+  }
 
 protected:
   virtual void collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {

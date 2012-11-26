@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <memory>
 #include <sstream>
 
 #include "encoders/byteencoder.h"
@@ -34,8 +35,14 @@ const UnicodeSet& ByteEncoder::validCodePoints() const {
   return BaseEnc->validCodePoints();
 }
 
-uint32_t ByteEncoder::write(int cp, byte buf[]) const {
+uint32_t ByteEncoder::write(int32_t cp, byte buf[]) const {
   const uint32_t ret = BaseEnc->write(cp, buf);
   byteTransform(buf, ret);
   return ret;
+}
+
+uint32_t ByteEncoder::write(const byte buf[], int32_t& cp) const {
+  std::unique_ptr<byte[]> tmp(new byte[maxByteLength()]);
+  byteUntransform(tmp.get(), maxByteLength());
+  return BaseEnc->write(tmp.get(), cp);
 }

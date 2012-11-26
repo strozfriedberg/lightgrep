@@ -43,8 +43,9 @@ public:
   }
 
   // OCE: bytes -> bytes
-  static const byte OCE[];
+  static const byte OCE[], unOCE[];
 
 protected:
   virtual void byteTransform(byte buf[], uint32_t blen) const;
+  virtual void byteUntransform(byte buf[], uint32_t blen) const;
 };

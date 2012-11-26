@@ -26,6 +26,12 @@ std::string CharEncoder::name() const {
   return ss.str();
 }
 
-uint32_t CharEncoder::write(int cp, byte buf[]) const {
+uint32_t CharEncoder::write(int32_t cp, byte buf[]) const {
   return BaseEnc->write(charTransform(cp), buf);
+}
+
+uint32_t CharEncoder::write(const byte buf[], int32_t& cp) const {
+  const uint32_t ret = BaseEnc->write(buf, cp);
+  cp = charUntransform(cp);
+  return ret;
 }

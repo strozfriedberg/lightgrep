@@ -129,7 +129,7 @@ uint32_t ICUEncoder::maxByteLength() const { return max_bytes; }
 
 std::string ICUEncoder::name() const { return enc_name; }
 
-uint32_t ICUEncoder::write(int cp, byte buf[]) const {
+uint32_t ICUEncoder::write(int32_t cp, byte buf[]) const {
   char* dst = reinterpret_cast<char*>(buf);
   const char* src = reinterpret_cast<const char*>(&cp);
 

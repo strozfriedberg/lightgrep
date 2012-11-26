@@ -36,7 +36,9 @@ public:
 
   virtual const UnicodeSet& validCodePoints() const = 0;
 
-  virtual uint32_t write(int cp, byte buf[]) const = 0;
+  virtual uint32_t write(int32_t cp, byte buf[]) const = 0;
 
   virtual void write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v) const = 0;
+
+  virtual uint32_t write(const byte buf[], int32_t& cp) const = 0;
 };

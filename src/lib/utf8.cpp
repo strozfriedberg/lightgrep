@@ -16,9 +16,10 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "unicode.h"
 #include "encoders/utf8.h"
 
-uint32_t UTF8::write(int cp, byte buf[]) const {
+uint32_t UTF8::write(int32_t cp, byte buf[]) const {
   if (cp < 0) {
     // too small
     return 0;
@@ -64,6 +65,10 @@ uint32_t UTF8::write(int cp, byte buf[]) const {
     // too large
     return 0;
   }
+}
+
+uint32_t UTF8::write(const byte buf[], int32_t& cp) const {
+  return utf8_to_unicode(cp, buf, buf+4);
 }
 
 void UTF8::collectRanges(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& va) const {

@@ -29,9 +29,11 @@ public:
 
   virtual std::string name() const { return "UTF-8"; }
 
-  virtual uint32_t write(int cp, byte buf[]) const;
+  virtual uint32_t write(int32_t cp, byte buf[]) const;
 
   using UTFBase::write;
+
+  virtual uint32_t write(const byte buf[], int32_t& cp) const;
 
 protected:
   virtual void collectRanges(const UnicodeSet& user, std::vector<std::vector<ByteSet>>& v) const;

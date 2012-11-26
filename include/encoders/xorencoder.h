@@ -53,6 +53,10 @@ protected:
     std::transform(buf, buf+blen, buf, [key](byte b){ return b ^ key; });
   }
 
+  virtual void byteUntransform(byte buf[], uint32_t blen) const {
+    byteTransform(buf, blen);
+  }
+
 private:
   byte Key;
 };

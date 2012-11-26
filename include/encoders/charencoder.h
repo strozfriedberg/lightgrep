@@ -52,12 +52,15 @@ public:
 
   virtual std::string name() const;
 
-  virtual uint32_t write(int cp, byte buf[]) const;
+  virtual uint32_t write(int32_t cp, byte buf[]) const;
 
   using EncoderBase::write;
 
+  virtual uint32_t write(const byte buf[], int32_t& cp) const;
+
 protected:
-  virtual int charTransform(int cp) const = 0;
+  virtual int32_t charTransform(int32_t cp) const = 0;
+  virtual int32_t charUntransform(int32_t cp) const = 0;
 
   std::string Name;
   std::unique_ptr<Encoder> BaseEnc;
