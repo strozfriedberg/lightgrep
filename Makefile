@@ -232,6 +232,7 @@ bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
 install: lib-shared lib-static
 	cp -R include/lightgrep $(PREFIX)/include/
 	cp $(LIB_SHARED_BIN) $(LIB_STATIC_BIN) $(PREFIX)/lib/
+	@echo " ** Done with installation **"
 
 clean:
 	$(RM) -r bin/*
