@@ -152,7 +152,7 @@ void longTest() {
       std::string encoding(len, '\0');
       std::cin.read(&encoding[0], len);
 
-      tcase.patterns.emplace_back(pattern, fixed, case_insensitive, 0, encoding);
+      tcase.patterns.emplace_back(pattern, fixed, case_insensitive, encoding);
     }
 
     // read text
