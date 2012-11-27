@@ -4,7 +4,7 @@
 
 SCOPE_TEST(hitWriterOutput) {
 /*
-  std::vector<std::pair<uint32, uint32 >> tbl;
+  std::vector<std::pair<uint32_t, uint32_t >> tbl;
   std::vector<std::string> keys,
                              encodings;
   std::stringstream stream;
@@ -13,13 +13,13 @@ SCOPE_TEST(hitWriterOutput) {
   encodings.push_back("ASCII");
   encodings.push_back("UCS-16");
 
-  tbl.push_back(std::make_pair<uint32,uint32>(0, 0));
-  tbl.push_back(std::make_pair<uint32,uint32>(0, 1));
+  tbl.push_back(std::make_pair<uint32_t,uint32_t>(0, 0));
+  tbl.push_back(std::make_pair<uint32_t,uint32_t>(0, 1));
 
   HitWriter writer(stream, tbl, keys, encodings);
   writer.collect(SearchHit(0, 10, 0));
 
-  uint64 offset, end, keyIndex;
+  uint64_t offset, end, keyIndex;
   std::string key, encoding;
 
   stream >> offset >> end >> keyIndex >> key >> encoding;

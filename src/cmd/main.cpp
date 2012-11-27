@@ -12,10 +12,8 @@
 
 #include <unicode/ucnv.h>
 
-#include "encodings.h"
 #include "handles.h"
 #include "hitwriter.h"
-#include "lightgrep_c_api.h"
 #include "matchgen.h"
 #include "options.h"
 #include "optparser.h"
@@ -23,6 +21,8 @@
 #include "program.h"
 #include "searchcontroller.h"
 #include "utility.h"
+#include "lightgrep/api.h"
+#include "lightgrep/encodings.h"
 
 #ifdef LIGHTGREP_CUSTOMER
 // check this out: http://stackoverflow.com/questions/2751870/how-exactly-does-the-double-stringize-trick-work
@@ -48,7 +48,7 @@ namespace fs = boost::filesystem;
 void startup(
   std::shared_ptr<ProgramHandle> prog,
   std::shared_ptr<PatternMapHandle> pmap,
-  uint32 numUserPatterns,
+  uint32_t numUserPatterns,
   const Options& opts
 );
 
@@ -64,26 +64,23 @@ void printHelp(const po::options_description& desc) {
 }
 
 void printEncodings() {
-  const uint32 slen =
-    sizeof(LG_SUPPORTED_ENCODINGS) / sizeof(LG_SUPPORTED_ENCODINGS[0]);
-  const uint32 clen =
+  const uint32_t slen = sizeof(LG_ENCODINGS) / sizeof(LG_ENCODINGS[0]);
+  const uint32_t clen =
     sizeof(LG_CANONICAL_ENCODINGS) / sizeof(LG_CANONICAL_ENCODINGS[0]);
 
   // group the aliases by the indices of their canonical names
   std::vector<std::vector<std::string>> aliases(clen);
-  for (uint32 i = 0; i < slen; ++i) {
+  for (uint32_t i = 0; i < slen; ++i) {
     if (std::strcmp(
-          LG_SUPPORTED_ENCODINGS[i].name,
-          LG_CANONICAL_ENCODINGS[LG_SUPPORTED_ENCODINGS[i].idx]
+          LG_ENCODINGS[i].name,
+          LG_CANONICAL_ENCODINGS[LG_ENCODINGS[i].idx]
         ) != 0
     ) {
-      aliases[LG_SUPPORTED_ENCODINGS[i].idx].emplace_back(
-        LG_SUPPORTED_ENCODINGS[i].name
-      );
+      aliases[LG_ENCODINGS[i].idx].emplace_back(LG_ENCODINGS[i].name);
     }
   }
 
-  for (uint32 i = 0; i < clen; ++i) {
+  for (uint32_t i = 0; i < clen; ++i) {
     // print the canonical name for the encoding
     std::cout << LG_CANONICAL_ENCODINGS[i] << '\n';
 
@@ -104,7 +101,7 @@ void stdParseErrorHandler(const Pattern& p, const std::string& err) {
 /*
 std::shared_ptr<ParserHandle> parsePatterns(
   PatternInfo& pinfo,
-  uint32& numErrors,
+  uint32_t& numErrors,
   std::function<void (const Pattern&, const std::string&)> onError =
     stdParseErrorHandler)
 {
@@ -114,15 +111,15 @@ std::shared_ptr<ParserHandle> parsePatterns(
   }
 
   // find total length of patterns -- or 1 if tlen is 0
-  const uint32 tlen = std::max(1u, estimateGraphSize(pinfo.Patterns));
+  const uint32_t tlen = std::max(1u, estimateGraphSize(pinfo.Patterns));
 
   std::shared_ptr<ParserHandle> parser(lg_create_parser(tlen),
                                        lg_destroy_parser);
 
   // parse patterns
-  uint32 patIdx = 0;
+  uint32_t patIdx = 0;
 
-  for (uint32 i = 0; i < pinfo.Patterns.size(); ++i) {
+  for (uint32_t i = 0; i < pinfo.Patterns.size(); ++i) {
     const int32 encIdx = lg_get_encoding_id(pinfo.Patterns[i].Encoding.c_str());
     if (encIdx == -1) {
       ++numErrors;
@@ -192,7 +189,7 @@ using UPtr = std::unique_ptr<T,void(*)(T*)>;
 std::tuple<
   UPtr<PatternMapHandle>,
   UPtr<FSMHandle>,
-  uint32
+  uint32_t
 >
 parsePatterns(
   const std::vector<Pattern>& pats,
@@ -200,7 +197,7 @@ parsePatterns(
     stdParseErrorHandler
 )
 {
-  uint32 numErrors = 0;
+  uint32_t numErrors = 0;
 
   if (!pats.empty()) {
     // set up handles we need for parsing
@@ -212,15 +209,15 @@ parsePatterns(
     );
 
     // find total length of patterns -- or 1 if tlen is 0
-    const uint32 tlen = std::max(1u, estimateGraphSize(pats));
+    const uint32_t tlen = std::max(1u, estimateGraphSize(pats));
 
     UPtr<FSMHandle> fsm(lg_create_fsm(tlen), lg_destroy_fsm);
 
     // parse the patterns
     LG_KeyOptions keyOpts; 
 
-    const uint32 pcount = pats.size();
-    for (uint32 i = 0; i < pcount; ++i) {
+    const uint32_t pcount = pats.size();
+    for (uint32_t i = 0; i < pcount; ++i) {
       const Pattern& p(pats[i]);
 
       LG_Error* err = nullptr;
@@ -415,7 +412,7 @@ bool writeGraphviz(const Options& opts) {
   const std::vector<Pattern> pats(opts.getKeys());
 
   UPtr<FSMHandle> fsm(nullptr, nullptr);
-  uint32 numErrors;
+  uint32_t numErrors;
 
   std::tie(std::ignore, fsm, numErrors) = parsePatterns(pats);
 
@@ -502,7 +499,7 @@ void writeSampleMatches(const Options& opts) {
     // parse the pattern
 
     UPtr<FSMHandle> fsm(nullptr, nullptr);
-    uint32 numErrors;
+    uint32_t numErrors;
 
     std::tie(std::ignore, fsm, numErrors) = parsePatterns(
       {pat},
@@ -513,7 +510,7 @@ void writeSampleMatches(const Options& opts) {
 
         std::unique_ptr<char[]> buf(new char[4*msg.length()+1]);
         UErrorCode ec = U_ZERO_ERROR;
-        const uint32 len = ucnv_convert(
+        const uint32_t len = ucnv_convert(
           "UTF-16LE", "UTF-8",
           buf.get(),
           4*msg.length()+1,
@@ -549,7 +546,7 @@ void startServer(const Options& opts) {
 
   UPtr<PatternMapHandle> pmap(nullptr, nullptr);
   UPtr<FSMHandle> fsm(nullptr, nullptr);
-  uint32 numErrors;
+  uint32_t numErrors;
 
   std::tie(pmap, fsm, numErrors) = parsePatterns(pats);
 

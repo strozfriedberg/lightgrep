@@ -13,7 +13,7 @@
 
 class Options {
 public:
-  uint64 DebugBegin,
+  uint64_t DebugBegin,
          DebugEnd;
 
   std::set<std::string>::size_type SampleLimit;
@@ -43,7 +43,7 @@ public:
                            KeyFiles,
                            Encodings;
 
-  uint32 BlockSize;
+  uint32_t BlockSize;
 
   unsigned short ServerPort;
 
@@ -63,5 +63,5 @@ public:
 
   bool readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const;
 
-  bool parseLine(uint32 keyIndex, const std::string& line, std::vector<Pattern>& keys) const;
+  bool parseLine(uint32_t keyIndex, const std::string& line, std::vector<Pattern>& keys) const;
 };

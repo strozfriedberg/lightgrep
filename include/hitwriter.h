@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lightgrep_c_api.h"
-#include "lightgrep_search_hit.h"
+#include "lightgrep/api.h"
+#include "lightgrep/search_hit.h"
 
 #include <iosfwd>
 #include <string>
@@ -10,7 +10,7 @@
 struct HitCounterInfo {
   virtual ~HitCounterInfo() {}
 
-  uint64 NumHits = 0;
+  uint64_t NumHits = 0;
 
   virtual void setPath(const std::string&) {}
 };

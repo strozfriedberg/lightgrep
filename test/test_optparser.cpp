@@ -15,7 +15,7 @@
 \
   const int argc = cargc + 1; \
 \
-  uint32 total_len = 1; \
+  uint32_t total_len = 1; \
   for (int i = 0; i < cargc; ++i) { \
     total_len += strlen(cargv[i]) + 1; \
   } \
