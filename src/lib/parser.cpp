@@ -22,17 +22,19 @@
 
 #include <string>
 
-static bool contains_possible_nongreedy(const std::string& pattern) {
-  // The trailing '?' of a nongreedy operator must have at least
-  // two characters preceeding it.
-  return pattern.find('?', 2) != std::string::npos;
-}
+namespace {
+  bool containsPossibleNongreedy(const std::string& pattern) {
+    // The trailing '?' of a nongreedy operator must have at least
+    // two characters preceeding it.
+    return pattern.find('?', 2) != std::string::npos;
+  }
 
-static bool contains_possible_counted_repetition(const std::string& pattern) {
-  // The '{' of a counted repetition operator must have at least one
-  // character preceeding it and two characters following it.
-  const std::string::size_type cr = pattern.rfind('{', pattern.length()-3);
-  return cr > 0 && cr != std::string::npos;
+  bool containsPossibleCountedRepetition(const std::string& pattern) {
+    // The '{' of a counted repetition operator must have at least one
+    // character preceeding it and two characters following it.
+    const std::string::size_type cr = pattern.rfind('{', pattern.length()-3);
+    return cr > 0 && cr != std::string::npos;
+  }
 }
 
 void parseAndReduce(const Pattern& pattern, ParseTree& tree) {
@@ -47,16 +49,16 @@ void reduce(const std::string& text, ParseTree& tree) {
   // rewrite the parse tree, if necessary
   bool rewrite = false;
 
-  rewrite = make_binops_right_associative(tree.Root);
-  rewrite |= combine_consecutive_repetitions(tree.Root);
+  rewrite = makeBinopsRightAssociative(tree.Root);
+  rewrite |= combineConsecutiveRepetitions(tree.Root);
 
-  if (contains_possible_nongreedy(text)) {
-    rewrite |= reduce_trailing_nongreedy_then_empty(tree.Root);
-    rewrite |= reduce_trailing_nongreedy_then_greedy(tree.Root);
+  if (containsPossibleNongreedy(text)) {
+    rewrite |= reduceTrailingNongreedyThenEmpty(tree.Root);
+    rewrite |= reduceTrailingNongreedyThenGreedy(tree.Root);
   }
 
-  if (rewrite || contains_possible_counted_repetition(text)) {
-    reduce_empty_subtrees(tree.Root);
-    reduce_useless_repetitions(tree.Root);
+  if (rewrite || containsPossibleCountedRepetition(text)) {
+    reduceEmptySubtrees(tree.Root);
+    reduceUselessRepetitions(tree.Root);
   }
 }
