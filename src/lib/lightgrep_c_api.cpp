@@ -37,6 +37,29 @@
 #include <iostream>
 #include <vector>
 
+namespace {
+  template <typename F>
+  bool exceptionTrap(F func) {
+    try {
+      func();
+      return true;
+    }
+    catch (...) {
+      return false;
+    }
+  }
+
+  template <class H>
+  H* createHandle() {
+    try {
+      return new H;
+    }
+    catch (...) {
+      return nullptr;
+    }
+  }
+}
+
 void lg_free_error(LG_Error* err) {
   if (err) {
     delete err->Message;
@@ -44,31 +67,8 @@ void lg_free_error(LG_Error* err) {
   delete err;
 }
 
-// TODO: Make local functions static or put them in an unnamed ns
-
-template <typename F>
-bool exception_trap(F func) {
-  try {
-    func();
-    return true;
-  }
-  catch (...) {
-    return false;
-  }
-}
-
-template <class H>
-H* create_handle() {
-  try {
-    return new H;
-  }
-  catch (...) {
-    return nullptr;
-  }
-}
-
 LG_HPATTERN lg_create_pattern() {
-  return create_handle<PatternHandle>();
+  return createHandle<PatternHandle>();
 }
 
 void lg_destroy_pattern(LG_HPATTERN hPattern) {
@@ -76,7 +76,7 @@ void lg_destroy_pattern(LG_HPATTERN hPattern) {
 }
 
 // TODO:
-// * Review uses of exception_trap. We're likely using it in places where
+// * Review uses of exceptionTrap. We're likely using it in places where
 // it's not necessary.
 
 int lg_parse_pattern(LG_HPATTERN hPattern,
@@ -209,7 +209,7 @@ LG_HPROGRAM lg_read_program(void* buffer, int size) {
 }
 
 void lg_write_program(LG_HPROGRAM hProg, void* buffer) {
-  exception_trap(std::bind(write_program, hProg, buffer));
+  exceptionTrap(std::bind(write_program, hProg, buffer));
 }
 
 void lg_destroy_program(LG_HPROGRAM hProg) {
@@ -256,7 +256,7 @@ void lg_destroy_context(LG_HCONTEXT hCtx) {
 }
 
 void lg_reset_context(LG_HCONTEXT hCtx) {
-  exception_trap(std::bind(&VmInterface::reset, hCtx->Impl));
+  exceptionTrap(std::bind(&VmInterface::reset, hCtx->Impl));
 }
 
 void lg_starts_with(LG_HCONTEXT hCtx,
@@ -266,7 +266,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
                    void* userData,
                    LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(std::bind(&VmInterface::startsWith, hCtx->Impl, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData));
+  exceptionTrap(std::bind(&VmInterface::startsWith, hCtx->Impl, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData));
 }
 
 unsigned int lg_search(LG_HCONTEXT hCtx,
@@ -278,7 +278,7 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
 {
 // FIXME: return Active[0]->Start
 
-  exception_trap(std::bind(&VmInterface::search, hCtx->Impl, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData));
+  exceptionTrap(std::bind(&VmInterface::search, hCtx->Impl, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData));
 
   return 0;
 }
@@ -287,5 +287,5 @@ void lg_closeout_search(LG_HCONTEXT hCtx,
                         void* userData,
                         LG_HITCALLBACK_FN callbackFn)
 {
-  exception_trap(std::bind(&VmInterface::closeOut, hCtx->Impl, callbackFn, userData));
+  exceptionTrap(std::bind(&VmInterface::closeOut, hCtx->Impl, callbackFn, userData));
 }
