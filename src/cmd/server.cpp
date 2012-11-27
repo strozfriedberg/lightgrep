@@ -1,6 +1,6 @@
 #include "basic.h"
 
-#include "lightgrep_c_api.h"
+#include "lightgrep/api.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -30,7 +30,7 @@ namespace boost {
 
 using boost::asio::ip::tcp;
 
-static const uint64 BUF_SIZE = 1024 * 1024;
+static const uint64_t BUF_SIZE = 1024 * 1024;
 
 //********************************************************
 
@@ -76,13 +76,13 @@ public:
   std::shared_ptr<boost::mutex> Mutex;
   std::shared_ptr<std::ofstream> File;
   std::string         StatsFileName;
-  std::vector<uint64> FileCounts,
+  std::vector<uint64_t> FileCounts,
                       HitCounts;
-  uint64              ResponsiveFiles,
+  uint64_t              ResponsiveFiles,
                       TotalHits;
   unsigned short      Port;
 
-  bool init(const std::string& path, const std::string& statsFileName, uint32 numKeywords, unsigned short port) {
+  bool init(const std::string& path, const std::string& statsFileName, uint32_t numKeywords, unsigned short port) {
     if (!path.empty()) {
       File.reset(new std::ofstream(path.c_str(), std::ios::out));
       if (!*File) {
@@ -108,8 +108,8 @@ public:
       // buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
       // buf << "Total Hits" << std::ends << TotalHits << std::ends;
       // buf << "File Counts" << std::ends;
-      uint32 i;
-      uint64 c;
+      uint32_t i;
+      uint64_t c;
       for (i = 0; i < FileCounts.size(); ++i) {
         c = FileCounts[i];
         if (c > 0) {
@@ -134,9 +134,9 @@ public:
     output = buf.str();
   }
 
-  void updateHits(const std::vector<uint32>& hitsForFile) {
+  void updateHits(const std::vector<uint32_t>& hitsForFile) {
     boost::mutex::scoped_lock lock(*Mutex);
-    uint64 c = 0;
+    uint64_t c = 0;
     bool hadHits = false;
     for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
       c = hitsForFile[i];
@@ -204,16 +204,16 @@ struct FileHeader {
 
   byte   Cmd,
          Type;
-  uint64 ID,
+  uint64_t ID,
          StartOffset,
          Length;
 };
 
 struct HitInfo {
-  uint64 ID,
+  uint64_t ID,
          Offset,
          Length;
-  uint32 Label,
+  uint32_t Label,
          Encoding,
          Type;
 };
@@ -222,7 +222,7 @@ struct HitInfo {
 
 class ServerWriter {
 public:
-  ServerWriter(const LG_HPATTERNMAP hMap, uint32 numUserPatterns):
+  ServerWriter(const LG_HPATTERNMAP hMap, uint32_t numUserPatterns):
     Map(hMap), NumHits(0), HitsForFile(numUserPatterns, 0) {}
 
   virtual ~ServerWriter() {}
@@ -233,7 +233,7 @@ public:
     ++NumHits;
     Hit.Offset = hit.Start;
     Hit.Length = hit.End - hit.Start;
-    Hit.Label = reinterpret_cast<uint64>(info->UserData);
+    Hit.Label = reinterpret_cast<uint64_t>(info->UserData);
 //    Hit.Encoding = lg_get_encoding_id(info->EncodingChain);
     ++HitsForFile[Hit.Label];
     write(Hit);
@@ -243,29 +243,29 @@ public:
 
   virtual void flush() {}
 
-  void writeEndHit(uint64 fileLen) {
-    Hit.Offset = std::numeric_limits<uint64>::max();
+  void writeEndHit(uint64_t fileLen) {
+    Hit.Offset = std::numeric_limits<uint64_t>::max();
     Hit.Length = fileLen;
-    Hit.Label = std::numeric_limits<uint32>::max();
+    Hit.Label = std::numeric_limits<uint32_t>::max();
     Hit.Encoding = 0;
     Hit.Type = 0;
     write(Hit);
     Registry::get().updateHits(HitsForFile);
     HitsForFile.assign(HitsForFile.size(), 0);
-    Hit.ID = std::numeric_limits<uint64>::max();
+    Hit.ID = std::numeric_limits<uint64_t>::max();
   }
 
-  void setCurID(uint64 id) { Hit.ID = id; }
+  void setCurID(uint64_t id) { Hit.ID = id; }
 
   void setType(byte type) { Hit.Type = type; }
 
-  uint64 numHits() const { return NumHits; }
+  uint64_t numHits() const { return NumHits; }
 
 private:
   const LG_HPATTERNMAP Map;
-  uint64  NumHits;
+  uint64_t  NumHits;
   HitInfo Hit;
-  std::vector<uint32> HitsForFile;
+  std::vector<uint32_t> HitsForFile;
 };
 //********************************************************
 
@@ -274,7 +274,7 @@ public:
   SocketWriter(
     std::shared_ptr<tcp::socket> sock,
     const LG_HPATTERNMAP hMap,
-    uint32 numUserPatterns
+    uint32_t numUserPatterns
   ): ServerWriter(hMap, numUserPatterns), Socket(sock) {}
 
   virtual void write(const HitInfo& hit) {
@@ -299,7 +299,7 @@ public:
     std::shared_ptr<std::ofstream> output,
     std::shared_ptr<boost::mutex> m,
     const LG_HPATTERNMAP hMap,
-    uint32 numUserPatterns
+    uint32_t numUserPatterns
   ):
     ServerWriter(hMap, numUserPatterns),
     Mutex(m),
@@ -364,9 +364,9 @@ void sendStats(tcp::socket& sock) {
   writeErr() += "asked for stats\n";
   std::string stats;
   Registry::get().getStats(stats);
-  uint64 bytes = stats.size();
+  uint64_t bytes = stats.size();
   boost::asio::write(sock, boost::asio::buffer(&bytes, sizeof(bytes)));
-  uint64 ackBytes = 0;
+  uint64_t ackBytes = 0;
   if (boost::asio::read(sock, boost::asio::buffer(&ackBytes, sizeof(ackBytes))) == sizeof(ackBytes)) {
     if (ackBytes == bytes) {
       boost::asio::write(sock, boost::asio::buffer(stats));
@@ -389,7 +389,7 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
   output->setType(hdr.Type);
   std::size_t len = 0;
-  uint64 offset = hdr.StartOffset,
+  uint64_t offset = hdr.StartOffset,
          totalRead = 0;
   while (totalRead < hdr.Length) {
     boost::this_thread::interruption_point();
@@ -421,27 +421,27 @@ void processConn(
 
 class HitStats {
 public:
-  HitStats(uint32 numKeywords);
+  HitStats(uint32_t numKeywords);
 
-  void updateHits(const std::vector<uint32>& hitsForFile);
+  void updateHits(const std::vector<uint32_t>& hitsForFile);
 
   std::string getStats() const;
 
 private:
-  std::vector<uint64> FileCounts,
+  std::vector<uint64_t> FileCounts,
                       HitCounts;
-  uint64              ResponsiveFiles,
+  uint64_t              ResponsiveFiles,
                       TotalHits;
 };
 
-HitStats::HitStats(uint32 numKeywords):
+HitStats::HitStats(uint32_t numKeywords):
   FileCounts(numKeywords, 0),
   HitCounts(numKeywords, 0),
   ResponsiveFiles(0), TotalHits(0)
 {}
 
-void HitStats::updateHits(const std::vector<uint32>& hitsForFile) {
-  uint64 c = 0;
+void HitStats::updateHits(const std::vector<uint32_t>& hitsForFile) {
+  uint64_t c = 0;
   bool hadHits = false;
   for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
     c = hitsForFile[i];
@@ -464,8 +464,8 @@ std::string HitStats::getStats() const {
   // buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
   // buf << "Total Hits" << std::ends << TotalHits << std::ends;
   // buf << "File Counts" << std::ends;
-  uint32 i;
-  uint64 c;
+  uint32_t i;
+  uint64_t c;
   for (i = 0; i < FileCounts.size(); ++i) {
     c = FileCounts[i];
     if (c > 0) {
@@ -494,7 +494,7 @@ public:
   LGServer(
     std::shared_ptr<ProgramHandle> prog,
     std::shared_ptr<PatternMapHandle> pmap,
-    uint32 numUserPatterns,
+    uint32_t numUserPatterns,
     const Options& opts
   );
 
@@ -513,7 +513,7 @@ public:
 
   void writeHits(const std::vector<HitInfo>& hits);
 
-  void updateHits(const std::vector<uint32> hitsForFile) {
+  void updateHits(const std::vector<uint32_t> hitsForFile) {
     boost::mutex::scoped_lock lock(Mutex);
     Stats.updateHits(hitsForFile);
   }
@@ -540,13 +540,13 @@ private:
   mutable boost::mutex         Mutex;
   HitStats                     Stats;
 
-  uint32 NumUserPatterns;
+  uint32_t NumUserPatterns;
 };
 
 LGServer::LGServer(
   std::shared_ptr<ProgramHandle> prog,
   std::shared_ptr<PatternMapHandle> pmap,
-  uint32 numUserPatterns,
+  uint32_t numUserPatterns,
   const Options& opts
 ):
   Opts(opts), Prog(prog), Map(pmap), Service(), Acceptor(Service),
@@ -681,7 +681,7 @@ void processConn(
       else {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
       }
-      // uint32 i = ntohl(*(uint32*)data);
+      // uint32_t i = ntohl(*(uint32_t*)data);
     }
   }
   catch (const std::exception& e) {
@@ -697,7 +697,7 @@ void processConn(
 void startup(
   std::shared_ptr<ProgramHandle> prog,
   std::shared_ptr<PatternMapHandle> pmap,
-  uint32 numUserPatterns,
+  uint32_t numUserPatterns,
   const Options& opts)
 {
   std::unique_ptr<std::ostream> outptr;

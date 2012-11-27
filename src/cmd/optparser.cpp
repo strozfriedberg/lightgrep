@@ -2,7 +2,7 @@
 
 #include "basic.h"
 #include "optparser.h"
-#include "encodings.h"
+#include "lightgrep/encodings.h"
 
 #include <algorithm>
 #include <vector>
@@ -82,7 +82,7 @@ void parse_opts(int argc, char** argv,
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
     ("no-output", "do not output hits (good for profiling)")
-    ("block-size", po::value<uint32>(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
+    ("block-size", po::value<uint32_t>(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ;
 
   // Server options
@@ -100,8 +100,8 @@ void parse_opts(int argc, char** argv,
     ("binary", "Output program as binary")
     ("program-file", po::value<std::string>(&opts.ProgramFile), "read search program from file")
     #ifdef LBT_TRACE_ENABLED
-    ("begin-debug", po::value<uint64>(&opts.DebugBegin)->default_value(std::numeric_limits<uint64>::max()), "offset for beginning of debug logging")
-    ("end-debug", po::value<uint64>(&opts.DebugEnd)->default_value(std::numeric_limits<uint64>::max()), "offset for end of debug logging")
+    ("begin-debug", po::value<uint64_t>(&opts.DebugBegin)->default_value(std::numeric_limits<uint64_t>::max()), "offset for beginning of debug logging")
+    ("end-debug", po::value<uint64_t>(&opts.DebugEnd)->default_value(std::numeric_limits<uint64_t>::max()), "offset for end of debug logging")
     #endif
     ;
 
@@ -238,11 +238,11 @@ void parse_opts(int argc, char** argv,
       opts.LoopLimit = 1;
 
       if (!pargs.empty()) {
-        opts.SampleLimit = boost::lexical_cast<uint32>(pargs.front());
+        opts.SampleLimit = boost::lexical_cast<uint32_t>(pargs.front());
         pargs.erase(pargs.begin());
 
         if (!pargs.empty()) {
-          opts.LoopLimit = boost::lexical_cast<uint32>(pargs.front());
+          opts.LoopLimit = boost::lexical_cast<uint32_t>(pargs.front());
           pargs.erase(pargs.begin());
         }
       }
