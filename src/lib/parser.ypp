@@ -688,19 +688,14 @@ namespace {
   }
 }
 
-bool parse(
-  const std::string& text,
-  bool litMode,
-  bool caseInsensitive,
-  ParseTree& tree)
-{
+bool parse(const Pattern& p, ParseTree& tree) {
   std::vector<int> cp;
-  transform_utf8_to_unicode(text.begin(), text.end(), std::back_inserter(cp));
+  transform_utf8_to_unicode(p.Expression.begin(), p.Expression.end(), std::back_inserter(cp));
 
   Context ctx;
 
-  ctx.LiteralMode = litMode;
-  ctx.CaseInsensitive = caseInsensitive;
+  ctx.LiteralMode = p.FixedString;
+  ctx.CaseInsensitive = p.CaseInsensitive;
 
   ctx.TextBegin = ctx.Text = cp.data();
   ctx.TextEnd = ctx.Text + cp.size();
@@ -710,8 +705,3 @@ bool parse(
 
   return yyparse(&ctx) == 0;
 }
-
-bool parse(const Pattern& p, ParseTree& tree) {
-  return parse(p.Expression, p.FixedString, p.CaseInsensitive, tree);
-}
-

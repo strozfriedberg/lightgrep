@@ -35,13 +35,12 @@ static bool contains_possible_counted_repetition(const std::string& pattern) {
   return cr > 0 && cr != std::string::npos;
 }
 
-void parse_and_reduce(const std::string& text, bool litMode, bool caseInsensitive, ParseTree& tree) {
+void parseAndReduce(const Pattern& pattern, ParseTree& tree) {
   // parse the pattern
-  if (!parse(text, litMode, caseInsensitive, tree)) {
+  if (!parse(pattern, tree)) {
     THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("Could not parse");
   }
-
-  reduce(text, tree);
+  reduce(pattern.Expression, tree);
 }
 
 void reduce(const std::string& text, ParseTree& tree) {

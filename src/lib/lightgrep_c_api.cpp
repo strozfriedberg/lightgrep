@@ -85,23 +85,12 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
                      LG_Error** err)
 {
   // set up the pattern handle
-  hPattern->Expression = pattern;
-  hPattern->FixedString = options->FixedString;
-  hPattern->CaseInsensitive = options->CaseInsensitive;
+  hPattern->Pat = {pattern, options->FixedString, options->CaseInsensitive};
 
-  return trap_with_vals(
-    [hPattern](){
-      parse_and_reduce(
-        hPattern->Expression,
-        hPattern->FixedString,
-        hPattern->CaseInsensitive,
-        hPattern->Tree
-      );
-    },
-    1,
-    0,
-    err
-  );
+  return trap_with_vals([hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); },
+                        1,
+                        0,
+                        err);
 }
 
 LG_HPATTERNMAP lg_create_pattern_map(unsigned int numTotalPatternsSizeHint) {
@@ -144,7 +133,7 @@ void lg_destroy_fsm(LG_HFSM hFsm) {
 
 int add_pattern(LG_HFSM hFsm, LG_HPATTERNMAP hMap, LG_HPATTERN hPattern, const char* encoding) {
   const uint32_t label = hMap->Patterns.size();
-  hMap->addPattern(hPattern->Expression.c_str(), encoding);
+  hMap->addPattern(hPattern->Pat.Expression.c_str(), encoding);
   hFsm->Impl->addPattern(hPattern->Tree, encoding, label);
   return (int) label;
 }
