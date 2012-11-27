@@ -98,7 +98,7 @@ extern "C" {
 
   void lg_destroy_fsm(LG_HFSM hFsm);
 
-  // Returns negative on falure; otherwise returns unique index for the
+  // Returns negative on failure; otherwise returns unique index for the
   // pattern-encoding pair.
   int lg_add_pattern(LG_HFSM hFsm,
                      LG_HPATTERNMAP hMap,
