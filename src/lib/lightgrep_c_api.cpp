@@ -87,7 +87,7 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
   // set up the pattern handle
   hPattern->Pat = {pattern, options->FixedString, options->CaseInsensitive};
 
-  return trap_with_vals([hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); },
+  return trapWithVals([hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); },
                         1,
                         0,
                         err);
@@ -121,7 +121,7 @@ LG_HFSM create_fsm(unsigned int numFsmStateSizeHint) {
 }
 
 LG_HFSM lg_create_fsm(unsigned int numFsmStateSizeHint) {
-  return trap_with_retval(
+  return trapWithRetval(
     [numFsmStateSizeHint](){ return create_fsm(numFsmStateSizeHint); },
     nullptr
   );
@@ -144,7 +144,7 @@ int lg_add_pattern(LG_HFSM hFsm,
                    const char* encoding,
                    LG_Error** err)
 {
-  return trap_with_retval(
+  return trapWithRetval(
     [hFsm,hMap,hPattern,encoding]() {
       return add_pattern(hFsm, hMap, hPattern, encoding);
     },
@@ -174,7 +174,7 @@ LG_HPROGRAM create_program(LG_HFSM hFsm, const LG_ProgramOptions* opts) {
 LG_HPROGRAM lg_create_program(LG_HFSM hFsm,
                               const LG_ProgramOptions* options)
 {
-  return trap_with_retval(
+  return trapWithRetval(
     [hFsm,options](){ return create_program(hFsm, options); },
     nullptr
   );
@@ -202,7 +202,7 @@ int lg_program_size(const LG_HPROGRAM hProg) {
 }
 
 LG_HPROGRAM lg_read_program(void* buffer, int size) {
-  return trap_with_retval(
+  return trapWithRetval(
     [buffer,size](){ return read_program(buffer, size); },
     nullptr
   );
@@ -245,7 +245,7 @@ LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
     begin = options ? options->TraceBegin : std::numeric_limits<uint64_t>::max(),
     end = options ? options->TraceEnd : std::numeric_limits<uint64_t>::max();
 
-  return trap_with_retval(
+  return trapWithRetval(
     [hProg,begin,end](){ return create_context(hProg, begin, end); },
     nullptr
   );

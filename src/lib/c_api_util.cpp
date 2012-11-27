@@ -21,7 +21,7 @@
 
 #include "c_api_util.h"
 
-void fill_error(LG_Error** err, const char* msg) {
+void fillError(LG_Error** err, const char* msg) {
   if (err) {
     try {
      *err = new LG_Error;
