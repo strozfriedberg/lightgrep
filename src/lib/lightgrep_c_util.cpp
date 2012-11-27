@@ -36,6 +36,8 @@ int find_trans_id(const LG_TRANS* beg, const LG_TRANS* end, const char* const na
     [&](const LG_TRANS& t) -> bool {
       std::string ts(t.name);
 // FIXME: why ::tolower instead of std::tolower?
+// ::tolower() comes from cctype where std::tolower comes from <locale>
+// I'm uncertain we should really be doing case-insensitive comparison here. -- JLS
       std::transform(ts.begin(), ts.end(), ts.begin(), ::tolower);
       return ns == ts;
     }
