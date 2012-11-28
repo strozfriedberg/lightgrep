@@ -78,7 +78,7 @@ SCOPE_TEST(oceUTF8) {
  
   const ByteSet ebs{0x8D};
   ByteSet abs;
-  for (uint i = 1; i < 4; ++i) {
+  for (uint32_t i = 1; i < 4; ++i) {
     g[i].Trans->getBytes(abs);
     SCOPE_ASSERT_EQUAL(ebs, abs);
   }
