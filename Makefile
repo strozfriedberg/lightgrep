@@ -72,7 +72,7 @@ ifneq ($(BUILD_SHARED),1)
 endif
 
 BOOST_LDFLAGS=-L$(BOOST_LIBDIR)
-BOOST_LDLIBS=-lboost_thread$(BOOST_TYPE) -lboost_chrono$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -lboost_system$(BOOST_TYPE)
+BOOST_LDLIBS=-lboost_thread$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -lboost_system$(BOOST_TYPE)
 
 ICU_LDFLAGS=-L$(ICU_LIBDIR)
 ICU_LDLIBS=-licuuc -licudata
