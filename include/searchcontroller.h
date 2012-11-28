@@ -22,7 +22,7 @@ public:
   );
 
   uint32_t BlockSize;
-  uint64_t BytesSearched = 0;
-  double TotalTime = 0.0;
+  uint64_t BytesSearched;
+  double TotalTime;
   std::unique_ptr<char[]> Cur, Next;
 };

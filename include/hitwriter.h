@@ -10,7 +10,7 @@
 struct HitCounterInfo {
   virtual ~HitCounterInfo() {}
 
-  uint64_t NumHits = 0;
+  uint64_t NumHits;
 
   virtual void setPath(const std::string&) {}
 };

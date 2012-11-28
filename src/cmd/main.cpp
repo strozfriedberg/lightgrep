@@ -183,12 +183,9 @@ void searchRecursively(
   }
 }
 
-template <typename T>
-using UPtr = std::unique_ptr<T,void(*)(T*)>;
-
 std::tuple<
-  UPtr<PatternMapHandle>,
-  UPtr<FSMHandle>,
+  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>,
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>,
   uint32_t
 >
 parsePatterns(
@@ -201,9 +198,12 @@ parsePatterns(
 
   if (!pats.empty()) {
     // set up handles we need for parsing
-    UPtr<PatternHandle> pat(lg_create_pattern(), lg_destroy_pattern);
+    std::unique_ptr<PatternHandle,void(*)(PatternHandle*)> pat(
+      lg_create_pattern(),
+      lg_destroy_pattern
+    );
 
-    UPtr<PatternMapHandle> pmap(
+    std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
       lg_create_pattern_map(pats.size()),
       lg_destroy_pattern_map
     );
@@ -211,7 +211,10 @@ parsePatterns(
     // find total length of patterns -- or 1 if tlen is 0
     const uint32_t tlen = std::max(1u, estimateGraphSize(pats));
 
-    UPtr<FSMHandle> fsm(lg_create_fsm(tlen), lg_destroy_fsm);
+    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+      lg_create_fsm(tlen),
+      lg_destroy_fsm
+    );
 
     // parse the patterns
     LG_KeyOptions keyOpts; 
@@ -258,17 +261,24 @@ parsePatterns(
 
   // nothing parsed successfully
   return std::make_tuple(
-    UPtr<PatternMapHandle>(nullptr, nullptr),
-    UPtr<FSMHandle>(nullptr, nullptr),
+    std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>(
+      nullptr, nullptr
+    ),
+    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>(
+      nullptr, nullptr
+    ),
     numErrors
   );
 }
 
-UPtr<ProgramHandle> loadProgram(const std::string& pfile) {
+std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>
+loadProgram(const std::string& pfile) {
   std::ifstream pin(pfile, std::ios::in | std::ios::binary);
   if (!pin) {
     std::cerr << "Could not open program file " << pfile << std::endl;
-    return UPtr<ProgramHandle>(nullptr, nullptr);
+    return std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>(
+      nullptr, nullptr
+    );
   }
 
 // FIXME: we need to handle the case where the read fails
@@ -285,16 +295,17 @@ UPtr<ProgramHandle> loadProgram(const std::string& pfile) {
   pin.read(&buf[0], end);
   pin.close();
 
-  return UPtr<ProgramHandle>(
+  return std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>(
     lg_read_program(&buf[0], end),
     lg_destroy_program
   );
 }
 
-UPtr<ProgramHandle> buildProgram(FSMHandle* fsm, const Options& opts) {
+std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>
+buildProgram(FSMHandle* fsm, const Options& opts) {
   LG_ProgramOptions progOpts{opts.Determinize};
 
-  UPtr<ProgramHandle> prog(
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
     lg_create_program(fsm, &progOpts),
     lg_destroy_program
   );
@@ -315,8 +326,13 @@ UPtr<ProgramHandle> buildProgram(FSMHandle* fsm, const Options& opts) {
 }
 
 void search(const Options& opts) {
-  UPtr<PatternMapHandle> pmap(nullptr, nullptr);
-  UPtr<ProgramHandle> prog(nullptr, nullptr);
+  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
+    nullptr, nullptr
+  );
+
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+    nullptr, nullptr
+  );
 
   if (!opts.ProgramFile.empty()) {
     // read a program in from file
@@ -326,7 +342,7 @@ void search(const Options& opts) {
     // get the patterns and parse them
     const std::vector<Pattern> pats = opts.getKeys();
 
-    UPtr<FSMHandle> fsm(nullptr, nullptr);
+    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
 
     std::tie(pmap, fsm, std::ignore) = parsePatterns(pats);
 
@@ -411,7 +427,7 @@ bool writeGraphviz(const Options& opts) {
   // get the patterns and parse them
   const std::vector<Pattern> pats(opts.getKeys());
 
-  UPtr<FSMHandle> fsm(nullptr, nullptr);
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   uint32_t numErrors;
 
   std::tie(std::ignore, fsm, numErrors) = parsePatterns(pats);
@@ -442,7 +458,7 @@ void writeProgram(const Options& opts) {
   // get the patterns and parse them
   const std::vector<Pattern> pats(opts.getKeys());
 
-  UPtr<FSMHandle> fsm(nullptr, nullptr);
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
 
   std::tie(std::ignore, fsm, std::ignore) = parsePatterns(pats);
 
@@ -450,7 +466,9 @@ void writeProgram(const Options& opts) {
     return;
   }
 
-  UPtr<ProgramHandle> prog(buildProgram(fsm.get(), opts));
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+    buildProgram(fsm.get(), opts)
+  );
   fsm.reset();
 
   if (!prog) {
@@ -498,7 +516,7 @@ void writeSampleMatches(const Options& opts) {
   for (const Pattern& pat : pats) {
     // parse the pattern
 
-    UPtr<FSMHandle> fsm(nullptr, nullptr);
+    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
     uint32_t numErrors;
 
     std::tie(std::ignore, fsm, numErrors) = parsePatterns(
@@ -544,15 +562,19 @@ void writeSampleMatches(const Options& opts) {
 void startServer(const Options& opts) {
   const std::vector<Pattern> pats(opts.getKeys());
 
-  UPtr<PatternMapHandle> pmap(nullptr, nullptr);
-  UPtr<FSMHandle> fsm(nullptr, nullptr);
+  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
+    nullptr, nullptr
+  );
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   uint32_t numErrors;
 
   std::tie(pmap, fsm, numErrors) = parsePatterns(pats);
 
   // build a program from parsed patterns
   if (numErrors == 0 && fsm) {
-    UPtr<ProgramHandle> prog(buildProgram(fsm.get(), opts));
+    std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+      buildProgram(fsm.get(), opts)
+    );
     fsm.reset();
 
     if (prog) {
