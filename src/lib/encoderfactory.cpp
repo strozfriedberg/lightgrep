@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "chain.h"
 #include "encoders/ascii.h"
 #include "encoders/concrete_encoders.h"
 #include "encoders/encoderfactory.h"
@@ -26,12 +27,8 @@
 #include "encoders/utf16.h"
 #include "encoders/utf32.h"
 #include "encoders/xorencoder.h"
-#include "lightgrep/util.h"
-#include "lightgrep/transforms.h"
-#include "lightgrep/encodings.h"
 
 #include <boost/lexical_cast.hpp>
-#include <boost/tokenizer.hpp>
 
 EncoderFactory::EncoderFactory():
   Cache{
@@ -45,65 +42,18 @@ EncoderFactory::EncoderFactory():
 {}
 
 std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
-// TODO: extract this out to a yacc grammar
-
   // return a cached encoder if we have one
   auto i = Cache.find(chain);
   if (i != Cache.end()) {
     return i->second;
   }
 
-  typedef boost::char_separator<char> char_separator;
-  typedef boost::tokenizer<char_separator> tokenizer;
-
-  const tokenizer tokens(chain, char_separator("|"));
-  tokenizer::const_iterator curTok(tokens.begin());
-  const tokenizer::const_iterator endTok(tokens.end());
-
-  int id;
-
-  // process the char->char transformations
-  std::vector<std::string> charchar;
-  for ( ; curTok != endTok; ++curTok) {
-    id = lg_get_char_char_transformation_id(curTok->c_str());
-    if (id < 0) {
-      break;
-    }
-
-    charchar.emplace_back(LG_CANONICAL_CHAR_CHAR_TRANSFORMATIONS[id]);
-  }
-
-  if (curTok == endTok) {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT("No valid char->byte transformation");
-  }
-
-  // process the char->byte transformation
-  id = lg_get_encoding_id(curTok->c_str());
-  if (id < 0) {
-    THROW_RUNTIME_ERROR_WITH_OUTPUT(
-      "'" << *curTok << "' is neither a valid char->char transformation "
-      "nor a valid char->byte transformation"
-    );
-  }
-
-  const std::string charbyte = LG_CANONICAL_ENCODINGS[id];
-  ++curTok;
-
-  // process the byte->byte transformations
-  std::vector<std::string> bytebyte;
-  for ( ; curTok != endTok; ++curTok) {
-    id = lg_get_byte_byte_transformation_id(curTok->c_str());
-    if (id < 0) {
-      THROW_RUNTIME_ERROR_WITH_OUTPUT(
-        "'" << *curTok << "' is not a valid byte->byte transformation"
-      );
-    }
-
-    bytebyte.emplace_back(LG_CANONICAL_BYTE_BYTE_TRANSFORMATIONS[id]);
-  }
+  // parse the transformation chain
+  std::vector<std::string> charchar, bytebyte;
+  std::string charbyte;
+  std::tie(charchar, charbyte, bytebyte) = parseChain(chain);
 
   // assemble the transformation chain 
-  
   std::unique_ptr<Encoder> enc;
 
   if (charbyte == "ASCII") {
