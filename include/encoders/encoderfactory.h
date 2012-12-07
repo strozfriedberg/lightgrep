@@ -25,11 +25,11 @@
 #include "encoder.h"
 
 class EncoderFactory {
-  public:
-    EncoderFactory();
+public:
+  EncoderFactory();
 
-    std::shared_ptr<Encoder> get(const std::string& chain);
+  std::shared_ptr<Encoder> get(const std::string& chain);
 
-  private:
-    std::map<std::string,std::shared_ptr<Encoder>> Cache;
+private:
+  std::map<std::string,std::shared_ptr<Encoder>> Cache;
 };
