@@ -39,7 +39,7 @@
 
 void lg_free_error(LG_Error* err) {
   if (err) {
-    delete err->Message;
+    delete[] err->Message;
   }
   delete err;
 }
