@@ -58,13 +58,15 @@ unsigned int lg_hit_context(const char* bufStart,
                             const LG_Window* inner,
                             const char* encoding,
                             size_t windowSize,
-                            int32_t** characters,
-                            size_t* clen,
+                            uint32_t replacement,
+                            const char** utf8,
                             LG_Window* outer);
 
 void lg_free_window_characters(int32_t* characters);
 
 void lg_free_window_offsets(const char** offsets);
+
+void lg_free_hit_context_string(const char* utf8);
 
 #ifdef __cplusplus
 }

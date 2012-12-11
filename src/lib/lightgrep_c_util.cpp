@@ -29,6 +29,7 @@
 
 #include "decoders/decoder.h"
 #include "decoders/decoderfactory.h"
+#include "decoders/utf8.h"
 
 #include "c_api_util.h"
 #include "lightgrep/util.h"
@@ -183,11 +184,14 @@ unsigned int lg_hit_context(const char* bufStart,
                             const LG_Window* inner,
                             const char* encoding,
                             size_t windowSize,
-                            int32_t** characters,
-                            size_t* clen,
+                            uint32_t replacement,
+                            const char** utf8,
                             LG_Window* outer)
 {
+  // decode the hit and its context using the deluxe decoder
+  int32_t* characters;
   const char** offsets;
+  size_t clen;
 
   const unsigned int bad = lg_read_window(
     bufStart,
@@ -197,9 +201,13 @@ unsigned int lg_hit_context(const char* bufStart,
     encoding,
     windowSize,
     windowSize,
-    characters,
+    &characters,
     &offsets,
-    clen
+    &clen
+  );
+
+  std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
+    characters, lg_free_window_characters
   );
 
   std::unique_ptr<const char*[],void(*)(const char**)> poff(
@@ -207,7 +215,27 @@ unsigned int lg_hit_context(const char* bufStart,
   );
 
   outer->begin = dataOffset + (offsets[0] - bufStart);
-  outer->end = dataOffset + (offsets[*clen-1] - bufStart);
+  outer->end = dataOffset + (offsets[clen-1] - bufStart);
+
+  // convert the code points to UTF-8
+  std::vector<char> bytes;
+  char buf[4];
+  size_t produced;
+
+  // encode to UTF-8, replacing bad elements with the replacement code
+  // point, stopping one short since the last element of characters is END
+  for (const int32_t* i = characters; i < characters+clen-1; ++i) {
+    produced = cp_to_utf8(*i < 0 ? replacement : *i, buf);
+    std::copy(buf, buf+produced, std::back_inserter(bytes));
+  }
+
+  // null-terminate the UTF-8 bytes
+  bytes.push_back(0);
+
+  char* str = new char[bytes.size()];
+  std::copy(bytes.begin(), bytes.end(), str);
+
+  *utf8 = str;
 
   return bad;
 }
@@ -219,4 +247,8 @@ void lg_free_window_characters(int32_t* characters) {
 
 void lg_free_window_offsets(const char** offsets) {
   delete[] offsets;
+}
+
+void lg_free_hit_context_string(const char* utf8) {
+  delete[] utf8;
 }
