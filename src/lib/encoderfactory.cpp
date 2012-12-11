@@ -92,7 +92,7 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
       // do nothing
     }
     else if (cc->substr(0, 3) == "rot") {
-      enc.reset(new ROTEncoder(
+      enc.reset(new RotEncoder(
         boost::lexical_cast<uint32_t>(cc->substr(3)), std::move(enc)
       ));
     }

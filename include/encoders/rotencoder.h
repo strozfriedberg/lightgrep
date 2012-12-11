@@ -25,26 +25,26 @@
 
 #include <boost/lexical_cast.hpp>
 
-class ROTEncoder: public CharEncoder {
+class RotEncoder: public CharEncoder {
 public:
-  ROTEncoder(uint32_t rot, std::unique_ptr<Encoder> enc):
+  RotEncoder(uint32_t rot, std::unique_ptr<Encoder> enc):
     CharEncoder("rot" + boost::lexical_cast<std::string>(rot), std::move(enc)),
     Rot(rot) {}
 
-  ROTEncoder(uint32_t rot, const Encoder& enc):
+  RotEncoder(uint32_t rot, const Encoder& enc):
     CharEncoder("rot" + boost::lexical_cast<std::string>(rot), enc),
     Rot(rot) {}
 
-  ROTEncoder(const ROTEncoder&) = default;
+  RotEncoder(const RotEncoder&) = default;
 
-  ROTEncoder& operator=(const ROTEncoder&) = default;
+  RotEncoder& operator=(const RotEncoder&) = default;
 
-  ROTEncoder(ROTEncoder&&) = default;
+  RotEncoder(RotEncoder&&) = default;
 
-  ROTEncoder& operator=(ROTEncoder&&) = default;
+  RotEncoder& operator=(RotEncoder&&) = default;
 
-  virtual ROTEncoder* clone() const {
-    return new ROTEncoder(*this);
+  virtual RotEncoder* clone() const {
+    return new RotEncoder(*this);
   }
 
   virtual uint32_t maxByteLength() const { return BaseEnc->maxByteLength(); }

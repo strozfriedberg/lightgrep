@@ -24,13 +24,13 @@
 #include "encoders/ascii.h"
 #include "encoders/rotencoder.h"
 
-SCOPE_TEST(testROTEncoderASCIIName) {
-  ROTEncoder enc(13, ASCII());
+SCOPE_TEST(testRotEncoderASCIIName) {
+  RotEncoder enc(13, ASCII());
   SCOPE_ASSERT_EQUAL("rot13|ASCII", enc.name());
 }
 
-SCOPE_TEST(testROTEncoderWriteSingleASCII) {
-  ROTEncoder enc(13, ASCII());
+SCOPE_TEST(testRotEncoderWriteSingleASCII) {
+  RotEncoder enc(13, ASCII());
   SCOPE_ASSERT_EQUAL(1u, enc.maxByteLength());
 
   byte buf[1];
@@ -74,9 +74,9 @@ SCOPE_TEST(testROTEncoderWriteSingleASCII) {
   SCOPE_ASSERT_EQUAL(0u, enc.write(0x80, buf));
 }
 
-SCOPE_TEST(testROTEncoderWriteSetASCII) {
+SCOPE_TEST(testRotEncoderWriteSetASCII) {
 /*
-  ROTEncoder enc(13, ASCII());
+  RotEncoder enc(13, ASCII());
  
   const std::vector<std::vector<ByteSet>> expected{
     {
