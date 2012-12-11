@@ -39,6 +39,7 @@ SCOPE_TEST(lgReadWindowASCII) {
     &inner,
     "ASCII",
     2,
+    2,
     &chars,
     &offsets,
     &clen
@@ -82,6 +83,7 @@ SCOPE_TEST(lgReadWindowASCIISmallPrefix) {
     doff,
     &inner,
     "ASCII",
+    5,
     5,
     &chars,
     &offsets,
@@ -127,6 +129,7 @@ SCOPE_TEST(lgReadWindowASCIISmallSuffix) {
     doff,
     &inner,
     "ASCII",
+    5,
     5,
     &chars,
     &offsets,

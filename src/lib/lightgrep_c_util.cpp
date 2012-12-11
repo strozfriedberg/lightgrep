@@ -145,7 +145,8 @@ unsigned int lg_read_window(
   uint64_t dataOffset,
   const LG_Window* inner,
   const char* encoding,
-  unsigned int windowSize,
+  size_t preContext,
+  size_t postContext,
   int32_t** characters,
   const char*** offsets,
   size_t* clen)
@@ -187,8 +188,8 @@ unsigned int lg_read_window(
     }
   );
 
-  // back up by windowSize, but don't run off the front
-  wbeg = (wbeg - cps.begin() > windowSize) ? wbeg - windowSize : cps.begin();
+  // back up by preContext, but don't run off the front
+  wbeg = (wbeg - cps.begin() > preContext) ? wbeg - preContext : cps.begin();
 
   auto wend = std::find_if(
     wbeg, cps.end(),
@@ -197,8 +198,8 @@ unsigned int lg_read_window(
     }
   );
 
-  // advance by windowSize (+1 for END element), but don't run off the end
-  wend = (cps.end() - wend > windowSize) ? wend + windowSize  + 1 : cps.end();
+  // advance by postContext (+1 for END element), but don't run off the end
+  wend = (cps.end() - wend > postContext) ? wend + postContext + 1 : cps.end();
 
   *clen = wend - wbeg;
   *characters = new int32_t[*clen];

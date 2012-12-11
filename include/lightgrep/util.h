@@ -41,27 +41,25 @@ typedef struct {
            end;
 } LG_Window;
 
-/*
-unsigned int lg_read_window(const char* bufStart,
-                            const char* bufEnd,
-                            uint64_t dataOffset,
-                            const LG_Window* inner,
-                            const char* encoding,
-                            unsigned int windowSize,
-                            int32_t** characters,
-                            size_t* clen,
-                            LG_Window* outer);
-*/
-
 unsigned int lg_read_window(const char* bufStart,
                             const char* bufEnd,
                             uint64_t dataOffset,
                             const LG_Window* hit,
                             const char* encoding,
-                            unsigned int windowSize,
+                            size_t preContext,
+                            size_t postContext,
                             int32_t** characters,
                             const char*** offsets,
                             size_t* clen);
+
+/*
+unsigned int lg_hit_context(const char* bufStart,
+                            const char* bufEnd,
+                            uint64_t dataOffset,
+                            const LG_Window* inner,
+                            const char* encoding,
+                            unsigned int windowSize,
+*/
 
 void lg_free_window_characters(int32_t* characters);
 
