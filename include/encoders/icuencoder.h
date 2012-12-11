@@ -19,21 +19,30 @@
 #pragma once
 
 #include "encoders/encoderbase.h"
+#include "icuconverter.h"
 
 #include <memory>
 #include <string>
 
-#include <unicode/ucnv.h>
-
 class ICUEncoder: public EncoderBase {
 public:
-  ICUEncoder(const char* const name);
+  ICUEncoder(const char* const name):
+    EncoderBase(),
+    Conv(name)
+  {
+    Valid = Conv.validCodePoints();
+  }
 
-  ICUEncoder(const std::string& name);
+  ICUEncoder(const std::string& name):
+    EncoderBase(),
+    Conv(name)
+  {
+    Valid = Conv.validCodePoints();
+  }
 
-  ICUEncoder(const ICUEncoder& other);
+  ICUEncoder(const ICUEncoder&) = default;
 
-  ICUEncoder& operator=(const ICUEncoder& other);
+  ICUEncoder& operator=(const ICUEncoder&) = default;
 
   ICUEncoder(ICUEncoder&&) = default;
 
@@ -41,11 +50,13 @@ public:
 
   virtual ICUEncoder* clone() const { return new ICUEncoder(*this); }
 
-  virtual uint32_t maxByteLength() const;
+  virtual uint32_t maxByteLength() const { return Conv.maxByteLength(); }
 
-  virtual std::string name() const;
+  virtual std::string name() const { return Conv.name(); }
 
-  virtual uint32_t write(int32_t cp, byte buf[]) const;
+  virtual uint32_t write(int32_t cp, byte buf[]) const {
+    return Conv.cp_to_bytes(cp, buf);
+  }
 
   using EncoderBase::write;
 
@@ -55,12 +66,5 @@ public:
   }
 
 private:
-  void init(const char* const name);
-
-  std::string enc_name;
-  std::unique_ptr<UConverter,void(*)(UConverter*)> src_conv;
-  std::unique_ptr<UConverter,void(*)(UConverter*)> dst_conv;
-  std::unique_ptr<UChar[]> pivot;
-
-  uint32_t max_bytes;
+  ICUConverter Conv;
 };
