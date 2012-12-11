@@ -36,6 +36,46 @@ int lg_get_encoding_id(const char* const name);
 
 int lg_get_byte_byte_transformation_id(const char* const name);
 
+typedef struct {
+  uint64_t begin,
+           end;
+} LG_Window;
+
+/*
+unsigned int lg_read_window(const char* bufStart,
+                            const char* bufEnd,
+                            uint64_t dataOffset,
+                            const LG_Window* inner,
+                            const char* encoding,
+                            unsigned int windowSize,
+                            int32_t** characters,
+                            size_t* clen,
+                            LG_Window* outer);
+*/
+
+unsigned int lg_read_window(const char* bufStart,
+                            const char* bufEnd,
+                            uint64_t dataOffset,
+                            const LG_Window* hit,
+                            const char* encoding,
+                            unsigned int windowSize,
+                            int32_t** characters,
+                            const char*** offsets,
+                            size_t* clen);
+
+void lg_free_window_characters(int32_t* characters);
+
+void lg_free_window_offsets(const char** offsets);
+
+/*
+unsigned int lg_decode(const char* bufStart,
+                       const char* bufEnd,
+                       const char* encoding,
+                       int32_t** characters,
+                       const char*** offsets,
+                       size_t* clen);
+*/
+
 #ifdef __cplusplus
 }
 #endif

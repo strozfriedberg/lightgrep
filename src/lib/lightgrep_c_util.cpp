@@ -16,9 +16,18 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+#include "container_out.h"
+#include "pair_out.h"
+#include <iostream>
+*/
+
 #include <algorithm>
 #include <cctype>
 #include <string>
+
+#include "decoders/decoder.h"
+#include "decoders/decoderfactory.h"
 
 #include "c_api_util.h"
 #include "lightgrep/util.h"
@@ -84,4 +93,132 @@ int lg_get_byte_byte_transformation_id(const char* const name) {
     },
     -1
   );
+}
+
+/*
+unsigned int lg_decode(
+  const char* bufStart,
+  const char* bufEnd,
+  const char* encoding,
+  int32_t** characters,
+  const char*** offsets,
+  size_t* clen)
+{
+  DecoderFactory dfac;
+  std::shared_ptr<Decoder> dec(dfac.get(encoding));
+
+  unsigned int bad = 0;
+
+  std::pair<int32_t,const byte*> cp;
+  std::vector<std::pair<int32_t,const byte*>> cps;
+
+  dec->reset(
+    reinterpret_cast<const byte*>(bufStart),
+    reinterpret_cast<const byte*>(bufEnd)
+  );
+
+  while ((cp = dec->next()).first != Decoder::END) {
+    if (cp.first < 0) {
+      ++bad;
+    }
+    cps.push_back(cp);
+  }
+
+  cps.push_back(cp);
+
+  *clen = cps.size();
+  *characters = new int32_t[*clen];
+  *offsets = new const char*[*clen];
+
+  for (size_t i = 0; i < cps.size(); ++i) {
+    (*characters)[i] = cps[i].first;
+    (*offsets)[i] = reinterpret_cast<const char*>(cps[i].second);
+  }
+
+  return bad;
+}
+*/
+
+unsigned int lg_read_window(
+  const char* bufStart,
+  const char* bufEnd,
+  uint64_t dataOffset,
+  const LG_Window* inner,
+  const char* encoding,
+  unsigned int windowSize,
+  int32_t** characters,
+  const char*** offsets,
+  size_t* clen)
+{
+// FIXME: it's stupid to recreate the factory each time
+  DecoderFactory dfac;
+  std::shared_ptr<Decoder> dec(dfac.get(encoding));
+
+  unsigned int bad = 0;
+
+  std::pair<int32_t,const byte*> cp;
+  std::vector<std::pair<int32_t,const byte*>> cps;
+
+  dec->reset(
+    reinterpret_cast<const byte*>(bufStart),
+    reinterpret_cast<const byte*>(bufEnd)
+  );
+
+// FIXME: bufStart and bufEnd might be nowhere near the window, so we could
+// be doing tons of extra work here
+  while ((cp = dec->next()).first != Decoder::END) {
+    if (cp.first < 0) {
+      ++bad;
+    }
+    cps.push_back(cp);
+  }
+
+  cps.push_back(cp);
+
+  const byte* hbeg =
+    reinterpret_cast<const byte*>(bufStart) + inner->begin - dataOffset;
+  const byte* hend =
+    reinterpret_cast<const byte*>(bufStart) + inner->end - dataOffset;
+
+  auto wbeg = std::find_if(
+    cps.begin(), cps.end(),
+    [hbeg](const std::pair<int32_t,const byte*>& p) {
+      return p.second == hbeg;
+    }
+  );
+
+  // back up by windowSize, but don't run off the front
+  wbeg = (wbeg - cps.begin() > windowSize) ? wbeg - windowSize : cps.begin();
+
+  auto wend = std::find_if(
+    wbeg, cps.end(),
+    [hend](const std::pair<int32_t,const byte*>& p) {
+      return p.second == hend;
+    }
+  );
+
+  // advance by windowSize (+1 for END element), but don't run off the end
+  wend = (cps.end() - wend > windowSize) ? wend + windowSize  + 1 : cps.end();
+
+  *clen = wend - wbeg;
+  *characters = new int32_t[*clen];
+  *offsets = new const char*[*clen];
+
+  auto wi = wbeg;
+  for (size_t i = 0; wi != wend; ++i, ++wi) {
+    (*characters)[i] = wi->first;
+    (*offsets)[i] = reinterpret_cast<const char*>(wi->second);
+  }
+
+  (*characters)[*clen-1] = Decoder::END;
+
+  return bad;
+}
+
+void lg_free_window_characters(int32_t* characters) {
+  delete[] characters;
+}
+
+void lg_free_window_offsets(const char** offsets) {
+  delete[] offsets;
 }

@@ -83,7 +83,7 @@ LG_LDLIBS=-llightgrep
 #
 # Setup for liblightgrep
 #
-LIB_SRCS=$(wildcard src/lib/*.cpp)
+LIB_SRCS=$(wildcard src/lib/*.cpp src/lib/*/*.cpp)
 
 LIB_LDLIBS=$(ICU_LDLIBS)
 LIB_LDFLAGS=-L$(ICU_LIBDIR)
@@ -224,7 +224,7 @@ DEPS=$(patsubst %.o,%.d,$(CEX_OBJS) $(ENC_OBJS) $(LIB_STATIC_OBJS) $(TEST_OBJS) 
 
 -include $(DEPS)
 
-bin/c_example bin/src/enc bin/src/lib bin/src/val bin/test:
+bin/c_example bin/src/enc bin/src/lib bin/src/lib/decoders bin/src/val bin/test:
 	$(MKDIR) -p $@
 
 install: lib-shared lib-static
