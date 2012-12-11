@@ -96,6 +96,7 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
         boost::lexical_cast<uint32_t>(cc->substr(3)), std::move(enc)
       ));
     }
+// FIXME: Shouldn't XOR be a byte-byte transformation?
     else if (cc->substr(0, 3) == "XOR") {
       enc.reset(new XOREncoder(
         boost::lexical_cast<byte>(cc->substr(3)), std::move(enc)
