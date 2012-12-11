@@ -222,10 +222,11 @@ unsigned int lg_hit_context(const char* bufStart,
   char buf[4];
   size_t produced;
 
-  // encode to UTF-8, replacing bad elements with the replacement code
-  // point, stopping one short since the last element of characters is END
+  // encode to UTF-8, replacing bad or null elements with the replacement
+  // code point, stopping one short since the last element of characters
+  // is END
   for (const int32_t* i = characters; i < characters+clen-1; ++i) {
-    produced = cp_to_utf8(*i < 0 ? replacement : *i, buf);
+    produced = cp_to_utf8(*i <= 0 ? replacement : *i, buf);
     std::copy(buf, buf+produced, std::back_inserter(bytes));
   }
 
