@@ -161,3 +161,42 @@ SCOPE_TEST(lgReadWindowASCIISmallSuffix) {
     SCOPE_ASSERT_EQUAL(eoff[i], offsets[i]);
   }
 }
+
+SCOPE_TEST(lgHitContextASCII) {
+  const uint64_t doff = 42;
+  const char* buf = "abcdefghijk";  
+  const LG_Window inner{doff + 3, doff + 6}; // hit is "def"
+  LG_Window outer;
+  int32_t* chars;
+  size_t clen;
+
+  const unsigned int ret = lg_hit_context(
+    buf,
+    buf + std::strlen(buf), 
+    doff,
+    &inner,
+    "ASCII",
+    2,
+    &chars,
+    &clen,
+    &outer
+  );
+
+  std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
+    chars, lg_free_window_characters
+  );
+
+  SCOPE_ASSERT_EQUAL(0u, ret);
+
+  const int32_t echars[] = { 'b', 'c', 'd', 'e', 'f', 'g', 'h', Decoder::END };
+  const size_t elen = sizeof(echars)/sizeof(echars[0]);
+
+  SCOPE_ASSERT_EQUAL(elen, clen);
+
+  for (size_t i = 0; i < elen; ++i) {
+    SCOPE_ASSERT_EQUAL(echars[i], chars[i]);
+  }
+
+  SCOPE_ASSERT_EQUAL(doff + 1, outer.begin);
+  SCOPE_ASSERT_EQUAL(doff + 8, outer.end);
+}

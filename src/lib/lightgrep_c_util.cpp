@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <memory>
 #include <string>
 
 #include "decoders/decoder.h"
@@ -95,50 +96,6 @@ int lg_get_byte_byte_transformation_id(const char* const name) {
   );
 }
 
-/*
-unsigned int lg_decode(
-  const char* bufStart,
-  const char* bufEnd,
-  const char* encoding,
-  int32_t** characters,
-  const char*** offsets,
-  size_t* clen)
-{
-  DecoderFactory dfac;
-  std::shared_ptr<Decoder> dec(dfac.get(encoding));
-
-  unsigned int bad = 0;
-
-  std::pair<int32_t,const byte*> cp;
-  std::vector<std::pair<int32_t,const byte*>> cps;
-
-  dec->reset(
-    reinterpret_cast<const byte*>(bufStart),
-    reinterpret_cast<const byte*>(bufEnd)
-  );
-
-  while ((cp = dec->next()).first != Decoder::END) {
-    if (cp.first < 0) {
-      ++bad;
-    }
-    cps.push_back(cp);
-  }
-
-  cps.push_back(cp);
-
-  *clen = cps.size();
-  *characters = new int32_t[*clen];
-  *offsets = new const char*[*clen];
-
-  for (size_t i = 0; i < cps.size(); ++i) {
-    (*characters)[i] = cps[i].first;
-    (*offsets)[i] = reinterpret_cast<const char*>(cps[i].second);
-  }
-
-  return bad;
-}
-*/
-
 unsigned int lg_read_window(
   const char* bufStart,
   const char* bufEnd,
@@ -189,7 +146,8 @@ unsigned int lg_read_window(
   );
 
   // back up by preContext, but don't run off the front
-  wbeg = (wbeg - cps.begin() > preContext) ? wbeg - preContext : cps.begin();
+  wbeg = ((size_t)(wbeg - cps.begin()) > preContext) ?
+    wbeg - preContext : cps.begin();
 
   auto wend = std::find_if(
     wbeg, cps.end(),
@@ -199,7 +157,8 @@ unsigned int lg_read_window(
   );
 
   // advance by postContext (+1 for END element), but don't run off the end
-  wend = (cps.end() - wend > postContext) ? wend + postContext + 1 : cps.end();
+  wend = ((size_t)(cps.end() - wend) > postContext) ?
+    wend + postContext + 1 : cps.end();
 
   *clen = wend - wbeg;
   *characters = new int32_t[*clen];
@@ -215,6 +174,42 @@ unsigned int lg_read_window(
 
   return bad;
 }
+
+unsigned int lg_hit_context(const char* bufStart,
+                            const char* bufEnd,
+                            uint64_t dataOffset,
+                            const LG_Window* inner,
+                            const char* encoding,
+                            size_t windowSize,
+                            int32_t** characters,
+                            size_t* clen,
+                            LG_Window* outer)
+{
+  const char** offsets;
+
+  const unsigned int bad = lg_read_window(
+    bufStart,
+    bufEnd,
+    dataOffset,
+    inner,
+    encoding,
+    windowSize,
+    windowSize,
+    characters,
+    &offsets,
+    clen
+  );
+
+  std::unique_ptr<const char*[],void(*)(const char**)> poff(
+    offsets, lg_free_window_offsets
+  );
+
+  outer->begin = dataOffset + (offsets[0] - bufStart);
+  outer->end = dataOffset + (offsets[*clen-1] - bufStart);
+
+  return bad;
+}
+
 
 void lg_free_window_characters(int32_t* characters) {
   delete[] characters;

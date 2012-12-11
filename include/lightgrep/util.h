@@ -52,27 +52,19 @@ unsigned int lg_read_window(const char* bufStart,
                             const char*** offsets,
                             size_t* clen);
 
-/*
 unsigned int lg_hit_context(const char* bufStart,
                             const char* bufEnd,
                             uint64_t dataOffset,
                             const LG_Window* inner,
                             const char* encoding,
-                            unsigned int windowSize,
-*/
+                            size_t windowSize,
+                            int32_t** characters,
+                            size_t* clen,
+                            LG_Window* outer);
 
 void lg_free_window_characters(int32_t* characters);
 
 void lg_free_window_offsets(const char** offsets);
-
-/*
-unsigned int lg_decode(const char* bufStart,
-                       const char* bufEnd,
-                       const char* encoding,
-                       int32_t** characters,
-                       const char*** offsets,
-                       size_t* clen);
-*/
 
 #ifdef __cplusplus
 }
