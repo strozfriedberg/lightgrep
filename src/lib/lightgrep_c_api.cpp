@@ -87,8 +87,10 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
   // set up the pattern handle
   hPattern->Pat = {pattern, options->FixedString, options->CaseInsensitive};
 
-  return trapWithVals([hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); },
-                      1, 0, err);
+  return trapWithVals(
+    [hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); },
+    1, 0, err
+  );
 }
 
 LG_HPATTERNMAP lg_create_pattern_map(unsigned int numTotalPatternsSizeHint) {
@@ -180,21 +182,23 @@ LG_HPROGRAM lg_create_program(LG_HFSM hFsm,
   );
 }
 
-void write_program(LG_HPROGRAM hProg, void* buffer) {
-  std::string buf = hProg->Impl->marshall();
-  std::memcpy(buffer, buf.data(), buf.size());
-}
+namespace {
+  void write_program(LG_HPROGRAM hProg, void* buffer) {
+    std::string buf = hProg->Impl->marshall();
+    std::memcpy(buffer, buf.data(), buf.size());
+  }
 
-LG_HPROGRAM read_program(void* buffer, int size) {
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
-    new ProgramHandle,
-    lg_destroy_program
-  );
+  LG_HPROGRAM read_program(void* buffer, int size) {
+    std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
+      new ProgramHandle,
+      lg_destroy_program
+    );
 
-  std::string s(static_cast<char*>(buffer), size);
-  hProg->Impl = Program::unmarshall(s);
+    std::string s(static_cast<char*>(buffer), size);
+    hProg->Impl = Program::unmarshall(s);
 
-  return hProg.release();
+    return hProg.release();
+  }
 }
 
 int lg_program_size(const LG_HPROGRAM hProg) {
@@ -216,26 +220,28 @@ void lg_destroy_program(LG_HPROGRAM hProg) {
   delete hProg;
 }
 
-LG_HCONTEXT create_context(LG_HPROGRAM hProg,
-  #ifdef LBT_TRACE_ENABLED
-                    uint64_t beginTrace, uint64_t endTrace
-  #else
-                    uint64_t, uint64_t
-  #endif
-  )
-{
-  std::unique_ptr<ContextHandle,void(*)(ContextHandle*)> hCtx(
-    new ContextHandle,
-    lg_destroy_context
-  );
+namespace {
+  LG_HCONTEXT create_context(LG_HPROGRAM hProg,
+    #ifdef LBT_TRACE_ENABLED
+                      uint64_t beginTrace, uint64_t endTrace
+    #else
+                      uint64_t, uint64_t
+    #endif
+    )
+  {
+    std::unique_ptr<ContextHandle,void(*)(ContextHandle*)> hCtx(
+      new ContextHandle,
+      lg_destroy_context
+    );
 
-  hCtx->Impl = VmInterface::create();
-  #ifdef LBT_TRACE_ENABLED
-  hCtx->Impl->setDebugRange(beginTrace, endTrace);
-  #endif
-  hCtx->Impl->init(hProg->Impl);
+    hCtx->Impl = VmInterface::create();
+    #ifdef LBT_TRACE_ENABLED
+    hCtx->Impl->setDebugRange(beginTrace, endTrace);
+    #endif
+    hCtx->Impl->init(hProg->Impl);
 
-  return hCtx.release();
+    return hCtx.release();
+  }
 }
 
 LG_HCONTEXT lg_create_context(LG_HPROGRAM hProg,
