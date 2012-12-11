@@ -55,7 +55,7 @@ void print_branch(std::ostream& out, std::stack<ParseNode*>& branch) {
   }
 }
 
-void splice_out_parent(ParseNode* gp, const ParseNode* p, ParseNode* c) {
+void spliceOutParent(ParseNode* gp, const ParseNode* p, ParseNode* c) {
   if (gp->Left == p) {
     gp->Left = c;
   }
@@ -67,20 +67,20 @@ void splice_out_parent(ParseNode* gp, const ParseNode* p, ParseNode* c) {
   }
 }
 
-bool has_zero_length_match(const ParseNode *n) {
+bool hasZeroLengthMatch(const ParseNode *n) {
   switch (n->Type) {
   case ParseNode::REGEXP:
-    return !n->Left || has_zero_length_match(n->Left);
+    return !n->Left || hasZeroLengthMatch(n->Left);
 
   case ParseNode::ALTERNATION:
-    return has_zero_length_match(n->Left) || has_zero_length_match(n->Right);
+    return hasZeroLengthMatch(n->Left) || hasZeroLengthMatch(n->Right);
 
   case ParseNode::CONCATENATION:
-    return has_zero_length_match(n->Left) && has_zero_length_match(n->Right);
+    return hasZeroLengthMatch(n->Left) && hasZeroLengthMatch(n->Right);
 
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
-    return n->Rep.Min == 0 || has_zero_length_match(n->Left);
+    return n->Rep.Min == 0 || hasZeroLengthMatch(n->Left);
 
   case ParseNode::DOT:
   case ParseNode::CHAR_CLASS:
@@ -155,7 +155,7 @@ bool has_only_zero_length_match(const ParseNode* n) {
   }
 }
 
-bool reduce_empty_subtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
+bool reduceEmptySubtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
 
   // ST{0}Q = ST{0}?Q = T{0}QS = T{0}?Q = S
   // R(S{0}Q|T) = (S{0}Q|T)R = R
@@ -197,13 +197,13 @@ bool reduce_empty_subtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
     case ParseNode::REGEXP:
     case ParseNode::REPETITION:
     case ParseNode::REPETITION_NG:
-      ret = reduce_empty_subtrees(n->Left, branch);
+      ret = reduceEmptySubtrees(n->Left, branch);
       break;
 
     case ParseNode::ALTERNATION:
     case ParseNode::CONCATENATION:
-      ret = reduce_empty_subtrees(n->Left, branch);
-      ret |= reduce_empty_subtrees(n->Right, branch);
+      ret = reduceEmptySubtrees(n->Left, branch);
+      ret |= reduceEmptySubtrees(n->Right, branch);
       break;
 
     case ParseNode::DOT:
@@ -226,10 +226,10 @@ bool reduce_empty_subtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
   if (n->Type == ParseNode::CONCATENATION) {
     // convert ST{0} and T{0}S into S
     if (has_only_zero_length_match(n->Left)) {
-      splice_out_parent(branch.top(), n, n->Right);
+      spliceOutParent(branch.top(), n, n->Right);
     }
     else if (has_only_zero_length_match(n->Right)) {
-      splice_out_parent(branch.top(), n, n->Left);
+      spliceOutParent(branch.top(), n, n->Left);
     }
   }
   else if (n->Type == ParseNode::ALTERNATION) {
@@ -244,9 +244,9 @@ bool reduce_empty_subtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
   return ret;
 }
 
-bool reduce_empty_subtrees(ParseNode* root) {
+bool reduceEmptySubtrees(ParseNode* root) {
   std::stack<ParseNode*> branch;
-  return reduce_empty_subtrees(root, branch);
+  return reduceEmptySubtrees(root, branch);
 }
 
 bool prune_useless_repetitions(ParseNode* n, const std::stack<ParseNode*>& branch) {
@@ -276,7 +276,7 @@ bool prune_useless_repetitions(ParseNode* n, const std::stack<ParseNode*>& branc
   return false;
 }
 
-bool reduce_useless_repetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
+bool reduceUselessRepetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
   // T{1} = T{1}? = T
   // T{n}? = T{n}
 
@@ -291,15 +291,15 @@ bool reduce_useless_repetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
     ret = prune_useless_repetitions(n->Left, branch);
-    ret |= reduce_useless_repetitions(n->Left, branch);
+    ret |= reduceUselessRepetitions(n->Left, branch);
     break;
 
   case ParseNode::ALTERNATION:
   case ParseNode::CONCATENATION:
     ret = prune_useless_repetitions(n->Left, branch);
-    ret |= reduce_useless_repetitions(n->Left, branch);
+    ret |= reduceUselessRepetitions(n->Left, branch);
     ret |= prune_useless_repetitions(n->Right, branch);
-    ret |= reduce_useless_repetitions(n->Right, branch);
+    ret |= reduceUselessRepetitions(n->Right, branch);
     break;
 
   case ParseNode::DOT:
@@ -319,9 +319,9 @@ bool reduce_useless_repetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
   return ret;
 }
 
-bool reduce_useless_repetitions(ParseNode* root) {
+bool reduceUselessRepetitions(ParseNode* root) {
   std::stack<ParseNode*> branch;
-  return reduce_useless_repetitions(root, branch);
+  return reduceUselessRepetitions(root, branch);
 }
 
 bool combinable(ParseNode* x, ParseNode* y) {
@@ -332,7 +332,7 @@ bool combinable(ParseNode* x, ParseNode* y) {
   ) && *x == *y;
 }
 
-bool combine_consecutive_repetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
+bool combineConsecutiveRepetitions(ParseNode* n, std::stack<ParseNode*>& branch) {
   // T{a,b}T{c,d} == T{a+c,b+d}
   // T{a,b}?T{c,d}? == T{a+c,b+d}?
 
@@ -346,17 +346,17 @@ bool combine_consecutive_repetitions(ParseNode* n, std::stack<ParseNode*>& branc
     }
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
-    ret = combine_consecutive_repetitions(n->Left, branch);
+    ret = combineConsecutiveRepetitions(n->Left, branch);
     break;
 
   case ParseNode::ALTERNATION:
-    ret = combine_consecutive_repetitions(n->Left, branch);
-    ret |= combine_consecutive_repetitions(n->Right, branch);
+    ret = combineConsecutiveRepetitions(n->Left, branch);
+    ret |= combineConsecutiveRepetitions(n->Right, branch);
     break;
 
   case ParseNode::CONCATENATION:
-    ret = combine_consecutive_repetitions(n->Left, branch);
-    ret |= combine_consecutive_repetitions(n->Right, branch);
+    ret = combineConsecutiveRepetitions(n->Left, branch);
+    ret |= combineConsecutiveRepetitions(n->Right, branch);
 
     if (combinable(n->Left, n->Right)) {
       // the repetitions are siblings
@@ -366,7 +366,7 @@ bool combine_consecutive_repetitions(ParseNode* n, std::stack<ParseNode*>& branc
         ? UNBOUNDED : n->Left->Rep.Max + n->Right->Rep.Max;
 
       branch.pop();
-      splice_out_parent(branch.top(), n, n->Left);
+      spliceOutParent(branch.top(), n, n->Left);
       branch.push(n->Left);
       ret = true;
     }
@@ -399,12 +399,12 @@ bool combine_consecutive_repetitions(ParseNode* n, std::stack<ParseNode*>& branc
   return ret;
 }
 
-bool combine_consecutive_repetitions(ParseNode* root) {
+bool combineConsecutiveRepetitions(ParseNode* root) {
   std::stack<ParseNode*> branch;
-  return combine_consecutive_repetitions(root, branch);
+  return combineConsecutiveRepetitions(root, branch);
 }
 
-bool make_binops_right_associative(ParseNode* n, std::stack<ParseNode*>& branch) {
+bool makeBinopsRightAssociative(ParseNode* n, std::stack<ParseNode*>& branch) {
   bool ret = false;
   branch.push(n);
 
@@ -415,13 +415,13 @@ bool make_binops_right_associative(ParseNode* n, std::stack<ParseNode*>& branch)
     }
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
-    ret = make_binops_right_associative(n->Left, branch);
+    ret = makeBinopsRightAssociative(n->Left, branch);
     break;
 
   case ParseNode::ALTERNATION:
   case ParseNode::CONCATENATION:
-    ret = make_binops_right_associative(n->Left, branch);
-    ret |= make_binops_right_associative(n->Right, branch);
+    ret = makeBinopsRightAssociative(n->Left, branch);
+    ret |= makeBinopsRightAssociative(n->Right, branch);
 
     if (n->Left->Type == n->Type) {
       /*
@@ -470,12 +470,12 @@ bool make_binops_right_associative(ParseNode* n, std::stack<ParseNode*>& branch)
   return ret;
 }
 
-bool make_binops_right_associative(ParseNode* root) {
+bool makeBinopsRightAssociative(ParseNode* root) {
   std::stack<ParseNode*> branch;
-  return make_binops_right_associative(root, branch);
+  return makeBinopsRightAssociative(root, branch);
 }
 
-bool reduce_trailing_nongreedy_then_greedy(ParseNode* n, std::stack<ParseNode*>& branch) {
+bool reduceTrailingNongreedyThenGreedy(ParseNode* n, std::stack<ParseNode*>& branch) {
   // T{a,b}?T{c,d} == T{a+c,a+d}
 
   bool ret = false;
@@ -488,16 +488,16 @@ bool reduce_trailing_nongreedy_then_greedy(ParseNode* n, std::stack<ParseNode*>&
     }
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
-    ret = reduce_trailing_nongreedy_then_greedy(n->Left, branch);
+    ret = reduceTrailingNongreedyThenGreedy(n->Left, branch);
     break;
 
   case ParseNode::ALTERNATION:
-    ret = reduce_trailing_nongreedy_then_greedy(n->Left, branch);
-    ret |= reduce_trailing_nongreedy_then_greedy(n->Right, branch);
+    ret = reduceTrailingNongreedyThenGreedy(n->Left, branch);
+    ret |= reduceTrailingNongreedyThenGreedy(n->Right, branch);
     break;
 
   case ParseNode::CONCATENATION:
-    ret = reduce_trailing_nongreedy_then_greedy(n->Right, branch);
+    ret = reduceTrailingNongreedyThenGreedy(n->Right, branch);
 
     if (n->Left->Type == ParseNode::REPETITION_NG) {
       if (n->Right->Type == ParseNode::REPETITION &&
@@ -511,8 +511,8 @@ bool reduce_trailing_nongreedy_then_greedy(ParseNode* n, std::stack<ParseNode*>&
         n->Left->Type = ParseNode::REPETITION;
 
         branch.pop();
-        splice_out_parent(branch.top(), n, n->Left);
-        reduce_trailing_nongreedy_then_greedy(n->Left, branch);
+        spliceOutParent(branch.top(), n, n->Left);
+        reduceTrailingNongreedyThenGreedy(n->Left, branch);
         branch.push(n->Left);
 
         ret = true;
@@ -527,8 +527,8 @@ bool reduce_trailing_nongreedy_then_greedy(ParseNode* n, std::stack<ParseNode*>&
         n->Left->Type = ParseNode::REPETITION;
 
         branch.pop();
-        splice_out_parent(branch.top(), n, n->Left);
-        reduce_trailing_nongreedy_then_greedy(n->Left, branch);
+        spliceOutParent(branch.top(), n, n->Left);
+        reduceTrailingNongreedyThenGreedy(n->Left, branch);
         branch.push(n->Left);
         ret = true;
       }
@@ -552,12 +552,12 @@ bool reduce_trailing_nongreedy_then_greedy(ParseNode* n, std::stack<ParseNode*>&
   return ret;
 }
 
-bool reduce_trailing_nongreedy_then_greedy(ParseNode* root) {
+bool reduceTrailingNongreedyThenGreedy(ParseNode* root) {
   std::stack<ParseNode*> branch;
-  return reduce_trailing_nongreedy_then_greedy(root, branch);
+  return reduceTrailingNongreedyThenGreedy(root, branch);
 }
 
-bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& branch) {
+bool reduceTrailingNongreedyThenEmpty(ParseNode* n, std::stack<ParseNode*>& branch) {
   /*
      As a suffix, S{n,m}?T = S{n}T, when T admits zero-length matches.
 
@@ -589,24 +589,24 @@ bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& 
       return ret;
     }
   case ParseNode::REPETITION:
-    ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
+    ret = reduceTrailingNongreedyThenEmpty(n->Left, branch);
     break;
 
   case ParseNode::REPETITION_NG:
     // replace S{n,m}? with S{n}
     n->Type = ParseNode::REPETITION;
     n->Rep.Max = n->Rep.Min;
-    reduce_trailing_nongreedy_then_empty(n->Left, branch);
+    reduceTrailingNongreedyThenEmpty(n->Left, branch);
     ret = true;
     break;
 
   case ParseNode::ALTERNATION:
-    ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
-    ret |= reduce_trailing_nongreedy_then_empty(n->Right, branch);
+    ret = reduceTrailingNongreedyThenEmpty(n->Left, branch);
+    ret |= reduceTrailingNongreedyThenEmpty(n->Right, branch);
     break;
 
   case ParseNode::CONCATENATION:
-    if (has_zero_length_match(n->Right)) {
+    if (hasZeroLengthMatch(n->Right)) {
       if (n->Left->Type == ParseNode::REPETITION_NG) {
         // the left child is S{n,m}?, the right child is T
 
@@ -618,11 +618,11 @@ bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& 
       }
       else {
         // check the left, it is trailed by an empty-matching subpattern
-        ret = reduce_trailing_nongreedy_then_empty(n->Left, branch);
+        ret = reduceTrailingNongreedyThenEmpty(n->Left, branch);
       }
     }
 
-    ret |= reduce_trailing_nongreedy_then_empty(n->Right, branch);
+    ret |= reduceTrailingNongreedyThenEmpty(n->Right, branch);
     break;
 
   case ParseNode::DOT:
@@ -642,7 +642,7 @@ bool reduce_trailing_nongreedy_then_empty(ParseNode* n, std::stack<ParseNode*>& 
   return ret;
 }
 
-bool reduce_trailing_nongreedy_then_empty(ParseNode* root) {
+bool reduceTrailingNongreedyThenEmpty(ParseNode* root) {
   std::stack<ParseNode*> branch;
-  return reduce_trailing_nongreedy_then_empty(root, branch);
+  return reduceTrailingNongreedyThenEmpty(root, branch);
 }

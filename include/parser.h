@@ -23,8 +23,6 @@
 
 bool parse(const Pattern& pattern, ParseTree& tree);
 
-bool parse(const std::string& text, bool litMode, bool caseInsensitive, ParseTree& tree);
-
-void parse_and_reduce(const std::string& text, bool litMode, bool caseInsensitive, ParseTree& tree);
+void parseAndReduce(const Pattern& pattern, ParseTree& tree);
 
 void reduce(const std::string& text, ParseTree& tree);

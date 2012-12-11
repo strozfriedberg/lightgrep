@@ -27,11 +27,11 @@
 #include "lightgrep/api.h"
 #include "parsetree.h"
 #include "vm_interface.h"
+#include "pattern.h"
 
 struct PatternHandle {
-  std::string Expression;
+  Pattern   Pat;
   ParseTree Tree;
-  bool FixedString, CaseInsensitive;
 };
 
 struct PatternMapHandle {

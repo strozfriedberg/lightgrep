@@ -21,11 +21,11 @@
 
 #include "c_api_util.h"
 
-void fill_error(LG_Error** err, const char* msg) {
+void fillError(LG_Error** err, const char* msg) {
   if (err) {
     try {
-     *err = new LG_Error;
-     (*err)->Message = new char[std::strlen(msg)];
+      *err = new LG_Error;
+      (*err)->Message = new char[std::strlen(msg)];
       std::strcpy((*err)->Message, msg);
     }
     catch (const std::bad_alloc&) {

@@ -97,14 +97,14 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch9, STest, STest("}")) {
 SCOPE_TEST(testregexBasicModifiedSearch10) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(..)*(...)*", false, false, tree));
+  SCOPE_ASSERT(parse({"(..)*(...)*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch11) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(..)*(...)*", false, false, tree));
+  SCOPE_ASSERT(parse({"(..)*(...)*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -182,7 +182,7 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch21, STest, STest("a(b)|c(d)|a(e)f
 SCOPE_TEST(testregexBasicModifiedSearch22) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a|b)?.*", false, false, tree));
+  SCOPE_ASSERT(parse({"(a|b)?.*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -261,14 +261,14 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch32, STest, STest("aba|bab")) {
 SCOPE_TEST(testregexBasicModifiedSearch33) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(aa|aaa)*|(a|aaaaa)", false, false, tree));
+  SCOPE_ASSERT(parse({"(aa|aaa)*|(a|aaaaa)", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch34) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a.|.a.)*|(a|.a...)", false, false, tree));
+  SCOPE_ASSERT(parse({"(a.|.a.)*|(a|.a...)", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -289,7 +289,7 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch36, STest, STest("ab|a")) {
 SCOPE_TEST(testregexBasicModifiedSearch37) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(Ab|cD)*", false, false, tree));
+  SCOPE_ASSERT(parse({"(Ab|cD)*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -303,14 +303,14 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch38, STest, STest("[^-]")) {
 SCOPE_TEST(testregexBasicModifiedSearch39) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("[a-]*", false, false, tree));
+  SCOPE_ASSERT(parse({"[a-]*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch40) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("[a-m-]*", false, false, tree));
+  SCOPE_ASSERT(parse({"[a-m-]*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -443,14 +443,14 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch58, STest, STest("(((((((((((((((
 SCOPE_TEST(testregexBasicModifiedSearch59) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("((((((((((((((((((((((((((((((x))))))))))))))))))))))))))))))*", false, false, tree));
+  SCOPE_ASSERT(parse({"((((((((((((((((((((((((((((((x))))))))))))))))))))))))))))))*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch60) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("a?(ab|ba)*", false, false, tree));
+  SCOPE_ASSERT(parse({"a?(ab|ba)*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -478,7 +478,7 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch63, STest, STest("aaac|aabc|abac|
 SCOPE_TEST(testregexBasicModifiedSearch64) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse(".*", false, false, tree));
+  SCOPE_ASSERT(parse({".*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -737,35 +737,35 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch100, STest, STest("a+b+c")) {
 SCOPE_TEST(testregexBasicModifiedSearch101) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("a*", false, false, tree));
+  SCOPE_ASSERT(parse({"a*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch102) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a*)*", false, false, tree));
+  SCOPE_ASSERT(parse({"(a*)*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch103) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a*)+", false, false, tree));
+  SCOPE_ASSERT(parse({"(a*)+", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch104) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a*|b)*", false, false, tree));
+  SCOPE_ASSERT(parse({"(a*|b)*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch105) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a+|b)*", false, false, tree));
+  SCOPE_ASSERT(parse({"(a+|b)*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -779,21 +779,21 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch106, STest, STest("(a+|b)+")) {
 SCOPE_TEST(testregexBasicModifiedSearch107) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("(a+|b)?", false, false, tree));
+  SCOPE_ASSERT(parse({"(a+|b)?", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch108) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("[^ab]*", false, false, tree));
+  SCOPE_ASSERT(parse({"[^ab]*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch109) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("a*", false, false, tree));
+  SCOPE_ASSERT(parse({"a*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -828,7 +828,7 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch113, STest, STest("(a|b|c|d|e)f")
 SCOPE_TEST(testregexBasicModifiedSearch114) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("((a*|b))*", false, false, tree));
+  SCOPE_ASSERT(parse({"((a*|b))*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 

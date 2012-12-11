@@ -39,7 +39,7 @@ SCOPE_TEST(parseAorB) {
   NFABuilder nfab;
   NFA& fsm(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("a|b", false, false, tree));
+  SCOPE_ASSERT(parse({"a|b", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, fsm.verticesSize());
@@ -54,7 +54,7 @@ SCOPE_TEST(parseAorBorC) {
   NFABuilder nfab;
   NFA& fsm(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("a|b|c", false, false, tree));
+  SCOPE_ASSERT(parse({"a|b|c", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, fsm.verticesSize());
@@ -71,7 +71,7 @@ SCOPE_TEST(parseAB) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("ab", false, false, tree));
+  SCOPE_ASSERT(parse({"ab", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, fsm.verticesSize());
@@ -86,7 +86,7 @@ SCOPE_TEST(parseAlternationAndConcatenation) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("a|bc", false, false, tree));
+  SCOPE_ASSERT(parse({"a|bc", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, fsm.verticesSize());
@@ -103,7 +103,7 @@ SCOPE_TEST(parseGroup) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("a(b|c)", false, false, tree));
+  SCOPE_ASSERT(parse({"a(b|c)", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, fsm.verticesSize());
@@ -116,12 +116,12 @@ SCOPE_TEST(parseGroup) {
 SCOPE_TEST(parseQuestionMark) {
   NFABuilder nfab;
   ParseTree tree;
-  // SCOPE_ASSERT(parse("a?", false, false, tree std::bind(&parseOutput, _1, _2)));
+  // SCOPE_ASSERT(parse({"a?", false, false}, tree std::bind(&parseOutput, _1, _2)));
   // tree.Store.clear();
-  // SCOPE_ASSERT(parse("a?", false, false, tree std::bind(&Parser::callback, &p, _1, _2)));
+  // SCOPE_ASSERT(parse({"a?", false, false}, tree std::bind(&Parser::callback, &p, _1, _2)));
   // SCOPE_ASSERT(!p.good());
   // tree.Store.clear();
-  SCOPE_ASSERT(parse("ab?", false, false, tree));
+  SCOPE_ASSERT(parse({"ab?", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   NFA& fsm(*nfab.getFsm());
@@ -140,7 +140,7 @@ SCOPE_TEST(parseQuestionMarkFirst) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("a?b", false, false, tree));
+  SCOPE_ASSERT(parse({"a?b", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, fsm.verticesSize());
@@ -153,7 +153,7 @@ SCOPE_TEST(parseTwoQuestionMarks) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("ab?c?d", false, false, tree));
+  SCOPE_ASSERT(parse({"ab?c?d", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
@@ -177,7 +177,7 @@ SCOPE_TEST(parseQuestionWithAlternation) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("(a|b?)c", false, false, tree));
+  SCOPE_ASSERT(parse({"(a|b?)c", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, fsm.verticesSize());
@@ -198,7 +198,7 @@ SCOPE_TEST(parseQuestionWithGrouping) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("a(bc)?d", false, false, tree));
+  SCOPE_ASSERT(parse({"a(bc)?d", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
@@ -221,7 +221,7 @@ SCOPE_TEST(parsePlus) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("a+", false, false, tree));
+  SCOPE_ASSERT(parse({"a+", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -237,7 +237,7 @@ SCOPE_TEST(parseaPQb) {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  SCOPE_ASSERT(parse("a+?b", false, false, tree));
+  SCOPE_ASSERT(parse({"a+?b", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
@@ -266,7 +266,7 @@ SCOPE_TEST(parseStar) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("ab*c", false, false, tree));
+  SCOPE_ASSERT(parse({"ab*c", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, fsm.verticesSize());
@@ -282,7 +282,7 @@ SCOPE_TEST(parseStarWithGrouping) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("a(bc)*d", false, false, tree));
+  SCOPE_ASSERT(parse({"a(bc)*d", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
@@ -305,7 +305,7 @@ SCOPE_TEST(parseaQQb) {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  SCOPE_ASSERT(parse("a??b", false, false, tree));
+  SCOPE_ASSERT(parse({"a??b", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
@@ -332,7 +332,7 @@ SCOPE_TEST(parseaQQbQQc) {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  SCOPE_ASSERT(parse("a??b??c", false, false, tree));
+  SCOPE_ASSERT(parse({"a??b??c", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -366,7 +366,7 @@ SCOPE_TEST(parseaQQbQc) {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  SCOPE_ASSERT(parse("a??b?c", false, false, tree));
+  SCOPE_ASSERT(parse({"a??b?c", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -400,7 +400,7 @@ SCOPE_TEST(parseaQQOrbQQc) {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  SCOPE_ASSERT(parse(R"((a??|b??)c)", false, false, tree));
+  SCOPE_ASSERT(parse({R"((a??|b??)c)", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -433,7 +433,7 @@ SCOPE_TEST(parseaOrbQa) {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  SCOPE_ASSERT(parse("(a|b?)a", false, false, tree));
+  SCOPE_ASSERT(parse({"(a|b?)a", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -466,7 +466,7 @@ SCOPE_TEST(parseaOrbQQa) {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  SCOPE_ASSERT(parse(R"((a|b??)a)", false, false, tree));
+  SCOPE_ASSERT(parse({R"((a|b??)a)", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -499,7 +499,7 @@ SCOPE_TEST(parseaSQb) {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  SCOPE_ASSERT(parse("a*?b", false, false, tree));
+  SCOPE_ASSERT(parse({"a*?b", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
@@ -526,7 +526,7 @@ SCOPE_TEST(parseDot) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse(".+", false, false, tree));
+  SCOPE_ASSERT(parse({".+", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -543,7 +543,7 @@ SCOPE_TEST(parseHexCode) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("\\x20", false, false, tree));
+  SCOPE_ASSERT(parse({"\\x20", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -560,7 +560,7 @@ SCOPE_TEST(parseHexDotPlus) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("\\x20\\zFF.+\\x20", false, false, tree));
+  SCOPE_ASSERT(parse({"\\x20\\zFF.+\\x20", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
@@ -578,7 +578,7 @@ SCOPE_TEST(parse2ByteUnicode) {
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
   nfab.setEncoder(std::shared_ptr<Encoder>(new UTF16LE));
-  SCOPE_ASSERT(parse("ab", false, false, tree));
+  SCOPE_ASSERT(parse({"ab", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(5u, fsm.verticesSize());
@@ -588,7 +588,7 @@ SCOPE_TEST(parseHighHex) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("\\zE5", false, false, tree));
+  SCOPE_ASSERT(parse({"\\zE5", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -603,7 +603,7 @@ SCOPE_TEST(parseSimpleCharClass) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("[AaBb]", false, false, tree));
+  SCOPE_ASSERT(parse({"[AaBb]", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -624,7 +624,7 @@ SCOPE_TEST(parseUnprintableCharClass) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("[A\\zFF\\z00]", false, false, tree));
+  SCOPE_ASSERT(parse({"[A\\zFF\\z00]", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -644,7 +644,7 @@ SCOPE_TEST(parseNegatedRanges) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("[^a-zA-Z0-9]", false, false, tree));
+  SCOPE_ASSERT(parse({"[^a-zA-Z0-9]", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -667,7 +667,7 @@ SCOPE_TEST(parseCaseInsensitive) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("ab", false, true, tree));
+  SCOPE_ASSERT(parse({"ab", false, true}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, fsm.verticesSize());
@@ -688,7 +688,7 @@ SCOPE_TEST(parseCaseInsensitiveCC) {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  SCOPE_ASSERT(parse("[a-z]", false, true, tree));
+  SCOPE_ASSERT(parse({"[a-z]", false, true}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, fsm.verticesSize());
@@ -714,7 +714,7 @@ SCOPE_TEST(parseCaseInsensitiveCC) {
 SCOPE_TEST(parseSZeroMatchState) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse("a?", false, false, tree));
+  SCOPE_ASSERT(parse({"a?", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -746,7 +746,7 @@ SCOPE_TEST(parseZeroDotStarZero) {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("0.*0", false, false, tree));
+  SCOPE_ASSERT(parse({"0.*0", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -781,7 +781,7 @@ SCOPE_TEST(parseZeroDotStarZero) {
   NFABuilder nfab; \
   NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
-  SCOPE_ASSERT(parse(ss.str(), false, false, tree)); \
+  SCOPE_ASSERT(parse({ss.str(), false, false}, tree)); \
   SCOPE_ASSERT(nfab.build(tree)); \
 \
   SCOPE_ASSERT_EQUAL(n + 1, g.verticesSize()); \
@@ -814,7 +814,7 @@ SCOPE_TEST(parse_aLCnRC) {
   NFABuilder nfab; \
   NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
-  SCOPE_ASSERT(parse(ss.str(), false, false, tree)); \
+  SCOPE_ASSERT(parse({ss.str(), false, false}, tree)); \
   SCOPE_ASSERT(nfab.build(tree)); \
 \
   SCOPE_ASSERT_EQUAL(n + 1, g.verticesSize()); \
@@ -845,7 +845,7 @@ SCOPE_TEST(parse_aLC0_RCQb) {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("a{0,}?b", false, false, tree));
+  SCOPE_ASSERT(parse({"a{0,}?b", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
@@ -873,7 +873,7 @@ SCOPE_TEST(parse_aLC0_RCQb) {
   NFABuilder nfab; \
   NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
-  SCOPE_ASSERT(parse(ss.str(), false, false, tree)); \
+  SCOPE_ASSERT(parse({ss.str(), false, false}, tree)); \
   SCOPE_ASSERT(nfab.build(tree)); \
 \
   SCOPE_ASSERT_EQUAL(n + 2, g.verticesSize()); \
@@ -909,7 +909,7 @@ SCOPE_TEST(parse_xa0_) {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("xa{0,}", false, false, tree));
+  SCOPE_ASSERT(parse({"xa{0,}", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
@@ -937,7 +937,7 @@ SCOPE_TEST(parse_xa0_) {
   NFABuilder nfab; \
   NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
-  SCOPE_ASSERT(parse(ss.str(), false, false, tree)); \
+  SCOPE_ASSERT(parse({ss.str(), false, false}, tree)); \
   SCOPE_ASSERT(nfab.build(tree)); \
 \
   SCOPE_ASSERT_EQUAL(m + 1, g.verticesSize()); \
@@ -976,7 +976,7 @@ SCOPE_TEST(parse_aaQQb) {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("aa??b", false, false, tree));
+  SCOPE_ASSERT(parse({"aa??b", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -1006,7 +1006,7 @@ SCOPE_TEST(parse_xLPaORaQQRPy) {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse(R"(x(a|a??)y)", false, false, tree));
+  SCOPE_ASSERT(parse({R"(x(a|a??)y)", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(5u, g.verticesSize());
@@ -1046,7 +1046,7 @@ SCOPE_TEST(parseEncodingByteBreakout) {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\z80", false, false, tree));
+  SCOPE_ASSERT(parse({"\\z80", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, g.verticesSize());
@@ -1078,7 +1078,7 @@ SCOPE_TEST(parseEncodingNotByteBreakout) {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("\\x{80}", false, false, tree));
+  SCOPE_ASSERT(parse({"\\x{80}", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
@@ -1121,7 +1121,7 @@ SCOPE_TEST(parseEncodingCCCodePointWithBreakout) {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("[A\\zFF]", false, false, tree));
+  SCOPE_ASSERT(parse({"[A\\zFF]", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, g.verticesSize());
@@ -1150,7 +1150,7 @@ SCOPE_TEST(parseEncodingCCCodePoint2ByteWithBreakout) {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("[\\x{80}\\zFF]", false, false, tree));
+  SCOPE_ASSERT(parse({"[\\x{80}\\zFF]", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
@@ -1205,7 +1205,7 @@ SCOPE_TEST(parseEncodingCCBreakoutOnly) {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("[\\zFF]", false, false, tree));
+  SCOPE_ASSERT(parse({"[\\zFF]", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, g.verticesSize());
@@ -1234,7 +1234,7 @@ SCOPE_TEST(parseEncodingNegCCCodePointWithBreakout) {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  SCOPE_ASSERT(parse("[^\\x{02}-\\x{10FFFF}\\x01]", false, false, tree));
+  SCOPE_ASSERT(parse({"[^\\x{02}-\\x{10FFFF}\\x01]", false, false}, tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   SCOPE_ASSERT_EQUAL(2u, g.verticesSize());

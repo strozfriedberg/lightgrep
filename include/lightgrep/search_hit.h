@@ -19,11 +19,10 @@
 #ifndef LIGHTGREP_C_SEARCH_HIT_H_
 #define LIGHTGREP_C_SEARCH_HIT_H_
 
-#ifdef __cplusplus
-#include <cinttypes>
-extern "C" {
-#else
 #include <inttypes.h>
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 // Basic Search Hit struct

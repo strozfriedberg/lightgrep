@@ -25,19 +25,17 @@
 class Pattern {
 public:
   std::string Expression;
-  bool FixedString, CaseInsensitive;
-  uint32_t Index;
+  bool        FixedString, 
+              CaseInsensitive;
   std::string Encoding;
 
   Pattern(const std::string& expr = "",
           bool fixed = false,
           bool insensitive = false,
-          uint32_t index = 0,
           const std::string& enc = "US-ASCII"):
     Expression(expr),
     FixedString(fixed),
     CaseInsensitive(insensitive),
-    Index(index),
     Encoding(enc) {}
 
   Pattern(const Pattern&) = default;
@@ -51,7 +49,6 @@ public:
   bool operator==(const Pattern& p) const {
     return FixedString == p.FixedString &&
            CaseInsensitive == p.CaseInsensitive &&
-           Index == p.Index &&
            Expression == p.Expression &&
            Encoding == p.Encoding;
   }
