@@ -221,8 +221,9 @@ test: $(TEST_BIN)
 	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --test
 
 longtest: $(TEST_BIN)
-	! bzcat re_gen/aQ-3.bz2 | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test) | grep failed
-	! bzcat re_gen/aQ-3-3.bz2 | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test) | grep failed
+	! bzcat re_gen/aQ-3.bz2 | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test 2>/dev/null)  | grep failed
+	! bzcat re_gen/aQ-3-3.bz2 | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test 2>/dev/null) | grep failed
+	! bzcat re_gen/valid.bz2 | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test 2>/dev/null) | grep failed
 
 val: $(VAL_BIN)
 
