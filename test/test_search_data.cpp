@@ -40,7 +40,7 @@ struct TestCase {
   std::string text;
   std::vector<SearchHit> expected;
 
-  static std::atomic_uint count;
+  static std::atomic_uint count, failed;
 
   void operator()() {
     std::ostringstream ss;
@@ -83,6 +83,8 @@ struct TestCase {
       );
 
       ss << '\n';
+
+      ++failed;
     }
 
     std::cout << ss.str();
@@ -94,6 +96,7 @@ struct TestCase {
 };
 
 std::atomic_uint TestCase::count(0);
+std::atomic_uint TestCase::failed(0);
 
 class executor {
 public:
@@ -122,9 +125,7 @@ protected:
   boost::asio::io_service::work* work_;
 };
 
-void longTest() {
-  executor ex(boost::thread::hardware_concurrency());
-
+void longTest(executor& ex) {
   uint32_t len, patcount;
   while (std::cin.peek() != -1) {
     TestCase tcase;
@@ -167,4 +168,14 @@ void longTest() {
 
     ex.submit(tcase);
   }
+}
+
+bool longTest() {
+  // scoping ensures that executor is destroyed before we check failed
+  {
+    executor ex(boost::thread::hardware_concurrency());
+    longTest(ex);
+  }
+
+  return TestCase::failed == 0;
 }

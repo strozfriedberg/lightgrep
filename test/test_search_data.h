@@ -18,5 +18,5 @@
 
 #pragma once
 
-void longTest();
+bool longTest();
 

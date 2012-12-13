@@ -80,6 +80,8 @@ ICU_LDLIBS=-licuuc -licudata
 LG_LDFLAGS=-Lbin/src/lib
 LG_LDLIBS=-llightgrep
 
+LD_LIBRARY_PATH=$(BOOST_LIBDIR):$(ICU_LIBDIR):bin/src/lib
+
 #
 # Setup for liblightgrep
 #
@@ -216,7 +218,11 @@ lib-shared: $(LIB_SHARED_BIN)
 lib-static: $(LIB_STATIC_BIN)
 
 test: $(TEST_BIN)
-	LD_LIBRARY_PATH=$(BOOST_LIBDIR):$(ICU_LIBDIR):bin/src/lib $< --test
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --test
+
+longtest: $(TEST_BIN)
+	! bzcat re_gen/aQ-3.bz2 | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test) | grep failed
+	! bzcat re_gen/aQ-3-3.bz2 | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test) | grep failed
 
 val: $(VAL_BIN)
 

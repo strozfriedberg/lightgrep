@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
       return scope::DefaultRun(std::cout, argc, argv) ? 0 : 1;
     }
     else if (optsMap.count("long-test")) {
-      longTest();
+      return longTest() ? 0 : 1;
     }
     else {
       // this should be impossible
