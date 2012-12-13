@@ -18,28 +18,39 @@
 
 #include <scope/test.h>
 
-#include <cstring>
+#include <iostream>
+
+#include <algorithm>
 #include <memory>
+#include <vector>
 
 #include "decoders/decoder.h"
 #include "lightgrep/util.h"
 
-SCOPE_TEST(lgReadWindowASCII) {
-  const uint64_t doff = 42;
-  const char* buf = "abcdefghijk";  
-  const LG_Window inner{doff + 3, doff + 6}; // hit is "def"
+void readWindowTest(
+  uint64_t doff,
+  const char* enc,
+  size_t hbeg,
+  size_t hend, 
+  size_t pre,
+  size_t post,
+  const std::vector<byte>& data,
+  const std::vector<int32_t>& ecp,
+  const std::vector<size_t>& eoff)
+{
+  const LG_Window inner{doff + hbeg, doff + hend};
   int32_t* chars;
-  const char** offsets;
+  size_t* offsets;
   size_t clen;
 
-  const unsigned int ret = lg_read_window(
-    buf,
-    buf + std::strlen(buf), 
+  const unsigned int abad = lg_read_window(
+    reinterpret_cast<const char*>(data.data()),
+    reinterpret_cast<const char*>(data.data()) + data.size(), 
     doff,
     &inner,
-    "ASCII",
-    2,
-    2,
+    enc,
+    pre,
+    post,
     &chars,
     &offsets,
     &clen
@@ -49,134 +60,48 @@ SCOPE_TEST(lgReadWindowASCII) {
     chars, lg_free_window_characters
   );
 
-  std::unique_ptr<const char*[],void(*)(const char**)> poff(
+  std::unique_ptr<size_t[],void(*)(size_t*)> poff(
     offsets, lg_free_window_offsets
   );
 
-  SCOPE_ASSERT_EQUAL(0u, ret);
+  const size_t ebad = std::count_if(
+    ecp.begin(), ecp.end()-1, [](int32_t v){ return v < 0; }
+  );
 
-  const int32_t echars[] = { 'b', 'c', 'd', 'e', 'f', 'g', 'h', Decoder::END };
-  const char* eoff[] = {
-    buf+1, buf+2, buf+3, buf+4, buf+5, buf+6, buf+7, buf+8
-  };
-  const size_t elen = sizeof(echars)/sizeof(echars[0]);
+  SCOPE_ASSERT_EQUAL(ebad, abad);
 
-  SCOPE_ASSERT_EQUAL(elen, clen);
+  std::vector<int32_t> acp(chars, chars+clen); 
+  SCOPE_ASSERT_EQUAL(ecp, acp);
 
-  for (size_t i = 0; i < elen; ++i) {
-    SCOPE_ASSERT_EQUAL(echars[i], chars[i]);
-    SCOPE_ASSERT_EQUAL(eoff[i], offsets[i]);
-  }
+  std::vector<size_t> aoff(offsets, offsets+clen);
+  SCOPE_ASSERT_EQUAL(eoff, aoff);
 }
 
-SCOPE_TEST(lgReadWindowASCIISmallPrefix) {
-  const uint64_t doff = 42;
-  const char* buf = "abcdefghijk";
-  const LG_Window inner{doff + 1, doff + 3}; // hit is "bc"
-  int32_t* chars;
-  const char** offsets;
-  size_t clen;
-
-  const unsigned int ret = lg_read_window(
-    buf,
-    buf + std::strlen(buf), 
-    doff,
-    &inner,
-    "ASCII",
-    5,
-    5,
-    &chars,
-    &offsets,
-    &clen
-  );
-
-  std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
-    chars, lg_free_window_characters
-  );
-
-  std::unique_ptr<const char*[],void(*)(const char**)> poff(
-    offsets, lg_free_window_offsets
-  );
-
-  SCOPE_ASSERT_EQUAL(0u, ret);
-
-  const int32_t echars[] = {
-    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', Decoder::END
-  };
-  const char* eoff[] = {
-    buf, buf+1, buf+2, buf+3, buf+4, buf+5, buf+6, buf+7, buf+8
-  };
-  const size_t elen = sizeof(echars)/sizeof(echars[0]);
-
-  SCOPE_ASSERT_EQUAL(elen, clen);
-
-  for (size_t i = 0; i < elen; ++i) {
-    SCOPE_ASSERT_EQUAL(echars[i], chars[i]);
-    SCOPE_ASSERT_EQUAL(eoff[i], offsets[i]);
-  }
-}
-SCOPE_TEST(lgReadWindowASCIISmallSuffix) {
-  const uint64_t doff = 42;
-  const char* buf = "abcdefghijk";  
-  const LG_Window inner{doff + 8, doff + 10}; // hit is "ij"
-  int32_t* chars;
-  const char** offsets;
-  size_t clen;
-
-  const unsigned int ret = lg_read_window(
-    buf,
-    buf + std::strlen(buf), 
-    doff,
-    &inner,
-    "ASCII",
-    5,
-    5,
-    &chars,
-    &offsets,
-    &clen
-  );
-
-  std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
-    chars, lg_free_window_characters
-  );
-
-  std::unique_ptr<const char*[],void(*)(const char**)> poff(
-    offsets, lg_free_window_offsets
-  );
-
-  SCOPE_ASSERT_EQUAL(0u, ret);
-
-  const int32_t echars[] = {
-    'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', Decoder::END
-  };
-  const char* eoff[] = {
-    buf+3, buf+4, buf+5, buf+6, buf+7, buf+8, buf+9, buf+10, buf+11
-  };
-  const size_t elen = sizeof(echars)/sizeof(echars[0]);
-
-  SCOPE_ASSERT_EQUAL(elen, clen);
-
-  for (size_t i = 0; i < elen; ++i) {
-    SCOPE_ASSERT_EQUAL(echars[i], chars[i]);
-    SCOPE_ASSERT_EQUAL(eoff[i], offsets[i]);
-  }
-}
-
-SCOPE_TEST(lgHitContextASCII) {
-  const uint64_t doff = 42;
-  const char* buf = "abcdefghijk";  
-  const LG_Window inner{doff + 3, doff + 6}; // hit is "def"
+void hitContextTest(
+  uint64_t doff,
+  const char* enc,
+  size_t hbeg,
+  size_t hend, 
+  size_t window,
+  uint32_t repl,
+  const std::vector<byte>& data,
+  const std::string& estr,
+  uint32_t ebad,
+  size_t wbeg,
+  size_t wend)
+{
+  const LG_Window inner{doff + hbeg, doff + hend};
   LG_Window outer;
   const char* utf8;
 
-  const unsigned int ret = lg_hit_context(
-    buf,
-    buf + std::strlen(buf), 
+  const unsigned int abad = lg_hit_context(
+    reinterpret_cast<const char*>(data.data()),
+    reinterpret_cast<const char*>(data.data()) + data.size(),
     doff,
     &inner,
-    "ASCII",
-    2,
-    0x1F4A9,
+    enc,
+    window,
+    repl,
     &utf8,
     &outer
   );
@@ -185,11 +110,81 @@ SCOPE_TEST(lgHitContextASCII) {
     utf8, lg_free_hit_context_string
   );
 
-  const char* exp = "bcdefgh";
+  SCOPE_ASSERT_EQUAL(ebad, abad);
+  SCOPE_ASSERT_EQUAL(estr, utf8);
 
-  SCOPE_ASSERT_EQUAL(0u, ret);
-  SCOPE_ASSERT(std::strncmp(exp, utf8, std::strlen(exp)) == 0);
+  SCOPE_ASSERT_EQUAL(doff + wbeg, outer.begin);
+  SCOPE_ASSERT_EQUAL(doff + wend, outer.end);
+} 
 
-  SCOPE_ASSERT_EQUAL(doff + 1, outer.begin);
-  SCOPE_ASSERT_EQUAL(doff + 8, outer.end);
+SCOPE_TEST(lgReadWindowASCII) {
+  readWindowTest(
+    42, "ASCII",
+    3, 6, // hit is "def"
+    2, 2, // window is "bcdefgh"
+    {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'},
+    { 'b', 'c', 'd', 'e', 'f', 'g', 'h', Decoder::END },
+    { 1, 2, 3, 4, 5, 6, 7, 8 }
+  );
 }
+
+SCOPE_TEST(lgReadWindowASCIISmallPrefix) {
+  readWindowTest(
+    42, "ASCII",
+    1, 3, // hit is "bc"
+    5, 5, // window is "bcdefgh"
+    {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'},
+    { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', Decoder::END },
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8 }
+  );
+}
+
+SCOPE_TEST(lgReadWindowASCIISmallSuffix) {
+  readWindowTest(
+    42, "ASCII",
+    8, 10, // hit is "ij"
+    5, 5,  // window is "defghijk" 
+    {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'},
+    { 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', Decoder::END },
+    { 3, 4, 5, 6, 7, 8, 9, 10, 11 }
+  );
+}
+
+SCOPE_TEST(lgHitContextASCII) {
+  hitContextTest(
+    42, "ASCII",
+    3, 6, // hit is "def"
+    2,    // window is "bcdefgh"
+    0x1F4A9,
+    {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'},
+    "bcdefgh",
+    0,
+    1, 8
+  );
+}
+
+SCOPE_TEST(lgReadWindowUTF8WithBadSpot) {
+  readWindowTest(
+    42, "UTF-8",
+    3, 4, // hit is "c"
+    2, 2, // window is b -0xE0 c PILE_OF_POO
+    { 'a', 'b', 0xDF, 'c', 0xF0, 0x9F, 0x92, 0xA9 },
+    { 'b', -0xE0, 'c', 0x1F4A9, Decoder::END },
+    { 1, 2, 3, 4, 8 }
+  );
+}
+
+/*
+SCOPE_TEST(lgReadWindowUTF16LEWithBadSpot) {
+// Is 00 62 a valid UTF-16LE unit? Yes! Blast.
+
+  readWindowTest(
+    42, "UTF-16LE",
+    5, 6, // hit is "c"
+    2, 2, // window is b -0xE0 c d
+    { 'a', 0x00, 'b', 0x00, 0xDF, 'c', 0x00, 'd', 0x00 },
+    { 'b', -0xE0, 'c', 'd', Decoder::END },
+    { 2, 4, 5, 7, 9 }
+  );
+}
+*/

@@ -108,7 +108,7 @@ unsigned int lg_read_window(
   size_t preContext,
   size_t postContext,
   int32_t** characters,
-  const char*** offsets,
+  size_t** offsets,
   size_t* clen)
 {
 // FIXME: it's stupid to recreate the factory each time
@@ -165,12 +165,12 @@ unsigned int lg_read_window(
 
   *clen = wend - wbeg;
   *characters = new int32_t[*clen];
-  *offsets = new const char*[*clen];
+  *offsets = new size_t[*clen];
 
   auto wi = wbeg;
   for (size_t i = 0; wi != wend; ++i, ++wi) {
     (*characters)[i] = wi->first;
-    (*offsets)[i] = reinterpret_cast<const char*>(wi->second);
+    (*offsets)[i] = wi->second - reinterpret_cast<const byte*>(bufStart);
   }
 
   (*characters)[*clen-1] = Decoder::END;
@@ -190,7 +190,7 @@ unsigned int lg_hit_context(const char* bufStart,
 {
   // decode the hit and its context using the deluxe decoder
   int32_t* characters;
-  const char** offsets;
+  size_t* offsets;
   size_t clen;
 
   const unsigned int bad = lg_read_window(
@@ -210,12 +210,12 @@ unsigned int lg_hit_context(const char* bufStart,
     characters, lg_free_window_characters
   );
 
-  std::unique_ptr<const char*[],void(*)(const char**)> poff(
+  std::unique_ptr<size_t[],void(*)(size_t*)> poff(
     offsets, lg_free_window_offsets
   );
 
-  outer->begin = dataOffset + (offsets[0] - bufStart);
-  outer->end = dataOffset + (offsets[clen-1] - bufStart);
+  outer->begin = dataOffset + offsets[0];
+  outer->end = dataOffset + offsets[clen-1];
 
   // convert the code points to UTF-8
   std::vector<char> bytes;
@@ -246,7 +246,7 @@ void lg_free_window_characters(int32_t* characters) {
   delete[] characters;
 }
 
-void lg_free_window_offsets(const char** offsets) {
+void lg_free_window_offsets(size_t* offsets) {
   delete[] offsets;
 }
 
