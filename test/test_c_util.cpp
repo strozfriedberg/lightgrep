@@ -178,10 +178,10 @@ SCOPE_TEST(lgReadWindowUTF8WithBadSpot) {
 }
 
 SCOPE_TEST(lgReadWindowUTF16LEWithBadSpotRequiringDecoderRestart) {
-  // 0x62DF (i.e., 0xDF 'c') a valid UTF-16LE unit, but decoding
-  // that would invalidate our hit at 'c'. This test checks that
-  // the decoder is being run for the hit separately from the
-  // preceeding context.
+  // 0x63DF (i.e., 0xDF 'c') is a valid UTF-16LE unit, but decoding
+  // that would invalidate our hit at 'c'. This test checks that the
+  // decoder is being run for the hit separately from the preceeding
+  // context.
 
   readWindowTest(
     42, "UTF-16LE",
