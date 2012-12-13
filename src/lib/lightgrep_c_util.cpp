@@ -138,20 +138,23 @@ unsigned int lg_read_window(
   std::pair<int32_t,const byte*> cp;
   std::vector<std::pair<int32_t,const byte*>> cps;
 
-// FIXME: bufStart and bufEnd might be nowhere near the window, so we could
-// be doing tons of extra work here
-
-  bad += decode(
-    reinterpret_cast<const byte*>(bufStart),
-    reinterpret_cast<const byte*>(bufEnd),
-    *dec,
-    cps
-  );
+  const byte* bbeg = reinterpret_cast<const byte*>(bufStart);
+  const byte* bend = reinterpret_cast<const byte*>(bufEnd);
 
   const byte* hbeg =
     reinterpret_cast<const byte*>(bufStart) + inner->begin - dataOffset;
   const byte* hend =
     reinterpret_cast<const byte*>(bufStart) + inner->end - dataOffset;
+
+// FIXME: bufStart and bufEnd might be nowhere near the window, so we could
+// be doing tons of extra work here
+
+  if (bbeg != hbeg) {
+    bad += decode(bbeg, hbeg, *dec, cps);
+    // drop the END marker for the leading context
+    cps.pop_back();
+  }
+  bad += decode(hbeg, bend, *dec, cps);
 
   auto wbeg = std::find_if(
     cps.begin(), cps.end(),
@@ -182,7 +185,7 @@ unsigned int lg_read_window(
   auto wi = wbeg;
   for (size_t i = 0; wi != wend; ++i, ++wi) {
     (*characters)[i] = wi->first;
-    (*offsets)[i] = wi->second - reinterpret_cast<const byte*>(bufStart);
+    (*offsets)[i] = wi->second - bbeg;
   }
 
   (*characters)[*clen-1] = Decoder::END;

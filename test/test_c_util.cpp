@@ -18,7 +18,10 @@
 
 #include <scope/test.h>
 
+/*
 #include <iostream>
+#include "container_out.h"
+*/
 
 #include <algorithm>
 #include <memory>
@@ -70,7 +73,7 @@ void readWindowTest(
 
   SCOPE_ASSERT_EQUAL(ebad, abad);
 
-  std::vector<int32_t> acp(chars, chars+clen); 
+  std::vector<int32_t> acp(chars, chars+clen);
   SCOPE_ASSERT_EQUAL(ecp, acp);
 
   std::vector<size_t> aoff(offsets, offsets+clen);
@@ -174,9 +177,11 @@ SCOPE_TEST(lgReadWindowUTF8WithBadSpot) {
   );
 }
 
-/*
-SCOPE_TEST(lgReadWindowUTF16LEWithBadSpot) {
-// Is 00 62 a valid UTF-16LE unit? Yes! Blast.
+SCOPE_TEST(lgReadWindowUTF16LEWithBadSpotRequiringDecoderRestart) {
+  // 0x62DF (i.e., 0xDF 'c') a valid UTF-16LE unit, but decoding
+  // that would invalidate our hit at 'c'. This test checks that
+  // the decoder is being run for the hit separately from the
+  // preceeding context.
 
   readWindowTest(
     42, "UTF-16LE",
@@ -187,4 +192,3 @@ SCOPE_TEST(lgReadWindowUTF16LEWithBadSpot) {
     { 2, 4, 5, 7, 9 }
   );
 }
-*/
