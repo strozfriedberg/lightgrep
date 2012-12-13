@@ -99,6 +99,24 @@ int lg_get_byte_byte_transformation_id(const char* const name) {
   );
 }
 
+unsigned int decode(const byte* beg, const byte* end, Decoder& dec, std::vector<std::pair<int32_t,const byte*>>& cps) {
+  dec.reset(beg, end);
+
+  unsigned int bad = 0;
+
+  std::pair<int32_t,const byte*> cp;
+  while ((cp = dec.next()).first != Decoder::END) {
+    if (cp.first < 0) {
+      ++bad;
+    }
+    cps.push_back(cp);
+  }
+
+  cps.push_back(cp);
+
+  return bad;
+}
+
 unsigned int lg_read_window(
   const char* bufStart,
   const char* bufEnd,
@@ -120,21 +138,15 @@ unsigned int lg_read_window(
   std::pair<int32_t,const byte*> cp;
   std::vector<std::pair<int32_t,const byte*>> cps;
 
-  dec->reset(
-    reinterpret_cast<const byte*>(bufStart),
-    reinterpret_cast<const byte*>(bufEnd)
-  );
-
 // FIXME: bufStart and bufEnd might be nowhere near the window, so we could
 // be doing tons of extra work here
-  while ((cp = dec->next()).first != Decoder::END) {
-    if (cp.first < 0) {
-      ++bad;
-    }
-    cps.push_back(cp);
-  }
 
-  cps.push_back(cp);
+  bad += decode(
+    reinterpret_cast<const byte*>(bufStart),
+    reinterpret_cast<const byte*>(bufEnd),
+    *dec,
+    cps
+  );
 
   const byte* hbeg =
     reinterpret_cast<const byte*>(bufStart) + inner->begin - dataOffset;
