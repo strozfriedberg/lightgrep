@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
       std::cerr << desc << std::endl;
     }
     else if (optsMap.count("test")) {
-      return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
+      return scope::DefaultRun(std::cout, argc, argv) ? 0 : 1;
     }
     else if (optsMap.count("long-test")) {
       longTest();
