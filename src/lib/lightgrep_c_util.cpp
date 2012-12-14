@@ -238,10 +238,11 @@ unsigned int lg_read_window(
   *characters = new int32_t[*clen];
   *offsets = new size_t[*clen];
 
-  auto wi = cps.cbegin(), wend = cps.cend();
-  for (size_t i = 0; wi != wend; ++i, ++wi) {
-    (*characters)[i] = wi->first;
-    (*offsets)[i] = wi->second - bbeg;
+  size_t i = 0;
+  for (const std::pair<int32_t,const byte*>& p : cps) {
+    (*characters)[i] = p.first;
+    (*offsets)[i] = p.second - bbeg;
+    ++i;
   }
 
   (*characters)[*clen-1] = Decoder::END;
