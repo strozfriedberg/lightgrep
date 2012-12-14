@@ -220,10 +220,14 @@ lib-static: $(LIB_STATIC_BIN)
 test: $(TEST_BIN)
 	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --test
 
+define longtest-run
+! bzcat $(1) | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test 2>/dev/null)  | grep failed
+endef
+
 longtest: $(TEST_BIN)
-	! bzcat re_gen/aQ-3.bz2 | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test 2>/dev/null)  | grep failed
-	! bzcat re_gen/aQ-3-3.bz2 | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test 2>/dev/null) | grep failed
-	! bzcat re_gen/valid.bz2 | (LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $< --long-test 2>/dev/null) | grep failed
+	$(call longtest-run,re_gen/aQ-3.bz2)
+	$(call longtest-run,re_gen/aQ-3-3.bz2)
+	$(call longtest-run,re_gen/valid.bz2)
 
 val: $(VAL_BIN)
 
