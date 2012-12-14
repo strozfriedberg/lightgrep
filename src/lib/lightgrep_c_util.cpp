@@ -38,22 +38,24 @@
 #include "lightgrep/transforms.h"
 #include "lightgrep/encodings.h"
 
-int find_trans_id(const LG_TRANS* beg, const LG_TRANS* end, const char* const name) {
-  std::string ns(name);
-  std::transform(ns.begin(), ns.end(), ns.begin(), ::tolower);
+namespace {
+  int find_trans_id(const LG_TRANS* beg, const LG_TRANS* end, const char* const name) {
+    std::string ns(name);
+    std::transform(ns.begin(), ns.end(), ns.begin(), ::tolower);
 
-// TODO: encodings are sorted by name, so do a binary search
-  const LG_TRANS* ptr = std::find_if(
-    beg,
-    end,
-    [&](const LG_TRANS& t) -> bool {
-      std::string ts(t.name);
-      std::transform(ts.begin(), ts.end(), ts.begin(), ::tolower);
-      return ns == ts;
-    }
-  );
+  // TODO: encodings are sorted by name, so do a binary search
+    const LG_TRANS* ptr = std::find_if(
+      beg,
+      end,
+      [&](const LG_TRANS& t) -> bool {
+        std::string ts(t.name);
+        std::transform(ts.begin(), ts.end(), ts.begin(), ::tolower);
+        return ns == ts;
+      }
+    );
 
-  return ptr == end ? -1 : ptr->idx;
+    return ptr == end ? -1 : ptr->idx;
+  }
 }
 
 int lg_get_char_char_transformation_id(const char* const name) {
@@ -98,106 +100,108 @@ int lg_get_byte_byte_transformation_id(const char* const name) {
   );
 }
 
-unsigned int decode(
-  const byte* bbeg,
-  const byte* bend,
-  const byte* hbeg,
-  const byte* hend,
-  size_t leading,
-  size_t trailing,
-  Decoder& dec,
-  std::vector<std::pair<int32_t,const byte*>>& cps)
-{
-  // precondition:
-  //    bbeg <= hbeg <= hend <= bend
+namespace {
+  unsigned int decode(
+    const byte* bbeg,
+    const byte* bend,
+    const byte* hbeg,
+    const byte* hend,
+    size_t leading,
+    size_t trailing,
+    Decoder& dec,
+    std::vector<std::pair<int32_t,const byte*>>& cps)
+  {
+    // precondition:
+    //    bbeg <= hbeg <= hend <= bend
 
-  unsigned int bad = 0;
-  std::pair<int32_t,const byte*> cp;
+    unsigned int bad = 0;
+    std::pair<int32_t,const byte*> cp;
 
-  //
-  // leading context
-  //
-  unsigned int max_adj_good = 0, max_inv_bad = 0;
-  std::vector<std::pair<int32_t,const byte*>> lctx;
+    //
+    // leading context
+    //
+    unsigned int max_adj_good = 0, max_inv_bad = 0;
+    std::vector<std::pair<int32_t,const byte*>> lctx;
 
-  // Decode leading sequences of increasing length until we hit the
-  // beginning of the buffer or decode more values than we need for
-  // leading context.
-  for (const byte* l = hbeg-1; l >= bbeg && lctx.size() <= leading; --l) {
-    dec.reset(l, hbeg);
-    lctx.clear();
-    bad = 0;
+    // Decode leading sequences of increasing length until we hit the
+    // beginning of the buffer or decode more values than we need for
+    // leading context.
+    for (const byte* l = hbeg-1; l >= bbeg && lctx.size() <= leading; --l) {
+      dec.reset(l, hbeg);
+      lctx.clear();
+      bad = 0;
 
-    // read the leading context
-    while ((cp = dec.next()).first != Decoder::END) {
-      lctx.push_back(cp);
+      // read the leading context
+      while ((cp = dec.next()).first != Decoder::END) {
+        lctx.push_back(cp);
+        if (cp.first < 0) {
+          ++bad;
+        }
+      }
+
+      // find the start of the good sequence adjacent to the hit
+      auto i = std::find_if(
+        lctx.crbegin(), lctx.crend(),
+        [](const std::pair<int32_t,const byte*>& p) {
+          return p.first < 0;
+        }
+      );
+
+      unsigned int adj_good = i - lctx.crbegin();
+      unsigned int inv_bad = std::numeric_limits<unsigned int>::max() - bad;
+
+      // leading sequences are lexicographically ordered by the length of
+      // their hit-adjacent good sequence and their number of bad values
+      if (std::tie(adj_good, inv_bad) >= std::tie(max_adj_good, max_inv_bad)) {
+        // this leading context is not worse than the previous best, keep it
+        max_adj_good = adj_good;
+        max_inv_bad = inv_bad;
+        cps.assign(
+          lctx.size() > leading ? lctx.end() - leading : lctx.begin(),
+          lctx.end()
+        );
+      }
+    }
+
+    bad = std::numeric_limits<unsigned int>::max() - max_inv_bad;
+
+    //
+    // hit
+    //
+    dec.reset(hbeg, bend);
+
+    while ((cp = dec.next()).second < hend) {
+      cps.push_back(cp);
       if (cp.first < 0) {
         ++bad;
       }
     }
 
-    // find the start of the good sequence adjacent to the hit
-    auto i = std::find_if(
-      lctx.crbegin(), lctx.crend(),
-      [](const std::pair<int32_t,const byte*>& p) {
-        return p.first < 0;
+    //
+    // trailing context
+    //
+    do {
+      if (cp.first == Decoder::END) {
+        break;
       }
-    );
 
-    unsigned int adj_good = i - lctx.crbegin();
-    unsigned int inv_bad = std::numeric_limits<unsigned int>::max() - bad;
+      cps.push_back(cp);
 
-    // leading sequences are lexicographically ordered by the length of
-    // their hit-adjacent good sequence and their number of bad values
-    if (std::tie(adj_good, inv_bad) >= std::tie(max_adj_good, max_inv_bad)) {
-      // this leading context is not worse than the previous best, keep it
-      max_adj_good = adj_good;
-      max_inv_bad = inv_bad;
-      cps.assign(
-        lctx.size() > leading ? lctx.end() - leading : lctx.begin(),
-        lctx.end()
-      );
-    }
-  }
+      if (cp.first < 0) {
+        ++bad;
+      }
 
-  bad = std::numeric_limits<unsigned int>::max() - max_inv_bad;
+      cp = dec.next();
+    } while (--trailing > 0);
 
-  //
-  // hit
-  //
-  dec.reset(hbeg, bend);
-
-  while ((cp = dec.next()).second < hend) {
-    cps.push_back(cp);
-    if (cp.first < 0) {
-      ++bad;
-    }
-  }
-
-  //
-  // trailing context
-  //
-  do {
-    if (cp.first == Decoder::END) {
-      break;
-    }
-
+    //
+    // termination
+    //
+    cp.first = Decoder::END;
     cps.push_back(cp);
 
-    if (cp.first < 0) {
-      ++bad;
-    }
-
-    cp = dec.next();
-  } while (--trailing > 0);
-
-  //
-  // termination
-  //
-  cp.first = Decoder::END;
-  cps.push_back(cp);
-
-  return bad;
+    return bad;
+  }
 }
 
 unsigned int lg_read_window(
@@ -323,7 +327,6 @@ unsigned int lg_hit_context(const char* bufStart,
 
   return bad;
 }
-
 
 void lg_free_window_characters(int32_t* characters) {
   delete[] characters;
