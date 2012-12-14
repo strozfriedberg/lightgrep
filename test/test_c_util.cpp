@@ -18,11 +18,6 @@
 
 #include <scope/test.h>
 
-/*
-#include <iostream>
-#include "container_out.h"
-*/
-
 #include <algorithm>
 #include <memory>
 #include <vector>
@@ -178,10 +173,17 @@ SCOPE_TEST(lgReadWindowUTF8WithBadSpot) {
 }
 
 SCOPE_TEST(lgReadWindowUTF16LEWithBadSpotRequiringDecoderRestart) {
-  // 0x63DF (i.e., 0xDF 'c') is a valid UTF-16LE unit, but decoding
-  // that would invalidate our hit at 'c'. This test checks that the
-  // decoder is being run for the hit separately from the preceeding
-  // context.
+  /* 
+    1) 0x63DF (i.e., 0xDF 'c') is a valid UTF-16LE unit, but decoding
+    that would invalidate our hit at 'c'. This test checks that the
+    decoder is being run for the hit separately from the preceeding
+    context.
+
+    2) 'b' -0xE0 is a better prefix than -0x01 -0xE0, because the length
+    of the sequence of good code points adjacent to the hit in each is 
+    zero, but the former has fewer bad values (1 vs. 2). This test checks
+    that the better prefix is produced.
+  */
 
   readWindowTest(
     42, "UTF-16LE",
