@@ -230,31 +230,15 @@ unsigned int lg_read_window(
 
   std::vector<std::pair<int32_t,const byte*>> cps;
 
-// FIXME: bufStart and bufEnd might be nowhere near the window, so we could
-// be doing tons of extra work here
-
   unsigned int bad = decode(
     bbeg, bend, hbeg, hend, preContext, postContext, *dec, cps
   );
 
-  auto wbeg = std::find_if(
-    cps.begin(), cps.end(),
-    [hbeg](const std::pair<int32_t,const byte*>& p) {
-      return p.second == hbeg;
-    }
-  );
-
-  // back up by preContext, but don't run off the front
-  wbeg = ((size_t)(wbeg - cps.begin()) > preContext) ?
-    wbeg - preContext : cps.begin();
-
-  auto wend = cps.end();
-
-  *clen = wend - wbeg;
+  *clen = cps.size();
   *characters = new int32_t[*clen];
   *offsets = new size_t[*clen];
 
-  auto wi = wbeg;
+  auto wi = cps.cbegin(), wend = cps.cend();
   for (size_t i = 0; wi != wend; ++i, ++wi) {
     (*characters)[i] = wi->first;
     (*offsets)[i] = wi->second - bbeg;
