@@ -435,8 +435,7 @@ bool writeGraphviz(const Options& opts) {
   std::tie(std::ignore, fsm, numErrors) = parsePatterns(pats);
 
   std::cerr << "numErrors = " << numErrors << std::endl;
-// FIXME: do we actually want to fail on any bad pattern?
-  if (numErrors > 0 || !fsm) {
+  if (!fsm) {
     return false;
   }
 
