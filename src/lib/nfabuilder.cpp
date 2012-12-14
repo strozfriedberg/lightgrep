@@ -148,7 +148,7 @@ void NFABuilder::literal(const ParseNode& n) {
   const uint32_t len = Enc->write(n.Val, TempBuf.get());
   if (len == 0) {
     THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
-      "code point U+" << std::hex << n.Val << std::dec
+      "code point U+" << std::hex << std::uppercase << n.Val << std::dec
                       << " does not exist in " << Enc->name()
     );
   }
