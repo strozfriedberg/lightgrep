@@ -446,7 +446,6 @@ bool writeGraphviz(const Options& opts) {
 
   // break on through the C API to print the graph
   NFAPtr g(fsm->Impl->Fsm);
-  std::cerr << g->verticesSize() << " vertices" << std::endl;
   writeGraphviz(opts.openOutput(), *g);
   return true;
 }
