@@ -5,6 +5,7 @@
 #include "nfabuilder.h"
 #include "parser.h"
 #include "parsetree.h"
+#include "pattern.h"
 
 #include <algorithm>
 #include <iostream>
@@ -14,7 +15,7 @@
 void fixture(const char* pattern, const char** expected, uint32_t max_matches, uint32_t max_loops) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse(pattern, false, false, tree));
+  SCOPE_ASSERT(parse(Pattern(pattern, false, false), tree));
   SCOPE_ASSERT(nfab.build(tree));
 
   std::set<std::string> aset;

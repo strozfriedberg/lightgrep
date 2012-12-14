@@ -93,8 +93,10 @@ void printEncodings() {
   std::cout << std::endl;
 }
 
-void stdParseErrorHandler(const Pattern& p, const std::string& err) {
-  std::cerr << err << " on pattern " << p.Index << ", '"
+void stdParseErrorHandler(
+  const Pattern& p, uint32_t pnum, const std::string& err)
+{
+  std::cerr << err << " on pattern " << pnum << ", '"
             << p.Expression << "'" << std::endl;
 }
 
@@ -190,7 +192,7 @@ std::tuple<
 >
 parsePatterns(
   const std::vector<Pattern>& pats,
-  std::function<void (const Pattern&, const std::string&)> onError = 
+  std::function<void (const Pattern&, uint32_t, const std::string&)> onError =
     stdParseErrorHandler
 )
 {
@@ -231,7 +233,7 @@ parsePatterns(
       lg_parse_pattern(pat.get(), p.Expression.c_str(), &keyOpts, &err);    
       if (err) {
         ++numErrors;
-        onError(p, err->Message);
+        onError(p, i, err->Message);
         lg_free_error(err);
         continue;
       }
@@ -239,7 +241,7 @@ parsePatterns(
       lg_add_pattern(fsm.get(), pmap.get(), pat.get(), p.Encoding.c_str(), &err);
       if (err) {
         ++numErrors;
-        onError(p, err->Message);
+        onError(p, i, err->Message);
         lg_free_error(err);
         continue;
       }
@@ -496,8 +498,8 @@ void validate(const Options& opts) {
   if (!pats.empty()) {
     parsePatterns(
       pats,
-      [](const Pattern& p, const std::string&) {
-        std::cerr << p.Index << ": pattern \"" << p.Expression
+      [](const Pattern& p, uint32_t pnum, const std::string&) {
+        std::cerr << pnum << ": pattern \"" << p.Expression
                   << "\" is invalid for encoding "
                   << p.Encoding.front() << std::endl;
       }
@@ -521,9 +523,9 @@ void writeSampleMatches(const Options& opts) {
 
     std::tie(std::ignore, fsm, numErrors) = parsePatterns(
       {pat},
-      [&out](const Pattern& p, const std::string& err) {
+      [&out](const Pattern& p, uint32_t pnum, const std::string& err) {
         std::stringstream ss;
-        ss << err << " on pattern " << p.Index << ", '" << p.Expression << "'";
+        ss << err << " on pattern " << pnum << ", '" << p.Expression << "'";
         std::string msg(ss.str());
 
         std::unique_ptr<char[]> buf(new char[4*msg.length()+1]);

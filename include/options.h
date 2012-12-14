@@ -63,5 +63,5 @@ public:
 
   bool readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const;
 
-  bool parseLine(uint32_t keyIndex, const std::string& line, std::vector<Pattern>& keys) const;
+  bool parseLine(const std::string& line, std::vector<Pattern>& keys) const;
 };

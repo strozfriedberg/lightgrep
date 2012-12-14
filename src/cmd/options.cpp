@@ -10,12 +10,11 @@
 bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const {
   std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
   if (keyFile) {
-    uint32_t i = 0;
     char line[8192];
     while (keyFile) {
       keyFile.getline(line, sizeof(line));
-      std::string lineS(line);
-      parseLine(i++, lineS, keys);
+      parseLine(line, keys);
+//      parseLine(std::string(line), keys);
     }
     return !keys.empty();
   }
@@ -46,9 +45,8 @@ std::ostream& Options::openOutput() const {
 std::vector<Pattern> Options::getKeys() const {
   std::vector<Pattern> ret;
   if (!CmdLinePatterns.empty()) {
-    uint32_t keyIndex = 0;
     for (const std::string& p : CmdLinePatterns) {
-      parseLine(keyIndex++, p, ret);
+      parseLine(p, ret);
     }
   }
   else {
@@ -69,7 +67,7 @@ void setBool(const std::string& s, bool& b) {
   // don't set if unrecognized
 }
 
-bool Options::parseLine(uint32_t keyIndex, const std::string& line, std::vector<Pattern>& keys) const {
+bool Options::parseLine(const std::string& line, std::vector<Pattern>& keys) const {
   typedef boost::char_separator<char> char_separator;
   typedef boost::tokenizer<char_separator> tokenizer;
 
@@ -78,7 +76,7 @@ bool Options::parseLine(uint32_t keyIndex, const std::string& line, std::vector<
     tokenizer::const_iterator curTok(tokens.begin());
     const tokenizer::const_iterator endTok(tokens.end());
     if (curTok != endTok) {
-      Pattern p(*curTok, LiteralMode, CaseInsensitive, keyIndex);
+      Pattern p(*curTok, LiteralMode, CaseInsensitive);
 
       if (++curTok == endTok) {
         // encoding names are in Encodings
