@@ -41,6 +41,8 @@ typedef struct {
            end;
 } LG_Window;
 
+static const int32_t LG_WINDOW_END = -0x110001;
+
 unsigned int lg_read_window(const char* bufStart,
                             const char* bufEnd,
                             uint64_t dataOffset,

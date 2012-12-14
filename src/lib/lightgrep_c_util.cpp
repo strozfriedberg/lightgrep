@@ -132,7 +132,7 @@ namespace {
       bad = 0;
 
       // read the leading context
-      while ((cp = dec.next()).first != Decoder::END) {
+      while ((cp = dec.next()).first != LG_WINDOW_END) {
         lctx.push_back(cp);
         if (cp.first < 0) {
           ++bad;
@@ -181,7 +181,7 @@ namespace {
     // trailing context
     //
     do {
-      if (cp.first == Decoder::END) {
+      if (cp.first == LG_WINDOW_END) {
         break;
       }
 
@@ -197,7 +197,7 @@ namespace {
     //
     // termination
     //
-    cp.first = Decoder::END;
+    cp.first = LG_WINDOW_END;
     cps.push_back(cp);
 
     return bad;
@@ -245,7 +245,7 @@ unsigned int lg_read_window(
     ++i;
   }
 
-  (*characters)[*clen-1] = Decoder::END;
+  (*characters)[*clen-1] = LG_WINDOW_END;
 
   return bad;
 }

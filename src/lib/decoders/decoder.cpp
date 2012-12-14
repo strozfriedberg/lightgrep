@@ -17,5 +17,6 @@
 */
 
 #include "decoders/decoder.h"
+#include "lightgrep/util.h"
 
-const int32_t Decoder::END = -0x110001;
+const int32_t Decoder::END = LG_WINDOW_END;
