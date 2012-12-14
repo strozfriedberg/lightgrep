@@ -99,19 +99,59 @@ int lg_get_byte_byte_transformation_id(const char* const name) {
   );
 }
 
-unsigned int decode(const byte* beg, const byte* end, Decoder& dec, std::vector<std::pair<int32_t,const byte*>>& cps) {
-  dec.reset(beg, end);
+unsigned int decode(
+  const byte* bbeg,
+  const byte* bend,
+  const byte* hbeg,
+  const byte* hend,
+  size_t leading,
+  size_t trailing,
+  Decoder& dec,
+  std::vector<std::pair<int32_t,const byte*>>& cps)
+{
+  // preconditions:
+  //    bbeg <= hbeg <= hend <= bend
 
   unsigned int bad = 0;
-
   std::pair<int32_t,const byte*> cp;
+
+  // leading context
+  dec.reset(bbeg, hbeg);
+
   while ((cp = dec.next()).first != Decoder::END) {
+    cps.push_back(cp);
     if (cp.first < 0) {
       ++bad;
     }
-    cps.push_back(cp);
   }
 
+  // hit
+  dec.reset(hbeg, bend);
+
+  while ((cp = dec.next()).second < hend) {
+    cps.push_back(cp);
+    if (cp.first < 0) {
+      ++bad;
+    }
+  }
+
+  // trailing context
+  do {
+    if (cp.first == Decoder::END) {
+      break;
+    }
+
+    cps.push_back(cp);
+
+    if (cp.first < 0) {
+      ++bad;
+    }
+
+    cp = dec.next();
+  } while (--trailing > 0);
+
+  // termination
+  cp.first = Decoder::END;
   cps.push_back(cp);
 
   return bad;
@@ -133,11 +173,6 @@ unsigned int lg_read_window(
   DecoderFactory dfac;
   std::shared_ptr<Decoder> dec(dfac.get(encoding));
 
-  unsigned int bad = 0;
-
-  std::pair<int32_t,const byte*> cp;
-  std::vector<std::pair<int32_t,const byte*>> cps;
-
   const byte* bbeg = reinterpret_cast<const byte*>(bufStart);
   const byte* bend = reinterpret_cast<const byte*>(bufEnd);
 
@@ -146,15 +181,14 @@ unsigned int lg_read_window(
   const byte* hend =
     reinterpret_cast<const byte*>(bufStart) + inner->end - dataOffset;
 
+  std::vector<std::pair<int32_t,const byte*>> cps;
+
 // FIXME: bufStart and bufEnd might be nowhere near the window, so we could
 // be doing tons of extra work here
 
-  if (bbeg != hbeg) {
-    bad += decode(bbeg, hbeg, *dec, cps);
-    // drop the END marker for the leading context
-    cps.pop_back();
-  }
-  bad += decode(hbeg, bend, *dec, cps);
+  unsigned int bad = decode(
+    bbeg, bend, hbeg, hend, preContext, postContext, *dec, cps
+  );
 
   auto wbeg = std::find_if(
     cps.begin(), cps.end(),
@@ -167,16 +201,7 @@ unsigned int lg_read_window(
   wbeg = ((size_t)(wbeg - cps.begin()) > preContext) ?
     wbeg - preContext : cps.begin();
 
-  auto wend = std::find_if(
-    wbeg, cps.end(),
-    [hend](const std::pair<int32_t,const byte*>& p) {
-      return p.second == hend;
-    }
-  );
-
-  // advance by postContext (+1 for END element), but don't run off the end
-  wend = ((size_t)(cps.end() - wend) > postContext) ?
-    wend + postContext + 1 : cps.end();
+  auto wend = cps.end();
 
   *clen = wend - wbeg;
   *characters = new int32_t[*clen];
