@@ -134,8 +134,8 @@ void lg_destroy_fsm(LG_HFSM hFsm) {
 namespace {
   int addPattern(LG_HFSM hFsm, LG_HPATTERNMAP hMap, LG_HPATTERN hPattern, const char* encoding) {
     const uint32_t label = hMap->Patterns.size();
-    hMap->addPattern(hPattern->Pat.Expression.c_str(), encoding);
     hFsm->Impl->addPattern(hPattern->Tree, encoding, label);
+    hMap->addPattern(hPattern->Pat.Expression.c_str(), encoding);
     return (int) label;
   }
 }

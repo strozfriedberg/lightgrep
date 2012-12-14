@@ -20,7 +20,15 @@
 
 void collector(void* userData, const LG_SearchHit* const hit) {
   STest* stest = static_cast<STest*>(userData);
+
   stest->Hits.push_back(*static_cast<const SearchHit* const>(hit));
+
+  const LG_PatternInfo* info = lg_pattern_info(
+    stest->PMap.get(), hit->KeywordIndex
+  );
+
+  // adjust the hit to reflect the user pattern index
+  stest->Hits.back().KeywordIndex = reinterpret_cast<uint64_t>(info->UserData);
 }
 
 void STest::init(const std::vector<Pattern>& pats) {
@@ -29,7 +37,7 @@ void STest::init(const std::vector<Pattern>& pats) {
     lg_destroy_pattern
   );
 
-  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
+  PMap = std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>(
     lg_create_pattern_map(pats.size()),
     lg_destroy_pattern_map
   );
@@ -41,6 +49,7 @@ void STest::init(const std::vector<Pattern>& pats) {
 
   LG_KeyOptions keyOpts;
 
+  size_t i = 0, numErrors = 0;
   for (const Pattern& p : pats) {
     LG_Error* err = nullptr;
 
@@ -49,16 +58,24 @@ void STest::init(const std::vector<Pattern>& pats) {
 
     lg_parse_pattern(pat.get(), p.Expression.c_str(), &keyOpts, &err);
 
-    if (err) {
-      lg_free_error(err);
-      continue;
+    if (!err) {
+      lg_add_pattern(
+        fsm.get(), PMap.get(), pat.get(), p.Encoding.c_str(), &err
+      );
+
+      if (!err) {
+        // pack the user pattern number into the void*, oh the horror
+        LG_PatternInfo* pinfo = lg_pattern_info(PMap.get(), i - numErrors);
+        pinfo->UserData = reinterpret_cast<void*>(i);
+      }
     }
 
-    lg_add_pattern(fsm.get(), pmap.get(), pat.get(), p.Encoding.c_str(), &err);
-
     if (err) {
       lg_free_error(err);
+      ++numErrors;
     }
+
+    ++i;
   }
 
   LG_ProgramOptions progOpts{1};

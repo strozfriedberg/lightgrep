@@ -32,28 +32,29 @@ void collector(void* userData, const LG_SearchHit* const hit);
 class STest {
 public:
   std::vector<SearchHit> Hits;
+  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> PMap;
 
   STest(const char* key):
-    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+    PMap(nullptr, nullptr), Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
   {
     init(make_patterns(std::initializer_list<const char*>{key}));
   }
 
   STest(std::initializer_list<const char*> keys):
-    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+     PMap(nullptr, nullptr), Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
   {
     init(make_patterns(keys));
   }
 
   template <typename T>
   STest(const T& keys):
-    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+    PMap(nullptr, nullptr), Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
   {
     init(make_patterns(keys));
   }
 
   STest(const std::vector<Pattern>& patterns):
-    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+    PMap(nullptr, nullptr), Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
   {
     init(patterns);
   }
