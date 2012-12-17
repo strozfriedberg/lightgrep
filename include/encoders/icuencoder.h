@@ -26,19 +26,7 @@
 
 class ICUEncoder: public EncoderBase {
 public:
-  ICUEncoder(const char* const name):
-    EncoderBase(),
-    Conv(name)
-  {
-    Valid = Conv.validCodePoints();
-  }
-
-  ICUEncoder(const std::string& name):
-    EncoderBase(),
-    Conv(name)
-  {
-    Valid = Conv.validCodePoints();
-  }
+  ICUEncoder(const std::string& name);
 
   ICUEncoder(const ICUEncoder&) = default;
 
@@ -54,16 +42,11 @@ public:
 
   virtual std::string name() const { return Conv.name(); }
 
-  virtual uint32_t write(int32_t cp, byte buf[]) const {
-    return Conv.cp_to_bytes(cp, buf);
-  }
+  virtual uint32_t write(int32_t cp, byte buf[]) const;
 
   using EncoderBase::write;
 
-  virtual uint32_t write(const byte buf[], int32_t& cp) const {
-// TODO: fill this in
-    return 0;
-  }
+  virtual uint32_t write(const byte buf[], int32_t& cp) const;
 
 private:
   ICUConverter Conv;
