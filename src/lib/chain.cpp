@@ -44,12 +44,12 @@ parseChain(const std::string& chain) {
   // process the char->char transformations
   std::vector<std::string> charchar;
   for ( ; curTok != endTok; ++curTok) {
-    id = lg_get_char_char_transformation_id(curTok->c_str());
+    id = lg_get_char_transform_id(curTok->c_str());
     if (id < 0) {
       break;
     }
 
-    charchar.emplace_back(LG_CANONICAL_CHAR_CHAR_TRANSFORMATIONS[id]);
+    charchar.emplace_back(LG_CANONICAL_CHAR_TRANSFORMS[id]);
   }
 
   if (curTok == endTok) {
@@ -71,14 +71,14 @@ parseChain(const std::string& chain) {
   // process the byte->byte transformations
   std::vector<std::string> bytebyte;
   for ( ; curTok != endTok; ++curTok) {
-    id = lg_get_byte_byte_transformation_id(curTok->c_str());
+    id = lg_get_byte_transform_id(curTok->c_str());
     if (id < 0) {
       THROW_RUNTIME_ERROR_WITH_OUTPUT(
         "'" << *curTok << "' is not a valid byte->byte transformation"
       );
     }
 
-    bytebyte.emplace_back(LG_CANONICAL_BYTE_BYTE_TRANSFORMATIONS[id]);
+    bytebyte.emplace_back(LG_CANONICAL_BYTE_TRANSFORMS[id]);
   }
 
   return std::make_tuple(

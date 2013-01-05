@@ -59,13 +59,13 @@ namespace {
   }
 }
 
-int lg_get_char_char_transformation_id(const char* const name) {
+int lg_get_char_transform_id(const char* const name) {
   return trapWithRetval(
     [name](){
       return find_trans_id(
-        LG_CHAR_CHAR_TRANSFORMATIONS,
-        LG_CHAR_CHAR_TRANSFORMATIONS +
-          sizeof(LG_CHAR_CHAR_TRANSFORMATIONS)/sizeof(LG_TRANS),
+        LG_CHAR_TRANSFORMS,
+        LG_CHAR_TRANSFORMS +
+          sizeof(LG_CHAR_TRANSFORMS)/sizeof(LG_TRANS),
         name
       );
     },
@@ -87,13 +87,13 @@ int lg_get_encoding_id(const char* const name) {
   );
 }
 
-int lg_get_byte_byte_transformation_id(const char* const name) {
+int lg_get_byte_transform_id(const char* const name) {
   return trapWithRetval(
     [name](){
       return find_trans_id(
-        LG_BYTE_BYTE_TRANSFORMATIONS,
-        LG_BYTE_BYTE_TRANSFORMATIONS +
-          sizeof(LG_BYTE_BYTE_TRANSFORMATIONS)/sizeof(LG_TRANS),
+        LG_BYTE_TRANSFORMS,
+        LG_BYTE_TRANSFORMS +
+          sizeof(LG_BYTE_TRANSFORMS)/sizeof(LG_TRANS),
         name
       );
     },
