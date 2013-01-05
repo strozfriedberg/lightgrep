@@ -16,9 +16,9 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
-
 #include "pair_out.h"
+
+#include <scope/test.h>
 
 #include "decoders/bytesource.h"
 
