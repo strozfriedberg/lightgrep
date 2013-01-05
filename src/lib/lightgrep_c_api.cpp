@@ -48,16 +48,6 @@ namespace {
       return false;
     }
   }
-
-  template <class H>
-  H* createHandle() {
-    try {
-      return new H;
-    }
-    catch (...) {
-      return nullptr;
-    }
-  }
 }
 
 void lg_free_error(LG_Error* err) {
@@ -68,7 +58,7 @@ void lg_free_error(LG_Error* err) {
 }
 
 LG_HPATTERN lg_create_pattern() {
-  return createHandle<PatternHandle>();
+  return new (std::nothrow) PatternHandle;
 }
 
 void lg_destroy_pattern(LG_HPATTERN hPattern) {
@@ -94,12 +84,7 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
 }
 
 LG_HPATTERNMAP lg_create_pattern_map(unsigned int numTotalPatternsSizeHint) {
-  try {
-    return new PatternMapHandle(numTotalPatternsSizeHint);
-  }
-  catch (...) {
-    return nullptr;
-  }
+  return new (std::nothrow) PatternMapHandle(numTotalPatternsSizeHint);
 }
 
 void lg_destroy_pattern_map(LG_HPATTERNMAP hPatternMap) {
@@ -112,11 +97,11 @@ int lg_pattern_map_size(const LG_HPATTERNMAP hPatternMap) {
 
 LG_HFSM create_fsm(unsigned int numFsmStateSizeHint) {
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> hFsm(
-    new FSMHandle,
+    new (std::nothrow) FSMHandle,
     lg_destroy_fsm
   );
 
-  hFsm->Impl.reset(new FSMThingy(numFsmStateSizeHint));
+  hFsm->Impl.reset(new (std::nothrow) FSMThingy(numFsmStateSizeHint));
   return hFsm.release();
 }
 
@@ -163,7 +148,7 @@ LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
 
 LG_HPROGRAM create_program(LG_HFSM hFsm, const LG_ProgramOptions* opts) {
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
-    new ProgramHandle,
+    new (std::nothrow) ProgramHandle,
     lg_destroy_program
   );
 
@@ -190,7 +175,7 @@ namespace {
 
   LG_HPROGRAM read_program(void* buffer, int size) {
     std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
-      new ProgramHandle,
+      new (std::nothrow) ProgramHandle,
       lg_destroy_program
     );
 
