@@ -16,23 +16,20 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "pair_out.h"
+#include "encoders/icuencoder.h"
 
-#include <scope/test.h>
-
-#include "decoders/bytesource.h"
-
-SCOPE_TEST(byteSourceName) {
-  const byte buf[] = "x";
-  ByteSource bs(buf, buf);
-  SCOPE_ASSERT_EQUAL("", bs.name());
+ICUEncoder::ICUEncoder(const std::string& name):
+  EncoderBase(),
+  Conv(name)
+{
+  Valid = Conv.validCodePoints();
 }
 
-SCOPE_TEST(byteSourceNext) {
-  const byte buf[] = "abcdefghijklmnopqrstuvwxyz\n\t";
-  ByteSource bs(buf, buf + sizeof(buf));
-  for (size_t i = 0; i < sizeof(buf); ++i) {
-    SCOPE_ASSERT_EQUAL(std::make_pair((int32_t) buf[i], buf+i), bs.next());
-  }
-  SCOPE_ASSERT_EQUAL(std::make_pair(Decoder::END, buf+sizeof(buf)), bs.next());
+uint32_t ICUEncoder::write(int32_t cp, byte buf[]) const {
+  return Conv.cp_to_bytes(cp, buf);
+}
+
+uint32_t ICUEncoder::write(const byte [], int32_t&) const {
+// TODO: fill this in
+  return 0;
 }

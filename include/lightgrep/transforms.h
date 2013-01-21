@@ -25,33 +25,33 @@
 extern "C" {
 #endif
 
-static const LG_TRANS LG_CHAR_CHAR_TRANSFORMATIONS[] = {
+static const LG_TRANS LG_CHAR_TRANSFORMS[] = {
   { "identity", 0 }
 };
 
-static const char* const LG_CANONICAL_CHAR_CHAR_TRANSFORMATIONS[] = {
+static const char* const LG_CANONICAL_CHAR_TRANSFORMS[] = {
   "identity" // 0
 };
 
 // identity
-static const int LG_CHAR_CHAR_IDENTITY = 0;
+static const int LG_CHAR_TRANSFORM_IDENTITY = 0;
 
 
-static const LG_TRANS LG_BYTE_BYTE_TRANSFORMATIONS[] = {
+static const LG_TRANS LG_BYTE_TRANSFORMS[] = {
   { "identity", 0 },
   { "OCE",      1 }
 };
 
-static const char* const LG_CANONICAL_BYTE_BYTE_TRANSFORMATIONS[] = {
+static const char* const LG_CANONICAL_BYTE_TRANSFORMS[] = {
   "identity", // 0
   "OCE",      // 1
 };
 
 // identity
-static const int LG_BYTE_BYTE_IDENTITY = 0;
+static const int LG_BYTE_TRANSFORM_IDENTITY = 0;
 
-// OCE
-static const int LG_BYTE_BYTE_OCE = 1;
+// Outlook Compressible Encryption
+static const int LG_BYTE_TRANSFORM_OUTLOOK = 1;
 
 
 #ifdef __cplusplus

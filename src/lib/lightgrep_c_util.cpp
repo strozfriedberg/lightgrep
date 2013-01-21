@@ -28,6 +28,7 @@
 #include <memory>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #include "decoders/decoder.h"
 #include "decoders/decoderfactory.h"
@@ -58,13 +59,13 @@ namespace {
   }
 }
 
-int lg_get_char_char_transformation_id(const char* const name) {
+int lg_get_char_transform_id(const char* const name) {
   return trapWithRetval(
     [name](){
       return find_trans_id(
-        LG_CHAR_CHAR_TRANSFORMATIONS,
-        LG_CHAR_CHAR_TRANSFORMATIONS +
-          sizeof(LG_CHAR_CHAR_TRANSFORMATIONS)/sizeof(LG_TRANS),
+        LG_CHAR_TRANSFORMS,
+        LG_CHAR_TRANSFORMS +
+          sizeof(LG_CHAR_TRANSFORMS)/sizeof(LG_TRANS),
         name
       );
     },
@@ -86,13 +87,13 @@ int lg_get_encoding_id(const char* const name) {
   );
 }
 
-int lg_get_byte_byte_transformation_id(const char* const name) {
+int lg_get_byte_transform_id(const char* const name) {
   return trapWithRetval(
     [name](){
       return find_trans_id(
-        LG_BYTE_BYTE_TRANSFORMATIONS,
-        LG_BYTE_BYTE_TRANSFORMATIONS +
-          sizeof(LG_BYTE_BYTE_TRANSFORMATIONS)/sizeof(LG_TRANS),
+        LG_BYTE_TRANSFORMS,
+        LG_BYTE_TRANSFORMS +
+          sizeof(LG_BYTE_TRANSFORMS)/sizeof(LG_TRANS),
         name
       );
     },
@@ -109,7 +110,7 @@ namespace {
     size_t leading,
     size_t trailing,
     Decoder& dec,
-    std::vector<std::pair<int32_t,const byte*>>& cps)
+    std::vector< std::pair<int32_t,const byte*> >& cps)
   {
     // precondition:
     //    bbeg <= hbeg <= hend <= bend
@@ -121,7 +122,7 @@ namespace {
     // leading context
     //
     unsigned int max_adj_good = 0, max_inv_bad = 0;
-    std::vector<std::pair<int32_t,const byte*>> lctx;
+    std::vector< std::pair<int32_t,const byte*> > lctx;
 
     // Decode leading sequences of increasing length until we hit the
     // beginning of the buffer or decode more values than we need for
@@ -228,7 +229,7 @@ unsigned int lg_read_window(
   const byte* hend =
     reinterpret_cast<const byte*>(bufStart) + inner->end - dataOffset;
 
-  std::vector<std::pair<int32_t,const byte*>> cps;
+  std::vector< std::pair<int32_t,const byte*> > cps;
 
   unsigned int bad = decode(
     bbeg, bend, hbeg, hend, preContext, postContext, *dec, cps

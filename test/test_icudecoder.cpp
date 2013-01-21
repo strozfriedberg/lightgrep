@@ -16,11 +16,11 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "pair_out.h"
+
 #include <scope/test.h>
 
 #include <vector>
-
-#include "pair_out.h"
 
 #include "decoders/bytesource.h"
 #include "decoders/icudecoder.h"
