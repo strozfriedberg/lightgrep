@@ -63,7 +63,6 @@ override CXXFLAGS+=-std=c++0x -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pip
 # Other programs
 #
 BISON=bison
-RANLIB=ranlib
 MKDIR=mkdir
 
 
