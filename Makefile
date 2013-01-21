@@ -7,8 +7,13 @@ PREFIX=/usr/local
 #
 UNAME_S=$(strip $(shell uname -s))
 ifeq ($(UNAME_S),Linux)
-  IS_LINUX=1
-  include Makefile.linux.conf
+  ifdef CROSS
+    IS_WINDOWS=1
+    include Makefile.mingw64-linux.conf
+  else
+    IS_LINUX=1
+    include Makefile.linux.conf
+  endif
 else ifeq ($(UNAME_S:MINGW%=MINGW),MINGW)
   IS_WINDOWS=1
   include Makefile.windows.conf
