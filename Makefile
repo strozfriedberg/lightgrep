@@ -1,7 +1,5 @@
 .SUFFIXES:
 
-PREFIX=/usr/local
-
 #
 # Set OS-specific variables 
 #
@@ -246,10 +244,18 @@ DEPS=$(patsubst %.o,%.d,$(CEX_OBJS) $(ENC_OBJS) $(LIB_STATIC_OBJS) $(TEST_OBJS) 
 bin/c_example bin/src/enc bin/src/lib bin/src/lib/decoders bin/src/val bin/test:
 	$(MKDIR) -p $@
 
+# FIXME: this obviously doesn't work on Windows (but does when cross-compiling)
 install: lib-shared lib-static
 	cp -R include/lightgrep $(PREFIX)/include/
-	cp $(LIB_SHARED_BIN) $(LIB_STATIC_BIN) $(PREFIX)/lib/
+ifeq ($(BUILD_SHARED),1)
+	cp $(LIB_SHARED_BIN) $(PREFIX)/lib/
+endif
+ifeq ($(BUILD_STATIC),1)
+	cp $(LIB_STATIC_BIN) $(PREFIX)/lib/
+endif
+ifndef IS_WINDOWS
 	ldconfig $(PREFIX)/lib
+endif
 	@echo " ** Done with installation **"
 
 clean:
