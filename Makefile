@@ -245,7 +245,7 @@ bin/c_example bin/src/enc bin/src/lib bin/src/lib/decoders bin/src/val bin/test:
 	$(MKDIR) -p $@
 
 # FIXME: this obviously doesn't work on Windows (but does when cross-compiling)
-install: lib-shared lib-static
+install: $(ALL)
 	cp -R include/lightgrep $(PREFIX)/include/
 ifeq ($(BUILD_SHARED),1)
 	cp $(LIB_SHARED_BIN) $(PREFIX)/lib/
