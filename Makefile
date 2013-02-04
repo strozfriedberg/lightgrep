@@ -81,7 +81,8 @@ BOOST_LDLIBS=-lboost_thread$(BOOST_TYPE) -lboost_program_options$(BOOST_TYPE) -l
 ICU_LDFLAGS=-L$(ICU_LIBDIR)
 ICU_LDLIBS=-licuuc -licudata
 ifdef IS_WINDOWS
-  ICU_LDLIBS:=$(subst icudata,icudt,$(ICU_LDLIBS))
+  ICU_LDLIBS:=$(ICU_LDLIBS:icudata=sicudt)
+  ICU_LDLIBS:=$(ICU_LDLIBS:icuuc=sicuuc)
 endif
 
 LG_LDFLAGS=-Lbin/src/lib
