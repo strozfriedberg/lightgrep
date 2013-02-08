@@ -311,6 +311,12 @@ SCOPE_TEST(parseUnparse_CCW_Test) {
   SCOPE_ASSERT_EQUAL("[^0-9A-Z_a-z]", unparse(tree));
 }
 
+SCOPE_TEST(parseUnparse_LBaTozAToZCCdDot_PctBSHyphenPlusRB_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[a-zA-Z\\d._%\\-+]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[%+.0-9A-Z_a-z-]", unparse(tree));
+}
+
 SCOPE_TEST(parseUnparse_BSx_Test) {
   ParseTree tree;
   try {
