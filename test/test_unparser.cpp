@@ -420,6 +420,46 @@ SCOPE_TEST(parseUnparse_invalid_utf8_Test) {
   }
 }
 
+SCOPE_TEST(parseUnparse_CCempty_Test) {
+  ParseTree tree;
+  try {
+    parse({"[]", false, false}, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+  }
+}
+
+SCOPE_TEST(parseUnparse_CC_left_bracket_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[[]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_CC_right_bracket_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[]]", unparse(tree));
+}
+
+/*
+SCOPE_TEST(parseUnparse_a_and_a_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[a&&a]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("a", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_and_b_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a&&b]", false, false}, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+  }
+}
+*/
+
 SCOPE_TEST(byteToCharacterString) {
   std::stringstream ss;
 
