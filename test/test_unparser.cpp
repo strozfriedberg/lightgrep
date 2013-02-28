@@ -449,168 +449,212 @@ SCOPE_TEST(byteToCharacterString) {
   }
 }
 
-SCOPE_TEST(byteSetToCharacterClassTest) {
+SCOPE_TEST(byteSet_a_ToCharacterClassTest) {
   ByteSet bs;
-
   bs['a'] = true;
   SCOPE_ASSERT_EQUAL("a", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^a", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_whack_a_ToCharacterClassTest) {
+  ByteSet bs;
   bs['\a'] = true;
   SCOPE_ASSERT_EQUAL("\\a", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^\\a", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_null_ToCharacterClassTest) {
+  ByteSet bs;
   bs[0] = true;
   SCOPE_ASSERT_EQUAL("\\x00", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^\\x00", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_tab_ToCharacterClassTest) {
+  ByteSet bs;
   bs['\t'] = true;
   SCOPE_ASSERT_EQUAL("\\t", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^\\t", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_space_ToCharacterClassTest) {
+  ByteSet bs;
   bs[' '] = true;
   SCOPE_ASSERT_EQUAL(" ", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^ ", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_hyphen_ToCharacterClassTest) {
+  ByteSet bs;
   bs['-'] = true;
   SCOPE_ASSERT_EQUAL("-", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^-", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_caret_ToCharacterClassTest) {
+  ByteSet bs;
   bs['^'] = true;
   SCOPE_ASSERT_EQUAL("\\^", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^^", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_caret_hyphen_ToCharacterClassTest) {
+  ByteSet bs;
   bs['^'] = bs['-'] = true;
   SCOPE_ASSERT_EQUAL("-^", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^^-", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_whack_whack_ToCharacterClassTest) {
+  ByteSet bs;
   bs['\\'] = true;
   SCOPE_ASSERT_EQUAL("\\\\", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^\\\\", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_right_bracketcaret_ToCharacterClassTest) {
+  ByteSet bs;
   bs[']'] = true;
   SCOPE_ASSERT_EQUAL("]", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^]", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_adn_ToCharacterClassTest) {
+  ByteSet bs;
   bs['a'] = bs['d'] = bs['n'] = true;
   SCOPE_ASSERT_EQUAL("adn", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^adn", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_abc_ToCharacterClassTest) {
+  ByteSet bs;
   bs['a'] = bs['b'] = bs['c'] = true;
   SCOPE_ASSERT_EQUAL("abc", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^abc", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_abcd_ToCharacterClassTest) {
+  ByteSet bs;
   bs['a'] = bs['b'] = bs['c'] = bs['d'] = true;
   SCOPE_ASSERT_EQUAL("a-d", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^a-d", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_all_ToCharacterClassTest) {
+  ByteSet bs;
   bs.set();
   SCOPE_ASSERT_EQUAL("\\x00-\\xFF", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^\\x00-\\xFF", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_digits_letters_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = '0'; i < '9' + 1; ++i) bs[i] = true;
   for (uint32_t i = 'A'; i < 'Z' + 1; ++i) bs[i] = true;
   for (uint32_t i = 'a'; i < 'z' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL("0-9A-Za-z", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^0-9A-Za-z", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_hyphen_to_zero_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = '-'; i < '0' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL("./0-", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^./0-", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_hyphen_to_one_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = '-'; i < '1' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL(".-1-", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^.-1-", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_asterisk_to_hyphen_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = '*'; i < '-' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL("*+,-", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^*+,-", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_right_parenthesis_to_hyphen_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = ')'; i < '-' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL(")-,-", byteSetToCharacterClass(bs));
-  bs.reset();
-
-  for (uint32_t i = '+'; i < '-' + 1; ++i) bs[i] = true;
-  SCOPE_ASSERT_EQUAL("+,-", byteSetToCharacterClass(bs));
   bs.flip();
-  SCOPE_ASSERT_EQUAL("^+,-", byteSetToCharacterClass(bs));
-  bs.reset();
+  SCOPE_ASSERT_EQUAL("^)-,-", byteSetToCharacterClass(bs));
+}
 
+SCOPE_TEST(byteSet_comma_to_period_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = ','; i < '.' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL(",-.", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^,-.", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_plus_to_hyphen_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = '+'; i < '-' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL("+,-", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^+,-", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_caret_to_a_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = '^'; i < 'a' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL("_`a^", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^_`a^", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_caret_to_b_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = '^'; i < 'b' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL("_-b^", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^_-b^", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_A_right_bracket_ToCharacterClassTest) {
+  ByteSet bs;
   bs['A'] = bs[']'] = true;
   SCOPE_ASSERT_EQUAL("A\\]", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^A\\]", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_A_to_right_bracket_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = 'A'; i < ']' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL("A-\\]", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^A-\\]", byteSetToCharacterClass(bs));
-  bs.reset();
+}
 
+SCOPE_TEST(byteSet_right_bracket_to_a_ToCharacterClassTest) {
+  ByteSet bs;
   for (uint32_t i = ']'; i < 'a' + 1; ++i) bs[i] = true;
   SCOPE_ASSERT_EQUAL("]-a", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^]-a", byteSetToCharacterClass(bs));
-  bs.reset();
 }
