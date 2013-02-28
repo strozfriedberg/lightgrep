@@ -442,6 +442,12 @@ SCOPE_TEST(parseUnparse_CC_right_bracket_Test) {
   SCOPE_ASSERT_EQUAL("[]]", unparse(tree));
 }
 
+SCOPE_TEST(parseUnparse_CC_right_bracket_left_bracket_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[][]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[[\\]]", unparse(tree));
+}
+
 /*
 SCOPE_TEST(parseUnparse_a_and_a_Test) {
   ParseTree tree;
