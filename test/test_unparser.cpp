@@ -226,7 +226,9 @@ SCOPE_TEST(parseUnparse_a4_3_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseUnparse_a4_3Q_Test) {
@@ -236,7 +238,9 @@ SCOPE_TEST(parseUnparse_a4_3Q_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseUnparse_a42__Test) {
@@ -324,7 +328,9 @@ SCOPE_TEST(parseUnparse_BSx_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseUnparse_BSx0_Test) {
@@ -334,7 +340,9 @@ SCOPE_TEST(parseUnparse_BSx0_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseUnparse_BSx00_Test) {
@@ -387,7 +395,9 @@ SCOPE_TEST(parseUnparse_BS400_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseUnparse_BSq_Test) {
@@ -397,7 +407,9 @@ SCOPE_TEST(parseUnparse_BSq_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseUnparse_xBSq_Test) {
@@ -407,7 +419,9 @@ SCOPE_TEST(parseUnparse_xBSq_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseUnparse_invalid_utf8_Test) {
@@ -417,7 +431,9 @@ SCOPE_TEST(parseUnparse_invalid_utf8_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseUnparse_CCempty_Test) {
@@ -427,7 +443,9 @@ SCOPE_TEST(parseUnparse_CCempty_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
 
 SCOPE_TEST(parseUnparse_CC_left_bracket_Test) {
