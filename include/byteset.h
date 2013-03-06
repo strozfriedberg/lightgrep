@@ -105,6 +105,17 @@ public:
     ret.flip();
     return ret;
   }
+
+  ByteSet operator-(const ByteSet& other) const {
+    ByteSet ret(*this);
+    ret -= other;
+    return ret;
+  }
+
+  ByteSet& operator-=(const ByteSet& other) {
+    *this &= ~other;
+    return *this;
+  }
 };
 
 std::ostream& operator<<(std::ostream& out, const ByteSet& bs);

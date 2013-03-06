@@ -88,3 +88,33 @@ SCOPE_TEST(byteSetRangeSetTest) {
     }
   }
 }
+
+SCOPE_TEST(byteSetDifferenceAssignmentEmptyTest) {
+  ByteSet a{0,5,17}, b{0,5,17,42};
+  SCOPE_ASSERT((a -= b).none());
+}
+
+SCOPE_TEST(byteSetDifferenceAssignmentNonemptyTest) {
+  ByteSet a{0,5,17}, b{0,5}, c{17};
+  SCOPE_ASSERT_EQUAL(c, a -= b);
+}
+
+SCOPE_TEST(byteSetDifferenceAssignmentSelfTest) {
+  ByteSet a{0,5,17};
+  SCOPE_ASSERT((a -= a).none());
+}
+
+SCOPE_TEST(byteSetDifferenceEmptyTest) {
+  ByteSet a{0,5,17}, b{0,5,17,42};
+  SCOPE_ASSERT((a - b).none());
+}
+
+SCOPE_TEST(byteSetDifferenceNonemptyTest) {
+  ByteSet a{0,5,17}, b{0,5}, c{17};
+  SCOPE_ASSERT_EQUAL(c, a - b);
+}
+
+SCOPE_TEST(byteSetDifferenceSelfTest) {
+  ByteSet a{0,5,17};
+  SCOPE_ASSERT((a - a).none());
+}
