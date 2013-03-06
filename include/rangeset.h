@@ -150,6 +150,11 @@ public:
     return *this;
   }
 
+  RangeSet<T,N>& operator-=(const RangeSet<T,N>& r) {
+    *this &= ~r;
+    return *this;
+  }
+
   RangeSet<T,N> operator~() const {
     RangeSet<T,N> r(*this);
     r.flip();
@@ -169,6 +174,11 @@ public:
   RangeSet<T,N> operator^(const RangeSet<T,N>& r) const {
     RangeSet<T,N> s(*this);
     return s ^= r;
+  }
+
+  RangeSet<T,N> operator-(const RangeSet<T,N>& r) const {
+    RangeSet<T, N> s(*this);
+    return s -= r;
   }
 
   bool test(size_type pos) const {

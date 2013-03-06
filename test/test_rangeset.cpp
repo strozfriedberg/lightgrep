@@ -362,10 +362,31 @@ SCOPE_TEST(rangeSetUnionNonemptyTest) {
   SCOPE_ASSERT_EQUAL(c, a | b);
 }
 
+SCOPE_TEST(rangeSetDifferenceAssignmentEmptyTest) {
+  RangeSet<uint32_t,256> a(0, 100), b(0, 200);
+  SCOPE_ASSERT((a -= b).none());
+}
+
+/*
+SCOPE_TEST(rangeSetDifferenceAssignmentNonemptyTest) {
+  RangeSet<uint32_t,256> a(0, 101), b(100, 200), c(100);
+  SCOPE_ASSERT_EQUAL(c, a -= b);
+}
+
+SCOPE_TEST(rangeSetDifferenceEmptyTest) {
+  RangeSet<uint32_t,256> a(0, 100), b(100, 200);
+  SCOPE_ASSERT((a - b).none());
+}
+
+SCOPE_TEST(rangeSetDifferenceNonemptyTest) {
+  RangeSet<uint32_t,256> a(0, 101), b(100, 200), c(100);
+  SCOPE_ASSERT_EQUAL(c, a - b);
+}
 SCOPE_TEST(rangeSetComplementEmptyTest) {
   RangeSet<uint32_t,256> a(0, 256);
   SCOPE_ASSERT((~a).none());
 }
+*/
 
 SCOPE_TEST(rangeSetComplementNonemptyTest) {
   RangeSet<uint32_t,256> a(0, 128), b(128, 256);
