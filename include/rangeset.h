@@ -138,9 +138,11 @@ public:
   }
 
   RangeSet<T,N>& operator|=(const RangeSet<T,N>& r) {
-    const const_internal_iterator end(r.vec.end());
-    for (const_internal_iterator i(r.vec.begin()); i != end; i += 2) {
-      insert(*i, *(i+1));
+    if (this != &r) {
+      const const_internal_iterator end(r.vec.end());
+      for (const_internal_iterator i(r.vec.begin()); i != end; i += 2) {
+        insert(*i, *(i+1));
+      }
     }
     return *this;
   }
