@@ -322,6 +322,11 @@ SCOPE_TEST(rangeSetIntersectionAssignmentNonemptyTest) {
   SCOPE_ASSERT_EQUAL(c, a &= b);
 }
 
+SCOPE_TEST(rangeSetIntersectionAssignmentSelfTest) {
+  RangeSet<uint32_t,256> a(0, 101), b(0, 101);
+  SCOPE_ASSERT_EQUAL(b, a &= a);
+}
+
 SCOPE_TEST(rangeSetIntersectionEmptyTest) {
   RangeSet<uint32_t,256> a(0, 100), b(100, 200);
   SCOPE_ASSERT((a & b).none());
@@ -330,6 +335,11 @@ SCOPE_TEST(rangeSetIntersectionEmptyTest) {
 SCOPE_TEST(rangeSetIntersectionNonemptyTest) {
   RangeSet<uint32_t,256> a(0, 101), b(100, 200), c(100);
   SCOPE_ASSERT_EQUAL(c, a & b);
+}
+
+SCOPE_TEST(rangeSetIntersectionSelfTest) {
+  RangeSet<uint32_t,256> a(0, 101);
+  SCOPE_ASSERT_EQUAL(a, a & a);
 }
 
 SCOPE_TEST(rangeSetUnionAssignmentEmptyTest) {
@@ -347,6 +357,11 @@ SCOPE_TEST(rangeSetUnionAssignmentNonemptyTest) {
   SCOPE_ASSERT_EQUAL(c, a |= b);
 }
 
+SCOPE_TEST(rangeSetUnionAssignmentSelfTest) {
+  RangeSet<uint32_t,256> a(0, 101), b(0, 101);
+  SCOPE_ASSERT_EQUAL(b, a |= a);
+}
+
 SCOPE_TEST(rangeSetUnionEmptyTest) {
   RangeSet<uint32_t,256> a, b;
   SCOPE_ASSERT((a | b).none());
@@ -362,33 +377,91 @@ SCOPE_TEST(rangeSetUnionNonemptyTest) {
   SCOPE_ASSERT_EQUAL(c, a | b);
 }
 
+SCOPE_TEST(rangeSetUnionSelfTest) {
+  RangeSet<uint32_t,256> a(0, 101);
+  SCOPE_ASSERT_EQUAL(a, a | a);
+}
+
 SCOPE_TEST(rangeSetDifferenceAssignmentEmptyTest) {
   RangeSet<uint32_t,256> a(0, 100), b(0, 200);
   SCOPE_ASSERT((a -= b).none());
 }
 
-/*
 SCOPE_TEST(rangeSetDifferenceAssignmentNonemptyTest) {
-  RangeSet<uint32_t,256> a(0, 101), b(100, 200), c(100);
+  RangeSet<uint32_t,256> a(0, 100), b{{0, 10}, {50,200}}, c(10, 50);
   SCOPE_ASSERT_EQUAL(c, a -= b);
 }
 
+SCOPE_TEST(rangeSetDifferenceAssignmentSelfTest) {
+  RangeSet<uint32_t,256> a(0, 101);
+  SCOPE_ASSERT((a -= a).none());
+}
+
 SCOPE_TEST(rangeSetDifferenceEmptyTest) {
-  RangeSet<uint32_t,256> a(0, 100), b(100, 200);
+  RangeSet<uint32_t,256> a(0, 100), b(0, 200);
   SCOPE_ASSERT((a - b).none());
 }
 
 SCOPE_TEST(rangeSetDifferenceNonemptyTest) {
-  RangeSet<uint32_t,256> a(0, 101), b(100, 200), c(100);
+  RangeSet<uint32_t,256> a(0, 101), b(100, 200), c(0, 100);
   SCOPE_ASSERT_EQUAL(c, a - b);
 }
-SCOPE_TEST(rangeSetComplementEmptyTest) {
-  RangeSet<uint32_t,256> a(0, 256);
-  SCOPE_ASSERT((~a).none());
+
+SCOPE_TEST(rangeSetDifferenceSelfTest) {
+  RangeSet<uint32_t,256> a(0, 101);
+  SCOPE_ASSERT((a - a).none());
 }
-*/
+
+SCOPE_TEST(rangeSetSymmetricDifferenceAssignmentEmptyTest) {
+  RangeSet<uint32_t,256> a(0, 100), b(0, 100);
+  SCOPE_ASSERT((a ^= b).none());
+}
+
+SCOPE_TEST(rangeSetSymmetricDifferenceAssignmentNonemptyTest) {
+  RangeSet<uint32_t,256> a(0, 100), b{{0,10}, {50,200}}, c{{10,50}, {100,200}};
+  SCOPE_ASSERT_EQUAL(c, a ^= b);
+}
+
+SCOPE_TEST(rangeSetSymmetricDifferenceAssignmentSelfTest) {
+  RangeSet<uint32_t,256> a(0, 101);
+  SCOPE_ASSERT((a ^= a).none());
+}
+
+SCOPE_TEST(rangeSetSymmetricDifferenceEmptyTest) {
+  RangeSet<uint32_t,256> a(0, 100), b(0, 100);
+  SCOPE_ASSERT((a ^ b).none());
+}
+
+SCOPE_TEST(rangeSetSymmetricDifferenceNonemptyTest) {
+  RangeSet<uint32_t,256> a(0, 100), b{{0,10}, {50,200}}, c{{10,50}, {100,200}};
+  SCOPE_ASSERT_EQUAL(c, a ^ b);
+}
+
+SCOPE_TEST(rangeSetSymmetricDifferenceSelfTest) {
+  RangeSet<uint32_t,256> a(0, 101);
+  SCOPE_ASSERT((a ^ a).none());
+}
 
 SCOPE_TEST(rangeSetComplementNonemptyTest) {
   RangeSet<uint32_t,256> a(0, 128), b(128, 256);
   SCOPE_ASSERT_EQUAL(b, ~a);
+}
+
+SCOPE_TEST(rangeSetComplementEmptyTest) {
+  RangeSet<uint32_t,256> a(0, 256);
+  SCOPE_ASSERT((~a).none());
+}
+
+SCOPE_TEST(rangeSetComplementComplementTest) {
+  RangeSet<uint32_t,256> a{{0, 5}, {42,43}};
+  SCOPE_ASSERT_EQUAL(a, ~~a);
+}
+
+SCOPE_TEST(rangeSetDeMorganTest) {
+  RangeSet<uint32_t,256> a{{0, 5}, {42, 43}}, b{{4, 7},{28,96}};
+
+  SCOPE_ASSERT_EQUAL(a & b, ~(~a | ~b));
+  SCOPE_ASSERT_EQUAL(a | b, ~(~a & ~b));
+  SCOPE_ASSERT_EQUAL(~a & ~b, ~(a | b));
+  SCOPE_ASSERT_EQUAL(~a | ~b, ~(a & b));
 }
