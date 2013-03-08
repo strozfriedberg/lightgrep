@@ -493,139 +493,139 @@ namespace {
 
     const int c = *ctx->Text++;
     switch (c) {
-      // metacharacters as themselves
-      case '|':
-      case '(':
-      case ')':
-      case '?':
-      case '+':
-      case '*':
-      case '.':
-      case '[':
-      case ']':
-      case '^':
-      case '-':
-      case '{':
-      case '}':
-      case '\\':
-        yylval->c = c;
-        return CHAR;
+    // metacharacters as themselves
+    case '|':
+    case '(':
+    case ')':
+    case '?':
+    case '+':
+    case '*':
+    case '.':
+    case '[':
+    case ']':
+    case '^':
+    case '-':
+    case '{':
+    case '}':
+    case '\\':
+      yylval->c = c;
+      return CHAR;
 
-      // ASCII escapes
-      case 'a':
-        yylval->c = '\a';
-        return CHAR;
-      case 'e':
-        yylval->c = 0x1B;
-        return CHAR;
-      case 'f':
-        yylval->c = '\f';
-        return CHAR;
-      case 'n':
-        yylval->c = '\n';
-        return CHAR;
-      case 'r':
-        yylval->c = '\r';
-        return CHAR;
-      case 't':
-        yylval->c = '\t';
-        return CHAR;
+    // ASCII escapes
+    case 'a':
+      yylval->c = '\a';
+      return CHAR;
+    case 'e':
+      yylval->c = 0x1B;
+      return CHAR;
+    case 'f':
+      yylval->c = '\f';
+      return CHAR;
+    case 'n':
+      yylval->c = '\n';
+      return CHAR;
+    case 'r':
+      yylval->c = '\r';
+      return CHAR;
+    case 't':
+      yylval->c = '\t';
+      return CHAR;
 
-      // named character classes
-      case 'd':
-        ctx->USet.reset();
-        ctx->USet.insert('0', '9' + 1);
-        yylval->s = &ctx->USet;
-        return SET;
+    // named character classes
+    case 'd':
+      ctx->USet.reset();
+      ctx->USet.insert('0', '9' + 1);
+      yylval->s = &ctx->USet;
+      return SET;
 
-      case 'D':
-        ctx->USet.reset();
-        ctx->USet.insert('0', '9' + 1);
-        ctx->USet.flip();
-        yylval->s = &ctx->USet;
-        return SET;
+    case 'D':
+      ctx->USet.reset();
+      ctx->USet.insert('0', '9' + 1);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
 
-      case 's':
-        ctx->USet.reset();
-        ctx->USet.set('\t');
-        ctx->USet.set('\n');
-        ctx->USet.set('\f');
-        ctx->USet.set('\r');
-        ctx->USet.set(' ');
-        yylval->s = &ctx->USet;
-        return SET;
+    case 's':
+      ctx->USet.reset();
+      ctx->USet.set('\t');
+      ctx->USet.set('\n');
+      ctx->USet.set('\f');
+      ctx->USet.set('\r');
+      ctx->USet.set(' ');
+      yylval->s = &ctx->USet;
+      return SET;
 
-      case 'S':
-        ctx->USet.reset();
-        ctx->USet.set('\t');
-        ctx->USet.set('\n');
-        ctx->USet.set('\f');
-        ctx->USet.set('\r');
-        ctx->USet.set(' ');
-        ctx->USet.flip();
-        yylval->s = &ctx->USet;
-        return SET;
+    case 'S':
+      ctx->USet.reset();
+      ctx->USet.set('\t');
+      ctx->USet.set('\n');
+      ctx->USet.set('\f');
+      ctx->USet.set('\r');
+      ctx->USet.set(' ');
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
 
-      case 'w':
-        ctx->USet.reset();
-        ctx->USet.insert('0', '9' + 1);
-        ctx->USet.insert('A', 'Z' + 1);
-        ctx->USet.set('_');
-        ctx->USet.insert('a', 'z' + 1);
-        yylval->s = &ctx->USet;
-        return SET;
+    case 'w':
+      ctx->USet.reset();
+      ctx->USet.insert('0', '9' + 1);
+      ctx->USet.insert('A', 'Z' + 1);
+      ctx->USet.set('_');
+      ctx->USet.insert('a', 'z' + 1);
+      yylval->s = &ctx->USet;
+      return SET;
 
-      case 'W':
-        ctx->USet.reset();
-        ctx->USet.insert('0', '9' + 1);
-        ctx->USet.insert('A', 'Z' + 1);
-        ctx->USet.set('_');
-        ctx->USet.insert('a', 'z' + 1);
-        ctx->USet.flip();
-        yylval->s = &ctx->USet;
-        return SET;
+    case 'W':
+      ctx->USet.reset();
+      ctx->USet.insert('0', '9' + 1);
+      ctx->USet.insert('A', 'Z' + 1);
+      ctx->USet.set('_');
+      ctx->USet.insert('a', 'z' + 1);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
 
-      // hexadecimal characters
-      case 'x':
-        if (ctx->Text == ctx->TextEnd) {
-          return BAD;
-        }
-        else if (*ctx->Text == '{') {
-          ++ctx->Text;
-          return consumeSingleton(parseHexCodePoint<const int*>, CHAR, yylval, ctx);
-        }
-        else {
-          return consumeSingleton(parseHexByte<const int*>, CHAR, yylval, ctx);
-        }
-
-      // breakout bytes
-      case 'z':
-        return consumeSingleton(parseHexByte<const int*>, BYTE, yylval, ctx);
-
-      // octal characters
-      case '0':
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-        --ctx->Text;
-        return consumeSingleton(parseOctByte<const int*>, CHAR, yylval, ctx);
-
-      // named Unicode code points
-      case 'N':
-        return consumeSingleton(parseNamedCodePoint<const int*>, CHAR, yylval, ctx);
-
-      // Unicode properties
-      case 'p':
-      case 'P':
-        ctx->Text -= 2;
-        return consumeSet(parseProperty<const int*>, yylval, ctx);
-
-      default:
+    // hexadecimal characters
+    case 'x':
+      if (ctx->Text == ctx->TextEnd) {
         return BAD;
+      }
+      else if (*ctx->Text == '{') {
+        ++ctx->Text;
+        return consumeSingleton(parseHexCodePoint<const int*>, CHAR, yylval, ctx);
+      }
+      else {
+        return consumeSingleton(parseHexByte<const int*>, CHAR, yylval, ctx);
+      }
+
+    // breakout bytes
+    case 'z':
+      return consumeSingleton(parseHexByte<const int*>, BYTE, yylval, ctx);
+
+    // octal characters
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+      --ctx->Text;
+      return consumeSingleton(parseOctByte<const int*>, CHAR, yylval, ctx);
+
+    // named Unicode code points
+    case 'N':
+      return consumeSingleton(parseNamedCodePoint<const int*>, CHAR, yylval, ctx);
+
+    // Unicode properties
+    case 'p':
+    case 'P':
+      ctx->Text -= 2;
+      return consumeSet(parseProperty<const int*>, yylval, ctx);
+
+    default:
+      return BAD;
     }
   }
 
