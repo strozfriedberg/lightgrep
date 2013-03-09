@@ -19,6 +19,7 @@
 #include <scope/test.h>
 
 #include <iomanip>
+#include <iostream>
 #include <stdexcept>
 
 #include "parser.h"
@@ -450,27 +451,44 @@ SCOPE_TEST(parseUnparse_CCempty_Test) {
 
 SCOPE_TEST(parseUnparse_CC_left_bracket_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse({"[[]", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[[]", unparse(tree));
+  SCOPE_ASSERT(parse({"[\\[]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[\\[]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CC_right_bracket_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse({"[]]", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[]]", unparse(tree));
+  SCOPE_ASSERT(parse({"[\\]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[\\]]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CC_right_bracket_left_bracket_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse({"[][]", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[[\\]]", unparse(tree));
+  SCOPE_ASSERT(parse({"[\\]\\[]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[\\[\\]]", unparse(tree));
 }
 
-/*
+SCOPE_TEST(parseUnparse_a_nested_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_many_levels_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a]b[[c]d][[[e]]]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a-e]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_not_not_a_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[^[^a]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
+}
+
 SCOPE_TEST(parseUnparse_a_and_a_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"[a&&a]", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("a", unparse(tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_a_and_b_Test) {
@@ -480,9 +498,166 @@ SCOPE_TEST(parseUnparse_a_and_b_Test) {
   }
   catch (const std::runtime_error&) {
     // expected
+    return;
   }
+  SCOPE_ASSERT(false);
 }
-*/
+
+SCOPE_TEST(parseUnparse_a_and_a_and_a_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[a&&a&&a]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_word_and_digit_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[\\w&&\\d]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[0-9]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_to_z_and_a_to_z_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a-z]&&[a-z]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a-z]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_to_z_and_b_to_y_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a-z]&&[b-y]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[b-y]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_to_z_and_not_y_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a-z]&&[^y]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a-xz]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_less_a_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a--a]", false, false}, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseUnparse_a_less_b_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a--b]", false, false}, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseUnparse_a_less_a_less_a_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a--a--a]", false, false}, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseUnparse_word_less_digit_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[\\w--\\d]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[A-Z_a-z]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_to_z_less_a_to_z_Test) {
+  ParseTree tree;
+  try {
+    parse({"[[a-z]--[a-z]]", false, false}, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseUnparse_a_to_z_less_b_to_y_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a-z]--[b-y]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[az]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_to_z_less_not_y_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a-z]--[^y]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[y]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_xor_a_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a~~a]", false, false}, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseUnparse_a_xor_b_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[a~~b]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[ab]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_xor_a_xor_a_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[a~~a~~a]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_word_xor_digit_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[\\w~~\\d]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[A-Z_a-z]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_to_z_xor_a_to_z_Test) {
+  ParseTree tree;
+  try {
+    parse({"[[a-z]~~[a-z]]", false, false}, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseUnparse_a_to_z_xor_b_to_y_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a-z]~~[b-y]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[az]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_a_to_z_xor_not_y_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a-z]~~[^y]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[^a-xz]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_not_not_caret_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[^[^^]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[\\^]", unparse(tree));
+}
 
 SCOPE_TEST(byteToCharacterString) {
   std::stringstream ss;

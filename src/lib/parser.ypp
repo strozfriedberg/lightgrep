@@ -53,8 +53,12 @@ namespace {
 %token <c> BAD
 %token <s> SET
 
-%type <node> regexp alt concat rep number atom literal charclass charclass_right cc_named
-%type <c>    character cc_char cc_char_first cc_char_not_first
+%type <node> regexp alt concat rep number atom literal charclass cc_named cc_union_first cc_union_left_first cc_union_not_first cc_union_left_not_first cc_int_first cc_int_left_first cc_int_not_first cc_int_left_not_first cc_diff_first cc_diff_left_first cc_diff_not_first cc_diff_left_not_first cc_sdiff_first cc_sdiff_left_first cc_sdiff_not_first cc_sdiff_left_not_first cc_atom_first cc_atom_not_first cc_range_first cc_range_not_first cc_range cc_inner cc_pos_inner cc_neg_inner
+%type <c> character cc_char cc_char_first cc_char_not_first
+
+%type <c> INTERSECT MINUS XOR
+
+%nonassoc '-'
 
 %start regexp
 
@@ -193,7 +197,57 @@ literal:
   {
     $$ = ctx->add(ParseNode::DOT, '.');
   }
-| '[' '^' charclass ']'
+| charclass
+;
+
+character:
+  CHAR
+| DIGIT
+| ']'
+  {
+    $$ = ']';
+  }
+| '-'
+  {
+    $$ = '-';
+  }
+| '{'
+  {
+    $$ = '{';
+  }
+| '}'
+  {
+    $$ = '}';
+  }
+| ','
+  {
+    $$ = ',';
+  }
+| '&'
+  {
+    $$ = '&';
+  }
+| '~'
+  {
+    $$ = '~';
+  }
+;
+
+charclass:
+  '[' cc_pos_inner ']'
+  {
+    $$ = $2;
+
+    if (ctx->CaseInsensitive) {
+      caseDesensitize($$->CodePoints);
+    }
+
+    if ($$->CodePoints.none() && $$->Breakout.Bytes.none()) {
+      // empty character class
+      yyerror(ctx, "syntax error");
+    }
+  }
+| '[' '^' cc_neg_inner ']'
   {
     $$ = $3;
 
@@ -232,14 +286,6 @@ literal:
       yyerror(ctx, "syntax error");
     }
   }
-| '[' charclass ']'
-  {
-    $$ = $2;
-
-    if (ctx->CaseInsensitive) {
-      caseDesensitize($$->CodePoints);
-    }
-  }
 | cc_named
   {
     if (ctx->CaseInsensitive) {
@@ -248,128 +294,251 @@ literal:
   }
 ;
 
-character:
-  CHAR
-| DIGIT
-| ']'
-  {
-    $$ = ']';
-  }
-| '-'
-  {
-    $$ = '-';
-  }
-| '{'
-  {
-    $$ = '{';
-  }
-| '}'
-  {
-    $$ = '}';
-  }
-| ','
-  {
-    $$ = ',';
-  }
-;
-
-charclass:
-  cc_char_first '-' cc_char_not_first charclass_right
-  {
-    if ($3 <= $1) {
-      // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
-    }
-
-    $$ = $4;
-    $$->CodePoints.insert($1, $3 + 1);
-  }
-| cc_char_first charclass_right
-  {
-    $$ = $2;
-    $$->CodePoints.set($1);
-  }
-| cc_named charclass_right
-  {
-    $$ = $2;
-    $$->CodePoints |= $1->CodePoints;
-  }
-| BYTE charclass_right
-  {
-    $$ = $2;
-    $$->Breakout.Bytes.set($1);
-  }
-| BYTE '-' BYTE charclass_right
-  {
-    if ($3 <= $1) {
-      // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
-    }
-
-    $$ = $4;
-    $$->Breakout.Bytes.set($1, $3 + 1, true);
-  }
-| BYTE '-' cc_char_not_first charclass_right
-  {
-    // ranges must have endpoints of the same type
-    yyerror(ctx, "syntax error");
-  }
-| cc_char_first '-' BYTE charclass_right
-  {
-    // ranges must have endpoints of the same type
-    yyerror(ctx, "syntax error");
-  }
-;
-
-charclass_right:
-  cc_char_not_first '-' cc_char_not_first charclass_right
-  {
-    if ($3 <= $1) {
-      // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
-    }
-
-    $$ = $4;
-    $$->CodePoints.insert($1, $3 + 1);
-  }
-| cc_char_not_first charclass_right
-  {
-    $$ = $2;
-    $$->CodePoints.set($1);
-  }
-| cc_named charclass_right
-  {
-    $$ = $2;
-    $$->CodePoints |= $1->CodePoints;
-  }
-| BYTE charclass_right
-  {
-    $$ = $2;
-    $$->Breakout.Bytes.set($1);
-  }
-| BYTE '-' BYTE charclass_right
-  {
-    if ($3 <= $1) {
-      // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
-    }
-
-    $$ = $4;
-    $$->Breakout.Bytes.set($1, $3 + 1, true);
-  }
-| BYTE '-' cc_char_not_first charclass_right
-  {
-    // ranges must have endpoints of the same type
-    yyerror(ctx, "syntax error");
-  }
-| cc_char_not_first '-' BYTE charclass_right
-  {
-    // ranges must have endpoints of the same type
-    yyerror(ctx, "syntax error");
-  }
-| /* empty */
+cc_pos_inner:
+  cc_inner
+| cc_char_first
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.set($1);
+  }
+| cc_range_first
+| cc_union_first
+| cc_int_first
+| cc_diff_first
+| cc_sdiff_first
+;
+
+cc_neg_inner:
+  cc_inner
+| cc_char_not_first
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.set($1);
+  }
+| cc_range_not_first
+| cc_union_not_first
+| cc_int_not_first
+| cc_diff_not_first
+| cc_sdiff_not_first
+;
+
+cc_inner:
+  BYTE
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Breakout.Bytes.set($1);
+  }
+| charclass
+;
+
+cc_union_first:
+  cc_union_left_first cc_atom_not_first
+  {
+    $$ = $1;
+    $$->CodePoints |= $2->CodePoints;
+    $$->Breakout.Bytes |= $2->Breakout.Bytes;
+  }
+
+cc_union_left_first:
+  cc_union_first
+| cc_atom_first
+;
+
+cc_union_not_first:
+  cc_union_left_not_first cc_atom_not_first
+  {
+    $$ = $1;
+    $$->CodePoints |= $2->CodePoints;
+    $$->Breakout.Bytes |= $2->Breakout.Bytes;
+  }
+
+cc_union_left_not_first:
+  cc_union_not_first
+| cc_atom_not_first
+;
+
+INTERSECT:
+  '&' '&'
+  {}
+;
+
+cc_int_first:
+  cc_int_left_first INTERSECT cc_atom_not_first
+  {
+    $$ = $1;
+    $$->CodePoints &= $3->CodePoints;
+    $$->Breakout.Bytes &= $3->Breakout.Bytes;
+  }
+;
+
+cc_int_left_first:
+  cc_int_first
+| cc_atom_first
+;
+
+cc_int_not_first:
+  cc_int_left_not_first INTERSECT cc_atom_not_first
+  {
+    $$ = $1;
+    $$->CodePoints &= $3->CodePoints;
+    $$->Breakout.Bytes &= $3->Breakout.Bytes;
+  }
+;
+
+cc_int_left_not_first:
+  cc_int_not_first
+| cc_atom_not_first
+;
+
+MINUS:
+  '-' '-'
+  {}
+;
+
+cc_diff_first:
+  cc_diff_left_first MINUS cc_atom_not_first
+  {
+    $$ = $1;
+    $$->CodePoints -= $3->CodePoints;
+    $$->Breakout.Bytes -= $3->Breakout.Bytes;
+  }
+;
+
+cc_diff_left_first:
+  cc_diff_first
+| cc_atom_first
+;
+
+cc_diff_not_first:
+  cc_diff_left_not_first MINUS cc_atom_not_first
+  {
+    $$ = $1;
+    $$->CodePoints -= $3->CodePoints;
+    $$->Breakout.Bytes -= $3->Breakout.Bytes;
+  }
+;
+
+cc_diff_left_not_first:
+  cc_diff_not_first
+| cc_atom_not_first
+;
+
+XOR:
+  '~' '~'
+  {}
+;
+
+cc_sdiff_first:
+  cc_sdiff_left_first XOR cc_atom_not_first
+  {
+    $$ = $1;
+    $$->CodePoints ^= $3->CodePoints;
+    $$->Breakout.Bytes ^= $3->Breakout.Bytes;
+  }
+;
+
+cc_sdiff_left_first:
+  cc_sdiff_first
+| cc_atom_first
+;
+
+cc_sdiff_not_first:
+  cc_sdiff_left_not_first XOR cc_atom_not_first
+  {
+    $$ = $1;
+    $$->CodePoints ^= $3->CodePoints;
+    $$->Breakout.Bytes ^= $3->Breakout.Bytes;
+  }
+;
+
+cc_sdiff_left_not_first:
+  cc_sdiff_not_first
+| cc_atom_not_first
+;
+
+cc_atom_first:
+ BYTE
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Breakout.Bytes.set($1);
+  }
+| cc_char_first
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.set($1);
+  }
+| cc_range_first
+| charclass
+;
+
+cc_atom_not_first:
+  BYTE
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Breakout.Bytes.set($1);
+  }
+| cc_char_not_first
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.set($1);
+  }
+| cc_range_not_first
+| charclass
+;
+
+cc_range_first:
+  cc_range
+| cc_char_first '-' cc_char_not_first
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror(ctx, "syntax error");
+    }
+
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.insert($1, $3 + 1);
+  }
+| cc_char_first '-' BYTE
+  {
+    // ranges must have endpoints of the same type
+    yyerror(ctx, "syntax error");
+  }
+;
+
+cc_range_not_first:
+  cc_range
+| cc_char_not_first '-' cc_char_not_first
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror(ctx, "syntax error");
+    }
+
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.insert($1, $3 + 1);
+  }
+| cc_char_not_first '-' BYTE
+  {
+    // ranges must have endpoints of the same type
+    yyerror(ctx, "syntax error");
+  }
+;
+
+cc_range:
+  BYTE '-' BYTE
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      yyerror(ctx, "syntax error");
+    }
+
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Breakout.Bytes.set($1, $3 + 1, true);
+  }
+| BYTE '-' cc_char_not_first
+  {
+    // ranges must have endpoints of the same type
+    yyerror(ctx, "syntax error");
   }
 ;
 
@@ -392,10 +561,12 @@ cc_char_not_first:
 cc_char:
   CHAR
 | DIGIT
+/*
 | '-'
   {
     $$ = '-';
   }
+*/
 | '|'
   {
     $$ = '|';
@@ -424,10 +595,12 @@ cc_char:
   {
     $$ = '.';
   }
+/*
 | '['
   {
     $$ = '[';
   }
+*/
 | '{'
   {
     $$ = '{';
@@ -507,6 +680,8 @@ namespace {
     case '-':
     case '{':
     case '}':
+    case '&':
+    case '~':
     case '\\':
       yylval->c = c;
       return CHAR;
@@ -656,6 +831,8 @@ namespace {
         case '-':
         case '{':
         case '}':
+        case '&':
+        case '~':
         case ',':
           return c;
         case '\\':
