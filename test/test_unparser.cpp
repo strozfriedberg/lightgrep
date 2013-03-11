@@ -452,19 +452,19 @@ SCOPE_TEST(parseUnparse_CCempty_Test) {
 SCOPE_TEST(parseUnparse_CC_left_bracket_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"[\\[]", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[\\[]", unparse(tree));
+  SCOPE_ASSERT_EQUAL("[[]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CC_right_bracket_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse({"[\\]]", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[\\]]", unparse(tree));
+  SCOPE_ASSERT(parse({"[]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[]]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CC_right_bracket_left_bracket_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"[\\]\\[]", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[\\[\\]]", unparse(tree));
+  SCOPE_ASSERT_EQUAL("[[\\]]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_a_nested_Test) {
