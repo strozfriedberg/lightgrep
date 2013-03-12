@@ -41,11 +41,16 @@ namespace {
   static void yyerror(Context* ctx, const char* msg);
 }
 
+//extern int yydebug;
 }
 
 %define api.pure
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
+
+%expect 198
+
+//%debug
 
 %token <c> BYTE
 %token <c> CHAR
@@ -60,8 +65,9 @@ namespace {
 
 %left LEAST
 %left UNION
-%left INTERSECT MINUS XOR
+%left INTERSECT XOR
 %nonassoc '-'
+%left MINUS
 
 %start regexp
 
@@ -285,8 +291,8 @@ charclass:
       }
     }
     else {
-      // empty character class
-      yyerror(ctx, "syntax error");
+      // empty inner character class
+      $$->CodePoints.flip();
     }
   }
 | cc_named
@@ -374,6 +380,18 @@ cc_expr:
     $$->CodePoints -= $4->CodePoints;
     $$->Breakout.Bytes -= $4->Breakout.Bytes;
   }
+| cc_char_not_first '-' '-' cc_expr %prec MINUS
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.set($1);
+    $$->CodePoints -= $4->CodePoints;
+  }
+| BYTE '-' '-' cc_expr %prec MINUS
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Breakout.Bytes.set($1);
+    $$->Breakout.Bytes -= $4->Breakout.Bytes;
+}
 | cc_expr '~' '~' cc_expr %prec XOR
   {
     $$ = $1;
@@ -749,5 +767,6 @@ bool parse(const Pattern& p, ParseTree& tree) {
   ctx.Tree = &tree;
   ctx.Tree->init(cp.size());
 
+//  yydebug = 1;
   return yyparse(&ctx) == 0;
 }

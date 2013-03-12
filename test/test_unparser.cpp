@@ -463,7 +463,7 @@ SCOPE_TEST(parseUnparse_CC_right_bracket_Test) {
 
 SCOPE_TEST(parseUnparse_CC_right_bracket_left_bracket_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse({"[\\]\\[]", false, false}, tree));
+  SCOPE_ASSERT(parse({"[]\\[]", false, false}, tree));
   SCOPE_ASSERT_EQUAL("[[\\]]", unparse(tree));
 }
 
@@ -506,6 +506,12 @@ SCOPE_TEST(parseUnparse_a_and_b_Test) {
 SCOPE_TEST(parseUnparse_a_and_a_and_a_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"[a&&a&&a]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_nested_a_and_nested_a_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a]&&[a]]", false, false}, tree));
   SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
 }
 
@@ -561,6 +567,18 @@ SCOPE_TEST(parseUnparse_a_less_a_less_a_Test) {
   ParseTree tree;
   try {
     parse({"[a--a--a]", false, false}, tree);
+  }
+  catch (const std::runtime_error&) {
+    // expected
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseUnparse_nested_a_less_nested_a_Test) {
+  ParseTree tree;
+  try {
+    parse({"[[a]--[a]]", false, false}, tree);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -653,10 +671,52 @@ SCOPE_TEST(parseUnparse_a_to_z_xor_not_y_Test) {
   SCOPE_ASSERT_EQUAL("[^a-xz]", unparse(tree));
 }
 
+SCOPE_TEST(parseUnparse_not_not_not_not_a_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[^[^[^[^a]]]]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
+}
+
 SCOPE_TEST(parseUnparse_not_not_caret_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"[^[^^]]", false, false}, tree));
   SCOPE_ASSERT_EQUAL("[\\^]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_not_hyphen_a_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[^\\-a]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[^a-]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_not_a_and_b_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[^a&&b]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[\\x00-\\xFF]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_not_a_less_b_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[^a--b]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[^a]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_not_a_xor_b_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[^a~~b]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[^ab]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_nested_a_less_b_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[[a]--b]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_not_nested_a_to_b_less_hyphen_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[^[a-b]--\\-]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[^ab]", unparse(tree));
 }
 
 SCOPE_TEST(byteToCharacterString) {
