@@ -106,6 +106,7 @@ int main(int argc, char** argv) {
       // print it all
       std::cout << "U+" << std::hex << std::uppercase;
       if (i < 0x10000) {
+        // BMB code points zero-fill to four digits
         std::cout << std::setw(4) << std::setfill('0');
       }
       std::cout << i << '\t' << rep << '\t' << cname << '\n';
