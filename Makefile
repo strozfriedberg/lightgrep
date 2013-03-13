@@ -173,6 +173,20 @@ VAL_LDFLAGS=$(LG_LDFLAGS) $(ICU_LDFLAGS)
 VAL_LDLIBS=$(LG_LDLIBS) $(ICU_LDLIBS)
 
 #
+# Setup for what
+#
+WHAT_BIN=bin/src/what/what$(BINEXT)
+WHAT_SRCS=$(wildcard src/what/*.cpp)
+WHAT_OBJS=$(WHAT_SRCS:%.cpp=bin/%.o)
+WHAT_LIBS=$(LIB_BIN)
+WHAT_INCLUDES=
+WHAT_CPPFLAGS=
+WHAT_CXXFLAGS=
+WHAT_CFLAGS=
+WHAT_LDFLAGS=$(LG_LDFLAGS) $(ICU_LDFLAGS)
+WHAT_LDLIBS=$(LG_LDLIBS) $(ICU_LDLIBS)
+
+#
 # Setup for c_example
 #
 CEX_BIN=bin/c_example/main$(BINEXT)
@@ -190,7 +204,7 @@ CEX_LDLIBS=$(LG_LDLIBS) $(ICU_LDLIBS)
 # Goals
 #
 
-ALL=cex enc test val
+ALL=cex enc test val what
 
 ifeq ($(BUILD_SHARED),1)
   ALL+=lib-shared
@@ -237,11 +251,13 @@ longtest: $(TEST_BIN)
 
 val: $(VAL_BIN)
 
-DEPS=$(patsubst %.o,%.d,$(CEX_OBJS) $(ENC_OBJS) $(LIB_STATIC_OBJS) $(TEST_OBJS) $(VAL_OBJS)) $(LIB_SHARED_OBJS:%.os=%.d)
+what: $(WHAT_BIN)
+
+DEPS=$(patsubst %.o,%.d,$(CEX_OBJS) $(ENC_OBJS) $(LIB_STATIC_OBJS) $(TEST_OBJS) $(VAL_OBJS) $(WHAT_OBJS)) $(LIB_SHARED_OBJS:%.os=%.d)
 
 -include $(DEPS)
 
-bin/c_example bin/src/enc bin/src/lib bin/src/lib/decoders bin/src/val bin/test:
+bin/c_example bin/src/enc bin/src/lib bin/src/lib/decoders bin/src/val bin/src/what bin/test:
 	$(MKDIR) -p $@
 
 # FIXME: this obviously doesn't work on Windows (but does when cross-compiling)
@@ -261,7 +277,7 @@ endif
 clean:
 	$(RM) -r bin/*
 
-.PHONY: all cex cex clean debug enc lib-shared lib-static perf test val
+.PHONY: all cex cex clean debug enc lib-shared lib-static perf test val what
 
 #
 # Patterns
@@ -318,5 +334,6 @@ $(eval $(call build-bin,CEX))
 $(eval $(call build-bin,ENC))
 $(eval $(call build-bin,TEST))
 $(eval $(call build-bin,VAL))
+$(eval $(call build-bin,WHAT))
 $(eval $(call build-bin,LIB_SHARED))
 $(eval $(call build-static-lib,LIB_STATIC))
