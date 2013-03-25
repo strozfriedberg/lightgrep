@@ -552,15 +552,12 @@ namespace {
   void backwardsByteRangeError(Context* ctx, int a, int b) {
     std::stringstream ss;
     ss << "syntax error: 0x"
-       << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-       << a << " >= 0x"
-       << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-       << b
+       << std::hex << std::uppercase << std::setfill('0')
+       << std::setw(2) << a << " >= 0x"
+       << std::setw(2) << b
        << " in \\z"
-       << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-       << a << "-\\z"
-       << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-       << b;
+       << std::setw(2) << a << "-\\z"
+       << std::setw(2) << b;
     yyerror(ctx, ss.str().c_str());
   }
 
