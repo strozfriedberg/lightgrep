@@ -4,7 +4,10 @@
 #include "parseutil.h"
 #include "pattern.h"
 #include "unicode.h"
+#include "encoders/utf8.h"
 
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -39,6 +42,11 @@ namespace {
 
   static int yylex(YYSTYPE* yylval, Context* ctx);
   static void yyerror(Context* ctx, const char* msg);
+
+  void backwardsRepRangeError(Context* ctx, int a, int b);
+  void backwardsRepNGRangeError(Context* ctx, int a, int b);
+  void backwardsCharRangeError(Context* ctx, int a, int b);
+  void backwardsByteRangeError(Context* ctx, int a, int b);
 }
 
 //extern int yydebug;
@@ -51,6 +59,8 @@ namespace {
 %expect 198
 
 //%debug
+
+%error-verbose
 
 %token <c> BYTE
 %token <c> CHAR
@@ -65,9 +75,8 @@ namespace {
 
 %left LEAST
 %left UNION
-%left INTERSECT XOR
+%left INTERSECT MINUS XOR
 %nonassoc '-'
-%left MINUS
 
 %start regexp
 
@@ -122,7 +131,7 @@ rep:
   {
     if ($3->Val > $5->Val) {
       // {n,m} is ill-formed when n > m
-      yyerror(ctx, "syntax error");
+      backwardsRepNGRangeError(ctx, $3->Val, $5->Val);
     }
     else {
       $$ = ctx->add(ParseNode::REPETITION_NG, $1, $3->Val, $5->Val);
@@ -152,7 +161,7 @@ rep:
   {
     if ($3->Val > $5->Val) {
       // {n,m} is ill-formed when n > m
-      yyerror(ctx, "syntax error");
+      backwardsRepRangeError(ctx, $3->Val, $5->Val);
     }
     else {
       $$ = ctx->add(ParseNode::REPETITION, $1, $3->Val, $5->Val);
@@ -253,7 +262,7 @@ charclass:
 
     if ($$->CodePoints.none() && $$->Breakout.Bytes.none()) {
       // empty character class
-      yyerror(ctx, "syntax error");
+      yyerror(ctx, "syntax error: empty character class");
     }
   }
 | '[' '^' cc_expr ']'
@@ -276,7 +285,7 @@ charclass:
       $$->CodePoints.flip();
       if ($$->CodePoints.none()) {
         // empty character class
-        yyerror(ctx, "syntax error");
+        yyerror(ctx, "syntax error: empty character class");
       }
 
       if ($$->Breakout.Bytes.any()) {
@@ -287,7 +296,7 @@ charclass:
       $$->Breakout.Bytes.flip();
       if ($$->Breakout.Bytes.none()) {
         // empty character class
-        yyerror(ctx, "syntax error");
+        yyerror(ctx, "syntax error: empty character class");
       }
     }
     else {
@@ -332,7 +341,7 @@ cc_expr_first:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
+      backwardsCharRangeError(ctx, $1, $3);
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
@@ -342,7 +351,7 @@ cc_expr_first:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
+      backwardsByteRangeError(ctx, $1, $3);
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
@@ -402,7 +411,7 @@ cc_expr:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
+      backwardsCharRangeError(ctx, $1, $3);
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
@@ -412,7 +421,7 @@ cc_expr:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
+      backwardsByteRangeError(ctx, $1, $3);
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
@@ -512,6 +521,48 @@ cc_named:
 %%
 
 namespace {
+
+  void backwardsRepRangeError(Context* ctx, int a, int b) {
+    std::stringstream ss;
+    ss << "syntax error: " << a << " > " << b
+       << " in {" << a << ',' << b << "}";
+    yyerror(ctx, ss.str().c_str());
+  }
+
+  void backwardsRepNGRangeError(Context* ctx, int a, int b) {
+    std::stringstream ss;
+    ss << "syntax error: " << a << " > " << b
+       << " in {" << a << ',' << b << "}?";
+    yyerror(ctx, ss.str().c_str());
+  }
+
+  void backwardsCharRangeError(Context* ctx, int a, int b) {
+    UTF8 enc;
+    byte abuf[5]{}, bbuf[5]{};
+
+    enc.write(a, abuf);
+    enc.write(b, bbuf);
+
+    std::stringstream ss;
+    ss << "syntax error: " << abuf << " >= " << bbuf
+       << " in " << abuf << '-' << bbuf;
+    yyerror(ctx, ss.str().c_str());
+  }
+
+  void backwardsByteRangeError(Context* ctx, int a, int b) {
+    std::stringstream ss;
+    ss << "syntax error: 0x"
+       << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+       << a << " >= 0x"
+       << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+       << b
+       << " in \\z"
+       << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+       << a << "-\\z"
+       << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+       << b;
+    yyerror(ctx, ss.str().c_str());
+  }
 
   template <typename F>
   int consumeSingleton(F func, yytokentype type, YYSTYPE* yylval, Context* ctx) {

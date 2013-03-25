@@ -719,6 +719,13 @@ SCOPE_TEST(parseUnparse_not_nested_a_to_b_less_hyphen_Test) {
   SCOPE_ASSERT_EQUAL("[^ab]", unparse(tree));
 }
 
+SCOPE_TEST(parseUnparse_minus_hyphen_precedence_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"[a-z--b-y]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[az]", unparse(tree));
+}
+
+
 SCOPE_TEST(byteToCharacterString) {
   std::stringstream ss;
 
