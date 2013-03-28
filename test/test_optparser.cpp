@@ -15,17 +15,16 @@
 \
   const int argc = cargc + 1; \
 \
-  uint32_t total_len = 1; \
+  uint32_t total_len = 0; \
   for (int i = 0; i < cargc; ++i) { \
     total_len += strlen(cargv[i]) + 1; \
   } \
 \
-  std::unique_ptr<char[]> cs(new char[total_len]); \
+  std::unique_ptr<char[]> cs(new char[total_len+1]{}); \
   std::unique_ptr<char*[]> ss(new char*[argc]); \
 \
   char** argv = ss.get(); \
   argv[0] = cs.get(); \
-  argv[0][0] = '\0'; \
 \
   for (int i = 0, pos = 1; i < cargc; ++i) { \
     argv[i+1] = argv[0] + pos; \
