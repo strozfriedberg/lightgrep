@@ -77,8 +77,8 @@ std::ostream& operator<<(std::ostream& out, const Program& prog) {
              end = 255;
 
       if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
-        start = prog[i].Op.Range.First;
-        end = prog[i].Op.Range.Last;
+        start = prog[i].Op.T2.First;
+        end = prog[i].Op.T2.Last;
       }
 
       for (uint32_t j = start; j <= end; ++j) {

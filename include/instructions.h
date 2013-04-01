@@ -48,17 +48,29 @@ template<> struct InstructionSize<FORK_OP> { enum { VAL = 2 }; };
 template<> struct InstructionSize<JUMP_OP> { enum { VAL = 2 }; };
 
 #pragma pack(push, 1)
-struct ByteRange {
+struct InstructionType1 {
+  byte Flags;
+  byte Byte;
+};
+
+struct InstructionType2 {
+  byte Flags;
   byte First, Last;
 };
 
 union Operand {
   unsigned  Offset : 24;
-  ByteRange Range;
-  byte      Byte;
+
+  InstructionType1 T1;
+  InstructionType2 T2;
 };
 
 struct Instruction {
+  enum Flags {
+    ACCEPT       = 1 << 0,
+    HALT_ON_FAIL = 1 << 1
+  };
+
   unsigned char OpCode;
   Operand  Op;
 
@@ -83,7 +95,7 @@ struct Instruction {
 
   bool operator==(const Instruction& x) const { return *((uint32_t*)this) == *((uint32_t*)&x); } // total hack
 
-  static Instruction makeByte(byte b);
+  static Instruction makeByte(byte b, bool accept = true);
   static Instruction makeEither(byte one, byte two);
   static Instruction makeRange(byte first, byte last);
   static Instruction makeAny();

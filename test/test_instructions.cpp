@@ -27,8 +27,18 @@ SCOPE_TEST(makeByte) {
   Instruction i = Instruction::makeByte('a');
   SCOPE_ASSERT_EQUAL(BYTE_OP, i.OpCode);
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL('a', i.Op.Byte);
+  SCOPE_ASSERT_EQUAL('a', i.Op.T1.Byte);
+  SCOPE_ASSERT(i.Op.T1.Flags & Instruction::ACCEPT);
   SCOPE_ASSERT_EQUAL("Byte 0x61/'a'", i.toString());
+}
+
+SCOPE_TEST(makeNotByte) {
+  Instruction i = Instruction::makeByte('a', false);
+  SCOPE_ASSERT_EQUAL(BYTE_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL('a', i.Op.T1.Byte);
+  SCOPE_ASSERT(!i.Op.T1.Flags & Instruction::ACCEPT);
+  SCOPE_ASSERT_EQUAL("Byte not 0x61/'a'", i.toString());
 }
 
 SCOPE_TEST(makeJump) {
@@ -61,8 +71,8 @@ SCOPE_TEST(makeEither) {
   Instruction i = Instruction::makeEither('a', 'B');
   SCOPE_ASSERT_EQUAL(EITHER_OP, i.OpCode);
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL('a', i.Op.Range.First);
-  SCOPE_ASSERT_EQUAL('B', i.Op.Range.Last);
+  SCOPE_ASSERT_EQUAL('a', i.Op.T2.First);
+  SCOPE_ASSERT_EQUAL('B', i.Op.T2.Last);
   SCOPE_ASSERT_EQUAL("Either 0x61/'a', 0x42/'B'", i.toString());
 }
 
@@ -70,8 +80,8 @@ SCOPE_TEST(makeRange) {
   Instruction i = Instruction::makeRange('A', 'Z');
   SCOPE_ASSERT_EQUAL(RANGE_OP, i.OpCode);
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL('A', i.Op.Range.First);
-  SCOPE_ASSERT_EQUAL('Z', i.Op.Range.Last);
+  SCOPE_ASSERT_EQUAL('A', i.Op.T2.First);
+  SCOPE_ASSERT_EQUAL('Z', i.Op.T2.Last);
   SCOPE_ASSERT_EQUAL("Range 0x41/'A'-0x5a/'Z'", i.toString());
   SCOPE_EXPECT(Instruction::makeRange('Z', 'A'), std::range_error);
 }
@@ -106,8 +116,8 @@ SCOPE_TEST(makeJumpTableRange) {
   Instruction i = Instruction::makeJumpTableRange(33, 45);
   SCOPE_ASSERT_EQUAL(JUMP_TABLE_RANGE_OP, i.OpCode);
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
-  SCOPE_ASSERT_EQUAL(33u, i.Op.Range.First);
-  SCOPE_ASSERT_EQUAL(45u, i.Op.Range.Last);
+  SCOPE_ASSERT_EQUAL(33u, i.Op.T2.First);
+  SCOPE_ASSERT_EQUAL(45u, i.Op.T2.Last);
   SCOPE_ASSERT_EQUAL("JmpTblRange 0x21/'!'-0x2d/'-'", i.toString());
   SCOPE_EXPECT(Instruction::makeJumpTableRange(1, 0), std::range_error);
 }

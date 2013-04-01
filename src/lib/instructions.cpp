@@ -38,18 +38,23 @@ std::ostream& operator<<(std::ostream& out, const HexCode<uint32_t>& hex) {
   return out;
 }
 
+std::string testNot(const byte flags) {
+  return flags & Instruction::ACCEPT ? "": "not ";
+}
+
 std::string Instruction::toString() const {
   std::string ret;
   std::stringstream buf;
   switch (OpCode) {
   case BYTE_OP:
-    buf << "Byte 0x" << HexCode<byte>(Op.Byte) << "/'" << Op.Byte << '\'';
+    buf << "Byte " << testNot(Op.T1.Flags) << "0x" << HexCode<byte>(Op.T1.Byte)
+      << "/'" << Op.T1.Byte << '\'';
     break;
   case EITHER_OP:
-    buf << "Either 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "', 0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
+    buf << "Either 0x" << HexCode<byte>(Op.T2.First) << "/'" << Op.T2.First << "', 0x" << HexCode<byte>(Op.T2.Last) << "/'" << Op.T2.Last << '\'';
     break;
   case RANGE_OP:
-    buf << "Range 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
+    buf << "Range 0x" << HexCode<byte>(Op.T2.First) << "/'" << Op.T2.First << "'-0x" << HexCode<byte>(Op.T2.Last) << "/'" << Op.T2.Last << '\'';
     break;
   case ANY_OP:
     buf << "Any";
@@ -61,7 +66,7 @@ std::string Instruction::toString() const {
     buf << "Jump 0x" << HexCode<uint32_t>(*reinterpret_cast<const uint32_t*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32_t*>(this+1));
     break;
   case JUMP_TABLE_RANGE_OP:
-    buf << "JmpTblRange 0x" << HexCode<byte>(Op.Range.First) << "/'" << Op.Range.First << "'-0x" << HexCode<byte>(Op.Range.Last) << "/'" << Op.Range.Last << '\'';
+    buf << "JmpTblRange 0x" << HexCode<byte>(Op.T2.First) << "/'" << Op.T2.First << "'-0x" << HexCode<byte>(Op.T2.Last) << "/'" << Op.T2.Last << '\'';
     break;
   case FORK_OP:
     buf << "Fork 0x" << HexCode<uint32_t>(*reinterpret_cast<const uint32_t*>(this+1)) << '/' << std::dec << (*reinterpret_cast<const uint32_t*>(this+1));
@@ -91,18 +96,19 @@ std::string Instruction::toString() const {
   return ret;
 }
 
-Instruction Instruction::makeByte(byte b) {
+Instruction Instruction::makeByte(byte b, bool accept) {
   Instruction i;
   i.OpCode = BYTE_OP;
-  i.Op.Byte = b;
+  i.Op.T1.Byte = b;
+  i.Op.T1.Flags = (accept ? ACCEPT: 0);
   return i;
 }
 
 Instruction Instruction::makeEither(byte one, byte two) {
   Instruction i;
   i.OpCode = EITHER_OP;
-  i.Op.Range.First = one;
-  i.Op.Range.Last = two;
+  i.Op.T2.First = one;
+  i.Op.T2.Last = two;
   return i;
 }
 
@@ -112,8 +118,8 @@ Instruction Instruction::makeRange(byte first, byte last) {
   }
   Instruction i;
   i.OpCode = RANGE_OP;
-  i.Op.Range.First = first;
-  i.Op.Range.Last = last;
+  i.Op.T2.First = first;
+  i.Op.T2.Last = last;
   return i;
 }
 

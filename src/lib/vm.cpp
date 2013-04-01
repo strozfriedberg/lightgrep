@@ -237,21 +237,21 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
 
   switch (instr.OpCode) {
   case BYTE_OP:
-    if (*cur == instr.Op.Byte) {
+    if (*cur == instr.Op.T1.Byte) {
       t->advance(InstructionSize<BYTE_OP>::VAL);
       return true;
     }
     break;
 
   case EITHER_OP:
-    if (*cur == instr.Op.Range.First || *cur == instr.Op.Range.Last) {
+    if (*cur == instr.Op.T2.First || *cur == instr.Op.T2.Last) {
       t->advance(InstructionSize<EITHER_OP>::VAL);
       return true;
     }
     break;
 
   case RANGE_OP:
-    if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
+    if (instr.Op.T2.First <= *cur && *cur <= instr.Op.T2.Last) {
       t->advance(InstructionSize<RANGE_OP>::VAL);
       return true;
     }
@@ -272,8 +272,8 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
     break;
 
   case JUMP_TABLE_RANGE_OP:
-    if (instr.Op.Range.First <= *cur && *cur <= instr.Op.Range.Last) {
-      const uint32_t addr = *reinterpret_cast<const uint32_t*>(t->PC + 1 + (*cur - instr.Op.Range.First));
+    if (instr.Op.T2.First <= *cur && *cur <= instr.Op.T2.Last) {
+      const uint32_t addr = *reinterpret_cast<const uint32_t*>(t->PC + 1 + (*cur - instr.Op.T2.First));
       if (addr != 0xffffffff) {
         t->jump(base, addr);
         return true;
