@@ -28,16 +28,16 @@ SCOPE_TEST(makeByte) {
   SCOPE_ASSERT_EQUAL(BYTE_OP, i.OpCode);
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
   SCOPE_ASSERT_EQUAL('a', i.Op.T1.Byte);
-  SCOPE_ASSERT(i.Op.T1.Flags & Instruction::ACCEPT);
+  SCOPE_ASSERT(!i.Op.T1.Flags & Instruction::NEGATE);
   SCOPE_ASSERT_EQUAL("Byte 0x61/'a'", i.toString());
 }
 
 SCOPE_TEST(makeNotByte) {
-  Instruction i = Instruction::makeByte('a', false);
+  Instruction i = Instruction::makeByte('a', true);
   SCOPE_ASSERT_EQUAL(BYTE_OP, i.OpCode);
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
   SCOPE_ASSERT_EQUAL('a', i.Op.T1.Byte);
-  SCOPE_ASSERT(!i.Op.T1.Flags & Instruction::ACCEPT);
+  SCOPE_ASSERT(i.Op.T1.Flags & Instruction::NEGATE);
   SCOPE_ASSERT_EQUAL("Byte not 0x61/'a'", i.toString());
 }
 

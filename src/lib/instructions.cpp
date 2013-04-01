@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& out, const HexCode<uint32_t>& hex) {
 }
 
 std::string testNot(const byte flags) {
-  return flags & Instruction::ACCEPT ? "": "not ";
+  return flags & Instruction::NEGATE ? "not ": "";
 }
 
 std::string Instruction::toString() const {
@@ -96,11 +96,11 @@ std::string Instruction::toString() const {
   return ret;
 }
 
-Instruction Instruction::makeByte(byte b, bool accept) {
+Instruction Instruction::makeByte(byte b, bool negate) {
   Instruction i;
   i.OpCode = BYTE_OP;
   i.Op.T1.Byte = b;
-  i.Op.T1.Flags = (accept ? ACCEPT: 0);
+  i.Op.T1.Flags = (negate ? NEGATE: 0);
   return i;
 }
 

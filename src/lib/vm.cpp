@@ -237,7 +237,7 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
 
   switch (instr.OpCode) {
   case BYTE_OP:
-    if (*cur == instr.Op.T1.Byte) {
+    if ((*cur == instr.Op.T1.Byte) ^ (instr.Op.T1.Flags & Instruction::NEGATE)) {
       t->advance(InstructionSize<BYTE_OP>::VAL);
       return true;
     }
