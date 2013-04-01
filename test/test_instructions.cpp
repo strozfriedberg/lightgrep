@@ -73,7 +73,18 @@ SCOPE_TEST(makeEither) {
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
   SCOPE_ASSERT_EQUAL('a', i.Op.T2.First);
   SCOPE_ASSERT_EQUAL('B', i.Op.T2.Last);
+  SCOPE_ASSERT(!i.Op.T2.Flags & Instruction::NEGATE);
   SCOPE_ASSERT_EQUAL("Either 0x61/'a', 0x42/'B'", i.toString());
+}
+
+SCOPE_TEST(makeNeither) {
+  Instruction i = Instruction::makeEither('a', 'B', true);
+  SCOPE_ASSERT_EQUAL(EITHER_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL('a', i.Op.T2.First);
+  SCOPE_ASSERT_EQUAL('B', i.Op.T2.Last);
+  SCOPE_ASSERT(i.Op.T2.Flags & Instruction::NEGATE);
+  SCOPE_ASSERT_EQUAL("Either not 0x61/'a', 0x42/'B'", i.toString());
 }
 
 SCOPE_TEST(makeRange) {

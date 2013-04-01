@@ -96,7 +96,7 @@ struct Instruction {
   bool operator==(const Instruction& x) const { return *((uint32_t*)this) == *((uint32_t*)&x); } // total hack
 
   static Instruction makeByte(byte b, bool negate = false);
-  static Instruction makeEither(byte one, byte two);
+  static Instruction makeEither(byte one, byte two, bool negate = false);
   static Instruction makeRange(byte first, byte last);
   static Instruction makeAny();
   static Instruction makeBitVector();

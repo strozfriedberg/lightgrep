@@ -51,7 +51,8 @@ std::string Instruction::toString() const {
       << "/'" << Op.T1.Byte << '\'';
     break;
   case EITHER_OP:
-    buf << "Either 0x" << HexCode<byte>(Op.T2.First) << "/'" << Op.T2.First << "', 0x" << HexCode<byte>(Op.T2.Last) << "/'" << Op.T2.Last << '\'';
+    buf << "Either " << testNot(Op.T2.Flags) << "0x" << HexCode<byte>(Op.T2.First)
+      << "/'" << Op.T2.First << "', 0x" << HexCode<byte>(Op.T2.Last) << "/'" << Op.T2.Last << '\'';
     break;
   case RANGE_OP:
     buf << "Range 0x" << HexCode<byte>(Op.T2.First) << "/'" << Op.T2.First << "'-0x" << HexCode<byte>(Op.T2.Last) << "/'" << Op.T2.Last << '\'';
@@ -104,11 +105,12 @@ Instruction Instruction::makeByte(byte b, bool negate) {
   return i;
 }
 
-Instruction Instruction::makeEither(byte one, byte two) {
+Instruction Instruction::makeEither(byte one, byte two, bool negate) {
   Instruction i;
   i.OpCode = EITHER_OP;
   i.Op.T2.First = one;
   i.Op.T2.Last = two;
+  i.Op.T2.Flags = (negate ? NEGATE: 0);
   return i;
 }
 
