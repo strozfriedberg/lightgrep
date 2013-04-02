@@ -251,7 +251,7 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
     break;
 
   case RANGE_OP:
-    if (instr.Op.T2.First <= *cur && *cur <= instr.Op.T2.Last) {
+    if ((instr.Op.T2.First <= *cur && *cur <= instr.Op.T2.Last) ^ (instr.Op.T2.Flags & Instruction::NEGATE)) {
       t->advance(InstructionSize<RANGE_OP>::VAL);
       return true;
     }

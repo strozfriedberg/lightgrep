@@ -130,6 +130,29 @@ SCOPE_TEST(executeRange) {
   }
 }
 
+SCOPE_TEST(executeNotInRange) {
+  ProgramPtr p(new Program(1, Instruction::makeRange('c', 't', true)));
+  Vm         s(p);
+  Thread cur(&(*p)[0], 0, 0, 0);
+  for (uint32_t j = 0; j < 256; ++j) {
+    s.reset();
+    byte b = j;
+
+    if ('c' <= j && j <= 't') {
+      SCOPE_ASSERT(!s.execute(&cur, &b));
+      SCOPE_ASSERT_EQUAL(1u, s.numActive());
+      SCOPE_ASSERT_EQUAL(0u, s.numNext());
+      SCOPE_ASSERT_EQUAL(Thread(&p->back()-1), s.active().front().PC);
+    }
+    else {
+      SCOPE_ASSERT(s.execute(&cur, &b));
+      SCOPE_ASSERT_EQUAL(1u, s.numActive());
+      SCOPE_ASSERT_EQUAL(0u, s.numNext());
+      SCOPE_ASSERT_EQUAL(&(*p)[1], s.active().front().PC);
+    }
+  }
+}
+
 SCOPE_TEST(executeAny) {
   ProgramPtr p(new Program(1, Instruction::makeAny()));
   Vm         s(p);
