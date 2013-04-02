@@ -244,7 +244,7 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
     break;
 
   case EITHER_OP:
-    if (*cur == instr.Op.T2.First || *cur == instr.Op.T2.Last) {
+    if ((*cur == instr.Op.T2.First || *cur == instr.Op.T2.Last) ^ (instr.Op.T2.Flags & Instruction::NEGATE)) {
       t->advance(InstructionSize<EITHER_OP>::VAL);
       return true;
     }
