@@ -93,8 +93,20 @@ SCOPE_TEST(makeRange) {
   SCOPE_ASSERT_EQUAL(1u, i.wordSize());
   SCOPE_ASSERT_EQUAL('A', i.Op.T2.First);
   SCOPE_ASSERT_EQUAL('Z', i.Op.T2.Last);
+  SCOPE_ASSERT(!i.Op.T2.Flags & Instruction::NEGATE);
   SCOPE_ASSERT_EQUAL("Range 0x41/'A'-0x5a/'Z'", i.toString());
   SCOPE_EXPECT(Instruction::makeRange('Z', 'A'), std::range_error);
+}
+
+SCOPE_TEST(makeNotRange) {
+  Instruction i = Instruction::makeRange('A', 'Z', true);
+  SCOPE_ASSERT_EQUAL(RANGE_OP, i.OpCode);
+  SCOPE_ASSERT_EQUAL(1u, i.wordSize());
+  SCOPE_ASSERT_EQUAL('A', i.Op.T2.First);
+  SCOPE_ASSERT_EQUAL('Z', i.Op.T2.Last);
+  SCOPE_ASSERT(i.Op.T2.Flags & Instruction::NEGATE);
+  SCOPE_ASSERT_EQUAL("Range not 0x41/'A'-0x5a/'Z'", i.toString());
+  SCOPE_EXPECT(Instruction::makeRange('Z', 'A', true), std::range_error);
 }
 
 SCOPE_TEST(makeBitVector) {

@@ -55,7 +55,8 @@ std::string Instruction::toString() const {
       << "/'" << Op.T2.First << "', 0x" << HexCode<byte>(Op.T2.Last) << "/'" << Op.T2.Last << '\'';
     break;
   case RANGE_OP:
-    buf << "Range 0x" << HexCode<byte>(Op.T2.First) << "/'" << Op.T2.First << "'-0x" << HexCode<byte>(Op.T2.Last) << "/'" << Op.T2.Last << '\'';
+    buf << "Range " << testNot(Op.T2.Flags) << "0x" << HexCode<byte>(Op.T2.First)
+      << "/'" << Op.T2.First << "'-0x" << HexCode<byte>(Op.T2.Last) << "/'" << Op.T2.Last << '\'';
     break;
   case ANY_OP:
     buf << "Any";
@@ -114,7 +115,7 @@ Instruction Instruction::makeEither(byte one, byte two, bool negate) {
   return i;
 }
 
-Instruction Instruction::makeRange(byte first, byte last) {
+Instruction Instruction::makeRange(byte first, byte last, bool negate) {
   if (last < first) {
     THROW_WITH_OUTPUT(std::range_error, "out-of-order range; first = " << first << "; last = " << last);
   }
@@ -122,6 +123,7 @@ Instruction Instruction::makeRange(byte first, byte last) {
   i.OpCode = RANGE_OP;
   i.Op.T2.First = first;
   i.Op.T2.Last = last;
+  i.Op.T2.Flags = (negate ? NEGATE: 0);
   return i;
 }
 

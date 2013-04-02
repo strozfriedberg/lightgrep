@@ -97,7 +97,7 @@ struct Instruction {
 
   static Instruction makeByte(byte b, bool negate = false);
   static Instruction makeEither(byte one, byte two, bool negate = false);
-  static Instruction makeRange(byte first, byte last);
+  static Instruction makeRange(byte first, byte last, bool negate = false);
   static Instruction makeAny();
   static Instruction makeBitVector();
   static Instruction makeJump(Instruction* ptr, uint32_t offset);
