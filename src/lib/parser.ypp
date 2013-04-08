@@ -65,8 +65,10 @@ namespace {
 %token <c> BYTE
 %token <c> CHAR
 %token <c> DIGIT
-%token <c> BAD
+%token <c> BAD "bad escape"
 %token <s> SET
+
+%token END 0 "end of pattern"
 
 %type <node> regexp alt concat rep number atom literal charclass cc_named cc_expr cc_expr_first
 %type <c> character cc_char cc_char_first cc_char_not_first
