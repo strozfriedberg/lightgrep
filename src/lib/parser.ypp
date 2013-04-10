@@ -6,6 +6,8 @@
 #include "unicode.h"
 #include "encoders/utf8.h"
 
+#include <iostream>
+
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -18,6 +20,7 @@ namespace {
     const int* TextEnd;
 
     ParseTree* Tree;
+    ParseNode* Cur;
 
     UnicodeSet USet;
 
@@ -25,33 +28,65 @@ namespace {
     bool CaseInsensitive;
 
     ParseNode* add(const ParseNode& n) {
-      return Tree->add(n);
+      return (Cur = Tree->add(n));
     }
 
     template <class... Args>
     ParseNode* add(Args&&... args) {
-      return Tree->add(args...);
+      return (Cur = Tree->add(args...));
     }
   };
 
   union YYSTYPE {
-    unsigned int c;
+    int c;
     ParseNode* node;
     UnicodeSet* s;
   };
 
-  static int yylex(YYSTYPE* yylval, Context* ctx);
-  static void yyerror(Context* ctx, const char* msg);
+  struct YYLTYPE {
+    int first_line; // unused
+    int first_column;
+    int last_line;  // unused
+    int last_column;
+  };
 
-  void backwardsRepRangeError(Context* ctx, int a, int b);
-  void backwardsRepNGRangeError(Context* ctx, int a, int b);
-  void backwardsCharRangeError(Context* ctx, int a, int b);
-  void backwardsByteRangeError(Context* ctx, int a, int b);
+  struct ParseError {
+    enum {
+      NONATOMIC_REPETITON,
+      REVERSED_REPETITION_BOUNDS,
+      INVALID_ESCAPE,
+      UNMATCHED_PARENTHESIS,
+      UNMATCHED_BRACKET,
+      EMPTY_CHAR_CLASS,
+      REVERSED_CHAR_RANGE_BOUNDS,
+      REVERSED_BYTE_RANGE_BOUNDS
+    } Type;
+
+    int Begin;
+    int End;
+    int First;
+    int Second;
+
+    ParseError(
+      decltype(Type) type, int begin, int end, int first = -1, int second = -1
+    ):
+      Type(type), Begin(begin), End(end), First(first), Second(second)
+    {}
+  };
+
+  static int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, Context* ctx);
+  static void yyerror(YYLTYPE* yylloc, Context* ctx, const char* msg);
+
+  void throwError(ParseError e, Context* ctx);
 }
+
+#define YYLTYPE_IS_DECLARED 1
+#define YYLTYPE_IS_TRIVIAL 1
 
 //extern int yydebug;
 }
 
+%locations
 %define api.pure
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
@@ -65,7 +100,7 @@ namespace {
 %token <c> BYTE
 %token <c> CHAR
 %token <c> DIGIT
-%token <c> BAD "bad escape"
+%token <c> BAD "invalid escape"
 %token <s> SET
 
 %token END 0 "end of pattern"
@@ -133,7 +168,14 @@ rep:
   {
     if ($3->Val > $5->Val) {
       // {n,m} is ill-formed when n > m
-      backwardsRepNGRangeError(ctx, $3->Val, $5->Val);
+      throwError(
+        {
+          ParseError::REVERSED_REPETITION_BOUNDS,
+          @2.first_column, @7.last_column,
+          $3->Val, $5->Val
+        },
+        ctx
+      );
     }
     else {
       $$ = ctx->add(ParseNode::REPETITION_NG, $1, $3->Val, $5->Val);
@@ -163,7 +205,14 @@ rep:
   {
     if ($3->Val > $5->Val) {
       // {n,m} is ill-formed when n > m
-      backwardsRepRangeError(ctx, $3->Val, $5->Val);
+      throwError(
+        {
+          ParseError::REVERSED_REPETITION_BOUNDS,
+          @2.first_column, @6.last_column,
+          $3->Val, $5->Val,
+        },
+        ctx
+      );
     }
     else {
       $$ = ctx->add(ParseNode::REPETITION, $1, $3->Val, $5->Val);
@@ -264,7 +313,13 @@ charclass:
 
     if ($$->CodePoints.none() && $$->Breakout.Bytes.none()) {
       // empty character class
-      yyerror(ctx, "syntax error: empty character class");
+      throwError(
+        {
+          ParseError::EMPTY_CHAR_CLASS,
+          @1.first_column, @3.last_column
+        },
+        ctx
+      );
     }
   }
 | '[' '^' cc_expr ']'
@@ -287,7 +342,13 @@ charclass:
       $$->CodePoints.flip();
       if ($$->CodePoints.none()) {
         // empty character class
-        yyerror(ctx, "syntax error: empty character class");
+        throwError(
+          {
+            ParseError::EMPTY_CHAR_CLASS,
+            @1.first_column, @3.last_column,
+          },
+          ctx
+        );
       }
 
       if ($$->Breakout.Bytes.any()) {
@@ -298,7 +359,13 @@ charclass:
       $$->Breakout.Bytes.flip();
       if ($$->Breakout.Bytes.none()) {
         // empty character class
-        yyerror(ctx, "syntax error: empty character class");
+        throwError(
+          {
+            ParseError::EMPTY_CHAR_CLASS,
+            @1.first_column, @4.last_column,
+          },
+          ctx
+        );
       }
     }
     else {
@@ -343,7 +410,14 @@ cc_expr_first:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      backwardsCharRangeError(ctx, $1, $3);
+      throwError(
+        {
+          ParseError::REVERSED_CHAR_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
@@ -353,7 +427,14 @@ cc_expr_first:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      backwardsByteRangeError(ctx, $1, $3);
+      throwError(
+        {
+          ParseError::REVERSED_BYTE_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
@@ -413,7 +494,14 @@ cc_expr:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      backwardsCharRangeError(ctx, $1, $3);
+      throwError(
+        {
+          ParseError::REVERSED_CHAR_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
@@ -423,7 +511,14 @@ cc_expr:
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      backwardsByteRangeError(ctx, $1, $3);
+      throwError(
+        {
+          ParseError::REVERSED_BYTE_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
@@ -523,45 +618,6 @@ cc_named:
 %%
 
 namespace {
-
-  void backwardsRepRangeError(Context* ctx, int a, int b) {
-    std::stringstream ss;
-    ss << "syntax error: " << a << " > " << b
-       << " in {" << a << ',' << b << "}";
-    yyerror(ctx, ss.str().c_str());
-  }
-
-  void backwardsRepNGRangeError(Context* ctx, int a, int b) {
-    std::stringstream ss;
-    ss << "syntax error: " << a << " > " << b
-       << " in {" << a << ',' << b << "}?";
-    yyerror(ctx, ss.str().c_str());
-  }
-
-  void backwardsCharRangeError(Context* ctx, int a, int b) {
-    UTF8 enc;
-    byte abuf[5]{}, bbuf[5]{};
-
-    enc.write(a, abuf);
-    enc.write(b, bbuf);
-
-    std::stringstream ss;
-    ss << "syntax error: " << abuf << " >= " << bbuf
-       << " in " << abuf << '-' << bbuf;
-    yyerror(ctx, ss.str().c_str());
-  }
-
-  void backwardsByteRangeError(Context* ctx, int a, int b) {
-    std::stringstream ss;
-    ss << "syntax error: 0x"
-       << std::hex << std::uppercase << std::setfill('0')
-       << std::setw(2) << a << " >= 0x"
-       << std::setw(2) << b
-       << " in \\z"
-       << std::setw(2) << a << "-\\z"
-       << std::setw(2) << b;
-    yyerror(ctx, ss.str().c_str());
-  }
 
   template <typename F>
   int consumeSingleton(F func, yytokentype type, YYSTYPE* yylval, Context* ctx) {
@@ -741,9 +797,12 @@ namespace {
     }
   }
 
-  int yylex(YYSTYPE* yylval, Context* ctx) {
+  int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, Context* ctx) {
+    yylloc->first_column = ctx->Text - ctx->TextBegin;
+
     if (ctx->Text < ctx->TextEnd) {
       const int c = *ctx->Text++;
+      yylloc->last_column = yylloc->first_column + 1;
       if (c < 1) {
         //   -1 indicates bogus UTF-8
         //    0 is a prohibited mid-string null byte
@@ -773,7 +832,11 @@ namespace {
         case ',':
           return c;
         case '\\':
-          return consumeEscape(yylval, ctx);
+          {
+            const int v = consumeEscape(yylval, ctx);
+            yylloc->last_column = ctx->Text - ctx->TextBegin;
+            return v;
+          }
         case '0':
         case '1':
         case '2':
@@ -795,10 +858,75 @@ namespace {
     return -1;
   }
 
-  void yyerror(Context* ctx, const char* msg) {
-    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
-      msg << ", at offset " << (ctx->Text - ctx->TextBegin)
+  void yyerror(YYLTYPE* yylloc, Context* ctx, const char* msg) {
+    ParseError e{
+      ParseError::INVALID_ESCAPE,
+      yylloc->first_column,
+      yylloc->last_column
+    };
+
+    if (*(ctx->TextBegin + e.Begin) == BAD) {
+      // the token read was BAD
+      e.Type = ParseError::INVALID_ESCAPE;
+    }
+    else if (e.Begin == e.End) {
+      // we ran off the end of the pattern looking for a matching delimiter
+      e.Type = ctx->Cur->Type == ParseNode::CHAR_CLASS ?
+        ParseError::UNMATCHED_BRACKET :
+        ParseError::UNMATCHED_PARENTHESIS;
+    }
+    else {
+      // the only remaining way to fail!
+
+// TODO: need to set bounds here; how do we find them?
+      e.Type = ParseError::NONATOMIC_REPETITON;
+    }
+
+    throwError(e, ctx);
+  }
+
+  void throwError(ParseError e, Context* ctx) {
+    std::stringstream ss;
+
+    switch (e.Type) {
+    case ParseError::NONATOMIC_REPETITON:
+      ss << "repetition of non-atom ";
+      break;
+    case ParseError::REVERSED_REPETITION_BOUNDS:
+      ss << e.First << " > " << e.Second << " in ";
+      break;
+    case ParseError::INVALID_ESCAPE:
+      ss << "invalid escape ";
+      break;
+    case ParseError::UNMATCHED_PARENTHESIS:
+      ss << "unmatched left parenthesis ";
+      break;
+    case ParseError::UNMATCHED_BRACKET:
+      ss << "unmatched left bracket ";
+      break;
+    case ParseError::EMPTY_CHAR_CLASS:
+      ss << "empty character class ";
+      break;
+    case ParseError::REVERSED_CHAR_RANGE_BOUNDS:
+      // FIXME: need to UTF8-encode here
+      ss << e.First << " >= " << e.Second << " in ";
+      break;
+    case ParseError::REVERSED_BYTE_RANGE_BOUNDS:
+      ss << "0x" << std::hex << std::uppercase << std::setfill('0')
+         << std::setw(2) << e.First << " >= 0x"
+         << std::setw(2) << e.Second << " in ";
+      break;
+    }
+
+    std::copy(
+      ctx->TextBegin + e.Begin,
+      ctx->TextBegin + e.End,
+      std::ostream_iterator<char>(ss)
     );
+
+    ss << ", at [" << e.Begin << ',' << e.End << ')';
+
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(ss.str());
   }
 }
 
