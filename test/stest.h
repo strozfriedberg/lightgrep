@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "lightgrep/api.h"
+
 #include "pattern.h"
 #include "searchhit.h"
 

@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "basic.h"
 #include "lightgrep/search_hit.h"
+#include "basic.h"
 
 class SearchHit: public LG_SearchHit {
 public:

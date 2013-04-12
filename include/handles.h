@@ -21,10 +21,11 @@
 #include <cstring>
 #include <memory>
 
+#include "lightgrep/api.h"
+
 #include "basic.h"
 #include "fsmthingy.h"
 #include "fwd_pointers.h"
-#include "lightgrep/api.h"
 #include "parsetree.h"
 #include "vm_interface.h"
 #include "pattern.h"

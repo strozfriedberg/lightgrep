@@ -19,6 +19,8 @@
 #ifndef LIGHTGREP_C_UTIL_H
 #define LIGHTGREP_C_UTIL_H
 
+#include <cstddef>  // for size_t
+
 #include "api.h"
 
 #ifdef __cplusplus
