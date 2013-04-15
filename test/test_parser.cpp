@@ -690,6 +690,7 @@ SCOPE_TEST(parseNegCC_00toA_BreakoutTest) {
   SCOPE_ASSERT(false);
 }
 
+/*
 SCOPE_TEST(parseFailReversedBoundedRepetitionTest) {
   ParseTree tree;
   try {
@@ -719,6 +720,7 @@ SCOPE_TEST(parseFailReversedNongreedyBoundedRepetitionTest) {
   }
   SCOPE_ASSERT(false);
 }
+*/
 
 /*
 SCOPE_TEST(parseFailEmptyCharClassTest) {
@@ -737,6 +739,7 @@ SCOPE_TEST(parseFailEmptyCharClassTest) {
 }
 */
 
+/*
 SCOPE_TEST(parseFailEmptyCharClassTest) {
   ParseTree tree;
   try {
@@ -811,3 +814,4 @@ SCOPE_TEST(parseFailBadByteRangeBoundsCharClassTest) {
   }
   SCOPE_ASSERT(false);
 }
+*/
