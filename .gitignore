@@ -1,5 +1,5 @@
-.*.swp
-bin/*
-tmp/*
-vendors
 *.pyc
+.*.swp
+bin
+tmp
+vendors
