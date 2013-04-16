@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
-# TODO: 2.69 is likely not the least minimum autoconf which would work for us
-AC_PREREQ([2.69])
+# TODO: Unknown whether 2.64 actually works; was a bit of a milestone release, though
+AC_PREREQ([2.64])
 # TODO: required versions for automake, libtool?
 
 AC_INIT([liblightgrep], [0.0], [BUG-REPORT-ADDRESS])
