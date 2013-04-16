@@ -50,12 +50,15 @@ AC_FUNC_MALLOC
 #
 # dependent libs
 #
-# FIXME: do we want a dependency on pkg-config?
-PKG_PROG_PKG_CONFIG
-PKG_CHECK_MODULES([ICU], [icu-uc >= 49])
+
+# ICU checks
+AX_CHECK_ICU(1.48)
+#AC_CHECK_HEADERS([unicode/uchar.h unicode/uset.h unicode/ucnv.h unicode/ustring.h])
+#PKG_PROG_PKG_CONFIG
+#PKG_CHECK_MODULES([ICU], [icu-uc >= 48])
 
 # FIXME: --disable-boost should be impossible
-AX_BOOST_BASE([1.50.0])
+AX_BOOST_BASE([1.49.0])
 
 #
 # tests
