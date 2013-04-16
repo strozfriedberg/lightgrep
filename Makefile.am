@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) -Iinclude
-AM_CXXFLAGS = $(BOOST_CXXFLAGS) $(ICU_CFLAGS) -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
+AM_CXXFLAGS = $(BOOST_CXXFLAGS) $(ICU_CXXFLAGS) -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
 AM_CFLAGS = $(ICU_CFLAGS) -std=c1x -W -Wall -Wextra -pedantic -pipe
 # FIXME: shouldn't -pthread already be in $(BOOST_LDFLAGS)?
 AM_LDFLAGS = -pthread $(BOOST_LDFLAGS)
