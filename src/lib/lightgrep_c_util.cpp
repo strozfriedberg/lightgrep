@@ -30,14 +30,14 @@
 #include <tuple>
 #include <vector>
 
-#include "decoders/decoder.h"
-#include "decoders/decoderfactory.h"
-#include "decoders/utf8.h"
-
-#include "c_api_util.h"
 #include "lightgrep/util.h"
 #include "lightgrep/transforms.h"
 #include "lightgrep/encodings.h"
+
+#include "c_api_util.h"
+#include "decoders/decoder.h"
+#include "decoders/decoderfactory.h"
+#include "decoders/utf8.h"
 
 namespace {
   int find_trans_id(const LG_TRANS* beg, const LG_TRANS* end, const char* const name) {

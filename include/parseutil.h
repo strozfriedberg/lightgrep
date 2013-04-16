@@ -88,13 +88,12 @@ int parseHexCodePoint(Iterator& i, const Iterator& iend) {
       val |= c - 'a' + 10;
       break;
     case '}':
-      return val;
+      return val > 0x10FFFF ? -1 : val;
     default:
       return -1;
     }
   }
   return -1;
-
 }
 
 int parseOctChar(int c);

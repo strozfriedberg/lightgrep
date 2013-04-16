@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "decoders/decoder.h"
 #include "lightgrep/util.h"
+#include "decoders/decoder.h"
 
 const int32_t Decoder::END = LG_WINDOW_END;

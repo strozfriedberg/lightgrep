@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
     if (optsMap.count("help")) {
       std::cerr << desc << std::endl;
     }
-    else if (optsMap.count("test")) {
+    else if (optsMap.count("test") || optsMap.empty()) {
       return scope::DefaultRun(std::cout, argc, argv) ? 0 : 1;
     }
     else if (optsMap.count("long-test")) {

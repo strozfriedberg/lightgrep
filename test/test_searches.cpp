@@ -18,6 +18,7 @@
 
 #include <scope/test.h>
 
+#include <algorithm>
 #include <cstring>
 
 #include "stest.h"
@@ -409,7 +410,7 @@ SCOPE_FIXTURE_CTOR(a22Search, STest, STest("(a{2}){2}")) {
 
 SCOPE_FIXTURE_CTOR(a10000Search, STest, STest("a{10000}")) {
   byte text[10000];
-  memset(text, 'a', sizeof(text));
+  std::fill(text, text + sizeof(text), 'a');
   fixture.search(text, text + sizeof(text), 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, sizeof(text), 0), fixture.Hits[0]);

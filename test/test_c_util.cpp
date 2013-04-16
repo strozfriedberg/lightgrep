@@ -22,8 +22,9 @@
 #include <memory>
 #include <vector>
 
-#include "decoders/decoder.h"
 #include "lightgrep/util.h"
+
+#include "decoders/decoder.h"
 
 void readWindowTest(
   uint64_t doff,

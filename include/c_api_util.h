@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "basic.h"
 #include "lightgrep/api.h"
+#include "basic.h"
 
 void fillError(LG_Error** err, const char* msg);
 

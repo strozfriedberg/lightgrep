@@ -23,6 +23,8 @@
 #include <functional>
 #include <sstream>
 
+#include "lightgrep/encodings.h"
+
 #include "codegen.h"
 #include "compiler.h"
 #include "nfaoptimizer.h"
@@ -30,7 +32,6 @@
 #include "mockcallback.h"
 #include "vm_interface.h"
 
-#include "lightgrep/encodings.h"
 #include "test_helper.h"
 
 /*
