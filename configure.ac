@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-# TODO: Unknown whether 2.64 actually works; was a bit of a milestone release, though
+# TODO: Unknown whether 2.64 works; was a bit of a milestone release, though
 AC_PREREQ([2.64])
 # TODO: required versions for automake, libtool?
 
@@ -48,15 +48,14 @@ AC_FUNC_ALLOCA
 AC_FUNC_MALLOC
 
 #
-# dependent libs
+# ICU
 #
-
-# ICU checks
 AX_CHECK_ICU(1.48)
 #AC_CHECK_HEADERS([unicode/uchar.h unicode/uset.h unicode/ucnv.h unicode/ustring.h])
-#PKG_PROG_PKG_CONFIG
-#PKG_CHECK_MODULES([ICU], [icu-uc >= 48])
 
+#
+# Boost
+#
 # FIXME: --disable-boost should be impossible
 AX_BOOST_BASE([1.49.0])
 
