@@ -280,11 +280,11 @@ unsigned int lg_hit_context(const char* bufStart,
   );
 
   std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
-    characters, lg_free_window_characters
+    characters, &lg_free_window_characters
   );
 
   std::unique_ptr<size_t[],void(*)(size_t*)> poff(
-    offsets, lg_free_window_offsets
+    offsets, &lg_free_window_offsets
   );
 
   outer->begin = dataOffset + offsets[0];
