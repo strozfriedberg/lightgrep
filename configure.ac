@@ -96,22 +96,22 @@ if test "x$ax_cv_boost_program_options" != "xyes" || \
    test "x$ax_cv_boost_system" != "xyes" || \
    test "x$ax_cv_boost_thread" != "xyes" || \
    test "x$scope_ok" != "xyes"; then
-  echo
-  echo "WARNING: You will not be able to compile and run the tests because:"
-  echo
+  AC_MSG_WARN([])
+  AC_MSG_WARN([You will be unable to compile and run the tests because:])
+  AC_MSG_WARN([])
   if test "x$ax_cv_boost_program_options" != "xyes"; then
-    echo "  * boost::program_options is unavailable"
+    AC_MSG_WARN([  * boost::program_options is unavailable])
   fi
   if test "x$ax_cv_boost_system" != "xyes"; then
-    echo "  * boost::system is unavailable"
+    AC_MSG_WARN([  * boost::system is unavailable])
   fi
   if test "x$ax_cv_boost_thread" != "xyes"; then
-    echo "  * boost::thread is unavailable"
+    AC_MSG_WARN([  * boost::thread is unavailable])
   fi
   if test "x$scope_ok" != "xyes"; then
-    echo "  * Scope test framework is unavailable"
+    AC_MSG_WARN([  * Scope test framework is unavailable])
   fi
-  echo
+  AC_MSG_WARN([])
 fi
 
 AC_CONFIG_FILES([Makefile])
