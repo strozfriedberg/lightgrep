@@ -41,11 +41,7 @@ AC_PROG_INSTALL
 # regex grammar
 #
 AX_PROG_BISON
-AC_CHECK_HEADERS([libintl.h malloc.h])
-
-# TODO: check that we're using these properly
-AC_FUNC_ALLOCA
-AC_FUNC_MALLOC
+AC_CHECK_HEADERS([libintl.h])
 
 #
 # ICU
@@ -54,7 +50,7 @@ AX_CHECK_ICU(1.48)
 #AC_CHECK_HEADERS([unicode/uchar.h unicode/uset.h unicode/ucnv.h unicode/ustring.h])
 
 #
-# Boost
+# Boost headers
 #
 # FIXME: --disable-boost should be impossible
 AX_BOOST_BASE([1.49.0])
@@ -62,25 +58,35 @@ AX_BOOST_BASE([1.49.0])
 #
 # tests
 #
-AC_ARG_ENABLE([tests],
-  [AS_HELP_STRING([--enable-tests], [build the test framework])],
-  [enable_tests=$enableval],
-  [enable_tests=yes])
+AX_BOOST_PROGRAM_OPTIONS
+AX_BOOST_SYSTEM
+AX_BOOST_THREAD
 
-if test "x${enable_tests}" = "xyes"; then
-  # FIXME: disabling these should be impossible if tests are enabled
-  AX_BOOST_PROGRAM_OPTIONS
-  AX_BOOST_THREAD
-  AX_BOOST_SYSTEM
+AC_ARG_WITH([scope],
+  [AS_HELP_STRING([--with-scope], [])],
+  [SCOPE_CPPFLAGS="-I$withval"],
+  [SCOPE_CPPFLAGS="-Ivendors/scope"])
+# FIXME: check that scope is actually there and usable
+#AC_CHECK_HEADERS([scope/test.h], [], [], [-I])
+AC_SUBST([SCOPE_CPPFLAGS])
 
-  # FIXME: disabling scope should be impossible if tests are enabled 
-  AC_ARG_WITH([scope],
-    [AS_HELP_STRING([--with-scope], [])],
-    [SCOPE_CPPFLAGS="-I$withval"],
-    [SCOPE_CPPFLAGS="-Ivendors/scope"])
-  # FIXME: check that scope is actually there and usable
-  #AC_CHECK_HEADERS([scope/test.h], [], [], [-I])
-  AC_SUBST([SCOPE_CPPFLAGS])
+if test "x$ax_cv_boost_program_options" != "xyes" -o \
+        "x$ax_cv_boost_system" != "xyes" -o \
+        "x$ax_cv_boost_thread" != "xyes"; then 
+  echo
+  echo "WARNING: You will not be able to compile and run the tests because:"
+  echo
+  if test "x$ax_cv_boost_program_options" != "xyes"; then
+    echo "  * boost::program_options is unavailable"
+  fi
+  if test "x$ax_cv_boost_system" != "xyes"; then
+    echo "  * boost::system is unavailable"
+  fi
+  if test "x$ax_cv_boost_thread" != "xyes"; then
+    echo "  * boost::thread is unavailable"
+  fi
+# TODO: add scope check here
+  echo
 fi
 
 AC_OUTPUT
