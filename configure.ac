@@ -53,11 +53,13 @@ AX_CHECK_ICU(1.48)
 #
 # Boost headers
 #
-AS_IF([test "x$with_boost" != "xno"],
-  [AX_BOOST_BASE([1.49.0],
+if test "x$with_boost" = "xno"; then
+  AC_MSG_ERROR([--without-boost specified, but Boost is mandatory.])
+else
+  AX_BOOST_BASE([1.49.0],
     [],
-    [AC_MSG_ERROR([Failed to find usable Boost headers.])])],
-  [AC_MSG_ERROR([--without-boost specified, but Boost is mandatory.])])
+    [AC_MSG_ERROR([Failed to find usable Boost headers.])])
+fi
 
 #
 # tests
