@@ -262,30 +262,19 @@ unsigned int lg_hit_context(const char* bufStart,
                             LG_Window* outer)
 {
   // decode the hit and its context using the deluxe decoder
-  int32_t* characters;
-  size_t* offsets;
-  size_t clen;
+  int32_t* characters = nullptr;
+  size_t* offsets = nullptr;
+  size_t clen = 0;
 
-  const unsigned int bad = lg_read_window(
-    bufStart,
-    bufEnd,
-    dataOffset,
-    inner,
-    encoding,
-    windowSize,
-    windowSize,
-    &characters,
-    &offsets,
-    &clen
-  );
+  const unsigned int bad = lg_read_window(bufStart, bufEnd, dataOffset, inner,
+                                          encoding, windowSize, windowSize,
+                                          &characters, &offsets, &clen);
 
-  std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
-    characters, lg_free_window_characters
-  );
+  const std::unique_ptr<int32_t[],void(*)(int32_t[])> pchars(characters,
+                                                      lg_free_window_characters);
 
-  std::unique_ptr<size_t[],void(*)(size_t*)> poff(
-    offsets, lg_free_window_offsets
-  );
+  const std::unique_ptr<size_t[],void(*)(size_t[])> poff(offsets,
+                                                      lg_free_window_offsets);
 
   outer->begin = dataOffset + offsets[0];
   outer->end = dataOffset + offsets[clen-1];
@@ -314,11 +303,11 @@ unsigned int lg_hit_context(const char* bufStart,
   return bad;
 }
 
-void lg_free_window_characters(int32_t* characters) {
+void lg_free_window_characters(int32_t characters[]) {
   delete[] characters;
 }
 
-void lg_free_window_offsets(size_t* offsets) {
+void lg_free_window_offsets(size_t offsets[]) {
   delete[] offsets;
 }
 
