@@ -41,19 +41,23 @@ AC_PROG_INSTALL
 # regex grammar
 #
 AX_PROG_BISON
-AC_CHECK_HEADERS([libintl.h])
+
+# libintl.h would be necessary if we used Bison's i18n setup
+#AC_CHECK_HEADERS([libintl.h])
 
 #
 # ICU
 #
 AX_CHECK_ICU(1.48)
-#AC_CHECK_HEADERS([unicode/uchar.h unicode/uset.h unicode/ucnv.h unicode/ustring.h])
 
 #
 # Boost headers
 #
-# FIXME: --disable-boost should be impossible
-AX_BOOST_BASE([1.49.0])
+AS_IF([test "x$with_boost" != "xno"],
+  [AX_BOOST_BASE([1.49.0],
+    [],
+    [AC_MSG_ERROR([Failed to find usable Boost headers.])])],
+  [AC_MSG_ERROR([--without-boost specified, but Boost is mandatory.])])
 
 #
 # tests
