@@ -8,7 +8,6 @@ AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/lib/vm.cpp])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile])
 
 AM_INIT_AUTOMAKE([subdir-objects])
 LT_INIT
@@ -64,21 +63,39 @@ fi
 #
 # tests
 #
+
+# Boost libs used by tests
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_SYSTEM
 AX_BOOST_THREAD
 
+# Scope test framework
 AC_ARG_WITH([scope],
   [AS_HELP_STRING([--with-scope], [])],
   [SCOPE_CPPFLAGS="-I$withval"],
   [SCOPE_CPPFLAGS="-Ivendors/scope"])
-# FIXME: check that scope is actually there and usable
-#AC_CHECK_HEADERS([scope/test.h], [], [], [-I])
-AC_SUBST([SCOPE_CPPFLAGS])
 
-if test "x$ax_cv_boost_program_options" != "xyes" -o \
-        "x$ax_cv_boost_system" != "xyes" -o \
-        "x$ax_cv_boost_thread" != "xyes"; then 
+if test "x$with_scope" != "xno"; then
+  # test Scope without adding its path to CPPFLAGS generally
+  CPPFLAGS_SAVED="$CPPFLAGS"
+  CPPFLAGS="$SCOPE_CPPFLAGS"
+  export CPPFLAGS
+
+  AC_CHECK_HEADERS([scope/test.h],[scope_ok="yes"])
+
+  CPPFLAGS="$CPPFLAGS_SAVED"
+
+  if test "x$scope_ok" = "xyes"; then
+    AC_DEFINE(HAVE_SCOPE,1,[Define to 1 if Scope test framework is available.])
+    AC_SUBST([SCOPE_CPPFLAGS])
+  fi
+fi
+
+# Tell the user why not if he won't be able to compile the tests
+if test "x$ax_cv_boost_program_options" != "xyes" || \
+   test "x$ax_cv_boost_system" != "xyes" || \
+   test "x$ax_cv_boost_thread" != "xyes" || \
+   test "x$scope_ok" != "xyes"; then
   echo
   echo "WARNING: You will not be able to compile and run the tests because:"
   echo
@@ -91,8 +108,11 @@ if test "x$ax_cv_boost_program_options" != "xyes" -o \
   if test "x$ax_cv_boost_thread" != "xyes"; then
     echo "  * boost::thread is unavailable"
   fi
-# TODO: add scope check here
+  if test "x$scope_ok" != "xyes"; then
+    echo "  * Scope test framework is unavailable"
+  fi
   echo
 fi
 
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

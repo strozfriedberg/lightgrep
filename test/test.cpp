@@ -31,7 +31,10 @@
 #error The boost_thread library is requried to compile and run the tests.
 #endif
 
-// TODO: add scope check here
+#ifndef HAVE_SCOPE
+#error The Scope testing framework is required to compile and run the tests.
+#endif
+
 #endif /* HAVE_CONFIG_H */
 
 #include <iostream>
