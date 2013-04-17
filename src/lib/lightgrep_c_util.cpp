@@ -270,11 +270,13 @@ unsigned int lg_hit_context(const char* bufStart,
                                           encoding, windowSize, windowSize,
                                           &characters, &offsets, &clen);
 
-  const std::unique_ptr<int32_t[],void(*)(int32_t[])> pchars(characters,
-                                                      lg_free_window_characters);
+  // ideally should call lg_free_window_characters
+  // this won't work if lg_free_window_characters becomes more complex
+  const std::unique_ptr<int32_t[]> pchars(characters);
 
-  const std::unique_ptr<size_t[],void(*)(size_t[])> poff(offsets,
-                                                      lg_free_window_offsets);
+  // ideally should call lg_free_window_offsets
+  // this won't work if lg_free_window_offsets becomes more complex
+  const std::unique_ptr<size_t[]> poff(offsets); 
 
   outer->begin = dataOffset + offsets[0];
   outer->end = dataOffset + offsets[clen-1];
@@ -303,11 +305,11 @@ unsigned int lg_hit_context(const char* bufStart,
   return bad;
 }
 
-void lg_free_window_characters(int32_t characters[]) {
+void lg_free_window_characters(int32_t* characters) {
   delete[] characters;
 }
 
-void lg_free_window_offsets(size_t offsets[]) {
+void lg_free_window_offsets(size_t* offsets) {
   delete[] offsets;
 }
 
