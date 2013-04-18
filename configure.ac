@@ -77,13 +77,13 @@ AC_ARG_WITH([scope],
 
 if test "x$with_scope" != "xno"; then
   # test Scope without adding its path to CPPFLAGS generally
-  CPPFLAGS_SAVED="$CPPFLAGS"
+  CPPFLAGS_saved="$CPPFLAGS"
   CPPFLAGS="$SCOPE_CPPFLAGS"
   export CPPFLAGS
 
   AC_CHECK_HEADERS([scope/test.h],[scope_ok="yes"])
 
-  CPPFLAGS="$CPPFLAGS_SAVED"
+  CPPFLAGS="$CPPFLAGS_saved"
 
   if test "x$scope_ok" = "xyes"; then
     AC_DEFINE(HAVE_SCOPE,1,[Define to 1 if Scope test framework is available.])
