@@ -16,6 +16,27 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+
+#ifndef HAVE_BOOST_PROGRAM_OPTIONS
+#error The boost_program_options library is requried to compile and run the tests.
+#endif
+
+#ifndef HAVE_BOOST_SYSTEM
+#error The boost_system library is requried to compile and run the tests.
+#endif
+
+#ifndef HAVE_BOOST_THREAD
+#error The boost_thread library is requried to compile and run the tests.
+#endif
+
+#ifndef HAVE_SCOPE
+#error The Scope testing framework is required to compile and run the tests.
+#endif
+
+#endif /* HAVE_CONFIG_H */
+
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <scope/testrunner.h>

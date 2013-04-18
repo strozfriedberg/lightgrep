@@ -270,13 +270,13 @@ unsigned int lg_hit_context(const char* bufStart,
                                           encoding, windowSize, windowSize,
                                           &characters, &offsets, &clen);
 
-  // ideally should call lg_free_window_characters
-  // this won't work if lg_free_window_characters becomes more complex
-  const std::unique_ptr<int32_t[]> pchars(characters);
+  std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
+    characters, &lg_free_window_characters
+  );
 
-  // ideally should call lg_free_window_offsets
-  // this won't work if lg_free_window_offsets becomes more complex
-  const std::unique_ptr<size_t[]> poff(offsets); 
+  std::unique_ptr<size_t[],void(*)(size_t*)> poff(
+    offsets, &lg_free_window_offsets
+  );
 
   outer->begin = dataOffset + offsets[0];
   outer->end = dataOffset + offsets[clen-1];
