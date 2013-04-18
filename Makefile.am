@@ -59,8 +59,7 @@ src_lib_liblightgrep_la_SOURCES = \
 
 src_lib_liblightgrep_la_LIBADD = $(ICU_LIBS)
 
-# TODO: verfiy this path for install
-src_lib_liblightgrep_ladir = $(includedir)/include/lightgrep
+src_lib_liblightgrep_ladir = $(includedir)/lightgrep
 
 src_lib_liblightgrep_la_HEADERS = \
 	include/lightgrep/transforms.h \
@@ -69,7 +68,7 @@ src_lib_liblightgrep_la_HEADERS = \
 	include/lightgrep/util.h \
 	include/lightgrep/search_hit.h
 
-bin_PROGRAMS = c_example/cex src/enc/enc src/val/val src/what/what
+noinst_PROGRAMS = c_example/cex src/enc/enc src/val/val src/what/what
 
 c_example_cex_SOURCES = c_example/main.c
 c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS)
