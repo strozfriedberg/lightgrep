@@ -90,7 +90,8 @@ AX_BOOST_THREAD
 
 # Scope test framework
 AC_ARG_WITH([scope],
-  [AS_HELP_STRING([--with-scope], [])],
+  [AS_HELP_STRING([--with-scope=ARG],
+    [use Scope headers from the specified location])],
   [SCOPE_CPPFLAGS="-I$withval"],
   [SCOPE_CPPFLAGS="-Ivendors/scope"])
 
