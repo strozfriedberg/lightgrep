@@ -44,6 +44,30 @@ AX_PROG_BISON
 #
 AX_CHECK_ICU(1.48)
 
+# FIMXE: ICU produces some bullshit flags we don't want, don't want
+# duplicated, or don't want with clang. There's got to be a better
+# way of removing flags/removing duplicate flags than using sed.
+ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2//'`
+ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-W -Wall -ansi -pedantic//'`
+
+#
+# ICU_CXXFLAGS we don't want anywhere:
+#   -ansi
+#
+# ICU_CXXFLAGS which conflict with ones we might set:
+#   -O2
+#   -g
+#
+# ICU_CXXFLAGS which duplicate ours:
+#   -pedantic
+#   -W
+#   -Wall
+#   -pipe
+#
+# ICU_CXXFLAGS which cause clang to freak out on Fedora 18:
+#   -Wp,-D_FORTIFY_SOURCE=2
+#
+
 #
 # Boost headers
 #
