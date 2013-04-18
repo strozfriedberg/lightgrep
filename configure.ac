@@ -16,7 +16,7 @@ LT_INIT
 # common
 #
 
-# set the default compilation flags to -O3, not -g -O2
+# set the default C and C++ compilation flags to -O3, not -g -O2
 : ${CFLAGS="-O3"}
 : ${CXXFLAGS="-O3"}
 
