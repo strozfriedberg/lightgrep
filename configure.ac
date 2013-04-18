@@ -4,6 +4,13 @@ AC_PREREQ([2.64])
 # TODO: required versions for automake, libtool?
 
 AC_INIT([liblightgrep], [0.0], [BUG-REPORT-ADDRESS])
+
+# Set the default C and C++ compilation flags to -O3, not -g -O2
+# Do this immediately after AC_INIT, as other macros might invoke
+# AC_PROG_CC or AC_PROG_CXX and stomp our defaults.
+: ${CFLAGS="-O3"}
+: ${CXXFLAGS="-O3"}
+
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/lib/vm.cpp])
@@ -15,14 +22,8 @@ LT_INIT
 #
 # common
 #
-
-# set the default C and C++ compilation flags to -O3, not -g -O2
-: ${CFLAGS="-O3"}
-: ${CXXFLAGS="-O3"}
-
 AC_PROG_CC
 AC_PROG_CXX
-
 AM_PROG_CC_C_O
 
 AC_LANG([C++])
