@@ -15,24 +15,20 @@ LT_INIT
 #
 # common
 #
+
+# set the default compilation flags to -O3, not -g -O2
+: ${CFLAGS="-O3"}
+: ${CXXFLAGS="-O3"}
+
 AC_PROG_CC
 AC_PROG_CXX
+
 AM_PROG_CC_C_O
 
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 
 AC_CHECK_HEADERS([stddef.h])
-
-# TODO: check debug builds
-# don't standardly compile with debug symbols
-CFLAGS=`echo "$CFLAGS" | sed s/-g//`
-CXXFLAGS=`echo "$CXXFLAGS" | sed s/-g//`
-
-# TODO: check whether this overrides setting CXXFLAGS from command line
-# compile with -O3, not -O2
-CFLAGS=`echo "$CFLAGS" | sed s/-O2/-O3/`
-CXXFLAGS=`echo "$CXXFLAGS" | sed s/-O2/-O3/`
 
 AC_PROG_INSTALL
 
