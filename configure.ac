@@ -22,8 +22,6 @@ AM_PROG_CC_C_O
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 
-AC_CHECK_HEADERS([stddef.h])
-
 # TODO: check debug builds
 # don't standardly compile with debug symbols
 CFLAGS=`echo "$CFLAGS" | sed s/-g//`
