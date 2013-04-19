@@ -46,6 +46,8 @@ AX_PROG_BISON
 # which won't exist if ICU was compiled static only, so we temporarily add
 # --noverify until we figure out what to do about this.
 ICU_CONFIG='icu-config --noverify'
+AC_MSG_WARN([Disregard the next few lines where ICU_* are printed.])
+AC_MSG_WARN([They're all wrong and we fix them up before using them.])
 AX_CHECK_ICU(1.48)
 
 # FIMXE: ICU produces some bullshit flags we don't want, don't want
@@ -54,6 +56,13 @@ AX_CHECK_ICU(1.48)
 ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2//'`
 ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-W -Wall -ansi -pedantic//'`
 ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licui18n//'`
+
+case "$host" in
+*-*-mingw*)
+  ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licuuc/-lsicuuc/'`
+  ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licudata/-lsicudt/'`
+  ;;
+esac
 
 #
 # ICU_CXXFLAGS we don't want anywhere:
@@ -75,6 +84,10 @@ ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licui18n//'`
 #
 # ICU_LIBS which are wrong on Mac OS X, Windows:
 #   -pthread
+#
+# ICU_LIBS which are wrong for static Windows builds:
+#   -licuuc   -> -lsicuuc
+#   -licudata -> -lsicudt
 #
 # ICU_LIBS which are wrong everywhere:
 #   -licui18n
@@ -168,6 +181,17 @@ case "$host" in
   CPPFLAGS+=' -pthread'
   ;;
 esac
+
+
+
+
+AC_MSG_NOTICE([CC:       $CC])
+AC_MSG_NOTICE([CXX:      $CXX])
+AC_MSG_NOTICE([CPPFLAGS: $CPPFLAGS])
+AC_MSG_NOTICE([CFLAGS:   $CFLAGS])
+AC_MSG_NOTICE([CXXFLAGS: $CXXFLAGS])
+AC_MSG_NOTICE([LIBS:     $LIBS])
+AC_MSG_NOTICE([LDFLAGS:  $LDFLAGS])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
