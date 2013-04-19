@@ -124,6 +124,9 @@ fi
 # FIXME: flags for static mingw builds are hosed
 
 # Boost libs used by tests
+# FIXME: check what actual requirements for chrono are. Only verified
+# one is static mingw builds.
+AX_BOOST_CHRONO
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_SYSTEM
 AX_BOOST_THREAD
@@ -152,13 +155,17 @@ if test "x$with_scope" != "xno"; then
 fi
 
 # Tell the user why not if he won't be able to compile the tests
-if test "x$ax_cv_boost_program_options" != "xyes" || \
+if test "x$ax_cv_boost_chrono" != "xyes" || \
+   test "x$ax_cv_boost_program_options" != "xyes" || \
    test "x$ax_cv_boost_system" != "xyes" || \
    test "x$ax_cv_boost_thread" != "xyes" || \
    test "x$scope_ok" != "xyes"; then
   AC_MSG_WARN([])
   AC_MSG_WARN([You will be unable to compile and run the tests because:])
   AC_MSG_WARN([])
+  if test "x$ax_cv_boost_chrono" != "xyes"; then
+    AC_MSG_WARN([  * boost::chrono is unavailable])
+  fi
   if test "x$ax_cv_boost_program_options" != "xyes"; then
     AC_MSG_WARN([  * boost::program_options is unavailable])
   fi
@@ -204,6 +211,15 @@ if test "x$enable_shared" != "xyes"; then
   CCLD="$CC -all-static"
   AC_SUBST([CXXLD])
   AC_SUBST([CCLD])
+
+  CPPFLAGS+='-DBOOST_THREAD_USE_LIB'
+
+  case "$host" in
+  *-*-mingw*)
+    # FIXME: wrong boost_system lib gets detected!
+    BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
+    ;;
+  esac
 fi
 
 
