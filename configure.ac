@@ -209,8 +209,6 @@ BOOST_CPPFLAGS=`echo "$BOOST_CPPFLAGS" | sed 's/-I\/usr\/include//'`
 if test "x$enable_shared" != "xyes"; then
   CXXLD="$CXX -all-static"
   CCLD="$CC -all-static"
-  AC_SUBST([CXXLD])
-  AC_SUBST([CCLD])
 
   CPPFLAGS+='-DBOOST_THREAD_USE_LIB'
 
@@ -220,7 +218,13 @@ if test "x$enable_shared" != "xyes"; then
     BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
     ;;
   esac
+else
+  CXXLD="$CXX"
+  CCLD="$CC"
 fi
+
+AC_SUBST([CXXLD])
+AC_SUBST([CCLD])
 
 
 # TODO: libtre has a nice display we can steal

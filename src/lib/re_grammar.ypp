@@ -237,6 +237,10 @@ atom:
   {
     $$ = $2;
   }
+| '(' alt error
+  {
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("!!!!!!!!");
+  }
 | literal
 ;
 
