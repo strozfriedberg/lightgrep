@@ -42,6 +42,10 @@ AX_PROG_BISON
 #
 # ICU
 #
+# FIXME: icu-config from ICU cross-compiled with mingw wants libicuuc.dll,
+# which won't exist if ICU was compiled static only, so we temporarily add
+# --noverify until we figure out what to do about this.
+ICU_CONFIG='icu-config --noverify'
 AX_CHECK_ICU(1.48)
 
 # FIMXE: ICU produces some bullshit flags we don't want, don't want
