@@ -118,6 +118,8 @@ fi
 # tests
 #
 
+# FIXME: flags for static mingw builds are hosed
+
 # Boost libs used by tests
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_SYSTEM
@@ -168,6 +170,14 @@ if test "x$ax_cv_boost_program_options" != "xyes" || \
   fi
   AC_MSG_WARN([])
 fi
+
+# TODO: put this somewhere else?
+case "$host" in
+*-*-mingw*)
+  BOOST_ASIO_LIB="-lws2_32 -lmswsock"
+  AC_SUBST([BOOST_ASIO_LIB])
+  ;;
+esac
 
 # TODO: thread flags
 case "$host" in
