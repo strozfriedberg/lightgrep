@@ -57,6 +57,9 @@ ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SO
 ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-W -Wall -ansi -pedantic//'`
 ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licui18n//'`
 
+# FIXME: On Windows, static ICU libs have names different from dynamic ones.
+# This is problematic, because which should be linked against is known only
+# when we know if we're statically or dynamically linking.
 case "$host" in
 *-*-mingw*)
   ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licuuc/-lsicuuc/'`
@@ -192,9 +195,19 @@ case "$host" in
   ;;
 esac
 
+BOOST_CPPFLAGS=`echo "$BOOST_CPPFLAGS" | sed 's/-I\/usr\/include//'`
+
+# FIXME: Is this really the right way to do this?!
+# Build dynamically-linked executables if we build dynamic libs
+if test "x$enable_shared" != "xyes"; then
+  CXXLD="$CXX -all-static"
+  CCLD="$CC -all-static"
+  AC_SUBST([CXXLD])
+  AC_SUBST([CCLD])
+fi
 
 
-
+# TODO: libtre has a nice display we can steal
 AC_MSG_NOTICE([CC:       $CC])
 AC_MSG_NOTICE([CXX:      $CXX])
 AC_MSG_NOTICE([CPPFLAGS: $CPPFLAGS])
