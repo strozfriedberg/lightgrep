@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(ICU_CPPFLAGS) -Iinclude
-AM_CXXFLAGS = $(BOOST_CXXFLAGS) $(ICU_CXXFLAGS) -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
+AM_CPPFLAGS = $(ICU_CPPFLAGS) $(BOOST_CPPFLAGS) -Iinclude
+AM_CXXFLAGS = $(ICU_CXXFLAGS) $(BOOST_CXXFLAGS) $(ICU_CXXFLAGS) -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
 AM_CFLAGS = $(ICU_CFLAGS) -std=c1x -W -Wall -Wextra -pedantic -pipe
 AM_YFLAGS = -r solved
 
