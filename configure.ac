@@ -53,6 +53,7 @@ AX_CHECK_ICU(1.48)
 # way of removing flags/removing duplicate flags than using sed.
 ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2//'`
 ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-W -Wall -ansi -pedantic//'`
+ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licui18n//'`
 
 #
 # ICU_CXXFLAGS we don't want anywhere:
@@ -71,6 +72,13 @@ ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-W -Wall -ansi -pedantic//'`
 # ICU_CXXFLAGS which cause clang to freak out on Fedora 18:
 #   -Wp,-D_FORTIFY_SOURCE=2
 #
+#
+# ICU_LIBS which are wrong on Mac OS X, Windows:
+#   -pthread
+#
+# ICU_LIBS which are wrong everywhere:
+#   -licui18n
+#
 
 #
 # Boost headers
@@ -78,6 +86,16 @@ ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-W -Wall -ansi -pedantic//'`
 if test "x$with_boost" = "xno"; then
   AC_MSG_ERROR([--without-boost specified, but Boost is mandatory.])
 else
+  case "$host" in
+  *-*-mingw*)
+    # AX_BOOST_BASE doesn't find the Boost libs for mingw, we help it out
+    if test "$with_boost_libdir" = ""; then
+      with_boost_libdir="/usr/${host}/sys-root/mingw/lib"
+      AC_MSG_WARN([--with-boost-libdir not set. We are guessing ${with_boost_libdir}.])
+    fi
+    ;;
+  esac
+
   AX_BOOST_BASE([1.49.0],
     [],
     [AC_MSG_ERROR([Failed to find usable Boost headers.])])
@@ -137,6 +155,19 @@ if test "x$ax_cv_boost_program_options" != "xyes" || \
   fi
   AC_MSG_WARN([])
 fi
+
+# TODO: thread flags
+case "$host" in
+*-*-mingw*)
+  ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-lpthread//g'`
+  CPFLAGS+=' -mthreads'
+  ;;
+*-apple-darwin)
+  ;;
+*)
+  CPPFLAGS+=' -pthread'
+  ;;
+esac
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

@@ -3,8 +3,6 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(ICU_CPPFLAGS) -Iinclude
 AM_CXXFLAGS = $(BOOST_CXXFLAGS) $(ICU_CXXFLAGS) -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
 AM_CFLAGS = $(ICU_CFLAGS) -std=c1x -W -Wall -Wextra -pedantic -pipe
-# FIXME: shouldn't -pthread already be in $(BOOST_LDFLAGS)?
-AM_LDFLAGS = -pthread $(BOOST_LDFLAGS)
 AM_YFLAGS = -r solved
 
 # TODO:
@@ -143,4 +141,5 @@ test_test_SOURCES = \
 	test/test_xorencoder.cpp
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
+test_test_LDFLAGS = $(AM_LDFLAGS) $(BOOST_LDFLAGS)
 test_test_LDADD = $(LG_LIB) $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(ICU_LIBS)
