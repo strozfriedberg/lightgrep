@@ -84,7 +84,6 @@ esac
 # ICU_CXXFLAGS which cause clang to freak out on Fedora 18:
 #   -Wp,-D_FORTIFY_SOURCE=2
 #
-#
 # ICU_LIBS which are wrong on Mac OS X, Windows:
 #   -pthread
 #
@@ -208,7 +207,7 @@ if test "x$enable_shared" != "xyes"; then
   CXXLD="$CXX -all-static"
   CCLD="$CC -all-static"
 
-  CPPFLAGS+='-DBOOST_THREAD_USE_LIB'
+  CPPFLAGS+=' -DBOOST_THREAD_USE_LIB'
 
   case "$host" in
   *-*-mingw*)
