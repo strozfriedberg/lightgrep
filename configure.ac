@@ -53,11 +53,12 @@ AX_CHECK_ICU(1.48)
 # FIMXE: ICU produces some bullshit flags we don't want, don't want
 # duplicated, or don't want with clang. There's got to be a better
 # way of removing flags/removing duplicate flags than using sed.
-ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2//'`
-ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed 's/-W -Wall -ansi -pedantic//'`
-ICU_CFLAGS=`echo "$ICU_CFLAGS" | sed 's/-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2//'`
-ICU_CFLAGS=`echo "$ICU_CFLAGS" | sed 's/-Wall -ansi -pedantic//'`
 ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licui18n//'`
+
+for i in '-ansi' '-g' '-O2' '-pedantic' '-pipe' '-W' '-Wall' '-Wp,-D_FORTIFY_SOURCE=2'; do
+  ICU_CFLAGS=`echo "$ICU_CFLAGS" | sed "s/$i\( \|$\)//g"`
+  ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed "s/$i\( \|$\)//g"`
+done
 
 # FIXME: On Windows, static ICU libs have names different from dynamic ones.
 # This is problematic, because which should be linked against is known only
