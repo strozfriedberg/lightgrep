@@ -124,8 +124,6 @@ fi
 # FIXME: flags for static mingw builds are hosed
 
 # Boost libs used by tests
-# FIXME: check what actual requirements for chrono are. Only verified
-# one is static mingw builds.
 AX_BOOST_CHRONO
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_SYSTEM
