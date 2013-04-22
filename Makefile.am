@@ -7,7 +7,6 @@ AM_YFLAGS = -r solved
 
 # TODO:
 # -lstdc++ is not in the right place, should not be repeated
-# -DU_STATIC_IMPLEMENTATION for static ICU
 
 LG_LIB = src/lib/liblightgrep.la
 
