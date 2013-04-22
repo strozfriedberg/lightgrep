@@ -228,6 +228,13 @@ if test "x$enable_shared" != "xyes"; then
     BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
     ;;
   esac
+
+  case "$host" in
+  i686-*-mingw*)
+    # FIXME: Really? This looks like it's just asking for trouble...
+    LDFLAGS+=' -Wl,--allow-multiple-definition'
+    ;;
+  esac
 else
   CXXLD="$CXX"
   CCLD="$CC"
