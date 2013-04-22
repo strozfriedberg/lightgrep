@@ -55,7 +55,7 @@ AX_CHECK_ICU(1.48)
 # way of removing flags/removing duplicate flags than using sed.
 ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licui18n//'`
 
-for i in '-ansi' '-g' '-O2' '-pedantic' '-pipe' '-W' '-Wall' '-Wp,-D_FORTIFY_SOURCE=2'; do
+for i in '-ansi' '-g' '-O2' '-pedantic' '-pipe' '-std=c99' '-W' '-Wall' '-Wp,-D_FORTIFY_SOURCE=2'; do
   ICU_CFLAGS=`echo "$ICU_CFLAGS" | sed "s/$i\( \|$\)//g"`
   ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed "s/$i\( \|$\)//g"`
 done
