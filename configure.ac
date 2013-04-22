@@ -70,6 +70,16 @@ case "$host" in
   ;;
 esac
 
+# FIXME: flag cleanup for mingw
+case "$host" in
+*-*-mingw*)
+  for i in '-g' '-O2' '-pipe' '-Wall'; do
+    CFLAGS=`echo "$CFLAGS" | sed "s/$i\( \|$\)//g"`
+    CXXFLAGS=`echo "$CXXFLAGS" | sed "s/$i\( \|$\)//g"`
+  done
+  ;;
+esac
+
 #
 # ICU_CXXFLAGS we don't want anywhere:
 #   -ansi
@@ -123,7 +133,7 @@ fi
 # tests
 #
 
-# FIXME: flags for static mingw builds are hosed
+# FIXME: CXXFLAGS, CFLAGS, flags for static mingw builds are hosed
 
 # Boost libs used by tests
 AX_BOOST_CHRONO
