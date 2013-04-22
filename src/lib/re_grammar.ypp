@@ -20,7 +20,6 @@ namespace {
     const int* TextEnd;
 
     ParseTree* Tree;
-    ParseNode* Cur;
 
     UnicodeSet USet;
 
@@ -28,12 +27,12 @@ namespace {
     bool CaseInsensitive;
 
     ParseNode* add(const ParseNode& n) {
-      return (Cur = Tree->add(n));
+      return Tree->add(n);
     }
 
     template <class... Args>
     ParseNode* add(Args&&... args) {
-      return (Cur = Tree->add(args...));
+      return Tree->add(args...);
     }
   };
 
@@ -947,8 +946,6 @@ namespace {
     else {
       // The only remaining way to fail is a repetition operator following
       // a non-atom.
-
-// TODO: need to set bounds here; how do we find them?
       e.Type = ParseError::NONATOMIC_REPETITON;
     }
 
@@ -960,7 +957,7 @@ namespace {
 
     switch (e.Type) {
     case ParseError::NONATOMIC_REPETITON:
-      ss << "repetition of non-atom ";
+      ss << "repetition of non-atom by ";
       break;
     case ParseError::REVERSED_REPETITION_BOUNDS:
       ss << e.First << " > " << e.Second << " in ";
