@@ -3,9 +3,8 @@
 #include <cstdio>
 #include <iostream>
 
+#include <bosot/thread.hpp>
 #include <boost/timer.hpp>
-
-#include "include_boost_thread.h"
 
 uint64_t readNext(FILE* file, char* buf, unsigned int blockSize) {
   return std::fread(static_cast<void*>(buf), 1, blockSize, file);

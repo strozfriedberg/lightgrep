@@ -19,14 +19,13 @@ namespace boost {
 
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/thread.hpp>
 
 #include "handles.h"
 #include "hitwriter.h"
 #include "options.h"
 #include "staticvector.h"
 #include "utility.h"
-
-#include "include_boost_thread.h"
 
 using boost::asio::ip::tcp;
 
