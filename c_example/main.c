@@ -21,6 +21,11 @@
 #include <stdio.h>
 #include <string.h>
 
+// declarations for functions below, to avoid warnings, although not necessary
+void getHit(void*, const LG_SearchHit* const);
+void searchText(const char**, unsigned int, LG_HCONTEXT);
+
+
 // callback function that receives the search hit
 void getHit(void* userData, const LG_SearchHit* const hit) {
   // my printf() doesn't like printing out 64-bit uints, hence the unfortunate casts

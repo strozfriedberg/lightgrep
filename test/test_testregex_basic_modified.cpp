@@ -293,7 +293,7 @@ SCOPE_TEST(testregexBasicModifiedSearch37) {
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch38, STest, STest("[^-]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch38, STest, STest("[^\\-]")) {
   const byte* text = (const byte*) "--a";
   fixture.search(text, text + 3, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
@@ -303,14 +303,14 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch38, STest, STest("[^-]")) {
 SCOPE_TEST(testregexBasicModifiedSearch39) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse({"[a-]*", false, false}, tree));
+  SCOPE_ASSERT(parse({"[a\\-]*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
 SCOPE_TEST(testregexBasicModifiedSearch40) {
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse({"[a-m-]*", false, false}, tree));
+  SCOPE_ASSERT(parse({"[a-m\\-]*", false, false}, tree));
   SCOPE_ASSERT(!nfab.build(tree));
 }
 
@@ -351,12 +351,14 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch45, STest, STest("[[:upper:]]+"))
 }
 */
 
+/*
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch46, STest, STest("[[-]]")) {
   const byte* text = (const byte*) "[[-]]";
   fixture.search(text, text + 5, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 4, 0), fixture.Hits[0]);
 }
+*/
 
 /*
 SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch47, STest, STest("[[.NIL.]]")) {
@@ -628,14 +630,14 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch85, STest, STest("a[b-d]")) {
   SCOPE_ASSERT_EQUAL(SearchHit(1, 3, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch86, STest, STest("a[-b]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch86, STest, STest("a[\\-b]")) {
   const byte* text = (const byte*) "a-";
   fixture.search(text, text + 2, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch87, STest, STest("a[b-]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch87, STest, STest("a[b\\-]")) {
   const byte* text = (const byte*) "a-";
   fixture.search(text, text + 2, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
@@ -649,7 +651,7 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch88, STest, STest("a]")) {
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch89, STest, STest("a[]]b")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch89, STest, STest("a[\\]]b")) {
   const byte* text = (const byte*) "a]b";
   fixture.search(text, text + 3, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
@@ -663,14 +665,14 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch90, STest, STest("a[^bc]d")) {
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch91, STest, STest("a[^-b]c")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch91, STest, STest("a[^\\-b]c")) {
   const byte* text = (const byte*) "adc";
   fixture.search(text, text + 3, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch92, STest, STest("a[^]b]c")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch92, STest, STest("a[^\\]b]c")) {
   const byte* text = (const byte*) "adc";
   fixture.search(text, text + 3, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
@@ -1009,119 +1011,119 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch139, STest, STest("a[-]?c")) {
   SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch140, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch140, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muammar Qaddafi";
   fixture.search(text, text + 15, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 15, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch141, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch141, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Mo'ammar Gadhafi";
   fixture.search(text, text + 16, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 16, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch142, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch142, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muammar Kaddafi";
   fixture.search(text, text + 15, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 15, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch143, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch143, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muammar Qadhafi";
   fixture.search(text, text + 15, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 15, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch144, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch144, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muammar Gadafi";
   fixture.search(text, text + 14, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 14, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch145, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch145, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Mu'ammar Qadafi";
   fixture.search(text, text + 15, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 15, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch146, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch146, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Moamar Gaddafi";
   fixture.search(text, text + 14, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 14, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch147, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch147, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Mu'ammar Qadhdhafi";
   fixture.search(text, text + 18, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 18, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch148, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch148, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muammar Khaddafi";
   fixture.search(text, text + 16, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 16, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch149, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch149, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muammar Ghaddafy";
   fixture.search(text, text + 16, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 16, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch150, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch150, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muammar Ghadafi";
   fixture.search(text, text + 15, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 15, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch151, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch151, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muammar Ghaddafi";
   fixture.search(text, text + 16, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 16, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch152, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch152, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muamar Kaddafi";
   fixture.search(text, text + 14, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 14, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch153, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch153, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muammar Quathafi";
   fixture.search(text, text + 16, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 16, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch154, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch154, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Muammar Gheddafi";
   fixture.search(text, text + 16, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 16, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch155, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch155, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Moammar Khadafy";
   fixture.search(text, text + 15, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 15, 0), fixture.Hits[0]);
 }
 
-SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch156, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
+SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch156, STest, STest("M[ou]'?am+[ae]r .*([AEae]l[\\- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]")) {
   const byte* text = (const byte*) "Moammar Qudhafi";
   fixture.search(text, text + 15, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
@@ -1375,4 +1377,3 @@ SCOPE_FIXTURE_CTOR(testregexBasicModifiedSearch191, STest, STest("\\\\000")) {
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
 }
-

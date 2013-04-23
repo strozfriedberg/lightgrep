@@ -30,14 +30,14 @@
 #include <tuple>
 #include <vector>
 
-#include "decoders/decoder.h"
-#include "decoders/decoderfactory.h"
-#include "decoders/utf8.h"
-
-#include "c_api_util.h"
 #include "lightgrep/util.h"
 #include "lightgrep/transforms.h"
 #include "lightgrep/encodings.h"
+
+#include "c_api_util.h"
+#include "decoders/decoder.h"
+#include "decoders/decoderfactory.h"
+#include "decoders/utf8.h"
 
 namespace {
   int find_trans_id(const LG_TRANS* beg, const LG_TRANS* end, const char* const name) {
@@ -280,11 +280,11 @@ unsigned int lg_hit_context(const char* bufStart,
   );
 
   std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
-    characters, lg_free_window_characters
+    characters, &lg_free_window_characters
   );
 
   std::unique_ptr<size_t[],void(*)(size_t*)> poff(
-    offsets, lg_free_window_offsets
+    offsets, &lg_free_window_offsets
   );
 
   outer->begin = dataOffset + offsets[0];

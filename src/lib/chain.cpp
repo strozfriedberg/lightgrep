@@ -16,11 +16,12 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "basic.h"
-#include "chain.h"
 #include "lightgrep/encodings.h"
 #include "lightgrep/transforms.h"
 #include "lightgrep/util.h"
+
+#include "basic.h"
+#include "chain.h"
 
 #include <boost/tokenizer.hpp>
 

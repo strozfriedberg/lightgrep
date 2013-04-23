@@ -125,7 +125,8 @@ SCOPE_TEST(parseHexCodePointTest) {
   fixture(parseHexCodePoint<SItr>, "11111",    -1,       -1);
   fixture(parseHexCodePoint<SItr>, "11111}",   0x11111,   6);
   fixture(parseHexCodePoint<SItr>, "111111",   -1,       -1);
-  fixture(parseHexCodePoint<SItr>, "111111}",  0x111111,  7);
+  fixture(parseHexCodePoint<SItr>, "10FFFF}",  0x10FFFF,  7);  // last point
+  fixture(parseHexCodePoint<SItr>, "110000}",  -1,       -1);
   fixture(parseHexCodePoint<SItr>, "1111111",  -1,       -1);
   fixture(parseHexCodePoint<SItr>, "1111111}", -1,       -1);  // > 6 digits
 }

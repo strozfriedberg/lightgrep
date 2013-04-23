@@ -62,7 +62,7 @@ struct ParseNode {
 
 */
 
-  ParseNode *Left;
+  ParseNode* Left;
 
   union {
     ParseNode* Right;

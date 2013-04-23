@@ -4,7 +4,12 @@
 #include "parseutil.h"
 #include "pattern.h"
 #include "unicode.h"
+#include "encoders/utf8.h"
 
+#include <iostream>
+
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -32,29 +37,82 @@ namespace {
   };
 
   union YYSTYPE {
-    unsigned int c;
+    int c;
     ParseNode* node;
     UnicodeSet* s;
   };
 
-  static int yylex(YYSTYPE* yylval, Context* ctx);
-  static void yyerror(Context* ctx, const char* msg);
+  struct YYLTYPE {
+    int first_line; // unused
+    int first_column;
+    int last_line;  // unused
+    int last_column;
+  };
+
+  struct ParseError {
+    enum {
+      NONATOMIC_REPETITON,
+      REVERSED_REPETITION_BOUNDS,
+      INVALID_ESCAPE,
+      UNMATCHED_PARENTHESIS,
+      UNMATCHED_BRACKET,
+      EMPTY_CHAR_CLASS,
+      REVERSED_CHAR_RANGE_BOUNDS,
+      REVERSED_BYTE_RANGE_BOUNDS
+    } Type;
+
+    int Begin;
+    int End;
+    int First;
+    int Second;
+
+    ParseError(
+      decltype(Type) type, int begin, int end, int first = -1, int second = -1
+    ):
+      Type(type), Begin(begin), End(end), First(first), Second(second)
+    {}
+  };
+
+  static int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, Context* ctx);
+  static void yyerror(YYLTYPE* yylloc, Context* ctx, const char* msg);
+
+  void throwError(ParseError e, Context* ctx);
 }
 
+#define YYLTYPE_IS_DECLARED 1
+#define YYLTYPE_IS_TRIVIAL 1
+
+//extern int yydebug;
 }
 
+%locations
 %define api.pure
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
 
+%expect 199
+
+//%debug
+
+%error-verbose
+
 %token <c> BYTE
 %token <c> CHAR
 %token <c> DIGIT
-%token <c> BAD
+%token <c> BAD "invalid escape"
 %token <s> SET
 
-%type <node> regexp alt concat rep number atom literal charclass charclass_right cc_named
-%type <c>    character cc_char cc_char_first cc_char_not_first
+%token END 0 "end of pattern"
+
+%type <node> regexp alt concat rep number atom literal charclass cc_named cc_expr cc_expr_first
+%type <c> character cc_char cc_char_first cc_char_not_first
+
+%type <c> UNION INTERSECT MINUS XOR LEAST
+
+%left LEAST
+%left UNION
+%left INTERSECT MINUS XOR
+%nonassoc '-'
 
 %start regexp
 
@@ -109,7 +167,14 @@ rep:
   {
     if ($3->Val > $5->Val) {
       // {n,m} is ill-formed when n > m
-      yyerror(ctx, "syntax error");
+      throwError(
+        {
+          ParseError::REVERSED_REPETITION_BOUNDS,
+          @2.first_column, @7.last_column,
+          $3->Val, $5->Val
+        },
+        ctx
+      );
     }
     else {
       $$ = ctx->add(ParseNode::REPETITION_NG, $1, $3->Val, $5->Val);
@@ -139,7 +204,14 @@ rep:
   {
     if ($3->Val > $5->Val) {
       // {n,m} is ill-formed when n > m
-      yyerror(ctx, "syntax error");
+      throwError(
+        {
+          ParseError::REVERSED_REPETITION_BOUNDS,
+          @2.first_column, @6.last_column,
+          $3->Val, $5->Val,
+        },
+        ctx
+      );
     }
     else {
       $$ = ctx->add(ParseNode::REPETITION, $1, $3->Val, $5->Val);
@@ -163,6 +235,26 @@ atom:
   '(' alt ')'
   {
     $$ = $2;
+  }
+| '(' alt error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_PARENTHESIS,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '(' error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_PARENTHESIS,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
   }
 | literal
 ;
@@ -193,59 +285,7 @@ literal:
   {
     $$ = ctx->add(ParseNode::DOT, '.');
   }
-| '[' '^' charclass ']'
-  {
-    $$ = $3;
-
-    if ($$->CodePoints.any()) {
-      // NB: PCRE applies case-insensitivity first, then negation. This is
-      // important, as these two operations do not commute on a cc such as
-      // [^a]. Let U be the set of all Unicode code points. Negating first
-      // gives U / {a}, which becomes U again when closing under case-
-      // insensitivity, due to A being a member of U / {a}, while closing
-      // under case-insensitivity first gives {A, a}, which becomes
-      // U / {A, a} after negation.
-
-      if (ctx->CaseInsensitive) {
-        caseDesensitize($$->CodePoints);
-      }
-
-      $$->CodePoints.flip();
-      if ($$->CodePoints.none()) {
-        // empty character class
-        yyerror(ctx, "syntax error");
-      }
-
-      if ($$->Breakout.Bytes.any()) {
-        $$->Breakout.Additive = false;
-      }
-    }
-    else if ($$->Breakout.Bytes.any()) {
-      $$->Breakout.Bytes.flip();
-      if ($$->Breakout.Bytes.none()) {
-        // empty character class
-        yyerror(ctx, "syntax error");
-      }
-    }
-    else {
-      // empty character class
-      yyerror(ctx, "syntax error");
-    }
-  }
-| '[' charclass ']'
-  {
-    $$ = $2;
-
-    if (ctx->CaseInsensitive) {
-      caseDesensitize($$->CodePoints);
-    }
-  }
-| cc_named
-  {
-    if (ctx->CaseInsensitive) {
-      caseDesensitize($$->CodePoints);
-    }
-  }
+| charclass
 ;
 
 character:
@@ -271,105 +311,288 @@ character:
   {
     $$ = ',';
   }
+| '&'
+  {
+    $$ = '&';
+  }
+| '~'
+  {
+    $$ = '~';
+  }
 ;
 
 charclass:
-  cc_char_first '-' cc_char_not_first charclass_right
+  '[' cc_expr_first ']'
   {
-    if ($3 <= $1) {
-      // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
+    $$ = $2;
+
+    if (ctx->CaseInsensitive) {
+      caseDesensitize($$->CodePoints);
     }
 
-    $$ = $4;
-    $$->CodePoints.insert($1, $3 + 1);
-  }
-| cc_char_first charclass_right
-  {
-    $$ = $2;
-    $$->CodePoints.set($1);
-  }
-| cc_named charclass_right
-  {
-    $$ = $2;
-    $$->CodePoints |= $1->CodePoints;
-  }
-| BYTE charclass_right
-  {
-    $$ = $2;
-    $$->Breakout.Bytes.set($1);
-  }
-| BYTE '-' BYTE charclass_right
-  {
-    if ($3 <= $1) {
-      // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
+    if ($$->CodePoints.none() && $$->Breakout.Bytes.none()) {
+      // empty character class
+      throwError(
+        {
+          ParseError::EMPTY_CHAR_CLASS,
+          @1.first_column, @3.last_column
+        },
+        ctx
+      );
     }
+  }
+| '[' '^' cc_expr ']'
+  {
+    $$ = $3;
 
-    $$ = $4;
-    $$->Breakout.Bytes.set($1, $3 + 1, true);
+    if ($$->CodePoints.any()) {
+      // NB: PCRE applies case-insensitivity first, then negation. This is
+      // important, as these two operations do not commute on a cc such as
+      // [^a]. Let U be the set of all Unicode code points. Negating first
+      // gives U / {a}, which becomes U again when closing under case-
+      // insensitivity, due to A being a member of U / {a}, while closing
+      // under case-insensitivity first gives {A, a}, which becomes
+      // U / {A, a} after negation.
+
+      if (ctx->CaseInsensitive) {
+        caseDesensitize($$->CodePoints);
+      }
+
+      $$->CodePoints.flip();
+      if ($$->CodePoints.none()) {
+        // empty character class
+        throwError(
+          {
+            ParseError::EMPTY_CHAR_CLASS,
+            @1.first_column, @3.last_column,
+          },
+          ctx
+        );
+      }
+
+      if ($$->Breakout.Bytes.any()) {
+        $$->Breakout.Additive = false;
+      }
+    }
+    else if ($$->Breakout.Bytes.any()) {
+      $$->Breakout.Bytes.flip();
+      if ($$->Breakout.Bytes.none()) {
+        // empty character class
+        throwError(
+          {
+            ParseError::EMPTY_CHAR_CLASS,
+            @1.first_column, @4.last_column,
+          },
+          ctx
+        );
+      }
+    }
+    else {
+      // empty inner character class
+      $$->CodePoints.flip();
+    }
   }
-| BYTE '-' cc_char_not_first charclass_right
+| '[' cc_expr_first error
   {
-    // ranges must have endpoints of the same type
-    yyerror(ctx, "syntax error");
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
   }
-| cc_char_first '-' BYTE charclass_right
+| '[' error
   {
-    // ranges must have endpoints of the same type
-    yyerror(ctx, "syntax error");
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| cc_named
+  {
+    if (ctx->CaseInsensitive) {
+      caseDesensitize($$->CodePoints);
+    }
   }
 ;
 
-charclass_right:
-  cc_char_not_first '-' cc_char_not_first charclass_right
+cc_expr_first:
+  cc_expr_first cc_expr %prec UNION
+  {
+    $$ = $1;
+    $$->CodePoints |= $2->CodePoints;
+    $$->Breakout.Bytes |= $2->Breakout.Bytes;
+  }
+| cc_expr_first '&' '&' cc_expr %prec INTERSECT
+  {
+    $$ = $1;
+    $$->CodePoints &= $4->CodePoints;
+    $$->Breakout.Bytes &= $4->Breakout.Bytes;
+  }
+| cc_expr_first '-' '-' cc_expr %prec MINUS
+  {
+    $$ = $1;
+    $$->CodePoints -= $4->CodePoints;
+    $$->Breakout.Bytes -= $4->Breakout.Bytes;
+  }
+| cc_expr_first '~' '~' cc_expr %prec XOR
+  {
+    $$ = $1;
+    $$->CodePoints ^= $4->CodePoints;
+    $$->Breakout.Bytes ^= $4->Breakout.Bytes;
+  }
+| cc_char_first '-' cc_char_not_first
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
+      throwError(
+        {
+          ParseError::REVERSED_CHAR_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
     }
 
-    $$ = $4;
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
     $$->CodePoints.insert($1, $3 + 1);
   }
-| cc_char_not_first charclass_right
-  {
-    $$ = $2;
-    $$->CodePoints.set($1);
-  }
-| cc_named charclass_right
-  {
-    $$ = $2;
-    $$->CodePoints |= $1->CodePoints;
-  }
-| BYTE charclass_right
-  {
-    $$ = $2;
-    $$->Breakout.Bytes.set($1);
-  }
-| BYTE '-' BYTE charclass_right
+| BYTE '-' BYTE
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
-      yyerror(ctx, "syntax error");
+      throwError(
+        {
+          ParseError::REVERSED_BYTE_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
     }
 
-    $$ = $4;
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
     $$->Breakout.Bytes.set($1, $3 + 1, true);
   }
-| BYTE '-' cc_char_not_first charclass_right
-  {
-    // ranges must have endpoints of the same type
-    yyerror(ctx, "syntax error");
-  }
-| cc_char_not_first '-' BYTE charclass_right
-  {
-    // ranges must have endpoints of the same type
-    yyerror(ctx, "syntax error");
-  }
-| /* empty */
+| charclass
+| cc_char_first %prec LEAST
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.set($1);
+  }
+| BYTE %prec LEAST
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Breakout.Bytes.set($1);
+  }
+;
+
+cc_expr:
+  cc_expr cc_expr %prec UNION
+  {
+    $$ = $1;
+    $$->CodePoints |= $2->CodePoints;
+    $$->Breakout.Bytes |= $2->Breakout.Bytes;
+  }
+| cc_expr '&' '&' cc_expr %prec INTERSECT
+  {
+    $$ = $1;
+    $$->CodePoints &= $4->CodePoints;
+    $$->Breakout.Bytes &= $4->Breakout.Bytes;
+  }
+| cc_expr '-' '-' cc_expr %prec MINUS
+  {
+    $$ = $1;
+    $$->CodePoints -= $4->CodePoints;
+    $$->Breakout.Bytes -= $4->Breakout.Bytes;
+  }
+| cc_char_not_first '-' '-' cc_expr %prec MINUS
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.set($1);
+    $$->CodePoints -= $4->CodePoints;
+  }
+| BYTE '-' '-' cc_expr %prec MINUS
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Breakout.Bytes.set($1);
+    $$->Breakout.Bytes -= $4->Breakout.Bytes;
+}
+| cc_expr '~' '~' cc_expr %prec XOR
+  {
+    $$ = $1;
+    $$->CodePoints ^= $4->CodePoints;
+    $$->Breakout.Bytes ^= $4->Breakout.Bytes;
+  }
+| cc_char_not_first '-' cc_char_not_first
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      throwError(
+        {
+          ParseError::REVERSED_CHAR_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
+    }
+
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.insert($1, $3 + 1);
+  }
+| BYTE '-' BYTE
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      throwError(
+        {
+          ParseError::REVERSED_BYTE_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
+    }
+
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Breakout.Bytes.set($1, $3 + 1, true);
+  }
+| charclass
+| cc_char_not_first %prec LEAST
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.set($1);
+  }
+| BYTE %prec LEAST
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Breakout.Bytes.set($1);
   }
 ;
 
@@ -392,10 +615,12 @@ cc_char_not_first:
 cc_char:
   CHAR
 | DIGIT
+/*
 | '-'
   {
     $$ = '-';
   }
+*/
 | '|'
   {
     $$ = '|';
@@ -507,6 +732,8 @@ namespace {
     case '-':
     case '{':
     case '}':
+    case '&':
+    case '~':
     case '\\':
       yylval->c = c;
       return CHAR;
@@ -629,9 +856,12 @@ namespace {
     }
   }
 
-  int yylex(YYSTYPE* yylval, Context* ctx) {
+  int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, Context* ctx) {
+    yylloc->first_column = ctx->Text - ctx->TextBegin;
+
     if (ctx->Text < ctx->TextEnd) {
       const int c = *ctx->Text++;
+      yylloc->last_column = yylloc->first_column + 1;
       if (c < 1) {
         //   -1 indicates bogus UTF-8
         //    0 is a prohibited mid-string null byte
@@ -656,10 +886,16 @@ namespace {
         case '-':
         case '{':
         case '}':
+        case '&':
+        case '~':
         case ',':
           return c;
         case '\\':
-          return consumeEscape(yylval, ctx);
+          {
+            const int v = consumeEscape(yylval, ctx);
+            yylloc->last_column = ctx->Text - ctx->TextBegin;
+            return v;
+          }
         case '0':
         case '1':
         case '2':
@@ -681,16 +917,91 @@ namespace {
     return -1;
   }
 
-  void yyerror(Context* ctx, const char* msg) {
-    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
-      msg << ", at offset " << (ctx->Text - ctx->TextBegin)
+  void yyerror(YYLTYPE* yylloc, Context* ctx, const char* msg) {
+    /*
+       NB: We do not call yyerror ourselves, in order to ensure that if
+       control arrives here, it happened due to a syntax error detected
+       by bison (as opposed to a semantic error we detect in one of the
+       parse rules. This lets us deduce which error we have by examining
+       the state of the parser.
+    */
+
+    ParseError e{
+      ParseError::INVALID_ESCAPE,
+      yylloc->first_column,
+      yylloc->last_column
+    };
+
+    if (*(ctx->TextBegin + e.Begin) == BAD) {
+      // The token read was something invalid.
+      e.Type = ParseError::INVALID_ESCAPE;
+    }
+    else if (e.Begin == e.End) {
+      // We ran off the end of the pattern looking for a matching delimiter.
+      // We return rather than throw here to let the error recovery action
+      // execute. The error recovery action knows the location of the
+      // unmatched delimiter.
+      return;
+    }
+    else {
+      // The only remaining way to fail is a repetition operator following
+      // a non-atom.
+      e.Type = ParseError::NONATOMIC_REPETITON;
+    }
+
+    throwError(e, ctx);
+  }
+
+  void throwError(ParseError e, Context* ctx) {
+    std::stringstream ss;
+
+    switch (e.Type) {
+    case ParseError::NONATOMIC_REPETITON:
+      ss << "repetition of non-atom by ";
+      break;
+    case ParseError::REVERSED_REPETITION_BOUNDS:
+      ss << e.First << " > " << e.Second << " in ";
+      break;
+    case ParseError::INVALID_ESCAPE:
+      ss << "invalid escape ";
+      break;
+    case ParseError::UNMATCHED_PARENTHESIS:
+      ss << "unmatched left parenthesis ";
+      break;
+    case ParseError::UNMATCHED_BRACKET:
+      ss << "unmatched left bracket ";
+      break;
+    case ParseError::EMPTY_CHAR_CLASS:
+      ss << "empty character class ";
+      break;
+    case ParseError::REVERSED_CHAR_RANGE_BOUNDS:
+      // FIXME: need to UTF8-encode here
+      ss << e.First << " >= " << e.Second << " in ";
+      break;
+    case ParseError::REVERSED_BYTE_RANGE_BOUNDS:
+      ss << "0x" << std::hex << std::uppercase << std::setfill('0')
+         << std::setw(2) << e.First << " >= 0x"
+         << std::setw(2) << e.Second << " in ";
+      break;
+    }
+
+    std::copy(
+      ctx->TextBegin + e.Begin,
+      ctx->TextBegin + e.End,
+      std::ostream_iterator<char>(ss)
     );
+
+    ss << ", at [" << e.Begin << ',' << e.End << ')';
+
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(ss.str());
   }
 }
 
 bool parse(const Pattern& p, ParseTree& tree) {
   std::vector<int> cp;
-  transform_utf8_to_unicode(p.Expression.begin(), p.Expression.end(), std::back_inserter(cp));
+  transform_utf8_to_unicode(
+    p.Expression.begin(), p.Expression.end(), std::back_inserter(cp)
+  );
 
   Context ctx;
 
@@ -703,5 +1014,6 @@ bool parse(const Pattern& p, ParseTree& tree) {
   ctx.Tree = &tree;
   ctx.Tree->init(cp.size());
 
+//  yydebug = 1;
   return yyparse(&ctx) == 0;
 }

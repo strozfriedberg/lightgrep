@@ -22,8 +22,9 @@
 #include <memory>
 #include <vector>
 
-#include "decoders/decoder.h"
 #include "lightgrep/util.h"
+
+#include "decoders/decoder.h"
 
 void readWindowTest(
   uint64_t doff,
@@ -55,11 +56,11 @@ void readWindowTest(
   );
 
   std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
-    chars, lg_free_window_characters
+    chars, &lg_free_window_characters
   );
 
   std::unique_ptr<size_t[],void(*)(size_t*)> poff(
-    offsets, lg_free_window_offsets
+    offsets, &lg_free_window_offsets
   );
 
   const size_t ebad = std::count_if(
@@ -105,7 +106,7 @@ void hitContextTest(
   );
 
   std::unique_ptr<const char[],void(*)(const char*)> pchars(
-    utf8, lg_free_hit_context_string
+    utf8, &lg_free_hit_context_string
   );
 
   SCOPE_ASSERT_EQUAL(ebad, abad);

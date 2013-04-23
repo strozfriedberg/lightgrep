@@ -689,3 +689,129 @@ SCOPE_TEST(parseNegCC_00toA_BreakoutTest) {
   }
   SCOPE_ASSERT(false);
 }
+
+/*
+SCOPE_TEST(parseFailReversedBoundedRepetitionTest) {
+  ParseTree tree;
+  try {
+    parse({"a{2,1}", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      std::string("syntax error: 2 > 1 in {2,1}, at offset 6"),
+      e.what()
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailReversedNongreedyBoundedRepetitionTest) {
+  ParseTree tree;
+  try {
+    parse({"a{2,1}?", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      std::string("syntax error: 2 > 1 in {2,1}?, at offset 7"),
+      e.what()
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+*/
+
+/*
+SCOPE_TEST(parseFailEmptyCharClassTest) {
+  ParseTree tree;
+  try {
+    parse({"[]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      std::string("syntax error: empty character class, at offset 2"),
+      e.what()
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+*/
+
+/*
+SCOPE_TEST(parseFailEmptyCharClassTest) {
+  ParseTree tree;
+  try {
+    parse({"[a&&b]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      std::string("syntax error: empty character class, at offset 6"),
+      e.what()
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailEmptyNegCodePointCharClassTest) {
+  ParseTree tree;
+  try {
+    parse({"[^\\x{0}-\\x{10FFFF}]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      std::string("syntax error: empty character class, at offset 19"),
+      e.what()
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailEmptyNegByteCharClassTest) {
+  ParseTree tree;
+  try {
+    parse({"[^\\z00-\\zFF]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      std::string("syntax error: empty character class, at offset 12"),
+      e.what()
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailBadCharRangeBoundsCharClassTest) {
+  ParseTree tree;
+  try {
+    parse({"[z-a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      std::string("syntax error: z >= a in z-a, at offset 4"),
+      e.what()
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailBadByteRangeBoundsCharClassTest) {
+  ParseTree tree;
+  try {
+    parse({"[\\zFF-\\z00]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      std::string("syntax error: 0xFF >= 0x00 in \\zFF-\\z00, at offset 10"),
+      e.what()
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+*/
