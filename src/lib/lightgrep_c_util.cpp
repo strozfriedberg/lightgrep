@@ -1,6 +1,6 @@
 /*
   liblightgrep: not the worst forensics regexp engine
-  Copyright (C) 2012 Lightbox Technologies, Inc
+  Copyright (C) 2013, Lightbox Technologies, Inc
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -262,22 +262,13 @@ unsigned int lg_hit_context(const char* bufStart,
                             LG_Window* outer)
 {
   // decode the hit and its context using the deluxe decoder
-  int32_t* characters;
-  size_t* offsets;
-  size_t clen;
+  int32_t* characters = nullptr;
+  size_t* offsets = nullptr;
+  size_t clen = 0;
 
-  const unsigned int bad = lg_read_window(
-    bufStart,
-    bufEnd,
-    dataOffset,
-    inner,
-    encoding,
-    windowSize,
-    windowSize,
-    &characters,
-    &offsets,
-    &clen
-  );
+  const unsigned int bad = lg_read_window(bufStart, bufEnd, dataOffset, inner,
+                                          encoding, windowSize, windowSize,
+                                          &characters, &offsets, &clen);
 
   std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
     characters, &lg_free_window_characters
