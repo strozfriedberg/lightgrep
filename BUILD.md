@@ -54,20 +54,20 @@ Unit Tests
 ----------
 If you've installed the other Boost libraries, you can run "make check" to build and execute the unit tests. Note that one source file may take several minutes to compile.
 
-> $ make check
-> make  test/test
-> make[1]: Entering directory `/mnt/raid/jon/data/code/liblightgrep'
-> make[1]: Leaving directory `/mnt/raid/jon/data/code/liblightgrep'
-> make  check-TESTS
-> make[1]: Entering directory `/mnt/raid/jon/data/code/liblightgrep'
-> 
-> OK (2992 tests)
-> PASS: test/test
-> =============
-> 1 test passed
-> =============
-> make[1]: Leaving directory `/mnt/raid/jon/data/code/liblightgrep'
+Example:
 
+<code><pre>
+$ make check
+make  test/test
+make[1]: Entering directory `/mnt/raid/jon/data/code/liblightgrep'
+make[1]: Leaving directory `/mnt/raid/jon/data/code/liblightgrep'
+make  check-TESTS
+make[1]: Entering directory `/mnt/raid/jon/data/code/liblightgrep'
+OK (2992 tests)
+PASS: test/test
+1 test passed
+make[1]: Leaving directory `/mnt/raid/jon/data/code/liblightgrep'
+</pre></code>
 
 Installation
 ------------
