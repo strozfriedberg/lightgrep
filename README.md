@@ -25,4 +25,4 @@ Lightgrep is implemented in portable C++11 but exposes a concise C API. It depen
 
 Install
 -------
-See [[BUILD.md]] for installation instructions.
+See the [BUILD.md file](BUILD.md) for installation instructions.
