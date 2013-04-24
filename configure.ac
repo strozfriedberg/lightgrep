@@ -205,7 +205,17 @@ case "$host" in
   ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-lpthread//g'`
   CPFLAGS+=' -mthreads'
   ;;
-*-apple-darwin)
+*-apple-darwin*)
+  echo " ** MacOS X builds are problematic as compilers are in transition."
+  echo " ** We presume you're using a recent clang and libc++."
+  echo " ** And we recommend only building the library and not unit tests."
+  echo " ** If you build unit tests, you are entering a world of pain."
+  CXXFLAGS+=' -stdlib=libc++'
+
+# actually linking against libc++ will require everything else down the chain to use libc++
+# including boost, etc.
+# so, don't do this just yet
+#  LDFLAGS=`echo "$LDFLAGS" | sed 's/-lstdc++/-lc++/'`
   ;;
 *)
   CPPFLAGS+=' -pthread'
