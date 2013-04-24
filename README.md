@@ -3,8 +3,8 @@ liblightgrep
 
 not the worst forensics regexp engine
 
-## About
-
+About
+-----
 Lightgrep is a new regular expression engine, designed specifically for digital forensics. Why another regexp engine?
 
 Lightgrep:
@@ -17,8 +17,12 @@ Lightgrep is still pretty new and doesn't have all the regexp features you might
 
 liblightgrep is copyright (c) 2010-2012, Lightbox Technologies, Inc. liblightgrep is available under version 3 of the GNU Public License. See LICENSE for details.
 
-## Technical Info
-
+Technical Info
+--------------
 [![Build Status](https://secure.travis-ci.org/jonstewart/liblightgrep.png?branch=master)](https://travis-ci.org/jonstewart/liblightgrep)
 
 Lightgrep is implemented in portable C++11 but exposes a concise C API. It depends on a number of [Boost](http://www.boost.org/) libraries and also on [ICU](http://www.icu-project.org). Currently you will need gcc 4.6+ or clang 3.1 to compile the libraries.
+
+Install
+-------
+See [[BUILD.md]] for installation instructions.
