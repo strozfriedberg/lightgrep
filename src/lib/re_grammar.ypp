@@ -917,7 +917,7 @@ namespace {
     return -1;
   }
 
-  void yyerror(YYLTYPE* yylloc, Context* ctx, const char* msg) {
+  void yyerror(YYLTYPE* yylloc, Context* ctx, const char*) {
     /*
        NB: We do not call yyerror ourselves, in order to ensure that if
        control arrives here, it happened due to a syntax error detected
