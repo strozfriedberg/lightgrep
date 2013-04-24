@@ -32,8 +32,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-
-#include "include_boost_thread.h"
+#include <boost/thread.hpp>
 
 struct TestCase {
   std::vector<Pattern> patterns;

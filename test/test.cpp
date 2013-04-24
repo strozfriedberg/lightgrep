@@ -19,6 +19,10 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 
+#ifndef HAVE_BOOST_CHRONO
+#error The boost_chrono library is requried to compile and run the tests.
+#endif
+
 #ifndef HAVE_BOOST_PROGRAM_OPTIONS
 #error The boost_program_options library is requried to compile and run the tests.
 #endif

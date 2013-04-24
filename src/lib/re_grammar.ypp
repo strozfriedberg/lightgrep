@@ -20,7 +20,6 @@ namespace {
     const int* TextEnd;
 
     ParseTree* Tree;
-    ParseNode* Cur;
 
     UnicodeSet USet;
 
@@ -28,12 +27,12 @@ namespace {
     bool CaseInsensitive;
 
     ParseNode* add(const ParseNode& n) {
-      return (Cur = Tree->add(n));
+      return Tree->add(n);
     }
 
     template <class... Args>
     ParseNode* add(Args&&... args) {
-      return (Cur = Tree->add(args...));
+      return Tree->add(args...);
     }
   };
 
@@ -91,7 +90,7 @@ namespace {
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
 
-%expect 198
+%expect 199
 
 //%debug
 
@@ -237,6 +236,26 @@ atom:
   {
     $$ = $2;
   }
+| '(' alt error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_PARENTHESIS,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '(' error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_PARENTHESIS,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
 | literal
 ;
 
@@ -372,6 +391,46 @@ charclass:
       // empty inner character class
       $$->CodePoints.flip();
     }
+  }
+| '[' cc_expr_first error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '[' error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
   }
 | cc_named
   {
@@ -859,6 +918,14 @@ namespace {
   }
 
   void yyerror(YYLTYPE* yylloc, Context* ctx, const char* msg) {
+    /*
+       NB: We do not call yyerror ourselves, in order to ensure that if
+       control arrives here, it happened due to a syntax error detected
+       by bison (as opposed to a semantic error we detect in one of the
+       parse rules. This lets us deduce which error we have by examining
+       the state of the parser.
+    */
+
     ParseError e{
       ParseError::INVALID_ESCAPE,
       yylloc->first_column,
@@ -866,19 +933,19 @@ namespace {
     };
 
     if (*(ctx->TextBegin + e.Begin) == BAD) {
-      // the token read was BAD
+      // The token read was something invalid.
       e.Type = ParseError::INVALID_ESCAPE;
     }
     else if (e.Begin == e.End) {
-      // we ran off the end of the pattern looking for a matching delimiter
-      e.Type = ctx->Cur->Type == ParseNode::CHAR_CLASS ?
-        ParseError::UNMATCHED_BRACKET :
-        ParseError::UNMATCHED_PARENTHESIS;
+      // We ran off the end of the pattern looking for a matching delimiter.
+      // We return rather than throw here to let the error recovery action
+      // execute. The error recovery action knows the location of the
+      // unmatched delimiter.
+      return;
     }
     else {
-      // the only remaining way to fail!
-
-// TODO: need to set bounds here; how do we find them?
+      // The only remaining way to fail is a repetition operator following
+      // a non-atom.
       e.Type = ParseError::NONATOMIC_REPETITON;
     }
 
@@ -890,7 +957,7 @@ namespace {
 
     switch (e.Type) {
     case ParseError::NONATOMIC_REPETITON:
-      ss << "repetition of non-atom ";
+      ss << "repetition of non-atom by ";
       break;
     case ParseError::REVERSED_REPETITION_BOUNDS:
       ss << e.First << " > " << e.Second << " in ";
