@@ -1,6 +1,6 @@
 /*
   liblightgrep: not the worst forensics regexp engine
-  Copyright (C) 2012 Lightbox Technologies, Inc
+  Copyright (C) 2013, Lightbox Technologies, Inc
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by

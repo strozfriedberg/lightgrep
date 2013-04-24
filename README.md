@@ -15,7 +15,7 @@ Lightgrep:
 
 Lightgrep is still pretty new and doesn't have all the regexp features you might be used to. But it has enough features to be more than a toy, and what is supported is well-tested.
 
-liblightgrep is copyright (c) 2010-2012, Lightbox Technologies, Inc. liblightgrep is available under version 3 of the GNU Public License. See LICENSE for details.
+liblightgrep is copyright (c) 2010-2013, Lightbox Technologies, Inc. liblightgrep is available under version 3 of the GNU Public License. See LICENSE for details.
 
 Technical Info
 --------------
