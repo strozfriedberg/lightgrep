@@ -18,7 +18,6 @@
 
 #include <algorithm>
 #include <atomic>
-#include <functional>
 #include <iostream>
 #include <iterator>
 #include <ostream>
@@ -103,13 +102,13 @@ public:
     service_(n), work_(new boost::asio::io_service::work(service_))
   {
     for (size_t i = 0; i < n; ++i) {
-      pool_.create_thread(boost::bind(&boost::asio::io_service::run, &service_));
+      pool_.emplace_back([this](){ service_.run(); });
     }
   }
 
   ~executor() {
     delete work_;
-    pool_.join_all();
+    for (boost::thread& t : pool_) { t.join(); }
     std::cerr << TestCase::count << std::endl;
   }
 
@@ -119,7 +118,7 @@ public:
   }
 
 protected:
-  boost::thread_group pool_;
+  std::vector<boost::thread> pool_;
   boost::asio::io_service service_;
   boost::asio::io_service::work* work_;
 };
