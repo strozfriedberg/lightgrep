@@ -16,6 +16,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/lib/vm.cpp])
 AC_CONFIG_HEADERS([config.h])
 
+# foreign?
 AM_INIT_AUTOMAKE([subdir-objects])
 LT_INIT
 
@@ -206,21 +207,36 @@ case "$host" in
   CPFLAGS+=' -mthreads'
   ;;
 *-apple-darwin*)
-  echo " ** MacOS X builds are problematic as compilers are in transition."
-  echo " ** We presume you're using a recent clang and libc++."
-  echo " ** And we recommend only building the library and not unit tests."
-  echo " ** If you build unit tests, you are entering a world of pain."
-  CXXFLAGS+=' -stdlib=libc++'
-
-# actually linking against libc++ will require everything else down the chain to use libc++
-# including boost, etc.
-# so, don't do this just yet
-#  LDFLAGS=`echo "$LDFLAGS" | sed 's/-lstdc++/-lc++/'`
   ;;
 *)
   CPPFLAGS+=' -pthread'
+esac
+
+
+#
+# C++ library
+#
+case "$host" in
+*-apple-darwin*)
+  echo " ** MacOS X builds are problematic as compilers are in transition."
+  echo " ** We presume you're using a recent clang and libc++."
+  echo " ** And we recommend only building the library and not unit tests."
+  echo " ** If you build the unit tests, you are entering a world of pain."
+  CXXFLAGS+=' -stdlib=libc++'
+  # TODO: Actually linking against libc++ will require everything else down
+  # the chain to have been linked with libc++, including Boost, ICU, etc.
+  # So, don't do this just yet.
+  # STDCPP_LIB='-lc++'
+  STDCPP_LIB='-lstdc++'
+  ;;
+*)
+  STDCPP_LIB='-lstdc++'
   ;;
 esac
+
+AC_SUBST([STDCPP_LIB])
+
+
 
 BOOST_CPPFLAGS=`echo "$BOOST_CPPFLAGS" | sed 's/-I\/usr\/include//'`
 
