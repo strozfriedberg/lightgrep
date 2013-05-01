@@ -27,8 +27,12 @@ AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_CC_C_O
 
+AC_LANG([C])
+AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe], [CFLAGS])
+
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe], [CXXFLAGS])
 
 AC_PROG_INSTALL
 

@@ -1,8 +1,8 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CPPFLAGS = $(ICU_CPPFLAGS) $(BOOST_CPPFLAGS) -Iinclude
-AM_CXXFLAGS = $(ICU_CXXFLAGS) $(BOOST_CXXFLAGS) $(ICU_CXXFLAGS) -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
-AM_CFLAGS = $(ICU_CFLAGS) -std=c1x -W -Wall -Wextra -pedantic -pipe
+AM_CPPFLAGS = -Iinclude $(ICU_CPPFLAGS) $(BOOST_CPPFLAGS)
+AM_CXXFLAGS = $(ICU_CXXFLAGS) $(BOOST_CXXFLAGS)
+AM_CFLAGS = $(ICU_CFLAGS)
 AM_YFLAGS = -r solved
 
 LG_LIB = src/lib/liblightgrep.la
