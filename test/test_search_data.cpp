@@ -1,6 +1,6 @@
 /*
   liblightgrep: not the worst forensics regexp engine
-  Copyright (C) 2012 Lightbox Technologies, Inc
+  Copyright (C) 2013, Lightbox Technologies, Inc
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 
 #include <algorithm>
 #include <atomic>
-#include <functional>
 #include <iostream>
 #include <iterator>
 #include <ostream>
@@ -32,8 +31,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-
-#include "include_boost_thread.h"
+#include <boost/thread.hpp>
 
 struct TestCase {
   std::vector<Pattern> patterns;
@@ -104,13 +102,13 @@ public:
     service_(n), work_(new boost::asio::io_service::work(service_))
   {
     for (size_t i = 0; i < n; ++i) {
-      pool_.create_thread(boost::bind(&boost::asio::io_service::run, &service_));
+      pool_.emplace_back([this](){ service_.run(); });
     }
   }
 
   ~executor() {
     delete work_;
-    pool_.join_all();
+    for (boost::thread& t : pool_) { t.join(); }
     std::cerr << TestCase::count << std::endl;
   }
 
@@ -120,7 +118,7 @@ public:
   }
 
 protected:
-  boost::thread_group pool_;
+  std::vector<boost::thread> pool_;
   boost::asio::io_service service_;
   boost::asio::io_service::work* work_;
 };

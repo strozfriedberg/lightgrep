@@ -1,6 +1,6 @@
 /*
   liblightgrep: not the worst forensics regexp engine
-  Copyright (C) 2012 Lightbox Technologies, Inc
+  Copyright (C) 2013, Lightbox Technologies, Inc
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,6 +18,10 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+
+#ifndef HAVE_BOOST_CHRONO
+#error The boost_chrono library is requried to compile and run the tests.
+#endif
 
 #ifndef HAVE_BOOST_PROGRAM_OPTIONS
 #error The boost_program_options library is requried to compile and run the tests.
