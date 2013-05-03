@@ -5,11 +5,11 @@ AC_PREREQ([2.64])
 
 AC_INIT([liblightgrep], [0.0], [BUG-REPORT-ADDRESS])
 
-# Set the default C and C++ compilation flags to -O3, not -g -O2
+# Set the default C and C++ compilation flags to nothing.
 # Do this immediately after AC_INIT, as other macros might invoke
 # AC_PROG_CC or AC_PROG_CXX and stomp our defaults.
-: ${CFLAGS="-O3"}
-: ${CXXFLAGS="-O3"}
+: ${CFLAGS=''}
+: ${CXXFLAGS=''}
 
 # FIXME: Argh, there appears to be no way to distinguish between the
 # flags set by mingw64-configure and ones set by the user...
@@ -17,17 +17,6 @@ AC_MSG_NOTICE([Default CPPFLAGS: $CPPFLAGS])
 AC_MSG_NOTICE([Default CFLAGS:   $CFLAGS])
 AC_MSG_NOTICE([Default CXXFLAGS: $CXXFLAGS])
 AC_MSG_NOTICE([Default LDFLAGS:  $LDFLAGS])
-
-# flag cleanup for mingw
-# FIXME: check that we're not clobbering user-defined CFLAGS, CXXFLAGS
-case "$host" in
-*-*-mingw*)
-  for i in '-g' '-O2'; do
-    CFLAGS=`echo "$CFLAGS" | sed "s/$i\( \|$\)//g"`
-    CXXFLAGS=`echo "$CXXFLAGS" | sed "s/$i\( \|$\)//g"`
-  done
-  ;;
-esac
 
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
@@ -46,13 +35,22 @@ AC_PROG_CXX
 AM_PROG_CC_C_O
 
 AC_LANG([C])
-AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe], [CFLAGS])
+AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [CFLAGS])
 
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
-AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe], [CXXFLAGS])
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [CXXFLAGS])
 
 AC_PROG_INSTALL
+
+# FIXME: mingw defaults to -g -O2, along with a bunch of other flags which
+# we want to keep.
+case "$host" in
+*-*-mingw*)
+  LG_REMOVE_FLAGS([CFLAGS], ['-g -O2'])
+  LG_REMOVE_FLAGS([CXXFLAGS], ['-g -O2'])
+  ;;
+esac
 
 #
 # regex grammar
@@ -100,12 +98,12 @@ esac
 #   -ansi -std=c99
 #
 # ICU_C(XX)FLAGS which conflict with ones we might set:
-#   -O2 -g
+#   -O2 -O3 -g
 #
 # ICU_C(XX)FLAGS which we handle ourselves:
 #   -pthread -mthreads
 #
-duff_icu_compile_flags='-ansi -g -O2 -std=c99 -pthread -mthreads'
+duff_icu_compile_flags='-ansi -g -O2 -O3 -std=c99 -pthread -mthreads'
 if test x"$CXX" = "xclang++" ; then
   # These cause clang to freak out on Fedora 18
   duff_icu_compile_flags+=' -Wp,-D_FORTIFY_SOURCE=2'
