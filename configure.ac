@@ -98,10 +98,7 @@ esac
 #   -ansi -std=c99
 #
 # ICU_C(XX)FLAGS which conflict with ones we might set:
-#   -O2 -O3 -g
-#
-# ICU_C(XX)FLAGS which we handle ourselves:
-#   -pthread -mthreads
+#   -O2 -O3 -g -pthread -mthreads
 #
 duff_icu_compile_flags='-ansi -g -O2 -O3 -std=c99 -pthread -mthreads'
 if test x"$CXX" = "xclang++" ; then
