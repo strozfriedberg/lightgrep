@@ -81,7 +81,6 @@ AX_CHECK_ICU(1.48)
 # ICU_LIBS which are wrong everywhere:
 #   -licui18n
 #
-
 LG_REMOVE_FLAGS([ICU_LIBS], ['-licui18n -lpthread'])
 
 # FIXME: On Windows, static ICU libs have names different from dynamic ones.
