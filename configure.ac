@@ -11,12 +11,12 @@ AC_INIT([liblightgrep], [0.0], [BUG-REPORT-ADDRESS])
 : ${CFLAGS=''}
 : ${CXXFLAGS=''}
 
-# FIXME: Argh, there appears to be no way to distinguish between the
-# flags set by mingw64-configure and ones set by the user...
-AC_MSG_NOTICE([Default CPPFLAGS: $CPPFLAGS])
-AC_MSG_NOTICE([Default CFLAGS:   $CFLAGS])
-AC_MSG_NOTICE([Default CXXFLAGS: $CXXFLAGS])
-AC_MSG_NOTICE([Default LDFLAGS:  $LDFLAGS])
+## FIXME: Argh, there appears to be no way to distinguish between the
+## flags set by mingw64-configure and ones set by the user...
+#AC_MSG_NOTICE([Default CPPFLAGS: $CPPFLAGS])
+#AC_MSG_NOTICE([Default CFLAGS:   $CFLAGS])
+#AC_MSG_NOTICE([Default CXXFLAGS: $CXXFLAGS])
+#AC_MSG_NOTICE([Default LDFLAGS:  $LDFLAGS])
 
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
