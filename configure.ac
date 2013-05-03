@@ -204,7 +204,7 @@ case "$host" in
 esac
 
 #
-# Threading flags
+# Threading
 # 
 case "$host" in
 *-*-mingw*)
