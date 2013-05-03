@@ -1,4 +1,6 @@
 AC_DEFUN([LG_REPLACE_FLAG], [{
+lg_replace_flag_out_save=$out
+lg_replace_flag_flag_save=$flag
 out=
 for flag in [$]$1 ; do
   if test x"$flag" = x"$2" ; then
@@ -9,4 +11,6 @@ for flag in [$]$1 ; do
   fi
 done
 $1=$out
+out=$lg_replace_flag_out_save
+flag=$lg_replace_flag_flag_save
 }])
