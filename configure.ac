@@ -5,18 +5,25 @@ AC_PREREQ([2.64])
 
 AC_INIT([liblightgrep], [0.0], [BUG-REPORT-ADDRESS])
 
-# Set the default C and C++ compilation flags to -O3, not -g -O2
+# Set the default C and C++ compilation flags to nothing.
 # Do this immediately after AC_INIT, as other macros might invoke
 # AC_PROG_CC or AC_PROG_CXX and stomp our defaults.
-: ${CFLAGS="-O3"}
-: ${CXXFLAGS="-O3"}
+: ${CFLAGS=''}
+: ${CXXFLAGS=''}
+
+## FIXME: Argh, there appears to be no way to distinguish between the
+## flags set by mingw64-configure and ones set by the user...
+#AC_MSG_NOTICE([Default CPPFLAGS: $CPPFLAGS])
+#AC_MSG_NOTICE([Default CFLAGS:   $CFLAGS])
+#AC_MSG_NOTICE([Default CXXFLAGS: $CXXFLAGS])
+#AC_MSG_NOTICE([Default LDFLAGS:  $LDFLAGS])
 
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/lib/vm.cpp])
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE([subdir-objects])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 LT_INIT
 
 #
@@ -26,10 +33,23 @@ AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_CC_C_O
 
+AC_LANG([C])
+AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [CFLAGS])
+
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [CXXFLAGS])
 
 AC_PROG_INSTALL
+
+# FIXME: mingw defaults to -g -O2, along with a bunch of other flags which
+# we want to keep.
+case "$host" in
+*-*-mingw*)
+  LG_REMOVE_FLAGS([CFLAGS], ['-g -O2'])
+  LG_REMOVE_FLAGS([CXXFLAGS], ['-g -O2'])
+  ;;
+esac
 
 #
 # regex grammar
@@ -50,55 +70,8 @@ AC_MSG_WARN([Disregard the next few lines where ICU_* are printed.])
 AC_MSG_WARN([They're all wrong and we fix them up before using them.])
 AX_CHECK_ICU(1.48)
 
-# FIMXE: ICU produces some bullshit flags we don't want, don't want
-# duplicated, or don't want with clang. There's got to be a better
-# way of removing flags/removing duplicate flags than using sed.
-ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licui18n//'`
-
-for i in '-ansi' '-g' '-O2' '-pedantic' '-pipe' '-std=c99' '-W' '-Wall' '-Wp,-D_FORTIFY_SOURCE=2'; do
-  ICU_CFLAGS=`echo "$ICU_CFLAGS" | sed "s/$i\( \|$\)//g"`
-  ICU_CXXFLAGS=`echo "$ICU_CXXFLAGS" | sed "s/$i\( \|$\)//g"`
-done
-
-# FIXME: On Windows, static ICU libs have names different from dynamic ones.
-# This is problematic, because which should be linked against is known only
-# when we know if we're statically or dynamically linking.
-case "$host" in
-*-*-mingw*)
-  ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licuuc/-lsicuuc/'`
-  ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-licudata/-lsicudt/'`
-  ;;
-esac
-
-# FIXME: flag cleanup for mingw
-case "$host" in
-*-*-mingw*)
-  for i in '-g' '-O2' '-pipe' '-Wall'; do
-    CFLAGS=`echo "$CFLAGS" | sed "s/$i\( \|$\)//g"`
-    CXXFLAGS=`echo "$CXXFLAGS" | sed "s/$i\( \|$\)//g"`
-  done
-  ;;
-esac
-
-#
-# ICU_CXXFLAGS we don't want anywhere:
-#   -ansi
-#
-# ICU_CXXFLAGS which conflict with ones we might set:
-#   -O2
-#   -g
-#
-# ICU_CXXFLAGS which duplicate ours:
-#   -pedantic
-#   -W
-#   -Wall
-#   -pipe
-#
-# ICU_CXXFLAGS which cause clang to freak out on Fedora 18:
-#   -Wp,-D_FORTIFY_SOURCE=2
-#
-# ICU_LIBS which are wrong on Mac OS X, Windows:
-#   -pthread
+# ICU_LIBS which are wrong on Windows (and we handle ourselves):
+#   -lpthread
 #
 # ICU_LIBS which are wrong for static Windows builds:
 #   -licuuc   -> -lsicuuc
@@ -107,6 +80,32 @@ esac
 # ICU_LIBS which are wrong everywhere:
 #   -licui18n
 #
+LG_REMOVE_FLAGS([ICU_LIBS], ['-licui18n -lpthread'])
+
+# FIXME: On Windows, static ICU libs have names different from dynamic ones.
+# This is problematic, because which should be linked against is known only
+# when we know if we're statically or dynamically linking.
+case "$host" in
+*-*-mingw*)
+  LG_REPLACE_FLAG([ICU_LIBS], [-licuuc],   [-lsicuuc])
+  LG_REPLACE_FLAG([ICU_LIBS], [-licudata], [-lsicudt])
+  ;;
+esac
+
+# ICU_C(XX)FLAGS we don't want anywhere:
+#   -ansi -std=c99
+#
+# ICU_C(XX)FLAGS which conflict with ones we might set:
+#   -O2 -O3 -g -pthread -mthreads
+#
+duff_icu_compile_flags='-ansi -g -O2 -O3 -std=c99 -pthread -mthreads'
+if test x"$CXX" = "xclang++" ; then
+  # These cause clang to freak out on Fedora 18
+  duff_icu_compile_flags+=' -Wp,-D_FORTIFY_SOURCE=2'
+fi
+
+LG_REMOVE_FLAGS([ICU_CFLAGS],   [$duff_icu_compile_flags])
+LG_REMOVE_FLAGS([ICU_CXXFLAGS], [$duff_icu_compile_flags])
 
 #
 # Boost headers
@@ -132,8 +131,6 @@ fi
 #
 # tests
 #
-
-# FIXME: CXXFLAGS, CFLAGS, flags for static mingw builds are hosed
 
 # Boost libs used by tests
 AX_BOOST_CHRONO
@@ -191,7 +188,7 @@ if test "x$ax_cv_boost_chrono" != "xyes" || \
   AC_MSG_WARN([])
 fi
 
-# TODO: put this somewhere else?
+# Boost ASIO needs ws2_32 and mswsock on Windows
 case "$host" in
 *-*-mingw*)
   BOOST_ASIO_LIB="-lws2_32 -lmswsock"
@@ -199,30 +196,43 @@ case "$host" in
   ;;
 esac
 
-# TODO: thread flags
+#
+# Threading
+# 
 case "$host" in
 *-*-mingw*)
-  ICU_LIBS=`echo "$ICU_LIBS" | sed 's/-lpthread//g'`
-  CPFLAGS+=' -mthreads'
+  AX_APPEND_FLAG([-mthreads], [CPPLAGS])
+  AX_APPEND_LINK_FLAGS([-mthreads], [LDFLAGS])
   ;;
+*-apple-darwin*)
+  ;;
+*)
+  AX_APPEND_FLAG([-pthread], [CPPFLAGS])
+  AX_APPEND_LINK_FLAGS([-pthread], [LDFLAGS])
+esac
+
+#
+# C++ library
+#
+case "$host" in
 *-apple-darwin*)
   echo " ** MacOS X builds are problematic as compilers are in transition."
   echo " ** We presume you're using a recent clang and libc++."
   echo " ** And we recommend only building the library and not unit tests."
-  echo " ** If you build unit tests, you are entering a world of pain."
-  CXXFLAGS+=' -stdlib=libc++'
-
-# actually linking against libc++ will require everything else down the chain to use libc++
-# including boost, etc.
-# so, don't do this just yet
-#  LDFLAGS=`echo "$LDFLAGS" | sed 's/-lstdc++/-lc++/'`
+  echo " ** If you build the unit tests, you are entering a world of pain."
+  AX_APPEND_COMPILE_FLAGS([-stdlib=libc++], [CXXFLAGS])
+  # TODO: Actually linking against libc++ will require everything else down
+  # the chain to have been linked with libc++, including Boost, ICU, etc.
+  # So, don't do this just yet.
+  # STDCXX_LIB='-lc++'
+  STDCXX_LIB='-lstdc++'
   ;;
 *)
-  CPPFLAGS+=' -pthread'
+  STDCXX_LIB='-lstdc++'
   ;;
 esac
 
-BOOST_CPPFLAGS=`echo "$BOOST_CPPFLAGS" | sed 's/-I\/usr\/include//'`
+AC_SUBST([STDCXX_LIB])
 
 # FIXME: Is this really the right way to do this?!
 # Build dynamically-linked executables if we build dynamic libs
@@ -230,7 +240,7 @@ if test "x$enable_shared" != "xyes"; then
   CXXLD="$CXX -all-static"
   CCLD="$CC -all-static"
 
-  CPPFLAGS+=' -DBOOST_THREAD_USE_LIB'
+  AX_APPEND_FLAG([-DBOOST_THREAD_USE_LIB], [CPPFLAGS])
 
   case "$host" in
   *-*-mingw*)
@@ -242,7 +252,7 @@ if test "x$enable_shared" != "xyes"; then
   case "$host" in
   i686-*-mingw*)
     # FIXME: Really? This looks like it's just asking for trouble...
-    LDFLAGS+=' -Wl,--allow-multiple-definition'
+    AX_APPEND_LINK_FLAGS([-Wl,--allow-multiple-definition], [LDFLAGS])
     ;;
   esac
 else
@@ -253,8 +263,31 @@ fi
 AC_SUBST([CXXLD])
 AC_SUBST([CCLD])
 
+#
+# Cleanup flags
+#
+
+AC_LANG([C])
+AX_APPEND_COMPILE_FLAGS([$ICU_CFLAGS], [CFLAGS]) 
+
+AC_LANG([C++])
+AX_APPEND_COMPILE_FLAGS([$ICU_CPPFLAGS $BOOST_CPPFLAGS], [CPPFLAGS])
+AX_APPEND_COMPILE_FLAGS([$ICU_CXXFLAGS $BOOST_CXXFLAGS], [CXXFLAGS]) 
+
+LG_UNIQ_FLAGS([CPPFLAGS])
+LG_UNIQ_FLAGS([CFLAGS])
+LG_UNIQ_FLAGS([CXXFLAGS])
+
+
 
 # TODO: libtre has a nice display we can steal
+AC_MSG_NOTICE([ICU_CPPFLAGS: $ICU_CPPFLAGS])
+AC_MSG_NOTICE([ICU_CFLAGS:   $ICU_CFLAGS])
+AC_MSG_NOTICE([ICU_CXXFLAGS: $ICU_CXXFLAGS])
+
+AC_MSG_NOTICE([BOOST_CPPFLAGS: $BOOST_CPPFLAGS])
+AC_MSG_NOTICE([BOOST_CXXFLAGS: $BOOST_CXXFLAGS])
+
 AC_MSG_NOTICE([CC:       $CC])
 AC_MSG_NOTICE([CXX:      $CXX])
 AC_MSG_NOTICE([CPPFLAGS: $CPPFLAGS])
