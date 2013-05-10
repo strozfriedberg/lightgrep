@@ -15,7 +15,7 @@ The following build steps might actually work:
 
 Platforms
 ---------
-Liblightgrep can build on Linux, MacOS X, and Windows. It should be noted that Windows builds are a huge pain in the keister; stock up on beer and nachos (Windows builds are _easier_ with a Linux-hosted cross compiler). MacOS X can also be a finicky.
+Liblightgrep can build on Linux, MacOS X, and Windows. It should be noted that Windows builds are a huge pain in the keister; stock up on beer and nachos (Windows builds are _easier_ with a Linux-hosted cross compiler). MacOS X can also be finicky.
 
 
 Tooling
