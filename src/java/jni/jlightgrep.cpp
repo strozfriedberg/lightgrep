@@ -1,4 +1,4 @@
-#include "lightgrep_c_api.h"
+#include "lightgrep/api.h"
 #include "jlightgrep.h"
 
 #include <functional>
@@ -35,6 +35,8 @@ static void throwException(JNIEnv* env, const char* exClassName, const char* mes
 
   throw PendingJavaException();
 }
+
+
 
 //
 // We cache field and method IDs in static init() methods for each class,
@@ -169,70 +171,176 @@ JNIEXPORT void JNI_OnUnload(JavaVM* jvm, void*) {
   env->DeleteGlobalRef(searchHitClass);
 }
 
-JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_create(JNIEnv*, jclass, jint numFsmStateSizeHint) {
-  return reinterpret_cast<jlong>(lg_create_parser(numFsmStateSizeHint));
+/*
+template <typename T> T unwrap(JNIEnv* env, jobject handle) { 
+  return reinterpret_cast<T>(env->GetLongField(handle, handlePointerField));
+}
+*/
+
+std::unique_ptr<const char,std::function<void(const char*)>> unwrap(JNIEnv* env, jstring str) {
+  using namespace std::placeholders;
+
+  std::unique_ptr<const char,std::function<void(const char*)>> ptr(
+    env->GetStringUTFChars(str, nullptr),
+    std::bind(&JNIEnv::ReleaseStringUTFChars, env, str, _1)
+  );
+
+  if (!ptr) {
+    // OutOfMemoryError already thrown
+    throw PendingJavaException();
+  }
+
+  return ptr;
 }
 
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_destroy(JNIEnv* env, jobject hParser) {
-  LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
-    env->GetLongField(hParser, handlePointerField)
+std::unique_ptr<void,std::function<void(void*)>> unwrapCrit(JNIEnv* env, jbyteArray buffer) {
+  using namespace std::placeholders;
+
+  std::unique_ptr<void,std::function<void(void*)>> ptr(
+    env->GetPrimitiveArrayCritical(buffer, nullptr),
+    std::bind(&JNIEnv::ReleasePrimitiveArrayCritical, env, buffer, _1, 0)
   );
+
+  if (!ptr) {
+    // OutOfMemoryError already thrown
+    throw PendingJavaException();
+  }
+
+  return ptr;
+}
+
+std::unique_ptr<jbyte,std::function<void(jbyte*)>> unwrap(JNIEnv* env, jbyteArray buffer) {
+  using namespace std::placeholders;
+
+  std::unique_ptr<jbyte,std::function<void(jbyte*)>> ptr(
+    env->GetByteArrayElements(buffer, nullptr),
+    std::bind(&JNIEnv::ReleaseByteArrayElements, env, buffer, _1, JNI_ABORT)
+  );
+
+  if (!ptr) {
+    // OutOfMemoryError already thrown
+    throw PendingJavaException();
+  }
+
+  return ptr;
+}
+    
+
+JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_PatternHandle_create(JNIEnv*, jclass) {
+  return reinterpret_cast<jlong>(lg_create_pattern());
+}
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternHandle_destroy(JNIEnv* env, jobject hPattern) {
+  LG_HPATTERN ptr = reinterpret_cast<LG_HPATTERN>(
+    env->GetLongField(hPattern, handlePointerField)
+  );
+
   if (ptr) {
-    lg_destroy_parser(ptr);
-    env->SetLongField(hParser, handlePointerField, 0);
+    lg_destroy_pattern(ptr);
+    env->SetLongField(hPattern, handlePointerField, 0);
   }
 }
 
-JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_addKeywordImpl(JNIEnv* env, jobject hParser, jstring keyword, jint keyIndex, jobject options, jstring encoding) {
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_PatternHandle_parsePatternImpl(JNIEnv* env, jobject hPattern, jstring pattern, jobject options) {
+  LG_Error* err = nullptr;
   try {
     // convert all of the Java objects to C
-    LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
-      env->GetLongField(hParser, handlePointerField)
+    LG_HPATTERN ptr = reinterpret_cast<LG_HPATTERN>(
+      env->GetLongField(hPattern, handlePointerField)
     );
 
-    using namespace std::placeholders;
+// TODO: C++11 stuff.
 
-    std::unique_ptr<const char,std::function<void(const char*)>> kw(
-      env->GetStringUTFChars(keyword, nullptr),
-      std::bind(&JNIEnv::ReleaseStringUTFChars, env, keyword, _1)
-    );
-
-    if (!kw) {
-      // OutOfMemoryError already thrown
-      throw PendingJavaException();
-    }
+    std::unique_ptr<const char,std::function<void(const char*)>> pat(unwrap(env, pattern));
 
     LG_KeyOptions opts{
       env->GetBooleanField(options, keyOptionsFixedStringField) != 0,
       env->GetBooleanField(options, keyOptionsCaseInsensitiveField) != 0
     };
 
-    std::unique_ptr<const char,std::function<void(const char*)>> enc(
-      env->GetStringUTFChars(encoding, nullptr),
-      std::bind(&JNIEnv::ReleaseStringUTFChars, env, encoding, _1)
-    );
-
-    if (!enc) {
-      // OutOfMemoryError already thrown
-      throw PendingJavaException(); 
-    }
-
     // finally actually do something
-    const int ret = lg_add_keyword(
+    const int ret = lg_parse_pattern(
       ptr,
-      kw.get(),
-      (uint32) keyIndex,
+      pat.get(),
       &opts,
-      enc.get()
+      &err
     );
-
-    if (!ret) {
-      throwException(env, keywordExceptionClassName, lg_error(ptr));
+    if (err) {
+      throwException(env, keywordExceptionClassName, err->Message);
     }
 
     return ret;
   }
   catch (const PendingJavaException&) {
+    lg_free_error(err);
+    return 0;
+  }
+}
+
+JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_create(JNIEnv*, jclass, jint numTotalPatternsSizeHint) {
+  return reinterpret_cast<jlong>(lg_create_pattern_map(numTotalPatternsSizeHint));
+}
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_destroy(JNIEnv* env, jobject hPatternMap) {
+// TODO: template this
+  LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
+    env->GetLongField(hPatternMap, handlePointerField)
+  );
+  if (ptr) {
+    lg_destroy_pattern_map(ptr);
+    env->SetLongField(hPatternMap, handlePointerField, 0);
+  }
+}
+
+JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_create(JNIEnv*, jclass, jint numFsmStateSizeHint) {
+  return reinterpret_cast<jlong>(lg_create_fsm(numFsmStateSizeHint));
+}
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_destroy(JNIEnv* env, jobject hFsm) {
+// TODO: template this
+  LG_HFSM ptr = reinterpret_cast<LG_HFSM>(
+    env->GetLongField(hFsm, handlePointerField)
+  );
+  if (ptr) {
+    lg_destroy_fsm(ptr);
+    env->SetLongField(hFsm, handlePointerField, 0);
+  }
+}
+
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_addPatternImpl(JNIEnv* env, jobject hFsm, jobject hMap, jobject hPattern, jstring encoding) {
+  LG_Error* err = nullptr;
+  try {
+    // convert all of the Java objects to C
+    LG_HFSM fsmptr = reinterpret_cast<LG_HFSM>(
+      env->GetLongField(hFsm, handlePointerField)
+    );
+
+    LG_HPATTERNMAP mapptr = reinterpret_cast<LG_HPATTERNMAP>(
+      env->GetLongField(hMap, handlePointerField)
+    );
+
+    LG_HPATTERN patptr = reinterpret_cast<LG_HPATTERN>(
+      env->GetLongField(hPattern, handlePointerField)
+    );
+
+    std::unique_ptr<const char,std::function<void(const char*)>> enc(unwrap(env, encoding));
+
+    // finally actually do something
+    const int ret = lg_add_pattern(
+      fsmptr,
+      mapptr,
+      patptr,
+      enc.get(),
+      &err
+    );
+    if (err) {
+      throwException(env, keywordExceptionClassName, err->Message);
+    }
+
+    return ret;
+  }
+  catch (const PendingJavaException&) {
+    lg_free_error(err);
     return 0;
   }
 }
@@ -251,11 +359,11 @@ static jobject makeProgramHandle(JNIEnv* env, LG_HPROGRAM hProg) {
   return obj;
 }
 
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_createProgramImpl(JNIEnv* env, jobject hParser, jobject options) {
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_createProgramImpl(JNIEnv* env, jobject hFsm, jobject options) {
   try {
     // convert all of the Java objects to C
-    LG_HPARSER ptr = reinterpret_cast<LG_HPARSER>(
-      env->GetLongField(hParser, handlePointerField)
+    LG_HFSM ptr = reinterpret_cast<LG_HFSM>(
+      env->GetLongField(hFsm, handlePointerField)
     );
 
     LG_ProgramOptions opts{
@@ -264,9 +372,9 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ParserHandle_c
 
     // finally actually do something
     LG_HPROGRAM hProg = lg_create_program(ptr, &opts);
-    // FIXME: don't use lg_ok
-    if (!lg_ok(hProg)) {
-      throwException(env, keywordExceptionClassName, lg_error(hProg));
+    if (!hProg) {
+// FIXME: do something else here
+//      throwException(env, keywordExceptionClassName, lg_error(hProg));
     }
     return makeProgramHandle(env, hProg);
   }
@@ -304,19 +412,9 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
       env->GetLongField(hProg, handlePointerField)
     );
 
-    using namespace std::placeholders;
+    std::unique_ptr<void,std::function<void(void*)>> data(unwrapCrit(env, buffer));
 
-    std::unique_ptr<void,std::function<void(void*)>> data(
-      env->GetPrimitiveArrayCritical(buffer, nullptr),
-      std::bind(&JNIEnv::ReleasePrimitiveArrayCritical, env, buffer, _1, 0)
-    );
-
-    if (!data) {
-      // OutOfMemoryError already thrown
-      throw PendingJavaException();
-    }
-
-    char* buf = reinterpret_cast<char*>(data.get()) + (uint32) offset;
+    char* buf = reinterpret_cast<char*>(data.get()) + (uint32_t) offset;
 
     // finally actually do something
     lg_write_program(ptr, buf);
@@ -331,25 +429,18 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
 
     {
       // convert all of the Java objects to C
-      using namespace std::placeholders;
+      std::unique_ptr<void,std::function<void(void*)>> data(unwrapCrit(env, buffer));
 
-      std::unique_ptr<void,std::function<void(void*)>> data(
-        env->GetPrimitiveArrayCritical(buffer, nullptr),
-        std::bind(&JNIEnv::ReleasePrimitiveArrayCritical, env, buffer, _1, 0)
-      );
-
-      if (!data) {
-        // OutOfMemoryError already thrown
-        throw PendingJavaException();
-      }
-
-      char* buf = reinterpret_cast<char*>(data.get()) + (uint32) offset;
+      char* buf = reinterpret_cast<char*>(data.get()) + (uint32_t) offset;
 
       // finally actually do something
-      hProg = lg_read_program(buf, (uint32) size);
+      hProg = lg_read_program(buf, (uint32_t) size);
+// FIXME: handle the error!
+/*
       if (!lg_ok(hProg)) {
         throwException(env, programExceptionClassName, lg_error(hProg));
       }
+*/
     }
 
     return makeProgramHandle(env, hProg);
@@ -381,14 +472,17 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     );
 
     LG_ContextOptions opts{
-      std::numeric_limits<uint64>::max(),
-      std::numeric_limits<uint64>::max()
+      std::numeric_limits<uint64_t>::max(),
+      std::numeric_limits<uint64_t>::max()
     };
 
     LG_HCONTEXT hCtx = lg_create_context(ptr, &opts);
+// FIXME: handle the error!
+/*
     if (!lg_ok(hCtx)) {
       throwException(env, programExceptionClassName, lg_error(hCtx));
     }
+*/
     return makeContextHandle(env, hCtx);
   }
   catch (const PendingJavaException&) {
@@ -440,13 +534,15 @@ static void callbackShim(void* userData, const LG_SearchHit* const hit) {
   throwIfException(env);
 }
 
-JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_searchImpl(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
+template <typename F>
+static int search(JNIEnv* env, jobject hCtx, F bufGetter, jint offset, jint size, jlong startOffset, jobject callback, F func) {
   try {
     // convert all of the Java objects to C
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, handlePointerField)
     );
 
+/*
     using namespace std::placeholders;
 
     std::unique_ptr<jbyte,std::function<void(jbyte*)>> data(
@@ -460,6 +556,37 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
     }
     
     const char* buf = reinterpret_cast<const char*>(data.get()) + offset;
+*/
+
+    const char* buf = bufGetter() + offset;
+
+    std::tuple<JNIEnv*,jobject> userData{env, callback};
+
+    // finally actually do something
+    return lg_search(
+      ptr,
+      buf,
+      buf + size,
+      (uint64_t) startOffset,
+      &userData,
+      callbackShim
+    );
+  }
+  catch (const PendingJavaException&) {
+    return 0;
+  }
+}
+
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_searchImpl___3BIIJLcom_lightboxtechnologies_lightgrep_HitCallback_2(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
+  try {
+    // convert all of the Java objects to C
+    LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
+      env->GetLongField(hCtx, handlePointerField)
+    );
+
+    std::unique_ptr<jbyte,std::function<void(jbyte*)>> data(unwrap(env, buffer));
+
+    const char* buf = reinterpret_cast<const char*>(data.get()) + offset;
  
     std::tuple<JNIEnv*,jobject> userData{env, callback};
 
@@ -468,7 +595,41 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
       ptr,
       buf,
       buf + size,
-      (uint64) startOffset,
+      (uint64_t) startOffset,
+      &userData,
+      callbackShim
+    );
+  }
+  catch (const PendingJavaException&) {
+    return 0;
+  }
+}
+
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_searchImpl__Ljava_nio_ByteBuffer_2IIJLcom_lightboxtechnologies_lightgrep_HitCallback_2(JNIEnv* env, jobject hCtx, jobject buffer, jint offset, jint size, jlong startOffset, jobject callback) {
+  try {
+    // convert all of the Java objects to C
+    LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
+      env->GetLongField(hCtx, handlePointerField)
+    );
+
+    const char* buf = reinterpret_cast<const char*>(
+      env->GetDirectBufferAddress(buffer)
+    );
+
+    if (!buf) {
+// FIXME: what to do here?
+    }
+    
+    buf += offset;
+ 
+    std::tuple<JNIEnv*,jobject> userData{env, callback};
+
+    // finally actually do something
+    return lg_search(
+      ptr,
+      buf,
+      buf + size,
+      (uint64_t) startOffset,
       &userData,
       callbackShim
     );
@@ -494,24 +655,14 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_clo
   }
 }
 
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_startsWithImpl(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_startsWithImpl___3BIIJLcom_lightboxtechnologies_lightgrep_HitCallback_2(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
   try {
     // convert all of the Java objects to C
     LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
       env->GetLongField(hCtx, handlePointerField)
     );
 
-    using namespace std::placeholders;
-
-    std::unique_ptr<jbyte,std::function<void(jbyte*)>> data(
-      env->GetByteArrayElements(buffer, nullptr),
-      std::bind(&JNIEnv::ReleaseByteArrayElements, env, buffer, _1, JNI_ABORT)
-    );
-
-    if (!data) {
-      // OutOfMemoryError already thrown
-      throw PendingJavaException();
-    }
+    std::unique_ptr<jbyte,std::function<void(jbyte*)>> data(unwrap(env, buffer));
 
     const char* buf = reinterpret_cast<const char*>(data.get()) + offset;
 
@@ -522,7 +673,40 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
       ptr,
       buf,
       buf + size,
-      (uint64) startOffset,
+      (uint64_t) startOffset,
+      &userData,
+      callbackShim
+    );
+  }
+  catch (const PendingJavaException&) {
+  }
+}
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_startsWithImpl__Ljava_nio_ByteBuffer_2IIJLcom_lightboxtechnologies_lightgrep_HitCallback_2(JNIEnv* env, jobject hCtx, jobject buffer, jint offset, jint size, jlong startOffset, jobject callback) {
+  try {
+    // convert all of the Java objects to C
+    LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
+      env->GetLongField(hCtx, handlePointerField)
+    );
+
+    const char* buf = reinterpret_cast<const char*>(
+      env->GetDirectBufferAddress(buffer)
+    );
+
+    if (!buf) {
+// FIXME: what to do here?
+    }
+    
+    buf += offset;
+
+    std::tuple<JNIEnv*,jobject> userData{env, callback};
+
+    // finally actually do something
+    lg_starts_with(
+      ptr,
+      buf,
+      buf + size,
+      (uint64_t) startOffset,
       &userData,
       callbackShim
     );
