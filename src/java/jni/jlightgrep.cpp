@@ -4,6 +4,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <sstream>
 #include <tuple>
 
 static const char* ALL_IS_LOST = "Fuck it, Dude. Let's go bowling.";
@@ -17,6 +18,7 @@ static const char* searchHitClassName = "com/lightboxtechnologies/lightgrep/Sear
 
 static const char* keywordExceptionClassName = "com/lightboxtechnologies/lightgrep/KeywordException";
 static const char* programExceptionClassName = "com/lightboxtechnologies/lightgrep/ProgramException";
+static const char* indexOutOfBoundsExceptionClassName = "java/lang/IndexOutOfBoundsException";
 
 class PendingJavaException {};
 
@@ -59,7 +61,7 @@ static jmethodID patternInfoCtor;
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_init(JNIEnv* env, jclass cl) {
   try {
-    patternInfoCtor = env->GetMethodID(cl, "<init>", "(J)V");
+    patternInfoCtor = env->GetMethodID(cl, "<init>", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V");
     throwIfException(env);
   }
   catch (const PendingJavaException&) {
@@ -326,29 +328,40 @@ static jobject makePatternInfo(JNIEnv* env, LG_PatternInfo* pinfo) {
   jclass cl = env->FindClass(patternInfoClassName);
   throwIfException(env);
 
-  jobject obj = env->NewObject(
-    cl,
-    patternInfoCtor,
-    reinterpret_cast<jlong>(pinfo)
-  );
+  jstring pat = env->NewStringUTF(pinfo->Pattern);
+  throwIfException(env);
+
+  jstring enc = env->NewStringUTF(pinfo->EncodingChain);
+  throwIfException(env);
+
+  jobject dat = static_cast<jobject>(pinfo->UserData);
+
+  jobject obj = env->NewObject(cl, patternInfoCtor, pat, enc, dat);
   throwIfException(env);
 
   return obj;
 }
 
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_patternInfoImpl(JNIEnv* env, jobject hPatternMap, jint patternIndex) {
+static void throwIfPatternIndexOOB(JNIEnv* env, LG_HPATTERNMAP hPatternMap, int patternIndex) {
+  const int size = lg_pattern_map_size(hPatternMap);
+  if (patternIndex >= size) {
+    std::stringstream ss;
+    ss << "patternIndex == " << patternIndex << " >= " << size << " == size()";
+    throwException(env, indexOutOfBoundsExceptionClassName, ss.str().c_str());
+  }
+}
+
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_getPatternInfoImpl(JNIEnv* env, jobject hPatternMap, jint patternIndex) {
   try {
     // convert all of the Java objects to C
     LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
       env->GetLongField(hPatternMap, handlePointerField)
     );
 
+    throwIfPatternIndexOOB(env, ptr, patternIndex);
+
     // finally actually do something
     LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
-    if (!pinfo) {
-// FIXME: this should not be possible 
-//      throwException(env, keywordExceptionClassName, lg_error(hProg));
-    }
     return makePatternInfo(env, pinfo);
   }
   catch (const PendingJavaException&) {
@@ -356,32 +369,45 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHand
   }
 }
 
-JNIEXPORT jstring JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_getPattern(JNIEnv* env, jobject pinfo) {
-  jlong ptr = env->GetLongField(pinfo, handlePointerField);
-  return env->NewStringUTF(reinterpret_cast<LG_PatternInfo*>(ptr)->Pattern);
-}
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_getUserDataImpl(JNIEnv* env, jobject hPatternMap, jint patternIndex) {
+  try {
+    // convert all of the Java objects to C
+    LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
+      env->GetLongField(hPatternMap, handlePointerField)
+    );
 
-JNIEXPORT jstring JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_getEncodingChain(JNIEnv* env, jobject pinfo) {
-  jlong ptr = env->GetLongField(pinfo, handlePointerField);
-  return env->NewStringUTF(reinterpret_cast<LG_PatternInfo*>(ptr)->EncodingChain);
-}
+    throwIfPatternIndexOOB(env, ptr, patternIndex);
 
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_getUserData(JNIEnv* env, jobject pinfo) {
-  jlong ptr = env->GetLongField(pinfo, handlePointerField);
-  return static_cast<jobject>(reinterpret_cast<LG_PatternInfo*>(ptr)->UserData);
-}
-
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_setUserData(JNIEnv* env, jobject pinfo, jobject uobj) {
-  jlong ptr = env->GetLongField(pinfo, handlePointerField);
-  LG_PatternInfo* pi = reinterpret_cast<LG_PatternInfo*>(ptr);
-  
-  // release the global ref to the old user data, if there is one
-  if (pi->UserData) {
-    env->DeleteGlobalRef(static_cast<jobject>(pi->UserData));
+    // finally actually do something
+    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
+    return static_cast<jobject>(pinfo->UserData);
   }
+  catch (const PendingJavaException&) {
+    return nullptr;
+  }
+}
 
-  // stash a global ref to the new user data to prevent the JVM from gc'ing it
-  pi->UserData = uobj ? env->NewGlobalRef(uobj) : nullptr;
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_setUserDataImpl(JNIEnv* env, jobject hPatternMap, jint patternIndex, jobject userData) {
+  try {
+    // convert all of the Java objects to C
+    LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
+      env->GetLongField(hPatternMap, handlePointerField)
+    );
+
+    throwIfPatternIndexOOB(env, ptr, patternIndex);
+
+    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
+
+    // release the global ref to the old user data, if there is one
+    if (pinfo->UserData) {
+      env->DeleteGlobalRef(static_cast<jobject>(pinfo->UserData));
+    }
+
+    // store global ref to the new user data to prevent the JVM from gc'ing it
+    pinfo->UserData = userData ? env->NewGlobalRef(userData) : nullptr;
+  }
+  catch (const PendingJavaException&) {
+  }
 }
 
 JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_create(JNIEnv*, jclass, jint numFsmStateSizeHint) {
@@ -518,10 +544,10 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
 
       // finally actually do something
       hProg = lg_read_program(buf, (uint32_t) size);
-// FIXME: handle the error!
 /*
-      if (!lg_ok(hProg)) {
-        throwException(env, programExceptionClassName, lg_error(hProg));
+// FIXME: Is this possible?
+      if (!hProg) {
+        throwException(env, programExceptionClassName, "Bad program");
       }
 */
     }
@@ -560,10 +586,10 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     };
 
     LG_HCONTEXT hCtx = lg_create_context(ptr, &opts);
-// FIXME: handle the error!
 /*
-    if (!lg_ok(hCtx)) {
-      throwException(env, programExceptionClassName, lg_error(hCtx));
+// FIXME: Is this possible?
+    if (!hCtx) {
+      throwException(env, programExceptionClassName, "No hit context");
     }
 */
     return makeContextHandle(env, hCtx);

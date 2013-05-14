@@ -151,11 +151,27 @@ public class LightgrepTest {
   }
 
   @Test(expected=IllegalStateException.class)
-  public void noPatternInfoAfterDestroyPatternMapTest() throws Exception {
+  public void noGetPatternInfoAfterDestroyPatternMapTest() throws Exception {
     final PatternMapHandle hPatternMap = new PatternMapHandle(0);
     hPatternMap.destroy();
 
-    hPatternMap.patternInfo(0);
+    hPatternMap.getPatternInfo(0);
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void noGetUserDataAfterDestroyPatternMapTest() throws Exception {
+    final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+    hPatternMap.destroy();
+
+    hPatternMap.getUserData(0);
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void noSetUserDataAfterDestroyPatternMapTest() throws Exception {
+    final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+    hPatternMap.destroy();
+
+    hPatternMap.setUserData(0, null);
   }
 
   @Test
@@ -352,7 +368,180 @@ public class LightgrepTest {
     }
   }
 
-// TODO: patternInfo test
+  @Test
+  public void sizeEmptyPatternMapTest() throws Exception {
+    final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+    try {
+      assertEquals(0, hPatternMap.size());
+    }
+    finally {
+      hPatternMap.destroy();
+    }
+  }
+
+  @Test
+  public void sizeNonEmptyPatternMapTest() throws Exception {
+    final FSMHandle hFsm = new FSMHandle(0);
+    try {
+      final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+      try {
+        final PatternHandle hPattern = new PatternHandle();
+        try {
+          final KeyOptions kopts = new KeyOptions();
+          kopts.FixedString = false;
+          kopts.CaseInsensitive = false;
+
+          hPattern.parsePattern("(xyzzy)+", kopts);
+          hFsm.addPattern(hPatternMap, hPattern, "UTF-8");
+
+          assertEquals(1, hPatternMap.size());
+        }
+        finally {
+          hPattern.destroy();
+        }
+      }
+      finally {
+        hPatternMap.destroy();
+      }
+    }
+    finally {
+      hFsm.destroy();
+    }
+  }
+ 
+  @Test(expected=IndexOutOfBoundsException.class)
+  public void getPatternInfoNegativeIndexTest() throws Exception {
+    final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+    try {
+      hPatternMap.getPatternInfo(-1);
+    }
+    finally {
+      hPatternMap.destroy();
+    }
+  }
+
+  @Test(expected=IndexOutOfBoundsException.class)
+  public void getPatternInfoIndexTooLargeTest() throws Exception {
+    final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+    try {
+      hPatternMap.getPatternInfo(42);
+    }
+    finally {
+      hPatternMap.destroy();
+    }
+  }
+
+  @Test
+  public void getPatternInfoIndexJustRightTest() throws Exception {
+    final FSMHandle hFsm = new FSMHandle(0);
+    try {
+      final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+      try {
+        final PatternHandle hPattern = new PatternHandle();
+        try {
+          final KeyOptions kopts = new KeyOptions();
+          kopts.FixedString = false;
+          kopts.CaseInsensitive = false;
+
+          final PatternInfo exp = new PatternInfo(
+            "(xyzzy)+", "UTF-8", null
+          );
+
+          hPattern.parsePattern(exp.Pattern, kopts);
+          hFsm.addPattern(hPatternMap, hPattern, exp.EncodingChain);
+
+          final PatternInfo act = hPatternMap.getPatternInfo(0);
+          assertEquals(exp, act);
+        }
+        finally {
+          hPattern.destroy();
+        }
+      }
+      finally {
+        hPatternMap.destroy();
+      }
+    }
+    finally {
+      hFsm.destroy();
+    }
+  }
+
+  @Test(expected=IndexOutOfBoundsException.class)
+  public void getUserDataNegativeIndexTest() throws Exception {
+    final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+    try {
+      hPatternMap.getUserData(-1);
+    }
+    finally {
+      hPatternMap.destroy();
+    }
+  }
+
+  @Test(expected=IndexOutOfBoundsException.class)
+  public void getUserDataIndexTooLargeTest() throws Exception {
+    final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+    try {
+      hPatternMap.getUserData(42);
+    }
+    finally {
+      hPatternMap.destroy();
+    }
+  }
+
+  @Test(expected=IndexOutOfBoundsException.class)
+  public void setUserDataNegativeIndexTest() throws Exception {
+    final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+    try {
+      hPatternMap.setUserData(-1, null);
+    }
+    finally {
+      hPatternMap.destroy();
+    }
+  }
+
+  @Test(expected=IndexOutOfBoundsException.class)
+  public void setUserDataIndexTooLargeTest() throws Exception {
+    final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+    try {
+      hPatternMap.setUserData(42, null);
+    }
+    finally {
+      hPatternMap.destroy();
+    }
+  }
+
+  @Test
+  public void setUserDataGetUserDataPatternMapTest() throws Exception {
+    final FSMHandle hFsm = new FSMHandle(0);
+    try {
+      final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+      try {
+        final PatternHandle hPattern = new PatternHandle();
+        try {
+          final KeyOptions kopts = new KeyOptions();
+          kopts.FixedString = false;
+          kopts.CaseInsensitive = false;
+
+          final Object[] exp = new Object[]{ null, 43.5, "squamous" };
+
+          hPattern.parsePattern("(xyzzy)+", kopts);
+          hFsm.addPattern(hPatternMap, hPattern, "UTF-8");
+
+          hPatternMap.setUserData(0, exp);
+          assertEquals(exp, hPatternMap.getUserData(0));
+        }
+        finally {
+          hPattern.destroy();
+        }
+      }
+      finally {
+        hPatternMap.destroy();
+      }
+    }
+    finally {
+      hFsm.destroy();
+    }
+  }
 
   @Test(expected=NullPointerException.class)
   public void createProgramNullOptionsTest() throws Exception {
@@ -380,7 +569,6 @@ public class LightgrepTest {
   }
 */
 
-// FIXME: fails!
   @Test
   public void createProgramGoodTest() throws Exception {
     final FSMHandle hFsm = new FSMHandle(0);

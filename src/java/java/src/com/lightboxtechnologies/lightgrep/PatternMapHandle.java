@@ -39,13 +39,41 @@ public class PatternMapHandle extends Handle {
    * @throws IllegalStateException
    * @throws IndexOutOfBoundsException
    */ 
-  public PatternInfo patternInfo(int patternIndex) {
+  public PatternInfo getPatternInfo(int patternIndex) {
     throwIfDestroyed(this);
     throwIfNegative("patternIndex", patternIndex);
-    // NB: patternInfoImpl checks for patternIndex >= size()
+    // NB: getPatternInfoImpl checks for patternIndex >= size()
     // because doing it here would mean an extra JNI call.
-    return patternInfoImpl(patternIndex);
+    return getPatternInfoImpl(patternIndex);
   }
 
-  private native PatternInfo patternInfoImpl(int patternIndex);
+  private native PatternInfo getPatternInfoImpl(int patternIndex);
+
+  /**
+   * @throws IllegalStateException
+   * @throws IndexOutOfBoundsException
+   */
+  public Object getUserData(int patternIndex) {
+    throwIfDestroyed(this);
+    throwIfNegative("patternIndex", patternIndex);
+    // NB: getUserDataImpl checks for patternIndex >= size()
+    // because doing it here would mean an extra JNI call.
+    return getUserDataImpl(patternIndex);
+  }
+
+  private native Object getUserDataImpl(int patternIndex);
+
+  /**
+   * @throws IllegalStateException
+   * @throws IndexOutOfBoundsException
+   */
+  public void setUserData(int patternIndex, Object userData) {
+    throwIfDestroyed(this);
+    throwIfNegative("patternIndex", patternIndex);
+    // NB: setUserDataImpl checks for patternIndex >= size()
+    // because doing it here would mean an extra JNI call.
+    setUserDataImpl(patternIndex, userData);
+  }
+
+  private native void setUserDataImpl(int patternIndex, Object userData);
 }
