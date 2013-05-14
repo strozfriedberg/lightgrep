@@ -8,7 +8,8 @@ class LibraryLoader {
     Handle.init();
     ProgramHandle.init();
     ContextHandle.init();
-    
+    PatternInfo.init();
+
     KeyOptions.init();
     ProgramOptions.init();
   }
