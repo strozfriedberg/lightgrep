@@ -42,6 +42,8 @@ public class PatternMapHandle extends Handle {
   public PatternInfo patternInfo(int patternIndex) {
     throwIfDestroyed(this);
     throwIfNegative("patternIndex", patternIndex);
+    // NB: patternInfoImpl checks for patternIndex >= size()
+    // because doing it here would mean an extra JNI call.
     return patternInfoImpl(patternIndex);
   }
 
