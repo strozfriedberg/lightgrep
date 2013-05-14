@@ -11,7 +11,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
-public class SearchWrappedByteBufferTest extends AbstractSearchTest {
+public class SearchWrappedByteBufferTest extends BaseSearchTest {
 
   public SearchWrappedByteBufferTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
     super(fsmSizeHint, pmapSizeHint, pats, popts, copts, buf, offset, size, startOffset, ehits, tclass);

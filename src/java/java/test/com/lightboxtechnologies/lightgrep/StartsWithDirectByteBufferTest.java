@@ -11,13 +11,13 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
-public class SearchDirectByteBufferTest extends BaseSearchTest {
+public class StartsWithDirectByteBufferTest extends BaseStartsWithTest {
 
-  public SearchDirectByteBufferTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
+  public StartsWithDirectByteBufferTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
     super(fsmSizeHint, pmapSizeHint, pats, popts, copts, buf, offset, size, startOffset, ehits, tclass);
 
     if (buf != null) {
-      bbuf = ByteBuffer.allocateDirect(buf.length);    
+      bbuf = ByteBuffer.allocateDirect(buf.length);
       bbuf.put(buf).position(offset);
     }
     else {
@@ -31,10 +31,7 @@ public class SearchDirectByteBufferTest extends BaseSearchTest {
     final List<SearchHit> hits = new ArrayList<SearchHit>();
     final HitCallback cb = new HitCollector(hits);
 
-    final int ret = hCtx.search(bbuf, size, startOffset, cb);
-    assertEquals(0, ret);
-
-    hCtx.closeoutSearch(cb);
+    hCtx.startsWith(bbuf, size, startOffset, cb);
     assertEquals(Arrays.asList(ehits), hits);
   }
 }

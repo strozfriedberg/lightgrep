@@ -1,36 +1,12 @@
 package com.lightboxtechnologies.lightgrep;
 
 import org.junit.Test;
-import org.junit.runners.Parameterized.Parameters;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.fail;
 
 public abstract class AbstractSearchTest {
-  @Parameters
-  public static Collection<Object[]> data() throws UnsupportedEncodingException {
-    return Arrays.asList(new Object[][] {
-      /* Bad Arguments */
-      // null buffer
-      { 0, 0, new Pat[]{ new Pat("a+b", new KeyOptions(), new String[]{ "ASCII" }) }, new ProgramOptions(), new ContextOptions(), null, 0, 0, 0, new SearchHit[0], NullPointerException.class },
-      // negative buffer size
-      { 0, 0, new Pat[]{ new Pat("a+b", new KeyOptions(), new String[]{ "ASCII" }) }, new ProgramOptions(), new ContextOptions(), "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII"), 0, -1, 0, new SearchHit[0], IndexOutOfBoundsException.class },
-      // buffer offset >= buffer end
-      { 0, 0, new Pat[]{ new Pat("a+b", new KeyOptions(), new String[]{ "ASCII" }) }, new ProgramOptions(), new ContextOptions(), "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII"), "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII").length,  "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII").length, 0, new SearchHit[0], IndexOutOfBoundsException.class },
-      // buffer offset + buffer size > buffer end
-      { 0, 0, new Pat[]{ new Pat("a+b", new KeyOptions(), new String[]{ "ASCII" }) }, new ProgramOptions(), new ContextOptions(), "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII"), 1, "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII").length, 0, new SearchHit[0], IndexOutOfBoundsException.class },
-      // negative startOffset
-      { 0, 0, new Pat[]{ new Pat("a+b", new KeyOptions(), new String[]{ "ASCII" }) }, new ProgramOptions(), new ContextOptions(), "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII"), 0, "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII").length, -1, new SearchHit[0], IndexOutOfBoundsException.class },
-      /* Successful Searches */
-      { 0, 0, new Pat[]{ new Pat("WMD", new KeyOptions(), new String[]{ "ASCII" }) }, new ProgramOptions(), new ContextOptions(), "Iraq".getBytes("ASCII"), 0, "Iraq".getBytes("ASCII").length, 0, new SearchHit[]{}, null },
-      { 0, 0, new Pat[]{ new Pat("a+b", new KeyOptions(), new String[]{ "ASCII" }) }, new ProgramOptions(), new ContextOptions(), "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII"), 0, "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII").length, 0, new SearchHit[]{ new SearchHit(0, 4, 0), new SearchHit(7, 9, 0), new SearchHit(10, 12, 0) }, null }
-    });
-  }
-
   protected static class HitCollector implements HitCallback {
     public HitCollector(List<SearchHit> l) {
       hits = l;
@@ -109,9 +85,9 @@ public abstract class AbstractSearchTest {
   }
 
   protected void doTest() throws Throwable {
-    final FSMHandle hFsm = new FSMHandle(fsmSizeHint);
+    final PatternMapHandle hPatternMap = new PatternMapHandle(pmapSizeHint);
     try {
-      final PatternMapHandle hPatternMap = new PatternMapHandle(pmapSizeHint);
+      final FSMHandle hFsm = new FSMHandle(fsmSizeHint);
       try {
         final PatternHandle hPattern = new PatternHandle();
         try {
@@ -121,31 +97,31 @@ public abstract class AbstractSearchTest {
               hFsm.addPattern(hPatternMap, hPattern, e);
             }
           }
-
-          final ProgramHandle hProg = hFsm.createProgram(popts);
-          try {
-            final ContextHandle hCtx = hProg.createContext(copts);
-            try {
-              runSearch(hCtx);
-            }
-            finally {
-              hCtx.destroy();
-            }
-          }
-          finally {
-            hProg.destroy();
-          }
         }
         finally {
           hPattern.destroy();
         }
+
+        final ProgramHandle hProg = hFsm.createProgram(popts);
+        try {
+          final ContextHandle hCtx = hProg.createContext(copts);
+          try {
+            runSearch(hCtx);
+          }
+          finally {
+            hCtx.destroy();
+          }
+        }
+        finally {
+          hProg.destroy();
+        }
       }
       finally {
-        hPatternMap.destroy();
+        hFsm.destroy();
       }
     }
     finally {
-      hFsm.destroy();
+      hPatternMap.destroy();
     }
   }
 
