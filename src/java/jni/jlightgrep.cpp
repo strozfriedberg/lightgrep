@@ -8,6 +8,7 @@
 
 static const char* ALL_IS_LOST = "Fuck it, Dude. Let's go bowling.";
 
+static const char* patternInfoClassName = "com/lightboxtechnologies/lightgrep/PatternInfo";
 static const char* programHandleClassName = "com/lightboxtechnologies/lightgrep/ProgramHandle";
 static const char* contextHandleClassName = "com/lightboxtechnologies/lightgrep/ContextHandle";
 
@@ -19,7 +20,7 @@ static const char* programExceptionClassName = "com/lightboxtechnologies/lightgr
 
 class PendingJavaException {};
 
-void throwIfException(JNIEnv* env) {
+static void throwIfException(JNIEnv* env) {
   if (env->ExceptionCheck()) {
     throw PendingJavaException();
   }
@@ -48,6 +49,17 @@ static jfieldID handlePointerField;
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_Handle_init(JNIEnv* env, jclass cl) {
   try {
     handlePointerField = env->GetFieldID(cl, "Pointer", "J");
+    throwIfException(env);
+  }
+  catch (const PendingJavaException&) {
+  }
+}
+
+static jmethodID patternInfoCtor;
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_init(JNIEnv* env, jclass cl) {
+  try {
+    patternInfoCtor = env->GetMethodID(cl, "<init>", "(J)V");
     throwIfException(env);
   }
   catch (const PendingJavaException&) {
@@ -177,7 +189,7 @@ template <typename T> T unwrap(JNIEnv* env, jobject handle) {
 }
 */
 
-std::unique_ptr<const char,std::function<void(const char*)>> unwrap(JNIEnv* env, jstring str) {
+static std::unique_ptr<const char,std::function<void(const char*)>> unwrap(JNIEnv* env, jstring str) {
   using namespace std::placeholders;
 
   std::unique_ptr<const char,std::function<void(const char*)>> ptr(
@@ -193,7 +205,7 @@ std::unique_ptr<const char,std::function<void(const char*)>> unwrap(JNIEnv* env,
   return ptr;
 }
 
-std::unique_ptr<void,std::function<void(void*)>> unwrapCrit(JNIEnv* env, jbyteArray buffer) {
+static std::unique_ptr<void,std::function<void(void*)>> unwrapCrit(JNIEnv* env, jbyteArray buffer) {
   using namespace std::placeholders;
 
   std::unique_ptr<void,std::function<void(void*)>> ptr(
@@ -209,7 +221,7 @@ std::unique_ptr<void,std::function<void(void*)>> unwrapCrit(JNIEnv* env, jbyteAr
   return ptr;
 }
 
-std::unique_ptr<jbyte,std::function<void(jbyte*)>> unwrap(JNIEnv* env, jbyteArray buffer) {
+static std::unique_ptr<jbyte,std::function<void(jbyte*)>> unwrap(JNIEnv* env, jbyteArray buffer) {
   using namespace std::placeholders;
 
   std::unique_ptr<jbyte,std::function<void(jbyte*)>> ptr(
@@ -286,10 +298,90 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_
   LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
     env->GetLongField(hPatternMap, handlePointerField)
   );
+
   if (ptr) {
+    // release global refs to Java-side user data objects
+    const int size = lg_pattern_map_size(ptr);
+    for (int i = 0; i < size; ++i) {
+      LG_PatternInfo* pinfo = lg_pattern_info(ptr, i);
+      if (pinfo->UserData) {
+        env->DeleteGlobalRef(reinterpret_cast<jobject>(pinfo->UserData));
+      }
+    }
+
+    // delete the pattern map
     lg_destroy_pattern_map(ptr);
     env->SetLongField(hPatternMap, handlePointerField, 0);
   }
+}
+
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_sizeImpl(JNIEnv* env, jobject hPatternMap) {
+  LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
+    env->GetLongField(hPatternMap, handlePointerField)
+  );
+  return lg_pattern_map_size(ptr);
+}
+
+static jobject makePatternInfo(JNIEnv* env, LG_PatternInfo* pinfo) {
+  jclass cl = env->FindClass(patternInfoClassName);
+  throwIfException(env);
+
+  jobject obj = env->NewObject(
+    cl,
+    patternInfoCtor,
+    reinterpret_cast<jlong>(pinfo)
+  );
+  throwIfException(env);
+
+  return obj;
+}
+
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_patternInfoImpl(JNIEnv* env, jobject hPatternMap, jint patternIndex) {
+  try {
+    // convert all of the Java objects to C
+    LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
+      env->GetLongField(hPatternMap, handlePointerField)
+    );
+
+    // finally actually do something
+    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
+    if (!pinfo) {
+// FIXME: this should not be possible 
+//      throwException(env, keywordExceptionClassName, lg_error(hProg));
+    }
+    return makePatternInfo(env, pinfo);
+  }
+  catch (const PendingJavaException&) {
+    return nullptr;
+  }
+}
+
+JNIEXPORT jstring JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_getPattern(JNIEnv* env, jobject pinfo) {
+  jlong ptr = env->GetLongField(pinfo, handlePointerField);
+  return env->NewStringUTF(reinterpret_cast<LG_PatternInfo*>(ptr)->Pattern);
+}
+
+JNIEXPORT jstring JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_getEncodingChain(JNIEnv* env, jobject pinfo) {
+  jlong ptr = env->GetLongField(pinfo, handlePointerField);
+  return env->NewStringUTF(reinterpret_cast<LG_PatternInfo*>(ptr)->EncodingChain);
+}
+
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_getUserData(JNIEnv* env, jobject pinfo) {
+  jlong ptr = env->GetLongField(pinfo, handlePointerField);
+  return reinterpret_cast<jobject>(reinterpret_cast<LG_PatternInfo*>(ptr)->UserData);
+}
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_setUserData(JNIEnv* env, jobject pinfo, jobject uobj) {
+  jlong ptr = env->GetLongField(pinfo, handlePointerField);
+  LG_PatternInfo* pi = reinterpret_cast<LG_PatternInfo*>(ptr);
+  
+  // release the global ref to the old user data, if there is one
+  if (pi->UserData) {
+    env->DeleteGlobalRef(reinterpret_cast<jobject>(pi->UserData));
+  }
+
+  // stash a global ref to the new user data to prevent the JVM from gc'ing it
+  pi->UserData = uobj ? env->NewGlobalRef(uobj) : nullptr;
 }
 
 JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_create(JNIEnv*, jclass, jint numFsmStateSizeHint) {
@@ -394,33 +486,24 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_des
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_sizeImpl(JNIEnv* env, jobject hProg) {
-  try {
-    LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
-      env->GetLongField(hProg, handlePointerField)
-    );
-    return lg_program_size(ptr);
-  }
-  catch (const PendingJavaException&) {
-    return -1;
-  }
+  LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
+    env->GetLongField(hProg, handlePointerField)
+  );
+  return lg_program_size(ptr);
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_writeImpl(JNIEnv* env, jobject hProg, jbyteArray buffer, jint offset) {
-  try {
-    // convert all of the Java objects to C
-    LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
-      env->GetLongField(hProg, handlePointerField)
-    );
+  // convert all of the Java objects to C
+  LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
+    env->GetLongField(hProg, handlePointerField)
+  );
 
-    std::unique_ptr<void,std::function<void(void*)>> data(unwrapCrit(env, buffer));
+  std::unique_ptr<void,std::function<void(void*)>> data(unwrapCrit(env, buffer));
 
-    char* buf = reinterpret_cast<char*>(data.get()) + (uint32_t) offset;
+  char* buf = reinterpret_cast<char*>(data.get()) + (uint32_t) offset;
 
-    // finally actually do something
-    lg_write_program(ptr, buf);
-  }
-  catch (const PendingJavaException&) {
-  }
+  // finally actually do something
+  lg_write_program(ptr, buf);
 }
 
 JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_readImpl(JNIEnv* env, jclass, jbyteArray buffer, jint offset, jint size) {
@@ -501,14 +584,10 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_des
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_resetImpl(JNIEnv* env, jobject hCtx) {
-  try {
-    LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
-      env->GetLongField(hCtx, handlePointerField)
-    );
-    lg_reset_context(ptr);
-  }
-  catch (const PendingJavaException&) {
-  }
+  LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
+    env->GetLongField(hCtx, handlePointerField)
+  );
+  lg_reset_context(ptr);
 }
 
 static void callbackShim(void* userData, const LG_SearchHit* const hit) {

@@ -1,20 +1,31 @@
 package com.lightboxtechnologies.lightgrep;
 
-import static com.lightboxtechnologies.lightgrep.Throws.*;
-
 public class PatternInfo extends Handle {
   static {
     LibraryLoader.init();
   }
 
-  // TODO: how to create these?
-  private PatternInfo() {
-    super(0);
+  static native void init();
+
+  private PatternInfo(long ptr) {
+    super(ptr);
   }
 
+  /**
+   * @throws UnsupportedOperationException
+   */
   public void destroy() {
-    Pointer = 0; 
+    // The LG_HPATTERNMAP owns the LG_PatternInfo, not us.
+    throw new UnsupportedOperationException(
+      "It is neither necessary nor possible to manually free a PatternInfo."
+    );
   }
 
-  // TODO: wrap the LG_PatternInfo members or copy them?
+  public native String getPattern();
+
+  public native String getEncodingChain();
+
+  public native Object getUserData();
+
+  public native void setUserData(Object o);
 }
