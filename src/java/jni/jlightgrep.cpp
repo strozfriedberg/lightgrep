@@ -305,7 +305,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_
     for (int i = 0; i < size; ++i) {
       LG_PatternInfo* pinfo = lg_pattern_info(ptr, i);
       if (pinfo->UserData) {
-        env->DeleteGlobalRef(reinterpret_cast<jobject>(pinfo->UserData));
+        env->DeleteGlobalRef(static_cast<jobject>(pinfo->UserData));
       }
     }
 
@@ -368,7 +368,7 @@ JNIEXPORT jstring JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_ge
 
 JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_getUserData(JNIEnv* env, jobject pinfo) {
   jlong ptr = env->GetLongField(pinfo, handlePointerField);
-  return reinterpret_cast<jobject>(reinterpret_cast<LG_PatternInfo*>(ptr)->UserData);
+  return static_cast<jobject>(reinterpret_cast<LG_PatternInfo*>(ptr)->UserData);
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_setUserData(JNIEnv* env, jobject pinfo, jobject uobj) {
@@ -377,7 +377,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_setUs
   
   // release the global ref to the old user data, if there is one
   if (pi->UserData) {
-    env->DeleteGlobalRef(reinterpret_cast<jobject>(pi->UserData));
+    env->DeleteGlobalRef(static_cast<jobject>(pi->UserData));
   }
 
   // stash a global ref to the new user data to prevent the JVM from gc'ing it
@@ -500,7 +500,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_wri
 
   std::unique_ptr<void,std::function<void(void*)>> data(unwrapCrit(env, buffer));
 
-  char* buf = reinterpret_cast<char*>(data.get()) + (uint32_t) offset;
+  char* buf = static_cast<char*>(data.get()) + (uint32_t) offset;
 
   // finally actually do something
   lg_write_program(ptr, buf);
@@ -514,7 +514,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
       // convert all of the Java objects to C
       std::unique_ptr<void,std::function<void(void*)>> data(unwrapCrit(env, buffer));
 
-      char* buf = reinterpret_cast<char*>(data.get()) + (uint32_t) offset;
+      char* buf = static_cast<char*>(data.get()) + (uint32_t) offset;
 
       // finally actually do something
       hProg = lg_read_program(buf, (uint32_t) size);
@@ -598,7 +598,7 @@ static void callbackShim(void* userData, const LG_SearchHit* const hit) {
 
   JNIEnv* env;
   jobject cb;
-  std::tie(env, cb) = *reinterpret_cast<std::tuple<JNIEnv*,jobject>*>(userData);
+  std::tie(env, cb) = *static_cast<std::tuple<JNIEnv*,jobject>*>(userData);
 
   jobject hobj = env->NewObject(
     searchHitClass,
@@ -634,7 +634,7 @@ static int search(JNIEnv* env, jobject hCtx, F bufGetter, jint offset, jint size
       throw PendingJavaException();
     }
     
-    const char* buf = reinterpret_cast<const char*>(data.get()) + offset;
+    const char* buf = static_cast<const char*>(data.get()) + offset;
 */
 
     const char* buf = bufGetter() + offset;
