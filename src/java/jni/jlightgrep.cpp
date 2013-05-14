@@ -678,28 +678,32 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_clo
   }
 }
 
+static void startsWith(JNIEnv* env, jobject hCtx, const char* buf, jint offset, jint size, jlong startOffset, jobject callback) {
+  // convert all of the Java objects to C
+  LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
+    env->GetLongField(hCtx, handlePointerField)
+  );
+
+  buf += offset;
+
+  std::tuple<JNIEnv*,jobject> userData{env, callback};
+
+  // finally actually do something
+  lg_starts_with(
+    ptr,
+    buf,
+    buf + size,
+    (uint64_t) startOffset,
+    &userData,
+    callbackShim
+  );
+}
+
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_startsWithImpl___3BIIJLcom_lightboxtechnologies_lightgrep_HitCallback_2(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
   try {
-    // convert all of the Java objects to C
-    LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
-      env->GetLongField(hCtx, handlePointerField)
-    );
-
     std::unique_ptr<jbyte,std::function<void(jbyte*)>> data(unwrap(env, buffer));
-
-    const char* buf = reinterpret_cast<const char*>(data.get()) + offset;
-
-    std::tuple<JNIEnv*,jobject> userData{env, callback};
-
-    // finally actually do something
-    lg_starts_with(
-      ptr,
-      buf,
-      buf + size,
-      (uint64_t) startOffset,
-      &userData,
-      callbackShim
-    );
+    const char* buf = reinterpret_cast<const char*>(data.get());
+    startsWith(env, hCtx, buf, offset, size, startOffset, callback);
   }
   catch (const PendingJavaException&) {
   }
@@ -707,11 +711,6 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_startsWithImpl__Ljava_nio_ByteBuffer_2IIJLcom_lightboxtechnologies_lightgrep_HitCallback_2(JNIEnv* env, jobject hCtx, jobject buffer, jint offset, jint size, jlong startOffset, jobject callback) {
   try {
-    // convert all of the Java objects to C
-    LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
-      env->GetLongField(hCtx, handlePointerField)
-    );
-
     const char* buf = reinterpret_cast<const char*>(
       env->GetDirectBufferAddress(buffer)
     );
@@ -719,20 +718,8 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
     if (!buf) {
 // FIXME: what to do here?
     }
-    
-    buf += offset;
 
-    std::tuple<JNIEnv*,jobject> userData{env, callback};
-
-    // finally actually do something
-    lg_starts_with(
-      ptr,
-      buf,
-      buf + size,
-      (uint64_t) startOffset,
-      &userData,
-      callbackShim
-    );
+    startsWith(env, hCtx, buf, offset, size, startOffset, callback);
   }
   catch (const PendingJavaException&) {
   }
