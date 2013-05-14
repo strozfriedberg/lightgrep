@@ -613,71 +613,32 @@ static void callbackShim(void* userData, const LG_SearchHit* const hit) {
   throwIfException(env);
 }
 
-template <typename F>
-static int search(JNIEnv* env, jobject hCtx, F bufGetter, jint offset, jint size, jlong startOffset, jobject callback, F func) {
-  try {
-    // convert all of the Java objects to C
-    LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
-      env->GetLongField(hCtx, handlePointerField)
-    );
+static int search(JNIEnv* env, jobject hCtx, const char* buf, jint offset, jint size, jlong startOffset, jobject callback) {
+  // convert all of the Java objects to C
+  LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
+    env->GetLongField(hCtx, handlePointerField)
+  );
 
-/*
-    using namespace std::placeholders;
+  buf += offset;
 
-    std::unique_ptr<jbyte,std::function<void(jbyte*)>> data(
-      env->GetByteArrayElements(buffer, nullptr),
-      std::bind(&JNIEnv::ReleaseByteArrayElements, env, buffer, _1, JNI_ABORT)
-    );
+  std::tuple<JNIEnv*,jobject> userData{env, callback};
 
-    if (!data) {
-      // OutOfMemoryError already thrown
-      throw PendingJavaException();
-    }
-    
-    const char* buf = static_cast<const char*>(data.get()) + offset;
-*/
-
-    const char* buf = bufGetter() + offset;
-
-    std::tuple<JNIEnv*,jobject> userData{env, callback};
-
-    // finally actually do something
-    return lg_search(
-      ptr,
-      buf,
-      buf + size,
-      (uint64_t) startOffset,
-      &userData,
-      callbackShim
-    );
-  }
-  catch (const PendingJavaException&) {
-    return 0;
-  }
+  // finally actually do something
+  return lg_search(
+    ptr,
+    buf,
+    buf + size,
+    (uint64_t) startOffset,
+    &userData,
+    callbackShim
+  );
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_searchImpl___3BIIJLcom_lightboxtechnologies_lightgrep_HitCallback_2(JNIEnv* env, jobject hCtx, jbyteArray buffer, jint offset, jint size, jlong startOffset, jobject callback) {
   try {
-    // convert all of the Java objects to C
-    LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
-      env->GetLongField(hCtx, handlePointerField)
-    );
-
     std::unique_ptr<jbyte,std::function<void(jbyte*)>> data(unwrap(env, buffer));
-
-    const char* buf = reinterpret_cast<const char*>(data.get()) + offset;
- 
-    std::tuple<JNIEnv*,jobject> userData{env, callback};
-
-    // finally actually do something
-    return lg_search(
-      ptr,
-      buf,
-      buf + size,
-      (uint64_t) startOffset,
-      &userData,
-      callbackShim
-    );
+    const char* buf = reinterpret_cast<const char*>(data.get());
+    return search(env, hCtx, buf, offset, size, startOffset, callback);
   }
   catch (const PendingJavaException&) {
     return 0;
@@ -686,11 +647,6 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_searchImpl__Ljava_nio_ByteBuffer_2IIJLcom_lightboxtechnologies_lightgrep_HitCallback_2(JNIEnv* env, jobject hCtx, jobject buffer, jint offset, jint size, jlong startOffset, jobject callback) {
   try {
-    // convert all of the Java objects to C
-    LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
-      env->GetLongField(hCtx, handlePointerField)
-    );
-
     const char* buf = reinterpret_cast<const char*>(
       env->GetDirectBufferAddress(buffer)
     );
@@ -698,20 +654,8 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sea
     if (!buf) {
 // FIXME: what to do here?
     }
-    
-    buf += offset;
- 
-    std::tuple<JNIEnv*,jobject> userData{env, callback};
 
-    // finally actually do something
-    return lg_search(
-      ptr,
-      buf,
-      buf + size,
-      (uint64_t) startOffset,
-      &userData,
-      callbackShim
-    );
+    return search(env, hCtx, buf, offset, size, startOffset, callback);
   }
   catch (const PendingJavaException&) {
     return 0;
