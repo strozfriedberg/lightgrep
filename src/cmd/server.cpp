@@ -9,6 +9,7 @@
 #include <functional>
 #include <iostream>
 
+#define BOOST_BIND_NO_PLACEHOLDERS
 #define BOOST_ENABLE_ASSERT_HANDLER 1
 
 namespace boost {
