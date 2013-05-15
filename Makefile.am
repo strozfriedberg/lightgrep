@@ -1,12 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CPPFLAGS = $(ICU_CPPFLAGS) $(BOOST_CPPFLAGS) -Iinclude
-AM_CXXFLAGS = $(ICU_CXXFLAGS) $(BOOST_CXXFLAGS) $(ICU_CXXFLAGS) -W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe
-AM_CFLAGS = $(ICU_CFLAGS) -std=c1x -W -Wall -Wextra -pedantic -pipe
+AM_CPPFLAGS = -Iinclude
 AM_YFLAGS = -r solved
-
-# TODO:
-# -lstdc++ is not in the right place, should not be repeated
 
 LG_LIB = src/lib/liblightgrep.la
 
@@ -54,7 +49,7 @@ src_lib_liblightgrep_la_SOURCES = \
 	src/lib/decoders/decoderfactory.cpp \
 	src/lib/decoders/ocedecoder.cpp
 
-src_lib_liblightgrep_la_LIBADD = $(ICU_LIBS) -lstdc++
+src_lib_liblightgrep_la_LIBADD = $(ICU_LIBS) $(STDCXX_LIB)
 
 src_lib_liblightgrep_ladir = $(includedir)/lightgrep
 
@@ -68,16 +63,16 @@ src_lib_liblightgrep_la_HEADERS = \
 noinst_PROGRAMS = c_example/cex src/enc/enc src/val/val src/what/what
 
 c_example_cex_SOURCES = c_example/main.c
-c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) -lstdc++
+c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_enc_enc_SOURCES = src/enc/encodings.cpp
-src_enc_enc_LDADD = $(ICU_LIBS) -lstdc++
+src_enc_enc_LDADD = $(ICU_LIBS) $(STDCXX_LIB)
 
 src_val_val_SOURCES = src/val/valid.cpp
-src_val_val_LDADD = $(LG_LIB) $(ICU_LIBS) -lstdc++
+src_val_val_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_what_what_SOURCES = src/what/what.cpp
-src_what_what_LDADD = $(LG_LIB) $(ICU_LIBS) -lstdc++
+src_what_what_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 check_PROGRAMS = test/test
 TESTS = $(check_PROGRAMS)
@@ -140,5 +135,5 @@ test_test_SOURCES = \
 	test/test_xorencoder.cpp
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
-test_test_LDFLAGS = $(AM_LDFLAGS) $(BOOST_LDFLAGS)
-test_test_LDADD = $(LG_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) -lstdc++
+test_test_LDFLAGS = $(BOOST_LDFLAGS)
+test_test_LDADD = $(LG_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
