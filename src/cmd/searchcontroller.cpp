@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <iostream>
 
-#include <bosot/thread.hpp>
+#include <boost/thread.hpp>
 #include <boost/timer.hpp>
 
 uint64_t readNext(FILE* file, char* buf, unsigned int blockSize) {
