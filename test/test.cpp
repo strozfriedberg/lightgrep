@@ -1,3 +1,12 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+
+#ifndef HAVE_SCOPE
+#error The Scope testing framework is required to compile and run the tests.
+#endif
+
+#endif /* HAVE_CONFIG_H */
+
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <scope/testrunner.h>
