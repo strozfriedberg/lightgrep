@@ -79,13 +79,10 @@ case "$host" in
   ;;
 esac
 
-# ICU_C(XX)FLAGS we don't want anywhere:
-#   -ansi -std=c99
-#
-# ICU_C(XX)FLAGS which conflict with ones we might set:
+# ICU_CXXFLAGS which conflict with ones we might set:
 #   -O2 -O3 -g -pthread -mthreads
 #
-duff_icu_compile_flags='-ansi -g -O2 -O3 -std=c99 -pthread -mthreads'
+duff_icu_compile_flags='-g -O2 -O3 -pthread -mthreads'
 if test x"$CXX" = "xclang++" ; then
   # These cause clang to freak out on Fedora 18
   duff_icu_compile_flags+=' -Wp,-D_FORTIFY_SOURCE=2'
@@ -96,8 +93,18 @@ LG_REMOVE_FLAGS([ICU_CXXFLAGS], [$duff_icu_compile_flags])
 #
 # liblightgrep
 #
+
+# FIXME: Is this the right way to set static linking for autoconf tests?
+if test "x$enable_shared" != "xyes"; then
+  LDFLAGS+=' -static'
+fi
+
 AC_CHECK_HEADER([lightgrep/api.h])
-AC_CHECK_LIB([lightgrep], [lg_create_pattern])
+AC_CHECK_LIB([lightgrep], [lg_create_pattern],
+  [],
+  [AC_MSG_ERROR([liblightgrep not found.])],
+  [$ICU_LIBS]
+)
 
 #
 # Boost
@@ -121,6 +128,7 @@ else
 fi
 
 # FIXME: doesn't always find -mt version of boost libs, e.g. for filesystem
+# FIXME: fail when any of these are missing
 AX_BOOST_FILESYSTEM
 AX_BOOST_CHRONO
 AX_BOOST_PROGRAM_OPTIONS
@@ -222,6 +230,8 @@ if test "x$enable_shared" != "xyes"; then
   *-*-mingw*)
     # FIXME: wrong boost_system lib gets detected!
     BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
+    # FIXME: wrong boost_filesystem lib gets detected!
+    BOOST_FILESYSTEM_LIB=`echo "$BOOST_FILESYSTEM_LIB" | sed 's/.dll/-mt/'`
     ;;
   esac
 
