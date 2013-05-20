@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lightgrep/api.h"
-#include "lightgrep/search_hit.h"
+#include <lightgrep/api.h>
+#include <lightgrep/search_hit.h>
 
 #include <iosfwd>
 #include <string>

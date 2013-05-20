@@ -5,7 +5,8 @@
 
 #include "basic.h"
 #include "hitwriter.h"
-#include "lightgrep/api.h"
+
+#include <lightgrep/api.h>
 
 class SearchController {
 public:

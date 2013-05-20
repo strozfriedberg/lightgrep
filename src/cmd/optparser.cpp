@@ -2,7 +2,8 @@
 
 #include "basic.h"
 #include "optparser.h"
-#include "lightgrep/encodings.h"
+
+#include <lightgrep/encodings.h>
 
 #include <algorithm>
 #include <vector>

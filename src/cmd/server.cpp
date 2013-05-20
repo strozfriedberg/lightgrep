@@ -1,6 +1,6 @@
 #include "basic.h"
 
-#include "lightgrep/api.h"
+#include <lightgrep/api.h>
 
 #include <algorithm>
 #include <cstdlib>

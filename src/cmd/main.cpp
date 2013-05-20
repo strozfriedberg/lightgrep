@@ -21,8 +21,9 @@
 #include "program.h"
 #include "searchcontroller.h"
 #include "utility.h"
-#include "lightgrep/api.h"
-#include "lightgrep/encodings.h"
+
+#include <lightgrep/api.h>
+#include <lightgrep/encodings.h>
 
 #ifdef LIGHTGREP_CUSTOMER
 // check this out: http://stackoverflow.com/questions/2751870/how-exactly-does-the-double-stringize-trick-work
