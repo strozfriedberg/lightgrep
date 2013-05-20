@@ -2,7 +2,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 # FIXME: Why does ldd not show dynamic deps?!
 # FIXME: augh, don't rely on private liblg headers!
-AM_CPPFLAGS = -Iinclude -I../lg-gpl/include
+AM_CPPFLAGS = -Iinclude -Ivendors/liblightgrep/include
 
 bin_PROGRAMS = src/cmd/lightgrep
 
