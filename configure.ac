@@ -120,6 +120,7 @@ else
     [AC_MSG_ERROR([Failed to find usable Boost headers.])])
 fi
 
+# FIXME: doesn't always find -mt version of boost libs, e.g. for filesystem
 AX_BOOST_FILESYSTEM
 AX_BOOST_CHRONO
 AX_BOOST_PROGRAM_OPTIONS
