@@ -82,7 +82,7 @@ esac
 # ICU_CXXFLAGS which conflict with ones we might set:
 #   -O2 -O3 -g -pthread -mthreads
 #
-duff_icu_compile_flags='-g -O2 -O3 -pthread -mthreads'
+duff_icu_compile_flags='-ansi -g -mthreads -O2 -O3 -pthread'
 if test x"$CXX" = "xclang++" ; then
   # These cause clang to freak out on Fedora 18
   duff_icu_compile_flags+=' -Wp,-D_FORTIFY_SOURCE=2'
