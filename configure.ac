@@ -105,10 +105,12 @@ AC_CHECK_HEADER([lightgrep/api.h],
   [AC_MSG_ERROR([liblightgrep C API headers not found.])])
 
 AC_CHECK_LIB([lightgrep], [lg_create_pattern],
-  [],
+  [LG_LIB="-llightgrep"],
   [AC_MSG_ERROR([liblightgrep not found.])],
   [$ICU_LIBS]
 )
+
+AC_SUBST([LG_LIB])
 
 AC_ARG_WITH([liblightgrep],
   [AS_HELP_STRING([--with-liblightgrep-headers=ARG],
@@ -152,7 +154,8 @@ else
     [AC_MSG_ERROR([Failed to find usable Boost headers.])])
 fi
 
-# FIXME: doesn't always find -mt version of boost libs, e.g. for filesystem
+# FIXME: doesn't always find -mt version of boost libs,
+# e.g. for filesystem and system
 AX_BOOST_FILESYSTEM
 if test "x$ax_cv_boost_filesystem" != "xyes"; then
   AC_MSG_ERROR([Failed to find Boost filesystem library.])

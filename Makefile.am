@@ -13,7 +13,6 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/options.cpp
 	
 src_cmd_lightgrep_LDFLAGS = $(BOOST_LDFLAGS)
-# FIXME: LG_LIB is not being set
 src_cmd_lightgrep_LDADD = $(LG_LIB) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 check_PROGRAMS = test/test
