@@ -128,12 +128,38 @@ else
 fi
 
 # FIXME: doesn't always find -mt version of boost libs, e.g. for filesystem
-# FIXME: fail when any of these are missing
 AX_BOOST_FILESYSTEM
+if test "x$ax_cv_boost_filesystem" != "xyes"; then
+  AC_MSG_ERROR([Failed to find Boost filesystem library.])
+fi
+
 AX_BOOST_CHRONO
+if test "x$ax_cv_boost_chrono" != "xyes"; then
+  AC_MSG_ERROR([Failed to find Boost chrono library.])
+fi
+
 AX_BOOST_PROGRAM_OPTIONS
+if test "x$ax_cv_boost_program_options" != "xyes"; then
+  AC_MSG_ERROR([Failed to find Boost program_options library.])
+fi
+
 AX_BOOST_SYSTEM
+if test "x$ax_cv_boost_system" != "xyes"; then
+  AC_MSG_ERROR([Failed to find Boost system library.])
+fi
+
 AX_BOOST_THREAD
+if test "x$ax_cv_boost_thread" != "xyes"; then
+  AC_MSG_ERROR([Failed to find Boost thread library.])
+fi
+
+# Boost ASIO needs ws2_32 and mswsock on Windows
+case "$host" in
+*-*-mingw*)
+  BOOST_ASIO_LIB="-lws2_32 -lmswsock"
+  AC_SUBST([BOOST_ASIO_LIB])
+  ;;
+esac
 
 #
 # tests
@@ -172,14 +198,6 @@ if test "x$scope_ok" != "xyes"; then
   fi
   AC_MSG_WARN([])
 fi
-
-# Boost ASIO needs ws2_32 and mswsock on Windows
-case "$host" in
-*-*-mingw*)
-  BOOST_ASIO_LIB="-lws2_32 -lmswsock"
-  AC_SUBST([BOOST_ASIO_LIB])
-  ;;
-esac
 
 #
 # Threading
