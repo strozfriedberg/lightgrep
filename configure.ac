@@ -34,6 +34,7 @@ AM_PROG_CC_C_O
 
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+CXX11_FLAG=`echo $CXXFLAGS | sed -e 's/.* //'`
 AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [CXXFLAGS])
 
 AC_PROG_INSTALL
@@ -99,12 +100,36 @@ if test "x$enable_shared" != "xyes"; then
   LDFLAGS+=' -static'
 fi
 
-AC_CHECK_HEADER([lightgrep/api.h])
+AC_CHECK_HEADER([lightgrep/api.h],
+  [],
+  [AC_MSG_ERROR([liblightgrep C API headers not found.])])
+
 AC_CHECK_LIB([lightgrep], [lg_create_pattern],
   [],
   [AC_MSG_ERROR([liblightgrep not found.])],
   [$ICU_LIBS]
 )
+
+AC_ARG_WITH([liblightgrep],
+  [AS_HELP_STRING([--with-liblightgrep-headers=ARG],
+    [use liblightgrep headers from the specified location])],
+  [CPPFLAGS+="-I$withval"],
+  [CPPFLAGS+="-Ivendors/liblightgrep/include"])
+
+if test "x$with_liblightgrep_headers" = "xno"; then
+  AC_MSG_ERROR([--without-liblightgrep-headers specified, but liblightgrep headers are mandatory.])
+fi
+
+# The header preprocessor check needs -std=c++11; we temporarily provide it.
+CPPFLAGS_saved="$CPPFLAGS"
+CPPFLAGS+=" $CXX11_FLAG"
+export CPPFLAGS
+
+AC_CHECK_HEADER([basic.h],
+  [],
+  [AC_MSG_ERROR([liblightgrep internal headers not found.])])
+
+CPPFLAGS="$CPPFLAGS_saved"
 
 #
 # Boost
@@ -268,7 +293,6 @@ AC_SUBST([CXXLD])
 #
 # Cleanup flags
 #
-
 AX_APPEND_COMPILE_FLAGS([$ICU_CPPFLAGS $BOOST_CPPFLAGS], [CPPFLAGS])
 AX_APPEND_COMPILE_FLAGS([$ICU_CXXFLAGS $BOOST_CXXFLAGS], [CXXFLAGS]) 
 
