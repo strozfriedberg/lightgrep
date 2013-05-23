@@ -62,12 +62,40 @@ AX_PROG_BISON
 #
 # ICU
 #
+
+# Get the path to icu-config, if we want to use ICU other than the system one.
+AC_ARG_WITH([icu],
+  [AS_HELP_STRING([--with-icu=ARG],
+    [use icu-config from the specified location])],
+  [ICU_CONFIG="$withval"],
+  [ICU_CONFIG=""])
+
+if test -z "$ICU_CONFIG"; then
+  AC_MSG_NOTICE([No path given for --with-icu, using icu-config from your PATH.])
+else
+  if test "x$ICU_CONFIG" = "xyes"; then
+    AC_MSG_WARN([ICU_CONFIG = 'yes'. Did you forget to specify an argument for --with-icu?])
+  fi
+
+  # Add a trailing slash if we don't have one
+  case "$ICU_CONFIG" in
+  */) ;;
+  *) ICU_CONFIG+='/' ;;
+  esac
+
+  # Check that icu-config exists
+  if test ! -f "$ICU_CONFIG/icu-config"; then
+    AC_MSG_ERROR([Path "${ICU_CONFIG}icu-config" does not exist])
+  fi
+fi
+
 # FIXME: icu-config from ICU cross-compiled with mingw wants libicuuc.dll,
 # which won't exist if ICU was compiled static only, so we temporarily add
 # --noverify until we figure out what to do about this.
-ICU_CONFIG='icu-config --noverify'
+ICU_CONFIG+='icu-config --noverify'
+
 AC_MSG_WARN([Disregard the next few lines where ICU_* are printed.])
-AC_MSG_WARN([They're all wrong and we fix them up before using them.])
+AC_MSG_WARN([They're all wrong but we fix them up before using them.])
 AX_CHECK_ICU(1.48)
 
 # ICU_LIBS which are wrong on Windows (and we handle ourselves):
@@ -118,7 +146,7 @@ else
     # AX_BOOST_BASE doesn't find the Boost libs for mingw, we help it out
     if test "$with_boost_libdir" = ""; then
       with_boost_libdir="/usr/${host}/sys-root/mingw/lib"
-      AC_MSG_WARN([--with-boost-libdir not set. We are guessing ${with_boost_libdir}.])
+      AC_MSG_NOTICE([--with-boost-libdir not set. We are guessing ${with_boost_libdir}.])
     fi
     ;;
   esac
