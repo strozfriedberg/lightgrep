@@ -491,8 +491,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_crea
     // finally actually do something
     LG_HPROGRAM hProg = lg_create_program(ptr, &opts);
     if (!hProg) {
-// FIXME: do something else here
-//      throwException(env, keywordExceptionClassName, lg_error(hProg));
+      throwException(env, programExceptionClassName, "Empty program!");
     }
     return makeProgramHandle(env, hProg);
   }

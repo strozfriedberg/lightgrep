@@ -564,9 +564,7 @@ public class LightgrepTest {
     }
   }
 
-// FIXME: should throw
-/*
-  @Test(expected=KeywordException.class)
+  @Test(expected=ProgramException.class)
   public void createProgramEmptyTest() throws Exception {
     final FSMHandle hFsm = new FSMHandle(0);
     try {
@@ -577,7 +575,6 @@ public class LightgrepTest {
       hFsm.destroy();
     }
   }
-*/
 
   @Test
   public void createProgramGoodTest() throws Exception {
