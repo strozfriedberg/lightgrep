@@ -74,24 +74,6 @@ public class LightgrepTest {
     }
   }
 
-// FIXME: should throw
-/*
-  @Test(expected=KeywordException.class)
-  public void parsePatternEmptyMatchesTest() throws Exception {
-    final PatternHandle hPattern = new PatternHandle();
-    try {
-      final KeyOptions kopts = new KeyOptions();
-      kopts.FixedString = false;
-      kopts.CaseInsensitive = false;
-
-      hPattern.parsePattern("x*", kopts);
-    }
-    finally {
-      hPattern.destroy();
-    }
-  }
-*/
-
   @Test(expected=NullPointerException.class)
   public void parsePatternNullTest() throws Exception {
     final PatternHandle hPattern = new PatternHandle();
@@ -323,7 +305,35 @@ public class LightgrepTest {
           kopts.CaseInsensitive = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
-// FIXME: check return value?
+          final int ret = hFsm.addPattern(hPatternMap, hPattern, "UTF-8");
+          assertEquals(0, ret);
+        }
+        finally {
+          hPattern.destroy();
+        }
+      }
+      finally {
+        hPatternMap.destroy();
+      }
+    }
+    finally {
+      hFsm.destroy();
+    }
+  }
+
+  @Test(expected=KeywordException.class)
+  public void addPatternEmptyMatchesTest() throws Exception {
+    final FSMHandle hFsm = new FSMHandle(0);
+    try {
+      final PatternMapHandle hPatternMap = new PatternMapHandle(0);
+      try {
+        final PatternHandle hPattern = new PatternHandle();
+        try {
+          final KeyOptions kopts = new KeyOptions();
+          kopts.FixedString = false;
+          kopts.CaseInsensitive = false;
+
+          hPattern.parsePattern("x*", kopts);
           hFsm.addPattern(hPatternMap, hPattern, "UTF-8");
         }
         finally {
