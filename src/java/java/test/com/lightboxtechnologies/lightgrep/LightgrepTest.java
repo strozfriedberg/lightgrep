@@ -2,6 +2,7 @@ package com.lightboxtechnologies.lightgrep;
 
 import org.junit.Test;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1057,19 +1058,35 @@ public class LightgrepTest {
   @Test(expected=NullPointerException.class)
   public void readProgramNullBufferTest() {
     final ProgramHandle hProg = ProgramHandle.read(null, 0, 1);
+    hProg.destroy();
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void readProgramOffsetOffEndTest() {
     final byte[] exp = aProgram;
     final ProgramHandle hProg = ProgramHandle.read(exp, exp.length, exp.length);
+    hProg.destroy();
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void readProgramOffsetTooLargeTest() {
     final byte[] exp = aProgram;
     final ProgramHandle hProg = ProgramHandle.read(exp, 1, exp.length);
+    hProg.destroy();
   }
+
+// FIXME: reading programs has no error-checking, pretty much
+/*
+  @Test(expected=ProgramException.class)
+  public void readProgramGarbageTest() throws UnsupportedEncodingException {
+    final byte[] ibuf = "balls balls balls balls balls balls".getBytes("ASCII");
+    final ProgramHandle hProg = ProgramHandle.read(ibuf, 0, ibuf.length);
+    final byte[] obuf = new byte[hProg.size()];
+    hProg.write(obuf, 0);
+    System.err.write(obuf, 0, obuf.length);
+    hProg.destroy();
+  }
+*/
 
   @Test
   public void createContextGoodTest() throws Exception {

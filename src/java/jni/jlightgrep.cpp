@@ -543,12 +543,9 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
 
       // finally actually do something
       hProg = lg_read_program(buf, (uint32_t) size);
-/*
-// FIXME: Is this possible?
       if (!hProg) {
         throwException(env, programExceptionClassName, "Bad program");
       }
-*/
     }
 
     return makeProgramHandle(env, hProg);
