@@ -234,6 +234,9 @@ esac
 
 AC_SUBST([STDCXX_LIB])
 
+# FIXME: need to add -install_name to LDFLAGS when building a dynamic lib
+# for MacOS X.
+
 # FIXME: Is this really the right way to do this?!
 # Build dynamically-linked executables if we build dynamic libs
 if test "x$enable_shared" != "xyes"; then
