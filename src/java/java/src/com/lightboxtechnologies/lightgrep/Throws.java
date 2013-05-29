@@ -10,14 +10,50 @@ class Throws {
   }
 
   public static void throwIfNegative(String varname, int var) {
-    if (var < 0) {
-      throw new IndexOutOfBoundsException(varname + " == " + var + " < 0");
-    }
+    throwIfLessThan(varname, var, 0);
   }
 
   public static void throwIfNegative(String varname, long var) {
-    if (var < 0) {
-      throw new IndexOutOfBoundsException(varname + " == " + var + " < 0");
+    throwIfLessThan(varname, var, 0);
+  }
+
+  public static void throwIfLessThan(String varname, int var, int min) {
+    if (var < min) {
+      throw new IndexOutOfBoundsException(
+        varname + " == " + var + " < " + min
+      );
+    }
+  }
+
+  public static void throwIfLessThan(String varname, long var, long min) {
+    if (var < min) {
+      throw new IndexOutOfBoundsException(
+        varname + " == " + var + " < " + min
+      );
+    }
+  }
+
+  public static void throwIfGreaterThan(String varname, int var, int max) {
+    if (var > max) {
+      throw new IndexOutOfBoundsException(
+        varname + " == " + var + " > " + max
+      );
+    }
+  }
+
+  public static void throwIfGreaterThan(String varname, int var, long max) {
+    if (var > max) {
+      throw new IndexOutOfBoundsException(
+        varname + " == " + var + " > " + max
+      );
+    }
+  }
+
+  public static void throwIfBoundsBackwards(String leftname, long left, String rightname, long right) {
+    if (left > right) {
+      throw new IndexOutOfBoundsException(
+        leftname + " == " + left + " > " + right + " == " + rightname
+      );
     }
   }
 
