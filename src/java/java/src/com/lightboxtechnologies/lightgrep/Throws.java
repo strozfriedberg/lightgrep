@@ -49,7 +49,7 @@ class Throws {
     }
   }
 
-  public static void throwIfBoundsBackwards(String leftname, long left, String rightname, long right) {
+  public static void throwIfGreaterThan(String leftname, long left, String rightname, long right) {
     if (left > right) {
       throw new IndexOutOfBoundsException(
         leftname + " == " + left + " > " + right + " == " + rightname
