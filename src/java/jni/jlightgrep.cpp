@@ -746,10 +746,3 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
   catch (const PendingJavaException&) {
   }
 }
-
-/*
-JNIEXPORT jstring JNICALL Java_com_lightboxtechnologies_lightgrep_Lightgrep_lg_1error(JNIEnv* env, jclass, jobject handle) {
-  jlong ptr = env->GetLongField(handle, handleField); 
-  return env->NewStringUTF(lg_error(reinterpret_cast<void*>(ptr)));
-}
-*/
