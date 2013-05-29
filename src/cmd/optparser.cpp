@@ -1,6 +1,5 @@
 #include <fstream>
 
-#include "basic.h"
 #include "optparser.h"
 
 #include <lightgrep/encodings.h>
