@@ -41,7 +41,7 @@ class Throws {
     }
   }
 
-  public static void throwIfGreaterThan(String varname, int var, long max) {
+  public static void throwIfGreaterThan(String varname, long var, long max) {
     if (var > max) {
       throw new IndexOutOfBoundsException(
         varname + " == " + var + " > " + max
