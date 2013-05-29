@@ -3,7 +3,6 @@
 #include <cstdio>
 #include <memory>
 
-#include "basic.h"
 #include "hitwriter.h"
 
 #include <lightgrep/api.h>
