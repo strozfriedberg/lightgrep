@@ -294,6 +294,20 @@ fi
 AC_SUBST([CXXLD])
 
 #
+# Customer name
+#
+AC_ARG_WITH([customer],
+  [AS_HELP_STRING([--with-customer=ARG], [set the customer name])],
+  [AC_DEFINE_UNQUOTED([LIGHTGREP_CUSTOMER],["$withval"],[Name of the customer.])],
+  [])
+
+if test -z "$with_customer"; then
+  AC_MSG_NOTICE([no customer specified])
+else
+  AC_MSG_NOTICE([customer is "$with_customer"])
+fi
+
+#
 # Cleanup flags
 #
 AX_APPEND_COMPILE_FLAGS([$ICU_CPPFLAGS $BOOST_CPPFLAGS], [CPPFLAGS])
