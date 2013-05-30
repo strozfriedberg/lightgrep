@@ -20,8 +20,6 @@
 
 #include "basic.h"
 
-#include <vector>
-
 class Pattern {
 public:
   std::string Expression;
