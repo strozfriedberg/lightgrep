@@ -115,8 +115,8 @@ AC_SUBST([LG_LIB])
 AC_ARG_WITH([liblightgrep],
   [AS_HELP_STRING([--with-liblightgrep-headers=ARG],
     [use liblightgrep headers from the specified location])],
-  [CPPFLAGS+="-I$withval"],
-  [CPPFLAGS+="-Ivendors/liblightgrep/include"])
+  [CPPFLAGS+=" -I$withval"],
+  [CPPFLAGS+=" -Ivendors/liblightgrep/include"])
 
 if test "x$with_liblightgrep_headers" = "xno"; then
   AC_MSG_ERROR([--without-liblightgrep-headers specified, but liblightgrep headers are mandatory.])
