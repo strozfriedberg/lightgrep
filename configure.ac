@@ -298,14 +298,13 @@ AC_SUBST([CXXLD])
 #
 AC_ARG_WITH([customer],
   [AS_HELP_STRING([--with-customer=ARG], [set the customer name])],
-  [AC_DEFINE_UNQUOTED([LIGHTGREP_CUSTOMER],["$withval"],[Name of the customer.])],
-  [])
-
-if test -z "$with_customer"; then
-  AC_MSG_NOTICE([no customer specified])
-else
-  AC_MSG_NOTICE([customer is "$with_customer"])
-fi
+  [
+    escaped_customer=`echo "$withval" | sed -e 's/,/\\\\x2C/g'`
+    AC_DEFINE_UNQUOTED([LIGHTGREP_CUSTOMER],
+      [$escaped_customer],[Name of the customer.])
+    AC_MSG_NOTICE([customer is "$with_customer"])
+  ]
+  [AC_MSG_NOTICE([no customer specified])])
 
 #
 # Cleanup flags
