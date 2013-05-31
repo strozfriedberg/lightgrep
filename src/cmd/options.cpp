@@ -7,13 +7,13 @@
 
 #include "options.h"
 
-bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& keys) const {
+bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Key>& keys) const {
   std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
   if (keyFile) {
     char line[8192];
-    while (keyFile) {
+    for (uint32_t lineno = 0; keyFile; ++lineno) {
       keyFile.getline(line, sizeof(line));
-      parseLine(line, keys);
+      parseLine(line, lineno, keys);
     }
     return !keys.empty();
   }
@@ -41,11 +41,12 @@ std::ostream& Options::openOutput() const {
   }
 }
 
-std::vector<Pattern> Options::getKeys() const {
-  std::vector<Pattern> ret;
+std::vector<Key> Options::getKeys() const {
+  std::vector<Key> ret;
   if (!CmdLinePatterns.empty()) {
+    uint32_t lineno = 0;
     for (const std::string& p : CmdLinePatterns) {
-      parseLine(p, ret);
+      parseLine(p, lineno++, ret);
     }
   }
   else {
@@ -66,7 +67,7 @@ void setBool(const std::string& s, bool& b) {
   // don't set if unrecognized
 }
 
-bool Options::parseLine(const std::string& line, std::vector<Pattern>& keys) const {
+bool Options::parseLine(const std::string& line, uint32_t lineno, std::vector<Key>& keys) const {
   typedef boost::char_separator<char> char_separator;
   typedef boost::tokenizer<char_separator> tokenizer;
 
@@ -75,7 +76,8 @@ bool Options::parseLine(const std::string& line, std::vector<Pattern>& keys) con
     tokenizer::const_iterator curTok(tokens.begin());
     const tokenizer::const_iterator endTok(tokens.end());
     if (curTok != endTok) {
-      Pattern p(*curTok, LiteralMode, CaseInsensitive);
+      Key p(*curTok, LiteralMode, CaseInsensitive);
+      p.UserIndex = lineno;
 
       if (++curTok == endTok) {
         // encoding names are in Encodings
