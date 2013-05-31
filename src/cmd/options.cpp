@@ -14,7 +14,6 @@ bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Pattern>& 
     while (keyFile) {
       keyFile.getline(line, sizeof(line));
       parseLine(line, keys);
-//      parseLine(std::string(line), keys);
     }
     return !keys.empty();
   }
