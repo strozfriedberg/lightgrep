@@ -20,6 +20,7 @@
 
 #include "basic.h"
 
+#include <string>
 #include <vector>
 
 #include "automata.h"
@@ -27,7 +28,30 @@
 
 struct SearchInfo {};
 
-uint32_t estimateGraphSize(const std::vector<Pattern>& keywords);
+template <typename T>
+uint32_t estimateGraphSize(const std::vector<T>& keywords) {
+  uint32_t ret = 0;
+  for (const auto& p : keywords) {
+    uint32_t pSize = p.Expression.size();
+    const std::string& enc = p.Encoding;
+// FIXME: Shouldn't we use something from the Encoders for this?
+    if (enc == "UTF-16LE" || enc == "UTF-16BE") {
+      pSize <<= 1;
+    }
+    else if (enc == "UTF-8") {
+      pSize *= 3;
+      pSize >>= 1;
+    }
+    else if (enc == "UTF-32LE" || enc == "UTF-32BE") {
+      pSize <<= 2;
+    }
+    ret += pSize;
+  }
+  uint32_t fudgeFactor = ret;
+  fudgeFactor >>= 2;
+  ret += fudgeFactor;
+  return ret;
+}
 
 class Visitor {
 public:
