@@ -14,7 +14,7 @@
 class Options {
 public:
   uint64_t DebugBegin,
-         DebugEnd;
+           DebugEnd;
 
   std::set<std::string>::size_type SampleLimit;
   std::multiset<NFA::VertexDescriptor>::size_type LoopLimit;
