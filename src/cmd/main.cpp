@@ -243,7 +243,9 @@ parsePatterns(
         continue;
       }
 
-      lg_add_pattern(fsm.get(), pmap.get(), pat.get(), p.Encoding.c_str(), &err);
+      const int label = lg_add_pattern(
+        fsm.get(), pmap.get(), pat.get(), p.Encoding.c_str(), &err
+      );
       if (err) {
         ++numErrors;
         onError(p, i, err->Message);
@@ -251,8 +253,8 @@ parsePatterns(
         continue;
       }
 
-      // pack the user pattern number into the void*, oh the horror
-      LG_PatternInfo* pinfo = lg_pattern_info(pmap.get(), i - numErrors);
+      // pack the user pattern index into the void*, oh the horror
+      LG_PatternInfo* pinfo = lg_pattern_info(pmap.get(), label);
       pinfo->UserData = reinterpret_cast<void*>(i);
     }
 
