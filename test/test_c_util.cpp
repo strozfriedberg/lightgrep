@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <memory>
 #include <vector>
+#include <stdexcept>
 
 #include "lightgrep/util.h"
 
@@ -42,6 +43,8 @@ void readWindowTest(
   size_t* offsets;
   size_t clen;
 
+  LG_Error* err = nullptr;
+
   const unsigned int abad = lg_read_window(
     reinterpret_cast<const char*>(data.data()),
     reinterpret_cast<const char*>(data.data()) + data.size(), 
@@ -52,8 +55,15 @@ void readWindowTest(
     post,
     &chars,
     &offsets,
-    &clen
+    &clen,
+    &err
   );
+
+  if (err) {
+    const std::string msg(err->Message);
+    lg_free_error(err);
+    throw std::runtime_error(msg);
+  }
 
   std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
     chars, &lg_free_window_characters
@@ -93,6 +103,8 @@ void hitContextTest(
   LG_Window outer;
   const char* utf8;
 
+  LG_Error* err = nullptr;
+
   const unsigned int abad = lg_hit_context(
     reinterpret_cast<const char*>(data.data()),
     reinterpret_cast<const char*>(data.data()) + data.size(),
@@ -102,8 +114,15 @@ void hitContextTest(
     window,
     repl,
     &utf8,
-    &outer
+    &outer,
+    &err
   );
+
+  if (err) {
+    const std::string msg(err->Message);
+    lg_free_error(err);
+    throw std::runtime_error(msg);
+  }
 
   std::unique_ptr<const char[],void(*)(const char*)> pchars(
     utf8, &lg_free_hit_context_string
@@ -114,7 +133,7 @@ void hitContextTest(
 
   SCOPE_ASSERT_EQUAL(doff + wbeg, outer.begin);
   SCOPE_ASSERT_EQUAL(doff + wend, outer.end);
-} 
+}
 
 SCOPE_TEST(lgReadWindowASCII) {
   readWindowTest(

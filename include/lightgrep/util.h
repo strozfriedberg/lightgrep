@@ -54,7 +54,8 @@ unsigned int lg_read_window(const char* bufStart,
                             size_t postContext,
                             int32_t** characters,
                             size_t** offsets,
-                            size_t* clen);
+                            size_t* clen,
+                            LG_Error** err);
 
 unsigned int lg_hit_context(const char* bufStart,
                             const char* bufEnd,
@@ -64,7 +65,8 @@ unsigned int lg_hit_context(const char* bufStart,
                             size_t windowSize,
                             uint32_t replacement,
                             const char** utf8,
-                            LG_Window* outer);
+                            LG_Window* outer,
+                            LG_Error** err);
 
 void lg_free_window_characters(int32_t* characters);
 
