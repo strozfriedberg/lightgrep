@@ -1564,158 +1564,206 @@ public class LightgrepTest {
     }
   }
 
-/*
-
   @Test(expected=NullPointerException.class)
   public void searchDirectByteBufferNullCallbackTest() throws Exception {
-    final ParserHandle hParser = new ParserHandle(4);
+    final FSMHandle hFsm = new FSMHandle(0);
     try {
-      final KeyOptions kopts = new KeyOptions();
-      kopts.FixedString = false;
-      kopts.CaseInsensitive = false;
-
-      hParser.addKeyword("a+b", 0, kopts, "ASCII");
-
-      final ProgramOptions popts = new ProgramOptions();
-      popts.Determinize = true;        
-
-      final ProgramHandle hProg = hParser.createProgram(popts);
+      final PatternMapHandle hPatternMap = new PatternMapHandle(0);
       try {
-        final ContextOptions copts = new ContextOptions();
-
-        final ContextHandle hCtx = hProg.createContext(copts);
+        final PatternHandle hPattern = new PatternHandle();
         try {
-          final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
-          final ByteBuffer buf = ByteBuffer.allocateDirect(arr.length);
-          buf.put(arr).flip();
+          final KeyOptions kopts = new KeyOptions();
+          kopts.FixedString = false;
+          kopts.CaseInsensitive = false;
 
-          hCtx.search(buf, arr.length, 0, null);
+          hPattern.parsePattern("a+b", kopts);
+          hFsm.addPattern(hPatternMap, hPattern, "ASCII");
+
+          final ProgramOptions popts = new ProgramOptions();
+          popts.Determinize = true;
+
+          final ProgramHandle hProg = hFsm.createProgram(popts);
+          try {
+            final ContextOptions copts = new ContextOptions();
+            final ContextHandle hCtx = hProg.createContext(copts);
+            try {
+              final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
+              final ByteBuffer buf = ByteBuffer.allocateDirect(arr.length);
+              buf.put(arr).flip();
+
+              hCtx.search(buf, arr.length, 0, null);
+
+            }
+            finally {
+              hCtx.destroy();
+            }
+          }
+          finally {
+            hProg.destroy();
+          }
         }
         finally {
-          hCtx.destroy();
+          hPattern.destroy();
         }
       }
       finally {
-        hProg.destroy();
+        hPatternMap.destroy();
       }
     }
     finally {
-      hParser.destroy();
+      hFsm.destroy();
     }
   }
 
   @Test(expected=RuntimeException.class)
   public void searchDirectByteBufferBadCallbackTest() throws Exception {
-    final ParserHandle hParser = new ParserHandle(4);
+    final FSMHandle hFsm = new FSMHandle(0);
     try {
-      final KeyOptions kopts = new KeyOptions();
-      kopts.FixedString = false;
-      kopts.CaseInsensitive = false;
-
-      hParser.addKeyword("a+b", 0, kopts, "ASCII");
-
-      final ProgramOptions popts = new ProgramOptions();
-      popts.Determinize = true;        
-
-      final ProgramHandle hProg = hParser.createProgram(popts);
+      final PatternMapHandle hPatternMap = new PatternMapHandle(0);
       try {
-        final ContextOptions copts = new ContextOptions();
-
-        final ContextHandle hCtx = hProg.createContext(copts);
+        final PatternHandle hPattern = new PatternHandle();
         try {
-          final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
-          final ByteBuffer buf = ByteBuffer.allocateDirect(arr.length);
-          buf.put(arr).flip();
+          final KeyOptions kopts = new KeyOptions();
+          kopts.FixedString = false;
+          kopts.CaseInsensitive = false;
 
-          hCtx.search(buf, arr.length, 0, new CallbackExploder());
+          hPattern.parsePattern("a+b", kopts);
+          hFsm.addPattern(hPatternMap, hPattern, "ASCII");
+
+          final ProgramOptions popts = new ProgramOptions();
+          popts.Determinize = true;
+
+          final ProgramHandle hProg = hFsm.createProgram(popts);
+          try {
+            final ContextOptions copts = new ContextOptions();
+            final ContextHandle hCtx = hProg.createContext(copts);
+            try {
+              final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
+              final ByteBuffer buf = ByteBuffer.allocateDirect(arr.length);
+              buf.put(arr).flip();
+
+              hCtx.search(buf, arr.length, 0, new CallbackExploder());
+            }
+            finally {
+              hCtx.destroy();
+            }
+          }
+          finally {
+            hProg.destroy();
+          }
         }
         finally {
-          hCtx.destroy();
+          hPattern.destroy();
         }
       }
       finally {
-        hProg.destroy();
+        hPatternMap.destroy();
       }
     }
     finally {
-      hParser.destroy();
+      hFsm.destroy();
     }
   }
 
   @Test(expected=NullPointerException.class)
   public void searchWrappedByteBufferNullCallbackTest() throws Exception {
-    final ParserHandle hParser = new ParserHandle(4);
+    final FSMHandle hFsm = new FSMHandle(0);
     try {
-      final KeyOptions kopts = new KeyOptions();
-      kopts.FixedString = false;
-      kopts.CaseInsensitive = false;
-
-      hParser.addKeyword("a+b", 0, kopts, "ASCII");
-
-      final ProgramOptions popts = new ProgramOptions();
-      popts.Determinize = true;        
-
-      final ProgramHandle hProg = hParser.createProgram(popts);
+      final PatternMapHandle hPatternMap = new PatternMapHandle(0);
       try {
-        final ContextOptions copts = new ContextOptions();
-
-        final ContextHandle hCtx = hProg.createContext(copts);
+        final PatternHandle hPattern = new PatternHandle();
         try {
-          final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
-          final ByteBuffer buf = ByteBuffer.wrap(arr);
+          final KeyOptions kopts = new KeyOptions();
+          kopts.FixedString = false;
+          kopts.CaseInsensitive = false;
 
-          hCtx.search(buf, arr.length, 0, null);
+          hPattern.parsePattern("a+b", kopts);
+          hFsm.addPattern(hPatternMap, hPattern, "ASCII");
+
+          final ProgramOptions popts = new ProgramOptions();
+          popts.Determinize = true;
+
+          final ProgramHandle hProg = hFsm.createProgram(popts);
+          try {
+            final ContextOptions copts = new ContextOptions();
+            final ContextHandle hCtx = hProg.createContext(copts);
+            try {
+              final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
+              final ByteBuffer buf = ByteBuffer.wrap(arr);
+
+              hCtx.search(buf, arr.length, 0, null);
+            }
+            finally {
+              hCtx.destroy();
+            }
+          }
+          finally {
+            hProg.destroy();
+          }
         }
         finally {
-          hCtx.destroy();
+          hPattern.destroy();
         }
       }
       finally {
-        hProg.destroy();
+        hPatternMap.destroy();
       }
     }
     finally {
-      hParser.destroy();
+      hFsm.destroy();
     }
   }
 
   @Test(expected=RuntimeException.class)
   public void searchWrappedByteBufferBadCallbackTest() throws Exception {
-    final ParserHandle hParser = new ParserHandle(4);
+    final FSMHandle hFsm = new FSMHandle(0);
     try {
-      final KeyOptions kopts = new KeyOptions();
-      kopts.FixedString = false;
-      kopts.CaseInsensitive = false;
-
-      hParser.addKeyword("a+b", 0, kopts, "ASCII");
-
-      final ProgramOptions popts = new ProgramOptions();
-      popts.Determinize = true;        
-
-      final ProgramHandle hProg = hParser.createProgram(popts);
+      final PatternMapHandle hPatternMap = new PatternMapHandle(0);
       try {
-        final ContextOptions copts = new ContextOptions();
-
-        final ContextHandle hCtx = hProg.createContext(copts);
+        final PatternHandle hPattern = new PatternHandle();
         try {
-          final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
-          final ByteBuffer buf = ByteBuffer.wrap(arr);
+          final KeyOptions kopts = new KeyOptions();
+          kopts.FixedString = false;
+          kopts.CaseInsensitive = false;
 
-          hCtx.search(buf, arr.length, 0, new CallbackExploder());
+          hPattern.parsePattern("a+b", kopts);
+          hFsm.addPattern(hPatternMap, hPattern, "ASCII");
+
+          final ProgramOptions popts = new ProgramOptions();
+          popts.Determinize = true;
+
+          final ProgramHandle hProg = hFsm.createProgram(popts);
+          try {
+            final ContextOptions copts = new ContextOptions();
+            final ContextHandle hCtx = hProg.createContext(copts);
+            try {
+              final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
+              final ByteBuffer buf = ByteBuffer.wrap(arr);
+
+              hCtx.search(buf, arr.length, 0, new CallbackExploder());
+            }
+            finally {
+              hCtx.destroy();
+            }
+          }
+          finally {
+            hProg.destroy();
+          }
         }
         finally {
-          hCtx.destroy();
+          hPattern.destroy();
         }
       }
       finally {
-        hProg.destroy();
+        hPatternMap.destroy();
       }
     }
     finally {
-      hParser.destroy();
+      hFsm.destroy();
     }
   }
 
+/*
   @Test(expected=NullPointerException.class)
   public void startsWithNullCallbackTest() throws Exception {
     final ParserHandle hParser = new ParserHandle(4);
