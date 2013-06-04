@@ -12,5 +12,7 @@ class LibraryLoader {
     KeyOptions.init();
     ProgramOptions.init();
     PatternInfo.init();
+
+    HitContext.init();
   }
 }

@@ -6,7 +6,7 @@ import java.util.List;
 
 import static org.junit.Assert.fail;
 
-public abstract class AbstractSearchTest {
+public abstract class AbstractSearchTest extends AbstractDataDrivenTest {
   protected static class HitCollector implements HitCallback {
     public HitCollector(List<SearchHit> l) {
       hits = l;
@@ -41,9 +41,9 @@ public abstract class AbstractSearchTest {
   protected final int size;
   protected final long startOffset;
   protected final SearchHit[] ehits;
-  protected final Class<? extends Throwable> tclass;
 
   public AbstractSearchTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
+    super(tclass);
     this.fsmSizeHint = fsmSizeHint;
     this.pmapSizeHint = pmapSizeHint;
     this.pats = pats;
@@ -54,34 +54,6 @@ public abstract class AbstractSearchTest {
     this.size = size;
     this.startOffset = startOffset;
     this.ehits = ehits;
-    this.tclass = tclass;
-  }
-
-  @Test
-  public void test() throws Throwable {
-    if (tclass == null) {
-      // We expect no exceptions.
-      doTest();
-    }
-    else {
-      // We expect an exception of type tclass.
-      try {
-        doTest();
-      }
-      catch (Throwable t) {
-        if (tclass.isInstance(t)) {
-          // Success! We got an exception if the expected type.
-          return;
-        }
-        else {
-          // Failure! We got some other kind of exception.
-          throw t;
-        }
-      }
-
-      // Failure! We got no exception.
-      fail("Did not throw " + tclass.getSimpleName() + "!");
-    } 
   }
 
   protected void doTest() throws Throwable {
