@@ -203,6 +203,106 @@ namespace {
 
     return bad;
   }
+
+  unsigned int readWindow(
+    const char* bufStart,
+    const char* bufEnd,
+    uint64_t dataOffset,
+    const LG_Window* inner,
+    const char* encoding,
+    size_t preContext,
+    size_t postContext,
+    int32_t** characters,
+    size_t** offsets,
+    size_t* clen)
+  {
+    // FIXME: it's stupid to recreate the factory each time
+    DecoderFactory dfac;
+    std::shared_ptr<Decoder> dec(dfac.get(encoding));
+
+    const byte* bbeg = reinterpret_cast<const byte*>(bufStart);
+    const byte* bend = reinterpret_cast<const byte*>(bufEnd);
+
+    const byte* hbeg =
+      reinterpret_cast<const byte*>(bufStart) + inner->begin - dataOffset;
+    const byte* hend =
+      reinterpret_cast<const byte*>(bufStart) + inner->end - dataOffset;
+
+    std::vector< std::pair<int32_t,const byte*> > cps;
+
+    unsigned int bad = decode(
+      bbeg, bend, hbeg, hend, preContext, postContext, *dec, cps
+    );
+
+    *clen = cps.size();
+    *characters = new int32_t[*clen];
+    *offsets = new size_t[*clen];
+
+    size_t i = 0;
+    for (const std::pair<int32_t,const byte*>& p : cps) {
+      (*characters)[i] = p.first;
+      (*offsets)[i] = p.second - bbeg;
+      ++i;
+    }
+
+    (*characters)[*clen-1] = LG_WINDOW_END;
+
+    return bad;
+  }
+
+  unsigned int hitContext(const char* bufStart,
+                          const char* bufEnd,
+                          uint64_t dataOffset,
+                          const LG_Window* inner,
+                          const char* encoding,
+                          size_t windowSize,
+                          uint32_t replacement,
+                          const char** utf8,
+                          LG_Window* outer)
+  {
+    // decode the hit and its context using the deluxe decoder
+    int32_t* characters = nullptr;
+    size_t* offsets = nullptr;
+    size_t clen = 0;
+
+    const unsigned int bad = readWindow(bufStart, bufEnd, dataOffset, inner,
+                                        encoding, windowSize, windowSize,
+                                        &characters, &offsets, &clen);
+
+    std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
+      characters, &lg_free_window_characters
+    );
+
+    std::unique_ptr<size_t[],void(*)(size_t*)> poff(
+      offsets, &lg_free_window_offsets
+    );
+
+    outer->begin = dataOffset + offsets[0];
+    outer->end = dataOffset + offsets[clen-1];
+
+    // convert the code points to UTF-8
+    std::vector<char> bytes;
+    char buf[4];
+    size_t produced;
+
+    // encode to UTF-8, replacing bad or null elements with the replacement
+    // code point, stopping one short since the last element of characters
+    // is END
+    for (const int32_t* i = characters; i < characters+clen-1; ++i) {
+      produced = cp_to_utf8(*i <= 0 ? replacement : *i, buf);
+      std::copy(buf, buf+produced, std::back_inserter(bytes));
+    }
+
+    // null-terminate the UTF-8 bytes
+    bytes.push_back(0);
+
+    char* str = new char[bytes.size()];
+    std::copy(bytes.begin(), bytes.end(), str);
+
+    *utf8 = str;
+
+    return bad;
+  }
 }
 
 unsigned int lg_read_window(
@@ -215,94 +315,43 @@ unsigned int lg_read_window(
   size_t postContext,
   int32_t** characters,
   size_t** offsets,
-  size_t* clen)
+  size_t* clen,
+  LG_Error** err)
 {
-// FIXME: it's stupid to recreate the factory each time
-  DecoderFactory dfac;
-  std::shared_ptr<Decoder> dec(dfac.get(encoding));
-
-  const byte* bbeg = reinterpret_cast<const byte*>(bufStart);
-  const byte* bend = reinterpret_cast<const byte*>(bufEnd);
-
-  const byte* hbeg =
-    reinterpret_cast<const byte*>(bufStart) + inner->begin - dataOffset;
-  const byte* hend =
-    reinterpret_cast<const byte*>(bufStart) + inner->end - dataOffset;
-
-  std::vector< std::pair<int32_t,const byte*> > cps;
-
-  unsigned int bad = decode(
-    bbeg, bend, hbeg, hend, preContext, postContext, *dec, cps
+  return trapWithRetval(
+    [=](){
+      return readWindow(
+        bufStart, bufEnd, dataOffset, inner, encoding,
+        preContext, postContext, characters, offsets, clen
+      );
+    },
+    0,
+    err
   );
-
-  *clen = cps.size();
-  *characters = new int32_t[*clen];
-  *offsets = new size_t[*clen];
-
-  size_t i = 0;
-  for (const std::pair<int32_t,const byte*>& p : cps) {
-    (*characters)[i] = p.first;
-    (*offsets)[i] = p.second - bbeg;
-    ++i;
-  }
-
-  (*characters)[*clen-1] = LG_WINDOW_END;
-
-  return bad;
 }
 
-unsigned int lg_hit_context(const char* bufStart,
-                            const char* bufEnd,
-                            uint64_t dataOffset,
-                            const LG_Window* inner,
-                            const char* encoding,
-                            size_t windowSize,
-                            uint32_t replacement,
-                            const char** utf8,
-                            LG_Window* outer)
+unsigned int lg_hit_context(
+  const char* bufStart,
+  const char* bufEnd,
+  uint64_t dataOffset,
+  const LG_Window* inner,
+  const char* encoding,
+  size_t windowSize,
+  uint32_t replacement,
+  const char** utf8,
+  LG_Window* outer,
+  LG_Error** err)
 {
-  // decode the hit and its context using the deluxe decoder
-  int32_t* characters = nullptr;
-  size_t* offsets = nullptr;
-  size_t clen = 0;
-
-  const unsigned int bad = lg_read_window(bufStart, bufEnd, dataOffset, inner,
-                                          encoding, windowSize, windowSize,
-                                          &characters, &offsets, &clen);
-
-  std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
-    characters, &lg_free_window_characters
+  return trapWithRetval(
+    [=]() {
+      return hitContext(
+        bufStart, bufEnd, dataOffset, inner, encoding,
+        windowSize, replacement, utf8, outer
+      );
+    },
+    0,
+    err
   );
-
-  std::unique_ptr<size_t[],void(*)(size_t*)> poff(
-    offsets, &lg_free_window_offsets
-  );
-
-  outer->begin = dataOffset + offsets[0];
-  outer->end = dataOffset + offsets[clen-1];
-
-  // convert the code points to UTF-8
-  std::vector<char> bytes;
-  char buf[4];
-  size_t produced;
-
-  // encode to UTF-8, replacing bad or null elements with the replacement
-  // code point, stopping one short since the last element of characters
-  // is END
-  for (const int32_t* i = characters; i < characters+clen-1; ++i) {
-    produced = cp_to_utf8(*i <= 0 ? replacement : *i, buf);
-    std::copy(buf, buf+produced, std::back_inserter(bytes));
-  }
-
-  // null-terminate the UTF-8 bytes
-  bytes.push_back(0);
-
-  char* str = new char[bytes.size()];
-  std::copy(bytes.begin(), bytes.end(), str);
-
-  *utf8 = str;
-
-  return bad;
 }
 
 void lg_free_window_characters(int32_t* characters) {
