@@ -25,31 +25,6 @@
 
 #include <boost/graph/graphviz.hpp>
 
-// FIXME: This is sort of fucked now that we have encoding chains
-uint32_t estimateGraphSize(const std::vector<Pattern>& keywords) {
-  uint32_t ret = 0;
-  for (const auto& p : keywords) {
-    uint32_t pSize = p.Expression.size();
-    const std::string& enc = p.Encoding;
-// FIXME: Shouldn't we use something from the Encoders for this?
-    if (enc == "UTF-16LE" || enc == "UTF-16BE") {
-      pSize <<= 1;
-    }
-    else if (enc == "UTF-8") {
-      pSize *= 3;
-      pSize >>= 1;
-    }
-    else if (enc == "UTF-32LE" || enc == "UTF-32BE") {
-      pSize <<= 2;
-    }
-    ret += pSize;
-  }
-  uint32_t fudgeFactor = ret;
-  fudgeFactor >>= 2;
-  ret += fudgeFactor;
-  return ret;
-}
-
 void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor) {
   std::vector<bool> seen(graph.verticesSize());
   std::queue<NFA::VertexDescriptor> next;

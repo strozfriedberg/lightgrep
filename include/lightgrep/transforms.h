@@ -36,7 +36,6 @@ static const char* const LG_CANONICAL_CHAR_TRANSFORMS[] = {
 // identity
 static const int LG_CHAR_TRANSFORM_IDENTITY = 0;
 
-
 static const LG_TRANS LG_BYTE_TRANSFORMS[] = {
   { "identity", 0 },
   { "OCE",      1 }
@@ -52,7 +51,6 @@ static const int LG_BYTE_TRANSFORM_IDENTITY = 0;
 
 // Outlook Compressible Encryption
 static const int LG_BYTE_TRANSFORM_OUTLOOK = 1;
-
 
 #ifdef __cplusplus
 }

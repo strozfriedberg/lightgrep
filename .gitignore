@@ -12,7 +12,6 @@
 /aclocal.m4
 /autom4te.cache
 /autoscan.log
-/bin/
 /c_example/cex
 /config/
 /config.h
@@ -31,8 +30,11 @@
 /src/lib/re_grammar.cpp
 /src/lib/re_grammar.output
 /src/enc/enc
+/src/enc/enc.exe
 /src/val/val
+/src/val/val.exe
 /src/what/what
+/src/what/what.exe
 /stamp-h1
 /test/test
 /tmp/

@@ -20,8 +20,6 @@
 
 #include "basic.h"
 
-#include <vector>
-
 class Pattern {
 public:
   std::string Expression;
@@ -52,6 +50,8 @@ public:
            Expression == p.Expression &&
            Encoding == p.Encoding;
   }
+
+  virtual ~Pattern() {}
 };
 
 std::ostream& operator<<(std::ostream&, const Pattern&);
