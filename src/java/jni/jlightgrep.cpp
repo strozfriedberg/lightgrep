@@ -9,21 +9,21 @@
 #include <sstream>
 #include <tuple>
 
-static const char* ALL_IS_LOST = "Fuck it, Dude. Let's go bowling.";
+static const char ALL_IS_LOST[] = "Fuck it, Dude. Let's go bowling.";
 
-static const char* patternInfoClassName = "com/lightboxtechnologies/lightgrep/PatternInfo";
-static const char* programHandleClassName = "com/lightboxtechnologies/lightgrep/ProgramHandle";
-static const char* contextHandleClassName = "com/lightboxtechnologies/lightgrep/ContextHandle";
+static const char patternInfoClassName[] = "com/lightboxtechnologies/lightgrep/PatternInfo";
+static const char programHandleClassName[] = "com/lightboxtechnologies/lightgrep/ProgramHandle";
+static const char contextHandleClassName[] = "com/lightboxtechnologies/lightgrep/ContextHandle";
 
-static const char* hitCallbackClassName = "com/lightboxtechnologies/lightgrep/HitCallback";
-static const char* searchHitClassName = "com/lightboxtechnologies/lightgrep/SearchHit";
+static const char hitCallbackClassName[] = "com/lightboxtechnologies/lightgrep/HitCallback";
+static const char searchHitClassName[] = "com/lightboxtechnologies/lightgrep/SearchHit";
 
-static const char* hitContextClassName = "com/lightboxtechnologies/lightgrep/HitContext";
+static const char hitContextClassName[] = "com/lightboxtechnologies/lightgrep/HitContext";
 
-static const char* keywordExceptionClassName = "com/lightboxtechnologies/lightgrep/KeywordException";
-static const char* programExceptionClassName = "com/lightboxtechnologies/lightgrep/ProgramException";
-static const char* indexOutOfBoundsExceptionClassName = "java/lang/IndexOutOfBoundsException";
-static const char* unsupportedEncodingExceptionClassName = "java/io/UnsupportedEncodingException";
+static const char keywordExceptionClassName[] = "com/lightboxtechnologies/lightgrep/KeywordException";
+static const char programExceptionClassName[] = "com/lightboxtechnologies/lightgrep/ProgramException";
+static const char indexOutOfBoundsExceptionClassName[] = "java/lang/IndexOutOfBoundsException";
+static const char unsupportedEncodingExceptionClassName[] = "java/io/UnsupportedEncodingException";
 
 class PendingJavaException {};
 
