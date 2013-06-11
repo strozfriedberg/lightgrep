@@ -26,7 +26,7 @@
 #include "decoders/icudecoder.h"
 
 SCOPE_TEST(icuDecoderName) {
-  const char* name = "ISO-8859-1";
+  const char name[] = "ISO-8859-1";
   const byte buf[] = "x";
   ICUDecoder d(name, std::unique_ptr<Decoder>(new ByteSource(buf, buf)));
   SCOPE_ASSERT_EQUAL(name, d.name());
