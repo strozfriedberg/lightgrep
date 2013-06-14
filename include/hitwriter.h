@@ -8,6 +8,8 @@
 #include <vector>
 
 struct HitCounterInfo {
+  HitCounterInfo(): NumHits(0) {}
+
   virtual ~HitCounterInfo() {}
 
   uint64_t NumHits;
