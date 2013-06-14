@@ -12,6 +12,7 @@ public:
   SearchController(uint32_t blkSize):
     BlockSize(blkSize),
     BytesSearched(0),
+    TotalTime(0.0),
     Cur(new char[blkSize]),
     Next(new char[blkSize]) {}
 
