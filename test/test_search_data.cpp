@@ -110,7 +110,6 @@ public:
   ~executor() {
     delete work_;
     for (boost::thread& t : pool_) { t.join(); }
-    std::cerr << TestCase::count << std::endl;
   }
 
   template <typename F>
@@ -176,5 +175,6 @@ bool longTest(std::istream& in) {
     longTest(ex, in);
   }
 
+  std::cerr << TestCase::count << std::endl;
   return TestCase::failed == 0;
 }
