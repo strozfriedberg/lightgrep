@@ -27,11 +27,10 @@
 #include <vector>
 
 #include "basic.h"
+#include "executor.h"
 #include "pattern.h"
 #include "stest.h"
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
 #include <boost/thread.hpp>
 
 struct TestCase {
@@ -98,33 +97,7 @@ std::atomic_uint TestCase::count(0);
 std::atomic_uint TestCase::failed(0);
 
 namespace {
-  class executor {
-  public:
-    executor(size_t n):
-      service_(n), work_(new boost::asio::io_service::work(service_))
-    {
-      for (size_t i = 0; i < n; ++i) {
-        pool_.emplace_back([this](){ service_.run(); });
-      }
-    }
-
-    ~executor() {
-      delete work_;
-      for (boost::thread& t : pool_) { t.join(); }
-    }
-
-    template <typename F>
-    void submit(F task) {
-      service_.post(task);
-    }
-
-  protected:
-    std::vector<boost::thread> pool_;
-    boost::asio::io_service service_;
-    boost::asio::io_service::work* work_;
-  };
-
-  void longTest(executor& ex, std::istream& in) {
+  void longTest(Executor& ex, std::istream& in) {
     uint32_t len, patcount;
     while (in.peek() != -1) {
       TestCase tcase;
@@ -173,7 +146,7 @@ namespace {
 bool longTest(std::istream& in) {
   // scoping ensures that executor is destroyed before we check failed
   {
-    executor ex(boost::thread::hardware_concurrency());
+    Executor ex(boost::thread::hardware_concurrency());
     longTest(ex, in);
   }
 
