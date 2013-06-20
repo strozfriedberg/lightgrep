@@ -97,74 +97,76 @@ struct TestCase {
 std::atomic_uint TestCase::count(0);
 std::atomic_uint TestCase::failed(0);
 
-class executor {
-public:
-  executor(size_t n):
-    service_(n), work_(new boost::asio::io_service::work(service_))
-  {
-    for (size_t i = 0; i < n; ++i) {
-      pool_.emplace_back([this](){ service_.run(); });
-    }
-  }
-
-  ~executor() {
-    delete work_;
-    for (boost::thread& t : pool_) { t.join(); }
-  }
-
-  template <typename F>
-  void submit(F task) {
-    service_.post(task);
-  }
-
-protected:
-  std::vector<boost::thread> pool_;
-  boost::asio::io_service service_;
-  boost::asio::io_service::work* work_;
-};
-
-void longTest(executor& ex, std::istream& in) {
-  uint32_t len, patcount;
-  while (in.peek() != -1) {
-    TestCase tcase;
-
-    // read number of patterns
-    in.read(reinterpret_cast<char*>(&patcount), sizeof(patcount));
-    tcase.patterns.reserve(patcount);
-
-    for (uint32_t i = 0; i < patcount; ++i) {
-      // read pattern
-      in.read(reinterpret_cast<char*>(&len), sizeof(len));
-      std::string pattern(len, '\0');
-      in.read(&pattern[0], len);
-
-      // read fixed
-      bool fixed;
-      in.read(reinterpret_cast<char*>(&fixed), 1);
-
-      // read case-insensitive
-      bool case_insensitive;
-      in.read(reinterpret_cast<char*>(&case_insensitive), 1);
-
-      // read encoding
-      in.read(reinterpret_cast<char*>(&len), sizeof(len));
-      std::string encoding(len, '\0');
-      in.read(&encoding[0], len);
-
-      tcase.patterns.emplace_back(pattern, fixed, case_insensitive, encoding);
+namespace {
+  class executor {
+  public:
+    executor(size_t n):
+      service_(n), work_(new boost::asio::io_service::work(service_))
+    {
+      for (size_t i = 0; i < n; ++i) {
+        pool_.emplace_back([this](){ service_.run(); });
+      }
     }
 
-    // read text
-    in.read(reinterpret_cast<char*>(&len), sizeof(len));
-    tcase.text.assign(len, '\0');
-    in.read(&tcase.text[0], len);
+    ~executor() {
+      delete work_;
+      for (boost::thread& t : pool_) { t.join(); }
+    }
 
-    // read hits
-    in.read(reinterpret_cast<char*>(&len), sizeof(len));
-    tcase.expected.resize(len);
-    in.read(reinterpret_cast<char*>(&tcase.expected[0]), len*sizeof(SearchHit));
+    template <typename F>
+    void submit(F task) {
+      service_.post(task);
+    }
 
-    ex.submit(tcase);
+  protected:
+    std::vector<boost::thread> pool_;
+    boost::asio::io_service service_;
+    boost::asio::io_service::work* work_;
+  };
+
+  void longTest(executor& ex, std::istream& in) {
+    uint32_t len, patcount;
+    while (in.peek() != -1) {
+      TestCase tcase;
+
+      // read number of patterns
+      in.read(reinterpret_cast<char*>(&patcount), sizeof(patcount));
+      tcase.patterns.reserve(patcount);
+
+      for (uint32_t i = 0; i < patcount; ++i) {
+        // read pattern
+        in.read(reinterpret_cast<char*>(&len), sizeof(len));
+        std::string pattern(len, '\0');
+        in.read(&pattern[0], len);
+
+        // read fixed
+        bool fixed;
+        in.read(reinterpret_cast<char*>(&fixed), 1);
+
+        // read case-insensitive
+        bool case_insensitive;
+        in.read(reinterpret_cast<char*>(&case_insensitive), 1);
+
+        // read encoding
+        in.read(reinterpret_cast<char*>(&len), sizeof(len));
+        std::string encoding(len, '\0');
+        in.read(&encoding[0], len);
+
+        tcase.patterns.emplace_back(pattern, fixed, case_insensitive, encoding);
+      }
+
+      // read text
+      in.read(reinterpret_cast<char*>(&len), sizeof(len));
+      tcase.text.assign(len, '\0');
+      in.read(&tcase.text[0], len);
+
+      // read hits
+      in.read(reinterpret_cast<char*>(&len), sizeof(len));
+      tcase.expected.resize(len);
+      in.read(reinterpret_cast<char*>(&tcase.expected[0]), len*sizeof(SearchHit));
+
+      ex.submit(tcase);
+    }
   }
 }
 
