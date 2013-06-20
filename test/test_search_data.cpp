@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <istream>
 #include <iostream>
 #include <iterator>
 #include <ostream>
@@ -123,56 +124,56 @@ protected:
   boost::asio::io_service::work* work_;
 };
 
-void longTest(executor& ex) {
+void longTest(executor& ex, std::istream& in) {
   uint32_t len, patcount;
-  while (std::cin.peek() != -1) {
+  while (in.peek() != -1) {
     TestCase tcase;
 
     // read number of patterns
-    std::cin.read(reinterpret_cast<char*>(&patcount), sizeof(patcount));
+    in.read(reinterpret_cast<char*>(&patcount), sizeof(patcount));
     tcase.patterns.reserve(patcount);
 
     for (uint32_t i = 0; i < patcount; ++i) {
       // read pattern
-      std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
+      in.read(reinterpret_cast<char*>(&len), sizeof(len));
       std::string pattern(len, '\0');
-      std::cin.read(&pattern[0], len);
+      in.read(&pattern[0], len);
 
       // read fixed
       bool fixed;
-      std::cin.read(reinterpret_cast<char*>(&fixed), 1);
+      in.read(reinterpret_cast<char*>(&fixed), 1);
 
       // read case-insensitive
       bool case_insensitive;
-      std::cin.read(reinterpret_cast<char*>(&case_insensitive), 1);
+      in.read(reinterpret_cast<char*>(&case_insensitive), 1);
 
       // read encoding
-      std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
+      in.read(reinterpret_cast<char*>(&len), sizeof(len));
       std::string encoding(len, '\0');
-      std::cin.read(&encoding[0], len);
+      in.read(&encoding[0], len);
 
       tcase.patterns.emplace_back(pattern, fixed, case_insensitive, encoding);
     }
 
     // read text
-    std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
+    in.read(reinterpret_cast<char*>(&len), sizeof(len));
     tcase.text.assign(len, '\0');
-    std::cin.read(&tcase.text[0], len);
+    in.read(&tcase.text[0], len);
 
     // read hits
-    std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
+    in.read(reinterpret_cast<char*>(&len), sizeof(len));
     tcase.expected.resize(len);
-    std::cin.read(reinterpret_cast<char*>(&tcase.expected[0]), len*sizeof(SearchHit));
+    in.read(reinterpret_cast<char*>(&tcase.expected[0]), len*sizeof(SearchHit));
 
     ex.submit(tcase);
   }
 }
 
-bool longTest() {
+bool longTest(std::istream& in) {
   // scoping ensures that executor is destroyed before we check failed
   {
     executor ex(boost::thread::hardware_concurrency());
-    longTest(ex);
+    longTest(ex, in);
   }
 
   return TestCase::failed == 0;

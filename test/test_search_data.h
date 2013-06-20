@@ -18,5 +18,6 @@
 
 #pragma once
 
-bool longTest();
+#include <iosfwd>
 
+bool longTest(std::istream& in);
