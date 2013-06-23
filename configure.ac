@@ -81,7 +81,7 @@ else
   # Add a trailing slash if we don't have one
   case "$ICU_CONFIG" in
   */) ;;
-  *) ICU_CONFIG+='/' ;;
+  *) ICU_CONFIG="${ICU_CONFIG}/" ;;
   esac
 
   # Check that icu-config exists
@@ -93,7 +93,7 @@ fi
 # FIXME: icu-config from ICU cross-compiled with mingw wants libicuuc.dll,
 # which won't exist if ICU was compiled static only, so we temporarily add
 # --noverify until we figure out what to do about this.
-ICU_CONFIG+='icu-config --noverify'
+ICU_CONFIG="${ICU_CONFIG}icu-config --noverify"
 
 AC_MSG_WARN([Disregard the next few lines where ICU_* are printed.])
 AC_MSG_WARN([They're all wrong but we fix them up before using them.])
@@ -130,7 +130,7 @@ esac
 duff_icu_compile_flags='-ansi -g -O2 -O3 -std=c99 -pthread -mthreads'
 if test x"$CXX" = "xclang++" ; then
   # These cause clang to freak out on Fedora 18
-  duff_icu_compile_flags+=' -Wp,-D_FORTIFY_SOURCE=2'
+  duff_icu_compile_flags="$duff_icu_compile_flags -Wp,-D_FORTIFY_SOURCE=2"
 fi
 
 LG_REMOVE_FLAGS([ICU_CFLAGS],   [$duff_icu_compile_flags])
