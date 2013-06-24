@@ -24,6 +24,8 @@ public:
     run(path);
   }
 
+  operator bool() const { return true; }
+
 private:
   void run(const char* path);
 };
