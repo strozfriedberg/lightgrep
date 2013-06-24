@@ -28,7 +28,7 @@
 #include "pattern.h"
 #include "searchhit.h"
 
-void collector(void* userData, const LG_SearchHit* const hit);
+//void collector(void* userData, const LG_SearchHit* const hit);
 
 class STest {
 public:
