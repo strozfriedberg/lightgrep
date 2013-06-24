@@ -27,6 +27,7 @@
 #include "pattern.h"
 #include "searchhit.h"
 
+#include "data_reader.h"
 #include "dtest.h"
 #include "executor.h"
 #include "stest.h"
@@ -68,57 +69,9 @@ void DTest::run(const char* path) {
 
   Executor Exec;
 
-  uint32_t len, patcount;
   while (in.peek() != -1) {
     TestCase tcase;
-
-    // read number of patterns
-    in.read(reinterpret_cast<char*>(&patcount), sizeof(patcount));
-    SCOPE_ASSERT(in);
-    tcase.patterns.reserve(patcount);
-
-    for (uint32_t i = 0; i < patcount; ++i) {
-      // read pattern
-      in.read(reinterpret_cast<char*>(&len), sizeof(len));
-      SCOPE_ASSERT(in);
-      std::string pattern(len, '\0');
-      in.read(&pattern[0], len);
-      SCOPE_ASSERT(in);
-
-      // read fixed
-      bool fixed;
-      in.read(reinterpret_cast<char*>(&fixed), 1);
-      SCOPE_ASSERT(in);
-
-      // read case-insensitive
-      bool case_insensitive;
-      in.read(reinterpret_cast<char*>(&case_insensitive), 1);
-      SCOPE_ASSERT(in);
-
-      // read encoding
-      in.read(reinterpret_cast<char*>(&len), sizeof(len));
-      SCOPE_ASSERT(in);
-      std::string encoding(len, '\0');
-      in.read(&encoding[0], len);
-      SCOPE_ASSERT(in);
-
-      tcase.patterns.emplace_back(pattern, fixed, case_insensitive, encoding);
-    }
-
-    // read text
-    in.read(reinterpret_cast<char*>(&len), sizeof(len));
-    SCOPE_ASSERT(in);
-    tcase.text.assign(len, '\0');
-    in.read(&tcase.text[0], len);
-    SCOPE_ASSERT(in);
-
-    // read hits
-    in.read(reinterpret_cast<char*>(&len), sizeof(len));
-    SCOPE_ASSERT(in);
-    tcase.expected.resize(len);
-    in.read(reinterpret_cast<char*>(&tcase.expected[0]), len*sizeof(SearchHit));
-    SCOPE_ASSERT(in);
-
+    SCOPE_ASSERT(readTestData(in, tcase.patterns, tcase.text, tcase.expected));
     Exec.submit(tcase);
   }
 }

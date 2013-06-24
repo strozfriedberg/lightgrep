@@ -79,6 +79,7 @@ check_PROGRAMS = test/test
 TESTS = $(check_PROGRAMS)
 
 test_test_SOURCES = \
+	test/data_reader.cpp \
 	test/dtest.cpp \
 	test/mockcallback.cpp \
 	test/stest.cpp \

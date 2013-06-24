@@ -21,14 +21,16 @@
 #include <istream>
 #include <iostream>
 #include <iterator>
-#include <ostream>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "basic.h"
-#include "executor.h"
 #include "pattern.h"
+
+#include "data_reader.h"
+#include "executor.h"
 #include "stest.h"
 
 struct TestCase {
@@ -96,46 +98,13 @@ std::atomic_uint TestCase::failed(0);
 
 namespace {
   void longTest(Executor& ex, std::istream& in) {
-    uint32_t len, patcount;
     while (in.peek() != -1) {
       TestCase tcase;
-
-      // read number of patterns
-      in.read(reinterpret_cast<char*>(&patcount), sizeof(patcount));
-      tcase.patterns.reserve(patcount);
-
-      for (uint32_t i = 0; i < patcount; ++i) {
-        // read pattern
-        in.read(reinterpret_cast<char*>(&len), sizeof(len));
-        std::string pattern(len, '\0');
-        in.read(&pattern[0], len);
-
-        // read fixed
-        bool fixed;
-        in.read(reinterpret_cast<char*>(&fixed), 1);
-
-        // read case-insensitive
-        bool case_insensitive;
-        in.read(reinterpret_cast<char*>(&case_insensitive), 1);
-
-        // read encoding
-        in.read(reinterpret_cast<char*>(&len), sizeof(len));
-        std::string encoding(len, '\0');
-        in.read(&encoding[0], len);
-
-        tcase.patterns.emplace_back(pattern, fixed, case_insensitive, encoding);
+      if (!readTestData(in, tcase.patterns, tcase.text, tcase.expected)) {
+        std::cerr << "failed to read test data" << std::endl;
+        TestCase::failed = std::numeric_limits<unsigned int>::max();
+        return;
       }
-
-      // read text
-      in.read(reinterpret_cast<char*>(&len), sizeof(len));
-      tcase.text.assign(len, '\0');
-      in.read(&tcase.text[0], len);
-
-      // read hits
-      in.read(reinterpret_cast<char*>(&len), sizeof(len));
-      tcase.expected.resize(len);
-      in.read(reinterpret_cast<char*>(&tcase.expected[0]), len*sizeof(SearchHit));
-
       ex.submit(tcase);
     }
   }
