@@ -31,8 +31,6 @@
 #include "pattern.h"
 #include "stest.h"
 
-#include <boost/thread.hpp>
-
 struct TestCase {
   std::vector<Pattern> patterns;
   std::string text;
@@ -146,7 +144,7 @@ namespace {
 bool longTest(std::istream& in) {
   // scoping ensures that executor is destroyed before we check failed
   {
-    Executor ex(boost::thread::hardware_concurrency());
+    Executor ex;
     longTest(ex, in);
   }
 

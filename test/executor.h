@@ -25,7 +25,7 @@
 
 class Executor {
 public:
-  Executor(size_t n):
+  Executor(size_t n = boost::thread::hardware_concurrency()):
     service_(n), work_(new boost::asio::io_service::work(service_))
   {
     for (size_t i = 0; i < n; ++i) {
