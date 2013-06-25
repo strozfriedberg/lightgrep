@@ -26,10 +26,6 @@ namespace {
     bool LiteralMode;
     bool CaseInsensitive;
 
-    ParseNode* add(const ParseNode& n) {
-      return Tree->add(n);
-    }
-
     template <class... Args>
     ParseNode* add(Args&&... args) {
       return Tree->add(args...);

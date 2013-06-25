@@ -34,8 +34,6 @@ public:
     return &Store[Store.size()-1];
   }
 
-  ParseNode* add(const ParseNode& n);
-
   //
   // Sizing explanation:
   //

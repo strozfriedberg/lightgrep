@@ -134,6 +134,10 @@ struct ParseNode {
     init_union(n);
   }
 
+  ParseNode(ParseNode&& n): Type(n.Type), Left(n.Left) {
+    init_union(std::move(n));
+  }
+
   ~ParseNode() {
 /*
     // we have to call the dtor for UnicodeSet ourselves,
@@ -145,6 +149,16 @@ struct ParseNode {
   }
 
   ParseNode& operator=(const ParseNode& n) {
+    // self-assignment is bad, due to the placement new in init_union
+    if (this != &n) {
+      Type = n.Type;
+      Left = n.Left;
+      init_union(n);
+    }
+    return *this;
+  }
+
+  ParseNode& operator=(ParseNode&& n) {
     // self-assignment is bad, due to the placement new in init_union
     if (this != &n) {
       Type = n.Type;
@@ -170,8 +184,31 @@ struct ParseNode {
     case CHAR_CLASS:
 //      new(&CodePoints) UnicodeSet(n.CodePoints);
       CodePoints = n.CodePoints;
-      Breakout.Bytes = n.Breakout.Bytes;
-      Breakout.Additive = n.Breakout.Additive;
+      Breakout = n.Breakout;
+      break;
+    default:
+      Val = n.Val;
+      break;
+    }
+  }
+
+  void init_union(ParseNode&& n) {
+    switch (Type) {
+    case REGEXP:
+      Right = nullptr;
+      break;
+    case ALTERNATION:
+    case CONCATENATION:
+      Right = n.Right;
+      break;
+    case REPETITION:
+    case REPETITION_NG:
+      Rep = n.Rep;
+      break;
+    case CHAR_CLASS:
+//      new(&CodePoints) UnicodeSet(n.CodePoints);
+      CodePoints = std::move(n.CodePoints);
+      Breakout = std::move(n.Breakout);
       break;
     default:
       Val = n.Val;
