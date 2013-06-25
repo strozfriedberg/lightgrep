@@ -920,7 +920,18 @@ namespace {
        parse rules. This lets us deduce which error we have by examining
        the state of the parser.
     */
-    if (yylloc->first_column == yylloc->last_column) {
+
+    if (ctx->TokenType == BAD) {
+      // The token read was something invalid.
+      ParseError e{
+        ParseError::INVALID_ESCAPE,
+        yylloc->first_column,
+        yylloc->last_column
+      };
+
+      throwError(e, ctx);
+    }
+    else if (yylloc->first_column == yylloc->last_column) {
       // We ran off the end of the pattern looking for a matching delimiter.
       // We return rather than throw here to let the error recovery action
       // execute. The error recovery action knows the location of the
@@ -928,11 +939,10 @@ namespace {
       return;
     }
     else {
-      // The token read was something invalid; if not, the only remaining
-      // way to fail is a repetition operator following a non-atom.
+      // The only remaining way to fail is a repetition operator
+      // following a non-atom.
       ParseError e{
-        ctx->TokenType == BAD ?
-          ParseError::INVALID_ESCAPE : ParseError::NONATOMIC_REPETITON,
+        ParseError::NONATOMIC_REPETITON,
         yylloc->first_column,
         yylloc->last_column
       };
