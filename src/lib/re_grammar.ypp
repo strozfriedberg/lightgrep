@@ -6,8 +6,6 @@
 #include "unicode.h"
 #include "encoders/utf8.h"
 
-#include <iostream>
-
 #include <iomanip>
 #include <sstream>
 #include <string>
