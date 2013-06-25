@@ -705,6 +705,141 @@ SCOPE_TEST(parseFailNamedCodePointMissingName) {
   SCOPE_ASSERT(false);
 }
 
+SCOPE_TEST(parseFailNamedCodePointMissingLeftBrace) {
+  ParseTree tree;
+  try {
+    parse({"\\NCYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\NC, at [0,3)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNamedCodePointMissingRightBrace) {
+  ParseTree tree;
+  try {
+    parse({"\\N{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\N{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O, at [0,43)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailHexCodeMissingValue) {
+  ParseTree tree;
+  try {
+    parse({"\\x", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\x, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailHexCodeBadValue) {
+  ParseTree tree;
+  try {
+    parse({"\\xG", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\xG, at [0,3)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailBadEscape) {
+  ParseTree tree;
+  try {
+    parse({"\\#", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\#, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailPropertyMissingValue) {
+  ParseTree tree;
+  try {
+    parse({"\\p", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\p, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegatedPropertyMissingValue) {
+  ParseTree tree;
+  try {
+    parse({"\\P", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\P, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailPropertyMissingLeftBrace) {
+  ParseTree tree;
+  try {
+    parse({"\\pLetter", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\p, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailPropertyMissingRightBrace) {
+  ParseTree tree;
+  try {
+    parse({"\\p{Letter", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\p{Letter, at [0,9)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
 /*
 SCOPE_TEST(parseFailReversedBoundedRepetitionTest) {
   ParseTree tree;
