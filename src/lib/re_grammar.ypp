@@ -28,7 +28,7 @@ namespace {
 
     template <class... Args>
     ParseNode* add(Args&&... args) {
-      return Tree->add(args...);
+      return Tree->add(std::forward<Args>(args)...);
     }
   };
 

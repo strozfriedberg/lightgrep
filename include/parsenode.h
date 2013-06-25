@@ -163,7 +163,7 @@ struct ParseNode {
     if (this != &n) {
       Type = n.Type;
       Left = n.Left;
-      init_union(n);
+      init_union(std::move(n));
     }
     return *this;
   }
