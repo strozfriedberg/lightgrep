@@ -690,6 +690,21 @@ SCOPE_TEST(parseNegCC_00toA_BreakoutTest) {
   SCOPE_ASSERT(false);
 }
 
+SCOPE_TEST(parseFailNamedCodePointMissingName) {
+  ParseTree tree;
+  try {
+    parse({"\\N", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\N, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
 /*
 SCOPE_TEST(parseFailReversedBoundedRepetitionTest) {
   ParseTree tree;

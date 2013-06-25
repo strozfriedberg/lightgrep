@@ -17,6 +17,8 @@ namespace {
     const int* TextBegin;
     const int* TextEnd;
 
+    int TokenType;
+
     ParseTree* Tree;
 
     UnicodeSet USet;
@@ -848,17 +850,19 @@ namespace {
   int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, Context* ctx) {
     yylloc->first_column = ctx->Text - ctx->TextBegin;
 
+    ctx->TokenType = -1;  // EOF
+
     if (ctx->Text < ctx->TextEnd) {
       const int c = *ctx->Text++;
       yylloc->last_column = yylloc->first_column + 1;
       if (c < 1) {
         //   -1 indicates bogus UTF-8
         //    0 is a prohibited mid-string null byte
-        return BAD;
+        ctx->TokenType = BAD;
       }
       else if (ctx->LiteralMode) {
         yylval->c = c;
-        return CHAR;
+        ctx->TokenType = CHAR;
       }
       else {
         switch (c) {
@@ -878,13 +882,12 @@ namespace {
         case '&':
         case '~':
         case ',':
-          return c;
+          ctx->TokenType = c;
+          break;
         case '\\':
-          {
-            const int v = consumeEscape(yylval, ctx);
-            yylloc->last_column = ctx->Text - ctx->TextBegin;
-            return v;
-          }
+          ctx->TokenType = consumeEscape(yylval, ctx);
+          yylloc->last_column = ctx->Text - ctx->TextBegin;
+          break;
         case '0':
         case '1':
         case '2':
@@ -896,14 +899,17 @@ namespace {
         case '8':
         case '9':
           yylval->c = c;
-          return DIGIT;
+          ctx->TokenType = DIGIT;
+          break;
         default:
           yylval->c = c;
-          return CHAR;
+          ctx->TokenType = CHAR;
+          break;
         }
       }
     }
-    return -1;
+
+    return ctx->TokenType;
   }
 
   void yyerror(YYLTYPE* yylloc, Context* ctx, const char*) {
@@ -921,7 +927,7 @@ namespace {
       yylloc->last_column
     };
 
-    if (*(ctx->TextBegin + e.Begin) == BAD) {
+    if (ctx->TokenType == BAD) {
       // The token read was something invalid.
       e.Type = ParseError::INVALID_ESCAPE;
     }
