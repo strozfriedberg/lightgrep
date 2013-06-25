@@ -994,6 +994,7 @@ namespace {
 
 bool parse(const Pattern& p, ParseTree& tree) {
   std::vector<int> cp;
+  cp.reserve(p.Expression.size()); // upper bound, no resizing
   transform_utf8_to_unicode(
     p.Expression.begin(), p.Expression.end(), std::back_inserter(cp)
   );
