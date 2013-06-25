@@ -130,13 +130,13 @@ struct ParseNode {
     Breakout.Additive = additive;
   }
 
-  ParseNode(const ParseNode& n): Type(n.Type), Left(n.Left) {
-    init_union(n);
-  }
+  ParseNode(const ParseNode&) = default;
 
-  ParseNode(ParseNode&& n): Type(n.Type), Left(n.Left) {
-    init_union(std::move(n));
-  }
+  ParseNode(ParseNode&&) = default;
+
+  ParseNode& operator=(const ParseNode&) = default;
+
+  ParseNode& operator=(ParseNode&&) = default;
 
   ~ParseNode() {
 /*
@@ -148,22 +148,14 @@ struct ParseNode {
 */
   }
 
-  ParseNode& operator=(const ParseNode& n) {
+/*
+  template <class T>
+  ParseNode& operator=(T&& n) {
     // self-assignment is bad, due to the placement new in init_union
     if (this != &n) {
       Type = n.Type;
       Left = n.Left;
-      init_union(n);
-    }
-    return *this;
-  }
-
-  ParseNode& operator=(ParseNode&& n) {
-    // self-assignment is bad, due to the placement new in init_union
-    if (this != &n) {
-      Type = n.Type;
-      Left = n.Left;
-      init_union(std::move(n));
+      init_union(std::forward<T>(n));
     }
     return *this;
   }
@@ -215,6 +207,7 @@ struct ParseNode {
       break;
     }
   }
+*/
 
   bool operator==(const ParseNode& o) const {
     if (this == &o) {
