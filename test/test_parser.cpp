@@ -690,7 +690,7 @@ SCOPE_TEST(parseNegCC_00toA_BreakoutTest) {
   SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parseFailNamedCodePointMissingName) {
+SCOPE_TEST(parseFailNamedCodePointMissingNameTest) {
   ParseTree tree;
   try {
     parse({"\\N", false, false}, tree);
@@ -705,7 +705,7 @@ SCOPE_TEST(parseFailNamedCodePointMissingName) {
   SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parseFailNamedCodePointMissingLeftBrace) {
+SCOPE_TEST(parseFailNamedCodePointMissingLeftBraceTest) {
   ParseTree tree;
   try {
     parse({"\\NCYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
@@ -720,7 +720,7 @@ SCOPE_TEST(parseFailNamedCodePointMissingLeftBrace) {
   SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parseFailNamedCodePointMissingRightBrace) {
+SCOPE_TEST(parseFailNamedCodePointMissingRightBraceTest) {
   ParseTree tree;
   try {
     parse({"\\N{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
@@ -735,7 +735,7 @@ SCOPE_TEST(parseFailNamedCodePointMissingRightBrace) {
   SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parseFailHexCodeMissingValue) {
+SCOPE_TEST(parseFailHexCodeMissingValueTest) {
   ParseTree tree;
   try {
     parse({"\\x", false, false}, tree);
@@ -750,7 +750,7 @@ SCOPE_TEST(parseFailHexCodeMissingValue) {
   SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parseFailHexCodeBadValue) {
+SCOPE_TEST(parseFailHexCodeBadValueTest) {
   ParseTree tree;
   try {
     parse({"\\xG", false, false}, tree);
@@ -765,7 +765,7 @@ SCOPE_TEST(parseFailHexCodeBadValue) {
   SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parseFailBadEscape) {
+SCOPE_TEST(parseFailBadEscapeTest) {
   ParseTree tree;
   try {
     parse({"\\#", false, false}, tree);
@@ -780,7 +780,7 @@ SCOPE_TEST(parseFailBadEscape) {
   SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parseFailPropertyMissingValue) {
+SCOPE_TEST(parseFailPropertyMissingValueTest) {
   ParseTree tree;
   try {
     parse({"\\p", false, false}, tree);
@@ -795,7 +795,7 @@ SCOPE_TEST(parseFailPropertyMissingValue) {
   SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parseFailNegatedPropertyMissingValue) {
+SCOPE_TEST(parseFailNegatedPropertyMissingValueTest) {
   ParseTree tree;
   try {
     parse({"\\P", false, false}, tree);
@@ -840,7 +840,6 @@ SCOPE_TEST(parseFailPropertyMissingRightBrace) {
   SCOPE_ASSERT(false);
 }
 
-/*
 SCOPE_TEST(parseFailReversedBoundedRepetitionTest) {
   ParseTree tree;
   try {
@@ -848,8 +847,8 @@ SCOPE_TEST(parseFailReversedBoundedRepetitionTest) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      std::string("syntax error: 2 > 1 in {2,1}, at offset 6"),
-      e.what()
+      "2 > 1 in {2,1}, at [1,6)",
+      std::string(e.what())
     );
     return;
   }
@@ -863,14 +862,13 @@ SCOPE_TEST(parseFailReversedNongreedyBoundedRepetitionTest) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      std::string("syntax error: 2 > 1 in {2,1}?, at offset 7"),
-      e.what()
+      "2 > 1 in {2,1}?, at [1,7)",
+      std::string(e.what())
     );
     return;
   }
   SCOPE_ASSERT(false);
 }
-*/
 
 /*
 SCOPE_TEST(parseFailEmptyCharClassTest) {
