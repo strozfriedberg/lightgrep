@@ -86,7 +86,7 @@ namespace {
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
 
-%expect 199
+%expect 181
 
 //%debug
 
@@ -611,12 +611,6 @@ cc_char_not_first:
 cc_char:
   CHAR
 | DIGIT
-/*
-| '-'
-  {
-    $$ = '-';
-  }
-*/
 | '|'
   {
     $$ = '|';
@@ -644,10 +638,6 @@ cc_char:
 | '.'
   {
     $$ = '.';
-  }
-| '['
-  {
-    $$ = '[';
   }
 | '{'
   {
