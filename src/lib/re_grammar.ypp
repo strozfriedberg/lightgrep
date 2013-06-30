@@ -360,7 +360,7 @@ charclass:
         throwError(
           {
             ParseError::EMPTY_CHAR_CLASS,
-            @1.first_column, @3.last_column,
+            @1.first_column, @4.last_column,
           },
           ctx
         );
