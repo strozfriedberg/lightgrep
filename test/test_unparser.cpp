@@ -725,6 +725,12 @@ SCOPE_TEST(parseUnparse_minus_hyphen_precedence_Test) {
   SCOPE_ASSERT_EQUAL("[az]", unparse(tree));
 }
 
+SCOPE_TEST(parseUnparse_hyphen_hyphen_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"--", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("--", unparse(tree));
+}
+
 SCOPE_TEST(parseUnparse_diners_club_cc_number_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"3[47]\\d{2}[ \\-]?\\d{6}[ \\-]?\\d{5}", false, false}, tree));
