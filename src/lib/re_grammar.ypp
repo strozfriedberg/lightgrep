@@ -970,7 +970,7 @@ namespace {
     case ParseError::REVERSED_BYTE_RANGE_BOUNDS:
       ss << "0x" << std::hex << std::uppercase << std::setfill('0')
          << std::setw(2) << e.First << " >= 0x"
-         << std::setw(2) << e.Second << " in ";
+         << std::setw(2) << e.Second << std::dec << " in ";
       break;
     }
 
