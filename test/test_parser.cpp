@@ -1152,7 +1152,7 @@ SCOPE_TEST(parseFailBadCharRangeBoundsCharClassTest) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      ("U+7A >= U+61 in z-a, at [1,4)"),
+      "U+7A >= U+61 in z-a, at [1,4)",
       std::string(e.what())
     );
     return;
