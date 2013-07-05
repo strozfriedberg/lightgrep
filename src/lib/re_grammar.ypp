@@ -968,8 +968,8 @@ namespace {
       ss << "empty character class ";
       break;
     case ParseError::REVERSED_CHAR_RANGE_BOUNDS:
-      // FIXME: need to UTF8-encode here
-      ss << e.First << " >= " << e.Second << " in ";
+      ss << "U+" << std::hex << std::uppercase
+         <<  e.First << " >= U+" << e.Second << std::dec << " in ";
       break;
     case ParseError::REVERSED_BYTE_RANGE_BOUNDS:
       ss << "0x" << std::hex << std::uppercase << std::setfill('0')
