@@ -78,7 +78,11 @@ namespace {
 #define YYLTYPE_IS_DECLARED 1
 #define YYLTYPE_IS_TRIVIAL 1
 
-//extern int yydebug;
+#define YYDEBUG 0
+
+#if YYDEBUG
+extern int yydebug;
+#endif
 }
 
 %locations
@@ -1004,6 +1008,9 @@ bool parse(const Pattern& p, ParseTree& tree) {
   ctx.Tree = &tree;
   ctx.Tree->init(cp.size());
 
-//  yydebug = 1;
+#if YYDEBUG
+  yydebug = 1;
+#endif
+
   return yyparse(&ctx) == 0;
 }
