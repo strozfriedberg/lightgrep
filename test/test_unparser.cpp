@@ -553,14 +553,8 @@ SCOPE_TEST(parseUnparse_a_less_a_Test) {
 
 SCOPE_TEST(parseUnparse_a_less_b_Test) {
   ParseTree tree;
-  try {
-    parse({"[a--b]", false, false}, tree);
-  }
-  catch (const std::runtime_error&) {
-    // expected
-    return;
-  }
-  SCOPE_ASSERT(false);
+  SCOPE_ASSERT(parse({"[a--b]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_a_less_a_less_a_Test) {
