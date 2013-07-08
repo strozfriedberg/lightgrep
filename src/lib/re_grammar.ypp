@@ -99,6 +99,7 @@ extern int yydebug;
 %token <c> BYTE
 %token <c> CHAR
 %token <c> DIGIT
+%token <c> HYPHEN_HYPHEN
 %token <c> BAD "invalid escape"
 %token <s> SET
 
@@ -285,6 +286,12 @@ literal:
   {
     $$ = ctx->add(ParseNode::DOT, '.');
   }
+| HYPHEN_HYPHEN
+  {
+    ParseNode* l = ctx->add(ParseNode::LITERAL, '-');
+    ParseNode* r = ctx->add(ParseNode::LITERAL, '-');
+    $$ = ctx->add(ParseNode::CONCATENATION, l, r);
+  }
 | charclass
 ;
 
@@ -453,11 +460,11 @@ cc_expr_pos:
     $$->CodePoints &= $4->CodePoints;
     $$->Breakout.Bytes &= $4->Breakout.Bytes;
   }
-| cc_expr_pos '-' '-' cc_atom %prec MINUS
+| cc_expr_pos HYPHEN_HYPHEN cc_atom %prec MINUS
   {
     $$ = $1;
-    $$->CodePoints -= $4->CodePoints;
-    $$->Breakout.Bytes -= $4->Breakout.Bytes;
+    $$->CodePoints -= $3->CodePoints;
+    $$->Breakout.Bytes -= $3->Breakout.Bytes;
   }
 | cc_expr_pos '~' '~' cc_atom %prec XOR
   {
@@ -525,11 +532,11 @@ cc_expr_neg:
     $$->CodePoints &= $4->CodePoints;
     $$->Breakout.Bytes &= $4->Breakout.Bytes;
   }
-| cc_expr_neg '-' '-' cc_atom %prec MINUS
+| cc_expr_neg HYPHEN_HYPHEN cc_atom %prec MINUS
   {
     $$ = $1;
-    $$->CodePoints -= $4->CodePoints;
-    $$->Breakout.Bytes -= $4->Breakout.Bytes;
+    $$->CodePoints -= $3->CodePoints;
+    $$->Breakout.Bytes -= $3->Breakout.Bytes;
   }
 | cc_expr_neg '~' '~' cc_atom %prec XOR
   {
@@ -580,6 +587,11 @@ cc_atom:
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
     $$->CodePoints.set($1);
+  }
+| '-' %prec LEAST
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->CodePoints.set('-');
   }
 | BYTE %prec LEAST
   {
@@ -882,14 +894,27 @@ namespace {
           ctx->TokenType = c;
           break;
         case '-':
-          if (ctx->Text < ctx->TextEnd && *ctx->Text == ']') {
-            // give the parser a hint that this hypen is not a range operator
-            yylval->c = c;
-            ctx->TokenType = CHAR;
+          if (ctx->Text < ctx->TextEnd) {
+            switch (*ctx->Text) {
+            case ']':
+              // give the parser a hint that this hypen is a literal hyphen
+              yylval->c = c;
+              ctx->TokenType = CHAR;
+              break;
+            case '-':
+              // give the parser a hint that this hypen might be a minus
+              ++ctx->Text;
+              ctx->TokenType = HYPHEN_HYPHEN;
+              break;
+            default:
+              // this hyphen might be a range operator if inside a cc
+              ctx->TokenType = '-';
+              break;
+            }
           }
           else {
-            // this hyphen might be a range operator if inside a cc
-            ctx->TokenType = c;
+            yylval->c = c;
+            ctx->TokenType = CHAR;
           }
           break;
         case '\\':
