@@ -289,6 +289,9 @@ literal:
   }
 | HYPHEN_HYPHEN
   {
+    // This special case exists because -- is the set minus operator inside
+    // character classes. Parsing -- together helps disambiguate set minus
+    // from ranges. Here, outside of a char class, -- is just two hyphens.
     ParseNode* l = ctx->add(ParseNode::LITERAL, '-');
     ParseNode* r = ctx->add(ParseNode::LITERAL, '-');
     $$ = ctx->add(ParseNode::CONCATENATION, l, r);
