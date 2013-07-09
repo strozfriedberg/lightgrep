@@ -1030,24 +1030,18 @@ SCOPE_TEST(parseATildeB_Test) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(parseHyphenToA_Test) {
-  ParseTree expected;
-  expected.init(2);
-
-  expected.Root = expected.add(
-    ParseNode(ParseNode::REGEXP,
-      expected.add(
-        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{{'-', 'a' + 1}})
-      )
-    )
-  );
-
-  const std::string p = "[--a]";
-  ParseTree actual;
-  actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
-
-  SCOPE_ASSERT_EQUAL(expected, actual);
+SCOPE_TEST(parseFailHyphenToA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[--a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [1,3)",
+      std::string(e.what())
+    );
+    return;
+  }
 }
 
 SCOPE_TEST(parseFailAToHyphen_Test) {
@@ -1057,7 +1051,7 @@ SCOPE_TEST(parseFailAToHyphen_Test) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      "U+61 >= U+2D in a--, at [1,4)",
+      "missing operand for --, at [2,4)",
       std::string(e.what())
     );
     return;
@@ -1065,19 +1059,79 @@ SCOPE_TEST(parseFailAToHyphen_Test) {
   SCOPE_ASSERT(false);
 }
 
-SCOPE_TEST(parsePercentToHyphen_Test) {
+SCOPE_TEST(parseFailAAmpAmp_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a&&]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailAmpAmpA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[&&a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [1,3)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailATildeTilde_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a~~]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailTildeTildeA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[~~a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [1,3)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseAtoCHyphenE_Test) {
   ParseTree expected;
   expected.init(2);
 
   expected.Root = expected.add(
     ParseNode(ParseNode::REGEXP,
       expected.add(
-        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{{'%', '-' + 1}})
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a', 'b', 'c', 'e', '-'})
       )
     )
   );
 
-  const std::string p = "[%--]";
+  const std::string p = "[a-c-e]";
   ParseTree actual;
   actual.init(p.length());
   SCOPE_ASSERT(parse({p, false, false}, actual));

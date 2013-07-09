@@ -54,7 +54,8 @@ namespace {
       UNMATCHED_BRACKET,
       EMPTY_CHAR_CLASS,
       REVERSED_CHAR_RANGE_BOUNDS,
-      REVERSED_BYTE_RANGE_BOUNDS
+      REVERSED_BYTE_RANGE_BOUNDS,
+      SET_OPERATOR_MISSING_OPERAND
     } Type;
 
     int Begin;
@@ -439,6 +440,37 @@ charclass:
       ctx
     );
   }
+| '[' cc_expr_pos '&' '&' ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos HYPHEN_HYPHEN ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos '~' '~' ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+
 | cc_named
   {
     if (ctx->CaseInsensitive) {
@@ -516,6 +548,36 @@ cc_expr_pos:
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
     $$->Breakout.Bytes.set($1);
+  }
+| '&' '&'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @1.first_column, @2.last_column
+      },
+      ctx
+    );
+  }
+| HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '~' '~'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @1.first_column, @2.last_column
+      },
+      ctx
+    );
   }
 ;
 
@@ -903,7 +965,7 @@ namespace {
               break;
             case '-':
               // give the parser a hint that this hypen might be a minus
-              ++ctx->Text;
+              yylloc->last_column = ++ctx->Text - ctx->TextBegin;
               ctx->TokenType = HYPHEN_HYPHEN;
               break;
             default:
@@ -1014,6 +1076,9 @@ namespace {
       ss << "0x" << std::hex << std::uppercase << std::setfill('0')
          << std::setw(2) << e.First << " >= 0x"
          << std::setw(2) << e.Second << std::dec << " in ";
+      break;
+    case ParseError::SET_OPERATOR_MISSING_OPERAND:
+      ss << "missing operand for "; 
       break;
     }
 
