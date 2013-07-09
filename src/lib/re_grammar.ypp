@@ -91,7 +91,7 @@ extern int yydebug;
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
 
-//%expect 181
+%expect 7
 
 //%debug
 
