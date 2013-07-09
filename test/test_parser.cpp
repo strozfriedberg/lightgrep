@@ -1139,6 +1139,26 @@ SCOPE_TEST(parseAtoCHyphenE_Test) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
+SCOPE_TEST(parseDigitHyphenA_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', 'A'})
+      )
+    )
+  );
+
+  const std::string p = "[\\d-A]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
 SCOPE_TEST(parseHyphenHyphenTest) {
   ParseTree expected;
   expected.init(2);
