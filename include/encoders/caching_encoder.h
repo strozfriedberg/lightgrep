@@ -46,7 +46,7 @@ public:
 
   CachingEncoder(const CachingEncoder&) = default;
 
-  CachingEncoder& operator=(const CachingEncoder&) = default; 
+  CachingEncoder& operator=(const CachingEncoder&) = default;
 
   CachingEncoder(CachingEncoder&&) = default;
 

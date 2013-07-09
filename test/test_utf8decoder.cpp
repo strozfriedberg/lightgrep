@@ -32,7 +32,7 @@ SCOPE_TEST(utf8DecoderName) {
 }
 
 SCOPE_TEST(utf8DecoderNext) {
-  const byte buf[] = { 
+  const byte buf[] = {
     'a', 'b', 'c', 0x80, 0x81, 0xF0, 0x9F, 0x92, 0xA9
   };
   // a    b    c  | invalid  | PILE_OF_POO

@@ -1081,7 +1081,7 @@ namespace {
          << std::setw(2) << e.Second << std::dec << " in ";
       break;
     case ParseError::SET_OPERATOR_MISSING_OPERAND:
-      ss << "missing operand for "; 
+      ss << "missing operand for ";
       break;
     }
 

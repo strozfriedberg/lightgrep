@@ -101,11 +101,11 @@ public:
     // try to decode the bytes
     size_t consumed =
       Conv.bytes_to_cp(Buf.data(), Buf.data() + Buf.size(), cp.first);
- 
+
     if (consumed == 0) {
       // no valid bytes consumed, return the first raw byte as an error
       cp = In.front();
-      In.pop_front();      
+      In.pop_front();
       cp.first = -cp.first-1;
     }
     else {
@@ -118,7 +118,7 @@ public:
       } while (--consumed);
     }
 
-    return cp; 
+    return cp;
   }
 
   virtual void reset(const byte* beg, const byte* end) {

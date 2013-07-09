@@ -76,7 +76,7 @@ SCOPE_TEST(oceUTF8) {
   SCOPE_ASSERT(g[3].IsMatch);
 
   SCOPE_ASSERT(!g[0].Trans);
- 
+
   const ByteSet ebs{0x8D};
   ByteSet abs;
   for (uint32_t i = 1; i < 4; ++i) {

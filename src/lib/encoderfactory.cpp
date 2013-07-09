@@ -53,7 +53,7 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
   std::string charbyte;
   std::tie(charchar, charbyte, bytebyte) = parseChain(chain);
 
-  // assemble the transformation chain 
+  // assemble the transformation chain
   std::unique_ptr<Encoder> enc;
 
   if (charbyte == "ASCII") {

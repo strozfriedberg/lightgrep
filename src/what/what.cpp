@@ -36,8 +36,8 @@ int main(int argc, char** argv) {
 
   const char* expr = argv[1];
   const char* encname = argv[2];
- 
-  // parse the character class 
+
+  // parse the character class
   ParseTree tree;
   if (!parse({expr, false, false}, tree)) {
     throw std::runtime_error("bad parse");
@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
 
       // get code point name
       UErrorCode err = U_ZERO_ERROR;
-      u_charName(i, U_EXTENDED_CHAR_NAME, &cname[0], sizeof(cname), &err); 
+      u_charName(i, U_EXTENDED_CHAR_NAME, &cname[0], sizeof(cname), &err);
       if (U_FAILURE(err)) {
         throw std::runtime_error(u_errorName(err));
       }

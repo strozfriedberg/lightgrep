@@ -56,7 +56,7 @@ private:
   std::string Name;
 
   size_t max_bytes;
-  
+
   std::unique_ptr<UConverter,void(*)(UConverter*)> bytes_conv, cp_conv;
   std::unique_ptr<UChar[]> bytes_pivot, cp_pivot;
 };
