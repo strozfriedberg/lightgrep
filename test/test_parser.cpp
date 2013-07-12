@@ -1385,6 +1385,60 @@ SCOPE_TEST(parseHyphenHyphenTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
+SCOPE_TEST(parseAmpAmpTest) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CONCATENATION,
+          expected.add(
+            ParseNode(ParseNode::LITERAL, '&')
+          ),
+          expected.add(
+            ParseNode(ParseNode::LITERAL, '&')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "&&";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseTildeTildeTest) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CONCATENATION,
+          expected.add(
+            ParseNode(ParseNode::LITERAL, '~')
+          ),
+          expected.add(
+            ParseNode(ParseNode::LITERAL, '~')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "~~";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
 SCOPE_TEST(parseFailUnmatchedLeftBracketCharacgterClassTest) {
   ParseTree tree;
   try {

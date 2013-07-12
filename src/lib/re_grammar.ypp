@@ -91,7 +91,7 @@ extern int yydebug;
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
 
-%expect 13
+%expect 1
 
 //%debug
 
@@ -101,6 +101,8 @@ extern int yydebug;
 %token <c> CHAR
 %token <c> DIGIT
 %token <c> HYPHEN_HYPHEN
+%token <c> AMP_AMP
+%token <c> TILDE_TILDE
 %token <c> BAD "invalid escape"
 %token <s> SET
 
@@ -296,6 +298,18 @@ literal:
     ParseNode* r = ctx->add(ParseNode::LITERAL, '-');
     $$ = ctx->add(ParseNode::CONCATENATION, l, r);
   }
+| AMP_AMP
+  {
+    ParseNode* l = ctx->add(ParseNode::LITERAL, '&');
+    ParseNode* r = ctx->add(ParseNode::LITERAL, '&');
+    $$ = ctx->add(ParseNode::CONCATENATION, l, r);
+  }
+| TILDE_TILDE
+  {
+    ParseNode* l = ctx->add(ParseNode::LITERAL, '~');
+    ParseNode* r = ctx->add(ParseNode::LITERAL, '~');
+    $$ = ctx->add(ParseNode::CONCATENATION, l, r);
+  }
 | charclass
 ;
 
@@ -321,14 +335,6 @@ character:
 | ','
   {
     $$ = ',';
-  }
-| '&'
-  {
-    $$ = '&';
-  }
-| '~'
-  {
-    $$ = '~';
   }
 ;
 
@@ -443,32 +449,32 @@ charclass:
       ctx
     );
   }
-| '[' '&' '&'
+| '[' AMP_AMP
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @2.first_column, @3.last_column
+        @2.first_column, @2.last_column
       },
       ctx
     );
   }
-| '[' cc_expr_pos '&' '&' ']'
+| '[' cc_expr_pos AMP_AMP ']'
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @3.first_column, @4.last_column
+        @3.first_column, @3.last_column
       },
       ctx
     );
   }
-| '[' cc_expr_pos '&' '&' '&' '&'
+| '[' cc_expr_pos AMP_AMP AMP_AMP
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @3.first_column, @4.last_column
+        @3.first_column, @3.last_column
       },
       ctx
     );
@@ -503,62 +509,62 @@ charclass:
       ctx
     );
   }
-| '[' '~' '~'
+| '[' TILDE_TILDE
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @2.first_column, @3.last_column
+        @2.first_column, @2.last_column
       },
       ctx
     );
   }
-| '[' cc_expr_pos '~' '~' ']'
+| '[' cc_expr_pos TILDE_TILDE ']'
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @3.first_column, @4.last_column
+        @3.first_column, @3.last_column
       },
       ctx
     );
   }
-| '[' cc_expr_pos '~' '~' '~' '~'
+| '[' cc_expr_pos TILDE_TILDE TILDE_TILDE
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @3.first_column, @4.last_column
+        @3.first_column, @3.last_column
       },
       ctx
     );
   }
-| '[' '^' '&' '&'
+| '[' '^' AMP_AMP
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @3.first_column, @4.last_column
+        @3.first_column, @3.last_column
       },
       ctx
     );
   }
-| '[' '^' cc_expr_neg '&' '&' ']'
+| '[' '^' cc_expr_neg AMP_AMP ']'
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @4.first_column, @5.last_column
+        @4.first_column, @4.last_column
       },
       ctx
     );
   }
-| '[' '^' cc_expr_neg '&' '&' '&' '&'
+| '[' '^' cc_expr_neg AMP_AMP AMP_AMP
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @4.first_column, @5.last_column
+        @4.first_column, @4.last_column
       },
       ctx
     );
@@ -593,32 +599,32 @@ charclass:
       ctx
     );
   }
-| '[' '^' '~' '~'
+| '[' '^' TILDE_TILDE
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @3.first_column, @4.last_column
+        @3.first_column, @3.last_column
       },
       ctx
     );
   }
-| '[' '^' cc_expr_neg '~' '~' ']'
+| '[' '^' cc_expr_neg TILDE_TILDE ']'
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @4.first_column, @5.last_column
+        @4.first_column, @4.last_column
       },
       ctx
     );
   }
-| '[' '^' cc_expr_neg '~' '~' '~' '~'
+| '[' '^' cc_expr_neg TILDE_TILDE TILDE_TILDE
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @4.first_column, @5.last_column
+        @4.first_column, @4.last_column
       },
       ctx
     );
@@ -638,11 +644,11 @@ cc_expr_pos:
     $$->CodePoints |= $2->CodePoints;
     $$->Breakout.Bytes |= $2->Breakout.Bytes;
   }
-| cc_expr_pos '&' '&' cc_atom %prec INTERSECT
+| cc_expr_pos AMP_AMP cc_atom %prec INTERSECT
   {
     $$ = $1;
-    $$->CodePoints &= $4->CodePoints;
-    $$->Breakout.Bytes &= $4->Breakout.Bytes;
+    $$->CodePoints &= $3->CodePoints;
+    $$->Breakout.Bytes &= $3->Breakout.Bytes;
   }
 | cc_expr_pos HYPHEN_HYPHEN cc_atom %prec MINUS
   {
@@ -650,11 +656,11 @@ cc_expr_pos:
     $$->CodePoints -= $3->CodePoints;
     $$->Breakout.Bytes -= $3->Breakout.Bytes;
   }
-| cc_expr_pos '~' '~' cc_atom %prec XOR
+| cc_expr_pos TILDE_TILDE cc_atom %prec XOR
   {
     $$ = $1;
-    $$->CodePoints ^= $4->CodePoints;
-    $$->Breakout.Bytes ^= $4->Breakout.Bytes;
+    $$->CodePoints ^= $3->CodePoints;
+    $$->Breakout.Bytes ^= $3->Breakout.Bytes;
   }
 | cc_char_first '-' cc_char_not_first %prec '-'
   {
@@ -710,11 +716,11 @@ cc_expr_neg:
     $$->CodePoints |= $2->CodePoints;
     $$->Breakout.Bytes |= $2->Breakout.Bytes;
   }
-| cc_expr_neg '&' '&' cc_atom %prec INTERSECT
+| cc_expr_neg AMP_AMP cc_atom %prec INTERSECT
   {
     $$ = $1;
-    $$->CodePoints &= $4->CodePoints;
-    $$->Breakout.Bytes &= $4->Breakout.Bytes;
+    $$->CodePoints &= $3->CodePoints;
+    $$->Breakout.Bytes &= $3->Breakout.Bytes;
   }
 | cc_expr_neg HYPHEN_HYPHEN cc_atom %prec MINUS
   {
@@ -722,11 +728,11 @@ cc_expr_neg:
     $$->CodePoints -= $3->CodePoints;
     $$->Breakout.Bytes -= $3->Breakout.Bytes;
   }
-| cc_expr_neg '~' '~' cc_atom %prec XOR
+| cc_expr_neg TILDE_TILDE cc_atom %prec XOR
   {
     $$ = $1;
-    $$->CodePoints ^= $4->CodePoints;
-    $$->Breakout.Bytes ^= $4->Breakout.Bytes;
+    $$->CodePoints ^= $3->CodePoints;
+    $$->Breakout.Bytes ^= $3->Breakout.Bytes;
   }
 | cc_atom %prec LEAST
 ;
@@ -846,14 +852,6 @@ cc_char:
 | ','
   {
     $$ = ',';
-  }
-| '&'
-  {
-    $$ = '&';
-  }
-| '~'
-  {
-    $$ = '~';
   }
 ;
 
@@ -1072,16 +1070,38 @@ namespace {
         case '^':
         case '{':
         case '}':
-        case '&':
-        case '~':
         case ',':
           ctx->TokenType = c;
+          break;
+        case '&':
+          if (ctx->Text < ctx->TextEnd && *ctx->Text == '&') {
+              // give the parser a hint that this amp might be an intersection
+              yylloc->last_column = ++ctx->Text - ctx->TextBegin;
+              ctx->TokenType = AMP_AMP;
+          }
+          else {
+            // give the parser a hint that this ampersand is a literal
+            yylval->c = c;
+            ctx->TokenType = CHAR;
+          }
+          break;
+        case '~':
+          if (ctx->Text < ctx->TextEnd && *ctx->Text == '~') {
+            // give the parser a hint that this tilde might be an XOR
+            yylloc->last_column = ++ctx->Text - ctx->TextBegin;
+            ctx->TokenType = TILDE_TILDE;
+          }
+          else {
+            // give the parser a hint that this tilde is a literal
+            yylval->c = c;
+            ctx->TokenType = CHAR;
+          }
           break;
         case '-':
           if (ctx->Text < ctx->TextEnd) {
             switch (*ctx->Text) {
             case ']':
-              // give the parser a hint that this hypen is a literal hyphen
+              // give the parser a hint that this hypen is a literal
               yylval->c = c;
               ctx->TokenType = CHAR;
               break;
