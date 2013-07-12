@@ -1318,6 +1318,26 @@ SCOPE_TEST(parseAtoCHyphenE_Test) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
+SCOPE_TEST(parseAHyphenHyphenHyphen_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a'})
+      )
+    )
+  );
+
+  const std::string p = "[a---]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
 SCOPE_TEST(parseDigitHyphenA_Test) {
   ParseTree expected;
   expected.init(2);
