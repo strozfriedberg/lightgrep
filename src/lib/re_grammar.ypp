@@ -679,6 +679,12 @@ cc_expr_pos:
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
     $$->CodePoints.insert($1, $3 + 1);
   }
+| cc_char_first '-' charclass
+  {
+    $$ = $3;
+    $$->CodePoints.insert($1, $1 + 1);
+    $$->CodePoints.insert('-', '-' + 1);
+  }
 | BYTE '-' BYTE %prec '-'
   {
     if ($3 <= $1) {
@@ -754,6 +760,12 @@ cc_atom:
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
     $$->CodePoints.insert($1, $3 + 1);
+  }
+| cc_char_not_first '-' charclass
+  {
+    $$ = $3;
+    $$->CodePoints.insert($1, $1 + 1);
+    $$->CodePoints.insert('-', '-' + 1);
   }
 | BYTE '-' BYTE %prec '-'
   {
