@@ -1059,6 +1059,35 @@ SCOPE_TEST(parseFailAToHyphen_Test) {
   SCOPE_ASSERT(false);
 }
 
+SCOPE_TEST(parseFailNegHyphenToA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^--a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+}
+
+SCOPE_TEST(parseFailNegAToHyphen_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a--]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
 SCOPE_TEST(parseFailAAmpAmp_Test) {
   ParseTree tree;
   try {
@@ -1089,6 +1118,36 @@ SCOPE_TEST(parseFailAmpAmpA_Test) {
   SCOPE_ASSERT(false);
 }
 
+SCOPE_TEST(parseFailNegAAmpAmp_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a&&]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegAmpAmpA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^&&a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
 SCOPE_TEST(parseFailATildeTilde_Test) {
   ParseTree tree;
   try {
@@ -1112,6 +1171,126 @@ SCOPE_TEST(parseFailTildeTildeA_Test) {
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
       "missing operand for ~~, at [1,3)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegATildeTilde_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a~~]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegTildeTildeA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^~~a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailAHyphenHyphenHyphenHyphenA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a----a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailAAmpAmpAmpAmpA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a&&&&a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailATildeTildeTildeTildeA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a~~~~a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegAHyphenHyphenHyphenHyphenA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a----a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegAAmpAmpAmpAmpA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a&&&&a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegATildeTildeTildeTildeA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a~~~~a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [3,5)",
       std::string(e.what())
     );
     return;

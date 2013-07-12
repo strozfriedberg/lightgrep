@@ -91,7 +91,7 @@ extern int yydebug;
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
 
-%expect 7
+%expect 13
 
 //%debug
 
@@ -443,12 +443,42 @@ charclass:
       ctx
     );
   }
+| '[' '&' '&'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @2.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
 | '[' cc_expr_pos '&' '&' ']'
   {
     throwError(
       {
         ParseError::SET_OPERATOR_MISSING_OPERAND,
         @3.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos '&' '&' '&' '&'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @2.first_column, @2.last_column
       },
       ctx
     );
@@ -463,6 +493,26 @@ charclass:
       ctx
     );
   }
+| '[' cc_expr_pos HYPHEN_HYPHEN HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' '~' '~'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @2.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
 | '[' cc_expr_pos '~' '~' ']'
   {
     throwError(
@@ -473,7 +523,106 @@ charclass:
       ctx
     );
   }
-
+| '[' cc_expr_pos '~' '~' '~' '~'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' '&' '&'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg '&' '&' ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @5.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg '&' '&' '&' '&'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @5.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg HYPHEN_HYPHEN ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg HYPHEN_HYPHEN HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' '~' '~'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg '~' '~' ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @5.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg '~' '~' '~' '~'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @5.last_column
+      },
+      ctx
+    );
+  }
 | cc_named
   {
     if (ctx->CaseInsensitive) {
@@ -551,36 +700,6 @@ cc_expr_pos:
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
     $$->Breakout.Bytes.set($1);
-  }
-| '&' '&'
-  {
-    throwError(
-      {
-        ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @1.first_column, @2.last_column
-      },
-      ctx
-    );
-  }
-| HYPHEN_HYPHEN
-  {
-    throwError(
-      {
-        ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @1.first_column, @1.last_column
-      },
-      ctx
-    );
-  }
-| '~' '~'
-  {
-    throwError(
-      {
-        ParseError::SET_OPERATOR_MISSING_OPERAND,
-        @1.first_column, @2.last_column
-      },
-      ctx
-    );
   }
 ;
 
