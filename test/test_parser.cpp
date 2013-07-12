@@ -1418,6 +1418,85 @@ SCOPE_TEST(parseNegAHyphenDigit_Test) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
+SCOPE_TEST(parseDigitHyphenByte_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  ParseNode* cc = expected.add(
+    ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'})
+  );
+  cc->Breakout.Bytes.set(0);
+  cc->Breakout.Additive = true;
+
+  expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
+
+  const std::string p = "[\\d-\\z00]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNegDigitHyphenByte_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  ParseNode* cc = expected.add(
+    ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'})
+  );
+  cc->Breakout.Bytes.set(0);
+  cc->Breakout.Additive = false;
+
+  expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
+
+  const std::string p = "[^\\d-\\z00]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseByteHyphenDigit_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  ParseNode* cc = expected.add(
+    ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'})
+  );
+  cc->Breakout.Bytes.set(0);
+
+  expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
+
+  const std::string p = "[\\z00-\\d]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNegByteHyphenDigit_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  ParseNode* cc = expected.add(
+    ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'})
+  );
+  cc->Breakout.Bytes.set(0);
+  cc->Breakout.Additive = false;
+
+  expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
+
+  const std::string p = "[^\\z00-\\d]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
 SCOPE_TEST(parseHyphenHyphenTest) {
   ParseTree expected;
   expected.init(2);
