@@ -473,8 +473,11 @@ void NFABuilder::traverse(const ParseNode* root) {
     wind.pop();
     unwind.push(n);
 
-/// FIXME!
-    if ((n->Type == ParseNode::REGEXP || n->Type == ParseNode::ALTERNATION || n->Type == ParseNode::CONCATENATION || n->Type == ParseNode::REPETITION || n->Type == ParseNode::REPETITION_NG) && n->Child.Left) {
+    if ((n->Type == ParseNode::REGEXP ||
+         n->Type == ParseNode::ALTERNATION ||
+         n->Type == ParseNode::CONCATENATION ||
+         n->Type == ParseNode::REPETITION ||
+         n->Type == ParseNode::REPETITION_NG) && n->Child.Left) {
       // This node has a left child
       if ((n->Type == ParseNode::REPETITION ||
            n->Type == ParseNode::REPETITION_NG) &&
