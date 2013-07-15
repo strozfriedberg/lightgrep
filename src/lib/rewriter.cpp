@@ -32,8 +32,10 @@ void print_tree(std::ostream& out, const ParseNode& n) {
   case ParseNode::REPETITION_NG:
     if (n.Child.Left) {
       // this node has a left child
-      printTree(out, *n.Child.Left);
+      print_tree(out, *n.Child.Left);
     }
+    break;
+  default:
     break;
   }
 
@@ -184,12 +186,12 @@ bool reduceEmptySubtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
     case ParseNode::REPETITION:
     case ParseNode::REPETITION_NG:
       // replace this subtree with a dummy
-      n->Type = ParseNode::REPETITION;
+      n->setType(ParseNode::REPETITION);
       n->Child.Rep.Min = n->Child.Rep.Max = 0;
 
       // this is safe---we know that n must have a left child if it is
       // not the root and has a zero length match
-      n->Child.Left->Type = ParseNode::LITERAL;
+      n->Child.Left->setType(ParseNode::LITERAL);
       n->Child.Left->Child.Left = n->Child.Left->Child.Right = 0;
       n->Child.Left->Val = 'x';
       break;
@@ -243,7 +245,7 @@ bool reduceEmptySubtrees(ParseNode* n, std::stack<ParseNode*>& branch) {
   else if (n->Type == ParseNode::ALTERNATION) {
     if (has_only_zero_length_match(n->Child.Right)) {
       // convert S|T{0} into S?
-      n->Type = ParseNode::REPETITION;
+      n->setType(ParseNode::REPETITION);
       n->Child.Rep.Min = 0;
       n->Child.Rep.Max = 1;
     }
@@ -277,7 +279,7 @@ bool prune_useless_repetitions(ParseNode* n, const std::stack<ParseNode*>& branc
   else if (n->Type == ParseNode::REPETITION_NG &&
            n->Child.Rep.Min == n->Child.Rep.Max) {
     // reduce {n}? to {n}
-    n->Type = ParseNode::REPETITION;
+    n->setType(ParseNode::REPETITION);
     return true;
   }
 
@@ -514,9 +516,9 @@ bool reduceTrailingNongreedyThenGreedy(ParseNode* n, std::stack<ParseNode*>& bra
         const uint32_t c = n->Child.Right->Child.Rep.Min;
         const uint32_t d = n->Child.Right->Child.Rep.Max;
 
+        n->Child.Left->setType(ParseNode::REPETITION);
         n->Child.Left->Child.Rep.Min = a + c;
         n->Child.Left->Child.Rep.Max = d == UNBOUNDED ? UNBOUNDED : a + d;
-        n->Child.Left->Type = ParseNode::REPETITION;
 
         branch.pop();
         spliceOutParent(branch.top(), n, n->Child.Left);
@@ -530,9 +532,9 @@ bool reduceTrailingNongreedyThenGreedy(ParseNode* n, std::stack<ParseNode*>& bra
         const uint32_t c = 1;
         const uint32_t d = 1;
 
+        n->Child.Left->setType(ParseNode::REPETITION);
         n->Child.Left->Child.Rep.Min = a + c;
         n->Child.Left->Child.Rep.Max = a + d;
-        n->Child.Left->Type = ParseNode::REPETITION;
 
         branch.pop();
         spliceOutParent(branch.top(), n, n->Child.Left);
@@ -602,7 +604,7 @@ bool reduceTrailingNongreedyThenEmpty(ParseNode* n, std::stack<ParseNode*>& bran
 
   case ParseNode::REPETITION_NG:
     // replace S{n,m}? with S{n}
-    n->Type = ParseNode::REPETITION;
+    n->setType(ParseNode::REPETITION);
     n->Child.Rep.Max = n->Child.Rep.Min;
     reduceTrailingNongreedyThenEmpty(n->Child.Left, branch);
     ret = true;
@@ -619,7 +621,7 @@ bool reduceTrailingNongreedyThenEmpty(ParseNode* n, std::stack<ParseNode*>& bran
         // the left child is S{n,m}?, the right child is T
 
         // replace S{n,m}? with S{n}
-        n->Child.Left->Type = ParseNode::REPETITION;
+        n->Child.Left->setType(ParseNode::REPETITION);
         n->Child.Left->Child.Rep.Max = n->Child.Left->Child.Rep.Min;
 
         ret = true;

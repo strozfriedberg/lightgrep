@@ -249,6 +249,16 @@ struct ParseNode {
     }
   }
 
+  void setType(NodeType t) {
+    if (Type != t) {
+      if (Type == CHAR_CLASS) {
+        Set.CodePoints.~UnicodeSet();
+      }
+
+      Type = t;
+    }
+  }
+
   bool operator==(const ParseNode& o) const {
     if (this == &o) {
       return true;

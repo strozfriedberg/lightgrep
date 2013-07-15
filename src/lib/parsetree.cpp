@@ -39,6 +39,8 @@ void printTree(std::ostream& out, const ParseNode& n) {
       printTree(out, *n.Child.Left);
     }
     break;
+  default:
+    break;
   }
 
   out << n << '\n';
