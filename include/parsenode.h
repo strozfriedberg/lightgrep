@@ -78,12 +78,7 @@ struct ParseNode {
     }
   }
 
-  ParseNode(NodeType t, ParseNode* l): Type(t) {
-    Child.Left = l;
-    Child.Right = nullptr;
-  }
-
-  ParseNode(NodeType t, ParseNode* l, ParseNode* r): Type(t) {
+  ParseNode(NodeType t, ParseNode* l, ParseNode* r = nullptr): Type(t) {
     Child.Left = l;
     Child.Right = r;
   }
