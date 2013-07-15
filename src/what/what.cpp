@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
     throw std::runtime_error("tree.Root->Type != ParseNode::REGEXP");
   }
 
-  const ParseNode* cc = tree.Root->Left;
+  const ParseNode* cc = tree.Root->Child.Left;
   if (!cc) {
     throw std::runtime_error("!cc");
   }
@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
   // ICU gives us no way to querry this, sadly. Asshats.
   char cname[128];
 
-  const UnicodeSet uset(cc->CodePoints & enc->validCodePoints());
+  const UnicodeSet uset(cc->Set.CodePoints & enc->validCodePoints());
   for (const UnicodeSet::range& r : uset) {
     for (uint32_t i = r.first; i < r.second; ++i) {
       // get code point representation if printable

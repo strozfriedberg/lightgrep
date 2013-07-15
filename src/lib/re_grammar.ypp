@@ -344,10 +344,10 @@ charclass:
     $$ = $2;
 
     if (ctx->CaseInsensitive) {
-      caseDesensitize($$->CodePoints);
+      caseDesensitize($$->Set.CodePoints);
     }
 
-    if ($$->CodePoints.none() && $$->Breakout.Bytes.none()) {
+    if ($$->Set.CodePoints.none() && $$->Set.Breakout.Bytes.none()) {
       // empty character class
       throwError(
         {
@@ -362,7 +362,7 @@ charclass:
   {
     $$ = $3;
 
-    if ($$->CodePoints.any()) {
+    if ($$->Set.CodePoints.any()) {
       // NB: PCRE applies case-insensitivity first, then negation. This is
       // important, as these two operations do not commute on a cc such as
       // [^a]. Let U be the set of all Unicode code points. Negating first
@@ -372,11 +372,11 @@ charclass:
       // U / {A, a} after negation.
 
       if (ctx->CaseInsensitive) {
-        caseDesensitize($$->CodePoints);
+        caseDesensitize($$->Set.CodePoints);
       }
 
-      $$->CodePoints.flip();
-      if ($$->CodePoints.none()) {
+      $$->Set.CodePoints.flip();
+      if ($$->Set.CodePoints.none()) {
         // empty character class
         throwError(
           {
@@ -387,13 +387,13 @@ charclass:
         );
       }
 
-      if ($$->Breakout.Bytes.any()) {
-        $$->Breakout.Additive = false;
+      if ($$->Set.Breakout.Bytes.any()) {
+        $$->Set.Breakout.Additive = false;
       }
     }
-    else if ($$->Breakout.Bytes.any()) {
-      $$->Breakout.Bytes.flip();
-      if ($$->Breakout.Bytes.none()) {
+    else if ($$->Set.Breakout.Bytes.any()) {
+      $$->Set.Breakout.Bytes.flip();
+      if ($$->Set.Breakout.Bytes.none()) {
         // empty character class
         throwError(
           {
@@ -406,7 +406,7 @@ charclass:
     }
     else {
       // empty inner character class
-      $$->CodePoints.flip();
+      $$->Set.CodePoints.flip();
     }
   }
 | '[' cc_expr_pos error
@@ -632,7 +632,7 @@ charclass:
 | cc_named
   {
     if (ctx->CaseInsensitive) {
-      caseDesensitize($$->CodePoints);
+      caseDesensitize($$->Set.CodePoints);
     }
   }
 ;
@@ -641,26 +641,26 @@ cc_expr_pos:
   cc_expr_pos cc_atom %prec UNION
   {
     $$ = $1;
-    $$->CodePoints |= $2->CodePoints;
-    $$->Breakout.Bytes |= $2->Breakout.Bytes;
+    $$->Set.CodePoints |= $2->Set.CodePoints;
+    $$->Set.Breakout.Bytes |= $2->Set.Breakout.Bytes;
   }
 | cc_expr_pos AMP_AMP cc_atom %prec INTERSECT
   {
     $$ = $1;
-    $$->CodePoints &= $3->CodePoints;
-    $$->Breakout.Bytes &= $3->Breakout.Bytes;
+    $$->Set.CodePoints &= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes &= $3->Set.Breakout.Bytes;
   }
 | cc_expr_pos HYPHEN_HYPHEN cc_atom %prec MINUS
   {
     $$ = $1;
-    $$->CodePoints -= $3->CodePoints;
-    $$->Breakout.Bytes -= $3->Breakout.Bytes;
+    $$->Set.CodePoints -= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes -= $3->Set.Breakout.Bytes;
   }
 | cc_expr_pos TILDE_TILDE cc_atom %prec XOR
   {
     $$ = $1;
-    $$->CodePoints ^= $3->CodePoints;
-    $$->Breakout.Bytes ^= $3->Breakout.Bytes;
+    $$->Set.CodePoints ^= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes ^= $3->Set.Breakout.Bytes;
   }
 | cc_char_first '-' cc_char_not_first %prec '-'
   {
@@ -677,13 +677,13 @@ cc_expr_pos:
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->CodePoints.insert($1, $3 + 1);
+    $$->Set.CodePoints.insert($1, $3 + 1);
   }
 | cc_char_first '-' charclass
   {
     $$ = $3;
-    $$->CodePoints.insert($1, $1 + 1);
-    $$->CodePoints.insert('-', '-' + 1);
+    $$->Set.CodePoints.insert($1, $1 + 1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
   }
 | BYTE '-' BYTE %prec '-'
   {
@@ -700,24 +700,24 @@ cc_expr_pos:
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->Breakout.Bytes.set($1, $3 + 1, true);
+    $$->Set.Breakout.Bytes.set($1, $3 + 1, true);
   }
 | BYTE '-' charclass
   {
     $$ = $3;
-    $$->Breakout.Bytes.set($1);
-    $$->CodePoints.insert('-', '-' + 1);
+    $$->Set.Breakout.Bytes.set($1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
   }
 | charclass
 | cc_char_first %prec LEAST
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->CodePoints.set($1);
+    $$->Set.CodePoints.set($1);
   }
 | BYTE %prec LEAST
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->Breakout.Bytes.set($1);
+    $$->Set.Breakout.Bytes.set($1);
   }
 ;
 
@@ -725,26 +725,26 @@ cc_expr_neg:
   cc_expr_neg cc_atom %prec UNION
   {
     $$ = $1;
-    $$->CodePoints |= $2->CodePoints;
-    $$->Breakout.Bytes |= $2->Breakout.Bytes;
+    $$->Set.CodePoints |= $2->Set.CodePoints;
+    $$->Set.Breakout.Bytes |= $2->Set.Breakout.Bytes;
   }
 | cc_expr_neg AMP_AMP cc_atom %prec INTERSECT
   {
     $$ = $1;
-    $$->CodePoints &= $3->CodePoints;
-    $$->Breakout.Bytes &= $3->Breakout.Bytes;
+    $$->Set.CodePoints &= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes &= $3->Set.Breakout.Bytes;
   }
 | cc_expr_neg HYPHEN_HYPHEN cc_atom %prec MINUS
   {
     $$ = $1;
-    $$->CodePoints -= $3->CodePoints;
-    $$->Breakout.Bytes -= $3->Breakout.Bytes;
+    $$->Set.CodePoints -= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes -= $3->Set.Breakout.Bytes;
   }
 | cc_expr_neg TILDE_TILDE cc_atom %prec XOR
   {
     $$ = $1;
-    $$->CodePoints ^= $3->CodePoints;
-    $$->Breakout.Bytes ^= $3->Breakout.Bytes;
+    $$->Set.CodePoints ^= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes ^= $3->Set.Breakout.Bytes;
   }
 | cc_atom %prec LEAST
 ;
@@ -765,13 +765,13 @@ cc_atom:
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->CodePoints.insert($1, $3 + 1);
+    $$->Set.CodePoints.insert($1, $3 + 1);
   }
 | cc_char_not_first '-' charclass
   {
     $$ = $3;
-    $$->CodePoints.insert($1, $1 + 1);
-    $$->CodePoints.insert('-', '-' + 1);
+    $$->Set.CodePoints.insert($1, $1 + 1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
   }
 | BYTE '-' BYTE %prec '-'
   {
@@ -788,29 +788,29 @@ cc_atom:
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->Breakout.Bytes.set($1, $3 + 1, true);
+    $$->Set.Breakout.Bytes.set($1, $3 + 1, true);
   }
 | BYTE '-' charclass
   {
     $$ = $3;
-    $$->Breakout.Bytes.set($1);
-    $$->CodePoints.insert('-', '-' + 1);
+    $$->Set.Breakout.Bytes.set($1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
   }
 | charclass
 | cc_char_not_first %prec LEAST
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->CodePoints.set($1);
+    $$->Set.CodePoints.set($1);
   }
 | '-' %prec LEAST
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->CodePoints.set('-');
+    $$->Set.CodePoints.set('-');
   }
 | BYTE %prec LEAST
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->Breakout.Bytes.set($1);
+    $$->Set.Breakout.Bytes.set($1);
   }
 ;
 

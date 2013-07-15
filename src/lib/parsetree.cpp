@@ -26,13 +26,19 @@ void ParseTree::init(uint32_t len) {
 }
 
 void printTree(std::ostream& out, const ParseNode& n) {
-  if ((n.Type == ParseNode::CONCATENATION ||
-       n.Type == ParseNode::ALTERNATION) && n.Right) {
-    printTree(out, *n.Right);
-  }
-
-  if (n.Left) {
-    printTree(out, *n.Left);
+  switch (n.Type) {
+  case ParseNode::ALTERNATION:
+  case ParseNode::CONCATENATION:
+    if (n.Child.Right) {
+      printTree(out, *n.Child.Right);
+    }
+  case ParseNode::REGEXP:
+  case ParseNode::REPETITION:
+  case ParseNode::REPETITION_NG:
+    if (n.Child.Left) {
+      printTree(out, *n.Child.Left);
+    }
+    break;
   }
 
   out << n << '\n';

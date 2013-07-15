@@ -1426,8 +1426,8 @@ SCOPE_TEST(parseDigitHyphenByte_Test) {
     ParseNode::CHAR_CLASS,
     UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'}
   );
-  cc->Breakout.Bytes.set(0);
-  cc->Breakout.Additive = true;
+  cc->Set.Breakout.Bytes.set(0);
+  cc->Set.Breakout.Additive = true;
 
   expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
 
@@ -1447,8 +1447,8 @@ SCOPE_TEST(parseNegDigitHyphenByte_Test) {
     ParseNode::CHAR_CLASS,
     ~UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'}
   );
-  cc->Breakout.Bytes.set(0);
-  cc->Breakout.Additive = false;
+  cc->Set.Breakout.Bytes.set(0);
+  cc->Set.Breakout.Additive = false;
 
   expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
 
@@ -1468,7 +1468,7 @@ SCOPE_TEST(parseByteHyphenDigit_Test) {
     ParseNode::CHAR_CLASS,
     UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'}
   );
-  cc->Breakout.Bytes.set(0);
+  cc->Set.Breakout.Bytes.set(0);
 
   expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
 
@@ -1488,8 +1488,8 @@ SCOPE_TEST(parseNegByteHyphenDigit_Test) {
     ParseNode::CHAR_CLASS,
     ~UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'}
   );
-  cc->Breakout.Bytes.set(0);
-  cc->Breakout.Additive = false;
+  cc->Set.Breakout.Bytes.set(0);
+  cc->Set.Breakout.Additive = false;
 
   expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
 
