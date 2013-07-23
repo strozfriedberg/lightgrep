@@ -30,11 +30,9 @@ public:
 
   template <class... Args>
   ParseNode* add(Args&&... args) {
-    Store.emplace_back(args...);
+    Store.emplace_back(std::forward<Args>(args)...);
     return &Store[Store.size()-1];
   }
-
-  ParseNode* add(const ParseNode& n);
 
   //
   // Sizing explanation:

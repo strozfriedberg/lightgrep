@@ -23,7 +23,7 @@
 class Pattern {
 public:
   std::string Expression;
-  bool        FixedString, 
+  bool        FixedString,
               CaseInsensitive;
   std::string Encoding;
 

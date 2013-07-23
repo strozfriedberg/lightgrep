@@ -53,7 +53,7 @@ SCOPE_TEST(testXOREncoderWriteSingleASCII) {
 SCOPE_TEST(testXOREncoderWriteSetASCII) {
 /*
   ROTEncoder enc(13, ASCII());
- 
+
   const std::vector<std::vector<ByteSet>> expected{
     {
       {
@@ -76,7 +76,7 @@ SCOPE_TEST(testXOREncoderWriteSetASCII) {
       }
     }
   };
- 
+
   const UnicodeSet us{{0,0x80}};
   std::vector<std::vector<ByteSet>> actual;
   enc.write(us, actual);

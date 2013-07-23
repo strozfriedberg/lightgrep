@@ -46,7 +46,7 @@ SCOPE_TEST(executeNotByte) {
   Vm         s(p);
   Thread cur(&(*p)[0]);
   SCOPE_ASSERT(!s.execute(&cur, &b));
-  SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());  
+  SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
 
   s.reset();

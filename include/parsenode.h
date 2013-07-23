@@ -22,6 +22,7 @@
 #include "rangeset.h"
 #include "byteset.h"
 
+#include <new>
 #include <ostream>
 
 static const uint32_t UNBOUNDED = std::numeric_limits<uint32_t>::max();
@@ -42,9 +43,6 @@ struct ParseNode {
 
   NodeType Type;
 
-/*
-  TOOD: For minimum size, the union should be:
-
   union {
     struct {
       ParseNode* Left;
@@ -54,128 +52,205 @@ struct ParseNode {
           uint32_t Min, Max;
         } Rep;
       };
-    } Inner;
+    } Child;
 
     int Val;
-    UnicodeSet CodePoints;
+
+    struct {
+      UnicodeSet CodePoints;
+      struct {
+        ByteSet Bytes;
+        bool Additive;
+      } Breakout;
+    } Set;
   };
 
-*/
+  ParseNode(): Type(LITERAL), Val(0) {}
 
-  ParseNode* Left;
-
-  union {
-    ParseNode* Right;
-    int Val;
-    struct {
-      ByteSet Bytes;
-      bool Additive;
-    } Breakout;
-    struct {
-      uint32_t Min, Max;
-    } Rep;
-  };
-
-  UnicodeSet CodePoints;
-
-  ParseNode(): Type(LITERAL), Left(nullptr), Val(0) {}
-
-  ParseNode(NodeType t, uint32_t v):
-    Type(t), Left(nullptr), Val(v), CodePoints()
-  {
+  ParseNode(NodeType t, uint32_t v): Type(t) {
     if (Type == CHAR_CLASS) {
-      Breakout.Bytes.reset();
-      Breakout.Additive = true;
+      new(&Set.CodePoints) UnicodeSet();
+      Set.Breakout.Bytes.reset();
+      Set.Breakout.Additive = true;
+    }
+    else {
+      Val = v;
     }
   }
 
-  ParseNode(NodeType t, ParseNode* l):
-    Type(t), Left(l), Right(nullptr) {}
+  ParseNode(NodeType t, ParseNode* l, ParseNode* r = nullptr): Type(t) {
+    Child.Left = l;
+    Child.Right = r;
+  }
 
-  ParseNode(NodeType t, ParseNode* l, ParseNode* r):
-    Type(t), Left(l), Right(r) {}
+  ParseNode(NodeType t, ParseNode* l, uint32_t min, uint32_t max): Type(t) {
+    Child.Left = l;
+    Child.Rep.Min = min;
+    Child.Rep.Max = max;
+  }
 
-  ParseNode(NodeType t, ParseNode* l, uint32_t min, uint32_t max):
-    Type(t), Left(l)
+  ParseNode(NodeType t, uint32_t first, uint32_t last): Type(t) {
+    new(&Set.CodePoints) UnicodeSet(first, last + 1);
+    Set.Breakout.Bytes.reset();
+    Set.Breakout.Additive = true;
+  }
+
+  explicit ParseNode(NodeType t, const ByteSet& b): Type(t) {
+    new(&Set.CodePoints) UnicodeSet();
+    Set.Breakout.Bytes = b;
+    Set.Breakout.Additive = true;
+  }
+
+  ParseNode(NodeType t, const UnicodeSet& u): Type(t) {
+    new(&Set.CodePoints) UnicodeSet(u);
+    Set.Breakout.Bytes.reset();
+    Set.Breakout.Additive = true;
+  }
+
+  ParseNode(NodeType t, const UnicodeSet& u, const ByteSet& b, bool additive = true): Type(t)
   {
-    Rep.Min = min;
-    Rep.Max = max;
+    new(&Set.CodePoints) UnicodeSet(u);
+    Set.Breakout.Bytes = b;
+    Set.Breakout.Additive = additive;
   }
 
-  ParseNode(NodeType t, uint32_t first, uint32_t last):
-    Type(t), Left(nullptr), CodePoints(first, last + 1)
-  {
-    Breakout.Bytes.reset();
-    Breakout.Additive = true;
-  }
-
-  explicit ParseNode(NodeType t, const ByteSet& b):
-    Type(t), Left(nullptr), CodePoints()
-  {
-    Breakout.Bytes = b;
-    Breakout.Additive = true;
-  }
-
-  ParseNode(NodeType t, const UnicodeSet& u):
-    Type(t), Left(nullptr), CodePoints(u)
-  {
-    Breakout.Bytes.reset();
-    Breakout.Additive = true;
-  }
-
-  ParseNode(NodeType t, const UnicodeSet& u, const ByteSet& b, bool additive = true):
-    Type(t), Left(nullptr), CodePoints(u)
-  {
-    Breakout.Bytes = b;
-    Breakout.Additive = additive;
-  }
-
-  ParseNode(const ParseNode& n): Type(n.Type), Left(n.Left) {
-    init_union(n);
-  }
-
-  ~ParseNode() {
-/*
-    // we have to call the dtor for UnicodeSet ourselves,
-    // because it has a nontrivial dtor and is part of a union
-    if (Type == CHAR_CLASS) {
-      Bits.~UnicodeSet();
-    }
-*/
-  }
-
-  ParseNode& operator=(const ParseNode& n) {
-    // self-assignment is bad, due to the placement new in init_union
-    if (this != &n) {
-      Type = n.Type;
-      Left = n.Left;
-      init_union(n);
-    }
-    return *this;
-  }
-
-  void init_union(const ParseNode& n) {
+  ParseNode(const ParseNode& o): Type(o.Type) {
     switch (Type) {
     case REGEXP:
-      Right = nullptr;
+      Child.Left = o.Child.Left;
+      Child.Right = nullptr;
       break;
     case ALTERNATION:
     case CONCATENATION:
-      Right = n.Right;
+      Child.Left = o.Child.Left;
+      Child.Right = o.Child.Right;
       break;
     case REPETITION:
     case REPETITION_NG:
-      Rep = n.Rep;
+      Child.Left = o.Child.Left;
+      Child.Rep = o.Child.Rep;
       break;
     case CHAR_CLASS:
-//      new(&CodePoints) UnicodeSet(n.CodePoints);
-      CodePoints = n.CodePoints;
-      Breakout.Bytes = n.Breakout.Bytes;
-      Breakout.Additive = n.Breakout.Additive;
+      new(&Set.CodePoints) UnicodeSet(o.Set.CodePoints);
+      Set.Breakout = o.Set.Breakout;
       break;
     default:
-      Val = n.Val;
+      Val = o.Val;
       break;
+    }
+  }
+
+  ParseNode(ParseNode&& o): Type(o.Type) {
+    switch (Type) {
+    case REGEXP:
+      Child.Left = o.Child.Left;
+      Child.Right = nullptr;
+      break;
+    case ALTERNATION:
+    case CONCATENATION:
+      Child.Left = o.Child.Left;
+      Child.Right = o.Child.Right;
+      break;
+    case REPETITION:
+    case REPETITION_NG:
+      Child.Left = o.Child.Left;
+      Child.Rep = o.Child.Rep;
+      break;
+    case CHAR_CLASS:
+      new(&Set.CodePoints) UnicodeSet(std::move(o.Set.CodePoints));
+      Set.Breakout = o.Set.Breakout;
+      break;
+    default:
+      Val = o.Val;
+      break;
+    }
+  }
+
+  ParseNode& operator=(const ParseNode& o) {
+    if (this != &o) {
+      if (Type == CHAR_CLASS && o.Type != CHAR_CLASS) {
+        Set.CodePoints.~UnicodeSet();
+      }
+
+      Type = o.Type;
+
+      switch (Type) {
+      case REGEXP:
+        Child.Left = o.Child.Left;
+        Child.Right = nullptr;
+        break;
+      case ALTERNATION:
+      case CONCATENATION:
+        Child.Left = o.Child.Left;
+        Child.Right = o.Child.Right;
+        break;
+      case REPETITION:
+      case REPETITION_NG:
+        Child.Left = o.Child.Left;
+        Child.Rep = o.Child.Rep;
+        break;
+      case CHAR_CLASS:
+        new(&Set.CodePoints) UnicodeSet(o.Set.CodePoints);
+        Set.Breakout = o.Set.Breakout;
+        break;
+      default:
+        Val = o.Val;
+        break;
+      }
+    }
+
+    return *this;
+  }
+
+  ParseNode& operator=(ParseNode&& o) {
+    if (Type == CHAR_CLASS) {
+      Set.CodePoints.~UnicodeSet();
+    }
+
+    Type = o.Type;
+
+    switch (Type) {
+    case REGEXP:
+      Child.Left = o.Child.Left;
+      Child.Right = nullptr;
+      break;
+    case ALTERNATION:
+    case CONCATENATION:
+      Child.Left = o.Child.Left;
+      Child.Right = o.Child.Right;
+      break;
+    case REPETITION:
+    case REPETITION_NG:
+      Child.Left = o.Child.Left;
+      Child.Rep = o.Child.Rep;
+      break;
+    case CHAR_CLASS:
+      new(&Set.CodePoints) UnicodeSet(std::move(o.Set.CodePoints));
+      Set.Breakout = o.Set.Breakout;
+      break;
+    default:
+      Val = o.Val;
+      break;
+    }
+
+    return *this;
+  }
+
+  ~ParseNode() {
+    // We have to call the dtor for UnicodeSet ourselves, because
+    // it has a nontrivial dtor and is part of an unrestricted union.
+    if (Type == CHAR_CLASS) {
+      Set.CodePoints.~UnicodeSet();
+    }
+  }
+
+  void setType(NodeType t) {
+    if (Type != t) {
+      if (Type == CHAR_CLASS) {
+        Set.CodePoints.~UnicodeSet();
+      }
+
+      Type = t;
     }
   }
 
@@ -190,19 +265,25 @@ struct ParseNode {
 
     switch (Type) {
     case REGEXP:
-      return !Left ? !o.Left : (o.Left ? *Left == *o.Left : false);
+      return !Child.Left ? !o.Child.Left :
+        (o.Child.Left ? *Child.Left == *o.Child.Left : false);
     case ALTERNATION:
     case CONCATENATION:
-      return (!Left ? !o.Left : (o.Left ? *Left == *o.Left : false)) &&
-             (!Right ? !o.Right : (o.Right ? *Right == *o.Right : false));
+      return
+        (!Child.Left ? !o.Child.Left :
+          (o.Child.Left ? *Child.Left == *o.Child.Left : false)) &&
+        (!Child.Right ? !o.Child.Right :
+          (o.Child.Right ? *Child.Right == *o.Child.Right : false));
     case REPETITION:
     case REPETITION_NG:
-      return Rep.Min == o.Rep.Min && Rep.Max == o.Rep.Max &&
-             !Left ? !o.Left : (o.Left ? *Left == *o.Left : false);
+      return Child.Rep.Min == o.Child.Rep.Min &&
+             Child.Rep.Max == o.Child.Rep.Max &&
+             (!Child.Left ? !o.Child.Left :
+               (o.Child.Left ? *Child.Left == *o.Child.Left : false));
     case CHAR_CLASS:
-      return CodePoints == o.CodePoints &&
-             Breakout.Additive == o.Breakout.Additive &&
-             Breakout.Bytes == o.Breakout.Bytes;
+      return Set.Breakout.Additive == o.Set.Breakout.Additive &&
+             Set.Breakout.Bytes == o.Set.Breakout.Bytes &&
+             Set.CodePoints == o.Set.CodePoints;
     default:
       return Val == o.Val;
     }

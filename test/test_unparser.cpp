@@ -553,14 +553,8 @@ SCOPE_TEST(parseUnparse_a_less_a_Test) {
 
 SCOPE_TEST(parseUnparse_a_less_b_Test) {
   ParseTree tree;
-  try {
-    parse({"[a--b]", false, false}, tree);
-  }
-  catch (const std::runtime_error&) {
-    // expected
-    return;
-  }
-  SCOPE_ASSERT(false);
+  SCOPE_ASSERT(parse({"[a--b]", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[a]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_a_less_a_less_a_Test) {
@@ -725,6 +719,17 @@ SCOPE_TEST(parseUnparse_minus_hyphen_precedence_Test) {
   SCOPE_ASSERT_EQUAL("[az]", unparse(tree));
 }
 
+SCOPE_TEST(parseUnparse_hyphen_hyphen_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"--", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("--", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_american_express_cc_number_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"3[47]\\d{2}[ \\-]?\\d{6}[ \\-]?\\d{5}", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("3[47][0-9]{2}[ -]?[0-9]{6}[ -]?[0-9]{5}", unparse(tree));
+}
 
 SCOPE_TEST(byteToCharacterString) {
   std::stringstream ss;

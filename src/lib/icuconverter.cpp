@@ -77,13 +77,13 @@ std::unique_ptr<UConverter,void(*)(UConverter*)> make_conv(const char* name) {
 
 void ICUConverter::init() {
   // The converter used to translate from the encoding to UTF-16.
-  bytes_conv = make_conv(Name.c_str()); 
+  bytes_conv = make_conv(Name.c_str());
 
   // ICU pivots through UTF-16 when transcoding; this converter is used
   // to translate between our code points (single characters in UTF-32)
   // and UTF-16. We use the "PlatformEndian" version of UTF-32 so we
   // don't have to bother worrrying about endianness ourselves.
-  cp_conv = make_conv("UTF32_PlatformEndian"); 
+  cp_conv = make_conv("UTF32_PlatformEndian");
 
   // The pivot buffers used by ICU.
   bytes_pivot = std::unique_ptr<UChar[]>(
@@ -154,7 +154,7 @@ size_t ICUConverter::bytes_to_cp(const byte* beg, const byte* end, int32_t& cp) 
     return 0;
   }
 
-  const char* src = reinterpret_cast<const char*>(beg); 
+  const char* src = reinterpret_cast<const char*>(beg);
 
   ucnv_resetToUnicode(bytes_conv.get());
 
@@ -185,7 +185,7 @@ size_t ICUConverter::cp_to_bytes(int32_t cp, byte buf[]) const {
   const char* src = reinterpret_cast<const char*>(&cp);
 
   UChar* psrc = cp_pivot.get();
-  UChar* pdst = psrc; 
+  UChar* pdst = psrc;
 
   UErrorCode err = U_ZERO_ERROR;
 

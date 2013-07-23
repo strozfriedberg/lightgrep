@@ -49,6 +49,7 @@ src_lib_liblightgrep_la_SOURCES = \
 	src/lib/decoders/decoderfactory.cpp \
 	src/lib/decoders/ocedecoder.cpp
 
+src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
 src_lib_liblightgrep_la_LIBADD = $(ICU_LIBS) $(STDCXX_LIB)
 
 src_lib_liblightgrep_ladir = $(includedir)/lightgrep
@@ -78,6 +79,8 @@ check_PROGRAMS = test/test
 TESTS = $(check_PROGRAMS)
 
 test_test_SOURCES = \
+	test/data_reader.cpp \
+	test/dtest.cpp \
 	test/mockcallback.cpp \
 	test/stest.cpp \
 	test/test.cpp \
@@ -99,13 +102,11 @@ test_test_SOURCES = \
 	test/test_c_util.cpp \
 	test/test_compiler.cpp \
 	test/test_graph.cpp \
-	test/test_hectopattern.cpp \
 	test/test_helper.cpp \
 	test/test_icu.cpp \
 	test/test_icudecoder.cpp \
 	test/test_icuutil.cpp \
 	test/test_instructions.cpp \
-	test/test_kilopattern.cpp \
 	test/test_matchgen.cpp \
 	test/test_nfabuilder.cpp \
 	test/test_nfaoptimizer.cpp \
@@ -119,6 +120,7 @@ test_test_SOURCES = \
 	test/test_rotencoder.cpp \
 	test/test_search_data.cpp \
 	test/test_searches.cpp \
+	test/test_searches_data.cpp \
 	test/test_sparseset.cpp \
 	test/test_states.cpp \
 	test/test_testregex_basic_modified.cpp \

@@ -36,8 +36,8 @@ int main(int argc, char** argv) {
 
   const char* expr = argv[1];
   const char* encname = argv[2];
- 
-  // parse the character class 
+
+  // parse the character class
   ParseTree tree;
   if (!parse({expr, false, false}, tree)) {
     throw std::runtime_error("bad parse");
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
     throw std::runtime_error("tree.Root->Type != ParseNode::REGEXP");
   }
 
-  const ParseNode* cc = tree.Root->Left;
+  const ParseNode* cc = tree.Root->Child.Left;
   if (!cc) {
     throw std::runtime_error("!cc");
   }
@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
   // ICU gives us no way to querry this, sadly. Asshats.
   char cname[128];
 
-  const UnicodeSet uset(cc->CodePoints & enc->validCodePoints());
+  const UnicodeSet uset(cc->Set.CodePoints & enc->validCodePoints());
   for (const UnicodeSet::range& r : uset) {
     for (uint32_t i = r.first; i < r.second; ++i) {
       // get code point representation if printable
@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
 
       // get code point name
       UErrorCode err = U_ZERO_ERROR;
-      u_charName(i, U_EXTENDED_CHAR_NAME, &cname[0], sizeof(cname), &err); 
+      u_charName(i, U_EXTENDED_CHAR_NAME, &cname[0], sizeof(cname), &err);
       if (U_FAILURE(err)) {
         throw std::runtime_error(u_errorName(err));
       }

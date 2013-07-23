@@ -16,39 +16,17 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "parsetree.h"
-#include <ostream>
+#pragma once
 
-void ParseTree::init(uint32_t len) {
-  Root = 0;
-  Store.clear();
-  Store.reserve(2*len);
-}
+#include <iosfwd>
+#include <string>
+#include <vector>
 
-void printTree(std::ostream& out, const ParseNode& n) {
-  switch (n.Type) {
-  case ParseNode::ALTERNATION:
-  case ParseNode::CONCATENATION:
-    if (n.Child.Right) {
-      printTree(out, *n.Child.Right);
-    }
-  case ParseNode::REGEXP:
-  case ParseNode::REPETITION:
-  case ParseNode::REPETITION_NG:
-    if (n.Child.Left) {
-      printTree(out, *n.Child.Left);
-    }
-    break;
-  default:
-    break;
-  }
+#include "pattern.h"
+#include "searchhit.h"
 
-  out << n << '\n';
-}
-
-std::ostream& operator<<(std::ostream& out, const ParseTree& tree) {
-  if (tree.Root) {
-    printTree(out, *tree.Root);
-  }
-  return out;
-}
+bool readTestData(
+  std::istream& in,
+  std::vector<Pattern>& patterns,
+  std::string& text,
+  std::vector<SearchHit>& expected);

@@ -690,7 +690,156 @@ SCOPE_TEST(parseNegCC_00toA_BreakoutTest) {
   SCOPE_ASSERT(false);
 }
 
-/*
+SCOPE_TEST(parseFailNamedCodePointMissingNameTest) {
+  ParseTree tree;
+  try {
+    parse({"\\N", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\N, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNamedCodePointMissingLeftBraceTest) {
+  ParseTree tree;
+  try {
+    parse({"\\NCYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\NC, at [0,3)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNamedCodePointMissingRightBraceTest) {
+  ParseTree tree;
+  try {
+    parse({"\\N{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\N{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O, at [0,43)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailHexCodeMissingValueTest) {
+  ParseTree tree;
+  try {
+    parse({"\\x", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\x, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailHexCodeBadValueTest) {
+  ParseTree tree;
+  try {
+    parse({"\\xG", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\xG, at [0,3)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailBadEscapeTest) {
+  ParseTree tree;
+  try {
+    parse({"\\#", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\#, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailPropertyMissingValueTest) {
+  ParseTree tree;
+  try {
+    parse({"\\p", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\p, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegatedPropertyMissingValueTest) {
+  ParseTree tree;
+  try {
+    parse({"\\P", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\P, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailPropertyMissingLeftBrace) {
+  ParseTree tree;
+  try {
+    parse({"\\pLetter", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\p, at [0,2)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailPropertyMissingRightBrace) {
+  ParseTree tree;
+  try {
+    parse({"\\p{Letter", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "invalid escape \\p{Letter, at [0,9)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
 SCOPE_TEST(parseFailReversedBoundedRepetitionTest) {
   ParseTree tree;
   try {
@@ -698,8 +847,8 @@ SCOPE_TEST(parseFailReversedBoundedRepetitionTest) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      std::string("syntax error: 2 > 1 in {2,1}, at offset 6"),
-      e.what()
+      "2 > 1 in {2,1}, at [1,6)",
+      std::string(e.what())
     );
     return;
   }
@@ -713,33 +862,741 @@ SCOPE_TEST(parseFailReversedNongreedyBoundedRepetitionTest) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      std::string("syntax error: 2 > 1 in {2,1}?, at offset 7"),
-      e.what()
+      "2 > 1 in {2,1}?, at [1,7)",
+      std::string(e.what())
     );
     return;
   }
   SCOPE_ASSERT(false);
 }
-*/
 
-/*
-SCOPE_TEST(parseFailEmptyCharClassTest) {
+SCOPE_TEST(parseAAmp_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a', '&'})
+      )
+    )
+  );
+
+  const std::string p = "[a&]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseATilde_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a', '~'})
+      )
+    )
+  );
+
+  const std::string p = "[a~]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseAHyphen_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a', '-'})
+      )
+    )
+  );
+
+  const std::string p = "[a-]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseAmpA_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a', '&'})
+      )
+    )
+  );
+
+  const std::string p = "[&a]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseTildeA_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a', '~'})
+      )
+    )
+  );
+
+  const std::string p = "[~a]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseHyphenA_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a', '-'})
+      )
+    )
+  );
+
+  const std::string p = "[-a]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseAAmpB_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a', 'b', '&'})
+      )
+    )
+  );
+
+  const std::string p = "[a&b]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseATildeB_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a', 'b', '~'})
+      )
+    )
+  );
+
+  const std::string p = "[a~b]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseFailHyphenToA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[--a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [1,3)",
+      std::string(e.what())
+    );
+    return;
+  }
+}
+
+SCOPE_TEST(parseFailAToHyphen_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a--]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegHyphenToA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^--a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+}
+
+SCOPE_TEST(parseFailNegAToHyphen_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a--]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailAAmpAmp_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a&&]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailAmpAmpA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[&&a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [1,3)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegAAmpAmp_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a&&]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegAmpAmpA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^&&a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailATildeTilde_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a~~]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailTildeTildeA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[~~a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [1,3)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegATildeTilde_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a~~]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegTildeTildeA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^~~a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailAHyphenHyphenHyphenHyphenA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a----a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailAAmpAmpAmpAmpA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a&&&&a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailATildeTildeTildeTildeA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[a~~~~a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [2,4)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegAHyphenHyphenHyphenHyphenA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a----a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for --, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegAAmpAmpAmpAmpA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a&&&&a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for &&, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseFailNegATildeTildeTildeTildeA_Test) {
+  ParseTree tree;
+  try {
+    parse({"[^a~~~~a]", false, false}, tree);
+  }
+  catch (const std::runtime_error& e) {
+    SCOPE_ASSERT_EQUAL(
+      "missing operand for ~~, at [3,5)",
+      std::string(e.what())
+    );
+    return;
+  }
+  SCOPE_ASSERT(false);
+}
+
+SCOPE_TEST(parseAtoCHyphenE_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a', 'b', 'c', 'e', '-'})
+      )
+    )
+  );
+
+  const std::string p = "[a-c-e]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseAHyphenHyphenHyphen_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'a'})
+      )
+    )
+  );
+
+  const std::string p = "[a---]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseDigitHyphenA_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', 'A'})
+      )
+    )
+  );
+
+  const std::string p = "[\\d-A]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNegDigitHyphenA_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', 'A'})
+      )
+    )
+  );
+
+  const std::string p = "[^\\d-A]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseAHyphenDigit_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', 'A'})
+      )
+    )
+  );
+
+  const std::string p = "[A-\\d]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNegAHyphenDigit_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, ~UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', 'A'})
+      )
+    )
+  );
+
+  const std::string p = "[^A-\\d]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseDigitHyphenByte_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  ParseNode* cc = expected.add(
+    ParseNode::CHAR_CLASS,
+    UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'}
+  );
+  cc->Set.Breakout.Bytes.set(0);
+  cc->Set.Breakout.Additive = true;
+
+  expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
+
+  const std::string p = "[\\d-\\z00]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNegDigitHyphenByte_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  ParseNode* cc = expected.add(
+    ParseNode::CHAR_CLASS,
+    ~UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'}
+  );
+  cc->Set.Breakout.Bytes.set(0);
+  cc->Set.Breakout.Additive = false;
+
+  expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
+
+  const std::string p = "[^\\d-\\z00]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseByteHyphenDigit_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  ParseNode* cc = expected.add(
+    ParseNode::CHAR_CLASS,
+    UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'}
+  );
+  cc->Set.Breakout.Bytes.set(0);
+
+  expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
+
+  const std::string p = "[\\z00-\\d]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNegByteHyphenDigit_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  ParseNode* cc = expected.add(
+    ParseNode::CHAR_CLASS,
+    ~UnicodeSet{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'}
+  );
+  cc->Set.Breakout.Bytes.set(0);
+  cc->Set.Breakout.Additive = false;
+
+  expected.Root = expected.add(ParseNode(ParseNode::REGEXP, cc));
+
+  const std::string p = "[^\\z00-\\d]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseHyphenHyphenTest) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CONCATENATION,
+          expected.add(
+            ParseNode(ParseNode::LITERAL, '-')
+          ),
+          expected.add(
+            ParseNode(ParseNode::LITERAL, '-')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "--";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseAmpAmpTest) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CONCATENATION,
+          expected.add(
+            ParseNode(ParseNode::LITERAL, '&')
+          ),
+          expected.add(
+            ParseNode(ParseNode::LITERAL, '&')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "&&";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseTildeTildeTest) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CONCATENATION,
+          expected.add(
+            ParseNode(ParseNode::LITERAL, '~')
+          ),
+          expected.add(
+            ParseNode(ParseNode::LITERAL, '~')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "~~";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseFailUnmatchedLeftBracketCharacgterClassTest) {
   ParseTree tree;
   try {
     parse({"[]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      std::string("syntax error: empty character class, at offset 2"),
-      e.what()
+      "unmatched left bracket [, at [0,1)",
+      std::string(e.what())
     );
     return;
   }
   SCOPE_ASSERT(false);
 }
-*/
 
-/*
 SCOPE_TEST(parseFailEmptyCharClassTest) {
   ParseTree tree;
   try {
@@ -747,8 +1604,8 @@ SCOPE_TEST(parseFailEmptyCharClassTest) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      std::string("syntax error: empty character class, at offset 6"),
-      e.what()
+      "empty character class [a&&b], at [0,6)",
+      std::string(e.what())
     );
     return;
   }
@@ -762,8 +1619,8 @@ SCOPE_TEST(parseFailEmptyNegCodePointCharClassTest) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      std::string("syntax error: empty character class, at offset 19"),
-      e.what()
+      "empty character class [^\\x{0}-\\x{10FFFF}], at [0,19)",
+      std::string(e.what())
     );
     return;
   }
@@ -777,8 +1634,8 @@ SCOPE_TEST(parseFailEmptyNegByteCharClassTest) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      std::string("syntax error: empty character class, at offset 12"),
-      e.what()
+      "empty character class [^\\z00-\\zFF], at [0,12)",
+      std::string(e.what())
     );
     return;
   }
@@ -792,8 +1649,8 @@ SCOPE_TEST(parseFailBadCharRangeBoundsCharClassTest) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      std::string("syntax error: z >= a in z-a, at offset 4"),
-      e.what()
+      "U+7A >= U+61 in z-a, at [1,4)",
+      std::string(e.what())
     );
     return;
   }
@@ -807,11 +1664,10 @@ SCOPE_TEST(parseFailBadByteRangeBoundsCharClassTest) {
   }
   catch (const std::runtime_error& e) {
     SCOPE_ASSERT_EQUAL(
-      std::string("syntax error: 0xFF >= 0x00 in \\zFF-\\z00, at offset 10"),
-      e.what()
+      "0xFF >= 0x00 in \\zFF-\\z00, at [1,10)",
+      std::string(e.what())
     );
     return;
   }
   SCOPE_ASSERT(false);
 }
-*/

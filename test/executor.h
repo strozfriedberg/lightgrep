@@ -16,39 +16,35 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "parsetree.h"
-#include <ostream>
+#pragma once
 
-void ParseTree::init(uint32_t len) {
-  Root = 0;
-  Store.clear();
-  Store.reserve(2*len);
-}
+#include <vector>
 
-void printTree(std::ostream& out, const ParseNode& n) {
-  switch (n.Type) {
-  case ParseNode::ALTERNATION:
-  case ParseNode::CONCATENATION:
-    if (n.Child.Right) {
-      printTree(out, *n.Child.Right);
+#include <boost/asio.hpp>
+#include <boost/thread.hpp>
+
+class Executor {
+public:
+  Executor(size_t n = boost::thread::hardware_concurrency()):
+    service_(n), work_(new boost::asio::io_service::work(service_))
+  {
+    for (size_t i = 0; i < n; ++i) {
+      pool_.emplace_back([this](){ service_.run(); });
     }
-  case ParseNode::REGEXP:
-  case ParseNode::REPETITION:
-  case ParseNode::REPETITION_NG:
-    if (n.Child.Left) {
-      printTree(out, *n.Child.Left);
-    }
-    break;
-  default:
-    break;
   }
 
-  out << n << '\n';
-}
-
-std::ostream& operator<<(std::ostream& out, const ParseTree& tree) {
-  if (tree.Root) {
-    printTree(out, *tree.Root);
+  ~Executor() {
+    delete work_;
+    for (boost::thread& t : pool_) { t.join(); }
   }
-  return out;
-}
+
+  template <typename F>
+  void submit(F task) {
+    service_.post(task);
+  }
+
+protected:
+  std::vector<boost::thread> pool_;
+  boost::asio::io_service service_;
+  boost::asio::io_service::work* work_;
+};

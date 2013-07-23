@@ -18,20 +18,20 @@
 
 #include <algorithm>
 #include <atomic>
+#include <istream>
 #include <iostream>
 #include <iterator>
-#include <ostream>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "basic.h"
 #include "pattern.h"
-#include "stest.h"
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/thread.hpp>
+#include "data_reader.h"
+#include "executor.h"
+#include "stest.h"
 
 struct TestCase {
   std::vector<Pattern> patterns;
@@ -96,84 +96,27 @@ struct TestCase {
 std::atomic_uint TestCase::count(0);
 std::atomic_uint TestCase::failed(0);
 
-class executor {
-public:
-  executor(size_t n):
-    service_(n), work_(new boost::asio::io_service::work(service_))
-  {
-    for (size_t i = 0; i < n; ++i) {
-      pool_.emplace_back([this](){ service_.run(); });
+namespace {
+  void longTest(Executor& ex, std::istream& in) {
+    while (in.peek() != -1) {
+      TestCase tcase;
+      if (!readTestData(in, tcase.patterns, tcase.text, tcase.expected)) {
+        std::cerr << "failed to read test data" << std::endl;
+        TestCase::failed = std::numeric_limits<unsigned int>::max();
+        return;
+      }
+      ex.submit(tcase);
     }
-  }
-
-  ~executor() {
-    delete work_;
-    for (boost::thread& t : pool_) { t.join(); }
-    std::cerr << TestCase::count << std::endl;
-  }
-
-  template <typename F>
-  void submit(F task) {
-    service_.post(task);
-  }
-
-protected:
-  std::vector<boost::thread> pool_;
-  boost::asio::io_service service_;
-  boost::asio::io_service::work* work_;
-};
-
-void longTest(executor& ex) {
-  uint32_t len, patcount;
-  while (std::cin.peek() != -1) {
-    TestCase tcase;
-
-    // read number of patterns
-    std::cin.read(reinterpret_cast<char*>(&patcount), sizeof(patcount));
-    tcase.patterns.reserve(patcount);
-
-    for (uint32_t i = 0; i < patcount; ++i) {
-      // read pattern
-      std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
-      std::string pattern(len, '\0');
-      std::cin.read(&pattern[0], len);
-
-      // read fixed
-      bool fixed;
-      std::cin.read(reinterpret_cast<char*>(&fixed), 1);
-
-      // read case-insensitive
-      bool case_insensitive;
-      std::cin.read(reinterpret_cast<char*>(&case_insensitive), 1);
-
-      // read encoding
-      std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
-      std::string encoding(len, '\0');
-      std::cin.read(&encoding[0], len);
-
-      tcase.patterns.emplace_back(pattern, fixed, case_insensitive, encoding);
-    }
-
-    // read text
-    std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
-    tcase.text.assign(len, '\0');
-    std::cin.read(&tcase.text[0], len);
-
-    // read hits
-    std::cin.read(reinterpret_cast<char*>(&len), sizeof(len));
-    tcase.expected.resize(len);
-    std::cin.read(reinterpret_cast<char*>(&tcase.expected[0]), len*sizeof(SearchHit));
-
-    ex.submit(tcase);
   }
 }
 
-bool longTest() {
+bool longTest(std::istream& in) {
   // scoping ensures that executor is destroyed before we check failed
   {
-    executor ex(boost::thread::hardware_concurrency());
-    longTest(ex);
+    Executor ex;
+    longTest(ex, in);
   }
 
+  std::cerr << TestCase::count << std::endl;
   return TestCase::failed == 0;
 }

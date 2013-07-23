@@ -42,7 +42,7 @@ std::shared_ptr<Decoder> DecoderFactory::get(const std::string& chain) {
   std::string charbyte;
   std::tie(charchar, charbyte, bytebyte) = parseChain(chain);
 
-  // assemble the transformation chain 
+  // assemble the transformation chain
   std::unique_ptr<Decoder> enc(new ByteSource(nullptr, nullptr));
 
   for (auto bb = bytebyte.crbegin(); bb != bytebyte.crend(); ++bb) {

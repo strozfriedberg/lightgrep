@@ -31,7 +31,7 @@ void readWindowTest(
   uint64_t doff,
   const char* enc,
   size_t hbeg,
-  size_t hend, 
+  size_t hend,
   size_t pre,
   size_t post,
   const std::vector<byte>& data,
@@ -47,7 +47,7 @@ void readWindowTest(
 
   const unsigned int abad = lg_read_window(
     reinterpret_cast<const char*>(data.data()),
-    reinterpret_cast<const char*>(data.data()) + data.size(), 
+    reinterpret_cast<const char*>(data.data()) + data.size(),
     doff,
     &inner,
     enc,
@@ -90,7 +90,7 @@ void hitContextTest(
   uint64_t doff,
   const char* enc,
   size_t hbeg,
-  size_t hend, 
+  size_t hend,
   size_t window,
   uint32_t repl,
   const std::vector<byte>& data,
@@ -161,7 +161,7 @@ SCOPE_TEST(lgReadWindowASCIISmallSuffix) {
   readWindowTest(
     42, "ASCII",
     8, 10, // hit is "ij"
-    5, 5,  // window is "defghijk" 
+    5, 5,  // window is "defghijk"
     {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'},
     { 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', Decoder::END },
     { 3, 4, 5, 6, 7, 8, 9, 10, 11 }
@@ -193,14 +193,14 @@ SCOPE_TEST(lgReadWindowUTF8WithBadSpot) {
 }
 
 SCOPE_TEST(lgReadWindowUTF16LEWithBadSpotRequiringDecoderRestart) {
-  /* 
+  /*
     1) 0x63DF (i.e., 0xDF 'c') is a valid UTF-16LE unit, but decoding
     that would invalidate our hit at 'c'. This test checks that the
     decoder is being run for the hit separately from the preceeding
     context.
 
     2) 'b' -0xE0 is a better prefix than -0x01 -0xE0, because the length
-    of the sequence of good code points adjacent to the hit in each is 
+    of the sequence of good code points adjacent to the hit in each is
     zero, but the former has fewer bad values (1 vs. 2). This test checks
     that the better prefix is produced.
   */

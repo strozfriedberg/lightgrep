@@ -6,8 +6,6 @@
 #include "unicode.h"
 #include "encoders/utf8.h"
 
-#include <iostream>
-
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -19,6 +17,8 @@ namespace {
     const int* TextBegin;
     const int* TextEnd;
 
+    int TokenType;
+
     ParseTree* Tree;
 
     UnicodeSet USet;
@@ -26,13 +26,9 @@ namespace {
     bool LiteralMode;
     bool CaseInsensitive;
 
-    ParseNode* add(const ParseNode& n) {
-      return Tree->add(n);
-    }
-
     template <class... Args>
     ParseNode* add(Args&&... args) {
-      return Tree->add(args...);
+      return Tree->add(std::forward<Args>(args)...);
     }
   };
 
@@ -58,7 +54,8 @@ namespace {
       UNMATCHED_BRACKET,
       EMPTY_CHAR_CLASS,
       REVERSED_CHAR_RANGE_BOUNDS,
-      REVERSED_BYTE_RANGE_BOUNDS
+      REVERSED_BYTE_RANGE_BOUNDS,
+      SET_OPERATOR_MISSING_OPERAND
     } Type;
 
     int Begin;
@@ -82,7 +79,11 @@ namespace {
 #define YYLTYPE_IS_DECLARED 1
 #define YYLTYPE_IS_TRIVIAL 1
 
-//extern int yydebug;
+#define YYDEBUG 0
+
+#if YYDEBUG
+extern int yydebug;
+#endif
 }
 
 %locations
@@ -90,7 +91,7 @@ namespace {
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
 
-%expect 199
+%expect 1
 
 //%debug
 
@@ -99,12 +100,15 @@ namespace {
 %token <c> BYTE
 %token <c> CHAR
 %token <c> DIGIT
+%token <c> HYPHEN_HYPHEN
+%token <c> AMP_AMP
+%token <c> TILDE_TILDE
 %token <c> BAD "invalid escape"
 %token <s> SET
 
 %token END 0 "end of pattern"
 
-%type <node> regexp alt concat rep number atom literal charclass cc_named cc_expr cc_expr_first
+%type <node> regexp alt concat rep number atom literal charclass cc_named cc_expr_pos cc_expr_neg cc_atom
 %type <c> character cc_char cc_char_first cc_char_not_first
 
 %type <c> UNION INTERSECT MINUS XOR LEAST
@@ -285,6 +289,27 @@ literal:
   {
     $$ = ctx->add(ParseNode::DOT, '.');
   }
+| HYPHEN_HYPHEN
+  {
+    // This special case exists because -- is the set minus operator inside
+    // character classes. Parsing -- together helps disambiguate set minus
+    // from ranges. Here, outside of a char class, -- is just two hyphens.
+    ParseNode* l = ctx->add(ParseNode::LITERAL, '-');
+    ParseNode* r = ctx->add(ParseNode::LITERAL, '-');
+    $$ = ctx->add(ParseNode::CONCATENATION, l, r);
+  }
+| AMP_AMP
+  {
+    ParseNode* l = ctx->add(ParseNode::LITERAL, '&');
+    ParseNode* r = ctx->add(ParseNode::LITERAL, '&');
+    $$ = ctx->add(ParseNode::CONCATENATION, l, r);
+  }
+| TILDE_TILDE
+  {
+    ParseNode* l = ctx->add(ParseNode::LITERAL, '~');
+    ParseNode* r = ctx->add(ParseNode::LITERAL, '~');
+    $$ = ctx->add(ParseNode::CONCATENATION, l, r);
+  }
 | charclass
 ;
 
@@ -311,26 +336,18 @@ character:
   {
     $$ = ',';
   }
-| '&'
-  {
-    $$ = '&';
-  }
-| '~'
-  {
-    $$ = '~';
-  }
 ;
 
 charclass:
-  '[' cc_expr_first ']'
+  '[' cc_expr_pos ']'
   {
     $$ = $2;
 
     if (ctx->CaseInsensitive) {
-      caseDesensitize($$->CodePoints);
+      caseDesensitize($$->Set.CodePoints);
     }
 
-    if ($$->CodePoints.none() && $$->Breakout.Bytes.none()) {
+    if ($$->Set.CodePoints.none() && $$->Set.Breakout.Bytes.none()) {
       // empty character class
       throwError(
         {
@@ -341,11 +358,11 @@ charclass:
       );
     }
   }
-| '[' '^' cc_expr ']'
+| '[' '^' cc_expr_neg ']'
   {
     $$ = $3;
 
-    if ($$->CodePoints.any()) {
+    if ($$->Set.CodePoints.any()) {
       // NB: PCRE applies case-insensitivity first, then negation. This is
       // important, as these two operations do not commute on a cc such as
       // [^a]. Let U be the set of all Unicode code points. Negating first
@@ -355,28 +372,28 @@ charclass:
       // U / {A, a} after negation.
 
       if (ctx->CaseInsensitive) {
-        caseDesensitize($$->CodePoints);
+        caseDesensitize($$->Set.CodePoints);
       }
 
-      $$->CodePoints.flip();
-      if ($$->CodePoints.none()) {
+      $$->Set.CodePoints.flip();
+      if ($$->Set.CodePoints.none()) {
         // empty character class
         throwError(
           {
             ParseError::EMPTY_CHAR_CLASS,
-            @1.first_column, @3.last_column,
+            @1.first_column, @4.last_column,
           },
           ctx
         );
       }
 
-      if ($$->Breakout.Bytes.any()) {
-        $$->Breakout.Additive = false;
+      if ($$->Set.Breakout.Bytes.any()) {
+        $$->Set.Breakout.Additive = false;
       }
     }
-    else if ($$->Breakout.Bytes.any()) {
-      $$->Breakout.Bytes.flip();
-      if ($$->Breakout.Bytes.none()) {
+    else if ($$->Set.Breakout.Bytes.any()) {
+      $$->Set.Breakout.Bytes.flip();
+      if ($$->Set.Breakout.Bytes.none()) {
         // empty character class
         throwError(
           {
@@ -389,10 +406,10 @@ charclass:
     }
     else {
       // empty inner character class
-      $$->CodePoints.flip();
+      $$->Set.CodePoints.flip();
     }
   }
-| '[' cc_expr_first error
+| '[' cc_expr_pos error
   {
     throwError(
       {
@@ -412,7 +429,7 @@ charclass:
       ctx
     );
   }
-| '[' '^' cc_expr error
+| '[' '^' cc_expr_neg error
   {
     throwError(
       {
@@ -432,40 +449,220 @@ charclass:
       ctx
     );
   }
+| '[' AMP_AMP
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @2.first_column, @2.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos AMP_AMP ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos AMP_AMP AMP_AMP
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @2.first_column, @2.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos HYPHEN_HYPHEN ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos HYPHEN_HYPHEN HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' TILDE_TILDE
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @2.first_column, @2.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos TILDE_TILDE ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos TILDE_TILDE TILDE_TILDE
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' AMP_AMP
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg AMP_AMP ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg AMP_AMP AMP_AMP
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg HYPHEN_HYPHEN ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg HYPHEN_HYPHEN HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' TILDE_TILDE
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg TILDE_TILDE ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg TILDE_TILDE TILDE_TILDE
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
 | cc_named
   {
     if (ctx->CaseInsensitive) {
-      caseDesensitize($$->CodePoints);
+      caseDesensitize($$->Set.CodePoints);
     }
   }
 ;
 
-cc_expr_first:
-  cc_expr_first cc_expr %prec UNION
+cc_expr_pos:
+  cc_expr_pos cc_atom %prec UNION
   {
     $$ = $1;
-    $$->CodePoints |= $2->CodePoints;
-    $$->Breakout.Bytes |= $2->Breakout.Bytes;
+    $$->Set.CodePoints |= $2->Set.CodePoints;
+    $$->Set.Breakout.Bytes |= $2->Set.Breakout.Bytes;
   }
-| cc_expr_first '&' '&' cc_expr %prec INTERSECT
+| cc_expr_pos AMP_AMP cc_atom %prec INTERSECT
   {
     $$ = $1;
-    $$->CodePoints &= $4->CodePoints;
-    $$->Breakout.Bytes &= $4->Breakout.Bytes;
+    $$->Set.CodePoints &= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes &= $3->Set.Breakout.Bytes;
   }
-| cc_expr_first '-' '-' cc_expr %prec MINUS
+| cc_expr_pos HYPHEN_HYPHEN cc_atom %prec MINUS
   {
     $$ = $1;
-    $$->CodePoints -= $4->CodePoints;
-    $$->Breakout.Bytes -= $4->Breakout.Bytes;
+    $$->Set.CodePoints -= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes -= $3->Set.Breakout.Bytes;
   }
-| cc_expr_first '~' '~' cc_expr %prec XOR
+| cc_expr_pos TILDE_TILDE cc_atom %prec XOR
   {
     $$ = $1;
-    $$->CodePoints ^= $4->CodePoints;
-    $$->Breakout.Bytes ^= $4->Breakout.Bytes;
+    $$->Set.CodePoints ^= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes ^= $3->Set.Breakout.Bytes;
   }
-| cc_char_first '-' cc_char_not_first
+| cc_char_first '-' cc_char_not_first %prec '-'
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
@@ -480,9 +677,15 @@ cc_expr_first:
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->CodePoints.insert($1, $3 + 1);
+    $$->Set.CodePoints.insert($1, $3 + 1);
   }
-| BYTE '-' BYTE
+| cc_char_first '-' charclass
+  {
+    $$ = $3;
+    $$->Set.CodePoints.insert($1, $1 + 1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
+  }
+| BYTE '-' BYTE %prec '-'
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
@@ -497,59 +700,57 @@ cc_expr_first:
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->Breakout.Bytes.set($1, $3 + 1, true);
+    $$->Set.Breakout.Bytes.set($1, $3 + 1, true);
+  }
+| BYTE '-' charclass
+  {
+    $$ = $3;
+    $$->Set.Breakout.Bytes.set($1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
   }
 | charclass
 | cc_char_first %prec LEAST
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->CodePoints.set($1);
+    $$->Set.CodePoints.set($1);
   }
 | BYTE %prec LEAST
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->Breakout.Bytes.set($1);
+    $$->Set.Breakout.Bytes.set($1);
   }
 ;
 
-cc_expr:
-  cc_expr cc_expr %prec UNION
+cc_expr_neg:
+  cc_expr_neg cc_atom %prec UNION
   {
     $$ = $1;
-    $$->CodePoints |= $2->CodePoints;
-    $$->Breakout.Bytes |= $2->Breakout.Bytes;
+    $$->Set.CodePoints |= $2->Set.CodePoints;
+    $$->Set.Breakout.Bytes |= $2->Set.Breakout.Bytes;
   }
-| cc_expr '&' '&' cc_expr %prec INTERSECT
+| cc_expr_neg AMP_AMP cc_atom %prec INTERSECT
   {
     $$ = $1;
-    $$->CodePoints &= $4->CodePoints;
-    $$->Breakout.Bytes &= $4->Breakout.Bytes;
+    $$->Set.CodePoints &= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes &= $3->Set.Breakout.Bytes;
   }
-| cc_expr '-' '-' cc_expr %prec MINUS
+| cc_expr_neg HYPHEN_HYPHEN cc_atom %prec MINUS
   {
     $$ = $1;
-    $$->CodePoints -= $4->CodePoints;
-    $$->Breakout.Bytes -= $4->Breakout.Bytes;
+    $$->Set.CodePoints -= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes -= $3->Set.Breakout.Bytes;
   }
-| cc_char_not_first '-' '-' cc_expr %prec MINUS
-  {
-    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->CodePoints.set($1);
-    $$->CodePoints -= $4->CodePoints;
-  }
-| BYTE '-' '-' cc_expr %prec MINUS
-  {
-    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->Breakout.Bytes.set($1);
-    $$->Breakout.Bytes -= $4->Breakout.Bytes;
-}
-| cc_expr '~' '~' cc_expr %prec XOR
+| cc_expr_neg TILDE_TILDE cc_atom %prec XOR
   {
     $$ = $1;
-    $$->CodePoints ^= $4->CodePoints;
-    $$->Breakout.Bytes ^= $4->Breakout.Bytes;
+    $$->Set.CodePoints ^= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes ^= $3->Set.Breakout.Bytes;
   }
-| cc_char_not_first '-' cc_char_not_first
+| cc_atom %prec LEAST
+;
+
+cc_atom:
+  cc_char_not_first '-' cc_char_not_first %prec '-'
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
@@ -564,9 +765,15 @@ cc_expr:
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->CodePoints.insert($1, $3 + 1);
+    $$->Set.CodePoints.insert($1, $3 + 1);
   }
-| BYTE '-' BYTE
+| cc_char_not_first '-' charclass
+  {
+    $$ = $3;
+    $$->Set.CodePoints.insert($1, $1 + 1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
+  }
+| BYTE '-' BYTE %prec '-'
   {
     if ($3 <= $1) {
       // x-y is ill-formed when y <= x
@@ -581,18 +788,29 @@ cc_expr:
     }
 
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->Breakout.Bytes.set($1, $3 + 1, true);
+    $$->Set.Breakout.Bytes.set($1, $3 + 1, true);
+  }
+| BYTE '-' charclass
+  {
+    $$ = $3;
+    $$->Set.Breakout.Bytes.set($1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
   }
 | charclass
 | cc_char_not_first %prec LEAST
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->CodePoints.set($1);
+    $$->Set.CodePoints.set($1);
+  }
+| '-' %prec LEAST
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Set.CodePoints.set('-');
   }
 | BYTE %prec LEAST
   {
     $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
-    $$->Breakout.Bytes.set($1);
+    $$->Set.Breakout.Bytes.set($1);
   }
 ;
 
@@ -600,6 +818,10 @@ cc_char_first:
   ']'
   {
     $$ = ']';
+  }
+| '-'
+  {
+    $$ = '-';
   }
 | cc_char
 ;
@@ -615,12 +837,6 @@ cc_char_not_first:
 cc_char:
   CHAR
 | DIGIT
-/*
-| '-'
-  {
-    $$ = '-';
-  }
-*/
 | '|'
   {
     $$ = '|';
@@ -648,10 +864,6 @@ cc_char:
 | '.'
   {
     $$ = '.';
-  }
-| '['
-  {
-    $$ = '[';
   }
 | '{'
   {
@@ -690,21 +902,16 @@ namespace {
     }
   }
 
-  template <typename F, typename Itr>
-  int consumeSet(F func, YYSTYPE* yylval, Itr& beg, const Itr& end, UnicodeSet& us) {
-    const int val = func(beg, end, us);
+  template <typename F>
+  int consumeSet(F func, YYSTYPE* yylval, Context* ctx) {
+    const int val = func(ctx->Text, ctx->TextEnd, ctx->USet);
     if (val < 0) {
       return BAD;
     }
     else {
-      yylval->s = &us;
+      yylval->s = &ctx->USet;
       return SET;
     }
-  }
-
-  template <typename F>
-  int consumeSet(F func, YYSTYPE* yylval, Context* ctx) {
-    return consumeSet(func, yylval, ctx->Text, ctx->TextEnd, ctx->USet);
   }
 
 // FIXME: Add \c.
@@ -859,17 +1066,19 @@ namespace {
   int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, Context* ctx) {
     yylloc->first_column = ctx->Text - ctx->TextBegin;
 
+    ctx->TokenType = -1;  // EOF
+
     if (ctx->Text < ctx->TextEnd) {
       const int c = *ctx->Text++;
       yylloc->last_column = yylloc->first_column + 1;
       if (c < 1) {
         //   -1 indicates bogus UTF-8
         //    0 is a prohibited mid-string null byte
-        return BAD;
+        ctx->TokenType = BAD;
       }
       else if (ctx->LiteralMode) {
         yylval->c = c;
-        return CHAR;
+        ctx->TokenType = CHAR;
       }
       else {
         switch (c) {
@@ -883,19 +1092,63 @@ namespace {
         case '[':
         case ']':
         case '^':
-        case '-':
         case '{':
         case '}':
-        case '&':
-        case '~':
         case ',':
-          return c;
-        case '\\':
-          {
-            const int v = consumeEscape(yylval, ctx);
-            yylloc->last_column = ctx->Text - ctx->TextBegin;
-            return v;
+          ctx->TokenType = c;
+          break;
+        case '&':
+          if (ctx->Text < ctx->TextEnd && *ctx->Text == '&') {
+              // give the parser a hint that this amp might be an intersection
+              yylloc->last_column = ++ctx->Text - ctx->TextBegin;
+              ctx->TokenType = AMP_AMP;
           }
+          else {
+            // give the parser a hint that this ampersand is a literal
+            yylval->c = c;
+            ctx->TokenType = CHAR;
+          }
+          break;
+        case '~':
+          if (ctx->Text < ctx->TextEnd && *ctx->Text == '~') {
+            // give the parser a hint that this tilde might be an XOR
+            yylloc->last_column = ++ctx->Text - ctx->TextBegin;
+            ctx->TokenType = TILDE_TILDE;
+          }
+          else {
+            // give the parser a hint that this tilde is a literal
+            yylval->c = c;
+            ctx->TokenType = CHAR;
+          }
+          break;
+        case '-':
+          if (ctx->Text < ctx->TextEnd) {
+            switch (*ctx->Text) {
+            case ']':
+              // give the parser a hint that this hypen is a literal
+              yylval->c = c;
+              ctx->TokenType = CHAR;
+              break;
+            case '-':
+              // give the parser a hint that this hypen might be a minus
+              yylloc->last_column = ++ctx->Text - ctx->TextBegin;
+              ctx->TokenType = HYPHEN_HYPHEN;
+              break;
+            default:
+              // this hyphen might be a range operator if inside a cc
+              ctx->TokenType = '-';
+              break;
+            }
+          }
+          else {
+            yylval->c = c;
+            ctx->TokenType = CHAR;
+          }
+          break;
+        case '\\':
+          ctx->TokenType = consumeEscape(yylval, ctx);
+          yylloc->last_column = ctx->Text - ctx->TextBegin;
+          break;
         case '0':
         case '1':
         case '2':
@@ -907,14 +1160,17 @@ namespace {
         case '8':
         case '9':
           yylval->c = c;
-          return DIGIT;
+          ctx->TokenType = DIGIT;
+          break;
         default:
           yylval->c = c;
-          return CHAR;
+          ctx->TokenType = CHAR;
+          break;
         }
       }
     }
-    return -1;
+
+    return ctx->TokenType;
   }
 
   void yyerror(YYLTYPE* yylloc, Context* ctx, const char*) {
@@ -926,17 +1182,17 @@ namespace {
        the state of the parser.
     */
 
-    ParseError e{
-      ParseError::INVALID_ESCAPE,
-      yylloc->first_column,
-      yylloc->last_column
-    };
-
-    if (*(ctx->TextBegin + e.Begin) == BAD) {
+    if (ctx->TokenType == BAD) {
       // The token read was something invalid.
-      e.Type = ParseError::INVALID_ESCAPE;
+      ParseError e{
+        ParseError::INVALID_ESCAPE,
+        yylloc->first_column,
+        yylloc->last_column
+      };
+
+      throwError(e, ctx);
     }
-    else if (e.Begin == e.End) {
+    else if (yylloc->first_column == yylloc->last_column) {
       // We ran off the end of the pattern looking for a matching delimiter.
       // We return rather than throw here to let the error recovery action
       // execute. The error recovery action knows the location of the
@@ -944,12 +1200,16 @@ namespace {
       return;
     }
     else {
-      // The only remaining way to fail is a repetition operator following
-      // a non-atom.
-      e.Type = ParseError::NONATOMIC_REPETITON;
-    }
+      // The only remaining way to fail is a repetition operator
+      // following a non-atom.
+      ParseError e{
+        ParseError::NONATOMIC_REPETITON,
+        yylloc->first_column,
+        yylloc->last_column
+      };
 
-    throwError(e, ctx);
+      throwError(e, ctx);
+    }
   }
 
   void throwError(ParseError e, Context* ctx) {
@@ -975,13 +1235,16 @@ namespace {
       ss << "empty character class ";
       break;
     case ParseError::REVERSED_CHAR_RANGE_BOUNDS:
-      // FIXME: need to UTF8-encode here
-      ss << e.First << " >= " << e.Second << " in ";
+      ss << "U+" << std::hex << std::uppercase
+         <<  e.First << " >= U+" << e.Second << std::dec << " in ";
       break;
     case ParseError::REVERSED_BYTE_RANGE_BOUNDS:
       ss << "0x" << std::hex << std::uppercase << std::setfill('0')
          << std::setw(2) << e.First << " >= 0x"
-         << std::setw(2) << e.Second << " in ";
+         << std::setw(2) << e.Second << std::dec << " in ";
+      break;
+    case ParseError::SET_OPERATOR_MISSING_OPERAND:
+      ss << "missing operand for ";
       break;
     }
 
@@ -999,6 +1262,7 @@ namespace {
 
 bool parse(const Pattern& p, ParseTree& tree) {
   std::vector<int> cp;
+  cp.reserve(p.Expression.size()); // upper bound, no resizing
   transform_utf8_to_unicode(
     p.Expression.begin(), p.Expression.end(), std::back_inserter(cp)
   );
@@ -1014,6 +1278,9 @@ bool parse(const Pattern& p, ParseTree& tree) {
   ctx.Tree = &tree;
   ctx.Tree->init(cp.size());
 
-//  yydebug = 1;
+#if YYDEBUG
+  yydebug = 1;
+#endif
+
   return yyparse(&ctx) == 0;
 }
