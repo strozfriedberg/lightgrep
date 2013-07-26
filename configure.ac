@@ -50,12 +50,40 @@ esac
 #
 # ICU
 #
+
+# Get the path to icu-config, if we want to use ICU other than the system one.
+AC_ARG_WITH([icu],
+  [AS_HELP_STRING([--with-icu=ARG],
+    [use icu-config from the specified location])],
+  [ICU_CONFIG="$withval"],
+  [ICU_CONFIG=""])
+
+if test -z "$ICU_CONFIG"; then
+  AC_MSG_NOTICE([No path given for --with-icu, using icu-config from your PATH.])
+else
+  if test "x$ICU_CONFIG" = "xyes"; then
+    AC_MSG_WARN([ICU_CONFIG = 'yes'. Did you forget to specify an argument for --with-icu?])
+  fi
+
+  # Add a trailing slash if we don't have one
+  case "$ICU_CONFIG" in
+  */) ;;
+  *) ICU_CONFIG+='/' ;;
+  esac
+
+  # Check that icu-config exists
+  if test ! -f "$ICU_CONFIG/icu-config"; then
+    AC_MSG_ERROR([Path "${ICU_CONFIG}icu-config" does not exist])
+  fi
+fi
+
 # FIXME: icu-config from ICU cross-compiled with mingw wants libicuuc.dll,
 # which won't exist if ICU was compiled static only, so we temporarily add
 # --noverify until we figure out what to do about this.
-ICU_CONFIG='icu-config --noverify'
+ICU_CONFIG+='icu-config --noverify'
+
 AC_MSG_WARN([Disregard the next few lines where ICU_* are printed.])
-AC_MSG_WARN([They're all wrong and we fix them up before using them.])
+AC_MSG_WARN([They're all wrong but we fix them up before using them.])
 AX_CHECK_ICU(1.48)
 
 # ICU_LIBS which are wrong on Windows (and we handle ourselves):
@@ -80,15 +108,19 @@ case "$host" in
   ;;
 esac
 
-# ICU_CXXFLAGS which conflict with ones we might set:
+# ICU_C(XX)FLAGS we don't want anywhere:
+#   -ansi -std=c99
+#
+# ICU_C(XX)FLAGS which conflict with ones we might set:
 #   -O2 -O3 -g -pthread -mthreads
 #
-duff_icu_compile_flags='-ansi -g -mthreads -O2 -O3 -pthread'
+duff_icu_compile_flags='-ansi -g -O2 -O3 -std=c99 -pthread -mthreads'
 if test x"$CXX" = "xclang++" ; then
   # These cause clang to freak out on Fedora 18
   duff_icu_compile_flags+=' -Wp,-D_FORTIFY_SOURCE=2'
 fi
 
+LG_REMOVE_FLAGS([ICU_CFLAGS],   [$duff_icu_compile_flags])
 LG_REMOVE_FLAGS([ICU_CXXFLAGS], [$duff_icu_compile_flags])
 
 #
