@@ -49,7 +49,10 @@ src_lib_liblightgrep_la_SOURCES = \
 	src/lib/decoders/decoderfactory.cpp \
 	src/lib/decoders/ocedecoder.cpp
 
-src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
+# TODO: Figure out how to build internal testing utilities
+# without exporting all C++ classes
+# src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
+
 src_lib_liblightgrep_la_LIBADD = $(ICU_LIBS) $(STDCXX_LIB)
 
 src_lib_liblightgrep_ladir = $(includedir)/lightgrep
