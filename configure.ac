@@ -97,6 +97,7 @@ ICU_CONFIG+='icu-config --noverify'
 AC_MSG_WARN([Disregard the next few lines where ICU_* are printed.])
 AC_MSG_WARN([They're all wrong but we fix them up before using them.])
 AX_CHECK_ICU(1.48)
+echo 'found ICU' `icu-config --version`
 
 # ICU_LIBS which are wrong on Windows (and we handle ourselves):
 #   -lpthread
