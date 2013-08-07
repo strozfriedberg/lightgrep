@@ -9,7 +9,7 @@ LG_LIB_INT = src/lib/liblightgrepint.la
 lib_LTLIBRARIES = $(LG_LIB)
 
 src_lib_liblightgrep_la_SOURCES =
-nodist_EXTRA_src_lib_liblightgrep_la_SOURCES = dummy.cpp
+nodist_EXTRA_src_lib_liblightgrep_la_SOURCES = dummy.cpp # forces C++ linking
 
 noinst_LTLIBRARIES = $(LG_LIB_INT)
 
