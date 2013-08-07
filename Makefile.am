@@ -4,10 +4,16 @@ AM_CPPFLAGS = -Iinclude
 AM_YFLAGS = -r solved
 
 LG_LIB = src/lib/liblightgrep.la
+LG_LIB_INT = src/lib/liblightgrepint.la
 
 lib_LTLIBRARIES = $(LG_LIB)
 
-src_lib_liblightgrep_la_SOURCES = \
+src_lib_liblightgrep_la_SOURCES =
+nodist_EXTRA_src_lib_liblightgrep_la_SOURCES = dummy.cpp # forces C++ linking
+
+noinst_LTLIBRARIES = $(LG_LIB_INT)
+
+src_lib_liblightgrepint_la_SOURCES = \
 	src/lib/ascii.cpp \
 	src/lib/automata.cpp \
 	src/lib/byteencoder.cpp \
@@ -50,7 +56,7 @@ src_lib_liblightgrep_la_SOURCES = \
 	src/lib/decoders/ocedecoder.cpp
 
 src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
-src_lib_liblightgrep_la_LIBADD = $(ICU_LIBS) $(STDCXX_LIB)
+src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_lib_liblightgrep_ladir = $(includedir)/lightgrep
 
@@ -70,10 +76,10 @@ src_enc_enc_SOURCES = src/enc/encodings.cpp
 src_enc_enc_LDADD = $(ICU_LIBS) $(STDCXX_LIB)
 
 src_val_val_SOURCES = src/val/valid.cpp
-src_val_val_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+src_val_val_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_what_what_SOURCES = src/what/what.cpp
-src_what_what_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+src_what_what_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 check_PROGRAMS = test/test
 TESTS = $(check_PROGRAMS)
@@ -138,4 +144,4 @@ test_test_SOURCES = \
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
 test_test_LDFLAGS = $(BOOST_LDFLAGS)
-test_test_LDADD = $(LG_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+test_test_LDADD = $(LG_LIB_INT) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
