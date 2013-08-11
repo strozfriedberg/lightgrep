@@ -367,7 +367,7 @@ void search(const Options& opts) {
 
   // setup hit callback
   LG_HITCALLBACK_FN callback = 0;
-  boost::scoped_ptr<HitCounterInfo> hinfo;
+  std::unique_ptr<HitCounterInfo> hinfo;
 
   if (opts.NoOutput) {
     callback = &nullWriter;
