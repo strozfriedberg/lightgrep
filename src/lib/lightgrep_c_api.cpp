@@ -34,8 +34,11 @@
 
 #include <cstring>
 #include <functional>
-#include <iostream>
+#include <string>
 #include <vector>
+
+#include <boost/lexical_cast.hpp>
+#include <boost/tokenizer.hpp>
 
 namespace {
   template <typename F>
@@ -51,10 +54,12 @@ namespace {
 }
 
 void lg_free_error(LG_Error* err) {
-  if (err) {
+  while (err) {
+    LG_Error* next = err->Next;
     delete[] err->Message;
+    delete err;
+    err = next;
   }
-  delete err;
 }
 
 LG_HPATTERN lg_create_pattern() {
@@ -138,6 +143,163 @@ int lg_add_pattern(LG_HFSM hFsm,
     -1,
     err
   );
+}
+
+namespace {
+
+  template <class E>
+  void addPattern(LG_HFSM hFsm,
+                  LG_HPATTERNMAP hMap,
+                  LG_HPATTERN hPat,
+                  const std::string& pat,
+                  LG_KeyOptions* keyOpts,
+                  const E& encodings,
+                  int lnum,
+                  LG_Error**& err)
+  {
+    lg_parse_pattern(hPat, pat.c_str(), keyOpts, err);
+    if (*err) {
+      (*err)->Index = lnum;
+      err = &((*err)->Next);
+      return;
+    }
+
+    for (const std::string& enc : encodings) {
+      const int label = lg_add_pattern(hFsm, hMap, hPat, enc.c_str(), err);
+      if (*err) {
+        (*err)->Index = lnum;
+        err = &((*err)->Next);
+        continue;
+      }
+
+      // pack the line number into the void*, oh the horror
+      LG_PatternInfo* pinfo = lg_pattern_info(hMap, label);
+      pinfo->UserData = reinterpret_cast<void*>(lnum);
+    }
+  }
+
+  int addPatternList(LG_HFSM hFsm,
+                     LG_HPATTERNMAP hMap,
+                     const char* patterns,
+                     const char** defaultEncodings,
+                     size_t defaultEncodingsNum,
+                     const LG_KeyOptions* defaultOptions,
+                     LG_Error** err)
+  {
+    std::unique_ptr<PatternHandle,void(*)(PatternHandle*)> ph(
+      lg_create_pattern(),
+      lg_destroy_pattern
+    );
+
+    const std::vector<std::string> defEncs(
+      defaultEncodings, defaultEncodings + defaultEncodingsNum
+    );
+
+    typedef boost::char_separator<char> char_separator;
+    typedef boost::tokenizer<char_separator, const char*> cstr_tokenizer;
+    typedef boost::tokenizer<char_separator> tokenizer;
+
+    // read each pattern line
+    const cstr_tokenizer ltok(
+      patterns, patterns + std::strlen(patterns), char_separator("\n")
+    );
+
+    cstr_tokenizer::const_iterator lcur(ltok.begin());
+    const cstr_tokenizer::const_iterator lend(ltok.end());
+    for (int lnum = 0; lcur != lend; ++lcur, ++lnum) {
+      // skip blank lines
+      if (lcur->empty()) {
+        continue;
+      }
+
+      // split each pattern line into columns
+      const tokenizer ctok(*lcur, char_separator("\t"));
+      tokenizer::const_iterator ccur(ctok.begin());
+      const tokenizer::const_iterator cend(ctok.end());
+
+      if (ccur == cend) { // FIXME: is this possible?
+        if (err) {
+          fillError(err, "no pattern", lnum);
+          err = &((*err)->Next);
+        }
+        continue;
+      }
+
+      // read the pattern
+      const std::string pat(*ccur);
+
+      LG_KeyOptions opts(*defaultOptions);
+
+      if (++ccur != cend) {
+        // read the encoding list
+        const std::string el(*ccur);
+
+        const tokenizer etok(*ccur, char_separator(","));
+
+        if (etok.begin() == etok.end()) {
+          if (err) {
+            fillError(err, "no encoding list", lnum);
+            err = &((*err)->Next);
+          }
+          continue;
+        }
+
+        if (++ccur != cend) {
+          // read the options
+          opts.FixedString = boost::lexical_cast<bool>(*ccur);
+          if (++ccur != cend) {
+            opts.CaseInsensitive = boost::lexical_cast<bool>(*ccur);
+          }
+          else {
+            if (err) {
+              fillError(err, "missing case-sensitivity option", lnum);
+              err = &((*err)->Next);
+            }
+            continue;
+          }
+        }
+
+        addPattern(hFsm, hMap, ph.get(), pat, &opts, etok, lnum, err);
+      }
+      else {
+        // use default encodings and options
+        addPattern(hFsm, hMap, ph.get(), pat, &opts, defEncs, lnum, err);
+      }
+    }
+
+    return 0;
+  }
+}
+
+int lg_add_pattern_list(LG_HFSM hFsm,
+                        LG_HPATTERNMAP hMap,
+                        const char* patterns,
+                        const char** defaultEncodings,
+                        unsigned int defaultEncodingsNum,
+                        const LG_KeyOptions* defaultOptions,
+                        LG_Error** err)
+{
+  LG_Error* in_err = nullptr;
+
+  int ret = trapWithRetval(
+    [hFsm,hMap,patterns,defaultEncodings,defaultEncodingsNum,defaultOptions,&in_err]() {
+      return addPatternList(hFsm, hMap, patterns, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err);
+    },
+    -1,
+    err
+  );
+
+  if (err) {
+    if (in_err) {
+      if (*err) {
+        // append the error from addPatternList to the chain
+        in_err->Next = *err;
+      }
+      *err = in_err;
+    }
+  }
+
+  return ret;
 }
 
 LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,

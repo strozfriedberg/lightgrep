@@ -65,10 +65,11 @@ extern "C" {
   // Error handling
   typedef struct LG_Error {
     char* Message;
+    int Index;
+    struct LG_Error* Next;
   } LG_Error;
 
   void lg_free_error(LG_Error* err);
-
 
   // Create and destory an LG_HPATTERN.
   // This can be reused when parsing pattern strings to avoid re-allocating memory.
@@ -105,6 +106,15 @@ extern "C" {
                      LG_HPATTERN hPattern,
                      const char* encoding,
                      LG_Error** err);
+
+
+  int lg_add_pattern_list(LG_HFSM hFsm,
+                          LG_HPATTERNMAP hMap,
+                          const char* patterns,
+                          const char** defaultEncodings,
+                          unsigned int defaultEncodingsNum,
+                          const LG_KeyOptions* defaultOptions,
+                          LG_Error** err);
 
   LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
                                   unsigned int patternIndex);
