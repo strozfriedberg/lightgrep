@@ -146,7 +146,6 @@ int lg_add_pattern(LG_HFSM hFsm,
 }
 
 namespace {
-
   template <class E>
   void addPattern(LG_HFSM hFsm,
                   LG_HPATTERNMAP hMap,
