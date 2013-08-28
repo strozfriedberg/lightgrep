@@ -103,6 +103,7 @@ extern int yydebug;
 %token <c> HYPHEN_HYPHEN
 %token <c> AMP_AMP
 %token <c> TILDE_TILDE
+%token <c> WHACK_B
 %token <c> BAD "invalid escape"
 %token <s> SET
 
@@ -877,6 +878,10 @@ cc_char:
   {
     $$ = ',';
   }
+| WHACK_B
+  {
+    $$ = '\b';
+  }
 ;
 
 cc_named:
@@ -915,8 +920,6 @@ namespace {
   }
 
 // FIXME: Add \c.
-// FIXME: \b is not parsed correctly---should be backspace (0x08) inside
-//  character classes, and a wordbreak assertion elsewhere.
 
   int consumeEscape(YYSTYPE* yylval, Context* ctx) {
     if (ctx->Text >= ctx->TextEnd) {
@@ -949,6 +952,8 @@ namespace {
     case 'a':
       yylval->c = '\a';
       return CHAR;
+    case 'b':
+      return WHACK_B;
     case 'e':
       yylval->c = 0x1B;
       return CHAR;

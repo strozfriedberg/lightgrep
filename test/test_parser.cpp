@@ -123,6 +123,46 @@ SCOPE_TEST(parseCC_AtoZ_CaseInsensitiveTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
+SCOPE_TEST(parseCC_Whack_b_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{0x08})
+      )
+    )
+  );
+
+  const std::string p = "[\\b]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseCC_Whack_b_CaseInsensitiveTest) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{0x08})
+      )
+    )
+  );
+
+  const std::string p = "[\\b]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, true}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
 SCOPE_TEST(parse_FF_BreakoutTest) {
   ParseTree expected;
   expected.init(2);
