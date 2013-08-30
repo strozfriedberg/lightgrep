@@ -53,6 +53,14 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
   switch (n.Type) {
   case ParseNode::REGEXP:
     return out << "REGEXP";
+  case ParseNode::LOOKBEHIND_POS:
+    return out << "(?<=)";
+  case ParseNode::LOOKBEHIND_NEG:
+    return out << "(?<!)";
+  case ParseNode::LOOKAHEAD_POS:
+    return out << "(?=)";
+  case ParseNode::LOOKAHEAD_NEG:
+    return out << "(?!)";
   case ParseNode::ALTERNATION:
     return out << '|';
   case ParseNode::CONCATENATION:

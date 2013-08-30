@@ -100,10 +100,17 @@ extern int yydebug;
 %token <c> BYTE
 %token <c> CHAR
 %token <c> DIGIT
+
 %token <c> HYPHEN_HYPHEN
 %token <c> AMP_AMP
 %token <c> TILDE_TILDE
-%token <c> WHACK_B
+
+%token <c> TEXT_START
+%token <c> TEXT_END
+%token <c> NON_WORD_BOUNDARY
+%token <c> KILL
+%token <c> WHACK_LITTLE_B
+
 %token <c> BAD "invalid escape"
 %token <s> SET
 
@@ -143,6 +150,10 @@ concat:
 | concat rep
   {
     $$ = ctx->add(ParseNode::CONCATENATION, $1, $2);
+  }
+| concat KILL
+  {
+    $$ = ctx->add(ParseNode::LOOKBEHIND_POS, $1);
   }
 ;
 
@@ -261,6 +272,106 @@ atom:
       ctx
     );
   }
+| '(' '?' '<' '=' alt ')'
+  {
+    $$ = ctx->add(ParseNode::LOOKBEHIND_POS, $5);
+  }
+| '(' '?' '<' '!' alt ')'
+  {
+    $$ = ctx->add(ParseNode::LOOKBEHIND_NEG, $5);
+  }
+| '(' '?' '=' alt ')'
+  {
+    $$ = ctx->add(ParseNode::LOOKAHEAD_POS, $4);
+  }
+| '(' '?' '!' alt ')'
+  {
+    $$ = ctx->add(ParseNode::LOOKAHEAD_NEG, $4);
+  }
+| WHACK_LITTLE_B
+  {
+    // \b  = ((?<!\w)(?!\W)|(?<!\W)(?!\w))
+
+    ctx->USet.reset();
+    ctx->USet.insert('0', '9' + 1);
+    ctx->USet.insert('A', 'Z' + 1);
+    ctx->USet.set('_');
+    ctx->USet.insert('a', 'z' + 1);
+    ParseNode* w = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+
+    ctx->USet.flip();
+    ParseNode* W = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+
+    ParseNode* nlw = ctx->add(ParseNode::LOOKBEHIND_NEG, w);
+    ParseNode* nrW = ctx->add(ParseNode::LOOKAHEAD_NEG, W);
+    ParseNode* l = ctx->add(ParseNode::CONCATENATION, nlw, nrW);
+
+    W = ctx->add(*W);
+    w = ctx->add(*w);
+    ParseNode* nlW = ctx->add(ParseNode::LOOKBEHIND_NEG, W);
+    ParseNode* nrw = ctx->add(ParseNode::LOOKAHEAD_NEG, w);
+    ParseNode* r = ctx->add(ParseNode::CONCATENATION, nlW, nrw);
+
+    $$ = ctx->add(ParseNode::ALTERNATION, l, r);
+  }
+| NON_WORD_BOUNDARY
+  {
+    // \B  = ((?<!\w)(?!\w)|(?<!\W)(?!\W))
+
+    ctx->USet.reset();
+    ctx->USet.insert('0', '9' + 1);
+    ctx->USet.insert('A', 'Z' + 1);
+    ctx->USet.set('_');
+    ctx->USet.insert('a', 'z' + 1);
+    ParseNode* w = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+
+    ctx->USet.flip();
+    ParseNode* W = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+
+    ParseNode* nlw = ctx->add(ParseNode::LOOKBEHIND_NEG, w);
+    w = ctx->add(*w);
+    ParseNode* nrw = ctx->add(ParseNode::LOOKAHEAD_NEG, w);
+    ParseNode* l = ctx->add(ParseNode::CONCATENATION, nlw, nrw);
+
+    ParseNode* nlW = ctx->add(ParseNode::LOOKBEHIND_NEG, W);
+    W = ctx->add(*W);
+    ParseNode* nrW = ctx->add(ParseNode::LOOKAHEAD_NEG, W);
+    ParseNode* r = ctx->add(ParseNode::CONCATENATION, nlW, nrW);
+
+    $$ = ctx->add(ParseNode::ALTERNATION, l, r);
+  }
+| TEXT_START
+  {
+    ParseNode *dot = ctx->add(ParseNode::DOT, '.');
+    $$ = ctx->add(ParseNode::LOOKBEHIND_NEG, dot);
+  }
+| TEXT_END
+  {
+    ParseNode *dot = ctx->add(ParseNode::DOT, '.');
+    $$ = ctx->add(ParseNode::LOOKAHEAD_NEG, dot);
+  }
+| '^'
+  {
+    ctx->USet.reset();
+    ctx->USet.insert('\n', '\r' + 1); // \n \v \f \r
+    ctx->USet.set(0x85);              // NEL
+    ctx->USet.set(0x2028);            // LINE SEPARATOR
+    ctx->USet.set(0x2029);            // PARAGRAPH SEPARATOR
+
+    ParseNode *linebreak = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+    $$ = ctx->add(ParseNode::LOOKBEHIND_NEG, linebreak);
+  }
+| '$'
+  {
+    ctx->USet.reset();
+    ctx->USet.insert('\n', '\r' + 1); // \n \v \f \r
+    ctx->USet.set(0x85);              // NEL
+    ctx->USet.set(0x2028);            // LINE SEPARATOR
+    ctx->USet.set(0x2029);            // PARAGRAPH SEPARATOR
+
+    ParseNode *linebreak = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+    $$ = ctx->add(ParseNode::LOOKAHEAD_NEG, linebreak);
+  }
 | literal
 ;
 
@@ -336,6 +447,18 @@ character:
 | ','
   {
     $$ = ',';
+  }
+| '<'
+  {
+    $$ = '<';
+  }
+| '='
+  {
+    $$ = '=';
+  }
+| '!'
+  {
+    $$ = '!';
   }
 ;
 
@@ -878,7 +1001,23 @@ cc_char:
   {
     $$ = ',';
   }
-| WHACK_B
+| '<'
+  {
+    $$ = '<';
+  }
+| '='
+  {
+    $$ = '=';
+  }
+| '!'
+  {
+    $$ = '!';
+  }
+| '$'
+  {
+    $$ = '$';
+  }
+| WHACK_LITTLE_B
   {
     $$ = '\b';
   }
@@ -939,11 +1078,15 @@ namespace {
     case '[':
     case ']':
     case '^':
+    case '$':
     case '-':
     case '{':
     case '}':
     case '&':
     case '~':
+    case '<':
+    case '=':
+    case '!':
     case '\\':
       yylval->c = c;
       return CHAR;
@@ -952,8 +1095,6 @@ namespace {
     case 'a':
       yylval->c = '\a';
       return CHAR;
-    case 'b':
-      return WHACK_B;
     case 'e':
       yylval->c = 0x1B;
       return CHAR;
@@ -1063,6 +1204,18 @@ namespace {
       ctx->Text -= 2;
       return consumeSet(parseProperty<const int*>, yylval, ctx);
 
+    // assertions
+    case 'A':
+      return TEXT_START;
+    case 'B':
+      return NON_WORD_BOUNDARY;
+    case 'K':
+      return KILL;
+    case 'Z':
+      return TEXT_END;
+    case 'b':
+      return WHACK_LITTLE_B; // NB: Also an ASCII escape inside CCs
+
     default:
       return BAD;
     }
@@ -1097,9 +1250,13 @@ namespace {
         case '[':
         case ']':
         case '^':
+        case '$':
         case '{':
         case '}':
         case ',':
+        case '<':
+        case '=':
+        case '!':
           ctx->TokenType = c;
           break;
         case '&':

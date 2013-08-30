@@ -1711,3 +1711,131 @@ SCOPE_TEST(parseFailBadByteRangeBoundsCharClassTest) {
   }
   SCOPE_ASSERT(false);
 }
+
+SCOPE_TEST(parseAKillBOrCTest) {
+  ParseTree expected;
+  expected.init(7);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::ALTERNATION,
+          expected.add(
+            ParseNode(ParseNode::CONCATENATION,
+              expected.add(
+                ParseNode(ParseNode::LOOKBEHIND_POS,
+                  expected.add(ParseNode::LITERAL, 'A')
+                )
+              ),
+              expected.add(ParseNode::LITERAL, 'B')
+            )
+          ),
+          expected.add(ParseNode::LITERAL, 'C')
+        )
+      )
+    )
+  );
+
+  const std::string p = "A\\KB|C";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parsePositiveLookbehindATest) {
+  ParseTree expected;
+  expected.init(3);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::LOOKBEHIND_POS,
+          expected.add(
+            ParseNode(ParseNode::LITERAL, 'A')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "(?<=A)";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNegativeLookbehindATest) {
+  ParseTree expected;
+  expected.init(3);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::LOOKBEHIND_NEG,
+          expected.add(
+            ParseNode(ParseNode::LITERAL, 'A')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "(?<!A)";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parsePositiveLookaheadATest) {
+  ParseTree expected;
+  expected.init(3);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::LOOKAHEAD_POS,
+          expected.add(
+            ParseNode(ParseNode::LITERAL, 'A')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "(?=A)";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNegativeLookaheadATest) {
+  ParseTree expected;
+  expected.init(3);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::LOOKAHEAD_NEG,
+          expected.add(
+            ParseNode(ParseNode::LITERAL, 'A')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "(?!A)";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
