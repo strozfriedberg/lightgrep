@@ -206,19 +206,7 @@ int main(int argc, char** argv)
     cartesian_prod(csing.begin(), csing.end(), csing.begin(), csing.end(),
                    inserter(ncomb, ncomb.begin()), op_disj);
 
-//    bind(not_equal_to<ssit>(), oform.end(), _1);
-
-//    set<string>::const_iterator (set<string>::*fn)(const string&) = &set<string>::find;
-//    bind(fn, cref(oform), _1);
-  
-//      bind<set<string>::const_iterator>(&set<string>::find, cref(oform), *_1);
-     
-//    bind(&set<string>::find, cref(oform), *_1); 
-
-//    remove_if(ncomb.begin(), ncomb.end(), bind(not_equal_to<ssit>(), oform.end(), bind(&set<string>::find, cref(oform), *_1)));
-
-//    remove_if(ncomb.begin(), ncomb.end(), set_contains(oform));
-
+    // kill duplicates
     set<string> tmp;
     set_difference(ncomb.begin(), ncomb.end(), oform.begin(), oform.end(),
                    inserter(tmp, tmp.begin()));
@@ -229,27 +217,22 @@ int main(int argc, char** argv)
     // Cleanup
     //
     
-    // make all current forms old
+    // move all current forms to old
     copy(cform.begin(), cform.end(), inserter(oform, oform.begin()));
 
-    // make all new forms current
-    cform.clear();
-    copy(nform.begin(), nform.end(), inserter(cform, cform.begin()));
-
-    // clear all new forms
+    // move all new forms to current
+    swap(nform, cform);
     nform.clear();
 
-    // make all current singular forms old
+    // move all current singular forms to old
     copy(csing.begin(), csing.end(), inserter(oform, oform.begin()));
 
     // make all new singular forms current
-    csing.clear();
-    swap(csing, nsing);
+    swap(nsing, csing);
+    nsing.clear();
 
-    // make all new concatenations current
+    // move all new concatenations to current
     copy(ncomb.begin(), ncomb.end(), inserter(cform, cform.begin()));
-
-    // clear new concatenations
     ncomb.clear();
 
     //
