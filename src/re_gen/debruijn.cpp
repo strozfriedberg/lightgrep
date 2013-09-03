@@ -1,12 +1,10 @@
-#include <algorithm>
 #include <cerrno>
-#include <cmath>
 #include <cstring>
 #include <cstdlib>
-#include <exception>
 #include <functional>
 #include <iostream>
 #include <iterator>
+#include <memory>
 #include <vector>
 
 #include <boost/lexical_cast.hpp>
