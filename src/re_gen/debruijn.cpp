@@ -4,11 +4,11 @@
 #include <cstring>
 #include <cstdlib>
 #include <exception>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <vector>
 
-#include <boost/function.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "escape_translator.h"
@@ -18,7 +18,7 @@ void debruijn(uint32_t t,
               const uint32_t k,
               const uint32_t n,
               uint32_t* a,
-              boost::function<void (uint32_t*, uint32_t*)> callback)
+              std::function<void (uint32_t*, uint32_t*)> callback)
 {
   if (t > n) {
     // we want only necklaces, not pre-necklaces or Lyndon words
