@@ -16,12 +16,12 @@ std::string op_negclass(const std::string& s) { return "[^" + s + ']'; }
 
 std::vector<std::string> bits_to_vector(unsigned int bits,
                                         const std::vector<std::string>& alpha) {
-  using namespace std;
-
-  vector<string> v;
-
-  for (vector<string>::const_iterator i(alpha.begin()); i != alpha.end(); ++i) {
-    if (bits & (1 << (i-alpha.begin()))) v.push_back(*i);
+  std::vector<std::string> v;
+  std::vector<std::string>::const_iterator i(alpha.begin());
+  for ( ; i != alpha.end(); ++i) {
+    if (bits & (1 << (i-alpha.begin()))) {
+      v.push_back(*i);
+    }
   }
 
   return v;
@@ -33,14 +33,12 @@ std::string instantiate(const std::string& form,
                         const std::vector<std::string>& quant,
                         const std::vector<unsigned int>& qslots)
 {
-  using namespace std;
+  std::string instance;
 
-  string instance;
+  std::vector<unsigned int>::const_iterator a(aslots.begin());
+  std::vector<unsigned int>::const_iterator q(qslots.begin());
 
-  vector<unsigned int>::const_iterator a(aslots.begin());
-  vector<unsigned int>::const_iterator q(qslots.begin());
-
-  for (string::const_iterator f(form.begin()); f != form.end(); ++f) {
+  for (std::string::const_iterator f(form.begin()); f != form.end(); ++f) {
     switch (*f) {
     case 'a':
       instance += atoms[*(a++)];
@@ -108,12 +106,10 @@ struct next_instance {
 
 bool skip(const std::vector<unsigned int>& aslots,
           const unsigned int asize) {
-  using namespace std;
-
-  vector<unsigned int>::const_iterator i = aslots.begin();
-  vector<unsigned int>::const_iterator j;
+  std::vector<unsigned int>::const_iterator i(aslots.begin());
+  std::vector<unsigned int>::const_iterator j;
   for (unsigned int x = 0; x < asize; ++x) {
-    j = find(aslots.begin(), aslots.end(), x);
+    j = std::find(aslots.begin(), aslots.end(), x);
     if (j < i) return true;
     i = j;
   }
@@ -124,14 +120,16 @@ bool skip(const std::vector<unsigned int>& aslots,
 struct next_instance_iso {
   const unsigned int _alphasize;
 
-  next_instance_iso(const unsigned int alphasize) : _alphasize(alphasize) {}
+  next_instance_iso(const unsigned int alphasize): _alphasize(alphasize) {}
 
   bool operator() (std::vector<unsigned int>& aslots,
                    const unsigned int asize,
                    std::vector<unsigned int>& qslots,
                    const unsigned int qsize)
   {
-    if (increment_vector(qslots, qsize)) return true;
+    if (increment_vector(qslots, qsize)) {
+      return true;
+    }
 
     // FIXME: There should be a way to iterate over these directly,
     // without skipping.
@@ -139,7 +137,9 @@ struct next_instance_iso {
       // The alphabet is the first alphasize indices; we care about
       // generating only the lexicographically least representative
       // of each isomorphism equivalence class over the alphabet.
-      if (!skip(aslots, _alphasize)) return true;
+      if (!skip(aslots, _alphasize)) {
+        return true;
+      }
     }
 
     return false;
@@ -149,32 +149,32 @@ struct next_instance_iso {
 void make_character_classes(const std::vector<std::string>& alpha,
                             std::vector<std::string>& atoms)
 {
-  using namespace std;
-  using namespace boost::algorithm;
-
 // TODO: Don't create isomorphic character classes...
 
   // Each ordering of each nonempty subset of the alphabet defines a
   // character class and a negated character class.
-  const uint abitsmax = 1 << alpha.size();
+  const uint32_t abitsmax = 1 << alpha.size();
 
-  for (uint abits = 1; abits < abitsmax; ++abits) {
+  for (uint32_t abits = 1; abits < abitsmax; ++abits) {
     // get the base character class corresponding to this bit vector
-    vector<string> v(bits_to_vector(abits, alpha));
+    std::vector<std::string> v(bits_to_vector(abits, alpha));
 
     // try all the (internal) insertion points for the range marker
     // in the (sorted) range
-    const uint rbitsmax = 1 << (v.size()-1);
+    const uint32_t rbitsmax = 1 << (v.size()-1);
 
-    for (uint rbits = 1; rbits < rbitsmax; ++rbits) {
+    for (uint32_t rbits = 1; rbits < rbitsmax; ++rbits) {
       // skip rbits which have adjacent range markers; [a-b-c] is illegal
       // X & (X >> 1) > 0 iff X has two consecutive 1s somewhere
-      if (rbits & (rbits >> 1)) continue;
+      if (rbits & (rbits >> 1)) {
+        continue;
+      }
 
-      string r;
+      std::string r;
 
       // put range markers in the locations indicated by rbits
-      for (vector<string>::const_iterator i(v.begin()); i != v.end(); ++i) {
+      std::vector<std::string>::const_iterator i(v.begin());
+      for ( ; i != v.end(); ++i) {
         r += *i;
         if (rbits & (1 << (i-v.begin()))) r += '-';
       }
@@ -185,7 +185,7 @@ void make_character_classes(const std::vector<std::string>& alpha,
 
     // try all the permutations of the elements of the character class
     do {
-      string s(join(v, ""));
+      std::string s(boost::algorithm::join(v, ""));
       atoms.push_back(op_class(s));
       atoms.push_back(op_negclass(s));
     } while (next_permutation(v.begin(), v.end()));
@@ -217,29 +217,24 @@ const char* help_long() {
 
 int main(int argc, char** argv)
 {
-  using namespace boost;
-  using namespace std;
-
-  typedef unsigned int uint;
-
   //
   // Parse the arguments
   //
 
   if (argc < 2) {
-    cerr << "too few arguments!\n"
-         << help_short() << endl;
+    std::cerr << "too few arguments!\n"
+              << help_short() << std::endl;
     return 1;
   }
 
-  if (!strcmp(argv[1], "-h")) {
+  if (!std::strcmp(argv[1], "-h")) {
     // -h prints the short help
-    cerr << help_short() << endl;
+    std::cerr << help_short() << std::endl;
     return 0;
   }
-  else if (!strcmp(argv[1], "--help")) {
+  else if (!std::strcmp(argv[1], "--help")) {
     // --help prints the long help
-    cerr << help_long() << endl;
+    std::cerr << help_long() << std::endl;
     return 0;
   }
 
@@ -247,16 +242,20 @@ int main(int argc, char** argv)
   // Get the alphabet from the command line
   //
 
-  vector<string> alpha;
-  alphabet_parser(argv[1], argv[1]+strlen(argv[1]), back_inserter(alpha));
+  std::vector<std::string> alpha;
+  alphabet_parser(
+    argv[1], argv[1]+std::strlen(argv[1]), std::back_inserter(alpha)
+  );
 
   //
   // Get the quantifiers from the command line
   //
 
-  vector<string> quant;
+  std::vector<std::string> quant;
   for (unsigned int i = 2; i < (unsigned int) argc; ++i) {
-    quantifier_parser(argv[i], argv[i]+strlen(argv[i]), back_inserter(quant));
+    quantifier_parser(
+      argv[i], argv[i]+std::strlen(argv[i]), std::back_inserter(quant)
+    );
   }
 
   //
@@ -264,7 +263,7 @@ int main(int argc, char** argv)
   //
 
   // Each character in the alphabet is an atom
-  vector<string> atoms(alpha.begin(), alpha.end());
+  std::vector<std::string> atoms(alpha.begin(), alpha.end());
 
   // Dot is an atom
   atoms.push_back(".");
@@ -272,21 +271,20 @@ int main(int argc, char** argv)
   // Build the character classes
   make_character_classes(atoms, alpha);
 
-
   //
   // Concretize forms
   //
 
-  const function<bool (vector<unsigned int>&, const unsigned int,
-                       vector<unsigned int>&, const unsigned int)> next =
+  const std::function<
+    bool (std::vector<unsigned int>&, const unsigned int,
+          std::vector<unsigned int>&, const unsigned int)> next =
     next_instance_iso(alpha.size());
-//    next_instance();
 
-  string form;
-  while (cin >> form) {
+  std::string form;
+  while (std::cin >> form) {
 
-    vector<unsigned int> aslots;
-    vector<unsigned int> qslots;
+    std::vector<unsigned int> aslots;
+    std::vector<unsigned int> qslots;
 
     make_slots(form, !quant.empty(), aslots, qslots);
 
@@ -295,7 +293,7 @@ int main(int argc, char** argv)
 
     // Iterate through all instantiations of the form
     do {
-      cout << instantiate(form, atoms, aslots, quant, qslots) << "\n";
+      std::cout << instantiate(form, atoms, aslots, quant, qslots) << "\n";
     } while (next(aslots, asize, qslots, qsize));
   }
 }
