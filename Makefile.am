@@ -67,13 +67,21 @@ src_lib_liblightgrep_la_HEADERS = \
 	include/lightgrep/util.h \
 	include/lightgrep/search_hit.h
 
-noinst_PROGRAMS = c_example/cex src/enc/enc src/val/val src/what/what
+noinst_PROGRAMS = \
+	c_example/cex \
+	src/enc/enc \
+	src/re_gen/forms \
+	src/val/val \
+	src/what/what
 
 c_example_cex_SOURCES = c_example/main.c
 c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_enc_enc_SOURCES = src/enc/encodings.cpp
 src_enc_enc_LDADD = $(ICU_LIBS) $(STDCXX_LIB)
+
+src_re_gen_forms_SOURCES = src/re_gen/forms.cpp
+src_re_gen_forms_LDADD = $(STDCXX_LIB)
 
 src_val_val_SOURCES = src/val/valid.cpp
 src_val_val_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
