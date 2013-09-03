@@ -70,6 +70,7 @@ src_lib_liblightgrep_la_HEADERS = \
 noinst_PROGRAMS = \
 	c_example/cex \
 	src/enc/enc \
+	src/re_gen/debruijn \
 	src/re_gen/forms \
 	src/val/val \
 	src/what/what
@@ -79,6 +80,9 @@ c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_enc_enc_SOURCES = src/enc/encodings.cpp
 src_enc_enc_LDADD = $(ICU_LIBS) $(STDCXX_LIB)
+
+src_re_gen_debruijn_SOURCES = src/re_gen/debruijn.cpp
+src_re_gen_debruijn_LDADD = $(STDCXX_LIB)
 
 src_re_gen_forms_SOURCES = src/re_gen/forms.cpp
 src_re_gen_forms_LDADD = $(STDCXX_LIB)

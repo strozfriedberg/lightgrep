@@ -13,12 +13,12 @@
 
 #include "escape_translator.h"
 
-void debruijn(unsigned int t,
-              unsigned int p,
-              const unsigned int k,
-              const unsigned int n,
-              unsigned int* a,
-              boost::function<void (unsigned int*,unsigned int*)> callback)
+void debruijn(uint32_t t,
+              uint32_t p,
+              const uint32_t k,
+              const uint32_t n,
+              uint32_t* a,
+              boost::function<void (uint32_t*, uint32_t*)> callback)
 {
   if (t > n) {
     // we want only necklaces, not pre-necklaces or Lyndon words
@@ -31,7 +31,7 @@ void debruijn(unsigned int t,
 
     debruijn(t+1, p, k, n, a, callback);
       
-    for (unsigned int j = a[t-p]+1; j < k; ++j) {
+    for (uint32_t j = a[t-p]+1; j < k; ++j) {
       a[t] = j;
       debruijn(t+1, t, k, n, a, callback);
     }
@@ -41,10 +41,10 @@ void debruijn(unsigned int t,
 struct seq_printer {
   const std::vector<char>& _alpha;
 
-  seq_printer(const std::vector<char>& alpha) : _alpha(alpha) {}
+  seq_printer(const std::vector<char>& alpha): _alpha(alpha) {}
 
-  void operator() (unsigned int* a, unsigned int* a_end) const {
-    for (unsigned int* i = a; i < a_end; ++i) {
+  void operator() (uint32_t* a, uint32_t* a_end) const {
+    for (uint32_t* i = a; i < a_end; ++i) {
       std::cout << _alpha[*i];
     }
   }
@@ -75,31 +75,28 @@ const char* help_long()
 
 int main(int argc, char** argv)
 {
-  using namespace boost;
-  using namespace std;
-
   //
   // Parse the arguments
   //
   
   switch (argc) {
   case 1:
-    cerr << "Too few arguments!" << "\n"
-         << help_short() << endl;
+    std::cerr << "Too few arguments!" << "\n"
+              << help_short() << std::endl;
     return 1;
   
   case 2:
-    if (!strcmp(argv[1], "-h")) {
-      cerr << help_short() << endl;
+    if (!std::strcmp(argv[1], "-h")) {
+      std::cerr << help_short() << std::endl;
       return 0;
     }
-    else if (!strcmp(argv[1], "--help")) {
-      cerr << help_long() << endl;
+    else if (!std::strcmp(argv[1], "--help")) {
+      std::cerr << help_long() << std::endl;
       return 0;
     }
     else {
-      cerr << "Too few arguments!" << "\n"
-           << help_short() << endl;
+      std::cerr << "Too few arguments!" << "\n"
+                << help_short() << std::endl;
       return 1;
     }
 
@@ -108,25 +105,29 @@ int main(int argc, char** argv)
   }
 
   // The maximal sequence length
-  const uint N = lexical_cast<uint>(argv[1]);
+  const uint32_t N = boost::lexical_cast<uint32_t>(argv[1]);
 
   //
   // Get the alphabet from the command line
   //
 
-  vector<char> alpha;
-  escape_translator(argv[2], argv[2]+strlen(argv[2]), back_inserter(alpha));
+  std::vector<char> alpha;
+  escape_translator(
+    argv[2], argv[2]+std::strlen(argv[2]), std::back_inserter(alpha)
+  );
 
   //
   // Generate B(|A|,N), the lexicographically least de Bruijn sequence
   // for an alphabet of size |A| over sequences of length N.
   //
-  
-  unsigned int* a = new unsigned int[N+1];
+ 
+  std::unique_ptr<uint32_t[]> a(new uint32_t[N+1]); 
   a[0] = 0;
-  debruijn(1, 1, alpha.size(), N, a, seq_printer(alpha));
-  if (N > 1) cout << alpha[0];
-  cout << endl;
+  debruijn(1, 1, alpha.size(), N, a.get(), seq_printer(alpha));
+  if (N > 1) {
+    std::cout << alpha[0];
+  }
+  std::cout << std::endl;
 
-  delete[] a;
+  return 0;
 }
