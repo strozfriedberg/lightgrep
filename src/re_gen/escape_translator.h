@@ -6,7 +6,7 @@
 #include <boost/numeric/conversion/cast.hpp>
 
 /*
-  This is a state machine for translating a string containing C escsape 
+  This is a state machine for translating a string containing C escsape
   sequences into a string containing the characters represented by those
   escape sequences.
 */
@@ -54,7 +54,7 @@ void escape_translator(InputIterator i, InputIterator i_end, OutputIterator o) {
       case 'a':  *(o++) = '\a'; state = State::ANY; break;
       case 'b':  *(o++) = '\b'; state = State::ANY; break;
       case 'f':  *(o++) = '\f'; state = State::ANY; break;
-      case 'n':  *(o++) = '\n'; state = State::ANY; break; 
+      case 'n':  *(o++) = '\n'; state = State::ANY; break;
       case 'r':  *(o++) = '\r'; state = State::ANY; break;
       case 't':  *(o++) = '\t'; state = State::ANY; break;
       case 'v':  *(o++) = '\v'; state = State::ANY; break;
@@ -63,7 +63,7 @@ void escape_translator(InputIterator i, InputIterator i_end, OutputIterator o) {
       case 'x':
         state = State::HEX1;
         break;
-      
+
       // either an octal escape, or \0
       case '0':
         if (i+1 != i_end && '0' <= *i && *i <= '7') {
@@ -84,7 +84,7 @@ void escape_translator(InputIterator i, InputIterator i_end, OutputIterator o) {
       case '5':
       case '6':
       case '7':
-        oct[0] = *i; 
+        oct[0] = *i;
         state = State::OCT2;
         break;
 
@@ -106,18 +106,18 @@ void escape_translator(InputIterator i, InputIterator i_end, OutputIterator o) {
         throw std::runtime_error(ss.str());
       }
       break;
-    
+
     case State::HEX2:
       if (std::isxdigit(*i)) {
         hex[1] = *i;
-       
+
         const unsigned long v = std::strtoul(hex, NULL, 16);
         if (errno) {
           std::ostringstream ss;
           ss << "hex conversion failed: \\x" << hex << ": "
              << std::strerror(errno);
           throw std::runtime_error(ss.str());
-        }        
+        }
 
         *(o++) = boost::numeric_cast<unsigned char>(v);
 
@@ -150,7 +150,7 @@ void escape_translator(InputIterator i, InputIterator i_end, OutputIterator o) {
         throw std::runtime_error(ss.str());
       }
       break;
-  
+
     case State::OCT3:
       switch (*i) {
       case '0':
@@ -170,7 +170,7 @@ void escape_translator(InputIterator i, InputIterator i_end, OutputIterator o) {
             ss << "octal conversion failed: \\" << hex << ": "
                << strerror(errno);
             throw std::runtime_error(ss.str());
-          }        
+          }
 
           *(o++) = boost::numeric_cast<unsigned char>(v);
 

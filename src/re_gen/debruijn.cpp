@@ -28,7 +28,7 @@ void debruijn(uint32_t t,
     a[t] = a[t-p];
 
     debruijn(t+1, p, k, n, a, callback);
-      
+
     for (uint32_t j = a[t-p]+1; j < k; ++j) {
       a[t] = j;
       debruijn(t+1, t, k, n, a, callback);
@@ -76,13 +76,13 @@ int main(int argc, char** argv)
   //
   // Parse the arguments
   //
-  
+
   switch (argc) {
   case 1:
     std::cerr << "Too few arguments!" << "\n"
               << help_short() << std::endl;
     return 1;
-  
+
   case 2:
     if (!std::strcmp(argv[1], "-h")) {
       std::cerr << help_short() << std::endl;
@@ -118,8 +118,8 @@ int main(int argc, char** argv)
   // Generate B(|A|,N), the lexicographically least de Bruijn sequence
   // for an alphabet of size |A| over sequences of length N.
   //
- 
-  std::unique_ptr<uint32_t[]> a(new uint32_t[N+1]); 
+
+  std::unique_ptr<uint32_t[]> a(new uint32_t[N+1]);
   a[0] = 0;
   debruijn(1, 1, alpha.size(), N, a.get(), seq_printer(alpha));
   if (N > 1) {

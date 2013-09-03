@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <string>
 
-template <class InputIterator> 
+template <class InputIterator>
 void throw_unrecognized_alpha(InputIterator i_beg, InputIterator i_end) {
   std::ostringstream ss;
   ss << "unrecognized alpha: " << std::string(i_beg, i_end);
@@ -11,7 +11,7 @@ void throw_unrecognized_alpha(InputIterator i_beg, InputIterator i_end) {
 
 /*
   Parses an alphabet string into tokens suitable for insertion into a
-  regex form. 
+  regex form.
 */
 
 template<class InputIterator, class OutputIterator>
@@ -25,7 +25,7 @@ void alphabet_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
 
   std::string tok;
 
-  for ( ; i != i_end; ++i) { 
+  for ( ; i != i_end; ++i) {
     switch (state) {
     case ANY:
       switch (*i) {
@@ -44,7 +44,7 @@ void alphabet_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
 
     case ESC:
       switch (*i) {
-      // named escapes  
+      // named escapes
       case '?':
       case '"':
       case '\'':
@@ -61,12 +61,12 @@ void alphabet_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
         tok.clear();
         state = ANY;
         break;
-  
+
       // the start of a hex escape
       case 'x':
         tok += 'x';
         state = HEX1;
-        break; 
+        break;
 
       // either an octal escape, or \0
       case '0':
@@ -93,7 +93,7 @@ void alphabet_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
         tok += *i;
         state = OCT2;
         break;
-    
+
       default:
         throw_unrecognized_alpha(i_start, i_end);
       }

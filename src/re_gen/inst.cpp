@@ -17,13 +17,13 @@ std::string op_negclass(const std::string& s) { return "[^" + s + ']'; }
 std::vector<std::string> bits_to_vector(unsigned int bits,
                                         const std::vector<std::string>& alpha) {
   using namespace std;
-  
+
   vector<string> v;
 
   for (vector<string>::const_iterator i(alpha.begin()); i != alpha.end(); ++i) {
     if (bits & (1 << (i-alpha.begin()))) v.push_back(*i);
-  } 
-  
+  }
+
   return v;
 }
 
@@ -157,7 +157,7 @@ void make_character_classes(const std::vector<std::string>& alpha,
   // Each ordering of each nonempty subset of the alphabet defines a
   // character class and a negated character class.
   const uint abitsmax = 1 << alpha.size();
-  
+
   for (uint abits = 1; abits < abitsmax; ++abits) {
     // get the base character class corresponding to this bit vector
     vector<string> v(bits_to_vector(abits, alpha));
@@ -236,12 +236,12 @@ int main(int argc, char** argv)
     // -h prints the short help
     cerr << help_short() << endl;
     return 0;
-  } 
+  }
   else if (!strcmp(argv[1], "--help")) {
     // --help prints the long help
     cerr << help_long() << endl;
     return 0;
-  }   
+  }
 
   //
   // Get the alphabet from the command line
@@ -252,7 +252,7 @@ int main(int argc, char** argv)
 
   //
   // Get the quantifiers from the command line
-  // 
+  //
 
   vector<string> quant;
   for (unsigned int i = 2; i < (unsigned int) argc; ++i) {
@@ -265,7 +265,7 @@ int main(int argc, char** argv)
 
   // Each character in the alphabet is an atom
   vector<string> atoms(alpha.begin(), alpha.end());
-  
+
   // Dot is an atom
   atoms.push_back(".");
 
@@ -287,7 +287,7 @@ int main(int argc, char** argv)
 
     vector<unsigned int> aslots;
     vector<unsigned int> qslots;
-  
+
     make_slots(form, !quant.empty(), aslots, qslots);
 
     const unsigned int asize = atoms.size();

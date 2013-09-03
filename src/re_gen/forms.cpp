@@ -101,7 +101,7 @@ int main(int argc, char** argv)
     // -h prints the short help
     std::cerr << help_short() << std::endl;
     return 0;
-  } 
+  }
   else if (!std::strcmp(argv[1], "--help")) {
     // --help prints the long help
     std::cerr << help_long() << std::endl;
@@ -164,7 +164,7 @@ int main(int argc, char** argv)
     // Quantification creates new forms, these go to the new list.
     std::transform(
       csing.begin(), csing.end(), std::back_inserter(nform), op_quant
-    );    
+    );
 
     // Group all current expressions.
     std::transform(
@@ -228,7 +228,7 @@ int main(int argc, char** argv)
     //
     // Cleanup
     //
-    
+
     // move all current forms to old
     std::copy(cform.begin(), cform.end(), std::inserter(oform, oform.begin()));
 
