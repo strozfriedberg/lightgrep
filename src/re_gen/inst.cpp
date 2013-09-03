@@ -71,7 +71,7 @@ void make_slots(const std::string& form,
       if (!have_quant) {
         std::cerr << "No quantifiers specified, but saw pattern: " << form
              << std::endl;
-        exit(1);
+        std::exit(1);
       }
       qslots.push_back(0);
       break;
@@ -296,4 +296,6 @@ int main(int argc, char** argv)
       std::cout << instantiate(form, atoms, aslots, quant, qslots) << "\n";
     } while (next(aslots, asize, qslots, qsize));
   }
+
+  return 0;
 }
