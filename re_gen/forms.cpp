@@ -8,8 +8,6 @@
 #include <vector>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/bind.hpp>
-#include <boost/ref.hpp>
 
 std::string op_group(const std::string& s) { return '(' + s + ')'; }
 std::string op_quant(const std::string& s) { return s + 'q'; }
@@ -136,6 +134,8 @@ int main(int argc, char** argv)
   vector<string> csing(1, "a");
   vector<string> nsing;
 
+  std::set<std::string> tmp;
+
   // Print base generation
   copy(csing.begin(), csing.end(), ostream_iterator<string>(cout, "\n"));
 
@@ -194,7 +194,7 @@ int main(int argc, char** argv)
                    inserter(ncomb, ncomb.begin()), op_disj);
 
     // kill duplicates
-    set<string> tmp;
+    tmp.clear();
     set_difference(ncomb.begin(), ncomb.end(), oform.begin(), oform.end(),
                    inserter(tmp, tmp.begin()));
     ncomb.clear();
@@ -208,7 +208,7 @@ int main(int argc, char** argv)
     copy(cform.begin(), cform.end(), inserter(oform, oform.begin()));
 
     // move all new forms to current
-    swap(nform, cform);
+    cform.insert(nform.begin(), nform.end());
     nform.clear();
 
     // move all current singular forms to old
