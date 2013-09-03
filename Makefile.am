@@ -72,6 +72,7 @@ noinst_PROGRAMS = \
 	src/enc/enc \
 	src/re_gen/debruijn \
 	src/re_gen/forms \
+	src/re_gen/inst \
 	src/val/val \
 	src/what/what
 
@@ -86,6 +87,9 @@ src_re_gen_debruijn_LDADD = $(STDCXX_LIB)
 
 src_re_gen_forms_SOURCES = src/re_gen/forms.cpp
 src_re_gen_forms_LDADD = $(STDCXX_LIB)
+
+src_re_gen_inst_SOURCES = src/re_gen/inst.cpp
+src_re_gen_inst_LDADD = $(STDCXX_LIB)
 
 src_val_val_SOURCES = src/val/valid.cpp
 src_val_val_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)

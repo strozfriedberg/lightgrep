@@ -1,11 +1,11 @@
 #include <algorithm>
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <string>
 #include <vector>
 
-#include <boost/function.hpp>
 #include <boost/algorithm/string/join.hpp>
 
 #include "alphabet_parser.h"
