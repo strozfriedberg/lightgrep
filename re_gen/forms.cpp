@@ -22,19 +22,6 @@ std::string op_disj(const std::string& l, const std::string& r) {
   return l + '|' + r;
 }
 
-/*
-struct set_contains : public std::unary_function<const std::string&, bool>
-{
-  const std::set<std::string>& _set;
-
-  set_contains(const std::set<std::string>& set) : _set(set) {}
-    
-  bool operator()(const std::string& s) {
-    return _set.find(s) != _set.end();
-  }
-};
-*/
-
 template<class InputIteratorL, class InputIteratorR,
          class OutputIterator, class BinaryOperator>
   void cartesian_prod(InputIteratorL lbeg, InputIteratorL lend,
