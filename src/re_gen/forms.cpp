@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cstring>
-#include <functional>
 #include <iostream>
 #include <iterator>
 #include <set>
@@ -64,46 +63,41 @@ const char* help_long() {
 
 int main(int argc, char** argv)
 {
-  using namespace boost;
-  using namespace std;
-
-  typedef unsigned int uint;
-
   //
   // Parse the arguments
   //
 
   if (argc < 2) {
-    cerr << "unspecified number of stages!" << "\n"
-         << help_short() << endl;
+    std::cerr << "unspecified number of stages!" << "\n"
+              << help_short() << std::endl;
     return 1;
   }
 
   if (argc > 2) {
-    cerr << "too many arguments!" << "\n"
-         << help_short() << endl;
+    std::cerr << "too many arguments!" << "\n"
+              << help_short() << std::endl;
     return 1;
   }
 
-  if (!strcmp(argv[1], "-h")) {
+  if (!std::strcmp(argv[1], "-h")) {
     // -h prints the short help
-    cerr << help_short() << endl;
+    std::cerr << help_short() << std::endl;
     return 0;
   } 
-  else if (!strcmp(argv[1], "--help")) {
+  else if (!std::strcmp(argv[1], "--help")) {
     // --help prints the long help
-    cerr << help_long() << endl;
+    std::cerr << help_long() << std::endl;
     return 0;
   }
 
-  uint u;
+  uint32_t u;
   try {
-    u = lexical_cast<uint>(argv[1]);
+    u = boost::lexical_cast<uint32_t>(argv[1]);
   }
-  catch (bad_lexical_cast &) {
-    cerr << "`" << argv[1]
-         << "' isn't a natural number we've heard of!" << "\n"
-         << help_short() << endl;
+  catch (boost::bad_lexical_cast &) {
+    std::cerr << "`" << argv[1]
+              << "' isn't a natural number we've heard of!" << "\n"
+              << help_short() << std::endl;
     return 1;
   }
 
@@ -111,11 +105,12 @@ int main(int argc, char** argv)
     // If the number of stages is too high, it's likely that the program
     // will exhaust the machine's RAM rather quickly. Prompt the user for
     // confirmation of large n.
-    cerr << "Number of stages = " << argv[1] << ". Are you sure? [y/N]" << endl;
+    std::cerr << "Number of stages = " << argv[1]
+              << ". Are you sure? [y/N]" << std::endl;
     char reply;
-    cin >> reply;
+    std::cin >> reply;
     if (reply != 'y') {
-      cerr << "Aborting." << endl;
+      std::cerr << "Aborting." << std::endl;
       return 0;
     }
   }
@@ -125,107 +120,126 @@ int main(int argc, char** argv)
   //
 
   // N is the number of rounds to run
-  const uint N = u;
+  const uint32_t N = u;
 
-  set<string> oform;
-  set<string> cform;
-  vector<string> nform;
+  std::set<std::string> oform;
+  std::set<std::string> cform;
+  std::vector<std::string> nform;
 
-  vector<string> csing(1, "a");
-  vector<string> nsing;
+  std::vector<std::string> csing(1, "a");
+  std::vector<std::string> nsing;
 
   std::set<std::string> tmp;
 
   // Print base generation
-  copy(csing.begin(), csing.end(), ostream_iterator<string>(cout, "\n"));
+  std::copy(
+    csing.begin(), csing.end(),
+    std::ostream_iterator<std::string>(std::cout, "\n")
+  );
 
-  for (uint i = 0; i < N; ++i) {
+  for (uint32_t i = 0; i < N; ++i) {
     //
     // Build new regex forms
     //
 
     // Quantify all current singular expressions.
     // Quantification creates new forms, these go to the new list.
-    transform(csing.begin(), csing.end(), back_inserter(nform), op_quant);    
+    std::transform(
+      csing.begin(), csing.end(), std::back_inserter(nform), op_quant
+    );    
 
     // Group all current expressions.
+    std::transform(
+      cform.begin(), cform.end(), std::back_inserter(nsing), op_group
+    );
+
     // Grouping creates new singular forms, these go to the new singular list.
-    transform(cform.begin(), cform.end(), back_inserter(nsing), op_group);
-    transform(csing.begin(), csing.end(), back_inserter(nsing), op_group);
+    std::transform(
+      csing.begin(), csing.end(), std::back_inserter(nsing), op_group
+    );
 
     // Alternate and concatenate all pairs of expressions which have not
     // already been alternated or concatenated. I.e., we want the following
     // Cartesian products: old x cur, cur x old, cur x cur.
-    set<string> ncomb;
+    std::set<std::string> ncomb;
 
     // oform x cform
     cartesian_prod(oform.begin(), oform.end(), cform.begin(), cform.end(),
-                   inserter(ncomb, ncomb.begin()), op_conj);
+                   std::inserter(ncomb, ncomb.begin()), op_conj);
 
     cartesian_prod(oform.begin(), oform.end(), cform.begin(), cform.end(),
-                   inserter(ncomb, ncomb.begin()), op_disj);
+                   std::inserter(ncomb, ncomb.begin()), op_disj);
 
     // cform x oform
     cartesian_prod(cform.begin(), cform.end(), oform.begin(), oform.end(),
-                   inserter(ncomb, ncomb.begin()), op_conj);
+                   std::inserter(ncomb, ncomb.begin()), op_conj);
 
     cartesian_prod(cform.begin(), cform.end(), oform.begin(), oform.end(),
-                   inserter(ncomb, ncomb.begin()), op_disj);
+                   std::inserter(ncomb, ncomb.begin()), op_disj);
 
     // cform x cform
     cartesian_prod(cform.begin(), cform.end(), cform.begin(), cform.end(),
-                   inserter(ncomb, ncomb.begin()), op_conj);
+                   std::inserter(ncomb, ncomb.begin()), op_conj);
 
     cartesian_prod(cform.begin(), cform.end(), cform.begin(), cform.end(),
-                   inserter(ncomb, ncomb.begin()), op_disj);
+                   std::inserter(ncomb, ncomb.begin()), op_disj);
 
     // cform x csing
     cartesian_prod(cform.begin(), cform.end(), csing.begin(), csing.end(),
-                   inserter(ncomb, ncomb.begin()), op_conj);
+                   std::inserter(ncomb, ncomb.begin()), op_conj);
 
     cartesian_prod(cform.begin(), cform.end(), csing.begin(), csing.end(),
-                   inserter(ncomb, ncomb.begin()), op_disj);
+                   std::inserter(ncomb, ncomb.begin()), op_disj);
 
     // csing x csing
     cartesian_prod(csing.begin(), csing.end(), csing.begin(), csing.end(),
-                   inserter(ncomb, ncomb.begin()), op_conj);
+                   std::inserter(ncomb, ncomb.begin()), op_conj);
 
     cartesian_prod(csing.begin(), csing.end(), csing.begin(), csing.end(),
-                   inserter(ncomb, ncomb.begin()), op_disj);
+                   std::inserter(ncomb, ncomb.begin()), op_disj);
 
     // kill duplicates
     tmp.clear();
-    set_difference(ncomb.begin(), ncomb.end(), oform.begin(), oform.end(),
-                   inserter(tmp, tmp.begin()));
+    std::set_difference(
+      ncomb.begin(), ncomb.end(), oform.begin(), oform.end(),
+      std::inserter(tmp, tmp.begin())
+    );
     ncomb.clear();
-    swap(ncomb, tmp);
+    std::swap(ncomb, tmp);
 
     //
     // Cleanup
     //
     
     // move all current forms to old
-    copy(cform.begin(), cform.end(), inserter(oform, oform.begin()));
+    std::copy(cform.begin(), cform.end(), std::inserter(oform, oform.begin()));
 
     // move all new forms to current
     cform.insert(nform.begin(), nform.end());
     nform.clear();
 
     // move all current singular forms to old
-    copy(csing.begin(), csing.end(), inserter(oform, oform.begin()));
+    std::copy(csing.begin(), csing.end(), std::inserter(oform, oform.begin()));
 
     // make all new singular forms current
-    swap(nsing, csing);
+    std::swap(nsing, csing);
     nsing.clear();
 
     // move all new concatenations to current
-    copy(ncomb.begin(), ncomb.end(), inserter(cform, cform.begin()));
+    std::copy(ncomb.begin(), ncomb.end(), std::inserter(cform, cform.begin()));
     ncomb.clear();
 
     //
     // Output
     //
-    copy(csing.begin(), csing.end(), ostream_iterator<string>(cout, "\n"));
-    copy(cform.begin(), cform.end(), ostream_iterator<string>(cout, "\n"));
+    std::copy(
+      csing.begin(), csing.end(),
+      std::ostream_iterator<std::string>(std::cout, "\n")
+    );
+
+    std::copy(
+      cform.begin(), cform.end(),
+      std::ostream_iterator<std::string>(std::cout, "\n")
+    );
   }
 }
