@@ -88,7 +88,7 @@ void make_slots(const std::string& form,
     case 'q':
       if (!have_quant) {
         std::cerr << "No quantifiers specified, but saw pattern: " << form
-             << std::endl;
+                  << std::endl;
         std::exit(1);
       }
       qslots.push_back(0);
