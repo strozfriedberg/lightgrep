@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <boost/algorithm/string/join.hpp>
+#include <boost/tokenizer.hpp>
 
 #include "alphabet_parser.h"
 #include "quantifier_parser.h"
@@ -49,15 +50,22 @@ std::string instantiate(const std::string& form,
                         const std::vector<std::string>& atoms,
                         const std::vector<unsigned int>& aslots,
                         const std::vector<std::string>& quant,
-                        const std::vector<unsigned int>& qslots)
+                        const std::vector<unsigned int>& qslots,
+                        const std::vector<std::string>& paren,
+                        const std::vector<unsigned int>& pslots)
 {
   std::string instance;
 
   std::vector<unsigned int>::const_iterator a(aslots.begin());
   std::vector<unsigned int>::const_iterator q(qslots.begin());
+  std::vector<unsigned int>::const_iterator p(pslots.begin());
 
   for (std::string::value_type c : form) {
     switch (c) {
+    case '(':
+      instance += paren[*(p++)];
+      break;
+
     case 'a':
       instance += atoms[*(a++)];
       break;
@@ -78,9 +86,15 @@ std::string instantiate(const std::string& form,
 void make_slots(const std::string& form,
                 const bool have_quant,
                 std::vector<unsigned int>& aslots,
-                std::vector<unsigned int>& qslots) {
+                std::vector<unsigned int>& qslots,
+                std::vector<unsigned int>& pslots)
+{
   for (std::string::value_type c : form) {
     switch (c) {
+    case '(':
+      pslots.push_back(0);
+      break;
+
     case 'a':
       aslots.push_back(0);
       break;
@@ -95,7 +109,7 @@ void make_slots(const std::string& form,
       break;
 
     default:
-      // skip chars which are neither atoms nor quantifiers;
+      // skip chars which are neither atoms, quantifiers, nor left parens
       // these are already concrete
       break;
     }
@@ -116,9 +130,13 @@ struct next_instance {
   bool operator() (std::vector<unsigned int>& aslots,
                    const unsigned int asize,
                    std::vector<unsigned int>& qslots,
-                   const unsigned int qsize)
+                   const unsigned int qsize,
+                   std::vector<unsigned int>& pslots,
+                   const unsigned int psize)
   {
-    return increment_vector(aslots, asize) || increment_vector(qslots, qsize);
+    return increment_vector(aslots, asize) ||
+           increment_vector(qslots, qsize) ||
+           increment_vector(pslots, psize);
   }
 };
 
@@ -138,15 +156,21 @@ bool skip(const std::vector<unsigned int>& aslots,
 }
 
 struct next_instance_iso {
-  const unsigned int _alphasize;
+  const unsigned int alphasize_;
 
-  next_instance_iso(const unsigned int alphasize): _alphasize(alphasize) {}
+  next_instance_iso(const unsigned int alphasize): alphasize_(alphasize) {}
 
   bool operator() (std::vector<unsigned int>& aslots,
                    const unsigned int asize,
                    std::vector<unsigned int>& qslots,
-                   const unsigned int qsize)
+                   const unsigned int qsize,
+                   std::vector<unsigned int>& pslots,
+                   const unsigned int psize)
   {
+    if (increment_vector(pslots, psize)) {
+      return true;
+    }
+
     if (increment_vector(qslots, qsize)) {
       return true;
     }
@@ -157,7 +181,7 @@ struct next_instance_iso {
       // The alphabet is the first alphasize indices; we care about
       // generating only the lexicographically least representative
       // of each isomorphism equivalence class over the alphabet.
-      if (!skip(aslots, _alphasize)) {
+      if (!skip(aslots, alphasize_)) {
         return true;
       }
     }
@@ -212,6 +236,7 @@ void make_character_classes(const std::vector<std::string>& alpha,
   }
 }
 
+// FIXME: update usage text and arg parsing
 const char* help_short() {
   return
     "Usage: inst a[b[c]]... [q [q [q]]]...\n"
@@ -241,7 +266,7 @@ int main(int argc, char** argv)
   // Parse the arguments
   //
 
-  if (argc < 2) {
+  if (argc < 3) {
     std::cerr << "too few arguments!\n"
               << help_short() << std::endl;
     return 1;
@@ -268,11 +293,34 @@ int main(int argc, char** argv)
   );
 
   //
+  // Get the character class alphabet from the command line
+  //
+
+  std::vector<std::string> cc_alpha;
+  alphabet_parser(
+    argv[2], argv[2]+std::strlen(argv[2]), std::back_inserter(cc_alpha)
+  );
+
+  //
+  // Get the parentheticals from the command line
+  //
+
+  typedef boost::char_separator<char> char_separator;
+  typedef boost::tokenizer<char_separator, const char*> cstr_tokenizer;
+
+  const cstr_tokenizer ptok(
+    argv[3], argv[3]+std::strlen(argv[3]), char_separator(",")
+  );
+
+  std::vector<std::string> paren(ptok.begin(), ptok.end());
+  paren.push_back("(");
+
+  //
   // Get the quantifiers from the command line
   //
 
   std::vector<std::string> quant;
-  for (unsigned int i = 2; i < (unsigned int) argc; ++i) {
+  for (unsigned int i = 4; i < (unsigned int) argc; ++i) {
     quantifier_parser(
       argv[i], argv[i]+std::strlen(argv[i]), std::back_inserter(quant)
     );
@@ -283,13 +331,10 @@ int main(int argc, char** argv)
   //
 
   // Each character in the alphabet is an atom
-  std::vector<std::string> atoms(alpha.begin(), alpha.end());
-
-  // Dot is an atom
-  atoms.push_back(".");
+  std::vector<std::string> atoms{alpha};
 
   // Build the character classes
-  make_character_classes(atoms, alpha);
+  make_character_classes(cc_alpha, atoms);
 
   //
   // Concretize forms
@@ -297,23 +342,30 @@ int main(int argc, char** argv)
 
   const std::function<
     bool (std::vector<unsigned int>&, const unsigned int,
+          std::vector<unsigned int>&, const unsigned int,
           std::vector<unsigned int>&, const unsigned int)> next =
     next_instance_iso(alpha.size());
 
+  std::vector<unsigned int> aslots, qslots, pslots;
   std::string form;
+
   while (std::cin >> form) {
-    std::vector<unsigned int> aslots;
-    std::vector<unsigned int> qslots;
+    aslots.clear();
+    qslots.clear();
+    pslots.clear();
 
-    make_slots(form, !quant.empty(), aslots, qslots);
+    make_slots(form, !quant.empty(), aslots, qslots, pslots);
 
-    const unsigned int asize = atoms.size();
-    const unsigned int qsize = quant.size();
+    const size_t asize = atoms.size();
+    const size_t qsize = quant.size();
+    const size_t psize = paren.size();
 
     // Iterate through all instantiations of the form
     do {
-      std::cout << instantiate(form, atoms, aslots, quant, qslots) << "\n";
-    } while (next(aslots, asize, qslots, qsize));
+      std::cout << instantiate(
+        form, atoms, aslots, quant, qslots, paren, pslots
+      ) << "\n";
+    } while (next(aslots, asize, qslots, qsize, pslots, psize));
   }
 
   return 0;
