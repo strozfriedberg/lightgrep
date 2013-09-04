@@ -56,8 +56,8 @@ std::string instantiate(const std::string& form,
   std::vector<unsigned int>::const_iterator a(aslots.begin());
   std::vector<unsigned int>::const_iterator q(qslots.begin());
 
-  for (std::string::const_iterator f(form.begin()); f != form.end(); ++f) {
-    switch (*f) {
+  for (std::string::value_type c : form) {
+    switch (c) {
     case 'a':
       instance += atoms[*(a++)];
       break;
@@ -67,7 +67,7 @@ std::string instantiate(const std::string& form,
       break;
 
     default:
-      instance += *f;
+      instance += c;
       break;
     }
   }
@@ -79,8 +79,8 @@ void make_slots(const std::string& form,
                 const bool have_quant,
                 std::vector<unsigned int>& aslots,
                 std::vector<unsigned int>& qslots) {
-  for (std::string::const_iterator i(form.begin()); i != form.end(); ++i) {
-    switch (*i) {
+  for (std::string::value_type c : form) {
+    switch (c) {
     case 'a':
       aslots.push_back(0);
       break;
@@ -128,7 +128,9 @@ bool skip(const std::vector<unsigned int>& aslots,
   std::vector<unsigned int>::const_iterator j;
   for (unsigned int x = 0; x < asize; ++x) {
     j = std::find(aslots.begin(), aslots.end(), x);
-    if (j < i) return true;
+    if (j < i) {
+      return true;
+    }
     i = j;
   }
 
@@ -300,7 +302,6 @@ int main(int argc, char** argv)
 
   std::string form;
   while (std::cin >> form) {
-
     std::vector<unsigned int> aslots;
     std::vector<unsigned int> qslots;
 
