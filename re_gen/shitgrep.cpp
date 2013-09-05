@@ -16,27 +16,35 @@
 #include <sstream>
 #include <stdexcept>
 
-class Regex {
-public:
-  Regex(const char* pattern) {
+struct Regex {
+  Regex(const char* pattern): re(nullptr), extra(nullptr), error_code(0) {
     // Compile the pattern
     const char* error_str;
     int error_off;
 
-    re = pcre_compile(
+    re = pcre_compile2(
       pattern,
       PCRE_DOTALL | PCRE_NO_AUTO_CAPTURE,
+      &error_code,
       &error_str,
       &error_off,
       nullptr
     );
 
     if (!re) {
-      std::ostringstream ss;
-      ss << "regex compilation failed at offset " << error_off
-         << ": " << error_str;
-
-      throw std::runtime_error(ss.str());
+      // compilation failed
+      switch (error_code) {
+      case 25: // lookbehind assertion is not fixed length
+        return;
+      default:
+        // an error we want to report
+        {
+          std::ostringstream ss;
+          ss << "regex compilation failed at offset " << error_off
+             << ": " << error_str;
+          throw std::runtime_error(ss.str());
+        }
+      }
     }
 
     // Study the pattern
@@ -56,6 +64,7 @@ public:
 
   pcre* re;
   pcre_extra* extra;
+  int error_code;
 };
 
 int do_one_match(
@@ -97,6 +106,15 @@ unsigned int match(
   std::function<void (int,int,unsigned int,const char*,const char*)> callback)
 {
   const Regex re(pattern);
+
+  switch (re.error_code) {
+  case 25: // lookbehind assertion is not fixed length
+    std::cerr << "lookbehind assertion is not fixed length"
+              << std::endl;
+    return 0;
+  default:
+    break;
+  }
 
   const unsigned int ovector_size = 3;
   int ovector[ovector_size];
