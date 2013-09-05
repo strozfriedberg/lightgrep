@@ -126,6 +126,7 @@ bool increment_vector(std::vector<unsigned int>& v, const unsigned int vlim) {
   return false;
 }
 
+/*
 struct next_instance {
   bool operator() (std::vector<unsigned int>& aslots,
                    const unsigned int asize,
@@ -139,6 +140,7 @@ struct next_instance {
            increment_vector(pslots, psize);
   }
 };
+*/
 
 bool skip(const std::vector<unsigned int>& aslots,
           const unsigned int asize) {
@@ -236,22 +238,23 @@ void make_character_classes(const std::vector<std::string>& alpha,
   }
 }
 
-// FIXME: update usage text and arg parsing
 const char* help_short() {
   return
-    "Usage: inst a[b[c]]... [q [q [q]]]...\n"
+    "Usage: inst a[b[c...]] a[b[c...]] p[,p[,p...]] q [q [q...]]]\n"
     "Try `inst --help' for more information.";
 }
 
 const char* help_long() {
   return
-    "Usage: inst a[b[c]]... [q [q [q]]]...\n"
-    "Instantiates regular expression forms with the given alphabet.\n"
+    "Usage: inst a[b[c...]] a[b[c...]] p[,p[,p...]] q [q [q...]]]\n"
+    "\n"
+    "Instantiates regular expression forms with the given literal alphabet,\n"
+    "character class alphabet, parenthetical modifiers, and quantifiers.\n"
     "Regex forms are read from standard input, one per line.\n"
-    "Example: `echo aq | inst x +' gives the following output:\n"
+    "\n"
+    "Example: \"echo aq | inst x x '' +\" gives the following output:\n"
     "\n"
     "x+\n"
-    ".+\n"
     "[x]+\n"
     "[^x]+\n"
     "\n"
@@ -266,12 +269,6 @@ int main(int argc, char** argv)
   // Parse the arguments
   //
 
-  if (argc < 3) {
-    std::cerr << "too few arguments!\n"
-              << help_short() << std::endl;
-    return 1;
-  }
-
   if (!std::strcmp(argv[1], "-h")) {
     // -h prints the short help
     std::cerr << help_short() << std::endl;
@@ -281,6 +278,11 @@ int main(int argc, char** argv)
     // --help prints the long help
     std::cerr << help_long() << std::endl;
     return 0;
+  }
+  else if (argc < 3) {
+    std::cerr << "too few arguments!\n"
+              << help_short() << std::endl;
+    return 1;
   }
 
   //
