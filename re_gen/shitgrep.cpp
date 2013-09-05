@@ -8,6 +8,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <functional>
 #include <fstream>
 #include <istream>
 #include <iostream>
@@ -15,10 +16,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <boost/function.hpp>
-
 class Regex {
-
 public:
   Regex(const char* pattern) {
     // Compile the pattern
@@ -96,7 +94,7 @@ int do_one_match(
 unsigned int match(
   const char* pattern, unsigned int patnum,
   const char* text, size_t text_len, const char* charset,
-  boost::function<void (int,int,unsigned int,const char*,const char*)> callback)
+  std::function<void (int,int,unsigned int,const char*,const char*)> callback)
 {
   const Regex re(pattern);
 
