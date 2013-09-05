@@ -50,12 +50,12 @@ public:
   }
     
   ~Regex() {
-    free(re);
-    free(extra);
+    pcre_free(re);
+    pcre_free_study(extra);
   }
 
   pcre* re;
-  pcre_extra *extra;
+  pcre_extra* extra;
 };
 
 int do_one_match(
