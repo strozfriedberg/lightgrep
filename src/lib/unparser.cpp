@@ -74,7 +74,7 @@ std::string byteToLiteralString(uint32_t i) {
     // otherwise, print the hex code
     default:
       {
-        std::stringstream ss;
+        std::ostringstream ss;
         ss << "\\x" << std::hex << std::uppercase
                     << std::setfill('0') << std::setw(2) << i;
         return ss.str();
@@ -104,7 +104,7 @@ std::string byteToCharacterString(uint32_t i) {
     // otherwise, print the hex code
     default:
       {
-        std::stringstream ss;
+        std::ostringstream ss;
         ss << "\\x" << std::hex << std::uppercase
                     << std::setfill('0') << std::setw(2) << i;
         return ss.str();
@@ -151,7 +151,7 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
   // will char class will be shorter if negated?
   const bool invert = sizediff > 0;
 
-  std::stringstream ss;
+  std::ostringstream ss;
 
   if (invert) {
     ss << '^';
@@ -355,7 +355,7 @@ void unparse(std::ostream& out, const ParseNode* n) {
 }
 
 std::string unparse(const ParseTree& tree) {
-  std::stringstream ss;
+  std::ostringstream ss;
   unparse(ss, tree.Root);
   return ss.str();
 }

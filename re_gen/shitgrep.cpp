@@ -202,7 +202,7 @@ void* mmap_input(const char* filename, int& fd, size_t& text_len) {
 
   fd = open(filename, O_RDWR);
   if (fd == -1) {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "open: " << std::strerror(errno) << std::endl;
     throw std::runtime_error(ss.str());
   }
@@ -210,7 +210,7 @@ void* mmap_input(const char* filename, int& fd, size_t& text_len) {
   // get the file size
   struct stat st;
   if (fstat(fd, &st) == -1) {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "stat: " << std::strerror(errno) << endl;
     throw std::runtime_error(ss.str());
   }
@@ -221,14 +221,14 @@ void* mmap_input(const char* filename, int& fd, size_t& text_len) {
   // Note that you can't extend the file while it's mmapped, so
   // we have to do this beforehand.
   if (ftruncate(fd, text_len+1) == -1) {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "ftruncate: " << std::strerror(errno) << std::endl;
     throw std::runtime_error(ss.str());
   }
 
   void* addr = mmap(NULL, text_len+1, PROT_READ, MAP_PRIVATE, fd, 0);
   if (addr == MAP_FAILED) {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "mmap: " << std::strerror(errno) << endl;
     throw std::runtime_error(ss.str());
   }
@@ -239,21 +239,21 @@ void* mmap_input(const char* filename, int& fd, size_t& text_len) {
 void unmmap_input(int fd, void* addr, size_t text_len) {
   // unmap the file
   if (munmap(addr, text_len+1) == -1) {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "munmap: " << std::strerror(errno) << std::endl;
     throw std::runtime_error(ss.str());
   }
 
   // chop off the null terminator we added
   if (ftruncate(fd, text_len) == -1) {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "ftruncate: " << std::strerror(errno) << std::endl;
     throw std::runtime_error(ss.str());
   }
 
   // close the file
   if (close(fd) == -1) {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "close: " << std::strerror(errno) << std::endl;
     throw std::runtime_error(ss.str());
   }
@@ -361,7 +361,7 @@ int main(int argc, char** argv)
     do_matches(ifs, text, text_len);
   }
   else {
-    std::stringstream ss(pat, std::ios::in | std::ios::binary);
+    std::istringstream ss(pat, std::ios::in | std::ios::binary);
     do_matches(ss, text, text_len);
   }
 

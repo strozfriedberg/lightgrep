@@ -18,7 +18,7 @@ typedef long long int64;
 typedef std::bitset<256> ByteSet;
 
 #define THROW_WITH_OUTPUT(exceptType, expression) \
-  std::stringstream buf; \
+  std::ostringstream buf; \
   buf << __FILE__ << ":" << __LINE__ << ": " << expression; \
   throw exceptType(buf.str())
 
