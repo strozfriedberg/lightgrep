@@ -28,10 +28,10 @@ public:
       PCRE_DOTALL | PCRE_NO_AUTO_CAPTURE,
       &error_str,
       &error_off,
-      NULL
+      nullptr
     );
 
-    if (re == NULL) {
+    if (!re) {
       std::ostringstream ss;
       ss << "regex compilation failed at offset " << error_off
          << ": " << error_str;
@@ -41,7 +41,7 @@ public:
 
     // Study the pattern
     extra = pcre_study(re, 0, &error_str);
-    if (error_str != NULL) {
+    if (error_str) {
       std::ostringstream ss;
       ss << "regex study failed: " << error_str;
 
@@ -226,7 +226,7 @@ void* mmap_input(const char* filename, int& fd, size_t& text_len) {
     throw std::runtime_error(ss.str());
   }
 
-  void* addr = mmap(NULL, text_len+1, PROT_READ, MAP_PRIVATE, fd, 0);
+  void* addr = mmap(nullptr, text_len+1, PROT_READ, MAP_PRIVATE, fd, 0);
   if (addr == MAP_FAILED) {
     std::ostringstream ss;
     ss << "mmap: " << std::strerror(errno) << endl;
