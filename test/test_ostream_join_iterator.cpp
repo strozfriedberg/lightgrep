@@ -25,21 +25,21 @@
 
 SCOPE_TEST(joinEmpty) {
   const int *a = 0;
-  std::stringstream ss;
+  std::ostringstream ss;
   std::copy(a, a, ostream_join_iterator<int>(ss, ", "));
   SCOPE_ASSERT_EQUAL("", ss.str());
 }
 
 SCOPE_TEST(joinSingleton) {
   const int a[] = { 1 };
-  std::stringstream ss;
+  std::ostringstream ss;
   std::copy(a, a + 1, ostream_join_iterator<int>(ss, ", "));
   SCOPE_ASSERT_EQUAL("1", ss.str());
 }
 
 SCOPE_TEST(joinMultiple) {
   const int a[] = { 1, 2, 3 };
-  std::stringstream ss;
+  std::ostringstream ss;
   std::copy(a, a + 3, ostream_join_iterator<int>(ss, ", "));
   SCOPE_ASSERT_EQUAL("1, 2, 3", ss.str());
 }

@@ -37,7 +37,7 @@ def main():
     matches = lgtestlib.run_shitgrep(sg, pats, text)
 
     if matches is None:
-      # skip pattern sets where every pattern has zero-length matches
+      # skip pattern sets where every pattern is faulty
       continue
 
     # write out patterns and their matches

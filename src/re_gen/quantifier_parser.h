@@ -1,3 +1,21 @@
+/*
+  liblightgrep: not the worst forensics regexp engine
+  Copyright (C) 2013 Lightbox Technologies, Inc
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -17,7 +35,7 @@ std::string op_nmquant(unsigned int n, unsigned int m) {
              + boost::lexical_cast<std::string>(m) + '}';
 }
 
-template <class InputIterator> 
+template <class InputIterator>
 void throw_unrecognized_quant(InputIterator i, InputIterator i_end) {
   std::ostringstream ss;
   ss << "unrecognized quantifier: " << std::string(i, i_end);
@@ -25,10 +43,10 @@ void throw_unrecognized_quant(InputIterator i, InputIterator i_end) {
 }
 
 /*
-  Parses quantifier specifiers into concrete quantifiers. 
+  Parses quantifier specifiers into concrete quantifiers.
 
   These quantifiers are accepted as-is:
-  
+
   * + ? *? +? ?? {n} {n,} {n,m} {n}? {n,}? {n,m}?
 
   Ranges are expanded:
@@ -48,7 +66,7 @@ void quantifier_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
                HIGH_FIRST, HIGH, HIGH_RANGE_FIRST, HIGH_RANGE, END };
 
   State state = ANY;
-  
+
   char q = '\0';
   std::string n0_str, n1_str;
   std::string m0_str, m1_str;
@@ -103,12 +121,12 @@ void quantifier_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
         n0_str += *i;
         state = LOW;
         break;
-     
+
       default:
         throw_unrecognized_quant(i_start, i_end);
       }
       break;
-  
+
     case LOW:
       switch (*i) {
       case '0':
@@ -140,7 +158,7 @@ void quantifier_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
         throw_unrecognized_quant(i_start, i_end);
       }
       break;
-  
+
     case LOW_RANGE_FIRST:
       switch (*i) {
       case '0':
@@ -156,12 +174,12 @@ void quantifier_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
         n1_str += *i;
         state = LOW_RANGE;
         break;
-     
+
       default:
         throw_unrecognized_quant(i_start, i_end);
       }
       break;
-    
+
     case LOW_RANGE:
       switch (*i) {
       case '0':
@@ -205,17 +223,17 @@ void quantifier_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
         m0_str += *i;
         state = HIGH;
         break;
-    
+
       case '}':
         unbounded = true;
         state = GREEDY;
         break;
- 
+
       default:
         throw_unrecognized_quant(i_start, i_end);
       }
       break;
-  
+
     case HIGH:
       switch (*i) {
       case '0':
@@ -259,12 +277,12 @@ void quantifier_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
         m1_str += *i;
         state = HIGH_RANGE;
         break;
-     
+
       default:
         throw_unrecognized_quant(i_start, i_end);
       }
       break;
-    
+
     case HIGH_RANGE:
       switch (*i) {
       case '0':
@@ -310,8 +328,8 @@ void quantifier_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
       const unsigned int m0 = boost::lexical_cast<unsigned int>(m0_str);
       const unsigned int m1 = m1_str.empty() ? m0 :
                               boost::lexical_cast<unsigned int>(m1_str);
-    
-      // this is the {n,m} case 
+
+      // this is the {n,m} case
       for (unsigned int j = n0; j <= n1; ++j) {
         for (unsigned int k = std::max(j, m0); k <= m1; ++k) {
           *(o++) = op_nmquant(j,k) + (greedy ? "" : "?");

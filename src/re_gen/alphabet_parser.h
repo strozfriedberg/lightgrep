@@ -1,8 +1,26 @@
+/*
+  liblightgrep: not the worst forensics regexp engine
+  Copyright (C) 2013 Lightbox Technologies, Inc
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <sstream>
 #include <stdexcept>
 #include <string>
 
-template <class InputIterator> 
+template <class InputIterator>
 void throw_unrecognized_alpha(InputIterator i_beg, InputIterator i_end) {
   std::ostringstream ss;
   ss << "unrecognized alpha: " << std::string(i_beg, i_end);
@@ -11,7 +29,7 @@ void throw_unrecognized_alpha(InputIterator i_beg, InputIterator i_end) {
 
 /*
   Parses an alphabet string into tokens suitable for insertion into a
-  regex form. 
+  regex form.
 */
 
 template<class InputIterator, class OutputIterator>
@@ -19,13 +37,13 @@ void alphabet_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
 
   InputIterator i_start(i);
 
-  enum State { ANY, ESC, HEX1, HEX2, OCT2, OCT3 };
+  enum State { ANY, ESC, LONG, HEX1, HEX2, HEX_LONG, OCT2, OCT3 };
 
   State state = ANY;
 
   std::string tok;
 
-  for ( ; i != i_end; ++i) { 
+  for ( ; i != i_end; ++i) {
     switch (state) {
     case ANY:
       switch (*i) {
@@ -44,29 +62,58 @@ void alphabet_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
 
     case ESC:
       switch (*i) {
-      // named escapes  
+      // metacharacters as themselves
+      case '|':
+      case '(':
+      case ')':
       case '?':
-      case '"':
-      case '\'':
+      case '+':
+      case '*':
+      case '.':
+      case '[':
+      case ']':
+      case '^':
+      case '$':
+      case '-':
+      case '{':
+      case '}':
+      case '&':
+      case '~':
+      case '<':
+      case '=':
+      case '!':
       case '\\':
+      // ASCII escapes
       case 'a':
       case 'b':
+      case 'e':
       case 'f':
       case 'n':
       case 'r':
       case 't':
-      case 'v':
+      // named character classes
+      case 'd':
+      case 'D':
+      case 's':
+      case 'S':
+      case 'w':
+      case 'W':
+      // assertions
+      case 'A':
+      case 'B':
+      case 'K':
+      case 'Z':
         tok += *i;
         *(o++) = tok;
         tok.clear();
         state = ANY;
         break;
-  
+      
       // the start of a hex escape
       case 'x':
         tok += 'x';
         state = HEX1;
-        break; 
+        break;
 
       // either an octal escape, or \0
       case '0':
@@ -80,8 +127,7 @@ void alphabet_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
           tok.clear();
           state = ANY;
         }
-        break;
-
+      
       // the start of an octal escape
       case '1':
       case '2':
@@ -93,16 +139,39 @@ void alphabet_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
         tok += *i;
         state = OCT2;
         break;
-    
+
+      // named Unicode code points
+      case 'N':
+      // Unicode properties
+      case 'p':
+      case 'P':
+        tok += *i;
+        state = LONG;
+        break;
+
       default:
         throw_unrecognized_alpha(i_start, i_end);
       }
       break;
 
+    case LONG:
+      tok += *i; 
+
+      if (*i == '}') {
+        *(o++) = tok;
+        tok.clear();
+        state = ANY;
+      }
+      break;
+
     case HEX1:
-      if (isxdigit(*i)) {
+      if (std::isxdigit(*i)) {
         tok += *i;
         state = HEX2;
+      }
+      else if (*i == '{') {
+        tok += *i;
+        state = HEX_LONG; 
       }
       else {
         throw_unrecognized_alpha(i_start, i_end);
@@ -110,7 +179,22 @@ void alphabet_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
       break;
 
     case HEX2:
-      if (isxdigit(*i)) {
+      if (std::isxdigit(*i)) {
+        tok += *i;
+        *(o++) = tok;
+        tok.clear();
+        state = ANY;
+      } 
+      else {
+        throw_unrecognized_alpha(i_start, i_end);
+      }
+      break;
+
+    case HEX_LONG:
+      if (std::isxdigit(*i)) {
+        tok += *i;
+      }
+      else if (*i == '}') {
         tok += *i;
         *(o++) = tok;
         tok.clear();
