@@ -421,7 +421,7 @@ void lg_starts_with(LG_HCONTEXT hCtx,
   exceptionTrap(std::bind(&VmInterface::startsWith, hCtx->Impl, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData));
 }
 
-unsigned int lg_search(LG_HCONTEXT hCtx,
+uint64_t lg_search(LG_HCONTEXT hCtx,
                        const char* bufStart,
                        const char* bufEnd,
                        const uint64_t startOffset,
@@ -430,9 +430,7 @@ unsigned int lg_search(LG_HCONTEXT hCtx,
 {
 // FIXME: return Active[0]->Start
 
-  exceptionTrap(std::bind(&VmInterface::search, hCtx->Impl, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData));
-
-  return 0;
+  return trapWithRetval(std::bind(&VmInterface::search, hCtx->Impl, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData), std::numeric_limits<uint64_t>::max());
 }
 
 void lg_closeout_search(LG_HCONTEXT hCtx,
@@ -440,4 +438,14 @@ void lg_closeout_search(LG_HCONTEXT hCtx,
                         LG_HITCALLBACK_FN callbackFn)
 {
   exceptionTrap(std::bind(&VmInterface::closeOut, hCtx->Impl, callbackFn, userData));
+}
+
+uint64_t lg_search_resolve(LG_HCONTEXT hCtx,
+                       const char* bufStart,
+                       const char* bufEnd,
+                       const uint64_t startOffset,
+                       void* userData,
+                       LG_HITCALLBACK_FN callbackFn)
+{
+  return trapWithRetval(std::bind(&VmInterface::searchResolve, hCtx->Impl, (const byte*) bufStart, (const byte*) bufEnd, startOffset, callbackFn, userData), std::numeric_limits<uint64_t>::max());
 }

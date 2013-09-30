@@ -53,8 +53,9 @@ esac
 
 #
 # regex grammar
+# check bison is installed and print its version
 #
-AX_PROG_BISON
+AX_PROG_BISON([echo -n "bison version is... " && bison --version | head -n 1])
 
 # libintl.h would be necessary if we used Bison's i18n setup
 #AC_CHECK_HEADERS([libintl.h])
@@ -303,8 +304,8 @@ AC_LANG([C])
 AX_APPEND_COMPILE_FLAGS([$ICU_CFLAGS], [CFLAGS]) 
 
 AC_LANG([C++])
-AX_APPEND_COMPILE_FLAGS([$ICU_CPPFLAGS $BOOST_CPPFLAGS], [CPPFLAGS])
-AX_APPEND_COMPILE_FLAGS([$ICU_CXXFLAGS $BOOST_CXXFLAGS], [CXXFLAGS]) 
+AX_APPEND_COMPILE_FLAGS([$BOOST_CPPFLAGS $ICU_CPPFLAGS], [CPPFLAGS])
+AX_APPEND_COMPILE_FLAGS([$BOOST_CXXFLAGS $ICU_CXXFLAGS], [CXXFLAGS]) 
 
 LG_UNIQ_FLAGS([CPPFLAGS])
 LG_UNIQ_FLAGS([CFLAGS])
