@@ -6,6 +6,7 @@
 #include <boost/tokenizer.hpp>
 
 #include "options.h"
+#include "ostream_join_iterator.h"
 
 bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Key>& keys) const {
   std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
@@ -39,6 +40,64 @@ std::ostream& Options::openOutput() const {
     }
     return OutputFile;
   }
+}
+
+std::vector<std::pair<std::string,std::string>> Options::getKeyFiles() const {
+  std::vector<std::pair<std::string,std::string>> ret;
+
+  if (!CmdLinePatterns.empty()) {
+    std::ostringstream os;
+
+    // use patterns from the command line
+    for (const std::string& p : CmdLinePatterns) {
+      // pattern
+      os << p << '\t';
+
+      // encodings
+      if (Encodings.empty()) {
+        os << "ASCII";
+      }
+      else {
+        std::copy(
+          Encodings.begin(), Encodings.end(),
+          ostream_join_iterator<std::string>(os, ",")
+        );
+      }
+
+      os << '\t';
+
+      // options
+      os << static_cast<unsigned int>(LiteralMode) << '\t'
+         << static_cast<unsigned int>(CaseInsensitive) << '\n';
+    }
+
+    ret.emplace_back("", os.str());
+  }
+  else {
+    // use patterns from pattern files
+    for (const std::string& kf : KeyFiles) {
+      std::ifstream in(kf);
+      if (in) {
+// FIXME: handle I/O errors?
+
+        // find the file size
+        in.seekg(0, std::ios::end);
+        const std::streampos size = in.tellg();
+        in.seekg(0, std::ios::beg);
+
+        // read the whole file
+        std::string buf(size, '\0');
+        in.read(&buf[0], size);
+
+        ret.emplace_back(kf, buf);
+      }
+      else {
+        std::cerr << "Could not open pattern file " <<  kf << std::endl;
+      }
+    }
+  }
+
+  return ret;
 }
 
 std::vector<Key> Options::getKeys() const {
