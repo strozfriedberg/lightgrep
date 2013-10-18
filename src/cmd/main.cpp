@@ -195,6 +195,67 @@ void searchRecursively(
 std::tuple<
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>,
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>,
+  std::vector<std::pair<
+    std::string, std::unique_ptr<LG_Error,void(*)(LG_Error*)>
+  >>
+>
+parsePatterns(const Options& opts) {
+  // read the patterns and parse them
+
+  // FIXME: size the pattern map here?
+  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
+    lg_create_pattern_map(0),
+    lg_destroy_pattern_map
+  );
+
+  if (!pmap) {
+// FIXME: what do do here?
+  }
+
+  // FIXME: estimate NFA size here?
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(0),
+    lg_destroy_fsm
+  );
+
+  if (!fsm) {
+// FIXME: What to do here?
+  }
+
+  std::vector<std::pair<
+    std::string, std::unique_ptr<LG_Error,void(*)(LG_Error*)>
+  >> errs;
+
+  const char* defEncs[] = { "ASCII" };
+  const size_t defEncsNum = sizeof(defEncs)/sizeof(defEncs[0]);
+
+  const LG_KeyOptions defOpts{0, 0};
+
+  for (const std::pair<std::string,std::string>& pf : opts.getKeyFiles()) {
+    // parse a complete pattern file
+    LG_Error* err = nullptr;
+
+    lg_add_pattern_list(
+      fsm.get(), pmap.get(), pf.second.c_str(),
+      defEncs, defEncsNum, &defOpts, &err
+    );
+
+    if (err) {
+      errs.emplace_back(
+        std::move(std::string(pf.first)),
+        std::move(
+          std::unique_ptr<LG_Error,void(*)(LG_Error*)>(err, lg_free_error)
+        )
+      );
+    }
+  }
+
+  return std::make_tuple(std::move(pmap), std::move(fsm), std::move(errs));
+}
+
+std::tuple<
+  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>,
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>,
   uint32_t
 >
 parsePatterns(
@@ -347,12 +408,30 @@ void search(const Options& opts) {
     prog = loadProgram(opts.ProgramFile);
   }
   else {
-    // get the patterns and parse them
-    const std::vector<Key> pats = opts.getKeys();
+    // read the patterns and parse them
 
     std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
 
-    std::tie(pmap, fsm, std::ignore) = parsePatterns(pats);
+    std::vector<std::pair<
+      std::string,std::unique_ptr<LG_Error,void(*)(LG_Error*)>
+    >> errs;
+
+    std::tie(pmap, fsm, errs) = parsePatterns(opts);
+
+    const bool printFilename =
+      opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
+
+    for (const auto& p : errs) {
+      // walk the error chain for each pattern file file
+      for (LG_Error* cur = p.second.get(); cur; cur = cur->Next) {
+        if (printFilename) {
+            std::cerr << p.first << ", ";
+        }
+        std::cerr << "pattern " << cur->Index << ": " << cur->Message << '\n';
+      }
+
+      std::cerr.flush();
+    }
 
     // build a program from parsed patterns
     if (fsm) {

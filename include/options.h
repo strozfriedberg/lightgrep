@@ -60,9 +60,12 @@ public:
 
   std::ostream& openOutput() const;
 
+  std::vector<std::pair<std::string,std::string>> getKeyFiles() const;
+
   std::vector<Key> getKeys() const;
 
-  bool readKeyFile(const std::string& keyFilePath, std::vector<Key>& keys) const;
-
   bool parseLine(const std::string& line, uint32_t lineno, std::vector<Key>& keys) const;
+
+private:
+  bool readKeyFile(const std::string& keyFilePath, std::vector<Key>& keys) const;
 };
