@@ -59,7 +59,7 @@ extern "C" {
 // TODO: nix these, don't expose trace in the lib
   typedef struct {
     uint64_t TraceBegin,    // starting offset of trace output
-           TraceEnd;      // ending offset of trace output
+             TraceEnd;      // ending offset of trace output
   } LG_ContextOptions;
 
   // Error handling
