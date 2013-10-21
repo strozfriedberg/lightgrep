@@ -61,8 +61,8 @@ private:
 };
 
 namespace {
-  static std::ostream* ErrOut = &std::cerr;
-  static std::shared_ptr<boost::mutex> ErrMutex(new boost::mutex);
+  std::ostream* ErrOut = &std::cerr;
+  std::shared_ptr<boost::mutex> ErrMutex(new boost::mutex);
 }
 
 SafeStream writeErr() {
