@@ -1,11 +1,7 @@
 #pragma once
 
-// must include <fstream> before this header, because of <iosfwd> usage
-
 #include "basic.h"
 #include "automata.h"
-
-#include "key.h"
 
 #include <iosfwd>
 #include <set>
@@ -61,11 +57,4 @@ public:
   std::ostream& openOutput() const;
 
   std::vector<std::pair<std::string,std::string>> getKeyFiles() const;
-
-  std::vector<Key> getKeys() const;
-
-  bool parseLine(const std::string& line, uint32_t lineno, std::vector<Key>& keys) const;
-
-private:
-  bool readKeyFile(const std::string& keyFilePath, std::vector<Key>& keys) const;
 };

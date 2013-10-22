@@ -22,7 +22,6 @@
 #include "utility.h"
 
 #include "hitwriter.h"
-#include "key.h"
 #include "matchgen.h"
 #include "options.h"
 #include "optparser.h"
@@ -40,6 +39,7 @@
 #endif
 
 // FIXME: should this be moved to searchcontroller.cpp?
+// FIXME: is this still necessary?
 //
 // <magic_incantation>
 // this ridiculous piece of crap you see here is necessary to get
@@ -101,58 +101,23 @@ void printEncodings() {
   std::cout << std::endl;
 }
 
-void stdParseErrorHandler(
-  const Key& p, uint32_t pnum, const std::string& err)
-{
-  std::cerr << err << " on pattern " << pnum << ", '"
-            << p.Expression << "'" << std::endl;
-}
-
-/*
-std::shared_ptr<ParserHandle> parsePatterns(
-  PatternInfo& pinfo,
-  uint32_t& numErrors,
-  std::function<void (const Pattern&, const std::string&)> onError =
-    stdParseErrorHandler)
-{
-  numErrors = 0;
-  if (pinfo.Patterns.empty()) {
-    return std::shared_ptr<ParserHandle>();
+void handleParseErrors(LG_Error* err, bool printFilename) {
+  // walk the error chain
+  for ( ; err; err = err->Next) {
+    if (printFilename) {
+      std::cerr << err->Source << ", ";
+    }
+    std::cerr << "pattern " << err->Index << ": " << err->Message << '\n';
   }
 
-  // find total length of patterns -- or 1 if tlen is 0
-  const uint32_t tlen = std::max(1u, estimateGraphSize(pinfo.Patterns));
-
-  std::shared_ptr<ParserHandle> parser(lg_create_parser(tlen),
-                                       lg_destroy_parser);
-
-  // parse patterns
-  uint32_t patIdx = 0;
-
-  for (uint32_t i = 0; i < pinfo.Patterns.size(); ++i) {
-    const int32 encIdx = lg_get_encoding_id(pinfo.Patterns[i].Encoding.c_str());
-    if (encIdx == -1) {
-      ++numErrors;
-      onError(pinfo.Patterns[i],
-        "unrecognized encoding '" + pinfo.Patterns[i].Encoding + "'"
-      );
-    }
-    else if (addPattern(parser.get(), i, patIdx, encIdx, pinfo)) {
-      // std::cerr << i << " parsed " << pinfo.Patterns[i].Expression << ", for " << pinfo.Patterns[i].Encoding << std::endl;
-      ++patIdx;
-    }
-    else {
-      ++numErrors;
-      onError(pinfo.Patterns[i], lg_error(parser.get()));
-    }
-  }
-  // don't enable these unless debugging -- will mess up enscript
-  // std::cerr << pinfo.Patterns.size() << " Patterns" << std::endl;
-  // std::cerr << patIdx << " Byte Patterns" << std::endl;
-  // std::cerr << numErrors << " Errors" << std::endl;
-  return parser;
+  std::cerr.flush();
 }
-*/
+
+size_t countErrors(LG_Error* err) {
+  size_t numErrors = 0;
+  for (const LG_Error* e = err; e; e = e->Next, ++numErrors);
+  return numErrors;
+}
 
 void search(
   const std::string& input,
@@ -193,14 +158,13 @@ void searchRecursively(
   }
 }
 
+template <class T>
 std::tuple<
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>,
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>,
-  std::vector<std::pair<
-    std::string, std::unique_ptr<LG_Error,void(*)(LG_Error*)>
-  >>
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)>
 >
-parsePatterns(const Options& opts) {
+parsePatterns(const T& keyFiles) {
   // read the patterns and parse them
 
   // FIXME: size the pattern map here?
@@ -223,122 +187,42 @@ parsePatterns(const Options& opts) {
 // FIXME: What to do here?
   }
 
-  std::vector<std::pair<
-    std::string, std::unique_ptr<LG_Error,void(*)(LG_Error*)>
-  >> errs;
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+  LG_Error* tail_err = nullptr;
 
   const char* defEncs[] = { "ASCII" };
   const size_t defEncsNum = sizeof(defEncs)/sizeof(defEncs[0]);
 
   const LG_KeyOptions defOpts{0, 0};
 
-  for (const std::pair<std::string,std::string>& pf : opts.getKeyFiles()) {
+  for (const std::pair<std::string,std::string>& pf : keyFiles) {
     // parse a complete pattern file
-    LG_Error* err = nullptr;
+    LG_Error* local_err = nullptr;
 
     lg_add_pattern_list(
       fsm.get(), pmap.get(), pf.second.c_str(),
-      defEncs, defEncsNum, &defOpts, &err
+      defEncs, defEncsNum, &defOpts, &local_err
     );
 
-    if (err) {
-      errs.emplace_back(
-        std::move(std::string(pf.first)),
-        std::move(
-          std::unique_ptr<LG_Error,void(*)(LG_Error*)>(err, lg_free_error)
-        )
-      );
+    if (local_err) {
+      if (err) {
+        // attach the new error to the existing chain
+        tail_err->Next = local_err;
+      }
+      else {
+        // first error, start a new error chain
+        err = std::unique_ptr<LG_Error,void(*)(LG_Error*)>(
+          local_err, lg_free_error
+        );
+        tail_err = local_err;
+      }
+
+      // walk to the end of the error chain
+      for ( ; tail_err->Next; tail_err = tail_err->Next);
     }
   }
 
-  return std::make_tuple(std::move(pmap), std::move(fsm), std::move(errs));
-}
-
-std::tuple<
-  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>,
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>,
-  uint32_t
->
-parsePatterns(
-  const std::vector<Key>& pats,
-  std::function<void (const Key&, uint32_t, const std::string&)> onError =
-    stdParseErrorHandler
-)
-{
-  uint32_t numErrors = 0;
-
-  if (!pats.empty()) {
-    // set up handles we need for parsing
-    std::unique_ptr<PatternHandle,void(*)(PatternHandle*)> pat(
-      lg_create_pattern(),
-      lg_destroy_pattern
-    );
-
-    std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
-      lg_create_pattern_map(pats.size()),
-      lg_destroy_pattern_map
-    );
-
-    // find total length of patterns -- or 1 if tlen is 0
-    const uint32_t tlen = std::max(1u, estimateGraphSize(pats));
-
-    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
-      lg_create_fsm(tlen),
-      lg_destroy_fsm
-    );
-
-    // parse the patterns
-    LG_KeyOptions keyOpts; 
-
-    for (const Key& p : pats) {
-      LG_Error* err = nullptr;
-
-      keyOpts.CaseInsensitive = p.CaseInsensitive;
-      keyOpts.FixedString = p.FixedString;
-
-      lg_parse_pattern(pat.get(), p.Expression.c_str(), &keyOpts, &err);    
-      if (err) {
-        ++numErrors;
-        onError(p, p.UserIndex, err->Message);
-        lg_free_error(err);
-        continue;
-      }
-
-      const int label = lg_add_pattern(
-        fsm.get(), pmap.get(), pat.get(), p.Encoding.c_str(), &err
-      );
-      if (err) {
-        ++numErrors;
-        onError(p, p.UserIndex, err->Message);
-        lg_free_error(err);
-        continue;
-      }
-
-      // pack the user pattern index into the void*, oh the horror
-      LG_PatternInfo* pinfo = lg_pattern_info(pmap.get(), label);
-      pinfo->UserData = reinterpret_cast<void*>(p.UserIndex);
-    }
-
-    if (pats.size() > numErrors) {
-      // we successfully parsed something
-      return std::make_tuple(
-        std::move(pmap),
-        std::move(fsm),
-        numErrors
-      );
-    }
-  }
-
-  // nothing parsed successfully
-  return std::make_tuple(
-    std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>(
-      nullptr, nullptr
-    ),
-    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>(
-      nullptr, nullptr
-    ),
-    numErrors
-  );
+  return std::make_tuple(std::move(pmap), std::move(fsm), std::move(err));
 }
 
 std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>
@@ -406,29 +290,16 @@ void search(const Options& opts) {
   }
   else {
     // read the patterns and parse them
-
     std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
 
-    std::vector<std::pair<
-      std::string,std::unique_ptr<LG_Error,void(*)(LG_Error*)>
-    >> errs;
+    std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    std::tie(pmap, fsm, errs) = parsePatterns(opts);
+    std::tie(pmap, fsm, err) = parsePatterns(opts.getKeyFiles());
 
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-    for (const auto& p : errs) {
-      // walk the error chain for each pattern file file
-      for (LG_Error* cur = p.second.get(); cur; cur = cur->Next) {
-        if (printFilename) {
-            std::cerr << p.first << ", ";
-        }
-        std::cerr << "pattern " << cur->Index << ": " << cur->Message << '\n';
-      }
-
-      std::cerr.flush();
-    }
+    handleParseErrors(err.get(), printFilename);
 
     // build a program from parsed patterns
     if (fsm) {
@@ -504,19 +375,18 @@ void search(const Options& opts) {
 }
 
 bool writeGraphviz(const Options& opts) {
-  if (opts.getKeys().empty()) {
-    return false;
-  }
-
-  // get the patterns and parse them
-  const std::vector<Key> pats(opts.getKeys());
-
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  uint32_t numErrors;
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, fsm, numErrors) = parsePatterns(pats);
+  std::tie(std::ignore, fsm, err) = parsePatterns(opts.getKeyFiles());
 
-  std::cerr << "numErrors = " << numErrors << std::endl;
+  const bool printFilename =
+    opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
+
+  handleParseErrors(err.get(), printFilename);
+
+  std::cerr << "numErrors = " << countErrors(err.get()) << std::endl;
+
   if (!fsm) {
     return false;
   }
@@ -533,16 +403,16 @@ bool writeGraphviz(const Options& opts) {
 }
 
 void writeProgram(const Options& opts) {
-  if (opts.getKeys().empty()) {
-    return;
-  }
-
   // get the patterns and parse them
-  const std::vector<Key> pats(opts.getKeys());
-
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, fsm, std::ignore) = parsePatterns(pats);
+  std::tie(std::ignore, fsm, err) = parsePatterns(opts.getKeyFiles());
+
+  const bool printFilename =
+    opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
+
+  handleParseErrors(err.get(), printFilename);
 
   if (!fsm) {
     return;
@@ -574,59 +444,58 @@ void writeProgram(const Options& opts) {
 }
 
 void validate(const Options& opts) {
-  const std::vector<Key> pats(opts.getKeys());
-  if (!pats.empty()) {
-    parsePatterns(
-      pats,
-      [](const Key& p, uint32_t pnum, const std::string&) {
-        std::cerr << pnum << ": pattern \"" << p.Expression
-                  << "\" is invalid for encoding "
-                  << p.Encoding.front() << std::endl;
-      }
-    );
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+
+  std::tie(std::ignore, std::ignore, err) = parsePatterns(opts.getKeyFiles());
+
+  for (const LG_Error* e = err.get(); e ; e = e->Next) {
+    std::cerr << e->Index << ": pattern \"" << e->Pattern
+              << "\" is invalid for encoding "
+              << e->EncodingChain << std::endl;
   }
 }
 
 void writeSampleMatches(const Options& opts) {
-  const std::vector<Key> pats(opts.getKeys());
+// TODO: Writing sample matches should not be unconditionally EnCase-specific.
+// There should be a switch to turn on the behavior EnCase needs.
 
 	std::ostream& out(opts.openOutput());
 
   // Write a LE BOM because EnCase is retarded and expectes a BOM for UTF-16LE
   out << (char) 0xFF << (char) 0xFE;
 
-  for (const Key& pat : pats) {
-    // parse the pattern
+  // parse the patterns one at a time
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-    uint32_t numErrors;
+  size_t pnum = 0;
+  for (const std::pair<std::string,std::string>& pf : opts.getKeyFiles()) {
+    const std::pair<std::string,std::string> a[] = { pf };
+    std::tie(std::ignore, fsm, err) = parsePatterns(a);
 
-    std::tie(std::ignore, fsm, numErrors) = parsePatterns(
-      {pat},
-      [&out](const Key& p, uint32_t pnum, const std::string& err) {
-        std::stringstream ss;
-        ss << err << " on pattern " << pnum << ", '" << p.Expression << "'";
-        std::string msg(ss.str());
+    if (err) {
+      std::stringstream ss;
+      ss << err->Message << " on pattern " << pnum
+         << ", '"<< err->Pattern << "'";
+      std::string msg(ss.str());
 
-        std::unique_ptr<char[]> buf(new char[4*msg.length()+1]);
-        UErrorCode ec = U_ZERO_ERROR;
-        const uint32_t len = ucnv_convert(
-          "UTF-16LE", "UTF-8",
-          buf.get(),
-          4*msg.length()+1,
-          msg.c_str(), -1,
-          &ec
-        );
-        if (U_FAILURE(ec)) {
-          std::cerr << "Error: " << u_errorName(ec) << std::endl;
-        }
-
-        out << std::string(buf.get(), len)
-            << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
+      std::unique_ptr<char[]> buf(new char[4*msg.length()+1]);
+      UErrorCode ec = U_ZERO_ERROR;
+      const uint32_t len = ucnv_convert(
+        "UTF-16LE", "UTF-8",
+        buf.get(),
+        4*msg.length()+1,
+        msg.c_str(), -1,
+        &ec
+      );
+      if (U_FAILURE(ec)) {
+        std::cerr << "Error: " << u_errorName(ec) << std::endl;
       }
-    );
 
-    if (numErrors == 0  && fsm) {
+      out << std::string(buf.get(), len)
+          << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
+    }
+    else if (fsm) {
       // break on through the C API to get the graph
       NFAPtr g(fsm->Impl->Fsm);
 
@@ -637,20 +506,61 @@ void writeSampleMatches(const Options& opts) {
         out << m << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
       }
     }
+
     out.flush();
+    ++pnum;    
   }
 }
 
 void startServer(const Options& opts) {
-  const std::vector<Key> pats(opts.getKeys());
+  // determine how many patterns (not pattern-encoding pairs!) there are
+  const std::vector<std::pair<std::string,std::string>> kf(opts.getKeyFiles());
 
+  size_t pnum = 0;
+  for (const std::pair<std::string,std::string>& p : kf) {
+    if (p.second.empty()) {
+      // skip empty pattern files
+      continue;
+    }
+
+    const auto end = p.second.end();
+
+    // find start of first line
+    auto i = std::find_if(
+      p.second.begin(), end,
+      [](char c){ return c != '\n'; }
+    );
+
+    if (i == end) {
+      // whole file is newlines
+      continue;
+    }
+
+    ++pnum;
+    ++i;
+
+    // count the remaining lines
+    while ((i = std::adjacent_find(i, end,
+            [](char l, char r){ return l == '\n' && r != '\n'; })) != end)
+    {
+      ++pnum;
+      ++i;
+    }
+  }
+
+  // parse the patterns
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
     nullptr, nullptr
   );
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  uint32_t numErrors;
 
-  std::tie(pmap, fsm, numErrors) = parsePatterns(pats);
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+
+  std::tie(pmap, fsm, err) = parsePatterns(kf);
+
+  handleParseErrors(err.get(), false);
+
+  const size_t numErrors = countErrors(err.get());
 
   // build a program from parsed patterns
   if (numErrors == 0 && fsm) {
@@ -663,7 +573,7 @@ void startServer(const Options& opts) {
       startup( 
         std::shared_ptr<ProgramHandle>(std::move(prog)),
         std::shared_ptr<PatternMapHandle>(std::move(pmap)),
-        pats.size(),
+        pnum,
         opts
       );
       return;
