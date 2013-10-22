@@ -27,6 +27,7 @@
 #include "options.h"
 #include "optparser.h"
 #include "searchcontroller.h"
+#include "util.h"
 
 #include <lightgrep/api.h>
 #include <lightgrep/encodings.h>
@@ -353,11 +354,7 @@ loadProgram(const std::string& pfile) {
 // FIXME: we need to handle the case where the read fails
 // FIXME: what to do for the pattern map?
 
-  // this is seriously tedious compared to, oh, I don't know, file.size()
-  pin.seekg(0, std::ios::end);
-  std::streampos end = pin.tellg();
-  pin.seekg(0, std::ios::beg);
-
+  const std::streampos end = stream_size(pin);
   std::cerr << "program file is " << end << " bytes long" << std::endl;
 
   std::vector<char> buf(end);

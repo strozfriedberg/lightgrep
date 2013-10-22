@@ -7,6 +7,7 @@
 
 #include "options.h"
 #include "ostream_join_iterator.h"
+#include "util.h"
 
 bool Options::readKeyFile(const std::string& keyFilePath, std::vector<Key>& keys) const {
   std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
@@ -80,12 +81,8 @@ std::vector<std::pair<std::string,std::string>> Options::getKeyFiles() const {
       if (in) {
 // FIXME: handle I/O errors?
 
-        // find the file size
-        in.seekg(0, std::ios::end);
-        const std::streampos size = in.tellg();
-        in.seekg(0, std::ios::beg);
-
         // read the whole file
+        const std::streampos size = stream_size(in);
         std::string buf(size, '\0');
         in.read(&buf[0], size);
 

@@ -11,7 +11,8 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/optparser.cpp \
 	src/cmd/options.cpp \
 	src/cmd/searchcontroller.cpp \
-	src/cmd/server.cpp
+	src/cmd/server.cpp \
+	src/cmd/util.cpp
 	
 src_cmd_lightgrep_LDFLAGS = $(BOOST_LDFLAGS)
 src_cmd_lightgrep_LDADD = $(LG_LIB) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
