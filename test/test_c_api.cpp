@@ -85,7 +85,8 @@ SCOPE_TEST(testLgAddPatternList) {
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), pmap.get(), pats, defEncs, defEncsNum, &defOpts, &err
+    fsm.get(), pmap.get(), pats, "testLgAddPatternList",
+    defEncs, defEncsNum, &defOpts, &err
   );
 
   SCOPE_ASSERT(!err);
@@ -121,7 +122,8 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), pmap.get(), pats, defEncs, defEncsNum, &defOpts, &err
+    fsm.get(), pmap.get(), pats, "testLgAddPatternListBadEncoding",
+    defEncs, defEncsNum, &defOpts, &err
   );
 
   SCOPE_ASSERT(err);

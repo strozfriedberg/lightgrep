@@ -65,6 +65,9 @@ extern "C" {
   // Error handling
   typedef struct LG_Error {
     char* Message;
+    char* Pattern;
+    char* EncodingChain;
+    char* Source;
     int Index;
     struct LG_Error* Next;
   } LG_Error;
@@ -111,6 +114,7 @@ extern "C" {
   int lg_add_pattern_list(LG_HFSM hFsm,
                           LG_HPATTERNMAP hMap,
                           const char* patterns,
+                          const char* source,
                           const char** defaultEncodings,
                           unsigned int defaultEncodingsNum,
                           const LG_KeyOptions* defaultOptions,

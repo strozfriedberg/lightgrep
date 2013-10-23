@@ -21,17 +21,36 @@
 
 #include "c_api_util.h"
 
-void fillError(LG_Error** err, const char* msg, int ind) {
-  if (err) {
-    try {
-      *err = new LG_Error{new char[std::strlen(msg)+1], ind, nullptr};
-      std::strcpy((*err)->Message, msg);
-    }
-    catch (const std::bad_alloc&) {
-      // Not enough memory to copy the error message. Everything is hosed.
-    }
-    catch (...) {
-      // Should be impossible.
-    }
+namespace {
+  // Our own strdup, using new.
+  char* dup(const char* s) {
+    return std::strcpy(new char[std::strlen(s)+1], s);
   }
+}
+
+LG_Error* makeError(
+  const char* msg,
+  const char* pattern,
+  const char* encodingChain,
+  const char* source,
+  int index
+) {
+  try {
+    return new LG_Error{
+      dup(msg), // don't make messageless errors
+      pattern ? dup(pattern) : nullptr,
+      encodingChain ? dup(encodingChain) : nullptr,
+      source ? dup(source) : nullptr,
+      index,
+      nullptr
+    };
+  }
+  catch (const std::bad_alloc&) {
+    // Insufficient memory to copy one of the strings. Everything is hosed.
+  }
+  catch (...) {
+    // Should be impossible.
+  }
+
+  return nullptr;
 }
