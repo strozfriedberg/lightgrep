@@ -24,7 +24,7 @@ std::ostream& Options::openOutput() const {
   }
 }
 
-std::vector<std::pair<std::string,std::string>> Options::getKeyFiles() const {
+std::vector<std::pair<std::string,std::string>> Options::getPatternLines() const {
   std::vector<std::pair<std::string,std::string>> ret;
 
   if (!CmdLinePatterns.empty()) {
