@@ -210,11 +210,6 @@ namespace {
     cstr_tokenizer::const_iterator lcur(ltok.begin());
     const cstr_tokenizer::const_iterator lend(ltok.end());
     for (int lnum = 0; lcur != lend; ++lcur, ++lnum) {
-      // skip blank lines
-      if (lcur->empty()) {
-        continue;
-      }
-
       // split each pattern line into columns
       const tokenizer ctok(*lcur, char_separator("\t"));
       tokenizer::const_iterator ccur(ctok.begin());
