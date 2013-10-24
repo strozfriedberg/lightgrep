@@ -11,7 +11,7 @@
 #include "optparser.h"
 
 #define TEST_OPTS(cargv, opts) \
-  const int cargc = sizeof(cargv) / sizeof(cargv[0]); \
+  const int cargc = std::extent<decltype(cargv)>::value; \
 \
   const int argc = cargc + 1; \
 \
