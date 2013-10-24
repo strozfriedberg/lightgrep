@@ -200,7 +200,8 @@ parsePatterns(const T& keyFiles) {
     LG_Error* local_err = nullptr;
 
     lg_add_pattern_list(
-      fsm.get(), pmap.get(), pf.second.c_str(),
+      fsm.get(), pmap.get(),
+      pf.second.c_str(), pf.first.c_str(),
       defEncs, defEncsNum, &defOpts, &local_err
     );
 
@@ -513,38 +514,14 @@ void writeSampleMatches(const Options& opts) {
 }
 
 void startServer(const Options& opts) {
-  // determine how many patterns (not pattern-encoding pairs!) there are
+  // count the lines of input
   const std::vector<std::pair<std::string,std::string>> kf(opts.getKeyFiles());
 
   size_t pnum = 0;
   for (const std::pair<std::string,std::string>& p : kf) {
-    if (p.second.empty()) {
-      // skip empty pattern files
-      continue;
-    }
-
-    const auto end = p.second.end();
-
-    // find start of first line
-    auto i = std::find_if(
-      p.second.begin(), end,
-      [](char c){ return c != '\n'; }
-    );
-
-    if (i == end) {
-      // whole file is newlines
-      continue;
-    }
-
-    ++pnum;
-    ++i;
-
-    // count the remaining lines
-    while ((i = std::adjacent_find(i, end,
-            [](char l, char r){ return l == '\n' && r != '\n'; })) != end)
-    {
-      ++pnum;
-      ++i;
+    if (!p.second.empty()) {  // don't count empty pattern files
+      // number of lines is one more than the number of newlines
+      pnum += 1 + std::count(p.second.begin(), p.second.end(), '\n');
     }
   }
 
