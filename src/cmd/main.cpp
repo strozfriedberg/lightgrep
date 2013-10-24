@@ -72,13 +72,12 @@ void printHelp(const po::options_description& desc) {
 }
 
 void printEncodings() {
-  const uint32_t slen = sizeof(LG_ENCODINGS) / sizeof(LG_ENCODINGS[0]);
-  const uint32_t clen =
-    sizeof(LG_CANONICAL_ENCODINGS) / sizeof(LG_CANONICAL_ENCODINGS[0]);
+  const size_t slen = std::extent<decltype(LG_ENCODINGS)>::value;
+  const uint32_t clen = std::extent<decltype(LG_CANONICAL_ENCODINGS)>::value;
 
   // group the aliases by the indices of their canonical names
   std::vector<std::vector<std::string>> aliases(clen);
-  for (uint32_t i = 0; i < slen; ++i) {
+  for (size_t i = 0; i < slen; ++i) {
     if (std::strcmp(
           LG_ENCODINGS[i].name,
           LG_CANONICAL_ENCODINGS[LG_ENCODINGS[i].idx]
@@ -88,7 +87,7 @@ void printEncodings() {
     }
   }
 
-  for (uint32_t i = 0; i < clen; ++i) {
+  for (size_t i = 0; i < clen; ++i) {
     // print the canonical name for the encoding
     std::cout << LG_CANONICAL_ENCODINGS[i] << '\n';
 
@@ -191,7 +190,7 @@ parsePatterns(const T& keyFiles) {
   LG_Error* tail_err = nullptr;
 
   const char* defEncs[] = { "ASCII" };
-  const size_t defEncsNum = sizeof(defEncs)/sizeof(defEncs[0]);
+  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
 
   const LG_KeyOptions defOpts{0, 0};
 
