@@ -3,7 +3,7 @@
 #include "basic.h"
 #include "automata.h"
 
-#include <iosfwd>
+#include <fstream>
 #include <set>
 #include <string>
 #include <vector>
@@ -56,5 +56,5 @@ public:
 
   std::ostream& openOutput() const;
 
-  std::vector<std::pair<std::string,std::string>> getKeyFiles() const;
+  std::vector<std::pair<std::string,std::string>> getPatternLines() const;
 };

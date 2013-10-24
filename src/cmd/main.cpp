@@ -294,7 +294,7 @@ void search(const Options& opts) {
 
     std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    std::tie(pmap, fsm, err) = parsePatterns(opts.getKeyFiles());
+    std::tie(pmap, fsm, err) = parsePatterns(opts.getPatternLines());
 
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -378,7 +378,7 @@ bool writeGraphviz(const Options& opts) {
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, fsm, err) = parsePatterns(opts.getKeyFiles());
+  std::tie(std::ignore, fsm, err) = parsePatterns(opts.getPatternLines());
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -407,7 +407,7 @@ void writeProgram(const Options& opts) {
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, fsm, err) = parsePatterns(opts.getKeyFiles());
+  std::tie(std::ignore, fsm, err) = parsePatterns(opts.getPatternLines());
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -446,7 +446,8 @@ void writeProgram(const Options& opts) {
 void validate(const Options& opts) {
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, std::ignore, err) = parsePatterns(opts.getKeyFiles());
+  std::tie(std::ignore, std::ignore, err) =
+    parsePatterns(opts.getPatternLines());
 
   for (const LG_Error* e = err.get(); e ; e = e->Next) {
     std::cerr << e->Index << ": pattern \"" << e->Pattern
@@ -469,7 +470,7 @@ void writeSampleMatches(const Options& opts) {
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
   size_t pnum = 0;
-  for (const std::pair<std::string,std::string>& pf : opts.getKeyFiles()) {
+  for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
     const std::pair<std::string,std::string> a[] = { pf };
     std::tie(std::ignore, fsm, err) = parsePatterns(a);
 
@@ -514,7 +515,9 @@ void writeSampleMatches(const Options& opts) {
 
 void startServer(const Options& opts) {
   // count the lines of input
-  const std::vector<std::pair<std::string,std::string>> kf(opts.getKeyFiles());
+  const std::vector<std::pair<std::string,std::string>> kf(
+    opts.getPatternLines()
+  );
 
   size_t pnum = 0;
   for (const std::pair<std::string,std::string>& p : kf) {
