@@ -65,7 +65,7 @@ int lg_get_char_transform_id(const char* const name) {
       return find_trans_id(
         LG_CHAR_TRANSFORMS,
         LG_CHAR_TRANSFORMS +
-          sizeof(LG_CHAR_TRANSFORMS)/sizeof(LG_TRANS),
+          std::extent<decltype(LG_CHAR_TRANSFORMS)>::value,
         name
       );
     },
@@ -79,7 +79,7 @@ int lg_get_encoding_id(const char* const name) {
       return find_trans_id(
         LG_ENCODINGS,
         LG_ENCODINGS +
-          sizeof(LG_ENCODINGS)/sizeof(LG_TRANS),
+          std::extent<decltype(LG_ENCODINGS)>::value,
         name
       );
     },
@@ -93,7 +93,7 @@ int lg_get_byte_transform_id(const char* const name) {
       return find_trans_id(
         LG_BYTE_TRANSFORMS,
         LG_BYTE_TRANSFORMS +
-          sizeof(LG_BYTE_TRANSFORMS)/sizeof(LG_TRANS),
+          std::extent<decltype(LG_BYTE_TRANSFORMS)>::value,
         name
       );
     },
