@@ -21,6 +21,7 @@ check_PROGRAMS = test/test
 test_test_SOURCES = \
 	src/cmd/optparser.cpp \
 	src/cmd/options.cpp \
+	src/cmd/util.cpp \
 	test/test.cpp \
 	test/test_optparser.cpp \
 	test/test_matchgen.cpp \
