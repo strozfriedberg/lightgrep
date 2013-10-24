@@ -6,7 +6,6 @@ bin_PROGRAMS = src/cmd/lightgrep
 
 src_cmd_lightgrep_SOURCES = \
 	src/cmd/hitwriter.cpp \
-	src/cmd/key.cpp \
 	src/cmd/main.cpp \
 	src/cmd/optparser.cpp \
 	src/cmd/options.cpp \
@@ -20,7 +19,6 @@ src_cmd_lightgrep_LDADD = $(LG_LIB) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB) 
 check_PROGRAMS = test/test
 
 test_test_SOURCES = \
-  src/cmd/key.cpp \
 	src/cmd/optparser.cpp \
 	src/cmd/options.cpp \
 	test/test.cpp \
