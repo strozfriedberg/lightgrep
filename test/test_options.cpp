@@ -1,30 +1,23 @@
 #include <scope/test.h>
 
-#include <fstream>
 #include <vector>
 
-#include "key.h"
 #include "options.h"
+#include "pair_out.h"
 
-SCOPE_TEST(parsePatterns) {
+SCOPE_TEST(getKeyFilesFromActualFiles) {
   Options opts;
-  std::string line("Expression\t1\t1\tUTF-8,UTF-16");
-  std::vector<Key> pats;
-  SCOPE_ASSERT(opts.parseLine(line, 0, pats));
-  SCOPE_ASSERT_EQUAL(2u, pats.size());
-  SCOPE_ASSERT_EQUAL(Pattern("Expression", true, true, "UTF-8"), pats[0]);
-  SCOPE_ASSERT_EQUAL(Pattern("Expression", true, true, "UTF-16"), pats[1]);
-}
+  opts.KeyFiles = {
+    "test/data/pats.0",
+    "test/data/pats.1",
+    "test/data/pats.2"
+  };
 
-SCOPE_TEST(parsePatternNoOpts) {
-  Options opts;
-  opts.LiteralMode = false;
-  opts.CaseInsensitive = false;
-  opts.Encodings = { "UTF-8" };
+  const std::vector<std::pair<std::string,std::string>> expected = {
+    { opts.KeyFiles[0], "a*b+\tUTF-8,UTF-16LE\t0\t0\nJoel\tUTF-8\t1\t1\n" },
+    { opts.KeyFiles[1], "(All work and no play makes Jack a dull boy\\. )+\nBALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS BALLS\n" },
+    { opts.KeyFiles[2], "\n\n\n\n\n\n\n\n\n" }
+  };
 
-  std::string line("Expression");
-  std::vector<Key> pats;
-  SCOPE_ASSERT(opts.parseLine(line, 0, pats));
-  SCOPE_ASSERT_EQUAL(1u, pats.size());
-  SCOPE_ASSERT_EQUAL(Pattern("Expression", false, false, "UTF-8"), pats[0]);
+  SCOPE_ASSERT_EQUAL(expected, opts.getPatternLines());
 }
