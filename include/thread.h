@@ -126,12 +126,11 @@ struct Thread {
   }
 
   const Instruction* PC;
-  uint32_t             Label;
+  uint64_t Start, End;
   #ifdef LBT_TRACE_ENABLED
-  uint64_t             Id;
+  uint64_t Id;
   #endif
-  uint64_t             Start,
-                     End;
+  uint32_t Label;
 
   #ifdef LBT_TRACE_ENABLED
   enum ThreadLife {
