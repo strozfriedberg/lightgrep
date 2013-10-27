@@ -53,22 +53,30 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
   switch (n.Type) {
   case ParseNode::REGEXP:
     return out << "REGEXP";
+  case ParseNode::LOOKBEHIND_POS:
+    return out << "(?<=)";
+  case ParseNode::LOOKBEHIND_NEG:
+    return out << "(?<!)";
+  case ParseNode::LOOKAHEAD_POS:
+    return out << "(?=)";
+  case ParseNode::LOOKAHEAD_NEG:
+    return out << "(?!)";
   case ParseNode::ALTERNATION:
     return out << '|';
   case ParseNode::CONCATENATION:
     return out << '&';
   case ParseNode::REPETITION:
-    repetition(out, n.Rep.Min, n.Rep.Max);
+    repetition(out, n.Child.Rep.Min, n.Child.Rep.Max);
     return out;
   case ParseNode::REPETITION_NG:
-    repetition(out, n.Rep.Min, n.Rep.Max);
+    repetition(out, n.Child.Rep.Min, n.Child.Rep.Max);
     return out << '?';
   case ParseNode::DOT:
     return out << '.';
   case ParseNode::CHAR_CLASS:
-    return out << n.CodePoints
-               << (n.Breakout.Additive ? '+' : '-') << ' '
-               << n.Breakout.Bytes;
+    return out << n.Set.CodePoints
+               << (n.Set.Breakout.Additive ? '+' : '-') << ' '
+               << n.Set.Breakout.Bytes;
   case ParseNode::LITERAL:
   case ParseNode::BYTE:
     return out << std::hex << n.Val << std::dec;
@@ -80,16 +88,17 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
 }
 
 void printTreeDetails(std::ostream& out, const ParseNode& n) {
+/*
   if ((n.Type == ParseNode::CONCATENATION ||
-       n.Type == ParseNode::ALTERNATION) && n.Right) {
-    printTreeDetails(out, *n.Right);
+       n.Type == ParseNode::ALTERNATION) && n.Child.Right) {
+    printTreeDetails(out, *n.Child.Right);
   }
 
   if (n.Left) {
-    printTreeDetails(out, *n.Left);
+    printTreeDetails(out, *n.Child.Left);
   }
 
-  out << &n << ' ' << n.Type << ' ' << n.Left << ' ';
+  out << &n << ' ' << n.Type << ' ' << n.Child.Left << ' ';
 
   switch (n.Type) {
   case ParseNode::CONCATENATION:
@@ -110,4 +119,5 @@ void printTreeDetails(std::ostream& out, const ParseNode& n) {
   }
 
   out << '\n';
+*/
 }

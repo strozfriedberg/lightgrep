@@ -98,6 +98,7 @@ ICU_CONFIG="${ICU_CONFIG}icu-config --noverify"
 AC_MSG_WARN([Disregard the next few lines where ICU_* are printed.])
 AC_MSG_WARN([They're all wrong but we fix them up before using them.])
 AX_CHECK_ICU(1.48)
+echo 'found ICU' `icu-config --version`
 
 # ICU_LIBS which are wrong on Windows (and we handle ourselves):
 #   -lpthread
@@ -303,8 +304,8 @@ AC_LANG([C])
 AX_APPEND_COMPILE_FLAGS([$ICU_CFLAGS], [CFLAGS]) 
 
 AC_LANG([C++])
-AX_APPEND_COMPILE_FLAGS([$ICU_CPPFLAGS $BOOST_CPPFLAGS], [CPPFLAGS])
-AX_APPEND_COMPILE_FLAGS([$ICU_CXXFLAGS $BOOST_CXXFLAGS], [CXXFLAGS]) 
+AX_APPEND_COMPILE_FLAGS([$BOOST_CPPFLAGS $ICU_CPPFLAGS], [CPPFLAGS])
+AX_APPEND_COMPILE_FLAGS([$BOOST_CXXFLAGS $ICU_CXXFLAGS], [CXXFLAGS]) 
 
 LG_UNIQ_FLAGS([CPPFLAGS])
 LG_UNIQ_FLAGS([CFLAGS])

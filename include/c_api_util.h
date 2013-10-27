@@ -21,7 +21,7 @@
 #include "lightgrep/api.h"
 #include "basic.h"
 
-void fillError(LG_Error** err, const char* msg);
+void fillError(LG_Error** err, const char* msg, int ind = -1);
 
 template <typename F>
 auto trapWithRetval(F func, decltype(func()) fail, LG_Error** err) -> decltype(func()) {

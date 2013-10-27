@@ -73,11 +73,11 @@ public:
     else {
       // try to decode the bytes
       size_t consumed = decode(buf, buf+i, cp.first);
- 
+
       if (consumed == 0) {
         // no valid bytes consumed, return the first raw byte as an error
         cp = In.front();
-        In.pop_front();      
+        In.pop_front();
         cp.first = -cp.first-1;
       }
       else {
@@ -91,7 +91,7 @@ public:
       }
     }
 
-    return cp; 
+    return cp;
   }
 
   virtual void reset(const byte* beg, const byte* end) {

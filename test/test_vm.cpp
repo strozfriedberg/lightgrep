@@ -46,7 +46,7 @@ SCOPE_TEST(executeNotByte) {
   Vm         s(p);
   Thread cur(&(*p)[0]);
   SCOPE_ASSERT(!s.execute(&cur, &b));
-  SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());  
+  SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
 
   s.reset();
@@ -382,6 +382,7 @@ SCOPE_TEST(testInit) {
 }
 
 SCOPE_TEST(simpleLitMatch) {
+  // "ab"
   ProgramPtr p(new Program(8, Instruction::makeRaw32(0)));
   Program& prog(*p);
   prog[0] = Instruction::makeByte('a');
@@ -397,13 +398,14 @@ SCOPE_TEST(simpleLitMatch) {
   prog.First.set('a');
   v.init(p);
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT(!v.search(text, text + 3, 35, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(Thread::NONE, v.search(text, text + 3, 35, &mockCallback, &hits));
   v.closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(1u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(35, 37, 3), hits[0]);
   text[1] = 'c';
   hits.clear();
-  SCOPE_ASSERT(!v.search(text, text + 3 , 35, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(Thread::NONE, v.search(text, text + 3 , 35, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(0u, hits.size());
 }
 
 SCOPE_TEST(newThreadInit) {
@@ -491,7 +493,7 @@ SCOPE_TEST(threeKeywords) {
   p->First.set('b');
   v.init(p);
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT(!v.search(text, &text[4], 10, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(Thread::NONE, v.search(text, &text[4], 10, &mockCallback, &hits));
   v.closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(3u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(11, 12, 0), hits[0]);
@@ -516,9 +518,9 @@ SCOPE_TEST(stitchedText) {
   p->First.set('a');
   v.init(p);
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT(v.search(text1, &text1[3], 0, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(2u, v.search(text1, &text1[3], 0, &mockCallback, &hits));
   SCOPE_ASSERT_EQUAL(0u, hits.size());
-  SCOPE_ASSERT(!v.search(text2, &text2[2], 3, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(Thread::NONE, v.search(text2, &text2[2], 3, &mockCallback, &hits));
   v.closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(1u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 4, 0), hits[0]);

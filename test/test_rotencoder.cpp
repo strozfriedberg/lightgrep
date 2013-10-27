@@ -77,7 +77,7 @@ SCOPE_TEST(testRotEncoderWriteSingleASCII) {
 SCOPE_TEST(testRotEncoderWriteSetASCII) {
 /*
   RotEncoder enc(13, ASCII());
- 
+
   const std::vector<std::vector<ByteSet>> expected{
     {
       {
@@ -100,7 +100,7 @@ SCOPE_TEST(testRotEncoderWriteSetASCII) {
       }
     }
   };
- 
+
   const UnicodeSet us{{0,0x80}};
   std::vector<std::vector<ByteSet>> actual;
   enc.write(us, actual);

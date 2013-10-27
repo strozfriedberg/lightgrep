@@ -4,10 +4,16 @@ AM_CPPFLAGS = -Iinclude
 AM_YFLAGS = -r solved
 
 LG_LIB = src/lib/liblightgrep.la
+LG_LIB_INT = src/lib/liblightgrepint.la
 
 lib_LTLIBRARIES = $(LG_LIB)
 
-src_lib_liblightgrep_la_SOURCES = \
+src_lib_liblightgrep_la_SOURCES =
+nodist_EXTRA_src_lib_liblightgrep_la_SOURCES = dummy.cpp # forces C++ linking
+
+noinst_LTLIBRARIES = $(LG_LIB_INT)
+
+src_lib_liblightgrepint_la_SOURCES = \
 	src/lib/ascii.cpp \
 	src/lib/automata.cpp \
 	src/lib/byteencoder.cpp \
@@ -49,7 +55,11 @@ src_lib_liblightgrep_la_SOURCES = \
 	src/lib/decoders/decoderfactory.cpp \
 	src/lib/decoders/ocedecoder.cpp
 
-src_lib_liblightgrep_la_LIBADD = $(ICU_LIBS) $(STDCXX_LIB)
+# TODO: Figure out how to build internal testing utilities
+# without exporting all C++ classes
+# src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
+
+src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_lib_liblightgrep_ladir = $(includedir)/lightgrep
 
@@ -60,7 +70,14 @@ src_lib_liblightgrep_la_HEADERS = \
 	include/lightgrep/util.h \
 	include/lightgrep/search_hit.h
 
-noinst_PROGRAMS = c_example/cex src/enc/enc src/val/val src/what/what
+noinst_PROGRAMS = \
+	c_example/cex \
+	src/enc/enc \
+	src/re_gen/debruijn \
+	src/re_gen/forms \
+	src/re_gen/inst \
+	src/val/val \
+	src/what/what
 
 c_example_cex_SOURCES = c_example/main.c
 c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
@@ -68,16 +85,27 @@ c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 src_enc_enc_SOURCES = src/enc/encodings.cpp
 src_enc_enc_LDADD = $(ICU_LIBS) $(STDCXX_LIB)
 
+src_re_gen_debruijn_SOURCES = src/re_gen/debruijn.cpp
+src_re_gen_debruijn_LDADD = $(STDCXX_LIB)
+
+src_re_gen_forms_SOURCES = src/re_gen/forms.cpp
+src_re_gen_forms_LDADD = $(STDCXX_LIB)
+
+src_re_gen_inst_SOURCES = src/re_gen/inst.cpp
+src_re_gen_inst_LDADD = $(STDCXX_LIB)
+
 src_val_val_SOURCES = src/val/valid.cpp
-src_val_val_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+src_val_val_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_what_what_SOURCES = src/what/what.cpp
-src_what_what_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+src_what_what_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 check_PROGRAMS = test/test
 TESTS = $(check_PROGRAMS)
 
 test_test_SOURCES = \
+	test/data_reader.cpp \
+	test/dtest.cpp \
 	test/mockcallback.cpp \
 	test/stest.cpp \
 	test/test.cpp \
@@ -99,13 +127,11 @@ test_test_SOURCES = \
 	test/test_c_util.cpp \
 	test/test_compiler.cpp \
 	test/test_graph.cpp \
-	test/test_hectopattern.cpp \
 	test/test_helper.cpp \
 	test/test_icu.cpp \
 	test/test_icudecoder.cpp \
 	test/test_icuutil.cpp \
 	test/test_instructions.cpp \
-	test/test_kilopattern.cpp \
 	test/test_matchgen.cpp \
 	test/test_nfabuilder.cpp \
 	test/test_nfaoptimizer.cpp \
@@ -119,6 +145,7 @@ test_test_SOURCES = \
 	test/test_rotencoder.cpp \
 	test/test_search_data.cpp \
 	test/test_searches.cpp \
+	test/test_searches_data.cpp \
 	test/test_sparseset.cpp \
 	test/test_states.cpp \
 	test/test_testregex_basic_modified.cpp \
@@ -136,4 +163,4 @@ test_test_SOURCES = \
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
 test_test_LDFLAGS = $(BOOST_LDFLAGS)
-test_test_LDADD = $(LG_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+test_test_LDADD = $(LG_LIB_INT) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)

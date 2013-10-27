@@ -135,6 +135,7 @@ int prepareStringForICU(Iterator& i, const Iterator& end, std::string& out) {
   // find the closing '}'
   const Iterator nend(std::find(i, end, '}'));
   if (nend == end) {
+    i = end;
     return -1;
   }
 
@@ -180,6 +181,16 @@ int propertyGetter(const std::string& prop, UnicodeSet& us);
 template <typename Iterator>
 int parseProperty(Iterator& i, const Iterator& end, UnicodeSet& us) {
   if (i == end) {
+    return -1;
+  }
+
+  if (i+1 == end || i+2 == end) {
+    i = end;
+    return -1;
+  }
+
+  if (*(i+2) != '{') {
+    i += 2;
     return -1;
   }
 

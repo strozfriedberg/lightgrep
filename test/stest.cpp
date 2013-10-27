@@ -18,17 +18,20 @@
 
 #include "stest.h"
 
-void collector(void* userData, const LG_SearchHit* const hit) {
-  STest* stest = static_cast<STest*>(userData);
+namespace {
+  void collector(void* userData, const LG_SearchHit* const hit) {
+    STest* stest = static_cast<STest*>(userData);
 
-  stest->Hits.push_back(*static_cast<const SearchHit* const>(hit));
+    stest->Hits.push_back(*static_cast<const SearchHit* const>(hit));
 
-  const LG_PatternInfo* info = lg_pattern_info(
-    stest->PMap.get(), hit->KeywordIndex
-  );
+    const LG_PatternInfo* info = lg_pattern_info(
+      stest->PMap.get(), hit->KeywordIndex
+    );
 
-  // adjust the hit to reflect the user pattern index
-  stest->Hits.back().KeywordIndex = reinterpret_cast<uint64_t>(info->UserData);
+    // adjust the hit to reflect the user pattern index
+    stest->Hits.back().KeywordIndex =
+      reinterpret_cast<uint64_t>(info->UserData);
+  }
 }
 
 void STest::init(const std::vector<Pattern>& pats) {

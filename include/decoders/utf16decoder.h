@@ -39,7 +39,7 @@ public:
 
   UTF16Decoder(UTF16Decoder&&) = default;
 
-  UTF16Decoder& operator=(const UTF16Decoder&) = default; 
+  UTF16Decoder& operator=(const UTF16Decoder&) = default;
 
   UTF16Decoder& operator=(UTF16Decoder&&) = default;
 

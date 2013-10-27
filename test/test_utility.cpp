@@ -76,7 +76,7 @@ SCOPE_TEST(oceUTF8) {
   SCOPE_ASSERT(g[3].IsMatch);
 
   SCOPE_ASSERT(!g[0].Trans);
- 
+
   const ByteSet ebs{0x8D};
   ByteSet abs;
   for (uint32_t i = 1; i < 4; ++i) {
@@ -295,7 +295,7 @@ SCOPE_TEST(testInitVM) {
   const byte text[] = "a onetwothree";
 
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT(!vm->search(&text[0], &text[13], 0, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(std::numeric_limits<uint64_t>::max(), vm->search(&text[0], &text[13], 0, &mockCallback, &hits));
   vm->closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(2u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 5, 0), hits[0]);

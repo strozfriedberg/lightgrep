@@ -52,7 +52,7 @@ SCOPE_TEST(testOCEEncoderWriteSingleASCII) {
 
 SCOPE_TEST(testOCEEncoderWriteSetASCII) {
   OCEEncoder enc{ASCII()};
- 
+
   const std::vector<std::vector<ByteSet>> expected{
     {
       {
@@ -75,7 +75,7 @@ SCOPE_TEST(testOCEEncoderWriteSetASCII) {
       }
     }
   };
- 
+
   const UnicodeSet us{{0,0x80}};
   std::vector<std::vector<ByteSet>> actual;
   enc.write(us, actual);

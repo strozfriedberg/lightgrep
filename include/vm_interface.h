@@ -30,7 +30,8 @@ public:
   virtual void init(ProgramPtr prog) = 0;
 
   virtual void startsWith(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) = 0;
-  virtual bool search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) = 0;
+  virtual uint64_t search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) = 0;
+  virtual uint64_t searchResolve(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) = 0;
   virtual void closeOut(HitCallback hitFn, void* userData) = 0;
   virtual void reset() = 0;
 

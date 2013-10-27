@@ -775,7 +775,7 @@ SCOPE_TEST(parseZeroDotStarZero) {
 }
 
 #define TEST_REPETITION_N(pattern, n) \
-  std::stringstream ss; \
+  std::ostringstream ss; \
   ss << pattern << '{' << n << '}'; \
 \
   NFABuilder nfab; \
@@ -808,7 +808,7 @@ SCOPE_TEST(parse_aLCnRC) {
 }
 
 #define TEST_REPETITION_N_U(pattern, n) \
-  std::stringstream ss; \
+  std::ostringstream ss; \
   ss << pattern << '{' << n << ",}"; \
 \
   NFABuilder nfab; \
@@ -867,7 +867,7 @@ SCOPE_TEST(parse_aLC0_RCQb) {
 }
 
 #define TEST_REPETITION_NG_N_U(pattern, n) \
-  std::stringstream ss; \
+  std::ostringstream ss; \
   ss << pattern << '{' << n << ",}?b"; \
 \
   NFABuilder nfab; \
@@ -931,7 +931,7 @@ SCOPE_TEST(parse_xa0_) {
 }
 
 #define TEST_REPETITION_N_M(pattern, n, m) \
-  std::stringstream ss; \
+  std::ostringstream ss; \
   ss << pattern << '{' << n << ',' << m << '}'; \
 \
   NFABuilder nfab; \

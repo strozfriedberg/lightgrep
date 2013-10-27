@@ -43,13 +43,13 @@ bool is_atomic(const ParseNode* n) {
 //
 
 void open_paren(std::ostream& out, const ParseNode* n) {
-  if (!is_binary(n) && !is_atomic(n->Left)) {
+  if (!is_binary(n) && !is_atomic(n->Child.Left)) {
     out << '(';
   }
 }
 
 void close_paren(std::ostream& out, const ParseNode* n) {
-  if (!is_binary(n) && !is_atomic(n->Left)) {
+  if (!is_binary(n) && !is_atomic(n->Child.Left)) {
     out << ')';
   }
 }
@@ -74,7 +74,7 @@ std::string byteToLiteralString(uint32_t i) {
     // otherwise, print the hex code
     default:
       {
-        std::stringstream ss;
+        std::ostringstream ss;
         ss << "\\x" << std::hex << std::uppercase
                     << std::setfill('0') << std::setw(2) << i;
         return ss.str();
@@ -104,7 +104,7 @@ std::string byteToCharacterString(uint32_t i) {
     // otherwise, print the hex code
     default:
       {
-        std::stringstream ss;
+        std::ostringstream ss;
         ss << "\\x" << std::hex << std::uppercase
                     << std::setfill('0') << std::setw(2) << i;
         return ss.str();
@@ -151,7 +151,7 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
   // will char class will be shorter if negated?
   const bool invert = sizediff > 0;
 
-  std::stringstream ss;
+  std::ostringstream ss;
 
   if (invert) {
     ss << '^';
@@ -277,51 +277,51 @@ std::string byteSetToCharacterClass(const ByteSet& bs) {
 void unparse(std::ostream& out, const ParseNode* n) {
   switch (n->Type) {
   case ParseNode::REGEXP:
-    if (!n->Left) {
+    if (!n->Child.Left) {
       return;
     }
 
-    unparse(out, n->Left);
+    unparse(out, n->Child.Left);
     break;
 
   case ParseNode::ALTERNATION:
-    unparse(out, n->Left);
+    unparse(out, n->Child.Left);
     out << '|';
-    unparse(out, n->Right);
+    unparse(out, n->Child.Right);
     break;
 
   case ParseNode::CONCATENATION:
-    if (n->Left->Type == ParseNode::ALTERNATION) {
+    if (n->Child.Left->Type == ParseNode::ALTERNATION) {
       out << '(';
-      unparse(out, n->Left);
+      unparse(out, n->Child.Left);
       out << ')';
     }
     else {
-      unparse(out, n->Left);
+      unparse(out, n->Child.Left);
     }
 
-    if (n->Right->Type == ParseNode::ALTERNATION) {
+    if (n->Child.Right->Type == ParseNode::ALTERNATION) {
       out << '(';
-      unparse(out, n->Right);
+      unparse(out, n->Child.Right);
       out << ')';
     }
     else {
-      unparse(out, n->Right);
+      unparse(out, n->Child.Right);
     }
     break;
 
   case ParseNode::REPETITION:
     open_paren(out, n);
-    unparse(out, n->Left);
+    unparse(out, n->Child.Left);
     close_paren(out, n);
-    repetition(out, n->Rep.Min, n->Rep.Max);
+    repetition(out, n->Child.Rep.Min, n->Child.Rep.Max);
     break;
 
   case ParseNode::REPETITION_NG:
     open_paren(out, n);
-    unparse(out, n->Left);
+    unparse(out, n->Child.Left);
     close_paren(out, n);
-    repetition(out, n->Rep.Min, n->Rep.Max);
+    repetition(out, n->Child.Rep.Min, n->Child.Rep.Max);
     out << '?';
     break;
 
@@ -333,7 +333,7 @@ void unparse(std::ostream& out, const ParseNode* n) {
     {
       ByteSet bs;
       for (uint32_t i = 0; i < 256; ++i) {
-        bs.set(i, n->CodePoints.test(i));
+        bs.set(i, n->Set.CodePoints.test(i));
       }
 
       out << '[' << byteSetToCharacterClass(bs) << ']';
@@ -355,7 +355,7 @@ void unparse(std::ostream& out, const ParseNode* n) {
 }
 
 std::string unparse(const ParseTree& tree) {
-  std::stringstream ss;
+  std::ostringstream ss;
   unparse(ss, tree.Root);
   return ss.str();
 }

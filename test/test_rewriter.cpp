@@ -154,8 +154,8 @@ SCOPE_TEST(spliceOutParentLeftTest) {
 
   spliceOutParent(tree.Root, con, l);
 
-  SCOPE_ASSERT_EQUAL(l, tree.Root->Left);
-  SCOPE_ASSERT_EQUAL((ParseNode*) nullptr, tree.Root->Right);
+  SCOPE_ASSERT_EQUAL(l, tree.Root->Child.Left);
+  SCOPE_ASSERT_EQUAL((ParseNode*) nullptr, tree.Root->Child.Right);
 }
 
 SCOPE_TEST(spliceOutParentRightTest) {
@@ -169,8 +169,8 @@ SCOPE_TEST(spliceOutParentRightTest) {
 
   spliceOutParent(tree.Root, con, r);
 
-  SCOPE_ASSERT_EQUAL(r, tree.Root->Left);
-  SCOPE_ASSERT_EQUAL((ParseNode*) nullptr, tree.Root->Right);
+  SCOPE_ASSERT_EQUAL(r, tree.Root->Child.Left);
+  SCOPE_ASSERT_EQUAL((ParseNode*) nullptr, tree.Root->Child.Right);
 }
 
 // FIXME: Split this into multiple tests.

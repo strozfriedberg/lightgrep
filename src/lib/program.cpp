@@ -33,7 +33,7 @@ bool Program::operator==(const Program& rhs) const {
 }
 
 std::string Program::marshall() const {
-  std::stringstream buf;
+  std::ostringstream buf;
   buf.write((char*)&NumChecked, sizeof(NumChecked));
   buf.write((char*)&First, sizeof(First));
   for (auto instruction: *this) {

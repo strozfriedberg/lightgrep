@@ -44,7 +44,7 @@ std::string testNot(const byte flags) {
 
 std::string Instruction::toString() const {
   std::string ret;
-  std::stringstream buf;
+  std::ostringstream buf;
   switch (OpCode) {
   case BYTE_OP:
     buf << "Byte " << testNot(Op.T1.Flags) << "0x" << HexCode<byte>(Op.T1.Byte)

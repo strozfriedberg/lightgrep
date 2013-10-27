@@ -181,10 +181,10 @@ void NFABuilder::dot(const ParseNode&) {
 }
 
 void NFABuilder::charClass(const ParseNode& n) {
-  const UnicodeSet uset(n.CodePoints & Enc->validCodePoints());
+  const UnicodeSet uset(n.Set.CodePoints & Enc->validCodePoints());
 
   if (uset.none()) {
-    if (!n.Breakout.Additive || n.Breakout.Bytes.none()) {
+    if (!n.Set.Breakout.Additive || n.Set.Breakout.Bytes.none()) {
       THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(
         "intersection of character class with " << Enc->name() << " is empty"
       );
@@ -192,7 +192,7 @@ void NFABuilder::charClass(const ParseNode& n) {
 
     // the breakout bytes are the entire character class
     NFA::VertexDescriptor v = Fsm->addVertex();
-    (*Fsm)[v].Trans = Fsm->TransFac->getSmallest(n.Breakout.Bytes);
+    (*Fsm)[v].Trans = Fsm->TransFac->getSmallest(n.Set.Breakout.Bytes);
     TempFrag.initFull(v, n);
   }
   else {
@@ -201,21 +201,21 @@ void NFABuilder::charClass(const ParseNode& n) {
     Enc->write(uset, TempEncRanges);
 
     // handle the breakout bytes
-    if (n.Breakout.Bytes.any()) {
-      if (n.Breakout.Additive) {
+    if (n.Set.Breakout.Bytes.any()) {
+      if (n.Set.Breakout.Additive) {
         // add breakout bytes to encodings
         if (TempEncRanges[0].size() == 1) {
-          TempEncRanges[0][0] |= n.Breakout.Bytes;
+          TempEncRanges[0][0] |= n.Set.Breakout.Bytes;
         }
         else {
           TempEncRanges.emplace_back(1);
-          TempEncRanges.back()[0] = n.Breakout.Bytes;
+          TempEncRanges.back()[0] = n.Set.Breakout.Bytes;
         }
       }
       else {
         // subtract breakout bytes from encodings
         if (TempEncRanges[0].size() == 1) {
-          TempEncRanges[0][0] &= ~n.Breakout.Bytes;
+          TempEncRanges[0][0] &= ~n.Set.Breakout.Bytes;
           if (TempEncRanges[0][0].none()) {
             TempEncRanges.erase(TempEncRanges.begin());
 
@@ -339,17 +339,17 @@ void NFABuilder::star_ng(const ParseNode& n) {
 }
 
 void NFABuilder::repetition(const ParseNode& n) {
-  if (n.Rep.Min == 0) {
-    if (n.Rep.Max == 1) {
+  if (n.Child.Rep.Min == 0) {
+    if (n.Child.Rep.Max == 1) {
       question(n);
       return;
     }
-    else if (n.Rep.Max == UNBOUNDED) {
+    else if (n.Child.Rep.Max == UNBOUNDED) {
       star(n);
       return;
     }
   }
-  else if (n.Rep.Min == 1 && n.Rep.Max == UNBOUNDED) {
+  else if (n.Child.Rep.Min == 1 && n.Child.Rep.Max == UNBOUNDED) {
     plus(n);
     return;
   }
@@ -358,17 +358,17 @@ void NFABuilder::repetition(const ParseNode& n) {
 }
 
 void NFABuilder::repetition_ng(const ParseNode& n) {
-  if (n.Rep.Min == 0) {
-    if (n.Rep.Max == 1) {
+  if (n.Child.Rep.Min == 0) {
+    if (n.Child.Rep.Max == 1) {
       question_ng(n);
       return;
     }
-    else if (n.Rep.Max == UNBOUNDED) {
+    else if (n.Child.Rep.Max == UNBOUNDED) {
       star_ng(n);
       return;
     }
   }
-  else if (n.Rep.Min == 1 && n.Rep.Max == UNBOUNDED) {
+  else if (n.Child.Rep.Min == 1 && n.Child.Rep.Max == UNBOUNDED) {
     plus_ng(n);
     return;
   }
@@ -473,13 +473,17 @@ void NFABuilder::traverse(const ParseNode* root) {
     wind.pop();
     unwind.push(n);
 
-    if (n->Left) {
+    if ((n->Type == ParseNode::REGEXP ||
+         n->Type == ParseNode::ALTERNATION ||
+         n->Type == ParseNode::CONCATENATION ||
+         n->Type == ParseNode::REPETITION ||
+         n->Type == ParseNode::REPETITION_NG) && n->Child.Left) {
       // This node has a left child
       if ((n->Type == ParseNode::REPETITION ||
            n->Type == ParseNode::REPETITION_NG) &&
-         !((n->Rep.Min == 0 &&
-           (n->Rep.Max == 1 || n->Rep.Max == UNBOUNDED)) ||
-           (n->Rep.Min == 1 && n->Rep.Max == UNBOUNDED)))
+         !((n->Child.Rep.Min == 0 &&
+           (n->Child.Rep.Max == 1 || n->Child.Rep.Max == UNBOUNDED)) ||
+           (n->Child.Rep.Min == 1 && n->Child.Rep.Max == UNBOUNDED)))
       {
         // This is a repetition, but not one of the special named ones.
         // We synthesize nodes here to eliminate counted repetitions.
@@ -509,55 +513,55 @@ void NFABuilder::traverse(const ParseNode* root) {
         ParseNode* none = 0;
         ParseNode* parent = &root;
 
-        if (n->Rep.Min > 0) {
+        if (n->Child.Rep.Min > 0) {
           // build the mandatory part
-          for (uint32_t i = 1; i < n->Rep.Min; ++i) {
+          for (uint32_t i = 1; i < n->Child.Rep.Min; ++i) {
             synth.push_back(std::shared_ptr<ParseNode>(
-              new ParseNode(ParseNode::CONCATENATION, n->Left, none))
+              new ParseNode(ParseNode::CONCATENATION, n->Child.Left, none))
             );
             ParseNode* con = synth.back().get();
 
-            parent->Right = con;
+            parent->Child.Right = con;
             parent = con;
           }
         }
 
-        if (n->Rep.Min == n->Rep.Max) {
+        if (n->Child.Rep.Min == n->Child.Rep.Max) {
           // finish the mandatory part
-          parent->Right = n->Left;
+          parent->Child.Right = n->Child.Left;
         }
-        else if (n->Rep.Max == UNBOUNDED) {
+        else if (n->Child.Rep.Max == UNBOUNDED) {
           // build the unbounded optional part
-          if (n->Rep.Min == 0) {
+          if (n->Child.Rep.Min == 0) {
             synth.push_back(std::shared_ptr<ParseNode>(
-              new ParseNode(n->Type, n->Left, 0, UNBOUNDED))
+              new ParseNode(n->Type, n->Child.Left, 0, UNBOUNDED))
             );
             ParseNode* star = synth.back().get();
-            parent->Right = star;
+            parent->Child.Right = star;
           }
           else {
             synth.push_back(std::shared_ptr<ParseNode>(
-              new ParseNode(n->Type, n->Left, 1, UNBOUNDED))
+              new ParseNode(n->Type, n->Child.Left, 1, UNBOUNDED))
             );
             ParseNode* plus = synth.back().get();
-            parent->Right = plus;
+            parent->Child.Right = plus;
           }
         }
         else {
-          if (n->Rep.Min > 0) {
+          if (n->Child.Rep.Min > 0) {
             // finish the mandatory part
             synth.push_back(std::shared_ptr<ParseNode>(
-              new ParseNode(ParseNode::CONCATENATION, n->Left, none))
+              new ParseNode(ParseNode::CONCATENATION, n->Child.Left, none))
             );
             ParseNode* con = synth.back().get();
-            parent->Right = con;
+            parent->Child.Right = con;
             parent = con;
           }
 
           // build the bounded optional part
-          for (uint32_t i = 1; i < n->Rep.Max - n->Rep.Min; ++i) {
+          for (uint32_t i = 1; i < n->Child.Rep.Max - n->Child.Rep.Min; ++i) {
             synth.push_back(std::shared_ptr<ParseNode>(
-              new ParseNode(ParseNode::CONCATENATION, n->Left, none))
+              new ParseNode(ParseNode::CONCATENATION, n->Child.Left, none))
             );
             ParseNode* con = synth.back().get();
 
@@ -566,28 +570,28 @@ void NFABuilder::traverse(const ParseNode* root) {
             );
             ParseNode* question = synth.back().get();
 
-            parent->Right = question;
+            parent->Child.Right = question;
             parent = con;
           }
 
           synth.push_back(std::shared_ptr<ParseNode>(
-            new ParseNode(n->Type, n->Left, 0, 1))
+            new ParseNode(n->Type, n->Child.Left, 0, 1))
           );
           ParseNode* question = synth.back().get();
-          parent->Right = question;
+          parent->Child.Right = question;
         }
 
-        wind.push(root.Right);
+        wind.push(root.Child.Right);
       }
       else {
         // this is not a repetition, or is one of ? * + ?? *? +?
-        wind.push(n->Left);
+        wind.push(n->Child.Left);
       }
     }
 
     if ((n->Type == ParseNode::ALTERNATION ||
-         n->Type == ParseNode::CONCATENATION) && n->Right) {
-      wind.push(n->Right);
+         n->Type == ParseNode::CONCATENATION) && n->Child.Right) {
+      wind.push(n->Child.Right);
     }
   }
 

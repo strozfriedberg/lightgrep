@@ -348,35 +348,35 @@ void transform_utf8_to_unicode_tester(Iterator tbegin, Iterator tend,
 }
 
 SCOPE_TEST(transform_utf8_to_unicode_ascii_test) {
-  const char* text = "All ASCII, all the time";
+  const char text[] = "All ASCII, all the time";
   const char* tend = text + strlen(text);
   const std::vector<int> exp(text, tend);
   transform_utf8_to_unicode_tester(text, tend, exp);
 }
 
 SCOPE_TEST(transform_utf8_to_unicode_latin1_test) {
-  const char* text = u8"Heizölrückstoßabdämpfung";
+  const char text[] = u8"Heizölrückstoßabdämpfung";
   const char* tend = text + strlen(text);
   const std::vector<int> exp{ 'H','e','i','z',U'ö','l','r',U'ü','c','k','s','t','o',U'ß','a','b','d',U'ä','m','p','f','u','n','g' };
   transform_utf8_to_unicode_tester(text, tend, exp);
 }
 
 SCOPE_TEST(transform_utf8_to_unicode_pile_of_poo_test) {
-  const char* text = u8"I \U0001F4A9 Unicode";
+  const char text[] = u8"I \U0001F4A9 Unicode";
   const char* tend = text + strlen(text);
   const std::vector<int>exp{ 'I',' ',0x1F4A9,' ','U','n','i','c','o','d','e' };
   transform_utf8_to_unicode_tester(text, tend, exp);
 }
 
 SCOPE_TEST(transform_utf8_to_unicode_all_lengths_test) {
-  const char* text = u8"1ĳღ𝖀";
+  const char text[] = u8"1ĳღ𝖀";
   const char* tend = text + strlen(text);
   const std::vector<int> exp{ '1', 0x133, 0x10E6, 0x1D580 };
   transform_utf8_to_unicode_tester(text, tend, exp);
 }
 
 SCOPE_TEST(transform_utf8_to_unicode_cyrillic_test) {
-  const char* text = u8"Народный комиссариат внутренних дел";
+  const char text[] = u8"Народный комиссариат внутренних дел";
   const char* tend = text + strlen(text);
   const std::vector<int> exp{
     U'Н',U'а',U'р',U'о',U'д',U'н',U'ы',U'й',U' ',
@@ -388,7 +388,7 @@ SCOPE_TEST(transform_utf8_to_unicode_cyrillic_test) {
 }
 
 SCOPE_TEST(transform_utf8_to_unicode_math_test) {
-  const char* text = u8"Let 𝖀 and 𝖁 be ultrafilters.";
+  const char text[] = u8"Let 𝖀 and 𝖁 be ultrafilters.";
   const char* tend = text + strlen(text);
   const std::vector<int> exp{
     'L','e','t',' ',0x1D580,' ','a','n','d',' ',0x1D581,' ',
@@ -397,21 +397,21 @@ SCOPE_TEST(transform_utf8_to_unicode_math_test) {
 }
 
 SCOPE_TEST(transform_utf8_to_unicode_chinese_test) {
-  const char* text = u8"𡡡𡡢𡡣𡡤";
+  const char text[] = u8"𡡡𡡢𡡣𡡤";
   const char* tend = text + strlen(text);
   const std::vector<int> exp{ 0x21861, 0x21862, 0x21863, 0x21864 };
   transform_utf8_to_unicode_tester(text, tend, exp);
 }
 
 SCOPE_TEST(transform_utf8_to_unicode_plane_e_test) {
-  const char* text = u8"\U000E0020\U000E0021\U000E0022";
+  const char text[] = u8"\U000E0020\U000E0021\U000E0022";
   const char* tend = text + strlen(text);
   const std::vector<int> exp{ 0xE0020, 0xE0021, 0xE0022 };
   transform_utf8_to_unicode_tester(text, tend, exp);
 }
 
 SCOPE_TEST(transform_utf8_to_unicode_pua_test) {
-  const char* text = u8"\U0010FFFF\U000FAFFF";
+  const char text[] = u8"\U0010FFFF\U000FAFFF";
   const char* tend = text + strlen(text);
   const std::vector<int> exp{ 0x10FFFF, 0xFAFFF };
   transform_utf8_to_unicode_tester(text, tend, exp);
@@ -430,4 +430,3 @@ SCOPE_TEST(transform_utf8_to_unicode_garbage_test) {
   const std::vector<int> exp{ 'a', -1, 'c', '\0', 'd' };
   transform_utf8_to_unicode_tester(text, tend, exp);
 }
-
