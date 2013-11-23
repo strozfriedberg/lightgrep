@@ -21,7 +21,13 @@
 #include "lightgrep/api.h"
 #include "basic.h"
 
-void fillError(LG_Error** err, const char* msg, int ind = -1);
+LG_Error* makeError(
+  const char* msg,
+  const char* pattern = nullptr,
+  const char* encodingChain = nullptr,
+  const char* source = nullptr,
+  int index = -1
+);
 
 template <typename F>
 auto trapWithRetval(F func, decltype(func()) fail, LG_Error** err) -> decltype(func()) {
@@ -29,10 +35,14 @@ auto trapWithRetval(F func, decltype(func()) fail, LG_Error** err) -> decltype(f
     return func();
   }
   catch (const std::exception& e) {
-    fillError(err, e.what());
+    if (err) {
+      *err = makeError(e.what());
+    }
   }
   catch (...) {
-    fillError(err, "Unspecified exception");
+    if (err) {
+      *err = makeError("Unspecified exception");
+    }
   }
 
   return fail;
@@ -55,10 +65,14 @@ R trapWithVals(F func, R succ, R fail, LG_Error** err) {
     return succ;
   }
   catch (const std::exception& e) {
-    fillError(err, e.what());
+    if (err) {
+      *err = makeError(e.what());
+    }
   }
   catch (...) {
-    fillError(err, "Unspecified exception");
+    if (err) {
+      *err = makeError("Unspecified exception");
+    }
   }
 
   return fail;

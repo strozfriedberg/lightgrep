@@ -56,7 +56,10 @@ namespace {
 void lg_free_error(LG_Error* err) {
   while (err) {
     LG_Error* next = err->Next;
+    delete[] err->Pattern;
+    delete[] err->EncodingChain;
     delete[] err->Message;
+    delete[] err->Source;
     delete err;
     err = next;
   }
@@ -180,6 +183,7 @@ namespace {
   int addPatternList(LG_HFSM hFsm,
                      LG_HPATTERNMAP hMap,
                      const char* patterns,
+                     const char* source,
                      const char** defaultEncodings,
                      size_t defaultEncodingsNum,
                      const LG_KeyOptions* defaultOptions,
@@ -206,11 +210,6 @@ namespace {
     cstr_tokenizer::const_iterator lcur(ltok.begin());
     const cstr_tokenizer::const_iterator lend(ltok.end());
     for (int lnum = 0; lcur != lend; ++lcur, ++lnum) {
-      // skip blank lines
-      if (lcur->empty()) {
-        continue;
-      }
-
       // split each pattern line into columns
       const tokenizer ctok(*lcur, char_separator("\t"));
       tokenizer::const_iterator ccur(ctok.begin());
@@ -218,7 +217,7 @@ namespace {
 
       if (ccur == cend) { // FIXME: is this possible?
         if (err) {
-          fillError(err, "no pattern", lnum);
+          *err = makeError("no pattern", nullptr, nullptr, source, lnum);
           err = &((*err)->Next);
         }
         continue;
@@ -237,7 +236,10 @@ namespace {
 
         if (etok.begin() == etok.end()) {
           if (err) {
-            fillError(err, "no encoding list", lnum);
+            *err = makeError(
+              "no encoding list",
+              pat.c_str(), nullptr, source, lnum
+            );
             err = &((*err)->Next);
           }
           continue;
@@ -251,7 +253,10 @@ namespace {
           }
           else {
             if (err) {
-              fillError(err, "missing case-sensitivity option", lnum);
+              *err = makeError(
+                "missing case-sensitivity option",
+                pat.c_str(), el.c_str(), source, lnum
+              );
               err = &((*err)->Next);
             }
             continue;
@@ -273,6 +278,7 @@ namespace {
 int lg_add_pattern_list(LG_HFSM hFsm,
                         LG_HPATTERNMAP hMap,
                         const char* patterns,
+                        const char* source,
                         const char** defaultEncodings,
                         unsigned int defaultEncodingsNum,
                         const LG_KeyOptions* defaultOptions,
@@ -281,8 +287,8 @@ int lg_add_pattern_list(LG_HFSM hFsm,
   LG_Error* in_err = nullptr;
 
   int ret = trapWithRetval(
-    [hFsm,hMap,patterns,defaultEncodings,defaultEncodingsNum,defaultOptions,&in_err]() {
-      return addPatternList(hFsm, hMap, patterns, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err);
+    [hFsm, hMap, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err]() {
+      return addPatternList(hFsm, hMap, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err);
     },
     -1,
     err

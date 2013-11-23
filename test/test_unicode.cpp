@@ -419,14 +419,14 @@ SCOPE_TEST(transform_utf8_to_unicode_pua_test) {
 
 SCOPE_TEST(transform_utf8_to_unicode_null_test) {
   const byte text[] = { 'a', 'b', 'c', '\0', 'd' };
-  const byte* tend = text + sizeof(text)/sizeof(text[0]);
+  const byte* tend = std::end(text);
   const std::vector<int> exp(text, tend);
   transform_utf8_to_unicode_tester(text, tend, exp);
 }
 
 SCOPE_TEST(transform_utf8_to_unicode_garbage_test) {
   const byte text[] = { 'a', 0xC0, 'c', '\0', 'd' };
-  const byte* tend = text + sizeof(text)/sizeof(text[0]);
+  const byte* tend = std::end(text);
   const std::vector<int> exp{ 'a', -1, 'c', '\0', 'd' };
-  transform_utf8_to_unicode_tester(text, tend, exp);
+  transform_utf8_to_unicode_tester(text, std::end(text), exp);
 }

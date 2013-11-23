@@ -64,7 +64,7 @@ SCOPE_TEST(testLgAddPatternList) {
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
   const char* defEncs[] = { "ASCII", "UTF-8" };
-  const size_t defEncsNum = sizeof(defEncs)/sizeof(defEncs[0]);
+  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
   const LG_KeyOptions defOpts{0, 0};
 
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
@@ -85,7 +85,8 @@ SCOPE_TEST(testLgAddPatternList) {
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), pmap.get(), pats, defEncs, defEncsNum, &defOpts, &err
+    fsm.get(), pmap.get(), pats, "testLgAddPatternList",
+    defEncs, defEncsNum, &defOpts, &err
   );
 
   SCOPE_ASSERT(!err);
@@ -100,7 +101,7 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
   const char* defEncs[] = { "ASCII", "UTF-8" };
-  const size_t defEncsNum = sizeof(defEncs)/sizeof(defEncs[0]);
+  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
   const LG_KeyOptions defOpts{0, 0};
 
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
@@ -118,10 +119,14 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
 
   SCOPE_ASSERT(fsm);
 
+// FIXME: finish this test
+// FIXME: clean up err
+
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), pmap.get(), pats, defEncs, defEncsNum, &defOpts, &err
+    fsm.get(), pmap.get(), pats, "testLgAddPatternListBadEncoding",
+    defEncs, defEncsNum, &defOpts, &err
   );
 
   SCOPE_ASSERT(err);
