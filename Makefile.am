@@ -1,6 +1,8 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CPPFLAGS = -Iinclude
+AM_CPPFLAGS = -Iinclude $(LG_CPPFLAGS) $(ICU_CPPFLAGS) $(BOOST_CPPFLAGS)
+AM_CXXFLAGS = $(STDCXX_CXXFLAGS) $(LG_CXXFLAGS) $(ICU_CXXFLAGS) $(BOOST_CXXFLAGS)
+AM_LDFLAGS = $(LG_LDFLAGS) $(BOOST_LDFLAGS)
 
 bin_PROGRAMS = src/cmd/lightgrep
 
@@ -13,7 +15,6 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/server.cpp \
 	src/cmd/util.cpp
 	
-src_cmd_lightgrep_LDFLAGS = $(BOOST_LDFLAGS)
 src_cmd_lightgrep_LDADD = $(LG_LIB) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 check_PROGRAMS = test/test
@@ -29,7 +30,6 @@ test_test_SOURCES = \
 	test/test_options.cpp
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
-test_test_LDFLAGS = $(BOOST_LDFLAGS)
 test_test_LDADD = $(LG_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 TESTS = $(check_PROGRAMS)

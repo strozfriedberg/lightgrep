@@ -33,9 +33,14 @@ AC_PROG_CXX
 AM_PROG_CC_C_O
 
 AC_LANG([C++])
+
+# Get the C++11 flag, but don't append it to CPPFLAGS
+CXXFLAGS_saved="$CXXFLAGS"
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 CXX11_FLAG=`echo $CXXFLAGS | sed -e 's/.* //'`
-AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [CXXFLAGS])
+CXXFLAGS="$CXXFLAGS_saved"
+
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3 $CXX11_FLAG], [LG_CXXFLAGS])
 
 AC_PROG_INSTALL
 
@@ -147,8 +152,8 @@ AC_SUBST([LG_LIB])
 AC_ARG_WITH([liblightgrep],
   [AS_HELP_STRING([--with-liblightgrep-headers=ARG],
     [use liblightgrep headers from the specified location])],
-  [CPPFLAGS+=" -I$withval"],
-  [CPPFLAGS+=" -Ivendors/liblightgrep/include"])
+  [LG_CPPFLAGS+=" -I$withval"],
+  [LG_CPPFLAGS+=" -Ivendors/liblightgrep/include"])
 
 if test "x$with_liblightgrep_headers" = "xno"; then
   AC_MSG_ERROR([--without-liblightgrep-headers specified, but liblightgrep headers are mandatory.])
@@ -156,7 +161,7 @@ fi
 
 # The header preprocessor check needs -std=c++11; we temporarily provide it.
 CPPFLAGS_saved="$CPPFLAGS"
-CPPFLAGS+=" $CXX11_FLAG"
+CPPFLAGS+=" $CXX11_FLAG $LG_CPPFLAGS"
 export CPPFLAGS
 
 AC_CHECK_HEADER([basic.h],
@@ -264,15 +269,19 @@ fi
 # 
 case "$host" in
 *-*-mingw*)
-  AX_APPEND_FLAG([-mthreads], [CPPLAGS])
-  AX_APPEND_LINK_FLAGS([-mthreads], [LDFLAGS])
+  AX_APPEND_FLAG([-mthreads], [LG_CPPLAGS])
+  AX_APPEND_LINK_FLAGS([-mthreads], [LG_LDFLAGS])
   ;;
 *-apple-darwin*)
   ;;
 *)
-  AX_APPEND_FLAG([-pthread], [CPPFLAGS])
-  AX_APPEND_LINK_FLAGS([-pthread], [LDFLAGS])
+  AX_APPEND_FLAG([-pthread], [LG_CPPFLAGS])
+  AX_APPEND_LINK_FLAGS([-pthread], [LG_LDFLAGS])
 esac
+
+AC_SUBST([LG_CPPFLAGS])
+AC_SUBST([LG_CXXFLAGS])
+AC_SUBST([LG_LDFLAGS])
 
 #
 # C++ library
@@ -283,7 +292,7 @@ case "$host" in
   echo " ** We presume you're using a recent clang and libc++."
   echo " ** And we recommend only building the library and not unit tests."
   echo " ** If you build the unit tests, you are entering a world of pain."
-  AX_APPEND_COMPILE_FLAGS([-stdlib=libc++], [CXXFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-stdlib=libc++], [STDCXX_CXXFLAGS])
   # TODO: Actually linking against libc++ will require everything else down
   # the chain to have been linked with libc++, including Boost, ICU, etc.
   # So, don't do this just yet.
@@ -296,13 +305,14 @@ case "$host" in
 esac
 
 AC_SUBST([STDCXX_LIB])
+AC_SUBST([STDCXX_CXXFLAGS])
 
 # FIXME: Is this really the right way to do this?!
 # Build dynamically-linked executables if we build dynamic libs
 if test "x$enable_shared" != "xyes"; then
   CXXLD="$CXX -all-static"
 
-  AX_APPEND_FLAG([-DBOOST_THREAD_USE_LIB], [CPPFLAGS])
+  AX_APPEND_FLAG([-DBOOST_THREAD_USE_LIB], [BOOST_CPPFLAGS])
 
   case "$host" in
   *-*-mingw*)
@@ -338,15 +348,16 @@ AC_ARG_WITH([customer],
   ]
   [AC_MSG_NOTICE([no customer specified])])
 
+# FIXME: temporarily suspended flag deduplication until we figure out
+# how to do it without stomping on the user variables
 #
 # Cleanup flags
 #
-AX_APPEND_COMPILE_FLAGS([$ICU_CPPFLAGS $BOOST_CPPFLAGS], [CPPFLAGS])
-AX_APPEND_COMPILE_FLAGS([$ICU_CXXFLAGS $BOOST_CXXFLAGS], [CXXFLAGS]) 
+#AX_APPEND_COMPILE_FLAGS([$ICU_CPPFLAGS $BOOST_CPPFLAGS], [CPPFLAGS])
+#AX_APPEND_COMPILE_FLAGS([$ICU_CXXFLAGS $BOOST_CXXFLAGS], [CXXFLAGS])
 
-LG_UNIQ_FLAGS([CPPFLAGS])
-LG_UNIQ_FLAGS([CXXFLAGS])
-
+#LG_UNIQ_FLAGS([CPPFLAGS])
+#LG_UNIQ_FLAGS([CXXFLAGS])
 
 
 # TODO: libtre has a nice display we can steal
