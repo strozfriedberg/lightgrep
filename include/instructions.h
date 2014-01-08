@@ -23,13 +23,12 @@
 #include <iosfwd>
 
 enum OpCodes {
-  UNINITIALIZED = 0,
+  JUMP_TABLE_RANGE_OP = 0,
   BYTE_OP,
+  BIT_VECTOR_OP,
   EITHER_OP,
   RANGE_OP,
   ANY_OP,
-  BIT_VECTOR_OP,
-  JUMP_TABLE_RANGE_OP,
   FINISH_OP,
   FORK_OP,
   JUMP_OP,
@@ -37,8 +36,7 @@ enum OpCodes {
   LABEL_OP,
   MATCH_OP,
   ADJUST_START_OP,
-  HALT_OP,
-  ILLEGAL
+  HALT_OP
 };
 
 template<int OPCODE> struct InstructionSize { enum { VAL = 1 }; };
@@ -74,18 +72,17 @@ struct Instruction {
   unsigned char OpCode;
   Operand  Op;
 
-  Instruction(): OpCode(ILLEGAL) { Op.Offset = 0; }
+  Instruction(): OpCode(HALT_OP) { Op.Offset = 0; }
 
   byte wordSize() const {
     switch (OpCode) {
     case BIT_VECTOR_OP:
       return InstructionSize<BIT_VECTOR_OP>::VAL;
-    case JUMP_OP:
-      return InstructionSize<JUMP_OP>::VAL;
     case FORK_OP:
+    case JUMP_OP:
       return InstructionSize<FORK_OP>::VAL;
     default:
-      return InstructionSize<UNINITIALIZED>::VAL;
+      return InstructionSize<HALT_OP>::VAL;
     }
   }
 
