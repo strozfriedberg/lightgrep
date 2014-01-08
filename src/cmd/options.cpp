@@ -1,30 +1,10 @@
-// must include <fstream> before options.h, because of <iosfwd> usage
 #include <iostream>
+// must include <fstream> before options.h, because of <iosfwd> usage
 #include <fstream>
-#include <stdexcept>
-
-#include <boost/tokenizer.hpp>
 
 #include "options.h"
-#include "utility.h"
-
-bool Options::readKeyFile(const std::string& keyFilePath, PatternInfo& keys) const {
-  std::ifstream keyFile(keyFilePath.c_str(), std::ios::in);
-  if (keyFile) {
-    uint32 i = 0;
-    while (keyFile) {
-      char line[8192];
-      keyFile.getline(line, 8192);
-      std::string lineS(line);
-      parseLine(i++, lineS, keys);
-    }
-    return !keys.empty();
-  }
-  else {
-    std::cerr << "Could not open keywords file " <<  keyFilePath << std::endl;
-    return false;
-  }
-}
+#include "ostream_join_iterator.h"
+#include "util.h"
 
 std::ostream& Options::openOutput() const {
   if (Output == "-") {
@@ -44,81 +24,56 @@ std::ostream& Options::openOutput() const {
   }
 }
 
-PatternInfo Options::getKeys() const {
-  PatternInfo ret;
+std::vector<std::pair<std::string,std::string>> Options::getPatternLines() const {
+  std::vector<std::pair<std::string,std::string>> ret;
+
   if (!CmdLinePatterns.empty()) {
-    uint32 keyIndex = 0;
-    for (std::string p : CmdLinePatterns) {
-      parseLine(keyIndex, p, ret);
-      ++keyIndex;
-    }
-  }
-  else {
-    for (std::string kf : KeyFiles) {
-      readKeyFile(kf, ret);
-    }
-  }
-  return ret;
-}
+    std::ostringstream os;
 
-void setBool(const std::string& s, bool& b) {
-  if (0 == s.compare("1")) {
-    b = true;
-  }
-  else if (0 == s.compare("0")) {
-    b = false;
-  }
-  // don't set if unrecognized
-}
+    // use patterns from the command line
+    for (const std::string& p : CmdLinePatterns) {
+      // pattern
+      os << p << '\t';
 
-bool Options::parseLine(uint32 keyIndex, const std::string& line, PatternInfo& keys) const {
-  typedef boost::char_separator<char> char_separator;
-  typedef boost::tokenizer<char_separator> tokenizer;
-
-  if (!line.empty()) {
-    const tokenizer tokens(line, char_separator("\t"));
-    tokenizer::const_iterator curTok(tokens.begin());
-    const tokenizer::const_iterator endTok(tokens.end());
-    if (curTok != endTok) {
-      Pattern p(*curTok, LiteralMode, CaseInsensitive, keyIndex, "");
-
-      if (++curTok == endTok) {
-        // encoding names are in Encodings
-        if (Encodings.empty()) {
-          return false;
-        }
-
-        for (const std::string& enc : Encodings) {
-          p.Encoding = enc;
-          keys.Patterns.push_back(p);
-        }
+      // encodings
+      if (Encodings.empty()) {
+        os << "ASCII";
       }
       else {
-        // encoding names are at the end of the line
-        setBool(*curTok, p.FixedString);
-        if (++curTok == endTok) {
-          return false;
-        }
-        setBool(*curTok, p.CaseInsensitive);
-
-        if (++curTok == endTok) {
-          return false;
-        }
-
-        const tokenizer encList(*curTok, char_separator(","));
-        if (encList.begin() == encList.end()) {
-          return false;
-        }
-
-        for (const std::string& enc : encList) {
-          p.Encoding = enc;
-          keys.Patterns.push_back(p);
-        }
+        std::copy(
+          Encodings.begin(), Encodings.end(),
+          ostream_join_iterator<std::string>(os, ",")
+        );
       }
 
-      ++keys.NumUserPatterns;
-      return true;
+      os << '\t';
+
+      // options
+      os << static_cast<unsigned int>(LiteralMode) << '\t'
+         << static_cast<unsigned int>(CaseInsensitive) << '\n';
+    }
+
+    ret.emplace_back("", os.str());
+  }
+  else {
+    // use patterns from pattern files
+    for (const std::string& kf : KeyFiles) {
+      std::ifstream in(kf);
+      if (in) {
+// FIXME: handle I/O errors?
+
+        // read the whole file
+        const std::streampos size = stream_size(in);
+        std::string buf(size, '\0');
+        in.read(&buf[0], size);
+
+        ret.emplace_back(kf, buf);
+      }
+      else {
+        std::cerr << "Could not open pattern file " <<  kf << std::endl;
+      }
     }
   }
-  return false;
+
+  return ret;
 }

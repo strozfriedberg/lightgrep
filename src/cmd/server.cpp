@@ -1,13 +1,16 @@
 #include "basic.h"
 
+#include <lightgrep/api.h>
+#include <lightgrep/util.h>
+
 #include <algorithm>
 #include <cstdlib>
 #include <csignal>
 #include <fstream>
 #include <functional>
 #include <iostream>
-#include <memory>
 
+#define BOOST_BIND_NO_PLACEHOLDERS
 #define BOOST_ENABLE_ASSERT_HANDLER 1
 
 namespace boost {
@@ -18,25 +21,26 @@ namespace boost {
 
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/thread.hpp>
 
 #include "handles.h"
 #include "hitwriter.h"
 #include "options.h"
-#include "patterninfo.h"
 #include "staticvector.h"
 #include "utility.h"
 
-#include "include_boost_thread.h"
-
 using boost::asio::ip::tcp;
 
-static const uint64 BUF_SIZE = 1024 * 1024;
+static const uint64_t BUF_SIZE = 1024 * 1024;
 
 //********************************************************
 
 class SafeStream {
 public:
-  SafeStream(std::ostream* baseStream, const std::shared_ptr<boost::mutex>& mutex):
+  SafeStream(
+    std::ostream* baseStream,
+    std::shared_ptr<boost::mutex> mutex
+  ):
     BaseStream(baseStream), Mutex(mutex) {}
 
   SafeStream& operator+=(const std::ostream& buf) {
@@ -57,8 +61,8 @@ private:
 };
 
 namespace {
-  static std::ostream* ErrOut = &std::cerr;
-  static std::shared_ptr<boost::mutex> ErrMutex(new boost::mutex);
+  std::ostream* ErrOut = &std::cerr;
+  std::shared_ptr<boost::mutex> ErrMutex(new boost::mutex);
 }
 
 SafeStream writeErr() {
@@ -73,13 +77,13 @@ public:
   std::shared_ptr<boost::mutex> Mutex;
   std::shared_ptr<std::ofstream> File;
   std::string         StatsFileName;
-  std::vector<uint64> FileCounts,
+  std::vector<uint64_t> FileCounts,
                       HitCounts;
-  uint64              ResponsiveFiles,
+  uint64_t              ResponsiveFiles,
                       TotalHits;
   unsigned short      Port;
 
-  bool init(const std::string& path, const std::string& statsFileName, uint32 numKeywords, unsigned short port) {
+  bool init(const std::string& path, const std::string& statsFileName, uint32_t numKeywords, unsigned short port) {
     if (!path.empty()) {
       File.reset(new std::ofstream(path.c_str(), std::ios::out));
       if (!*File) {
@@ -105,8 +109,8 @@ public:
       // buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
       // buf << "Total Hits" << std::ends << TotalHits << std::ends;
       // buf << "File Counts" << std::ends;
-      uint32 i;
-      uint64 c;
+      uint32_t i;
+      uint64_t c;
       for (i = 0; i < FileCounts.size(); ++i) {
         c = FileCounts[i];
         if (c > 0) {
@@ -131,9 +135,9 @@ public:
     output = buf.str();
   }
 
-  void updateHits(const std::vector<uint32>& hitsForFile) {
+  void updateHits(const std::vector<uint32_t>& hitsForFile) {
     boost::mutex::scoped_lock lock(*Mutex);
-    uint64 c = 0;
+    uint64_t c = 0;
     bool hadHits = false;
     for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
       c = hitsForFile[i];
@@ -201,73 +205,79 @@ struct FileHeader {
 
   byte   Cmd,
          Type;
-  uint64 ID,
+  uint64_t ID,
          StartOffset,
          Length;
 };
 
 struct HitInfo {
-  uint64 ID,
+  uint64_t ID,
          Offset,
          Length;
-  uint32 Label,
+  uint32_t Label,
          Encoding,
          Type;
 };
 #pragma pack()
 //********************************************************
 
-class ServerWriter: public PatternInfo {
+class ServerWriter {
 public:
-  ServerWriter(const PatternInfo& pinfo): PatternInfo(pinfo), NumHits(0), HitsForFile(pinfo.NumUserPatterns, 0) {}
+  ServerWriter(const LG_HPATTERNMAP hMap, uint32_t numUserPatterns):
+    Map(hMap), NumHits(0), HitsForFile(numUserPatterns, 0) {}
+
   virtual ~ServerWriter() {}
 
   virtual void collect(const LG_SearchHit& hit) {
+    const LG_PatternInfo* info = lg_pattern_info(Map, hit.KeywordIndex);
+
     ++NumHits;
     Hit.Offset = hit.Start;
     Hit.Length = hit.End - hit.Start;
-    Hit.Label  = Table[hit.KeywordIndex].first;
-    Hit.Encoding = Table[hit.KeywordIndex].second;
+    Hit.Label = reinterpret_cast<uint64_t>(info->UserData);
+// FIXME: this is wrong generally, but EnCase uses trivial chains for now
+    Hit.Encoding = lg_get_encoding_id(info->EncodingChain);
     ++HitsForFile[Hit.Label];
     write(Hit);
   }
 
   virtual void write(const HitInfo& hit) = 0;
+
   virtual void flush() {}
 
-  void writeEndHit(uint64 fileLen) {
-    Hit.Offset = std::numeric_limits<uint64>::max();
+  void writeEndHit(uint64_t fileLen) {
+    Hit.Offset = std::numeric_limits<uint64_t>::max();
     Hit.Length = fileLen;
-    Hit.Label = std::numeric_limits<uint32>::max();
+    Hit.Label = std::numeric_limits<uint32_t>::max();
     Hit.Encoding = 0;
     Hit.Type = 0;
     write(Hit);
     Registry::get().updateHits(HitsForFile);
     HitsForFile.assign(HitsForFile.size(), 0);
-    Hit.ID = std::numeric_limits<uint64>::max();
+    Hit.ID = std::numeric_limits<uint64_t>::max();
   }
 
-  void setCurID(uint64 id) { Hit.ID = id; }
+  void setCurID(uint64_t id) { Hit.ID = id; }
+
   void setType(byte type) { Hit.Type = type; }
 
-  uint64 numHits() const { return NumHits; }
+  uint64_t numHits() const { return NumHits; }
 
 private:
-  uint64  NumHits;
+  const LG_HPATTERNMAP Map;
+  uint64_t  NumHits;
   HitInfo Hit;
-
-  std::vector<uint32> HitsForFile;
+  std::vector<uint32_t> HitsForFile;
 };
 //********************************************************
 
 class SocketWriter: public ServerWriter {
 public:
-  SocketWriter(std::shared_ptr<tcp::socket> sock,
-               const PatternInfo& pinfo):
-               ServerWriter(pinfo),
-               Socket(sock) {}
-
-  virtual ~SocketWriter() {}
+  SocketWriter(
+    std::shared_ptr<tcp::socket> sock,
+    const LG_HPATTERNMAP hMap,
+    uint32_t numUserPatterns
+  ): ServerWriter(hMap, numUserPatterns), Socket(sock) {}
 
   virtual void write(const HitInfo& hit) {
     boost::asio::write(
@@ -287,8 +297,13 @@ void socketWriter(void* userData, const LG_SearchHit* const hit) {
 
 class SafeFileWriter: public ServerWriter {
 public:
-  SafeFileWriter(std::shared_ptr<std::ofstream> output, std::shared_ptr<boost::mutex> m, const PatternInfo& pinfo):
-    ServerWriter(pinfo),
+  SafeFileWriter(
+    std::shared_ptr<std::ofstream> output,
+    std::shared_ptr<boost::mutex> m,
+    const LG_HPATTERNMAP hMap,
+    uint32_t numUserPatterns
+  ):
+    ServerWriter(hMap, numUserPatterns),
     Mutex(m),
     Output(output),
     Buffer(1000)
@@ -310,13 +325,13 @@ public:
     {
       boost::mutex::scoped_lock lock(*Mutex);
       writeErr() += "Flushing hits file\n";
-      for (StaticVector<HitInfo>::const_iterator it(Buffer.begin()); it != Buffer.end(); ++it) {
-        *Output << it->ID << '\t'
-                << it->Offset << '\t'
-                << it->Length << '\t'
-                << it->Label << '\t'
-                << it->Encoding << '\t'
-                << it->Type << '\n';
+      for (const HitInfo& hi : Buffer) {
+        *Output << hi.ID << '\t'
+                << hi.Offset << '\t'
+                << hi.Length << '\t'
+                << hi.Label << '\t'
+                << hi.Encoding << '\t'
+                << hi.Type << '\n';
       }
       Output->flush();
     }
@@ -326,7 +341,7 @@ public:
 private:
   std::shared_ptr<boost::mutex> Mutex;
   std::shared_ptr<std::ofstream> Output;
-  StaticVector<HitInfo>    Buffer;
+  StaticVector<HitInfo> Buffer;
 };
 
 void safeFileWriter(void* userData, const LG_SearchHit* const hit) {
@@ -351,9 +366,9 @@ void sendStats(tcp::socket& sock) {
   writeErr() += "asked for stats\n";
   std::string stats;
   Registry::get().getStats(stats);
-  uint64 bytes = stats.size();
+  uint64_t bytes = stats.size();
   boost::asio::write(sock, boost::asio::buffer(&bytes, sizeof(bytes)));
-  uint64 ackBytes = 0;
+  uint64_t ackBytes = 0;
   if (boost::asio::read(sock, boost::asio::buffer(&ackBytes, sizeof(ackBytes))) == sizeof(ackBytes)) {
     if (ackBytes == bytes) {
       boost::asio::write(sock, boost::asio::buffer(stats));
@@ -376,7 +391,7 @@ void searchStream(tcp::socket& sock, const FileHeader& hdr, std::shared_ptr<Serv
   output->setCurID(hdr.ID); // ID just gets passed through, so client can associate hits with particular file
   output->setType(hdr.Type);
   std::size_t len = 0;
-  uint64 offset = hdr.StartOffset,
+  uint64_t offset = hdr.StartOffset,
          totalRead = 0;
   while (totalRead < hdr.Length) {
     boost::this_thread::interruption_point();
@@ -408,27 +423,27 @@ void processConn(
 
 class HitStats {
 public:
-  HitStats(uint32 numKeywords);
+  HitStats(uint32_t numKeywords);
 
-  void updateHits(const std::vector<uint32>& hitsForFile);
+  void updateHits(const std::vector<uint32_t>& hitsForFile);
 
   std::string getStats() const;
 
 private:
-  std::vector<uint64> FileCounts,
+  std::vector<uint64_t> FileCounts,
                       HitCounts;
-  uint64              ResponsiveFiles,
+  uint64_t              ResponsiveFiles,
                       TotalHits;
 };
 
-HitStats::HitStats(uint32 numKeywords):
+HitStats::HitStats(uint32_t numKeywords):
   FileCounts(numKeywords, 0),
   HitCounts(numKeywords, 0),
   ResponsiveFiles(0), TotalHits(0)
 {}
 
-void HitStats::updateHits(const std::vector<uint32>& hitsForFile) {
-  uint64 c = 0;
+void HitStats::updateHits(const std::vector<uint32_t>& hitsForFile) {
+  uint64_t c = 0;
   bool hadHits = false;
   for (unsigned int i = 0; i < hitsForFile.size(); ++i) {
     c = hitsForFile[i];
@@ -451,8 +466,8 @@ std::string HitStats::getStats() const {
   // buf << "Responsive Files" << std::ends << ResponsiveFiles << std::ends;
   // buf << "Total Hits" << std::ends << TotalHits << std::ends;
   // buf << "File Counts" << std::ends;
-  uint32 i;
-  uint64 c;
+  uint32_t i;
+  uint64_t c;
   for (i = 0; i < FileCounts.size(); ++i) {
     c = FileCounts[i];
     if (c > 0) {
@@ -478,7 +493,12 @@ std::string HitStats::getStats() const {
 
 class LGServer {
 public:
-  LGServer(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts);
+  LGServer(
+    std::shared_ptr<ProgramHandle> prog,
+    std::shared_ptr<PatternMapHandle> pmap,
+    uint32_t numUserPatterns,
+    const Options& opts
+  );
 
   void run();
 
@@ -495,7 +515,7 @@ public:
 
   void writeHits(const std::vector<HitInfo>& hits);
 
-  void updateHits(const std::vector<uint32> hitsForFile) {
+  void updateHits(const std::vector<uint32_t> hitsForFile) {
     boost::mutex::scoped_lock lock(Mutex);
     Stats.updateHits(hitsForFile);
   }
@@ -511,7 +531,7 @@ private:
 
   const Options&          Opts;
   std::shared_ptr<ProgramHandle> Prog;
-  const PatternInfo&      PInfo;
+  std::shared_ptr<PatternMapHandle> Map;
   bool                    UsesFile;
 
   boost::asio::io_service Service;
@@ -521,17 +541,21 @@ private:
   std::vector<boost::thread>   Threads;
   mutable boost::mutex         Mutex;
   HitStats                     Stats;
+
+  uint32_t NumUserPatterns;
 };
 
 LGServer::LGServer(
   std::shared_ptr<ProgramHandle> prog,
-  const PatternInfo& pinfo,
-  const Options& opts)
-  : Opts(opts), Prog(prog), PInfo(pinfo), Service(), Acceptor(Service),
-    Stats(pinfo.Table.size())
+  std::shared_ptr<PatternMapHandle> pmap,
+  uint32_t numUserPatterns,
+  const Options& opts
+):
+  Opts(opts), Prog(prog), Map(pmap), Service(), Acceptor(Service),
+  Stats(lg_pattern_map_size(pmap.get())), NumUserPatterns(numUserPatterns)
 {
   if (Opts.Output != "-") {
-    if (!Registry::get().init(Opts.Output, Opts.StatsFileName, PInfo.NumUserPatterns, opts.ServerPort)) {
+    if (!Registry::get().init(Opts.Output, Opts.StatsFileName, NumUserPatterns, opts.ServerPort)) {
       THROW_RUNTIME_ERROR_WITH_OUTPUT(
         "Could not open output file at " << Opts.Output
       );
@@ -539,7 +563,7 @@ LGServer::LGServer(
     UsesFile = true;
   }
   else {
-    Registry::get().init("", Opts.StatsFileName, pinfo.NumUserPatterns, opts.ServerPort);
+    Registry::get().init("", Opts.StatsFileName, NumUserPatterns, opts.ServerPort);
   }
 
   // resolve the server address
@@ -582,11 +606,11 @@ void LGServer::accept(const boost::system::error_code& err) {
     std::shared_ptr<ServerWriter> writer;
     if (UsesFile) {
       callback = &safeFileWriter;
-      writer.reset(new SafeFileWriter(Registry::get().File, Registry::get().Mutex, PInfo));
+      writer.reset(new SafeFileWriter(Registry::get().File, Registry::get().Mutex, Map.get(), NumUserPatterns));
     }
     else {
       callback = &socketWriter;
-      writer.reset(new SocketWriter(Socket, PInfo));
+      writer.reset(new SocketWriter(Socket, Map.get(), NumUserPatterns));
     }
     Threads.push_back(boost::thread(
       std::bind(processConn, this, Socket, Prog, writer, callback))
@@ -659,7 +683,7 @@ void processConn(
       else {
         THROW_RUNTIME_ERROR_WITH_OUTPUT("Encountered some error reading off the file length from the socket");
       }
-      // uint32 i = ntohl(*(uint32*)data);
+      // uint32_t i = ntohl(*(uint32_t*)data);
     }
   }
   catch (const std::exception& e) {
@@ -672,7 +696,12 @@ void processConn(
   server->requestCleanup(boost::this_thread::get_id());
 }
 
-void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, const Options& opts) {
+void startup(
+  std::shared_ptr<ProgramHandle> prog,
+  std::shared_ptr<PatternMapHandle> pmap,
+  uint32_t numUserPatterns,
+  const Options& opts)
+{
   std::unique_ptr<std::ostream> outptr;
 
   if (!opts.ServerLog.empty()) {
@@ -685,7 +714,7 @@ void startup(std::shared_ptr<ProgramHandle> prog, const PatternInfo& pinfo, cons
   }
 
   try {
-    LGServer srv(prog, pinfo, opts);
+    LGServer srv(prog, pmap, numUserPatterns, opts);
     srv.run();
   }
   catch (const std::exception& e) {
