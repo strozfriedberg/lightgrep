@@ -612,8 +612,8 @@ void LGServer::accept(const boost::system::error_code& err) {
       callback = &socketWriter;
       writer.reset(new SocketWriter(Socket, Map.get(), NumUserPatterns));
     }
-    Threads.push_back(boost::thread(
-      std::bind(processConn, this, Socket, Prog, writer, callback))
+    Threads.emplace_back(
+      std::bind(processConn, this, Socket, Prog, writer, callback)
     );
   }
   resetAcceptor();
