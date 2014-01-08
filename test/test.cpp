@@ -1,8 +1,15 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+
+#ifndef HAVE_SCOPE
+#error The Scope testing framework is required to compile and run the tests.
+#endif
+
+#endif /* HAVE_CONFIG_H */
+
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <scope/testrunner.h>
-
-#include "test_search_data.h"
 
 namespace po = boost::program_options;
 
@@ -12,7 +19,6 @@ int main(int argc, char** argv) {
   desc.add_options()
     ("help,h", "print help")
     ("test", "run unit tests (same as test command)")
-    ("long-test", "run long test")
     ("debug", "print debuging info")
     ;
 
@@ -27,11 +33,8 @@ int main(int argc, char** argv) {
     if (optsMap.count("help")) {
       std::cerr << desc << std::endl;
     }
-    else if (optsMap.count("test")) {
+    else if (optsMap.count("test") || optsMap.empty()) {
       return scope::DefaultRun(std::cout, argc, argv) ? 0: 1;
-    }
-    else if (optsMap.count("long-test")) {
-      longTest();
     }
     else {
       // this should be impossible

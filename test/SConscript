@@ -1,8 +1,0 @@
-Import('env')
-libs = ['lightgrep', 'icuuc', 'icudata',
-	'boost_program_options' + env['boostType']]
-optSrcs = env.Glob('#/src/cmd/opt*.cpp')
-testSrcs = env.Glob('*.cpp')
-testSrcs.extend(optSrcs)
-ret = env.Program('test', testSrcs, LIBS=libs)
-Return('ret')

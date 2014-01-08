@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lightgrep_c_api.h"
-#include "patterninfo.h"
+#include <lightgrep/api.h>
+#include <lightgrep/search_hit.h>
 
 #include <iosfwd>
 #include <string>
@@ -12,26 +12,27 @@ struct HitCounterInfo {
 
   virtual ~HitCounterInfo() {}
 
-  uint64 NumHits;
+  uint64_t NumHits;
 
   virtual void setPath(const std::string&) {}
 };
 
 void nullWriter(void* userData, const LG_SearchHit* const);
 
-struct HitWriterInfo: public HitCounterInfo, PatternInfo {
-  HitWriterInfo(std::ostream& outStream, const PatternInfo& pinfo):
-                PatternInfo(pinfo), Out(outStream) {}
+struct HitWriterInfo: public HitCounterInfo {
+  HitWriterInfo(std::ostream& outStream, const LG_HPATTERNMAP hMap):
+    Out(outStream), Map(hMap) {}
 
   std::ostream& Out;
+
+  const LG_HPATTERNMAP Map;
 };
 
 void hitWriter(void* userData, const LG_SearchHit* const hit);
 
 struct PathWriterInfo: public HitWriterInfo {
-  PathWriterInfo(std::ostream& outStream,
-                 const PatternInfo& pinfo):
-                 HitWriterInfo(outStream, pinfo) {}
+  PathWriterInfo(std::ostream& outStream, const LG_HPATTERNMAP hMap):
+    HitWriterInfo(outStream, hMap) {}
 
   std::string Path;
 
@@ -39,4 +40,3 @@ struct PathWriterInfo: public HitWriterInfo {
 };
 
 void pathWriter(void* userData, const LG_SearchHit* const hit);
-

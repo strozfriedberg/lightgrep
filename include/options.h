@@ -1,20 +1,17 @@
 #pragma once
 
-// must include <fstream> before this header, because of <iosfwd> usage
-
-#include "automata.h"
 #include "basic.h"
-#include "patterninfo.h"
+#include "automata.h"
 
-#include <iosfwd>
+#include <fstream>
 #include <set>
 #include <string>
 #include <vector>
 
 class Options {
 public:
-  uint64 DebugBegin,
-         DebugEnd;
+  uint64_t DebugBegin,
+           DebugEnd;
 
   std::set<std::string>::size_type SampleLimit;
   std::multiset<NFA::VertexDescriptor>::size_type LoopLimit;
@@ -43,7 +40,7 @@ public:
                            KeyFiles,
                            Encodings;
 
-  uint32 BlockSize;
+  uint32_t BlockSize;
 
   unsigned short ServerPort;
 
@@ -59,8 +56,5 @@ public:
 
   std::ostream& openOutput() const;
 
-  PatternInfo getKeys() const;
-
-  bool readKeyFile(const std::string& keyFilePath, PatternInfo& keys) const;
-  bool parseLine(uint32 keyIndex, const std::string& line, PatternInfo& keys) const;
+  std::vector<std::pair<std::string,std::string>> getPatternLines() const;
 };

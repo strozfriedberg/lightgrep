@@ -1,0 +1,484 @@
+\documentclass{article}
+\usepackage[letterpaper,margin=0.5in]{geometry}
+\usepackage{amsmath}
+\usepackage{microtype}
+
+\usepackage{multirow}
+
+%\usepackage{lmodern}
+%\renewcommand*\familydefault{\sfdefault}
+%\usepackage[sfdefault,condensed]{cabin}
+\usepackage[T1]{fontenc}
+\usepackage{DejaVuSerifCondensed}
+\usepackage{DejaVuSans}
+\usepackage{DejaVuSansMono}
+%\usepackage{PTSansNarrow}
+%\usepackage{PTMono}
+
+\pagestyle{empty}
+
+
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes}
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{foreground}
+\pgfsetlayers{background,main,foreground}
+
+%
+% box
+%
+
+\def\savelastnode{\pgfextra\edef\tmpA{\tikzlastnode}\endpgfextra}
+\def\restorelastnode{\pgfextra\edef\tikzlastnode{\tmpA}\endpgfextra}
+
+\tikzset{
+  mybox/.style 2 args={draw=#1, fill=#2!20, rectangle, rounded corners, inner xsep=5pt, inner ysep=10pt},
+  fancytitle/.style n args={3}{draw=#1, fill=#2, text=#3},
+  title/.style n args={4}{append after command={%
+  \savelastnode node[fancytitle={#1}{#2}{#3}, inner sep=4pt,right=10pt] at (\tikzlastnode.north west)%
+  {\textbf{#4}}\restorelastnode}}
+}
+
+%
+% regex commands
+% 
+\newcommand{\ch}[1]{#1}
+\newcommand{\re}[1]{\texttt{#1}}
+\newcommand{\revar}[1]{{\rm\textit{#1}}}
+\newcommand*{\whack}{\textbackslash}
+\newcommand*{\alt}{\textbar}
+\newcommand*{\ccneg}{\textasciicircum}
+\newcommand*{\ccint}{\&\&}
+\newcommand*{\ccdiff}{{-}{-}}
+\newcommand*{\ccxor}{\textasciitilde\textasciitilde}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\thempfootnote}{\fnsymbol{mpfootnote}}
+
+\begin{document}
+\centering
+\footnotesize
+\begin{tikzpicture}[overlay, remember picture,node distance=0,outer ysep=1pt]
+% Atoms
+
+\node[anchor=north,outer sep=0, inner sep=0] (title) at ($(current page.north) + (3em,-0.5in)$) {\Large\textsf{Lightgrep Cheat Sheet}};
+
+\node[mybox={green!60!black}{green}, title={black}{green}{black}{1 Single Characters}, anchor=north west,yshift=-6pt] (chars) at ($(current page.north west) + (0.5in,-0.5in - 2.5pt)$) {%
+  \begin{minipage}{0.36\textwidth}
+    \begin{tabular}{@{}ll}
+      \re{$c$} & the character $c$\footnotemark[1] \\
+      \re{\whack a} & U+0007 (BEL) bell \\
+      \re{\whack e} & U+001B (ESC) escape \\
+      \re{\whack f} & U+000C (FF)  form feed \\
+      \re{\whack n} & U+000A (NL)  newline \\
+      \re{\whack r} & U+000D (CR)  carriage return \\
+      \re{\whack t} & U+0009 (TAB) horizontal tab \\
+      \re{\whack $ooo$} & U+$ooo$, 1--3 octal digits $o$, $\le 0377$ \\
+      \re{\whack x$hh$} & U+00$hh$, 2 hexadecimal digits $h$ \\
+      \re{\whack x\{$hhhhhh$\}} & U+$hhhhhh$, 1--6 hex digits $h$ \\
+      \re{\whack z$hh$} & the byte 0x$hh$ (\emph{not} the character!)\footnotemark[2] \\
+      \re{\whack N\{\revar{name}\}} & the character called \revar{name} \\
+      \re{\whack N\{U+$hhhhhh$\}} & same as \re{\whack x\{$hhhhhh$\}} \\
+      \re{\whack $c$} & the character $c$\footnotemark[3]
+    \end{tabular}
+    \footnotetext[1]{except U+0000 (NUL) and metacharacters}
+    \footnotetext[2]{Lightgrep extension; not part of PCRE.}
+    \footnotetext[3]{except any of: \ch{a}\ch{d}\ch{e}\ch{f}\ch{n}\ch{p}\ch{r}\ch{s}\ch{t}\ch{w}\ch{D}\ch{P}\ch{S}\ch{W}\ch{1}\ch{2}\ch{3}\ch{4}\ch{5}\ch{6}\ch{7}\ch{8}\ch{9}\ch{0}}
+% TODO: escaping metacharacters
+  \end{minipage}
+};
+
+\node[mybox={green!60!black}{green}, title={black}{green}{black}{2 Named Character Classes}, below=of chars.south west, anchor=north west] (namedcc) {%
+  \begin{minipage}{0.36\textwidth}
+    \begin{tabular}{@{}ll}
+      \re{.} & any character \\
+      \re{\whack d} & \re{[0-9]} (= ASCII digits) \\
+      \re{\whack D} & \re{[\ccneg 0-9]} \\
+      \re{\whack s} & \re{[\whack t\whack n\whack f\whack r\ ]} (= ASCII whitespace) \\
+      \re{\whack S} & \re{[\ccneg \whack t\whack n\whack f\whack r\ ]} \\
+      \re{\whack w} & \re{[0-9A-Za-z\_]} (= ASCII words) \\
+      \re{\whack W} & \re{[\ccneg 0-9A-Za-z\_]} \\
+      \re{\whack p\{\revar{property}\}} & any character having \revar{property} \\
+      \re{\whack P\{\revar{property}\}} & any character lacking \revar{property}
+    \end{tabular}
+  \end{minipage}
+};
+
+\node[mybox={green!60!black}{green}, title={black}{green}{black}{3 Character Classes}, below=of namedcc.south west, anchor=north west] (cc) {%
+  \begin{minipage}{0.36\textwidth}
+    \begin{tabular}{@{}ll}
+      \re{[\revar{stuff}]} & any character in \revar{stuff} \\
+      \re{[\ccneg\revar{stuff}]} & any character \textbf{not} in \revar{stuff} \\[2pt]
+      \multicolumn{2}{@{}l}{where \revar{stuff} is\dots} \\
+      \multicolumn{2}{@{}l}{%
+      \begin{tabular}{ll}
+        \re{$c$} & a character \\
+        \re{$a$-$b$} & a character range, inclusive \\
+        \re{\whack z$hh$} & a byte \\
+        \re{\whack z$hh$-\whack z$hh$} & a byte range, inclusive \\
+        \re{[$S$]} & a character class \\
+        \re{$ST$} & $S \cup T$ (union) \\
+        \re{$S$\ccint$T$} & $S \cap T$ (intersection) \\
+        \re{$S$\ccdiff$T$} & $S - T$ (difference) \\
+        \re{$S$\ccxor$T$} & $S \bigtriangleup T$ (symmetric difference, XOR)
+      \end{tabular}}
+    \end{tabular}
+  \end{minipage}
+};
+
+% TODO: escaping inside CCs
+% TODO: metacharacters lose meaning inside CCs
+
+\node[mybox={orange}{orange}, title={black}{orange}{black}{4 Grouping}, anchor=north east, yshift=-6pt] (grouping) at ($(current page.north east) + (-0.5in,-0.5in - 2.5pt)$) {%
+  \begin{minipage}{0.27\textwidth}
+    \begin{tabular}{@{}ll}
+      \re{($S$)} & makes any pattern $S$ atomic \\
+    \end{tabular}
+  \end{minipage}
+};
+
+% Structure
+
+\node[mybox={orange}{orange}, title={black}{orange}{black}{5 Concatenation \& Alternation}, below=of grouping.south east, anchor=north east] (concat-alt) {%
+  \begin{minipage}{0.27\textwidth}
+    \begin{tabular}{@{}ll}
+      \re{$ST$} & matches $S$, then matches $T$ \\
+      \re{$S$\alt$T$} & matches $S$ or $T$, preferring $S$ \\
+    \end{tabular}
+  \end{minipage}
+};
+
+\node[mybox={orange}{orange}, title={black}{orange}{black}{6 Repetition}, below=of concat-alt.south east, anchor=north east] (repetition) {%
+  \begin{minipage}{0.27\textwidth}
+    \begin{tabular}{@{\hspace{-2pt}}l@{\hspace{2pt}}l@{\hspace{0.6em}}l}
+      && Repeats $S$\dots \\
+      \multirow{5}*{\tikz[baseline] \node[rectangle, rotate=90, fill=lime, inner xsep=12pt, inner ysep=1pt, outer sep=0, minimum height=2.1ex, anchor=base, text depth=0] {\scriptsize Greedy};}
+      & \re{$S$*} & 0 or more times (= \re{$S$\{0,\}}) \\
+      & \re{$S$+} & 1 or more times (= \re{$S$\{1,\}}) \\
+      & \re{$S$?} & 0 or 1 time (= \re{$S$\{0,1\}}) \\
+      & \re{$S$\{$n$,\}} & $n$ or more times \\
+      & \re{$S$\{$n$,$m$\}} & $n$--$m$ times, inclusive \\[2pt]
+      \multirow{5}*{\tikz[baseline] \node[rectangle, rotate=90, fill=violet!50, inner xsep=8pt, inner ysep=0, outer sep=1pt, minimum height=2.1ex, anchor=base]  {\scriptsize Reluctant};}
+      & \re{$S$*?} & 0 or more times (= \re{$S$\{0,\}}) \\
+      & \re{$S$+?} & 1 or more times (= \re{$S$\{1,\}}) \\
+      & \re{$S$??} & 0 or 1 time (= \re{$S$\{0,1\}}) \\
+      & \re{$S$\{$n$,\}?} & $n$ or more times \\
+      & \re{$S$\{$n$,$m$\}?} & $n$--$m$ times, inclusive
+    \end{tabular}
+  \end{minipage}
+};
+
+\node[mybox={yellow!90!black}{yellow},title={black}{yellow}{black}{7 Selected Unicode Properties}, below=of repetition.south east, anchor=north east] (uniprop) {%
+  \begin{minipage}{0.425\textwidth}
+    \begin{tabular}{@{\hspace{-2pt}}l}
+      \begin{tabular*}{\textwidth}{@{}l@{\extracolsep{\fill}}l}
+        \re{Any}        & \re{Assigned} \\
+        \re{Alphabetic} & \re{White\_Space} \\
+        \re{Uppercase}  & \re{Lowercase} \\
+        \re{ASCII}      & \re{Noncharacter\_Code\_Point} \\
+        \re{Name=\revar{name}} & \re{Default\_Ignorable\_Code\_Point} \\[2pt]
+      \end{tabular*} \\
+      \re{General\_Category=\revar{category}} \\
+      \begin{tabular*}{\textwidth}{l@{\hspace{4pt}\extracolsep{\fill}}l@{}}
+        \re{L}, \re{Letter}                & \re{P}, \re{Punctuation} \\ 
+        \re{Lu}, \re{Uppercase Letter}     & \re{Pc}, \re{Connector Punctuation } \\ 
+        \re{Ll}, \re{Lowercase Letter}     & \re{Pd}, \re{Dash Punctuation} \\ 
+        \re{Lt}, \re{Titlecase Letter}     & \re{Ps}, \re{Open Punctuation} \\ 
+        \re{Lm}, \re{Modifier Letter}      & \re{Pe}, \re{Close Punctuation} \\ 
+        \re{Lo}, \re{Other Letter}         & \re{Pi}, \re{Initial Punctuation} \\
+        \re{M}, \re{Mark}                  & \re{Pf}, \re{Final Punctuation} \\
+        \re{Mn}, \re{Non-Spacing Mark}     & \re{Po}, \re{Other Punctuation} \\
+        \re{Me}, \re{Enclosing Mark}       & \re{Z},  \re{Separator} \\
+        \re{N}, \re{Number}                & \re{Zs}, \re{Space Separator} \\
+        \re{Nd}, \re{Decimal Digit Number} & \re{Zl}, \re{Line Separator} \\
+        \re{Nl}, \re{Letter Number}        & \re{Zp}, \re{Paragraph Separator} \\
+        \re{No}, \re{Other Number}         & \re{C}, \re{Other} \\
+        \re{S}, \re{Symbol}                & \re{Cc}, \re{Control} \\
+        \re{Sm}, \re{Math Symbol}          & \re{Cf}, \re{Format} \\
+        \re{Sc}, \re{Currency Symbol}      & \re{Cs}, \re{Surrogate} \\
+        \re{Sk}, \re{Modifier Symbol}      & \re{Co}, \re{Private Use} \\
+        \re{So}, \re{Other Symbol}         & \re{Cn}, \re{Not Assigned} \\[2pt]
+      \end{tabular*} \\
+      \re{Script=\revar{script}} \\
+      \begin{tabular}{l}
+      \begin{minipage}{0.96\textwidth}
+        \re{Common}
+        \re{Latin}       
+        \re{Greek}       
+        \re{Cyrillic}    
+        \re{Armenian}    
+        \re{Hebrew}      
+        \re{Arabic}      
+        \re{Syraic}      
+        \re{Thaana}      
+        \re{Devanagari}  
+        \re{Bengali}     
+        \re{Gurmukhi}    
+        \re{Gujarati}    
+        \re{Oriya}       
+        \re{Tamil}       
+        \re{Telugu}      
+        \re{Kannada}     
+        \re{Malayalam}   
+        \re{Sinhala}     
+        \re{Thai}        
+        \re{Lao}         
+        \re{Tibetan}     
+        \re{Myanmar}     
+        \re{Georgian}    
+        \re{Hangul}      
+        \re{Ethiopic}    
+        \re{Cherokee}    
+        \re{Ogham}       
+        \re{Runic}       
+        \re{Khmer}       
+        \re{Mongolian}   
+        \re{Hiragana}    
+        \re{Katakana}    
+        \re{Bopomofo}    
+        \re{Han}         
+        \re{Yi}          
+        \re{Old\_Italic} 
+        \re{Gothic}      
+        \re{Inherited}   
+        \re{Tagalog}     
+        \re{Hanunoo}     
+        \re{Buhid}       
+        \re{Tagbanwa}    
+        \re{Limbu}       
+        \re{Tai\_Le}     
+        \re{Linear\_B}   
+        \re{Ugaritic}    
+        \re{Shavian}     
+        \re{Osmanya}     
+        \re{Cypriot}     
+        \re{Buginese}    
+        \re{Coptic}      
+        \re{New\_Tai\_Lue} 
+        \re{Glagolitic}  
+        \re{Tifinagh}    
+        \re{Syloti\_Nagri} 
+        \re{Old\_Persian} 
+        \re{Kharoshthi}  
+        \re{Balinese}    
+        \re{Cuneiform}   
+        \re{Phoenician}  
+        \re{Phags\_Pa}   
+        \re{Nko}         
+        \re{Sudanese}    
+        \re{Lepcha}
+        \dots
+        \hfill\emph{See \emph{Unicode Standard} for more.}      
+      \end{minipage}
+      \end{tabular}
+    \end{tabular}
+    \vspace{-0.75\baselineskip}
+  \end{minipage}
+};
+
+\node[mybox={brown}{brown},title={black}{brown}{black}{8 EnCase GREP Syntax}, below=of cc.south west, anchor=north west] (encase) {%
+  \begin{minipage}{0.36\textwidth}
+    \begin{tabular}{@{}ll}
+      \re{$c$} & the character $c$ (except metacharacters) \\
+      \re{\whack x$hh$} & U+00$hh$, 2 hexadecimal digits $h$ \\
+      \re{\whack w$hhhh$} & U+$hhhh$, 4 hexadecimal digits $h$ \\
+      \re{\whack $c$} & the character $c$ \\
+      \re{.} & any character \\
+      \re{\#} & \re{[0-9]} (= ASCII digits) \\
+      \re{[$a$-$b$]} & any character in the range $a$--$b$ \\
+      \re{[$S$]} & any character in $S$ \\
+      \re{[\ccneg$S$]} & any character not in $S$ \\
+      \re{($S$)} & grouping \\
+      \re{$S$*} & repeat $S$ 0 or more times (max 255) \\
+      \re{$S$+} & repeat $S$ 1 or more times (max 255) \\
+      \re{$S$?} & repeat $S$ 0 or 1 or time \\
+      \re{$S$\{$n$,$m$\}} & repeat $S$ $n$--$m$ times (max 255) \\
+      \re{$ST$} & matches $S$, then matches $T$ \\
+      \re{$S$\alt$T$} & matches $S$ or $T$
+    \end{tabular}
+  \end{minipage}
+};
+
+\node[mybox={brown}{brown},title={black}{brown}{black}{9 Importing from EnCase into Lightgrep}, below=of encase.south west, anchor=north west] (encase-import) {%
+  \begin{minipage}{0.36\textwidth}
+    \begin{tabular}{@{}l@{$\;\longrightarrow\;$}l}
+      \re{\whack w$hhhh$} & \re{\whack x$hhhh$} \\
+      \re{\#} & \re{\whack d} \\
+      \re{$S$*} & \re{$S$\{0,255\}} \\ 
+      \re{$S$+} & \re{$S$\{1,255\}} 
+    \end{tabular}
+    \begin{minipage}{0.5\textwidth}
+      \re{$S$*} and \re{$S$+} are limited to 255 repetitions by EnCase; Lightgrep preserves this in imported patterns.
+    \end{minipage}
+
+    \smallskip
+    \re{\whack w} is limited to BMP characters ($\le$ U+10000) only.
+    \vspace{-0.75\baselineskip}
+  \end{minipage}
+};
+
+\node[draw=teal, fill=teal!20, rectangle, rounded corners, inner xsep=5pt, inner ysep=5pt, below=of encase-import.south west, anchor=north west] (jwz) {%
+  \begin{minipage}{0.36\textwidth}\scriptsize
+    \emph{Some people, when confronted with a problem, think ``I know, I'll use regular expressions.'' Now they have two problems.}
+
+    \smallskip
+    \hfill \mbox{---JWZ} in alt.religion.emacs, 12 August 1997
+    \vspace{-2pt}
+  \end{minipage}
+};
+
+\begin{pgfonlayer}{background}
+  \path[draw=blue, fill=blue!20, rounded corners]
+    ($(title.south -| chars.east) + (2pt,-8pt)$) --  
+    ($(title.south -| grouping.north west) + (-2pt,-8pt)$) --
+    ($(repetition.south west) + (-2pt,1pt)$) --
+    ($(uniprop.west |- repetition.south) + (-2pt,1pt)$) --
+    ($(uniprop.south west) + (-2pt,87pt)$) --
+    ($(cc.south east |- uniprop.south west) + (2pt,87pt)$) --
+%    ($(uniprop.south west) + (-2pt,-1pt)$) --
+%    ($(uniprop.south east) + (0,-1pt)$) --
+%    ($(current page.south east) + (-0.5in,0.5in)$) --
+%    ($(jwz.south east) + (2pt,1pt)$) --
+    cycle;
+\end{pgfonlayer}
+
+\path[draw=red, fill=red!20, rounded corners] ($(cc.south east |- uniprop.south west) + (2pt,85pt)$) rectangle ($(uniprop.south west) + (-2pt,1pt)$);
+
+\node[anchor=north west] (lg) at ($(cc.south east |- uniprop.south west) + (3pt,82pt)$) {%
+  \begin{minipage}{0.15\textwidth}%
+    \normalsize\centering%
+Lightgrep Search for EnCase${}^{\scalebox{0.6}{\textregistered}}$ \\[7pt]
+
+\emph{Fast} Search for Forensics \\[8pt]
+
+{\small\textbf{www.lightgrep.com}}
+  \end{minipage}
+};
+
+\node[fancytitle={black}{blue!50}{black}, right=10pt] at ($(title.south -| chars.east) + (0,-10pt)$) {\textbf{Notes \& Examples}};
+
+\node[inner xsep=5pt, inner ysep=10pt, anchor=north west] (ex0) at ($(title.south -| chars.east) + (0,-10pt)$) {%
+  \begin{minipage}{0.305\textwidth}
+    Characters:
+
+    \vspace{3pt}
+    \begin{tabular}{l}
+      \re{.*?\whack x00} \hfill (= null-terminated string) \\
+      \re{\whack z50\whack z4B\whack z03\whack z04} \hfill (= ZIP signature) \\
+      \re{\whack N\{EURO SIGN\}}, \re{\whack N\{NO-BREAK SPACE\}} \\
+      \re{\whack x\{042F\}} (= {\scriptsize CYRILLIC CAPITAL LETTER YA})\\
+      \re{\whack +12\whack .5\%} \hfill (= escaping metacharacters)
+    \end{tabular}
+
+    \smallskip
+    Grouping: Operators bind tightly. Use \re{(aa)+}, not \re{aa+}, to match pairs of \texttt{a}'s.
+
+    \smallskip
+    Ordered alternation: \re{a\alt ab} matches \texttt{a} twice in \texttt{aab}. Left alternatives preferred to right.
+
+    \smallskip
+    Repetition: Greedy operators match as much as possible. Reluctant operators match as little as possible. \re{a+a} matches all of \texttt{aaaa}; \re{a+?a} matches the first \texttt{aa}, then the second \texttt{aa}.
+
+    \smallskip
+    \re{.+} will (uselessly) match the \textbf{entire} input.\linebreak Prefer reluctant operators when possible. 
+
+  \end{minipage}
+};
+
+\node[inner xsep=5pt, inner ysep=10pt, anchor=north west] (ex1) at ($(ex0.south west |- uniprop.north) + (0,1.5\baselineskip)$) {%
+  \begin{minipage}{0.145\textwidth}
+    Character classes:
+
+    \smallskip
+    \begin{tabular*}{\textwidth}{@{\hspace{-3pt}}l@{}}
+      \re{[abc]} = \texttt{a}, \texttt{b}, or \texttt{c} \\
+      \re{[\ccneg a]} = anything but \texttt{a} \\
+      \re{[A-Z]} = \texttt{A} to \texttt{Z} \\
+      \re{[A\whack-Z]} \\
+        \hfill = \texttt{A}, \texttt{Z}, or hyphen (!) \\
+      \re{[A-Zaeiou]} = capitals \\
+        \hfill or lowercase vowels \\
+      \re{[.+*?\whack]]} \\
+        \hfill = \texttt{.}, \texttt{+}, \texttt{*}, \texttt{?}, or \texttt{]} \\
+      \re{[Q\whack z00-\whack z7F]} \\
+        \hfill = \texttt{Q} or 7-bit bytes \\
+      \re{[[abcd][bce]]} \\
+        \hfill = \texttt{a}, \texttt{b}, \texttt{c}, \texttt{d}, or \texttt{e} \\
+      \re{[[abcd]\ccint[bce]]} \\
+        \hfill = \texttt{b} or \texttt{c} \\
+      \re{[[abcd]\ccdiff[bce]]} \\
+        \hfill = \texttt{a} or \texttt{d} \\
+      \re{[[abcd]\ccxor[bce]]} \\
+        \hfill = \texttt{a}, \texttt{d}, or \texttt{e} \\
+      \re{[\whack p\{Greek\}\whack d]} \\
+        \hfill = Greek or digits \\
+      \re{[\ccneg\whack p\{Greek\}7]} \\
+        \hfill = neither Greek nor \texttt{7} \\
+      \re{[\!\whack p\{Greek\}\ccint\whack p\{Ll\}\!]} \\
+        \hfill = lowercase Greek \\
+    \end{tabular*}
+    \smallskip
+
+    Operators need not be escaped inside character classes.
+  \end{minipage}
+};
+
+\node[draw=blue, fill=blue!20, rounded corners,inner xsep=5pt, inner ysep=5pt, anchor=north east] (ex2) at ($(uniprop.south east) + (0,0)$) {%
+  \begin{minipage}{0.598\textwidth}
+    \scriptsize
+    Email addresses: \re{[a-z\whack d!\#\$\%\&'*+/=?\textasciicircum\_`\{\textbar\}\textasciitilde-][a-z\whack d!\#\$\%\&'*+/=?\textasciicircum \_`\{\textbar\}\textasciitilde.-]\{0,63\}\\
+\rule{6.3cm}{0pt} @[a-z\whack d.-]\{1,253\}\whack .[a-z\whack d-]\{2,22\}}
+
+Hostnames: \re{([a-z\whack d]([a-z\whack d\_-]\{0,61\}[a-z\whack d])?\whack .)\{2,5\}[a-z\whack d][a-z\whack d-]\{1,22\}}
+
+N.~American phone numbers: \re{\whack (?\whack d\{3\}[\ ).-]\{0,2\}\whack d\{3\}[ .-]?\whack d\{4\}\whack D}
+
+Visa, MasterCard: \re{\whack d\{4\}([ -]?\whack d\{4\})\{3\}}
+
+American Express: \re{3[47]\whack d\{2\}[ -]?\whack d\{6\}[ -]?\whack d\{5\}}
+
+Diners Club: \re{3[08]\whack d\{2\}[ -]?\whack d\{6\}[ -]?\whack d\{4\}}
+
+EMF header: \re{\whack z01\whack z00\whack z00\whack z00.\{36\}\whack z20EMF}
+
+%File signatures
+JPEG: \re{\whack zFF\whack zD8\whack zFF[\whack zC4\whack zDB\whack zE0-\whack zEF\whack zFE]}   Footer: \re{\whack zFF\whack zD9}
+
+GIF: \re{GIF8[79]}   Footer: \re{\whack z00\whack z3B} \hfill BMP: \re{BM.\{4\}\whack z00\whack z00\whack z00\whack z00.\{4\}\whack z28}
+
+PNG: \re{\whack z89\whack z50\whack z4E\whack z47}   Footer: \re{\whack z49\whack z45\whack z4E\whack z44\whack zAE\whack z42\whack z60\whack z82}
+
+ZIP: \re{\whack z50\whack z4B\whack z03\whack z04}   Footer: \re{\whack z50\whack z4B\whack z05\whack z06}
+
+RAR: \re{\whack z52\whack z61\whack z72\whack z21\whack z1a\whack z07\whack z00...[\whack z00-\whack z7F]}\\
+\rule{0.5cm}{0pt} Footer: \re{\whack z88\whack zC4\whack z3D\whack z7B\whack z00\whack z40\whack z07\whack z00}
+
+GZIP: \re{\whack z1F\whack z8B\whack z08} \hfill MS Office 97--03: \re{\whack zD0\whack zCF\whack z11\whack zE0\whack zA1\whack zB1\whack z1A\whack zE1}
+
+LNK: \re{\whack z4c\whack z00\whack z00\whack z00\whack z01\whack z14\whack z02\whack z00}
+
+PDF: \re{\whack z25\whack z50\whack z44\whack z46\whack z2D\whack z31} Footer: \re{\whack z25\whack z45\whack z4F\whack z46}
+
+%PST: \re{\whack z21\whack z42\whack z44\whack z4E}
+
+%DBX: \re{\whack zCF\whack zAD\whack z12\whack zFE}
+
+
+
+%RAR (Encrypted): \re{\whack z52\whack z61\whack z72\whack z21\whack z1a\whack z07\whack z00...[\whack z80-\whack zFF]}
+
+%INFO2: \whack z05\whack z00\whack z00\whack z00........\whack z20\whack z03\whack z00\whack z00....
+%EVT: \whack z30\whack z00\whack z00\whack z00\whack z4c\whack z66\whack z4c\whack z65
+
+  \vspace{-1.5pt} 
+  \end{minipage}
+};
+
+
+
+\end{tikzpicture}
+
+\end{document}
