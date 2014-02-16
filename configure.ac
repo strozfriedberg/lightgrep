@@ -163,10 +163,8 @@ fi
 #
 
 # Boost libs used by tests
-AX_BOOST_CHRONO
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_SYSTEM
-AX_BOOST_THREAD
 
 # Scope test framework
 AC_ARG_WITH([scope],
@@ -192,25 +190,17 @@ if test "x$with_scope" != "xno"; then
 fi
 
 # Tell the user why not if he won't be able to compile the tests
-if test "x$ax_cv_boost_chrono" != "xyes" || \
-   test "x$ax_cv_boost_program_options" != "xyes" || \
+if test "x$ax_cv_boost_program_options" != "xyes" || \
    test "x$ax_cv_boost_system" != "xyes" || \
-   test "x$ax_cv_boost_thread" != "xyes" || \
    test "x$scope_ok" != "xyes"; then
   AC_MSG_WARN([])
   AC_MSG_WARN([You will be unable to compile and run the tests because:])
   AC_MSG_WARN([])
-  if test "x$ax_cv_boost_chrono" != "xyes"; then
-    AC_MSG_WARN([  * boost::chrono is unavailable])
-  fi
   if test "x$ax_cv_boost_program_options" != "xyes"; then
     AC_MSG_WARN([  * boost::program_options is unavailable])
   fi
   if test "x$ax_cv_boost_system" != "xyes"; then
     AC_MSG_WARN([  * boost::system is unavailable])
-  fi
-  if test "x$ax_cv_boost_thread" != "xyes"; then
-    AC_MSG_WARN([  * boost::thread is unavailable])
   fi
   if test "x$scope_ok" != "xyes"; then
     AC_MSG_WARN([  * Scope test framework is unavailable])

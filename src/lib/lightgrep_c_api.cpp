@@ -83,7 +83,11 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
                      LG_Error** err)
 {
   // set up the pattern handle
-  hPattern->Pat = {pattern, options->FixedString, options->CaseInsensitive};
+  hPattern->Pat = {
+    pattern,
+    static_cast<bool>(options->FixedString),
+    static_cast<bool>(options->CaseInsensitive)
+  };
 
   return trapWithVals(
     [hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); },
