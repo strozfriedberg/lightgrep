@@ -476,9 +476,12 @@ inline bool Vm::_executeEpSequence(const Instruction* const base, ThreadList::it
 
 inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
   // run old threads at this offset
+  // uint32_t count = 0;
+
   while (t != Active.end()) {
     _executeThread(base, t, cur, offset);
     ++t;
+    // ++count;
   }
 
   // create new threads at this offset
@@ -511,8 +514,11 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
 
     for (t = Active.begin() + oldsize; t != Active.end(); ++t) {
       _executeThread(base, t, cur, offset);
+      // ++count;
     }
   }
+  // ThreadCountHist.resize(count + 1, 0);
+  // ++ThreadCountHist[count];
 }
 
 inline void Vm::_cleanup() {
@@ -589,7 +595,7 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t
   reset();
 }
 
-bool Vm::search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {
+uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
   const Instruction* base = &(*Prog)[0];
@@ -609,6 +615,47 @@ bool Vm::search(const byte* const beg, const byte* const end, const uint64_t sta
 
     _cleanup();
   }
+  // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
+
+  // check for remaining live threads
+  const ThreadList::const_iterator e(Active.end());
+  for (ThreadList::iterator t(Active.begin()); t != e; ++t) {
+    const unsigned char op = t->PC->OpCode;
+    if (op == HALT_OP || op == FINISH_OP) {
+      continue;
+    }
+    // this is a live thread
+    return t->Start;
+  }
+
+  return Thread::NONE;
+}
+
+uint64_t Vm::searchResolve(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {
+  CurHitFn = hitFn;
+  UserData = userData;
+  const Instruction* base = &(*Prog)[0];
+  uint64_t offset = startOffset;
+
+  bool hadRealOps = true;
+
+  for (const byte* cur = beg; cur < end && !Active.empty() && hadRealOps; ++cur, ++offset) {
+    #ifdef LBT_TRACE_ENABLED
+    open_frame_json(std::clog, offset, cur);
+    #endif
+
+    hadRealOps = false;
+    for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
+      hadRealOps = hadRealOps || !(t->PC->OpCode == HALT_OP && t->PC->OpCode == FINISH_OP);
+      _executeThread(base, t, cur, offset);
+    }
+
+    #ifdef LBT_TRACE_ENABLED
+    close_frame_json(std::clog, offset);
+    #endif
+
+    _cleanup();
+  }
 
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
 
@@ -621,10 +668,9 @@ bool Vm::search(const byte* const beg, const byte* const end, const uint64_t sta
     }
 
     // this is a live thread
-    return true;
+    return t->Start;
   }
-
-  return false;
+  return Thread::NONE;
 }
 
 void Vm::closeOut(HitCallback hitFn, void* userData) {
@@ -650,4 +696,15 @@ void Vm::closeOut(HitCallback hitFn, void* userData) {
       }
     }
   }
+  // std::stringstream buf;
+  // buf << "{\"threads\":[";
+  // for (unsigned int i = 0; i < ThreadCountHist.size(); ++i) {
+  //   if (i > 0) {
+  //     buf << ",";
+  //   }
+  //   buf << ThreadCountHist[i];
+  // }
+  // buf << "]}\n";
+  // std::cerr << buf.str();
+  // ThreadCountHist.clear();
 }

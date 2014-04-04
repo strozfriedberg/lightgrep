@@ -732,7 +732,7 @@ SCOPE_TEST(parseUnparse_american_express_cc_number_Test) {
 }
 
 SCOPE_TEST(byteToCharacterString) {
-  std::stringstream ss;
+  std::ostringstream ss;
 
   for (uint32_t i = 0; i < 256; ++i) {
     std::string actual = byteToCharacterString(i);

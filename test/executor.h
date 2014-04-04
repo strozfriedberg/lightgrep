@@ -19,13 +19,13 @@
 #pragma once
 
 #include <vector>
+#include <thread>
 
 #include <boost/asio.hpp>
-#include <boost/thread.hpp>
 
 class Executor {
 public:
-  Executor(size_t n = boost::thread::hardware_concurrency()):
+  Executor(size_t n = std::thread::hardware_concurrency()):
     service_(n), work_(new boost::asio::io_service::work(service_))
   {
     for (size_t i = 0; i < n; ++i) {
@@ -35,7 +35,7 @@ public:
 
   ~Executor() {
     delete work_;
-    for (boost::thread& t : pool_) { t.join(); }
+    for (std::thread& t : pool_) { t.join(); }
   }
 
   template <typename F>
@@ -44,7 +44,7 @@ public:
   }
 
 protected:
-  std::vector<boost::thread> pool_;
+  std::vector<std::thread> pool_;
   boost::asio::io_service service_;
   boost::asio::io_service::work* work_;
 };

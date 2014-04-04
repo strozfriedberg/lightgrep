@@ -29,37 +29,37 @@ struct Thread {
 
   Thread():
     PC(0),
-    Label(NOLABEL),
+    Start(0),
+    End(NONE),
     #ifdef LBT_TRACE_ENABLED
     Id(0),
     #endif
-    Start(0),
-    End(NONE) {}
+    Label(NOLABEL) {}
 
   Thread(const Instruction* pc, uint32_t label, uint64_t start, uint64_t end):
     PC(pc),
-    Label(label),
     Start(start),
-    End(end) {}
+    End(end),
+    Label(label) {}
 
   #ifdef LBT_TRACE_ENABLED
   Thread(const Instruction* pc, uint32_t label,
          uint64_t id, uint64_t start, uint64_t end):
     PC(pc),
-    Label(label),
-    Id(id),
     Start(start),
-    End(end) {}
+    End(end),
+    Id(id),
+    Label(label) {}
   #endif
 
   Thread(const Instruction* pc):
     PC(pc),
-    Label(NOLABEL),
+    Start(0),
+    End(NONE),
     #ifdef LBT_TRACE_ENABLED
     Id(0),
     #endif
-    Start(0),
-    End(NONE) {}
+    Label(NOLABEL) {}
 
 /*
   Thread(const Thread& t):
@@ -126,12 +126,13 @@ struct Thread {
   }
 
   const Instruction* PC;
-  uint32_t             Label;
+  uint64_t Start, End;
   #ifdef LBT_TRACE_ENABLED
-  uint64_t             Id;
+  uint64_t Id;
   #endif
-  uint64_t             Start,
-                     End;
+  uint32_t Label;
+
+//  uint32_t Dummy;
 
   #ifdef LBT_TRACE_ENABLED
   enum ThreadLife {

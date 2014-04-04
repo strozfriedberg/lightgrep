@@ -38,7 +38,8 @@ public:
   void init(ProgramPtr prog);
 
   virtual void startsWith(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData);
-  virtual bool search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData);
+  virtual uint64_t search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData);
+  virtual uint64_t searchResolve(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData);
   virtual void closeOut(HitCallback hitFn, void* userData);
   virtual void reset();
 
@@ -105,6 +106,8 @@ private:
   uint64_t BeginDebug, EndDebug;
   uint64_t NextId;
   #endif
+
+  std::vector<uint64_t> ThreadCountHist;
 
   uint64_t MaxMatches;
 

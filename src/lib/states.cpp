@@ -55,7 +55,7 @@ ByteState* ByteState::clone(void* buffer) const {
 }
 
 std::string ByteState::label() const {
-  std::stringstream buf;
+  std::ostringstream buf;
   printByte(buf, Byte);
   return buf.str();
 }
@@ -70,7 +70,7 @@ EitherState* EitherState::clone(void* buffer) const {
 }
 
 std::string EitherState::label() const {
-  std::stringstream buf;
+  std::ostringstream buf;
   printByte(buf, Byte1);
   printByte(buf, Byte2);
   return buf.str();
@@ -86,7 +86,7 @@ RangeState* RangeState::clone(void* buffer) const {
 }
 
 std::string RangeState::label() const {
-  std::stringstream buf;
+  std::ostringstream buf;
   printRange(buf, First, Last);
   return buf.str();
 }
@@ -104,7 +104,7 @@ ByteSetState* ByteSetState::clone(void* buffer) const {
 
 std::string ByteSetState::label() const {
   // make the label string
-  std::stringstream ss;
+  std::ostringstream ss;
 
   int32_t beg = -1, end;
 

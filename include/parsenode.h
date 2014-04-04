@@ -30,6 +30,10 @@ static const uint32_t UNBOUNDED = std::numeric_limits<uint32_t>::max();
 struct ParseNode {
   enum NodeType {
     REGEXP,
+    LOOKBEHIND_POS,
+    LOOKBEHIND_NEG,
+    LOOKAHEAD_POS,
+    LOOKAHEAD_NEG,
     ALTERNATION,
     CONCATENATION,
     REPETITION,
@@ -117,6 +121,10 @@ struct ParseNode {
   ParseNode(const ParseNode& o): Type(o.Type) {
     switch (Type) {
     case REGEXP:
+    case LOOKBEHIND_POS:
+    case LOOKBEHIND_NEG:
+    case LOOKAHEAD_POS:
+    case LOOKAHEAD_NEG:
       Child.Left = o.Child.Left;
       Child.Right = nullptr;
       break;
@@ -143,6 +151,10 @@ struct ParseNode {
   ParseNode(ParseNode&& o): Type(o.Type) {
     switch (Type) {
     case REGEXP:
+    case LOOKBEHIND_POS:
+    case LOOKBEHIND_NEG:
+    case LOOKAHEAD_POS:
+    case LOOKAHEAD_NEG:
       Child.Left = o.Child.Left;
       Child.Right = nullptr;
       break;
@@ -176,6 +188,10 @@ struct ParseNode {
 
       switch (Type) {
       case REGEXP:
+      case LOOKBEHIND_POS:
+      case LOOKBEHIND_NEG:
+      case LOOKAHEAD_POS:
+      case LOOKAHEAD_NEG:
         Child.Left = o.Child.Left;
         Child.Right = nullptr;
         break;
@@ -211,6 +227,10 @@ struct ParseNode {
 
     switch (Type) {
     case REGEXP:
+    case LOOKBEHIND_POS:
+    case LOOKBEHIND_NEG:
+    case LOOKAHEAD_POS:
+    case LOOKAHEAD_NEG:
       Child.Left = o.Child.Left;
       Child.Right = nullptr;
       break;
@@ -265,6 +285,10 @@ struct ParseNode {
 
     switch (Type) {
     case REGEXP:
+    case LOOKBEHIND_POS:
+    case LOOKBEHIND_NEG:
+    case LOOKAHEAD_POS:
+    case LOOKAHEAD_NEG:
       return !Child.Left ? !o.Child.Left :
         (o.Child.Left ? *Child.Left == *o.Child.Left : false);
     case ALTERNATION:

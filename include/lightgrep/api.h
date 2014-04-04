@@ -59,16 +59,20 @@ extern "C" {
 // TODO: nix these, don't expose trace in the lib
   typedef struct {
     uint64_t TraceBegin,    // starting offset of trace output
-           TraceEnd;      // ending offset of trace output
+             TraceEnd;      // ending offset of trace output
   } LG_ContextOptions;
 
   // Error handling
   typedef struct LG_Error {
     char* Message;
+    char* Pattern;
+    char* EncodingChain;
+    char* Source;
+    int Index;
+    struct LG_Error* Next;
   } LG_Error;
 
   void lg_free_error(LG_Error* err);
-
 
   // Create and destory an LG_HPATTERN.
   // This can be reused when parsing pattern strings to avoid re-allocating memory.
@@ -105,6 +109,16 @@ extern "C" {
                      LG_HPATTERN hPattern,
                      const char* encoding,
                      LG_Error** err);
+
+
+  int lg_add_pattern_list(LG_HFSM hFsm,
+                          LG_HPATTERNMAP hMap,
+                          const char* patterns,
+                          const char* source,
+                          const char** defaultEncodings,
+                          unsigned int defaultEncodingsNum,
+                          const LG_KeyOptions* defaultOptions,
+                          LG_Error** err);
 
   LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
                                   unsigned int patternIndex);
@@ -168,7 +182,7 @@ extern "C" {
   // different keywords may be out of order. In particular, it may not be
   // possible to determine the full length of a hit until the entire byte
   // stream has been searched...
-  unsigned int lg_search(LG_HCONTEXT hCtx,
+  uint64_t lg_search(LG_HCONTEXT hCtx,
                          const char* bufStart,
                          const char* bufEnd,   // pointer past the end of the buffer, i.e. bufEnd - bufStart == length of buffer
                          const uint64_t startOffset,   // Increment this with each call, by the length of the previous buffer. i.e., startOffset += bufEnd - bufStart;
@@ -180,6 +194,13 @@ extern "C" {
   void lg_closeout_search(LG_HCONTEXT hCtx,
                           void* userData,
                           LG_HITCALLBACK_FN callbackFn);
+
+  uint64_t lg_search_resolve(LG_HCONTEXT hCtx,
+                         const char* bufStart,
+                         const char* bufEnd,
+                         const uint64_t startOffset,
+                         void* userData,
+                         LG_HITCALLBACK_FN callbackFn);
 
 #ifdef __cplusplus
 }

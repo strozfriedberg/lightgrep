@@ -29,6 +29,10 @@ SCOPE_TEST(defaultThreadConstructor) {
   SCOPE_ASSERT_EQUAL(Thread::NONE, t.End);
 }
 
+SCOPE_TEST(threadSize) {
+  SCOPE_ASSERT(sizeof(Thread) <= 32);
+}
+
 /*
 SCOPE_TEST(threadInit) {
   Thread t;

@@ -63,9 +63,8 @@ int lg_get_char_transform_id(const char* const name) {
   return trapWithRetval(
     [name](){
       return find_trans_id(
-        LG_CHAR_TRANSFORMS,
-        LG_CHAR_TRANSFORMS +
-          sizeof(LG_CHAR_TRANSFORMS)/sizeof(LG_TRANS),
+        std::begin(LG_CHAR_TRANSFORMS),
+        std::end(LG_CHAR_TRANSFORMS),
         name
       );
     },
@@ -77,9 +76,8 @@ int lg_get_encoding_id(const char* const name) {
   return trapWithRetval(
     [name](){
       return find_trans_id(
-        LG_ENCODINGS,
-        LG_ENCODINGS +
-          sizeof(LG_ENCODINGS)/sizeof(LG_TRANS),
+        std::begin(LG_ENCODINGS),
+        std::end(LG_ENCODINGS),
         name
       );
     },
@@ -91,9 +89,8 @@ int lg_get_byte_transform_id(const char* const name) {
   return trapWithRetval(
     [name](){
       return find_trans_id(
-        LG_BYTE_TRANSFORMS,
-        LG_BYTE_TRANSFORMS +
-          sizeof(LG_BYTE_TRANSFORMS)/sizeof(LG_TRANS),
+        std::begin(LG_BYTE_TRANSFORMS),
+        std::end(LG_BYTE_TRANSFORMS),
         name
       );
     },

@@ -36,13 +36,13 @@ typedef unsigned char byte;
 // typedef long long int64_t;
 
 #define THROW_WITH_OUTPUT(exceptType, expression) \
-  std::stringstream buf; \
+  std::ostringstream buf; \
   buf << __FILE__ << ":" << __LINE__ << ": " << expression; \
   throw exceptType(buf.str())
 
 #define THROW_RUNTIME_ERROR_WITH_OUTPUT(expression) THROW_WITH_OUTPUT(std::runtime_error, expression)
 
 #define THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(expression) \
-  std::stringstream buf; \
+  std::ostringstream buf; \
   buf << expression; \
   throw std::runtime_error(buf.str())

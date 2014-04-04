@@ -16,9 +16,16 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// #include <scope/test.h>
+#include <scope/test.h>
 
-// #include "lightgrep/api.h"
+#include "lightgrep/api.h"
+
+#include <algorithm>
+#include <cstring>
+#include <memory>
+
+#include <iostream>
+
 // #include "basic.h"
 
 // TODO: complete this test?
@@ -48,3 +55,94 @@ SCOPE_TEST(testDedupeOnDiffEncodings) {
   );
 }
 */
+
+SCOPE_TEST(testLgAddPatternList) {
+
+  const char pats[] =
+    "foo\tUTF-8,UTF-16LE\t0\t0\n"
+    "bar\tISO-8859-11,UTF-16BE\t0\t1\n";
+  const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
+
+  const char* defEncs[] = { "ASCII", "UTF-8" };
+  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
+  const LG_KeyOptions defOpts{0, 0};
+
+  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
+    lg_create_pattern_map(patsNum),
+    lg_destroy_pattern_map
+  );
+
+  SCOPE_ASSERT(pmap);
+
+  // FIXME: how to estimate NFA size here?
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(0),
+    lg_destroy_fsm
+  );
+
+  SCOPE_ASSERT(fsm);
+
+  LG_Error* err = nullptr;
+
+  lg_add_pattern_list(
+    fsm.get(), pmap.get(), pats, "testLgAddPatternList",
+    defEncs, defEncsNum, &defOpts, &err
+  );
+
+  SCOPE_ASSERT(!err);
+}
+
+SCOPE_TEST(testLgAddPatternListBadEncoding) {
+  const char pats[] =
+    "foo\tUTF-8,BOGUS\t0\t0\n"
+    "x+\tASCII\n"
+    "(ab)*c\tBOGUS\t0\t0\n";
+
+  const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
+
+  const char* defEncs[] = { "ASCII", "UTF-8" };
+  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
+  const LG_KeyOptions defOpts{0, 0};
+
+  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
+    lg_create_pattern_map(patsNum),
+    lg_destroy_pattern_map
+  );
+
+  SCOPE_ASSERT(pmap);
+
+  // FIXME: how to estimate NFA size here?
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(0),
+    lg_destroy_fsm
+  );
+
+  SCOPE_ASSERT(fsm);
+
+// FIXME: finish this test
+// FIXME: clean up err
+
+  LG_Error* err = nullptr;
+
+  lg_add_pattern_list(
+    fsm.get(), pmap.get(), pats, "testLgAddPatternListBadEncoding",
+    defEncs, defEncsNum, &defOpts, &err
+  );
+
+  SCOPE_ASSERT(err);
+  SCOPE_ASSERT_EQUAL(0, err->Index);
+
+  err = err->Next;
+  SCOPE_ASSERT(err);
+  SCOPE_ASSERT_EQUAL(2, err->Index);
+
+  err = err->Next;
+  SCOPE_ASSERT(!err);
+
+/*
+  for ( ; err; err = err->Next) {
+    std::cerr << err->Index << ": " << err->Message << std::endl;
+  }
+
+*/
+}

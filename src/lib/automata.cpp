@@ -23,7 +23,7 @@
 const uint32_t Glushkov::NOLABEL = std::numeric_limits<uint32_t>::max();
 
 std::string Glushkov::label() const {
-  std::stringstream buf;
+  std::ostringstream buf;
   if (Trans) {
     buf << Trans->label();
     if (Label != NOLABEL) {

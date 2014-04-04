@@ -265,7 +265,7 @@ int main(int, char**) {
       [](char c){ return !isalnum(c); }, '_'
     );
 
-    std::stringstream ss;
+    std::ostringstream ss;
     if (prev.first != alias) {
       ss << " //";
     }

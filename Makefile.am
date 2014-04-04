@@ -55,7 +55,10 @@ src_lib_liblightgrepint_la_SOURCES = \
 	src/lib/decoders/decoderfactory.cpp \
 	src/lib/decoders/ocedecoder.cpp
 
-src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
+# TODO: Figure out how to build internal testing utilities
+# without exporting all C++ classes
+# src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
+
 src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_lib_liblightgrep_ladir = $(includedir)/lightgrep
@@ -67,13 +70,29 @@ src_lib_liblightgrep_la_HEADERS = \
 	include/lightgrep/util.h \
 	include/lightgrep/search_hit.h
 
-noinst_PROGRAMS = c_example/cex src/enc/enc src/val/val src/what/what
+noinst_PROGRAMS = \
+	c_example/cex \
+	src/enc/enc \
+	src/re_gen/debruijn \
+	src/re_gen/forms \
+	src/re_gen/inst \
+	src/val/val \
+	src/what/what
 
 c_example_cex_SOURCES = c_example/main.c
 c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_enc_enc_SOURCES = src/enc/encodings.cpp
 src_enc_enc_LDADD = $(ICU_LIBS) $(STDCXX_LIB)
+
+src_re_gen_debruijn_SOURCES = src/re_gen/debruijn.cpp
+src_re_gen_debruijn_LDADD = $(STDCXX_LIB)
+
+src_re_gen_forms_SOURCES = src/re_gen/forms.cpp
+src_re_gen_forms_LDADD = $(STDCXX_LIB)
+
+src_re_gen_inst_SOURCES = src/re_gen/inst.cpp
+src_re_gen_inst_LDADD = $(STDCXX_LIB)
 
 src_val_val_SOURCES = src/val/valid.cpp
 src_val_val_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
@@ -144,4 +163,4 @@ test_test_SOURCES = \
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
 test_test_LDFLAGS = $(BOOST_LDFLAGS)
-test_test_LDADD = $(LG_LIB_INT) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
