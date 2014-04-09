@@ -44,7 +44,7 @@ std::string Program::marshall() const {
 
 ProgramPtr Program::unmarshall(const std::string& s) {
   ProgramPtr p(new Program);
-  std::stringstream buf(s);
+  std::istringstream buf(s);
   buf.read((char*)&p->NumChecked, sizeof(uint32_t));
   buf.read((char*)&p->First, sizeof(ByteSet));
   Instruction i;
