@@ -55,7 +55,7 @@ esac
 # regex grammar
 # check bison is installed and print its version
 #
-AX_PROG_BISON([echo -n "bison version is... " && bison --version | head -n 1])
+AX_PROG_BISON([printf "bison version is... " && bison --version | head -n 1])
 
 # libintl.h would be necessary if we used Bison's i18n setup
 #AC_CHECK_HEADERS([libintl.h])
