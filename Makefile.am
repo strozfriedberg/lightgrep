@@ -164,3 +164,14 @@ test_test_SOURCES = \
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
 test_test_LDFLAGS = $(BOOST_LDFLAGS)
 test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+
+pkgconfigdir = $(libdir)/pkgconfig
+nodist_pkgconfig_DATA = src/lib/lightgrep.pc
+
+src/lib/lightgrep.pc: src/lib/lightgrep.pc.in
+	sed -e 's![@]prefix[@]!$(prefix)!g' \
+      -e 's![@]exec_prefix[@]!$(exec_prefix)!g' \
+      -e 's![@]includedir[@]!$(includedir)!g' \
+      -e 's![@]libdir[@]!$(libdir)!g' \
+      -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
+      $< >$@

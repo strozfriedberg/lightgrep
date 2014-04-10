@@ -3,7 +3,7 @@
 AC_PREREQ([2.64])
 # TODO: required versions for automake, libtool?
 
-AC_INIT([liblightgrep], [0.0], [BUG-REPORT-ADDRESS])
+AC_INIT([liblightgrep], [1.3.0], [joel@lightboxtechnologies.com])
 
 # Set the default C and C++ compilation flags to nothing.
 # Do this immediately after AC_INIT, as other macros might invoke
@@ -55,7 +55,7 @@ esac
 # regex grammar
 # check bison is installed and print its version
 #
-AX_PROG_BISON([echo -n "bison version is... " && bison --version | head -n 1])
+AX_PROG_BISON([printf "bison version is... " && bison --version | head -n 1])
 
 # libintl.h would be necessary if we used Bison's i18n setup
 #AC_CHECK_HEADERS([libintl.h])
@@ -296,11 +296,6 @@ AX_APPEND_COMPILE_FLAGS([$ICU_CFLAGS], [CFLAGS])
 AC_LANG([C++])
 AX_APPEND_COMPILE_FLAGS([$BOOST_CPPFLAGS $ICU_CPPFLAGS], [CPPFLAGS])
 AX_APPEND_COMPILE_FLAGS([$BOOST_CXXFLAGS $ICU_CXXFLAGS], [CXXFLAGS]) 
-
-LG_UNIQ_FLAGS([CPPFLAGS])
-LG_UNIQ_FLAGS([CFLAGS])
-LG_UNIQ_FLAGS([CXXFLAGS])
-
 
 
 # TODO: libtre has a nice display we can steal
