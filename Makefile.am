@@ -1,6 +1,8 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CPPFLAGS = -Iinclude
+AM_CPPFLAGS = -Iinclude $(BOOST_CPPFLAGS) $(ICU_CPPFLAGS)
+AM_CFLAGS = -Iinclude
+AM_LDFLAGS = $(BOOST_LDFLAGS) $(ICU_LDFLAGS)
 AM_YFLAGS = -r solved
 
 LG_LIB = src/lib/liblightgrep.la
@@ -162,7 +164,7 @@ test_test_SOURCES = \
 	test/test_xorencoder.cpp
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
-test_test_LDFLAGS = $(BOOST_LDFLAGS)
+test_test_LDFLAGS = $(AM_LDFLAGS) $(BOOST_LDFLAGS)
 test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 pkgconfigdir = $(libdir)/pkgconfig

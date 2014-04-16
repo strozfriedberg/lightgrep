@@ -264,7 +264,7 @@ if test "x$enable_shared" != "xyes"; then
   CXXLD="$CXX -all-static"
   CCLD="$CC -all-static"
 
-  AX_APPEND_FLAG([-DBOOST_THREAD_USE_LIB], [CPPFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-DBOOST_THREAD_USE_LIB], [BOOST_CPPFLAGS])
 
   case "$host" in
   *-*-mingw*)
@@ -290,14 +290,6 @@ AC_SUBST([CCLD])
 #
 # Cleanup flags
 #
-
-AC_LANG([C])
-AX_APPEND_COMPILE_FLAGS([$ICU_CFLAGS], [CFLAGS]) 
-
-AC_LANG([C++])
-AX_APPEND_COMPILE_FLAGS([$BOOST_CPPFLAGS $ICU_CPPFLAGS], [CPPFLAGS])
-AX_APPEND_COMPILE_FLAGS([$BOOST_CXXFLAGS $ICU_CXXFLAGS], [CXXFLAGS]) 
-
 
 # TODO: libtre has a nice display we can steal
 AC_MSG_NOTICE([ICU_CPPFLAGS: $ICU_CPPFLAGS])
