@@ -47,8 +47,8 @@ AC_PROG_INSTALL
 # we want to keep.
 case "$host" in
 *-*-mingw*)
-  LG_REMOVE_FLAGS([CFLAGS], ['-g -O2'])
-  LG_REMOVE_FLAGS([CXXFLAGS], ['-g -O2'])
+  LG_REMOVE_FLAGS([CFLAGS], ['-O2'])
+  LG_REMOVE_FLAGS([CXXFLAGS], ['-O2'])
   ;;
 esac
 
