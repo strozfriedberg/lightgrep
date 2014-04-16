@@ -65,78 +65,20 @@ AX_PROG_BISON([printf "bison version is... " && bison --version | head -n 1])
 # ICU
 #
 
-# Get the path to icu-config, if we want to use ICU other than the system one.
-AC_ARG_WITH([icu],
-  [AS_HELP_STRING([--with-icu=ARG],
-    [use icu-config from the specified location])],
-  [ICU_CONFIG="$withval"],
-  [ICU_CONFIG=""])
+PKG_CHECK_MODULES([ICU], [icu-uc])
 
-if test -z "$ICU_CONFIG"; then
-  AC_MSG_NOTICE([No path given for --with-icu, using icu-config from your PATH.])
-else
-  if test "x$ICU_CONFIG" = "xyes"; then
-    AC_MSG_WARN([ICU_CONFIG = 'yes'. Did you forget to specify an argument for --with-icu?])
-  fi
+AX_APPEND_COMPILE_FLAGS([ \
+  -DU_USING_ICU_NAMESPACE=0 \
+  -DU_CHARSET_IS_UTF8=1 \
+  -DUNISTR_FROM_CHAR_EXPLICIT=explicit \
+  -DUNSTR_FROM_STRING_EXPLICIT=explicit \
+], [ICU_CPPFLAGS])
 
-  # Add a trailing slash if we don't have one
-  case "$ICU_CONFIG" in
-  */) ;;
-  *) ICU_CONFIG="${ICU_CONFIG}/" ;;
-  esac
-
-  # Check that icu-config exists
-  if test ! -f "$ICU_CONFIG/icu-config"; then
-    AC_MSG_ERROR([Path "${ICU_CONFIG}icu-config" does not exist])
-  fi
+if test "x$enable_shared" != "xyes"; then
+  AX_APPEND_COMPILE_FLAGS([-DU_STATIC_IMPLEMENTATION], [ICU_CPPFLAGS])
 fi
 
-# FIXME: icu-config from ICU cross-compiled with mingw wants libicuuc.dll,
-# which won't exist if ICU was compiled static only, so we temporarily add
-# --noverify until we figure out what to do about this.
-ICU_CONFIG="${ICU_CONFIG}icu-config --noverify"
-
-AC_MSG_WARN([Disregard the next few lines where ICU_* are printed.])
-AC_MSG_WARN([They're all wrong but we fix them up before using them.])
-AX_CHECK_ICU(1.48)
-echo 'found ICU' `icu-config --version`
-
-# ICU_LIBS which are wrong on Windows (and we handle ourselves):
-#   -lpthread
-#
-# ICU_LIBS which are wrong for static Windows builds:
-#   -licuuc   -> -lsicuuc
-#   -licudata -> -lsicudt
-#
-# ICU_LIBS which are wrong everywhere:
-#   -licui18n
-#
-LG_REMOVE_FLAGS([ICU_LIBS], ['-licui18n -lpthread'])
-
-# FIXME: On Windows, static ICU libs have names different from dynamic ones.
-# This is problematic, because which should be linked against is known only
-# when we know if we're statically or dynamically linking.
-case "$host" in
-*-*-mingw*)
-  LG_REPLACE_FLAG([ICU_LIBS], [-licuuc],   [-lsicuuc])
-  LG_REPLACE_FLAG([ICU_LIBS], [-licudata], [-lsicudt])
-  ;;
-esac
-
-# ICU_C(XX)FLAGS we don't want anywhere:
-#   -ansi -std=c99
-#
-# ICU_C(XX)FLAGS which conflict with ones we might set:
-#   -O2 -O3 -g -pthread -mthreads
-#
-duff_icu_compile_flags='-ansi -g -O2 -O3 -std=c99 -pthread -mthreads'
-if test x"$CXX" = "xclang++" ; then
-  # These cause clang to freak out on Fedora 18
-  duff_icu_compile_flags="$duff_icu_compile_flags -Wp,-D_FORTIFY_SOURCE=2"
-fi
-
-LG_REMOVE_FLAGS([ICU_CFLAGS],   [$duff_icu_compile_flags])
-LG_REMOVE_FLAGS([ICU_CXXFLAGS], [$duff_icu_compile_flags])
+AC_SUBST([ICU_CPPFLAGS])
 
 #
 # Boost headers
@@ -295,6 +237,7 @@ AC_SUBST([CCLD])
 AC_MSG_NOTICE([ICU_CPPFLAGS: $ICU_CPPFLAGS])
 AC_MSG_NOTICE([ICU_CFLAGS:   $ICU_CFLAGS])
 AC_MSG_NOTICE([ICU_CXXFLAGS: $ICU_CXXFLAGS])
+AC_MSG_NOTICE([ICU_LIBS:     $ICU_LIBS])
 
 AC_MSG_NOTICE([BOOST_CPPFLAGS: $BOOST_CPPFLAGS])
 AC_MSG_NOTICE([BOOST_CXXFLAGS: $BOOST_CXXFLAGS])
