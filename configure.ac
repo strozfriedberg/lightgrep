@@ -151,11 +151,14 @@ if test "x$ax_cv_boost_program_options" != "xyes" || \
   AC_MSG_WARN([])
 fi
 
-# Boost ASIO needs ws2_32 and mswsock on Windows
 case "$host" in
 *-*-mingw*)
+  # Boost ASIO needs ws2_32 and mswsock on Windows
   BOOST_ASIO_LIB="-lws2_32 -lmswsock"
   AC_SUBST([BOOST_ASIO_LIB])
+
+  # FIXME: wrong boost_system lib gets detected!
+  BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
   ;;
 esac
 
@@ -205,13 +208,6 @@ AC_SUBST([STDCXX_LIB])
 if test "x$enable_shared" != "xyes"; then
   CXXLD="$CXX -all-static"
   CCLD="$CC -all-static"
-
-  case "$host" in
-  *-*-mingw*)
-    # FIXME: wrong boost_system lib gets detected!
-    BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
-    ;;
-  esac
 
   case "$host" in
   i686-*-mingw*)
