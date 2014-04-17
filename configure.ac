@@ -218,13 +218,22 @@ if test "x$ax_cv_boost_thread" != "xyes"; then
   AC_MSG_ERROR([Failed to find Boost thread library.])
 fi
 
-# Boost ASIO needs ws2_32 and mswsock on Windows
 case "$host" in
 *-*-mingw*)
+  # Boost ASIO needs ws2_32 and mswsock on Windows
   BOOST_ASIO_LIB="-lws2_32 -lmswsock"
   AC_SUBST([BOOST_ASIO_LIB])
+
+  # FIXME: wrong boost_system lib gets detected!
+  BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
+  # FIXME: wrong boost_filesystem lib gets detected!
+  BOOST_FILESYSTEM_LIB=`echo "$BOOST_FILESYSTEM_LIB" | sed 's/.dll/-mt/'`
   ;;
 esac
+
+if test "x$enable_shared" != "xyes"; then
+  AX_APPEND_FLAG([-DBOOST_THREAD_USE_LIB], [BOOST_CPPFLAGS])
+fi
 
 #
 # tests
@@ -311,17 +320,6 @@ AC_SUBST([STDCXX_CXXFLAGS])
 # Build dynamically-linked executables if we build dynamic libs
 if test "x$enable_shared" != "xyes"; then
   CXXLD="$CXX -all-static"
-
-  AX_APPEND_FLAG([-DBOOST_THREAD_USE_LIB], [BOOST_CPPFLAGS])
-
-  case "$host" in
-  *-*-mingw*)
-    # FIXME: wrong boost_system lib gets detected!
-    BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
-    # FIXME: wrong boost_filesystem lib gets detected!
-    BOOST_FILESYSTEM_LIB=`echo "$BOOST_FILESYSTEM_LIB" | sed 's/.dll/-mt/'`
-    ;;
-  esac
 
   case "$host" in
   i686-*-mingw*)
