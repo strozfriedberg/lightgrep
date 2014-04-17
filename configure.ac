@@ -346,17 +346,6 @@ AC_ARG_WITH([customer],
   ]
   [AC_MSG_NOTICE([no customer specified])])
 
-# FIXME: temporarily suspended flag deduplication until we figure out
-# how to do it without stomping on the user variables
-#
-# Cleanup flags
-#
-#AX_APPEND_COMPILE_FLAGS([$ICU_CPPFLAGS $BOOST_CPPFLAGS], [CPPFLAGS])
-#AX_APPEND_COMPILE_FLAGS([$ICU_CXXFLAGS $BOOST_CXXFLAGS], [CXXFLAGS])
-
-#LG_UNIQ_FLAGS([CPPFLAGS])
-#LG_UNIQ_FLAGS([CXXFLAGS])
-
 
 # TODO: libtre has a nice display we can steal
 AC_MSG_NOTICE([ICU_CPPFLAGS: $ICU_CPPFLAGS])
