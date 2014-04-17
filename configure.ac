@@ -206,8 +206,6 @@ if test "x$enable_shared" != "xyes"; then
   CXXLD="$CXX -all-static"
   CCLD="$CC -all-static"
 
-  AX_APPEND_COMPILE_FLAGS([-DBOOST_THREAD_USE_LIB], [BOOST_CPPFLAGS])
-
   case "$host" in
   *-*-mingw*)
     # FIXME: wrong boost_system lib gets detected!
