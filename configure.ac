@@ -221,7 +221,9 @@ else
 
   case "$host" in
   *-*-mingw*)
-    AX_APPEND_LINK_FLAGS([-no-undefined], [LG_LIB_LDFLAGS])
+    # -no-undefined is a libtool flag; adding it with AX_APPEND_LINK_FLAGS
+    # will fail because that tries flags with LD. So don't do that.
+    AX_APPEND_FLAG([-no-undefined], [LG_LIB_LDFLAGS])
     ;;
   esac
 fi
