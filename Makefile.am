@@ -170,7 +170,7 @@ test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB)
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = src/lib/lightgrep.pc
 
-src/lib/lightgrep.pc: src/lib/lightgrep.pc.in
+src/lib/lightgrep.pc: src/lib/lightgrep.pc.in Makefile
 	sed -e 's![@]prefix[@]!$(prefix)!g' \
       -e 's![@]exec_prefix[@]!$(exec_prefix)!g' \
       -e 's![@]includedir[@]!$(includedir)!g' \
