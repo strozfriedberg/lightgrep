@@ -62,6 +62,7 @@ src_lib_liblightgrepint_la_SOURCES = \
 # src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
 
 src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
+src_lib_liblightgrep_la_LDFLAGS = $(AM_LDFLAGS) $(LG_LIB_LDFLAGS)
 
 src_lib_liblightgrep_ladir = $(includedir)/lightgrep
 

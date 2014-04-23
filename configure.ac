@@ -218,10 +218,18 @@ if test "x$enable_shared" != "xyes"; then
 else
   CXXLD="$CXX"
   CCLD="$CC"
+
+  case "$host" in
+  *-*-mingw*)
+    AX_APPEND_LINK_FLAGS([-no-undefined], [LG_LIB_LDFLAGS])
+    ;;
+  esac
 fi
 
 AC_SUBST([CXXLD])
 AC_SUBST([CCLD])
+
+AC_SUBST([LG_LIB_LDFLAGS])
 
 #
 # Cleanup flags
