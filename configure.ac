@@ -167,13 +167,13 @@ esac
 # 
 case "$host" in
 *-*-mingw*)
-  AX_APPEND_FLAG([-mthreads], [CPPLAGS])
+  AX_APPEND_COMPILE_FLAGS([-mthreads], [CPPLAGS])
   AX_APPEND_LINK_FLAGS([-mthreads], [LDFLAGS])
   ;;
 *-apple-darwin*)
   ;;
 *)
-  AX_APPEND_FLAG([-pthread], [CPPFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-pthread], [CPPFLAGS])
   AX_APPEND_LINK_FLAGS([-pthread], [LDFLAGS])
 esac
 
