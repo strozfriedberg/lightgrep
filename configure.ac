@@ -67,6 +67,9 @@ AX_PROG_BISON([printf "bison version is... " && bison --version | head -n 1])
 
 PKG_CHECK_MODULES([ICU], [icu-uc])
 
+ICU_CPPFLAGS="$ICU_CFLAGS"
+ICU_CFLAGS=""
+
 AX_APPEND_COMPILE_FLAGS([ \
   -DU_USING_ICU_NAMESPACE=0 \
   -DU_CHARSET_IS_UTF8=1 \
