@@ -15,7 +15,7 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/server.cpp \
 	src/cmd/util.cpp
 	
-src_cmd_lightgrep_LDADD = $(LG_LIB) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+src_cmd_lightgrep_LDADD = $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 check_PROGRAMS = test/test
 
@@ -30,6 +30,6 @@ test_test_SOURCES = \
 	test/test_options.cpp
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
-test_test_LDADD = $(LG_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+test_test_LDADD = $(LG_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 TESTS = $(check_PROGRAMS)
