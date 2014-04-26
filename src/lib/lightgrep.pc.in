@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+libdir=@libdir@
+
+Name: lightgrep
+Description: Not the worst forensics regexp engine
+URL: https://github.com/LightboxTech/liblightgrep
+Version: @PACKAGE_VERSION@
+
+Cflags: -I${includedir}
+Libs: -L${libdir} -llightgrep
+Requires.private: icu-uc

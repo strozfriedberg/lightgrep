@@ -7,7 +7,7 @@ The following build steps might actually work:
 
 1. git clone --recursive git://github.com/LightboxTech/liblightgrep.git
 2. cd liblightgrep
-3. autoreconf -i
+3. autoreconf -fi
 4. ./configure
 5. make -j4
 6. sudo make install
@@ -39,13 +39,11 @@ Basic:
 
 Unit tests:
  - Boost::asio
- - Boost::chrono
  - Boost::program_options
  - Boost::system
- - Boost::thread
  - Scope (a git submodule)
 
-Liblightgrep uses the Boost project extensively. The lightgrep library itself depends on several header-only Boost libraries. The unit test suite, however, also relies on the thread, system, chrono, and program_options libraries having been built and available. These libraries must be built with the same compiler as liblightgrep. Boost 1.48 is known not to work in various configurations, with problems in Boost Thread.
+Liblightgrep uses the Boost project extensively. The lightgrep library itself depends on several header-only Boost libraries. The unit test suite, however, also relies on the system  and program_options libraries having been built and available. These libraries must be built with the same compiler as liblightgrep. Boost 1.48 is known not to work in various configurations due to problems in Boost Thread.
 
 Liblightgrep uses the awesome ICU libraries to do the gruntwork for Unicode regexp features and the wide array of supported encodings. We only use ICU's C API, so chances are high that liblightgrep will work with your system's default version of ICU, even if a different compiler was used. However, ICU may be transitioning away from the C API, so this flexibility may change in the future.
 

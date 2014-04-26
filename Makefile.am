@@ -1,6 +1,8 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CPPFLAGS = -Iinclude
+AM_CPPFLAGS = -Iinclude $(BOOST_CPPFLAGS) $(ICU_CPPFLAGS)
+AM_CFLAGS = -Iinclude
+AM_LDFLAGS = $(BOOST_LDFLAGS) $(ICU_LDFLAGS)
 AM_YFLAGS = -r solved
 
 LG_LIB = src/lib/liblightgrep.la
@@ -60,6 +62,7 @@ src_lib_liblightgrepint_la_SOURCES = \
 # src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
 
 src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
+src_lib_liblightgrep_la_LDFLAGS = $(AM_LDFLAGS) $(LG_LIB_LDFLAGS)
 
 src_lib_liblightgrep_ladir = $(includedir)/lightgrep
 
@@ -162,5 +165,16 @@ test_test_SOURCES = \
 	test/test_xorencoder.cpp
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
-test_test_LDFLAGS = $(BOOST_LDFLAGS)
+test_test_LDFLAGS = $(AM_LDFLAGS) $(BOOST_LDFLAGS)
 test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+
+pkgconfigdir = $(libdir)/pkgconfig
+nodist_pkgconfig_DATA = src/lib/lightgrep.pc
+
+src/lib/lightgrep.pc: src/lib/lightgrep.pc.in Makefile
+	sed -e 's![@]prefix[@]!$(prefix)!g' \
+      -e 's![@]exec_prefix[@]!$(exec_prefix)!g' \
+      -e 's![@]includedir[@]!$(includedir)!g' \
+      -e 's![@]libdir[@]!$(libdir)!g' \
+      -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
+      $< >$@

@@ -5,6 +5,10 @@ compiler:
 before_install:
   - git submodule update --init
   - yes | sudo add-apt-repository ppa:mapnik/boost
+  - yes | sudo add-apt-repository ppa:ubuntu-toolchain-r/test
   - sudo apt-get update
-install: sudo apt-get install libicu-dev boost1.49 libboost-chrono1.49-dev libboost-filesystem1.49-dev libboost-program-options1.49-dev libboost-system1.49-dev libboost-thread1.49-dev
-script: autoreconf -i && ./configure && make -j2 check
+install:
+  - sudo apt-get install libicu-dev boost1.49 libboost-chrono1.49-dev libboost-filesystem1.49-dev libboost-program-options1.49-dev libboost-system1.49-dev libboost-thread1.49-dev gcc-4.8 g++-4.8
+  - sudo ln -s -f /usr/bin/gcc-4.8 /usr/bin/gcc
+  - sudo ln -s -f /usr/bin/g++-4.8 /usr/bin/g++
+script: $CXX --version && autoreconf -fi && ./configure && make -j2 check

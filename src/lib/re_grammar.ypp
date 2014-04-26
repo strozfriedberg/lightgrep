@@ -1375,7 +1375,7 @@ namespace {
   }
 
   void throwError(ParseError e, Context* ctx) {
-    std::stringstream ss;
+    std::ostringstream ss;
 
     switch (e.Type) {
     case ParseError::NONATOMIC_REPETITON:
