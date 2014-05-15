@@ -35,11 +35,11 @@ AC_PROG_CXX
 AM_PROG_CC_C_O
 
 AC_LANG([C])
-AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [CFLAGS])
+AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [LG_CFLAGS])
 
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
-AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [CXXFLAGS])
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [LG_CXXFLAGS])
 
 AC_PROG_INSTALL
 
@@ -170,15 +170,20 @@ esac
 # 
 case "$host" in
 *-*-mingw*)
-  AX_APPEND_COMPILE_FLAGS([-mthreads], [CPPLAGS])
-  AX_APPEND_LINK_FLAGS([-mthreads], [LDFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-mthreads], [LG_CPPLAGS])
+  AX_APPEND_LINK_FLAGS([-mthreads], [LG_LDFLAGS])
   ;;
 *-apple-darwin*)
   ;;
 *)
-  AX_APPEND_COMPILE_FLAGS([-pthread], [CPPFLAGS])
-  AX_APPEND_LINK_FLAGS([-pthread], [LDFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-pthread], [LG_CPPFLAGS])
+  AX_APPEND_LINK_FLAGS([-pthread], [LG_LDFLAGS])
 esac
+
+AC_SUBST([LG_CPPFLAGS])
+AC_SUBST([LG_CFLAGS])
+AC_SUBST([LG_CXXFLAGS])
+AC_SUBST([LG_LDFLAGS])
 
 #
 # C++ library
@@ -215,7 +220,7 @@ if test "x$enable_shared" != "xyes"; then
   case "$host" in
   i686-*-mingw*)
     # FIXME: Really? This looks like it's just asking for trouble...
-    AX_APPEND_LINK_FLAGS([-Wl,--allow-multiple-definition], [LDFLAGS])
+    AX_APPEND_LINK_FLAGS([-Wl,--allow-multiple-definition], [LG_LIB_LDFLAGS])
     ;;
   esac
 else
