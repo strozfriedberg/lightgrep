@@ -73,6 +73,7 @@ struct ParseNode {
 
   ParseNode(NodeType t, uint32_t v): Type(t) {
     if (Type == CHAR_CLASS) {
+// FIXME: should we check that Set.CodePoints is word-aligned?
       new(&Set.CodePoints) UnicodeSet();
       Set.Breakout.Bytes.reset();
       Set.Breakout.Additive = true;

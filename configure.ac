@@ -23,6 +23,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/lib/vm.cpp])
 AC_CONFIG_HEADERS([config.h])
 
+#AM_INIT_AUTOMAKE([1.12 foreign serial-tests subdir-objects])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 LT_INIT
 
@@ -34,11 +35,11 @@ AC_PROG_CXX
 AM_PROG_CC_C_O
 
 AC_LANG([C])
-AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [CFLAGS])
+AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [LG_CFLAGS])
 
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
-AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [CXXFLAGS])
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [LG_CXXFLAGS])
 
 AC_PROG_INSTALL
 
@@ -46,8 +47,8 @@ AC_PROG_INSTALL
 # we want to keep.
 case "$host" in
 *-*-mingw*)
-  LG_REMOVE_FLAGS([CFLAGS], ['-g -O2'])
-  LG_REMOVE_FLAGS([CXXFLAGS], ['-g -O2'])
+  LG_REMOVE_FLAGS([CFLAGS], ['-O2'])
+  LG_REMOVE_FLAGS([CXXFLAGS], ['-O2'])
   ;;
 esac
 
@@ -64,78 +65,23 @@ AX_PROG_BISON([printf "bison version is... " && bison --version | head -n 1])
 # ICU
 #
 
-# Get the path to icu-config, if we want to use ICU other than the system one.
-AC_ARG_WITH([icu],
-  [AS_HELP_STRING([--with-icu=ARG],
-    [use icu-config from the specified location])],
-  [ICU_CONFIG="$withval"],
-  [ICU_CONFIG=""])
+PKG_CHECK_MODULES([ICU], [icu-uc])
 
-if test -z "$ICU_CONFIG"; then
-  AC_MSG_NOTICE([No path given for --with-icu, using icu-config from your PATH.])
-else
-  if test "x$ICU_CONFIG" = "xyes"; then
-    AC_MSG_WARN([ICU_CONFIG = 'yes'. Did you forget to specify an argument for --with-icu?])
-  fi
+ICU_CPPFLAGS="$ICU_CFLAGS"
+ICU_CFLAGS=""
 
-  # Add a trailing slash if we don't have one
-  case "$ICU_CONFIG" in
-  */) ;;
-  *) ICU_CONFIG="${ICU_CONFIG}/" ;;
-  esac
+AX_APPEND_COMPILE_FLAGS([ \
+  -DU_USING_ICU_NAMESPACE=0 \
+  -DU_CHARSET_IS_UTF8=1 \
+  -DUNISTR_FROM_CHAR_EXPLICIT=explicit \
+  -DUNSTR_FROM_STRING_EXPLICIT=explicit \
+], [ICU_CPPFLAGS])
 
-  # Check that icu-config exists
-  if test ! -f "$ICU_CONFIG/icu-config"; then
-    AC_MSG_ERROR([Path "${ICU_CONFIG}icu-config" does not exist])
-  fi
+if test "x$enable_shared" != "xyes"; then
+  AX_APPEND_COMPILE_FLAGS([-DU_STATIC_IMPLEMENTATION], [ICU_CPPFLAGS])
 fi
 
-# FIXME: icu-config from ICU cross-compiled with mingw wants libicuuc.dll,
-# which won't exist if ICU was compiled static only, so we temporarily add
-# --noverify until we figure out what to do about this.
-ICU_CONFIG="${ICU_CONFIG}icu-config --noverify"
-
-AC_MSG_WARN([Disregard the next few lines where ICU_* are printed.])
-AC_MSG_WARN([They're all wrong but we fix them up before using them.])
-AX_CHECK_ICU(1.48)
-echo 'found ICU' `icu-config --version`
-
-# ICU_LIBS which are wrong on Windows (and we handle ourselves):
-#   -lpthread
-#
-# ICU_LIBS which are wrong for static Windows builds:
-#   -licuuc   -> -lsicuuc
-#   -licudata -> -lsicudt
-#
-# ICU_LIBS which are wrong everywhere:
-#   -licui18n
-#
-LG_REMOVE_FLAGS([ICU_LIBS], ['-licui18n -lpthread'])
-
-# FIXME: On Windows, static ICU libs have names different from dynamic ones.
-# This is problematic, because which should be linked against is known only
-# when we know if we're statically or dynamically linking.
-case "$host" in
-*-*-mingw*)
-  LG_REPLACE_FLAG([ICU_LIBS], [-licuuc],   [-lsicuuc])
-  LG_REPLACE_FLAG([ICU_LIBS], [-licudata], [-lsicudt])
-  ;;
-esac
-
-# ICU_C(XX)FLAGS we don't want anywhere:
-#   -ansi -std=c99
-#
-# ICU_C(XX)FLAGS which conflict with ones we might set:
-#   -O2 -O3 -g -pthread -mthreads
-#
-duff_icu_compile_flags='-ansi -g -O2 -O3 -std=c99 -pthread -mthreads'
-if test x"$CXX" = "xclang++" ; then
-  # These cause clang to freak out on Fedora 18
-  duff_icu_compile_flags="$duff_icu_compile_flags -Wp,-D_FORTIFY_SOURCE=2"
-fi
-
-LG_REMOVE_FLAGS([ICU_CFLAGS],   [$duff_icu_compile_flags])
-LG_REMOVE_FLAGS([ICU_CXXFLAGS], [$duff_icu_compile_flags])
+AC_SUBST([ICU_CPPFLAGS])
 
 #
 # Boost headers
@@ -208,11 +154,14 @@ if test "x$ax_cv_boost_program_options" != "xyes" || \
   AC_MSG_WARN([])
 fi
 
-# Boost ASIO needs ws2_32 and mswsock on Windows
 case "$host" in
 *-*-mingw*)
+  # Boost ASIO needs ws2_32 and mswsock on Windows
   BOOST_ASIO_LIB="-lws2_32 -lmswsock"
   AC_SUBST([BOOST_ASIO_LIB])
+
+  # FIXME: wrong boost_system lib gets detected!
+  BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
   ;;
 esac
 
@@ -221,15 +170,20 @@ esac
 # 
 case "$host" in
 *-*-mingw*)
-  AX_APPEND_FLAG([-mthreads], [CPPLAGS])
-  AX_APPEND_LINK_FLAGS([-mthreads], [LDFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-mthreads], [LG_CPPLAGS])
+  AX_APPEND_LINK_FLAGS([-mthreads], [LG_LDFLAGS])
   ;;
 *-apple-darwin*)
   ;;
 *)
-  AX_APPEND_FLAG([-pthread], [CPPFLAGS])
-  AX_APPEND_LINK_FLAGS([-pthread], [LDFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-pthread], [LG_CPPFLAGS])
+  AX_APPEND_LINK_FLAGS([-pthread], [LG_LDFLAGS])
 esac
+
+AC_SUBST([LG_CPPFLAGS])
+AC_SUBST([LG_CFLAGS])
+AC_SUBST([LG_CXXFLAGS])
+AC_SUBST([LG_LDFLAGS])
 
 #
 # C++ library
@@ -263,45 +217,39 @@ if test "x$enable_shared" != "xyes"; then
   CXXLD="$CXX -all-static"
   CCLD="$CC -all-static"
 
-  AX_APPEND_FLAG([-DBOOST_THREAD_USE_LIB], [CPPFLAGS])
-
-  case "$host" in
-  *-*-mingw*)
-    # FIXME: wrong boost_system lib gets detected!
-    BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
-    ;;
-  esac
-
   case "$host" in
   i686-*-mingw*)
     # FIXME: Really? This looks like it's just asking for trouble...
-    AX_APPEND_LINK_FLAGS([-Wl,--allow-multiple-definition], [LDFLAGS])
+    AX_APPEND_LINK_FLAGS([-Wl,--allow-multiple-definition], [LG_LIB_LDFLAGS])
     ;;
   esac
 else
   CXXLD="$CXX"
   CCLD="$CC"
+
+  case "$host" in
+  *-*-mingw*)
+    # -no-undefined is a libtool flag; adding it with AX_APPEND_LINK_FLAGS
+    # will fail because that tries flags with LD. So don't do that.
+    AX_APPEND_FLAG([-no-undefined], [LG_LIB_LDFLAGS])
+    ;;
+  esac
 fi
 
 AC_SUBST([CXXLD])
 AC_SUBST([CCLD])
 
+AC_SUBST([LG_LIB_LDFLAGS])
+
 #
 # Cleanup flags
 #
-
-AC_LANG([C])
-AX_APPEND_COMPILE_FLAGS([$ICU_CFLAGS], [CFLAGS]) 
-
-AC_LANG([C++])
-AX_APPEND_COMPILE_FLAGS([$BOOST_CPPFLAGS $ICU_CPPFLAGS], [CPPFLAGS])
-AX_APPEND_COMPILE_FLAGS([$BOOST_CXXFLAGS $ICU_CXXFLAGS], [CXXFLAGS]) 
-
 
 # TODO: libtre has a nice display we can steal
 AC_MSG_NOTICE([ICU_CPPFLAGS: $ICU_CPPFLAGS])
 AC_MSG_NOTICE([ICU_CFLAGS:   $ICU_CFLAGS])
 AC_MSG_NOTICE([ICU_CXXFLAGS: $ICU_CXXFLAGS])
+AC_MSG_NOTICE([ICU_LIBS:     $ICU_LIBS])
 
 AC_MSG_NOTICE([BOOST_CPPFLAGS: $BOOST_CPPFLAGS])
 AC_MSG_NOTICE([BOOST_CXXFLAGS: $BOOST_CXXFLAGS])
