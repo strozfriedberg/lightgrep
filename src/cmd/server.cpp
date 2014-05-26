@@ -61,7 +61,7 @@ private:
 };
 
 namespace {
-  std::ostream* ErrOut = &std::cerr;
+  std::ostream* ErrOut = nullptr;
   std::shared_ptr<boost::mutex> ErrMutex(new boost::mutex);
 }
 
