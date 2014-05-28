@@ -289,3 +289,12 @@ AC_MSG_NOTICE([LDFLAGS:  $LDFLAGS])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
+
+# Force static linking of dependencies for our fat DLL.
+if test "x$enable_shared_fat" = "xyes"; then
+  # NB: This is likely to be fragile. It works only because the current
+  # version of libtool doesn't alter whole_archive_flag_spec and happens
+  # to put it in the right place in the linking command for our DLL.
+  sed -i '/^whole_archive_flag_spec=/s/"$/ \\${wl}-static"/' libtool
+  echo 'Adjusted libtool for building fat DLL'
+fi
