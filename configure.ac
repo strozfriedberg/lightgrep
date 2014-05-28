@@ -62,6 +62,28 @@ AX_PROG_BISON([printf "bison version is... " && bison --version | head -n 1])
 #AC_CHECK_HEADERS([libintl.h])
 
 #
+# Fat or thin shared library?
+#
+
+AC_ARG_ENABLE([shared-fat],
+  [AS_HELP_STRING([--enable-shared-fat],
+    [statically link liblightgrep to its dependencies (MinGW only)])])
+
+if test "x$enable_shared_fat" = "xyes"; then
+  case "$host" in
+  *-*-mingw*)
+    if test "x$enable_shared" != "xyes"; then
+      AC_MSG_ERROR([--enable-shared-fat requires --enable-shared.])
+    fi
+    echo "Enabling fat shared lib. Your shared liblightgrep is so fat, it will contain all of its dependencies."
+    ;;
+  *)
+    AC_MSG_ERROR([--enable-shared-fat requires building with MinGW.])
+    ;;
+  esac
+fi
+
+#
 # ICU
 #
 
@@ -77,7 +99,7 @@ AX_APPEND_COMPILE_FLAGS([ \
   -DUNSTR_FROM_STRING_EXPLICIT=explicit \
 ], [ICU_CPPFLAGS])
 
-if test "x$enable_shared" != "xyes"; then
+if test "x$enable_shared" != "xyes" -o "x$enable_shared_fat" = "xyes"; then
   AX_APPEND_COMPILE_FLAGS([-DU_STATIC_IMPLEMENTATION], [ICU_CPPFLAGS])
 fi
 
@@ -232,9 +254,12 @@ else
     # -no-undefined is a libtool flag; adding it with AX_APPEND_LINK_FLAGS
     # will fail because that tries flags with LD. So don't do that.
     AX_APPEND_FLAG([-no-undefined], [LG_LIB_LDFLAGS])
+    LG_LIB_LDFLAGS="$LG_LIB_LDFLAGS -Wl,--output-def -Wl,src/lib/.libs/$PACKAGE.def"
     ;;
   esac
 fi
+
+AM_CONDITIONAL([BUILD_DLL], [test "x$enable_shared" = "xyes" && echo "$host" | grep -q mingw])
 
 AC_SUBST([CXXLD])
 AC_SUBST([CCLD])
