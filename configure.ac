@@ -35,11 +35,11 @@ AC_PROG_CXX
 AM_PROG_CC_C_O
 
 AC_LANG([C])
-AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [CFLAGS])
+AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [LG_CFLAGS])
 
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
-AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [CXXFLAGS])
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [LG_CXXFLAGS])
 
 AC_PROG_INSTALL
 
@@ -62,6 +62,28 @@ AX_PROG_BISON([printf "bison version is... " && bison --version | head -n 1])
 #AC_CHECK_HEADERS([libintl.h])
 
 #
+# Fat or thin shared library?
+#
+
+AC_ARG_ENABLE([shared-fat],
+  [AS_HELP_STRING([--enable-shared-fat],
+    [statically link liblightgrep to its dependencies (MinGW only)])])
+
+if test "x$enable_shared_fat" = "xyes"; then
+  case "$host" in
+  *-*-mingw*)
+    if test "x$enable_shared" != "xyes"; then
+      AC_MSG_ERROR([--enable-shared-fat requires --enable-shared.])
+    fi
+    echo "Enabling fat shared lib. Your shared liblightgrep is so fat, it will contain all of its dependencies."
+    ;;
+  *)
+    AC_MSG_ERROR([--enable-shared-fat requires building with MinGW.])
+    ;;
+  esac
+fi
+
+#
 # ICU
 #
 
@@ -77,7 +99,7 @@ AX_APPEND_COMPILE_FLAGS([ \
   -DUNSTR_FROM_STRING_EXPLICIT=explicit \
 ], [ICU_CPPFLAGS])
 
-if test "x$enable_shared" != "xyes"; then
+if test "x$enable_shared" != "xyes" -o "x$enable_shared_fat" = "xyes"; then
   AX_APPEND_COMPILE_FLAGS([-DU_STATIC_IMPLEMENTATION], [ICU_CPPFLAGS])
 fi
 
@@ -170,15 +192,20 @@ esac
 # 
 case "$host" in
 *-*-mingw*)
-  AX_APPEND_COMPILE_FLAGS([-mthreads], [CPPLAGS])
-  AX_APPEND_LINK_FLAGS([-mthreads], [LDFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-mthreads], [LG_CPPLAGS])
+  AX_APPEND_LINK_FLAGS([-mthreads], [LG_LDFLAGS])
   ;;
 *-apple-darwin*)
   ;;
 *)
-  AX_APPEND_COMPILE_FLAGS([-pthread], [CPPFLAGS])
-  AX_APPEND_LINK_FLAGS([-pthread], [LDFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-pthread], [LG_CPPFLAGS])
+  AX_APPEND_LINK_FLAGS([-pthread], [LG_LDFLAGS])
 esac
+
+AC_SUBST([LG_CPPFLAGS])
+AC_SUBST([LG_CFLAGS])
+AC_SUBST([LG_CXXFLAGS])
+AC_SUBST([LG_LDFLAGS])
 
 #
 # C++ library
@@ -215,7 +242,7 @@ if test "x$enable_shared" != "xyes"; then
   case "$host" in
   i686-*-mingw*)
     # FIXME: Really? This looks like it's just asking for trouble...
-    AX_APPEND_LINK_FLAGS([-Wl,--allow-multiple-definition], [LDFLAGS])
+    AX_APPEND_LINK_FLAGS([-Wl,--allow-multiple-definition], [LG_LIB_LDFLAGS])
     ;;
   esac
 else
@@ -227,9 +254,12 @@ else
     # -no-undefined is a libtool flag; adding it with AX_APPEND_LINK_FLAGS
     # will fail because that tries flags with LD. So don't do that.
     AX_APPEND_FLAG([-no-undefined], [LG_LIB_LDFLAGS])
+    LG_LIB_LDFLAGS="$LG_LIB_LDFLAGS -Wl,--output-def -Wl,src/lib/.libs/$PACKAGE.def"
     ;;
   esac
 fi
+
+AM_CONDITIONAL([BUILD_DLL], [test "x$enable_shared" = "xyes" && echo "$host" | grep -q mingw])
 
 AC_SUBST([CXXLD])
 AC_SUBST([CCLD])
@@ -259,3 +289,12 @@ AC_MSG_NOTICE([LDFLAGS:  $LDFLAGS])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
+
+# Force static linking of dependencies for our fat DLL.
+if test "x$enable_shared_fat" = "xyes"; then
+  # NB: This is likely to be fragile. It works only because the current
+  # version of libtool doesn't alter whole_archive_flag_spec and happens
+  # to put it in the right place in the linking command for our DLL.
+  sed -i '/^whole_archive_flag_spec=/s/"$/ \\${wl}-static"/' libtool
+  echo 'Adjusted libtool for building fat DLL'
+fi
