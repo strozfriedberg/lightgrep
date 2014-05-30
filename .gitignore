@@ -33,6 +33,12 @@
 /src/lib/re_grammar.output
 /src/enc/enc
 /src/enc/enc.exe
+/src/re_gen/debruijn
+/src/re_gen/debruijn.exe
+/src/re_gen/forms
+/src/re_gen/forms.exe
+/src/re_gen/inst
+/src/re_gen/inst.exe
 /src/val/val
 /src/val/val.exe
 /src/what/what
