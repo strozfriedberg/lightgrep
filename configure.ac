@@ -130,6 +130,23 @@ fi
 # tests
 #
 
+# Use std::thread if we can, otherwise use boost::thread.
+AS_ECHO_N("checking for std::thread... ")
+CPPFLAGS_saved="$CPPFLAGS"
+CPPFLAGS="-std=c++11"
+AC_TRY_COMPILE([#include <thread>],
+               [std::thread t;],
+               [have_std_thread="yes"], [have_std_thread="no"])
+CPPFLAGS="$CPPFLAGS_saved"
+AS_ECHO($have_std_thread)
+
+if test "x$have_std_thread" = "xyes"; then
+  AC_DEFINE(HAVE_STD_THREAD,1,[Define to 1 if std::thread is available.])
+else
+  AX_BOOST_CHRONO
+  AX_BOOST_THREAD
+fi
+
 # Boost libs used by tests
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_SYSTEM
@@ -147,7 +164,7 @@ if test "x$with_scope" != "xno"; then
   CPPFLAGS="$SCOPE_CPPFLAGS"
   export CPPFLAGS
 
-  AC_CHECK_HEADERS([scope/test.h],[scope_ok="yes"])
+  AC_CHECK_HEADER([scope/test.h],[scope_ok="yes"])
 
   CPPFLAGS="$CPPFLAGS_saved"
 
@@ -160,7 +177,14 @@ fi
 # Tell the user why not if he won't be able to compile the tests
 if test "x$ax_cv_boost_program_options" != "xyes" || \
    test "x$ax_cv_boost_system" != "xyes" || \
-   test "x$scope_ok" != "xyes"; then
+   test "x$scope_ok" != "xyes" || \
+   ( \
+      test "x$have_std_thread" != "xyes" && \
+      ( \
+        test "x$ax_cv_boost_thread" != "xyes" || \
+        test "x$av_cv_boost_chrono" != "xyes" \
+      ) \
+   ) ; then
   AC_MSG_WARN([])
   AC_MSG_WARN([You will be unable to compile and run the tests because:])
   AC_MSG_WARN([])
@@ -169,6 +193,13 @@ if test "x$ax_cv_boost_program_options" != "xyes" || \
   fi
   if test "x$ax_cv_boost_system" != "xyes"; then
     AC_MSG_WARN([  * boost::system is unavailable])
+  fi
+  if test "x$have_std_thread" != "xyes" && \
+    ( \
+      test "x$ax_cv_boost_thread" != "xyes" || \
+      test "x$av_cv_boost_chrono" != "xyes" \
+    ) ; then
+    AC_MSG_WARN([  * neither std::thread nor boost::thread and boost::chrono are available])
   fi
   if test "x$scope_ok" != "xyes"; then
     AC_MSG_WARN([  * Scope test framework is unavailable])
