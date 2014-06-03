@@ -182,7 +182,7 @@ if test "x$ax_cv_boost_program_options" != "xyes" || \
       test "x$have_std_thread" != "xyes" && \
       ( \
         test "x$ax_cv_boost_thread" != "xyes" || \
-        test "x$av_cv_boost_chrono" != "xyes" \
+        test "x$ax_cv_boost_chrono" != "xyes" \
       ) \
    ) ; then
   AC_MSG_WARN([])
@@ -197,7 +197,7 @@ if test "x$ax_cv_boost_program_options" != "xyes" || \
   if test "x$have_std_thread" != "xyes" && \
     ( \
       test "x$ax_cv_boost_thread" != "xyes" || \
-      test "x$av_cv_boost_chrono" != "xyes" \
+      test "x$ax_cv_boost_chrono" != "xyes" \
     ) ; then
     AC_MSG_WARN([  * neither std::thread nor boost::thread and boost::chrono are available])
   fi
