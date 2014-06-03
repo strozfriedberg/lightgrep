@@ -180,10 +180,10 @@ src/lib/lightgrep.pc: src/lib/lightgrep.pc.in Makefile
       -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
       $< >$@
 
-if BUILD_DLL
-msvclibdir = $(libdir)
-nodist_msvclib_DATA = src/lib/.libs/liblightgrep.lib
-
-src/lib/.libs/liblightgrep.lib: src/lib/.libs/liblightgrep-0.dll
-	$(DLLTOOL) -D $< -d src/lib/.libs/liblightgrep.def -l $@
-endif
+#if BUILD_DLL
+#msvclibdir = $(libdir)
+#nodist_msvclib_DATA = src/lib/.libs/liblightgrep.lib
+#
+#src/lib/.libs/liblightgrep.lib: src/lib/.libs/liblightgrep-0.dll
+#	$(DLLTOOL) -D $< -d src/lib/.libs/liblightgrep.def -l $@
+#endif
