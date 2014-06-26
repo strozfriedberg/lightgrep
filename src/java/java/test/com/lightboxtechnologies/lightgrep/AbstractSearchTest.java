@@ -40,9 +40,10 @@ public abstract class AbstractSearchTest extends AbstractDataDrivenTest {
   protected final int offset;
   protected final int size;
   protected final long startOffset;
+  protected final long endOffset;
   protected final SearchHit[] ehits;
 
-  public AbstractSearchTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
+  public AbstractSearchTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, long endOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
     super(tclass);
     this.fsmSizeHint = fsmSizeHint;
     this.pmapSizeHint = pmapSizeHint;
@@ -53,6 +54,7 @@ public abstract class AbstractSearchTest extends AbstractDataDrivenTest {
     this.offset = offset;
     this.size = size;
     this.startOffset = startOffset;
+    this.endOffset = endOffset;
     this.ehits = ehits;
   }
 

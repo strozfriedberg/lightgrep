@@ -13,8 +13,8 @@ import static org.junit.Assert.assertEquals;
 @RunWith(Parameterized.class)
 public class StartsWithWrappedByteBufferTest extends BaseStartsWithTest {
 
-  public StartsWithWrappedByteBufferTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
-    super(fsmSizeHint, pmapSizeHint, pats, popts, copts, buf, offset, size, startOffset, ehits, tclass);
+  public StartsWithWrappedByteBufferTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, long endOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
+    super(fsmSizeHint, pmapSizeHint, pats, popts, copts, buf, offset, size, startOffset, endOffset, ehits, tclass);
 
     if (buf != null) {
       bbuf = ByteBuffer.wrap(buf);

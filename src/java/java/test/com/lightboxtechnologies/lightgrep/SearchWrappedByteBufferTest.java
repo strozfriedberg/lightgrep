@@ -13,8 +13,8 @@ import static org.junit.Assert.assertEquals;
 @RunWith(Parameterized.class)
 public class SearchWrappedByteBufferTest extends BaseSearchTest {
 
-  public SearchWrappedByteBufferTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
-    super(fsmSizeHint, pmapSizeHint, pats, popts, copts, buf, offset, size, startOffset, ehits, tclass);
+  public SearchWrappedByteBufferTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, long endOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
+    super(fsmSizeHint, pmapSizeHint, pats, popts, copts, buf, offset, size, startOffset, endOffset, ehits, tclass);
 
     if (buf != null) {
       bbuf = ByteBuffer.wrap(buf);    
@@ -32,7 +32,7 @@ public class SearchWrappedByteBufferTest extends BaseSearchTest {
     final HitCallback cb = new HitCollector(hits);
 
     final int ret = hCtx.search(bbuf, size, startOffset, cb);
-    assertEquals(0, ret);
+    assertEquals(endOffset, ret);
 
     hCtx.closeoutSearch(cb);
     assertEquals(Arrays.asList(ehits), hits);

@@ -13,8 +13,8 @@ import static org.junit.Assert.assertEquals;
 @RunWith(Parameterized.class)
 public class StartsWithDirectByteBufferTest extends BaseStartsWithTest {
 
-  public StartsWithDirectByteBufferTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
-    super(fsmSizeHint, pmapSizeHint, pats, popts, copts, buf, offset, size, startOffset, ehits, tclass);
+  public StartsWithDirectByteBufferTest(int fsmSizeHint, int pmapSizeHint, Pat[] pats, ProgramOptions popts, ContextOptions copts, byte[] buf, int offset, int size, long startOffset, long endOffset, SearchHit[] ehits, Class<? extends Throwable> tclass) {
+    super(fsmSizeHint, pmapSizeHint, pats, popts, copts, buf, offset, size, startOffset, endOffset, ehits, tclass);
 
     if (buf != null) {
       bbuf = ByteBuffer.allocateDirect(buf.length);
