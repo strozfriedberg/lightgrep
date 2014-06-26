@@ -398,13 +398,13 @@ SCOPE_TEST(simpleLitMatch) {
   prog.First.set('a');
   v.init(p);
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT_EQUAL(Thread::NONE, v.search(text, text + 3, 35, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(38u, v.search(text, text + 3, 35, &mockCallback, &hits));
   v.closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(1u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(35, 37, 3), hits[0]);
   text[1] = 'c';
   hits.clear();
-  SCOPE_ASSERT_EQUAL(Thread::NONE, v.search(text, text + 3 , 35, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(38u, v.search(text, text + 3 , 35, &mockCallback, &hits));
   SCOPE_ASSERT_EQUAL(0u, hits.size());
 }
 
@@ -493,7 +493,7 @@ SCOPE_TEST(threeKeywords) {
   p->First.set('b');
   v.init(p);
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT_EQUAL(Thread::NONE, v.search(text, &text[4], 10, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(14u, v.search(text, &text[4], 10, &mockCallback, &hits));
   v.closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(3u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(11, 12, 0), hits[0]);
@@ -520,7 +520,7 @@ SCOPE_TEST(stitchedText) {
   std::vector<SearchHit> hits;
   SCOPE_ASSERT_EQUAL(2u, v.search(text1, &text1[3], 0, &mockCallback, &hits));
   SCOPE_ASSERT_EQUAL(0u, hits.size());
-  SCOPE_ASSERT_EQUAL(Thread::NONE, v.search(text2, &text2[2], 3, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(5u, v.search(text2, &text2[2], 3, &mockCallback, &hits));
   v.closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(1u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 4, 0), hits[0]);

@@ -177,11 +177,13 @@ extern "C" {
   // the hit, the end offset, and the keyword index of the associated keyword.
   // The context does not store or otherwise remember the buffer data you pass
   // it after this function returns, so do whatever you'd like with your
-  // buffers after lg_search() returns. Search hits will be generated in
-  // increasing byte offset order BY KEYWORD INDEX. Search hits pertaining to
-  // different keywords may be out of order. In particular, it may not be
-  // possible to determine the full length of a hit until the entire byte
-  // stream has been searched...
+  // buffers after lg_search() returns. Return value is the least offset for
+  // which a hit could still be returned by further searching.
+  //
+  // Search hits will be generated in increasing byte offset order BY KEYWORD
+  // INDEX. Search hits pertaining to different keywords may be out of order.
+  // In particular, it may not be possible to determine the full length of a
+  // hit until the entire byte stream has been searched...
   uint64_t lg_search(LG_HCONTEXT hCtx,
                          const char* bufStart,
                          const char* bufEnd,   // pointer past the end of the buffer, i.e. bufEnd - bufStart == length of buffer
@@ -195,6 +197,8 @@ extern "C" {
                           void* userData,
                           LG_HITCALLBACK_FN callbackFn);
 
+  // Return value is the least offset for which a hit could still be returned
+  // by further searching.
   uint64_t lg_search_resolve(LG_HCONTEXT hCtx,
                          const char* bufStart,
                          const char* bufEnd,

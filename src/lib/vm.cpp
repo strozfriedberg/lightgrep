@@ -628,7 +628,7 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
     return t->Start;
   }
 
-  return Thread::NONE;
+  return offset;
 }
 
 uint64_t Vm::searchResolve(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {
@@ -670,7 +670,8 @@ uint64_t Vm::searchResolve(const byte* const beg, const byte* const end, const u
     // this is a live thread
     return t->Start;
   }
-  return Thread::NONE;
+
+  return offset;
 }
 
 void Vm::closeOut(HitCallback hitFn, void* userData) {
