@@ -235,6 +235,7 @@ namespace {
     *characters = new int32_t[*clen];
     *offsets = new size_t[*clen];
 
+    // unzip the result
     size_t i = 0;
     for (const std::pair<int32_t,const byte*>& p : cps) {
       (*characters)[i] = p.first;
