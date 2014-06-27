@@ -221,9 +221,9 @@ namespace {
     const byte* bend = reinterpret_cast<const byte*>(bufEnd);
 
     const byte* hbeg =
-      reinterpret_cast<const byte*>(bufStart) + inner->begin - dataOffset;
+      reinterpret_cast<const byte*>(bufStart) + (inner->begin - dataOffset);
     const byte* hend =
-      reinterpret_cast<const byte*>(bufStart) + inner->end - dataOffset;
+      reinterpret_cast<const byte*>(bufStart) + (inner->end - dataOffset);
 
     std::vector<std::pair<int32_t,const byte*>> cps;
 
