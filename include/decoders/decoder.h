@@ -35,5 +35,7 @@ public:
 
   virtual void reset(const byte* beg, const byte* end) = 0;
 
+  virtual uint32_t maxByteLength() const = 0;
+
   static const int32_t END;
 };

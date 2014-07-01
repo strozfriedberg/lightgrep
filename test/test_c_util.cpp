@@ -214,3 +214,51 @@ SCOPE_TEST(lgReadWindowUTF16LEWithBadSpotRequiringDecoderRestart) {
     { 2, 4, 5, 7, 9 }
   );
 }
+
+SCOPE_TEST(lgReadWindowTestUTF8NoBadSpots) {
+  readWindowTest(
+    0, "UTF-8",
+    4, 7, // hit is "abc"
+    2, 2,
+    { 0xE2, 0x9A, 0xA1, ' ', 'a', 'b', 'c', 0xD0, 0x96 },
+    { 0x26A1, ' ', 'a', 'b', 'c', 0x0416, Decoder::END },
+    { 0, 3, 4, 5, 6, 7, 9 }
+  );
+}
+
+SCOPE_TEST(lgHitContextUTF8NoBadSpots) {
+  hitContextTest(
+    0, "UTF-8",
+    4, 7, // hit is "abc"
+    2,
+    0xFFFD,
+    { 0xE2, 0x9A, 0xA1, ' ', 'a', 'b', 'c', 0xD0, 0x96 },
+    u8"⚡ abcЖ",
+    0,
+    0, 9
+  );
+}
+
+SCOPE_TEST(lgReadWindowTestUTF8LeadingJunk) {
+  readWindowTest(
+    0, "UTF-8",
+    4, 7, // hit is "abc"
+    2, 2,
+    { 0xFF, 0xFF, 0xFF, ' ', 'a', 'b', 'c', 0xD0, 0x96 },
+    { -0x100, ' ', 'a', 'b', 'c', 0x0416, Decoder::END },
+    { 2, 3, 4, 5, 6, 7, 9 }
+  );
+}
+
+SCOPE_TEST(lgHitContextUTF8LeadingJunk) {
+  hitContextTest(
+    0, "UTF-8",
+    4, 7, // hit is "abc"
+    2,
+    0xFFFD,
+    { 0xFF, 0xFF, 0xFF, ' ', 'a', 'b', 'c', 0xD0, 0x96 },
+    u8"� abcЖ",
+    1,
+    2, 9
+  );
+}
