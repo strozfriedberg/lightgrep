@@ -262,3 +262,14 @@ SCOPE_TEST(lgHitContextUTF8LeadingJunk) {
     2, 9
   );
 }
+
+SCOPE_TEST(lgReadWindowTestLeadingUTF8JunkUTF8Again) {
+  readWindowTest(
+    0, "UTF-8",
+    3, 6, // hit is "abc"
+    3, 2,
+    { 'x', 0xFF, 'y', 'a', 'b', 'c', 0xD0, 0x96 },
+    { 'x', -0x100, 'y', 'a', 'b', 'c', 0x0416, Decoder::END },
+    { 0, 1, 2, 3, 4, 5, 6, 8 }
+  );
+}
