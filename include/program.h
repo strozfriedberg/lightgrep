@@ -37,6 +37,7 @@ public:
   uint32_t  NumChecked;
 
   ByteSet First;
+  uint32_t FirstOff;
 
   int bufSize() const;
 

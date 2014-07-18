@@ -168,7 +168,9 @@ ProgramPtr Compiler::createProgram(const NFA& graph) {
   // std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
 
-  ret->First = firstBytes(graph);
+//  ret->First = firstBytes(graph);
+//  bfs_bounded(graph, 0, 5);
+  std::tie(ret->FirstOff, ret->First) = bestFirst(graph, 0, 10);
 
   const uint32_t numVs = graph.verticesSize();
   std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));

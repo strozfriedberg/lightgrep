@@ -28,6 +28,7 @@ int Program::bufSize() const {
 
 bool Program::operator==(const Program& rhs) const {
   return NumChecked == rhs.NumChecked &&
+         FirstOff == rhs.FirstOff &&
          First == rhs.First &&
          std::equal(begin(), end(), rhs.begin());
 }

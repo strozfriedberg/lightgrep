@@ -485,7 +485,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
   }
 
   // create new threads at this offset
-  if (first[*cur]) {
+  if (first[*(cur+Prog->FirstOff)]) {
     const size_t oldsize = Active.size();
 
     for (t = First.begin(); t != First.end(); ++t) {
