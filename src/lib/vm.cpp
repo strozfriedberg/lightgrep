@@ -474,7 +474,7 @@ inline bool Vm::_executeEpSequence(const Instruction* const base, ThreadList::it
   return t->PC;
 }
 
-inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
+inline void Vm::_executeFrame(const std::bitset<256*256>& first, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
   // run old threads at this offset
   // uint32_t count = 0;
 
@@ -485,7 +485,7 @@ inline void Vm::_executeFrame(const ByteSet& first, ThreadList::iterator t, cons
   }
 
   // create new threads at this offset
-  if (first[*(cur+Prog->FirstOff)]) {
+  if (first[*((uint16_t*)(cur+Prog->FirstOff))]) {
     const size_t oldsize = Active.size();
 
     for (t = First.begin(); t != First.end(); ++t) {
@@ -599,7 +599,7 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
   CurHitFn = hitFn;
   UserData = userData;
   const Instruction* base = &(*Prog)[0];
-  const ByteSet& first = Prog->First;
+  const std::bitset<256*256>& first = Prog->First;
   uint64_t offset = startOffset;
 
   for (const byte* cur = beg; cur < end; ++cur, ++offset) {

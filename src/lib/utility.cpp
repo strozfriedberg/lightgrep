@@ -50,6 +50,83 @@ void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor) {
   }
 }
 
+std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
+  std::queue<std::pair<uint32_t,NFA::VertexDescriptor>> next;
+  next.push({0, 0});
+
+  std::vector<std::bitset<256*256>> b;
+
+  uint32_t lmin = std::numeric_limits<uint32_t>::max();
+
+  uint32_t depth;
+  NFA::VertexDescriptor h;
+
+  while (!next.empty()) {
+    std::tie(depth, h) = next.front();
+    next.pop();
+
+    if (depth >= lmin) {
+      continue;
+    }
+    
+    if (graph[h].IsMatch) {
+      if (depth < lmin) {
+        lmin = depth;
+      }
+      continue;
+    }
+
+    if (depth < lmin - 1) {
+      for (const NFA::VertexDescriptor t : graph.outVertices(h)) {
+        next.push({depth+1, t});
+      }
+    }
+
+    if (b.size() <= depth) {
+      b.resize(depth+1);
+    }
+    
+    for (const NFA::VertexDescriptor t0 : graph.outVertices(h)) {
+      ByteSet first;
+      graph[t0].Trans->orBytes(first);
+
+      if (graph[t0].IsMatch) {
+        for (uint32_t s = 0; s < 256; ++s) {
+          for (uint32_t f = 0; f < 256; ++f) {
+            if (first.test(f)) {
+              b[depth].set((s << 8) | f);
+            }
+          }
+        }
+      }
+      else {
+        for (const NFA::VertexDescriptor t1 : graph.outVertices(t0)) {
+          ByteSet second;
+          graph[t1].Trans->orBytes(second);
+
+          for (uint32_t s = 0; s < 256; ++s) {
+            if (second.test(s)) {
+              for (uint32_t f = 0; f < 256; ++f) {
+                if (first.test(f)) {
+                  b[depth].set((s << 8) | f);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for (uint32_t i = 0; i < lmin; ++i) {
+    std::cerr << i << ": " << b[i].count() << '\n';
+  }
+  std::cerr << std::endl;
+  
+  const auto i = std::min_element(b.begin(), b.end(), [](const std::bitset<256*256>& l, const std::bitset<256*256>& r) { return l.count() < r.count(); });
+  return {i-b.begin(), *i};
+}
+
 std::pair<uint32_t,ByteSet> bestFirst(const NFA& graph, NFA::VertexDescriptor start, uint32_t maxdepth) {
   std::queue<std::pair<uint32_t,NFA::VertexDescriptor>> next;
   next.push({0, start});

@@ -69,6 +69,8 @@ void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor);
 
 std::pair<uint32_t,ByteSet> bestFirst(const NFA& graph, NFA::VertexDescriptor start, uint32_t maxdepth);
 
+std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph);
+
 ByteSet firstBytes(const NFA& graph);
 
 void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph);

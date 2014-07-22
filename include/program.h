@@ -36,7 +36,8 @@ public:
 
   uint32_t  NumChecked;
 
-  ByteSet First;
+//  ByteSet First;
+  std::bitset<256*256> First;
   uint32_t FirstOff;
 
   int bufSize() const;
