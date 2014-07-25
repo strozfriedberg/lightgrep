@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <bitset>
 #include <istream>
 #include <ostream>
 #include <vector>
@@ -25,20 +26,18 @@
 #include "basic.h"
 #include "instructions.h"
 #include "fwd_pointers.h"
-#include "byteset.h"
 
 class Program: public std::vector<Instruction> {
 public:
   Program(size_t num, const Instruction& val):
-    std::vector<Instruction>(num, val), NumChecked(0), First() {}
+    std::vector<Instruction>(num, val), NumChecked(0), FirstOff(0), First() {}
 
-  Program(): std::vector<Instruction>(), NumChecked(0), First() {}
+  Program(): std::vector<Instruction>(), NumChecked(0), FirstOff(0), First() {}
 
   uint32_t  NumChecked;
 
-//  ByteSet First;
-  std::bitset<256*256> First;
   uint32_t FirstOff;
+  std::bitset<256*256> First;
 
   int bufSize() const;
 

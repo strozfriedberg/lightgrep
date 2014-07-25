@@ -23,7 +23,8 @@
 #include <sstream>
 
 int Program::bufSize() const {
-  return sizeof(ByteSet) + sizeof(uint32_t) + (size() * sizeof(value_type));
+  return sizeof(First) + sizeof(FirstOff) +
+         sizeof(NumChecked) + (size() * sizeof(value_type));
 }
 
 bool Program::operator==(const Program& rhs) const {
@@ -36,6 +37,7 @@ bool Program::operator==(const Program& rhs) const {
 std::string Program::marshall() const {
   std::ostringstream buf;
   buf.write((char*)&NumChecked, sizeof(NumChecked));
+  buf.write((char*)&FirstOff, sizeof(FirstOff));
   buf.write((char*)&First, sizeof(First));
   for (auto instruction: *this) {
     buf.write((char*)&instruction, sizeof(instruction));
@@ -46,8 +48,9 @@ std::string Program::marshall() const {
 ProgramPtr Program::unmarshall(const std::string& s) {
   ProgramPtr p(new Program);
   std::istringstream buf(s);
-  buf.read((char*)&p->NumChecked, sizeof(uint32_t));
-  buf.read((char*)&p->First, sizeof(ByteSet));
+  buf.read((char*)&p->NumChecked, sizeof(NumChecked));
+  buf.read((char*)&p->FirstOff, sizeof(FirstOff));
+  buf.read((char*)&p->First, sizeof(First));
   Instruction i;
   while (buf.read((char*)&i, sizeof(Instruction))) {
     p->push_back(i);
