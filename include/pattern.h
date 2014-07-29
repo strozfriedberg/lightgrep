@@ -27,6 +27,15 @@ public:
               CaseInsensitive;
   std::string Encoding;
 
+  Pattern(const char* expr,
+          bool fixed = false,
+          bool insensitive = false,
+          const std::string& enc = "US-ASCII"):
+    Expression(expr),
+    FixedString(fixed),
+    CaseInsensitive(insensitive),
+    Encoding(enc) {}
+
   Pattern(const std::string& expr = "",
           bool fixed = false,
           bool insensitive = false,

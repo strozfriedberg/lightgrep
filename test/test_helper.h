@@ -39,11 +39,3 @@ void ASSERT_EQUAL_MATCHES(const NFA& a, const NFA& b);
 
 NFAPtr createGraph(const std::vector<Pattern>& pats, bool determinize);
 
-template<class T>
-std::vector<Pattern> makePatterns(const std::initializer_list<T>& list) {
-  std::vector<Pattern> ret;
-  for (const auto& p : list) {
-    ret.emplace_back(p);
-  }
-  return ret;
-}
