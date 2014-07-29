@@ -86,7 +86,7 @@ SCOPE_TEST(oceUTF8) {
 }
 
 SCOPE_TEST(twoUnicode) {
-  std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
+  std::vector<Pattern> pats({"aa", "ab"});
   for (Pattern& p : pats) {
     p.Encoding = LG_CANONICAL_ENCODINGS[LG_ENCODING_UTF_16LE];
   }
@@ -162,7 +162,7 @@ SCOPE_TEST(firstBitset) {
 }
 
 SCOPE_TEST(simpleCollapse) {
-  NFAPtr fsm = createGraph(makePatterns({"ab", "ac"}), true);
+  NFAPtr fsm = createGraph({"ab", "ac"}, true);
   SCOPE_ASSERT_EQUAL(4u, fsm->verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
@@ -287,7 +287,7 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
 
 SCOPE_TEST(testInitVM) {
   std::shared_ptr<VmInterface> vm = VmInterface::create();
-  NFAPtr fsm = createGraph(makePatterns({"one", "two"}), true);
+  NFAPtr fsm = createGraph({"one", "two"}, true);
   ProgramPtr prog = Compiler::createProgram(*fsm);
   vm->init(prog);
 
