@@ -344,7 +344,11 @@ SCOPE_TEST(runFrame) {
   prog[6] = Instruction::makeMatch();
   prog[7] = Instruction::makeByte('b');
   prog[8] = Instruction::makeByte('c');
-  prog.First.set('a');
+
+  prog.FirstOff = 0;
+  for (uint32_t i = 0; i < 256; ++i) {
+    prog.First.set((i << 8) | 'a');
+  }
 
   byte b = 'a';
   Vm s(p);
@@ -367,10 +371,15 @@ SCOPE_TEST(testInit) {
   prog[11] = Instruction::makeByte('b');  // 6
   prog[12] = Instruction::makeByte('c');  // 7
   prog[13] = Instruction::makeByte('d');  // 8
-  prog.First.set('a');
-  prog.First.set('b');
-  prog.First.set('c');
-  prog.First.set('d');
+
+  prog.FirstOff = 0;
+  for (uint32_t i = 0; i < 256; ++i) {
+    const uint32_t h = i << 8;
+    prog.First.set(h | 'a');
+    prog.First.set(h | 'b');
+    prog.First.set(h | 'c');
+    prog.First.set(h | 'd');
+  }
 
   Vm s;
   s.init(p);
@@ -395,7 +404,12 @@ SCOPE_TEST(simpleLitMatch) {
 
   byte text[] = {'a', 'b', 'c'};
   Vm v;
-  prog.First.set('a');
+
+  prog.FirstOff = 0;
+  for (uint32_t i = 0; i < 256; ++i) {
+    prog.First.set((i << 8) | 'a');
+  }
+
   v.init(p);
   std::vector<SearchHit> hits;
   SCOPE_ASSERT_EQUAL(38u, v.search(text, text + 3, 35, &mockCallback, &hits));
@@ -429,8 +443,13 @@ SCOPE_TEST(newThreadInit) {
 
   byte text[] = {'a', 'a', 'b', 'c'};
   Vm v;
-  p->First.set('a');
-  p->First.set('b');
+
+  p->FirstOff = 0;
+  for (uint32_t i = 0; i < 256; ++i) {
+    const uint32_t h = i << 8;
+    p->First.set(h | 'a');
+    p->First.set(h | 'b');
+  }
   v.init(p);
 
   v.executeFrame(&text[0], 13, 0, 0);
@@ -489,8 +508,14 @@ SCOPE_TEST(threeKeywords) {
 
   byte text[] = {'c', 'a', 'b', 'c'};
   Vm v;
-  p->First.set('a');
-  p->First.set('b');
+
+  p->FirstOff = 0;
+  for (uint32_t i = 0; i < 256; ++i) {
+    const uint32_t h = i << 8;
+    p->First.set(h | 'a');
+    p->First.set(h | 'b');
+  }
+
   v.init(p);
   std::vector<SearchHit> hits;
   SCOPE_ASSERT_EQUAL(14u, v.search(text, &text[4], 10, &mockCallback, &hits));
@@ -515,7 +540,12 @@ SCOPE_TEST(stitchedText) {
   byte text1[] = {'a', 'c', 'a'},
        text2[] = {'b', 'b'};
   Vm v;
-  p->First.set('a');
+
+  p->FirstOff = 0;
+  for (uint32_t i = 0; i < 256; ++i) {
+    p->First.set((i << 8) | 'a');
+  }
+
   v.init(p);
   std::vector<SearchHit> hits;
   SCOPE_ASSERT_EQUAL(2u, v.search(text1, &text1[3], 0, &mockCallback, &hits));
