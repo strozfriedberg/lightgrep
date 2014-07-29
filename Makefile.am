@@ -11,7 +11,11 @@ LG_LIB_INT = src/lib/liblightgrepint.la
 
 lib_LTLIBRARIES = $(LG_LIB)
 
+if BUILD_DLL
+src_lib_liblightgrep_la_SOURCES = src/lib/version.rc
+else
 src_lib_liblightgrep_la_SOURCES =
+endif
 nodist_EXTRA_src_lib_liblightgrep_la_SOURCES = dummy.cpp # forces C++ linking
 
 noinst_LTLIBRARIES = $(LG_LIB_INT)
@@ -63,7 +67,11 @@ src_lib_liblightgrepint_la_SOURCES = \
 # src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
 
 src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
+if BUILD_DLL
+src_lib_liblightgrep_la_LDFLAGS = $(AM_LDFLAGS) $(LG_LIB_LDFLAGS) -avoid-version
+else
 src_lib_liblightgrep_la_LDFLAGS = $(AM_LDFLAGS) $(LG_LIB_LDFLAGS)
+endif
 
 src_lib_liblightgrep_ladir = $(includedir)/lightgrep
 
@@ -179,6 +187,18 @@ src/lib/lightgrep.pc: src/lib/lightgrep.pc.in Makefile
       -e 's![@]libdir[@]!$(libdir)!g' \
       -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
       $< >$@
+
+if BUILD_DLL
+src/lib/.libs/version.o: config.h
+
+# assume rc files are UTF-8 (Windows codepage 65001)
+RCFLAGS = -c 65001
+
+LTRCCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=RC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(RC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(filter-out -mthreads,$(AM_CPPFLAGS) $(CPPFLAGS)) $(RCFLAGS)
+
+.rc.lo:
+	$(LTRCCOMPILE) -i $< -o $@
+endif
 
 #if BUILD_DLL
 #msvclibdir = $(libdir)

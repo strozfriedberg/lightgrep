@@ -28,6 +28,40 @@ AM_INIT_AUTOMAKE([foreign subdir-objects])
 LT_INIT
 
 #
+# metadata
+#
+
+# Decompose the version number.
+#
+# We must do this rather than construct PACKAGE_VERSION from the components
+# because AC_INIT rejects anything but a literal for the version number.
+PACKAGE_VERSION_MAJOR=`echo "$PACKAGE_VERSION" | cut -d. -f1`
+PACKAGE_VERSION_MINOR=`echo "$PACKAGE_VERSION" | cut -d. -f2`
+PACKAGE_VERSION_MICRO=`echo "$PACKAGE_VERSION" | cut -d. -f3`
+
+AC_SUBST([PACKAGE_VERSION_MAJOR])
+AC_SUBST([PACKAGE_VERSION_MINOR])
+AC_SUBST([PACKAGE_VERSION_MICRO])
+
+AC_DEFINE_UNQUOTED(PACKAGE_VERSION_MAJOR, $PACKAGE_VERSION_MAJOR, [Define to the major version of this package.])
+AC_DEFINE_UNQUOTED(PACKAGE_VERSION_MINOR, $PACKAGE_VERSION_MINOR, [Define to the minor version of this package.])
+AC_DEFINE_UNQUOTED(PACKAGE_VERSION_MICRO, $PACKAGE_VERSION_MICRO, [Define to the micro version of this package.])
+
+PACKAGE_YEAR=`date +%Y`
+
+AC_SUBST([PACKAGE_YEAR])
+AC_DEFINE_UNQUOTED(PACKAGE_YEAR, $PACKAGE_YEAR, [Define to the current year.])
+
+PACKAGE_COMPANY="Lightbox Technologies, Inc."
+
+AC_SUBST([PACKAGE_COMPANY])
+AC_DEFINE_UNQUOTED(PACKAGE_COMPANY, "$PACKAGE_COMPANY", [Define to the owner of this package.])
+
+PACKAGE_DESCRIPTION="not the worst forensics regexp engine"
+AC_SUBST([PACKAGE_DESCRIPTION])
+AC_DEFINE_UNQUOTED(PACKAGE_DESCRIPTION, "$PACKAGE_DESCRIPTION", [Define to the description of this package.])
+
+#
 # common
 #
 AC_PROG_CC
@@ -286,6 +320,7 @@ else
     # will fail because that tries flags with LD. So don't do that.
     AX_APPEND_FLAG([-no-undefined], [LG_LIB_LDFLAGS])
     LG_LIB_LDFLAGS="$LG_LIB_LDFLAGS -Wl,--output-def -Wl,src/lib/.libs/$PACKAGE.def"
+    LT_LANG([Windows Resource])
     ;;
   esac
 fi
