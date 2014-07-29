@@ -56,7 +56,7 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
 
   std::vector<std::bitset<256*256>> b;
 
-  uint32_t lmin = std::numeric_limits<uint32_t>::max();
+  uint32_t lmin = std::numeric_limits<uint32_t>::max()-1;
 
   uint32_t depth;
   NFA::VertexDescriptor h;
@@ -65,23 +65,24 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
     std::tie(depth, h) = next.front();
     next.pop();
 
-    if (depth >= lmin) {
+    // lmin + 1 still gets us one transition followed by any byte;
+    // > lmin + 1 would have to accept everytyhing, so is useless
+    if (depth > lmin + 1) {
       continue;
     }
     
-    if (graph[h].IsMatch) {
-      if (depth < lmin) {
-        lmin = depth;
-      }
-      continue;
+    if (graph[h].IsMatch && depth < lmin) {
+      lmin = depth;
     }
 
-    if (depth < lmin - 1) {
+    // put successors in the queue if they're at lmin + 1 or less
+    if (depth < lmin + 1) {
       for (const NFA::VertexDescriptor t : graph.outVertices(h)) {
         next.push({depth+1, t});
       }
     }
 
+    // ensure that b[depth] exists
     if (b.size() <= depth) {
       b.resize(depth+1);
     }
@@ -91,15 +92,17 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
       graph[t0].Trans->orBytes(first);
 
       if (graph[t0].IsMatch) {
+        // match; record each first byte followed by any byte
         for (uint32_t s = 0; s < 256; ++s) {
           for (uint32_t f = 0; f < 256; ++f) {
             if (first.test(f)) {
-              b[depth].set((s << 8) | f);
+              b[depth].set(f | (s << 8));
             }
           }
         }
       }
       else {
+        // no match; record each first byte followed by each second byte
         for (const NFA::VertexDescriptor t1 : graph.outVertices(t0)) {
           ByteSet second;
           graph[t1].Trans->orBytes(second);
@@ -108,7 +111,7 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
             if (second.test(s)) {
               for (uint32_t f = 0; f < 256; ++f) {
                 if (first.test(f)) {
-                  b[depth].set((s << 8) | f);
+                  b[depth].set(f | (s << 8));
                 }
               }
             }
@@ -118,12 +121,29 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
     }
   }
 
+  if (b.size() < lmin) {
+    // Don't go beyond the end of the vector. This can happen with some
+    // tests where we have no match states.
+    lmin = b.size();
+  }
+  else if (lmin < b.size()) {
+    // Don't start pairs after offset lmin-1, as [lmin,lmin+2) is
+    // guaranteed to be informationless.
+    b.resize(lmin);
+  }
+
   for (uint32_t i = 0; i < lmin; ++i) {
     std::cerr << i << ": " << b[i].count() << '\n';
   }
   std::cerr << std::endl;
-  
-  const auto i = std::min_element(b.begin(), b.end(), [](const std::bitset<256*256>& l, const std::bitset<256*256>& r) { return l.count() < r.count(); });
+
+  // Return the offset and bitset for the best two-byte window
+  const auto i = std::min_element(b.begin(), b.end(),
+    [](const std::bitset<256*256>& l, const std::bitset<256*256>& r) {
+      return l.count() < r.count();
+    }
+  );
+
   return {i-b.begin(), *i};
 }
 
