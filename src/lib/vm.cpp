@@ -566,7 +566,9 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t
   const Instruction* base = &(*Prog)[0];
   uint64_t offset = startOffset;
 
-  if (Prog->First[*beg]) {
+  const byte* const firstOff = beg+Prog->FirstOff;
+
+  if (firstOff < end && Prog->First[*((uint16_t*)firstOff)]) {
     for (ThreadList::const_iterator t(First.begin()); t != First.end(); ++t) {
       Active.emplace_back(
       #ifdef _MSC_VER
@@ -599,10 +601,14 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
   CurHitFn = hitFn;
   UserData = userData;
   const Instruction* base = &(*Prog)[0];
+
   const std::bitset<256*256>& first = Prog->First;
+  const byte* const firstEnd = end - Prog->FirstOff;
+
   uint64_t offset = startOffset;
 
-  for (const byte* cur = beg; cur < end; ++cur, ++offset) {
+  const byte* cur = beg;
+  for ( ; cur < firstEnd; ++cur, ++offset) {
     #ifdef LBT_TRACE_ENABLED
     open_frame_json(std::clog, offset, cur);
     #endif
@@ -615,6 +621,24 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
 
     _cleanup();
   }
+
+  std::bitset<256*256> beyondFirst;
+  beyondFirst.set();
+
+  for ( ; cur < end; ++cur, ++offset) {
+    #ifdef LBT_TRACE_ENABLED
+    open_frame_json(std::clog, offset, cur);
+    #endif
+
+    _executeFrame(beyondFirst, Active.begin(), base, cur, offset);
+
+    #ifdef LBT_TRACE_ENABLED
+    close_frame_json(std::clog, offset);
+    #endif
+
+    _cleanup();
+  }
+
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
 
   // check for remaining live threads
