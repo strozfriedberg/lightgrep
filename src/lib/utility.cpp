@@ -19,7 +19,6 @@
 #include "utility.h"
 
 #include <algorithm>
-#include <iostream>
 #include <set>
 
 std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
@@ -103,11 +102,6 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
     // guaranteed to be informationless.
     b.resize(lmin);
   }
-
-  for (uint32_t i = 0; i < lmin; ++i) {
-    std::cerr << i << ": " << b[i].count() << '\n';
-  }
-  std::cerr << std::endl;
 
   // Return the offset and bitset for the best two-byte window
   const auto i = std::min_element(b.begin(), b.end(),
