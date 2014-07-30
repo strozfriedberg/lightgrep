@@ -145,20 +145,52 @@ SCOPE_TEST(twoUnicode) {
   }
 }
 
-SCOPE_TEST(firstBitset) {
-  NFA fsm(3);
-  edge(0, 1, fsm, fsm.TransFac->getByte('A'));
-  edge(0, 2, fsm, fsm.TransFac->getByte('B'));
+SCOPE_TEST(aOrbc2ByteSet) {
+  NFAPtr fsm = createGraph({"a|bc"}, true);
 
-  const ByteSet accepted = firstBytes(fsm);
-  for (unsigned int i = 0; i < 256; ++i) {
-    if (i == 'A' || i == 'B') {
-      SCOPE_ASSERT(accepted[i]);
-    }
-    else {
-      SCOPE_ASSERT(!accepted[i]);
-    }
+  uint32_t off;
+  std::bitset<256*256> act, exp;
+
+  for (uint32_t i = 0; i < 256; ++i) {
+    exp.set('a' | (i << 8));
   }
+  exp.set('b' | ('c' << 8));
+
+  std::tie(off, act) = bestPair(*fsm);
+
+  SCOPE_ASSERT_EQUAL(0u, off);
+  SCOPE_ASSERT_EQUAL(exp, act);
+}
+
+SCOPE_TEST(aOrbQc2ByteSet) {
+  NFAPtr fsm = createGraph({"(a|b?)c"}, true);
+
+  uint32_t off;
+  std::bitset<256*256> act, exp;
+
+  for (uint32_t i = 0; i < 256; ++i) {
+    exp.set('c' | (i << 8));
+  }
+  exp.set('a' | ('c' << 8));
+  exp.set('b' | ('c' << 8));
+
+  std::tie(off, act) = bestPair(*fsm);
+
+  SCOPE_ASSERT_EQUAL(0u, off);
+  SCOPE_ASSERT_EQUAL(exp, act);
+}
+
+SCOPE_TEST(dotaa2ByteSet) {
+  NFAPtr fsm = createGraph({".aa"}, true);
+
+  uint32_t off;
+  std::bitset<256*256> act, exp;
+  exp.set('a' | ('a' << 8));
+
+  std::tie(off, act) = bestPair(*fsm);
+
+  SCOPE_ASSERT_EQUAL(1u, off);
+  SCOPE_ASSERT_EQUAL(exp, act);
 }
 
 SCOPE_TEST(simpleCollapse) {
