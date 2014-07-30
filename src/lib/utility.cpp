@@ -19,11 +19,8 @@
 #include "utility.h"
 
 #include <algorithm>
-#include <cctype>
-#include <functional>
 #include <queue>
 
-#include <boost/graph/graphviz.hpp>
 
 std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
   std::queue<std::pair<uint32_t,NFA::VertexDescriptor>> next;
@@ -45,7 +42,7 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
     if (depth > lmin + 1) {
       continue;
     }
-    
+
     if (graph[h].IsMatch && depth < lmin) {
       lmin = depth;
     }
@@ -138,11 +135,12 @@ std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescripto
 }
 
 uint32_t maxOutbound(const std::vector<std::vector<NFA::VertexDescriptor>>& tranTable) {
-  uint32_t ret = 0;
-  for (const std::vector<NFA::VertexDescriptor>& v : tranTable) {
-    ret = v.size() > ret ? v.size() : ret;
-  }
-  return ret;
+  return std::max_element(tranTable.begin(), tranTable.end(),
+    [](const std::vector<NFA::VertexDescriptor>& l,
+       const std::vector<NFA::VertexDescriptor>& r) {
+      return l.size() < r.size();
+    }
+  )->size();
 }
 
 void writeVertex(std::ostream& out, NFA::VertexDescriptor v, const NFA& graph) {
