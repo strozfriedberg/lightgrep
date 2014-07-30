@@ -39,7 +39,7 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
     // lmin + 1 still gets us one transition followed by any byte;
     // > lmin + 1 would have to accept everytyhing, so is useless
     if (depth > lmin + 1) {
-      continue;
+      break;
     }
 
     if (graph[h].IsMatch && depth < lmin) {
