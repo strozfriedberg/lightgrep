@@ -19,12 +19,12 @@
 #include "utility.h"
 
 #include <algorithm>
-#include <queue>
-
+#include <iostream>
+#include <set>
 
 std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
-  std::queue<std::pair<uint32_t,NFA::VertexDescriptor>> next;
-  next.push({0, 0});
+  std::set<std::pair<uint32_t,NFA::VertexDescriptor>> next;
+  next.emplace(0, 0);
 
   std::vector<std::bitset<256*256>> b;
 
@@ -34,8 +34,8 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
   NFA::VertexDescriptor h;
 
   while (!next.empty()) {
-    std::tie(depth, h) = next.front();
-    next.pop();
+    std::tie(depth, h) = *next.begin();
+    next.erase(next.begin());
 
     // lmin + 1 still gets us one transition followed by any byte;
     // > lmin + 1 would have to accept everytyhing, so is useless
@@ -50,7 +50,7 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
     // put successors in the queue if they're at lmin + 1 or less
     if (depth < lmin + 1) {
       for (const NFA::VertexDescriptor t : graph.outVertices(h)) {
-        next.push({depth+1, t});
+        next.emplace(depth+1, t);
       }
     }
 
