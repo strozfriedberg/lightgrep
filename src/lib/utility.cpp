@@ -65,9 +65,10 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
       if (graph[t0].IsMatch) {
         // match; record each first byte followed by any byte
         for (uint32_t s = 0; s < 256; ++s) {
+          const uint32_t ss = s << 8;
           for (uint32_t f = 0; f < 256; ++f) {
             if (first.test(f)) {
-              b[depth].set(f | (s << 8));
+              b[depth].set(f | ss);
             }
           }
         }
@@ -80,9 +81,10 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
 
           for (uint32_t s = 0; s < 256; ++s) {
             if (second.test(s)) {
+              const uint32_t ss = s << 8;
               for (uint32_t f = 0; f < 256; ++f) {
                 if (first.test(f)) {
-                  b[depth].set(f | (s << 8));
+                  b[depth].set(f | ss);
                 }
               }
             }
