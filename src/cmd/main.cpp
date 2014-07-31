@@ -371,7 +371,8 @@ void search(const Options& opts) {
     std::cerr << "+inf";
   }
   std::cerr << " MB/s avg\n"
-            << hinfo->NumHits << " hits" << std::endl;
+            << hinfo->NumHits
+            << " hit" << (hinfo->NumHits != 1 ? "s" : "") << std::endl;
 }
 
 bool writeGraphviz(const Options& opts) {
