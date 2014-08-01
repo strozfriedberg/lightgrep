@@ -60,7 +60,7 @@ sub print_frame {
     }
 
     printf(
-      " %016x %08x %08x [%016x,%016x]\n",
+      " %016x %08x %08x [%016x,%016x)\n",
       $thread->{'Id'},
       $thread->{'PC'} & 0xFFFFFFFF,
       $thread->{'Label'},
