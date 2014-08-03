@@ -175,18 +175,18 @@ ProgramPtr Compiler::createProgram(const NFA& graph) {
   std::tie(ret->FirstOff, ret->First) = bestPair(graph);
 
   const uint32_t numVs = graph.verticesSize();
-  std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(numVs));
+  CodeGenHelper cg(numVs);
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
   // std::cerr << "Determined order in first pass" << std::endl;
-  ret->NumChecked = cg->NumChecked;
-  ret->resize(cg->Guard);
+  ret->NumChecked = cg.NumChecked;
+  ret->resize(cg.Guard);
 
   for (NFA::VertexDescriptor v = 0; v < numVs; ++v) {
     // if (++i % 10000 == 0) {
     //   std::cerr << "have compiled " << i << " states so far" << std::endl;
     // }
-    encodeState(graph, v, *cg, &(*ret)[0], &(*ret)[cg->Snippets[v].Start]);
+    encodeState(graph, v, cg, &(*ret)[0], &(*ret)[cg.Snippets[v].Start]);
   }
   // penultimate instruction will always be Halt, so Vm can jump there
   ret->push_back(Instruction::makeHalt());

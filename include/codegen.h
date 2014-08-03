@@ -82,7 +82,7 @@ typedef std::vector<std::vector<NFA::VertexDescriptor>> TransitionTbl;
 
 class CodeGenVisitor {
 public:
-  CodeGenVisitor(std::shared_ptr<CodeGenHelper> helper): Helper(helper) {}
+  CodeGenVisitor(CodeGenHelper& helper): Helper(helper) {}
 
   void discover_vertex(NFA::VertexDescriptor v, const NFA& graph);
 
@@ -91,7 +91,7 @@ public:
   void finish_vertex(NFA::VertexDescriptor v, const NFA& graph);
 
 private:
-  std::shared_ptr<CodeGenHelper> Helper;
+  CodeGenHelper& Helper;
 };
 
 void specialVisit(const NFA& graph, NFA::VertexDescriptor startVertex, CodeGenVisitor& vis);

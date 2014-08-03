@@ -22,7 +22,7 @@
 #include "codegen.h"
 
 void CodeGenVisitor::discover_vertex(NFA::VertexDescriptor v, const NFA& graph) {
-  Helper->discover(v, graph);
+  Helper.discover(v, graph);
 }
 
 uint32_t CodeGenVisitor::calcJumpTableSize(NFA::VertexDescriptor v, const NFA& graph, uint32_t outDegree) {
@@ -45,7 +45,7 @@ uint32_t CodeGenVisitor::calcJumpTableSize(NFA::VertexDescriptor v, const NFA& g
         }
       }
 
-      Helper->Snippets[v].Op = JUMP_TABLE_RANGE_OP;
+      Helper.Snippets[v].Op = JUMP_TABLE_RANGE_OP;
       // JumpTableRange instr + inclusive number
       return 2 + (last - first) + 2*sizeIndirectTables;
     }
@@ -54,7 +54,7 @@ uint32_t CodeGenVisitor::calcJumpTableSize(NFA::VertexDescriptor v, const NFA& g
 }
 
 void CodeGenVisitor::finish_vertex(NFA::VertexDescriptor v, const NFA& graph) {
-  // std::cerr << "on state " << v << " with discover rank " << Helper->DiscoverRanks[v] << std::endl;
+  // std::cerr << "on state " << v << " with discover rank " << Helper.DiscoverRanks[v] << std::endl;
 
   uint32_t label = 0,
          match = 0,
@@ -82,20 +82,20 @@ void CodeGenVisitor::finish_vertex(NFA::VertexDescriptor v, const NFA& graph) {
       outOps += 2*(outDegree-1);
 
       // count the first child only if it needs a jump
-      if (Helper->DiscoverRanks[v] + 1 !=
-          Helper->DiscoverRanks[graph.outVertex(v, 0)]) {
+      if (Helper.DiscoverRanks[v] + 1 !=
+          Helper.DiscoverRanks[graph.outVertex(v, 0)]) {
         outOps += 2;
       }
     }
   }
 
   const uint32_t totalSize = outOps + label + match +
-                           (Helper->Snippets[v].CheckIndex == NONE ? 0: 1);
+                           (Helper.Snippets[v].CheckIndex == NONE ? 0: 1);
 
-  Helper->addSnippet(v, eval, totalSize);
+  Helper.addSnippet(v, eval, totalSize);
 
   // std::cerr << "outOps = " << outOps << "; labels = " << labels << "; match = " << isMatch << std::endl;
-  // std::cerr << "state " << v << " has snippet " << "(" << Helper->Snippets[v].first << ", " << Helper->Snippets[v].second << ")" << std::endl;
+  // std::cerr << "state " << v << " has snippet " << "(" << Helper.Snippets[v].first << ", " << Helper.Snippets[v].second << ")" << std::endl;
 }
 
 void specialVisit(const NFA& graph, NFA::VertexDescriptor startVertex, CodeGenVisitor& vis) {
