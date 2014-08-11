@@ -20,12 +20,12 @@
 
 class DTest {
 public:
-  DTest(const char* path) {
+  DTest(const char* const path) {
     run(path);
   }
 
   operator bool() const { return true; }
 
 private:
-  void run(const char* path);
+  void run(const char* const path);
 };
