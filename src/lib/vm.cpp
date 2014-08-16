@@ -335,7 +335,7 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
           }
 
           if (CurHitFn) {
-            SearchHit hit(tStart, tEnd + 1, tLabel);
+            const SearchHit hit(tStart, tEnd + 1, tLabel);
             (*CurHitFn)(UserData, &hit);
           }
         }
