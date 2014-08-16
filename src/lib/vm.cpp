@@ -701,7 +701,7 @@ void Vm::closeOut(HitCallback hitFn, void* userData) {
 
   SearchHit hit;
 
-  for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
+  for (ThreadList::const_iterator t(Active.begin()); t != Active.end(); ++t) {
     if (t->PC->OpCode == FINISH_OP) {
       // has match
       if (t->Start >= MatchEnds[t->Label]) {
