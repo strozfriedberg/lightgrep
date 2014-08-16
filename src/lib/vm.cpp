@@ -139,16 +139,16 @@ void Vm::init(ProgramPtr prog) {
 
   uint32_t numPatterns = 0,
          numCheckedStates = 0;
-  for (uint32_t i = 0; i < p.size(); ++i) {
-    switch (p[i].OpCode) {
+  for (const auto& i: p) {
+    switch (i.OpCode) {
     case LABEL_OP:
-      if (numPatterns < p[i].Op.Offset) {
-        numPatterns = p[i].Op.Offset;
+      if (numPatterns < i.Op.Offset) {
+        numPatterns = i.Op.Offset;
       }
       break;
     case CHECK_HALT_OP:
-      if (numCheckedStates < p[i].Op.Offset) {
-        numCheckedStates = p[i].Op.Offset;
+      if (numCheckedStates < i.Op.Offset) {
+        numCheckedStates = i.Op.Offset;
       }
       break;
     }
