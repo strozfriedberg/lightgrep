@@ -36,8 +36,8 @@ enum OpCodes {
   CHECK_HALT_OP,
   LABEL_OP,
   MATCH_OP,
-  ADJUST_START_OP,
   HALT_OP,
+  ADJUST_START_OP,
   ILLEGAL
 };
 
