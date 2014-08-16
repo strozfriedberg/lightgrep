@@ -88,6 +88,8 @@ private:
   void _executeFrame(const std::bitset<256*256>& first, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset);
   void _cleanup();
 
+  uint64_t _startOfLeftmostLiveThread(uint64_t offset) const;
+
   #ifdef LBT_TRACE_ENABLED
   void open_init_epsilon_json(std::ostream& out);
   void close_init_epsilon_json(std::ostream& out) const;

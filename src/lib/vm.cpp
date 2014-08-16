@@ -597,6 +597,20 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t
   reset();
 }
 
+uint64_t Vm::_startOfLeftmostLiveThread(uint64_t offset) const {
+  const ThreadList::const_iterator e(Active.end());
+  for (ThreadList::const_iterator t(Active.begin()); t != e; ++t) {
+    const unsigned char op = t->PC->OpCode;
+    if (op == HALT_OP || op == FINISH_OP) {
+      continue;
+    }
+    // this is a live thread
+    return t->Start;
+  }
+
+  return offset;
+}
+
 uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
@@ -642,17 +656,7 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
 
   // check for remaining live threads
-  const ThreadList::const_iterator e(Active.end());
-  for (ThreadList::iterator t(Active.begin()); t != e; ++t) {
-    const unsigned char op = t->PC->OpCode;
-    if (op == HALT_OP || op == FINISH_OP) {
-      continue;
-    }
-    // this is a live thread
-    return t->Start;
-  }
-
-  return offset;
+  return _startOfLeftmostLiveThread(offset);
 }
 
 uint64_t Vm::searchResolve(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {
@@ -684,18 +688,7 @@ uint64_t Vm::searchResolve(const byte* const beg, const byte* const end, const u
   // std::cerr << "Max number of active threads was " << maxActive << ", average was " << total/(end - beg) << std::endl;
 
   // check for remaining live threads
-  const ThreadList::const_iterator e(Active.end());
-  for (ThreadList::iterator t(Active.begin()); t != e; ++t) {
-    const unsigned char op = t->PC->OpCode;
-    if (op == HALT_OP || op == FINISH_OP) {
-      continue;
-    }
-
-    // this is a live thread
-    return t->Start;
-  }
-
-  return offset;
+  return _startOfLeftmostLiveThread(offset);
 }
 
 void Vm::closeOut(HitCallback hitFn, void* userData) {
