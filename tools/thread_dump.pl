@@ -65,7 +65,7 @@ sub print_frame {
       $thread->{'PC'} & 0xFFFFFFFF,
       $thread->{'Label'},
       $thread->{'Start'},
-      $thread->{'End'}
+      $thread->{'End'}+1
     );
 
     if ($thread->{'state'} & (BORN | DIED)) {
