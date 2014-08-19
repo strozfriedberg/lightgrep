@@ -34,13 +34,15 @@ struct Thread {
     #ifdef LBT_TRACE_ENABLED
     Id(0),
     #endif
-    Label(NOLABEL) {}
+    Label(NOLABEL),
+    Lead(false) {}
 
   Thread(const Instruction* pc, uint32_t label, uint64_t start, uint64_t end):
     PC(pc),
     Start(start),
     End(end),
-    Label(label) {}
+    Label(label),
+    Lead(false) {}
 
   #ifdef LBT_TRACE_ENABLED
   Thread(const Instruction* pc, uint32_t label,
@@ -49,7 +51,8 @@ struct Thread {
     Start(start),
     End(end),
     Id(id),
-    Label(label) {}
+    Label(label),
+    Lead(false) {}
   #endif
 
   Thread(const Instruction* pc):
@@ -59,7 +62,8 @@ struct Thread {
     #ifdef LBT_TRACE_ENABLED
     Id(0),
     #endif
-    Label(NOLABEL) {}
+    Label(NOLABEL),
+    Lead(false) {}
 
 /*
   Thread(const Thread& t):
@@ -131,6 +135,8 @@ struct Thread {
   uint64_t Id;
   #endif
   uint32_t Label;
+
+  bool Lead;
 
 //  uint32_t Dummy;
 

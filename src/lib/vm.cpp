@@ -318,7 +318,7 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
       if (tEnd == offset) {
         // kill all same-labeled, same-start threads
         const ThreadList::const_iterator e(Active.end());
-        for (ThreadList::iterator i(t+1); i != e && i->Start == tStart; ++i) {
+        for (ThreadList::iterator i(t+1); i != e && (i->Start == tStart || t->Lead); ++i) {
           if (i->Label == tLabel) {
             // DIE. Penultimate instruction is always a halt
             i->PC = ProgEnd;
@@ -408,6 +408,7 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
   case MATCH_OP:
     t->End = offset;
     t->advance(InstructionSize<MATCH_OP>::VAL);
+    t->Lead = !LiveNoLabel && !Live.find(t->Label);
     return true;
 
   case HALT_OP:
