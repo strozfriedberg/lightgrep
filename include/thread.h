@@ -19,8 +19,6 @@
 #pragma once
 
 #include "basic.h"
-#include <limits>
-
 #include "instructions.h"
 
 struct Thread {
