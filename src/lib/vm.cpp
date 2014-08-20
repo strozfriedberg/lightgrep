@@ -489,9 +489,8 @@ inline void Vm::_executeFrame(const std::bitset<256*256>& first, ThreadList::ite
   // run old threads at this offset
   // uint32_t count = 0;
 
-  while (t != Active.end()) {
+  for ( ; t != Active.end(); ++t) {
     _executeThread(base, t, cur, offset);
-    ++t;
     // ++count;
   }
 
