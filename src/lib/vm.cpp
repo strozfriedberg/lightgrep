@@ -500,23 +500,13 @@ inline void Vm::_executeFrame(const std::bitset<256*256>& first, ThreadList::ite
     const size_t oldsize = Active.size();
 
     for (t = First.begin(); t != First.end(); ++t) {
-      #ifdef LBT_TRACE_ENABLED
       Active.emplace_back(
-        #ifdef _MSC_VER
-        Thread(t->PC, Thread::NOLABEL, NextId++, offset, Thread::NONE)
-        #else
-        t->PC, Thread::NOLABEL, NextId++, offset, Thread::NONE
+        t->PC, Thread::NOLABEL,
+        #ifdef LBT_TRACE_ENABLED
+        NextId++,
         #endif
+        offset, Thread::NONE
       );
-      #else
-      Active.emplace_back(
-        #ifdef _MSC_VER
-        Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE)
-        #else
-        t->PC, Thread::NOLABEL, offset, Thread::NONE
-        #endif
-      );
-      #endif
 
       #ifdef LBT_TRACE_ENABLED
       new_thread_json.insert(Active.back().Id);
@@ -581,13 +571,7 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t
 
   if (firstOff < end && Prog->First[*((uint16_t*)firstOff)]) {
     for (ThreadList::const_iterator t(First.begin()); t != First.end(); ++t) {
-      Active.emplace_back(
-      #ifdef _MSC_VER
-        Thread(t->PC, Thread::NOLABEL, offset, Thread::NONE)
-      #else
-        t->PC, Thread::NOLABEL, offset, Thread::NONE
-      #endif
-      );
+      Active.emplace_back(t->PC, Thread::NOLABEL, offset, Thread::NONE);
     }
 
     for (const byte* cur = beg; cur < end; ++cur, ++offset) {
