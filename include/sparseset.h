@@ -58,5 +58,5 @@ public:
 private:
   std::unique_ptr<uint32_t[]> Data;
   uint32_t End,
-         Max;
+           Max;
 };
