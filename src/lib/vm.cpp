@@ -123,12 +123,7 @@ Vm::Vm() :
   #endif
   CurHitFn(0) {}
 
-Vm::Vm(ProgramPtr prog):
-  #ifdef LBT_TRACE_ENABLED
-  BeginDebug(Thread::NONE), EndDebug(Thread::NONE), NextId(0),
-  #endif
-  CurHitFn(0)
-{
+Vm::Vm(ProgramPtr prog): Vm() {
   init(prog);
 }
 
