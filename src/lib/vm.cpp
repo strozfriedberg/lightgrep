@@ -311,12 +311,25 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
       const uint64_t tEnd = t->End;
 
       if (tEnd == offset) {
-        // kill all same-labeled, same-start threads
+        ThreadList::iterator i(t+1);
         const ThreadList::const_iterator e(Active.end());
-        for (ThreadList::iterator i(t+1); i != e && (i->Start == tStart || t->Lead); ++i) {
-          if (i->Label == tLabel) {
-            // DIE. Penultimate instruction is always a halt
-            i->PC = ProgEnd;
+
+        if (t->Lead) {
+          // we are the lead thread; kill all same-labeled threads
+          for ( ; i != e; ++i) {
+            if (i->Label == tLabel) {
+              // DIE. Penultimate instruction is always a halt
+              i->PC = ProgEnd;
+            }
+          }
+        }
+        else {
+          // we are not lead; kill all same-labeled, same-start threads
+          for ( ; i != e && i->Start == tStart; ++i) {
+            if (i->Label == tLabel) {
+              // DIE. Penultimate instruction is always a halt
+              i->PC = ProgEnd;
+            }
           }
         }
       }
