@@ -51,8 +51,7 @@ struct Thread {
   #endif
 
   void jump(const Instruction* base, uint32_t offset) {
-    PC = base;
-    PC += offset;
+    PC = base + offset;
   }
 
   void fork(const Thread& parent, const Instruction* base, uint32_t offset) {
