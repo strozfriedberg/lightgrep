@@ -156,9 +156,6 @@ void Vm::init(ProgramPtr prog) {
   MatchEnds.resize(numPatterns);
   MatchEndsMax = 0;
 
-  Seen.resize(numPatterns);
-  SeenNoLabel = false;
-
   Live.resize(numPatterns);
   LiveNoLabel = false;
 
@@ -195,9 +192,6 @@ void Vm::reset() {
 
   CheckLabels.clear();
 
-  SeenNoLabel = false;
-  Seen.clear();
-
   LiveNoLabel = false;
   Live.clear();
 
@@ -217,15 +211,6 @@ inline void Vm::_markLive(const uint32_t label) {
   }
   else if (!Live.find(label)) {
     Live.insert(label);
-  }
-}
-
-inline void Vm::_markSeen(const uint32_t label) {
-  if (label == Thread::NOLABEL) {
-    SeenNoLabel = true;
-  }
-  else if (!Seen.find(label)) {
-    Seen.insert(label);
   }
 }
 
@@ -336,7 +321,7 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
         }
       }
 
-      if (!SeenNoLabel && !Seen.find(tLabel)) {
+      if (!LiveNoLabel && !Live.find(tLabel)) {
         if (tStart >= MatchEnds[tLabel]) {
           MatchEnds[tLabel] = tEnd + 1;
 
@@ -363,10 +348,6 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
 
       // recurse to keep going in sequence
       if (_executeEpSequence<X == 0 ? 0 : X-1>(base, t, offset)) {
-        if (t->PC->OpCode != FINISH_OP) {
-          _markSeen(t->Label);
-        }
-
         _markLive(t->Label);
         Next.push_back(*t);
       }
@@ -442,10 +423,6 @@ inline void Vm::_executeThread(const Instruction* const base, ThreadList::iterat
   #endif
 
   if (_executeEpSequence<10>(base, t, offset)) {
-    if (t->PC->OpCode != FINISH_OP) {
-      _markSeen(t->Label);
-    }
-
     _markLive(t->Label);
     Next.push_back(*t);
   }
@@ -525,9 +502,6 @@ inline void Vm::_cleanup() {
   Active.swap(Next);
   Next.clear();
   CheckLabels.clear();
-
-  SeenNoLabel = false;
-  Seen.clear();
 
   LiveNoLabel = false;
   Live.clear();

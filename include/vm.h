@@ -72,7 +72,6 @@ public:
   uint32_t numNext() const { return Next.size(); }
 
 private:
-  void _markSeen(const uint32_t label);
   void _markLive(const uint32_t label);
   bool _liveCheck(const uint64_t start, const uint32_t label);
 
@@ -119,9 +118,6 @@ private:
   ThreadList First,
              Active,
              Next;
-
-  bool SeenNoLabel;
-  SparseSet Seen;
 
   bool LiveNoLabel;
   SparseSet Live;
