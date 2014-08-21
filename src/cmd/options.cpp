@@ -36,15 +36,10 @@ std::vector<std::pair<std::string,std::string>> Options::getPatternLines() const
       os << p << '\t';
 
       // encodings
-      if (Encodings.empty()) {
-        os << "ASCII";
-      }
-      else {
-        std::copy(
-          Encodings.begin(), Encodings.end(),
-          ostream_join_iterator<std::string>(os, ",")
-        );
-      }
+      std::copy(
+        Encodings.begin(), Encodings.end(),
+        ostream_join_iterator<std::string>(os, ",")
+      );
 
       os << '\t';
 
