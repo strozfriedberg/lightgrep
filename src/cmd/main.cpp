@@ -186,13 +186,13 @@ parsePatterns(const T& keyFiles) {
 // FIXME: What to do here?
   }
 
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
-  LG_Error* tail_err = nullptr;
-
   const char* defEncs[] = { "ASCII" };
   const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
 
   const LG_KeyOptions defOpts{0, 0};
+
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+  LG_Error* tail_err = nullptr;
 
   for (const std::pair<std::string,std::string>& pf : keyFiles) {
     // parse a complete pattern file
