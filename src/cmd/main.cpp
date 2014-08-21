@@ -157,13 +157,24 @@ void searchRecursively(
   }
 }
 
+std::unique_ptr<const char*[]> c_str_arr(const std::vector<std::string>& vec) {
+  const size_t size = vec.size();
+  std::unique_ptr<const char*[]> arr(new const char*[size]);
+  for (uint32_t i = 0; i < size; ++i) {
+    arr[i] = vec[i].c_str();
+  }
+  return std::move(arr);
+}
+
 template <class T>
 std::tuple<
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>,
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>,
   std::unique_ptr<LG_Error,void(*)(LG_Error*)>
 >
-parsePatterns(const T& keyFiles) {
+parsePatterns(const T& keyFiles,
+              const std::vector<std::string>& defaultEncodings = { "ASCII" })
+{
   // read the patterns and parse them
 
   // FIXME: size the pattern map here?
@@ -186,8 +197,8 @@ parsePatterns(const T& keyFiles) {
 // FIXME: What to do here?
   }
 
-  const char* defEncs[] = { "ASCII" };
-  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
+  // set default encoding(s) of patterns which have none specified
+  const std::unique_ptr<const char*[]> defEncs(c_str_arr(defaultEncodings));
 
   const LG_KeyOptions defOpts{0, 0};
 
@@ -201,7 +212,7 @@ parsePatterns(const T& keyFiles) {
     lg_add_pattern_list(
       fsm.get(), pmap.get(),
       pf.second.c_str(), pf.first.c_str(),
-      defEncs, defEncsNum, &defOpts, &local_err
+      defEncs.get(), defaultEncodings.size(), &defOpts, &local_err
     );
 
     if (local_err) {
@@ -294,7 +305,8 @@ void search(const Options& opts) {
 
     std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    std::tie(pmap, fsm, err) = parsePatterns(opts.getPatternLines());
+    std::tie(pmap, fsm, err) =
+      parsePatterns(opts.getPatternLines(), opts.Encodings);
 
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -379,7 +391,8 @@ bool writeGraphviz(const Options& opts) {
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, fsm, err) = parsePatterns(opts.getPatternLines());
+  std::tie(std::ignore, fsm, err) =
+    parsePatterns(opts.getPatternLines(), opts.Encodings);
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -408,7 +421,8 @@ void writeProgram(const Options& opts) {
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, fsm, err) = parsePatterns(opts.getPatternLines());
+  std::tie(std::ignore, fsm, err) =
+    parsePatterns(opts.getPatternLines(), opts.Encodings);
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -448,7 +462,7 @@ void validate(const Options& opts) {
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
   std::tie(std::ignore, std::ignore, err) =
-    parsePatterns(opts.getPatternLines());
+    parsePatterns(opts.getPatternLines(), opts.Encodings);
 
   for (const LG_Error* e = err.get(); e ; e = e->Next) {
     std::cerr << e->Index << ": pattern \"" << e->Pattern
@@ -473,7 +487,7 @@ void writeSampleMatches(const Options& opts) {
   size_t pnum = 0;
   for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
     const std::pair<std::string,std::string> a[] = { pf };
-    std::tie(std::ignore, fsm, err) = parsePatterns(a);
+    std::tie(std::ignore, fsm, err) = parsePatterns(a, opts.Encodings);
 
     if (err) {
       std::stringstream ss;
