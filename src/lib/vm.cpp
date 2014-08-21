@@ -132,7 +132,7 @@ void Vm::init(ProgramPtr prog) {
   Program& p(*Prog);
   ProgEnd = &p.back() - 1;
 
-  uint32_t numPatterns = 0,
+  size_t numPatterns = 0,
          numCheckedStates = 0;
 
   const Program::const_iterator e(p.end());
@@ -152,6 +152,15 @@ void Vm::init(ProgramPtr prog) {
   }
   ++numPatterns;
   ++numCheckedStates;
+
+// FIXME: should do these checks inside SparseSet::resize()?
+  if (numPatterns > Seen.max_size() || numPatterns > Live.max_size()) {
+    throw std::runtime_error("Too many patterns.");
+  }
+
+  if (numCheckedStates > CheckLabels.max_size()) {
+    throw std::runtime_error("Too many checked states.");
+  }
 
   MatchEnds.resize(numPatterns);
   MatchEndsMax = 0;
