@@ -481,7 +481,7 @@ inline void Vm::_executeFrame(const std::bitset<256*256>& first, ThreadList::ite
   }
 
   // create new threads at this offset
-  if (first[*((uint16_t*)(cur+Prog->FirstOff))]) {
+  if (first[*(reinterpret_cast<const uint16_t*>(cur+Prog->FirstOff))]) {
     const size_t oldsize = Active.size();
 
     for (t = First.begin(); t != First.end(); ++t) {
@@ -551,7 +551,9 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t
 
   const byte* const firstOff = beg+Prog->FirstOff;
 
-  if (firstOff < end && Prog->First[*((uint16_t*)firstOff)]) {
+  if (firstOff < end &&
+      Prog->First[*(reinterpret_cast<const uint16_t*>(firstOff))])
+  {
     for (ThreadList::const_iterator t(First.begin()); t != First.end(); ++t) {
       Active.emplace_back(t->PC, Thread::NOLABEL, offset, Thread::NONE);
     }
