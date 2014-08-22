@@ -154,7 +154,7 @@ void Vm::init(ProgramPtr prog) {
   ++numCheckedStates;
 
 // FIXME: should do these checks inside SparseSet::resize()?
-  if (numPatterns > Seen.max_size() || numPatterns > Live.max_size()) {
+  if (numPatterns > Live.max_size() || numPatterns > Live.max_size()) {
     throw std::runtime_error("Too many patterns.");
   }
 
