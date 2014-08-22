@@ -40,8 +40,7 @@ namespace {
 
     void operator()() {
       STest test(patterns);
-      const byte* text_ptr = reinterpret_cast<const byte*>(text.data());
-      test.search(text_ptr, text_ptr + text.length(), 0);
+      test.search(text.c_str(), text.c_str() + text.length(), 0);
 
       std::vector<SearchHit>& actual = test.Hits;
 

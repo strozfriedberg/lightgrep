@@ -59,9 +59,9 @@ public:
     init(patterns);
   }
 
-  void search(const byte* begin, const byte* end, uint64_t offset);
+  void search(const char* begin, const char* end, uint64_t offset);
 
-  void startsWith(const byte* begin, const byte* end, uint64_t offset);
+  void startsWith(const char* begin, const char* end, uint64_t offset);
 
   bool parsesButNotValid() const;
 
