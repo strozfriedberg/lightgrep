@@ -100,7 +100,7 @@ void STest::init(const std::vector<Pattern>& pats) {
 
 // FIXME: lg_search wants const char*, why pass in const byte*?
 void STest::search(const byte* begin, const byte* end, uint64_t offset) {
-  lg_search(
+  RetVal = lg_search(
     Ctx.get(),
     reinterpret_cast<const char*>(begin),
     reinterpret_cast<const char*>(end),

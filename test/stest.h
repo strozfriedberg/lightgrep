@@ -32,6 +32,7 @@ class STest {
 public:
   std::vector<SearchHit> Hits;
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> PMap;
+  uint64_t RetVal;
 
   STest(const char* key):
     PMap(nullptr, nullptr), Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
