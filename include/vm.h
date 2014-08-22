@@ -129,4 +129,6 @@ private:
 
   HitCallback CurHitFn;
   void* UserData;
+
+  static const std::bitset<256*256> BeyondFirst;
 };

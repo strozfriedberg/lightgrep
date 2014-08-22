@@ -25,6 +25,8 @@
 #include <iomanip>
 #include <iostream>
 
+const std::bitset<256*256> Vm::BeyondFirst{std::bitset<256*256>().set()};
+
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"PC\":" << std::hex << t.PC
       << ", \"Label\":" << std::dec << t.Label
@@ -615,15 +617,12 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
     _cleanup();
   }
 
-  std::bitset<256*256> beyondFirst;
-  beyondFirst.set();
-
   for ( ; cur < end; ++cur, ++offset) {
     #ifdef LBT_TRACE_ENABLED
     open_frame_json(std::clog, offset, cur);
     #endif
 
-    _executeFrame(beyondFirst, Active.begin(), base, cur, offset);
+    _executeFrame(BeyondFirst, Active.begin(), base, cur, offset);
 
     #ifdef LBT_TRACE_ENABLED
     close_frame_json(std::clog, offset);
