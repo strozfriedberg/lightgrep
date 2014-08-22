@@ -129,7 +129,7 @@ Vm::Vm(ProgramPtr prog): Vm() {
 
 void Vm::init(ProgramPtr prog) {
   Prog = prog;
-  Program& p(*Prog);
+  const Program& p(*Prog);
   ProgEnd = &p.back() - 1;
 
   size_t numPatterns = 0,
