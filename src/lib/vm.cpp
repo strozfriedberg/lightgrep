@@ -114,30 +114,26 @@ void Thread::output_json(std::ostream& out, const Instruction* const base, byte 
 }
 #endif
 
-std::shared_ptr<VmInterface> VmInterface::create() {
-  return std::shared_ptr<VmInterface>(new Vm);
+std::shared_ptr<VmInterface> VmInterface::create(ProgramPtr prog) {
+  return std::shared_ptr<VmInterface>(new Vm(prog));
 }
 
-Vm::Vm() :
+Vm::Vm(ProgramPtr prog):
   #ifdef LBT_TRACE_ENABLED
   BeginDebug(Thread::NONE), EndDebug(Thread::NONE), NextId(0),
   #endif
-  CurHitFn(0) {}
-
-Vm::Vm(ProgramPtr prog): Vm() {
-  init(prog);
-}
-
-void Vm::init(ProgramPtr prog) {
-  Prog = prog;
-  const Program& p(*Prog);
-  ProgEnd = &p.back() - 1;
-
+  Prog(prog), ProgEnd(&prog->back()-1),
+  First(), Active(1, &(*prog)[0]), Next(),
+  LiveNoLabel(false), Live(),
+  MatchEnds(), MatchEndsMax(0),
+  CheckLabels(),
+  CurHitFn(nullptr), UserData(nullptr)
+{
   size_t numPatterns = 0,
          numCheckedStates = 0;
 
-  const Program::const_iterator e(p.end());
-  for (Program::const_iterator i(p.begin()); i != e; i += i->wordSize()) {
+  const Program::const_iterator e(Prog->end());
+  for (Program::const_iterator i(Prog->begin()); i != e; i += i->wordSize()) {
     switch (i->OpCode) {
     case LABEL_OP:
       if (numPatterns < i->Op.Offset) {
@@ -164,14 +160,9 @@ void Vm::init(ProgramPtr prog) {
   }
 
   MatchEnds.resize(numPatterns);
-  MatchEndsMax = 0;
-
   Live.resize(numPatterns);
-  LiveNoLabel = false;
-
   CheckLabels.resize(numCheckedStates);
 
-  Active.emplace_back(&(*Prog)[0]);
   ThreadList::iterator t(Active.begin());
 
   #ifdef LBT_TRACE_ENABLED
@@ -194,6 +185,8 @@ void Vm::init(ProgramPtr prog) {
   reset();
 }
 
+
+
 void Vm::reset() {
   Active.clear();
   Next.clear();
@@ -206,7 +199,7 @@ void Vm::reset() {
   MatchEnds.assign(MatchEnds.size(), 0);
   MatchEndsMax = 0;
 
-  CurHitFn = 0;
+  CurHitFn = nullptr;
 
   #ifdef LBT_TRACE_ENABLED
   NextId = 1;

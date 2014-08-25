@@ -32,11 +32,7 @@ public:
 
   typedef std::vector<Thread> ThreadList;
 
-  Vm();
   Vm(ProgramPtr prog);
-
-  // numCheckedStates should be equal to the number + 1 for the reserved bit
-  void init(ProgramPtr prog);
 
   virtual void startsWith(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData);
   virtual uint64_t search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData);
@@ -116,8 +112,8 @@ private:
 
   std::vector<uint64_t> ThreadCountHist;
 
-  ProgramPtr Prog;
-  const Instruction* ProgEnd;
+  const ProgramPtr Prog;
+  const Instruction* const ProgEnd;
 
   ThreadList First,
              Active,

@@ -318,10 +318,9 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
 }
 
 SCOPE_TEST(testInitVM) {
-  std::shared_ptr<VmInterface> vm = VmInterface::create();
   NFAPtr fsm = createGraph({"one", "two"}, true);
   ProgramPtr prog = Compiler::createProgram(*fsm);
-  vm->init(prog);
+  std::shared_ptr<VmInterface> vm = VmInterface::create(prog);
 
                     // 0123456789012
   const byte text[] = "a onetwothree";

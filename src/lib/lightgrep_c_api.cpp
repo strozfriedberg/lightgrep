@@ -390,11 +390,10 @@ namespace {
       lg_destroy_context
     );
 
-    hCtx->Impl = VmInterface::create();
+    hCtx->Impl = VmInterface::create(hProg->Impl);
     #ifdef LBT_TRACE_ENABLED
     hCtx->Impl->setDebugRange(beginTrace, endTrace);
     #endif
-    hCtx->Impl->init(hProg->Impl);
 
     return hCtx.release();
   }

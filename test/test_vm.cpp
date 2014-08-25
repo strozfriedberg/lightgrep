@@ -277,7 +277,7 @@ SCOPE_TEST(executeLabel) {
 
 SCOPE_TEST(executeMatch) {
   ProgramPtr p(new Program(2, Instruction::makeMatch()));
-  (*p)[0] = Instruction::makeByte('a'); // just to keep Vm::init() from executing the match
+  (*p)[0] = Instruction::makeByte('a'); // just to keep Vm() from executing the match
   Vm s(p);
 
   Thread cur(&(*p)[1], 0, 0, Thread::NONE);
@@ -382,8 +382,7 @@ SCOPE_TEST(testInit) {
     prog.Filter.set(h | 'd');
   }
 
-  Vm s;
-  s.init(p);
+  Vm s(p);
   SCOPE_ASSERT_EQUAL(4u, s.first().size());
   SCOPE_ASSERT_EQUAL(&prog[11], s.first()[0].PC);
   SCOPE_ASSERT_EQUAL(&prog[6], s.first()[1].PC);
@@ -404,14 +403,13 @@ SCOPE_TEST(simpleLitMatch) {
   prog[7] = Instruction::makeFinish();
 
   byte text[] = {'a', 'b', 'c'};
-  Vm v;
 
   prog.FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
     prog.Filter.set((i << 8) | 'a');
   }
 
-  v.init(p);
+  Vm v(p);
   std::vector<SearchHit> hits;
   SCOPE_ASSERT_EQUAL(38u, v.search(text, text + 3, 35, &mockCallback, &hits));
   v.closeOut(&mockCallback, &hits);
@@ -442,8 +440,7 @@ SCOPE_TEST(newThreadInit) {
   prog[15] = Instruction::makeHalt();
   prog[16] = Instruction::makeFinish();
 
-  byte text[] = {'a', 'a', 'b', 'c'};
-  Vm v;
+  const byte text[] = {'a', 'a', 'b', 'c'};
 
   p->FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
@@ -451,7 +448,8 @@ SCOPE_TEST(newThreadInit) {
     p->Filter.set(h | 'a');
     p->Filter.set(h | 'b');
   }
-  v.init(p);
+
+  Vm v(p);
 
   v.executeFrame(&text[0], 13, 0, 0);
   SCOPE_ASSERT_EQUAL(1u, v.active().size());
@@ -507,8 +505,7 @@ SCOPE_TEST(threeKeywords) {
   prog[23] = Instruction::makeHalt();
   prog[24] = Instruction::makeFinish();
 
-  byte text[] = {'c', 'a', 'b', 'c'};
-  Vm v;
+  const byte text[] = {'c', 'a', 'b', 'c'};
 
   p->FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
@@ -517,7 +514,7 @@ SCOPE_TEST(threeKeywords) {
     p->Filter.set(h | 'b');
   }
 
-  v.init(p);
+  Vm v(p);
   std::vector<SearchHit> hits;
   SCOPE_ASSERT_EQUAL(14u, v.search(text, &text[4], 10, &mockCallback, &hits));
   v.closeOut(&mockCallback, &hits);
@@ -538,16 +535,15 @@ SCOPE_TEST(stitchedText) {
   prog[6] = Instruction::makeHalt();
   prog[7] = Instruction::makeFinish();
 
-  byte text1[] = {'a', 'c', 'a'},
-       text2[] = {'b', 'b'};
-  Vm v;
+  const byte text1[] = {'a', 'c', 'a'};
+  const byte text2[] = {'b', 'b'};
 
   p->FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
     p->Filter.set((i << 8) | 'a');
   }
 
-  v.init(p);
+  Vm v(p);
   std::vector<SearchHit> hits;
   SCOPE_ASSERT_EQUAL(2u, v.search(text1, &text1[3], 0, &mockCallback, &hits));
   SCOPE_ASSERT_EQUAL(0u, hits.size());
