@@ -547,7 +547,7 @@ void Vm::executeFrame(const byte* const cur, uint64_t offset, HitCallback hitFn,
 void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
-  const Instruction* base = &(*Prog)[0];
+  const Instruction* const base = &(*Prog)[0];
   uint64_t offset = startOffset;
 
   const byte* const filterOff = beg+Prog->FilterOff;
@@ -594,7 +594,7 @@ uint64_t Vm::_startOfLeftmostLiveThread(uint64_t offset) const {
 uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
-  const Instruction* base = &(*Prog)[0];
+  const Instruction* const base = &(*Prog)[0];
 
   const std::bitset<256*256>& first = Prog->Filter;
   const byte* const filterEnd = end - Prog->FilterOff - 1;
@@ -639,7 +639,7 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
 uint64_t Vm::searchResolve(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {
   CurHitFn = hitFn;
   UserData = userData;
-  const Instruction* base = &(*Prog)[0];
+  const Instruction* const base = &(*Prog)[0];
   uint64_t offset = startOffset;
 
   bool hadRealOps = true;
