@@ -155,7 +155,7 @@ SCOPE_TEST(generateCheckHalt) {
 
   ProgramPtr p = Compiler::createProgram(fsm);
   Program& prog(*p);
-  SCOPE_ASSERT_EQUAL(1u, prog.NumChecked);
+  SCOPE_ASSERT_EQUAL(1u, prog.MaxCheck);
 
   // std::cout << prog;
   SCOPE_ASSERT_EQUAL(10u, prog.size());

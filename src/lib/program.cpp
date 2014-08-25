@@ -24,11 +24,13 @@
 
 int Program::bufSize() const {
   return sizeof(Filter) + sizeof(FilterOff) +
-         sizeof(NumChecked) + (size() * sizeof(value_type));
+         sizeof(MaxLabel) + sizeof(MaxCheck) +
+         (size() * sizeof(value_type));
 }
 
 bool Program::operator==(const Program& rhs) const {
-  return NumChecked == rhs.NumChecked &&
+  return MaxLabel == rhs.MaxLabel &&
+         MaxCheck == rhs.MaxCheck &&
          FilterOff == rhs.FilterOff &&
          Filter == rhs.Filter &&
          std::equal(begin(), end(), rhs.begin());
@@ -36,7 +38,8 @@ bool Program::operator==(const Program& rhs) const {
 
 std::string Program::marshall() const {
   std::ostringstream buf;
-  buf.write((char*)&NumChecked, sizeof(NumChecked));
+  buf.write((char*)&MaxLabel, sizeof(MaxLabel));
+  buf.write((char*)&MaxCheck, sizeof(MaxCheck));
   buf.write((char*)&FilterOff, sizeof(FilterOff));
   buf.write((char*)&Filter, sizeof(Filter));
   for (auto instruction: *this) {
@@ -48,7 +51,8 @@ std::string Program::marshall() const {
 ProgramPtr Program::unmarshall(const std::string& s) {
   ProgramPtr p(new Program);
   std::istringstream buf(s);
-  buf.read((char*)&p->NumChecked, sizeof(NumChecked));
+  buf.read((char*)&p->MaxLabel, sizeof(MaxLabel));
+  buf.read((char*)&p->MaxCheck, sizeof(MaxCheck));
   buf.read((char*)&p->FilterOff, sizeof(FilterOff));
   buf.read((char*)&p->Filter, sizeof(Filter));
   Instruction i;

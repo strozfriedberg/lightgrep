@@ -39,7 +39,7 @@ uint32_t figureOutLanding(const CodeGenHelper& cg, NFA::VertexDescriptor v, cons
 
 std::tuple<uint32_t, uint32_t> minAndMaxValues(const std::vector<std::vector<NFA::VertexDescriptor>>& tbl) {
   uint32_t first = 0,
-         last  = 255;
+           last  = 255;
 
   for (uint32_t i = 0; i < 256; ++i) {
     if (!tbl[i].empty()) {
@@ -168,10 +168,6 @@ ProgramPtr Compiler::createProgram(const NFA& graph) {
   // std::cerr << "Compiling to byte code" << std::endl;
   ProgramPtr ret(new Program);
 
-//  ret->First = firstBytes(graph);
-//  bfs_bounded(graph, 0, 5);
-//  std::tie(ret->FirstOff, ret->First) = bestFirst(graph, 0, 10);
-
   std::tie(ret->FilterOff, ret->Filter) = bestPair(graph);
 
   const uint32_t numVs = graph.verticesSize();
@@ -179,7 +175,8 @@ ProgramPtr Compiler::createProgram(const NFA& graph) {
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
   // std::cerr << "Determined order in first pass" << std::endl;
-  ret->NumChecked = cg.NumChecked;
+  ret->MaxLabel= cg.MaxLabel;
+  ret->MaxCheck = cg.MaxCheck;
   ret->resize(cg.Guard);
 
   for (NFA::VertexDescriptor v = 0; v < numVs; ++v) {

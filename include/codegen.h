@@ -31,9 +31,9 @@ static const uint32_t NOLABEL = std::numeric_limits<uint32_t>::max();
 
 struct StateLayoutInfo {
   uint32_t Start,
-         NumEval,
-         NumOther,
-         CheckIndex;
+           NumEval,
+           NumOther,
+           CheckIndex;
   OpCodes Op;
 
   StateLayoutInfo(): Start(NONE), NumEval(NONE), NumOther(NONE), CheckIndex(NONE), Op(UNINITIALIZED) {}
@@ -54,12 +54,19 @@ struct StateLayoutInfo {
 
 struct CodeGenHelper {
   CodeGenHelper(uint32_t numStates): DiscoverRanks(numStates, NONE),
-    Snippets(numStates), Guard(0), NumDiscovered(0), NumChecked(0) {}
+    Snippets(numStates), Guard(0),
+    NumDiscovered(0), MaxLabel(0), MaxCheck(0) {}
 
   void discover(NFA::VertexDescriptor v, const NFA& graph) {
     DiscoverRanks[v] = NumDiscovered++;
+
     if (graph.inDegree(v) > 1) {
-      Snippets[v].CheckIndex = ++NumChecked;
+      Snippets[v].CheckIndex = ++MaxCheck;
+    }
+
+    const uint32_t label = graph[v].Label;
+    if (label != NOLABEL && label > MaxLabel) {
+      MaxLabel = label;
     }
   }
 
@@ -74,8 +81,9 @@ struct CodeGenHelper {
   std::vector<uint32_t> DiscoverRanks;
   std::vector<StateLayoutInfo> Snippets;
   uint32_t Guard,
-         NumDiscovered,
-         NumChecked;
+           NumDiscovered,
+           MaxLabel,
+           MaxCheck;
 };
 
 typedef std::vector<std::vector<NFA::VertexDescriptor>> TransitionTbl;

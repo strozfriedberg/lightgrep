@@ -30,11 +30,14 @@
 class Program: public std::vector<Instruction> {
 public:
   Program(size_t num, const Instruction& val):
-    std::vector<Instruction>(num, val), NumChecked(0), FilterOff(0), Filter() {}
+    std::vector<Instruction>(num, val),
+    MaxLabel(0), MaxCheck(0), FilterOff(0), Filter() {}
 
-  Program(): std::vector<Instruction>(), NumChecked(0), FilterOff(0), Filter() {}
+  Program():
+    std::vector<Instruction>(),
+    MaxLabel(0), MaxCheck(0), FilterOff(0), Filter() {}
 
-  uint32_t  NumChecked;
+  uint32_t MaxLabel, MaxCheck;
 
   uint32_t FilterOff;
   std::bitset<256*256> Filter;

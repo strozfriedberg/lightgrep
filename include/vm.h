@@ -119,13 +119,13 @@ private:
              Active,
              Next;
 
+  SparseSet CheckLabels;
+
   bool LiveNoLabel;
   SparseSet Live;
 
   std::vector<uint64_t> MatchEnds;
   uint64_t MatchEndsMax;
-
-  SparseSet CheckLabels;
 
   HitCallback CurHitFn;
   void* UserData;

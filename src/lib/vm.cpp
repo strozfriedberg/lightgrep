@@ -124,44 +124,19 @@ Vm::Vm(ProgramPtr prog):
   #endif
   Prog(prog), ProgEnd(&prog->back()-1),
   First(), Active(1, &(*prog)[0]), Next(),
-  LiveNoLabel(false), Live(),
-  MatchEnds(), MatchEndsMax(0),
-  CheckLabels(),
+  CheckLabels(prog->MaxCheck+1),
+  LiveNoLabel(false), Live(prog->MaxLabel+1),
+  MatchEnds(prog->MaxLabel+1), MatchEndsMax(0),
   CurHitFn(nullptr), UserData(nullptr)
 {
-  size_t numPatterns = 0,
-         numCheckedStates = 0;
-
-  const Program::const_iterator e(Prog->end());
-  for (Program::const_iterator i(Prog->begin()); i != e; i += i->wordSize()) {
-    switch (i->OpCode) {
-    case LABEL_OP:
-      if (numPatterns < i->Op.Offset) {
-        numPatterns = i->Op.Offset;
-      }
-      break;
-    case CHECK_HALT_OP:
-      if (numCheckedStates < i->Op.Offset) {
-        numCheckedStates = i->Op.Offset;
-      }
-      break;
-    }
-  }
-  ++numPatterns;
-  ++numCheckedStates;
-
 // FIXME: should do these checks inside SparseSet::resize()?
-  if (numPatterns > Live.max_size() || numPatterns > Live.max_size()) {
+  if (Live.size() > Live.max_size()) {
     throw std::runtime_error("Too many patterns.");
   }
 
-  if (numCheckedStates > CheckLabels.max_size()) {
+  if (CheckLabels.size() > CheckLabels.max_size()) {
     throw std::runtime_error("Too many checked states.");
   }
-
-  MatchEnds.resize(numPatterns);
-  Live.resize(numPatterns);
-  CheckLabels.resize(numCheckedStates);
 
   ThreadList::iterator t(Active.begin());
 
@@ -184,8 +159,6 @@ Vm::Vm(ProgramPtr prog):
 
   reset();
 }
-
-
 
 void Vm::reset() {
   Active.clear();
@@ -522,6 +495,7 @@ inline void Vm::_executeFrame(ThreadList::iterator t, const Instruction* const b
 inline void Vm::_cleanup() {
   Active.swap(Next);
   Next.clear();
+
   CheckLabels.clear();
 
   LiveNoLabel = false;

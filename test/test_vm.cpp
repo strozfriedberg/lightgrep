@@ -267,6 +267,9 @@ SCOPE_TEST(executeLabel) {
   prog[1] = Instruction::makeHalt();
   prog[2] = Instruction::makeFinish();
 
+  prog.MaxLabel = 34;
+  prog.MaxCheck = 0;
+
   Vm s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
   SCOPE_ASSERT(s.executeEpsilon(&cur, 57));
@@ -278,8 +281,10 @@ SCOPE_TEST(executeLabel) {
 SCOPE_TEST(executeMatch) {
   ProgramPtr p(new Program(2, Instruction::makeMatch()));
   (*p)[0] = Instruction::makeByte('a'); // just to keep Vm() from executing the match
-  Vm s(p);
+  p->MaxLabel = 0;
+  p->MaxCheck = 0;
 
+  Vm s(p);
   Thread cur(&(*p)[1], 0, 0, Thread::NONE);
   SCOPE_ASSERT(s.executeEpsilon(&cur, 57));
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
@@ -292,6 +297,7 @@ SCOPE_TEST(executeFork) {
   (*p)[0] = Instruction::makeFork(&(*p)[0], 3);
   (*p)[2] = Instruction::makeByte('a');
   (*p)[3] = Instruction::makeByte('a');
+
   Vm s(p);
   Thread cur(&(*p)[0], 0, 0, 0);
   SCOPE_ASSERT(s.executeEpsilon(&cur, 47));
@@ -346,12 +352,16 @@ SCOPE_TEST(runFrame) {
   prog[7] = Instruction::makeByte('b');
   prog[8] = Instruction::makeByte('c');
 
+  prog.MaxLabel = 1;
+  prog.MaxCheck = 0;
+
   prog.FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
     prog.Filter.set((i << 8) | 'a');
   }
 
-  byte b = 'a';
+  const byte b = 'a';
+
   Vm s(p);
   s.executeFrame(&b, 0, 0, 0);
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
@@ -402,12 +412,15 @@ SCOPE_TEST(simpleLitMatch) {
   prog[6] = Instruction::makeHalt();
   prog[7] = Instruction::makeFinish();
 
-  byte text[] = {'a', 'b', 'c'};
+  prog.MaxLabel = 3;
+  prog.MaxCheck = 0;
 
   prog.FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
     prog.Filter.set((i << 8) | 'a');
   }
+
+  byte text[] = {'a', 'b', 'c'};
 
   Vm v(p);
   std::vector<SearchHit> hits;
@@ -439,6 +452,9 @@ SCOPE_TEST(newThreadInit) {
   prog[13] = Instruction::makeFork(&prog[13], 16);
   prog[15] = Instruction::makeHalt();
   prog[16] = Instruction::makeFinish();
+
+  prog.MaxLabel = 1;
+  prog.MaxCheck = 0;
 
   const byte text[] = {'a', 'a', 'b', 'c'};
 
@@ -505,6 +521,9 @@ SCOPE_TEST(threeKeywords) {
   prog[23] = Instruction::makeHalt();
   prog[24] = Instruction::makeFinish();
 
+  prog.MaxLabel = 2;
+  prog.MaxCheck = 0;
+
   const byte text[] = {'c', 'a', 'b', 'c'};
 
   p->FilterOff = 0;
@@ -534,6 +553,9 @@ SCOPE_TEST(stitchedText) {
   prog[4] = Instruction::makeFork(&prog[4], 7);
   prog[6] = Instruction::makeHalt();
   prog[7] = Instruction::makeFinish();
+
+  prog.MaxLabel = 0;
+  prog.MaxCheck = 0;
 
   const byte text1[] = {'a', 'c', 'a'};
   const byte text2[] = {'b', 'b'};
