@@ -470,7 +470,7 @@ inline bool Vm::_executeEpSequence(const Instruction* const base, ThreadList::it
   return t->PC;
 }
 
-inline void Vm::_executeFrame(const std::bitset<256*256>& first, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
+inline void Vm::_executeFrame(const std::bitset<256*256>& filter, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
   // run old threads at this offset
   // uint32_t count = 0;
 
@@ -480,7 +480,7 @@ inline void Vm::_executeFrame(const std::bitset<256*256>& first, ThreadList::ite
   }
 
   // create new threads at this offset
-  if (first[*(reinterpret_cast<const uint16_t*>(cur+Prog->FilterOff))]) {
+  if (filter[*(reinterpret_cast<const uint16_t*>(cur+Prog->FilterOff))]) {
     const size_t oldsize = Active.size();
 
     for (t = First.begin(); t != First.end(); ++t) {
@@ -506,7 +506,7 @@ inline void Vm::_executeFrame(const std::bitset<256*256>& first, ThreadList::ite
   // ++ThreadCountHist[count];
 }
 
-inline void Vm::_executeFrameAfter(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
+inline void Vm::_executeFrame(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
   // run old threads at this offset
   // uint32_t count = 0;
 
@@ -628,7 +628,7 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
   UserData = userData;
   const Instruction* const base = &(*Prog)[0];
 
-  const std::bitset<256*256>& first = Prog->Filter;
+  const std::bitset<256*256>& filter = Prog->Filter;
   const byte* const filterEnd = end - Prog->FilterOff - 1;
 
   uint64_t offset = startOffset;
@@ -639,7 +639,7 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
     open_frame_json(std::clog, offset, cur);
     #endif
 
-    _executeFrame(first, Active.begin(), base, cur, offset);
+    _executeFrame(filter, Active.begin(), base, cur, offset);
 
     #ifdef LBT_TRACE_ENABLED
     close_frame_json(std::clog, offset);
@@ -653,7 +653,7 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
     open_frame_json(std::clog, offset, cur);
     #endif
 
-    _executeFrameAfter(Active.begin(), base, cur, offset);
+    _executeFrame(Active.begin(), base, cur, offset);
 
     #ifdef LBT_TRACE_ENABLED
     close_frame_json(std::clog, offset);
