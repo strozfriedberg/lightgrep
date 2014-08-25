@@ -86,6 +86,7 @@ private:
 
   void _executeThread(const Instruction* const base, ThreadList::iterator t, const byte* const cur, const uint64_t offset);
   void _executeFrame(const std::bitset<256*256>& first, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset);
+  void _executeFrameAfter(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset);
   void _cleanup();
 
   uint64_t _startOfLeftmostLiveThread(uint64_t offset) const;
@@ -128,6 +129,4 @@ private:
 
   HitCallback CurHitFn;
   void* UserData;
-
-  static const std::bitset<256*256> BeyondFilter;
 };

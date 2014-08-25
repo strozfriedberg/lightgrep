@@ -26,8 +26,6 @@
 #include <iomanip>
 #include <iostream>
 
-const std::bitset<256*256> Vm::BeyondFilter{std::bitset<256*256>().set()};
-
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"PC\":" << std::hex << t.PC
       << ", \"Label\":" << std::dec << t.Label
@@ -508,6 +506,40 @@ inline void Vm::_executeFrame(const std::bitset<256*256>& first, ThreadList::ite
   // ++ThreadCountHist[count];
 }
 
+inline void Vm::_executeFrameAfter(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
+  // run old threads at this offset
+  // uint32_t count = 0;
+
+  for ( ; t != Active.end(); ++t) {
+    _executeThread(base, t, cur, offset);
+    // ++count;
+  }
+
+  // create new threads at this offset
+  const size_t oldsize = Active.size();
+
+  for (t = First.begin(); t != First.end(); ++t) {
+    Active.emplace_back(
+      t->PC, Thread::NOLABEL,
+      #ifdef LBT_TRACE_ENABLED
+      NextId++,
+      #endif
+      offset, Thread::NONE
+    );
+
+    #ifdef LBT_TRACE_ENABLED
+    new_thread_json.insert(Active.back().Id);
+    #endif
+  }
+
+  for (t = Active.begin() + oldsize; t != Active.end(); ++t) {
+    _executeThread(base, t, cur, offset);
+    // ++count;
+  }
+  // ThreadCountHist.resize(count + 1, 0);
+  // ++ThreadCountHist[count];
+}
+
 inline void Vm::_cleanup() {
   Active.swap(Next);
   Next.clear();
@@ -621,7 +653,7 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
     open_frame_json(std::clog, offset, cur);
     #endif
 
-    _executeFrame(BeyondFilter, Active.begin(), base, cur, offset);
+    _executeFrameAfter(Active.begin(), base, cur, offset);
 
     #ifdef LBT_TRACE_ENABLED
     close_frame_json(std::clog, offset);
