@@ -110,8 +110,6 @@ private:
 
   std::vector<uint64_t> ThreadCountHist;
 
-  uint64_t MaxMatches;
-
   ProgramPtr Prog;
   const Instruction* ProgEnd;
 

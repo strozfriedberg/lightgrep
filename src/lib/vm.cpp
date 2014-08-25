@@ -196,8 +196,6 @@ void Vm::init(ProgramPtr prog) {
 }
 
 void Vm::reset() {
-  MaxMatches = 0;
-
   Active.clear();
   Next.clear();
 
