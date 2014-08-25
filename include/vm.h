@@ -85,8 +85,12 @@ private:
   bool _executeEpSequence(const Instruction* const base, ThreadList::iterator t, const uint64_t offset);
 
   void _executeThread(const Instruction* const base, ThreadList::iterator t, const byte* const cur, const uint64_t offset);
+
+  void _executeNewThreads(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset);
+
   void _executeFrame(const std::bitset<256*256>& filter, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset);
   void _executeFrame(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset);
+
   void _cleanup();
 
   uint64_t _startOfLeftmostLiveThread(uint64_t offset) const;

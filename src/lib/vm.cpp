@@ -470,52 +470,7 @@ inline bool Vm::_executeEpSequence(const Instruction* const base, ThreadList::it
   return t->PC;
 }
 
-inline void Vm::_executeFrame(const std::bitset<256*256>& filter, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
-  // run old threads at this offset
-  // uint32_t count = 0;
-
-  for ( ; t != Active.end(); ++t) {
-    _executeThread(base, t, cur, offset);
-    // ++count;
-  }
-
-  // create new threads at this offset
-  if (filter[*(reinterpret_cast<const uint16_t*>(cur+Prog->FilterOff))]) {
-    const size_t oldsize = Active.size();
-
-    for (t = First.begin(); t != First.end(); ++t) {
-      Active.emplace_back(
-        t->PC, Thread::NOLABEL,
-        #ifdef LBT_TRACE_ENABLED
-        NextId++,
-        #endif
-        offset, Thread::NONE
-      );
-
-      #ifdef LBT_TRACE_ENABLED
-      new_thread_json.insert(Active.back().Id);
-      #endif
-    }
-
-    for (t = Active.begin() + oldsize; t != Active.end(); ++t) {
-      _executeThread(base, t, cur, offset);
-      // ++count;
-    }
-  }
-  // ThreadCountHist.resize(count + 1, 0);
-  // ++ThreadCountHist[count];
-}
-
-inline void Vm::_executeFrame(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
-  // run old threads at this offset
-  // uint32_t count = 0;
-
-  for ( ; t != Active.end(); ++t) {
-    _executeThread(base, t, cur, offset);
-    // ++count;
-  }
-
-  // create new threads at this offset
+inline void Vm::_executeNewThreads(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
   const size_t oldsize = Active.size();
 
   for (t = First.begin(); t != First.end(); ++t) {
@@ -536,6 +491,37 @@ inline void Vm::_executeFrame(ThreadList::iterator t, const Instruction* const b
     _executeThread(base, t, cur, offset);
     // ++count;
   }
+}
+
+inline void Vm::_executeFrame(const std::bitset<256*256>& filter, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
+  // run old threads at this offset
+  // uint32_t count = 0;
+
+  for ( ; t != Active.end(); ++t) {
+    _executeThread(base, t, cur, offset);
+    // ++count;
+  }
+
+  // create new threads at this offset
+  if (filter[*(reinterpret_cast<const uint16_t*>(cur+Prog->FilterOff))]) {
+    _executeNewThreads(t, base, cur, offset);
+  }
+  // ThreadCountHist.resize(count + 1, 0);
+  // ++ThreadCountHist[count];
+}
+
+inline void Vm::_executeFrame(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
+  // run old threads at this offset
+  // uint32_t count = 0;
+
+  for ( ; t != Active.end(); ++t) {
+    _executeThread(base, t, cur, offset);
+    // ++count;
+  }
+
+  // create new threads at this offset
+  _executeNewThreads(t, base, cur, offset);
+
   // ThreadCountHist.resize(count + 1, 0);
   // ++ThreadCountHist[count];
 }
