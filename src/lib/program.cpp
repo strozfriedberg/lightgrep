@@ -23,22 +23,22 @@
 #include <sstream>
 
 int Program::bufSize() const {
-  return sizeof(First) + sizeof(FirstOff) +
+  return sizeof(Filter) + sizeof(FilterOff) +
          sizeof(NumChecked) + (size() * sizeof(value_type));
 }
 
 bool Program::operator==(const Program& rhs) const {
   return NumChecked == rhs.NumChecked &&
-         FirstOff == rhs.FirstOff &&
-         First == rhs.First &&
+         FilterOff == rhs.FilterOff &&
+         Filter == rhs.Filter &&
          std::equal(begin(), end(), rhs.begin());
 }
 
 std::string Program::marshall() const {
   std::ostringstream buf;
   buf.write((char*)&NumChecked, sizeof(NumChecked));
-  buf.write((char*)&FirstOff, sizeof(FirstOff));
-  buf.write((char*)&First, sizeof(First));
+  buf.write((char*)&FilterOff, sizeof(FilterOff));
+  buf.write((char*)&Filter, sizeof(Filter));
   for (auto instruction: *this) {
     buf.write((char*)&instruction, sizeof(instruction));
   }
@@ -49,8 +49,8 @@ ProgramPtr Program::unmarshall(const std::string& s) {
   ProgramPtr p(new Program);
   std::istringstream buf(s);
   buf.read((char*)&p->NumChecked, sizeof(NumChecked));
-  buf.read((char*)&p->FirstOff, sizeof(FirstOff));
-  buf.read((char*)&p->First, sizeof(First));
+  buf.read((char*)&p->FilterOff, sizeof(FilterOff));
+  buf.read((char*)&p->Filter, sizeof(Filter));
   Instruction i;
   while (buf.read((char*)&i, sizeof(Instruction))) {
     p->push_back(i);

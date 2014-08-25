@@ -26,9 +26,9 @@ ProgramPtr makeProgram() {
   p1->push_back(Instruction::makeLabel(0));
   p1->push_back(Instruction::makeMatch());
 
-  p1->FirstOff = 0;
+  p1->FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
-    p1->First.set((i << 8) | 'a');
+    p1->Filter.set((i << 8) | 'a');
   }
 
   return p1;

@@ -172,7 +172,7 @@ ProgramPtr Compiler::createProgram(const NFA& graph) {
 //  bfs_bounded(graph, 0, 5);
 //  std::tie(ret->FirstOff, ret->First) = bestFirst(graph, 0, 10);
 
-  std::tie(ret->FirstOff, ret->First) = bestPair(graph);
+  std::tie(ret->FilterOff, ret->Filter) = bestPair(graph);
 
   const uint32_t numVs = graph.verticesSize();
   CodeGenHelper cg(numVs);

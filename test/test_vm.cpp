@@ -18,6 +18,7 @@
 
 #include <scope/test.h>
 
+#include "byteset.h"
 #include "vm.h"
 #include "mockcallback.h"
 #include "program.h"
@@ -345,9 +346,9 @@ SCOPE_TEST(runFrame) {
   prog[7] = Instruction::makeByte('b');
   prog[8] = Instruction::makeByte('c');
 
-  prog.FirstOff = 0;
+  prog.FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
-    prog.First.set((i << 8) | 'a');
+    prog.Filter.set((i << 8) | 'a');
   }
 
   byte b = 'a';
@@ -372,13 +373,13 @@ SCOPE_TEST(testInit) {
   prog[12] = Instruction::makeByte('c');  // 7
   prog[13] = Instruction::makeByte('d');  // 8
 
-  prog.FirstOff = 0;
+  prog.FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
     const uint32_t h = i << 8;
-    prog.First.set(h | 'a');
-    prog.First.set(h | 'b');
-    prog.First.set(h | 'c');
-    prog.First.set(h | 'd');
+    prog.Filter.set(h | 'a');
+    prog.Filter.set(h | 'b');
+    prog.Filter.set(h | 'c');
+    prog.Filter.set(h | 'd');
   }
 
   Vm s;
@@ -405,9 +406,9 @@ SCOPE_TEST(simpleLitMatch) {
   byte text[] = {'a', 'b', 'c'};
   Vm v;
 
-  prog.FirstOff = 0;
+  prog.FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
-    prog.First.set((i << 8) | 'a');
+    prog.Filter.set((i << 8) | 'a');
   }
 
   v.init(p);
@@ -444,11 +445,11 @@ SCOPE_TEST(newThreadInit) {
   byte text[] = {'a', 'a', 'b', 'c'};
   Vm v;
 
-  p->FirstOff = 0;
+  p->FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
     const uint32_t h = i << 8;
-    p->First.set(h | 'a');
-    p->First.set(h | 'b');
+    p->Filter.set(h | 'a');
+    p->Filter.set(h | 'b');
   }
   v.init(p);
 
@@ -509,11 +510,11 @@ SCOPE_TEST(threeKeywords) {
   byte text[] = {'c', 'a', 'b', 'c'};
   Vm v;
 
-  p->FirstOff = 0;
+  p->FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
     const uint32_t h = i << 8;
-    p->First.set(h | 'a');
-    p->First.set(h | 'b');
+    p->Filter.set(h | 'a');
+    p->Filter.set(h | 'b');
   }
 
   v.init(p);
@@ -541,9 +542,9 @@ SCOPE_TEST(stitchedText) {
        text2[] = {'b', 'b'};
   Vm v;
 
-  p->FirstOff = 0;
+  p->FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
-    p->First.set((i << 8) | 'a');
+    p->Filter.set((i << 8) | 'a');
   }
 
   v.init(p);

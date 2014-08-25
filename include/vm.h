@@ -18,12 +18,13 @@
 
 #pragma once
 
+#include <bitset>
 #include <set>
 #include <vector>
 
+#include "basic.h"
 #include "sparseset.h"
 #include "vm_interface.h"
-#include "byteset.h"
 #include "thread.h"
 
 class Vm: public VmInterface {
@@ -128,5 +129,5 @@ private:
   HitCallback CurHitFn;
   void* UserData;
 
-  static const std::bitset<256*256> BeyondFirst;
+  static const std::bitset<256*256> BeyondFilter;
 };

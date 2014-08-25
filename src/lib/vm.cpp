@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "byteset.h"
 #include "container_out.h"
 #include "vm.h"
 #include "program.h"
@@ -25,7 +26,7 @@
 #include <iomanip>
 #include <iostream>
 
-const std::bitset<256*256> Vm::BeyondFirst{std::bitset<256*256>().set()};
+const std::bitset<256*256> Vm::BeyondFilter{std::bitset<256*256>().set()};
 
 std::ostream& operator<<(std::ostream& out, const Thread& t) {
   out << "{ \"PC\":" << std::hex << t.PC
@@ -481,7 +482,7 @@ inline void Vm::_executeFrame(const std::bitset<256*256>& first, ThreadList::ite
   }
 
   // create new threads at this offset
-  if (first[*(reinterpret_cast<const uint16_t*>(cur+Prog->FirstOff))]) {
+  if (first[*(reinterpret_cast<const uint16_t*>(cur+Prog->FilterOff))]) {
     const size_t oldsize = Active.size();
 
     for (t = First.begin(); t != First.end(); ++t) {
@@ -540,7 +541,7 @@ void Vm::executeFrame(const byte* const cur, uint64_t offset, HitCallback hitFn,
   CurHitFn = hitFn;
   UserData = userData;
   ThreadList::iterator t = Active.begin();
-  _executeFrame(Prog->First, t, &(*Prog)[0], cur, offset);
+  _executeFrame(Prog->Filter, t, &(*Prog)[0], cur, offset);
 }
 
 void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {
@@ -549,10 +550,10 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t
   const Instruction* base = &(*Prog)[0];
   uint64_t offset = startOffset;
 
-  const byte* const firstOff = beg+Prog->FirstOff;
+  const byte* const filterOff = beg+Prog->FilterOff;
 
-  if (firstOff < end &&
-      Prog->First[*(reinterpret_cast<const uint16_t*>(firstOff))])
+  if (filterOff < end &&
+      Prog->Filter[*(reinterpret_cast<const uint16_t*>(filterOff))])
   {
     for (ThreadList::const_iterator t(First.begin()); t != First.end(); ++t) {
       Active.emplace_back(t->PC, Thread::NOLABEL, offset, Thread::NONE);
@@ -595,13 +596,13 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
   UserData = userData;
   const Instruction* base = &(*Prog)[0];
 
-  const std::bitset<256*256>& first = Prog->First;
-  const byte* const firstEnd = end - Prog->FirstOff - 1;
+  const std::bitset<256*256>& first = Prog->Filter;
+  const byte* const filterEnd = end - Prog->FilterOff - 1;
 
   uint64_t offset = startOffset;
 
   const byte* cur = beg;
-  for ( ; cur < firstEnd; ++cur, ++offset) {
+  for ( ; cur < filterEnd; ++cur, ++offset) {
     #ifdef LBT_TRACE_ENABLED
     open_frame_json(std::clog, offset, cur);
     #endif
@@ -620,7 +621,7 @@ uint64_t Vm::search(const byte* const beg, const byte* const end, const uint64_t
     open_frame_json(std::clog, offset, cur);
     #endif
 
-    _executeFrame(BeyondFirst, Active.begin(), base, cur, offset);
+    _executeFrame(BeyondFilter, Active.begin(), base, cur, offset);
 
     #ifdef LBT_TRACE_ENABLED
     close_frame_json(std::clog, offset);
