@@ -235,11 +235,10 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
     return true;
 
   case FINISH_OP:
-    return false;
+    return true;
   }
 
-  // DIE, penultimate instruction is always a halt.
-  t->PC = ProgEnd;
+  // Die.
   return false;
 }
 
@@ -385,18 +384,19 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
 inline void Vm::_executeThread(const Instruction* const base, ThreadList::iterator t, const byte* const cur, const uint64_t offset) {
   #ifdef LBT_TRACE_ENABLED
   pre_run_thread_json(std::clog, offset, *t, base);
-  #endif
-
-  _execute(base, t, cur);
-
-  #ifdef LBT_TRACE_ENABLED
+  const bool alive = _execute(base, t, cur);
   post_run_thread_json(std::clog, offset, *t, base);
-  #endif
 
-  if (_executeEpSequence<10>(base, t, offset)) {
+  if (executeEpSequence<10>(base, t, offset)) {
     _markLive(t->Label);
     Next.push_back(*t);
   }
+  #else
+  if (_execute(base, t, cur) && _executeEpSequence<10>(base, t, offset)) {
+    _markLive(t->Label);
+    Next.push_back(*t);
+  }
+  #endif
 }
 
 template <uint32_t X>

@@ -38,7 +38,7 @@ SCOPE_TEST(executeByte) {
   s.reset();
   b = 'c';
   SCOPE_ASSERT(!s.execute(&cur, &b));
-  SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[0]), s.active().front());
 }
 
 SCOPE_TEST(executeNotByte) {
@@ -47,7 +47,7 @@ SCOPE_TEST(executeNotByte) {
   Vm         s(p);
   Thread cur(&(*p)[0]);
   SCOPE_ASSERT(!s.execute(&cur, &b));
-  SCOPE_ASSERT_EQUAL(Thread(&p->back() - 1), s.active().front());
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[0]), s.active().front());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
 
   s.reset();
@@ -80,7 +80,7 @@ SCOPE_TEST(executeEither) {
   SCOPE_ASSERT(!s.execute(&cur, &b));
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(&p->back()-1), s.active().front().PC);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[0]), s.active().front().PC);
 }
 
 SCOPE_TEST(executeNeither) {
@@ -91,14 +91,14 @@ SCOPE_TEST(executeNeither) {
   SCOPE_ASSERT(!s.execute(&cur, &b));
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(&p->back()-1), s.active().front().PC);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[0]), s.active().front().PC);
 
   s.reset();
   b = '3';
   SCOPE_ASSERT(!s.execute(&cur, &b));
   SCOPE_ASSERT_EQUAL(1u, s.numActive());
   SCOPE_ASSERT_EQUAL(0u, s.numNext());
-  SCOPE_ASSERT_EQUAL(Thread(&p->back()-1), s.active().front().PC);
+  SCOPE_ASSERT_EQUAL(Thread(&(*p)[0]), s.active().front().PC);
 
   s.reset();
   b = '4';
@@ -126,7 +126,7 @@ SCOPE_TEST(executeRange) {
       SCOPE_ASSERT(!s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(1u, s.numActive());
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
-      SCOPE_ASSERT_EQUAL(Thread(&p->back()-1), s.active().front().PC);
+      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0]), s.active().front().PC);
     }
   }
 }
@@ -143,7 +143,7 @@ SCOPE_TEST(executeNotInRange) {
       SCOPE_ASSERT(!s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(1u, s.numActive());
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
-      SCOPE_ASSERT_EQUAL(Thread(&p->back()-1), s.active().front().PC);
+      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0]), s.active().front().PC);
     }
     else {
       SCOPE_ASSERT(s.execute(&cur, &b));
@@ -219,7 +219,7 @@ SCOPE_TEST(executeJumpTableRange) {
       SCOPE_ASSERT(!s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(1u, s.numActive());
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
-      SCOPE_ASSERT_EQUAL(Thread(&p->back()-1, 0, 0, 0), s.active().front());
+      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0], 0, 0, 0), s.active().front());
     }
 
     s.reset();
@@ -253,7 +253,7 @@ SCOPE_TEST(executeBitVector) {
       SCOPE_ASSERT(!s.execute(&cur, &b));
       SCOPE_ASSERT_EQUAL(1u, s.numActive());
       SCOPE_ASSERT_EQUAL(0u, s.numNext());
-      SCOPE_ASSERT_EQUAL(Thread(&p->back()-1, 0, 0, 0), s.active().front());
+      SCOPE_ASSERT_EQUAL(Thread(&(*p)[0], 0, 0, 0), s.active().front());
     }
 
     s.reset();
