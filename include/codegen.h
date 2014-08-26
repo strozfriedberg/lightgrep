@@ -36,9 +36,9 @@ struct StateLayoutInfo {
            CheckIndex;
   OpCodes Op;
 
-  StateLayoutInfo(): Start(NONE), NumEval(NONE), NumOther(NONE), CheckIndex(NONE), Op(UNINITIALIZED) {}
+  StateLayoutInfo(): Start(NONE), NumEval(NONE), NumOther(NONE), CheckIndex(NONE), Op(HALT_OP) {}
 
-  StateLayoutInfo(uint32_t s, uint32_t e, uint32_t o, uint32_t chk = NONE): Start(s), NumEval(e), NumOther(o), CheckIndex(chk), Op(UNINITIALIZED) {}
+  StateLayoutInfo(uint32_t s, uint32_t e, uint32_t o, uint32_t chk = NONE): Start(s), NumEval(e), NumOther(o), CheckIndex(chk), Op(HALT_OP) {}
 
   uint32_t numTotal() const { return NumEval + NumOther; }
 
