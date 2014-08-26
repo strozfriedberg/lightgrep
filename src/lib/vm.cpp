@@ -636,7 +636,7 @@ uint64_t Vm::searchResolve(const byte* const beg, const byte* const end, const u
 
     hadRealOps = false;
     for (ThreadList::iterator t(Active.begin()); t != Active.end(); ++t) {
-      hadRealOps = hadRealOps || !(t->PC->OpCode == HALT_OP && t->PC->OpCode == FINISH_OP);
+      hadRealOps |= !(t->PC->OpCode == HALT_OP && t->PC->OpCode == FINISH_OP);
       _executeThread(base, t, cur, offset);
     }
 
