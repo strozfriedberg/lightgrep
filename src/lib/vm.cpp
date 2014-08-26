@@ -433,7 +433,7 @@ inline bool Vm::_executeEpSequence(const Instruction* const base, ThreadList::it
   return t->PC;
 }
 
-inline void Vm::_executeNewThreads(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset) {
+inline void Vm::_executeNewThreads(const Instruction* const base, ThreadList::iterator t, const byte* const cur, const uint64_t offset) {
   const size_t oldsize = Active.size();
 
   for (t = First.begin(); t != First.end(); ++t) {
@@ -467,7 +467,7 @@ inline void Vm::_executeFrame(const std::bitset<256*256>& filter, ThreadList::it
 
   // create new threads at this offset
   if (filter[*reinterpret_cast<const uint16_t* const>(cur+Prog->FilterOff)]) {
-    _executeNewThreads(t, base, cur, offset);
+    _executeNewThreads(base, t, cur, offset);
   }
   // ThreadCountHist.resize(count + 1, 0);
   // ++ThreadCountHist[count];
@@ -483,7 +483,7 @@ inline void Vm::_executeFrame(ThreadList::iterator t, const Instruction* const b
   }
 
   // create new threads at this offset
-  _executeNewThreads(t, base, cur, offset);
+  _executeNewThreads(base, t, cur, offset);
 
   // ThreadCountHist.resize(count + 1, 0);
   // ++ThreadCountHist[count];
