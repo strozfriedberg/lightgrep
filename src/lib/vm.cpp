@@ -218,7 +218,7 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
     return true;
 
   case BIT_VECTOR_OP:
-    if ((*reinterpret_cast<const ByteSet*>(t->PC + 1))[*cur]) {
+    if ((*reinterpret_cast<const ByteSet* const>(t->PC + 1))[*cur]) {
       t->advance(InstructionSize<BIT_VECTOR_OP>::VAL);
       return true;
     }
@@ -334,7 +334,7 @@ inline bool Vm::_executeEpsilon(const Instruction* const base, ThreadList::itera
     }
 
   case JUMP_OP:
-    t->jump(base, *reinterpret_cast<const uint32_t*>(t->PC+1));
+    t->jump(base, *reinterpret_cast<const uint32_t* const>(t->PC+1));
     return true;
 
   case CHECK_HALT_OP:
@@ -466,7 +466,7 @@ inline void Vm::_executeFrame(const std::bitset<256*256>& filter, ThreadList::it
   }
 
   // create new threads at this offset
-  if (filter[*(reinterpret_cast<const uint16_t*>(cur+Prog->FilterOff))]) {
+  if (filter[*reinterpret_cast<const uint16_t* const>(cur+Prog->FilterOff)]) {
     _executeNewThreads(t, base, cur, offset);
   }
   // ThreadCountHist.resize(count + 1, 0);
@@ -559,7 +559,7 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t
   reset();
 }
 
-uint64_t Vm::_startOfLeftmostLiveThread(uint64_t offset) const {
+uint64_t Vm::_startOfLeftmostLiveThread(const uint64_t offset) const {
   const ThreadList::const_iterator e(Active.end());
   for (ThreadList::const_iterator t(Active.begin()); t != e; ++t) {
     const unsigned char op = t->PC->OpCode;

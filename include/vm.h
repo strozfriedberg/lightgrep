@@ -89,7 +89,7 @@ private:
 
   void _cleanup();
 
-  uint64_t _startOfLeftmostLiveThread(uint64_t offset) const;
+  uint64_t _startOfLeftmostLiveThread(const uint64_t offset) const;
 
   #ifdef LBT_TRACE_ENABLED
   void open_init_epsilon_json(std::ostream& out);
