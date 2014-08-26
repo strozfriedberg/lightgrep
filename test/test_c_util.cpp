@@ -39,8 +39,8 @@ void readWindowTest(
   const std::vector<size_t>& eoff)
 {
   const LG_Window inner{doff + hbeg, doff + hend};
-  int32_t* chars;
-  size_t* offsets;
+  int32_t* chars = nullptr;
+  size_t* offsets = nullptr;
   size_t clen;
 
   LG_Error* err = nullptr;
@@ -101,7 +101,7 @@ void hitContextTest(
 {
   const LG_Window inner{doff + hbeg, doff + hend};
   LG_Window outer;
-  const char* utf8;
+  const char* utf8 = nullptr;
 
   LG_Error* err = nullptr;
 
