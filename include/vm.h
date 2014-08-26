@@ -70,9 +70,9 @@ public:
 
 private:
   void _markLive(const uint32_t label);
-  bool _liveCheck(const uint64_t start, const uint32_t label);
+  bool _liveCheck(const uint64_t start, const uint32_t label) const;
 
-  bool _execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur);
+  bool _execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur) const;
 
   template <uint32_t X>
   bool _executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64_t offset);

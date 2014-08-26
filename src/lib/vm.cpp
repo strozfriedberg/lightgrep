@@ -188,7 +188,7 @@ inline void Vm::_markLive(const uint32_t label) {
   }
 }
 
-inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur) {
+inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur) const {
   const Instruction& instr = *t->PC;
 
   switch (instr.OpCode) {
@@ -243,7 +243,7 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
   return false;
 }
 
-inline bool Vm::_liveCheck(const uint64_t start, const uint32_t label) {
+inline bool Vm::_liveCheck(const uint64_t start, const uint32_t label) const {
   if (label == Thread::NOLABEL) {
     // if we're unlabeled, and anything live has priority, we're blocked
     // if we're unlabeled and we overlap any matches, we're blocked
