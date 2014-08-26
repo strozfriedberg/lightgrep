@@ -218,12 +218,9 @@ inline bool Vm::_execute(const Instruction* const base, ThreadList::iterator t, 
     return true;
 
   case BIT_VECTOR_OP:
-    {
-      const ByteSet* setPtr = reinterpret_cast<const ByteSet*>(t->PC + 1);
-      if ((*setPtr)[*cur]) {
-        t->advance(InstructionSize<BIT_VECTOR_OP>::VAL);
-        return true;
-      }
+    if ((*reinterpret_cast<const ByteSet*>(t->PC + 1))[*cur]) {
+      t->advance(InstructionSize<BIT_VECTOR_OP>::VAL);
+      return true;
     }
     break;
 
