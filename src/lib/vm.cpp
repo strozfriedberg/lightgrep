@@ -387,7 +387,7 @@ inline void Vm::_executeThread(const Instruction* const base, ThreadList::iterat
   const bool alive = _execute(base, t, cur);
   post_run_thread_json(std::clog, offset, *t, base);
 
-  if (alive && executeEpSequence<10>(base, t, offset)) {
+  if (alive && _executeEpSequence<10>(base, t, offset)) {
     _markLive(t->Label);
     Next.push_back(*t);
   }
