@@ -46,7 +46,9 @@
 /stamp-h1
 /test-suite.log
 /test/test
+/test/test.log
 /test/test.exe
+/test/test.trs
 /tmp/
 /vendors/
 _libs/
