@@ -72,7 +72,7 @@ SCOPE_FIXTURE_CTOR(abQuestionSearch, STest, STest("ab?")) {
 }
 
 SCOPE_FIXTURE_CTOR(abQcQdSearch, STest, STest("ab?c?d")) {
-  //                               012345678901234
+  //                   012345678901234
   const char text[] = "ad abcd abd acd";
   fixture.search(text, text+15, 0);
   SCOPE_ASSERT_EQUAL(4u, fixture.Hits.size());
@@ -83,9 +83,9 @@ SCOPE_FIXTURE_CTOR(abQcQdSearch, STest, STest("ab?c?d")) {
 }
 
 SCOPE_FIXTURE_CTOR(aOrbQcSearch, STest, STest("(a|b?)c")) {
-  //                               01234567890
+  //                   01234567890
   const char text[] = "ac bc c abc";
-  fixture.search(text, text + std::strlen((const char*)text), 0);
+  fixture.search(text, text+11, 0);
   SCOPE_ASSERT_EQUAL(4u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
   SCOPE_ASSERT_EQUAL(SearchHit(3, 5, 0), fixture.Hits[1]);
@@ -586,14 +586,6 @@ SCOPE_FIXTURE_CTOR(metaCCSearch, STest, STest("[|()?+*]+")) {
   fixture.search(text, text + 6, 0);
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(0, 6, 0), fixture.Hits[0]);
-}
-
-SCOPE_FIXTURE_CTOR(startsWithTest, STest, STest({"ab..ef", "c[a-z][a-z]", "[aA][bc][bc]"})) {
-  const char text[] = "abcdefghijklmnop";
-  fixture.startsWith(text, text + 16, 0);
-  SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 2), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 6, 0), fixture.Hits[1]);
 }
 
 SCOPE_FIXTURE_CTOR(dot4OraQaSearch, STest, STest(R"(.{4}|a?a)")) {

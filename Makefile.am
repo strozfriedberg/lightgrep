@@ -168,6 +168,7 @@ test_test_SOURCES = \
 	test/test_search_data_driver.cpp \
 	test/test_search.cpp \
 	test/test_sparseset.cpp \
+	test/test_starts_with.cpp \
 	test/test_states.cpp \
 	test/test_testregex_basic_modified.cpp \
 	test/test_thread.cpp \
