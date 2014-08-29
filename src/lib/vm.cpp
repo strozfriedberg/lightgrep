@@ -553,10 +553,10 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t
         break;
       }
     }
+  
+    closeOut(hitFn, userData);
+    reset();
   }
-
-  closeOut(hitFn, userData);
-  reset();
 }
 
 uint64_t Vm::_startOfLeftmostLiveThread(const uint64_t offset) const {
