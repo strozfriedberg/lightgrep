@@ -28,3 +28,9 @@ SCOPE_FIXTURE_CTOR(startsWithTest, STest, STest({"ab..ef", "c[a-z][a-z]", "[aA][
   SCOPE_ASSERT_EQUAL(SearchHit(0, 6, 0), fixture.Hits[1]);
 }
 
+SCOPE_FIXTURE_CTOR(startsWithShortTest, STest, STest({"a+"})) {
+  const char text[] = "a";
+  fixture.startsWith(text, text + 1, 0);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+}

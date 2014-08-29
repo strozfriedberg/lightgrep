@@ -534,8 +534,8 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t
 
   const byte* const filterOff = beg+Prog->FilterOff;
 
-  if (filterOff < end - 1 &&
-      Prog->Filter[*(reinterpret_cast<const uint16_t*>(filterOff))])
+  if (end - beg == 1 || (filterOff < end - 1 &&
+      Prog->Filter[*(reinterpret_cast<const uint16_t*>(filterOff))]))
   {
     for (ThreadList::const_iterator t(First.begin()); t != First.end(); ++t) {
       Active.emplace_back(t->PC, Thread::NOLABEL, offset, Thread::NONE);
