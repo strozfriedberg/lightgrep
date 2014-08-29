@@ -139,6 +139,8 @@ test_test_SOURCES = \
 	test/test_auto_starts_with_5.cpp \
 	test/test_auto_starts_with_6.cpp \
 	test/test_auto_starts_with_7.cpp \
+	test/test_auto_starts_with_multi_1.cpp \
+	test/test_auto_starts_with_multi_2.cpp \
 	test/test_basic.cpp \
 	test/test_byteset.cpp \
 	test/test_bytesource.cpp \
