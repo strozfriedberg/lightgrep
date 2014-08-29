@@ -20,7 +20,7 @@
 
 #include "stest.h"
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1625, STest, STest("a|b|a")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1625, STest, STest("a|b|a")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -45,7 +45,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1625, STest, STest("a|b|a")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1626, STest, STest("a|a|b")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1626, STest, STest("a|a|b")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -70,7 +70,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1626, STest, STest("a|a|b")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1627, STest, STest("a|b|b")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1627, STest, STest("a|b|b")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -95,7 +95,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1627, STest, STest("a|b|b")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1628, STest, STest("a|b|c")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1628, STest, STest("a|b|c")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28u, fixture.Hits.size());
@@ -129,7 +129,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1628, STest, STest("a|b|c")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[27]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1629, STest, STest("a|a|aa")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1629, STest, STest("a|a|aa")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -145,7 +145,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1629, STest, STest("a|a|aa")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1630, STest, STest("a|b|aa")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1630, STest, STest("a|b|aa")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -170,7 +170,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1630, STest, STest("a|b|aa")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1631, STest, STest("a|a|ba")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1631, STest, STest("a|a|ba")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -186,7 +186,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1631, STest, STest("a|a|ba")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1632, STest, STest("a|b|ba")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1632, STest, STest("a|b|ba")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -211,7 +211,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1632, STest, STest("a|b|ba")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1633, STest, STest("a|b|ca")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1633, STest, STest("a|b|ca")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -236,7 +236,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1633, STest, STest("a|b|ca")) {
   SCOPE_ASSERT_EQUAL(SearchHit(26, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1634, STest, STest("a|a|ab")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1634, STest, STest("a|a|ab")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -252,7 +252,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1634, STest, STest("a|a|ab")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1635, STest, STest("a|b|ab")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1635, STest, STest("a|b|ab")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -277,7 +277,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1635, STest, STest("a|b|ab")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1636, STest, STest("a|a|bb")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1636, STest, STest("a|a|bb")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12u, fixture.Hits.size());
@@ -295,7 +295,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1636, STest, STest("a|a|bb")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[11]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1637, STest, STest("a|b|bb")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1637, STest, STest("a|b|bb")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -320,7 +320,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1637, STest, STest("a|b|bb")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1638, STest, STest("a|b|cb")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1638, STest, STest("a|b|cb")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -345,7 +345,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1638, STest, STest("a|b|cb")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1639, STest, STest("a|b|ac")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1639, STest, STest("a|b|ac")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -370,7 +370,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1639, STest, STest("a|b|ac")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1640, STest, STest("a|a|bc")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1640, STest, STest("a|a|bc")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(13u, fixture.Hits.size());
@@ -389,7 +389,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1640, STest, STest("a|a|bc")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[12]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1641, STest, STest("a|b|bc")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1641, STest, STest("a|b|bc")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -414,7 +414,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1641, STest, STest("a|b|bc")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1642, STest, STest("a|b|cc")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1642, STest, STest("a|b|cc")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(21u, fixture.Hits.size());
@@ -441,7 +441,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1642, STest, STest("a|b|cc")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[20]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1643, STest, STest("a|b|c.")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1643, STest, STest("a|b|c.")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(21u, fixture.Hits.size());
@@ -468,7 +468,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1643, STest, STest("a|b|c.")) {
   SCOPE_ASSERT_EQUAL(SearchHit(26, 28, 0), fixture.Hits[20]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1644, STest, STest("a|a|a+")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1644, STest, STest("a|a|a+")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -484,15 +484,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1644, STest, STest("a|a|a+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1645, STest, STest(R"(a|a|a*)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1645, STest, STest(R"(a|a|a*)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1646, STest, STest(R"(a|a|a?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1646, STest, STest(R"(a|a|a?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1647, STest, STest("a|a|a+?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1647, STest, STest("a|a|a+?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -508,19 +508,19 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1647, STest, STest("a|a|a+?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1648, STest, STest(R"(a|a|a*?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1648, STest, STest(R"(a|a|a*?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1649, STest, STest(R"(a|a|a??)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1649, STest, STest(R"(a|a|a??)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1650, STest, STest(R"(a|a|a{0,1})")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1650, STest, STest(R"(a|a|a{0,1})")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1651, STest, STest("a|a|a{2}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1651, STest, STest("a|a|a{2}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -536,7 +536,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1651, STest, STest("a|a|a{2}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1652, STest, STest("a|a|a{1,2}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1652, STest, STest("a|a|a{1,2}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -552,7 +552,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1652, STest, STest("a|a|a{1,2}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1653, STest, STest("a|a|a{2,}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1653, STest, STest("a|a|a{2,}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -568,11 +568,11 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1653, STest, STest("a|a|a{2,}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1654, STest, STest(R"(a|a|a{0,1}?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1654, STest, STest(R"(a|a|a{0,1}?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1655, STest, STest("a|a|a{2}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1655, STest, STest("a|a|a{2}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -588,7 +588,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1655, STest, STest("a|a|a{2}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1656, STest, STest("a|a|a{1,2}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1656, STest, STest("a|a|a{1,2}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -604,7 +604,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1656, STest, STest("a|a|a{1,2}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1657, STest, STest("a|a|a{2,}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1657, STest, STest("a|a|a{2,}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -620,7 +620,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1657, STest, STest("a|a|a{2,}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1658, STest, STest("a|b|a+")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1658, STest, STest("a|b|a+")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -645,15 +645,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1658, STest, STest("a|b|a+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1659, STest, STest(R"(a|b|a*)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1659, STest, STest(R"(a|b|a*)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1660, STest, STest(R"(a|b|a?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1660, STest, STest(R"(a|b|a?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1661, STest, STest("a|b|a+?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1661, STest, STest("a|b|a+?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -678,19 +678,19 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1661, STest, STest("a|b|a+?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1662, STest, STest(R"(a|b|a*?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1662, STest, STest(R"(a|b|a*?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1663, STest, STest(R"(a|b|a??)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1663, STest, STest(R"(a|b|a??)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1664, STest, STest(R"(a|b|a{0,1})")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1664, STest, STest(R"(a|b|a{0,1})")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1665, STest, STest("a|b|a{2}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1665, STest, STest("a|b|a{2}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -715,7 +715,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1665, STest, STest("a|b|a{2}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1666, STest, STest("a|b|a{1,2}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1666, STest, STest("a|b|a{1,2}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -740,7 +740,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1666, STest, STest("a|b|a{1,2}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1667, STest, STest("a|b|a{2,}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1667, STest, STest("a|b|a{2,}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -765,11 +765,11 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1667, STest, STest("a|b|a{2,}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1668, STest, STest(R"(a|b|a{0,1}?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1668, STest, STest(R"(a|b|a{0,1}?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1669, STest, STest("a|b|a{2}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1669, STest, STest("a|b|a{2}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -794,7 +794,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1669, STest, STest("a|b|a{2}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1670, STest, STest("a|b|a{1,2}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1670, STest, STest("a|b|a{1,2}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -819,7 +819,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1670, STest, STest("a|b|a{1,2}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1671, STest, STest("a|b|a{2,}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1671, STest, STest("a|b|a{2,}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -844,7 +844,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1671, STest, STest("a|b|a{2,}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1672, STest, STest("a|a|b+")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1672, STest, STest("a|a|b+")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(16u, fixture.Hits.size());
@@ -866,15 +866,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1672, STest, STest("a|a|b+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[15]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1673, STest, STest(R"(a|a|b*)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1673, STest, STest(R"(a|a|b*)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1674, STest, STest(R"(a|a|b?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1674, STest, STest(R"(a|a|b?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1675, STest, STest("a|a|b+?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1675, STest, STest("a|a|b+?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -899,19 +899,19 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1675, STest, STest("a|a|b+?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1676, STest, STest(R"(a|a|b*?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1676, STest, STest(R"(a|a|b*?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1677, STest, STest(R"(a|a|b??)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1677, STest, STest(R"(a|a|b??)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1678, STest, STest(R"(a|a|b{0,1})")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1678, STest, STest(R"(a|a|b{0,1})")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1679, STest, STest("a|a|b{2}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1679, STest, STest("a|a|b{2}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12u, fixture.Hits.size());
@@ -929,7 +929,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1679, STest, STest("a|a|b{2}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[11]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1680, STest, STest("a|a|b{1,2}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1680, STest, STest("a|a|b{1,2}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(17u, fixture.Hits.size());
@@ -952,7 +952,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1680, STest, STest("a|a|b{1,2}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[16]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1681, STest, STest("a|a|b{2,}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1681, STest, STest("a|a|b{2,}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12u, fixture.Hits.size());
@@ -970,11 +970,11 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1681, STest, STest("a|a|b{2,}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[11]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1682, STest, STest(R"(a|a|b{0,1}?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1682, STest, STest(R"(a|a|b{0,1}?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1683, STest, STest("a|a|b{2}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1683, STest, STest("a|a|b{2}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12u, fixture.Hits.size());
@@ -992,7 +992,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1683, STest, STest("a|a|b{2}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[11]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1684, STest, STest("a|a|b{1,2}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1684, STest, STest("a|a|b{1,2}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1017,7 +1017,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1684, STest, STest("a|a|b{1,2}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1685, STest, STest("a|a|b{2,}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1685, STest, STest("a|a|b{2,}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(12u, fixture.Hits.size());
@@ -1035,7 +1035,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1685, STest, STest("a|a|b{2,}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[11]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1686, STest, STest("a|b|b+")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1686, STest, STest("a|b|b+")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1060,15 +1060,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1686, STest, STest("a|b|b+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1687, STest, STest(R"(a|b|b*)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1687, STest, STest(R"(a|b|b*)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1688, STest, STest(R"(a|b|b?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1688, STest, STest(R"(a|b|b?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1689, STest, STest("a|b|b+?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1689, STest, STest("a|b|b+?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1093,19 +1093,19 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1689, STest, STest("a|b|b+?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1690, STest, STest(R"(a|b|b*?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1690, STest, STest(R"(a|b|b*?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1691, STest, STest(R"(a|b|b??)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1691, STest, STest(R"(a|b|b??)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1692, STest, STest(R"(a|b|b{0,1})")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1692, STest, STest(R"(a|b|b{0,1})")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1693, STest, STest("a|b|b{2}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1693, STest, STest("a|b|b{2}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1130,7 +1130,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1693, STest, STest("a|b|b{2}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1694, STest, STest("a|b|b{1,2}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1694, STest, STest("a|b|b{1,2}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1155,7 +1155,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1694, STest, STest("a|b|b{1,2}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1695, STest, STest("a|b|b{2,}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1695, STest, STest("a|b|b{2,}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1180,11 +1180,11 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1695, STest, STest("a|b|b{2,}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1696, STest, STest(R"(a|b|b{0,1}?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1696, STest, STest(R"(a|b|b{0,1}?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1697, STest, STest("a|b|b{2}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1697, STest, STest("a|b|b{2}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1209,7 +1209,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1697, STest, STest("a|b|b{2}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1698, STest, STest("a|b|b{1,2}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1698, STest, STest("a|b|b{1,2}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1234,7 +1234,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1698, STest, STest("a|b|b{1,2}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1699, STest, STest("a|b|b{2,}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1699, STest, STest("a|b|b{2,}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1259,7 +1259,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1699, STest, STest("a|b|b{2,}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1700, STest, STest("a|b|c+")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1700, STest, STest("a|b|c+")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(25u, fixture.Hits.size());
@@ -1290,15 +1290,15 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1700, STest, STest("a|b|c+")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[24]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1701, STest, STest(R"(a|b|c*)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1701, STest, STest(R"(a|b|c*)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1702, STest, STest(R"(a|b|c?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1702, STest, STest(R"(a|b|c?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1703, STest, STest("a|b|c+?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1703, STest, STest("a|b|c+?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28u, fixture.Hits.size());
@@ -1332,19 +1332,19 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1703, STest, STest("a|b|c+?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[27]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1704, STest, STest(R"(a|b|c*?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1704, STest, STest(R"(a|b|c*?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1705, STest, STest(R"(a|b|c??)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1705, STest, STest(R"(a|b|c??)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1706, STest, STest(R"(a|b|c{0,1})")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1706, STest, STest(R"(a|b|c{0,1})")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1707, STest, STest("a|b|c{2}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1707, STest, STest("a|b|c{2}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(21u, fixture.Hits.size());
@@ -1371,7 +1371,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1707, STest, STest("a|b|c{2}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[20]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1708, STest, STest("a|b|c{1,2}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1708, STest, STest("a|b|c{1,2}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(26u, fixture.Hits.size());
@@ -1403,7 +1403,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1708, STest, STest("a|b|c{1,2}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[25]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1709, STest, STest("a|b|c{2,}")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1709, STest, STest("a|b|c{2,}")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(21u, fixture.Hits.size());
@@ -1430,11 +1430,11 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1709, STest, STest("a|b|c{2,}")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[20]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1710, STest, STest(R"(a|b|c{0,1}?)")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1710, STest, STest(R"(a|b|c{0,1}?)")) {
   SCOPE_ASSERT(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1711, STest, STest("a|b|c{2}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1711, STest, STest("a|b|c{2}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(21u, fixture.Hits.size());
@@ -1461,7 +1461,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1711, STest, STest("a|b|c{2}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[20]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1712, STest, STest("a|b|c{1,2}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1712, STest, STest("a|b|c{1,2}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28u, fixture.Hits.size());
@@ -1495,7 +1495,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1712, STest, STest("a|b|c{1,2}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[27]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1713, STest, STest("a|b|c{2,}?")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1713, STest, STest("a|b|c{2,}?")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(21u, fixture.Hits.size());
@@ -1522,7 +1522,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1713, STest, STest("a|b|c{2,}?")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[20]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1714, STest, STest("a|a|a|a")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1714, STest, STest("a|a|a|a")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(10u, fixture.Hits.size());
@@ -1538,7 +1538,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1714, STest, STest("a|a|a|a")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[9]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1715, STest, STest("a|b|a|a")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1715, STest, STest("a|b|a|a")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1563,7 +1563,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1715, STest, STest("a|b|a|a")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1716, STest, STest("a|a|b|a")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1716, STest, STest("a|a|b|a")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1588,7 +1588,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1716, STest, STest("a|a|b|a")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1717, STest, STest("a|b|b|a")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1717, STest, STest("a|b|b|a")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1613,7 +1613,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1717, STest, STest("a|b|b|a")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1718, STest, STest("a|b|c|a")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1718, STest, STest("a|b|c|a")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28u, fixture.Hits.size());
@@ -1647,7 +1647,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1718, STest, STest("a|b|c|a")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[27]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1719, STest, STest("a|a|a|b")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1719, STest, STest("a|a|a|b")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1672,7 +1672,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1719, STest, STest("a|a|a|b")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1720, STest, STest("a|b|a|b")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1720, STest, STest("a|b|a|b")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1697,7 +1697,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1720, STest, STest("a|b|a|b")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1721, STest, STest("a|a|b|b")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1721, STest, STest("a|a|b|b")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1722,7 +1722,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1721, STest, STest("a|a|b|b")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1722, STest, STest("a|b|b|b")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1722, STest, STest("a|b|b|b")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(19u, fixture.Hits.size());
@@ -1747,7 +1747,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1722, STest, STest("a|b|b|b")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[18]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1723, STest, STest("a|b|c|b")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1723, STest, STest("a|b|c|b")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28u, fixture.Hits.size());
@@ -1781,7 +1781,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1723, STest, STest("a|b|c|b")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[27]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1724, STest, STest("a|b|a|c")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1724, STest, STest("a|b|a|c")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28u, fixture.Hits.size());
@@ -1815,7 +1815,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1724, STest, STest("a|b|a|c")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[27]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1725, STest, STest("a|a|b|c")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1725, STest, STest("a|a|b|c")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28u, fixture.Hits.size());
@@ -1849,7 +1849,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1725, STest, STest("a|a|b|c")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[27]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1726, STest, STest("a|b|b|c")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1726, STest, STest("a|b|b|c")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28u, fixture.Hits.size());
@@ -1883,7 +1883,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1726, STest, STest("a|b|b|c")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[27]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1727, STest, STest("a|b|c|c")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1727, STest, STest("a|b|c|c")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28u, fixture.Hits.size());
@@ -1917,7 +1917,7 @@ SCOPE_FIXTURE_CTOR(autoPatternTest1727, STest, STest("a|b|c|c")) {
   SCOPE_ASSERT_EQUAL(SearchHit(27, 28, 0), fixture.Hits[27]);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternTest1728, STest, STest("a|b|c|.")) {
+SCOPE_FIXTURE_CTOR(autoPatternSearchTest1728, STest, STest("a|b|c|.")) {
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.search(text, text + 28, 0);
   SCOPE_ASSERT_EQUAL(28u, fixture.Hits.size());
