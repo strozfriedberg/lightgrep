@@ -132,6 +132,13 @@ test_test_SOURCES = \
 	test/test_auto_searches_8.cpp \
 	test/test_auto_searches_multi_1.cpp \
 	test/test_auto_searches_multi_2.cpp \
+	test/test_auto_starts_with_1.cpp \
+	test/test_auto_starts_with_2.cpp \
+	test/test_auto_starts_with_3.cpp \
+	test/test_auto_starts_with_4.cpp \
+	test/test_auto_starts_with_5.cpp \
+	test/test_auto_starts_with_6.cpp \
+	test/test_auto_starts_with_7.cpp \
 	test/test_basic.cpp \
 	test/test_byteset.cpp \
 	test/test_bytesource.cpp \
