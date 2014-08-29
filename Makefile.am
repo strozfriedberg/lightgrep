@@ -122,16 +122,16 @@ test_test_SOURCES = \
 	test/stest.cpp \
 	test/test.cpp \
 	test/test_ascii.cpp \
-	test/test_auto_searches_1.cpp \
-	test/test_auto_searches_2.cpp \
-	test/test_auto_searches_3.cpp \
-	test/test_auto_searches_4.cpp \
-	test/test_auto_searches_5.cpp \
-	test/test_auto_searches_6.cpp \
-	test/test_auto_searches_7.cpp \
-	test/test_auto_searches_8.cpp \
-	test/test_auto_searches_multi_1.cpp \
-	test/test_auto_searches_multi_2.cpp \
+	test/test_auto_search_1.cpp \
+	test/test_auto_search_2.cpp \
+	test/test_auto_search_3.cpp \
+	test/test_auto_search_4.cpp \
+	test/test_auto_search_5.cpp \
+	test/test_auto_search_6.cpp \
+	test/test_auto_search_7.cpp \
+	test/test_auto_search_8.cpp \
+	test/test_auto_search_multi_1.cpp \
+	test/test_auto_search_multi_2.cpp \
 	test/test_auto_starts_with_1.cpp \
 	test/test_auto_starts_with_2.cpp \
 	test/test_auto_starts_with_3.cpp \
@@ -163,8 +163,8 @@ test_test_SOURCES = \
 	test/test_rewriter.cpp \
 	test/test_rotencoder.cpp \
 	test/test_search_data.cpp \
-	test/test_searches.cpp \
-	test/test_searches_data.cpp \
+	test/test_search_data_driver.cpp \
+	test/test_search.cpp \
 	test/test_sparseset.cpp \
 	test/test_states.cpp \
 	test/test_testregex_basic_modified.cpp \
