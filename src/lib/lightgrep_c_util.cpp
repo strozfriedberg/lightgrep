@@ -124,7 +124,7 @@ namespace {
     // Decode leading sequences of increasing length until we hit the
     // beginning of the buffer or decode more values than we need for
     // leading context.
-    for (const byte* l = hbeg-1; l >= bbeg && hbeg - l <= leading * dec.maxByteLength(); --l) {
+    for (const byte* l = hbeg-1; l >= bbeg && hbeg - l <= ssize_t(leading * dec.maxByteLength()); --l) {
       dec.reset(l, hbeg);
       lctx.clear();
       bad = 0;
@@ -138,7 +138,6 @@ namespace {
       }
 
       // pad left with undecoded "bad" bytes
-      const byte* b = l - 1;
       for (const byte* b = l - 1; lctx.size() < leading && b >= bbeg; --b) {
         lctx.emplace(lctx.begin(), -((int32_t) *b)-1, b);
         ++bad;
