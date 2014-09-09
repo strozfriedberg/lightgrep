@@ -41,7 +41,8 @@ uint32_t ByteEncoder::write(int32_t cp, byte buf[]) const {
   return ret;
 }
 
-uint32_t ByteEncoder::write(const byte buf[], int32_t& cp) const {
+uint32_t ByteEncoder::write(const byte[], int32_t& cp) const {
+  // FIXME - Joel revisit this, note that first arg is unused
   std::unique_ptr<byte[]> tmp(new byte[maxByteLength()]);
   byteUntransform(tmp.get(), maxByteLength());
   return BaseEnc->write(tmp.get(), cp);
