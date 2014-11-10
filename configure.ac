@@ -190,7 +190,7 @@ AC_ARG_WITH([scope],
   [AS_HELP_STRING([--with-scope=ARG],
     [use Scope headers from the specified location])],
   [SCOPE_CPPFLAGS="-I$withval"],
-  [SCOPE_CPPFLAGS="-Ivendors/scope"])
+  [SCOPE_CPPFLAGS="-I$srcdir/vendors/scope"])
 
 if test "x$with_scope" != "xno"; then
   # test Scope without adding its path to CPPFLAGS generally
