@@ -113,7 +113,7 @@ src_what_what_SOURCES = src/what/what.cpp
 src_what_what_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 check_PROGRAMS = test/test
-TESTS = $(check_PROGRAMS)
+TESTS = $(builddir)/$(check_PROGRAMS)
 
 test_test_SOURCES = \
 	test/data_reader.cpp \

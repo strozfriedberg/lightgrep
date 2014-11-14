@@ -252,6 +252,8 @@ case "$host" in
   ;;
 esac
 
+AC_DEFINE_UNQUOTED(TDATDIR, "$srcdir/test/data", [Define to the path to the test data.])
+
 #
 # Threading
 # 
