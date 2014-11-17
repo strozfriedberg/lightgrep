@@ -22,12 +22,14 @@
 /config.status
 /configure
 /configure.scan
+/liblightgrep.spec
 /libtool
 /m4/libtool.m4
 /m4/ltoptions.m4
 /m4/ltsugar.m4
 /m4/ltversion.m4
 /m4/lt~obsolete.m4
+/mingw-liblightgrep.spec
 /src/lib/lightgrep.pc
 /src/lib/re_grammar.cpp
 /src/lib/re_grammar.output
