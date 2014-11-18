@@ -53,24 +53,26 @@ might be used to. But it has enough features to be more than a toy, and what
 is supported is well-tested.
 
 %package -n mingw32-liblightgrep
-Summary:        Not the worst forensics regexp engine
+Summary:        %{summary}
 
 %description -n mingw32-liblightgrep
+MinGW Windows liblightgrep library.
 
 # TODO: see mingw-curl SRPM for examples of static builds
 #%%package -n mingw32-liblightgrep-static
-#Summary:        Not the worst forensics regexp engine
+#Summary:        %%{summary}
 #Requires:       mingw32-liblightgrep = %%{version}-%%{release}
 #
 #%%description  -n mingw32-liblightgrep-static
 
 %package -n mingw64-liblightgrep
-Summary:        Not the worst forensics regexp engine
+Summary:        %{summary}
 
 %description -n mingw64-liblightgrep
+MinGW Windows liblightgrep library.
 
 #%%package -n mingw64-liblightgrep-static
-#Summary:        Not the worst forensics regexp engine
+#Summary:        %%{summary}
 #Requires:       mingw64-liblightgrep = %%{version}-%%{release}
 #
 #%%description -n mingw64-liblightgrep-static
