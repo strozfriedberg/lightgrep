@@ -54,6 +54,10 @@ public:
     End = end;
   }
 
+  virtual uint32_t maxByteLength() const {
+    return 1;
+  }
+
  private:
   const byte* Cur;
   const byte* End;

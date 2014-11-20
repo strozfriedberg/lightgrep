@@ -99,6 +99,11 @@ public:
     Trans->reset(beg, end);
   }
 
+  virtual uint32_t maxByteLength() const {
+    // UTF-8, -16, and -32 are all up to 4:1
+    return 4*Trans->maxByteLength();
+  }
+
 protected:
    virtual size_t decode(const byte* beg, const byte* end, int32_t& cp) = 0;
 

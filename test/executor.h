@@ -18,14 +18,28 @@
 
 #pragma once
 
-#include <vector>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+
+#ifdef HAVE_STD_THREAD
 #include <thread>
+using Thread = std::thread;
+#elif defined HAVE_BOOST_THREAD
+#include <boost/thread.hpp>
+using Thread = boost::thread;
+#else
+#error Either std::thread or boost_thread is required to compile and run the tests.
+#endif
+
+#endif /* HAVE_CONFIG_H */
+
+#include <vector>
 
 #include <boost/asio.hpp>
 
 class Executor {
 public:
-  Executor(size_t n = std::thread::hardware_concurrency()):
+  Executor(size_t n = Thread::hardware_concurrency()):
     service_(n), work_(new boost::asio::io_service::work(service_))
   {
     for (size_t i = 0; i < n; ++i) {
@@ -35,7 +49,7 @@ public:
 
   ~Executor() {
     delete work_;
-    for (std::thread& t : pool_) { t.join(); }
+    for (Thread& t : pool_) { t.join(); }
   }
 
   template <typename F>
@@ -44,7 +58,7 @@ public:
   }
 
 protected:
-  std::vector<std::thread> pool_;
+  std::vector<Thread> pool_;
   boost::asio::io_service service_;
   boost::asio::io_service::work* work_;
 };

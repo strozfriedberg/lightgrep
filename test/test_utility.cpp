@@ -86,7 +86,7 @@ SCOPE_TEST(oceUTF8) {
 }
 
 SCOPE_TEST(twoUnicode) {
-  std::vector<Pattern> pats(makePatterns({"aa", "ab"}));
+  std::vector<Pattern> pats({"aa", "ab"});
   for (Pattern& p : pats) {
     p.Encoding = LG_CANONICAL_ENCODINGS[LG_ENCODING_UTF_16LE];
   }
@@ -145,24 +145,56 @@ SCOPE_TEST(twoUnicode) {
   }
 }
 
-SCOPE_TEST(firstBitset) {
-  NFA fsm(3);
-  edge(0, 1, fsm, fsm.TransFac->getByte('A'));
-  edge(0, 2, fsm, fsm.TransFac->getByte('B'));
+SCOPE_TEST(aOrbc2ByteSet) {
+  NFAPtr fsm = createGraph({"a|bc"}, true);
 
-  const ByteSet accepted = firstBytes(fsm);
-  for (unsigned int i = 0; i < 256; ++i) {
-    if (i == 'A' || i == 'B') {
-      SCOPE_ASSERT(accepted[i]);
-    }
-    else {
-      SCOPE_ASSERT(!accepted[i]);
-    }
+  uint32_t off;
+  std::bitset<256*256> act, exp;
+
+  for (uint32_t i = 0; i < 256; ++i) {
+    exp.set('a' | (i << 8));
   }
+  exp.set('b' | ('c' << 8));
+
+  std::tie(off, act) = bestPair(*fsm);
+
+  SCOPE_ASSERT_EQUAL(0u, off);
+  SCOPE_ASSERT_EQUAL(exp, act);
+}
+
+SCOPE_TEST(aOrbQc2ByteSet) {
+  NFAPtr fsm = createGraph({"(a|b?)c"}, true);
+
+  uint32_t off;
+  std::bitset<256*256> act, exp;
+
+  for (uint32_t i = 0; i < 256; ++i) {
+    exp.set('c' | (i << 8));
+  }
+  exp.set('a' | ('c' << 8));
+  exp.set('b' | ('c' << 8));
+
+  std::tie(off, act) = bestPair(*fsm);
+
+  SCOPE_ASSERT_EQUAL(0u, off);
+  SCOPE_ASSERT_EQUAL(exp, act);
+}
+
+SCOPE_TEST(dotaa2ByteSet) {
+  NFAPtr fsm = createGraph({".aa"}, true);
+
+  uint32_t off;
+  std::bitset<256*256> act, exp;
+  exp.set('a' | ('a' << 8));
+
+  std::tie(off, act) = bestPair(*fsm);
+
+  SCOPE_ASSERT_EQUAL(1u, off);
+  SCOPE_ASSERT_EQUAL(exp, act);
 }
 
 SCOPE_TEST(simpleCollapse) {
-  NFAPtr fsm = createGraph(makePatterns({"ab", "ac"}), true);
+  NFAPtr fsm = createGraph({"ab", "ac"}, true);
   SCOPE_ASSERT_EQUAL(4u, fsm->verticesSize());
   SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
   SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
@@ -173,16 +205,16 @@ SCOPE_TEST(simpleCollapse) {
 SCOPE_TEST(codeGen2DiscoverVertex) {
   NFA fsm(2);
   edge(0, 1, fsm, fsm.TransFac->getByte('a'));
-  std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
+  CodeGenHelper cg(fsm.verticesSize());
   CodeGenVisitor vis(cg);
 
   vis.discover_vertex(1, fsm);
-  SCOPE_ASSERT_EQUAL(1u, cg->NumDiscovered);
-  SCOPE_ASSERT_EQUAL(0u, cg->DiscoverRanks[1]);
+  SCOPE_ASSERT_EQUAL(1u, cg.NumDiscovered);
+  SCOPE_ASSERT_EQUAL(0u, cg.DiscoverRanks[1]);
 
   vis.discover_vertex(0, fsm);
-  SCOPE_ASSERT_EQUAL(2u, cg->NumDiscovered);
-  SCOPE_ASSERT_EQUAL(1u, cg->DiscoverRanks[0]);
+  SCOPE_ASSERT_EQUAL(2u, cg.NumDiscovered);
+  SCOPE_ASSERT_EQUAL(1u, cg.DiscoverRanks[0]);
 }
 
 SCOPE_TEST(codeGen2FinishVertex) {
@@ -191,60 +223,60 @@ SCOPE_TEST(codeGen2FinishVertex) {
   edge(1, 2, fsm, fsm.TransFac->getByte('b'));
   edge(2, 3, fsm, fsm.TransFac->getByte('c'));
   edge(2, 4, fsm, fsm.TransFac->getByte('d'));
-  std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
+  CodeGenHelper cg(fsm.verticesSize());
   CodeGenVisitor vis(cg);
 
-  cg->NumDiscovered = 3;
-  cg->DiscoverRanks[0] = 0;
-  cg->DiscoverRanks[1] = 1;
-  cg->DiscoverRanks[2] = 2;
-  cg->DiscoverRanks[3] = 3;
-  cg->DiscoverRanks[4] = 4;
+  cg.NumDiscovered = 3;
+  cg.DiscoverRanks[0] = 0;
+  cg.DiscoverRanks[1] = 1;
+  cg.DiscoverRanks[2] = 2;
+  cg.DiscoverRanks[3] = 3;
+  cg.DiscoverRanks[4] = 4;
 
   vis.finish_vertex(0, fsm);
-  SCOPE_ASSERT_EQUAL(0u, cg->Snippets[0].Start);
-  SCOPE_ASSERT_EQUAL(0u, cg->Snippets[0].numTotal());
+  SCOPE_ASSERT_EQUAL(0u, cg.Snippets[0].Start);
+  SCOPE_ASSERT_EQUAL(0u, cg.Snippets[0].numTotal());
 
   vis.finish_vertex(1, fsm);
-  SCOPE_ASSERT_EQUAL(0u, cg->Snippets[1].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[1].numTotal());
+  SCOPE_ASSERT_EQUAL(0u, cg.Snippets[1].Start);
+  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[1].numTotal());
 
   vis.finish_vertex(2, fsm);
-  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[2].Start);
-  SCOPE_ASSERT_EQUAL(3u, cg->Snippets[2].numTotal());
+  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[2].Start);
+  SCOPE_ASSERT_EQUAL(3u, cg.Snippets[2].numTotal());
 
   vis.finish_vertex(3, fsm);
-  SCOPE_ASSERT_EQUAL(4u, cg->Snippets[3].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[3].numTotal());
+  SCOPE_ASSERT_EQUAL(4u, cg.Snippets[3].Start);
+  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[3].numTotal());
 
   vis.finish_vertex(4, fsm);
-  SCOPE_ASSERT_EQUAL(5u, cg->Snippets[4].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[4].numTotal());
+  SCOPE_ASSERT_EQUAL(5u, cg.Snippets[4].Start);
+  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[4].numTotal());
 }
 
 SCOPE_TEST(alternationCodeGen2FinishVertex) {
   NFA fsm(3);
   edge(0, 1, fsm, fsm.TransFac->getByte('a'));
   edge(0, 2, fsm, fsm.TransFac->getByte('b'));
-  std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
+  CodeGenHelper cg(fsm.verticesSize());
   CodeGenVisitor vis(cg);
 
-  cg->NumDiscovered = 3;
-  cg->DiscoverRanks[0] = 0;
-  cg->DiscoverRanks[1] = 1;
-  cg->DiscoverRanks[2] = 2;
+  cg.NumDiscovered = 3;
+  cg.DiscoverRanks[0] = 0;
+  cg.DiscoverRanks[1] = 1;
+  cg.DiscoverRanks[2] = 2;
 
   vis.finish_vertex(0, fsm);
-  SCOPE_ASSERT_EQUAL(0u, cg->Snippets[0].Start);
-  SCOPE_ASSERT_EQUAL(2u, cg->Snippets[0].numTotal());
+  SCOPE_ASSERT_EQUAL(0u, cg.Snippets[0].Start);
+  SCOPE_ASSERT_EQUAL(2u, cg.Snippets[0].numTotal());
 
   vis.finish_vertex(1, fsm);
-  SCOPE_ASSERT_EQUAL(2u, cg->Snippets[1].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[1].numTotal());
+  SCOPE_ASSERT_EQUAL(2u, cg.Snippets[1].Start);
+  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[1].numTotal());
 
   vis.finish_vertex(2, fsm);
-  SCOPE_ASSERT_EQUAL(3u, cg->Snippets[2].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg->Snippets[2].numTotal());
+  SCOPE_ASSERT_EQUAL(3u, cg.Snippets[2].Start);
+  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[2].numTotal());
 }
 
 SCOPE_TEST(layoutWithCheckHalt) {
@@ -256,16 +288,16 @@ SCOPE_TEST(layoutWithCheckHalt) {
   fsm[2].Label = 0;
   fsm[2].IsMatch = true;
 
-  std::shared_ptr<CodeGenHelper> cg(new CodeGenHelper(fsm.verticesSize()));
+  CodeGenHelper cg(fsm.verticesSize());
   CodeGenVisitor vis(cg);
   specialVisit(fsm, 0, vis);
 
-  SCOPE_ASSERT_EQUAL(0u, cg->DiscoverRanks[0]);
-  SCOPE_ASSERT_EQUAL(1u, cg->DiscoverRanks[1]);
-  SCOPE_ASSERT_EQUAL(2u, cg->DiscoverRanks[2]);
-  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 0u, 0u, NONE), cg->Snippets[0]);
-  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 1u, 0u, NONE), cg->Snippets[1]);
-  SCOPE_ASSERT_EQUAL(StateLayoutInfo(1u, 1u, 7u, 1u), cg->Snippets[2]);
+  SCOPE_ASSERT_EQUAL(0u, cg.DiscoverRanks[0]);
+  SCOPE_ASSERT_EQUAL(1u, cg.DiscoverRanks[1]);
+  SCOPE_ASSERT_EQUAL(2u, cg.DiscoverRanks[2]);
+  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 0u, 0u, NONE), cg.Snippets[0]);
+  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 1u, 0u, NONE), cg.Snippets[1]);
+  SCOPE_ASSERT_EQUAL(StateLayoutInfo(1u, 1u, 7u, 1u), cg.Snippets[2]);
 }
 
 SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
@@ -275,27 +307,26 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
   edge(0, 3, g, g.TransFac->getByte('c'));
   edge(0, 4, g, g.TransFac->getByte('e'));
 
-  std::shared_ptr<CodeGenHelper> cgh(new CodeGenHelper(g.verticesSize()));
-  CodeGenVisitor vis(cgh);
+  CodeGenHelper cg(g.verticesSize());
+  CodeGenVisitor vis(cg);
 
   SCOPE_ASSERT_EQUAL(6u, vis.calcJumpTableSize(0, g, g.outDegree(0)));
-  SCOPE_ASSERT_EQUAL(JUMP_TABLE_RANGE_OP, cgh->Snippets[0].Op);
+  SCOPE_ASSERT_EQUAL(JUMP_TABLE_RANGE_OP, cg.Snippets[0].Op);
   SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(1, g, g.outDegree(1)));
   SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(2, g, g.outDegree(2)));
   SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(3, g, g.outDegree(3)));
 }
 
 SCOPE_TEST(testInitVM) {
-  std::shared_ptr<VmInterface> vm = VmInterface::create();
-  NFAPtr fsm = createGraph(makePatterns({"one", "two"}), true);
+  NFAPtr fsm = createGraph({"one", "two"}, true);
   ProgramPtr prog = Compiler::createProgram(*fsm);
-  vm->init(prog);
+  std::shared_ptr<VmInterface> vm = VmInterface::create(prog);
 
                     // 0123456789012
   const byte text[] = "a onetwothree";
 
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT_EQUAL(std::numeric_limits<uint64_t>::max(), vm->search(&text[0], &text[13], 0, &mockCallback, &hits));
+  SCOPE_ASSERT_EQUAL(13u, vm->search(&text[0], &text[13], 0, &mockCallback, &hits));
   vm->closeOut(&mockCallback, &hits);
   SCOPE_ASSERT_EQUAL(2u, hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(2, 5, 0), hits[0]);

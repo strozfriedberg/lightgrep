@@ -127,6 +127,11 @@ public:
     Trans->reset(beg, end);
   }
 
+  virtual uint32_t maxByteLength() const {
+    // gearing is the product of what we consume and what our input consumes
+    return Conv.maxByteLength() * Trans->maxByteLength();
+  }
+
 private:
   std::unique_ptr<Decoder> Trans;
   std::deque<std::pair<int32_t,const byte*>> In;

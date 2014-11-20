@@ -18,12 +18,13 @@
 
 #pragma once
 
+#include <bitset>
 #include <set>
 #include <vector>
 
+#include "basic.h"
 #include "sparseset.h"
 #include "vm_interface.h"
-#include "byteset.h"
 #include "thread.h"
 
 class Vm: public VmInterface {
@@ -31,11 +32,7 @@ public:
 
   typedef std::vector<Thread> ThreadList;
 
-  Vm();
   Vm(ProgramPtr prog);
-
-  // numCheckedStates should be equal to the number + 1 for the reserved bit
-  void init(ProgramPtr prog);
 
   virtual void startsWith(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData);
   virtual uint64_t search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData);
@@ -72,11 +69,10 @@ public:
   uint32_t numNext() const { return Next.size(); }
 
 private:
-  void _markSeen(const uint32_t label);
   void _markLive(const uint32_t label);
-  bool _liveCheck(const uint64_t start, const uint32_t label);
+  bool _liveCheck(const uint64_t start, const uint32_t label) const;
 
-  bool _execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur);
+  bool _execute(const Instruction* const base, ThreadList::iterator t, const byte* const cur) const;
 
   template <uint32_t X>
   bool _executeEpsilon(const Instruction* const base, ThreadList::iterator t, const uint64_t offset);
@@ -85,8 +81,15 @@ private:
   bool _executeEpSequence(const Instruction* const base, ThreadList::iterator t, const uint64_t offset);
 
   void _executeThread(const Instruction* const base, ThreadList::iterator t, const byte* const cur, const uint64_t offset);
-  void _executeFrame(const ByteSet& first, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset);
+
+  void _executeNewThreads(const Instruction* const base, ThreadList::iterator t, const byte* const cur, const uint64_t offset);
+
+  void _executeFrame(const std::bitset<256*256>& filter, ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset);
+  void _executeFrame(ThreadList::iterator t, const Instruction* const base, const byte* const cur, const uint64_t offset);
+
   void _cleanup();
+
+  uint64_t _startOfLeftmostLiveThread(const uint64_t offset) const;
 
   #ifdef LBT_TRACE_ENABLED
   void open_init_epsilon_json(std::ostream& out);
@@ -109,25 +112,20 @@ private:
 
   std::vector<uint64_t> ThreadCountHist;
 
-  uint64_t MaxMatches;
-
-  ProgramPtr Prog;
-  const Instruction* ProgEnd;
+  const ProgramPtr Prog;
+  const Instruction* const ProgEnd;
 
   ThreadList First,
              Active,
              Next;
 
-  bool SeenNoLabel;
-  SparseSet Seen;
+  SparseSet CheckLabels;
 
   bool LiveNoLabel;
   SparseSet Live;
 
   std::vector<uint64_t> MatchEnds;
   uint64_t MatchEndsMax;
-
-  SparseSet CheckLabels;
 
   HitCallback CurHitFn;
   void* UserData;

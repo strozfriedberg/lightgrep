@@ -53,23 +53,7 @@ uint32_t estimateGraphSize(const std::vector<T>& keywords) {
   return ret;
 }
 
-class Visitor {
-public:
-  virtual ~Visitor() {}
-
-  virtual void discoverVertex(NFA::VertexDescriptor,
-                              const NFA&) const {}
-
-  virtual void treeEdge(NFA::VertexDescriptor,
-                        NFA::VertexDescriptor,
-                        const NFA&) const {}
-};
-
-void bfs(const NFA& graph, NFA::VertexDescriptor start, Visitor& visitor);
-
-ByteSet firstBytes(const NFA& graph);
-
-void nextBytes(ByteSet& set, NFA::VertexDescriptor v, const NFA& graph);
+std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph);
 
 std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescriptor source, const NFA& graph);
 

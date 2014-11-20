@@ -37,7 +37,7 @@
 #include <boost/program_options.hpp>
 #include <scope/testrunner.h>
 
-#include "test_search_data.h"
+#include "test_search_data_driver.h"
 
 namespace po = boost::program_options;
 

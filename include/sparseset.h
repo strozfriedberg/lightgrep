@@ -55,8 +55,10 @@ public:
     std::fill(Data.get(), Data.get() + maxSize, 0);
   }
 
+  size_t max_size() const { return std::numeric_limits<uint32_t>::max()/2+1; }
+
 private:
   std::unique_ptr<uint32_t[]> Data;
   uint32_t End,
-         Max;
+           Max;
 };

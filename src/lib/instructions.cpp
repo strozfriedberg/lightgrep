@@ -42,6 +42,7 @@ std::string testNot(const byte flags) {
   return flags & Instruction::NEGATE ? "not ": "";
 }
 
+// FIXME: It is stupid and irritating to print unprintable characters (such as \n)
 std::string Instruction::toString() const {
   std::string ret;
   std::ostringstream buf;

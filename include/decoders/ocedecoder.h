@@ -75,6 +75,11 @@ public:
     Trans->reset(beg, end);
   }
 
+  virtual uint32_t maxByteLength() const {
+    // OCE is 1:1
+    return Trans->maxByteLength();
+  }
+
   static const byte unOCE[];
 
 private:

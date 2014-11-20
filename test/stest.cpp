@@ -98,28 +98,13 @@ void STest::init(const std::vector<Pattern>& pats) {
   }
 }
 
-// FIXME: lg_search wants const char*, why pass in const byte*?
-void STest::search(const byte* begin, const byte* end, uint64_t offset) {
-  lg_search(
-    Ctx.get(),
-    reinterpret_cast<const char*>(begin),
-    reinterpret_cast<const char*>(end),
-    offset,
-    this,
-    collector
-  );
+void STest::search(const char* begin, const char* end, uint64_t offset) {
+  RetVal = lg_search(Ctx.get(), begin, end, offset, this, collector);
   lg_closeout_search(Ctx.get(), this, collector);
 }
 
-void STest::startsWith(const byte* begin, const byte* end, uint64_t offset) {
-  lg_starts_with(
-    Ctx.get(),
-    reinterpret_cast<const char*>(begin),
-    reinterpret_cast<const char*>(end),
-    offset,
-    this,
-    collector
-  );
+void STest::startsWith(const char* begin, const char* end, uint64_t offset) {
+  lg_starts_with(Ctx.get(), begin, end, offset, this, collector);
 }
 
 bool STest::parsesButNotValid() const {

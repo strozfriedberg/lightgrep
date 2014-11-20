@@ -428,5 +428,5 @@ SCOPE_TEST(transform_utf8_to_unicode_garbage_test) {
   const byte text[] = { 'a', 0xC0, 'c', '\0', 'd' };
   const byte* tend = std::end(text);
   const std::vector<int> exp{ 'a', -1, 'c', '\0', 'd' };
-  transform_utf8_to_unicode_tester(text, std::end(text), exp);
+  transform_utf8_to_unicode_tester(text, tend, exp);
 }

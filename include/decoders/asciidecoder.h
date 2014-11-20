@@ -65,6 +65,11 @@ public:
     Trans->reset(beg, end);
   }
 
+  virtual uint32_t maxByteLength() const {
+    // ASCII is 1:1
+    return Trans->maxByteLength();
+  }
+
 private:
   std::unique_ptr<Decoder> Trans;
 };

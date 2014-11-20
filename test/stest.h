@@ -32,6 +32,7 @@ class STest {
 public:
   std::vector<SearchHit> Hits;
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> PMap;
+  uint64_t RetVal;
 
   STest(const char* key):
     PMap(nullptr, nullptr), Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
@@ -58,9 +59,9 @@ public:
     init(patterns);
   }
 
-  void search(const byte* begin, const byte* end, uint64_t offset);
+  void search(const char* begin, const char* end, uint64_t offset);
 
-  void startsWith(const byte* begin, const byte* end, uint64_t offset);
+  void startsWith(const char* begin, const char* end, uint64_t offset);
 
   bool parsesButNotValid() const;
 

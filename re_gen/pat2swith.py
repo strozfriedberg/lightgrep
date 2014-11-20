@@ -44,15 +44,17 @@ def main():
       pats = parts[0:-1]
       text = parts[-1]
 
+    apats = ['^(' + p + ')' for p in pats]
+
     # get matches from shitgrep
-    matches = lgtestlib.run_shitgrep(sg, pats, text)
+    matches = lgtestlib.run_shitgrep(sg, apats, text)
 
     if len(pats) == 1:
       stest = 'R"({})"'.format(pats[0])
     else:
       stest = '{{ R"({})" }}'.format(')", R"('.join(pats))
 
-    print '''SCOPE_FIXTURE_CTOR(autoPatternTest{setnum}, STest, STest({stest})) {{'''.format(setnum=setnum, stest=stest)
+    print '''SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest{setnum}, STest, STest({stest})) {{'''.format(setnum=setnum, stest=stest)
 
     if matches is None:
       # every pattern in this set has zero-length matches
@@ -60,7 +62,7 @@ def main():
     else:
       # this pattern set has no zero-length matches
       print '''  const char text[] = "{text}";
-  fixture.search(text, text + {textlen}, 0);
+  fixture.startsWith(text, text + {textlen}, 0);
   SCOPE_ASSERT_EQUAL({matchcount}u, fixture.Hits.size());'''.format(text=text, textlen=len(text), matchcount=len(matches))
 
       for i, m in enumerate(matches):

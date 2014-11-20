@@ -75,6 +75,11 @@ public:
     Trans->reset(beg, end);
   }
 
+  virtual uint32_t maxByteLength() const {
+    // ROT is 1:1
+    return Trans->maxByteLength();
+  }
+
 private:
   uint32_t Rot;
   std::unique_ptr<Decoder> Trans;

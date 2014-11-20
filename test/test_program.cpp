@@ -25,17 +25,22 @@ ProgramPtr makeProgram() {
   p1->push_back(Instruction::makeByte('a'));
   p1->push_back(Instruction::makeLabel(0));
   p1->push_back(Instruction::makeMatch());
-  p1->First.set('a');
+
+  p1->FilterOff = 0;
+  for (uint32_t i = 0; i < 256; ++i) {
+    p1->Filter.set((i << 8) | 'a');
+  }
+
   return p1;
 }
 
 SCOPE_TEST(testProgramBufSize) {
   ProgramPtr p1(makeProgram());
-  SCOPE_ASSERT_EQUAL(48, p1->bufSize());
+  SCOPE_ASSERT_EQUAL(8216, p1->bufSize());
 }
 
 SCOPE_TEST(testProgramSerialization) {
-  ProgramPtr  p1(makeProgram());
+  ProgramPtr p1(makeProgram());
   std::string buf = p1->marshall();
   ProgramPtr p2 = Program::unmarshall(buf);
   SCOPE_ASSERT(p2);

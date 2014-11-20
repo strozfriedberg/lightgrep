@@ -26,9 +26,6 @@ class VmInterface {
 public:
   virtual ~VmInterface() {}
 
-  // In prog, numCheckedStates should be equal to the number + 1 for the reserved bit
-  virtual void init(ProgramPtr prog) = 0;
-
   virtual void startsWith(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) = 0;
   virtual uint64_t search(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) = 0;
   virtual uint64_t searchResolve(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) = 0;
@@ -39,5 +36,5 @@ public:
   virtual void setDebugRange(uint64_t beg, uint64_t end) = 0;
   #endif
 
-  static std::shared_ptr<VmInterface> create();
+  static std::shared_ptr<VmInterface> create(ProgramPtr prog);
 };

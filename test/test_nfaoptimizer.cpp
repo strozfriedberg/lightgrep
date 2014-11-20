@@ -448,7 +448,7 @@ SCOPE_TEST(testSubstringKey) {
 }
 
 SCOPE_TEST(testCreateXXYYY) {
-  NFAPtr gptr(createGraph(makePatterns({"x", "x", "yyy"}), true));
+  NFAPtr gptr(createGraph({"x", "x", "yyy"}, true));
   NFA& g = *gptr;
 
   NFA exp;

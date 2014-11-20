@@ -56,7 +56,20 @@ bool readTestData(
   in.read(reinterpret_cast<char*>(&len), sizeof(len));
   if (!in) return false;
   expected.resize(len);
-  in.read(reinterpret_cast<char*>(&expected[0]), len*sizeof(SearchHit));
+
+  if (sizeof(SearchHit) == 24) {
+    // data can be read in as-is, in one shot
+    in.read(reinterpret_cast<char*>(&expected[0]), len*sizeof(SearchHit));
+  }
+  else {
+    // we have to do it the hard way, one at a time, skipping the padding
+    char buf[24];
+    for (uint32_t i = 0; i < len; ++i) {
+      in.read(buf, sizeof(buf));
+      expected[i] = *reinterpret_cast<const SearchHit*>(buf);
+    }
+  }
+
   if (!in) return false;
 
   return true;

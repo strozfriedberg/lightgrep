@@ -124,7 +124,7 @@ namespace {
     // Decode leading sequences of increasing length until we hit the
     // beginning of the buffer or decode more values than we need for
     // leading context.
-    for (const byte* l = hbeg-1; l >= bbeg && lctx.size() <= leading; --l) {
+    for (const byte* l = hbeg-1; l >= bbeg && hbeg - l <= ssize_t(leading * dec.maxByteLength()); --l) {
       dec.reset(l, hbeg);
       lctx.clear();
       bad = 0;
@@ -135,6 +135,12 @@ namespace {
         if (cp.first < 0) {
           ++bad;
         }
+      }
+
+      // pad left with undecoded "bad" bytes
+      for (const byte* b = l - 1; lctx.size() < leading && b >= bbeg; --b) {
+        lctx.emplace(lctx.begin(), -((int32_t) *b)-1, b);
+        ++bad;
       }
 
       // find the start of the good sequence adjacent to the hit
@@ -221,9 +227,9 @@ namespace {
     const byte* bend = reinterpret_cast<const byte*>(bufEnd);
 
     const byte* hbeg =
-      reinterpret_cast<const byte*>(bufStart) + inner->begin - dataOffset;
+      reinterpret_cast<const byte*>(bufStart) + (inner->begin - dataOffset);
     const byte* hend =
-      reinterpret_cast<const byte*>(bufStart) + inner->end - dataOffset;
+      reinterpret_cast<const byte*>(bufStart) + (inner->end - dataOffset);
 
     std::vector<std::pair<int32_t,const byte*>> cps;
 
@@ -235,6 +241,7 @@ namespace {
     *characters = new int32_t[*clen];
     *offsets = new size_t[*clen];
 
+    // unzip the result
     size_t i = 0;
     for (const std::pair<int32_t,const byte*>& p : cps) {
       (*characters)[i] = p.first;

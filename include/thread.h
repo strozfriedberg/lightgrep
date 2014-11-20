@@ -19,28 +19,25 @@
 #pragma once
 
 #include "basic.h"
-#include <limits>
-
 #include "instructions.h"
 
 struct Thread {
   static const uint32_t NOLABEL;
   static const uint64_t NONE;
 
-  Thread():
-    PC(0),
-    Start(0),
-    End(NONE),
-    #ifdef LBT_TRACE_ENABLED
-    Id(0),
-    #endif
-    Label(NOLABEL) {}
+  Thread(): Thread(nullptr, NOLABEL, 0, NONE) {}
+
+  Thread(const Instruction* pc): Thread(pc, NOLABEL, 0, NONE) {}
 
   Thread(const Instruction* pc, uint32_t label, uint64_t start, uint64_t end):
     PC(pc),
     Start(start),
     End(end),
-    Label(label) {}
+    #ifdef LBT_TRACE_ENABLED
+    Id(0),
+    #endif
+    Label(label),
+    Lead(false) {}
 
   #ifdef LBT_TRACE_ENABLED
   Thread(const Instruction* pc, uint32_t label,
@@ -49,67 +46,12 @@ struct Thread {
     Start(start),
     End(end),
     Id(id),
-    Label(label) {}
+    Label(label),
+    Lead(false) {}
   #endif
-
-  Thread(const Instruction* pc):
-    PC(pc),
-    Start(0),
-    End(NONE),
-    #ifdef LBT_TRACE_ENABLED
-    Id(0),
-    #endif
-    Label(NOLABEL) {}
-
-/*
-  Thread(const Thread& t):
-    PC(t.PC),
-    Label(t.Label),
-    #ifdef LBT_TRACE_ENABLED
-    Id(t.Id),
-    #endif
-    Start(t.Start),
-    End(t.End) {}
-
-  Thread& operator=(const Thread& t) {
-    PC = t.PC;
-    Label = t.Label;
-    #ifdef LBT_TRACE_ENABLED
-    Id = t.Id;
-    #endif
-    Start = t.Start;
-    End = t.End;
-  }
-*/
-
-/*
-  #ifdef LBT_TRACE_ENABLED
-  void init(const Instruction* pc, uint32_t label,
-            uint64_t id, uint64_t start, uint64_t end) {
-    PC = pc;
-    Id = id;
-    Label = label;
-    Start = start;
-    End = end;
-  }
-  #endif
-
-  void init(const Instruction* pc, uint32_t label, uint64_t start, uint64_t end) {
-    PC = pc;
-    Label = label;
-    Start = start;
-    End = end;
-  }
-
-  void init(const Instruction* base, uint64_t start) {
-    PC = base;
-    Start = start;
-  }
-*/
 
   void jump(const Instruction* base, uint32_t offset) {
-    PC = base;
-    PC += offset;
+    PC = base + offset;
   }
 
   void fork(const Thread& parent, const Instruction* base, uint32_t offset) {
@@ -131,6 +73,7 @@ struct Thread {
   uint64_t Id;
   #endif
   uint32_t Label;
+  bool Lead;
 
 //  uint32_t Dummy;
 

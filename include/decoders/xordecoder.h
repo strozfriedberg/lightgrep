@@ -83,6 +83,11 @@ public:
     Trans->reset(beg, end);
   }
 
+  virtual uint32_t maxByteLength() const {
+    // XOR is 1:1
+    return Trans->maxByteLength();
+  }
+
 private:
   byte Key;
   std::unique_ptr<Decoder> Trans;
