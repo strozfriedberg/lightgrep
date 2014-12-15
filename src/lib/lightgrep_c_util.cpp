@@ -172,7 +172,7 @@ namespace {
     //
     // hit
     //
-    dec.reset(hbeg, bend);
+    dec.reset(hbeg, std::min(hend + trailing*dec.maxByteLength(), bend));
 
     while ((cp = dec.next()).second < hend) {
       cps.push_back(cp);
