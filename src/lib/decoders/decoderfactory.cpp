@@ -59,7 +59,7 @@ std::shared_ptr<Decoder> DecoderFactory::get(const std::string& chain) {
     }
   }
 
-  if (charbyte == "ASCII") {
+  if (charbyte == "ASCII" || charbyte == "US-ASCII") {
     enc.reset(new ASCIIDecoder(std::move(enc)));
   }
   else if (charbyte == "UTF-8") {
