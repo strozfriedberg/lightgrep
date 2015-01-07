@@ -43,9 +43,15 @@ void readWindowTest(
   size_t* offsets = nullptr;
   size_t clen;
 
+  std::unique_ptr<DecoderHandle, void(*)(DecoderHandle*)> hdec{
+    lg_create_decoder(),
+    lg_destroy_decoder
+  };
+
   LG_Error* err = nullptr;
 
   const unsigned int abad = lg_read_window(
+    hdec.get(),
     reinterpret_cast<const char*>(data.data()),
     reinterpret_cast<const char*>(data.data()) + data.size(),
     doff,
@@ -103,9 +109,15 @@ void hitContextTest(
   LG_Window outer;
   const char* utf8 = nullptr;
 
+  std::unique_ptr<DecoderHandle, void(*)(DecoderHandle*)> hdec{
+    lg_create_decoder(),
+    lg_destroy_decoder
+  };
+
   LG_Error* err = nullptr;
 
   const unsigned int abad = lg_hit_context(
+    hdec.get(),
     reinterpret_cast<const char*>(data.data()),
     reinterpret_cast<const char*>(data.data()) + data.size(),
     doff,

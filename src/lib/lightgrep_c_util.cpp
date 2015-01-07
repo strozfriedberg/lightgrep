@@ -1,6 +1,6 @@
 /*
   liblightgrep: not the worst forensics regexp engine
-  Copyright (C) 2013, Lightbox Technologies, Inc
+  Copyright (C) 2015, Lightbox Technologies, Inc
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include "lightgrep/encodings.h"
 
 #include "c_api_util.h"
+#include "handles.h"
 #include "decoders/decoder.h"
 #include "decoders/decoderfactory.h"
 #include "decoders/utf8.h"
@@ -96,6 +97,14 @@ int lg_get_byte_transform_id(const char* const name) {
     },
     -1
   );
+}
+
+LG_HDECODER lg_create_decoder() {
+  return new (std::nothrow) DecoderHandle;
+}
+
+void lg_destroy_decoder(LG_HDECODER hDec) {
+  delete hDec;
 }
 
 namespace {
@@ -208,6 +217,7 @@ namespace {
   }
 
   unsigned int readWindow(
+    DecoderFactory& dfac,
     const char* bufStart,
     const char* bufEnd,
     uint64_t dataOffset,
@@ -219,8 +229,6 @@ namespace {
     size_t** offsets,
     size_t* clen)
   {
-    // FIXME: it's stupid to recreate the factory each time
-    DecoderFactory dfac;
     std::shared_ptr<Decoder> dec(dfac.get(encoding));
 
     const byte* bbeg = reinterpret_cast<const byte*>(bufStart);
@@ -254,7 +262,8 @@ namespace {
     return bad;
   }
 
-  unsigned int hitContext(const char* bufStart,
+  unsigned int hitContext(DecoderFactory& dfac,
+                          const char* bufStart,
                           const char* bufEnd,
                           uint64_t dataOffset,
                           const LG_Window* inner,
@@ -269,9 +278,11 @@ namespace {
     size_t* offsets = nullptr;
     size_t clen = 0;
 
-    const unsigned int bad = readWindow(bufStart, bufEnd, dataOffset, inner,
-                                        encoding, windowSize, windowSize,
-                                        &characters, &offsets, &clen);
+    const unsigned int bad = readWindow(
+      dfac, bufStart, bufEnd, dataOffset, inner,
+      encoding, windowSize, windowSize,
+      &characters, &offsets, &clen
+    );
 
     std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
       characters, &lg_free_window_characters
@@ -310,6 +321,7 @@ namespace {
 }
 
 unsigned int lg_read_window(
+  LG_HDECODER hDec,
   const char* bufStart,
   const char* bufEnd,
   uint64_t dataOffset,
@@ -325,6 +337,7 @@ unsigned int lg_read_window(
   return trapWithRetval(
     [=](){
       return readWindow(
+        hDec->Factory,
         bufStart, bufEnd, dataOffset, inner, encoding,
         preContext, postContext, characters, offsets, clen
       );
@@ -335,6 +348,7 @@ unsigned int lg_read_window(
 }
 
 unsigned int lg_hit_context(
+  LG_HDECODER hDec,
   const char* bufStart,
   const char* bufEnd,
   uint64_t dataOffset,
@@ -349,6 +363,7 @@ unsigned int lg_hit_context(
   return trapWithRetval(
     [=]() {
       return hitContext(
+        hDec->Factory,
         bufStart, bufEnd, dataOffset, inner, encoding,
         windowSize, replacement, utf8, outer
       );
