@@ -20,7 +20,7 @@
 #include <ostream>
 
 void ParseTree::init(uint32_t len) {
-  Root = 0;
+  Root = nullptr;
   Store.clear();
   Store.reserve(2*len);
 }
