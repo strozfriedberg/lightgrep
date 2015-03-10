@@ -1622,7 +1622,7 @@ SCOPE_TEST(parseTildeTildeTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(parseFailUnmatchedLeftBracketCharacgterClassTest) {
+SCOPE_TEST(parseFailUnmatchedLeftBracketCharacterClassTest) {
   ParseTree tree;
   try {
     parse({"[]", false, false}, tree);
