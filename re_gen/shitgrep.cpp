@@ -24,7 +24,7 @@ struct Regex {
 
     re = pcre_compile2(
       pattern,
-      PCRE_DOTALL | PCRE_NO_AUTO_CAPTURE,
+      PCRE_DOTALL | PCRE_MULTILINE | PCRE_NO_AUTO_CAPTURE,
       &error_code,
       &error_str,
       &error_off,
