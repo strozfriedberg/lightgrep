@@ -22,12 +22,17 @@
 
 /*
 SCOPE_FIXTURE_CTOR(poorMansTokenizerSearch, STest, STest(R"(\b\w+\b)")) {
-  const char text[] = "break it down";
-  fixture.search(text, text + 13, 0);
-  SCOPE_ASSERT_EQUAL(3u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 5, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(6, 8, 0), fixture.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(9, 13, 0), fixture.Hits[2]);
+  const char text[] = "tokenizing with a regex the horror the horror";
+  fixture.search(text, text + 45, 0);
+  SCOPE_ASSERT_EQUAL(8u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 10, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(11, 15, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(16, 17, 0), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(18, 23, 0), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(24, 27, 0), fixture.Hits[4]);
+  SCOPE_ASSERT_EQUAL(SearchHit(28, 34, 0), fixture.Hits[5]);
+  SCOPE_ASSERT_EQUAL(SearchHit(35, 38, 0), fixture.Hits[6]);
+  SCOPE_ASSERT_EQUAL(SearchHit(39, 45, 0), fixture.Hits[7]);
 }
 
 // William Carlos Williams, 1883-1963
