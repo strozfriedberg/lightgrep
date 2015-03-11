@@ -35,6 +35,20 @@ SCOPE_FIXTURE_CTOR(poorMansTokenizerSearch, STest, STest(R"(\b\w+\b)")) {
   SCOPE_ASSERT_EQUAL(SearchHit(39, 45, 0), fixture.Hits[7]);
 }
 
+SCOPE_FIXTURE_CTOR(nonWordBreakTest, STest, STest(R"(\B\w+\B)")) {
+  // NB: 'a' drops out due to being too short. :)
+  const char text[] = "tokenizing with a regex the horror the horror";
+  fixture.search(text, text + 45, 0);
+  SCOPE_ASSERT_EQUAL(7u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 9, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(12, 14, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(19, 22, 0), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(25, 26, 0), fixture.Hits[3]);
+  SCOPE_ASSERT_EQUAL(SearchHit(29, 33, 0), fixture.Hits[4]);
+  SCOPE_ASSERT_EQUAL(SearchHit(36, 37, 0), fixture.Hits[5]);
+  SCOPE_ASSERT_EQUAL(SearchHit(40, 44, 0), fixture.Hits[6]);
+}
+
 // William Carlos Williams, 1883-1963
 const char wcw[] = R"(This Is Just To Say
 
@@ -100,4 +114,28 @@ SCOPE_FIXTURE_CTOR(lastWordSearch, STest, STest(R"(\w+\Z)")) {
   SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
   SCOPE_ASSERT_EQUAL(SearchHit(166, 170, 0), fixture.Hits[0]);
 }
+
+SCOPE_FIXTURE_CTOR(whackAwhackZSearch, STest, STest(R"(\A\Z)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
+}
+
+SCOPE_FIXTURE_CTOR(whackZwhackASearch, STest, STest(R"(\Z\A)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
+}
+
+SCOPE_FIXTURE_CTOR(caretDollarSignSearch, STest, STest(R"(^$)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
+}
+
+SCOPE_FIXTURE_CTOR(dollarSignCaretSearch, STest, STest(R"($^)")) {
+  SCOPE_ASSERT(fixture.parsesButNotValid());
+}
+
+SCOPE_FIXTURE_CTOR(paperSizeSearch, STest, STest(R"(PC LOAD \K\w+)")) {
+  const char text[] = "PC LOAD LETTER";
+  fixture.search(text, text + 14, 0);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(8, 14, 0), fixture.Hits[0]);
+}
+
 */
