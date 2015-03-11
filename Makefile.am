@@ -167,6 +167,7 @@ test_test_SOURCES = \
 	test/test_rangeset.cpp \
 	test/test_rewriter.cpp \
 	test/test_rotencoder.cpp \
+	test/test_search_assertions.cpp \
 	test/test_search_data.cpp \
 	test/test_search_data_driver.cpp \
 	test/test_search.cpp \
