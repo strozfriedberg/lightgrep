@@ -138,4 +138,43 @@ SCOPE_FIXTURE_CTOR(paperSizeSearch, STest, STest(R"(PC LOAD \K\w+)")) {
   SCOPE_ASSERT_EQUAL(SearchHit(8, 14, 0), fixture.Hits[0]);
 }
 
+SCOPE_FIXTURE_CTOR(lookBackInAngerTest, STest, STest(R"((?<=in Anger).*)")) {
+  const char text[] = "_Look Back in Anger_, by John Osborne";
+  fixture.search(text, text + 37, 0);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(19, 37, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(dontLookBackInAngerTest, STest, STest(R"((?<!in Anger)\w+)")) {
+  const char text[] = "Oasis";
+  fixture.search(text, text + 5, 0);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 5, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(sixteenDigitCreditCardNumberSearch, STest, STest(R"((?<!\d)\d{16}(?!\d))")) {
+  const char text[] = "4012888888881881 41111111111111114 411111111111111 4111111111111111 510510510510510051051051051051005105105105105100 5105105105105100";
+  fixture.search(text, text + 133, 0);
+  SCOPE_ASSERT_EQUAL(3u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(0, 16, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(51, 67, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(117, 133, 0), fixture.Hits[2]);
+}
+
+SCOPE_FIXTURE_CTOR(forwardLookingSearch, STest, STest(R"(pro(?=active))")) {
+  const char text[] = "professor pro bono proactive prolix";
+  fixture.search(text, text + 35, 0);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(19, 22, 0), fixture.Hits[0]);
+}
+
+SCOPE_FIXTURE_CTOR(crossedEyesSearch, STest, STest(R"((?=ii)i(?<=ii))")) {
+  const char text[] = "xixixiiixiiiiixii";
+  fixture.search(text, text + 17, 0);
+  SCOPE_ASSERT_EQUAL(4u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(6, 7, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(10, 11, 0), fixture.Hits[1]);
+  SCOPE_ASSERT_EQUAL(SearchHit(11, 12, 0), fixture.Hits[2]);
+  SCOPE_ASSERT_EQUAL(SearchHit(12, 13, 0), fixture.Hits[3]);
+}
 */
