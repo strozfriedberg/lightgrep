@@ -177,4 +177,20 @@ SCOPE_FIXTURE_CTOR(crossedEyesSearch, STest, STest(R"((?=ii)i(?<=ii))")) {
   SCOPE_ASSERT_EQUAL(SearchHit(11, 12, 0), fixture.Hits[2]);
   SCOPE_ASSERT_EQUAL(SearchHit(12, 13, 0), fixture.Hits[3]);
 }
+
+SCOPE_FIXTURE_CTOR(killPrecedence1Search, STest, STest(R"(a\Kb|c)")) {
+  const char text[] = "abc";
+  fixture.search(text, text + 3, 0);
+  SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[0]);
+  SCOPE_ASSERT_EQUAL(SearchHit(2, 3, 0), fixture.Hits[1]);
+}
+
+SCOPE_FIXTURE_CTOR(killPrecedence2Search, STest, STest(R"(a\K(b|c))")) {
+  const char text[] = "abc";
+  fixture.search(text, text + 3, 0);
+  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  SCOPE_ASSERT_EQUAL(SearchHit(1, 2, 0), fixture.Hits[0]);
+}
+
 */
