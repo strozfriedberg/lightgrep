@@ -254,21 +254,27 @@ static std::unique_ptr<jbyte,std::function<void(jbyte*)>> unwrap(JNIEnv* env, jb
 
   return ptr;
 }
-    
+
+template <class T>
+T handle_cast(JNIEnv* env, jobject h) {
+  return reinterpret_cast<T>(env->GetLongField(h, handlePointerField));
+}
+
+template <class T, class D>
+static void destroyHandle(JNIEnv* env, jobject h, D d) {
+  T ptr = handle_cast<T>(env, h);
+  if (ptr) {
+    d(ptr);
+    env->SetLongField(h, handlePointerField, 0);
+  }
+}
 
 JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_PatternHandle_create(JNIEnv*, jclass) {
   return reinterpret_cast<jlong>(lg_create_pattern());
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternHandle_destroy(JNIEnv* env, jobject hPattern) {
-  LG_HPATTERN ptr = reinterpret_cast<LG_HPATTERN>(
-    env->GetLongField(hPattern, handlePointerField)
-  );
-
-  if (ptr) {
-    lg_destroy_pattern(ptr);
-    env->SetLongField(hPattern, handlePointerField, 0);
-  }
+  destroyHandle<LG_HPATTERN>(env, hPattern, lg_destroy_pattern);
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_PatternHandle_parsePatternImpl(JNIEnv* env, jobject hPattern, jstring pattern, jobject options) {
@@ -312,10 +318,7 @@ JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_destroy(JNIEnv* env, jobject hPatternMap) {
-// TODO: template this
-  LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
-    env->GetLongField(hPatternMap, handlePointerField)
-  );
+  LG_HPATTERNMAP ptr = handle_cast<LG_HPATTERNMAP>(env, hPatternMap);
 
   if (ptr) {
     // release global refs to Java-side user data objects
@@ -431,14 +434,7 @@ JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_create
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_destroy(JNIEnv* env, jobject hFsm) {
-// TODO: template this
-  LG_HFSM ptr = reinterpret_cast<LG_HFSM>(
-    env->GetLongField(hFsm, handlePointerField)
-  );
-  if (ptr) {
-    lg_destroy_fsm(ptr);
-    env->SetLongField(hFsm, handlePointerField, 0);
-  }
+  destroyHandle<LG_HFSM>(env, hFsm, lg_destroy_fsm);
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_addPatternImpl(JNIEnv* env, jobject hFsm, jobject hMap, jobject hPattern, jstring encoding) {
@@ -517,13 +513,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_crea
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_destroy(JNIEnv* env, jobject hProg) {
-  LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
-    env->GetLongField(hProg, handlePointerField)
-  );
-  if (ptr) {
-    lg_destroy_program(ptr);
-    env->SetLongField(hProg, handlePointerField, 0);
-  }
+  destroyHandle<LG_HPROGRAM>(env, hProg, lg_destroy_program);
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_sizeImpl(JNIEnv* env, jobject hProg) {
@@ -612,13 +602,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_destroy(JNIEnv* env, jobject hCtx) {
-  LG_HCONTEXT ptr = reinterpret_cast<LG_HCONTEXT>(
-     env->GetLongField(hCtx, handlePointerField)
-  );
-  if (ptr) {
-    lg_destroy_context(ptr);
-    env->SetLongField(hCtx, handlePointerField, 0);
-  }
+  destroyHandle<LG_HCONTEXT>(env, hCtx, lg_destroy_context);
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_resetImpl(JNIEnv* env, jobject hCtx) {
@@ -633,14 +617,7 @@ JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_DecoderHandle_cr
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_DecoderHandle_destroy(JNIEnv* env, jobject hDec) {
-  LG_HDECODER ptr = reinterpret_cast<LG_HDECODER>(
-    env->GetLongField(hDec, handlePointerField)
-  );
-
-  if (ptr) {
-    lg_destroy_decoder(ptr);
-    env->SetLongField(hDec, handlePointerField, 0);
-  }
+  destroyHandle<LG_HDECODER>(env, hDec, lg_destroy_decoder);
 }
 
 static void callbackShim(void* userData, const LG_SearchHit* const hit) {
