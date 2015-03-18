@@ -12,7 +12,8 @@ public class LGUtil {
 
 // FIXME: windowSize is a misleading name. windowPadding would be better.
 
-  public static HitContext getHitContext(byte[] buffer, int offset, int size, long startOffset, long ibegin, long iend, String encoding, int windowSize, int replacement) throws UnsupportedEncodingException {
+  public static HitContext getHitContext(DecoderHandle hDec, byte[] buffer, int offset, int size, long startOffset, long ibegin, long iend, String encoding, int windowSize, int replacement) throws UnsupportedEncodingException {
+    throwIfNull("hDec", hDec);
     throwIfNull("buffer", buffer);
     throwIfNegative("offset", offset);
     throwIfNegative("size", size);
@@ -29,10 +30,11 @@ public class LGUtil {
 // TODO: should we require that replacement != 0?
     throwIfGreaterThan("replacement", replacement, 0x10FFFF);
 
-    return getHitContextImpl(buffer, offset, size, startOffset, ibegin, iend, encoding, windowSize, replacement);
+    return getHitContextImpl(hDec, buffer, offset, size, startOffset, ibegin, iend, encoding, windowSize, replacement);
   }
 
-  public static HitContext getHitContext(ByteBuffer buffer, int size, long startOffset, long ibegin, long iend, String encoding, int windowSize, int replacement) throws UnsupportedEncodingException {
+  public static HitContext getHitContext(DecoderHandle hDec, ByteBuffer buffer, int size, long startOffset, long ibegin, long iend, String encoding, int windowSize, int replacement) throws UnsupportedEncodingException {
+    throwIfNull("hDec", hDec);
     throwIfNull("buffer", buffer);
     throwIfNegative("size", size);
     throwIfByteBufferTooSmall("buffer", buffer, "size", size);
@@ -50,7 +52,7 @@ public class LGUtil {
 
 // FIXME: this code is repeated in several places, factor it out.
     if (buffer.isDirect()) {
-      return getHitContextImpl(buffer, buffer.position(), size, startOffset, ibegin, iend, encoding, windowSize, replacement);
+      return getHitContextImpl(hDec, buffer, buffer.position(), size, startOffset, ibegin, iend, encoding, windowSize, replacement);
     }
     else {
       byte[] array = null;
@@ -66,11 +68,11 @@ public class LGUtil {
         buffer.get(array);
       }
 
-      return getHitContextImpl(array, position, size, startOffset, ibegin, iend, encoding, windowSize, replacement);
+      return getHitContextImpl(hDec, array, position, size, startOffset, ibegin, iend, encoding, windowSize, replacement);
     }
   }
 
-  private static native HitContext getHitContextImpl(byte[] buffer, int offset, int size, long startOffset, long ibegin, long iend, String encoding, int windowSize, int replacement) throws UnsupportedEncodingException;
+  private static native HitContext getHitContextImpl(DecoderHandle hDec, byte[] buffer, int offset, int size, long startOffset, long ibegin, long iend, String encoding, int windowSize, int replacement) throws UnsupportedEncodingException;
 
-  private static native HitContext getHitContextImpl(ByteBuffer buffer, int offset, int size, long startOffset, long ibegin, long iend, String encoding, int windowSize, int replacement) throws UnsupportedEncodingException;
+  private static native HitContext getHitContextImpl(DecoderHandle hDec, ByteBuffer buffer, int offset, int size, long startOffset, long ibegin, long iend, String encoding, int windowSize, int replacement) throws UnsupportedEncodingException;
 }
