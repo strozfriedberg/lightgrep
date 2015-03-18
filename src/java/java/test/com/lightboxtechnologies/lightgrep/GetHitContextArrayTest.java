@@ -28,9 +28,9 @@ public class GetHitContextArrayTest extends BaseGetHitContextTest {
     return l;
   }
 
-  protected void doTest() throws Throwable {
+  protected void runGetHitContext(DecoderHandle hDec) throws Throwable {
     final HitContext act = LGUtil.getHitContext(
-      buf, offset, size, startOffset, ibegin, iend,
+      hDec, buf, offset, size, startOffset, ibegin, iend,
       encoding, windowSize, replacement
     );
 

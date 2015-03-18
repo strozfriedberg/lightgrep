@@ -628,6 +628,21 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_res
   lg_reset_context(ptr);
 }
 
+JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_DecoderHandle_create(JNIEnv*, jclass) {
+  return reinterpret_cast<jlong>(lg_create_decoder());
+}
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_DecoderHandle_destroy(JNIEnv* env, jobject hDec) {
+  LG_HDECODER ptr = reinterpret_cast<LG_HDECODER>(
+    env->GetLongField(hDec, handlePointerField)
+  );
+
+  if (ptr) {
+    lg_destroy_decoder(ptr);
+    env->SetLongField(hDec, handlePointerField, 0);
+  }
+}
+
 static void callbackShim(void* userData, const LG_SearchHit* const hit) {
   // NB: Throwing C++ exceptions here is super wacky, as they pass into
   // and then back out of our C API, finally being caught in our wrappers
@@ -778,8 +793,12 @@ static jobject makeHitContext(JNIEnv* env, const LG_Window& outer, const char* u
   return hc;
 }
 
-static jobject getHitContext(JNIEnv* env, const char* buf, jint offset, jint size, jlong startOffset, jlong ibegin, jlong iend, jstring encoding, jint windowSize, jint replacement) {
+static jobject getHitContext(JNIEnv* env, jobject hDec, const char* buf, jint offset, jint size, jlong startOffset, jlong ibegin, jlong iend, jstring encoding, jint windowSize, jint replacement) {
   // convert all of the Java objects to C
+  LG_HDECODER ptr = reinterpret_cast<LG_HDECODER>(
+    env->GetLongField(hDec, handlePointerField)
+  );
+
   buf += offset;
 
   const LG_Window inner{ (uint64_t) ibegin, (uint64_t) iend };
@@ -793,6 +812,7 @@ static jobject getHitContext(JNIEnv* env, const char* buf, jint offset, jint siz
 
   // finally actually do something
   unsigned int bad = lg_hit_context(
+    ptr,
     buf,
     buf + size,
     (uint64_t) startOffset,
@@ -816,19 +836,19 @@ static jobject getHitContext(JNIEnv* env, const char* buf, jint offset, jint siz
   return makeHitContext(env, outer, utf8, bad);
 }
 
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_LGUtil_getHitContextImpl___3BIIJJJLjava_lang_String_2II(JNIEnv* env, jclass, jbyteArray buffer, jint offset, jint size, jlong startOffset, jlong ibegin, jlong iend, jstring encoding, jint windowSize, jint replacement) {
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_LGUtil_getHitContextImpl__Lcom_lightboxtechnologies_lightgrep_DecoderHandle_2_3BIIJJJLjava_lang_String_2II(JNIEnv* env, jclass, jobject hDec, jbyteArray buffer, jint offset, jint size, jlong startOffset, jlong ibegin, jlong iend, jstring encoding, jint windowSize, jint replacement) {
   try {
     std::unique_ptr<jbyte,std::function<void(jbyte*)>> data(unwrap(env, buffer));
     const char* buf = reinterpret_cast<const char*>(data.get());
 
-    return getHitContext(env, buf, offset, size, startOffset, ibegin, iend, encoding, windowSize, replacement);
+    return getHitContext(env, hDec, buf, offset, size, startOffset, ibegin, iend, encoding, windowSize, replacement);
   }
   catch (const PendingJavaException&) {
     return nullptr;
   }
 }
 
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_LGUtil_getHitContextImpl__Ljava_nio_ByteBuffer_2IIJJJLjava_lang_String_2II(JNIEnv* env, jclass, jobject buffer, jint offset, jint size, jlong startOffset, jlong ibegin, jlong iend, jstring encoding, jint windowSize, jint replacement) {
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_LGUtil_getHitContextImpl__Lcom_lightboxtechnologies_lightgrep_DecoderHandle_2Ljava_nio_ByteBuffer_2IIJJJLjava_lang_String_2II(JNIEnv* env, jclass, jobject hDec, jobject buffer, jint offset, jint size, jlong startOffset, jlong ibegin, jlong iend, jstring encoding, jint windowSize, jint replacement) {
   try {
     const char* buf = static_cast<const char*>(
       env->GetDirectBufferAddress(buffer)
@@ -838,7 +858,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_LGUtil_getHitC
 // FIXME: what to do here?
     }
 
-    return getHitContext(env, buf, offset, size, startOffset, ibegin, iend, encoding, windowSize, replacement);
+    return getHitContext(env, hDec, buf, offset, size, startOffset, ibegin, iend, encoding, windowSize, replacement);
   }
   catch (const PendingJavaException&) {
     return nullptr;

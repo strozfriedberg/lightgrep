@@ -28,9 +28,9 @@ public class GetHitContextDirectByteBufferTest extends BaseGetHitContextTest {
 
   protected final ByteBuffer bbuf;
 
-  protected void doTest() throws Throwable {
+  protected void runGetHitContext(DecoderHandle hDec) throws Throwable {
     final HitContext act = LGUtil.getHitContext(
-      bbuf, size, startOffset, ibegin, iend,
+      hDec, bbuf, size, startOffset, ibegin, iend,
       encoding, windowSize, replacement
     );
 
