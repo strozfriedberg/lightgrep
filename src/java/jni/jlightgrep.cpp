@@ -125,7 +125,9 @@ static jmethodID hitContextCtor;
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_HitContext_init(JNIEnv* env, jclass cl) {
   try {
-    hitContextCtor = env->GetMethodID(cl, "<init>", "(JJLjava/lang/String;I)V");
+    hitContextCtor = env->GetMethodID(
+      cl, "<init>", "(JJIILjava/lang/String;I)V"
+    );
     throwIfException(env);
   }
   catch (const PendingJavaException&) {
@@ -755,7 +757,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_sta
   }
 }
 
-static jobject makeHitContext(JNIEnv* env, const LG_Window& outer, const char* utf8, unsigned int bad) {
+static jobject makeHitContext(JNIEnv* env, const LG_Window& outer, const LG_Window& decodedHit, const char* utf8, unsigned int bad) {
   jclass cl = env->FindClass(hitContextClassName);
   throwIfException(env);
 
@@ -763,7 +765,8 @@ static jobject makeHitContext(JNIEnv* env, const LG_Window& outer, const char* u
   throwIfException(env);
 
   jobject hc = env->NewObject(
-    cl, hitContextCtor, outer.begin, outer.end, decoded, bad
+    cl, hitContextCtor, outer.begin, outer.end,
+    decodedHit.begin, decodedHit.end, decoded, bad
   );
   throwIfException(env);
 
@@ -782,7 +785,7 @@ static jobject getHitContext(JNIEnv* env, jobject hDec, const char* buf, jint of
 
   std::unique_ptr<const char,std::function<void(const char*)>> enc(unwrap(env, encoding));
 
-  LG_Window outer;
+  LG_Window outer, decodedHit;
   const char* utf8;
 
   LG_Error* err = nullptr;
@@ -799,6 +802,7 @@ static jobject getHitContext(JNIEnv* env, jobject hDec, const char* buf, jint of
     replacement,
     &utf8,
     &outer,
+    &decodedHit,
     &err
   );
 
@@ -810,7 +814,7 @@ static jobject getHitContext(JNIEnv* env, jobject hDec, const char* buf, jint of
     utf8, &lg_free_hit_context_string
   );
 
-  return makeHitContext(env, outer, utf8, bad);
+  return makeHitContext(env, outer, decodedHit, utf8, bad);
 }
 
 JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_LGUtil_getHitContextImpl__Lcom_lightboxtechnologies_lightgrep_DecoderHandle_2_3BIIJJJLjava_lang_String_2II(JNIEnv* env, jclass, jobject hDec, jbyteArray buffer, jint offset, jint size, jlong startOffset, jlong ibegin, jlong iend, jstring encoding, jint windowSize, jint replacement) {

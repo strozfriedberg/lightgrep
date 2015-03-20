@@ -43,8 +43,8 @@ public abstract class BaseGetHitContextTest extends AbstractDataDrivenTest {
       // replacement > 10FFFFF
       { "abc".getBytes("UTF-8"), 0, "abc".getBytes("UTF-8").length, 0, 0, 0, "UTF-8", 0, 0x110000, null, IndexOutOfBoundsException.class },
       /* Successful Decoding */
-      { new byte[]{ (byte) 0xE2, (byte) 0x9A, (byte) 0xA1, 0x20, 0x61, 0x62, 0x63, (byte) 0xD0, (byte) 0x96 }, 0, 9, 0, 4, 7, "UTF-8", 2, 0xFFFD, new HitContext(0, 9, "⚡ abcЖ", 0), null },
-      { new byte[]{ (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 0x20, 0x61, 0x62, 0x63, (byte) 0xD0, (byte) 0x96 }, 0, 9, 0, 4, 7, "UTF-8", 2, 0xFFFD, new HitContext(2, 9, "� abcЖ", 1), null }
+      { new byte[]{ (byte) 0xE2, (byte) 0x9A, (byte) 0xA1, 0x20, 0x61, 0x62, 0x63, (byte) 0xD0, (byte) 0x96 }, 0, 9, 0, 4, 7, "UTF-8", 2, 0xFFFD, new HitContext(0, 9, 4, 7, "⚡ abcЖ", 0), null },
+      { new byte[]{ (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 0x20, 0x61, 0x62, 0x63, (byte) 0xD0, (byte) 0x96 }, 0, 10, 0, 5, 8, "UTF-8", 2, 0xFFFD, new HitContext(3, 10, 4, 7, "� abcЖ", 1), null }
     });
   }
 
