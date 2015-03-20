@@ -116,8 +116,7 @@ namespace {
     size_t leading,
     size_t trailing,
     Decoder& dec,
-    size_t& dhbeg,
-    size_t& dhend,
+    LG_Window& dh,
     std::vector<std::pair<int32_t,const byte*>>& cps)
   {
     // precondition:
@@ -181,7 +180,7 @@ namespace {
     //
     // hit
     //
-    dhbeg = cps.size();
+    dh.begin = cps.size();
 
     dec.reset(hbeg, std::min(hend + trailing*dec.maxByteLength(), bend));
 
@@ -192,7 +191,7 @@ namespace {
       }
     }
 
-    dhend = cps.size();
+    dh.end = cps.size();
 
     //
     // trailing context
@@ -248,7 +247,7 @@ namespace {
 
     unsigned int bad = decode(
       bbeg, bend, hbeg, hend, preContext, postContext,
-      *dec, decodedHit->begin, decodedHit->end, cps
+      *dec, *decodedHit, cps
     );
 
     *clen = cps.size();
