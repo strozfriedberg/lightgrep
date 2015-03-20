@@ -268,6 +268,13 @@ namespace {
     return bad;
   }
 
+  void cp_range_to_utf8(const int32_t* beg, const int32_t* end, uint32_t replacement, char* buf, std::vector<char>& bytes) {
+    for (const int32_t* i = beg; i != end; ++i) {
+      const size_t produced = cp_to_utf8(*i <= 0 ? replacement : *i, buf);
+      std::copy(buf, buf+produced, std::back_inserter(bytes));
+    }
+  }
+
   unsigned int hitContext(DecoderFactory& dfac,
                           const char* bufStart,
                           const char* bufEnd,
@@ -275,13 +282,13 @@ namespace {
                           const LG_Window* inner,
                           const char* encoding,
                           size_t windowSize,
-                          uint32_t replacement,
+                          uint32_t repl,
                           const char** utf8,
                           LG_Window* outer,
                           LG_Window* decodedHit)
   {
     // decode the hit and its context using the deluxe decoder
-    int32_t* characters = nullptr;
+    int32_t* cps = nullptr;
     size_t* offsets = nullptr;
     size_t clen = 0;
 
@@ -290,11 +297,11 @@ namespace {
     const unsigned int bad = readWindow(
       dfac, bufStart, bufEnd, dataOffset, inner,
       encoding, windowSize, windowSize,
-      &characters, &offsets, &clen, &dhcprange
+      &cps, &offsets, &clen, &dhcprange
     );
 
     std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
-      characters, &lg_free_window_characters
+      cps, &lg_free_window_characters
     );
 
     std::unique_ptr<size_t[],void(*)(size_t*)> poff(
@@ -307,23 +314,16 @@ namespace {
     // convert the code points to UTF-8
     std::vector<char> bytes;
     char buf[4];
-    size_t produced;
 
     // encode to UTF-8, replacing bad or null elements with the replacement
     // code point, stopping one short since the last element of characters
-    // is END
-    for (const int32_t* i = characters; i < characters+clen-1; ++i) {
-      if (i-characters == dhcprange.begin) {
-        decodedHit->begin = bytes.size();
-      }
-      else if (i-characters == dhcprange.end) {
-        decodedHit->end = bytes.size();
-      }
-
-      produced = cp_to_utf8(*i <= 0 ? replacement : *i, buf);
-      std::copy(buf, buf+produced, std::back_inserter(bytes));
-
-    }
+    // is END; do it in three chunks, so we may note the byte range spanned
+    // by the hit
+    cp_range_to_utf8(cps, cps+dhcprange.begin, repl, buf, bytes);
+    decodedHit->begin = bytes.size();
+    cp_range_to_utf8(cps+dhcprange.begin, cps+dhcprange.end, repl, buf, bytes);
+    decodedHit->end = bytes.size();
+    cp_range_to_utf8(cps+dhcprange.end, cps+clen-1, repl, buf, bytes);
 
     // null-terminate the UTF-8 bytes
     bytes.push_back(0);
