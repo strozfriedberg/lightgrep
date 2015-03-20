@@ -116,6 +116,8 @@ namespace {
     size_t leading,
     size_t trailing,
     Decoder& dec,
+    size_t& dhbeg,
+    size_t& dhend,
     std::vector<std::pair<int32_t,const byte*>>& cps)
   {
     // precondition:
@@ -155,9 +157,7 @@ namespace {
       // find the start of the good sequence adjacent to the hit
       auto i = std::find_if(
         lctx.crbegin(), lctx.crend(),
-        [](const std::pair<int32_t,const byte*>& p) {
-          return p.first < 0;
-        }
+        [](const std::pair<int32_t,const byte*>& p) { return p.first < 0; }
       );
 
       unsigned int adj_good = i - lctx.crbegin();
@@ -181,6 +181,8 @@ namespace {
     //
     // hit
     //
+    dhbeg = cps.size();
+
     dec.reset(hbeg, std::min(hend + trailing*dec.maxByteLength(), bend));
 
     while ((cp = dec.next()).second < hend) {
@@ -189,6 +191,8 @@ namespace {
         ++bad;
       }
     }
+
+    dhend = cps.size();
 
     //
     // trailing context
@@ -227,7 +231,8 @@ namespace {
     size_t postContext,
     int32_t** characters,
     size_t** offsets,
-    size_t* clen)
+    size_t* clen,
+    LG_Window* decodedHit)
   {
     std::shared_ptr<Decoder> dec(dfac.get(encoding));
 
@@ -242,7 +247,8 @@ namespace {
     std::vector<std::pair<int32_t,const byte*>> cps;
 
     unsigned int bad = decode(
-      bbeg, bend, hbeg, hend, preContext, postContext, *dec, cps
+      bbeg, bend, hbeg, hend, preContext, postContext,
+      *dec, decodedHit->begin, decodedHit->end, cps
     );
 
     *clen = cps.size();
@@ -271,17 +277,20 @@ namespace {
                           size_t windowSize,
                           uint32_t replacement,
                           const char** utf8,
-                          LG_Window* outer)
+                          LG_Window* outer,
+                          LG_Window* decodedHit)
   {
     // decode the hit and its context using the deluxe decoder
     int32_t* characters = nullptr;
     size_t* offsets = nullptr;
     size_t clen = 0;
 
+    LG_Window dhcprange;
+
     const unsigned int bad = readWindow(
       dfac, bufStart, bufEnd, dataOffset, inner,
       encoding, windowSize, windowSize,
-      &characters, &offsets, &clen
+      &characters, &offsets, &clen, &dhcprange
     );
 
     std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
@@ -304,8 +313,16 @@ namespace {
     // code point, stopping one short since the last element of characters
     // is END
     for (const int32_t* i = characters; i < characters+clen-1; ++i) {
+      if (i-characters == dhcprange.begin) {
+        decodedHit->begin = bytes.size();
+      }
+      else if (i-characters == dhcprange.end) {
+        decodedHit->end = bytes.size();
+      }
+
       produced = cp_to_utf8(*i <= 0 ? replacement : *i, buf);
       std::copy(buf, buf+produced, std::back_inserter(bytes));
+
     }
 
     // null-terminate the UTF-8 bytes
@@ -332,6 +349,7 @@ unsigned int lg_read_window(
   int32_t** characters,
   size_t** offsets,
   size_t* clen,
+  LG_Window* decodedHit,
   LG_Error** err)
 {
   return trapWithRetval(
@@ -339,7 +357,7 @@ unsigned int lg_read_window(
       return readWindow(
         hDec->Factory,
         bufStart, bufEnd, dataOffset, inner, encoding,
-        preContext, postContext, characters, offsets, clen
+        preContext, postContext, characters, offsets, clen, decodedHit
       );
     },
     0,
@@ -358,6 +376,7 @@ unsigned int lg_hit_context(
   uint32_t replacement,
   const char** utf8,
   LG_Window* outer,
+  LG_Window* decodedHit,
   LG_Error** err)
 {
   return trapWithRetval(
@@ -365,7 +384,7 @@ unsigned int lg_hit_context(
       return hitContext(
         hDec->Factory,
         bufStart, bufEnd, dataOffset, inner, encoding,
-        windowSize, replacement, utf8, outer
+        windowSize, replacement, utf8, outer, decodedHit
       );
     },
     0,

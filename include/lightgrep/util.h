@@ -65,6 +65,7 @@ unsigned int lg_read_window(LG_HDECODER hDec,
                             int32_t** characters,
                             size_t** offsets,
                             size_t* clen,
+                            LG_Window* decodedHit,
                             LG_Error** err);
 
 unsigned int lg_hit_context(LG_HDECODER hDec,
@@ -77,6 +78,7 @@ unsigned int lg_hit_context(LG_HDECODER hDec,
                             uint32_t replacement,
                             const char** utf8,
                             LG_Window* outer,
+                            LG_Window* decodedHit,
                             LG_Error** err);
 
 void lg_free_window_characters(int32_t* characters);
