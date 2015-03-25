@@ -43,7 +43,7 @@ std::vector<std::string> bits_to_vector(unsigned int bits,
     }
   }
 
-  return v;
+  return std::move(v);
 }
 
 std::string instantiate(const std::string& form,
@@ -80,7 +80,7 @@ std::string instantiate(const std::string& form,
     }
   }
 
-  return instance;
+  return std::move(instance);
 }
 
 void make_slots(const std::string& form,
