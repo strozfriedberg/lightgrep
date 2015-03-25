@@ -28,6 +28,7 @@
 #include <boost/tokenizer.hpp>
 
 #include "alphabet_parser.h"
+#include "assertion_parser.h"
 #include "quantifier_parser.h"
 
 std::string op_class(const std::string& s) { return '[' + s + ']'; }
@@ -238,28 +239,28 @@ void make_character_classes(const std::vector<std::string>& alpha,
 }
 
 const char* help_short() {
-  return
-    "Usage: inst a[b[c...]] a[b[c...]] p[,p[,p...]] q [q [q...]]]\n"
-    "Try `inst --help' for more information.";
+  return R"(Usage: inst a[b[c...]] a[b[c...]] \a[\b[\c...]] p[,p[,p...]] q [q [q...]]]
+Try `inst --help' for more information.)";
 }
 
 const char* help_long() {
-  return
-    "Usage: inst a[b[c...]] a[b[c...]] p[,p[,p...]] q [q [q...]]]\n"
-    "\n"
-    "Instantiates regular expression forms with the given literal alphabet,\n"
-    "character class alphabet, parenthetical modifiers, and quantifiers.\n"
-    "Regex forms are read from standard input, one per line.\n"
-    "\n"
-    "Example: \"echo aq | inst x x '' +\" gives the following output:\n"
-    "\n"
-    "x+\n"
-    "[x]+\n"
-    "[^x]+\n"
-    "\n"
-    "Note that the (optimal!) runtime for producing all instantiations for a\n"
-    "given regex form is O(m^n), where m is the size of the alphabet and n is\n"
-    "the number of atomic variables (`a') in the form.\n";
+  return R"(Usage: inst a[b[c...]] a[b[c...]] \a[\b[\c...]] p[,p[,p...]] q [q [q...]]]
+
+Instantiates regular expression forms with the given literal alphabet,
+character class alphabet, assertions, parenthetical modifiers, and
+quantifiers.
+
+Regex forms are read from standard input, one per line.
+
+Example: "echo aq | inst x x '' '' +" gives the following output:
+
+x+
+[x]+
+[^x]+
+
+Note that the (optimal!) runtime for producing all instantiations for a
+given regex form is O(m^n), where m is the size of the alphabet and n is
+the number of atomic variables (`a') in the form.)";
 }
 
 int main(int argc, char** argv)
@@ -278,7 +279,7 @@ int main(int argc, char** argv)
     std::cerr << help_long() << std::endl;
     return 0;
   }
-  else if (argc < 3) {
+  else if (argc < 4) {
     std::cerr << "too few arguments!\n"
               << help_short() << std::endl;
     return 1;
@@ -302,6 +303,18 @@ int main(int argc, char** argv)
     argv[2], argv[2]+std::strlen(argv[2]), std::back_inserter(cc_alpha)
   );
 
+// TODO: whack assertions are like atoms, but don't participate in
+// the same isomorphisms
+
+  //
+  // Get assertion atoms from the command line
+  //
+
+  std::vector<std::string> assertions;
+  assertion_parser(
+    argv[3], argv[3]+std::strlen(argv[3]), std::back_inserter(assertions)
+  );
+
   //
   // Get the parentheticals from the command line
   //
@@ -310,7 +323,7 @@ int main(int argc, char** argv)
   using cstr_tokenizer = boost::tokenizer<char_separator, const char*>;
 
   const cstr_tokenizer ptok(
-    argv[3], argv[3]+std::strlen(argv[3]), char_separator(",")
+    argv[4], argv[4]+std::strlen(argv[4]), char_separator(",")
   );
 
   std::vector<std::string> paren(ptok.begin(), ptok.end());
@@ -321,7 +334,7 @@ int main(int argc, char** argv)
   //
 
   std::vector<std::string> quant;
-  for (unsigned int i = 4; i < (unsigned int) argc; ++i) {
+  for (unsigned int i = 5; i < (unsigned int) argc; ++i) {
     quantifier_parser(
       argv[i], argv[i]+std::strlen(argv[i]), std::back_inserter(quant)
     );
@@ -333,6 +346,9 @@ int main(int argc, char** argv)
 
   // Each character in the alphabet is an atom
   std::vector<std::string> atoms{alpha};
+
+  // Each assertion is an atom
+  atoms.insert(atoms.end(), assertions.begin(), assertions.end());
 
   // Build the character classes
   make_character_classes(cc_alpha, atoms);
