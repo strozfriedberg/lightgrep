@@ -30,7 +30,7 @@ LG_Error* makeError(
 );
 
 template <typename F>
-auto trapWithRetval(F func, decltype(func()) fail, LG_Error** err) -> decltype(func()) {
+auto trapWithRetval(F&& func, decltype(func()) fail, LG_Error** err) -> decltype(func()) {
   try {
     return func();
   }
@@ -49,7 +49,7 @@ auto trapWithRetval(F func, decltype(func()) fail, LG_Error** err) -> decltype(f
 }
 
 template <typename F>
-auto trapWithRetval(F func, decltype(func()) fail) -> decltype(func()) {
+auto trapWithRetval(F&& func, decltype(func()) fail) -> decltype(func()) {
   try {
     return func();
   }
@@ -59,7 +59,7 @@ auto trapWithRetval(F func, decltype(func()) fail) -> decltype(func()) {
 }
 
 template <typename R, typename F>
-R trapWithVals(F func, R succ, R fail, LG_Error** err) {
+R trapWithVals(F&& func, R succ, R fail, LG_Error** err) {
   try {
     func();
     return succ;
@@ -79,7 +79,7 @@ R trapWithVals(F func, R succ, R fail, LG_Error** err) {
 }
 
 template <typename R, typename F>
-R trapWithVals(F func, R succ, R fail) {
+R trapWithVals(F&& func, R succ, R fail) {
   try {
     func();
     return succ;

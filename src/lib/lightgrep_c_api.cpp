@@ -42,7 +42,7 @@
 
 namespace {
   template <typename F>
-  bool exceptionTrap(F func) {
+  bool exceptionTrap(F&& func) {
     try {
       func();
       return true;
