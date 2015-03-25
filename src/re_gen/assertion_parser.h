@@ -42,6 +42,14 @@ void assertion_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
     switch (state) {
     case ANY:
       switch (*i) {
+      case '$':
+      case '^':
+        tok = *i;
+        *(o++) = tok;
+        tok.clear();
+        state = ANY;
+        break;
+
       case '\\':
         tok = "\\";
         state = ESC;
@@ -54,13 +62,11 @@ void assertion_parser(InputIterator i, InputIterator i_end, OutputIterator o) {
 
     case ESC:
       switch (*i) {
-      case '$':
       case 'A':
       case 'B':
       case 'K':
       case 'Z':
       case 'b':
-      case '^':
         tok += *i;
         *(o++) = tok;
         tok.clear();

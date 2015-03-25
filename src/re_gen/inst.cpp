@@ -303,9 +303,6 @@ int main(int argc, char** argv)
     argv[2], argv[2]+std::strlen(argv[2]), std::back_inserter(cc_alpha)
   );
 
-// TODO: whack assertions are like atoms, but don't participate in
-// the same isomorphisms
-
   //
   // Get assertion atoms from the command line
   //
