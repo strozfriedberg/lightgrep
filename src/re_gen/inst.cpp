@@ -144,8 +144,7 @@ struct next_instance {
 
 bool skip(const std::vector<unsigned int>& aslots,
           const unsigned int asize) {
-  std::vector<unsigned int>::const_iterator i(aslots.begin());
-  std::vector<unsigned int>::const_iterator j;
+  std::vector<unsigned int>::const_iterator i(aslots.begin()), j;
   for (unsigned int x = 0; x < asize; ++x) {
     j = std::find(aslots.begin(), aslots.end(), x);
     if (j < i) {
