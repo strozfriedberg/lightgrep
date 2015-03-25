@@ -307,8 +307,8 @@ int main(int argc, char** argv)
   // Get the parentheticals from the command line
   //
 
-  typedef boost::char_separator<char> char_separator;
-  typedef boost::tokenizer<char_separator, const char*> cstr_tokenizer;
+  using char_separator = boost::char_separator<char>;
+  using cstr_tokenizer = boost::tokenizer<char_separator, const char*>;
 
   const cstr_tokenizer ptok(
     argv[3], argv[3]+std::strlen(argv[3]), char_separator(",")
