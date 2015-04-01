@@ -47,9 +47,7 @@ void parseAndReduce(const Pattern& pattern, ParseTree& tree) {
 
 void reduce(const std::string& text, ParseTree& tree) {
   // rewrite the parse tree, if necessary
-  bool rewrite = false;
-
-  rewrite = makeBinopsRightAssociative(tree.Root);
+  bool rewrite = makeBinopsRightAssociative(tree.Root);
   rewrite |= combineConsecutiveRepetitions(tree.Root);
 
   if (containsPossibleNongreedy(text)) {
