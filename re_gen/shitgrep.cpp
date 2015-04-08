@@ -34,6 +34,7 @@ struct Regex {
     if (!re) {
       // compilation failed
       switch (error_code) {
+      case 9:  // nothing to repeat
       case 25: // lookbehind assertion is not fixed length
         return;
       default:
@@ -108,6 +109,10 @@ unsigned int match(
   const Regex re(pattern);
 
   switch (re.error_code) {
+  case 9:  // nothing to repeat
+    std::cerr << "nothing to repeat"
+              << std::endl;
+    return 0;
   case 25: // lookbehind assertion is not fixed length
     std::cerr << "lookbehind assertion is not fixed length"
               << std::endl;
@@ -145,7 +150,7 @@ unsigned int match(
     total += matches;
 
     // advance to match end, but at least one char
-    offset = std::max(ovector[0]+1, ovector[1]);
+    offset = std::max(offset+1, static_cast<unsigned int>(ovector[1]));
 
   } while (offset < text_len); 
 

@@ -1,8 +1,7 @@
 CC=g++
 CXX=g++
-#CPPFLAGS=-c -O -g -pg -W -Wall -pedantic
-CPPFLAGS=-c -O3 -W -Wall -pedantic -std=c++11
-LDFLAGS=-L/usr/lib/x86_64-linux-gnu -L/lib/x86_64-linux-gnu -lstdc++ -lpcre
+CPPFLAGS=-O3 -W -Wall -Wextra -pedantic -std=c++11
+LDFLAGS=-lpcre -lstdc++
 
 all: randpat shitgrep
 
