@@ -59,7 +59,7 @@ def main():
       print '  SCOPE_ASSERT(fixture.parsesButNotValid());'
     else:
       # this pattern set has no zero-length matches
-      print '''  const char text[] = "{text}";
+      print '''  const char text[] = R"({text})";
   fixture.search(text, text + {textlen}, 0);
   SCOPE_ASSERT_EQUAL({matchcount}u, fixture.Hits.size());'''.format(text=text, textlen=len(text), matchcount=len(matches))
 
