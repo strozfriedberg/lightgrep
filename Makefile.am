@@ -84,11 +84,6 @@ src_lib_liblightgrep_la_HEADERS = \
 	include/lightgrep/util.h \
 	include/lightgrep/search_hit.h
 
-BUILT_SOURCES = include/lightgrep/encodings.h
-
-include/lightgrep/encodings.h: src/enc/enc
-	$< >$@
-
 noinst_PROGRAMS = \
 	c_example/cex \
 	src/enc/enc \
