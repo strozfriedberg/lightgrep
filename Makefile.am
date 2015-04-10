@@ -84,6 +84,11 @@ src_lib_liblightgrep_la_HEADERS = \
 	include/lightgrep/util.h \
 	include/lightgrep/search_hit.h
 
+BUILT_SOURCES = include/lightgrep/encodings.h
+
+include/lightgrep/encodings.h: src/enc/enc
+	$< >$@
+
 noinst_PROGRAMS = \
 	c_example/cex \
 	src/enc/enc \
@@ -189,6 +194,8 @@ src/lib/lightgrep.pc: src/lib/lightgrep.pc.in Makefile
       -e 's![@]libdir[@]!$(libdir)!g' \
       -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
       $< >$@
+
+CLEANFILES = include/lightgrep/encodings.h src/lib/lightgrep.pc
 
 if BUILD_DLL
 src/lib/.libs/version.o: config.h
