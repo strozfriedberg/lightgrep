@@ -41,8 +41,10 @@ int main(int, char**) {
   std::cout <<
 R"(// Copyright 2011-2012, Lightbox Technologies, Inc. All Rights Reserved.
 
-#ifndef LIGHTGREP_ENCODINGS_H_
-#define LIGHTGREP_ENCODINGS_H_
+#ifndef LIGHTGREP_C_ENCODINGS_H_
+#define LIGHTGREP_C_ENCODINGS_H_
+
+#include "util.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -113,9 +115,7 @@ extern "C" {
   };
 
   // Encodings to add
-  const std::vector<std::string> add{
-    "OCE" // Outlook Compressible Encryption
-  };
+  const std::vector<std::string> add{};
 
   std::vector<std::string> canonical;
   std::map<std::string,uint32_t> idmap;
@@ -189,12 +189,7 @@ extern "C" {
 
   // print the name to encoding id map
   std::cout <<
-R"(typedef struct {
-  const char* const name;
-  unsigned int idx;
-} LG_SUPPORTED_ENCODING;
-
-static const LG_SUPPORTED_ENCODING LG_SUPPORTED_ENCODINGS[] = {)";
+R"(static const LG_TRANS LG_ENCODINGS[] = {)";
 
   auto itr = idmap.begin();
   const auto end = idmap.end();
@@ -315,13 +310,11 @@ R"(static const char* const LG_CANONICAL_ENCODINGS[] = {
   std::cout <<
 R"(
 
-int lg_get_encoding_id(const char* const name);
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* LIGHTGREP_ENCODINGS_H_ */)"
+#endif /* LIGHTGREP_C_ENCODINGS_H_ */)"
   << std::endl;
 
   return 0;
