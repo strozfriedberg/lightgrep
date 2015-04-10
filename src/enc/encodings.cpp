@@ -41,8 +41,8 @@ int main(int, char**) {
   std::cout <<
 R"(// Copyright 2011-2012, Lightbox Technologies, Inc. All Rights Reserved.
 
-#ifndef __ENCODINGS_H_
-#define __ENCODINGS_H_
+#ifndef LIGHTGREP_ENCODINGS_H_
+#define LIGHTGREP_ENCODINGS_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -321,7 +321,7 @@ int lg_get_encoding_id(const char* const name);
 }
 #endif
 
-#endif /* __ENCODINGS_H_ */)"
+#endif /* LIGHTGREP_ENCODINGS_H_ */)"
   << std::endl;
 
   return 0;
