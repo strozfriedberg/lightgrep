@@ -305,7 +305,7 @@ R"(static const char* const LG_CANONICAL_ENCODINGS[] = {
       std::cout << ss.str();
     }
     else {
-      std::cout << "\nstatic const int LG_ENC_" << alias
+      std::cout << "\nstatic const int LG_ENCODING_" << alias
                 << " = " << p.second << ';' << ss.str();
       prev.first = alias;
     }
