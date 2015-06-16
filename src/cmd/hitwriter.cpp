@@ -2,7 +2,7 @@
 
 #include <ostream>
 
-void nullWriter(void*userData, const LG_SearchHit* const) {
+void nullWriter(void* userData, const LG_SearchHit* const) {
   HitCounterInfo* hi = static_cast<HitCounterInfo*>(userData);
   ++hi->NumHits;
 }
