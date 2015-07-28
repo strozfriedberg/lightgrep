@@ -18,15 +18,10 @@
 
 #include "program.h"
 
-#include <iomanip>
 #include <iostream>
-#include <sstream>
 
-int Program::bufSize() const {
-  return sizeof(Filter) + sizeof(FilterOff) +
-         sizeof(MaxLabel) + sizeof(MaxCheck) +
-         (size() * sizeof(value_type));
-}
+#include <cstring>
+#include <iomanip>
 
 bool Program::operator==(const Program& rhs) const {
   return MaxLabel == rhs.MaxLabel &&
@@ -36,29 +31,32 @@ bool Program::operator==(const Program& rhs) const {
          std::equal(begin(), end(), rhs.begin());
 }
 
-std::string Program::marshall() const {
-  std::ostringstream buf;
-  buf.write((char*)&MaxLabel, sizeof(MaxLabel));
-  buf.write((char*)&MaxCheck, sizeof(MaxCheck));
-  buf.write((char*)&FilterOff, sizeof(FilterOff));
-  buf.write((char*)&Filter, sizeof(Filter));
-  for (auto instruction: *this) {
-    buf.write((char*)&instruction, sizeof(instruction));
-  }
-  return buf.str();
+std::vector<char> Program::marshall() const {
+  const size_t plen = size()*sizeof(Instruction);
+  std::vector<char> buf(sizeof(*this) + plen);
+  std::memcpy(buf.data(), this, sizeof(*this));
+  std::memcpy(buf.data()+sizeof(*this), IBeg.get(), plen);
+  return buf;
 }
 
-ProgramPtr Program::unmarshall(const std::string& s) {
-  ProgramPtr p(new Program);
-  std::istringstream buf(s);
-  buf.read((char*)&p->MaxLabel, sizeof(MaxLabel));
-  buf.read((char*)&p->MaxCheck, sizeof(MaxCheck));
-  buf.read((char*)&p->FilterOff, sizeof(FilterOff));
-  buf.read((char*)&p->Filter, sizeof(Filter));
-  Instruction i;
-  while (buf.read((char*)&i, sizeof(Instruction))) {
-    p->push_back(i);
-  }
+ProgramPtr Program::unmarshall(const std::vector<char>& buf) {
+  const size_t plen = buf.size() - sizeof(Program);
+  const size_t icount = plen / sizeof(Instruction);
+  ProgramPtr p(new Program(icount));
+
+  // stash IBeg
+  std::unique_ptr<Instruction[], void(*)(Instruction*)> tmp(std::move(p->IBeg));
+
+  std::memcpy(p.get(), buf.data(), sizeof(Program));
+
+  // IBeg contains garbage due to having just been overwritten;
+  // release() this prevents operator= from calling the deleter.
+  p->IBeg.release();
+  p->IBeg = std::move(ibeg);
+
+  std::memcpy(p->IBeg.get(), buf.data()+sizeof(Program), plen);
+  p->IEnd = p->IBeg.get() + icount;
+
   return p;
 }
 

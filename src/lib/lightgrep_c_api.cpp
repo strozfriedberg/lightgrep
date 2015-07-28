@@ -340,7 +340,7 @@ LG_HPROGRAM lg_create_program(LG_HFSM hFsm,
 
 namespace {
   void write_program(LG_HPROGRAM hProg, void* buffer) {
-    std::string buf = hProg->Impl->marshall();
+    std::vector<char> buf = hProg->Impl->marshall();
     std::memcpy(buffer, buf.data(), buf.size());
   }
 
@@ -350,7 +350,8 @@ namespace {
       lg_destroy_program
     );
 
-    std::string s(static_cast<char*>(buffer), size);
+    std::vector<char> s(static_cast<const char*>(buffer),
+                        static_cast<const char*>(buffer) + size);
     hProg->Impl = Program::unmarshall(s);
 
     return hProg.release();
@@ -358,7 +359,7 @@ namespace {
 }
 
 int lg_program_size(const LG_HPROGRAM hProg) {
-  return hProg->Impl->bufSize();
+  return sizeof(*hProg->Impl) + hProg->Impl->size()*sizeof(Instruction);
 }
 
 LG_HPROGRAM lg_read_program(void* buffer, int size) {

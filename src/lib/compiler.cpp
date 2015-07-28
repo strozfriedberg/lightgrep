@@ -166,18 +166,16 @@ void encodeState(const NFA& graph, NFA::VertexDescriptor v, const CodeGenHelper&
 //  finish_vertex:
 ProgramPtr Compiler::createProgram(const NFA& graph) {
   // std::cerr << "Compiling to byte code" << std::endl;
-  ProgramPtr ret(new Program);
-
-  std::tie(ret->FilterOff, ret->Filter) = bestPair(graph);
-
   const uint32_t numVs = graph.verticesSize();
   CodeGenHelper cg(numVs);
   CodeGenVisitor vis(cg);
   specialVisit(graph, 0ul, vis);
   // std::cerr << "Determined order in first pass" << std::endl;
+
+  ProgramPtr ret(new Program(cg.Guard+2));
   ret->MaxLabel= cg.MaxLabel;
   ret->MaxCheck = cg.MaxCheck;
-  ret->resize(cg.Guard);
+  std::tie(ret->FilterOff, ret->Filter) = bestPair(graph);
 
   for (NFA::VertexDescriptor v = 0; v < numVs; ++v) {
     // if (++i % 10000 == 0) {
@@ -186,9 +184,9 @@ ProgramPtr Compiler::createProgram(const NFA& graph) {
     encodeState(graph, v, cg, &(*ret)[0], &(*ret)[cg.Snippets[v].Start]);
   }
   // penultimate instruction will always be Halt, so Vm can jump there
-  ret->push_back(Instruction::makeHalt());
+  (*ret)[cg.Guard] = Instruction::makeHalt();
   // last instruction will always be Finish, for handling matches
-  ret->push_back(Instruction::makeFinish());
+  (*ret)[cg.Guard+1] = Instruction::makeFinish();
 
   return ret;
 }
