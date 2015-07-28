@@ -39,22 +39,22 @@ std::vector<char> Program::marshall() const {
   return buf;
 }
 
-ProgramPtr Program::unmarshall(const std::vector<char>& buf) {
-  const size_t plen = buf.size() - sizeof(Program);
+ProgramPtr Program::unmarshall(const void* buf, size_t len) {
+  const size_t plen = len - sizeof(Program);
   const size_t icount = plen / sizeof(Instruction);
   ProgramPtr p(new Program(icount));
 
   // stash IBeg
   std::unique_ptr<Instruction[], void(*)(Instruction*)> tmp(std::move(p->IBeg));
 
-  std::memcpy(p.get(), buf.data(), sizeof(Program));
+  std::memcpy(p.get(), buf, sizeof(Program));
 
   // IBeg contains garbage due to having just been overwritten;
   // release() this prevents operator= from calling the deleter.
   p->IBeg.release();
   p->IBeg = std::move(tmp);
 
-  std::memcpy(p->IBeg.get(), buf.data()+sizeof(Program), plen);
+  std::memcpy(p->IBeg.get(), buf + sizeof(Program), plen);
   p->IEnd = p->IBeg.get() + icount;
 
   return p;

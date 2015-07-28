@@ -350,9 +350,7 @@ namespace {
       lg_destroy_program
     );
 
-    std::vector<char> s(static_cast<const char*>(buffer),
-                        static_cast<const char*>(buffer) + size);
-    hProg->Impl = Program::unmarshall(s);
+    hProg->Impl = Program::unmarshall(buffer, size);
 
     return hProg.release();
   }

@@ -50,7 +50,7 @@ SCOPE_TEST(testProgramSerialization) {
     buf.size()
   );
 
-  ProgramPtr p2 = Program::unmarshall(buf);
+  ProgramPtr p2 = Program::unmarshall(buf.data(), buf.size());
   SCOPE_ASSERT(p2);
   SCOPE_ASSERT(*p1 == *p2);
 }
