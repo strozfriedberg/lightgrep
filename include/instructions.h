@@ -90,7 +90,11 @@ struct Instruction {
 
   std::string toString() const;
 
-  bool operator==(const Instruction& x) const { return *((uint32_t*)this) == *((uint32_t*)&x); } // total hack
+  bool operator==(const Instruction& x) const {
+    // total hack
+    return *reinterpret_cast<const uint32_t*>(this) ==
+           *reinterpret_cast<const uint32_t*>(&x);
+  }
 
   static Instruction makeByte(byte b, bool negate = false);
   static Instruction makeEither(byte one, byte two, bool negate = false);
