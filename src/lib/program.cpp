@@ -52,7 +52,7 @@ ProgramPtr Program::unmarshall(const std::vector<char>& buf) {
   // IBeg contains garbage due to having just been overwritten;
   // release() this prevents operator= from calling the deleter.
   p->IBeg.release();
-  p->IBeg = std::move(ibeg);
+  p->IBeg = std::move(tmp);
 
   std::memcpy(p->IBeg.get(), buf.data()+sizeof(Program), plen);
   p->IEnd = p->IBeg.get() + icount;
