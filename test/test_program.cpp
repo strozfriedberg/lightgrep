@@ -41,7 +41,9 @@ SCOPE_TEST(testProgramSize) {
 
 SCOPE_TEST(testProgramBufSize) {
   ProgramPtr p1(makeProgram());
-  SCOPE_ASSERT_EQUAL(8244u, p1->bufSize());
+  SCOPE_ASSERT_EQUAL(
+    sizeof(Program) + p1->size()*sizeof(Instruction), p1->bufSize()
+  );
 }
 
 SCOPE_TEST(testProgramSerialization) {
