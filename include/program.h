@@ -149,6 +149,10 @@ public:
 
   bool operator==(const Program& rhs) const;
 
+  size_t bufSize() const {
+    return sizeof(Program) + size()*sizeof(Instruction);
+  }
+
   std::vector<char> marshall() const;
   static ProgramPtr unmarshall(const void* buf, size_t len);
 

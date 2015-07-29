@@ -54,7 +54,9 @@ ProgramPtr Program::unmarshall(const void* buf, size_t len) {
   p->IBeg.release();
   p->IBeg = std::move(tmp);
 
-  std::memcpy(p->IBeg.get(), buf + sizeof(Program), plen);
+  std::memcpy(
+    p->IBeg.get(), static_cast<const char*>(buf)+sizeof(Program), plen
+  );
   p->IEnd = p->IBeg.get() + icount;
 
   return p;

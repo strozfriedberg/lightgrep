@@ -45,10 +45,7 @@ SCOPE_TEST(testProgramSerialization) {
   ProgramPtr p1(makeProgram());
 
   std::vector<char> buf = p1->marshall();
-  SCOPE_ASSERT_EQUAL(
-    sizeof(Program) + p1->size()*sizeof(Instruction),
-    buf.size()
-  );
+  SCOPE_ASSERT_EQUAL(p1->bufSize(), buf.size());
 
   ProgramPtr p2 = Program::unmarshall(buf.data(), buf.size());
   SCOPE_ASSERT(p2);
