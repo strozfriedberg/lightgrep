@@ -449,7 +449,7 @@ void writeProgram(const Options& opts) {
 
   std::ostream& out(opts.openOutput());
   if (opts.Binary) {
-    const std::string s = p->marshall();
+    const std::vector<char> s = p->marshall();
     std::cerr << s.size() << " program size in bytes" << std::endl;
     out.write(s.data(), s.size());
   }
