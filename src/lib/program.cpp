@@ -34,7 +34,9 @@ bool Program::operator==(const Program& rhs) const {
 std::vector<char> Program::marshall() const {
   const size_t plen = size()*sizeof(Instruction);
   std::vector<char> buf(sizeof(*this) + plen);
-  std::memcpy(buf.data(), this, sizeof(*this));
+  // write everything except IBeg, IEnd; leave those as nulls
+  std::memcpy(buf.data(), this, sizeof(*this)-sizeof(IBeg)-sizeof(IEnd));
+  // write the Instructions
   std::memcpy(buf.data()+sizeof(*this), IBeg.get(), plen);
   return buf;
 }
