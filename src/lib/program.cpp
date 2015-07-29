@@ -39,27 +39,23 @@ std::vector<char> Program::marshall() const {
   return buf;
 }
 
-ProgramPtr Program::unmarshall(const void* buf, size_t len) {
-  const size_t plen = len - sizeof(Program);
-  const size_t icount = plen / sizeof(Instruction);
-  ProgramPtr p(new Program(icount));
+ProgramPtr Program::unmarshall(void* buf, size_t len) {
+  // The caller is responsible for freeing buf. We subvert std::unique_ptr
+  // and std::shared_ptr here by giving them empty deleters.
 
-  // stash IBeg
-  std::unique_ptr<Instruction[], void(*)(Instruction*)> tmp(std::move(p->IBeg));
+  Program* p = static_cast<Program*>(buf);
 
-  std::memcpy(p.get(), buf, sizeof(Program));
-
-  // IBeg contains garbage due to having just been overwritten;
-  // release() this prevents operator= from calling the deleter.
+  // IBeg may contain garbage; prevent operator= from calling the deleter.
   p->IBeg.release();
-  p->IBeg = std::move(tmp);
-
-  std::memcpy(
-    p->IBeg.get(), static_cast<const char*>(buf)+sizeof(Program), plen
+  // Set IBeg to the start of the instructions; set an empty deleter since
+  // the caller is responsible for freeing buf.
+  p->IBeg = std::unique_ptr<Instruction[], void(*)(Instruction*)>(
+    reinterpret_cast<Instruction*>(p + 1), [](Instruction*){}
   );
-  p->IEnd = p->IBeg.get() + icount;
 
-  return p;
+  p->IEnd = reinterpret_cast<Instruction*>(static_cast<char*>(buf) + len);
+
+  return ProgramPtr(p, [](Program*){});
 }
 
 std::ostream& printIndex(std::ostream& out, uint32_t i) {

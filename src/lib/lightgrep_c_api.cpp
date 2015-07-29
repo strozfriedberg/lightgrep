@@ -344,7 +344,7 @@ namespace {
     std::memcpy(buffer, buf.data(), buf.size());
   }
 
-  LG_HPROGRAM read_program(void* buffer, int size) {
+  LG_HPROGRAM read_program(void* buffer, size_t size) {
     std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
       new ProgramHandle,
       lg_destroy_program
@@ -357,7 +357,7 @@ namespace {
 }
 
 int lg_program_size(const LG_HPROGRAM hProg) {
-  return sizeof(*hProg->Impl) + hProg->Impl->size()*sizeof(Instruction);
+  return hProg->Impl->bufSize();
 }
 
 LG_HPROGRAM lg_read_program(void* buffer, int size) {

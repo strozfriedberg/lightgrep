@@ -136,8 +136,10 @@ extern "C" {
   // at least as large as lg_program_size() in bytes.
   void lg_write_program(LG_HPROGRAM hProg, void* buffer);
 
-  // Read in a serialized program, given the binary buffer and size. No
-  // versioning check is done so don't keep these around too long.
+  // Convert a buffer containing a serialized program to a program, given the
+  // binary buffer and size. No versioning check is done so don't keep these
+  // around too long. The caller is responsible for freeing the buffer after
+  // calling lg_destroy_program on the handle.
   LG_HPROGRAM lg_read_program(void* buffer, int size);
 
   // A Program must live as long as any associated contexts,

@@ -33,16 +33,6 @@
 class Program {
 public:
 
-/*
-  static Program* create(void* buf, size_t len) {
-    new(buf) Program();
-
-  }
-
-  Program(void* buf, size_t len):
-
-  }
-*/
   Program(size_t icount): Program(icount, Instruction()) {}
 
   Program(size_t icount, const Instruction& val):
@@ -154,7 +144,7 @@ public:
   }
 
   std::vector<char> marshall() const;
-  static ProgramPtr unmarshall(const void* buf, size_t len);
+  static ProgramPtr unmarshall(void* buf, size_t len);
 
 private:
   std::unique_ptr<Instruction[], void(*)(Instruction*)> IBeg;
