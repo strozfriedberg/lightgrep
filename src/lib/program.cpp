@@ -18,8 +18,6 @@
 
 #include "program.h"
 
-#include <iostream>
-
 #include <cstring>
 #include <iomanip>
 
