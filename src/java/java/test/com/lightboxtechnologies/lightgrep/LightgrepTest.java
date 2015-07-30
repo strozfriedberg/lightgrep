@@ -2080,7 +2080,17 @@ public class LightgrepTest {
       final byte[] buf = new byte[size];
       hProg.write(buf, 0);
 
-      assertArrayEquals(exp, buf);
+      // check to end of Program::Filter
+      for (int i = 0; i < 8208; ++i) {
+        assertEquals("arrays differed at element [" + i + "]", exp[i], buf[i]);
+      }
+
+      // skip Program::IBeg, Program::IEnd, as these are ephemeral
+
+      // check Instructions
+      for (int i = 8232; i < size; ++i) {
+        assertEquals("arrays differed at element [" + i + "]", exp[i], buf[i]);
+      }
     }
     finally {
       hProg.destroy();
