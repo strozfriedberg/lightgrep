@@ -411,8 +411,7 @@ bool writeGraphviz(const Options& opts) {
   }
 
   // break on through the C API to print the graph
-  NFAPtr g(fsm->Impl->Fsm);
-  writeGraphviz(opts.openOutput(), *g);
+  opts.openOutput() << *fsm->Impl->Fsm;
   return true;
 }
 
