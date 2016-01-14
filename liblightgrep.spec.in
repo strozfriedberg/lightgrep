@@ -2,11 +2,13 @@ Name:           liblightgrep
 Version:        @VERSION@
 Release:        1%{?dist}
 Summary:        Not the worst forensics regexp engine
-Group:          Development/Libraries
+Group:          System Environment/Libraries
 License:        GPLv3+
 %global lggh https://github.com/LightboxTech/%{name}
 URL:            %{lggh}
-Source0:        %{lggh}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
+%global lgcommit 25d4d18a733cf469a83b3851bc38b4ce563bbd53
+Source0:        %{lggh}/archive/%{lgcommit}/%{name}-%{lgcommit}.tar.gz
+#Source0:        %{lggh}/archive/v%{version}.tar.gz#/liblightgrep-%{version}.tar.gz
 %global scopecommit 9a76e5810f82fe1dc51ff78a6c1d58e617e4f6a3
 Source1:        https://github.com/jonstewart/scope/archive/%{scopecommit}/scope-%{scopecommit}.tar.gz
 
@@ -35,6 +37,7 @@ is supported is well-tested.
 
 %package        devel
 Summary:        Development files for %{name}
+Group:          Development/Libraries
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description    devel
@@ -42,8 +45,8 @@ The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
 %prep
-%setup -q
-%setup -qDTa 1
+%setup -q -n liblightgrep-%{lgcommit}
+%setup -qDTa 1 -n liblightgrep-%{lgcommit}
 rmdir vendors/scope
 mv scope-%{scopecommit} vendors/scope
 
@@ -69,11 +72,10 @@ make check VERBOSE=1
 %{_libdir}/*.so.*
 
 %files devel
-%doc
 %{_includedir}/*
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/lightgrep.pc
 
 %changelog
-* Mon Nov 17 2014 Joel Uckelman <uckelman@nomic.net> - 1.4-1
+* Fri Nov 21 2014 Joel Uckelman <uckelman@nomic.net> - 1.5.0-1
 - Initial version

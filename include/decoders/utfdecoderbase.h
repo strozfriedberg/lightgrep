@@ -105,7 +105,7 @@ public:
   }
 
 protected:
-   virtual size_t decode(const byte* beg, const byte* end, int32_t& cp) = 0;
+  virtual size_t decode(const byte* beg, const byte* end, int32_t& cp) = 0;
 
   std::unique_ptr<Decoder> Trans;
 

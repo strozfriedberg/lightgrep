@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "lightgrep/api.h"
+#include "lightgrep/util.h"
 
 #include "basic.h"
 #include "fsmthingy.h"
@@ -29,6 +30,7 @@
 #include "parsetree.h"
 #include "vm_interface.h"
 #include "pattern.h"
+#include "decoders/decoderfactory.h"
 
 struct PatternHandle {
   Pattern   Pat;
@@ -70,4 +72,8 @@ struct ProgramHandle {
 
 struct ContextHandle {
   std::shared_ptr<VmInterface> Impl;
+};
+
+struct DecoderHandle {
+  DecoderFactory Factory;
 };

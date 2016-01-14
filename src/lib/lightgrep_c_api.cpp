@@ -42,7 +42,7 @@
 
 namespace {
   template <typename F>
-  bool exceptionTrap(F func) {
+  bool exceptionTrap(F&& func) {
     try {
       func();
       return true;
@@ -109,11 +109,11 @@ int lg_pattern_map_size(const LG_HPATTERNMAP hPatternMap) {
 
 LG_HFSM create_fsm(unsigned int numFsmStateSizeHint) {
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> hFsm(
-    new (std::nothrow) FSMHandle,
+    new FSMHandle,
     lg_destroy_fsm
   );
 
-  hFsm->Impl.reset(new (std::nothrow) FSMThingy(numFsmStateSizeHint));
+  hFsm->Impl.reset(new FSMThingy(numFsmStateSizeHint));
   return hFsm.release();
 }
 
@@ -319,7 +319,7 @@ LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
 
 LG_HPROGRAM create_program(LG_HFSM hFsm, const LG_ProgramOptions* opts) {
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
-    new (std::nothrow) ProgramHandle,
+    new ProgramHandle,
     lg_destroy_program
   );
 
@@ -340,18 +340,17 @@ LG_HPROGRAM lg_create_program(LG_HFSM hFsm,
 
 namespace {
   void write_program(LG_HPROGRAM hProg, void* buffer) {
-    std::string buf = hProg->Impl->marshall();
+    std::vector<char> buf = hProg->Impl->marshall();
     std::memcpy(buffer, buf.data(), buf.size());
   }
 
-  LG_HPROGRAM read_program(void* buffer, int size) {
+  LG_HPROGRAM read_program(void* buffer, size_t size) {
     std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
-      new (std::nothrow) ProgramHandle,
+      new ProgramHandle,
       lg_destroy_program
     );
 
-    std::string s(static_cast<char*>(buffer), size);
-    hProg->Impl = Program::unmarshall(s);
+    hProg->Impl = Program::unmarshall(buffer, size);
 
     return hProg.release();
   }

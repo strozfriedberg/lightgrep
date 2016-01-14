@@ -36,16 +36,25 @@ void readWindowTest(
   size_t post,
   const std::vector<byte>& data,
   const std::vector<int32_t>& ecp,
-  const std::vector<size_t>& eoff)
+  const std::vector<size_t>& eoff,
+  size_t edhbeg,
+  size_t edhend)
 {
   const LG_Window inner{doff + hbeg, doff + hend};
   int32_t* chars = nullptr;
   size_t* offsets = nullptr;
   size_t clen;
+  LG_Window adh;
+
+  std::unique_ptr<DecoderHandle, void(*)(DecoderHandle*)> hdec{
+    lg_create_decoder(),
+    lg_destroy_decoder
+  };
 
   LG_Error* err = nullptr;
 
   const unsigned int abad = lg_read_window(
+    hdec.get(),
     reinterpret_cast<const char*>(data.data()),
     reinterpret_cast<const char*>(data.data()) + data.size(),
     doff,
@@ -56,6 +65,7 @@ void readWindowTest(
     &chars,
     &offsets,
     &clen,
+    &adh,
     &err
   );
 
@@ -84,6 +94,9 @@ void readWindowTest(
 
   std::vector<size_t> aoff(offsets, offsets+clen);
   SCOPE_ASSERT_EQUAL(eoff, aoff);
+
+  SCOPE_ASSERT_EQUAL(edhbeg, adh.begin);
+  SCOPE_ASSERT_EQUAL(edhend, adh.end);
 }
 
 void hitContextTest(
@@ -97,15 +110,23 @@ void hitContextTest(
   const std::string& estr,
   uint32_t ebad,
   size_t wbeg,
-  size_t wend)
+  size_t wend,
+  size_t edhbeg,
+  size_t edhend)
 {
   const LG_Window inner{doff + hbeg, doff + hend};
-  LG_Window outer;
+  LG_Window outer, adh;
   const char* utf8 = nullptr;
+
+  std::unique_ptr<DecoderHandle, void(*)(DecoderHandle*)> hdec{
+    lg_create_decoder(),
+    lg_destroy_decoder
+  };
 
   LG_Error* err = nullptr;
 
   const unsigned int abad = lg_hit_context(
+    hdec.get(),
     reinterpret_cast<const char*>(data.data()),
     reinterpret_cast<const char*>(data.data()) + data.size(),
     doff,
@@ -115,6 +136,7 @@ void hitContextTest(
     repl,
     &utf8,
     &outer,
+    &adh,
     &err
   );
 
@@ -133,6 +155,9 @@ void hitContextTest(
 
   SCOPE_ASSERT_EQUAL(doff + wbeg, outer.begin);
   SCOPE_ASSERT_EQUAL(doff + wend, outer.end);
+
+  SCOPE_ASSERT_EQUAL(edhbeg, adh.begin);
+  SCOPE_ASSERT_EQUAL(edhend, adh.end);
 }
 
 SCOPE_TEST(lgReadWindowASCII) {
@@ -142,7 +167,8 @@ SCOPE_TEST(lgReadWindowASCII) {
     2, 2, // window is "bcdefgh"
     {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'},
     { 'b', 'c', 'd', 'e', 'f', 'g', 'h', Decoder::END },
-    { 1, 2, 3, 4, 5, 6, 7, 8 }
+    { 1, 2, 3, 4, 5, 6, 7, 8 },
+    2, 5
   );
 }
 
@@ -150,10 +176,11 @@ SCOPE_TEST(lgReadWindowASCIISmallPrefix) {
   readWindowTest(
     42, "ASCII",
     1, 3, // hit is "bc"
-    5, 5, // window is "bcdefgh"
+    5, 5, // window is "abcdefgh"
     {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'},
     { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', Decoder::END },
-    { 0, 1, 2, 3, 4, 5, 6, 7, 8 }
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8 },
+    1, 3
   );
 }
 
@@ -164,7 +191,8 @@ SCOPE_TEST(lgReadWindowASCIISmallSuffix) {
     5, 5,  // window is "defghijk"
     {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'},
     { 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', Decoder::END },
-    { 3, 4, 5, 6, 7, 8, 9, 10, 11 }
+    { 3, 4, 5, 6, 7, 8, 9, 10, 11 },
+    5, 7
   );
 }
 
@@ -177,7 +205,8 @@ SCOPE_TEST(lgHitContextASCII) {
     {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'},
     "bcdefgh",
     0,
-    1, 8
+    1, 8,
+    2, 5
   );
 }
 
@@ -188,7 +217,8 @@ SCOPE_TEST(lgReadWindowUTF8WithBadSpot) {
     2, 2, // window is b -0xE0 c PILE_OF_POO
     { 'a', 'b', 0xDF, 'c', 0xF0, 0x9F, 0x92, 0xA9 },
     { 'b', -0xE0, 'c', 0x1F4A9, Decoder::END },
-    { 1, 2, 3, 4, 8 }
+    { 1, 2, 3, 4, 8 },
+    2, 3
   );
 }
 
@@ -211,7 +241,8 @@ SCOPE_TEST(lgReadWindowUTF16LEWithBadSpotRequiringDecoderRestart) {
     2, 2, // window is b -0xE0 c d
     { 'a', 0x00, 'b', 0x00, 0xDF, 'c', 0x00, 'd', 0x00 },
     { 'b', -0xE0, 'c', 'd', Decoder::END },
-    { 2, 4, 5, 7, 9 }
+    { 2, 4, 5, 7, 9 },
+    2, 3
   );
 }
 
@@ -222,7 +253,8 @@ SCOPE_TEST(lgReadWindowTestUTF8NoBadSpots) {
     2, 2,
     { 0xE2, 0x9A, 0xA1, ' ', 'a', 'b', 'c', 0xD0, 0x96 },
     { 0x26A1, ' ', 'a', 'b', 'c', 0x0416, Decoder::END },
-    { 0, 3, 4, 5, 6, 7, 9 }
+    { 0, 3, 4, 5, 6, 7, 9 },
+    2, 5
   );
 }
 
@@ -235,7 +267,8 @@ SCOPE_TEST(lgHitContextUTF8NoBadSpots) {
     { 0xE2, 0x9A, 0xA1, ' ', 'a', 'b', 'c', 0xD0, 0x96 },
     u8"⚡ abcЖ",
     0,
-    0, 9
+    0, 9,
+    4, 7
   );
 }
 
@@ -246,20 +279,22 @@ SCOPE_TEST(lgReadWindowTestUTF8LeadingJunk) {
     2, 2,
     { 0xFF, 0xFF, 0xFF, ' ', 'a', 'b', 'c', 0xD0, 0x96 },
     { -0x100, ' ', 'a', 'b', 'c', 0x0416, Decoder::END },
-    { 2, 3, 4, 5, 6, 7, 9 }
+    { 2, 3, 4, 5, 6, 7, 9 },
+    2, 5
   );
 }
 
 SCOPE_TEST(lgHitContextUTF8LeadingJunk) {
   hitContextTest(
     0, "UTF-8",
-    4, 7, // hit is "abc"
+    5, 8, // hit is "abc"
     2,
     0xFFFD,
-    { 0xFF, 0xFF, 0xFF, ' ', 'a', 'b', 'c', 0xD0, 0x96 },
+    { 0xFF, 0xFF, 0xFF, 0xFF, ' ', 'a', 'b', 'c', 0xD0, 0x96 },
     u8"� abcЖ",
     1,
-    2, 9
+    3, 10,
+    4, 7
   );
 }
 
@@ -270,6 +305,7 @@ SCOPE_TEST(lgReadWindowTestLeadingUTF8JunkUTF8Again) {
     3, 2,
     { 'x', 0xFF, 'y', 'a', 'b', 'c', 0xD0, 0x96 },
     { 'x', -0x100, 'y', 'a', 'b', 'c', 0x0416, Decoder::END },
-    { 0, 1, 2, 3, 4, 5, 6, 8 }
+    { 0, 1, 2, 3, 4, 5, 6, 8 },
+    3, 6
   );
 }

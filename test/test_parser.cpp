@@ -1622,7 +1622,7 @@ SCOPE_TEST(parseTildeTildeTest) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(parseFailUnmatchedLeftBracketCharacgterClassTest) {
+SCOPE_TEST(parseFailUnmatchedLeftBracketCharacterClassTest) {
   ParseTree tree;
   try {
     parse({"[]", false, false}, tree);
@@ -1835,6 +1835,208 @@ SCOPE_TEST(parseNegativeLookaheadATest) {
   const std::string p = "(?!A)";
   ParseTree actual;
   actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseWhackATest) {
+  ParseTree expected;
+  expected.init(3);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::LOOKBEHIND_NEG,
+          expected.add(
+            ParseNode(ParseNode::DOT, '.')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "\\A";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseWhackZTest) {
+  ParseTree expected;
+  expected.init(3);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::LOOKAHEAD_NEG,
+          expected.add(
+            ParseNode(ParseNode::DOT, '.')
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "\\Z";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseCaretTest) {
+  ParseTree expected;
+  expected.init(3);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::LOOKBEHIND_NEG,
+          expected.add(
+            ParseNode::CHAR_CLASS,
+            UnicodeSet{'\n', '\v', '\f', '\r', 0x85, 0x2028, 0x2029}
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "^";
+  ParseTree actual;
+  actual.init(3);
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseDollarSignTest) {
+  ParseTree expected;
+  expected.init(3);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::LOOKAHEAD_NEG,
+          expected.add(
+            ParseNode::CHAR_CLASS,
+            UnicodeSet{'\n', '\v', '\f', '\r', 0x85, 0x2028, 0x2029}
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "$";
+  ParseTree actual;
+  actual.init(3);
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseWordBoundaryTest) {
+  // \b  = ((?<!\w)(?!\W)|(?<!\W)(?!\w))
+
+  ParseTree expected;
+  expected.init(10);
+
+  UnicodeSet wset;
+  wset.insert('0', '9' + 1);
+  wset.insert('A', 'Z' + 1);
+  wset.set('_');
+  wset.insert('a', 'z' + 1);
+
+  ParseNode* w = expected.add(ParseNode(ParseNode::CHAR_CLASS, wset));
+  ParseNode* W = expected.add(ParseNode(ParseNode::CHAR_CLASS, ~wset));
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::ALTERNATION,
+          expected.add(
+            ParseNode(ParseNode::CONCATENATION,
+              expected.add(
+                ParseNode(ParseNode::LOOKBEHIND_NEG, w)
+              ),
+              expected.add(
+                ParseNode(ParseNode::LOOKAHEAD_NEG, W)
+              )
+            )
+          ),
+          expected.add(
+            ParseNode(ParseNode::CONCATENATION,
+              expected.add(
+                ParseNode(ParseNode::LOOKBEHIND_NEG, W)
+              ),
+              expected.add(
+                ParseNode(ParseNode::LOOKAHEAD_NEG, w)
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "\\b";
+  ParseTree actual;
+  actual.init(10);
+  SCOPE_ASSERT(parse({p, false, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNonWordBoundaryTest) {
+  // \B  = ((?<!\w)(?!\w)|(?<!\W)(?!\W))
+
+  ParseTree expected;
+  expected.init(10);
+
+  UnicodeSet wset;
+  wset.insert('0', '9' + 1);
+  wset.insert('A', 'Z' + 1);
+  wset.set('_');
+  wset.insert('a', 'z' + 1);
+
+  ParseNode* w = expected.add(ParseNode(ParseNode::CHAR_CLASS, wset));
+  ParseNode* W = expected.add(ParseNode(ParseNode::CHAR_CLASS, ~wset));
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::ALTERNATION,
+          expected.add(
+            ParseNode(ParseNode::CONCATENATION,
+              expected.add(
+                ParseNode(ParseNode::LOOKBEHIND_NEG, w)
+              ),
+              expected.add(
+                ParseNode(ParseNode::LOOKAHEAD_NEG, w)
+              )
+            )
+          ),
+          expected.add(
+            ParseNode(ParseNode::CONCATENATION,
+              expected.add(
+                ParseNode(ParseNode::LOOKBEHIND_NEG, W)
+              ),
+              expected.add(
+                ParseNode(ParseNode::LOOKAHEAD_NEG, W)
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+
+  const std::string p = "\\B";
+  ParseTree actual;
+  actual.init(10);
   SCOPE_ASSERT(parse({p, false, false}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);

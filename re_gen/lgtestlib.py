@@ -3,6 +3,7 @@ import os
 import subprocess
 import tempfile
 
+
 def run_grep(grep, pats, text, emptymsg):
   pf = None
 
@@ -56,8 +57,10 @@ def run_grep(grep, pats, text, emptymsg):
 
   return matches
 
+
 def run_shitgrep(sg, pats, text):
   return run_grep(sg, pats, text, 'is not allowed as a final state of the NFA')
+
 
 def run_lightgrep(lg, pats, text):
   return run_grep(lg, pats, text, 'Empty matches on pattern')

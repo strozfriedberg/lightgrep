@@ -1,6 +1,6 @@
 /*
   liblightgrep: not the worst forensics regexp engine
-  Copyright (C) 2013, Lightbox Technologies, Inc
+  Copyright (C) 2015, Lightbox Technologies, Inc
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include "lightgrep/encodings.h"
 
 #include "c_api_util.h"
+#include "handles.h"
 #include "decoders/decoder.h"
 #include "decoders/decoderfactory.h"
 #include "decoders/utf8.h"
@@ -98,6 +99,14 @@ int lg_get_byte_transform_id(const char* const name) {
   );
 }
 
+LG_HDECODER lg_create_decoder() {
+  return new (std::nothrow) DecoderHandle;
+}
+
+void lg_destroy_decoder(LG_HDECODER hDec) {
+  delete hDec;
+}
+
 namespace {
   unsigned int decode(
     const byte* bbeg,
@@ -107,6 +116,7 @@ namespace {
     size_t leading,
     size_t trailing,
     Decoder& dec,
+    LG_Window& dh,
     std::vector<std::pair<int32_t,const byte*>>& cps)
   {
     // precondition:
@@ -146,9 +156,7 @@ namespace {
       // find the start of the good sequence adjacent to the hit
       auto i = std::find_if(
         lctx.crbegin(), lctx.crend(),
-        [](const std::pair<int32_t,const byte*>& p) {
-          return p.first < 0;
-        }
+        [](const std::pair<int32_t,const byte*>& p) { return p.first < 0; }
       );
 
       unsigned int adj_good = i - lctx.crbegin();
@@ -172,7 +180,9 @@ namespace {
     //
     // hit
     //
-    dec.reset(hbeg, bend);
+    dh.begin = cps.size();
+
+    dec.reset(hbeg, std::min(hend + trailing*dec.maxByteLength(), bend));
 
     while ((cp = dec.next()).second < hend) {
       cps.push_back(cp);
@@ -180,6 +190,8 @@ namespace {
         ++bad;
       }
     }
+
+    dh.end = cps.size();
 
     //
     // trailing context
@@ -208,6 +220,7 @@ namespace {
   }
 
   unsigned int readWindow(
+    DecoderFactory& dfac,
     const char* bufStart,
     const char* bufEnd,
     uint64_t dataOffset,
@@ -217,10 +230,9 @@ namespace {
     size_t postContext,
     int32_t** characters,
     size_t** offsets,
-    size_t* clen)
+    size_t* clen,
+    LG_Window* decodedHit)
   {
-    // FIXME: it's stupid to recreate the factory each time
-    DecoderFactory dfac;
     std::shared_ptr<Decoder> dec(dfac.get(encoding));
 
     const byte* bbeg = reinterpret_cast<const byte*>(bufStart);
@@ -234,7 +246,8 @@ namespace {
     std::vector<std::pair<int32_t,const byte*>> cps;
 
     unsigned int bad = decode(
-      bbeg, bend, hbeg, hend, preContext, postContext, *dec, cps
+      bbeg, bend, hbeg, hend, preContext, postContext,
+      *dec, *decodedHit, cps
     );
 
     *clen = cps.size();
@@ -254,27 +267,40 @@ namespace {
     return bad;
   }
 
-  unsigned int hitContext(const char* bufStart,
+  void cp_range_to_utf8(const int32_t* beg, const int32_t* end, uint32_t replacement, char* buf, std::vector<char>& bytes) {
+    for (const int32_t* i = beg; i != end; ++i) {
+      const size_t produced = cp_to_utf8(*i <= 0 ? replacement : *i, buf);
+      std::copy(buf, buf+produced, std::back_inserter(bytes));
+    }
+  }
+
+  unsigned int hitContext(DecoderFactory& dfac,
+                          const char* bufStart,
                           const char* bufEnd,
                           uint64_t dataOffset,
                           const LG_Window* inner,
                           const char* encoding,
                           size_t windowSize,
-                          uint32_t replacement,
+                          uint32_t repl,
                           const char** utf8,
-                          LG_Window* outer)
+                          LG_Window* outer,
+                          LG_Window* decodedHit)
   {
     // decode the hit and its context using the deluxe decoder
-    int32_t* characters = nullptr;
+    int32_t* cps = nullptr;
     size_t* offsets = nullptr;
     size_t clen = 0;
 
-    const unsigned int bad = readWindow(bufStart, bufEnd, dataOffset, inner,
-                                        encoding, windowSize, windowSize,
-                                        &characters, &offsets, &clen);
+    LG_Window dhcprange;
+
+    const unsigned int bad = readWindow(
+      dfac, bufStart, bufEnd, dataOffset, inner,
+      encoding, windowSize, windowSize,
+      &cps, &offsets, &clen, &dhcprange
+    );
 
     std::unique_ptr<int32_t[],void(*)(int32_t*)> pchars(
-      characters, &lg_free_window_characters
+      cps, &lg_free_window_characters
     );
 
     std::unique_ptr<size_t[],void(*)(size_t*)> poff(
@@ -287,15 +313,16 @@ namespace {
     // convert the code points to UTF-8
     std::vector<char> bytes;
     char buf[4];
-    size_t produced;
 
     // encode to UTF-8, replacing bad or null elements with the replacement
     // code point, stopping one short since the last element of characters
-    // is END
-    for (const int32_t* i = characters; i < characters+clen-1; ++i) {
-      produced = cp_to_utf8(*i <= 0 ? replacement : *i, buf);
-      std::copy(buf, buf+produced, std::back_inserter(bytes));
-    }
+    // is END; do it in three chunks, so we may note the byte range spanned
+    // by the hit
+    cp_range_to_utf8(cps, cps+dhcprange.begin, repl, buf, bytes);
+    decodedHit->begin = bytes.size();
+    cp_range_to_utf8(cps+dhcprange.begin, cps+dhcprange.end, repl, buf, bytes);
+    decodedHit->end = bytes.size();
+    cp_range_to_utf8(cps+dhcprange.end, cps+clen-1, repl, buf, bytes);
 
     // null-terminate the UTF-8 bytes
     bytes.push_back(0);
@@ -310,6 +337,7 @@ namespace {
 }
 
 unsigned int lg_read_window(
+  LG_HDECODER hDec,
   const char* bufStart,
   const char* bufEnd,
   uint64_t dataOffset,
@@ -320,13 +348,15 @@ unsigned int lg_read_window(
   int32_t** characters,
   size_t** offsets,
   size_t* clen,
+  LG_Window* decodedHit,
   LG_Error** err)
 {
   return trapWithRetval(
     [=](){
       return readWindow(
+        hDec->Factory,
         bufStart, bufEnd, dataOffset, inner, encoding,
-        preContext, postContext, characters, offsets, clen
+        preContext, postContext, characters, offsets, clen, decodedHit
       );
     },
     0,
@@ -335,6 +365,7 @@ unsigned int lg_read_window(
 }
 
 unsigned int lg_hit_context(
+  LG_HDECODER hDec,
   const char* bufStart,
   const char* bufEnd,
   uint64_t dataOffset,
@@ -344,13 +375,15 @@ unsigned int lg_hit_context(
   uint32_t replacement,
   const char** utf8,
   LG_Window* outer,
+  LG_Window* decodedHit,
   LG_Error** err)
 {
   return trapWithRetval(
     [=]() {
       return hitContext(
+        hDec->Factory,
         bufStart, bufEnd, dataOffset, inner, encoding,
-        windowSize, replacement, utf8, outer
+        windowSize, replacement, utf8, outer, decodedHit
       );
     },
     0,

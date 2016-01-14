@@ -1,20 +1,4 @@
-/*
-  liblightgrep: not the worst forensics regexp engine
-  Copyright (C) 2013, Lightbox Technologies, Inc
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2011-2012, Lightbox Technologies, Inc. All Rights Reserved.
 
 #ifndef LIGHTGREP_C_ENCODINGS_H_
 #define LIGHTGREP_C_ENCODINGS_H_
@@ -262,7 +246,6 @@ static const LG_TRANS LG_ENCODINGS[] = {
   { "MS936",                                          36 },
   { "MS950_HKSCS",                                    34 },
   { "MS_Kanji",                                       25 },
-  { "OCE",                                           182 },
   { "PC-Multilingual-850+euro",                       60 },
   { "Shift_JIS",                                      25 },
   { "TIS-620",                                        47 },
@@ -689,7 +672,7 @@ static const LG_TRANS LG_ENCODINGS[] = {
   { "ibm-29875",                                       2 },
   { "ibm-33722",                                      27 },
   { "ibm-33722_P120-1999",                            28 },
-  { "ibm-33722_P12A_P12A-2004_U2",                    27 },
+  { "ibm-33722_P12A_P12A-2009_U2",                    27 },
   { "ibm-33722_VASCII_VPUA",                          28 },
   { "ibm-33722_VPUA",                                 27 },
   { "ibm-367",                                         7 },
@@ -1087,7 +1070,7 @@ static const char* const LG_CANONICAL_ENCODINGS[] = {
   "ibm-942_P12A-1999",            //  24
   "ibm-943_P15A-2003",            //  25
   "ibm-943_P130-1999",            //  26
-  "ibm-33722_P12A_P12A-2004_U2",  //  27
+  "ibm-33722_P12A_P12A-2009_U2",  //  27
   "ibm-33722_P120-1999",          //  28
   "ibm-954_P101-2007",            //  29
   "ibm-1373_P100-2002",           //  30
@@ -1242,7 +1225,6 @@ static const char* const LG_CANONICAL_ENCODINGS[] = {
   "ibm-12712_P100-1998,swaplfnl", // 179
   "ibm-16804_X110-1999,swaplfnl", // 180
   "ebcdic-xml-us",                // 181
-  "OCE",                          // 182
 };
 
 // UTF-8
@@ -1574,14 +1556,14 @@ static const int LG_ENCODING_IBM_943_P130_1999 = 26; // UTR22*
 static const int LG_ENCODING_IBM_943_VASCII_VSUB_VPUA = 26;
 static const int LG_ENCODING_X_IBM943 = 26; // JAVA
 
-// ibm-33722_P12A_P12A-2004_U2
+// ibm-33722_P12A_P12A-2009_U2
 static const int LG_ENCODING_EUC_JP = 27; // IANA MIME* WINDOWS
 static const int LG_ENCODING_EXTENDED_UNIX_CODE_PACKED_FORMAT_FOR_JAPANESE = 27; // IANA* WINDOWS*
 static const int LG_ENCODING_IBM_EUCJP = 27;
 static const int LG_ENCODING_X_EUC_JP = 27; // WINDOWS
 static const int LG_ENCODING_CSEUCPKDFMTJAPANESE = 27; // IANA WINDOWS
 static const int LG_ENCODING_IBM_33722 = 27;
-static const int LG_ENCODING_IBM_33722_P12A_P12A_2004_U2 = 27; // UTR22*
+static const int LG_ENCODING_IBM_33722_P12A_P12A_2009_U2 = 27; // UTR22*
 static const int LG_ENCODING_IBM_33722_VPUA = 27;
 static const int LG_ENCODING_IBM_5050 = 27;
 
@@ -2129,7 +2111,7 @@ static const int LG_ENCODING_IBM_1051 = 103; // IBM*
 static const int LG_ENCODING_IBM_1051_P100_1995 = 103; // UTR22*
 static const int LG_ENCODING_R8 = 103; // IANA
 static const int LG_ENCODING_ROMAN8 = 103; // IANA
-static const int LG_ENCODING_X_ROMAN8 = 103;
+static const int LG_ENCODING_X_ROMAN8 = 103; // JAVA*
 
 // ibm-1276_P100-1995
 static const int LG_ENCODING_ADOBE_STANDARD_ENCODING = 104; // IANA*

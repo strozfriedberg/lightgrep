@@ -39,15 +39,18 @@ void throw_on_error(UErrorCode err) {
 int main(int, char**) {
   // print copyright notice, ifdef guards, open extern "C" block
   std::cout <<
-"// Copyright 2011-2012, Lightbox Technologies, Inc. All Rights Reserved.\n"
-"\n"
-"#ifndef __ENCODINGS_H_\n"
-"#define __ENCODINGS_H_\n"
-"\n"
-"#ifdef __cplusplus\n"
-"extern \"C\" {\n"
-"#endif\n"
-"\n";
+R"(// Copyright 2011-2012, Lightbox Technologies, Inc. All Rights Reserved.
+
+#ifndef LIGHTGREP_C_ENCODINGS_H_
+#define LIGHTGREP_C_ENCODINGS_H_
+
+#include "util.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+)";
 
   // Preference ordering for standards, to resolve name conficts
   //
@@ -112,9 +115,7 @@ int main(int, char**) {
   };
 
   // Encodings to add
-  const std::vector<std::string> add{
-    "OCE" // Outlook Compressible Encryption
-  };
+  const std::vector<std::string> add{};
 
   std::vector<std::string> canonical;
   std::map<std::string,uint32_t> idmap;
@@ -188,12 +189,7 @@ int main(int, char**) {
 
   // print the name to encoding id map
   std::cout <<
-"typedef struct {\n"
-"  const char* const name;\n"
-"  unsigned int idx;\n"
-"} LG_SUPPORTED_ENCODING;\n"
-"\n"
-"static const LG_SUPPORTED_ENCODING LG_SUPPORTED_ENCODINGS[] = {";
+R"(static const LG_TRANS LG_ENCODINGS[] = {)";
 
   auto itr = idmap.begin();
   const auto end = idmap.end();
@@ -217,12 +213,14 @@ int main(int, char**) {
   }
 
   std::cout <<
-"};\n"
-"\n";
+R"(};
+
+)";
 
   // print the encoding id to canonical name map
   std::cout <<
-"static const char* const LG_CANONICAL_ENCODINGS[] = {\n";
+R"(static const char* const LG_CANONICAL_ENCODINGS[] = {
+)";
 
   longest_canonical += 3;
   const int32_t csize = canonical.size();
@@ -302,7 +300,7 @@ int main(int, char**) {
       std::cout << ss.str();
     }
     else {
-      std::cout << "\nstatic const int LG_ENC_" << alias
+      std::cout << "\nstatic const int LG_ENCODING_" << alias
                 << " = " << p.second << ';' << ss.str();
       prev.first = alias;
     }
@@ -310,15 +308,13 @@ int main(int, char**) {
 
   // close the extern block and ifdefs
   std::cout <<
-"\n"
-"\n"
-"int lg_get_encoding_id(const char* const name);\n"
-"\n"
-"#ifdef __cplusplus\n"
-"}\n"
-"#endif\n"
-"\n"
-"#endif /* __ENCODINGS_H_ */"
+R"(
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LIGHTGREP_C_ENCODINGS_H_ */)"
   << std::endl;
 
   return 0;

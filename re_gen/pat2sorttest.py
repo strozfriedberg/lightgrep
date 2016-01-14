@@ -69,7 +69,7 @@ def main():
         stest = '{{ R"({})" }}'.format(')", R"('.join(pats))
 
       print '''SCOPE_FIXTURE_CTOR(autoPatternTest{setnum}, STest, STest({stest})) {{
-  const byte* text = (const byte*) "{text}";
+  const byte* text = (const byte*) R"({text})";
   fixture.search(text, text + {textlen}, 0);
   std::vector<SearchHit>& actual(fixture.Hits);
   SCOPE_ASSERT_EQUAL({matchcount}u, actual.size());

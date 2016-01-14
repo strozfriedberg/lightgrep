@@ -18,15 +18,8 @@
 
 #include "program.h"
 
+#include <cstring>
 #include <iomanip>
-#include <iostream>
-#include <sstream>
-
-int Program::bufSize() const {
-  return sizeof(Filter) + sizeof(FilterOff) +
-         sizeof(MaxLabel) + sizeof(MaxCheck) +
-         (size() * sizeof(value_type));
-}
 
 bool Program::operator==(const Program& rhs) const {
   return MaxLabel == rhs.MaxLabel &&
@@ -36,30 +29,33 @@ bool Program::operator==(const Program& rhs) const {
          std::equal(begin(), end(), rhs.begin());
 }
 
-std::string Program::marshall() const {
-  std::ostringstream buf;
-  buf.write((char*)&MaxLabel, sizeof(MaxLabel));
-  buf.write((char*)&MaxCheck, sizeof(MaxCheck));
-  buf.write((char*)&FilterOff, sizeof(FilterOff));
-  buf.write((char*)&Filter, sizeof(Filter));
-  for (auto instruction: *this) {
-    buf.write((char*)&instruction, sizeof(instruction));
-  }
-  return buf.str();
+std::vector<char> Program::marshall() const {
+  const size_t plen = size()*sizeof(Instruction);
+  std::vector<char> buf(sizeof(*this) + plen);
+  // write everything except IBeg, IEnd; leave those as nulls
+  std::memcpy(buf.data(), this, sizeof(*this)-sizeof(IBeg)-sizeof(IEnd));
+  // write the Instructions
+  std::memcpy(buf.data()+sizeof(*this), IBeg.get(), plen);
+  return buf;
 }
 
-ProgramPtr Program::unmarshall(const std::string& s) {
-  ProgramPtr p(new Program);
-  std::istringstream buf(s);
-  buf.read((char*)&p->MaxLabel, sizeof(MaxLabel));
-  buf.read((char*)&p->MaxCheck, sizeof(MaxCheck));
-  buf.read((char*)&p->FilterOff, sizeof(FilterOff));
-  buf.read((char*)&p->Filter, sizeof(Filter));
-  Instruction i;
-  while (buf.read((char*)&i, sizeof(Instruction))) {
-    p->push_back(i);
-  }
-  return p;
+ProgramPtr Program::unmarshall(void* buf, size_t len) {
+  // The caller is responsible for freeing buf. We subvert std::unique_ptr
+  // and std::shared_ptr here by giving them empty deleters.
+
+  Program* p = static_cast<Program*>(buf);
+
+  // IBeg may contain garbage; prevent operator= from calling the deleter.
+  p->IBeg.release();
+  // Set IBeg to the start of the instructions; set an empty deleter since
+  // the caller is responsible for freeing buf.
+  p->IBeg = std::unique_ptr<Instruction[], void(*)(Instruction*)>(
+    reinterpret_cast<Instruction*>(p + 1), [](Instruction*){}
+  );
+
+  p->IEnd = reinterpret_cast<Instruction*>(static_cast<char*>(buf) + len);
+
+  return ProgramPtr(p, [](Program*){});
 }
 
 std::ostream& printIndex(std::ostream& out, uint32_t i) {

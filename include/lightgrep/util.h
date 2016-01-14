@@ -38,6 +38,15 @@ int lg_get_encoding_id(const char* const name);
 
 int lg_get_byte_transform_id(const char* const name);
 
+// Opaque handle
+struct DecoderHandle;
+
+typedef struct DecoderHandle* LG_HDECODER;
+
+LG_HDECODER lg_create_decoder();
+
+void lg_destroy_decoder(LG_HDECODER hDec);
+
 typedef struct {
   uint64_t begin,
            end;
@@ -45,7 +54,8 @@ typedef struct {
 
 static const int32_t LG_WINDOW_END = -0x110001;
 
-unsigned int lg_read_window(const char* bufStart,
+unsigned int lg_read_window(LG_HDECODER hDec,
+                            const char* bufStart,
                             const char* bufEnd,
                             uint64_t dataOffset,
                             const LG_Window* hit,
@@ -55,9 +65,11 @@ unsigned int lg_read_window(const char* bufStart,
                             int32_t** characters,
                             size_t** offsets,
                             size_t* clen,
+                            LG_Window* decodedHit,
                             LG_Error** err);
 
-unsigned int lg_hit_context(const char* bufStart,
+unsigned int lg_hit_context(LG_HDECODER hDec,
+                            const char* bufStart,
                             const char* bufEnd,
                             uint64_t dataOffset,
                             const LG_Window* inner,
@@ -66,6 +78,7 @@ unsigned int lg_hit_context(const char* bufStart,
                             uint32_t replacement,
                             const char** utf8,
                             LG_Window* outer,
+                            LG_Window* decodedHit,
                             LG_Error** err);
 
 void lg_free_window_characters(int32_t* characters);

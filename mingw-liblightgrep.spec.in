@@ -8,7 +8,9 @@ Group:          Development/Libraries
 License:        GPLv3+
 %global lggh https://github.com/LightboxTech/liblightgrep
 URL:            %{lggh}
-Source0:        %{lggh}/archive/v%{version}.tar.gz#/liblightgrep-%{version}.tar.gz
+%global lgcommit 25d4d18a733cf469a83b3851bc38b4ce563bbd53
+Source0:        %{lggh}/archive/%{lgcommit}/liblightgrep-%{lgcommit}.tar.gz
+#Source0:        %{lggh}/archive/v%{version}.tar.gz#/liblightgrep-%{version}.tar.gz
 %global scopecommit 9a76e5810f82fe1dc51ff78a6c1d58e617e4f6a3 
 Source1:        https://github.com/jonstewart/scope/archive/%{scopecommit}/scope-%{scopecommit}.tar.gz
 
@@ -80,8 +82,8 @@ MinGW Windows liblightgrep library.
 %?mingw_debug_package
 
 %prep
-%setup -q -n liblightgrep-%{version}
-%setup -qDT -a 1 -n liblightgrep-%{version}
+%setup -q -n liblightgrep-%{lgcommit}
+%setup -qDT -a 1 -n liblightgrep-%{lgcommit}
 rmdir vendors/scope
 mv scope-%{scopecommit} vendors/scope
 
@@ -119,5 +121,5 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 #%%{mingw64_libdir}/liblightgrep.a
 
 %changelog
-* Mon Nov 17 2014 Joel Uckelman <uckelman@nomic.net> - 1.4-1
+* Fri Nov 21 2014 Joel Uckelman <uckelman@nomic.net> - 1.5.0-1
 - Initial version

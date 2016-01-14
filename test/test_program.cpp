@@ -21,10 +21,10 @@
 #include "program.h"
 
 ProgramPtr makeProgram() {
-  ProgramPtr p1(new Program());
-  p1->push_back(Instruction::makeByte('a'));
-  p1->push_back(Instruction::makeLabel(0));
-  p1->push_back(Instruction::makeMatch());
+  ProgramPtr p1(new Program(3));
+  (*p1)[0] = Instruction::makeByte('a');
+  (*p1)[1] = Instruction::makeLabel(0);
+  (*p1)[2] = Instruction::makeMatch();
 
   p1->FilterOff = 0;
   for (uint32_t i = 0; i < 256; ++i) {
@@ -34,15 +34,25 @@ ProgramPtr makeProgram() {
   return p1;
 }
 
+SCOPE_TEST(testProgramSize) {
+  ProgramPtr p1(makeProgram());
+  SCOPE_ASSERT_EQUAL(3u, p1->size());
+}
+
 SCOPE_TEST(testProgramBufSize) {
   ProgramPtr p1(makeProgram());
-  SCOPE_ASSERT_EQUAL(8216, p1->bufSize());
+  SCOPE_ASSERT_EQUAL(
+    sizeof(Program) + p1->size()*sizeof(Instruction), p1->bufSize()
+  );
 }
 
 SCOPE_TEST(testProgramSerialization) {
   ProgramPtr p1(makeProgram());
-  std::string buf = p1->marshall();
-  ProgramPtr p2 = Program::unmarshall(buf);
+
+  std::vector<char> buf = p1->marshall();
+  SCOPE_ASSERT_EQUAL(p1->bufSize(), buf.size());
+
+  ProgramPtr p2 = Program::unmarshall(buf.data(), buf.size());
   SCOPE_ASSERT(p2);
   SCOPE_ASSERT(*p1 == *p2);
 }

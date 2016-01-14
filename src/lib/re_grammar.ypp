@@ -109,7 +109,7 @@ extern int yydebug;
 %token <c> TEXT_END
 %token <c> NON_WORD_BOUNDARY
 %token <c> KILL
-%token <c> WHACK_LITTLE_B
+%token <c> WHACK_SMALL_B
 
 %token <c> BAD "invalid escape"
 %token <s> SET
@@ -288,7 +288,7 @@ atom:
   {
     $$ = ctx->add(ParseNode::LOOKAHEAD_NEG, $4);
   }
-| WHACK_LITTLE_B
+| WHACK_SMALL_B
   {
     // \b  = ((?<!\w)(?!\W)|(?<!\W)(?!\w))
 
@@ -1017,7 +1017,7 @@ cc_char:
   {
     $$ = '$';
   }
-| WHACK_LITTLE_B
+| WHACK_SMALL_B
   {
     $$ = '\b';
   }
@@ -1214,7 +1214,7 @@ namespace {
     case 'Z':
       return TEXT_END;
     case 'b':
-      return WHACK_LITTLE_B; // NB: Also an ASCII escape inside CCs
+      return WHACK_SMALL_B; // NB: Also an ASCII escape inside CCs
 
     default:
       return BAD;
