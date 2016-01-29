@@ -345,8 +345,6 @@
     cycle;
 \end{pgfonlayer}
 
-\path[draw=red, fill=red!20, rounded corners] ($(cc.south east |- uniprop.south west) + (2pt,85pt)$) rectangle ($(uniprop.south west) + (-2pt,1pt)$);
-
 \node[fancytitle={black}{blue!50}{black}, right=10pt] at ($(title.south -| chars.east) + (0,-10pt)$) {\textbf{Notes \& Examples}};
 
 \node[inner xsep=5pt, inner ysep=10pt, anchor=north west] (ex0) at ($(title.south -| chars.east) + (0,-10pt)$) {%
@@ -465,6 +463,8 @@ PDF: \re{\whack z25\whack z50\whack z44\whack z46\whack z2D\whack z31} Footer: \
   \vspace{-1.5pt} 
   \end{minipage}
 };
+
+\path[draw=black, fill=white, rounded corners] ($(cc.south east |- uniprop.south west) + (2pt,85pt)$) rectangle ($(uniprop.south west) + (-2pt,1pt)$);
 
 \node[anchor=center] (logo) at ($(ex2.north west) !0.5! ($(uniprop.south west) + (-2pt,87pt)$)$) {%
   \begin{minipage}{0.15\textwidth}%
