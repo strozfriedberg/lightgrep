@@ -105,6 +105,8 @@ src_what_what_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
 	src/enc/enc$(EXEEXT) >$@
 
+BUILT_SOURCES = include/lightgrep/encodings.h
+
 check_PROGRAMS = test/test
 TESTS = $(check_PROGRAMS)
 AM_TESTS_ENVIRONMENT = builddir=`pwd`;
