@@ -102,8 +102,8 @@ src_val_val_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 src_what_what_SOURCES = src/what/what.cpp
 src_what_what_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
-include/lightgrep/encodings.h: src/enc/enc
-	src/enc/enc >$@
+include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
+	src/enc/enc$(EXEEXT) >$@
 
 check_PROGRAMS = test/test
 TESTS = $(check_PROGRAMS)
