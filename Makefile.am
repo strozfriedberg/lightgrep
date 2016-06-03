@@ -193,7 +193,7 @@ src/lib/lightgrep.pc: src/lib/lightgrep.pc.in Makefile
       -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
       $< >$@
 
-CLEANFILES = src/lib/lightgrep.pc
+CLEANFILES = src/lib/lightgrep.pc include/lightgrep/encodings.h
 
 if BUILD_DLL
 src/lib/.libs/version.o: config.h
