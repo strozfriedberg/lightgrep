@@ -235,8 +235,7 @@ namespace {
       if (++ccur != cend) {
         // read the encoding list
         const std::string el(*ccur);
-
-        const tokenizer etok(*ccur, char_separator(","));
+        const tokenizer etok(el, char_separator(","));
 
         if (etok.begin() == etok.end()) {
           if (err) {
