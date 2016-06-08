@@ -731,7 +731,7 @@ SCOPE_TEST(parseUnparse_american_express_cc_number_Test) {
   SCOPE_ASSERT_EQUAL("3[47][0-9]{2}[ -]?[0-9]{6}[ -]?[0-9]{5}", unparse(tree));
 }
 
-SCOPE_TEST(byteToCharacterString) {
+SCOPE_TEST(byteToCharacterStringTest) {
   std::ostringstream ss;
 
   for (uint32_t i = 0; i < 256; ++i) {
