@@ -20,6 +20,7 @@
 
 #include "rangeset.h"
 #include "icuutil.h"
+#include "pair_out.h"
 
 #include <unicode/uset.h>
 #include <memory>

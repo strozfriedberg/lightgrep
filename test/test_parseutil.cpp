@@ -22,6 +22,7 @@
 
 #include "basic.h"
 #include "parseutil.h"
+#include "pair_out.h"
 
 SCOPE_TEST(parseHexCharTest) {
   // good
