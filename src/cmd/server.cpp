@@ -43,11 +43,13 @@ public:
   ):
     BaseStream(baseStream), Mutex(mutex) {}
 
+/*
   SafeStream& operator+=(const std::ostream& buf) {
     boost::mutex::scoped_lock lock(*Mutex);
     *BaseStream << buf;
     return *this;
   }
+*/
 
   SafeStream& operator+=(const std::string& str) {
     boost::mutex::scoped_lock lock(*Mutex);
