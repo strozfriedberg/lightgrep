@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <iostream>
 #include <type_traits>
+#include <vector>
 
 #include "basic.h"
 #include "unicode.h"
