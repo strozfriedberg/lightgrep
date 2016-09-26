@@ -72,16 +72,15 @@ void createJumpTable(const CodeGenHelper& cg, Instruction const* const base, Ins
 
   for (uint32_t i = first; i <= last; ++i) {
     if (tbl[i].empty()) {
-      const uint32_t addr = 0xffffffff;
-      *cur++ = reinterpret_cast<const Instruction&>(addr);
+      *cur++ = Instruction::makeRaw32(0xffffffff);
     }
-    else if (1 == tbl[i].size()) {
+    else if (tbl[i].size() == 1) {
       const uint32_t addr = figureOutLanding(cg, *tbl[i].begin(), graph);
-      *cur++ = reinterpret_cast<const Instruction&>(addr);
+      *cur++ = Instruction::makeRaw32(addr);
     }
     else {
       const uint32_t addr = startIndex + (indirectTbl - start);
-      *cur++ = reinterpret_cast<const Instruction&>(addr);
+      *cur++ = Instruction::makeRaw32(addr);
 
       // write the indirect table in reverse edge order because
       // parent threads have priority over forked children
