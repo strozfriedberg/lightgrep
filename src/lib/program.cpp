@@ -77,14 +77,7 @@ std::ostream& operator<<(std::ostream& out, const Program& prog) {
       i += 8;
     }
     else if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
-      uint32_t start = 0,
-             end = 255;
-
-      if (prog[i].OpCode == JUMP_TABLE_RANGE_OP) {
-        start = prog[i].Op.T2.First;
-        end = prog[i].Op.T2.Last;
-      }
-
+      const uint32_t start = prog[i].Op.T2.First, end = prog[i].Op.T2.Last;
       for (uint32_t j = start; j <= end; ++j) {
         ++i;
         printIndex(out, i) << std::setfill(' ') << std::setw(3) << j << ": " << reinterpret_cast<const uint32_t&>(prog[i]) << '\n';
