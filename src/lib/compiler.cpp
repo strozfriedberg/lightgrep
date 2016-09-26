@@ -72,7 +72,7 @@ void createJumpTable(const CodeGenHelper& cg, Instruction const* const base, Ins
 
   for (uint32_t i = first; i <= last; ++i) {
     if (tbl[i].empty()) {
-      *cur++ = Instruction::makeRaw32(0xffffffff);
+      *cur++ = Instruction::makeRaw32(0);
     }
     else if (tbl[i].size() == 1) {
       const uint32_t addr = figureOutLanding(cg, *tbl[i].begin(), graph);
