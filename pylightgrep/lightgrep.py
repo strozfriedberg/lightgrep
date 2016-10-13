@@ -88,67 +88,13 @@ class SearchHit(Structure):
               ("End", c_uint64),
               ("KeywordIndex", c_uint32)]
 
-# ***************** Helper Functions *************************#
 
-def _parsePatterns(self, err, keyList):
-  # keyList is a list of ("pattern", ["encoding"], keyOpts)
-  ct = 0
-  for pat in keyList:
-    if (len(pat[0]) == 0):
-      raise IndexError("No pattern specified on keyword %d" % ct)
-    if (len(pat[1]) == 0):
-      raise IndexError("No encodings specified on keyword %d" % ct)
-    if (pat[2] is None):
-      raise IndexError("No keyword options specified on keyword %d" % ct)
-    result = _LG.lg_parse_pattern(self.__pat__, pat[0].encode("utf-8"), byref(pat[2]), byref(err))
-    if (result > 0):
-      for enc in pat[1]:
-        idx = _LG.lg_add_pattern(self.__fsm__, self.__pmap__, self.__pat__, enc.encode("utf-8"), byref(err))
-        if (idx >= 0):
-          # lg_add_pattern_list handles this automatically
-          pinfo = _LG.lg_pattern_info(self.__pmap__, idx).contents
-          pinfo.UserData = ct
-        else:
-          self.__Err__ = err
-          raise RuntimeError("Could not add %s for encoding %s: %s" % (pat[0], enc, err.contents.Message if err.contents.Message != None else ""))
-    else:
-      raise RuntimeError("Could not parse %s: %s" % (pat[0], err.contents.Message if err.contents.Message != None else ""))
-    ct += 1
+class Window(Structure):
+  _fields_ = [("Start", c_uint64),
+              ("End", c_uint64)]
 
-def _createProgram(lg, patList):
-  if (len(patList) == 0):
-    raise IndexError("Please specify a list of patterns for Lightgrep as {\"pattern\", [\"encodings\"], keyOpts}")
-  lg.__pat__ = _LG.lg_create_pattern()
-  lg.__pmap__ = _LG.lg_create_pattern_map(len(patList))
-  lg.__fsm__ = _LG.lg_create_fsm(len(patList) * 10)
-  err = POINTER(Err)()
-  _parsePatterns(lg, err, patList)
-  progOpts = ProgOpts()
-  lg.__prog__ = _LG.lg_create_program(lg.__fsm__, byref(progOpts))
-  if (lg.__prog__ == 0):
-    raise RuntimeError("Could not create bytecode program")
-  _LG.lg_destroy_fsm(lg.__fsm__)
-  lg.__fsm__ = None
-  return lg.__prog__, lg.__pmap__
-
-def _createContext(lg, prog, pmap, callback):
-  lg.__prog__ = c_void_p(prog)
-  lg.__pmap__ = c_void_p(pmap)
-  if (lg.__prog__ == 0):
-    raise RuntimeError("Bytecode program cannot be accessed")
-  if (lg.__pmap__ == 0):
-    raise RuntimeError("Pattern map cannot be accessed")
-  ctxOpts = CtxOpts()
-  lg.__ctx__ = _LG.lg_create_context(lg.__prog__, byref(ctxOpts))
-  lg.CurOffset = 0
-  def _gotHit(user, hitPtr):
-    idx = hitPtr.contents.KeywordIndex
-    hitinfo = _LG.lg_pattern_info(lg.__pmap__, idx).contents
-    callback(hitPtr.contents, hitinfo)
-  lg.Callback = _CBType(_gotHit)
 
 # ***************** Library Init *************************#
-
 
 def _openDll():
   # I think I should probably try to use ctypes.util.FindLibrary() here?
@@ -173,10 +119,20 @@ _CBType.restype = c_void_p
 _LG.lg_create_pattern.restype = c_void_p
 _LG.lg_create_pattern_map.restype = c_void_p
 _LG.lg_create_fsm.restype = c_void_p
+_LG.lg_read_program.restype = c_void_p
+_LG.lg_write_program.restype = None
+_LG.lg_add_pattern_list.restype = c_int
 _LG.lg_search.restype = c_void_p
+_LG.lg_create_decoder.restype = c_void_p
+_LG.lg_hit_context.restype = c_uint
 # Set appropriate argtypes
 _LG.lg_search.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
 _LG.lg_starts_with.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
+_LG.lg_read_program.argtypes = [c_void_p, c_int]
+_LG.lg_write_program.argtypes = [c_void_p, c_void_p]
+_LG.lg_add_pattern_list.argtypes = [c_void_p, c_char_p, c_char_p, POINTER(c_char_p), c_uint, POINTER(KeyOpts), POINTER(POINTER(Err))]
+_LG.lg_hit_context.argtypes =[c_void_p, c_char_p, c_char_p, c_uint64, POINTER(Window), c_char_p, c_size_t, c_uint32,
+  POINTER(c_char_p), POINTER(Window), POINTER(Window), POINTER(POINTER(Err))]
 
 # check for errors on handles
 def _checkHandleForErrors(ret, func, args):
@@ -212,13 +168,44 @@ class HitAccumulator:
     self.KeyCounts[d["pattern"]] += 1
     self.Hits.append(d)
 
+def parse_pattern_line(line, default_encs, default_key_opts):
+  fields = line.strip().split('\t')
+  num = len(fields)
+  encs = default_encs
+  opts = default_key_opts
+  if (num > 0):
+    pat = fields[0]
+    if (num > 1):
+      encs = fields[1].split(',')
+      if (len(encs) == 0): # reset
+        encs = default_encs
+      if (num > 2):
+        fixedString = True if fields[2] == '1' else False
+        caseInsensitive = True if num > 3 and fields[3] == '1' else False
+        opts = KeyOpts(fixedString, caseInsensitive)
+    return (pat, encs, opts)
+  else:
+    return None
+
+def check_keywords_file(keywords_file):
+    # will throw if there are any problems with patterns in file
+    if not keywords_file:
+      raise ValueError("keywords file not specified")
+    with open(keywords_file, 'r') as f:
+        encs = ['UTF-8']
+        opts = KeyOpts(False, False)
+        pats = [parse_pattern_line(line, encs, opts) for line in f]
+        hits = HitAccumulator()
+        with Lightgrep(pats, hits.lgCallback):
+            return keywords_file
+
 class Lightgrep():
-  def __init__(self, patList=None, callback=None):
+  def __init__(self, patList=None, callback=None, **kwargs):
     if (patList is not None and callback is not None):
       # Create program from patterns
-      _createProgram(self, patList)
+      self._createProgram(patList)
       # Create context
-      _createContext(self, self.__prog__, self.__pmap__, callback)
+      self._createContext(self.__prog__, self.__pmap__, callback)
 
   def __enter__(self):
     return self
@@ -231,7 +218,12 @@ class Lightgrep():
       func(getattr(self, attr))
       setattr(self, attr, None)
 
+  def num_patterns(self):
+    return _LG.lg_pattern_map_size(self.__pmap__)
+
   def search(self, data):
+    if not isinstance(data, bytes):
+      raise TypeError("a bytes-like object is required, not {}".format(type(data)))
     # get a pointer range of the buffer, probably what I'm least sure of
     size = len(data)
     beg = cast(data, POINTER(c_char))
@@ -240,10 +232,40 @@ class Lightgrep():
     self.CurOffset += size
 
   def startswith(self, data):
+    if not isinstance(data, bytes):
+      raise TypeError("a bytes-like object is required, not {}".format(type(data)))
     size = len(data)
     beg = cast(data, POINTER(c_char))
     end = cast(addressof(beg.contents)+size, POINTER(c_char))
     _LG.lg_starts_with(self.__ctx__, beg, end, 0, 0, self.Callback);
+
+  def hit_context(self, buf, offset, hit):
+    if not hasattr(self, "__dec__"):
+      self.__dec__ = _LG.lg_create_decoder()
+    buf_beg = cast(buf, POINTER(c_char))
+    buf_end = cast(addressof(buf_beg.contents)+len(buf), POINTER(c_char))
+    hit_window = Window(Start=hit['start'], End=hit['end'])
+    outer_range = Window()
+    hit_string_location = Window()
+    out = c_char_p()
+    err = POINTER(Err)()
+    _LG.lg_hit_context(
+      self.__dec__,
+      buf_beg,
+      buf_end,
+      offset,
+      byref(hit_window),
+      hit['encChain'],
+      100,
+      ord(' '),
+      byref(out),
+      byref(outer_range),
+      byref(hit_string_location),
+      byref(err)
+    )
+    ret = str(out.value)
+    _LG.lg_free_hit_context_string(out)
+    return ret
 
   def close(self):
     # attrs may or may not be defined, depending on exceptions generated in __init__
@@ -253,6 +275,7 @@ class Lightgrep():
     self._kill("__pmap__", _LG.lg_destroy_pattern_map)
     self._kill("__pat__", _LG.lg_destroy_pattern)
     self._kill("__Err__", _LG.lg_free_error)
+    self._kill("__dec__", _LG.lg_destroy_decoder)
 
   def closeContext(self):
     # attrs may or may not be defined, depending on exceptions generated in __init__
@@ -262,14 +285,71 @@ class Lightgrep():
     _LG.lg_reset_context(self.__ctx__)
     self.CurOffset = 0
 
+  def _createProgram(self, patList):
+    if (len(patList) == 0):
+      raise IndexError("Please specify a list of patterns for Lightgrep as {\"pattern\", [\"encodings\"], keyOpts}")
+    self.__pat__ = _LG.lg_create_pattern()
+    self.__pmap__ = _LG.lg_create_pattern_map(len(patList))
+    self.__fsm__ = _LG.lg_create_fsm(len(patList) * 10)
+    err = POINTER(Err)()
+    self._parsePatterns(err, patList)
+    progOpts = ProgOpts()
+    self.__prog__ = _LG.lg_create_program(self.__fsm__, byref(progOpts))
+    if (self.__prog__ == 0):
+      raise RuntimeError("Could not create bytecode program")
+    _LG.lg_destroy_fsm(self.__fsm__)
+    self.__fsm__ = None
+    return self.__prog__, self.__pmap__
+
   @staticmethod
   def createProgram(patList, self=None):
     if (self is None):
       self = Lightgrep()
-    return _createProgram(self, patList)
+    return self._createProgram(patList)
+
+  def _createContext(self, prog, pmap, callback):
+    self.__prog__ = c_void_p(prog)
+    self.__pmap__ = c_void_p(pmap)
+    if (self.__prog__ == 0):
+      raise RuntimeError("Bytecode program cannot be accessed")
+    if (self.__pmap__ == 0):
+      raise RuntimeError("Pattern map cannot be accessed")
+    ctxOpts = CtxOpts()
+    self.__ctx__ = _LG.lg_create_context(self.__prog__, byref(ctxOpts))
+    self.CurOffset = 0
+    def _gotHit(user, hitPtr):
+      idx = hitPtr.contents.KeywordIndex
+      hitinfo = _LG.lg_pattern_info(self.__pmap__, idx).contents
+      callback(hitPtr.contents, hitinfo)
+    self.Callback = _CBType(_gotHit)
 
   def createContext(self, prog, pmap, callback):
-    return _createContext(self, prog, pmap, callback)
+    return self._createContext(prog, pmap, callback)
+
+  def _parsePatterns(self, err, keyList):
+    # keyList is a list of ("pattern", ["encoding"], keyOpts)
+    ct = 0
+    for i, pat in enumerate(keyList):
+      if (len(pat[0]) == 0):
+        raise IndexError("No pattern specified on keyword %d" % ct)
+      if (len(pat[1]) == 0):
+        raise IndexError("No encodings specified on keyword %d" % ct)
+      if (pat[2] is None):
+        raise IndexError("No keyword options specified on keyword %d" % ct)
+      result = _LG.lg_parse_pattern(self.__pat__, pat[0].encode("utf-8"), byref(pat[2]), byref(err))
+      if (result > 0):
+        for enc in pat[1]:
+          idx = _LG.lg_add_pattern(self.__fsm__, self.__pmap__, self.__pat__, enc.encode("utf-8"), byref(err))
+          if (idx >= 0):
+            # lg_add_pattern_list handles this automatically
+            pinfo = _LG.lg_pattern_info(self.__pmap__, idx).contents
+            pinfo.UserData = ct
+          else:
+            self.__Err__ = err
+            raise RuntimeError("Error parsing keyword #%s: Could not add %s for encoding %s: %s" % (i, pat[0], enc, err.contents.Message if err.contents.Message != None else ""))
+      else:
+        raise RuntimeError("Could not parse pattern #%s: %s: %s" % (i, pat[0], err.contents.Message if err.contents.Message != None else ""))
+      ct += 1
 
   def keywordsFromPatterns(patternList, encodings, fixedString, caseInsensitive):
     # Convert list of pattern strings into Lightgrep keyword tuples
