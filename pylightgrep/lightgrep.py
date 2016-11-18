@@ -111,28 +111,116 @@ def _openDll():
 _LG = _openDll()
 
 _CBType = CFUNCTYPE(None, c_void_p, POINTER(SearchHit))
-
 # associate the struct with the return type, otherwise ctypes thinks the return type is an int
-_LG.lg_pattern_info.restype = POINTER(PatternInfo)
-# Set appropriate restypes
 _CBType.restype = c_void_p
+
+#
+# api.h
+#
+_LG.lg_free_error.argtypes = [POINTER(Err)]
+_LG.lg_free_error.restype = None
+
+_LG.lg_create_pattern.argtypes = []
 _LG.lg_create_pattern.restype = c_void_p
+
+_LG.lg_destroy_pattern.argtypes = [c_void_p]
+_LG.lg_destroy_pattern.restype = None
+
+_LG.lg_parse_pattern.argtypes = [c_void_p, c_char_p, POINTER(KeyOpts), POINTER(POINTER(Err))]
+_LG.lg_parse_pattern.restype = c_int
+
+_LG.lg_create_pattern_map.argtypes = [c_uint]
 _LG.lg_create_pattern_map.restype = c_void_p
+
+_LG.lg_destroy_pattern_map.argtypes = [c_void_p]
+_LG.lg_destroy_pattern_map.restype = None
+
+_LG.lg_pattern_map_size.argtypes = [c_void_p]
+_LG.lg_pattern_map_size.restype = c_int
+
+_LG.lg_create_fsm.argtypes = [c_uint]
 _LG.lg_create_fsm.restype = c_void_p
-_LG.lg_read_program.restype = c_void_p
-_LG.lg_write_program.restype = None
+
+_LG.lg_destroy_fsm.argtypes = [c_void_p]
+_LG.lg_destroy_fsm.restype = None
+
+_LG.lg_add_pattern.argtypes = [c_void_p, c_void_p, c_void_p, c_char_p, POINTER(POINTER(Err))]
+_LG.lg_add_pattern.restype = c_int
+
+_LG.lg_add_pattern_list.argtypes = [c_void_p, c_void_p, c_char_p, c_char_p, POINTER(c_char_p), c_uint, POINTER(KeyOpts), POINTER(POINTER(Err))]
 _LG.lg_add_pattern_list.restype = c_int
-_LG.lg_search.restype = c_void_p
-_LG.lg_create_decoder.restype = c_void_p
-_LG.lg_hit_context.restype = c_uint
-# Set appropriate argtypes
-_LG.lg_search.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
-_LG.lg_starts_with.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
-_LG.lg_read_program.argtypes = [c_void_p, c_int]
+
+_LG.lg_pattern_info.argtypes = [c_void_p, c_uint]
+_LG.lg_pattern_info.restype = POINTER(PatternInfo)
+
+_LG.lg_create_program.argtypes = [c_void_p, c_void_p]
+_LG.lg_create_program.restype = c_void_p
+
+_LG.lg_program_size.argtypes = [c_void_p]
+_LG.lg_program_size.restype = c_int
+
 _LG.lg_write_program.argtypes = [c_void_p, c_void_p]
-_LG.lg_add_pattern_list.argtypes = [c_void_p, c_char_p, c_char_p, POINTER(c_char_p), c_uint, POINTER(KeyOpts), POINTER(POINTER(Err))]
-_LG.lg_hit_context.argtypes =[c_void_p, c_char_p, c_char_p, c_uint64, POINTER(Window), c_char_p, c_size_t, c_uint32,
-  POINTER(c_char_p), POINTER(Window), POINTER(Window), POINTER(POINTER(Err))]
+_LG.lg_write_program.restype = None
+
+_LG.lg_read_program.argtypes = [c_void_p, c_int]
+_LG.lg_read_program.restype = c_void_p
+
+_LG.lg_destroy_program.argtypes = [c_void_p]
+_LG.lg_destroy_program.restype = None
+
+_LG.lg_create_contex.argtypes = [c_void_p, c_void_p]
+_LG.lg_create_context.restype = c_void_p
+
+_LG.lg_destroy_context.argtypes = [c_void_p]
+_LG.lg_destroy_context.restype = None
+
+_LG.lg_starts_with.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
+_LG.lg_starts_with.restype = None
+
+_LG.lg_reset_context.argtypes = [c_void_p]
+_LG.lg_reset_context.restype = None
+
+_LG.lg_search.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
+_LG.lg_search.restype = c_void_p
+
+_LG.lg_closeout_search.argtypes = [c_void_p, c_void_p, _CBTYPE]
+_LG.lg_closeout_search.restype = None
+
+_LG.lg_search_resolve.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBTYPE]
+_LG.lg_search_resolve.restype = c_uint64
+
+#
+# util.h
+#
+_LG.lg_get_char_transform_id.argtypes = [c_char_p]
+_LG.lg_get_char_transform_id.restype = c_int
+
+_LG.lg_get_encoding_id.argtypes = [c_char_p]
+_LG.lg_get_encoding_id.restype = c_int
+
+_LG.lg_get_byte_transform_id.argtypes = [c_char_p]
+_LG.lg_get_byte_transform_id.restype = c_int
+
+_LG.lg_create_decoder.argtypes = []
+_LG.lg_create_decoder.restype = c_void_p
+
+_LG.lg_destroy_decoder.argtypes = [c_void_p]
+_LG.lg_destroy_decoder.restype = None
+
+_LG.lg_read_window.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, POINTER(Window), c_char_p, c_size_t, c_size_t, POINTER(POINTER(c_int32)), POINTER(POINTER(c_size_t)), POINTER(c_size_t), POINTER(Window), POINTER(POINTER(Err))]
+_LG.lg_read_window.restype = c_uint
+
+_LG.lg_hit_context.argtypes =[c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, POINTER(Window), c_char_p, c_size_t, c_uint32, POINTER(c_char_p), POINTER(Window), POINTER(Window), POINTER(POINTER(Err))]
+_LG.lg_hit_context.restype = c_uint
+
+_LG.lg_free_window_characters.argtypes = [POINTER(c_int32)]
+_LG.lg_free_window_characters.restype = None
+
+_LG.lg_free_window_offsets.argtypes = [POINTER(c_size_t)]
+_LG.lg_free_window_offsets.restype = None
+
+_LG.lg_free_hit_context_string.argtypes = [c_char_p]
+_LG.lg_free_hit_context_string.restype = None
 
 # check for errors on handles
 def _checkHandleForErrors(ret, func, args):
