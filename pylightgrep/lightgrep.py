@@ -168,7 +168,7 @@ _LG.lg_read_program.restype = c_void_p
 _LG.lg_destroy_program.argtypes = [c_void_p]
 _LG.lg_destroy_program.restype = None
 
-_LG.lg_create_contex.argtypes = [c_void_p, c_void_p]
+_LG.lg_create_context.argtypes = [c_void_p, c_void_p]
 _LG.lg_create_context.restype = c_void_p
 
 _LG.lg_destroy_context.argtypes = [c_void_p]
@@ -183,10 +183,10 @@ _LG.lg_reset_context.restype = None
 _LG.lg_search.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
 _LG.lg_search.restype = c_void_p
 
-_LG.lg_closeout_search.argtypes = [c_void_p, c_void_p, _CBTYPE]
+_LG.lg_closeout_search.argtypes = [c_void_p, c_void_p, _CBType]
 _LG.lg_closeout_search.restype = None
 
-_LG.lg_search_resolve.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBTYPE]
+_LG.lg_search_resolve.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
 _LG.lg_search_resolve.restype = c_uint64
 
 #
