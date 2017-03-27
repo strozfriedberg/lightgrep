@@ -343,7 +343,7 @@ class Lightgrep():
       buf_end,
       offset,
       byref(hit_window),
-      hit['encChain'],
+      hit['encChain'].encode('utf-8'),
       100,
       ord(' '),
       byref(out),
