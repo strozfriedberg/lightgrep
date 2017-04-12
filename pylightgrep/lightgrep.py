@@ -351,7 +351,7 @@ class Lightgrep():
       byref(hit_string_location),
       byref(err)
     )
-    ret = str(out.value)
+    ret = out.value.decode('utf-8')
     _LG.lg_free_hit_context_string(out)
     return ret
 
