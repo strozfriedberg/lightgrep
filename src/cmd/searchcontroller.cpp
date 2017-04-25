@@ -18,7 +18,7 @@ bool SearchController::searchFile(
 {
   boost::timer searchClock;
   uint64_t blkSize = 0,
-         offset = 0;
+           offset = 0;
 
   blkSize = readNext(file, Cur.get(), BlockSize);
   if (!feof(file)) {
