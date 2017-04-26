@@ -57,7 +57,6 @@ SCOPE_TEST(testDedupeOnDiffEncodings) {
 */
 
 SCOPE_TEST(testLgAddPatternList) {
-
   const char pats[] =
     "foo\tUTF-8,UTF-16LE\t0\t0\n"
     "bar\tISO-8859-11,UTF-16BE\t0\t1\n";
@@ -86,6 +85,40 @@ SCOPE_TEST(testLgAddPatternList) {
 
   lg_add_pattern_list(
     fsm.get(), pmap.get(), pats, "testLgAddPatternList",
+    defEncs, defEncsNum, &defOpts, &err
+  );
+
+  SCOPE_ASSERT(!err);
+}
+
+SCOPE_TEST(testLgAddPatternListFixedString) {
+  const char pats[] = "++\tASCII\t0\t0";
+  const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
+
+  const char* defEncs[] = { "ASCII" };
+  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
+
+  const LG_KeyOptions defOpts{0, 0};
+
+   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
+    lg_create_pattern_map(patsNum),
+    lg_destroy_pattern_map
+  );
+
+  SCOPE_ASSERT(pmap);
+
+  // FIXME: how to estimate NFA size here?
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(0),
+    lg_destroy_fsm
+  );
+
+  SCOPE_ASSERT(fsm);
+
+  LG_Error* err = nullptr;
+
+  lg_add_pattern_list(
+    fsm.get(), pmap.get(), pats, "testLgAddPatternListFixedString",
     defEncs, defEncsNum, &defOpts, &err
   );
 
