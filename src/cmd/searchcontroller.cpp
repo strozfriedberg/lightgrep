@@ -31,6 +31,8 @@ bool SearchController::searchFile(
       boost::thread exec(std::move(task));
 
       // search cur block
+      hinfo->setBuffer(Cur.get(), blkSize, offset);
+
       lg_search(
         searcher.get(),
         Cur.get(),
@@ -54,12 +56,15 @@ bool SearchController::searchFile(
 
   // assert: all data has been read, offset + blkSize == file size,
   // cur is last block
+  hinfo->setBuffer(Cur.get(), blkSize, offset);
+
   lg_search(
     searcher.get(),
     Cur.get(),
     Cur.get() + blkSize,
     offset, hinfo, callback
   );
+
   lg_closeout_search(searcher.get(), hinfo, callback);
   offset += blkSize;  // be sure to count the last block
 

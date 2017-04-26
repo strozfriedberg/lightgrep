@@ -66,9 +66,9 @@ void parse_opts(int argc, char** argv,
   // Pattern options
   po::options_description pats("Pattern selection and interpretation");
   pats.add_options()
-    ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles), "path to file containing keywords")
-    ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns), "a keyword on the command-line")
-    ("encoding,e", po::value<std::vector<std::string>>(&opts.Encodings)->default_value(std::vector<std::string>{"ASCII"}, "ASCII"), "encoding to use (e.g., ASCII, UTF-8)")
+    ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles)->composing(), "path to file containing keywords")
+    ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns)->composing(), "a keyword on the command-line")
+    ("encoding,e", po::value<std::vector<std::string>>(&opts.Encodings)->default_value(std::vector<std::string>{"ASCII"}, "ASCII")->composing(), "encoding to use (e.g., ASCII, UTF-8)")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ;
@@ -81,6 +81,10 @@ void parse_opts(int argc, char** argv,
     ("recursive,r", "traverse directories recursively")
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
+    ("after-context,A", po::value<int32_t>(&opts.AfterContext)->value_name("NUM"), "print NUM lines of trailing context")
+    ("before-context,B", po::value<int32_t>(&opts.BeforeContext)->value_name("NUM"), "print NUM lines of leading context")
+    ("context,C", po::value<int32_t>(&opts.BeforeContext)->value_name("NUM"), "print NUM lines of context")
+    ("group-separator", po::value<std::string>(&opts.GroupSeparator)->value_name("SEP")->default_value("--"), "use SEP as the group separator")
     ("no-output", "do not output hits (good for profiling)")
     ("block-size", po::value<uint32_t>(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
     ;
@@ -202,6 +206,11 @@ void parse_opts(int argc, char** argv,
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;
+
+    if (optsMap.count("context") > 0) {
+      // "-C N" is equivalent to "-B N -A N"
+      opts.AfterContext = opts.BeforeContext;
+    }
 
     // uppercase encoding names
     for (std::string& e : opts.Encodings) {

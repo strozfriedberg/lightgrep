@@ -33,7 +33,8 @@ public:
               ServerAddr,
               ServerLog,
               ProgramFile,
-              StatsFileName;
+              StatsFileName,
+              GroupSeparator;
 
   std::vector<std::string> Inputs,
                            CmdLinePatterns,
@@ -41,6 +42,9 @@ public:
                            Encodings;
 
   uint32_t BlockSize;
+
+  int32_t BeforeContext = -1,
+          AfterContext = -1;
 
   unsigned short ServerPort;
 

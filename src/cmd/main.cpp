@@ -332,6 +332,26 @@ void search(const Options& opts) {
     callback = &nullWriter;
     hinfo.reset(new HitCounterInfo);
   }
+  else if (opts.BeforeContext > -1 || opts.AfterContext > -1) {
+    if (opts.PrintPath) {
+      callback = &lineContextPathWriter;
+      hinfo.reset(new LineContextPathWriterInfo(
+        opts.openOutput(), pmap.get(),
+        std::max(opts.BeforeContext, 0),
+        std::max(opts.AfterContext, 0),
+        opts.GroupSeparator
+      ));
+    }
+    else {
+      callback = &lineContextHitWriter;
+      hinfo.reset(new LineContextHitWriterInfo(
+        opts.openOutput(), pmap.get(),
+        std::max(opts.BeforeContext, 0),
+        std::max(opts.AfterContext, 0),
+        opts.GroupSeparator
+      ));
+    }
+  }
   else if (opts.PrintPath) {
     callback = &pathWriter;
     hinfo.reset(new PathWriterInfo(opts.openOutput(), pmap.get()));
