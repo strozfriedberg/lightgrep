@@ -173,7 +173,8 @@ std::tuple<
   std::unique_ptr<LG_Error,void(*)(LG_Error*)>
 >
 parsePatterns(const T& keyFiles,
-              const std::vector<std::string>& defaultEncodings = { "ASCII" })
+              const std::vector<std::string>& defaultEncodings = { "ASCII" },
+              const LG_KeyOptions& defaultOpts = {0, 0})
 {
   // read the patterns and parse them
 
@@ -200,8 +201,6 @@ parsePatterns(const T& keyFiles,
   // set default encoding(s) of patterns which have none specified
   const std::unique_ptr<const char*[]> defEncs(c_str_arr(defaultEncodings));
 
-  const LG_KeyOptions defOpts{0, 0};
-
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
   LG_Error* tail_err = nullptr;
 
@@ -212,7 +211,7 @@ parsePatterns(const T& keyFiles,
     lg_add_pattern_list(
       fsm.get(), pmap.get(),
       pf.second.c_str(), pf.first.c_str(),
-      defEncs.get(), defaultEncodings.size(), &defOpts, &local_err
+      defEncs.get(), defaultEncodings.size(), &defaultOpts, &local_err
     );
 
     if (local_err) {
@@ -302,11 +301,12 @@ void search(const Options& opts) {
   else {
     // read the patterns and parse them
     std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-
     std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    std::tie(pmap, fsm, err) =
-      parsePatterns(opts.getPatternLines(), opts.Encodings);
+    std::tie(pmap, fsm, err) = parsePatterns(
+      opts.getPatternLines(), opts.Encodings,
+      {opts.LiteralMode, opts.CaseInsensitive}
+    );
 
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -391,8 +391,10 @@ bool writeGraphviz(const Options& opts) {
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, fsm, err) =
-    parsePatterns(opts.getPatternLines(), opts.Encodings);
+  std::tie(std::ignore, fsm, err) = parsePatterns(
+    opts.getPatternLines(), opts.Encodings,
+    {opts.LiteralMode, opts.CaseInsensitive}
+  );
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -420,8 +422,10 @@ void writeProgram(const Options& opts) {
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, fsm, err) =
-    parsePatterns(opts.getPatternLines(), opts.Encodings);
+  std::tie(std::ignore, fsm, err) = parsePatterns(
+    opts.getPatternLines(), opts.Encodings,
+    {opts.LiteralMode, opts.CaseInsensitive}
+  );
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -459,8 +463,10 @@ void writeProgram(const Options& opts) {
 void validate(const Options& opts) {
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, std::ignore, err) =
-    parsePatterns(opts.getPatternLines(), opts.Encodings);
+  std::tie(std::ignore, std::ignore, err) = parsePatterns(
+    opts.getPatternLines(), opts.Encodings,
+    {opts.LiteralMode, opts.CaseInsensitive}
+  );
 
   for (const LG_Error* e = err.get(); e ; e = e->Next) {
     std::cerr << e->Index << ": pattern \"" << e->Pattern
@@ -485,7 +491,9 @@ void writeSampleMatches(const Options& opts) {
   size_t pnum = 0;
   for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
     const std::pair<std::string,std::string> a[] = { pf };
-    std::tie(std::ignore, fsm, err) = parsePatterns(a, opts.Encodings);
+    std::tie(std::ignore, fsm, err) = parsePatterns(
+      a, opts.Encodings, {opts.LiteralMode, opts.CaseInsensitive}
+    );
 
     if (err) {
       std::stringstream ss;
