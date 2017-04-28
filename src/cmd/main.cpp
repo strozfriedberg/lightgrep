@@ -62,8 +62,8 @@ void startup(
 
 void printHelp(const po::options_description& desc) {
   std::cout
-    << "lightgrep, Copyright (c) 2010-2012, Lightbox Technologies, Inc."
-    << "\nCreated " << __DATE__ << "\n\n"
+    << "lightgrep, Copyright (c) 2010-2017, Stroz Friedberg, LLC.\n"
+    << "Created " << __DATE__ << "\n\n"
     << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
     #ifdef LIGHTGREP_CUSTOMER
     << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
