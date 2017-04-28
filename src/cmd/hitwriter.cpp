@@ -11,26 +11,27 @@ void nullWriter(void* userData, const LG_SearchHit* const) {
 }
 
 void writeHit(HitWriterInfo* hi, const LG_SearchHit* const hit) {
+  ++hi->NumHits;
   const LG_PatternInfo* info = lg_pattern_info(hi->Map, hit->KeywordIndex);
 
   hi->Out << hit->Start << '\t'
           << hit->End << '\t'
           << reinterpret_cast<uint64_t>(info->UserData) << '\t'
           << info->Pattern << '\t'
-          << info->EncodingChain << '\n';
-
-  ++hi->NumHits;
+          << info->EncodingChain;
 }
 
 void hitWriter(void* userData, const LG_SearchHit* const hit) {
   HitWriterInfo* hi = static_cast<HitWriterInfo*>(userData);
   writeHit(hi, hit);
+  hi->Out << '\n';
 }
 
 void pathWriter(void* userData, const LG_SearchHit* const hit) {
   PathWriterInfo* hi = static_cast<PathWriterInfo*>(userData);
   hi->Out << hi->Path << '\t';
   writeHit(hi, hit);
+  hi->Out << '\n';
 }
 
 void writeGroupSeparator(LineContextHitWriterInfo* hi) {
@@ -97,14 +98,18 @@ void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hi
 void lineContextHitWriter(void* userData, const LG_SearchHit* const hit) {
   LineContextHitWriterInfo* hi = static_cast<LineContextHitWriterInfo*>(userData);
   writeGroupSeparator(hi);
-  writeLineContext(hi, hit);
   writeHit(hi, hit);
+  hi->Out << '\t';
+  writeLineContext(hi, hit);
+  hi->Out << '\n';
 }
 
 void lineContextPathWriter(void* userData, const LG_SearchHit* const hit) {
   LineContextPathWriterInfo* hi = static_cast<LineContextPathWriterInfo*>(userData);
   writeGroupSeparator(hi);
   hi->Out << hi->Path << '\t';
-  writeLineContext(hi, hit);
   writeHit(hi, hit);
+  hi->Out << '\t';
+  writeLineContext(hi, hit);
+  hi->Out << '\n';
 }
