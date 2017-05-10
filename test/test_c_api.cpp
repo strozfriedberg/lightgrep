@@ -92,7 +92,7 @@ SCOPE_TEST(testLgAddPatternList) {
 }
 
 SCOPE_TEST(testLgAddPatternListFixedString) {
-  const char pats[] = "++\tASCII\t0\t0";
+  const char pats[] = "++\tASCII\t1\t0";
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
   const char* defEncs[] = { "ASCII" };
