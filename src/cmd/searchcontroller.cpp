@@ -10,6 +10,15 @@ uint64_t readNext(FILE* file, char* buf, unsigned int blockSize) {
   return std::fread(buf, 1, blockSize, file);
 }
 
+void print_cumulative_stats(double seconds, uint64_t offset) {
+  uint64_t units = offset >> 20;
+  const double bw = units / seconds;
+  units >>= 10;
+  std::cerr << units << " GB searched in "
+            << seconds << " seconds, "
+            << bw << " MB/s avg" << std::endl;
+}
+
 bool SearchController::searchFile(
   std::shared_ptr<ContextHandle> searcher,
   HitCounterInfo* hinfo,
@@ -40,12 +49,7 @@ bool SearchController::searchFile(
 
     offset += blkSize;
     if (offset % (1024 * 1024 * 1024) == 0) { // FIXME: should change this due to the block size being variable
-      const double lastTime = searchClock.elapsed();
-      uint64_t units = offset >> 20;
-      const double bw = units / lastTime;
-      units >>= 10;
-      std::cerr << units << " GB searched in " << lastTime
-                << " seconds, " << bw << " MB/s avg" << std::endl;
+      print_cumulative_stats(searchClock.elapsed(), offset);
     }
 
     exec.join();
