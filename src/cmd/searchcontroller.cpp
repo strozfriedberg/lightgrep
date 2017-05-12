@@ -7,7 +7,7 @@
 #include <thread>
 
 uint64_t readNext(FILE* file, char* buf, unsigned int blockSize) {
-  return std::fread(static_cast<void*>(buf), 1, blockSize, file);
+  return std::fread(buf, 1, blockSize, file);
 }
 
 bool SearchController::searchFile(
