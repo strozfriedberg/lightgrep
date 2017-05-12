@@ -79,6 +79,9 @@ void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hi
   const char* cbeg = hbeg - (lnl - lbeg);
   const char* cend = rnl;
 
+  // print the line offset
+  hi->Out << (hi->BufOff + (cbeg - hi->Buf)) << '\t';
+
   // print the hit, escaping \t\n\r
   const char esc[] = "\t\n\r";
   for (const char* l = cbeg, *r; l != cend; l = r) {
