@@ -1,16 +1,27 @@
 #include "searchcontroller.h"
 
+#include <chrono>
 #include <cstdio>
+#include <future>
 #include <iostream>
-
-// FIXME: Replace boost::thread with std::thread
-#include <boost/thread.hpp>
-// FIXME: Replace boost::timer with something from std::chrono
-#include <boost/timer.hpp>
+#include <thread>
 
 uint64_t readNext(FILE* file, char* buf, unsigned int blockSize) {
   return std::fread(static_cast<void*>(buf), 1, blockSize, file);
 }
+
+class Timer {
+public:
+  double elapsed() const {
+    return std::chrono::duration<double>(
+      std::chrono::high_resolution_clock::now() - start
+    ).count();
+  }
+
+private:
+  const std::chrono::time_point<std::chrono::high_resolution_clock> start =
+    std::chrono::high_resolution_clock::now();
+};
 
 bool SearchController::searchFile(
   std::shared_ptr<ContextHandle> searcher,
@@ -18,18 +29,17 @@ bool SearchController::searchFile(
   FILE* file,
   LG_HITCALLBACK_FN callback)
 {
-  boost::timer searchClock;
+  Timer searchClock;
+
   uint64_t blkSize = 0,
            offset = 0;
 
   blkSize = readNext(file, Cur.get(), BlockSize);
   while (!std::feof(file)) {
     // read the next block on a separate thread
-    boost::packaged_task<uint64_t> task(
-      std::bind(&readNext, file, Next.get(), BlockSize)
-    );
-    boost::unique_future<uint64_t> sizeFut = task.get_future();
-    boost::thread exec(std::move(task));
+    std::packaged_task<uint64_t(FILE*, char*, unsigned int)> task(readNext);
+    std::future<uint64_t> sizeFut = task.get_future();
+    std::thread exec(std::move(task), file, Next.get(), BlockSize);
 
     // search cur block
     hinfo->setBuffer(Cur.get(), blkSize, offset);
@@ -50,6 +60,8 @@ bool SearchController::searchFile(
       std::cerr << units << " GB searched in " << lastTime
                 << " seconds, " << bw << " MB/s avg" << std::endl;
     }
+
+    exec.join();
     blkSize = sizeFut.get(); // block on i/o thread completion
     Cur.swap(Next);
   }

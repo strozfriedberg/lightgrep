@@ -136,11 +136,6 @@ if test "x$ax_cv_boost_filesystem" != "xyes"; then
   AC_MSG_ERROR([Failed to find Boost filesystem library.])
 fi
 
-AX_BOOST_CHRONO
-if test "x$ax_cv_boost_chrono" != "xyes"; then
-  AC_MSG_ERROR([Failed to find Boost chrono library.])
-fi
-
 AX_BOOST_PROGRAM_OPTIONS
 if test "x$ax_cv_boost_program_options" != "xyes"; then
   AC_MSG_ERROR([Failed to find Boost program_options library.])
