@@ -1,6 +1,6 @@
 #include "searchcontroller.h"
+#include "timer.h"
 
-#include <chrono>
 #include <cstdio>
 #include <future>
 #include <iostream>
@@ -9,19 +9,6 @@
 uint64_t readNext(FILE* file, char* buf, unsigned int blockSize) {
   return std::fread(static_cast<void*>(buf), 1, blockSize, file);
 }
-
-class Timer {
-public:
-  double elapsed() const {
-    return std::chrono::duration<double>(
-      std::chrono::high_resolution_clock::now() - start
-    ).count();
-  }
-
-private:
-  const std::chrono::time_point<std::chrono::high_resolution_clock> start =
-    std::chrono::high_resolution_clock::now();
-};
 
 bool SearchController::searchFile(
   std::shared_ptr<ContextHandle> searcher,
