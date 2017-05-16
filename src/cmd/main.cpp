@@ -130,7 +130,7 @@ void search(
     static_cast<Reader*>(new FileReader(input, ctrl.BlockSize))
   );
 
-  hinfo->setPath(input);
+  hinfo->setPath(input == "-" ? "(standard input)" : input);
   lg_reset_context(searcher);
   ctrl.searchFile(searcher, hinfo, *reader, callback);
 }

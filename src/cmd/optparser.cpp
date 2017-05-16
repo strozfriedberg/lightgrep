@@ -242,6 +242,10 @@ void parse_opts(int argc, char** argv,
         // input from stdin
         opts.Inputs.push_back("-");
       }
+
+      if (opts.MemoryMapped && std::find(opts.Inputs.begin(), opts.Inputs.end(), "-") != opts.Inputs.end()) {
+        throw po::error("--mmap is incompatible with reading from stdin");
+      }
     }
     else if (opts.Command == Options::SAMPLES) {
       opts.SampleLimit =
