@@ -23,6 +23,7 @@ bool SearchController::searchFile(
   LG_HITCALLBACK_FN callback)
 {
   Timer searchClock;
+  double thisTime, lastTime = searchClock.elapsed();
 
   uint64_t blkSize,
            offset = 0;
@@ -45,8 +46,11 @@ bool SearchController::searchFile(
     );
 
     offset += blkSize;
-    if (offset % (1024 * 1024 * 1024) == 0) { // FIXME: should change this due to the block size being variable
+
+    thisTime = searchClock.elapsed();
+    if (thisTime - lastTime > 30.0) {
       print_cumulative_stats(searchClock.elapsed(), offset);
+      lastTime = thisTime;
     }
 
     std::tie(buf, blkSize) = fut.get(); // block on i/o thread completion
