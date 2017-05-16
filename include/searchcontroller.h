@@ -13,7 +13,7 @@ public:
     TotalTime(0.0) {}
 
   bool searchFile(
-    std::shared_ptr<ContextHandle> searcher,
+    ContextHandle* searcher,
     HitCounterInfo* hinfo,
     Reader& reader,
     LG_HITCALLBACK_FN callback

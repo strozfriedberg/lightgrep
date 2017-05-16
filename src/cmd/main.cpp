@@ -121,7 +121,7 @@ void search(
   const std::string& input,
   bool mmapped,
   SearchController& ctrl,
-  std::shared_ptr<ContextHandle> searcher,
+  ContextHandle* searcher,
   HitCounterInfo* hinfo,
   LG_HITCALLBACK_FN callback)
 {
@@ -131,7 +131,7 @@ void search(
   );
 
   hinfo->setPath(input);
-  lg_reset_context(searcher.get());
+  lg_reset_context(searcher);
   ctrl.searchFile(searcher, hinfo, *reader, callback);
 }
 
@@ -139,7 +139,7 @@ void searchRecursively(
   const fs::path& path,
   bool mmapped,
   SearchController& ctrl,
-  std::shared_ptr<ContextHandle> searcher,
+  ContextHandle* searcher,
   HitCounterInfo* hinfo,
   LG_HITCALLBACK_FN callback)
 {
@@ -361,8 +361,7 @@ void search(const Options& opts) {
   ctxOpts.TraceBegin = opts.DebugBegin;
   ctxOpts.TraceEnd = opts.DebugEnd;
 
-// FIXME: any reason this needs to be shared?
-  std::shared_ptr<ContextHandle> searcher(
+  std::unique_ptr<ContextHandle, void(*)(ContextHandle*)> searcher(
     lg_create_context(prog.get(), &ctxOpts),
     lg_destroy_context
   );
@@ -375,18 +374,22 @@ void search(const Options& opts) {
       const fs::path p(i);
       if (fs::is_directory(p)) {
         searchRecursively(
-          p, opts.MemoryMapped, ctrl, searcher, hinfo.get(), callback
+          p, opts.MemoryMapped, ctrl, searcher.get(), hinfo.get(), callback
         );
       }
       else {
-        search(i, opts.MemoryMapped, ctrl, searcher, hinfo.get(), callback);
+        search(
+          i, opts.MemoryMapped, ctrl, searcher.get(), hinfo.get(), callback
+        );
       }
     }
   }
   else {
     for (const std::string& i : opts.Inputs) {
       if (!fs::is_directory(fs::path(i))) {
-        search(i, opts.MemoryMapped, ctrl, searcher, hinfo.get(), callback);
+        search(
+          i, opts.MemoryMapped, ctrl, searcher.get(), hinfo.get(), callback
+        );
       }
     }
   }

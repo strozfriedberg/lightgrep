@@ -17,7 +17,7 @@ void print_cumulative_stats(double seconds, uint64_t offset) {
 }
 
 bool SearchController::searchFile(
-  std::shared_ptr<ContextHandle> searcher,
+  ContextHandle* searcher,
   HitCounterInfo* hinfo,
   Reader& reader,
   LG_HITCALLBACK_FN callback)
@@ -38,7 +38,7 @@ bool SearchController::searchFile(
     hinfo->setBuffer(buf, blkSize, offset);
 
     lg_search(
-      searcher.get(),
+      searcher,
       buf,
       buf + blkSize,
       offset, hinfo, callback
@@ -57,13 +57,13 @@ bool SearchController::searchFile(
   hinfo->setBuffer(buf, blkSize, offset);
 
   lg_search(
-    searcher.get(),
+    searcher,
     buf,
     buf + blkSize,
     offset, hinfo, callback
   );
 
-  lg_closeout_search(searcher.get(), hinfo, callback);
+  lg_closeout_search(searcher, hinfo, callback);
   offset += blkSize;  // be sure to count the last block
 
   TotalTime += searchClock.elapsed();
