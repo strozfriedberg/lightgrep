@@ -54,7 +54,8 @@ public:
        Determinize,
        PrintPath,
        Recursive,
-       Binary;
+       Binary,
+       MemoryMapped;
 
   mutable std::ofstream OutputFile;
 

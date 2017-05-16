@@ -1,14 +1,11 @@
 #include "searchcontroller.h"
 #include "timer.h"
 
-#include <cstdio>
+#include <algorithm>
 #include <future>
 #include <iostream>
 #include <thread>
-
-uint64_t readNext(FILE* file, char* buf, unsigned int blockSize) {
-  return std::fread(buf, 1, blockSize, file);
-}
+#include <utility>
 
 void print_cumulative_stats(double seconds, uint64_t offset) {
   uint64_t units = offset >> 20;
@@ -22,28 +19,28 @@ void print_cumulative_stats(double seconds, uint64_t offset) {
 bool SearchController::searchFile(
   std::shared_ptr<ContextHandle> searcher,
   HitCounterInfo* hinfo,
-  FILE* file,
+  Reader& reader,
   LG_HITCALLBACK_FN callback)
 {
   Timer searchClock;
 
-  uint64_t blkSize = 0,
+  uint64_t blkSize,
            offset = 0;
 
-  blkSize = readNext(file, Cur.get(), BlockSize);
-  while (!std::feof(file)) {
-    // read the next block on a separate thread
-    std::packaged_task<uint64_t(FILE*, char*, unsigned int)> task(readNext);
-    std::future<uint64_t> sizeFut = task.get_future();
-    std::thread exec(std::move(task), file, Next.get(), BlockSize);
+  const char* buf;
+
+  std::tie(buf, blkSize) = reader.read(BlockSize).get();
+  while (blkSize) {
+    // start getting next block
+    std::future<std::pair<const char*, size_t>> fut = reader.read(BlockSize);
 
     // search cur block
-    hinfo->setBuffer(Cur.get(), blkSize, offset);
+    hinfo->setBuffer(buf, blkSize, offset);
 
     lg_search(
       searcher.get(),
-      Cur.get(),
-      Cur.get() + blkSize,
+      buf,
+      buf + blkSize,
       offset, hinfo, callback
     );
 
@@ -52,19 +49,17 @@ bool SearchController::searchFile(
       print_cumulative_stats(searchClock.elapsed(), offset);
     }
 
-    exec.join();
-    blkSize = sizeFut.get(); // block on i/o thread completion
-    Cur.swap(Next);
+    std::tie(buf, blkSize) = fut.get(); // block on i/o thread completion
   }
 
   // assert: all data has been read, offset + blkSize == file size,
   // cur is last block
-  hinfo->setBuffer(Cur.get(), blkSize, offset);
+  hinfo->setBuffer(buf, blkSize, offset);
 
   lg_search(
     searcher.get(),
-    Cur.get(),
-    Cur.get() + blkSize,
+    buf,
+    buf + blkSize,
     offset, hinfo, callback
   );
 

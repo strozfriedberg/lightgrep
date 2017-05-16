@@ -3,9 +3,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <algorithm>
-#include <cstdio>
 #include <fstream>
-#include <functional>
 #include <iostream>
 #include <set>
 #include <tuple>
@@ -25,6 +23,7 @@
 #include "matchgen.h"
 #include "options.h"
 #include "optparser.h"
+#include "reader.h"
 #include "searchcontroller.h"
 #include "util.h"
 
@@ -120,29 +119,25 @@ size_t countErrors(LG_Error* err) {
 
 void search(
   const std::string& input,
+  bool mmapped,
   SearchController& ctrl,
   std::shared_ptr<ContextHandle> searcher,
   HitCounterInfo* hinfo,
   LG_HITCALLBACK_FN callback)
 {
-  // try to open our input
-  FILE* file = input == "-" ? stdin : std::fopen(input.c_str(), "rb");
-  if (!file) {
-    std::cerr << "Could not open file " << input << std::endl;
-    return;
-  }
-
-  setbuf(file, 0); // unbuffered, bitte
+  std::unique_ptr<Reader> reader(mmapped ?
+    static_cast<Reader*>(new MemoryMappedFileReader(input)) :
+    static_cast<Reader*>(new FileReader(input, ctrl.BlockSize))
+  );
 
   hinfo->setPath(input);
   lg_reset_context(searcher.get());
-  ctrl.searchFile(searcher, hinfo, file, callback);
-
-  std::fclose(file);
+  ctrl.searchFile(searcher, hinfo, *reader, callback);
 }
 
 void searchRecursively(
   const fs::path& path,
+  bool mmapped,
   SearchController& ctrl,
   std::shared_ptr<ContextHandle> searcher,
   HitCounterInfo* hinfo,
@@ -152,7 +147,7 @@ void searchRecursively(
   for (fs::recursive_directory_iterator d(path); d != end; ++d) {
     const fs::path p(d->path());
     if (!fs::is_directory(p)) {
-      search(p.string(), ctrl, searcher, hinfo, callback);
+      search(p.string(), mmapped, ctrl, searcher, hinfo, callback);
     }
   }
 }
@@ -379,17 +374,19 @@ void search(const Options& opts) {
     for (const std::string& i : opts.Inputs) {
       const fs::path p(i);
       if (fs::is_directory(p)) {
-        searchRecursively(p, ctrl, searcher, hinfo.get(), callback);
+        searchRecursively(
+          p, opts.MemoryMapped, ctrl, searcher, hinfo.get(), callback
+        );
       }
       else {
-        search(i, ctrl, searcher, hinfo.get(), callback);
+        search(i, opts.MemoryMapped, ctrl, searcher, hinfo.get(), callback);
       }
     }
   }
   else {
     for (const std::string& i : opts.Inputs) {
       if (!fs::is_directory(fs::path(i))) {
-        search(i, ctrl, searcher, hinfo.get(), callback);
+        search(i, opts.MemoryMapped, ctrl, searcher, hinfo.get(), callback);
       }
     }
   }

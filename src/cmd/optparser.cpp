@@ -87,6 +87,7 @@ void parse_opts(int argc, char** argv,
     ("group-separator", po::value<std::string>(&opts.GroupSeparator)->value_name("SEP")->default_value("--"), "use SEP as the group separator")
     ("no-output", "do not output hits (good for profiling)")
     ("block-size", po::value<uint32_t>(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
+    ("mmap", "memory-map input file(s)")
     ;
 
   // Server options
@@ -206,6 +207,7 @@ void parse_opts(int argc, char** argv,
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;
+    opts.MemoryMapped = optsMap.count("mmap") > 0;
 
     if (optsMap.count("context") > 0) {
       // "-C N" is equivalent to "-B N -A N"
