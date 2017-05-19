@@ -218,4 +218,4 @@ endif
 #endif
 
 install-exec-hook:
-	rm $(DESTDIR)$(libdir)/liblightgrep.la
+	$(RM) $(DESTDIR)$(libdir)/liblightgrep.la
