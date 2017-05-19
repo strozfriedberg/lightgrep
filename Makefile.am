@@ -216,3 +216,6 @@ endif
 #src/lib/.libs/liblightgrep.lib: src/lib/.libs/liblightgrep-0.dll
 #	$(DLLTOOL) -D $< -d src/lib/.libs/liblightgrep.def -l $@
 #endif
+
+install-exec-hook:
+	rm $(DESTDIR)$(libdir)/liblightgrep.la
