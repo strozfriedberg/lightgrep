@@ -327,7 +327,7 @@ class Lightgrep():
     end = cast(addressof(beg.contents)+size, POINTER(c_char))
     _LG.lg_starts_with(self.__ctx__, beg, end, 0, 0, self.Callback);
 
-  def hit_context(self, buf, offset, hit):
+  def hit_context(self, buf, offset, hit, window_size=100):
     if not hasattr(self, "__dec__"):
       self.__dec__ = _LG.lg_create_decoder()
     buf_beg = cast(buf, POINTER(c_char))
@@ -344,7 +344,7 @@ class Lightgrep():
       offset,
       byref(hit_window),
       hit['encChain'].encode('utf-8'),
-      100,
+      window_size,
       ord(' '),
       byref(out),
       byref(outer_range),
