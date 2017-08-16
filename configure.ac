@@ -3,7 +3,7 @@
 AC_PREREQ([2.64])
 # TODO: required versions for automake, libtool?
 
-AC_INIT([liblightgrep], [1.4.1], [joel@lightboxtechnologies.com])
+AC_INIT([liblightgrep], [1.5.0], [joel@lightboxtechnologies.com])
 
 # Set the default C and C++ compilation flags to nothing.
 # Do this immediately after AC_INIT, as other macros might invoke
