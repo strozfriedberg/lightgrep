@@ -30,6 +30,7 @@ public:
 
   std::string Input,
               Output,
+              InputListFile,
               ServerAddr,
               ServerLog,
               ProgramFile,
