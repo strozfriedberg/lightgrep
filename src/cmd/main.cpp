@@ -439,7 +439,7 @@ void search(const Options& opts) {
 
     search(Lines(*is), opts.Recursive, ctrl, searcher, hinfo.get(), callback);
 
-    if (!is) {
+    if (is->bad()) {
       std::cerr << "Error reading input file list " << i << ": "
                 << std::strerror(errno) << std::endl;
     }
