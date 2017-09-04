@@ -30,13 +30,13 @@ public:
 
   std::string Input,
               Output,
-              InputListFile,
               ServerAddr,
               ServerLog,
               ProgramFile,
               StatsFileName;
 
   std::vector<std::string> Inputs,
+                           InputLists,
                            CmdLinePatterns,
                            KeyFiles,
                            Encodings;

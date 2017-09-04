@@ -3,7 +3,9 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <algorithm>
+#include <cerrno>
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -416,20 +418,19 @@ void search(const Options& opts) {
 
   SearchController ctrl(opts.BlockSize);
 
-  // search our inputs
-  if (!opts.InputListFile.empty()) {
+  // search each input file in each input list
+  for (const auto& i: opts.InputLists) {
     std::ifstream ilf;
     std::istream* is;
 
-    if (opts.InputListFile == "-") {
+    if (i == "-") {
       is = &std::cin;
     }
     else {
-      ilf.open(opts.InputListFile, std::ios::in | std::ios::binary);
+      ilf.open(i, std::ios::in | std::ios::binary);
 
       if (!ilf) {
-        std::cerr << "Could not open input file list "
-                  << opts.InputListFile << std::endl;
+        std::cerr << "Could not open input file list " << i << std::endl;
         return;
       }
 
@@ -437,8 +438,15 @@ void search(const Options& opts) {
     }
 
     search(Lines(*is), opts.Recursive, ctrl, searcher, hinfo.get(), callback);
+
+    if (!is) {
+      std::cerr << "Error reading input file list " << i << ": "
+                << std::strerror(errno) << std::endl;
+    }
   }
-  else {
+
+  // serach each input file (positional args or stdin)
+  if (!opts.Inputs.empty()) {
     search(opts.Inputs, opts.Recursive, ctrl, searcher, hinfo.get(), callback);
   }
 

@@ -77,7 +77,7 @@ void parse_opts(int argc, char** argv,
   po::options_description io("Input and output");
   io.add_options()
     ("output,o", po::value<std::string>(&opts.Output)->value_name("FILE")->default_value("-"), "output file (stdout default)")
-    ("arg-file,a", po::value<std::string>(&opts.InputListFile)->value_name("FILE")->default_value("-"), "read input paths from file")
+    ("arg-file,a", po::value<std::vector<std::string>>(&opts.InputLists)->composing()->value_name("FILE"), "read input paths from file")
     ("recursive,r", "traverse directories recursively")
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
@@ -218,20 +218,17 @@ void parse_opts(int argc, char** argv,
       opts.PrintPath = optsMap.count("with-filename") > 0;
 
       // determine the source of our input
-      if (!optsMap["arg-file"].defaulted() || !pargs.empty()) {
-        if (!optsMap["arg-file"].defaulted()) {
-          // read input files from arg file
-        }
-
-        if (!pargs.empty()) {
-          // input from pargs
-          opts.Inputs = pargs;
-          pargs.clear();
-        }
-
+      if (optsMap.count("arg-file") > 0) {
         opts.PrintPath = optsMap.count("no-filename") == 0;
       }
-      else {
+
+      if (!pargs.empty()) {
+        // input from pargs
+        opts.Inputs = pargs;
+        pargs.clear();
+        opts.PrintPath = optsMap.count("no-filename") == 0;
+      }
+      else if (opts.InputLists.empty()) {
         // input from stdin
         opts.Inputs.push_back("");
       }
