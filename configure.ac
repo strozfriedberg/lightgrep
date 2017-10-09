@@ -3,7 +3,7 @@
 AC_PREREQ([2.64])
 # TODO: required versions for automake, libtool?
 
-AC_INIT([lightgrep], [0.0], [BUG-REPORT-ADDRESS])
+AC_INIT([lightgrep], [1.0.0], [BUG-REPORT-ADDRESS])
 
 # Set the default C and C++ compilation flags to nothing.
 # Do this immediately after AC_INIT, as other macros might invoke
