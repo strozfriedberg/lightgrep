@@ -3,10 +3,13 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <algorithm>
+#include <cerrno>
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <set>
 #include <tuple>
 
@@ -64,7 +67,7 @@ void printHelp(const po::options_description& desc) {
   std::cout
     << "lightgrep, Copyright (c) 2010-2012, Lightbox Technologies, Inc."
     << "\nCreated " << __DATE__ << "\n\n"
-    << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]\n\n"
+    << "Usage: lightgrep [OPTIONS] [-p PATTERN | -k FILE] [FILE...]\n\n"
     #ifdef LIGHTGREP_CUSTOMER
     << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
     #endif
@@ -285,6 +288,86 @@ buildProgram(FSMHandle* fsm, const Options& opts) {
   return std::move(prog);
 }
 
+
+class Line {
+public:
+  friend std::istream& operator>>(std::istream& is, Line& l) {
+    return std::getline(is, l.data);
+  }
+
+  operator std::string() const { return data; }
+
+private:
+  std::string data;
+};
+
+
+class Lines {
+public:
+  Lines(std::istream& is): is(is) {}
+
+  std::istream_iterator<Line> begin() {
+    return std::istream_iterator<Line>(is);
+  }
+
+  std::istream_iterator<Line> end() {
+    return std::istream_iterator<Line>();
+  }
+
+private:
+  std::istream& is;
+};
+
+bool skipStdin(const std::string& path, bool& stdinUsed) {
+  if (path == "-") {
+    if (stdinUsed) {
+      std::cerr << "STDIN already read, skipping '-' in files to search" << std::endl;
+      return true;
+    }
+    stdinUsed = true;
+  }
+  return false;
+}
+
+template <class T>
+void search(
+  T&& inputs,
+  bool recursive,
+  bool& stdinUsed,
+  SearchController& ctrl,
+  std::shared_ptr<ContextHandle> searcher,
+  HitCounterInfo* hinfo,
+  LG_HITCALLBACK_FN callback)
+{
+  if (recursive) {
+    for (const std::string& i: inputs) {
+      if (skipStdin(i, stdinUsed)) {
+        continue;
+      }
+
+      const fs::path p(i);
+      if (fs::is_directory(p)) {
+        searchRecursively(p, ctrl, searcher, hinfo, callback);
+      }
+      else {
+        search(i, ctrl, searcher, hinfo, callback);
+      }
+    }
+  }
+  else {
+    for (const std::string& i: inputs) {
+      if (skipStdin(i, stdinUsed)) {
+        continue;
+      }
+
+      if (!fs::is_directory(fs::path(i))) {
+        const fs::path p(i);
+        search(i, ctrl, searcher, hinfo, callback);
+      }
+    }
+  }
+}
+
 void search(const Options& opts) {
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
     nullptr, nullptr
@@ -354,24 +437,44 @@ void search(const Options& opts) {
 
   SearchController ctrl(opts.BlockSize);
 
-  // search our inputs
-  if (opts.Recursive) {
-    for (const std::string& i : opts.Inputs) {
-      const fs::path p(i);
-      if (fs::is_directory(p)) {
-        searchRecursively(p, ctrl, searcher, hinfo.get(), callback);
+  bool stdinUsed = false;
+
+  // search each input file in each input list
+  for (const auto& i: opts.InputLists) {
+    std::ifstream ilf;
+    std::istream* is;
+
+    if (i == "-") {
+      if (stdinUsed) {
+        std::cerr << "STDIN already read, skipping '-' in --args-list" << std::endl;
+        continue;
       }
-      else {
-        search(i, ctrl, searcher, hinfo.get(), callback);
+
+      is = &std::cin;
+      stdinUsed = true;
+    }
+    else {
+      ilf.open(i, std::ios::in | std::ios::binary);
+
+      if (!ilf) {
+        std::cerr << "Could not open input file list " << i << std::endl;
+        return;
       }
+
+      is = &ilf;
+    }
+
+    search(Lines(*is), opts.Recursive, stdinUsed, ctrl, searcher, hinfo.get(), callback);
+
+    if (is->bad()) {
+      std::cerr << "Error reading input file list " << i << ": "
+                << std::strerror(errno) << std::endl;
     }
   }
-  else {
-    for (const std::string& i : opts.Inputs) {
-      if (!fs::is_directory(fs::path(i))) {
-        search(i, ctrl, searcher, hinfo.get(), callback);
-      }
-    }
+
+  // serach each input file (positional args or stdin)
+  if (!opts.Inputs.empty()) {
+    search(opts.Inputs, opts.Recursive, stdinUsed, ctrl, searcher, hinfo.get(), callback);
   }
 
   std::cerr << ctrl.BytesSearched << " bytes\n"
