@@ -230,7 +230,7 @@ void parse_opts(int argc, char** argv,
       }
       else if (opts.InputLists.empty()) {
         // input from stdin
-        opts.Inputs.push_back("");
+        opts.Inputs.push_back("-");
       }
     }
     else if (opts.Command == Options::SAMPLES) {

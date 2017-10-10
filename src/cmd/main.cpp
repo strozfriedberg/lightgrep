@@ -129,7 +129,7 @@ void search(
   LG_HITCALLBACK_FN callback)
 {
   // try to open our input
-  FILE* file = input.empty() ? stdin : std::fopen(input.c_str(), "rb");
+  FILE* file = input == "-" ? stdin : std::fopen(input.c_str(), "rb");
   if (!file) {
     std::cerr << "Could not open file " << input << std::endl;
     return;
