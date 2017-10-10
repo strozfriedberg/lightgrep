@@ -328,14 +328,14 @@ bool skipStdin(const std::string& path, bool& stdinUsed) {
 template <class T>
 void search(
   T&& inputs,
-  bool recursive,
+  const Options& opts,
   bool& stdinUsed,
   SearchController& ctrl,
-  std::shared_ptr<ContextHandle> searcher,
+  ContextHandle* searcher,
   HitCounterInfo* hinfo,
   LG_HITCALLBACK_FN callback)
 {
-  if (recursive) {
+  if (opts.Recursive) {
     for (const std::string& i: inputs) {
       if (skipStdin(i, stdinUsed)) {
         continue;
@@ -343,10 +343,10 @@ void search(
 
       const fs::path p(i);
       if (fs::is_directory(p)) {
-        searchRecursively(p, ctrl, searcher, hinfo, callback);
+        searchRecursively(p, opts.MemoryMapped, ctrl, searcher, hinfo, callback);
       }
       else {
-        search(i, ctrl, searcher, hinfo, callback);
+        search(i, opts.MemoryMapped, ctrl, searcher, hinfo, callback);
       }
     }
   }
@@ -358,7 +358,7 @@ void search(
 
       if (!fs::is_directory(fs::path(i))) {
         const fs::path p(i);
-        search(i, ctrl, searcher, hinfo, callback);
+        search(i, opts.MemoryMapped, ctrl, searcher, hinfo, callback);
       }
     }
   }
@@ -479,7 +479,7 @@ void search(const Options& opts) {
       is = &ilf;
     }
 
-    search(Lines(*is), opts.Recursive, stdinUsed, ctrl, searcher, hinfo.get(), callback);
+    search(Lines(*is), opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
 
     if (is->bad()) {
       std::cerr << "Error reading input file list " << i << ": "
@@ -489,13 +489,13 @@ void search(const Options& opts) {
 
   // serach each input file (positional args or stdin)
   if (!opts.Inputs.empty()) {
-    search(opts.Inputs, opts.Recursive, stdinUsed, ctrl, searcher, hinfo.get(), callback);
+    search(opts.Inputs, opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
   }
 
   std::cerr << ctrl.BytesSearched << " bytes\n"
             << ctrl.TotalTime << " searchTime\n";
   if (ctrl.TotalTime > 0.0) {
-    std::cerr << ctrl.BytesSearched/ctrl.TotalTime/(1 << 20);
+    std::cerr << (ctrl.BytesSearched / ctrl.TotalTime / (1 << 20));
   }
   else {
     std::cerr << "+inf";
