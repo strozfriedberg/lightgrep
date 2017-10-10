@@ -318,11 +318,22 @@ private:
   std::istream& is;
 };
 
+bool skipStdin(const std::string& path, bool& stdinUsed) {
+  if (path == "-") {
+    if (stdinUsed) {
+      std::cerr << "STDIN already read, skipping '-' in files to search" << std::endl;
+      return true;
+    }
+    stdinUsed = true;
+  }
+  return false;
+}
 
 template <class T>
 void search(
   T&& inputs,
   bool recursive,
+  bool& stdinUsed,
   SearchController& ctrl,
   std::shared_ptr<ContextHandle> searcher,
   HitCounterInfo* hinfo,
@@ -330,6 +341,10 @@ void search(
 {
   if (recursive) {
     for (const std::string& i: inputs) {
+      if (skipStdin(i, stdinUsed)) {
+        continue;
+      }
+
       const fs::path p(i);
       if (fs::is_directory(p)) {
         searchRecursively(p, ctrl, searcher, hinfo, callback);
@@ -341,13 +356,17 @@ void search(
   }
   else {
     for (const std::string& i: inputs) {
+      if (skipStdin(i, stdinUsed)) {
+        continue;
+      }
+
       if (!fs::is_directory(fs::path(i))) {
+        const fs::path p(i);
         search(i, ctrl, searcher, hinfo, callback);
       }
     }
   }
 }
-
 
 void search(const Options& opts) {
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
@@ -418,13 +437,21 @@ void search(const Options& opts) {
 
   SearchController ctrl(opts.BlockSize);
 
+  bool stdinUsed = false;
+
   // search each input file in each input list
   for (const auto& i: opts.InputLists) {
     std::ifstream ilf;
     std::istream* is;
 
     if (i == "-") {
+      if (stdinUsed) {
+        std::cerr << "STDIN already read, skipping '-' in --args-list" << std::endl;
+        continue;
+      }
+
       is = &std::cin;
+      stdinUsed = true;
     }
     else {
       ilf.open(i, std::ios::in | std::ios::binary);
@@ -437,7 +464,7 @@ void search(const Options& opts) {
       is = &ilf;
     }
 
-    search(Lines(*is), opts.Recursive, ctrl, searcher, hinfo.get(), callback);
+    search(Lines(*is), opts.Recursive, stdinUsed, ctrl, searcher, hinfo.get(), callback);
 
     if (is->bad()) {
       std::cerr << "Error reading input file list " << i << ": "
@@ -447,7 +474,7 @@ void search(const Options& opts) {
 
   // serach each input file (positional args or stdin)
   if (!opts.Inputs.empty()) {
-    search(opts.Inputs, opts.Recursive, ctrl, searcher, hinfo.get(), callback);
+    search(opts.Inputs, opts.Recursive, stdinUsed, ctrl, searcher, hinfo.get(), callback);
   }
 
   std::cerr << ctrl.BytesSearched << " bytes\n"
