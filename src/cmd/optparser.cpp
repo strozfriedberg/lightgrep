@@ -58,7 +58,7 @@ void parse_opts(int argc, char** argv,
   // Command selection options
   po::options_description general("Command selection");
   general.add_options()
-    ("command,c", po::value<std::string>(&command)->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
+    ("command,c", po::value<std::string>(&command)->value_name("CMD")->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
     ("help", "display this help message")
     ("list-encodings", "list known encodings")
     ;
@@ -66,9 +66,9 @@ void parse_opts(int argc, char** argv,
   // Pattern options
   po::options_description pats("Pattern selection and interpretation");
   pats.add_options()
-    ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles)->composing(), "path to file containing keywords")
-    ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns)->composing(), "a keyword on the command-line")
-    ("encoding,e", po::value<std::vector<std::string>>(&opts.Encodings)->default_value(std::vector<std::string>{"ASCII"}, "ASCII")->composing(), "encoding to use (e.g., ASCII, UTF-8)")
+    ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles)->composing()->value_name("FILE"), "path to keywords file")
+    ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns)->composing()->value_name("PATTERN"), "a keyword on the command-line")
+    ("encoding,e", po::value<std::vector<std::string>>(&opts.Encodings)->default_value(std::vector<std::string>{"ASCII"}, "ASCII")->composing()->value_name("ENCODING"), "encoding to use (e.g., ASCII, UTF-8)")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ;
@@ -76,8 +76,8 @@ void parse_opts(int argc, char** argv,
   // I/O options
   po::options_description io("Input and output");
   io.add_options()
-    ("input", po::value<std::string>(&opts.Input)->default_value("-"), "file to search")
-    ("output,o", po::value<std::string>(&opts.Output)->default_value("-"), "output file (stdout default)")
+    ("output,o", po::value<std::string>(&opts.Output)->value_name("FILE")->default_value("-"), "output file (stdout default)")
+    ("arg-file,a", po::value<std::vector<std::string>>(&opts.InputLists)->composing()->value_name("FILE"), "read input paths from file")
     ("recursive,r", "traverse directories recursively")
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
@@ -86,24 +86,24 @@ void parse_opts(int argc, char** argv,
     ("context,C", po::value<int32_t>(&opts.BeforeContext)->value_name("NUM"), "print NUM lines of context")
     ("group-separator", po::value<std::string>(&opts.GroupSeparator)->value_name("SEP")->default_value("--"), "use SEP as the group separator")
     ("no-output", "do not output hits (good for profiling)")
-    ("block-size", po::value<uint32_t>(&opts.BlockSize)->default_value(8 * 1024 * 1024), "Block size to use for buffering, in bytes")
+    ("block-size", po::value<uint32_t>(&opts.BlockSize)->default_value(8 * 1024 * 1024)->value_name("BYTES"), "block size to use for buffering, in bytes")
     ("mmap", "memory-map input file(s)")
     ;
 
   // Server options
   po::options_description server("Server");
   server.add_options()
-    ("address", po::value<std::string>(&opts.ServerAddr)->default_value("localhost"), "specify address")
-    ("port", po::value<unsigned short>(&opts.ServerPort)->default_value(12777), "specify port number")
-    ("server-log", po::value<std::string>(&opts.ServerLog), "file for server logging")
-    ("statsfile", po::value<std::string>(&opts.StatsFileName), "file for writing out final hit stats");
+    ("address", po::value<std::string>(&opts.ServerAddr)->value_name("ADDR")->default_value("localhost"), "specify address")
+    ("port", po::value<unsigned short>(&opts.ServerPort)->value_name("PORT")->default_value(12777), "specify port number")
+    ("server-log", po::value<std::string>(&opts.ServerLog)->value_name("FILE"), "file for server logging")
+    ("statsfile", po::value<std::string>(&opts.StatsFileName)->value_name("FILE"), "file for writing out final hit stats");
 
   // Other options
   po::options_description misc("Miscellaneous");
   misc.add_options()
     ("no-det", "do not determinize NFAs")
-    ("binary", "Output program as binary")
-    ("program-file", po::value<std::string>(&opts.ProgramFile), "read search program from file")
+    ("binary", "output program as binary")
+    ("program-file", po::value<std::string>(&opts.ProgramFile)->value_name("FILE"), "read search program from file")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value<uint64_t>(&opts.DebugBegin)->default_value(std::numeric_limits<uint64_t>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value<uint64_t>(&opts.DebugEnd)->default_value(std::numeric_limits<uint64_t>::max()), "offset for end of debug logging")
@@ -228,17 +228,17 @@ void parse_opts(int argc, char** argv,
       opts.PrintPath = optsMap.count("with-filename") > 0;
 
       // determine the source of our input
-      if (!optsMap["input"].defaulted()) {
-        // input from --input
-        opts.Inputs.push_back(optsMap["input"].as<std::string>());
+      if (optsMap.count("arg-file") > 0) {
+        opts.PrintPath = optsMap.count("no-filename") == 0;
       }
-      else if (!pargs.empty()) {
+
+      if (!pargs.empty()) {
         // input from pargs
         opts.Inputs = pargs;
         pargs.clear();
         opts.PrintPath = optsMap.count("no-filename") == 0;
       }
-      else {
+      else if (opts.InputLists.empty()) {
         // input from stdin
         opts.Inputs.push_back("-");
       }
