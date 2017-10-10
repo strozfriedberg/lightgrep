@@ -36,6 +36,7 @@ public:
               StatsFileName;
 
   std::vector<std::string> Inputs,
+                           InputLists,
                            CmdLinePatterns,
                            KeyFiles,
                            Encodings;

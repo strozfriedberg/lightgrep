@@ -3,10 +3,13 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <algorithm>
+#include <cerrno>
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <set>
 #include <tuple>
 
@@ -126,7 +129,7 @@ void search(
   LG_HITCALLBACK_FN callback)
 {
   // try to open our input
-  FILE* file = input == "-" ? stdin : std::fopen(input.c_str(), "rb");
+  FILE* file = input.empty() ? stdin : std::fopen(input.c_str(), "rb");
   if (!file) {
     std::cerr << "Could not open file " << input << std::endl;
     return;
@@ -285,6 +288,67 @@ buildProgram(FSMHandle* fsm, const Options& opts) {
   return std::move(prog);
 }
 
+
+class Line {
+public:
+  friend std::istream& operator>>(std::istream& is, Line& l) {
+    return std::getline(is, l.data);
+  }
+
+  operator std::string() const { return data; }
+
+private:
+  std::string data;
+};
+
+
+class Lines {
+public:
+  Lines(std::istream& is): is(is) {}
+
+  std::istream_iterator<Line> begin() {
+    return std::istream_iterator<Line>(is);
+  }
+
+  std::istream_iterator<Line> end() {
+    return std::istream_iterator<Line>();
+  }
+
+private:
+  std::istream& is;
+};
+
+
+template <class T>
+void search(
+  T&& inputs,
+  bool recursive,
+  SearchController& ctrl,
+  std::shared_ptr<ContextHandle> searcher,
+  HitCounterInfo* hinfo,
+  LG_HITCALLBACK_FN callback)
+{
+  if (recursive) {
+    for (const std::string& i: inputs) {
+      const fs::path p(i);
+      if (fs::is_directory(p)) {
+        searchRecursively(p, ctrl, searcher, hinfo, callback);
+      }
+      else {
+        search(i, ctrl, searcher, hinfo, callback);
+      }
+    }
+  }
+  else {
+    for (const std::string& i: inputs) {
+      if (!fs::is_directory(fs::path(i))) {
+        search(i, ctrl, searcher, hinfo, callback);
+      }
+    }
+  }
+}
+
+
 void search(const Options& opts) {
   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
     nullptr, nullptr
@@ -354,24 +418,36 @@ void search(const Options& opts) {
 
   SearchController ctrl(opts.BlockSize);
 
-  // search our inputs
-  if (opts.Recursive) {
-    for (const std::string& i : opts.Inputs) {
-      const fs::path p(i);
-      if (fs::is_directory(p)) {
-        searchRecursively(p, ctrl, searcher, hinfo.get(), callback);
+  // search each input file in each input list
+  for (const auto& i: opts.InputLists) {
+    std::ifstream ilf;
+    std::istream* is;
+
+    if (i == "-") {
+      is = &std::cin;
+    }
+    else {
+      ilf.open(i, std::ios::in | std::ios::binary);
+
+      if (!ilf) {
+        std::cerr << "Could not open input file list " << i << std::endl;
+        return;
       }
-      else {
-        search(i, ctrl, searcher, hinfo.get(), callback);
-      }
+
+      is = &ilf;
+    }
+
+    search(Lines(*is), opts.Recursive, ctrl, searcher, hinfo.get(), callback);
+
+    if (is->bad()) {
+      std::cerr << "Error reading input file list " << i << ": "
+                << std::strerror(errno) << std::endl;
     }
   }
-  else {
-    for (const std::string& i : opts.Inputs) {
-      if (!fs::is_directory(fs::path(i))) {
-        search(i, ctrl, searcher, hinfo.get(), callback);
-      }
-    }
+
+  // serach each input file (positional args or stdin)
+  if (!opts.Inputs.empty()) {
+    search(opts.Inputs, opts.Recursive, ctrl, searcher, hinfo.get(), callback);
   }
 
   std::cerr << ctrl.BytesSearched << " bytes\n"
