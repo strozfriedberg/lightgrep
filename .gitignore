@@ -23,7 +23,10 @@
 /src/cmd/lightgrep
 /src/cmd/lightgrep.exe
 /stamp-h1
+/test-suite.log
 /test/test
 /test/test.exe
+/test/test.log
+/test/test.trs
 /tmp/
 /vendors/
