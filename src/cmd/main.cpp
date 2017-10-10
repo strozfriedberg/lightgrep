@@ -67,7 +67,8 @@ void printHelp(const po::options_description& desc) {
   std::cout
     << "lightgrep, Copyright (c) 2010-2012, Lightbox Technologies, Inc."
     << "\nCreated " << __DATE__ << "\n\n"
-    << "Usage: lightgrep [OPTIONS] [-p PATTERN | -k FILE] [FILE...]\n\n"
+    << "Usage: lightgrep [OPTIONS] PATTERN_FILE [FILE...]\n"
+       "       lightgrep [OPTIONS] [-p PATTERN | -k FILE] [FILE...]\n\n"
     #ifdef LIGHTGREP_CUSTOMER
     << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
     #endif

@@ -46,41 +46,16 @@ SCOPE_TEST(kAndpIncompatibleOptions) {
   );
 }
 
-/*
-SCOPE_TEST(kTooManyOptions) {
-  const char* cargv[] = { "--keywords", "foo", "bar", "baz" };
-  Options opts;
-
-  SCOPE_EXPECT(
-    TEST_OPTS(cargv, opts),
-    boost::program_options::too_many_positional_options_error
-  );
-}
-*/
-
-/*
-SCOPE_TEST(pTooManyOptions) {
-  const char* cargv[] = { "--pattern", "foo", "bar", "baz" };
-  Options opts;
-
-  SCOPE_EXPECT(
-    TEST_OPTS(cargv, opts),
-    boost::program_options::too_many_positional_options_error
-  );
-}
-*/
-
-/*
 SCOPE_TEST(endOnePosArgOptions) {
   const char* cargv[] = { "--", "foo" };
   Options opts;
   TEST_OPTS(cargv, opts);
 
-  SCOPE_ASSERT_EQUAL(1, opts.KeyFiles.size());
-  SCOPE_ASSERT_EQUAL(cargv[1], opts.KeyFiles[0]);
-  SCOPE_ASSERT_EQUAL("-", opts.Input);
+  const std::vector<std::string> kf{ "foo" }, inputs{ "-" };
+
+  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
+  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
 }
-*/
 
 /*
 SCOPE_TEST(endTwoPosArgsOptions) {
