@@ -46,60 +46,57 @@ SCOPE_TEST(kAndpIncompatibleOptions) {
   );
 }
 
-/*
-SCOPE_TEST(kTooManyOptions) {
-  const char* cargv[] = { "--keywords", "foo", "bar", "baz" };
+SCOPE_TEST(kOptionNoPosArg) {
+  const char* cargv[] = { "--keywords", "foo" };
   Options opts;
+  TEST_OPTS(cargv, opts);
 
-  SCOPE_EXPECT(
-    TEST_OPTS(cargv, opts),
-    boost::program_options::too_many_positional_options_error
-  );
+  const std::vector<std::string> kf{ "foo" }, inputs{ "-" };
+
+  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
+  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
 }
-*/
 
-/*
-SCOPE_TEST(pTooManyOptions) {
-  const char* cargv[] = { "--pattern", "foo", "bar", "baz" };
+SCOPE_TEST(kOptionOnePosArg) {
+  const char* cargv[] = { "--keywords", "foo", "bar" };
   Options opts;
+  TEST_OPTS(cargv, opts);
 
-  SCOPE_EXPECT(
-    TEST_OPTS(cargv, opts),
-    boost::program_options::too_many_positional_options_error
-  );
+  const std::vector<std::string> kf{ "foo" }, inputs{ "bar" };
+
+  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
+  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
 }
-*/
 
-SCOPE_TEST(endOnePosArgOptions) {
+SCOPE_TEST(endOnePosArg) {
   const char* cargv[] = { "--", "foo" };
   Options opts;
   TEST_OPTS(cargv, opts);
 
-  SCOPE_ASSERT_EQUAL(1, opts.KeyFiles.size());
-  SCOPE_ASSERT_EQUAL(cargv[1], opts.KeyFiles[0]);
-  SCOPE_ASSERT_EQUAL("-", opts.Input);
+  const std::vector<std::string> kf{ "foo" }, inputs{ "-" };
+
+  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
+  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
 }
 
-/*
-SCOPE_TEST(endTwoPosArgsOptions) {
+SCOPE_TEST(endTwoPosArgs) {
   const char* cargv[] = { "--", "foo", "bar" };
   Options opts;
   TEST_OPTS(cargv, opts);
 
-  SCOPE_ASSERT_EQUAL(cargv[1], opts.KeyFile);
-  SCOPE_ASSERT_EQUAL(cargv[2], opts.Input);
-}
-*/
+  const std::vector<std::string> kf{ "foo" }, inputs{ "bar" };
 
-/*
-SCOPE_TEST(endThreePosArgsOptions) {
+  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
+  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
+}
+
+SCOPE_TEST(endThreePosArgs) {
   const char* cargv[] = { "--", "foo", "bar", "baz" };
   Options opts;
+  TEST_OPTS(cargv, opts);
 
-  SCOPE_EXPECT(
-    TEST_OPTS(cargv, opts),
-    boost::program_options::too_many_positional_options_error
-  );
+  const std::vector<std::string> kf{ "foo" }, inputs{ "bar", "baz" };
+
+  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
+  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
 }
-*/
-
