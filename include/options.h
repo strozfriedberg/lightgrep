@@ -28,8 +28,7 @@ public:
     BOGUS
   } Command;
 
-  std::string Input,
-              Output,
+  std::string Output,
               ServerAddr,
               ServerLog,
               ProgramFile,

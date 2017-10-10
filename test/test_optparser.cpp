@@ -70,6 +70,7 @@ SCOPE_TEST(pTooManyOptions) {
 }
 */
 
+/*
 SCOPE_TEST(endOnePosArgOptions) {
   const char* cargv[] = { "--", "foo" };
   Options opts;
@@ -79,6 +80,7 @@ SCOPE_TEST(endOnePosArgOptions) {
   SCOPE_ASSERT_EQUAL(cargv[1], opts.KeyFiles[0]);
   SCOPE_ASSERT_EQUAL("-", opts.Input);
 }
+*/
 
 /*
 SCOPE_TEST(endTwoPosArgsOptions) {
