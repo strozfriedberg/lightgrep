@@ -48,8 +48,8 @@ void writeGroupSeparator(LineContextHitWriterInfo* hi) {
 
 void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hit) {
   // bounds of the hit in the buffer
-  const char* hbeg = hi->Buf + (hit->Start - hi->BufOff);
-  const char* hend = hi->Buf + (hit->End - hi->BufOff);
+  const char* const hbeg = hi->Buf + (hit->Start - hi->BufOff);
+  const char* const hend = hi->Buf + (hit->End - hi->BufOff);
 
   // context left of hit
   const auto lbeg = std::reverse_iterator<const char*>(hbeg);
@@ -76,8 +76,8 @@ void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hi
   }
 
   // bounds of the hit's context in the buffer
-  const char* cbeg = hbeg - (lnl - lbeg);
-  const char* cend = rnl;
+  const char* const cbeg = hbeg - (lnl - lbeg);
+  const char* const cend = rnl;
 
   // print the line offset
   hi->Out << (hi->BufOff + (cbeg - hi->Buf)) << '\t';
