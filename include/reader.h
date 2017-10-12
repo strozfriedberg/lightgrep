@@ -55,7 +55,7 @@ private:
       if (!f) {
         throw std::runtime_error(std::strerror(errno));
       }
-      return f; 
+      return f;
     }
   }
 
@@ -68,11 +68,11 @@ namespace bip = boost::interprocess;
 class MemoryMappedFileReader: public Reader {
 public:
 
-  MemoryMappedFileReader(const std::string& path): 
+  MemoryMappedFileReader(const std::string& path):
     M(path.c_str(), bip::read_only), R(M, bip::read_only),
     Buf(static_cast<const char*>(R.get_address())), Bend(Buf + R.get_size())
   {
-    R.advise(bip::mapped_region::advice_sequential); 
+    R.advise(bip::mapped_region::advice_sequential);
   }
 
   virtual std::future<std::pair<const char*, size_t>> read(size_t len) {

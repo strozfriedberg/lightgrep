@@ -659,7 +659,7 @@ void writeSampleMatches(const Options& opts) {
     }
 
     out.flush();
-    ++pnum;    
+    ++pnum;
   }
 }
 
@@ -699,7 +699,7 @@ void startServer(const Options& opts) {
     fsm.reset();
 
     if (prog) {
-      startup( 
+      startup(
         std::shared_ptr<ProgramHandle>(std::move(prog)),
         std::shared_ptr<PatternMapHandle>(std::move(pmap)),
         pnum,
