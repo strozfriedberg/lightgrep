@@ -327,9 +327,10 @@ private:
 bool skipStdin(const std::string& path, bool& stdinUsed) {
   if (path == "-") {
     if (stdinUsed) {
-      std::cerr << "STDIN already read, skipping '-' in files to search" << std::endl;
+      std::cerr << "stdin already read, skipping '-' in files to search" << std::endl;
       return true;
     }
+
     stdinUsed = true;
   }
   return false;
@@ -471,7 +472,7 @@ void search(const Options& opts) {
 
     if (i == "-") {
       if (stdinUsed) {
-        std::cerr << "STDIN already read, skipping '-' in --args-list" << std::endl;
+        std::cerr << "stdin already read, skipping '-' in --args-list" << std::endl;
         continue;
       }
 
