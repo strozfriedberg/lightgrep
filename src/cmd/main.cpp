@@ -130,12 +130,21 @@ void search(
   HitCounterInfo* hinfo,
   LG_HITCALLBACK_FN callback)
 {
-  std::unique_ptr<Reader> reader(mmapped ?
-    static_cast<Reader*>(new MemoryMappedFileReader(input)) :
-    static_cast<Reader*>(new FileReader(input, ctrl.BlockSize))
-  );
+  std::unique_ptr<Reader> reader;
 
-  hinfo->setPath(input == "-" ? "(standard input)" : input);
+  if (input == "-") {
+    // stdin can't be mmap'd
+    reader.reset(static_cast<Reader*>(new FileReader(input, ctrl.BlockSize)));
+    hinfo->setPath("(standard input)");
+  }
+  else {
+    reader.reset(mmapped ?
+      static_cast<Reader*>(new MemoryMappedFileReader(input)) :
+      static_cast<Reader*>(new FileReader(input, ctrl.BlockSize))
+    );
+    hinfo->setPath(input);
+  }
+
   lg_reset_context(searcher);
   ctrl.searchFile(searcher, hinfo, *reader, callback);
 }
