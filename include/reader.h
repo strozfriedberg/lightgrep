@@ -6,7 +6,6 @@
 #include <cstring>
 #include <future>
 #include <memory>
-#include <stdexcept>
 #include <utility>
 
 #include <boost/interprocess/file_mapping.hpp>
@@ -22,32 +21,13 @@ public:
 
 class FileReader: public Reader {
 public:
-  FileReader(const std::string& path, size_t blockSize):
-    File(open(path)), Cur(new char[blockSize]), Next(new char[blockSize])
-  {
-    std::setbuf(File, 0); // unbuffered, bitte
-  }
+  FileReader(const std::string& path, size_t blockSize);
 
-  virtual ~FileReader() {
-    std::fclose(File);
-  }
+  virtual ~FileReader();
 
   virtual std::future<std::pair<const char*, size_t>> read(size_t len);
 
 private:
-  static FILE* open(const std::string& path) {
-    if (path == "-") {
-      return stdin;
-    }
-    else {
-      FILE* f = std::fopen(path.c_str(), "rb");
-      if (!f) {
-        throw std::runtime_error(std::strerror(errno));
-      }
-      return f;
-    }
-  }
-
   FILE* File;
   std::unique_ptr<char[]> Cur, Next;
 };
