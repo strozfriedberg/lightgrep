@@ -20,6 +20,7 @@ src_cmd_lightgrep_LDADD = $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB)
 check_PROGRAMS = test/test
 
 test_test_SOURCES = \
+	src/cmd/hitwriter.cpp \
 	src/cmd/optparser.cpp \
 	src/cmd/options.cpp \
 	src/cmd/util.cpp \

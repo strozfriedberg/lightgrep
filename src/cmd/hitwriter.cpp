@@ -46,40 +46,48 @@ void writeGroupSeparator(LineContextHitWriterInfo* hi) {
   }
 }
 
-void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hit) {
-  // bounds of the hit in the buffer
-  const char* const hbeg = hi->Buf + (hit->Start - hi->BufOff);
-  const char* const hend = hi->Buf + (hit->End - hi->BufOff);
-
+const char* find_leading_context(const char* const bbeg, const char* const hbeg, size_t lines) {
   // context left of hit
   const auto lbeg = std::reverse_iterator<const char*>(hbeg);
-  const auto lend = std::reverse_iterator<const char*>(hi->Buf);
+  const auto lend = std::reverse_iterator<const char*>(bbeg);
 
-  auto lnl = lbeg;
-  for (int i = hi->BeforeContext + 1; i > 0; --i) {
+  auto lnl = lbeg - 1;
+  for (int i = lines + 1; i > 0 && lnl != lend; --i) {
     lnl = std::find(lnl + 1, lend, '\n');
   }
 
-  // context right of hit
-  const auto rend = hi->Buf + hi->BufLen;
+  return bbeg + (lend - lnl);
+}
+
+const char* find_trailing_context(const char* const hend, const char* const bend, size_t lines) {
 
   auto rnl = hend - 1;
-  for (int i = hi->AfterContext + 1; i > 0; --i) {
-    rnl = std::find(rnl + 1, rend, '\n');
+  for (int i = lines + 1; i > 0 && rnl != bend; --i) {
+    rnl = std::find(rnl + 1, bend, '\n');
   }
 
-  if (rnl != rend && *rnl == '\n' && *(rnl-1) == '\r') {
+  if (rnl != bend && *rnl == '\n' && *(rnl-1) == '\r') {
     // Back up one byte on the right end in case of CRLF line endings;
     // not necessary for the left end due to the LF being on the right
-    // end of the EOL.
+    // half of the EOL.
     --rnl;
   }
 
-  // bounds of the hit's context in the buffer
-  const char* const cbeg = hbeg - (lnl - lbeg);
-  const char* const cend = rnl;
+  return rnl;
+}
 
-  // print the line offset
+void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hit) {
+  // bounds of the hit in the buffer, clipped to buffer bounds
+  const char* const hbeg = hi->Buf + (hit->Start < hi->BufOff ? 0 : hit->Start - hi->BufOff);
+  const char* const hend = hi->Buf + std::min(hit->End - hi->BufOff, hi->BufLen);
+
+  // beginning of context (left of hit)
+  const char* const cbeg = find_leading_context(hi->Buf, hbeg, hi->BeforeContext);
+
+  // end of context (right of hit)
+  const char* const cend = find_trailing_context(hend, hi->Buf + hi->BufLen, hi->AfterContext);
+
+  // print the offset of the start of context
   hi->Out << (hi->BufOff + (cbeg - hi->Buf)) << '\t';
 
   // print the hit, escaping \t\n\r

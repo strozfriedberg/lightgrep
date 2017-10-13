@@ -86,3 +86,7 @@ struct LineContextPathWriterInfo: public LineContextHitWriterInfo {
 };
 
 void lineContextPathWriter(void* userData, const LG_SearchHit* const hit);
+
+const char* find_leading_context(const char* const bbeg, const char* const hbeg, size_t lines);
+
+const char* find_trailing_context(const char* const hend, const char* const bend, size_t lines);
