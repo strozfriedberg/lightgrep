@@ -38,7 +38,7 @@ struct PathWriterInfo: public HitWriterInfo {
 
   std::string Path;
 
-  virtual void setPath(const std::string& path) { Path = path; }
+  virtual void setPath(const std::string& path) override { Path = path; }
 };
 
 void pathWriter(void* userData, const LG_SearchHit* const hit);
@@ -63,7 +63,7 @@ struct LineContextHitWriterInfo: public HitWriterInfo {
 
   bool FirstHit = true;
 
-  virtual void setBuffer(const char* buf, size_t blen, uint64_t boff) {
+  virtual void setBuffer(const char* buf, size_t blen, uint64_t boff) override {
     Buf = buf;
     BufLen = blen;
     BufOff = boff;
@@ -83,7 +83,7 @@ struct LineContextPathWriterInfo: public LineContextHitWriterInfo {
 
   std::string Path;
 
-  virtual void setPath(const std::string& path) { Path = path; }
+  virtual void setPath(const std::string& path) override { Path = path; }
 };
 
 void lineContextPathWriter(void* userData, const LG_SearchHit* const hit);
