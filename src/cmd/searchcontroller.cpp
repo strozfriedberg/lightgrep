@@ -38,12 +38,7 @@ bool SearchController::searchFile(
     // search cur block
     hinfo->setBuffer(buf, blkSize, offset);
 
-    lg_search(
-      searcher,
-      buf,
-      buf + blkSize,
-      offset, hinfo, callback
-    );
+    lg_search(searcher, buf, buf + blkSize, offset, hinfo, callback);
 
     offset += blkSize;
 
@@ -60,12 +55,7 @@ bool SearchController::searchFile(
   // cur is last block
   hinfo->setBuffer(buf, blkSize, offset);
 
-  lg_search(
-    searcher,
-    buf,
-    buf + blkSize,
-    offset, hinfo, callback
-  );
+  lg_search(searcher, buf, buf + blkSize, offset, hinfo, callback);
 
   lg_closeout_search(searcher, hinfo, callback);
   offset += blkSize;  // be sure to count the last block
