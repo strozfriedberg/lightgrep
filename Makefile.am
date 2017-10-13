@@ -11,6 +11,7 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/main.cpp \
 	src/cmd/optparser.cpp \
 	src/cmd/options.cpp \
+	src/cmd/reader.cpp \
 	src/cmd/searchcontroller.cpp \
 	src/cmd/server.cpp \
 	src/cmd/util.cpp

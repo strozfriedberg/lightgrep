@@ -32,18 +32,7 @@ public:
     std::fclose(File);
   }
 
-  virtual std::future<std::pair<const char*, size_t>> read(size_t len) {
-    std::swap(Cur, Next);
-    return std::async(
-      std::launch::async,
-      [](char* buf, size_t len, FILE* file) {
-        return std::pair<const char*, size_t>{
-          buf, std::fread(buf, 1, len, file)
-        };
-      },
-      Next.get(), len, File
-    );
-  }
+  virtual std::future<std::pair<const char*, size_t>> read(size_t len);
 
 private:
   static FILE* open(const std::string& path) {
