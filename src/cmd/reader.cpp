@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <cerrno>
+#include <cstring>
 #include <stdexcept>
 
 #include "reader.h"
@@ -42,4 +45,19 @@ std::future<std::pair<const char*, size_t>> FileReader::read(size_t len){
     },
     Next.get(), len, File
   );
+}
+
+MemoryMappedFileReader::MemoryMappedFileReader(const std::string& path):
+  M(path.c_str(), bip::read_only), R(M, bip::read_only),
+  Buf(static_cast<const char*>(R.get_address())), Bend(Buf + R.get_size())
+{
+  R.advise(bip::mapped_region::advice_sequential);
+}
+
+std::future<std::pair<const char*, size_t>> MemoryMappedFileReader::read(size_t len) {
+  len = std::min(len, static_cast<size_t>(Bend - Buf));
+  std::promise<std::pair<const char*, size_t>> p;
+  p.set_value(std::make_pair(Buf, len));
+  Buf += len;
+  return p.get_future();
 }
