@@ -56,11 +56,12 @@ struct LineContextHitWriterInfo: public HitWriterInfo {
 
   int32_t BeforeContext, AfterContext;
   std::string GroupSeparator;
-  bool FirstHit = true;
 
   const char* Buf;
   size_t BufLen;
   uint64_t BufOff;
+
+  bool FirstHit = true;
 
   virtual void setBuffer(const char* buf, size_t blen, uint64_t boff) {
     Buf = buf;
