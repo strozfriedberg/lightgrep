@@ -61,6 +61,7 @@ void parse_opts(int argc, char** argv,
     ("command,c", po::value<std::string>(&command)->value_name("CMD")->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
     ("help", "display this help message")
     ("list-encodings", "list known encodings")
+    ("version,V", "print version information and exit")
     ;
 
   // Pattern options
@@ -139,14 +140,15 @@ void parse_opts(int argc, char** argv,
 
   opts.Command = Options::BOGUS;
 
-  // convert help option to command
+  // convert some options to commands
   if (optsMap.count("help")) {
-    opts.Command = Options::HELP;
+    opts.Command = Options::SHOW_HELP;
   }
-
-  // convert list-encodings option to command
-  if (optsMap.count("list-encodings")) {
-    opts.Command =  Options::ENCODINGS;
+  else if (optsMap.count("version")) {
+    opts.Command = Options::SHOW_VERSION;
+  }
+  else if (optsMap.count("list-encodings")) {
+    opts.Command = Options::LIST_ENCODINGS;
   }
 
   if (opts.Command == Options::BOGUS) {
@@ -256,8 +258,9 @@ void parse_opts(int argc, char** argv,
 
     break;
 
-  case Options::HELP:
-  case Options::ENCODINGS:
+  case Options::SHOW_VERSION:
+  case Options::SHOW_HELP:
+  case Options::LIST_ENCODINGS:
     // nothing else to do
     break;
 
