@@ -23,6 +23,7 @@ if BUILD_MINGW
 
 src_cmd_lightgrep_SOURCES += src/cmd/version.rc
 
+src/cmd/.libs/version.o: config.h
 src/cmd/version.o: config.h
 
 # assume rc files are UTF-8 (Windows codepage 65001)
