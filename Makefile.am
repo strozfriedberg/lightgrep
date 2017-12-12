@@ -23,9 +23,6 @@ if BUILD_MINGW
 
 src_cmd_lightgrep_SOURCES += src/cmd/version.rc
 
-src/cmd/.libs/version.o: config.h
-src/cmd/version.o: config.h
-
 # assume rc files are UTF-8 (Windows codepage 65001)
 RCFLAGS = -c 65001
 
@@ -33,6 +30,10 @@ LTRCCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=RC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) 
 
 .rc.o:
 	$(LTRCCOMPILE) -i $< -o $@
+	[ -f $@ ] || cp $(@D)/.libs/$(@F) $@
+
+src/cmd/.libs/version.o: config.h
+src/cmd/version.o: config.h
 
 CLEANFILES = src/cmd/version.lo
 
