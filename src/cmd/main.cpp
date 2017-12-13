@@ -66,7 +66,7 @@ void startup(
 void printVersion() {
   std::cout << "lightgrep " << VERSION
             << "\nCopyright (c) 2010-2017, Stroz Friedberg, LLC"
-               "\nCreated " << __DATE__ << std::endl;
+               "\nBuilt " << __DATE__ << std::endl;
 }
 
 void printHelp(const po::options_description& desc) {
