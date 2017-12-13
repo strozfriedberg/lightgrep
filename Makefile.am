@@ -16,9 +16,29 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/server.cpp \
 	src/cmd/util.cpp
 	
-src_cmd_lightgrep_LDADD = $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+src_cmd_lightgrep_LDADD = $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 check_PROGRAMS = test/test
+
+if BUILD_MINGW
+
+src_cmd_lightgrep_SOURCES += src/cmd/version.rc
+
+# assume rc files are UTF-8 (Windows codepage 65001)
+RCFLAGS = -c 65001
+
+LTRCCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=RC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(RC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(filter-out -mthreads,$(AM_CPPFLAGS) $(CPPFLAGS)) $(RCFLAGS)
+
+.rc.o:
+	$(LTRCCOMPILE) -i $< -o $@
+	[ -f $@ ] || cp $(@D)/.libs/$(@F) $@
+
+src/cmd/.libs/version.o: config.h
+src/cmd/version.o: config.h
+
+CLEANFILES = src/cmd/version.lo
+
+endif
 
 test_test_SOURCES = \
 	src/cmd/hitwriter.cpp \

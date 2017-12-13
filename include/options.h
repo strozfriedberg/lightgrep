@@ -23,8 +23,9 @@ public:
     SAMPLES,
     VALIDATE,
     SERVER,
-    HELP,
-    ENCODINGS,
+    SHOW_VERSION,
+    SHOW_HELP,
+    LIST_ENCODINGS,
     BOGUS
   } Command;
 

@@ -63,12 +63,17 @@ void startup(
   const Options& opts
 );
 
+void printVersion() {
+  std::cout << "lightgrep " << VERSION
+            << "\nCopyright (c) 2010-2017, Stroz Friedberg, LLC"
+               "\nCreated " << __DATE__ << std::endl;
+}
+
 void printHelp(const po::options_description& desc) {
+  printVersion();
   std::cout
-    << "lightgrep, Copyright (c) 2010-2017, Stroz Friedberg, LLC.\n"
-    << "\nCreated " << __DATE__ << "\n\n"
-    << "Usage: lightgrep [OPTIONS] PATTERN_FILE [FILE...]\n"
-       "       lightgrep [OPTIONS] [-p PATTERN | -k FILE] [FILE...]\n\n"
+    << "\nUsage: lightgrep [OPTIONS] PATTERN_FILE [FILE...]\n"
+         "       lightgrep [OPTIONS] [-p PATTERN | -k FILE] [FILE...]\n\n"
     #ifdef LIGHTGREP_CUSTOMER
     << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
     #endif
@@ -736,10 +741,13 @@ int main(int argc, char** argv) {
     case Options::SERVER:
       startServer(opts);
       break;
-    case Options::HELP:
+    case Options::SHOW_VERSION:
+      printVersion();
+      break;
+    case Options::SHOW_HELP:
       printHelp(desc);
       break;
-    case Options::ENCODINGS:
+    case Options::LIST_ENCODINGS:
       printEncodings();
       break;
     default:
