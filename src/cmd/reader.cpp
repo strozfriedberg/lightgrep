@@ -39,9 +39,11 @@ std::future<std::pair<const char*, size_t>> FileReader::read(size_t len){
   return std::async(
     std::launch::async,
     [](char* buf, size_t len, FILE* file) {
-      return std::pair<const char*, size_t>{
-        buf, std::fread(buf, 1, len, file)
-      };
+      const size_t alen = std::fread(buf, 1, len, file);
+      if (std::ferror(file)) {
+        throw std::runtime_error(std::strerror(errno));
+      }
+      return std::pair<const char*, size_t>{buf, alen};
     },
     Next.get(), len, File
   );
