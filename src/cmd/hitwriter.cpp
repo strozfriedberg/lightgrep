@@ -1,7 +1,10 @@
 #include "hitwriter.h"
 
 #include <algorithm>
+#include <cstring>
 #include <iterator>
+#include <memory>
+#include <iostream>
 #include <ostream>
 
 
@@ -66,7 +69,7 @@ const char* find_trailing_context(const char* const hend, const char* const bend
     rnl = std::find(rnl + 1, bend, '\n');
   }
 
-  if (rnl != bend && *rnl == '\n' && *(rnl-1) == '\r') {
+  if (rnl != bend && *(rnl-1) == '\r') {
     // Back up one byte on the right end in case of CRLF line endings;
     // not necessary for the left end due to the LF being on the right
     // half of the EOL.
@@ -90,12 +93,36 @@ void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hi
   // print the offset of the start of context
   hi->Out << (hi->BufOff + (cbeg - hi->Buf)) << '\t';
 
-  // print the hit, escaping \t\n\r
+  // transcode the context to UTF-8
+  LG_Error* err = nullptr;
+  LG_Window inner{hit->Start, hit->End}, outer, dh;
+  const char* utf8 = nullptr;
+  const LG_PatternInfo* info = lg_pattern_info(hi->Map, hit->KeywordIndex);
+
+  lg_hit_context(
+    hi->Decoder,
+    cbeg, cend, hi->BufOff + (cbeg - hi->Buf),
+    &inner,
+    info->EncodingChain, cend - cbeg, 0xFFFD, &utf8, &outer, &dh, &err
+  );
+
+  std::unique_ptr<const char[],void(*)(const char*)> utf8_ptr(
+    utf8, &lg_free_hit_context_string
+  );
+
+  if (err) {
+    std::cerr << err->Message << std::endl;
+    lg_free_error(err);
+    return;
+  }
+
+  // print the hit, escaping \t, \n, \r
+  const char* utf8_end = utf8 + std::strlen(utf8);
   const char esc[] = "\t\n\r";
-  for (const char* l = cbeg, *r; l != cend; l = r) {
-    r = std::find_first_of(l, cend, esc, esc + 3);
+  for (const char* l = utf8, *r; l != utf8_end; l = r) {
+    r = std::find_first_of(l, utf8_end, esc, esc + 3);
     hi->Out.write(l, r - l);
-    if (r != cend) {
+    if (r != utf8_end) {
       switch (*r) {
       case '\t': hi->Out << "\\t"; break;
       case '\n': hi->Out << "\\n"; break;

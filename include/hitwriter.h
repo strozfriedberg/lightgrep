@@ -2,6 +2,7 @@
 
 #include <lightgrep/api.h>
 #include <lightgrep/search_hit.h>
+#include <lightgrep/util.h>
 
 #include <iosfwd>
 #include <string>
@@ -52,7 +53,12 @@ struct LineContextHitWriterInfo: public HitWriterInfo {
     HitWriterInfo(outStream, hMap),
     BeforeContext(beforeContext),
     AfterContext(afterContext),
-    GroupSeparator(groupSeparator) {}
+    GroupSeparator(groupSeparator),
+    Decoder(lg_create_decoder()) {}
+
+  virtual ~LineContextHitWriterInfo() {
+    lg_destroy_decoder(Decoder);
+  }
 
   int32_t BeforeContext, AfterContext;
   std::string GroupSeparator;
@@ -60,6 +66,8 @@ struct LineContextHitWriterInfo: public HitWriterInfo {
   const char* Buf;
   size_t BufLen;
   uint64_t BufOff;
+
+  LG_HDECODER Decoder;
 
   bool FirstHit = true;
 
