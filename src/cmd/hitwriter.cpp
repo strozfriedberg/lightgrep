@@ -101,9 +101,13 @@ void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hi
 
   lg_hit_context(
     hi->Decoder,
-    cbeg, cend, hi->BufOff + (cbeg - hi->Buf),
+    cbeg, cend,
+    hi->BufOff + (cbeg - hi->Buf),
     &inner,
-    info->EncodingChain, cend - cbeg, 0xFFFD, &utf8, &outer, &dh, &err
+    info->EncodingChain,
+    cend - cbeg,
+    0xFFFD,
+    &utf8, &outer, &dh, &err
   );
 
   std::unique_ptr<const char[],void(*)(const char*)> utf8_ptr(
