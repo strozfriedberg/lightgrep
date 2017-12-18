@@ -216,6 +216,11 @@ void parse_opts(int argc, char** argv,
       opts.AfterContext = opts.BeforeContext;
     }
 
+    if (opts.BeforeContext != -1 || opts.AfterContext != -1) {
+      // -C N, -B N, -A N imply --mmap
+      opts.MemoryMapped = true;
+    }
+
     // uppercase encoding names
     for (std::string& e : opts.Encodings) {
       std::transform(e.begin(), e.end(), e.begin(), toupper);
