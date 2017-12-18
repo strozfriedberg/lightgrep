@@ -82,7 +82,7 @@ const char* find_trailing_context(const char* const hend, const char* const bend
 void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hit) {
   // bounds of the hit in the buffer, clipped to buffer bounds
   const char* const hbeg = hi->Buf + (hit->Start < hi->BufOff ? 0 : hit->Start - hi->BufOff);
-  const char* const hend = hi->Buf + std::min(hit->End - hi->BufOff, hi->BufLen);
+  const char* const hend = hi->Buf + std::min(hit->End - hi->BufOff, static_cast<uint64_t>(hi->BufLen));
 
   // beginning of context (left of hit)
   const char* const cbeg = find_leading_context(hi->Buf, hbeg, hi->BeforeContext);
