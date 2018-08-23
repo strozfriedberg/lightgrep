@@ -3,10 +3,10 @@
 def BUILDS = [
   'linux/64/shared',
   'windows/64/shared',
-  'windows/64/shared-fat',
+//  'windows/64/shared-fat',
   'windows/64/static',
   'windows/32/shared',
-  'windows/32/shared-fat',
+//  'windows/32/shared-fat',
   'windows/32/static'
 ]
 
