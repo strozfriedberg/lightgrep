@@ -11,7 +11,12 @@ def BUILDS = [
 ]
 
 def BASE_URL = 'ssh://git@stash.strozfriedberg.com/asdf'
-def DOWNSTREAM_REPOS = ['lightgrep', 'bulk_extractor']
+def DOWNSTREAM_REPOS = [
+  'hasher',
+  'lightgrep',
+  'lightgrep-java',
+  'bulk_extractor'
+]
 def UPSTREAM_REPOS = [['icu', 'jenkins-aws-test']]
 
 pipeline {
