@@ -6,7 +6,10 @@ clean_it
 
 ./bootstrap.sh
 
-DEPS_FLAGS="--with-liblightgrep-headers=$HOME/jobs/liblightgrep/workspace/include"
+# FIXME: match branch
+git clone -b master ssh://git@stash.strozfriedberg.com/asdf/liblightgrep.git vendors/liblightgrep
+
+DEPS_FLAGS="--with-liblightgrep-headers=vendors/liblightgrep/include"
 
 build_it
 
