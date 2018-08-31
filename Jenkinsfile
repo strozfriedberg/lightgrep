@@ -23,14 +23,9 @@ pipeline {
   agent none
   stages {
     stage('Handle Upstream Trigger') {
-      agent any
       steps {
         script {
-          sshagent(['jenkins_buildmaster']) {
-            common.PrintUpstreamTriggerParams(params)
-            common.IdentifyUpstream(env, BASE_URL, UPSTREAM_REPOS)
-            common.PrintUpstreamRepos(UPSTREAM_REPOS)
-          }
+          common.HandleUpstreamTrigger(env, params, BASE_URL, UPSTREAM_REPOS)
         }
       }
     }
@@ -42,12 +37,9 @@ pipeline {
       }
     }
     stage('Trigger Downstream') {
-      agent BuildMinionInternal
       steps {
         script {
-          sshagent(['jenkins_buildmaster']) {
-            common.TriggerDownstream(env, BASE_URL, DOWNSTREAM_REPOS)
-          }
+          common.TriggerDownstream(env, BASE_URL, DOWNSTREAM_REPOS)
         }
       }
     }
