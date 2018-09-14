@@ -12,7 +12,7 @@ def BUILDS = [
 
 def BASE_URL = 'ssh://git@stash.strozfriedberg.com/asdf'
 def DOWNSTREAM_REPOS = []
-def UPSTREAM_REPOS = [['liblightrep', 'jenkins-aws-test']]
+def UPSTREAM_REPOS = [['liblightrep', 'master']]
 
 pipeline {
   agent none
