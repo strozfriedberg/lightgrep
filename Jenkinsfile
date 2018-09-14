@@ -17,7 +17,7 @@ def DOWNSTREAM_REPOS = [
   'lightgrep-java',
   'bulk_extractor'
 ]
-def UPSTREAM_REPOS = [['icu', 'jenkins-aws-test']]
+def UPSTREAM_REPOS = [['icu', 'master']]
 
 pipeline {
   agent none
