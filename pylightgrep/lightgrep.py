@@ -489,7 +489,7 @@ if __name__ == "__main__":
     ("bl\\dw", ["UTF-8"], KeyOpts(fixedString = False, caseInsensitive = True)),
     ("[^a-z]+", ["UTF-8"], KeyOpts(fixedString = False, caseInsensitive = True)),
     # Backslash must be escaped once for Python, and again for Lightgrep
-    ("s\\\\((A|E)U\-)?\d{1,3}-\d{1,4}[^a-zA-Z0-9]", ["UTF-8"], KeyOpts(fixedString = False, caseInsensitive = False))
+    ("s\\\\((A|E)U\\-)?\\d{1,3}-\\d{1,4}[^a-zA-Z0-9]", ["UTF-8"], KeyOpts(fixedString = False, caseInsensitive = False))
   ]
   # Using with to open a Lightgrep object and
   # perform a search, passing keys and callback
