@@ -11,7 +11,7 @@ def BUILDS = [
 ]
 
 def BASE_URL = 'ssh://git@stash.strozfriedberg.com/asdf'
-def DOWNSTREAM_REPOS = []
+def DOWNSTREAM_REPOS = ['asdf']
 def UPSTREAM_REPOS = [['liblightrep', 'master']]
 
 pipeline {
