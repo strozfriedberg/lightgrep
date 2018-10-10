@@ -12,6 +12,7 @@ git clone -b master ssh://git@stash.strozfriedberg.com/asdf/liblightgrep.git ven
 DEPS_FLAGS="--with-liblightgrep-headers=vendors/liblightgrep/include"
 
 build_it
+install_it
 
 case "$Target" in
 linux)
