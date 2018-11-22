@@ -1,4 +1,9 @@
-@Library('asdf_common') _
+try {
+  library "asdf_common@${env.BRANCH_NAME}" _
+}
+catch (ex) {
+  library 'asdf_common' _
+}
 
 def BUILDS = [
   'linux/64/shared',
@@ -27,7 +32,7 @@ pipeline {
     stage('Build') {
       steps {
         script {
-          parallel common.makeConfigurations(scm, BUILDS)
+          parallel common.makeConfigurations(scm, BUILDS, UPSTREAM_REPOS)
         }
       }
     }
