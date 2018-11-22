@@ -1,8 +1,12 @@
 #!/bin/bash -ex
 
-. $HOME/vendors/build_config.sh
+git clone ssh://git@stash.strozfriedberg.com/asdf/jenkins-setup.git
+pushd jenkins-setup
+git checkout ASDF-2013
+popd
+. jenkins-setup/build_config.sh
 
-clean_it
+unpack_deps
 
 ./bootstrap.sh
 
@@ -17,24 +21,5 @@ if [ $Target = 'linux' -a $Linkage = 'shared' ]; then
   ln -fsr $INST/lib/liblightgrep.so.0.0.0 $INST/lib/liblightgrep.so.0.0
 fi
 
-case "$Target" in
-linux)
-  STAGE='src/lib/.libs/liblightgrep.so*'
-  ;;
-
-windows)
-  case "$Linkage" in
-  shared*)
-    DLL='src/lib/.libs/liblightgrep.dll'
-    STAGE="$DLL $($VENDORS/gather.sh $DLL $MINGW_ROOT/bin $DEPS/bin)"
-    ;;
-  static)
-    STAGE='src/lib/.libs/liblightgrep.a'
-    ;;
-  esac
-  ;;
-esac
-
-STAGE+=' pylightgrep/lightgrep.py'
-
-archive_it
+gather_deps
+archive_it_ex
