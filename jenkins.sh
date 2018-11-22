@@ -1,8 +1,12 @@
 #!/bin/bash -ex
 
-. $HOME/vendors/build_config.sh
+git clone ssh://git@stash.strozfriedberg.com/asdf/jenkins-setup.git
+pushd jenkins-setup
+git checkout ASDF-2013
+popd
+. jenkins-setup/build_config.sh
 
-clean_it
+unpack_deps
 
 ./bootstrap.sh
 
@@ -13,25 +17,5 @@ DEPS_FLAGS="--with-liblightgrep-headers=vendors/liblightgrep/include"
 
 build_it
 install_it
-
-case "$Target" in
-linux)
-  STAGE='src/cmd/lightgrep'
-  ;;
-
-windows)
-  case "$Linkage" in
-  shared)
-    EXES='src/cmd/.libs/lightgrep.exe'
-    STAGE="$EXES $($VENDORS/gather.sh $EXES $MINGW_ROOT/bin $DEPS/bin)"
-    ;;
-  static)
-    EXES='src/cmd/lightgrep.exe'
-    check_static $EXES
-    STAGE="$EXES"
-    ;;
-  esac
-  ;;
-esac
-
-archive_it
+gather_deps
+archive_it_ex
