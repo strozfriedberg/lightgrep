@@ -10,8 +10,10 @@ unpack_deps
 
 ./bootstrap.sh
 
-# FIXME: match branch
-git clone -b master ssh://git@stash.strozfriedberg.com/asdf/liblightgrep.git vendors/liblightgrep
+git clone ssh://git@stash.strozfriedberg.com/asdf/liblightgrep.git vendors/liblightgrep
+pushd vendors/liblightgrep
+git checkout $BRANCH_NAME || git checkout master
+popd
 
 DEPS_FLAGS="--with-liblightgrep-headers=vendors/liblightgrep/include"
 
