@@ -126,10 +126,10 @@ typename std::enable_if<Length != 4>::type
 test_range(const byte* first, const byte* last, Expected exp, Actual act)
 {
   // mask out right 4-Length bytes
-  const uint32_t mask = ((1 << (Length*8)) - 1) << ((4-Length)*8);
+  const uint32_t mask = ((1 << (Length*8)) - 1) << ((4 - Length ) * 8);
 
-  uint32_t i = other_endian(*reinterpret_cast<const uint32_t*>(first)) & mask;
-  const uint32_t end = (other_endian(*reinterpret_cast<const uint32_t*>(last)) & mask) + (1 << (4-Length)*8);
+  uint32_t i = other_endian(*first) & mask;
+  const uint32_t end = (other_endian(*last) & mask) + (1 << (4 - Length) * 8);
 
   test_range(i, end, exp, act);
 }
