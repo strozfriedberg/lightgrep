@@ -88,6 +88,7 @@ SCOPE_TEST(testLgAddPatternList) {
     defEncs, defEncsNum, &defOpts, &err
   );
 
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
   SCOPE_ASSERT(!err);
 }
 
@@ -122,6 +123,7 @@ SCOPE_TEST(testLgAddPatternListFixedString) {
     defEncs, defEncsNum, &defOpts, &err
   );
 
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
   SCOPE_ASSERT(!err);
 }
 
@@ -161,6 +163,8 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
     fsm.get(), pmap.get(), pats, "testLgAddPatternListBadEncoding",
     defEncs, defEncsNum, &defOpts, &err
   );
+
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
 
   SCOPE_ASSERT(err);
   SCOPE_ASSERT_EQUAL(0, err->Index);
