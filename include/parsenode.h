@@ -181,13 +181,11 @@ struct ParseNode {
 
   ParseNode& operator=(const ParseNode& o) {
     if (this != &o) {
-      if (Type == CHAR_CLASS) {
+      if (Type == CHAR_CLASS && o.Type != CHAR_CLASS) {
         Set.CodePoints.~UnicodeSet();
       }
 
-      Type = o.Type;
-
-      switch (Type) {
+      switch (o.Type) {
       case REGEXP:
       case LOOKBEHIND_POS:
       case LOOKBEHIND_NEG:
@@ -207,13 +205,20 @@ struct ParseNode {
         Child.Rep = o.Child.Rep;
         break;
       case CHAR_CLASS:
-        new(&Set.CodePoints) UnicodeSet(o.Set.CodePoints);
+        if (Type == CHAR_CLASS) {
+          Set.CodePoints = o.Set.CodePoints;
+        }
+        else {
+          new(&Set.CodePoints) UnicodeSet(o.Set.CodePoints);
+        }
         Set.Breakout = o.Set.Breakout;
         break;
       default:
         Val = o.Val;
         break;
       }
+
+      Type = o.Type;
     }
 
     return *this;
