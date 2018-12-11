@@ -181,7 +181,7 @@ struct ParseNode {
 
   ParseNode& operator=(const ParseNode& o) {
     if (this != &o) {
-      if (Type == CHAR_CLASS && o.Type != CHAR_CLASS) {
+      if (Type == CHAR_CLASS) {
         Set.CodePoints.~UnicodeSet();
       }
 
