@@ -87,8 +87,8 @@ std::ostream& operator<<(std::ostream& out, const ParseNode& n) {
   }
 }
 
-void printTreeDetails(std::ostream& out, const ParseNode& n) {
 /*
+void printTreeDetails(std::ostream& out, const ParseNode& n) {
   if ((n.Type == ParseNode::CONCATENATION ||
        n.Type == ParseNode::ALTERNATION) && n.Child.Right) {
     printTreeDetails(out, *n.Child.Right);
@@ -119,5 +119,5 @@ void printTreeDetails(std::ostream& out, const ParseNode& n) {
   }
 
   out << '\n';
-*/
 }
+*/
