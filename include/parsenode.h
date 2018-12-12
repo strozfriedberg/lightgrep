@@ -47,26 +47,30 @@ struct ParseNode {
 
   NodeType Type;
 
+  struct RepetitionInternals {
+    uint32_t Min, Max;
+  };
+
+  struct ParentalNodeInternals {
+    ParseNode* Left;
+    union {
+      ParseNode* Right;
+      RepetitionInternals Rep;
+    };
+  };
+
+  struct CharacterClassInternals {
+    UnicodeSet CodePoints;
+    struct {
+      ByteSet Bytes;
+      bool Additive;
+    } Breakout;
+  };
+
   union {
-    struct {
-      ParseNode* Left;
-      union {
-        ParseNode* Right;
-        struct {
-          uint32_t Min, Max;
-        } Rep;
-      };
-    } Child;
-
+    ParentalNodeInternals Child;
+    CharacterClassInternals Set;
     int Val;
-
-    struct {
-      UnicodeSet CodePoints;
-      struct {
-        ByteSet Bytes;
-        bool Additive;
-      } Breakout;
-    } Set;
   };
 
   ParseNode(): Type(LITERAL), Val(0) {}
