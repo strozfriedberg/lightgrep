@@ -4,8 +4,8 @@ ACLOCAL_AMFLAGS = -I m4
 
 AM_CPPFLAGS = -I$(srcdir)/include $(BOOST_CPPFLAGS) $(ICU_CPPFLAGS) $(LG_CPPFLAGS)
 AM_CFLAGS = $(LG_CFLAGS)
-AM_CXXFLAGS = $(LG_CXXFLAGS)
-AM_LDFLAGS = $(BOOST_LDFLAGS) $(ICU_LDFLAGS) $(LG_LDFLAGS)
+AM_CXXFLAGS = $(LG_CXXFLAGS) $(ASAN_CXXFLAGS)
+AM_LDFLAGS = $(BOOST_LDFLAGS) $(ICU_LDFLAGS) $(LG_LDFLAGS) $(ASAN_LDFLAGS)
 AM_YFLAGS = -r solved
 
 LG_LIB = src/lib/liblightgrep.la
@@ -68,7 +68,7 @@ src_lib_liblightgrepint_la_SOURCES = \
 # without exporting all C++ classes
 # src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
 
-src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
+src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(ASAN_LIBS) $(STDCXX_LIB)
 if BUILD_DLL
 src_lib_liblightgrep_la_LDFLAGS = $(AM_LDFLAGS) $(LG_LIB_LDFLAGS) -avoid-version
 else
