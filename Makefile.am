@@ -68,7 +68,7 @@ src_lib_liblightgrepint_la_SOURCES = \
 # without exporting all C++ classes
 # src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
 
-src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(ASAN_LIBS) $(STDCXX_LIB)
+src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 if BUILD_DLL
 src_lib_liblightgrep_la_LDFLAGS = $(AM_LDFLAGS) $(LG_LIB_LDFLAGS) -avoid-version
 else

@@ -169,16 +169,10 @@ AC_ARG_WITH([asan],
   [with_asan=no])
 
 if test "x$with_asan" != "xno"; then
-  # stdio.h is not required for libasan, but it has no headers and the
-  # check requires one; stdio.h has to exist, so it's safe
-  AX_CHECK_LIBRARY([ASAN], [stdio.h], [asan],
-                   [ASAN_CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
-                    ASAN_LDFLAGS="-fsanitize=address -fno-omit-frame-pointer"
-                    ASAN_LIBS=-lasan],
-                   [AC_MSG_ERROR([Failed to find libasan])])
+  ASAN_CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
+  ASAN_LDFLAGS="-fsanitize=address -fno-omit-frame-pointer"
   AC_SUBST([ASAN_CXXFLAGS])
   AC_SUBST([ASAN_LDFLAGS])
-  AC_SUBST([ASAN_LIBS])
 fi
 
 #
