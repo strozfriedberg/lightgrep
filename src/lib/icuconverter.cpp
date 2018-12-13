@@ -71,8 +71,7 @@ std::unique_ptr<UConverter,void(*)(UConverter*)> make_conv(const char* name) {
       );
     }
   }
-
-  return std::move(conv);
+  return conv;
 }
 
 void ICUConverter::init() {
