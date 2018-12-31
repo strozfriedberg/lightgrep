@@ -47,26 +47,30 @@ struct ParseNode {
 
   NodeType Type;
 
+  struct RepetitionInternals {
+    uint32_t Min, Max;
+  };
+
+  struct ParentalNodeInternals {
+    ParseNode* Left;
+    union {
+      ParseNode* Right;
+      RepetitionInternals Rep;
+    };
+  };
+
+  struct CharacterClassInternals {
+    UnicodeSet CodePoints;
+    struct {
+      ByteSet Bytes;
+      bool Additive;
+    } Breakout;
+  };
+
   union {
-    struct {
-      ParseNode* Left;
-      union {
-        ParseNode* Right;
-        struct {
-          uint32_t Min, Max;
-        } Rep;
-      };
-    } Child;
-
+    ParentalNodeInternals Child;
+    CharacterClassInternals Set;
     int Val;
-
-    struct {
-      UnicodeSet CodePoints;
-      struct {
-        ByteSet Bytes;
-        bool Additive;
-      } Breakout;
-    } Set;
   };
 
   ParseNode(): Type(LITERAL), Val(0) {}
@@ -185,9 +189,7 @@ struct ParseNode {
         Set.CodePoints.~UnicodeSet();
       }
 
-      Type = o.Type;
-
-      switch (Type) {
+      switch (o.Type) {
       case REGEXP:
       case LOOKBEHIND_POS:
       case LOOKBEHIND_NEG:
@@ -207,13 +209,20 @@ struct ParseNode {
         Child.Rep = o.Child.Rep;
         break;
       case CHAR_CLASS:
-        new(&Set.CodePoints) UnicodeSet(o.Set.CodePoints);
+        if (Type == CHAR_CLASS) {
+          Set.CodePoints = o.Set.CodePoints;
+        }
+        else {
+          new(&Set.CodePoints) UnicodeSet(o.Set.CodePoints);
+        }
         Set.Breakout = o.Set.Breakout;
         break;
       default:
         Val = o.Val;
         break;
       }
+
+      Type = o.Type;
     }
 
     return *this;

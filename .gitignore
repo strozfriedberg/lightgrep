@@ -22,6 +22,7 @@
 /config.status
 /configure
 /configure.scan
+/include/lightgrep/encodings.h
 /liblightgrep.spec
 /libtool
 /m4/libtool.m4
