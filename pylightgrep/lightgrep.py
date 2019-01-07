@@ -111,8 +111,6 @@ def _openDll():
 _LG = _openDll()
 
 _CBType = CFUNCTYPE(None, py_object, POINTER(SearchHit))
-# associate the struct with the return type, otherwise ctypes thinks the return type is an int
-_CBType.restype = None
 
 #
 # api.h
@@ -236,10 +234,10 @@ _LG.lg_create_program.errcheck = _checkHandleForErrors
 _LG.lg_create_context.errcheck = _checkHandleForErrors
 
 
-def _gotHit_callback_impl(self, hitPtr):
+def _gotHit_callback_impl(lg, hitPtr):
   idx = hitPtr.contents.KeywordIndex
-  hitinfo = _LG.lg_pattern_info(self.__pmap__, idx).contents
-  self.Callback(hitPtr.contents, hitinfo)
+  hitinfo = _LG.lg_pattern_info(lg.__pmap__, idx).contents
+  lg.Callback(hitPtr.contents, hitinfo)
 
 _lg_gotHit_callback = _CBType(_gotHit_callback_impl)
 
