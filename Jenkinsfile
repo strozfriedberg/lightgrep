@@ -39,7 +39,7 @@ pipeline {
     stage('Trigger Downstream') {
       steps {
         script {
-          common.TriggerDownstream(env, BASE_URL, DOWNSTREAM_REPOS)
+          common.TriggerDownstream(env, DOWNSTREAM_REPOS)
         }
       }
     }
