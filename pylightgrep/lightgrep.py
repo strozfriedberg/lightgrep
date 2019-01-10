@@ -110,9 +110,7 @@ def _openDll():
 
 _LG = _openDll()
 
-_CBType = CFUNCTYPE(None, c_void_p, POINTER(SearchHit))
-# associate the struct with the return type, otherwise ctypes thinks the return type is an int
-_CBType.restype = c_void_p
+_CBType = CFUNCTYPE(None, py_object, POINTER(SearchHit))
 
 #
 # api.h
@@ -174,19 +172,19 @@ _LG.lg_create_context.restype = c_void_p
 _LG.lg_destroy_context.argtypes = [c_void_p]
 _LG.lg_destroy_context.restype = None
 
-_LG.lg_starts_with.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
+_LG.lg_starts_with.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, py_object, _CBType]
 _LG.lg_starts_with.restype = None
 
 _LG.lg_reset_context.argtypes = [c_void_p]
 _LG.lg_reset_context.restype = None
 
-_LG.lg_search.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
+_LG.lg_search.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, py_object, _CBType]
 _LG.lg_search.restype = c_void_p
 
-_LG.lg_closeout_search.argtypes = [c_void_p, c_void_p, _CBType]
+_LG.lg_closeout_search.argtypes = [c_void_p, py_object, _CBType]
 _LG.lg_closeout_search.restype = None
 
-_LG.lg_search_resolve.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, c_void_p, _CBType]
+_LG.lg_search_resolve.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, py_object, _CBType]
 _LG.lg_search_resolve.restype = c_uint64
 
 #
@@ -234,6 +232,14 @@ _LG.lg_create_pattern_map.errcheck = _checkHandleForErrors
 _LG.lg_create_fsm.errcheck = _checkHandleForErrors
 _LG.lg_create_program.errcheck = _checkHandleForErrors
 _LG.lg_create_context.errcheck = _checkHandleForErrors
+
+
+def _gotHit_callback_impl(lg, hitPtr):
+  idx = hitPtr.contents.KeywordIndex
+  hitinfo = _LG.lg_pattern_info(lg.__pmap__, idx).contents
+  lg.Callback(hitPtr.contents, hitinfo)
+
+_lg_gotHit_callback = _CBType(_gotHit_callback_impl)
 
 
 # ***************** Lightgrep class for easy usage *************************#
@@ -287,6 +293,7 @@ def check_keywords_file(keywords_file):
         with Lightgrep(pats, hits.lgCallback):
             return keywords_file
 
+
 class Lightgrep():
   def __init__(self, patList=None, callback=None, **kwargs):
     if (patList is not None and callback is not None):
@@ -316,7 +323,7 @@ class Lightgrep():
     size = len(data)
     beg = cast(data, POINTER(c_char))
     end = cast(addressof(beg.contents)+size, POINTER(c_char))
-    _LG.lg_search(self.__ctx__, beg, end, self.CurOffset, 0, self.Callback)
+    _LG.lg_search(self.__ctx__, beg, end, self.CurOffset, self, _lg_gotHit_callback)
     self.CurOffset += size
 
   def startswith(self, data):
@@ -325,7 +332,7 @@ class Lightgrep():
     size = len(data)
     beg = cast(data, POINTER(c_char))
     end = cast(addressof(beg.contents)+size, POINTER(c_char))
-    _LG.lg_starts_with(self.__ctx__, beg, end, 0, 0, self.Callback);
+    _LG.lg_starts_with(self.__ctx__, beg, end, 0, self, _lg_gotHit_callback);
 
   def hit_context(self, buf, offset, hit, window_size=100):
     return self.full_hit_context(buf, offset, hit, window_size=window_size)['hit_context']
@@ -414,11 +421,7 @@ class Lightgrep():
     ctxOpts = CtxOpts()
     self.__ctx__ = _LG.lg_create_context(self.__prog__, byref(ctxOpts))
     self.CurOffset = 0
-    def _gotHit(user, hitPtr):
-      idx = hitPtr.contents.KeywordIndex
-      hitinfo = _LG.lg_pattern_info(self.__pmap__, idx).contents
-      callback(hitPtr.contents, hitinfo)
-    self.Callback = _CBType(_gotHit)
+    self.Callback = callback
 
   def createContext(self, prog, pmap, callback):
     return self._createContext(prog, pmap, callback)
@@ -458,7 +461,7 @@ class Lightgrep():
     return keyList
 
   def done(self):
-    _LG.lg_closeout_search(self.__ctx__, 0, self.Callback)
+    _LG.lg_closeout_search(self.__ctx__, self, _lg_gotHit_callback)
     _LG.lg_reset_context(self.__ctx__)
 
   def searchBuffer(self, data, accumulator):
