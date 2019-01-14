@@ -2,7 +2,7 @@ try {
   library "asdf_common@${env.BRANCH_NAME}" _
 }
 catch (ex) {
-  library 'asdf_common' _
+  library 'asdf_common_default' _
 }
 
 def BUILDS = [
