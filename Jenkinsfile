@@ -22,7 +22,10 @@ def DOWNSTREAM_REPOS = [
   ['lightgrep-java'],
   ['bulk_extractor']
 ]
-def UPSTREAM_REPOS = [['icu', 'master']]
+def UPSTREAM_REPOS = [
+  ['jenkins-setup', 'master'],
+  ['icu', 'master']
+]
 
 pipeline {
   agent none
@@ -37,7 +40,7 @@ pipeline {
     stage('Build') {
       steps {
         script {
-          parallel common.makeConfigurations(scm, BUILDS, UPSTREAM_REPOS)
+          parallel common.makeConfigurations(scm, BUILDS, BASE_URL, UPSTREAM_REPOS)
         }
       }
     }
