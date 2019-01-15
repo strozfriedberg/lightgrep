@@ -17,7 +17,10 @@ def BUILDS = [
 
 def BASE_URL = 'ssh://git@stash.strozfriedberg.com/asdf'
 def DOWNSTREAM_REPOS = [['asdf']]
-def UPSTREAM_REPOS = [['liblightgrep', 'master']]
+def UPSTREAM_REPOS = [
+  ['jenkins-setup', 'master'],
+  ['liblightgrep', 'master']
+]
 
 pipeline {
   agent none
@@ -32,7 +35,7 @@ pipeline {
     stage('Build') {
       steps {
         script {
-          parallel common.makeConfigurations(scm, BUILDS, UPSTREAM_REPOS)
+          parallel common.makeConfigurations(scm, BUILDS, BASE_URL, UPSTREAM_REPOS)
         }
       }
     }
