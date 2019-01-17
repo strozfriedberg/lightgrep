@@ -122,7 +122,8 @@ Vm::Vm(ProgramPtr prog):
   #ifdef LBT_TRACE_ENABLED
   BeginDebug(Thread::NONE), EndDebug(Thread::NONE), NextId(0),
   #endif
-  Prog(prog), ProgEnd(&prog->back()-1),
+  Prog(prog),
+  ProgEnd(&(*prog)[prog->size() - 2]), // not end, but penultimate, guaranteed to be a halt; threads die just short of the finish
   First(), Active(1, &(*prog)[0]), Next(),
   CheckLabels(prog->MaxCheck+1),
   LiveNoLabel(false), Live(prog->MaxLabel+1),
@@ -523,7 +524,7 @@ void Vm::executeFrame(const byte* const cur, uint64_t offset, HitCallback hitFn,
   CurHitFn = hitFn;
   UserData = userData;
   ThreadList::iterator t = Active.begin();
-  _executeFrame(Prog->Filter, t, &(*Prog)[0], cur, offset);
+  _executeFrame(t, &(*Prog)[0], cur, offset);
 }
 
 void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t startOffset, HitCallback hitFn, void* userData) {

@@ -16,13 +16,13 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "pair_out.h"
 #include <scope/test.h>
 
 #include <sstream>
 
 #include "basic.h"
 #include "parseutil.h"
-#include "pair_out.h"
 
 SCOPE_TEST(parseHexCharTest) {
   // good

@@ -121,16 +121,19 @@ void test_range(uint32_t i, const uint32_t end, Expected exp, Actual act) {
   }
 }
 
+template <uint32_t Length>
+uint32_t conv_bytes(const byte* const b) {
+  return (Length >= 3 ? (static_cast<uint32_t>(*(b + 2)) << 16) : 0) |
+         (Length >= 2 ? (static_cast<uint32_t>(*(b + 1)) <<  8) : 0) |
+         *b;
+}
+
 template <uint32_t Length, class Expected, class Actual>
 typename std::enable_if<Length != 4>::type
 test_range(const byte* first, const byte* last, Expected exp, Actual act)
 {
-  // mask out right 4-Length bytes
-  const uint32_t mask = ((1 << (Length*8)) - 1) << ((4-Length)*8);
-
-  uint32_t i = other_endian(*reinterpret_cast<const uint32_t*>(first)) & mask;
-  const uint32_t end = (other_endian(*reinterpret_cast<const uint32_t*>(last)) & mask) + (1 << (4-Length)*8);
-
+  const uint32_t i = other_endian(conv_bytes<Length>(first));
+  const uint32_t end = other_endian(conv_bytes<Length>(last)) + (1 << (4-Length)*8);
   test_range(i, end, exp, act);
 }
 
