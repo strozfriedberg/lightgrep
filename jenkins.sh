@@ -9,12 +9,12 @@ unpack_deps
 build_it
 install_it
 
-mkdir -p $INST/lib/python
-cp pylightgrep/lightgrep.py $INST/lib/python
+mkdir -p $INSTALL/lib/python
+cp pylightgrep/lightgrep.py $INSTALL/lib/python
 
 if [ $Target = 'linux' -a $Linkage = 'shared' ]; then
-  ln -fsr $INST/lib/liblightgrep.so.0.0.0 $INST/lib/liblightgrep.so.0
-  ln -fsr $INST/lib/liblightgrep.so.0.0.0 $INST/lib/liblightgrep.so.0.0
+  ln -fsr $INSTALL/lib/liblightgrep.so.0.0.0 $INSTALL/lib/liblightgrep.so.0
+  ln -fsr $INSTALL/lib/liblightgrep.so.0.0.0 $INSTALL/lib/liblightgrep.so.0.0
 fi
 
 gather_deps
