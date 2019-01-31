@@ -1,9 +1,5 @@
-try {
-  library "asdf_common@${env.BRANCH_NAME}" _
-}
-catch (ex) {
-  library 'asdf_common_default' _
-}
+library "jenkins_shared_base" _
+loadSharedLib()
 
 def BUILDS = [
   'linux/64/shared',
