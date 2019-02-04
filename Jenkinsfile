@@ -13,10 +13,10 @@ def BUILDS = [
 
 def BASE_URL = 'ssh://git@stash.strozfriedberg.com/asdf'
 def DOWNSTREAM_REPOS = [
-  ['hasher', 'master'],
-  ['lightgrep', 'master'],
-  ['lightgrep-java', 'master'],
-  ['bulk_extractor', 'master']
+  ['hasher'],
+  ['lightgrep'],
+  ['lightgrep-java'],
+  ['bulk_extractor']
 ]
 def UPSTREAM_REPOS = [['icu', 'master']]
 
