@@ -19,7 +19,7 @@ def DOWNSTREAM_REPOS = [
   ['bulk_extractor']
 ]
 def UPSTREAM_REPOS = [
-  ['jenkins-setup', 'master'],
+  ['jenkins-setup', 'ASDF-2013'],
   ['icu', 'master']
 ]
 
