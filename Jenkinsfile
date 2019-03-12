@@ -12,16 +12,6 @@ def BUILDS = [
 ]
 
 def BASE_URL = 'ssh://git@stash.strozfriedberg.com/asdf'
-def DOWNSTREAM_REPOS = [
-  ['hasher'],
-  ['lightgrep'],
-  ['lightgrep-java'],
-  ['bulk_extractor']
-]
-def UPSTREAM_REPOS = [
-  ['jenkins-setup', 'ASDF-2013'],
-  ['icu', 'master']
-]
 
 pipeline {
   agent none
@@ -29,7 +19,7 @@ pipeline {
     stage('Handle Upstream Trigger') {
       steps {
         script {
-          common.HandleUpstreamTrigger(env, params, BASE_URL, UPSTREAM_REPOS)
+          common.HandleUpstreamTrigger(env, params, BASE_URL)
         }
       }
     }
@@ -43,7 +33,7 @@ pipeline {
     stage('Trigger Downstream') {
       steps {
         script {
-          common.TriggerDownstream(env, DOWNSTREAM_REPOS)
+          common.TriggerDownstream(env)
         }
       }
     }
