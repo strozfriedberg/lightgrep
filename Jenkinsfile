@@ -33,7 +33,7 @@ pipeline {
     stage('Trigger Downstream') {
       steps {
         script {
-          common.TriggerDownstream(env)
+          common.TriggerDownstream(env, params)
         }
       }
     }
