@@ -1,37 +1,19 @@
 #!/bin/bash -ex
 
-. $HOME/vendors/build_config.sh
+. jenkins-setup/build_config.sh
 
-clean_it
+unpack_deps
 
 ./bootstrap.sh
 
-# FIXME: match branch
-git clone -b master ssh://git@stash.strozfriedberg.com/asdf/liblightgrep.git vendors/liblightgrep
+git clone ssh://git@stash.strozfriedberg.com/asdf/liblightgrep.git vendors/liblightgrep
+pushd vendors/liblightgrep
+git checkout $BRANCH_NAME || git checkout master
+popd
 
 DEPS_FLAGS="--with-liblightgrep-headers=vendors/liblightgrep/include"
 
 build_it
 install_it
-
-case "$Target" in
-linux)
-  STAGE='src/cmd/lightgrep'
-  ;;
-
-windows)
-  case "$Linkage" in
-  shared)
-    EXES='src/cmd/.libs/lightgrep.exe'
-    STAGE="$EXES $($VENDORS/gather.sh $EXES $MINGW_ROOT/bin $DEPS/bin)"
-    ;;
-  static)
-    EXES='src/cmd/lightgrep.exe'
-    check_static $EXES
-    STAGE="$EXES"
-    ;;
-  esac
-  ;;
-esac
-
-archive_it
+gather_deps
+archive_it_ex
