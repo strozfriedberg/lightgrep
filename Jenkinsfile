@@ -1,4 +1,5 @@
-@Library('asdf_common') _
+library "jenkins_shared_base" _
+loadSharedLib()
 
 
 def BUILDS = [
@@ -12,13 +13,6 @@ def BUILDS = [
 ]
 
 def BASE_URL = 'ssh://git@stash.strozfriedberg.com/asdf'
-def DOWNSTREAM_REPOS = [
-  ['hasher'],
-  ['lightgrep'],
-  ['lightgrep-java'],
-  ['bulk_extractor']
-]
-def UPSTREAM_REPOS = [['icu', 'master']]
 
 pipeline {
   agent none
@@ -26,21 +20,21 @@ pipeline {
     stage('Handle Upstream Trigger') {
       steps {
         script {
-          common.HandleUpstreamTrigger(env, params, BASE_URL, UPSTREAM_REPOS)
+          common.HandleUpstreamTrigger(env, params, BASE_URL)
         }
       }
     }
     stage('Build') {
       steps {
         script {
-          parallel common.makeConfigurations(scm, BUILDS)
+          parallel common.makeConfigurations(scm, BUILDS, BASE_URL, common.UPSTREAM_REPOS)
         }
       }
     }
     stage('Trigger Downstream') {
       steps {
         script {
-          common.TriggerDownstream(env, DOWNSTREAM_REPOS)
+          common.TriggerDownstream(env, params)
         }
       }
     }

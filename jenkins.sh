@@ -1,40 +1,21 @@
 #!/bin/bash -ex
 
-. $HOME/vendors/build_config.sh
+. jenkins-setup/build_config.sh
 
-clean_it
+unpack_deps
 
 ./bootstrap.sh
 
 build_it
 install_it
 
-mkdir -p $INST/lib/python
-cp pylightgrep/lightgrep.py $INST/lib/python
+mkdir -p $INSTALL/lib/python
+cp pylightgrep/lightgrep.py $INSTALL/lib/python
 
 if [ $Target = 'linux' -a $Linkage = 'shared' ]; then
-  ln -fsr $INST/lib/liblightgrep.so.0.0.0 $INST/lib/liblightgrep.so.0
-  ln -fsr $INST/lib/liblightgrep.so.0.0.0 $INST/lib/liblightgrep.so.0.0
+  ln -fsr $INSTALL/lib/liblightgrep.so.0.0.0 $INSTALL/lib/liblightgrep.so.0
+  ln -fsr $INSTALL/lib/liblightgrep.so.0.0.0 $INSTALL/lib/liblightgrep.so.0.0
 fi
 
-case "$Target" in
-linux)
-  STAGE='src/lib/.libs/liblightgrep.so*'
-  ;;
-
-windows)
-  case "$Linkage" in
-  shared*)
-    DLL='src/lib/.libs/liblightgrep.dll'
-    STAGE="$DLL $($VENDORS/gather.sh $DLL $MINGW_ROOT/bin $DEPS/bin)"
-    ;;
-  static)
-    STAGE='src/lib/.libs/liblightgrep.a'
-    ;;
-  esac
-  ;;
-esac
-
-STAGE+=' pylightgrep/lightgrep.py'
-
-archive_it
+gather_deps
+archive_it_ex
