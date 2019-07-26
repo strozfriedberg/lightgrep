@@ -320,6 +320,13 @@ AC_SUBST([CCLD])
 
 AC_SUBST([LG_LIB_LDFLAGS])
 
+# Support for check with valgrind
+AX_VALGRIND_DFLT([sgcheck], [off])
+AX_VALGRIND_DFLT([helgrind], [off])
+AX_VALGRIND_DFLT([drd], [off])
+AX_VALGRIND_DFLT([memcheck], [on])
+AX_VALGRIND_CHECK
+
 #
 # Cleanup flags
 #

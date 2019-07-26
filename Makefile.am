@@ -107,6 +107,8 @@ include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
 
 BUILT_SOURCES = include/lightgrep/encodings.h
 
+@VALGRIND_CHECK_RULES@
+
 check_PROGRAMS = test/test
 TESTS = $(check_PROGRAMS)
 AM_TESTS_ENVIRONMENT = builddir=`pwd`;
