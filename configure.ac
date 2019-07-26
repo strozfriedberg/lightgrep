@@ -169,8 +169,10 @@ AC_ARG_WITH([asan],
   [with_asan=no])
 
 if test "x$with_asan" != "xno"; then
+  ASAN_CFLAGS="-fsanitize=address -fno-omit-frame-pointer"
   ASAN_CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
   ASAN_LDFLAGS="-fsanitize=address -fno-omit-frame-pointer"
+  AC_SUBST([ASAN_CFLAGS])
   AC_SUBST([ASAN_CXXFLAGS])
   AC_SUBST([ASAN_LDFLAGS])
 fi
