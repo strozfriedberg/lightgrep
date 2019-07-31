@@ -159,10 +159,10 @@ if test "x$with_boost" = "xno"; then
 else
   case "$host" in
   *-*-mingw*)
-    # AX_BOOST_BASE doesn't find the Boost libs for mingw, we help it out
-    if test "$with_boost_libdir" = ""; then
-      with_boost_libdir="/usr/${host}/sys-root/mingw/lib"
-      AC_MSG_WARN([--with-boost-libdir not set. We are guessing ${with_boost_libdir}.])
+    # AX_BOOST_BASE doesn't find Boost for mingw, we help it out
+    if test "$with_boost" = ""; then
+      with_boost="/usr/${host}/sys-root/mingw"
+      AC_MSG_WARN([--with-boost not set. We are guessing ${with_boost}.])
     fi
     ;;
   esac

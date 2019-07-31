@@ -2,8 +2,6 @@
 
 . jenkins-setup/build_config.sh
 
-unpack_deps
-
 ./bootstrap.sh
 
 git clone ssh://git@stash.strozfriedberg.com/asdf/liblightgrep.git vendors/liblightgrep
@@ -15,5 +13,3 @@ DEPS_FLAGS="--with-liblightgrep-headers=vendors/liblightgrep/include"
 
 build_it
 install_it
-gather_deps
-archive_it_ex
