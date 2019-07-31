@@ -6,6 +6,7 @@ unpack_deps
 
 ./bootstrap.sh
 
+CHECK_TARGET=check-valgrind
 build_it
 install_it
 
