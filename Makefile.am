@@ -3,7 +3,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CPPFLAGS = -I$(srcdir)/include $(BOOST_CPPFLAGS) $(ICU_CPPFLAGS) $(LG_CPPFLAGS)
-AM_CFLAGS = $(LG_CFLAGS)
+AM_CFLAGS = $(LG_CFLAGS) $(ASAN_CFLAGS)
 AM_CXXFLAGS = $(LG_CXXFLAGS) $(ASAN_CXXFLAGS)
 AM_LDFLAGS = $(BOOST_LDFLAGS) $(ICU_LDFLAGS) $(LG_LDFLAGS) $(ASAN_LDFLAGS)
 AM_YFLAGS = -r solved
@@ -106,6 +106,8 @@ include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
 	src/enc/enc$(EXEEXT) >$@
 
 BUILT_SOURCES = include/lightgrep/encodings.h
+
+@VALGRIND_CHECK_RULES@
 
 check_PROGRAMS = test/test
 TESTS = $(check_PROGRAMS)
