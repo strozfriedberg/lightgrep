@@ -20,7 +20,7 @@ BuildRequires:  pkgconfig(icu-uc)
 BuildRequires:  libtool 
 
 %description
-Lightgrep is a new regular expression engine, designed specifically for
+Lightgrep is a regular expression engine, designed specifically for
 digital forensics. Why another regexp engine?
 
 Lightgrep:

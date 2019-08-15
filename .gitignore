@@ -22,6 +22,8 @@
 /config/
 /configure
 /configure.scan
+/design/*.aux
+/design/*.log
 /include/lightgrep/encodings.h
 /liblightgrep.spec
 /libtool
