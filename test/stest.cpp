@@ -29,8 +29,7 @@ namespace {
     );
 
     // adjust the hit to reflect the user pattern index
-    stest->Hits.back().KeywordIndex =
-      reinterpret_cast<uint64_t>(info->UserData);
+    stest->Hits.back().KeywordIndex = info->UserIndex;
   }
 }
 
@@ -69,7 +68,7 @@ void STest::init(const std::vector<Pattern>& pats) {
       if (!err) {
         // pack the user pattern number into the void*, oh the horror
         LG_PatternInfo* pinfo = lg_pattern_info(PMap.get(), i - numErrors);
-        pinfo->UserData = reinterpret_cast<void*>(i);
+        pinfo->UserIndex = i;
       }
     }
 

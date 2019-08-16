@@ -19,7 +19,7 @@ void writeHit(HitWriterInfo* hi, const LG_SearchHit* const hit) {
 
   hi->Out << hit->Start << '\t'
           << hit->End << '\t'
-          << reinterpret_cast<uint64_t>(info->UserData) << '\t'
+          << info->UserIndex << '\t'
           << info->Pattern << '\t'
           << info->EncodingChain;
 }

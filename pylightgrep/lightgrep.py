@@ -33,7 +33,7 @@ class Err(Structure):
 class PatternInfo(Structure):
   _fields_ = [("Pattern", c_char_p),
               ("EncodingChain", c_char_p),
-              ("UserData", c_void_p)]
+              ("UserIndex", c_uint64)]
 
   # lg strings are always utf-8 to avoid cross-platform confusion
 
@@ -44,8 +44,7 @@ class PatternInfo(Structure):
     return self.EncodingChain.decode("utf-8")
 
   def useridx(self):
-    # ctypes converts a NULL pointer to None
-    return self.UserData or 0
+    return self.UserIndex
 
 class KeyOpts(Structure):
   _fields_ = [("FixedString", c_char),
@@ -443,7 +442,7 @@ class Lightgrep():
           if (idx >= 0):
             # lg_add_pattern_list handles this automatically
             pinfo = _LG.lg_pattern_info(self.__pmap__, idx).contents
-            pinfo.UserData = ct
+            pinfo.UserIndex = ct
           else:
             self.__Err__ = err
             raise RuntimeError("Error parsing keyword #%s: Could not add %s for encoding %s: %s" % (i, pat[0], enc, err.contents.Message if err.contents.Message != None else ""))

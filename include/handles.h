@@ -56,7 +56,7 @@ struct PatternMapHandle {
     std::unique_ptr<char[]> chcopy(new char[std::strlen(chain)+1]);
     std::strcpy(chcopy.get(), chain);
 
-    Patterns.push_back({patcopy.get(), chcopy.get(), nullptr});
+    Patterns.push_back({patcopy.get(), chcopy.get(), 0});
     patcopy.release();
     chcopy.release();
   }

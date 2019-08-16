@@ -236,7 +236,7 @@ public:
     ++NumHits;
     Hit.Offset = hit.Start;
     Hit.Length = hit.End - hit.Start;
-    Hit.Label = reinterpret_cast<uint64_t>(info->UserData);
+    Hit.Label = info->UserIndex;
 // FIXME: this is wrong generally, but EnCase uses trivial chains for now
     Hit.Encoding = lg_get_encoding_id(info->EncodingChain);
     ++HitsForFile[Hit.Label];

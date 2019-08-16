@@ -180,7 +180,7 @@ namespace {
 
       // pack the line number into the void*, oh the horror
       LG_PatternInfo* pinfo = lg_pattern_info(hMap, label);
-      pinfo->UserData = reinterpret_cast<void*>(lnum);
+      pinfo->UserIndex = lnum;
     }
   }
 

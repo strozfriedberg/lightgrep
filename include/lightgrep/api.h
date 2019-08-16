@@ -48,7 +48,7 @@ extern "C" {
   typedef struct {
     const char* Pattern;
     const char* EncodingChain;
-    void* UserData;
+    uint64_t UserIndex;
   } LG_PatternInfo;
 
   // Options for compiling patterns
