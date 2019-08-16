@@ -74,9 +74,9 @@ void printHelp(const po::options_description& desc) {
   std::cout
     << "\nUsage: lightgrep [OPTIONS] PATTERN_FILE [FILE...]\n"
          "       lightgrep [OPTIONS] [-p PATTERN | -k FILE] [FILE...]\n\n"
-    #ifdef LIGHTGREP_CUSTOMER
+#ifdef LIGHTGREP_CUSTOMER
     << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
-    #endif
+#endif
     << desc << std::endl;
 }
 
