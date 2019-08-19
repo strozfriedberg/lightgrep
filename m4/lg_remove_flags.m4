@@ -8,7 +8,7 @@ for flag in [$]$1 ; do
     echo "removing $flag from $1" 
     ;;
   *)
-    out+=" $flag"
+    out="$out $flag"
     ;;
   esac
 done

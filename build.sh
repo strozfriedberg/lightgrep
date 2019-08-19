@@ -4,17 +4,17 @@
 
 ./bootstrap.sh
 
-LLG_SUBMODULE=vendors/liblightgrep
-
-if [ ! -d "$LLG_SUBMODULE" ]; then
-  git clone ssh://git@stash.strozfriedberg.com/asdf/liblightgrep.git $LLG_SUBMODULE
+if [ "$Target" != 'macos']; then
+  CHECK_TARGET=check-valgrind
 fi
-
-pushd vendors/liblightgrep
-git checkout $BRANCH_NAME || git checkout master
-popd
-
-DEPS_FLAGS="--with-liblightgrep-headers=vendors/liblightgrep/include"
 
 build_it
 install_it
+
+mkdir -p $INSTALL/lib/python
+cp pylightgrep/lightgrep.py $INSTALL/lib/python
+
+if [ $Target = 'linux' -a $Linkage = 'shared' ]; then
+  ln -fsr $INSTALL/lib/liblightgrep.so.0.0.0 $INSTALL/lib/liblightgrep.so.0
+  ln -fsr $INSTALL/lib/liblightgrep.so.0.0.0 $INSTALL/lib/liblightgrep.so.0.0
+fi
