@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "options.h"
-#include "pair_out.h"
 
 SCOPE_TEST(getKeyFilesFromActualFiles) {
   Options opts;
@@ -19,5 +18,9 @@ SCOPE_TEST(getKeyFilesFromActualFiles) {
     { opts.KeyFiles[2], "\n\n\n\n\n\n\n\n\n" }
   };
 
-  SCOPE_ASSERT_EQUAL(expected, opts.getPatternLines());
+  const std::vector<std::pair<std::string,std::string>> actual = opts.getPatternLines();
+
+  for (uint8_t i = 0; i < expected.size(); ++i) {
+    SCOPE_ASSERT_EQUAL(expected[i], actual[i]);
+  }
 }
