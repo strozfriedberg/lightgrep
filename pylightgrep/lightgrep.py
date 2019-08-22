@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# Filename: lightgrep.py
 #
 # Copyright (c) 2014, Lightbox Technologies, Inc. All Rights Reserved.
 #
@@ -8,17 +7,36 @@
 # otherwise an error will be generated.
 #
 
-import sys, collections
+import collections
 from ctypes import *
 from ctypes.util import find_library
+import sys
 
 
-# ***************** Structs ************************* #
+#
+# Library Initialization
+#
 
-# seriously weird; I want to use this function in __init__s below
-# to set char fields based on bool values, but ctypes always bitches
-def _charBool(boolValue):
-    b'\x01' if boolValue == True else b'\x00'
+def load_library(name):
+    path = find_library(name)
+    if path is None:
+        raise RuntimeError(f"Failed to locate {name} in {sys.path}")
+
+    try:
+        return CDLL(path)
+    except Exception as e:
+        raise RuntimeError(f"Failed to load {name} from {sys.path}") from e
+
+
+_LG = load_library('lightgrep')
+
+#
+# Structs
+#
+
+def char_cast_bool(boolValue):
+    return b'\x01' if boolValue else b'\x00'
+
 
 class Err(Structure):
     _fields_ = [
@@ -29,6 +47,7 @@ class Err(Structure):
         ("Index", c_int),
         ("Next", c_void_p)
     ]
+
 
 class PatternInfo(Structure):
     _fields_ = [
@@ -45,8 +64,9 @@ class PatternInfo(Structure):
     def encChain(self):
         return self.EncodingChain.decode("utf-8")
 
-    def useridx(self):
+    def userIdx(self):
         return self.UserIndex
+
 
 class KeyOpts(Structure):
     _fields_ = [
@@ -55,10 +75,9 @@ class KeyOpts(Structure):
     ]
 
     def __init__(self, fixedString = False, caseInsensitive = False):
-        super(Structure, self).__init__() # do I need to call Structure's __init__ like this?
-        # self.FixedString = _charBool(fixedString) -- python/ctypes doesn't like helper function???
-        self.FixedString = b'\x01' if fixedString == True else b'\x00'
-        self.CaseInsensitive = b'\x01' if caseInsensitive == True else b'\x00'
+        super().__init__()
+        self.FixedString = char_cast_bool(fixedString)
+        self.CaseInsensitive = char_cast_bool(caseInsensitive)
 
     def isFixed(self):
         return self.FixedString == b'\x01'
@@ -72,8 +91,8 @@ class ProgOpts(Structure):
     _fields_ = [("Determinize", c_char)]
 
     def __init__(self, shouldDet = True):
-        super(Structure, self).__init__()
-        self.Determinize = char_cast(shouldDet)
+        super().__init__()
+        self.Determinize = char_cast_bool(shouldDet)
 
 
 class CtxOpts(Structure):
@@ -84,8 +103,8 @@ class CtxOpts(Structure):
     ]
 
     def __init__(self):
-        super(Structure, self).__init__()
-        self.TraceBegin = 0xffffffffffffffff
+        super().__init__()
+        self.TraceBegin = 0xFFFFFFFFFFFFFFFF
         self.TraceEnd = 0
 
 
@@ -104,23 +123,12 @@ class Window(Structure):
     ]
 
 
-# ***************** Library Init *************************#
-
-def _openDll():
-    # I think I should probably try to use ctypes.util.FindLibrary() here?
-    liblg = find_library("lightgrep")
-    if liblg != None:
-        return CDLL(liblg)
-    elif sys.platform.startswith("win"):
-        return CDLL('liblightgrep.dll')
-    elif sys.platform.startswith("darwin"):
-        return CDLL('liblightgrep.dylib')
-    else:
-        return CDLL('liblightgrep.so')
-
-_LG = _openDll()
-
 _CBType = CFUNCTYPE(None, py_object, POINTER(SearchHit))
+
+
+#
+# Function Prototypes
+#
 
 #
 # api.h
@@ -230,12 +238,16 @@ _LG.lg_free_window_offsets.restype = None
 _LG.lg_free_hit_context_string.argtypes = [c_char_p]
 _LG.lg_free_hit_context_string.restype = None
 
+
+#
+# Utility Functions
+#
+
 # check for errors on handles
 def _checkHandleForErrors(ret, func, args):
     if ret == 0:
-        raise RuntimeError("Lightgrep could not create return object in call to %s" % (str(func.__name__)))
-    else:
-        return ret
+        raise RuntimeError(f"Lightgrep could not create return object in call to {func.__name__}")
+    return ret
 
 _LG.lg_create_pattern.errcheck = _checkHandleForErrors
 _LG.lg_create_pattern_map.errcheck = _checkHandleForErrors
@@ -249,11 +261,13 @@ def _gotHit_callback_impl(lg, hitPtr):
     hitinfo = _LG.lg_pattern_info(lg.__pmap__, idx).contents
     lg.Callback(hitPtr.contents, hitinfo)
 
+
 _lg_gotHit_callback = _CBType(_gotHit_callback_impl)
 
 
 # ***************** Lightgrep class for easy usage *************************#
-class HitAccumulator:
+
+class HitAccumulator(object):
     def __init__(self):
         self.reset()
 
@@ -265,12 +279,13 @@ class HitAccumulator:
         d = {
             "start": hitInfo.Start,
             "end": hitInfo.End,
-            "keywordIndex": patInfo.useridx(),
+            "keywordIndex": patInfo.userIdx(),
             "pattern": patInfo.pat(),
             "encChain": patInfo.encChain()
         }
         self.KeyCounts[d["pattern"]] += 1
         self.Hits.append(d)
+
 
 def parse_pattern_line(line, default_encs, default_key_opts):
     fields = line.strip().split('\t')
@@ -291,6 +306,7 @@ def parse_pattern_line(line, default_encs, default_key_opts):
     else:
         return None
 
+
 def check_keywords_file(keywords_file):
     # will throw if there are any problems with patterns in file
     if not keywords_file:
@@ -304,7 +320,7 @@ def check_keywords_file(keywords_file):
             return keywords_file
 
 
-class Lightgrep():
+class Lightgrep(object):
     def __init__(self, patList=None, callback=None, **kwargs):
         if patList is not None and callback is not None:
             # Create program from patterns
@@ -328,7 +344,7 @@ class Lightgrep():
 
     def search(self, data):
         if not isinstance(data, bytes):
-            raise TypeError("a bytes-like object is required, not {}".format(type(data)))
+            raise TypeError(f"a bytes-like object is required, not {type(data)}")
         # get a pointer range of the buffer, probably what I'm least sure of
         size = len(data)
         beg = cast(data, POINTER(c_char))
@@ -338,7 +354,7 @@ class Lightgrep():
 
     def startswith(self, data):
         if not isinstance(data, bytes):
-            raise TypeError("a bytes-like object is required, not {}".format(type(data)))
+            raise TypeError(f"a bytes-like object is required, not {type(data)}")
         size = len(data)
         beg = cast(data, POINTER(c_char))
         end = cast(addressof(beg.contents)+size, POINTER(c_char))
@@ -410,7 +426,7 @@ class Lightgrep():
         progOpts = ProgOpts()
         self.__prog__ = _LG.lg_create_program(self.__fsm__, byref(progOpts))
         if self.__prog__ == 0:
-            raise RuntimeError("Could not create bytecode program")
+            raise RuntimeError("Failed to create bytecode program")
         _LG.lg_destroy_fsm(self.__fsm__)
         self.__fsm__ = None
         return self.__prog__, self.__pmap__
@@ -441,24 +457,26 @@ class Lightgrep():
         ct = 0
         for i, pat in enumerate(keyList):
             if len(pat[0]) == 0:
-                raise IndexError("No pattern specified on keyword %d" % ct)
+                raise IndexError(f"No pattern specified on pattern {ct}")
             if len(pat[1]) == 0:
-                raise IndexError("No encodings specified on keyword %d" % ct)
+                raise IndexError(f"No encodings specified on pattern {ct}")
             if pat[2] is None:
-                raise IndexError("No keyword options specified on keyword %d" % ct)
+                raise IndexError(f"No keyword options specified on pattern {ct}")
             result = _LG.lg_parse_pattern(self.__pat__, pat[0].encode("utf-8"), byref(pat[2]), byref(err))
-            if result > 0:
-                for enc in pat[1]:
-                    idx = _LG.lg_add_pattern(self.__fsm__, self.__pmap__, self.__pat__, enc.encode("utf-8"), byref(err))
-                    if idx >= 0:
-                        # lg_add_pattern_list handles this automatically
-                        pinfo = _LG.lg_pattern_info(self.__pmap__, idx).contents
-                        pinfo.UserIndex = ct
-                    else:
-                        self.__Err__ = err
-                        raise RuntimeError("Error parsing keyword #%s: Could not add %s for encoding %s: %s" % (i, pat[0], enc, err.contents.Message if err.contents.Message != None else ""))
-            else:
-                raise RuntimeError("Could not parse pattern #%s: %s: %s" % (i, pat[0], err.contents.Message if err.contents.Message != None else ""))
+            if result <= 0:
+                raise RuntimeError(f"Could not parse pattern {i}: {pat[0]}: {err.contents.Message or ''}")
+
+            for enc in pat[1]:
+                idx = _LG.lg_add_pattern(self.__fsm__, self.__pmap__, self.__pat__, enc.encode("utf-8"), byref(err))
+
+                if idx < 0:
+                    self.__Err__ = err
+                    raise RuntimeError(f"Error parsing pattern {i}: Could not add {pat[0]} for encoding {enc}: {err.contents.Message or ''}")
+
+                # lg_add_pattern_list handles this automatically
+                pinfo = _LG.lg_pattern_info(self.__pmap__, idx).contents
+                pinfo.UserIndex = ct
+
             ct += 1
 
     def keywordsFromPatterns(patternList, encodings, fixedString, caseInsensitive):
@@ -485,71 +503,3 @@ class Lightgrep():
         self.done() # done can generate hits, too, and then will reset context
         self.reset()
         return len(accumulator.Hits)
-
-if __name__ == "__main__":
-    # using the with statement correctly releases lightgrep resources when block closes
-    # better to loop over files/string within the lightgrep with statement, of course,
-    # as Lightgrep initialization is relatively heavyweight
-    searchString = "hello, World O'Sullivan, please don't bl0w up Nain s\\09-123/12-002 s\\EU-12-23 s\\AU-13-059 "
-    testString = "hello, World"
-    searchData = searchString.encode('utf-8')
-    testData = testString.encode('utf-8')
-    print("searchString: %s" % searchString)
-    keys = [
-        ("hello", ["UTF-8", "ISO-8859-1"], KeyOpts(fixedString = True, caseInsensitive = False)),
-        ("world", ["UTF-8"], KeyOpts(fixedString = True, caseInsensitive = True)),
-        # bl0w
-        ("bl\\dw", ["UTF-8"], KeyOpts(fixedString = False, caseInsensitive = True)),
-        ("[^a-z]+", ["UTF-8"], KeyOpts(fixedString = False, caseInsensitive = True)),
-        # Backslash must be escaped once for Python, and again for Lightgrep
-        ("s\\\\((A|E)U\\-)?\\d{1,3}-\\d{1,4}[^a-zA-Z0-9]", ["UTF-8"], KeyOpts(fixedString = False, caseInsensitive = False))
-    ]
-    # Using with to open a Lightgrep object and
-    # perform a search, passing keys and callback
-    # at init.
-    print("============================")
-    print("Results using 'with'")
-    withHits = HitAccumulator()
-    with Lightgrep(keys, withHits.lgCallback) as lg:
-        # call .encode() on a string to get a bytes object back, then pass into bytearray
-        withHitCount = lg.searchBuffer(searchData, withHits)
-        print("%d hits found" % withHitCount)
-        for h in withHits.Hits:
-            print("hit at (%s, %s) on keyindex %s, pattern is '%s' with encoding chain '%s'" %
-                (str(h.get("start")), str(h.get("end")), str(h.get("keywordIndex")), h.get("pattern"), h.get("encChain")))
-            # hBytes = searchData[h.get("start"):h.get("end")]
-            # hText = hBytes.decode("utf-8)")
-            # print("    hit text: '%s'" % hText)
-        withHits.reset()
-    print("---------------------------")
-    print("Results creating program and pattern map separately from context")
-    # Creating the program and pattern map separately
-    # from the context
-    myLgProg, myLgPmap = Lightgrep.createProgram(keys)
-    myLg = Lightgrep()
-    myHits = HitAccumulator()
-    myLg.createContext(myLgProg, myLgPmap, myHits.lgCallback)
-    myHitCount = myLg.searchBuffer(searchData, myHits)
-    print("%d hits found" % myHitCount)
-    for h in myHits.Hits:
-        print("hit at (%s, %s) on keyindex %s, pattern is '%s' with encoding chain '%s'" %
-            (str(h.get("start")), str(h.get("end")), str(h.get("keywordIndex")), h.get("pattern"), h.get("encChain")))
-    myHits.reset()
-    print("---------------------------")
-    print("Results reusing context with different data")
-    myHitCount = myLg.searchBuffer(testData, myHits)
-    print("%d hits found" % myHitCount)
-    for h in myHits.Hits:
-        print("hit at (%s, %s) on keyindex %s, pattern is '%s' with encoding chain '%s'" %
-            (str(h.get("start")), str(h.get("end")), str(h.get("keywordIndex")), h.get("pattern"), h.get("encChain")))
-    myHits.reset()
-    print("---------------------------")
-    print("Results reusing context again with and startswith()")
-    myHitCount = myLg.searchBufferStartswith(searchData, myHits)
-    print("%d hits found" % myHitCount)
-    for h in myHits.Hits:
-        print("hit at (%s, %s) on keyindex %s, pattern is '%s' with encoding chain '%s'" %
-            (str(h.get("start")), str(h.get("end")), str(h.get("keywordIndex")), h.get("pattern"), h.get("encChain")))
-    myHits.reset()
-    myLg.closeContext() # If you need to reuse the program and pattern map, only call closeContext()
-    myLg.close() # Call close() explicitly, since we didn't use 'with'
