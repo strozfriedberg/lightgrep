@@ -98,7 +98,7 @@ class Window(Structure):
 def _openDll():
   # I think I should probably try to use ctypes.util.FindLibrary() here?
   liblg = find_library("lightgrep")
-  if (liblg != None):
+  if liblg != None:
     return CDLL(liblg)
   elif sys.platform.startswith("win"):
     return CDLL('liblightgrep.dll')
@@ -221,7 +221,7 @@ _LG.lg_free_hit_context_string.restype = None
 
 # check for errors on handles
 def _checkHandleForErrors(ret, func, args):
-  if (ret == 0):
+  if ret == 0:
     raise RuntimeError("Lightgrep could not create return object in call to %s" % (str(func.__name__)))
   else:
     return ret
@@ -266,13 +266,13 @@ def parse_pattern_line(line, default_encs, default_key_opts):
   num = len(fields)
   encs = default_encs
   opts = default_key_opts
-  if (num > 0):
+  if num > 0:
     pat = fields[0]
-    if (num > 1):
+    if num > 1:
       encs = fields[1].split(',')
-      if (len(encs) == 0): # reset
+      if len(encs) == 0: # reset
         encs = default_encs
-      if (num > 2):
+      if num > 2:
         fixedString = True if fields[2] == '1' else False
         caseInsensitive = True if num > 3 and fields[3] == '1' else False
         opts = KeyOpts(fixedString, caseInsensitive)
@@ -295,7 +295,7 @@ def check_keywords_file(keywords_file):
 
 class Lightgrep():
   def __init__(self, patList=None, callback=None, **kwargs):
-    if (patList is not None and callback is not None):
+    if patList is not None and callback is not None:
       # Create program from patterns
       self._createProgram(patList)
       # Create context
@@ -308,7 +308,7 @@ class Lightgrep():
     self.close()
 
   def _kill(self, attr, func):
-    if (hasattr(self, attr) and getattr(self, attr) != None):
+    if hasattr(self, attr) and getattr(self, attr) != None:
       func(getattr(self, attr))
       setattr(self, attr, None)
 
@@ -389,7 +389,7 @@ class Lightgrep():
     self.CurOffset = 0
 
   def _createProgram(self, patList):
-    if (len(patList) == 0):
+    if len(patList) == 0:
       raise IndexError("Please specify a list of patterns for Lightgrep as {\"pattern\", [\"encodings\"], keyOpts}")
     self.__pat__ = _LG.lg_create_pattern()
     self.__pmap__ = _LG.lg_create_pattern_map(len(patList))
@@ -398,7 +398,7 @@ class Lightgrep():
     self._parsePatterns(err, patList)
     progOpts = ProgOpts()
     self.__prog__ = _LG.lg_create_program(self.__fsm__, byref(progOpts))
-    if (self.__prog__ == 0):
+    if self.__prog__ == 0:
       raise RuntimeError("Could not create bytecode program")
     _LG.lg_destroy_fsm(self.__fsm__)
     self.__fsm__ = None
@@ -406,16 +406,16 @@ class Lightgrep():
 
   @staticmethod
   def createProgram(patList, self=None):
-    if (self is None):
+    if self is None:
       self = Lightgrep()
     return self._createProgram(patList)
 
   def _createContext(self, prog, pmap, callback):
     self.__prog__ = c_void_p(prog)
     self.__pmap__ = c_void_p(pmap)
-    if (self.__prog__ == 0):
+    if self.__prog__ == 0:
       raise RuntimeError("Bytecode program cannot be accessed")
-    if (self.__pmap__ == 0):
+    if self.__pmap__ == 0:
       raise RuntimeError("Pattern map cannot be accessed")
     ctxOpts = CtxOpts()
     self.__ctx__ = _LG.lg_create_context(self.__prog__, byref(ctxOpts))
@@ -429,17 +429,17 @@ class Lightgrep():
     # keyList is a list of ("pattern", ["encoding"], keyOpts)
     ct = 0
     for i, pat in enumerate(keyList):
-      if (len(pat[0]) == 0):
+      if len(pat[0]) == 0:
         raise IndexError("No pattern specified on keyword %d" % ct)
-      if (len(pat[1]) == 0):
+      if len(pat[1]) == 0:
         raise IndexError("No encodings specified on keyword %d" % ct)
-      if (pat[2] is None):
+      if pat[2] is None:
         raise IndexError("No keyword options specified on keyword %d" % ct)
       result = _LG.lg_parse_pattern(self.__pat__, pat[0].encode("utf-8"), byref(pat[2]), byref(err))
-      if (result > 0):
+      if result > 0:
         for enc in pat[1]:
           idx = _LG.lg_add_pattern(self.__fsm__, self.__pmap__, self.__pat__, enc.encode("utf-8"), byref(err))
-          if (idx >= 0):
+          if idx >= 0:
             # lg_add_pattern_list handles this automatically
             pinfo = _LG.lg_pattern_info(self.__pmap__, idx).contents
             pinfo.UserIndex = ct
