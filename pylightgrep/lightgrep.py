@@ -455,23 +455,23 @@ class Lightgrep(object):
     def _parsePatterns(self, err, keyList):
         # keyList is a list of ("pattern", ["encoding"], keyOpts)
         ct = 0
-        for i, pat in enumerate(keyList):
-            if len(pat[0]) == 0:
+        for i, p in enumerate(keyList):
+            if len(p[0]) == 0:
                 raise IndexError(f"No pattern specified on pattern {ct}")
-            if len(pat[1]) == 0:
+            if len(p[1]) == 0:
                 raise IndexError(f"No encodings specified on pattern {ct}")
-            if pat[2] is None:
+            if p[2] is None:
                 raise IndexError(f"No keyword options specified on pattern {ct}")
-            result = _LG.lg_parse_pattern(self.__pat__, pat[0].encode("utf-8"), byref(pat[2]), byref(err))
+            result = _LG.lg_parse_pattern(self.__pat__, p[0].encode("utf-8"), byref(p[2]), byref(err))
             if result <= 0:
-                raise RuntimeError(f"Could not parse pattern {i}: {pat[0]}: {err.contents.Message or ''}")
+                raise RuntimeError(f"Could not parse pattern {i}: {p[0]}: {err.contents.Message or ''}")
 
-            for enc in pat[1]:
+            for enc in p[1]:
                 idx = _LG.lg_add_pattern(self.__fsm__, self.__pmap__, self.__pat__, enc.encode("utf-8"), byref(err))
 
                 if idx < 0:
                     self.__Err__ = err
-                    raise RuntimeError(f"Error parsing pattern {i}: Could not add {pat[0]} for encoding {enc}: {err.contents.Message or ''}")
+                    raise RuntimeError(f"Error parsing pattern {i}: Could not add {p[0]} for encoding {enc}: {err.contents.Message or ''}")
 
                 # lg_add_pattern_list handles this automatically
                 pinfo = _LG.lg_pattern_info(self.__pmap__, idx).contents
