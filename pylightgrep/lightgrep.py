@@ -13,7 +13,7 @@ from ctypes import *
 from ctypes.util import find_library
 
 
-# ***************** Structs *************************#
+# ***************** Structs ************************* #
 
 # seriously weird; I want to use this function in __init__s below
 # to set char fields based on bool values, but ctypes always bitches
@@ -21,19 +21,21 @@ def _charBool(boolValue):
     b'\x01' if boolValue == True else b'\x00'
 
 class Err(Structure):
-    # need to come back to this, clean up Next pointer for one thing
-    # why do we have so many members of our Error struct... hmm...
-    _fields_ = [("Message", c_char_p),
-                ("Pattern", c_char_p),
-                ("Encoding", c_char_p),
-                ("Source", c_char_p),
-                ("Index", c_int),
-                ("Next", c_void_p)]
+    _fields_ = [
+        ("Message", c_char_p),
+        ("Pattern", c_char_p),
+        ("Encoding", c_char_p),
+        ("Source", c_char_p),
+        ("Index", c_int),
+        ("Next", c_void_p)
+    ]
 
 class PatternInfo(Structure):
-    _fields_ = [("Pattern", c_char_p),
-                ("EncodingChain", c_char_p),
-                ("UserIndex", c_uint64)]
+    _fields_ = [
+        ("Pattern", c_char_p),
+        ("EncodingChain", c_char_p),
+        ("UserIndex", c_uint64)
+    ]
 
     # lg strings are always utf-8 to avoid cross-platform confusion
 
@@ -47,8 +49,10 @@ class PatternInfo(Structure):
         return self.UserIndex
 
 class KeyOpts(Structure):
-    _fields_ = [("FixedString", c_char),
-                ("CaseInsensitive", c_char)]
+    _fields_ = [
+        ("FixedString", c_char),
+        ("CaseInsensitive", c_char)
+    ]
 
     def __init__(self, fixedString = False, caseInsensitive = False):
         super(Structure, self).__init__() # do I need to call Structure's __init__ like this?
@@ -59,7 +63,8 @@ class KeyOpts(Structure):
     def isFixed(self):
         return self.FixedString == b'\x01'
 
-    def isCaseSensitive(self): #note that this is "Sensitive", not "Insensitive"
+    def isCaseSensitive(self):
+        # note that this is "Sensitive", not "Insensitive"
         return self.CaseInsensitive != b'\x01'
 
 
@@ -68,13 +73,15 @@ class ProgOpts(Structure):
 
     def __init__(self, shouldDet = True):
         super(Structure, self).__init__()
-        self.Determinize = b'\x01' if shouldDet == True else b'\x00'
+        self.Determinize = char_cast(shouldDet)
 
 
 class CtxOpts(Structure):
     # argh, this crap shouldn't even be exposed
-    _fields_ = [("TraceBegin", c_uint64),
-                ("TraceEnd", c_uint64)]
+    _fields_ = [
+        ("TraceBegin", c_uint64),
+        ("TraceEnd", c_uint64)
+    ]
 
     def __init__(self):
         super(Structure, self).__init__()
@@ -83,14 +90,18 @@ class CtxOpts(Structure):
 
 
 class SearchHit(Structure):
-    _fields_ = [("Start", c_uint64),
-                ("End", c_uint64),
-                ("KeywordIndex", c_uint32)]
+    _fields_ = [
+        ("Start", c_uint64),
+        ("End", c_uint64),
+        ("KeywordIndex", c_uint32)
+    ]
 
 
 class Window(Structure):
-    _fields_ = [("Start", c_uint64),
-                ("End", c_uint64)]
+    _fields_ = [
+        ("Start", c_uint64),
+        ("End", c_uint64)
+    ]
 
 
 # ***************** Library Init *************************#
@@ -207,7 +218,7 @@ _LG.lg_destroy_decoder.restype = None
 _LG.lg_read_window.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, POINTER(Window), c_char_p, c_size_t, c_size_t, POINTER(POINTER(c_int32)), POINTER(POINTER(c_size_t)), POINTER(c_size_t), POINTER(Window), POINTER(POINTER(Err))]
 _LG.lg_read_window.restype = c_uint
 
-_LG.lg_hit_context.argtypes =[c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, POINTER(Window), c_char_p, c_size_t, c_uint32, POINTER(c_char_p), POINTER(Window), POINTER(Window), POINTER(POINTER(Err))]
+_LG.lg_hit_context.argtypes = [c_void_p, POINTER(c_char), POINTER(c_char), c_uint64, POINTER(Window), c_char_p, c_size_t, c_uint32, POINTER(c_char_p), POINTER(Window), POINTER(Window), POINTER(POINTER(Err))]
 _LG.lg_hit_context.restype = c_uint
 
 _LG.lg_free_window_characters.argtypes = [POINTER(c_int32)]
