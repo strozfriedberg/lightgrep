@@ -77,6 +77,9 @@ AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_CC_C_O
 
+PKG_PROG_PKG_CONFIG
+AS_IF([test "x$enable_shared" != "xyes"], [PKG_CONFIG="$PKG_CONFIG --static"])
+
 AC_LANG([C])
 AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [LG_CFLAGS])
 
@@ -267,7 +270,7 @@ AC_DEFINE_UNQUOTED(TDATDIR, "$srcdir/test/data", [Define to the path to the test
 
 #
 # Threading
-# 
+#
 case "$host" in
 *-*-mingw*)
   AX_APPEND_COMPILE_FLAGS([-mthreads], [LG_CPPLAGS])
@@ -325,7 +328,7 @@ if test "x$enable_shared" != "xyes"; then
     ;;
   esac
 else
-  CXXLD="$CXX" 
+  CXXLD="$CXX"
   CCLD="$CC"
 
   case "$host" in
