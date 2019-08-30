@@ -33,7 +33,6 @@ extern "C" {
   struct ContextHandle;
 
   typedef struct PatternHandle*    LG_HPATTERN;
-  typedef struct PatternMapHandle* LG_HPATTERNMAP;
   typedef struct FSMHandle*        LG_HFSM;
   typedef struct ProgramHandle*    LG_HPROGRAM;
   typedef struct ContextHandle*    LG_HCONTEXT;
@@ -86,12 +85,6 @@ extern "C" {
                        const LG_KeyOptions* options,
                        LG_Error** err);
 
-  LG_HPATTERNMAP lg_create_pattern_map(unsigned int numTotalPatternsSizeHint);
-
-  void lg_destroy_pattern_map(LG_HPATTERNMAP hPatternMap);
-
-  int lg_pattern_map_size(const LG_HPATTERNMAP hPatternMap);
-
   // The parameter lets you pass a hint as to the size of the finite state
   // machine that will be created from the keywords. This is important if
   // there will be a lot of keywords, as it helps minimize heap allocation
@@ -105,14 +98,14 @@ extern "C" {
   // Returns negative on failure; otherwise returns unique index for the
   // pattern-encoding pair.
   int lg_add_pattern(LG_HFSM hFsm,
-                     LG_HPATTERNMAP hMap,
+                     LG_HPROGRAM hProg,
                      LG_HPATTERN hPattern,
                      const char* encoding,
+                     uint64_t userIndex,
                      LG_Error** err);
 
-
   int lg_add_pattern_list(LG_HFSM hFsm,
-                          LG_HPATTERNMAP hMap,
+                          LG_HPROGRAM hProg,
                           const char* patterns,
                           const char* source,
                           const char** defaultEncodings,
@@ -120,27 +113,30 @@ extern "C" {
                           const LG_KeyOptions* defaultOptions,
                           LG_Error** err);
 
-  LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
+  int lg_pattern_count(const LG_HPROGRAM hProg);
+
+  LG_PatternInfo* lg_pattern_info(LG_HPROGRAM hProg,
                                   unsigned int patternIndex);
 
   // Create a "Program" from a parser, which efficiently encodes the logic for
   // recognizing all the specified keywords. Once a program has been created,
   // the parser can be discarded.
-  LG_HPROGRAM lg_create_program(LG_HFSM hFsm,
-                                const LG_ProgramOptions* options);
+  LG_HPROGRAM lg_create_program(unsigned int numTotalPatternsSizeHint);
+
+  int lg_compile_program(const LG_HFSM hFsm, LG_HPROGRAM hProg, const LG_ProgramOptions* options);
 
   // The size, in bytes, of the search program. Used for serialization.
   int lg_program_size(const LG_HPROGRAM hProg);
 
   // Serialize the program, in binary format, to a buffer. The buffer must be
   // at least as large as lg_program_size() in bytes.
-  void lg_write_program(LG_HPROGRAM hProg, void* buffer);
+  void lg_write_program(const LG_HPROGRAM hProg, void* buffer);
 
   // Convert a buffer containing a serialized program to a program, given the
   // binary buffer and size. No versioning check is done so don't keep these
   // around too long. The caller is responsible for freeing the buffer after
   // calling lg_destroy_program on the handle.
-  LG_HPROGRAM lg_read_program(void* buffer, int size);
+  LG_HPROGRAM lg_read_program(const void* buffer, int size);
 
   // A Program must live as long as any associated contexts,
   // so only call this at the end.

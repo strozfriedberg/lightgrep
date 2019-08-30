@@ -38,10 +38,10 @@ print("---------------------------")
 print("Results creating program and pattern map separately from context")
 # Creating the program and pattern map separately
 # from the context
-myLgProg, myLgPmap = Lightgrep.createProgram(keys)
+myLgProg = Lightgrep.createProgram(keys)
 myLg = Lightgrep()
 myHits = HitAccumulator()
-myLg.createContext(myLgProg, myLgPmap, myHits.lgCallback)
+myLg.createContext(myLgProg, myHits.lgCallback)
 myHitCount = myLg.searchBuffer(searchData, myHits)
 print("%d hits found" % myHitCount)
 for h in myHits.Hits:

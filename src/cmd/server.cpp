@@ -225,13 +225,13 @@ struct HitInfo {
 
 class ServerWriter {
 public:
-  ServerWriter(const LG_HPATTERNMAP hMap, uint32_t numUserPatterns):
-    Map(hMap), NumHits(0), HitsForFile(numUserPatterns, 0) {}
+  ServerWriter(const LG_HPROGRAM hProg, uint32_t numUserPatterns):
+    Prog(hProg), NumHits(0), HitsForFile(numUserPatterns, 0) {}
 
   virtual ~ServerWriter() {}
 
   virtual void collect(const LG_SearchHit& hit) {
-    const LG_PatternInfo* info = lg_pattern_info(Map, hit.KeywordIndex);
+    const LG_PatternInfo* info = lg_pattern_info(Prog, hit.KeywordIndex);
 
     ++NumHits;
     Hit.Offset = hit.Start;
@@ -266,7 +266,7 @@ public:
   uint64_t numHits() const { return NumHits; }
 
 private:
-  const LG_HPATTERNMAP Map;
+  const LG_HPROGRAM Prog;
   uint64_t  NumHits;
   HitInfo Hit;
   std::vector<uint32_t> HitsForFile;
@@ -277,9 +277,9 @@ class SocketWriter: public ServerWriter {
 public:
   SocketWriter(
     std::shared_ptr<tcp::socket> sock,
-    const LG_HPATTERNMAP hMap,
+    const LG_HPROGRAM hProg,
     uint32_t numUserPatterns
-  ): ServerWriter(hMap, numUserPatterns), Socket(sock) {}
+  ): ServerWriter(hProg, numUserPatterns), Socket(sock) {}
 
   virtual void write(const HitInfo& hit) {
     boost::asio::write(
@@ -302,10 +302,10 @@ public:
   SafeFileWriter(
     std::shared_ptr<std::ofstream> output,
     std::shared_ptr<boost::mutex> m,
-    const LG_HPATTERNMAP hMap,
+    const LG_HPROGRAM hProg,
     uint32_t numUserPatterns
   ):
-    ServerWriter(hMap, numUserPatterns),
+    ServerWriter(hProg, numUserPatterns),
     Mutex(m),
     Output(output),
     Buffer(1000)
@@ -497,7 +497,6 @@ class LGServer {
 public:
   LGServer(
     std::shared_ptr<ProgramHandle> prog,
-    std::shared_ptr<PatternMapHandle> pmap,
     uint32_t numUserPatterns,
     const Options& opts
   );
@@ -549,12 +548,11 @@ private:
 
 LGServer::LGServer(
   std::shared_ptr<ProgramHandle> prog,
-  std::shared_ptr<PatternMapHandle> pmap,
   uint32_t numUserPatterns,
   const Options& opts
 ):
-  Opts(opts), Prog(prog), Map(pmap), Service(), Acceptor(Service),
-  Stats(lg_pattern_map_size(pmap.get())), NumUserPatterns(numUserPatterns)
+  Opts(opts), Prog(prog), Service(), Acceptor(Service),
+  Stats(lg_pattern_count(prog.get())), NumUserPatterns(numUserPatterns)
 {
   if (Opts.Output != "-") {
     if (!Registry::get().init(Opts.Output, Opts.StatsFileName, NumUserPatterns, opts.ServerPort)) {
@@ -608,11 +606,11 @@ void LGServer::accept(const boost::system::error_code& err) {
     std::shared_ptr<ServerWriter> writer;
     if (UsesFile) {
       callback = &safeFileWriter;
-      writer.reset(new SafeFileWriter(Registry::get().File, Registry::get().Mutex, Map.get(), NumUserPatterns));
+      writer.reset(new SafeFileWriter(Registry::get().File, Registry::get().Mutex, Prog.get(), NumUserPatterns));
     }
     else {
       callback = &socketWriter;
-      writer.reset(new SocketWriter(Socket, Map.get(), NumUserPatterns));
+      writer.reset(new SocketWriter(Socket, Prog.get(), NumUserPatterns));
     }
     Threads.emplace_back(
       std::bind(processConn, this, Socket, Prog, writer, callback)
@@ -700,7 +698,6 @@ void processConn(
 
 void startup(
   std::shared_ptr<ProgramHandle> prog,
-  std::shared_ptr<PatternMapHandle> pmap,
   uint32_t numUserPatterns,
   const Options& opts)
 {
@@ -716,7 +713,7 @@ void startup(
   }
 
   try {
-    LGServer srv(prog, pmap, numUserPatterns, opts);
+    LGServer srv(prog, numUserPatterns, opts);
     srv.run();
   }
   catch (const std::exception& e) {

@@ -45,6 +45,7 @@ src_lib_liblightgrepint_la_SOURCES = \
 	src/lib/oceencoder.cpp \
 	src/lib/parsenode.cpp \
 	src/lib/parser.cpp \
+	src/lib/pattern_map.cpp \
 	src/lib/re_grammar.ypp \
 	src/lib/parsetree.cpp \
 	src/lib/parseutil.cpp \
@@ -195,6 +196,7 @@ test_test_SOURCES = \
 	test/test_ostream_join_iterator.cpp \
 	test/test_parser.cpp \
 	test/test_parseutil.cpp \
+	test/test_pattern_map.cpp \
 	test/test_program.cpp \
 	test/test_rangeset.cpp \
 	test/test_rewriter.cpp \

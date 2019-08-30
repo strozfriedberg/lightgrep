@@ -95,18 +95,6 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
   );
 }
 
-LG_HPATTERNMAP lg_create_pattern_map(unsigned int numTotalPatternsSizeHint) {
-  return new (std::nothrow) PatternMapHandle(numTotalPatternsSizeHint);
-}
-
-void lg_destroy_pattern_map(LG_HPATTERNMAP hPatternMap) {
-  delete hPatternMap;
-}
-
-int lg_pattern_map_size(const LG_HPATTERNMAP hPatternMap) {
-  return hPatternMap->Patterns.size();
-}
-
 LG_HFSM create_fsm(unsigned int numFsmStateSizeHint) {
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> hFsm(
     new FSMHandle,
@@ -129,23 +117,24 @@ void lg_destroy_fsm(LG_HFSM hFsm) {
 }
 
 namespace {
-  int addPattern(LG_HFSM hFsm, LG_HPATTERNMAP hMap, LG_HPATTERN hPattern, const char* encoding) {
-    const uint32_t label = hMap->Patterns.size();
+  int addPattern(LG_HFSM hFsm, LG_HPROGRAM hProg, LG_HPATTERN hPattern, const char* encoding, uint64_t userIndex) {
+    const uint32_t label = hProg->PMap->Patterns.size();
     hFsm->Impl->addPattern(hPattern->Tree, encoding, label);
-    hMap->addPattern(hPattern->Pat.Expression.c_str(), encoding);
+    hProg->PMap->addPattern(hPattern->Pat.Expression.c_str(), encoding, userIndex);
     return (int) label;
   }
 }
 
 int lg_add_pattern(LG_HFSM hFsm,
-                   LG_HPATTERNMAP hMap,
+                   LG_HPROGRAM hProg,
                    LG_HPATTERN hPattern,
                    const char* encoding,
+                   uint64_t userIndex,
                    LG_Error** err)
 {
   return trapWithRetval(
-    [hFsm,hMap,hPattern,encoding]() {
-      return addPattern(hFsm, hMap, hPattern, encoding);
+    [hFsm, hProg, hPattern, encoding, userIndex]() {
+      return addPattern(hFsm, hProg, hPattern, encoding, userIndex);
     },
     -1,
     err
@@ -155,7 +144,7 @@ int lg_add_pattern(LG_HFSM hFsm,
 namespace {
   template <class E>
   void addPattern(LG_HFSM hFsm,
-                  LG_HPATTERNMAP hMap,
+                  LG_HPROGRAM hProg,
                   LG_HPATTERN hPat,
                   const std::string& pat,
                   LG_KeyOptions* keyOpts,
@@ -171,21 +160,22 @@ namespace {
     }
 
     for (const std::string& enc : encodings) {
-      const int label = lg_add_pattern(hFsm, hMap, hPat, enc.c_str(), err);
+      const int label = lg_add_pattern(hFsm, hProg, hPat, enc.c_str(), lnum, err);
       if (*err) {
         (*err)->Index = lnum;
         err = &((*err)->Next);
         continue;
       }
-
+/*
       // pack the line number into the void*, oh the horror
-      LG_PatternInfo* pinfo = lg_pattern_info(hMap, label);
+      LG_PatternInfo* pinfo = lg_pattern_info(hProg, label);
       pinfo->UserIndex = lnum;
+*/
     }
   }
 
   int addPatternList(LG_HFSM hFsm,
-                     LG_HPATTERNMAP hMap,
+                     LG_HPROGRAM hProg,
                      const char* patterns,
                      const char* source,
                      const char** defaultEncodings,
@@ -266,11 +256,11 @@ namespace {
           }
         }
 
-        addPattern(hFsm, hMap, ph.get(), pat, &opts, etok, lnum, err);
+        addPattern(hFsm, hProg, ph.get(), pat, &opts, etok, lnum, err);
       }
       else {
         // use default encodings and options
-        addPattern(hFsm, hMap, ph.get(), pat, &opts, defEncs, lnum, err);
+        addPattern(hFsm, hProg, ph.get(), pat, &opts, defEncs, lnum, err);
       }
     }
 
@@ -279,7 +269,7 @@ namespace {
 }
 
 int lg_add_pattern_list(LG_HFSM hFsm,
-                        LG_HPATTERNMAP hMap,
+                        LG_HPROGRAM hProg,
                         const char* patterns,
                         const char* source,
                         const char** defaultEncodings,
@@ -290,8 +280,8 @@ int lg_add_pattern_list(LG_HFSM hFsm,
   LG_Error* in_err = nullptr;
 
   int ret = trapWithRetval(
-    [hFsm, hMap, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err]() {
-      return addPatternList(hFsm, hMap, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err);
+    [hFsm, hProg, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err]() {
+      return addPatternList(hFsm, hProg, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err);
     },
     -1,
     err
@@ -310,63 +300,108 @@ int lg_add_pattern_list(LG_HFSM hFsm,
   return ret;
 }
 
-LG_PatternInfo* lg_pattern_info(LG_HPATTERNMAP hMap,
+int lg_pattern_count(const LG_HPROGRAM hProg) {
+  return hProg->PMap->Patterns.size();
+}
+
+LG_PatternInfo* lg_pattern_info(LG_HPROGRAM hProg,
                                 unsigned int patternIndex)
 {
-  return &hMap->Patterns[patternIndex];
-}
-
-LG_HPROGRAM create_program(LG_HFSM hFsm, const LG_ProgramOptions* opts) {
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
-    new ProgramHandle,
-    lg_destroy_program
-  );
-
-  hFsm->Impl->finalizeGraph(opts->Determinize);
-  hProg->Impl = Compiler::createProgram(*hFsm->Impl->Fsm);
-
-  return hProg.release();
-}
-
-LG_HPROGRAM lg_create_program(LG_HFSM hFsm,
-                              const LG_ProgramOptions* options)
-{
-  return trapWithRetval(
-    [hFsm,options](){ return create_program(hFsm, options); },
-    nullptr
-  );
+  return &hProg->PMap->Patterns[patternIndex];
 }
 
 namespace {
-  void write_program(LG_HPROGRAM hProg, void* buffer) {
-    std::vector<char> buf = hProg->Impl->marshall();
-    std::memcpy(buffer, buf.data(), buf.size());
-  }
-
-  LG_HPROGRAM read_program(void* buffer, size_t size) {
+  LG_HPROGRAM create_program(unsigned int numTotalPatternsSizeHint) {
     std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
       new ProgramHandle,
       lg_destroy_program
     );
 
-    hProg->Impl = Program::unmarshall(buffer, size);
+    hProg->PMap.reset(new PatternMap(numTotalPatternsSizeHint));
+    hProg->Prog = nullptr;
 
     return hProg.release();
   }
 }
 
-int lg_program_size(const LG_HPROGRAM hProg) {
-  return hProg->Impl->bufSize();
-}
-
-LG_HPROGRAM lg_read_program(void* buffer, int size) {
+LG_HPROGRAM lg_create_program(unsigned int numTotalPatternsSizeHint) {
   return trapWithRetval(
-    [buffer,size](){ return read_program(buffer, size); },
+    [numTotalPatternsSizeHint](){ return create_program(numTotalPatternsSizeHint); },
     nullptr
   );
 }
 
-void lg_write_program(LG_HPROGRAM hProg, void* buffer) {
+namespace {
+  int compile_program(LG_HFSM hFsm, LG_HPROGRAM hProg, const LG_ProgramOptions* opts) {
+    hFsm->Impl->finalizeGraph(opts->Determinize);
+    hProg->Prog = Compiler::createProgram(*hFsm->Impl->Fsm);
+    return hProg->Prog != nullptr;
+  }
+}
+
+int lg_compile_program(LG_HFSM hFsm, LG_HPROGRAM hProg,
+                       const LG_ProgramOptions* options)
+{
+  return trapWithRetval(
+    [hFsm, hProg, options](){ return compile_program(hFsm, hProg, options); },
+    0
+  );
+}
+
+int lg_program_size(const LG_HPROGRAM hProg) {
+  return sizeof(uint64_t) + hProg->PMap->bufSize() +
+         sizeof(uint64_t) + hProg->Prog->bufSize();
+}
+
+namespace {
+  void write_program(const LG_HPROGRAM hProg, void* buffer) {
+    char* dst = reinterpret_cast<char*>(buffer);
+
+    const std::vector<char> pmap_buf = hProg->PMap->marshall();
+    const uint64_t pmap_size = pmap_buf.size();
+    std::memcpy(dst, &pmap_size, sizeof(pmap_size));
+    dst += sizeof(pmap_size);
+    std::memcpy(dst, pmap_buf.data(), pmap_size);
+    dst += pmap_size;
+
+    const std::vector<char> prog_buf = hProg->Prog->marshall();
+    const uint64_t prog_size = prog_buf.size();
+    std::memcpy(dst, &prog_size, sizeof(prog_size));
+    dst += sizeof(prog_size);
+    std::memcpy(dst, prog_buf.data(), prog_size);
+    dst += prog_size;
+  }
+
+  LG_HPROGRAM read_program(const void* buffer, size_t size) {
+    std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
+      new ProgramHandle,
+      lg_destroy_program
+    );
+
+    const char* src = reinterpret_cast<const char*>(buffer);
+
+    const uint64_t pmap_size = *reinterpret_cast<const uint64_t*>(src);
+    src += sizeof(pmap_size);
+    hProg->PMap = PatternMap::unmarshall(src, pmap_size);
+    src += pmap_size;
+
+    const uint64_t prog_size = *reinterpret_cast<const uint64_t*>(src);
+    src += sizeof(prog_size);
+    hProg->Prog = Program::unmarshall(src, prog_size);
+    src += prog_size;
+
+    return hProg.release();
+  }
+}
+
+LG_HPROGRAM lg_read_program(const void* buffer, int size) {
+  return trapWithRetval(
+    [buffer, size](){ return read_program(buffer, size); },
+    nullptr
+  );
+}
+
+void lg_write_program(const LG_HPROGRAM hProg, void* buffer) {
   exceptionTrap(std::bind(write_program, hProg, buffer));
 }
 
@@ -376,11 +411,11 @@ void lg_destroy_program(LG_HPROGRAM hProg) {
 
 namespace {
   LG_HCONTEXT create_context(LG_HPROGRAM hProg,
-    #ifdef LBT_TRACE_ENABLED
-                      uint64_t beginTrace, uint64_t endTrace
-    #else
-                      uint64_t, uint64_t
-    #endif
+#ifdef LBT_TRACE_ENABLED
+                             uint64_t beginTrace, uint64_t endTrace
+#else
+                             uint64_t, uint64_t
+#endif
     )
   {
     std::unique_ptr<ContextHandle,void(*)(ContextHandle*)> hCtx(
@@ -388,10 +423,10 @@ namespace {
       lg_destroy_context
     );
 
-    hCtx->Impl = VmInterface::create(hProg->Impl);
-    #ifdef LBT_TRACE_ENABLED
+    hCtx->Impl = VmInterface::create(hProg->Prog);
+#ifdef LBT_TRACE_ENABLED
     hCtx->Impl->setDebugRange(beginTrace, endTrace);
-    #endif
+#endif
 
     return hCtx.release();
   }

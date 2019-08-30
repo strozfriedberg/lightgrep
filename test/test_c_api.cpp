@@ -66,12 +66,12 @@ SCOPE_TEST(testLgAddPatternList) {
   const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
   const LG_KeyOptions defOpts{0, 0};
 
-  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
-    lg_create_pattern_map(patsNum),
-    lg_destroy_pattern_map
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+    lg_create_program(patsNum),
+    lg_destroy_program
   );
 
-  SCOPE_ASSERT(pmap);
+  SCOPE_ASSERT(prog);
 
   // FIXME: how to estimate NFA size here?
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
@@ -84,7 +84,7 @@ SCOPE_TEST(testLgAddPatternList) {
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), pmap.get(), pats, "testLgAddPatternList",
+    fsm.get(), prog.get(), pats, "testLgAddPatternList",
     defEncs, defEncsNum, &defOpts, &err
   );
 
@@ -101,12 +101,12 @@ SCOPE_TEST(testLgAddPatternListFixedString) {
 
   const LG_KeyOptions defOpts{0, 0};
 
-   std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
-    lg_create_pattern_map(patsNum),
-    lg_destroy_pattern_map
+   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+    lg_create_program(patsNum),
+    lg_destroy_program
   );
 
-  SCOPE_ASSERT(pmap);
+  SCOPE_ASSERT(prog);
 
   // FIXME: how to estimate NFA size here?
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
@@ -119,7 +119,7 @@ SCOPE_TEST(testLgAddPatternListFixedString) {
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), pmap.get(), pats, "testLgAddPatternListFixedString",
+    fsm.get(), prog.get(), pats, "testLgAddPatternListFixedString",
     defEncs, defEncsNum, &defOpts, &err
   );
 
@@ -139,12 +139,12 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
   const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
   const LG_KeyOptions defOpts{0, 0};
 
-  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
-    lg_create_pattern_map(patsNum),
-    lg_destroy_pattern_map
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+    lg_create_program(patsNum),
+    lg_destroy_program
   );
 
-  SCOPE_ASSERT(pmap);
+  SCOPE_ASSERT(prog);
 
   // FIXME: how to estimate NFA size here?
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
@@ -160,7 +160,7 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), pmap.get(), pats, "testLgAddPatternListBadEncoding",
+    fsm.get(), prog.get(), pats, "testLgAddPatternListBadEncoding",
     defEncs, defEncsNum, &defOpts, &err
   );
 

@@ -31,30 +31,30 @@
 class STest {
 public:
   std::vector<SearchHit> Hits;
-  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> PMap;
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> Prog;
   uint64_t RetVal;
 
   STest(const char* key):
-    PMap(nullptr, nullptr), Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
   {
     init(make_patterns(std::initializer_list<const char*>{key}));
   }
 
   STest(std::initializer_list<const char*> keys):
-     PMap(nullptr, nullptr), Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+     Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
   {
     init(make_patterns(keys));
   }
 
   template <typename T>
   STest(const T& keys):
-    PMap(nullptr, nullptr), Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
   {
     init(make_patterns(keys));
   }
 
   STest(const std::vector<Pattern>& patterns):
-    PMap(nullptr, nullptr), Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
+    Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
   {
     init(patterns);
   }
@@ -81,6 +81,5 @@ private:
 
   void init(const std::vector<Pattern>& pats);
 
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> Prog;
   std::unique_ptr<ContextHandle,void(*)(ContextHandle*)> Ctx;
 };
