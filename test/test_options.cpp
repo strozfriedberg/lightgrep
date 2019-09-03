@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "options.h"
-#include "pair_out.h"
 
 SCOPE_TEST(getKeyFilesFromActualFiles) {
   Options opts;
