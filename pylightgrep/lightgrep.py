@@ -25,6 +25,8 @@ def load_library(base):
     else:
         ext = '.so'
 
+    name = base + ext
+
     try:
         return CDLL(name)
     except Exception as e:
