@@ -17,18 +17,21 @@ import sys
 # Library initialization
 #
 
-def load_library(name):
-    path = find_library(name)
-    if path is None:
-        raise RuntimeError(f"Failed to locate {name} in {sys.path}")
+def load_library(base):
+    if sys.platform == 'win32':
+        ext = '.dll'
+    elif sys.platform == 'darwin':
+        ext = '.dylib'
+    else:
+        ext = '.so'
 
     try:
-        return CDLL(path)
+        return CDLL(name)
     except Exception as e:
         raise RuntimeError(f"Failed to load {name} from {sys.path}") from e
 
 
-_LG = load_library('lightgrep')
+_LG = load_library('liblightgrep')
 
 #
 # Buffer handling crap
