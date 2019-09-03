@@ -330,6 +330,52 @@ def _the_callback_impl(holder, hitPtr):
 _the_callback_shim = _CBType(_the_callback_impl)
 
 
+class HitDecoder(Handle):
+    def __init__(self, prog, opts):
+        super().__init__(_LG.lg_create_decoder())
+
+    def close(self):
+        _LG.lg_destroy_decoder(self.handle)
+        super().close()
+
+    def hit_context(self, buf, offset, hit, window_size=100):
+        return self.full_hit_context(buf, offset, hit, window_size=window_size)['hit_context']
+
+    def full_hit_context(self, buf, offset, hit, window_size=100):
+# FIXME: this can't be right for all buffers
+        buf_beg = cast(buf, POINTER(c_char))
+        buf_end = cast(addressof(buf_beg.contents)+len(buf), POINTER(c_char))
+        hit_window = Window(Start=hit['start'], End=hit['end'])
+        outer_range = Window()
+        hit_string_location = Window()
+        out = c_char_p()
+        err = POINTER(Err)()
+        _LG.lg_hit_context(
+            self.handle,
+            buf_beg,
+            buf_end,
+            offset,
+            byref(hit_window),
+            hit['encChain'].encode('utf-8'),
+            window_size,
+            ord(' '),
+            byref(out),
+            byref(outer_range),
+            byref(hit_string_location),
+            byref(err)
+        )
+        ret = out.value.decode('utf-8')
+# TODO: context handler
+        _LG.lg_free_hit_context_string(out)
+        return {
+            'context_begin': outer_range.Start,
+            'context_end': outer_range.End,
+            'context_hit_begin': hit_string_location.Start,
+            'context_hit_end': hit_string_location.End,
+            'hit_context': ret
+        }
+
+
 #
 # Function Prototypes
 #
