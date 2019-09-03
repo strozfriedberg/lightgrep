@@ -331,7 +331,7 @@ _the_callback_shim = _CBType(_the_callback_impl)
 
 
 class HitDecoder(Handle):
-    def __init__(self, prog, opts):
+    def __init__(self):
         super().__init__(_LG.lg_create_decoder())
 
     def close(self):
