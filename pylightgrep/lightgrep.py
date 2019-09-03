@@ -299,14 +299,14 @@ class Context(Handle):
 
     def search(self, data, startOffset, accumulator):
         beg, end = buf_range(data, c_char)
-        return _LG.lg_search(self.handle, beg, end, startOffset, (self.prog, accumulator), _the_callback_shim)
+        return _LG.lg_search(self.handle, beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim)
 
     def startswith(self, data, startOffset, accumulator):
         beg, end = buf_range(data, c_char)
-        _LG.lg_starts_with(self.handle, beg, end, startOffset, (self.prog, accumulator), _the_callback_shim);
+        _LG.lg_starts_with(self.handle, beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim);
 
     def closeout(self, accumulator):
-        _LG.lg_closeout_search(self.handle, (self.prog, accumulator), _the_callback_shim)
+        _LG.lg_closeout_search(self.handle, (self.prog, accumulator.lgCallback), _the_callback_shim)
 
     def searchBuffer(self, data, accumulator):
         self.search(data, 0, accumulator)
