@@ -17,14 +17,17 @@ class PointerTests(unittest.TestCase):
     )
 
     def check_range(self, buf):
+        # Is the range the right length?
         r_beg, r_end = lightgrep.buf_range(buf, ctypes.c_char)
         self.assertNotEqual(r_beg, 0)
         self.assertNotEqual(r_end, 0)
         self.assertEqual(ctypes.addressof(r_end)-ctypes.addressof(r_beg), len(buf))
 
+        # Does buf_beg() == buf_range()[0]?
         beg = lightgrep.buf_beg(buf, ctypes.c_char)
         self.assertEqual(ctypes.addressof(beg), ctypes.addressof(r_beg))
 
+        # Does buf_end() == buf_range()[1]?
         end = lightgrep.buf_end(buf, ctypes.c_char)
         self.assertEqual(ctypes.addressof(end), ctypes.addressof(r_end))
 
