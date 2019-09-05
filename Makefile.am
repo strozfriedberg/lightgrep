@@ -141,7 +141,11 @@ endif
 @VALGRIND_CHECK_RULES@
 
 check_PROGRAMS = test/test
-TESTS = $(check_PROGRAMS)
+
+TESTS = \
+	$(check_PROGRAMS) \
+	pylightgrep/test.sh
+
 AM_TESTS_ENVIRONMENT = builddir=`pwd`;
 
 test_test_SOURCES = \
