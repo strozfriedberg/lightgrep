@@ -193,6 +193,9 @@ class Handle(object):
     def __init__(self, handle):
         self.handle = handle
 
+    def __bool__(self):
+        return bool(self.handle)
+
     def __enter__(self):
         return self
 
@@ -210,6 +213,20 @@ class Error(Handle):
     def close(self):
         _LG.lg_free_error(self.handle)
         super().close()
+
+
+class Pattern(Handle):
+    def __init__(self):
+        super().__init__(_LG.lg_create_pattern())
+
+    def close(self):
+        _LG.lg_destroy_pattern(self.handle)
+        super().close()
+
+    def parse(self, pat, opts, err):
+        if _LG.lg_parse_pattern(self.handle, pat.encode("utf-8"), byref(opts), byref(err.handle)) <= 0:
+# FIXME: check that pattern is in message
+            raise RuntimeError(f"Error parsing pattern: {err.contents.Message or ''}")
 
 
 class Fsm(Handle):
@@ -240,20 +257,6 @@ class Fsm(Handle):
 
             for enc in p[1]:
                 self.add_pattern(prog, pat, enc, i, err)
-
-
-class Pattern(Handle):
-    def __init__(self):
-        super().__init__(_LG.lg_create_pattern())
-
-    def close(self):
-        _LG.lg_destroy_pattern(self.handle)
-        super().close()
-
-    def parse(self, pat, opts, err):
-        if _LG.lg_parse_pattern(self.handle, pat.encode("utf-8"), byref(opts), byref(err.handle)) <= 0:
-# FIXME: check that pattern is in message
-            raise RuntimeError(f"Error parsing pattern: {err.contents.Message or ''}")
 
 
 class Program(Handle):

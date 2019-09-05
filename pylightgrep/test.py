@@ -38,6 +38,14 @@ class PointerTests(unittest.TestCase):
                     self.check_range(buf)
 
 
+class HandleTests(unittest.TestCase):
+    def test_handle_open_good_closed_bad(self):
+        h = lightgrep.Handle(42)
+        self.assertTrue(h)
+        self.assertEqual(h.handle, 42)
+        h.close()
+        self.assertFalse(h)
+        self.assertEqual(h.handle, None)
 
 
 if __name__ == "__main__":
