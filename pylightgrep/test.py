@@ -51,5 +51,18 @@ class HandleTests(unittest.TestCase):
         self.assertEqual(h.handle, None)
 
 
+class PatternTests(unittest.TestCase):
+    def test_pattern_good(self):
+        with lightgrep.Error() as err:
+            with lightgrep.Pattern() as pat:
+                pat.parse("a+b", lightgrep.KeyOpts(), err)
+
+    def test_pattern_bad(self):
+        with lightgrep.Error() as err:
+            with lightgrep.Pattern() as pat:
+                with self.assertRaises(RuntimeError):
+                    pat.parse("+", lightgrep.KeyOpts(), err)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -226,7 +226,7 @@ class Pattern(Handle):
     def parse(self, pat, opts, err):
         if _LG.lg_parse_pattern(self.handle, pat.encode("utf-8"), byref(opts), byref(err.handle)) <= 0:
 # FIXME: check that pattern is in message
-            raise RuntimeError(f"Error parsing pattern: {err.contents.Message or ''}")
+            raise RuntimeError(f"Error parsing pattern: {err.handle.contents.Message or ''}")
 
 
 class Fsm(Handle):
