@@ -18,7 +18,7 @@ public class GetHitContextDirectByteBufferTest extends BaseGetHitContextTest {
     super(buf, offset, size, startOffset, ibegin, iend, encoding, windowSize, replacement, exp, tclass);
 
     if (buf != null) {
-      bbuf = ByteBuffer.allocateDirect(buf.length);    
+      bbuf = ByteBuffer.allocateDirect(buf.length);
       bbuf.put(buf).position(offset);
     }
     else {

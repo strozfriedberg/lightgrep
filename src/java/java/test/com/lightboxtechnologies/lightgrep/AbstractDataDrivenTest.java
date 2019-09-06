@@ -35,7 +35,7 @@ public abstract class AbstractDataDrivenTest {
 
       // Failure! We got no exception.
       fail("Did not throw " + tclass.getSimpleName() + "!");
-    } 
+    }
   }
 
   protected abstract void doTest() throws Throwable;

@@ -66,7 +66,7 @@ static jmethodID patternInfoCtor;
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternInfo_init(JNIEnv* env, jclass cl) {
   try {
-    patternInfoCtor = env->GetMethodID(cl, "<init>", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V");
+    patternInfoCtor = env->GetMethodID(cl, "<init>", "(Ljava/lang/String;Ljava/lang/String;I)V");
     throwIfException(env);
   }
   catch (const PendingJavaException&) {
@@ -101,10 +101,10 @@ static jfieldID keyOptionsCaseInsensitiveField;
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_KeyOptions_init(JNIEnv* env, jclass cl) {
   try {
     keyOptionsFixedStringField = env->GetFieldID(cl, "FixedString", "Z");
-    throwIfException(env); 
+    throwIfException(env);
 
     keyOptionsCaseInsensitiveField = env->GetFieldID(cl, "FixedString", "Z");
-    throwIfException(env); 
+    throwIfException(env);
   }
   catch (const PendingJavaException&) {
   }
@@ -115,7 +115,7 @@ static jfieldID programOptionsDeterminizeField;
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramOptions_init(JNIEnv* env, jclass cl) {
   try {
     programOptionsDeterminizeField = env->GetFieldID(cl, "Determinize", "Z");
-    throwIfException(env); 
+    throwIfException(env);
   }
   catch (const PendingJavaException&) {
   }
@@ -204,7 +204,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* jvm, void*) {
 }
 
 /*
-template <typename T> T unwrap(JNIEnv* env, jobject handle) { 
+template <typename T> T unwrap(JNIEnv* env, jobject handle) {
   return reinterpret_cast<T>(env->GetLongField(handle, handlePointerField));
 }
 */
@@ -315,168 +315,6 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_PatternHandle_par
   }
 }
 
-JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_create(JNIEnv*, jclass, jint numTotalPatternsSizeHint) {
-  return reinterpret_cast<jlong>(lg_create_pattern_map(numTotalPatternsSizeHint));
-}
-
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_destroy(JNIEnv* env, jobject hPatternMap) {
-  LG_HPATTERNMAP ptr = handle_cast<LG_HPATTERNMAP>(env, hPatternMap);
-
-  if (ptr) {
-    // release global refs to Java-side user data objects
-    const int size = lg_pattern_map_size(ptr);
-    for (int i = 0; i < size; ++i) {
-      LG_PatternInfo* pinfo = lg_pattern_info(ptr, i);
-      if (pinfo->UserData) {
-        env->DeleteGlobalRef(static_cast<jobject>(pinfo->UserData));
-      }
-    }
-
-    // delete the pattern map
-    lg_destroy_pattern_map(ptr);
-    env->SetLongField(hPatternMap, handlePointerField, 0);
-  }
-}
-
-JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_sizeImpl(JNIEnv* env, jobject hPatternMap) {
-  LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
-    env->GetLongField(hPatternMap, handlePointerField)
-  );
-  return lg_pattern_map_size(ptr);
-}
-
-static jobject makePatternInfo(JNIEnv* env, LG_PatternInfo* pinfo) {
-  jclass cl = env->FindClass(patternInfoClassName);
-  throwIfException(env);
-
-  jstring pat = env->NewStringUTF(pinfo->Pattern);
-  throwIfException(env);
-
-  jstring enc = env->NewStringUTF(pinfo->EncodingChain);
-  throwIfException(env);
-
-  jobject dat = static_cast<jobject>(pinfo->UserData);
-
-  jobject obj = env->NewObject(cl, patternInfoCtor, pat, enc, dat);
-  throwIfException(env);
-
-  return obj;
-}
-
-static void throwIfPatternIndexOOB(JNIEnv* env, LG_HPATTERNMAP hPatternMap, int patternIndex) {
-  const int size = lg_pattern_map_size(hPatternMap);
-  if (patternIndex >= size) {
-    std::stringstream ss;
-    ss << "patternIndex == " << patternIndex << " >= " << size << " == size()";
-    throwException(env, indexOutOfBoundsExceptionClassName, ss.str().c_str());
-  }
-}
-
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_getPatternInfoImpl(JNIEnv* env, jobject hPatternMap, jint patternIndex) {
-  try {
-    // convert all of the Java objects to C
-    LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
-      env->GetLongField(hPatternMap, handlePointerField)
-    );
-
-    throwIfPatternIndexOOB(env, ptr, patternIndex);
-
-    // finally actually do something
-    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
-    return makePatternInfo(env, pinfo);
-  }
-  catch (const PendingJavaException&) {
-    return nullptr;
-  }
-}
-
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_getUserDataImpl(JNIEnv* env, jobject hPatternMap, jint patternIndex) {
-  try {
-    // convert all of the Java objects to C
-    LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
-      env->GetLongField(hPatternMap, handlePointerField)
-    );
-
-    throwIfPatternIndexOOB(env, ptr, patternIndex);
-
-    // finally actually do something
-    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
-    return static_cast<jobject>(pinfo->UserData);
-  }
-  catch (const PendingJavaException&) {
-    return nullptr;
-  }
-}
-
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_PatternMapHandle_setUserDataImpl(JNIEnv* env, jobject hPatternMap, jint patternIndex, jobject userData) {
-  try {
-    // convert all of the Java objects to C
-    LG_HPATTERNMAP ptr = reinterpret_cast<LG_HPATTERNMAP>(
-      env->GetLongField(hPatternMap, handlePointerField)
-    );
-
-    throwIfPatternIndexOOB(env, ptr, patternIndex);
-
-    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
-
-    // release the global ref to the old user data, if there is one
-    if (pinfo->UserData) {
-      env->DeleteGlobalRef(static_cast<jobject>(pinfo->UserData));
-    }
-
-    // store global ref to the new user data to prevent the JVM from gc'ing it
-    pinfo->UserData = userData ? env->NewGlobalRef(userData) : nullptr;
-  }
-  catch (const PendingJavaException&) {
-  }
-}
-
-JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_create(JNIEnv*, jclass, jint numFsmStateSizeHint) {
-  return reinterpret_cast<jlong>(lg_create_fsm(numFsmStateSizeHint));
-}
-
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_destroy(JNIEnv* env, jobject hFsm) {
-  destroyHandle<LG_HFSM>(env, hFsm, lg_destroy_fsm);
-}
-
-JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_addPatternImpl(JNIEnv* env, jobject hFsm, jobject hMap, jobject hPattern, jstring encoding) {
-  LG_Error* err = nullptr;
-  try {
-    // convert all of the Java objects to C
-    LG_HFSM fsmptr = reinterpret_cast<LG_HFSM>(
-      env->GetLongField(hFsm, handlePointerField)
-    );
-
-    LG_HPATTERNMAP mapptr = reinterpret_cast<LG_HPATTERNMAP>(
-      env->GetLongField(hMap, handlePointerField)
-    );
-
-    LG_HPATTERN patptr = reinterpret_cast<LG_HPATTERN>(
-      env->GetLongField(hPattern, handlePointerField)
-    );
-
-    std::unique_ptr<const char,std::function<void(const char*)>> enc(unwrap(env, encoding));
-
-    // finally actually do something
-    const int ret = lg_add_pattern(
-      fsmptr,
-      mapptr,
-      patptr,
-      enc.get(),
-      &err
-    );
-    if (err) {
-      throwException(env, keywordExceptionClassName, err->Message);
-    }
-
-    return ret;
-  }
-  catch (const PendingJavaException&) {
-    lg_free_error(err);
-    return 0;
-  }
-}
-
 static jobject makeProgramHandle(JNIEnv* env, LG_HPROGRAM hProg) {
   jclass cl = env->FindClass(programHandleClassName);
   throwIfException(env);
@@ -491,10 +329,151 @@ static jobject makeProgramHandle(JNIEnv* env, LG_HPROGRAM hProg) {
   return obj;
 }
 
-JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_createProgramImpl(JNIEnv* env, jobject hFsm, jobject options) {
+JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_create(JNIEnv*, jclass, jint numTotalPatternsSizeHint) {
+  return reinterpret_cast<jlong>(lg_create_program(numTotalPatternsSizeHint));
+}
+
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_countImpl(JNIEnv* env, jobject hProg) {
+  LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
+    env->GetLongField(hProg, handlePointerField)
+  );
+  return lg_pattern_count(ptr);
+}
+
+static jobject makePatternInfo(JNIEnv* env, LG_PatternInfo* pinfo) {
+  jclass cl = env->FindClass(patternInfoClassName);
+  throwIfException(env);
+
+  jstring pat = env->NewStringUTF(pinfo->Pattern);
+  throwIfException(env);
+
+  jstring enc = env->NewStringUTF(pinfo->EncodingChain);
+  throwIfException(env);
+
+  jint idx = pinfo->UserIndex;
+
+  jobject obj = env->NewObject(cl, patternInfoCtor, pat, enc, idx);
+  throwIfException(env);
+
+  return obj;
+}
+
+static void throwIfPatternIndexOOB(JNIEnv* env, LG_HPROGRAM hProg, int patternIndex) {
+  const int size = lg_pattern_count(hProg);
+  if (patternIndex >= size) {
+    std::stringstream ss;
+    ss << "patternIndex == " << patternIndex << " >= " << size << " == size()";
+    throwException(env, indexOutOfBoundsExceptionClassName, ss.str().c_str());
+  }
+}
+
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_getPatternInfoImpl(JNIEnv* env, jobject hProg, jint patternIndex) {
   try {
     // convert all of the Java objects to C
-    LG_HFSM ptr = reinterpret_cast<LG_HFSM>(
+    LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
+      env->GetLongField(hProg, handlePointerField)
+    );
+
+    throwIfPatternIndexOOB(env, ptr, patternIndex);
+
+    // finally actually do something
+    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
+    return makePatternInfo(env, pinfo);
+  }
+  catch (const PendingJavaException&) {
+    return nullptr;
+  }
+}
+
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_getUserIndexImpl(JNIEnv* env, jobject hProg, jint patternIndex) {
+  try {
+    // convert all of the Java objects to C
+    LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
+      env->GetLongField(hProg, handlePointerField)
+    );
+
+    throwIfPatternIndexOOB(env, ptr, patternIndex);
+
+    // finally actually do something
+    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
+    return pinfo->UserIndex;
+  }
+  catch (const PendingJavaException&) {
+    return 0;
+  }
+}
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_setUserIndexImpl(JNIEnv* env, jobject hProg, jint patternIndex, jint userIndex) {
+  try {
+    // convert all of the Java objects to C
+    LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
+      env->GetLongField(hProg, handlePointerField)
+    );
+
+    throwIfPatternIndexOOB(env, ptr, patternIndex);
+
+    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
+    pinfo->UserIndex = userIndex;
+  }
+  catch (const PendingJavaException&) {
+  }
+}
+
+JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_create(JNIEnv*, jclass, jint numFsmStateSizeHint) {
+  return reinterpret_cast<jlong>(lg_create_fsm(numFsmStateSizeHint));
+}
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_destroy(JNIEnv* env, jobject hFsm) {
+  destroyHandle<LG_HFSM>(env, hFsm, lg_destroy_fsm);
+}
+
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_addPatternImpl(JNIEnv* env, jobject hFsm, jobject hProg, jobject hPattern, jstring encoding, jint idx) {
+  LG_Error* err = nullptr;
+  try {
+    // convert all of the Java objects to C
+    LG_HFSM fsmptr = reinterpret_cast<LG_HFSM>(
+      env->GetLongField(hFsm, handlePointerField)
+    );
+
+    LG_HPROGRAM progptr = reinterpret_cast<LG_HPROGRAM>(
+      env->GetLongField(hProg, handlePointerField)
+    );
+
+    LG_HPATTERN patptr = reinterpret_cast<LG_HPATTERN>(
+      env->GetLongField(hPattern, handlePointerField)
+    );
+
+    std::unique_ptr<const char,std::function<void(const char*)>> enc(unwrap(env, encoding));
+
+    // finally actually do something
+    const int ret = lg_add_pattern(
+      fsmptr,
+      progptr,
+      patptr,
+      enc.get(),
+      idx,
+      &err
+    );
+    if (err) {
+      throwException(env, keywordExceptionClassName, err->Message);
+    }
+
+    return ret;
+  }
+  catch (const PendingJavaException&) {
+    lg_free_error(err);
+    return 0;
+  }
+}
+
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_compileImpl(JNIEnv* env, jobject hProg, jobject hFsm, jobject options) {
+  try {
+    // convert all of the Java objects to C
+    LG_HPROGRAM prog_ptr = reinterpret_cast<LG_HPROGRAM>(
+      env->GetLongField(hProg, handlePointerField)
+    );
+
+    LG_HFSM fsm_ptr = reinterpret_cast<LG_HFSM>(
       env->GetLongField(hFsm, handlePointerField)
     );
 
@@ -503,14 +482,14 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_crea
     };
 
     // finally actually do something
-    LG_HPROGRAM hProg = lg_create_program(ptr, &opts);
-    if (!hProg) {
-      throwException(env, programExceptionClassName, "Empty program!");
+    const int ret = lg_compile_program(fsm_ptr, prog_ptr, &opts);
+    if (ret) {
+      return ret;
     }
-    return makeProgramHandle(env, hProg);
+    throwException(env, programExceptionClassName, "Failed to compile program");
   }
   catch (const PendingJavaException&) {
-    return nullptr;
+    return 0;
   }
 }
 
@@ -566,7 +545,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
 static jobject makeContextHandle(JNIEnv* env, LG_HCONTEXT hCtx) {
   jclass cl = env->FindClass(contextHandleClassName);
   throwIfException(env);
-  
+
   jobject obj = env->NewObject(
     cl,
     contextHandleCtor,

@@ -30,29 +30,16 @@ public class FSMHandle extends Handle {
    * @throws NullPointerException
    *
    * FIXME: some unknown encoding exception
-   */  
-  public int addPattern(PatternMapHandle hMap, PatternHandle hPattern, String encoding) {
-    throwIfNull("hMap", hMap);
+   */
+  public int addPattern(ProgramHandle hProg, PatternHandle hPattern, String encoding, int userIndex) {
+    throwIfNull("hProg", hProg);
     throwIfNull("hPattern", hPattern);
     throwIfNull("encoding", encoding);
     throwIfDestroyed(this);
-    throwIfDestroyed(hMap);
+    throwIfDestroyed(hProg);
     throwIfDestroyed(hPattern);
-    return addPatternImpl(hMap, hPattern, encoding);
+    return addPatternImpl(hProg, hPattern, encoding, userIndex);
   }
 
-  private native int addPatternImpl(PatternMapHandle hMap, PatternHandle hPattern, String encoding);
-
-  /**
-   * @throws IllegalStateException
-   * @throws KeywordException // FIXME: correct?
-   * @throws NullPointerException
-   */
-  public ProgramHandle createProgram(ProgramOptions options) throws KeywordException {
-    throwIfNull("options", options);
-    throwIfDestroyed(this);
-    return createProgramImpl(options);
-  }
-
-  private native ProgramHandle createProgramImpl(ProgramOptions options) throws KeywordException;
+  private native int addPatternImpl(ProgramHandle hProg, PatternHandle hPattern, String encoding, int userIndex);
 }

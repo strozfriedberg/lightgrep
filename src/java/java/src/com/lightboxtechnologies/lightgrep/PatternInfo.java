@@ -11,12 +11,12 @@ public class PatternInfo {
 
   public String Pattern;
   public String EncodingChain;
-  public Object UserData;
+  public int UserIndex;
 
-  public PatternInfo(String pattern, String encodingChain, Object userData) {
+  public PatternInfo(String pattern, String encodingChain, int userIndex) {
     this.Pattern = pattern;
     this.EncodingChain = encodingChain;
-    this.UserData = userData;
+    this.UserIndex = userIndex;
   }
 
   public boolean equals(Object o) {
@@ -34,20 +34,17 @@ public class PatternInfo {
         Pattern.equals(pi.Pattern)) &&
       (EncodingChain == null ? pi.EncodingChain == null :
         EncodingChain.equals(pi.EncodingChain)) &&
-      (UserData == null ? pi.UserData == null :
-        UserData.equals(pi.UserData));
+      UserIndex == pi.UserIndex;
   }
 
   public int hashCode() {
     return ((17*37 + (Pattern == null ? 0 : Pattern.hashCode()))*37 +
       (EncodingChain == null ? 0 : EncodingChain.hashCode()))*37 +
-      (UserData == null ? 0 :
-        (UserData.getClass().isArray() ?
-          Arrays.deepHashCode((Object[]) UserData) : UserData.hashCode()));
+      UserIndex;
   }
 
   public String toString() {
     return "PatternInfo[" +
-      Pattern + "," + EncodingChain + "," + UserData + "]";
+      Pattern + "," + EncodingChain + "," + UserIndex + "]";
   }
 }

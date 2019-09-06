@@ -59,43 +59,41 @@ public abstract class AbstractSearchTest extends AbstractDataDrivenTest {
   }
 
   protected void doTest() throws Throwable {
-    final PatternMapHandle hPatternMap = new PatternMapHandle(pmapSizeHint);
+    final ProgramHandle hProg = new ProgramHandle(pmapSizeHint);
     try {
       final FSMHandle hFsm = new FSMHandle(fsmSizeHint);
       try {
         final PatternHandle hPattern = new PatternHandle();
         try {
+          int i = 0;
           for (Pat p : pats) {
             hPattern.parsePattern(p.pattern, p.opts);
             for (String e : p.encs) {
-              hFsm.addPattern(hPatternMap, hPattern, e);
+              hFsm.addPattern(hProg, hPattern, e, i);
             }
+            ++i;
           }
         }
         finally {
           hPattern.destroy();
         }
 
-        final ProgramHandle hProg = hFsm.createProgram(popts);
-        try {
-          final ContextHandle hCtx = hProg.createContext(copts);
-          try {
-            runSearch(hCtx);
-          }
-          finally {
-            hCtx.destroy();
-          }
-        }
-        finally {
-          hProg.destroy();
-        }
+        hProg.compile(hFsm, popts);
       }
       finally {
         hFsm.destroy();
       }
+
+      final ContextHandle hCtx = hProg.createContext(copts);
+      try {
+        runSearch(hCtx);
+      }
+      finally {
+        hCtx.destroy();
+      }
     }
     finally {
-      hPatternMap.destroy();
+      hProg.destroy();
     }
   }
 

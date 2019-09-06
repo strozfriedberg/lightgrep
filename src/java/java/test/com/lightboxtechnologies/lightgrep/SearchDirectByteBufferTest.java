@@ -17,7 +17,7 @@ public class SearchDirectByteBufferTest extends BaseSearchTest {
     super(fsmSizeHint, pmapSizeHint, pats, popts, copts, buf, offset, size, startOffset, endOffset, ehits, tclass);
 
     if (buf != null) {
-      bbuf = ByteBuffer.allocateDirect(buf.length);    
+      bbuf = ByteBuffer.allocateDirect(buf.length);
       bbuf.put(buf).position(offset);
     }
     else {

@@ -49,8 +49,8 @@ public class HitContext {
 
   public String toString() {
     return getClass().getName() +
-      "[" + Begin + "," + End + "," 
-          + HitBegin + "," + HitEnd + "," 
+      "[" + Begin + "," + End + ","
+          + HitBegin + "," + HitEnd + ","
           + Decoded + "," + Bad + "]";
   }
 }

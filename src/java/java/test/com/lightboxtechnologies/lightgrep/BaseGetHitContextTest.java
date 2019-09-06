@@ -12,7 +12,7 @@ public abstract class BaseGetHitContextTest extends AbstractDataDrivenTest {
   public static Collection<Object[]> data() throws UnsupportedEncodingException {
     return Arrays.asList(new Object[][] {
       /* Bad Arguments */
-      // null buffer 
+      // null buffer
       { null, 0, 0, 0, 0, 0, "UTF-8", 0, 0, null, NullPointerException.class },
       // negative buffer size
       { "abc".getBytes("UTF-8"), 0, -1, 0, 0, 0, "UTF-8", 0, 0, null, IndexOutOfBoundsException.class },

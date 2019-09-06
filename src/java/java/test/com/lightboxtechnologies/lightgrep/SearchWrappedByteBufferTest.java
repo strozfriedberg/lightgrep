@@ -17,7 +17,7 @@ public class SearchWrappedByteBufferTest extends BaseSearchTest {
     super(fsmSizeHint, pmapSizeHint, pats, popts, copts, buf, offset, size, startOffset, endOffset, ehits, tclass);
 
     if (buf != null) {
-      bbuf = ByteBuffer.wrap(buf);    
+      bbuf = ByteBuffer.wrap(buf);
       bbuf.put(buf).position(offset);
     }
     else {
