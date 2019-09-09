@@ -347,9 +347,7 @@ class HitDecoder(Handle):
         return self.full_hit_context(buf, offset, hit, window_size=window_size)['hit_context']
 
     def full_hit_context(self, buf, offset, hit, window_size=100):
-# FIXME: this can't be right for all buffers
-        buf_beg = cast(buf, POINTER(c_char))
-        buf_end = cast(addressof(buf_beg.contents)+len(buf), POINTER(c_char))
+        beg, end = buf_range(buf, c_char)
         hit_window = Window(Start=hit['start'], End=hit['end'])
         outer_range = Window()
         hit_string_location = Window()
@@ -357,8 +355,8 @@ class HitDecoder(Handle):
         err = POINTER(Err)()
         _LG.lg_hit_context(
             self.handle,
-            buf_beg,
-            buf_end,
+            beg,
+            end,
             offset,
             byref(hit_window),
             hit['encChain'].encode('utf-8'),
