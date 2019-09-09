@@ -224,6 +224,9 @@ class Pattern(Handle):
         super().close()
 
     def parse(self, pat, opts, err):
+        if not self.handle:
+            raise RuntimeError("Pattern handle is closed")
+
         if _LG.lg_parse_pattern(self.handle, pat.encode("utf-8"), byref(opts), byref(err.handle)) <= 0:
 # FIXME: check that pattern is in message
             raise RuntimeError(f"Error parsing pattern: {err.handle.contents.Message or ''}")
@@ -238,6 +241,13 @@ class Fsm(Handle):
         super().close()
 
     def add_pattern(self, prog, pat, enc, userIdx, err):
+        if not self.handle:
+            raise RuntimeError("Fsm handle is closed")
+        if not prog.handle:
+            raise RuntimeError("Program handle is closed")
+        if not pat.handle:
+            raise RuntimeError("Pattern handle is closed")
+
         idx = _LG.lg_add_pattern(self.handle, prog.handle, pat.handle, enc.encode("utf-8"), userIdx, byref(err.handle))
         if idx < 0:
 # FIXME: check that pattern is in message

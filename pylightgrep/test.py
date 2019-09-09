@@ -85,11 +85,12 @@ class PatternTests(unittest.TestCase):
                 with self.assertRaises(RuntimeError):
                     pat.parse("+", lightgrep.KeyOpts(), err)
 
-#    def test_pattern_ack(self):
-#        with lightgrep.Error() as err:
-#            with lightgrep.Pattern() as pat:
-#                with self.assertRaises(RuntimeError):
-#                    pat.parse("+", None, err)
+    def test_pattern_closed(self):
+        with lightgrep.Error() as err:
+            with lightgrep.Pattern() as pat:
+                with self.assertRaises(RuntimeError):
+                    pat.close()
+                    pat.parse("a", lightgrep.KeyOpts(), err)
 
 
 class FsmTests(unittest.TestCase):
@@ -97,6 +98,26 @@ class FsmTests(unittest.TestCase):
         # test that closing an unused Fsm doesn't throw
         fsm = lightgrep.Fsm(0)
         fsm.close()
+
+    def test_add_pattern_closed_prog(self):
+        with lightgrep.Program(1) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    pat.parse("a+b", lightgrep.KeyOpts(), err)
+                    with lightgrep.Fsm(1) as fsm:
+                        prog.close()
+                        with self.assertRaises(RuntimeError):
+                            idx = fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+
+    def test_add_pattern_closed_pat(self):
+        with lightgrep.Program(1) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    pat.parse("a+b", lightgrep.KeyOpts(), err)
+                    with lightgrep.Fsm(1) as fsm:
+                        pat.close()
+                        with self.assertRaises(RuntimeError):
+                            idx = fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
 
     def test_add_pattern_good(self):
         with lightgrep.Program(1) as prog:
