@@ -419,6 +419,26 @@ class HitDecoder(Handle):
         }
 
 
+class HitAccumulator(object):
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.KeyCounts = collections.Counter()
+        self.Hits = []
+
+    def lgCallback(self, hitInfo, patInfo):
+        d = {
+            "start": hitInfo.Start,
+            "end": hitInfo.End,
+            "keywordIndex": patInfo.userIdx(),
+            "pattern": patInfo.pat(),
+            "encChain": patInfo.encChain()
+        }
+        self.KeyCounts[d["pattern"]] += 1
+        self.Hits.append(d)
+
+
 #
 # Function Prototypes
 #
@@ -562,37 +582,6 @@ _LG.lg_create_pattern.errcheck = _checkHandleForErrors
 _LG.lg_create_fsm.errcheck = _checkHandleForErrors
 _LG.lg_create_program.errcheck = _checkHandleForErrors
 _LG.lg_create_context.errcheck = _checkHandleForErrors
-
-
-def _gotHit_callback_impl(lg, hitPtr):
-    idx = hitPtr.contents.KeywordIndex
-    hitinfo = _LG.lg_pattern_info(lg.__prog__, idx).contents
-    lg.Callback(hitPtr.contents, hitinfo)
-
-
-_lg_gotHit_callback = _CBType(_gotHit_callback_impl)
-
-
-# ***************** Lightgrep class for easy usage *************************#
-
-class HitAccumulator(object):
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.KeyCounts = collections.Counter()
-        self.Hits = []
-
-    def lgCallback(self, hitInfo, patInfo):
-        d = {
-            "start": hitInfo.Start,
-            "end": hitInfo.End,
-            "keywordIndex": patInfo.userIdx(),
-            "pattern": patInfo.pat(),
-            "encChain": patInfo.encChain()
-        }
-        self.KeyCounts[d["pattern"]] += 1
-        self.Hits.append(d)
 
 
 def parse_pattern_line(line, default_encs, default_key_opts):
