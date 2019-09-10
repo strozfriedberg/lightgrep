@@ -570,7 +570,6 @@ def make_program_from_patterns(patlist, progOpts):
 
     return prog
 
-#####
 
 # check for errors on handles
 def _checkHandleForErrors(ret, func, args):
