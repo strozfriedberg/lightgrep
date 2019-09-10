@@ -286,10 +286,17 @@ class Program(Handle):
         super().close()
 
     def compile(self, fsm, opts):
+        if not self.handle:
+            raise RuntimeError("Program handle is closed")
+        if not fsm.handle:
+            raise RuntimeError("Fsm handle is closed")
+
         if _LG.lg_compile_program(fsm.handle, self.handle, byref(opts)) == 0:
             raise RuntimeError(f"Failed to compile program")
 
     def count(self):
+        if not self.handle:
+            raise RuntimeError("Program handle is closed")
         return _LG.lg_pattern_count(self.handle)
 
     def write(self):
@@ -302,6 +309,9 @@ class Program(Handle):
 
 class Context(Handle):
     def __init__(self, prog, opts):
+        if not prog.handle:
+            raise RuntimeError("Program handle is closed")
+
         super().__init__(_LG.lg_create_context(prog.handle, byref(opts)))
         self.prog = prog
 
@@ -310,9 +320,16 @@ class Context(Handle):
         super().close()
 
     def reset(self):
+        if not self.handle:
+            raise RuntimeError("Context handle is closed")
         _LG.lg_reset_context(self.handle)
 
     def search(self, data, startOffset, accumulator):
+        if not self.handle:
+            raise RuntimeError("Context handle is closed")
+        if not self.prog.handle:
+            raise RuntimeError("Program handle is closed")
+
         beg, end = buf_range(data, c_char)
         return _LG.lg_search(self.handle, beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim)
 
