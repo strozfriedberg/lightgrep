@@ -334,10 +334,20 @@ class Context(Handle):
         return _LG.lg_search(self.handle, beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim)
 
     def startswith(self, data, startOffset, accumulator):
+        if not self.handle:
+            raise RuntimeError("Context handle is closed")
+        if not self.prog.handle:
+            raise RuntimeError("Program handle is closed")
+
         beg, end = buf_range(data, c_char)
         _LG.lg_starts_with(self.handle, beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim);
 
     def closeout(self, accumulator):
+        if not self.handle:
+            raise RuntimeError("Context handle is closed")
+        if not self.prog.handle:
+            raise RuntimeError("Program handle is closed")
+
         _LG.lg_closeout_search(self.handle, (self.prog, accumulator.lgCallback), _the_callback_shim)
 
     def searchBuffer(self, data, accumulator):
@@ -374,6 +384,9 @@ class HitDecoder(Handle):
         return self.full_hit_context(buf, offset, hit, window_size=window_size)['hit_context']
 
     def full_hit_context(self, buf, offset, hit, window_size=100):
+        if not self.handle:
+            raise RuntimeError("Decoder handle is closed")
+
         beg, end = buf_range(buf, c_char)
         hit_window = Window(Start=hit['start'], End=hit['end'])
         outer_range = Window()

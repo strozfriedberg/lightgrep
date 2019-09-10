@@ -275,12 +275,27 @@ class ContextTests(unittest.TestCase):
                         prog.compile(fsm, lightgrep.ProgOpts())
 
             with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                ctx.close()
+                acc = lightgrep.HitAccumulator()
+                with self.assertRaises(RuntimeError):
+                    ctx.search(b'xxx', 0, acc)
+
+    def test_search_prog_closed(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
                 prog.close()
                 acc = lightgrep.HitAccumulator()
                 with self.assertRaises(RuntimeError):
                     ctx.search(b'xxx', 0, acc)
 
-    def test_search_ctx_bad_args(self):
+    def test_search_bad_args(self):
         with lightgrep.Program(0) as prog:
             with lightgrep.Error() as err:
                 with lightgrep.Pattern() as pat:
@@ -323,6 +338,53 @@ class ContextTests(unittest.TestCase):
                 self.assertEqual(acc.Hits, exp_hits)
                 ctx.reset()
 
+    def test_startswith_ctx_closed(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                ctx.close()
+                acc = lightgrep.HitAccumulator()
+                with self.assertRaises(RuntimeError):
+                    ctx.startswith(b'xxx', 0, acc)
+
+    def test_startswith_prog_closed(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                prog.close()
+                acc = lightgrep.HitAccumulator()
+                with self.assertRaises(RuntimeError):
+                    ctx.startswith(b'xxx', 0, acc)
+
+    def test_startswith_bad_args(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                acc = lightgrep.HitAccumulator()
+                arglist = [b'xxx', 0, acc]
+                subs = (None, 'bogus')
+                for args in fuzz_args(arglist, subs):
+                    with self.assertRaises(Exception):
+                        ctx.startswith(*args)
+
     def test_startswith(self):
         with lightgrep.Program(0) as prog:
             with lightgrep.Error() as err:
@@ -349,6 +411,83 @@ class ContextTests(unittest.TestCase):
                 self.assertEqual(acc.Hits, exp_hits)
                 ctx.reset()
 
+    def test_closeout_ctx_closed(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                ctx.close()
+                acc = lightgrep.HitAccumulator()
+                with self.assertRaises(RuntimeError):
+                    ctx.closeout(acc)
+
+    def test_closeout_prog_closed(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                prog.close()
+                acc = lightgrep.HitAccumulator()
+                with self.assertRaises(RuntimeError):
+                    ctx.closeout(acc)
+
+    def test_searchBuffer_ctx_closed(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                ctx.close()
+                acc = lightgrep.HitAccumulator()
+                with self.assertRaises(RuntimeError):
+                    ctx.searchBuffer(b'xxx', acc)
+
+    def test_searchBuffer_prog_closed(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                prog.close()
+                acc = lightgrep.HitAccumulator()
+                with self.assertRaises(RuntimeError):
+                    ctx.searchBuffer(b'xxx', acc)
+
+    def test_searchBuffer_bad_args(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                acc = lightgrep.HitAccumulator()
+                arglist = [b'xxx', acc]
+                subs = (None, 'bogus')
+                for args in fuzz_args(arglist, subs):
+                    with self.assertRaises(Exception):
+                        ctx.searchBuffer(*args)
+
     def test_searchBuffer(self):
         with lightgrep.Program(0) as prog:
             with lightgrep.Error() as err:
@@ -372,6 +511,53 @@ class ContextTests(unittest.TestCase):
                 acc = lightgrep.HitAccumulator()
                 ctx.searchBuffer(buf, acc)
                 self.assertEqual(acc.Hits, exp_hits)
+
+    def test_searchBufferStartswith_ctx_closed(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                ctx.close()
+                acc = lightgrep.HitAccumulator()
+                with self.assertRaises(RuntimeError):
+                    ctx.searchBufferStartswith(b'xxx', acc)
+
+    def test_searchBufferStartswith_prog_closed(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                prog.close()
+                acc = lightgrep.HitAccumulator()
+                with self.assertRaises(RuntimeError):
+                    ctx.searchBufferStartswith(b'xxx', acc)
+
+    def test_searchBufferStartswith_bad_args(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                acc = lightgrep.HitAccumulator()
+                arglist = [b'xxx', acc]
+                subs = (None, 'bogus')
+                for args in fuzz_args(arglist, subs):
+                    with self.assertRaises(Exception):
+                        ctx.searchBufferStartswith(*args)
 
     def test_searchBufferStartswith(self):
         with lightgrep.Program(0) as prog:
@@ -404,6 +590,36 @@ class HitDecoderTests(unittest.TestCase):
         dec = lightgrep.HitDecoder()
         dec.close()
 
+    def test_hit_context_closed(self):
+        with lightgrep.HitDecoder() as dec:
+            dec.close()
+            buf = b'xxxyyyaaaabcdef'
+            hit = {
+                'start': 6,
+                'end': 11,
+                'keywordIndex': 42,
+                'pattern': 'a+b',
+                'encChain': 'UTF-8'
+            }
+            with self.assertRaises(RuntimeError):
+                dec.full_hit_context(buf, 0, hit, window_size=3)
+
+    def test_full_hit_context_bad_args(self):
+        with lightgrep.HitDecoder() as dec:
+            buf = b'xxxyyyaaaabcdef'
+            hit = {
+                'start': 6,
+                'end': 11,
+                'keywordIndex': 42,
+                'pattern': 'a+b',
+                'encChain': 'UTF-8'
+            }
+            arglist = [buf, 0, hit, 100]
+            subs = (None, 'bogus')
+            for args in fuzz_args(arglist, subs):
+                with self.assertRaises(Exception):
+                    hctx = dec.full_hit_context(*args)
+
     def test_hit_context(self):
         with lightgrep.HitDecoder() as dec:
             buf = b'xxxyyyaaaabcdef'
@@ -417,6 +633,36 @@ class HitDecoderTests(unittest.TestCase):
 
             hctx = dec.hit_context(buf, 0, hit, window_size=3)
             self.assertEqual(hctx, 'yyyaaaabcde')
+
+    def test_full_hit_context_closed(self):
+        with lightgrep.HitDecoder() as dec:
+            dec.close()
+            buf = b'xxxyyyaaaabcdef'
+            hit = {
+                'start': 6,
+                'end': 11,
+                'keywordIndex': 42,
+                'pattern': 'a+b',
+                'encChain': 'UTF-8'
+            }
+            with self.assertRaises(RuntimeError):
+                dec.hit_context(buf, 0, hit, window_size=3)
+
+    def test_hit_context_bad_args(self):
+        with lightgrep.HitDecoder() as dec:
+            buf = b'xxxyyyaaaabcdef'
+            hit = {
+                'start': 6,
+                'end': 11,
+                'keywordIndex': 42,
+                'pattern': 'a+b',
+                'encChain': 'UTF-8'
+            }
+            arglist = [buf, 0, hit, 100]
+            subs = (None, 'bogus')
+            for args in fuzz_args(arglist, subs):
+                with self.assertRaises(Exception):
+                    hctx = dec.hit_context(*args)
 
     def test_full_hit_context(self):
         with lightgrep.HitDecoder() as dec:
