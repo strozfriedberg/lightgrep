@@ -299,7 +299,15 @@ class Program(Handle):
             raise RuntimeError("Program handle is closed")
         return _LG.lg_pattern_count(self.handle)
 
+    def size(self):
+        if not self.handle:
+            raise RuntimeError("Program handle is closed")
+        return _LG.lg_program_size(self.handle)
+
     def write(self):
+        if not self.handle:
+            raise RuntimeError("Program handle is closed")
+
         prog_len = _LG.lg_program_size(self.handle)
         buf = bytearray(prog_len)
         c_buf = (c_char * prog_len).from_buffer(buf)

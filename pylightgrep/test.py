@@ -215,7 +215,7 @@ class ProgTests(unittest.TestCase):
                         with self.assertRaises(RuntimeError):
                             prog.compile(fsm, lightgrep.ProgOpts())
 
-    def test_compile_prog_closed(self):
+    def test_compile_closed(self):
         with lightgrep.Program(0) as prog:
             with lightgrep.Error() as err:
                 with lightgrep.Pattern() as pat:
@@ -245,8 +245,43 @@ class ProgTests(unittest.TestCase):
                                 with self.assertRaises(Exception):
                                     prog.compile(*args)
 
-#    def test_write_read(self):
+    def test_size_closed(self):
+        with lightgrep.Program(0) as prog:
+            prog.close()
+            with self.assertRaises(RuntimeError):
+                prog.size()
 
+    def test_size(self):
+        with lightgrep.Program(0) as prog:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                        prog.compile(fsm, lightgrep.ProgOpts())
+
+            self.assertTrue(prog.size() > 0)
+
+    def test_write_closed(self):
+        with lightgrep.Program(0) as prog:
+            prog.close()
+            with self.assertRaises(RuntimeError):
+                prog.write()
+
+    def test_write_read(self):
+        with lightgrep.Program(0) as prog1:
+            with lightgrep.Error() as err:
+                with lightgrep.Pattern() as pat:
+                    with lightgrep.Fsm(0) as fsm:
+                        pat.parse("a+b", lightgrep.KeyOpts(), err)
+                        fsm.add_pattern(prog1, pat, 'UTF-8', 42, err)
+                        prog1.compile(fsm, lightgrep.ProgOpts())
+
+            buf = prog1.write()
+
+            with lightgrep.Program(buf) as prog2:
+                self.assertEqual(prog2.count(), prog1.count())
+                self.assertEqual(prog2.size(), prog1.size())
 
 
 class ContextTests(unittest.TestCase):
