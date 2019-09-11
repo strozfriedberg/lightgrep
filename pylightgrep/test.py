@@ -107,18 +107,28 @@ class PatternTests(unittest.TestCase):
             with lightgrep.Pattern() as pat:
                 pat.parse("a+b", lightgrep.KeyOpts(), err)
 
-    def test_pattern_bad(self):
+    def test_parse_bad(self):
         with lightgrep.Error() as err:
             with lightgrep.Pattern() as pat:
                 with self.assertRaises(RuntimeError):
                     pat.parse("+", lightgrep.KeyOpts(), err)
 
-    def test_pattern_closed(self):
+    def test_parse_closed(self):
         with lightgrep.Error() as err:
             with lightgrep.Pattern() as pat:
                 with self.assertRaises(RuntimeError):
                     pat.close()
                     pat.parse("a", lightgrep.KeyOpts(), err)
+
+    def test_parse_bad_args(self):
+        with lightgrep.Error() as err:
+            with lightgrep.Pattern() as pat:
+                arglist = ["a", lightgrep.KeyOpts(), err]
+                subs = (None, '*')
+                for args in fuzz_args(arglist, subs):
+                    with self.subTest(args=args):
+                        with self.assertRaises(Exception):
+                            pat.parse(*args)
 
 
 class FsmTests(unittest.TestCase):
