@@ -137,6 +137,14 @@ class FsmTests(unittest.TestCase):
         fsm = lightgrep.Fsm(0)
         fsm.close()
 
+    def test_ctor_bad_args(self):
+        arglist = [0]
+        subs = (None, '*', -1)
+        for args in fuzz_args(arglist, subs):
+            with self.subTest(args=args):
+                with self.assertRaises(Exception):
+                    fsm = lightgrep.Fsm(*args)
+
     def test_add_pattern_closed_prog(self):
         with lightgrep.Program(0) as prog:
             with lightgrep.Error() as err:
@@ -209,6 +217,14 @@ class FsmTests(unittest.TestCase):
 
 
 class ProgTests(unittest.TestCase):
+    def test_ctor_bad_args(self):
+        arglist = [0]
+        subs = (None, '*', -1)
+        for args in fuzz_args(arglist, subs):
+            with self.subTest(args=args):
+                with self.assertRaises(Exception):
+                    fsm = lightgrep.Program(*args)
+
     def test_close_unused(self):
         # test that closing an unused Program doesn't throw
         prog = lightgrep.Program(0)

@@ -258,6 +258,8 @@ class Pattern(Handle):
 
 class Fsm(Handle):
     def __init__(self, size):
+        if size < 0:
+            raise ValueError(f"Size hint must be >= 0, but was {size}")
         super().__init__(_LG.lg_create_fsm(size))
 
     def close(self):
@@ -289,7 +291,9 @@ class Fsm(Handle):
 class Program(Handle):
     def __init__(self, arg):
         if isinstance(arg, int):
-            # ints create fresh programs
+            # nonnegative ints create fresh programs
+            if arg < 0:
+                raise ValueError(f"Size hint must be >= 0, but was {arg}")
             handle = _LG.lg_create_program(arg)
         else:
             # buffers unserialize programs
