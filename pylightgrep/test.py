@@ -15,6 +15,13 @@ def fuzz_args(arglist, subs):
             yield args
 
 
+def fuzz_it(testobj, func, arglist, subs):
+    for args in fuzz_args(arglist, subs):
+        with testobj.subTest(args=args):
+            with testobj.assertRaises(Exception):
+                func(*args)
+
+
 class PointerTests(unittest.TestCase):
     sizes = (0, 1, 7, 8, 1024)
     buftypes = (
@@ -51,10 +58,7 @@ class PointerTests(unittest.TestCase):
     def test_buf_range_bad_args(self):
         arglist = [b'xxx', ctypes.c_char]
         subs = (None, '*', -1)
-        for args in fuzz_args(arglist, subs):
-            with self.subTest(args=args):
-                with self.assertRaises(Exception):
-                    lightgrep.buf_range(*args)
+        fuzz_it(self, lightgrep.buf_range, arglist, subs)
 
 
 class HandleTests(unittest.TestCase):
@@ -133,10 +137,7 @@ class PatternTests(unittest.TestCase):
             with lightgrep.Pattern() as pat:
                 arglist = ["a", lightgrep.KeyOpts(), err]
                 subs = (None, '*')
-                for args in fuzz_args(arglist, subs):
-                    with self.subTest(args=args):
-                        with self.assertRaises(Exception):
-                            pat.parse(*args)
+                fuzz_it(self, pat.parse, arglist, subs)
 
 
 class FsmTests(unittest.TestCase):
@@ -148,10 +149,7 @@ class FsmTests(unittest.TestCase):
     def test_ctor_bad_args(self):
         arglist = [0]
         subs = (None, '*', -1)
-        for args in fuzz_args(arglist, subs):
-            with self.subTest(args=args):
-                with self.assertRaises(Exception):
-                    fsm = lightgrep.Fsm(*args)
+        fuzz_it(self, lightgrep.Fsm, arglist, subs)
 
     def test_add_pattern_closed_prog(self):
         with lightgrep.Program(0) as prog:
@@ -161,7 +159,7 @@ class FsmTests(unittest.TestCase):
                     with lightgrep.Fsm(0) as fsm:
                         prog.close()
                         with self.assertRaises(RuntimeError):
-                            idx = fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                            fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
 
     def test_add_pattern_closed_pat(self):
         with lightgrep.Program(0) as prog:
@@ -171,7 +169,7 @@ class FsmTests(unittest.TestCase):
                     with lightgrep.Fsm(0) as fsm:
                         pat.close()
                         with self.assertRaises(RuntimeError):
-                            idx = fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
+                            fsm.add_pattern(prog, pat, 'UTF-8', 42, err)
 
     def test_add_pattern_bad_args(self):
         # fuzz add_pattern()
@@ -180,14 +178,9 @@ class FsmTests(unittest.TestCase):
                 with lightgrep.Pattern() as pat:
                     pat.parse("a+b", lightgrep.KeyOpts(), err)
                     with lightgrep.Fsm(0) as fsm:
-                        enc = 'UTF-8'
-                        idx = 42
-                        arglist = [prog, pat, enc, idx, err]
+                        arglist = [prog, pat, 'UTF-8', 42, err]
                         subs = (None, 'bogus')
-                        for args in fuzz_args(arglist, subs):
-                            with self.subTest(args=args):
-                                with self.assertRaises(Exception):
-                                    fsm.add_pattern(*args)
+                        fuzz_it(self, fsm.add_pattern, arglist, subs)
 
     def test_add_pattern_good(self):
         with lightgrep.Program(0) as prog:
@@ -211,10 +204,7 @@ class FsmTests(unittest.TestCase):
                     with lightgrep.Fsm(0) as fsm:
                         arglist = [prog, pat, self.PATLIST, err]
                         subs = (None, 'bogus')
-                        for args in fuzz_args(arglist, subs):
-                            with self.subTest(args=args):
-                                with self.assertRaises(Exception):
-                                    fsm.add_patterns(*args)
+                        fuzz_it(self, fsm.add_patterns, arglist, subs)
 
     def test_add_patterns(self):
         with lightgrep.Program(0) as prog:
@@ -228,10 +218,7 @@ class ProgTests(unittest.TestCase):
     def test_ctor_bad_args(self):
         arglist = [0]
         subs = (None, '*', -1)
-        for args in fuzz_args(arglist, subs):
-            with self.subTest(args=args):
-                with self.assertRaises(Exception):
-                    fsm = lightgrep.Program(*args)
+        fuzz_it(self, lightgrep.Program, arglist, subs)
 
     def test_close_unused(self):
         # test that closing an unused Program doesn't throw
@@ -294,10 +281,7 @@ class ProgTests(unittest.TestCase):
                     with lightgrep.Fsm(0) as fsm:
                         arglist = [fsm, lightgrep.ProgOpts()]
                         subs = (None, 'bogus')
-                        for args in fuzz_args(arglist, subs):
-                            with self.subTest(args=args):
-                                with self.assertRaises(Exception):
-                                    prog.compile(*args)
+                        fuzz_it(self, prog.compile, arglist, subs)
 
     def test_size_closed(self):
         with lightgrep.Program(0) as prog:
@@ -349,10 +333,7 @@ class ContextTests(unittest.TestCase):
         with lightgrep.Program(0) as prog:
             arglist = [prog, lightgrep.CtxOpts()]
             subs = (None, 'bogus')
-            for args in fuzz_args(arglist, subs):
-                with self.subTest(args=args):
-                    with self.assertRaises(Exception):
-                        lightgrep.Context(*args)
+            fuzz_it(self, lightgrep.Context, arglist, subs)
 
     def test_search_ctx_closed(self):
         with lightgrep.Program(0) as prog:
@@ -394,12 +375,9 @@ class ContextTests(unittest.TestCase):
                         prog.compile(fsm, lightgrep.ProgOpts())
 
             with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
-                acc = lightgrep.HitAccumulator()
-                arglist = [b'xxx', 0, acc]
+                arglist = [b'xxx', 0, lightgrep.HitAccumulator()]
                 subs = (None, 'bogus')
-                for args in fuzz_args(arglist, subs):
-                    with self.assertRaises(Exception):
-                        ctx.search(*args)
+                fuzz_it(self, ctx.search, arglist, subs)
 
     def test_search(self):
         with lightgrep.Program(0) as prog:
@@ -467,12 +445,9 @@ class ContextTests(unittest.TestCase):
                         prog.compile(fsm, lightgrep.ProgOpts())
 
             with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
-                acc = lightgrep.HitAccumulator()
-                arglist = [b'xxx', 0, acc]
+                arglist = [b'xxx', 0, lightgrep.HitAccumulator()]
                 subs = (None, 'bogus')
-                for args in fuzz_args(arglist, subs):
-                    with self.assertRaises(Exception):
-                        ctx.startswith(*args)
+                fuzz_it(self, ctx.startswith, arglist, subs)
 
     def test_startswith(self):
         with lightgrep.Program(0) as prog:
@@ -570,12 +545,9 @@ class ContextTests(unittest.TestCase):
                         prog.compile(fsm, lightgrep.ProgOpts())
 
             with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
-                acc = lightgrep.HitAccumulator()
-                arglist = [b'xxx', acc]
+                arglist = [b'xxx', lightgrep.HitAccumulator()]
                 subs = (None, 'bogus')
-                for args in fuzz_args(arglist, subs):
-                    with self.assertRaises(Exception):
-                        ctx.searchBuffer(*args)
+                fuzz_it(self, ctx.searchBuffer, arglist, subs)
 
     def test_searchBuffer(self):
         with lightgrep.Program(0) as prog:
@@ -641,12 +613,9 @@ class ContextTests(unittest.TestCase):
                         prog.compile(fsm, lightgrep.ProgOpts())
 
             with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
-                acc = lightgrep.HitAccumulator()
-                arglist = [b'xxx', acc]
+                arglist = [b'xxx', lightgrep.HitAccumulator()]
                 subs = (None, 'bogus')
-                for args in fuzz_args(arglist, subs):
-                    with self.assertRaises(Exception):
-                        ctx.searchBufferStartswith(*args)
+                fuzz_it(self, ctx.searchBufferStartswith, arglist, subs)
 
     def test_searchBufferStartswith(self):
         with lightgrep.Program(0) as prog:
@@ -705,9 +674,7 @@ class HitDecoderTests(unittest.TestCase):
             }
             arglist = [buf, 0, hit, 100]
             subs = (None, 'bogus')
-            for args in fuzz_args(arglist, subs):
-                with self.assertRaises(Exception):
-                    hctx = dec.full_hit_context(*args)
+            fuzz_it(self, dec.full_hit_context, arglist, subs)
 
     def test_hit_context(self):
         with lightgrep.HitDecoder() as dec:
@@ -749,9 +716,7 @@ class HitDecoderTests(unittest.TestCase):
             }
             arglist = [buf, 0, hit, 100]
             subs = (None, 'bogus')
-            for args in fuzz_args(arglist, subs):
-                with self.assertRaises(Exception):
-                    hctx = dec.hit_context(*args)
+            fuzz_it(self, dec.hit_context, arglist, subs)
 
     def test_full_hit_context(self):
         with lightgrep.HitDecoder() as dec:
