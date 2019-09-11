@@ -116,25 +116,11 @@ class PatternSimpleTests(unittest.TestCase):
 
 
 class PatternTests(unittest.TestCase):
-    def closeHandles(self):
-        try:
-            if self.pat:
-                self.pat.close()
-        finally:
-            if self.err:
-                self.err.close()
-
     def setUp(self):
-        self.err = self.pat = None
-        try:
-            self.err = lightgrep.Error()
-            self.pat = lightgrep.Pattern()
-        except:
-            self.closeHandles()
-            raise
-
-    def tearDown(self):
-        self.closeHandles()
+        self.err = lightgrep.Error()
+        self.addCleanup(self.err.close)
+        self.pat = lightgrep.Pattern()
+        self.addCleanup(self.pat.close)
 
     def test_pattern_good(self):
         self.pat.parse("a+b", lightgrep.KeyOpts(), self.err)
@@ -149,10 +135,9 @@ class PatternTests(unittest.TestCase):
             self.pat.parse("a", lightgrep.KeyOpts(), self.err)
 
     def test_parse_bad_args(self):
-        with lightgrep.Pattern() as pat:
-            arglist = ["a", lightgrep.KeyOpts(), self.err]
-            subs = (None, '*')
-            fuzz_it(self, pat.parse, arglist, subs)
+        arglist = ["a", lightgrep.KeyOpts(), self.err]
+        subs = (None, '*')
+        fuzz_it(self, self.pat.parse, arglist, subs)
 
 
 class FsmSimpleTests(unittest.TestCase):
@@ -168,35 +153,15 @@ class FsmSimpleTests(unittest.TestCase):
 
 
 class FsmTests(unittest.TestCase):
-    def closeHandles(self):
-        try:
-            try:
-                try:
-                    if self.pat:
-                        self.pat.close()
-                finally:
-                    if self.err:
-                        self.err.close()
-            finally:
-                if self.fsm:
-                    self.fsm.close()
-        finally:
-            if self.prog:
-                self.prog.close()
-
     def setUp(self):
-        self.prog = self.fsm = self.err = self.pat = None
-        try:
-            self.prog = lightgrep.Program(0)
-            self.fsm = lightgrep.Fsm(0)
-            self.err = lightgrep.Error()
-            self.pat = lightgrep.Pattern()
-        except:
-            self.closeHandles()
-            raise
-
-    def tearDown(self):
-        self.closeHandles()
+        self.prog = lightgrep.Program(0)
+        self.addCleanup(self.prog.close)
+        self.fsm = lightgrep.Fsm(0)
+        self.addCleanup(self.fsm.close)
+        self.err = lightgrep.Error()
+        self.addCleanup(self.err.close)
+        self.pat = lightgrep.Pattern()
+        self.addCleanup(self.pat.close)
 
     def test_add_pattern_closed_prog(self):
         self.pat.parse("a+b", lightgrep.KeyOpts(), self.err)
@@ -272,35 +237,15 @@ class ProgSimpleTests(unittest.TestCase):
 
 
 class ProgTests(unittest.TestCase):
-    def closeHandles(self):
-        try:
-            try:
-                try:
-                    if self.pat:
-                        self.pat.close()
-                finally:
-                    if self.err:
-                        self.err.close()
-            finally:
-                if self.fsm:
-                    self.fsm.close()
-        finally:
-            if self.prog:
-                self.prog.close()
-
     def setUp(self):
-        self.prog = self.fsm = self.err = self.pat = None
-        try:
-            self.prog = lightgrep.Program(0)
-            self.fsm = lightgrep.Fsm(0)
-            self.err = lightgrep.Error()
-            self.pat = lightgrep.Pattern()
-        except:
-            self.closeHandles()
-            raise
-
-    def tearDown(self):
-        self.closeHandles()
+        self.prog = lightgrep.Program(0)
+        self.addCleanup(self.prog.close)
+        self.fsm = lightgrep.Fsm(0)
+        self.addCleanup(self.fsm.close)
+        self.err = lightgrep.Error()
+        self.addCleanup(self.err.close)
+        self.pat = lightgrep.Pattern()
+        self.addCleanup(self.pat.close)
 
     def test_count_three(self):
         self.pat.parse("a+b", lightgrep.KeyOpts(), self.err)
@@ -316,7 +261,7 @@ class ProgTests(unittest.TestCase):
             self.prog.compile(self.fsm, lightgrep.ProgOpts())
 
     def test_compile_closed(self):
-        self. prog.close()
+        self.prog.close()
         with self.assertRaises(RuntimeError):
             self.prog.compile(self.fsm, lightgrep.ProgOpts())
 
@@ -372,33 +317,19 @@ class ContextSimpleTests(unittest.TestCase):
 
 
 class ContextTests(unittest.TestCase):
-    def closeHandles(self):
-        try:
-            if self.ctx:
-                self.ctx.close()
-        finally:
-            if self.prog:
-                self.prog.close()
-
     def setUp(self):
-        self.prog = self.ctx = None
-        try:
-            self.prog = lightgrep.Program(0)
+        self.prog = lightgrep.Program(0)
+        self.addCleanup(self.prog.close)
 
-            with lightgrep.Error() as err:
-                with lightgrep.Pattern() as pat:
-                    with lightgrep.Fsm(0) as fsm:
-                        pat.parse("a+b", lightgrep.KeyOpts(), err)
-                        fsm.add_pattern(self.prog, pat, 'UTF-8', 42, err)
-                        self.prog.compile(fsm, lightgrep.ProgOpts())
+        with lightgrep.Error() as err:
+            with lightgrep.Pattern() as pat:
+                with lightgrep.Fsm(0) as fsm:
+                    pat.parse("a+b", lightgrep.KeyOpts(), err)
+                    fsm.add_pattern(self.prog, pat, 'UTF-8', 42, err)
+                    self.prog.compile(fsm, lightgrep.ProgOpts())
 
-            self.ctx = lightgrep.Context(self.prog, lightgrep.CtxOpts())
-        except:
-            self.closeHandles()
-            raise
-
-    def tearDown(self):
-        self.closeHandles()
+        self.ctx = lightgrep.Context(self.prog, lightgrep.CtxOpts())
+        self.addCleanup(self.ctx.close)
 
     def test_search_ctx_closed(self):
         self.ctx.close()
@@ -562,15 +493,8 @@ class HitDecoderTests(unittest.TestCase):
             self.dec.close()
 
     def setUp(self):
-        self.dec = None
-        try:
-            self.dec = lightgrep.HitDecoder()
-        except:
-            self.closeHandles()
-            raise
-
-    def tearDown(self):
-        self.closeHandles()
+        self.dec = lightgrep.HitDecoder()
+        self.addCleanup(self.dec.close)
 
     def test_hit_context_closed(self):
         self.dec.close()
