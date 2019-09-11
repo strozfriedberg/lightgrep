@@ -58,6 +58,19 @@ class Py_buffer(Structure):
 
 
 def buf_beg(buf, ptype):
+    # Of note for retrieving pointers to buffers:
+    #
+    # "T * 1" produces the ctypes type corresponding to the C type T[1].
+    # The buffer which we cast using this is unlikely to be of length 1,
+    # but this doesn't matter because C has type punning and all we really
+    # want is a pointer to the first element (= a pointer to the buffer)
+    # anyway.
+    #
+    # Py_buffer is a struct defined in Python's C API for use with objects
+    # implementing the buffer protocol. Q.v.:
+    #
+    # https://docs.python.org/3/c-api/buffer.html#c.Py_buffer
+    #
     if isinstance(buf, bytes):
         # yay, we can get a pointer from a bytes
         return cast(buf, POINTER(ptype * 1))[0]
