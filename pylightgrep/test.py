@@ -488,10 +488,6 @@ class HitDecoderSimpleTests(unittest.TestCase):
 
 
 class HitDecoderTests(unittest.TestCase):
-    def closeHandles(self):
-        if self.dec:
-            self.dec.close()
-
     def setUp(self):
         self.dec = lightgrep.HitDecoder()
         self.addCleanup(self.dec.close)
