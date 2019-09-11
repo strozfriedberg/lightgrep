@@ -7,6 +7,14 @@ import unittest
 import lightgrep
 
 
+def fuzz_args(arglist, subs):
+    for i in range(0, len(arglist)):
+        args = arglist.copy()
+        for s in subs:
+            args[i] = s
+            yield args
+
+
 class PointerTests(unittest.TestCase):
     sizes = (0, 1, 7, 8, 1024)
     buftypes = (
@@ -39,6 +47,14 @@ class PointerTests(unittest.TestCase):
                     self.check_range(buf)
                 with self.subTest(n=n, buf=memoryview(buf)):
                     self.check_range(buf)
+
+    def test_buf_range_bad_args(self):
+        arglist = [b'xxx', ctypes.c_char]
+        subs = (None, '*', -1)
+        for args in fuzz_args(arglist, subs):
+            with self.subTest(args=args):
+                with self.assertRaises(Exception):
+                    lightgrep.buf_range(*args)
 
 
 class HandleTests(unittest.TestCase):
@@ -86,14 +102,6 @@ class KeyOptsTests(unittest.TestCase):
                     opts = lightgrep.KeyOpts(fixedString=fixed_string, caseInsensitive=case_insensitive)
                     self.assertEqual(opts.isFixed(), fixed_string)
                     self.assertEqual(opts.isCaseSensitive(), not case_insensitive)
-
-
-def fuzz_args(arglist, subs):
-    for i in range(0, len(arglist)):
-        args = arglist.copy()
-        for s in subs:
-            args[i] = s
-            yield args
 
 
 class PatternTests(unittest.TestCase):
