@@ -50,6 +50,26 @@ class HandleTests(unittest.TestCase):
         self.assertFalse(h)
         self.assertEqual(h.handle, None)
 
+    def test_throwIfClosed_open(self):
+        h = lightgrep.Handle(42)
+        h.throwIfClosed()
+
+    def test_throwIfClosed_closed(self):
+        h = lightgrep.Handle(42)
+        h.close()
+        with self.assertRaises(RuntimeError):
+            h.throwIfClosed()
+
+    def test_get_closed(self):
+        h = lightgrep.Handle(42)
+        h.close()
+        with self.assertRaises(RuntimeError):
+            h.get()
+
+    def test_get_open(self):
+        h = lightgrep.Handle(42)
+        self.assertEqual(h.get(), 42)
+
 
 class ErrorTests(unittest.TestCase):
     def test_close_unused(self):

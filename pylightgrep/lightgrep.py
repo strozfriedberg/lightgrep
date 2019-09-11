@@ -205,6 +205,14 @@ class Handle(object):
     def close(self):
         self.handle = None
 
+    def throwIfClosed(self):
+        if not self.handle:
+            raise RuntimeError(f"{self.__class__.__name__} handle is closed")
+
+    def get(self):
+        self.throwIfClosed()
+        return self.handle
+
 
 class Error(Handle):
     def __init__(self):
@@ -213,6 +221,12 @@ class Error(Handle):
     def close(self):
         _LG.lg_free_error(self.handle)
         super().close()
+
+    def throwIfClosed(self):
+        pass
+
+    def get(self):
+        return self.handle
 
 
 class Pattern(Handle):
@@ -224,12 +238,9 @@ class Pattern(Handle):
         super().close()
 
     def parse(self, pat, opts, err):
-        if not self.handle:
-            raise RuntimeError("Pattern handle is closed")
-
-        if _LG.lg_parse_pattern(self.handle, pat.encode("utf-8"), byref(opts), byref(err.handle)) <= 0:
+        if _LG.lg_parse_pattern(self.get(), pat.encode("utf-8"), byref(opts), byref(err.get())) <= 0:
 # FIXME: check that pattern is in message
-            raise RuntimeError(f"Error parsing pattern: {err.handle.contents.Message or ''}")
+            raise RuntimeError(f"Error parsing pattern: {err.get().contents.Message or ''}")
 
 
 class Fsm(Handle):
@@ -241,14 +252,7 @@ class Fsm(Handle):
         super().close()
 
     def add_pattern(self, prog, pat, enc, userIdx, err):
-        if not self.handle:
-            raise RuntimeError("Fsm handle is closed")
-        if not prog.handle:
-            raise RuntimeError("Program handle is closed")
-        if not pat.handle:
-            raise RuntimeError("Pattern handle is closed")
-
-        idx = _LG.lg_add_pattern(self.handle, prog.handle, pat.handle, enc.encode("utf-8"), userIdx, byref(err.handle))
+        idx = _LG.lg_add_pattern(self.get(), prog.get(), pat.get(), enc.encode("utf-8"), userIdx, byref(err.get()))
         if idx < 0:
 # FIXME: check that pattern is in message
             raise RuntimeError(f"Error adding pattern: {err.handle.contents.Message or ''}")
@@ -286,41 +290,26 @@ class Program(Handle):
         super().close()
 
     def compile(self, fsm, opts):
-        if not self.handle:
-            raise RuntimeError("Program handle is closed")
-        if not fsm.handle:
-            raise RuntimeError("Fsm handle is closed")
-
-        if _LG.lg_compile_program(fsm.handle, self.handle, byref(opts)) == 0:
+        if _LG.lg_compile_program(fsm.get(), self.get(), byref(opts)) == 0:
             raise RuntimeError(f"Failed to compile program")
 
     def count(self):
-        if not self.handle:
-            raise RuntimeError("Program handle is closed")
-        return _LG.lg_pattern_count(self.handle)
+        return _LG.lg_pattern_count(self.get())
 
     def size(self):
-        if not self.handle:
-            raise RuntimeError("Program handle is closed")
-        return _LG.lg_program_size(self.handle)
+        return _LG.lg_program_size(self.get())
 
     def write(self):
-        if not self.handle:
-            raise RuntimeError("Program handle is closed")
-
-        prog_len = _LG.lg_program_size(self.handle)
+        prog_len = _LG.lg_program_size(self.get())
         buf = bytearray(prog_len)
         c_buf = (c_char * prog_len).from_buffer(buf)
-        _LG.lg_write_program(self.handle, c_buf)
+        _LG.lg_write_program(self.get(), c_buf)
         return buf
 
 
 class Context(Handle):
     def __init__(self, prog, opts):
-        if not prog.handle:
-            raise RuntimeError("Program handle is closed")
-
-        super().__init__(_LG.lg_create_context(prog.handle, byref(opts)))
+        super().__init__(_LG.lg_create_context(prog.get(), byref(opts)))
         self.prog = prog
 
     def close(self):
@@ -328,35 +317,21 @@ class Context(Handle):
         super().close()
 
     def reset(self):
-        if not self.handle:
-            raise RuntimeError("Context handle is closed")
-        _LG.lg_reset_context(self.handle)
+        _LG.lg_reset_context(self.get())
 
     def search(self, data, startOffset, accumulator):
-        if not self.handle:
-            raise RuntimeError("Context handle is closed")
-        if not self.prog.handle:
-            raise RuntimeError("Program handle is closed")
-
+        self.prog.throwIfClosed()
         beg, end = buf_range(data, c_char)
-        return _LG.lg_search(self.handle, beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim)
+        return _LG.lg_search(self.get(), beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim)
 
     def startswith(self, data, startOffset, accumulator):
-        if not self.handle:
-            raise RuntimeError("Context handle is closed")
-        if not self.prog.handle:
-            raise RuntimeError("Program handle is closed")
-
+        self.prog.throwIfClosed()
         beg, end = buf_range(data, c_char)
-        _LG.lg_starts_with(self.handle, beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim);
+        _LG.lg_starts_with(self.get(), beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim);
 
     def closeout(self, accumulator):
-        if not self.handle:
-            raise RuntimeError("Context handle is closed")
-        if not self.prog.handle:
-            raise RuntimeError("Program handle is closed")
-
-        _LG.lg_closeout_search(self.handle, (self.prog, accumulator.lgCallback), _the_callback_shim)
+        self.prog.throwIfClosed()
+        _LG.lg_closeout_search(self.get(), (self.prog, accumulator.lgCallback), _the_callback_shim)
 
     def searchBuffer(self, data, accumulator):
         self.search(data, 0, accumulator)
@@ -373,7 +348,7 @@ class Context(Handle):
 
 def _the_callback_impl(holder, hitPtr):
     idx = hitPtr.contents.KeywordIndex
-    hitinfo = _LG.lg_pattern_info(holder[0].handle, idx).contents
+    hitinfo = _LG.lg_pattern_info(holder[0].get(), idx).contents
     holder[1](hitPtr.contents, hitinfo)
 
 
@@ -392,9 +367,6 @@ class HitDecoder(Handle):
         return self.full_hit_context(buf, offset, hit, window_size=window_size)['hit_context']
 
     def full_hit_context(self, buf, offset, hit, window_size=100):
-        if not self.handle:
-            raise RuntimeError("Decoder handle is closed")
-
         beg, end = buf_range(buf, c_char)
         hit_window = Window(Start=hit['start'], End=hit['end'])
         outer_range = Window()
@@ -402,7 +374,7 @@ class HitDecoder(Handle):
         out = c_char_p()
         err = POINTER(Err)()
         _LG.lg_hit_context(
-            self.handle,
+            self.get(),
             beg,
             end,
             offset,
