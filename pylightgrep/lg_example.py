@@ -29,8 +29,8 @@ with lg.make_program_from_patterns(keys, lg.ProgOpts()) as prog:
         withHitCount = ctx.searchBuffer(searchData, withHits)
         print("%d hits found" % withHitCount)
         for h in withHits.Hits:
-            print("hit at (%s, %s) on keyindex %s, pattern is '%s' with encoding chain '%s'" %
-                (str(h.get("start")), str(h.get("end")), str(h.get("keywordIndex")), h.get("pattern"), h.get("encChain")))
+            print("hit at [%d, %d) on keyindex %d, pattern is '%s' with encoding chain '%s'" %
+                (h.get("start"), h.get("end"), h.get("keywordIndex"), h.get("pattern"), h.get("encChain")))
             # hBytes = searchData[h.get("start"):h.get("end")]
             # hText = hBytes.decode("utf-8)")
             # print("    hit text: '%s'" % hText)
@@ -53,22 +53,24 @@ with lg.Program(0) as prog:
 
         print("%d hits found" % myHitCount)
         for h in myHits.Hits:
-            print("hit at (%s, %s) on keyindex %s, pattern is '%s' with encoding chain '%s'" %
-                (str(h.get("start")), str(h.get("end")), str(h.get("keywordIndex")), h.get("pattern"), h.get("encChain")))
+            print("hit at [%d, %d) on keyindex %d, pattern is '%s' with encoding chain '%s'" %
+                (h.get("start"), h.get("end"), h.get("keywordIndex"), h.get("pattern"), h.get("encChain")))
         myHits.reset()
+
         print("---------------------------")
         print("Results reusing context with different data")
         myHitCount = ctx.searchBuffer(testData, myHits)
         print("%d hits found" % myHitCount)
         for h in myHits.Hits:
-            print("hit at (%s, %s) on keyindex %s, pattern is '%s' with encoding chain '%s'" %
-                (str(h.get("start")), str(h.get("end")), str(h.get("keywordIndex")), h.get("pattern"), h.get("encChain")))
+            print("hit at [%d, %d) on keyindex %d, pattern is '%s' with encoding chain '%s'" %
+                (h.get("start"), h.get("end"), h.get("keywordIndex"), h.get("pattern"), h.get("encChain")))
         myHits.reset()
+
         print("---------------------------")
         print("Results reusing context again with and startswith()")
         myHitCount = ctx.searchBufferStartswith(searchData, myHits)
-        print("%d hits found" % myHitCount)
+        print(f"{myHitCount} hits found")
         for h in myHits.Hits:
-            print("hit at (%s, %s) on keyindex %s, pattern is '%s' with encoding chain '%s'" %
-                (str(h.get("start")), str(h.get("end")), str(h.get("keywordIndex")), h.get("pattern"), h.get("encChain")))
+            print("hit at [%d, %d) on keyindex %d, pattern is '%s' with encoding chain '%s'" %
+                (h.get("start"), h.get("end"), h.get("keywordIndex"), h.get("pattern"), h.get("encChain")))
         myHits.reset()
