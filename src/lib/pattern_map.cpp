@@ -1,6 +1,7 @@
 #include "pattern_map.h"
 
 #include <algorithm>
+#include <iterator>
 #include <cstring>
 #include <memory>
 #include <numeric>
@@ -12,9 +13,13 @@ void PatternMap::addPattern(const char* pattern, const char* chain, uint64_t idx
   std::unique_ptr<char[]> chcopy(new char[std::strlen(chain)+1]);
   std::strcpy(chcopy.get(), chain);
 
-  Patterns.push_back({patcopy.get(), chcopy.get(), idx});
+  usePattern(patcopy.get(), chcopy.get(), idx);
   patcopy.release();
   chcopy.release();
+}
+
+void PatternMap::usePattern(const char* pattern, const char* chain, uint64_t idx) {
+  Patterns.push_back({pattern, chain, idx});
 }
 
 std::vector<char> PatternMap::marshall() const {
@@ -51,7 +56,8 @@ size_t PatternMap::bufSize() const {
   );
 }
 
-std::unique_ptr<PatternMap> PatternMap::unmarshall(const void* buf, size_t len) {
+template <void(PatternMap::*func)(const char*, const char*, uint64_t)>
+std::unique_ptr<PatternMap> unmarshallImpl(const void* buf, size_t len) {
   std::unique_ptr<PatternMap> p(new PatternMap(0));
 
   const char* i = static_cast<const char*>(buf);
@@ -66,11 +72,21 @@ std::unique_ptr<PatternMap> PatternMap::unmarshall(const void* buf, size_t len) 
     chain = pat + std::strlen(pat) + 1;
     idx = chain + std::strlen(chain) + 1;
 
-    p->addPattern(pat, chain, *reinterpret_cast<const decltype(LG_PatternInfo::UserIndex)*>(idx));
+    ((*p).*func)(pat, chain, *reinterpret_cast<const uint64_t*>(idx));
 
     i = idx + sizeof(LG_PatternInfo::UserIndex); 
   }
 
+  return std::move(p);
+}
+
+std::unique_ptr<PatternMap> PatternMap::unmarshall(const void* buf, size_t len) {
+  return unmarshallImpl<&PatternMap::addPattern>(buf, len);
+}
+
+std::unique_ptr<PatternMap> PatternMap::unmarshall_shared(const void* buf, size_t len) {
+  std::unique_ptr<PatternMap> p = unmarshallImpl<&PatternMap::usePattern>(buf, len);
+  p->Shared = true;
   return std::move(p);
 }
 
@@ -82,4 +98,18 @@ bool operator==(const LG_PatternInfo& lhs, const LG_PatternInfo& rhs) {
   return lhs.UserIndex == rhs.UserIndex &&
          !std::strcmp(lhs.Pattern, rhs.Pattern) &&
          !std::strcmp(lhs.EncodingChain, rhs.EncodingChain);
+}
+
+std::ostream& operator<<(std::ostream& out, const PatternMap& p) {
+  out << '[';
+  std::copy(p.Patterns.begin(), p.Patterns.end(), std::ostream_iterator<LG_PatternInfo>(out, ", "));
+  return out << ']';
+}
+
+std::ostream& operator<<(std::ostream& out, const LG_PatternInfo& pi) {
+  return out << '['
+             << pi.Pattern << ','
+             << pi.EncodingChain << ','
+             << pi.UserIndex
+             << ']';
 }

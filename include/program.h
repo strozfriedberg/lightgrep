@@ -32,12 +32,11 @@
 
 class Program {
 public:
-
   Program(size_t icount): Program(icount, Instruction()) {}
 
   Program(size_t icount, const Instruction& val):
     MaxLabel(0), MaxCheck(0), FilterOff(0), Filter(),
-    IBeg(new Instruction[icount]),
+    IBeg(new Instruction[icount], [](Instruction* i){ delete[] i; }),
     IEnd(IBeg.get() + icount)
   {
     std::fill(IBeg.get(), IEnd, val);
@@ -149,9 +148,13 @@ public:
 
   std::vector<char> marshall() const;
   static ProgramPtr unmarshall(const void* buf, size_t len);
+  static ProgramPtr unmarshall_shared(const void* buf, size_t len);
 
 private:
-  std::unique_ptr<Instruction[]> IBeg;
+  void copy_buffer(const char* i, size_t icount);
+  void use_buffer(const char* i, size_t icount);
+
+  std::unique_ptr<Instruction[], void(*)(Instruction*)> IBeg;
   Instruction* IEnd;
 };
 

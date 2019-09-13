@@ -67,20 +67,35 @@ std::vector<char> Program::marshall() const {
   return buf;
 }
 
-ProgramPtr Program::unmarshall(const void* buf, size_t len) {
+void Program::copy_buffer(const char* i, size_t icount) {
+  std::memcpy(IBeg.get(), i, icount*sizeof(Instruction));
+}
+
+void Program::use_buffer(const char* i, size_t icount) {
+  // The caller is responsible for freeing buf. We subvert std::unique_ptr
+  // here by giving it an empty deleter.
+  IBeg = std::unique_ptr<Instruction[], void(*)(Instruction*)>(
+    reinterpret_cast<Instruction*>(const_cast<char*>(i)), [](Instruction*){}
+  );
+
+  IEnd = IBeg.get() + icount;
+}
+
+template <void(Program::*func)(const char*, size_t)>
+ProgramPtr unmarshallImpl(const void* buf, size_t len) {
   const char* i = static_cast<const char*>(buf);
-  const size_t icount = (len - (sizeof(MaxLabel) + sizeof(MaxCheck) + sizeof(FilterOff) + 256*256/8)) / sizeof(Instruction);
+  const size_t icount = (len - (sizeof(Program::MaxLabel) + sizeof(Program::MaxCheck) + sizeof(Program::FilterOff) + 256*256/8)) / sizeof(Instruction);
 
-  ProgramPtr p(new Program(icount));
+  ProgramPtr p(new Program(func == &Program::copy_buffer ? icount : 0));
 
-  p->MaxLabel = *reinterpret_cast<const decltype(MaxLabel)*>(i);
-  i += sizeof(MaxLabel);
+  p->MaxLabel = *reinterpret_cast<const decltype(p->MaxLabel)*>(i);
+  i += sizeof(p->MaxLabel);
 
-  p->MaxCheck = *reinterpret_cast<const decltype(MaxCheck)*>(i);
-  i += sizeof(MaxCheck);
+  p->MaxCheck = *reinterpret_cast<const decltype(p->MaxCheck)*>(i);
+  i += sizeof(p->MaxCheck);
 
-  p->FilterOff = *reinterpret_cast<const decltype(FilterOff)*>(i);
-  i += sizeof(FilterOff);
+  p->FilterOff = *reinterpret_cast<const decltype(p->FilterOff)*>(i);
+  i += sizeof(p->FilterOff);
 
   for (size_t b = 0; b < p->Filter.size() / 8; ++b, ++i) {
     p->Filter[8*b]   = *i & 0x01;
@@ -93,46 +108,17 @@ ProgramPtr Program::unmarshall(const void* buf, size_t len) {
     p->Filter[8*b+7] = *i & 0x80;
   }
 
-  std::memcpy(p->IBeg.get(), i, icount*sizeof(Instruction));
+  ((*p).*func)(i, icount);
 
   return p;
+}
 
-/*
-  // The caller is responsible for freeing buf. We subvert std::unique_ptr
-  // and std::shared_ptr here by giving them empty deleters.
+ProgramPtr Program::unmarshall(const void* buf, size_t len) {
+  return unmarshallImpl<&Program::copy_buffer>(buf, len);
+}
 
-  Program* p = static_cast<Program*>(buf);
-
-  // IBeg may contain garbage; prevent operator= from calling the deleter.
-  p->IBeg.release();
-  // Set IBeg to the start of the instructions; set an empty deleter since
-  // the caller is responsible for freeing buf.
-  p->IBeg = std::unique_ptr<Instruction[], void(*)(Instruction*)>(
-    reinterpret_cast<Instruction*>(p + 1), [](Instruction*){}
-  );
-
-  p->IEnd = reinterpret_cast<Instruction*>(static_cast<char*>(buf) + len);
-
-  return ProgramPtr(p, [](Program*){});
-*/
-
-/*
-  std::unique_ptr<char[]> x(new char[len]);
-  std::memcpy(x.get(), buf, len);
-
-  ProgramPtr p(reinterpret_cast<Program*>(x.release()), [](Program* p){ delete[] reinterpret_cast<char*>(p); });
-  p->IBeg.release();
-  p->IBeg = std::unique_ptr<Instruction[], void(*)(Instruction*)>(
-    reinterpret_cast<Instruction*>(p.get() + 1), [](Instruction*){}
-  );
-  p->IEnd = reinterpret_cast<Instruction*>(x.get() + len);
-
-  return p;
-*/
-
-
-
-
+ProgramPtr Program::unmarshall_shared(const void* buf, size_t len) {
+  return unmarshallImpl<&Program::use_buffer>(buf, len);
 }
 
 std::ostream& printIndex(std::ostream& out, uint32_t i) {
