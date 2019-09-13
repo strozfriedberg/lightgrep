@@ -11,7 +11,6 @@ import collections
 from ctypes import *
 import sys
 
-
 #
 # Library initialization
 #
@@ -71,21 +70,18 @@ def buf_beg(buf, ptype):
     #
     # https://docs.python.org/3/c-api/buffer.html#c.Py_buffer
     #
-    if isinstance(buf, bytes):
-        # yay, we can get a pointer from a bytes
-        return cast(buf, POINTER(ptype * 1))[0]
-    elif len(buf) >= 8 and (not isinstance(buf, memoryview) or not buf.readonly):
-        # we have a writable buffer; from_buffer requires len >= 8
-        return (ptype * 1).from_buffer(buf)
-    else:
-        # we have a read-only memoryview or a short buffer
-        obj = py_object(buf)
-        pybuf = Py_buffer()
-        try:
-            pythonapi.PyObject_GetBuffer(obj, byref(pybuf), 0)
-            return (ptype * pybuf.len).from_address(pybuf.buf)
-        finally:
-            pythonapi.PyBuffer_Release(byref(pybuf))
+    # (ptype * 1).from_buffer(buf) is a fast, simple way to get a pointer
+    # from writable buffers, but unfortunately it throws on very short
+    # (< 8 bytes) or readonly buffers which makes the total time for these
+    # much worse than had we not tried it at all.
+    #
+    obj = py_object(buf)
+    pybuf = Py_buffer()
+    try:
+        pythonapi.PyObject_GetBuffer(obj, byref(pybuf), 0)
+        return (ptype * 1).from_address(pybuf.buf)
+    finally:
+        pythonapi.PyBuffer_Release(byref(pybuf))
 
 
 def buf_range(buf, ptype):
