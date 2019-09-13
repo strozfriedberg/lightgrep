@@ -222,7 +222,7 @@ SCOPE_TEST(testLgWriteProgramLgReadProgram) {
     std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
     SCOPE_ASSERT(!err);
 
-    LG_ProgramOptions progOpts;
+    LG_ProgramOptions progOpts{1};
     int ret = lg_compile_program(fsm.get(), prog1.get(), &progOpts);
     SCOPE_ASSERT(ret);
   }
