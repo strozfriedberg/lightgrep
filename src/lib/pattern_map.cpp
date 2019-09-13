@@ -56,10 +56,6 @@ size_t PatternMap::bufSize() const {
   );
 }
 
-template <void(PatternMap::*func)(const char*, const char*, uint64_t)>
-std::unique_ptr<PatternMap> unmarshallImpl(const void* buf, size_t len) {
-}
-
 std::unique_ptr<PatternMap> PatternMap::unmarshall(const void* buf, size_t len) {
   std::unique_ptr<PatternMap> p(new PatternMap(0));
   p->Shared = true;
