@@ -387,24 +387,26 @@ class HitDecoder(Handle):
         outer_range = Window()
         hit_string_location = Window()
         out = c_char_p()
-        err = POINTER(Err)()
-        _LG.lg_hit_context(
-            self.get(),
-            beg,
-            end,
-            offset,
-            byref(hit_window),
-            hit['encChain'].encode('utf-8'),
-            window_size,
-            ord(' '),
-            byref(out),
-            byref(outer_range),
-            byref(hit_string_location),
-            byref(err)
-        )
-        ret = out.value.decode('utf-8')
-# TODO: context handler
-        _LG.lg_free_hit_context_string(out)
+        try:
+            err = POINTER(Err)()
+            _LG.lg_hit_context(
+                self.get(),
+                beg,
+                end,
+                offset,
+                byref(hit_window),
+                hit['encChain'].encode('utf-8'),
+                window_size,
+                ord(' '),
+                byref(out),
+                byref(outer_range),
+                byref(hit_string_location),
+                byref(err)
+            )
+            ret = out.value.decode('utf-8')
+        finally:
+            _LG.lg_free_hit_context_string(out)
+
         return {
             'context_begin': outer_range.Start,
             'context_end': outer_range.End,
