@@ -2,6 +2,7 @@
 
 import array
 import ctypes
+import mmap
 import unittest
 
 import lightgrep
@@ -54,6 +55,11 @@ class PointerTests(unittest.TestCase):
                     self.check_range(buf)
                 with self.subTest(n=n, buf=memoryview(buf)):
                     self.check_range(buf)
+
+    def test_buf_range_mmap(self):
+        with mmap.mmap(-1, 1024) as buf:
+            self.check_range(buf)
+            self.check_range(memoryview(buf))
 
     def test_buf_range_bad_args(self):
         arglist = [b'xxx', ctypes.c_char]
