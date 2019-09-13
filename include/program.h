@@ -148,12 +148,8 @@ public:
 
   std::vector<char> marshall() const;
   static ProgramPtr unmarshall(const void* buf, size_t len);
-  static ProgramPtr unmarshall_shared(const void* buf, size_t len);
 
 private:
-  void copy_buffer(const char* i, size_t icount);
-  void use_buffer(const char* i, size_t icount);
-
   std::unique_ptr<Instruction[], void(*)(Instruction*)> IBeg;
   Instruction* IEnd;
 };

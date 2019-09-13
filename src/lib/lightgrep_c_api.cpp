@@ -372,7 +372,6 @@ namespace {
     dst += prog_size;
   }
 
-  template <bool SHARED>
   LG_HPROGRAM read_program(const void* buffer, size_t size) {
     std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
       new ProgramHandle,
@@ -383,13 +382,15 @@ namespace {
 
     const uint64_t pmap_size = *reinterpret_cast<const uint64_t*>(src);
     src += sizeof(pmap_size);
-    hProg->PMap = (SHARED ? PatternMap::unmarshall_shared : PatternMap::unmarshall)(src, pmap_size);
+    hProg->PMap = PatternMap::unmarshall(src, pmap_size);
     src += pmap_size;
 
     const uint64_t prog_size = *reinterpret_cast<const uint64_t*>(src);
     src += sizeof(prog_size);
-    hProg->Prog = (SHARED ? Program::unmarshall : Program::unmarshall_shared)(src, prog_size);
+    hProg->Prog = Program::unmarshall(src, prog_size);
     src += prog_size;
+
+// TODO: don't go beyond size?
 
     return hProg.release();
   }
@@ -397,14 +398,7 @@ namespace {
 
 LG_HPROGRAM lg_read_program(const void* buffer, int size) {
   return trapWithRetval(
-    [buffer, size](){ return read_program<false>(buffer, size); },
-    nullptr
-  );
-}
-
-LG_HPROGRAM lg_read_program_shared(const void* buffer, int size) {
-  return trapWithRetval(
-    [buffer, size](){ return read_program<true>(buffer, size); },
+    [buffer, size](){ return read_program(buffer, size); },
     nullptr
   );
 }

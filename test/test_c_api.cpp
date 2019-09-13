@@ -254,79 +254,9 @@ SCOPE_TEST(testLgWriteProgramLgReadProgram) {
       *lg_pattern_info(prog2.get(), i)
     );
   }
-}
-
-SCOPE_TEST(testLgWriteProgramLgReadProgramShared) {
-  const char pats[] =
-    "foo\tUTF-8,UTF-16LE\t0\t0\n"
-    "bar\tISO-8859-11,UTF-16BE\t0\t1\n";
-  const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
-
-  const char* defEncs[] = { "ASCII", "UTF-8" };
-  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
-  const LG_KeyOptions defOpts{0, 0};
-
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog1(
-    lg_create_program(patsNum),
-    lg_destroy_program
-  );
-
-  SCOPE_ASSERT(prog1);
-
-  {
-    // FIXME: how to estimate NFA size here?
-    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
-      lg_create_fsm(0),
-      lg_destroy_fsm
-    );
-
-    SCOPE_ASSERT(fsm);
-
-    LG_Error* err = nullptr;
-
-    lg_add_pattern_list(
-      fsm.get(), prog1.get(), pats, "testLgAddPatternList",
-      defEncs, defEncsNum, &defOpts, &err
-    );
-
-    std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
-    SCOPE_ASSERT(!err);
-
-    LG_ProgramOptions progOpts;
-    int ret = lg_compile_program(fsm.get(), prog1.get(), &progOpts);
-    SCOPE_ASSERT(ret);
-  }
-
-  const size_t psize = lg_program_size(prog1.get());
-  std::unique_ptr<char[]> buf(new char[psize]);
-
-  lg_write_program(prog1.get(), buf.get());
-
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog2(
-    lg_read_program_shared(buf.get(), psize),
-    lg_destroy_program
-  );
-
-  SCOPE_ASSERT(prog2);
-
-  SCOPE_ASSERT_EQUAL(
-    lg_program_size(prog1.get()),
-    lg_program_size(prog2.get())
-  );
-
-  const size_t p1count = lg_pattern_count(prog1.get());
-  const size_t p2count = lg_pattern_count(prog2.get());
-  SCOPE_ASSERT_EQUAL(p1count, p2count);
-
-  for (size_t i = 0; i < p1count; ++i) {
-    SCOPE_ASSERT_EQUAL(
-      *lg_pattern_info(prog1.get(), i),
-      *lg_pattern_info(prog2.get(), i)
-    );
-  }
 
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog3(
-    lg_read_program_shared(buf.get(), psize),
+    lg_read_program(buf.get(), psize),
     lg_destroy_program
   );
 

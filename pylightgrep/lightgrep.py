@@ -294,7 +294,7 @@ class Program(Handle):
         else:
             # buffers unserialize programs
             c_buf = buf_beg(arg, c_char)
-            handle = _LG.lg_read_program_shared(c_buf, len(arg)) if shared else _LG.lg_read_program(c_buf, len(arg))
+            handle = _LG.lg_read_program(c_buf, len(arg)) if shared else _LG.lg_read_program(c_buf, len(arg))
 
         super().__init__(handle)
 
@@ -483,9 +483,6 @@ _LG.lg_write_program.restype = None
 
 _LG.lg_read_program.argtypes = [c_void_p, c_int]
 _LG.lg_read_program.restype = c_void_p
-
-_LG.lg_read_program_shared.argtypes = [c_void_p, c_int]
-_LG.lg_read_program_shared.restype = c_void_p
 
 _LG.lg_destroy_program.argtypes = [c_void_p]
 _LG.lg_destroy_program.restype = None

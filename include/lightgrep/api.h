@@ -138,8 +138,6 @@ extern "C" {
   // calling lg_destroy_program on the handle.
   LG_HPROGRAM lg_read_program(const void* buffer, int size);
 
-  LG_HPROGRAM lg_read_program_shared(const void* buffer, int size);
-
   // A Program must live as long as any associated contexts,
   // so only call this at the end.
   void lg_destroy_program(LG_HPROGRAM hProg);

@@ -58,7 +58,11 @@ size_t PatternMap::bufSize() const {
 
 template <void(PatternMap::*func)(const char*, const char*, uint64_t)>
 std::unique_ptr<PatternMap> unmarshallImpl(const void* buf, size_t len) {
+}
+
+std::unique_ptr<PatternMap> PatternMap::unmarshall(const void* buf, size_t len) {
   std::unique_ptr<PatternMap> p(new PatternMap(0));
+  p->Shared = true;
 
   const char* i = static_cast<const char*>(buf);
   const char* pat;
@@ -72,21 +76,11 @@ std::unique_ptr<PatternMap> unmarshallImpl(const void* buf, size_t len) {
     chain = pat + std::strlen(pat) + 1;
     idx = chain + std::strlen(chain) + 1;
 
-    ((*p).*func)(pat, chain, *reinterpret_cast<const uint64_t*>(idx));
+    p->usePattern(pat, chain, *reinterpret_cast<const uint64_t*>(idx));
 
     i = idx + sizeof(LG_PatternInfo::UserIndex); 
   }
 
-  return std::move(p);
-}
-
-std::unique_ptr<PatternMap> PatternMap::unmarshall(const void* buf, size_t len) {
-  return unmarshallImpl<&PatternMap::addPattern>(buf, len);
-}
-
-std::unique_ptr<PatternMap> PatternMap::unmarshall_shared(const void* buf, size_t len) {
-  std::unique_ptr<PatternMap> p = unmarshallImpl<&PatternMap::usePattern>(buf, len);
-  p->Shared = true;
   return std::move(p);
 }
 

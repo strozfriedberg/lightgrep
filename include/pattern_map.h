@@ -30,7 +30,6 @@ public:
   std::vector<char> marshall() const;
 
   static std::unique_ptr<PatternMap> unmarshall(const void* buf, size_t len);
-  static std::unique_ptr<PatternMap> unmarshall_shared(const void* buf, size_t len);
 
   bool operator==(const PatternMap& rhs) const;
 
