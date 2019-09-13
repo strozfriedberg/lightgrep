@@ -18,10 +18,12 @@ import sys
 def load_library(base):
     if sys.platform == 'win32':
         ext = '.dll'
+    elif sys.platform == 'linux':
+        ext = '.so'
     elif sys.platform == 'darwin':
         ext = '.dylib'
     else:
-        ext = '.so'
+        ext = ''
 
     name = base + ext
 
