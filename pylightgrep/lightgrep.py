@@ -109,14 +109,38 @@ def bool_cast_char(charValue):
 
 
 class Err(Structure):
-    _fields_ = [
-        ("Message", c_char_p),
-        ("Pattern", c_char_p),
-        ("Encoding", c_char_p),
-        ("Source", c_char_p),
-        ("Index", c_int),
-        ("Next", c_void_p)
-    ]
+    def __str__(self):
+        s = []
+
+        if self.Message:
+            s.append(self.Message.decode('utf-8'))
+
+        if self.Pattern:
+            s.append("'" + self.Pattern.decode('utf-8') + "'")
+
+        if self.Encoding:
+            s.append("'" + self.Encoding.decode('utf-8') + "'")
+
+        if self.Source:
+            s.append(self.Source.decode('utf-8'))
+
+        s.append(str(self.Index))
+
+        s = ', '.join(s)
+
+        if self.Next:
+            s += f"\n{self.Next}"
+
+        return s
+
+Err._fields_ = [
+    ("Message", c_char_p),
+    ("Pattern", c_char_p),
+    ("Encoding", c_char_p),
+    ("Source", c_char_p),
+    ("Index", c_int),
+    ("Next", POINTER(Err))
+]
 
 
 class PatternInfo(Structure):
@@ -239,6 +263,9 @@ class Error(Handle):
     def get(self):
         return self.handle
 
+    def __str__(self):
+        return str(self.handle) if self.handle else ''
+
 
 class Pattern(Handle):
     def __init__(self):
@@ -250,8 +277,7 @@ class Pattern(Handle):
 
     def parse(self, pat, opts, err):
         if _LG.lg_parse_pattern(self.get(), pat.encode("utf-8"), byref(opts), byref(err.get())) <= 0:
-# FIXME: check that pattern is in message
-            raise RuntimeError(f"Error parsing pattern: {err.get().contents.Message or ''}")
+            raise RuntimeError(f"Error parsing pattern: {err}")
 
 
 class Fsm(Handle):
@@ -267,8 +293,7 @@ class Fsm(Handle):
     def add_pattern(self, prog, pat, enc, userIdx, err):
         idx = _LG.lg_add_pattern(self.get(), prog.get(), pat.get(), enc.encode("utf-8"), userIdx, byref(err.get()))
         if idx < 0:
-# FIXME: check that pattern is in message
-            raise RuntimeError(f"Error adding pattern: {err.handle.contents.Message or ''}")
+            raise RuntimeError(f"Error adding pattern: {err}")
         return idx
 
     def add_patterns(self, prog, pat, patlist, err):
