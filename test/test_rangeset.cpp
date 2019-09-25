@@ -21,7 +21,6 @@
 
 #include "basic.h"
 #include "rangeset.h"
-#include "pair_out.h"
 
 #include <scope/test.h>
 
