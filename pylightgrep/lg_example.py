@@ -71,3 +71,42 @@ with lg.Program(0) as prog:
         for h in myHits.Hits:
             print(f"hit at [{h['start']},{h['end']}) on keyindex {h['keywordIndex']}, pattern is '{h['pattern']}' with encoding chain '{h['encChain']}'")
         myHits.reset()
+
+print("---------------------------")
+print("Results adding patterns one at a time")
+# Creating the program and pattern map separately
+# from the context
+with lg.Program(0) as prog:
+    with lg.Error() as err:
+        with lg.Pattern() as pat:
+            with lg.Fsm(0) as fsm:
+                for i, k in enumerate(keys):
+                    pat.parse(k[0], k[2], err)
+                    for enc in k[1]:
+                        fsm.add_pattern(prog, pat, enc, i, err)
+                prog.compile(fsm, lg.ProgOpts())
+
+    myHits = lg.HitAccumulator()
+    with lg.Context(prog, lg.CtxOpts()) as ctx:
+        myHitCount = ctx.searchBuffer(searchData, myHits)
+
+        print(f"{myHitCount} hits found")
+        for h in myHits.Hits:
+            print(f"hit at [{h['start']},{h['end']}) on keyindex {h['keywordIndex']}, pattern is '{h['pattern']}' with encoding chain '{h['encChain']}'")
+        myHits.reset()
+
+        print("---------------------------")
+        print("Results reusing context with different data")
+        myHitCount = ctx.searchBuffer(testData, myHits)
+        print(f"{myHitCount} hits found")
+        for h in myHits.Hits:
+            print(f"hit at [{h['start']},{h['end']}) on keyindex {h['keywordIndex']}, pattern is '{h['pattern']}' with encoding chain '{h['encChain']}'")
+        myHits.reset()
+
+        print("---------------------------")
+        print("Results reusing context again with and startswith()")
+        myHitCount = ctx.searchBufferStartswith(searchData, myHits)
+        print(f"{myHitCount} hits found")
+        for h in myHits.Hits:
+            print(f"hit at [{h['start']},{h['end']}) on keyindex {h['keywordIndex']}, pattern is '{h['pattern']}' with encoding chain '{h['encChain']}'")
+        myHits.reset()
