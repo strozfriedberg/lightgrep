@@ -493,7 +493,7 @@ _LG.lg_add_pattern_list.argtypes = [c_void_p, c_void_p, c_char_p, c_char_p, POIN
 _LG.lg_add_pattern_list.restype = c_int
 
 _LG.lg_pattern_count.argtypes = [c_void_p]
-_LG.lg_pattern_count.restype = c_int
+_LG.lg_pattern_count.restype = c_uint
 
 _LG.lg_pattern_info.argtypes = [c_void_p, c_uint]
 _LG.lg_pattern_info.restype = POINTER(PatternInfo)
@@ -505,7 +505,7 @@ _LG.lg_compile_program.argtypes = [c_void_p, c_void_p, POINTER(ProgOpts)]
 _LG.lg_compile_program.restype = c_int
 
 _LG.lg_program_size.argtypes = [c_void_p]
-_LG.lg_program_size.restype = c_int
+_LG.lg_program_size.restype = c_uint
 
 _LG.lg_write_program.argtypes = [c_void_p, c_void_p]
 _LG.lg_write_program.restype = None

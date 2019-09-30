@@ -300,7 +300,7 @@ int lg_add_pattern_list(LG_HFSM hFsm,
   return ret;
 }
 
-int lg_pattern_count(const LG_HPROGRAM hProg) {
+unsigned int lg_pattern_count(const LG_HPROGRAM hProg) {
   return hProg->PMap->Patterns.size();
 }
 
@@ -348,7 +348,7 @@ int lg_compile_program(LG_HFSM hFsm, LG_HPROGRAM hProg,
   );
 }
 
-int lg_program_size(const LG_HPROGRAM hProg) {
+unsigned int lg_program_size(const LG_HPROGRAM hProg) {
   return sizeof(uint64_t) + hProg->PMap->bufSize() +
          sizeof(uint64_t) + hProg->Prog->bufSize();
 }

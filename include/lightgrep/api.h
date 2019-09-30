@@ -113,7 +113,7 @@ extern "C" {
                           const LG_KeyOptions* defaultOptions,
                           LG_Error** err);
 
-  int lg_pattern_count(const LG_HPROGRAM hProg);
+  unsigned int lg_pattern_count(const LG_HPROGRAM hProg);
 
   LG_PatternInfo* lg_pattern_info(LG_HPROGRAM hProg,
                                   unsigned int patternIndex);
@@ -126,7 +126,7 @@ extern "C" {
   int lg_compile_program(const LG_HFSM hFsm, LG_HPROGRAM hProg, const LG_ProgramOptions* options);
 
   // The size, in bytes, of the search program. Used for serialization.
-  int lg_program_size(const LG_HPROGRAM hProg);
+  unsigned int lg_program_size(const LG_HPROGRAM hProg);
 
   // Serialize the program, in binary format, to a buffer. The buffer must be
   // at least as large as lg_program_size() in bytes.
