@@ -275,9 +275,10 @@ class Pattern(Handle):
         _LG.lg_destroy_pattern(self.handle)
         super().close()
 
-    def parse(self, pat, opts, err):
-        if _LG.lg_parse_pattern(self.get(), pat.encode("utf-8"), byref(opts), byref(err.get())) <= 0:
-            raise RuntimeError(f"Error parsing pattern: {err}")
+    def parse(self, pat, opts):
+        with Error() as err:
+            if _LG.lg_parse_pattern(self.get(), pat.encode("utf-8"), byref(opts), byref(err.get())) <= 0:
+                raise RuntimeError(f"Error parsing pattern: {err}")
 
 
 class Fsm(Handle):
@@ -290,13 +291,14 @@ class Fsm(Handle):
         _LG.lg_destroy_fsm(self.handle)
         super().close()
 
-    def add_pattern(self, prog, pat, enc, userIdx, err):
-        idx = _LG.lg_add_pattern(self.get(), prog.get(), pat.get(), enc.encode("utf-8"), userIdx, byref(err.get()))
-        if idx < 0:
-            raise RuntimeError(f"Error adding pattern: {err}")
-        return idx
+    def add_pattern(self, prog, pat, enc, userIdx):
+        with Error() as err:
+            idx = _LG.lg_add_pattern(self.get(), prog.get(), pat.get(), enc.encode("utf-8"), userIdx, byref(err.get()))
+            if idx < 0:
+                raise RuntimeError(f"Error adding pattern: {err}")
+            return idx
 
-    def add_patterns(self, prog, pat, patlist, err):
+    def add_patterns(self, prog, pat, patlist):
         # patlist is a list of ("pattern", ["encoding"], keyOpts)
         for i, p in enumerate(patlist):
             if not p[0]:
@@ -305,10 +307,10 @@ class Fsm(Handle):
                 raise IndexError(f"No encodings specified on pattern {i}")
             if not p[2]:
                 raise IndexError(f"No keyword options specified on pattern {i}")
-            pat.parse(p[0], p[2], err)
+            pat.parse(p[0], p[2])
 
             for enc in p[1]:
-                self.add_pattern(prog, pat, enc, i, err)
+                self.add_pattern(prog, pat, enc, i)
 
 
 class Program(Handle):
@@ -412,23 +414,27 @@ class HitDecoder(Handle):
         outer_range = Window()
         hit_string_location = Window()
         out = c_char_p()
+
         try:
-            err = POINTER(Err)()
-            _LG.lg_hit_context(
-                self.get(),
-                beg,
-                end,
-                offset,
-                byref(hit_window),
-                hit['encChain'].encode('utf-8'),
-                window_size,
-                ord(' '),
-                byref(out),
-                byref(outer_range),
-                byref(hit_string_location),
-                byref(err)
-            )
-            ret = out.value.decode('utf-8')
+            with Error() as err:
+                _LG.lg_hit_context(
+                    self.get(),
+                    beg,
+                    end,
+                    offset,
+                    byref(hit_window),
+                    hit['encChain'].encode('utf-8'),
+                    window_size,
+                    ord(' '),
+                    byref(out),
+                    byref(outer_range),
+                    byref(hit_string_location),
+                    byref(err.get())
+                )
+                if err:
+                    raise RuntimeError(f"Error decoding hit context: {err}")
+
+            hctx = out.value.decode('utf-8')
         finally:
             _LG.lg_free_hit_context_string(out)
 
@@ -437,7 +443,7 @@ class HitDecoder(Handle):
             'context_end': outer_range.End,
             'context_hit_begin': hit_string_location.Start,
             'context_hit_end': hit_string_location.End,
-            'hit_context': ret
+            'hit_context': hctx
         }
 
 
@@ -582,8 +588,7 @@ def make_program_from_patterns(patlist, progOpts):
     try:
         with Fsm(len(patlist) * 10) as fsm:
             with Pattern() as pat:
-                with Error() as err:
-                    fsm.add_patterns(prog, pat, patlist, err)
+                fsm.add_patterns(prog, pat, patlist)
 
                 prog.compile(fsm, progOpts)
     except Exception as e:
