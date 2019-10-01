@@ -41,11 +41,10 @@ print("Results creating program and pattern map separately from context")
 # Creating the program and pattern map separately
 # from the context
 with lg.Program(0) as prog:
-    with lg.Error() as err:
-        with lg.Pattern() as pat:
-            with lg.Fsm(0) as fsm:
-                fsm.add_patterns(prog, pat, keys, err)
-                prog.compile(fsm, lg.ProgOpts())
+    with lg.Pattern() as pat:
+        with lg.Fsm(0) as fsm:
+            fsm.add_patterns(prog, pat, keys)
+            prog.compile(fsm, lg.ProgOpts())
 
     myHits = lg.HitAccumulator()
     with lg.Context(prog, lg.CtxOpts()) as ctx:
@@ -77,14 +76,13 @@ print("Results adding patterns one at a time")
 # Creating the program and pattern map separately
 # from the context
 with lg.Program(0) as prog:
-    with lg.Error() as err:
-        with lg.Pattern() as pat:
-            with lg.Fsm(0) as fsm:
-                for i, k in enumerate(keys):
-                    pat.parse(k[0], k[2], err)
-                    for enc in k[1]:
-                        fsm.add_pattern(prog, pat, enc, i, err)
-                prog.compile(fsm, lg.ProgOpts())
+    with lg.Pattern() as pat:
+        with lg.Fsm(0) as fsm:
+            for i, k in enumerate(keys):
+                pat.parse(k[0], k[2])
+                for enc in k[1]:
+                    fsm.add_pattern(prog, pat, enc, i)
+            prog.compile(fsm, lg.ProgOpts())
 
     myHits = lg.HitAccumulator()
     with lg.Context(prog, lg.CtxOpts()) as ctx:
