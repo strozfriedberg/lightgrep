@@ -213,6 +213,13 @@ if test "x$enable_shared" != "xyes"; then
   AX_APPEND_FLAG([-DBOOST_THREAD_USE_LIB], [BOOST_CPPFLAGS])
 fi
 
+# 
+# libtsk
+#
+AX_PKG_CHECK_MODULES([TSK], [], [tsk])
+
+
+
 #
 # libasan
 #

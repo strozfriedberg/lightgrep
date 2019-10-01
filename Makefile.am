@@ -105,7 +105,9 @@ include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
 
 BUILT_SOURCES = include/lightgrep/encodings.h
 
-bin_PROGRAMS = src/cmd/lightgrep
+bin_PROGRAMS = \
+	src/cmd/lightgrep \
+	src/llama/llama
 
 src_cmd_lightgrep_SOURCES = \
 	src/cmd/hitwriter.cpp \
@@ -118,6 +120,13 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/util.cpp
 	
 src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+
+src_llama_llama_SOURCES = \
+	src/llama/cli.cpp \
+	src/llama/llama.cpp \
+	src/llama/main.cpp
+
+src_llama_llama_LDADD = $(BOOST_PROGRAM_OPTIONS_LIB)
 
 if BUILD_MINGW
 
