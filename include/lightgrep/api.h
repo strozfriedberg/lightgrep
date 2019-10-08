@@ -41,6 +41,7 @@ extern "C" {
   typedef struct {
     char FixedString;     // 0 => grep, non-zero => fixed-string
     char CaseInsensitive; // 0 => case sensitive, non-zero => case-insensitive
+    char AsciiMode;       // 0 => Unicode mode, non-zero => ASCII mode
   } LG_KeyOptions;
 
   // Encoding options for patterns

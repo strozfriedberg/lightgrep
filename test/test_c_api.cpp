@@ -66,7 +66,7 @@ SCOPE_TEST(testLgAddPatternList) {
 
   const char* defEncs[] = { "ASCII", "UTF-8" };
   const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
-  const LG_KeyOptions defOpts{0, 0};
+  const LG_KeyOptions defOpts{0, 0, 1};
 
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
     lg_create_program(patsNum),
@@ -101,7 +101,7 @@ SCOPE_TEST(testLgAddPatternListFixedString) {
   const char* defEncs[] = { "ASCII" };
   const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
 
-  const LG_KeyOptions defOpts{0, 0};
+  const LG_KeyOptions defOpts{0, 0, 1};
 
    std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
     lg_create_program(patsNum),
@@ -139,7 +139,7 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
 
   const char* defEncs[] = { "ASCII", "UTF-8" };
   const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
-  const LG_KeyOptions defOpts{0, 0};
+  const LG_KeyOptions defOpts{0, 0, 1};
 
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
     lg_create_program(patsNum),

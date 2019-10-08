@@ -20,7 +20,7 @@
 
 #include <unicode/uset.h>
 
-void convUnicodeSet(UnicodeSet& dst, const USet* src) {
+void addUnicodeSet(UnicodeSet& dst, const USet* src) {
   UErrorCode err = U_ZERO_ERROR;
 
   // get the size of the data array
@@ -48,7 +48,6 @@ void convUnicodeSet(UnicodeSet& dst, const USet* src) {
   }
 
   // insert the ranges from the USerializedSet into the UnicodeSet
-  dst.reset();
   int32_t beg, end;
   const int32_t rc = uset_getSerializedRangeCount(&uss);
   for (int32_t i = 0; i < rc; ++i) {
@@ -58,6 +57,11 @@ void convUnicodeSet(UnicodeSet& dst, const USet* src) {
 
     dst.insert(beg, end+1);
   }
+}
+
+void convUnicodeSet(UnicodeSet& dst, const USet* src) {
+  dst.reset();
+  addUnicodeSet(dst, src);
 }
 
 void convUnicodeSet(USet* dst, const UnicodeSet& src) {

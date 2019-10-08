@@ -23,6 +23,8 @@
 
 struct USet;
 
+void addUnicodeSet(UnicodeSet& dst, const USet* src);
+
 void convUnicodeSet(UnicodeSet& dst, const USet* src);
 
 void convUnicodeSet(USet* dst, const UnicodeSet& src);

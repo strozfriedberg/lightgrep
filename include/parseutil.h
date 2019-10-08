@@ -200,7 +200,20 @@ int parseProperty(Iterator& i, const Iterator& end, UnicodeSet& us) {
   }
   prop += '}';
 
+  us.reset();
   return propertyGetter(prop, us);
 }
 
 bool caseDesensitize(UnicodeSet& us);
+
+bool caseDesensitizeAscii(UnicodeSet& us);
+
+void setDigitClass(UnicodeSet& us, bool ascii_mode);
+
+void setWordClass(UnicodeSet& us, bool ascii_mode);
+
+void setHorizontalSpaceClass(UnicodeSet& us);
+
+void setVerticalSpaceClass(UnicodeSet& us);
+
+void setSpaceClass(UnicodeSet& us, bool ascii_mode);
