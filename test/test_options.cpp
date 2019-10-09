@@ -18,10 +18,5 @@ SCOPE_TEST(getKeyFilesFromActualFiles) {
     { opts.KeyFiles[2], "\n\n\n\n\n\n\n\n\n" }
   };
 
-  const std::vector<std::pair<std::string,std::string>> actual = opts.getPatternLines();
-
-  SCOPE_ASSERT_EQUAL(expected.size(), actual.size());
-  for (uint8_t i = 0; i < expected.size(); ++i) {
-    SCOPE_ASSERT_EQUAL(expected[i], actual[i]);
-  }
+  SCOPE_ASSERT_EQUAL(expected, opts.getPatternLines());
 }
