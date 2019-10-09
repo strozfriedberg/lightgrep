@@ -359,14 +359,14 @@ namespace {
 
     const std::vector<char> pmap_buf = hProg->PMap->marshall();
     const uint64_t pmap_size = pmap_buf.size();
-    std::memcpy(dst, &pmap_size, sizeof(pmap_size));
+    *reinterpret_cast<uint64_t*>(dst) = pmap_size;
     dst += sizeof(pmap_size);
     std::memcpy(dst, pmap_buf.data(), pmap_size);
     dst += pmap_size;
 
     const std::vector<char> prog_buf = hProg->Prog->marshall();
     const uint64_t prog_size = prog_buf.size();
-    std::memcpy(dst, &prog_size, sizeof(prog_size));
+    *reinterpret_cast<uint64_t*>(dst) = prog_size;
     dst += sizeof(prog_size);
     std::memcpy(dst, prog_buf.data(), prog_size);
     dst += prog_size;
