@@ -1,6 +1,6 @@
 import lightgrep as lg
 
-# using the with statement correctly releases lightgrep resources when block
+# Using the with statement correctly releases lightgrep resources when block
 # closes; better to loop over files/string within the lightgrep with statement,
 # of course, as Lightgrep initialization is relatively heavyweight
 searchString = "hello, World O'Sullivan, please don't bl0w up Nain s\\09-123/12-002 s\\EU-12-23 s\\AU-13-059 "
@@ -15,7 +15,9 @@ keys = [
     ("bl\\dw", ["UTF-8"], lg.KeyOpts(fixedString=False, caseInsensitive=True)),
     ("[^a-z]+", ["UTF-8"], lg.KeyOpts(fixedString=False, caseInsensitive=True)),
     # Backslash must be escaped once for Python, and again for Lightgrep
-    ("s\\\\((A|E)U\\-)?\\d{1,3}-\\d{1,4}[^a-zA-Z0-9]", ["UTF-8"], lg.KeyOpts(fixedString=False, caseInsensitive=False))
+    ("s\\\\((A|E)U\\-)?\\d{1,3}-\\d{1,4}[^a-zA-Z0-9]", ["UTF-8"], lg.KeyOpts(fixedString=False, caseInsensitive=False)),
+    # Or you can use an r-string to avoid Python escaping
+    (r'\\[\d-]+', ["UTF-8"], lg.KeyOpts(fixedString=False, caseInsensitive=False))
 ]
 
 # Using with to open a Lightgrep object and
