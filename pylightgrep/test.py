@@ -8,6 +8,12 @@ import unittest
 import lightgrep
 
 
+PATLIST = [
+    ("a+b", ['UTF-8', 'iso-8859-1'], lightgrep.KeyOpts(caseInsensitive=True)),
+    ("a+b", ['UTF-8', 'iso-8859-1'], lightgrep.KeyOpts(fixedString=True))
+]
+
+
 def fuzz_args(arglist, subs):
     for i in range(0, len(arglist)):
         args = arglist.copy()
@@ -189,19 +195,14 @@ class FsmTests(unittest.TestCase):
         idx = self.fsm.add_pattern(self.prog, self.pat, 'UTF-8', 42)
         self.assertEqual(idx, 0)
 
-    PATLIST = [
-        ("a+b", ['UTF-8', 'iso-8859-1'], lightgrep.KeyOpts(caseInsensitive=True)),
-        ("a+b", ['UTF-8', 'iso-8859-1'], lightgrep.KeyOpts(fixedString=True))
-    ]
-
     def test_add_patterns_bad_args(self):
         # fuzz add_patterns()
-        arglist = [self.prog, self.pat, self.PATLIST]
+        arglist = [self.prog, self.pat, PATLIST]
         subs = (None, 'bogus')
         fuzz_it(self, self.fsm.add_patterns, arglist, subs)
 
     def test_add_patterns(self):
-        self.fsm.add_patterns(self.prog, self.pat, self.PATLIST)
+        self.fsm.add_patterns(self.prog, self.pat, PATLIST)
 
 
 class ProgSimpleTests(unittest.TestCase):
@@ -575,6 +576,47 @@ class HitDecoderTests(unittest.TestCase):
         }
 
         self.assertEqual(hctx, exp)
+
+
+class UtilityTests(unittest.TestCase):
+    def test_make_program_from_patterns_bad_args(self):
+        progOpts = lightgrep.ProgOpts()
+        arglist = [PATLIST, progOpts]
+        subs = (None, 'bogus')
+        fuzz_it(self, lightgrep.make_program_from_patterns, arglist, subs)
+
+    def test_make_program_from_patterns_good(self):
+        buf = b'aaaaabb a+b'
+
+        patlist = [
+            ("a+b", ['UTF-8'], lightgrep.KeyOpts()),
+            ("a+b", ['UTF-8'], lightgrep.KeyOpts(fixedString=True))
+        ]
+
+        progOpts = lightgrep.ProgOpts()
+        with lightgrep.make_program_from_patterns(patlist, progOpts) as prog:
+            with lightgrep.Context(prog, lightgrep.CtxOpts()) as ctx:
+                acc = lightgrep.HitAccumulator()
+                ctx.searchBuffer(buf, acc)
+
+        exp_hits = [
+            {
+                'start': 0,
+                'end': 6,
+                'keywordIndex': 0,
+                'pattern': 'a+b',
+                'encChain': 'UTF-8'
+            },
+            {
+                'start': 8,
+                'end': 11,
+                'keywordIndex': 1,
+                'pattern': 'a+b',
+                'encChain': 'UTF-8'
+            }
+        ]
+
+        self.assertEqual(acc.Hits, exp_hits)
 
 
 if __name__ == "__main__":

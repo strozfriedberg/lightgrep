@@ -576,7 +576,6 @@ _LG.lg_free_window_offsets.restype = None
 _LG.lg_free_hit_context_string.argtypes = [c_char_p]
 _LG.lg_free_hit_context_string.restype = None
 
-
 #
 # Utility Functions
 #
@@ -608,24 +607,3 @@ _LG.lg_create_pattern.errcheck = _checkHandleForErrors
 _LG.lg_create_fsm.errcheck = _checkHandleForErrors
 _LG.lg_create_program.errcheck = _checkHandleForErrors
 _LG.lg_create_context.errcheck = _checkHandleForErrors
-
-
-def parse_pattern_line(line, default_encs, default_key_opts):
-    fields = line.strip().split('\t')
-    num = len(fields)
-    if num == 0:
-        return None
-
-    encs = default_encs
-    opts = default_key_opts
-
-    pat = fields[0]
-    if num > 1:
-        encs = fields[1].split(',')
-        if len(encs) == 0: # reset
-            encs = default_encs
-        if num > 2:
-            fixedString = True if fields[2] == '1' else False
-            caseInsensitive = True if num > 3 and fields[3] == '1' else False
-            opts = KeyOpts(fixedString, caseInsensitive)
-    return (pat, encs, opts)
