@@ -33,9 +33,9 @@ with lg.make_program_from_patterns(keys, lg.ProgOpts()) as prog:
         print(f"{withHitCount} hits found")
         for h in withHits.Hits:
             print(f"hit at [{h['start']},{h['end']}) on keyindex {h['keywordIndex']}, pattern is '{h['pattern']}' with encoding chain '{h['encChain']}'")
-            # hBytes = searchData[h.get("start"):h.get("end")]
-            # hText = hBytes.decode("utf-8)")
-            # print("    hit text: '%s'" % hText)
+            # hBytes = searchData[h['start']:h['end']]
+            # hText = hBytes.decode("utf-8")
+            # print(f"    hit text: '{hText}'")
         withHits.reset()
 
 print("---------------------------")
