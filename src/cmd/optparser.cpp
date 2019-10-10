@@ -58,7 +58,7 @@ void parse_opts(int argc, char** argv,
   // Command selection options
   po::options_description general("Command selection");
   general.add_options()
-    ("command,c", po::value<std::string>(&command)->value_name("CMD")->default_value("search"), "command to perform [search|graph|prog|samp|validate|server]")
+    ("command,c", po::value<std::string>(&command)->value_name("CMD")->default_value("search"), "command to perform [search|graph|prog|samp|validate]")
     ("help", "display this help message")
     ("list-encodings", "list known encodings")
     ("version,V", "print version information and exit")
@@ -91,14 +91,6 @@ void parse_opts(int argc, char** argv,
     ("mmap", "memory-map input file(s)")
     ;
 
-  // Server options
-  po::options_description server("Server");
-  server.add_options()
-    ("address", po::value<std::string>(&opts.ServerAddr)->value_name("ADDR")->default_value("localhost"), "specify address")
-    ("port", po::value<unsigned short>(&opts.ServerPort)->value_name("PORT")->default_value(12777), "specify port number")
-    ("server-log", po::value<std::string>(&opts.ServerLog)->value_name("FILE"), "file for server logging")
-    ("statsfile", po::value<std::string>(&opts.StatsFileName)->value_name("FILE"), "file for writing out final hit stats");
-
   // Other options
   po::options_description misc("Miscellaneous");
   misc.add_options()
@@ -115,7 +107,6 @@ void parse_opts(int argc, char** argv,
   desc.add(general)
       .add(pats)
       .add(io)
-      .add(server)
       .add(misc);
 
   po::options_description allOpts;
@@ -162,7 +153,6 @@ void parse_opts(int argc, char** argv,
     cmds.insert(std::make_pair("prog",     Options::PROGRAM));
     cmds.insert(std::make_pair("samp",     Options::SAMPLES));
     cmds.insert(std::make_pair("validate", Options::VALIDATE));
-    cmds.insert(std::make_pair("server",   Options::SERVER));
 
     auto i = cmds.find(command);
     if (i != cmds.end()) {
@@ -180,7 +170,6 @@ void parse_opts(int argc, char** argv,
   case Options::PROGRAM:
   case Options::SAMPLES:
   case Options::VALIDATE:
-  case Options::SERVER:
     // determine the source of our patterns
     if (!optsMap["pattern"].empty()) {
       // keywords from --pattern

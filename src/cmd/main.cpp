@@ -655,51 +655,6 @@ void writeSampleMatches(const Options& opts) {
   }
 }
 
-void startServer(const Options& opts) {
-  // count the lines of input
-  const std::vector<std::pair<std::string,std::string>> kf(
-    opts.getPatternLines()
-  );
-
-  size_t pnum = 0;
-  for (const std::pair<std::string,std::string>& p : kf) {
-    if (!p.second.empty()) {  // don't count empty pattern files
-      // number of lines is one more than the number of newlines
-      pnum += 1 + std::count(p.second.begin(), p.second.end(), '\n');
-    }
-  }
-
-  // parse the patterns
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-    nullptr, nullptr
-  );
-
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
-
-  std::tie(prog, fsm, err) = parsePatterns(kf);
-
-  handleParseErrors(err.get(), false);
-
-  const size_t numErrors = countErrors(err.get());
-
-  // build a program from parsed patterns
-  if (numErrors == 0 && fsm) {
-    if (buildProgram(fsm.get(), prog.get(), opts)) {
-      fsm.reset();
-
-      startup(
-        std::shared_ptr<ProgramHandle>(std::move(prog)),
-        pnum,
-        opts
-      );
-      return;
-    }
-  }
-
-  THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not parse patterns at server startup");
-}
-
 int main(int argc, char** argv) {
   Options opts;
   po::options_description desc;
@@ -720,9 +675,6 @@ int main(int argc, char** argv) {
       break;
     case Options::VALIDATE:
       validate(opts);
-      break;
-    case Options::SERVER:
-      startServer(opts);
       break;
     case Options::SHOW_VERSION:
       printVersion();
