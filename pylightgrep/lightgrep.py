@@ -165,13 +165,15 @@ class PatternInfo(Structure):
 class KeyOpts(Structure):
     _fields_ = [
         ("FixedString", c_char),
-        ("CaseInsensitive", c_char)
+        ("CaseInsensitive", c_char),
+        ("AsciiMode", c_char)
     ]
 
-    def __init__(self, fixedString = False, caseInsensitive = False):
+    def __init__(self, fixedString = False, caseInsensitive = False, asciiMode = True):
         super().__init__()
         self.FixedString = char_cast_bool(fixedString)
         self.CaseInsensitive = char_cast_bool(caseInsensitive)
+        self.AsciiMode = char_cast_bool(asciiMode)
 
     def isFixed(self):
         return bool_cast_char(self.FixedString)
@@ -179,6 +181,9 @@ class KeyOpts(Structure):
     def isCaseSensitive(self):
         # note that this returns "Sensitive", not "Insensitive"
         return not bool_cast_char(self.CaseInsensitive)
+
+    def isAsciiMode(self):
+        return bool_cast_char(self.AsciiMode)
 
 
 class ProgOpts(Structure):

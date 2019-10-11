@@ -114,10 +114,12 @@ class KeyOptsTests(unittest.TestCase):
     def test_flags(self):
         for fixed_string in (False, True):
             for case_insensitive in (False, True):
-                with self.subTest(fixed_string=fixed_string, case_insensitive=case_insensitive):
-                    opts = lightgrep.KeyOpts(fixedString=fixed_string, caseInsensitive=case_insensitive)
-                    self.assertEqual(opts.isFixed(), fixed_string)
-                    self.assertEqual(opts.isCaseSensitive(), not case_insensitive)
+                for ascii_mode in (False, True):
+                    with self.subTest(fixed_string=fixed_string, case_insensitive=case_insensitive):
+                        opts = lightgrep.KeyOpts(fixedString=fixed_string, caseInsensitive=case_insensitive, asciiMode=ascii_mode)
+                        self.assertEqual(opts.isFixed(), fixed_string)
+                        self.assertEqual(opts.isCaseSensitive(), not case_insensitive)
+                        self.assertEqual(opts.isAsciiMode(), ascii_mode)
 
 
 class PatternSimpleTests(unittest.TestCase):
