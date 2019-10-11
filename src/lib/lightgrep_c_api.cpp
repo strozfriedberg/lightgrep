@@ -86,7 +86,8 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
   hPattern->Pat = {
     pattern,
     static_cast<bool>(options->FixedString),
-    static_cast<bool>(options->CaseInsensitive)
+    static_cast<bool>(options->CaseInsensitive),
+    static_cast<bool>(options->AsciiMode)
   };
 
   return trapWithVals(
@@ -166,11 +167,6 @@ namespace {
         err = &((*err)->Next);
         continue;
       }
-/*
-      // pack the line number into the void*, oh the horror
-      LG_PatternInfo* pinfo = lg_pattern_info(hProg, label);
-      pinfo->UserIndex = lnum;
-*/
     }
   }
 
