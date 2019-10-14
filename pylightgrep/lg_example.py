@@ -20,9 +20,8 @@ keys = [
     (r'\\[\d-]+', ["UTF-8"], lg.KeyOpts(fixedString=False, caseInsensitive=False))
 ]
 
-# Using with to open a Lightgrep object and
-# perform a search, passing keys and callback
-# at init.
+# Using with to open a Lightgrep object and  perform a search,
+# passing keys and callback at init.
 print("============================")
 print("Results using 'with'")
 withHits = lg.HitAccumulator()
@@ -38,10 +37,19 @@ with lg.make_program_from_patterns(keys, lg.ProgOpts()) as prog:
             # print(f"    hit text: '{hText}'")
         withHits.reset()
 
+# Bad input results in exceptions
+print("---------------------------")
+print("Exception due to a malformed pattern")
+
+with lg.Pattern() as pat:
+    try:
+        pat.parse('+++', lg.KeyOpts())
+    except RuntimeError as e:
+        print(e)
+
 print("---------------------------")
 print("Results creating program and pattern map separately from context")
-# Creating the program and pattern map separately
-# from the context
+# Creating the program and pattern map separately from the context
 with lg.Program(0) as prog:
     with lg.Pattern() as pat:
         with lg.Fsm(0) as fsm:
@@ -75,8 +83,7 @@ with lg.Program(0) as prog:
 
 print("---------------------------")
 print("Results adding patterns one at a time")
-# Creating the program and pattern map separately
-# from the context
+# Creating the program and pattern map separately from the context
 with lg.Program(0) as prog:
     with lg.Pattern() as pat:
         with lg.Fsm(0) as fsm:

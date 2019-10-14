@@ -264,7 +264,7 @@ class Error(Handle):
         return self.handle
 
     def __str__(self):
-        return str(self.handle) if self.handle else ''
+        return str(self.handle.contents) if self.handle else ''
 
 
 class Pattern(Handle):
