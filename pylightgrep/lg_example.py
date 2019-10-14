@@ -29,13 +29,14 @@ with lg.make_program_from_patterns(keys, lg.ProgOpts()) as prog:
     with lg.Context(prog, lg.CtxOpts()) as ctx:
         # call .encode() on a string to get a bytes object back, then pass into bytearray
         withHitCount = ctx.searchBuffer(searchData, withHits)
-        print(f"{withHitCount} hits found")
-        for h in withHits.Hits:
-            print(f"hit at [{h['start']},{h['end']}) on keyindex {h['keywordIndex']}, pattern is '{h['pattern']}' with encoding chain '{h['encChain']}'")
-            # hBytes = searchData[h['start']:h['end']]
-            # hText = hBytes.decode("utf-8")
-            # print(f"    hit text: '{hText}'")
-        withHits.reset()
+
+    print(f"{withHitCount} hits found")
+    for h in withHits.Hits:
+        print(f"hit at [{h['start']},{h['end']}) on keyindex {h['keywordIndex']}, pattern is '{h['pattern']}' with encoding chain '{h['encChain']}'")
+        # hBytes = searchData[h['start']:h['end']]
+        # hText = hBytes.decode("utf-8")
+        # print(f"    hit text: '{hText}'")
+    withHits.reset()
 
 # Bad input results in exceptions
 print("---------------------------")
@@ -117,3 +118,21 @@ with lg.Program(0) as prog:
         for h in myHits.Hits:
             print(f"hit at [{h['start']},{h['end']}) on keyindex {h['keywordIndex']}, pattern is '{h['pattern']}' with encoding chain '{h['encChain']}'")
         myHits.reset()
+
+print("---------------------------")
+print("Results from a search across buffers")
+keys = [('hijk', ['UTF-8'], lg.KeyOpts(fixedString=True, caseInsensitive=False)),]
+hits = lg.HitAccumulator()
+buf1 = b'abcdefghi'
+buf2 = b'jklmnopqr'
+
+with lg.make_program_from_patterns(keys, lg.ProgOpts()) as prog:
+    with lg.Context(prog, lg.CtxOpts()) as ctx:
+        ctx.search(buf1, 0, hits)
+        ctx.search(buf2, len(buf1), hits)
+        ctx.closeout(hits)
+
+        print(f"{len(hits.Hits)} hits found")
+        for h in hits.Hits:
+            print(f"hit at [{h['start']},{h['end']}) on keyindex {h['keywordIndex']}, pattern is '{h['pattern']}' with encoding chain '{h['encChain']}'")
+        hits.reset()
