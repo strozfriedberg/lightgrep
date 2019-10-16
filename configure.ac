@@ -300,10 +300,10 @@ AC_SUBST([LG_LDFLAGS])
 #
 case "$host" in
 *-apple-darwin*)
-  echo " ** MacOS X builds are problematic as compilers are in transition."
-  echo " ** We presume you're using a recent clang and libc++."
-  echo " ** And we recommend only building the library and not unit tests."
-  echo " ** If you build the unit tests, you are entering a world of pain."
+  # echo " ** MacOS X builds are problematic as compilers are in transition."
+  # echo " ** We presume you're using a recent clang and libc++."
+  # echo " ** And we recommend only building the library and not unit tests."
+  # echo " ** If you build the unit tests, you are entering a world of pain."
   AX_APPEND_COMPILE_FLAGS([-stdlib=libc++], [STDCXX_CXXFLAGS])
   # TODO: Actually linking against libc++ will require everything else down
   # the chain to have been linked with libc++, including Boost, ICU, etc.
