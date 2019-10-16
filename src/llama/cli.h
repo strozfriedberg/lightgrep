@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <iosfwd>
 
 #include <boost/program_options.hpp>
 
@@ -11,8 +10,10 @@ class Cli {
 public:
 	Cli();
 
-	std::unique_ptr<Options> parse(std::ostream& out, int argc, const char* argv[]);
+	std::unique_ptr<Options> parse(int argc, const char* argv[]) const;
 
 private:
+	std::string figureOutCommand(const boost::program_options::variables_map& optsMap) const;
+
 	boost::program_options::options_description All;
 };
