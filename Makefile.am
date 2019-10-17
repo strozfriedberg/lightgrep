@@ -45,6 +45,7 @@ src_lib_liblightgrepint_la_SOURCES = \
 	src/lib/oceencoder.cpp \
 	src/lib/parsenode.cpp \
 	src/lib/parser.cpp \
+	src/lib/pattern_map.cpp \
 	src/lib/re_grammar.ypp \
 	src/lib/parsetree.cpp \
 	src/lib/parseutil.cpp \
@@ -114,10 +115,9 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/options.cpp \
 	src/cmd/reader.cpp \
 	src/cmd/searchcontroller.cpp \
-	src/cmd/server.cpp \
 	src/cmd/util.cpp
 	
-src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 if BUILD_MINGW
 
@@ -140,7 +140,11 @@ endif
 @VALGRIND_CHECK_RULES@
 
 check_PROGRAMS = test/test
-TESTS = $(check_PROGRAMS)
+
+TESTS = \
+	$(check_PROGRAMS) \
+	pylightgrep/test.sh
+
 AM_TESTS_ENVIRONMENT = builddir=`pwd`;
 
 test_test_SOURCES = \
@@ -195,6 +199,7 @@ test_test_SOURCES = \
 	test/test_ostream_join_iterator.cpp \
 	test/test_parser.cpp \
 	test/test_parseutil.cpp \
+	test/test_pattern_map.cpp \
 	test/test_program.cpp \
 	test/test_rangeset.cpp \
 	test/test_rewriter.cpp \
@@ -220,7 +225,7 @@ test_test_SOURCES = \
 	test/test_xorencoder.cpp
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
-test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(BOOST_THREAD_LIB) $(BOOST_CHRONO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = src/lib/lightgrep.pc

@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include <cstring>
 #include <memory>
 
 #include "lightgrep/api.h"
@@ -28,6 +27,7 @@
 #include "fsmthingy.h"
 #include "fwd_pointers.h"
 #include "parsetree.h"
+#include "pattern_map.h"
 #include "vm_interface.h"
 #include "pattern.h"
 #include "decoders/decoderfactory.h"
@@ -38,28 +38,7 @@ struct PatternHandle {
 };
 
 struct PatternMapHandle {
-  std::vector<LG_PatternInfo> Patterns;
-
-  PatternMapHandle(unsigned int sizeHint): Patterns() { Patterns.reserve(sizeHint); }
-
-  ~PatternMapHandle() {
-    for (LG_PatternInfo& pi : Patterns) {
-      delete[] pi.Pattern;
-      delete[] pi.EncodingChain;
-    }
-  }
-
-  void addPattern(const char* pattern, const char* chain) {
-    std::unique_ptr<char[]> patcopy(new char[std::strlen(pattern)+1]);
-    std::strcpy(patcopy.get(), pattern);
-
-    std::unique_ptr<char[]> chcopy(new char[std::strlen(chain)+1]);
-    std::strcpy(chcopy.get(), chain);
-
-    Patterns.push_back({patcopy.get(), chcopy.get(), nullptr});
-    patcopy.release();
-    chcopy.release();
-  }
+  std::unique_ptr<PatternMap> Impl;
 };
 
 struct FSMHandle {
@@ -67,7 +46,8 @@ struct FSMHandle {
 };
 
 struct ProgramHandle {
-  ProgramPtr Impl;
+  std::unique_ptr<PatternMap> PMap;
+  ProgramPtr Prog;
 };
 
 struct ContextHandle {
