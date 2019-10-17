@@ -97,6 +97,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ContextHandle_ini
 
 static jfieldID keyOptionsFixedStringField;
 static jfieldID keyOptionsCaseInsensitiveField;
+static jfieldID keyOptionsAsciiModeField;
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_KeyOptions_init(JNIEnv* env, jclass cl) {
   try {
@@ -104,6 +105,9 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_KeyOptions_init(J
     throwIfException(env);
 
     keyOptionsCaseInsensitiveField = env->GetFieldID(cl, "FixedString", "Z");
+    throwIfException(env);
+
+    keyOptionsAsciiModeField = env->GetFieldID(cl, "FixedString", "Z");
     throwIfException(env);
   }
   catch (const PendingJavaException&) {
@@ -293,7 +297,8 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_PatternHandle_par
 
     LG_KeyOptions opts{
       env->GetBooleanField(options, keyOptionsFixedStringField) != 0,
-      env->GetBooleanField(options, keyOptionsCaseInsensitiveField) != 0
+      env->GetBooleanField(options, keyOptionsCaseInsensitiveField) != 0,
+      env->GetBooleanField(options, keyOptionsAsciiModeField) != 0
     };
 
     // finally actually do something

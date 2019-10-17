@@ -57,6 +57,7 @@ public class ArrayTest {
       final KeyOptions kopts = new KeyOptions();
       kopts.FixedString = false;
       kopts.CaseInsensitive = false;
+      kopts.AsciiMode = true;
 
       final FileReader fr = new FileReader(args[0]);
       try {
