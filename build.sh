@@ -4,7 +4,10 @@
 
 ./bootstrap.sh
 
-CHECK_TARGET=check-valgrind
+if [ "$Target" != 'macos']; then
+  CHECK_TARGET=check-valgrind
+fi
+
 build_it
 install_it
 
