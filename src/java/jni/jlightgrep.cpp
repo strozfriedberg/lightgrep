@@ -104,7 +104,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_KeyOptions_init(J
     keyOptionsFixedStringField = env->GetFieldID(cl, "FixedString", "Z");
     throwIfException(env);
 
-    keyOptionsCaseInsensitiveField = env->GetFieldID(cl, "FixedString", "Z");
+    keyOptionsCaseInsensitiveField = env->GetFieldID(cl, "CaseInsensitive", "Z");
     throwIfException(env);
 
     keyOptionsAsciiModeField = env->GetFieldID(cl, "FixedString", "Z");
