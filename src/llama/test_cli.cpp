@@ -3,6 +3,7 @@
 #include "cli.h"
 
 #include <regex>
+#include <sstream>
 
 SCOPE_TEST(testCLIVersion) {
 	const char* args[] = {"llama", "--version"};
@@ -27,4 +28,22 @@ SCOPE_TEST(testCLICommandPrecedence) {
 	SCOPE_ASSERT_EQUAL("help", opts->Command);
 	opts = cli.parse(3, args2);
 	SCOPE_ASSERT_EQUAL("help", opts->Command);
+}
+
+SCOPE_TEST(testPrintVersion) {
+	Cli cli;
+	std::stringstream output;
+	cli.printVersion(output);
+	auto outStr = output.str();
+	std::regex re("pre-alpha.+20\\d\\d");
+	// SCOPE_ASSERT_EQUAL("20191019", outStr);
+	SCOPE_ASSERT(std::regex_search(outStr, re));
+}
+
+SCOPE_TEST(testPrintHelp) {
+	Cli cli;
+	std::stringstream output;
+	cli.printHelp(output);
+	auto outStr = output.str();
+	SCOPE_ASSERT(outStr.find("Usage: llama") != std::string::npos);
 }
