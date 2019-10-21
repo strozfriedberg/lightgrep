@@ -11,7 +11,7 @@ class Cli {
 public:
 	Cli();
 
-	std::unique_ptr<Options> parse(int argc, const char* argv[]) const;
+	std::unique_ptr<Options> parse(int argc, const char* const argv[]) const;
 
 	void printVersion(std::ostream& out) const;
 	void printHelp(std::ostream& out) const;

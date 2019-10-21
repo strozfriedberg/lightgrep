@@ -41,6 +41,8 @@ SCOPE_TEST(testPrintVersion) {
 }
 
 SCOPE_TEST(testPrintHelp) {
+	// The mantra is to test everything that could possibly fail. It's unlikely
+	// that boost::program_options will fail, so we just need to do a smoke test.
 	Cli cli;
 	std::stringstream output;
 	cli.printHelp(output);

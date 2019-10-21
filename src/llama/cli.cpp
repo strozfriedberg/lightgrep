@@ -17,7 +17,7 @@ Cli::Cli():
    All.add(commands);
 }
 
-std::unique_ptr<Options> Cli::parse(int argc, const char* argv[]) const {
+std::unique_ptr<Options> Cli::parse(int argc, const char* const argv[]) const {
   auto opts = std::unique_ptr<Options>(new Options);
 
   po::variables_map optsMap;
@@ -34,12 +34,12 @@ std::unique_ptr<Options> Cli::parse(int argc, const char* argv[]) const {
 }
 
 void Cli::printVersion(std::ostream& out) const {
-  out << "llama - lightgrep's amazing media analyzer, pre-alpha " << __DATE__ << "\n\n";
+  out << "llama - lightgrep's amazing media analyzer, pre-alpha " << __DATE__ << std::endl;
 }
 
 void Cli::printHelp(std::ostream& out) const {
   printVersion(out);
-  out << "\nUsage: llama [OPTIONS] PATTERN_FILE [FILE...]\n\n"
+  out << "\nUsage: llama [OPTIONS] PATTERN_FILE [FILE...]\n"
     << All << std::endl;
 }
 
