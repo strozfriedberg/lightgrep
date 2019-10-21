@@ -984,7 +984,7 @@ SCOPE_TEST(parseUnparse_i_switch_02_Test) {
 
 SCOPE_TEST(parseUnparse_i_switch_03_Test) {
   ParseTree tree;
-  SCOPE_ASSERT(parse({"ab((?i)c)", false, false}, tree));
+  SCOPE_ASSERT(parse({"ab((?i)c)d", false, false}, tree));
   SCOPE_ASSERT_EQUAL("ab[Cc]d", unparse(tree));
 }
 
@@ -1033,5 +1033,5 @@ SCOPE_TEST(parseUnparse_i_switch_10_Test) {
 SCOPE_TEST(parseUnparse_i_switch_11_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"ab(?i)|cd", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[Aa][Bb][Cc][Dd]", unparse(tree));
+  SCOPE_ASSERT_EQUAL("ab|[Cc][Dd]", unparse(tree));
 }
