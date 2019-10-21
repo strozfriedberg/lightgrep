@@ -1035,3 +1035,10 @@ SCOPE_TEST(parseUnparse_i_switch_11_Test) {
   SCOPE_ASSERT(parse({"ab(?i)|cd", false, false}, tree));
   SCOPE_ASSERT_EQUAL("ab|[Cc][Dd]", unparse(tree));
 }
+
+SCOPE_TEST(parseUnparse_i_switch_12_Test) {
+  // (?i) is not a switch when inside a character class
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"ab[(?i)]cd", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("ab[()?i]cd", unparse(tree));
+}
