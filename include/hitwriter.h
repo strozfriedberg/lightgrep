@@ -23,19 +23,19 @@ struct HitCounterInfo {
 void nullWriter(void* userData, const LG_SearchHit* const);
 
 struct HitWriterInfo: public HitCounterInfo {
-  HitWriterInfo(std::ostream& outStream, const LG_HPATTERNMAP hMap):
-    Out(outStream), Map(hMap) {}
+  HitWriterInfo(std::ostream& outStream, const LG_HPROGRAM hProg):
+    Out(outStream), Prog(hProg) {}
 
   std::ostream& Out;
 
-  const LG_HPATTERNMAP Map;
+  const ProgramHandle* Prog;
 };
 
 void hitWriter(void* userData, const LG_SearchHit* const hit);
 
 struct PathWriterInfo: public HitWriterInfo {
-  PathWriterInfo(std::ostream& outStream, const LG_HPATTERNMAP hMap):
-    HitWriterInfo(outStream, hMap) {}
+  PathWriterInfo(std::ostream& outStream, const LG_HPROGRAM hProg):
+    HitWriterInfo(outStream, hProg) {}
 
   std::string Path;
 
@@ -46,11 +46,11 @@ void pathWriter(void* userData, const LG_SearchHit* const hit);
 
 struct LineContextHitWriterInfo: public HitWriterInfo {
   LineContextHitWriterInfo(std::ostream& outStream,
-                           const LG_HPATTERNMAP hMap,
+                           const LG_HPROGRAM hProg,
                            int32_t beforeContext,
                            int32_t afterContext,
                            const std::string& groupSeparator):
-    HitWriterInfo(outStream, hMap),
+    HitWriterInfo(outStream, hProg),
     BeforeContext(beforeContext),
     AfterContext(afterContext),
     GroupSeparator(groupSeparator),
@@ -82,12 +82,12 @@ void lineContextHitWriter(void* userData, const LG_SearchHit* const hit);
 
 struct LineContextPathWriterInfo: public LineContextHitWriterInfo {
   LineContextPathWriterInfo(std::ostream& outStream,
-                            const LG_HPATTERNMAP hMap,
+                            const LG_HPROGRAM hProg,
                             int32_t beforeContext,
                             int32_t afterContext,
                             const std::string& groupSeparator):
     LineContextHitWriterInfo(
-      outStream, hMap, beforeContext, afterContext, groupSeparator) {}
+      outStream, hProg, beforeContext, afterContext, groupSeparator) {}
 
   std::string Path;
 

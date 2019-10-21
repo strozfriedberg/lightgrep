@@ -30,32 +30,78 @@ bool Program::operator==(const Program& rhs) const {
 }
 
 std::vector<char> Program::marshall() const {
-  const size_t plen = size()*sizeof(Instruction);
-  std::vector<char> buf(sizeof(*this) + plen);
-  // write everything except IBeg, IEnd; leave those as nulls
-  std::memcpy(buf.data(), this, sizeof(*this)-sizeof(IBeg)-sizeof(IEnd));
-  // write the Instructions
-  std::memcpy(buf.data()+sizeof(*this), IBeg.get(), plen);
+  const size_t plen = bufSize();
+  std::vector<char> buf(plen);
+  char* i = buf.data();
+
+  // MaxLabel
+  std::memcpy(i, &MaxLabel, sizeof(MaxLabel));
+  i += sizeof(MaxLabel);
+
+  // MaxCheck
+  std::memcpy(i, &MaxCheck, sizeof(MaxCheck));
+  i += sizeof(MaxCheck);
+
+  // FilterOff
+  std::memcpy(i, &FilterOff, sizeof(FilterOff));
+  i += sizeof(FilterOff);
+
+  // Filter
+  for (size_t b = 0; b < Filter.size(); b += 8) {
+    *i = Filter[b] |
+         (Filter[b+1] << 1) |
+         (Filter[b+2] << 2) |
+         (Filter[b+3] << 3) |
+         (Filter[b+4] << 4) |
+         (Filter[b+5] << 5) |
+         (Filter[b+6] << 6) |
+         (Filter[b+7] << 7);
+    ++i;
+  }
+
+  // Instructions
+  std::memcpy(i, IBeg.get(), size()*sizeof(Instruction));
+
+  // XXX: i should be at the end now
+
   return buf;
 }
 
-ProgramPtr Program::unmarshall(void* buf, size_t len) {
+ProgramPtr Program::unmarshall(const void* buf, size_t len) {
+  const char* i = static_cast<const char*>(buf);
+  const size_t icount = (len - (sizeof(Program::MaxLabel) + sizeof(Program::MaxCheck) + sizeof(Program::FilterOff) + 256*256/8)) / sizeof(Instruction);
+
+  ProgramPtr p(new Program(0));
+
+  p->MaxLabel = *reinterpret_cast<const decltype(p->MaxLabel)*>(i);
+  i += sizeof(p->MaxLabel);
+
+  p->MaxCheck = *reinterpret_cast<const decltype(p->MaxCheck)*>(i);
+  i += sizeof(p->MaxCheck);
+
+  p->FilterOff = *reinterpret_cast<const decltype(p->FilterOff)*>(i);
+  i += sizeof(p->FilterOff);
+
+  for (size_t b = 0; b < p->Filter.size() / 8; ++b, ++i) {
+    p->Filter[8*b]   = *i & 0x01;
+    p->Filter[8*b+1] = *i & 0x02;
+    p->Filter[8*b+2] = *i & 0x04;
+    p->Filter[8*b+3] = *i & 0x08;
+    p->Filter[8*b+4] = *i & 0x10;
+    p->Filter[8*b+5] = *i & 0x20;
+    p->Filter[8*b+6] = *i & 0x40;
+    p->Filter[8*b+7] = *i & 0x80;
+  }
+
   // The caller is responsible for freeing buf. We subvert std::unique_ptr
-  // and std::shared_ptr here by giving them empty deleters.
-
-  Program* p = static_cast<Program*>(buf);
-
-  // IBeg may contain garbage; prevent operator= from calling the deleter.
-  p->IBeg.release();
-  // Set IBeg to the start of the instructions; set an empty deleter since
-  // the caller is responsible for freeing buf.
+  // here by giving it an empty deleter.
   p->IBeg = std::unique_ptr<Instruction[], void(*)(Instruction*)>(
-    reinterpret_cast<Instruction*>(p + 1), [](Instruction*){}
+    reinterpret_cast<Instruction*>(const_cast<char*>(i)), [](Instruction*){}
   );
 
-  p->IEnd = reinterpret_cast<Instruction*>(static_cast<char*>(buf) + len);
+  p->IEnd = p->IBeg.get() + icount;
 
-  return ProgramPtr(p, [](Program*){});
+  return p;
 }
 
 std::ostream& printIndex(std::ostream& out, uint32_t i) {

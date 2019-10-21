@@ -53,8 +53,7 @@ int main() {
   const char* keys[] = {"mary", "lamb", "[a-z]+"};
   const unsigned int kcount = sizeof(keys)/sizeof(keys[0]);
 
-  // pattern info is stored in the pattern map
-  LG_HPATTERNMAP pmap = lg_create_pattern_map(kcount);
+  LG_HPROGRAM prog = lg_create_program(kcount);
 
   // find the total length (in characters) of the patterns
   unsigned int klen = 0;
@@ -86,7 +85,7 @@ int main() {
       break;
     }
 
-    lg_add_pattern(fsm, pmap, pattern, "ASCII", &err);
+    lg_add_pattern(fsm, prog, pattern, "ASCII", i, &err);
 
     if (err) {
       fprintf(
@@ -106,7 +105,10 @@ int main() {
   if (isgood) {
     // create a "program" from the parsed keywords
     LG_ProgramOptions opts;
-    LG_HPROGRAM prog = lg_create_program(fsm, &opts);
+
+    if (!lg_compile_program(fsm, prog, &opts)) {
+      fprintf(stderr, "Failed to compile program");
+    }
 
     // discard the FSM now that we have a program
     lg_destroy_fsm(fsm);
@@ -144,8 +146,6 @@ int main() {
 
     ret = 0;
   }
-
-  lg_destroy_pattern_map(pmap);
 
   return ret;
 }

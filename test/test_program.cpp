@@ -39,20 +39,24 @@ SCOPE_TEST(testProgramSize) {
   SCOPE_ASSERT_EQUAL(3u, p1->size());
 }
 
-SCOPE_TEST(testProgramBufSize) {
-  ProgramPtr p1(makeProgram());
-  SCOPE_ASSERT_EQUAL(
-    sizeof(Program) + p1->size()*sizeof(Instruction), p1->bufSize()
-  );
-}
-
 SCOPE_TEST(testProgramSerialization) {
   ProgramPtr p1(makeProgram());
 
-  std::vector<char> buf = p1->marshall();
+  const std::vector<char> buf = p1->marshall();
   SCOPE_ASSERT_EQUAL(p1->bufSize(), buf.size());
 
+  // first copy
   ProgramPtr p2 = Program::unmarshall(buf.data(), buf.size());
   SCOPE_ASSERT(p2);
-  SCOPE_ASSERT(*p1 == *p2);
+  SCOPE_ASSERT_EQUAL(*p1, *p2);
+
+  // second copy, shares buffer with first copy
+  ProgramPtr p3 = Program::unmarshall(buf.data(), buf.size());
+  SCOPE_ASSERT(p3);
+  SCOPE_ASSERT_EQUAL(*p1, *p3);
+
+  // p2 and p3 have the same buffer
+  SCOPE_ASSERT_EQUAL(&p2->front(), &p3->front());
+  // p1 and p2 have different buffers
+  SCOPE_ASSERT(&p1->front() != &p2->front());
 }

@@ -191,11 +191,6 @@ if test "x$ax_cv_boost_system" != "xyes"; then
   AC_MSG_ERROR([Failed to find Boost system library.])
 fi
 
-AX_BOOST_THREAD
-if test "x$ax_cv_boost_thread" != "xyes"; then
-  AC_MSG_ERROR([Failed to find Boost thread library.])
-fi
-
 case "$host" in
 *-*-mingw*)
   # Boost ASIO needs ws2_32 and mswsock on Windows
