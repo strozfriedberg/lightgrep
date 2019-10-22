@@ -81,13 +81,26 @@ PKG_PROG_PKG_CONFIG
 AS_IF([test "x$enable_shared" != "xyes"], [PKG_CONFIG="$PKG_CONFIG --static"])
 
 AC_LANG([C])
-AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [LG_CFLAGS])
+AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe], [LG_CFLAGS])
 
 AC_LANG([C++])
-
 AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe], [LG_CXXFLAGS])
 
-AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [LG_CXXFLAGS])
+AC_ARG_ENABLE([debug],
+  [AS_HELP_STRING([--enable-debug],
+    [build in debug mode, with symbols and no optimization])],
+  [enable-debug=yes],
+  [enable-debug=no])
+
+if test "x$enable_debug" = "xyes"; then
+  AX_APPEND_COMPILE_FLAGS([-g -O0], [LG_CFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-g -O0], [LG_CXXFLAGS])
+else
+  AX_APPEND_COMPILE_FLAGS([-O3], [LG_CFLAGS])
+  AX_APPEND_COMPILE_FLAGS([-O3], [LG_CXXFLAGS])
+fi
+
 
 AC_PROG_INSTALL
 
@@ -388,6 +401,9 @@ AC_MSG_NOTICE([ICU_LIBS:     $ICU_LIBS])
 
 AC_MSG_NOTICE([BOOST_CPPFLAGS: $BOOST_CPPFLAGS])
 AC_MSG_NOTICE([BOOST_CXXFLAGS: $BOOST_CXXFLAGS])
+
+AC_MSG_NOTICE([LG_CFLAGS: $LG_CFLAGS])
+AC_MSG_NOTICE([LG_CXXFLAGS: $LG_CXXFLAGS])
 
 AC_MSG_NOTICE([CC:       $CC])
 AC_MSG_NOTICE([CXX:      $CXX])
