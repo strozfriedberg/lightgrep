@@ -5,21 +5,25 @@
 namespace po = boost::program_options;
 
 Cli::Cli():
-  All()
+  All(),
+  Opts(new Options)
 {
   // Command selection options
   po::options_description commands("Command selection -- in precedence order");
   commands.add_options()
-    ("help", "display this help message")
-    ("version,V", "print version information and exit")
+    ("help", "Display this help message")
+    ("version,V", "Print version information and exit")
     ;
 
-   All.add(commands);
+  po::options_description configOpts("Configuration Options");
+  configOpts.add_options()
+    ("file,f", po::value<std::vector<std::string>>(&Opts->KeyFiles)->composing()->value_name("FILE"), "Read one or more newline separated patterns from file")
+    ;
+
+   All.add(commands).add(configOpts);
 }
 
-std::unique_ptr<Options> Cli::parse(int argc, const char* const argv[]) const {
-  auto opts = std::unique_ptr<Options>(new Options);
-
+std::shared_ptr<Options> Cli::parse(int argc, const char* const argv[]) const {
   po::variables_map optsMap;
   po::store(
     po::command_line_parser(argc, argv).options(All)
@@ -28,9 +32,9 @@ std::unique_ptr<Options> Cli::parse(int argc, const char* const argv[]) const {
   );
   po::notify(optsMap);
 
-  opts->Command = figureOutCommand(optsMap);
+  Opts->Command = figureOutCommand(optsMap);
 
-  return opts;
+  return Opts;
 }
 
 void Cli::printVersion(std::ostream& out) const {
@@ -39,7 +43,7 @@ void Cli::printVersion(std::ostream& out) const {
 
 void Cli::printHelp(std::ostream& out) const {
   printVersion(out);
-  out << "\nUsage: llama [OPTIONS] PATTERN_FILE [FILE...]\n"
+  out << "\nUsage: llama [OPTIONS] [FILE...]\n"
     << All << std::endl;
 }
 
@@ -51,5 +55,5 @@ std::string Cli::figureOutCommand(const boost::program_options::variables_map& o
   if (optsMap.count("version")) {
     return "version";
   }
-  return "";
+  return "search";
 }

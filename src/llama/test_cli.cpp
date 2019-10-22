@@ -30,6 +30,13 @@ SCOPE_TEST(testCLICommandPrecedence) {
 	SCOPE_ASSERT_EQUAL("help", opts->Command);
 }
 
+SCOPE_TEST(testCLIDefaultCommand) {
+	const char* args[] = {"llama"};
+	Cli cli;
+	auto opts = cli.parse(1, args);
+	SCOPE_ASSERT_EQUAL("search", opts->Command);
+}
+
 SCOPE_TEST(testPrintVersion) {
 	Cli cli;
 	std::stringstream output;
