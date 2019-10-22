@@ -75,7 +75,6 @@ void Llama::search() {
   }
 }
 
-
 std::string readfile(const std::string& path) {
   std::ifstream f(path, std::ios::in);
   std::string str;
@@ -85,7 +84,6 @@ std::string readfile(const std::string& path) {
   str.assign((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
   return str;
 }
-
 
 bool Llama::readpatterns(const std::vector<std::string>& keyFiles) {
   // std::cerr << "begin readpatterns" << std::endl;
@@ -115,12 +113,16 @@ bool Llama::readpatterns(const std::vector<std::string>& keyFiles) {
   }
   // std::cerr << "compiling program" << std::endl;
   LG_ProgramOptions progOpts{1};
-  lg_compile_program(fsm.get(), LgProg.get(), &progOpts);
-  // std::cerr << "Number of patterns: " << lg_pattern_count(LgProg.get()) << std::endl;
-  // std::cerr << "Done with readpatterns" << std::endl;
-  return true;
+  if (lg_compile_program(fsm.get(), LgProg.get(), &progOpts)) {
+    // std::cerr << "Number of patterns: " << lg_pattern_count(LgProg.get()) << std::endl;
+    // std::cerr << "Done with readpatterns" << std::endl;
+    return true;
+  }
+  else {
+    // add some error-handling someday
+    return false;
+  }
 }
-
 
 bool Llama::init() {
   if (Opts->KeyFiles.empty()) {
