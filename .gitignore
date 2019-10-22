@@ -48,6 +48,7 @@
 /src/lib/re_grammar.cpp
 /src/lib/re_grammar.output
 /src/llama/llama.log
+/src/llama/llama
 /src/val/val
 /src/val/val.exe
 /src/what/what
