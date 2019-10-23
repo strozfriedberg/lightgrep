@@ -58,7 +58,6 @@ namespace fs = boost::filesystem;
 
 void startup(
   std::shared_ptr<ProgramHandle> prog,
-  std::shared_ptr<PatternMapHandle> pmap,
   uint32_t numUserPatterns,
   const Options& opts
 );
@@ -74,9 +73,9 @@ void printHelp(const po::options_description& desc) {
   std::cout
     << "\nUsage: lightgrep [OPTIONS] PATTERN_FILE [FILE...]\n"
          "       lightgrep [OPTIONS] [-p PATTERN | -k FILE] [FILE...]\n\n"
-    #ifdef LIGHTGREP_CUSTOMER
+#ifdef LIGHTGREP_CUSTOMER
     << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
-    #endif
+#endif
     << desc << std::endl;
 }
 
@@ -182,7 +181,7 @@ std::unique_ptr<const char*[]> c_str_arr(const std::vector<std::string>& vec) {
 
 template <class T>
 std::tuple<
-  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>,
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>,
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>,
   std::unique_ptr<LG_Error,void(*)(LG_Error*)>
 >
@@ -193,12 +192,12 @@ parsePatterns(const T& keyFiles,
   // read the patterns and parse them
 
   // FIXME: size the pattern map here?
-  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
-    lg_create_pattern_map(0),
-    lg_destroy_pattern_map
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+    lg_create_program(0),
+    lg_destroy_program
   );
 
-  if (!pmap) {
+  if (!prog) {
 // FIXME: what do do here?
   }
 
@@ -223,7 +222,7 @@ parsePatterns(const T& keyFiles,
     LG_Error* local_err = nullptr;
 
     lg_add_pattern_list(
-      fsm.get(), pmap.get(),
+      fsm.get(), prog.get(),
       pf.second.c_str(), pf.first.c_str(),
       defEncs.get(), defaultEncodings.size(), &defaultOpts, &local_err
     );
@@ -246,7 +245,7 @@ parsePatterns(const T& keyFiles,
     }
   }
 
-  return std::make_tuple(std::move(pmap), std::move(fsm), std::move(err));
+  return std::make_tuple(std::move(prog), std::move(fsm), std::move(err));
 }
 
 std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>
@@ -275,28 +274,19 @@ loadProgram(const std::string& pfile) {
   );
 }
 
-std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>
-buildProgram(FSMHandle* fsm, const Options& opts) {
+bool buildProgram(FSMHandle* fsm, ProgramHandle* prog, const Options& opts) {
   LG_ProgramOptions progOpts{opts.Determinize};
 
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-    lg_create_program(fsm, &progOpts),
-    lg_destroy_program
-  );
-
-  if (prog) {
-    NFAPtr g(fsm->Impl->Fsm);
-    std::cerr << g->verticesSize() << " vertices\n";
-
-    ProgramPtr p(prog->Impl);
-    std::cerr << p->size() << " instructions" << std::endl;
+  if (lg_compile_program(fsm, prog, &progOpts)) {
+    std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
+              << prog->Prog->size() << " instructions"
+              << std::endl;
+    return true;
   }
   else {
     std::cerr << "Failed to create program" << std::endl;
-    prog.reset();
+    return false;
   }
-
-  return std::move(prog);
 }
 
 
@@ -381,10 +371,6 @@ void search(
 }
 
 void search(const Options& opts) {
-  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
-    nullptr, nullptr
-  );
-
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
     nullptr, nullptr
   );
@@ -398,7 +384,7 @@ void search(const Options& opts) {
     std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
     std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    std::tie(pmap, fsm, err) = parsePatterns(
+    std::tie(prog, fsm, err) = parsePatterns(
       opts.getPatternLines(), opts.Encodings,
       {opts.LiteralMode, opts.CaseInsensitive}
     );
@@ -410,7 +396,9 @@ void search(const Options& opts) {
 
     // build a program from parsed patterns
     if (fsm) {
-      prog = buildProgram(fsm.get(), opts);
+      if (!buildProgram(fsm.get(), prog.get(), opts)) {
+        prog.reset();
+      }
     }
   }
 
@@ -431,7 +419,7 @@ void search(const Options& opts) {
     if (opts.PrintPath) {
       callback = &lineContextPathWriter;
       hinfo.reset(new LineContextPathWriterInfo(
-        opts.openOutput(), pmap.get(),
+        opts.openOutput(), prog.get(),
         std::max(opts.BeforeContext, 0),
         std::max(opts.AfterContext, 0),
         opts.GroupSeparator
@@ -440,7 +428,7 @@ void search(const Options& opts) {
     else {
       callback = &lineContextHitWriter;
       hinfo.reset(new LineContextHitWriterInfo(
-        opts.openOutput(), pmap.get(),
+        opts.openOutput(), prog.get(),
         std::max(opts.BeforeContext, 0),
         std::max(opts.AfterContext, 0),
         opts.GroupSeparator
@@ -449,11 +437,11 @@ void search(const Options& opts) {
   }
   else if (opts.PrintPath) {
     callback = &pathWriter;
-    hinfo.reset(new PathWriterInfo(opts.openOutput(), pmap.get()));
+    hinfo.reset(new PathWriterInfo(opts.openOutput(), prog.get()));
   }
   else {
     callback = &hitWriter;
-    hinfo.reset(new HitWriterInfo(opts.openOutput(), pmap.get()));
+    hinfo.reset(new HitWriterInfo(opts.openOutput(), prog.get()));
   }
 
   // setup search context
@@ -522,10 +510,11 @@ void search(const Options& opts) {
 }
 
 bool writeGraphviz(const Options& opts) {
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(nullptr, nullptr);
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, fsm, err) = parsePatterns(
+  std::tie(prog, fsm, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
     {opts.LiteralMode, opts.CaseInsensitive}
   );
@@ -542,7 +531,7 @@ bool writeGraphviz(const Options& opts) {
   }
 
   // build the program to force determinization
-  if (!buildProgram(fsm.get(), opts)) {
+  if (!buildProgram(fsm.get(), prog.get(), opts)) {
     return false;
   }
 
@@ -553,10 +542,11 @@ bool writeGraphviz(const Options& opts) {
 
 void writeProgram(const Options& opts) {
   // get the patterns and parse them
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(nullptr, nullptr);
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, fsm, err) = parsePatterns(
+  std::tie(prog, fsm, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
     {opts.LiteralMode, opts.CaseInsensitive}
   );
@@ -570,17 +560,14 @@ void writeProgram(const Options& opts) {
     return;
   }
 
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-    buildProgram(fsm.get(), opts)
-  );
-  fsm.reset();
-
-  if (!prog) {
+  if (!buildProgram(fsm.get(), prog.get(), opts)) {
     return;
   }
 
+  fsm.reset();
+
   // break on through the C API to print the program
-  ProgramPtr p(prog->Impl);
+  ProgramPtr p(prog->Prog);
   std::cerr << p->size() << " instructions\n"
             << p->bufSize() << " program size in bytes" << std::endl;
 
@@ -668,55 +655,6 @@ void writeSampleMatches(const Options& opts) {
   }
 }
 
-void startServer(const Options& opts) {
-  // count the lines of input
-  const std::vector<std::pair<std::string,std::string>> kf(
-    opts.getPatternLines()
-  );
-
-  size_t pnum = 0;
-  for (const std::pair<std::string,std::string>& p : kf) {
-    if (!p.second.empty()) {  // don't count empty pattern files
-      // number of lines is one more than the number of newlines
-      pnum += 1 + std::count(p.second.begin(), p.second.end(), '\n');
-    }
-  }
-
-  // parse the patterns
-  std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)> pmap(
-    nullptr, nullptr
-  );
-
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
-
-  std::tie(pmap, fsm, err) = parsePatterns(kf);
-
-  handleParseErrors(err.get(), false);
-
-  const size_t numErrors = countErrors(err.get());
-
-  // build a program from parsed patterns
-  if (numErrors == 0 && fsm) {
-    std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-      buildProgram(fsm.get(), opts)
-    );
-    fsm.reset();
-
-    if (prog) {
-      startup(
-        std::shared_ptr<ProgramHandle>(std::move(prog)),
-        std::shared_ptr<PatternMapHandle>(std::move(pmap)),
-        pnum,
-        opts
-      );
-      return;
-    }
-  }
-
-  THROW_RUNTIME_ERROR_WITH_OUTPUT("Could not parse patterns at server startup");
-}
-
 int main(int argc, char** argv) {
   Options opts;
   po::options_description desc;
@@ -737,9 +675,6 @@ int main(int argc, char** argv) {
       break;
     case Options::VALIDATE:
       validate(opts);
-      break;
-    case Options::SERVER:
-      startServer(opts);
       break;
     case Options::SHOW_VERSION:
       printVersion();

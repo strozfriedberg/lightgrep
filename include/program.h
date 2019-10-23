@@ -32,7 +32,6 @@
 
 class Program {
 public:
-
   Program(size_t icount): Program(icount, Instruction()) {}
 
   Program(size_t icount, const Instruction& val):
@@ -140,11 +139,15 @@ public:
   bool operator==(const Program& rhs) const;
 
   size_t bufSize() const {
-    return sizeof(Program) + size()*sizeof(Instruction);
+    return sizeof(MaxLabel) +
+           sizeof(MaxCheck) +
+           sizeof(FilterOff) +
+           Filter.size()/8 +
+           size()*sizeof(Instruction);
   }
 
   std::vector<char> marshall() const;
-  static ProgramPtr unmarshall(void* buf, size_t len);
+  static ProgramPtr unmarshall(const void* buf, size_t len);
 
 private:
   std::unique_ptr<Instruction[], void(*)(Instruction*)> IBeg;

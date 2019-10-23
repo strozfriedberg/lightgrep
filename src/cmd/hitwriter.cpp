@@ -15,11 +15,11 @@ void nullWriter(void* userData, const LG_SearchHit* const) {
 
 void writeHit(HitWriterInfo* hi, const LG_SearchHit* const hit) {
   ++hi->NumHits;
-  const LG_PatternInfo* info = lg_pattern_info(hi->Map, hit->KeywordIndex);
+  const LG_PatternInfo* info = lg_pattern_info(const_cast<ProgramHandle*>(hi->Prog), hit->KeywordIndex);
 
   hi->Out << hit->Start << '\t'
           << hit->End << '\t'
-          << reinterpret_cast<uint64_t>(info->UserData) << '\t'
+          << info->UserIndex << '\t'
           << info->Pattern << '\t'
           << info->EncodingChain;
 }
@@ -97,7 +97,7 @@ void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hi
   LG_Error* err = nullptr;
   LG_Window inner{hit->Start, hit->End}, outer, dh;
   const char* utf8 = nullptr;
-  const LG_PatternInfo* info = lg_pattern_info(hi->Map, hit->KeywordIndex);
+  const LG_PatternInfo* info = lg_pattern_info(const_cast<ProgramHandle*>(hi->Prog), hit->KeywordIndex);
 
   lg_hit_context(
     hi->Decoder,

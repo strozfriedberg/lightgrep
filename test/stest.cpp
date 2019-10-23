@@ -25,12 +25,11 @@ namespace {
     stest->Hits.push_back(*static_cast<const SearchHit* const>(hit));
 
     const LG_PatternInfo* info = lg_pattern_info(
-      stest->PMap.get(), hit->KeywordIndex
+      stest->Prog.get(), hit->KeywordIndex
     );
 
     // adjust the hit to reflect the user pattern index
-    stest->Hits.back().KeywordIndex =
-      reinterpret_cast<uint64_t>(info->UserData);
+    stest->Hits.back().KeywordIndex = info->UserIndex;
   }
 }
 
@@ -40,9 +39,9 @@ void STest::init(const std::vector<Pattern>& pats) {
     lg_destroy_pattern
   );
 
-  PMap = std::unique_ptr<PatternMapHandle,void(*)(PatternMapHandle*)>(
-    lg_create_pattern_map(pats.size()),
-    lg_destroy_pattern_map
+  Prog = std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>(
+    lg_create_program(pats.size()),
+    lg_destroy_program
   );
 
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
@@ -63,14 +62,8 @@ void STest::init(const std::vector<Pattern>& pats) {
 
     if (!err) {
       lg_add_pattern(
-        fsm.get(), PMap.get(), pat.get(), p.Encoding.c_str(), &err
+        fsm.get(), Prog.get(), pat.get(), p.Encoding.c_str(), i, &err
       );
-
-      if (!err) {
-        // pack the user pattern number into the void*, oh the horror
-        LG_PatternInfo* pinfo = lg_pattern_info(PMap.get(), i - numErrors);
-        pinfo->UserData = reinterpret_cast<void*>(i);
-      }
     }
 
     if (err) {
@@ -83,18 +76,16 @@ void STest::init(const std::vector<Pattern>& pats) {
 
   LG_ProgramOptions progOpts{1};
 
-  Prog = std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>(
-    lg_create_program(fsm.get(), &progOpts),
-    lg_destroy_program
-  );
-
-  if (Prog) {
+  if (lg_compile_program(fsm.get(), Prog.get(), &progOpts)) {
     LG_ContextOptions ctxOpts;
 
     Ctx = std::unique_ptr<ContextHandle,void(*)(ContextHandle*)>(
       lg_create_context(Prog.get(), &ctxOpts),
       lg_destroy_context
     );
+  }
+  else {
+    Prog.reset();
   }
 }
 
