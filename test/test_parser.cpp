@@ -118,7 +118,32 @@ SCOPE_TEST(parseCC_AtoZ_CaseInsensitiveTest) {
   const std::string p = "[A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true}, actual));
+  SCOPE_ASSERT(parse({p, false, true, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseCC_AtoZ_CaseInsensitiveAsciiTest) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS,
+          UnicodeSet{
+            {'A', 'Z' + 1},
+            {'a', 'z' + 1}
+          }
+        )
+      )
+    )
+  );
+
+  const std::string p = "[A-Z]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, true, true}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -485,7 +510,32 @@ SCOPE_TEST(parseNegCC_AtoZ_CaseInsensitiveTest) {
   const std::string p = "[^A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true}, actual));
+  SCOPE_ASSERT(parse({p, false, true, false}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parseNegCC_AtoZ_CaseInsensitiveAsciiTest) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS,
+          ~UnicodeSet{
+            {'A', 'Z' + 1},
+            {'a', 'z' + 1},
+          }
+        )
+      )
+    )
+  );
+
+  const std::string p = "[^A-Z]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, true, true}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }

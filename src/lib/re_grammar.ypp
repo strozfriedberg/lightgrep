@@ -8,6 +8,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -24,14 +25,16 @@ namespace {
     UnicodeSet USet;
 
     bool LiteralMode;
-    bool CaseInsensitive;
-    bool UnicodeMode;
+    std::stack<uint8_t> Opts;
 
     template <class... Args>
     ParseNode* add(Args&&... args) {
       return Tree->add(std::forward<Args>(args)...);
     }
   };
+
+  const uint8_t CASED_MASK = 0x01;
+  const uint8_t ASCII_MASK = 0x02;
 
   union YYSTYPE {
     int c;
@@ -92,7 +95,7 @@ extern int yydebug;
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
 
-%expect 1
+%expect 2
 
 //%debug
 
@@ -144,6 +147,10 @@ alt:
   {
     $$ = ctx->add(ParseNode::ALTERNATION, $1, $3);
   }
+| switch alt
+  {
+    $$ = $2;
+  }
 ;
 
 concat:
@@ -155,6 +162,48 @@ concat:
 | concat KILL
   {
     $$ = ctx->add(ParseNode::LOOKBEHIND_POS, $1);
+  }
+| concat switch
+  {
+    $$ = $1;
+  }
+;
+
+switch:
+  '(' '?' switches_on ')'
+| '(' '?' '-' switches_off ')'
+| '(' '?' switches_on '-' switches_off ')'
+;
+
+switches_on:
+  switch_on
+| switches_on switch_on
+;
+
+switch_on:
+  'a'
+  {
+    ctx->Opts.top() |= ASCII_MASK;
+  }
+| 'i'
+  {
+    ctx->Opts.top() &= ~CASED_MASK;
+  }
+;
+
+switches_off:
+  switch_off
+| switches_off switch_off
+;
+
+switch_off:
+  'a'
+  {
+    ctx->Opts.top() &= ~ASCII_MASK;
+  }
+| 'i'
+  {
+    ctx->Opts.top() |= CASED_MASK;
   }
 ;
 
@@ -249,19 +298,10 @@ number:
 ;
 
 atom:
-  '(' alt ')'
+  '(' { ctx->Opts.push(ctx->Opts.top()); } alt ')'
   {
-    $$ = $2;
-  }
-| '(' alt error
-  {
-    throwError(
-      {
-        ParseError::UNMATCHED_PARENTHESIS,
-        @1.first_column, @1.last_column
-      },
-      ctx
-    );
+    ctx->Opts.pop();
+    $$ = $3;
   }
 | '(' error
   {
@@ -385,10 +425,10 @@ literal:
   }
 | character
   {
-    if (ctx->CaseInsensitive) {
+    if (!(ctx->Opts.top() & CASED_MASK)) {
       ctx->USet.reset();
       ctx->USet.set($1);
-      if (caseDesensitize(ctx->USet)) {
+      if (caseDesensitize(ctx->USet, ctx->Opts.top() & ASCII_MASK)) {
         // TODO: Maybe handle the commmon ASCII case without going via USet?
         $$ = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
       }
@@ -431,6 +471,14 @@ literal:
 character:
   CHAR
 | DIGIT
+| 'a'
+  {
+    $$ = 'a';
+  }
+| 'i'
+  {
+    $$ = 'i';
+  }
 | ']'
   {
     $$ = ']';
@@ -470,8 +518,8 @@ charclass:
   {
     $$ = $2;
 
-    if (ctx->CaseInsensitive) {
-      caseDesensitize($$->Set.CodePoints);
+    if (!(ctx->Opts.top() & CASED_MASK)) {
+      caseDesensitize($$->Set.CodePoints, ctx->Opts.top() & ASCII_MASK);
     }
 
     if ($$->Set.CodePoints.none() && $$->Set.Breakout.Bytes.none()) {
@@ -498,8 +546,8 @@ charclass:
       // under case-insensitivity first gives {A, a}, which becomes
       // U / {A, a} after negation.
 
-      if (ctx->CaseInsensitive) {
-        caseDesensitize($$->Set.CodePoints);
+      if (!(ctx->Opts.top() & CASED_MASK)) {
+        caseDesensitize($$->Set.CodePoints, ctx->Opts.top() & ASCII_MASK);
       }
 
       $$->Set.CodePoints.flip();
@@ -758,8 +806,8 @@ charclass:
   }
 | cc_named
   {
-    if (ctx->CaseInsensitive) {
-      caseDesensitize($$->Set.CodePoints);
+    if (!(ctx->Opts.top() & CASED_MASK)) {
+      caseDesensitize($$->Set.CodePoints, ctx->Opts.top() & ASCII_MASK);
     }
   }
 ;
@@ -964,6 +1012,14 @@ cc_char_not_first:
 cc_char:
   CHAR
 | DIGIT
+| 'a'
+  {
+    $$ = 'a';
+  }
+| 'i'
+  {
+    $$ = 'i';
+  }
 | '|'
   {
     $$ = '|';
@@ -1117,26 +1173,26 @@ namespace {
     // named character classes
     case 'd':
       ctx->USet.reset();
-      setDigitClass(ctx->USet, !ctx->UnicodeMode);
+      setDigitClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'D':
       ctx->USet.reset();
-      setDigitClass(ctx->USet, !ctx->UnicodeMode);
+      setDigitClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
 
     case 's':
       ctx->USet.reset();
-      setSpaceClass(ctx->USet, !ctx->UnicodeMode);
+      setSpaceClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'S':
       ctx->USet.reset();
-      setSpaceClass(ctx->USet, !ctx->UnicodeMode);
+      setSpaceClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
@@ -1169,13 +1225,13 @@ namespace {
 
     case 'w':
       ctx->USet.reset();
-      setWordClass(ctx->USet, !ctx->UnicodeMode);
+      setWordClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'W':
       ctx->USet.reset();
-      setWordClass(ctx->USet, !ctx->UnicodeMode);
+      setWordClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
@@ -1255,6 +1311,8 @@ namespace {
       }
       else {
         switch (c) {
+        case 'a':
+        case 'i':
         case '|':
         case '(':
         case ')':
@@ -1447,8 +1505,11 @@ bool parse(const Pattern& p, ParseTree& tree) {
   Context ctx;
 
   ctx.LiteralMode = p.FixedString;
-  ctx.CaseInsensitive = p.CaseInsensitive;
-  ctx.UnicodeMode = p.UnicodeMode;
+  ctx.Opts.push(
+      (p.CaseInsensitive ? 0 : CASED_MASK) |
+      (p.UnicodeMode ? 0 : ASCII_MASK)
+  );
+>>>>>>> Added handling for in-pattern option flags (?i), (?a).
 
   ctx.TextBegin = ctx.Text = cp.data();
   ctx.TextEnd = ctx.Text + cp.size();
