@@ -1,0 +1,33 @@
+
+[juckelman@midas lightgrep]$ LD_LIBRARY_PATH=src/lib/.libs python3 pylightgrep/demo.py
+
+[0,11), a+b: b'aaaaaaaaaab'
+[9,16), ab+: b'abbbbbb'
+
+
+[0,11), a+b: b'aaaaaaaaaab'
+[9,16), ab+: b'abbbbbb'
+
+
+[0,1), 3: b'k'
+[0,1), 2: b'k'
+[0,1), 1: b'k'
+[0,1), 0: b'k'
+[1,2), 3: b'K'
+[1,2), 1: b'K'
+[2,3), 3: b's'
+[2,3), 2: b's'
+[2,3), 1: b's'
+[2,3), 0: b's'
+[3,4), 3: b'S'
+[3,4), 1: b'S'
+[4,7), 1: b'\xe2\x84\xaa'
+[7,9), 1: b'\xc5\xbf'
+
+
+[4,7), (?i)x((?-i)x)x: b'XxX'
+[8,11), (?i)x((?-i)x)x: b'xxx'
+[12,16), (?i)k(?-i)k(?i)k+: b'Kkkk'
+[12,16), (?i)k(?-i)k(?ai)k+: b'Kkkk'
+[17,23), (?i)k(?-i)k(?i)k+: b'Kk\xe2\x84\xaaK'
+
