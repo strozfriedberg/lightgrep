@@ -202,39 +202,39 @@ void desensitizer(std::initializer_list<T> in,
 }
 
 SCOPE_TEST(caseDesensitize_a_Test) {
-  desensitizer<uint32_t, caseDesensitize>({ 'a' }, { 'A', 'a' });
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 'a' }, { 'A', 'a' });
 }
 
 SCOPE_TEST(caseDesensitize_A_Test) {
-  desensitizer<uint32_t, caseDesensitize>({ 'A' }, { 'A', 'a' });
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 'A' }, { 'A', 'a' });
 }
 
 SCOPE_TEST(caseDesensitize_DollarSign_Test) {
-  desensitizer<uint32_t, caseDesensitize>({ '$' }, { '$' });
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ '$' }, { '$' });
 }
 
 SCOPE_TEST(caseDesensitize_s_Test) {
   // 0x17F ſ = LATIN SMALL LETTER LONG S
-  desensitizer<uint32_t, caseDesensitize>({ 's' }, { 'S', 's', U'ſ' });
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 's' }, { 'S', 's', U'ſ' });
 }
 
 SCOPE_TEST(caseDesensitize_S_Test) {
   // 0x17F ſ = LATIN SMALL LETTER LONG S
-  desensitizer<uint32_t, caseDesensitize>({ 'S' }, { 'S', 's', U'ſ' });
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 'S' }, { 'S', 's', U'ſ' });
 }
 
 SCOPE_TEST(caseDesensitize_k_Test) {
   // 0x212A KELVIN SIGN looks exactly like LATIN CAPITAL LETTER K
-  desensitizer<uint32_t, caseDesensitize>({ 'k' }, { 'K', 'k', 0x212A });
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 'k' }, { 'K', 'k', 0x212A });
 }
 
 SCOPE_TEST(caseDesensitize_K_Test) {
   // 0x212A KELVIN SIGN looks exactly like LATIN CAPITAL LETTER K
-  desensitizer<uint32_t, caseDesensitize>({ 'K' }, { 'K', 'k', 0x212A });
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 'K' }, { 'K', 'k', 0x212A });
 }
 
 SCOPE_TEST(caseDesensitize_a_to_z_Test) {
-  desensitizer<UnicodeSet::range, caseDesensitize>(
+  desensitizer<UnicodeSet::range, caseDesensitizeUnicode>(
     { {'a', 'z' + 1} },
     {
       {'A', 'Z' + 1},
@@ -246,7 +246,7 @@ SCOPE_TEST(caseDesensitize_a_to_z_Test) {
 }
 
 SCOPE_TEST(caseDesensitize_A_to_Z_Test) {
-  desensitizer<UnicodeSet::range, caseDesensitize>(
+  desensitizer<UnicodeSet::range, caseDesensitizeUnicode>(
     { {'A', 'Z' + 1} },
     {
       {'A', 'Z' + 1},
@@ -311,7 +311,7 @@ SCOPE_TEST(caseDesensitizeAscii_A_to_Z_Test) {
 
 SCOPE_TEST(caseDesensitize_Sigma_Test) {
   // NB: ς is the version of σ which ends words in Greek
-  desensitizer<uint32_t, caseDesensitize>(
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'Σ' },
     {
       U'Σ', // GREEK CAPITAL LETTER SIGMA
@@ -322,7 +322,7 @@ SCOPE_TEST(caseDesensitize_Sigma_Test) {
 }
 
 SCOPE_TEST(caseDesensitize_sigma_Test) {
-  desensitizer<uint32_t, caseDesensitize>(
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'σ' },
     {
       U'Σ', // GREEK CAPITAL LETTER SIGMA
@@ -334,7 +334,7 @@ SCOPE_TEST(caseDesensitize_sigma_Test) {
 
 SCOPE_TEST(caseDesensitize_final_sigma_Test) {
   // NB: ς is the version of σ which ends words in Greek.
-  desensitizer<uint32_t, caseDesensitize>(
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'ς' },
     {
       U'Σ', // GREEK CAPITAL LETTER SIGMA
@@ -348,7 +348,7 @@ SCOPE_TEST(caseDesensitize_eszett_Test) {
   // NB: For UTS #18 Level 2 conformance, ß must also match SS.
   // See also Section 5.18 of the Unicode Standard for a discussion
   // of the Eszett.
-  desensitizer<uint32_t, caseDesensitize>(
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'ß' },
     {
       U'ß', // LATIN SMALL LETTER SHARP S
@@ -361,7 +361,7 @@ SCOPE_TEST(caseDesensitize_Eszett_Test) {
   // NB: For UTS #18 Level 2 conformance, ß must also match SS.
   // See also Section 5.18 of the Unicode Standard for a discussion
   // of the Eszett.
-  desensitizer<uint32_t, caseDesensitize>(
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'ẞ' },
     {
       U'ß', // LATIN SMALL LETTER SHARP S
@@ -373,7 +373,7 @@ SCOPE_TEST(caseDesensitize_Eszett_Test) {
 SCOPE_TEST(caseDesensitize_dz_digraph_Test) {
   // NB: Dz is a titlecase version of the dz and DZ digraphs used in
   // various Slavic languages written in the Latin alphabet.
-  desensitizer<uint32_t, caseDesensitize>(
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'ǳ' },
     {
       U'ǳ', // LATIN SMALL LETTER DZ
@@ -386,7 +386,7 @@ SCOPE_TEST(caseDesensitize_dz_digraph_Test) {
 SCOPE_TEST(caseDesensitize_DZ_digraph_Test) {
   // NB: Dz is a titlecase version of the dz and DZ digraphs used in
   // various Slavic languages written in the Latin alphabet.
-  desensitizer<uint32_t, caseDesensitize>(
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'Ǳ' },
     {
       U'ǳ', // LATIN SMALL LETTER DZ
@@ -399,7 +399,7 @@ SCOPE_TEST(caseDesensitize_DZ_digraph_Test) {
 SCOPE_TEST(caseDesensitize_Dz_digraph_Test) {
   // NB: Dz is a titlecase version of the dz and DZ digraphs used in
   // various Slavic languages written in the Latin alphabet.
-  desensitizer<uint32_t, caseDesensitize>(
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'ǲ' },
     {
       U'ǳ', // LATIN SMALL LETTER DZ
@@ -410,7 +410,7 @@ SCOPE_TEST(caseDesensitize_Dz_digraph_Test) {
 }
 
 SCOPE_TEST(caseDesensitize_mixed_Test) {
-  desensitizer<uint32_t, caseDesensitize>(
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
     { 's', U'Ω', U'φ' },
     {
       'S',

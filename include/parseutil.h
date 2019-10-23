@@ -204,9 +204,11 @@ int parseProperty(Iterator& i, const Iterator& end, UnicodeSet& us) {
   return propertyGetter(prop, us);
 }
 
-bool caseDesensitize(UnicodeSet& us);
+bool caseDesensitize(UnicodeSet& us, bool ascii_mode);
 
 bool caseDesensitizeAscii(UnicodeSet& us);
+
+bool caseDesensitizeUnicode(UnicodeSet& us);
 
 void setDigitClass(UnicodeSet& us, bool ascii_mode);
 

@@ -136,8 +136,8 @@ bool caseDesensitizeAscii(UnicodeSet& us) {
   return orig_count < us.count();
 }
 
-bool caseDesensitize(UnicodeSet& us) {
-  return caseDesensitizeUnicode(us);
+bool caseDesensitize(UnicodeSet& us, bool ascii_mode) {
+  return ascii_mode ? caseDesensitizeAscii(us) : caseDesensitizeUnicode(us);
 }
 
 void setDigitClass(UnicodeSet& us, bool ascii_mode) {
