@@ -187,7 +187,7 @@ std::tuple<
 >
 parsePatterns(const T& keyFiles,
               const std::vector<std::string>& defaultEncodings = { "ASCII" },
-              const LG_KeyOptions& defaultOpts = {0, 0})
+              const LG_KeyOptions& defaultOpts = {0, 0, 1})
 {
   // read the patterns and parse them
 
@@ -386,7 +386,7 @@ void search(const Options& opts) {
 
     std::tie(prog, fsm, err) = parsePatterns(
       opts.getPatternLines(), opts.Encodings,
-      {opts.LiteralMode, opts.CaseInsensitive}
+      {opts.LiteralMode, opts.CaseInsensitive, opts.AsciiMode}
     );
 
     const bool printFilename =
@@ -516,7 +516,7 @@ bool writeGraphviz(const Options& opts) {
 
   std::tie(prog, fsm, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive}
+    {opts.LiteralMode, opts.CaseInsensitive, opts.AsciiMode}
   );
 
   const bool printFilename =
@@ -548,7 +548,7 @@ void writeProgram(const Options& opts) {
 
   std::tie(prog, fsm, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive}
+    {opts.LiteralMode, opts.CaseInsensitive, opts.AsciiMode}
   );
 
   const bool printFilename =
@@ -586,7 +586,7 @@ void validate(const Options& opts) {
 
   std::tie(std::ignore, std::ignore, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive}
+    {opts.LiteralMode, opts.CaseInsensitive, opts.AsciiMode}
   );
 
   for (const LG_Error* e = err.get(); e ; e = e->Next) {
@@ -613,7 +613,8 @@ void writeSampleMatches(const Options& opts) {
   for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
     const std::pair<std::string,std::string> a[] = { pf };
     std::tie(std::ignore, fsm, err) = parsePatterns(
-      a, opts.Encodings, {opts.LiteralMode, opts.CaseInsensitive}
+      a, opts.Encodings,
+      {opts.LiteralMode, opts.CaseInsensitive, opts.AsciiMode}
     );
 
     if (err) {

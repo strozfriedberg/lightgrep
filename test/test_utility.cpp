@@ -47,7 +47,7 @@ std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
 
 SCOPE_TEST(oceUTF8) {
   const std::vector<Pattern> pats{
-    {"xxx", false, false, "UTF-8|OCE"}
+    {"xxx", false, false, true, "UTF-8|OCE"}
   };
 
   NFAPtr fsm = createGraph(pats, true);

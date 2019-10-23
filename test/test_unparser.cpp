@@ -295,13 +295,13 @@ SCOPE_TEST(parseUnparse_CCD_Test) {
 SCOPE_TEST(parseUnparse_CCs_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"\\s", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[\\t\\n\\f\\r ]", unparse(tree));
+  SCOPE_ASSERT_EQUAL("[\\t-\\r ]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCS_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"\\S", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[^\\t\\n\\f\\r ]", unparse(tree));
+  SCOPE_ASSERT_EQUAL("[^\\t-\\r ]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCw_Test) {
