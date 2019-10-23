@@ -109,18 +109,19 @@ bool caseDesensitizeAscii(UnicodeSet& us) {
 
   const UnicodeSet ascii_upper('A', 'Z' + 1);
   const UnicodeSet ascii_lower('a', 'z' + 1);
+  const uint8_t case_delta = 'a' - 'A'; // 0x20
 
   // map uppercase ASCII to lowercase
   for (auto r: us & ascii_upper) {
-    r.first += 0x20;
-    r.second += 0x20;
+    r.first += case_delta;
+    r.second += case_delta;
     us.insert(r);
   }
 
   // map lowercase ASCII to uppercase
   for (auto r: us & ascii_lower) {
-    r.first -= 0x20;
-    r.second -= 0x20;
+    r.first -= case_delta;
+    r.second -= case_delta;
     us.insert(r);
   }
 
