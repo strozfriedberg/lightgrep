@@ -14,6 +14,8 @@ Cli::Cli() : All(), Opts(new Options) {
 
   po::options_description ioOpts("Input/Output Options");
   ioOpts.add_options()
+    ("output", po::value<std::string>(&Opts->TarPath),
+      "Tar.lz4 file to create for output")
     ("input", po::value<std::string>(&Opts->Input),
       "Evidence file or directory to process");
 
@@ -25,7 +27,7 @@ Cli::Cli() : All(), Opts(new Options) {
 
   All.add(commands).add(ioOpts).add(configOpts);
 
-  PosOpts.add("input", -1);
+  PosOpts.add("output", 1).add("input", -1);
 }
 
 std::shared_ptr<Options> Cli::parse(int argc, const char *const argv[]) const {
@@ -45,7 +47,7 @@ void Cli::printVersion(std::ostream &out) const {
 
 void Cli::printHelp(std::ostream &out) const {
   printVersion(out);
-  out << "\nUsage: llama [OPTIONS] FILE\n"
+  out << "\nUsage: llama [OPTIONS] OUTPUT_FILE INPUT_FILE\n"
       << All << std::endl;
 }
 

@@ -8,6 +8,8 @@ struct Options {
 
   std::string Input;
 
+  std::string TarPath;
+
   std::vector<std::string> KeyFiles;
 
   unsigned int NumThreads;

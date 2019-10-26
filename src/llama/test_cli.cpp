@@ -46,10 +46,10 @@ SCOPE_TEST(testCLIKeywordsFiles) {
 	SCOPE_ASSERT_EQUAL(expected, opts->KeyFiles);
 }
 
-SCOPE_TEST(testCLIInput) {
-	const char* args[] = {"llama", "-f", "patterns.txt", "nosnits_workstation.E01"};
+SCOPE_TEST(testCLIReal) {
+	const char* args[] = {"llama", "-f", "patterns.txt", "output.tar", "nosnits_workstation.E01"};
 	Cli cli;
-	auto opts = cli.parse(4, args);
+	auto opts = cli.parse(5, args);
 	SCOPE_ASSERT_EQUAL("nosnits_workstation.E01", opts->Input);
 }
 

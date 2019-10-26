@@ -126,6 +126,7 @@ src_llama_llama_SOURCES = \
 	src/llama/filescheduler.cpp \
 	src/llama/llama.cpp \
 	src/llama/main.cpp \
+	src/llama/outputtar.cpp \
 	src/llama/reader.cpp \
 	src/llama/test_cli.cpp
 

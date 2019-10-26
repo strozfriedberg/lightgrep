@@ -48,26 +48,6 @@ auto make_future(ExecutorType &exec, Callable functor) {
 }
 
 
-class Outputter : public OutputBase {
-public:
-  Outputter(boost::asio::thread_pool& pool):
-    Strand(pool.get_executor()) {}
-
-  virtual ~Outputter() {}
-
-  virtual void outputSearchHit(const std::string &hit) {
-    boost::asio::post(Strand, [=](){ write(hit); });
-  }
-
-  void write(const std::string& hit) {
-    std::cout << hit << std::endl;
-  }
-
-private:
-  boost::asio::strand<boost::asio::thread_pool::executor_type> Strand;
-};
-
-
 
 Llama::Llama()
     : CliParser(std::make_shared<Cli>()), Pool(),
@@ -94,7 +74,7 @@ void Llama::search() {
     std::cout << "Number of patterns: " << lg_pattern_count(LgProg.get())
               << std::endl;
 
-    auto out = std::static_pointer_cast<OutputBase>(std::make_shared<Outputter>(Pool));
+    auto out = OutputBase::createTarWriter(Pool, Opts->TarPath);
     auto scheduler = std::make_shared<FileScheduler>(Pool, out);
 
     if (!Input->startReading(scheduler)) {
