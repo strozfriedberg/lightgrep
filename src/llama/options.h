@@ -6,5 +6,9 @@
 struct Options {
   std::string Command;
 
+  std::string Input;
+
   std::vector<std::string> KeyFiles;
+
+  unsigned int NumThreads;
 };

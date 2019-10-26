@@ -2,28 +2,35 @@
 
 #include <boost/asio.hpp>
 
-#include "cli.h"
-
 #include "lightgrep/api.h"
+
+struct Options;
+struct ProgramHandle;
+
+class Cli;
+class InputReaderBase;
 
 class Llama {
 public:
   Llama();
 
-  int run(int argc, const char* const argv[]);
+  int run(int argc, const char *const argv[]);
 
   void search();
 
   bool init();
 
 private:
-  bool readpatterns(const std::vector<std::string>& keyFiles);
+  bool readpatterns(const std::vector<std::string> &keyFiles);
+  bool openInput(const std::string& input);
 
-  Cli CliParser;
+  std::shared_ptr<Cli> CliParser;
+
+  boost::asio::thread_pool Pool;
 
   std::shared_ptr<Options> Opts;
 
   std::shared_ptr<ProgramHandle> LgProg;
 
-  boost::asio::thread_pool Exec;
+  std::shared_ptr<InputReaderBase> Input;
 };

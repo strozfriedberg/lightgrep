@@ -4,55 +4,81 @@
 
 #include <regex>
 #include <sstream>
+#include <thread>
 
 SCOPE_TEST(testCLIVersion) {
-	const char* args[] = {"llama", "--version"};
-	Cli cli;
-	auto opts = cli.parse(2, args);
-	SCOPE_ASSERT_EQUAL("version", opts->Command);
+  const char *args[] = {"llama", "--version"};
+  Cli cli;
+  auto opts = cli.parse(2, args);
+  SCOPE_ASSERT_EQUAL("version", opts->Command);
 }
 
 SCOPE_TEST(testCLIHelp) {
-	const char* args[] = {"llama", "--help"};
-	Cli cli;
-	auto opts = cli.parse(2, args);
-	SCOPE_ASSERT_EQUAL("help", opts->Command);
+  const char *args[] = {"llama", "--help"};
+  Cli cli;
+  auto opts = cli.parse(2, args);
+  SCOPE_ASSERT_EQUAL("help", opts->Command);
 }
 
 SCOPE_TEST(testCLICommandPrecedence) {
-	// help has precedence over version
-	const char* args1[] = {"llama", "--version", "--help"};
-	const char* args2[] = {"llama", "--help", "--version"};
-	Cli cli;
-	auto opts = cli.parse(3, args1);
-	SCOPE_ASSERT_EQUAL("help", opts->Command);
-	opts = cli.parse(3, args2);
-	SCOPE_ASSERT_EQUAL("help", opts->Command);
+  // help has precedence over version
+  const char *args1[] = {"llama", "--version", "--help"};
+  const char *args2[] = {"llama", "--help", "--version"};
+  Cli cli;
+  auto opts = cli.parse(3, args1);
+  SCOPE_ASSERT_EQUAL("help", opts->Command);
+  opts = cli.parse(3, args2);
+  SCOPE_ASSERT_EQUAL("help", opts->Command);
 }
 
 SCOPE_TEST(testCLIDefaultCommand) {
-	const char* args[] = {"llama"};
+  const char* args[] = {"llama"};
+  Cli cli;
+  auto opts = cli.parse(1, args);
+  SCOPE_ASSERT_EQUAL("search", opts->Command);
+}
+
+SCOPE_TEST(testCLIKeywordsFiles) {
+	const char* args[] = {"llama", "-f", "mypatterns.txt", "--file", "morepatterns.txt"};
+	std::vector<std::string> expected{"mypatterns.txt", "morepatterns.txt"};
 	Cli cli;
-	auto opts = cli.parse(1, args);
-	SCOPE_ASSERT_EQUAL("search", opts->Command);
+	auto opts = cli.parse(5, args);
+	SCOPE_ASSERT_EQUAL(expected, opts->KeyFiles);
+}
+
+SCOPE_TEST(testCLIInput) {
+	const char* args[] = {"llama", "-f", "patterns.txt", "nosnits_workstation.E01"};
+	Cli cli;
+	auto opts = cli.parse(4, args);
+	SCOPE_ASSERT_EQUAL("nosnits_workstation.E01", opts->Input);
+}
+
+SCOPE_TEST(testCLInumThreads) {
+	const char* args[] = {"llama", "-j", "17"};
+	Cli cli;
+	auto opts = cli.parse(3, args);
+	SCOPE_ASSERT_EQUAL(17u, opts->NumThreads);
+
+	opts = cli.parse(1, args); // test default
+	SCOPE_ASSERT_EQUAL(std::thread::hardware_concurrency(), opts->NumThreads);
 }
 
 SCOPE_TEST(testPrintVersion) {
-	Cli cli;
-	std::stringstream output;
-	cli.printVersion(output);
-	auto outStr = output.str();
-	std::regex re("pre-alpha.+20\\d\\d");
-	// SCOPE_ASSERT_EQUAL("20191019", outStr);
-	SCOPE_ASSERT(std::regex_search(outStr, re));
+  Cli cli;
+  std::stringstream output;
+  cli.printVersion(output);
+  auto outStr = output.str();
+  std::regex re("pre-alpha.+20\\d\\d");
+  // SCOPE_ASSERT_EQUAL("20191019", outStr);
+  SCOPE_ASSERT(std::regex_search(outStr, re));
 }
 
 SCOPE_TEST(testPrintHelp) {
-	// The mantra is to test everything that could possibly fail. It's unlikely
-	// that boost::program_options will fail, so we just need to do a smoke test.
-	Cli cli;
-	std::stringstream output;
-	cli.printHelp(output);
-	auto outStr = output.str();
-	SCOPE_ASSERT(outStr.find("Usage: llama") != std::string::npos);
+  // The mantra is to test everything that could possibly fail. It's unlikely
+  // that boost::program_options will fail, so we just need to do a smoke test.
+  Cli cli;
+  std::stringstream output;
+  cli.printHelp(output);
+  auto outStr = output.str();
+  SCOPE_ASSERT(outStr.find("Usage: llama") != std::string::npos);
 }

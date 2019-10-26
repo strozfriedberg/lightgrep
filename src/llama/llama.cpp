@@ -1,5 +1,10 @@
 #include "llama.h"
 
+#include "cli.h"
+#include "reader.h"
+#include "filescheduler.h"
+#include "outputbase.h"
+
 #include <fstream>
 #include <functional>
 #include <future>
@@ -9,15 +14,15 @@
 
 #include <boost/filesystem.hpp>
 
-template<typename ValueType>
-struct easy_fut {
-  easy_fut(): Promise(), Fut(Promise.get_future()) {}
+#include <tsk/libtsk.h>
 
-  template<typename Callable>
-  easy_fut(boost::asio::thread_pool& pool, Callable functor):
-    Promise(), Fut(Promise.get_future())
-  {
-    run(pool, functor);
+template <typename ValueType> struct easy_fut {
+  easy_fut() : Promise(), Fut(Promise.get_future()) {}
+
+  template <typename ExecutorType, typename Callable>
+  easy_fut(ExecutorType &exec, Callable functor)
+      : Promise(), Fut(Promise.get_future()) {
+    run(exec, functor);
   }
 
   ValueType get() { return Fut.get(); }
@@ -25,40 +30,58 @@ struct easy_fut {
   std::promise<ValueType> Promise;
   std::future<ValueType> Fut;
 
-  template<typename Callable>
-  void run(boost::asio::thread_pool& pool, Callable functor) {
-    boost::asio::post(pool, [=]() {
+  template <typename ExecutorType, typename Callable>
+  void run(ExecutorType &exec, Callable functor) {
+    boost::asio::post(exec, [=]() {
       try {
         this->Promise.set_value(functor());
-      }
-      catch (...) {
+      } catch (...) {
         this->Promise.set_exception(std::current_exception());
       }
     });
   }
 };
 
-template<typename Callable>
-auto make_future(boost::asio::thread_pool& pool, Callable functor) {
-  return easy_fut<decltype(functor())>(pool, functor);
+template <typename ExecutorType, typename Callable>
+auto make_future(ExecutorType &exec, Callable functor) {
+  return easy_fut<decltype(functor())>(exec, functor);
 }
 
-Llama::Llama():
-  LgProg(nullptr, lg_destroy_program),
-  Exec()
-{}
 
-int Llama::run(int argc, const char* const argv[]) {
-  Opts = CliParser.parse(argc, argv);
+class Outputter : public OutputBase {
+public:
+  Outputter(boost::asio::thread_pool& pool):
+    Strand(pool.get_executor()) {}
+
+  virtual ~Outputter() {}
+
+  virtual void outputSearchHit(const std::string &hit) {
+    boost::asio::post(Strand, [=](){ write(hit); });
+  }
+
+  void write(const std::string& hit) {
+    std::cout << hit << std::endl;
+  }
+
+private:
+  boost::asio::strand<boost::asio::thread_pool::executor_type> Strand;
+};
+
+
+
+Llama::Llama()
+    : CliParser(std::make_shared<Cli>()), Pool(),
+      LgProg(nullptr, lg_destroy_program) {}
+
+int Llama::run(int argc, const char *const argv[]) {
+  Opts = CliParser->parse(argc, argv);
 
   if (Opts) {
     if ("help" == Opts->Command) {
-      CliParser.printHelp(std::cout);
-    }
-    else if ("version" == Opts->Command) {
-      CliParser.printVersion(std::cout);
-    }
-    else if ("search" == Opts->Command) {
+      CliParser->printHelp(std::cout);
+    } else if ("version" == Opts->Command) {
+      CliParser->printVersion(std::cout);
+    } else if ("search" == Opts->Command) {
       search();
     }
     return 0;
@@ -68,45 +91,51 @@ int Llama::run(int argc, const char* const argv[]) {
 
 void Llama::search() {
   if (init()) {
-    std::cout << "Number of patterns: " << lg_pattern_count(LgProg.get()) << std::endl;
-  }
-  else {
+    std::cout << "Number of patterns: " << lg_pattern_count(LgProg.get())
+              << std::endl;
+
+    auto out = std::static_pointer_cast<OutputBase>(std::make_shared<Outputter>(Pool));
+    auto scheduler = std::make_shared<FileScheduler>(Pool, out);
+
+    if (!Input->startReading(scheduler)) {
+      std::cerr << "startReading returned an error" << std::endl;
+    }
+    Pool.join();
+    std::cout << "All done" << std::endl;
+  } else {
     std::cerr << "init returned false!" << std::endl;
   }
 }
 
-std::string readfile(const std::string& path) {
+std::string readfile(const std::string &path) {
   std::ifstream f(path, std::ios::in);
   std::string str;
   f.seekg(0, std::ios::end);
   str.reserve(f.tellg());
   f.seekg(0, std::ios::beg);
-  str.assign((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+  str.assign((std::istreambuf_iterator<char>(f)),
+             std::istreambuf_iterator<char>());
   return str;
 }
 
-bool Llama::readpatterns(const std::vector<std::string>& keyFiles) {
+bool Llama::readpatterns(const std::vector<std::string> &keyFiles) {
   // std::cerr << "begin readpatterns" << std::endl;
   std::shared_ptr<FSMHandle> fsm(lg_create_fsm(100000), lg_destroy_fsm);
-  LgProg = std::shared_ptr<ProgramHandle>(lg_create_program(100000), lg_destroy_program);
+  LgProg = std::shared_ptr<ProgramHandle>(lg_create_program(100000),
+                                          lg_destroy_program);
 
-  const char*  defaultEncodings[] = {"utf-8", "utf-16le"};
+  const char *defaultEncodings[] = {"utf-8", "utf-16le"};
   LG_KeyOptions defaultKeyOpts{0, 0};
-  LG_Error* errs = nullptr;
+  LG_Error *errs = nullptr;
 
-  for (auto keyf: keyFiles) {
+  for (auto keyf : keyFiles) {
     // std::cerr << "add patterns from " << keyf << std::endl;
 
     std::string patterns = readfile(keyf);
     // std::cerr << "Patterns are:\n" << patterns << std::endl;
-    int result = lg_add_pattern_list(fsm.get(),
-                                      LgProg.get(),
-                                      patterns.c_str(),
-                                      keyf.c_str(),
-                                      defaultEncodings,
-                                      2,
-                                      &defaultKeyOpts,
-                                      &errs);
+    int result = lg_add_pattern_list(fsm.get(), LgProg.get(), patterns.c_str(),
+                                     keyf.c_str(), defaultEncodings, 2,
+                                     &defaultKeyOpts, &errs);
     if (result < 0) {
       throw std::runtime_error("lg_add_pattern_list errored on file " + keyf);
     }
@@ -114,20 +143,27 @@ bool Llama::readpatterns(const std::vector<std::string>& keyFiles) {
   // std::cerr << "compiling program" << std::endl;
   LG_ProgramOptions progOpts{1};
   if (lg_compile_program(fsm.get(), LgProg.get(), &progOpts)) {
-    // std::cerr << "Number of patterns: " << lg_pattern_count(LgProg.get()) << std::endl;
-    // std::cerr << "Done with readpatterns" << std::endl;
+    // std::cerr << "Number of patterns: " << lg_pattern_count(LgProg.get()) <<
+    // std::endl; std::cerr << "Done with readpatterns" << std::endl;
     return true;
-  }
-  else {
+  } else {
     // add some error-handling someday
     return false;
   }
+}
+
+bool Llama::openInput(const std::string& input) {
+  Input = InputReaderBase::createTSK(input);
+  return bool(Input);
 }
 
 bool Llama::init() {
   if (Opts->KeyFiles.empty()) {
     return false;
   }
-  auto readPats = make_future(Exec, [this](){ return readpatterns(this->Opts->KeyFiles); });
-  return readPats.get();
+  auto readPats = make_future(
+      Pool, [this]() { return readpatterns(this->Opts->KeyFiles); });
+  auto open = make_future(
+      Pool, [this]() { return openInput(this->Opts->Input); });
+  return readPats.get() && open.get();
 }
