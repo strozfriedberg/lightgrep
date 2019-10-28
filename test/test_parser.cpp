@@ -2091,3 +2091,268 @@ SCOPE_TEST(parseNonWordBoundaryTest) {
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
+
+SCOPE_TEST(parse_ascii_mode_ks_01_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'k', 's'})
+      )
+    )
+  );
+
+  const std::string p = "[ks]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parse_ascii_mode_ks_02_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'k', 's'})
+      )
+    )
+  );
+
+  const std::string p = "[ks]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parse_ascii_mode_ks_03_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'K', 'S', 'k', 's', 0x17F, 0x212A})
+      )
+    )
+  );
+
+  const std::string p = "[ks]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, true, false, "UTF-8"}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parse_ascii_mode_ks_04_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{'K', 'S', 'k', 's'})
+      )
+    )
+  );
+
+  const std::string p = "[ks]";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parse_ascii_mode_on_digits_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(ParseNode::CHAR_CLASS, UnicodeSet{{'0', '9' + 1}})
+      )
+    )
+  );
+
+  const std::string p = "\\d";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parse_ascii_mode_off_digits_Test) {
+  // Unicode \d is rather large, so rather than enumerating the class, we
+  // compare the tree with the one for \p{Nd}, which ought to be the same.
+  ParseTree d, pnd;
+  d.init(2);
+  pnd.init(2);
+
+  SCOPE_ASSERT(parse({"\\d", false, false, false, "UTF-8"}, d));
+  SCOPE_ASSERT(parse({"\\p{Nd}", false, false, false, "UTF-8"}, pnd));
+
+  SCOPE_ASSERT_EQUAL(d, pnd);
+}
+
+SCOPE_TEST(parse_ascii_mode_on_space_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(
+          ParseNode::CHAR_CLASS,
+          UnicodeSet{{'\t', '\r' + 1}, {' ', ' ' + 1}}
+        )
+      )
+    )
+  );
+
+  const std::string p = "\\s";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parse_ascii_mode_off_space_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(
+          ParseNode::CHAR_CLASS,
+          UnicodeSet{
+            {'\t', '\r' + 1},
+            {' ', ' ' + 1},
+            {0x85, 0x86},     // NEXT LINE
+            {0xA0, 0xA1},     // NO-BREAK SPACE
+            {0x1680, 0x1681}, // OGHAM SPACE MARK
+            {0x180E, 0x180F}, // MONGOLIAN VOWEL SEPARATOR
+            // EN QUAD
+            // EM QUAD
+            // EN SPACE
+            // EM SPACE
+            // THREE-PER-EM SPACE
+            // FOUR-PER-EM SPACE
+            // SIX-PER-EM SPACE
+            // FIGURE SPACE
+            // PUNCTUATION SPACE
+            // THIN SPACE
+            // HAIR SPACE
+            {0x2000, 0x200B},
+            {0x2028, 0x202A}, // LINE SEPARATOR, PARAGRAPH SEPARATOR
+            {0x202F, 0x2030}, // NARROW NO-BREAK SPACE
+            {0x205F, 0x2060}, // MEDIUM MATHEMATICAL SPACE
+            {0x3000, 0x3001}  // IDEOGRAPHIC SPACE
+          }
+        )
+      )
+    )
+  );
+
+  const std::string p = "\\s";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parse_ascii_mode_word_01_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(
+          ParseNode::CHAR_CLASS,
+          UnicodeSet{
+            {'0', '9' + 1},
+            {'A', 'Z' + 1},
+            {'_', '_' + 1},
+            {'a', 'z' + 1}
+          }
+        )
+      )
+    )
+  );
+
+  const std::string p = "\\w";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parse_ascii_mode_word_02_Test) {
+  ParseTree expected;
+  expected.init(2);
+
+  expected.Root = expected.add(
+    ParseNode(ParseNode::REGEXP,
+      expected.add(
+        ParseNode(
+          ParseNode::CHAR_CLASS,
+          UnicodeSet{
+            {'0', '9' + 1},
+            {'A', 'Z' + 1},
+            {'_', '_' + 1},
+            {'a', 'z' + 1}
+          }
+        )
+      )
+    )
+  );
+
+  const std::string p = "\\w";
+  ParseTree actual;
+  actual.init(p.length());
+  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
+
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(parse_ascii_mode_word_03_Test) {
+  // Unicode \w is rather large, so rather than enumerating the class, we
+  // compare the tree with the one for [\p{L}\p{N}_], which ought to be
+  // the same.
+  ParseTree w, p;
+  w.init(2);
+  p.init(2);
+
+  SCOPE_ASSERT(parse({"\\w", false, false, false, "UTF-8"}, w));
+  SCOPE_ASSERT(parse({"[\\p{L}\\p{N}_]", false, false, false, "UTF-8"}, p));
+
+  SCOPE_ASSERT_EQUAL(w, p);
+}
+
+SCOPE_TEST(parse_ascii_mode_word_04_Test) {
+  // Unicode \w is already closed under case insensitivity, so we check that
+  // in Unicode mode, case sensitive \w is the same as case insensitive \w.
+  ParseTree w, wi;
+  w.init(2);
+  wi.init(2);
+
+  SCOPE_ASSERT(parse({"\\w", false, false, false, "UTF-8"}, w));
+  SCOPE_ASSERT(parse({"\\w", false, true, false, "UTF-8"}, wi));
+
+  SCOPE_ASSERT_EQUAL(w, wi);
+}
