@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 
   // parse the character class
   ParseTree tree;
-  if (!parse({expr, false, false}, tree)) {
+  if (!parse({expr, false, false, false}, tree)) {
     throw std::runtime_error("bad parse");
   }
 
