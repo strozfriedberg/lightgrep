@@ -2345,8 +2345,10 @@ SCOPE_TEST(parse_ascii_mode_word_03_Test) {
 }
 
 SCOPE_TEST(parse_ascii_mode_word_04_Test) {
-  // Unicode \w is already closed under case insensitivity, so we check that
-  // in Unicode mode, case sensitive \w is the same as case insensitive \w.
+  // Unicode \w is almost closed under case insensitivity: Closing under
+  // case insensitivity gains us COMBINING GREEK YPOGEGRAMMENI, which is
+  // not a letter but _is_ cased and GREEK CAPITAL LETTER IOTA, GREEK SMALL
+  // LETTER IOTA, and GREEK PROSGEGRAMMENI which are letters case fold to it.
   ParseTree w, wi;
   w.init(2);
   wi.init(2);
@@ -2354,5 +2356,17 @@ SCOPE_TEST(parse_ascii_mode_word_04_Test) {
   SCOPE_ASSERT(parse({"\\w", false, false, false, "UTF-8"}, w));
   SCOPE_ASSERT(parse({"\\w", false, true, false, "UTF-8"}, wi));
 
-  SCOPE_ASSERT_EQUAL(w, wi);
+  SCOPE_ASSERT(w.Root);
+  SCOPE_ASSERT(w.Root->Child.Left);
+  SCOPE_ASSERT_EQUAL(ParseNode::CHAR_CLASS, w.Root->Child.Left->Type);
+
+  SCOPE_ASSERT(wi.Root);
+  SCOPE_ASSERT(wi.Root->Child.Left);
+  SCOPE_ASSERT_EQUAL(ParseNode::CHAR_CLASS, wi.Root->Child.Left->Type);
+
+  // check for the additional COMBINING GREEK YPOGEGRAMMENI
+  SCOPE_ASSERT_EQUAL(
+    w.Root->Child.Left->Set.CodePoints | UnicodeSet{0x345},
+    wi.Root->Child.Left->Set.CodePoints
+  );
 }
