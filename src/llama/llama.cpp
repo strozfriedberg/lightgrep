@@ -75,7 +75,7 @@ void Llama::search() {
               << std::endl;
 
     auto out = OutputBase::createTarWriter(Pool, Opts->TarPath);
-    auto scheduler = std::make_shared<FileScheduler>(Pool, out);
+    auto scheduler = std::make_shared<FileScheduler>(Pool, LgProg, out, Opts);
 
     if (!Input->startReading(scheduler)) {
       std::cerr << "startReading returned an error" << std::endl;
