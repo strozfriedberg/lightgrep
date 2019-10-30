@@ -1,13 +1,15 @@
 #include "filescheduler.h"
 
+#include "options.h"
 #include "outputbase.h"
+#include "processor.h"
 
-FileScheduler::FileScheduler(boost::asio::thread_pool& pool, const std::shared_ptr<ProgramHandle>& prog,
+FileScheduler::FileScheduler(boost::asio::thread_pool& pool, const std::shared_ptr<Processor>& protoProc,
   const std::shared_ptr<OutputBase>& output, const std::shared_ptr<Options>& opts):
   Pool(pool), Strand(Pool.get_executor()), Output(output), ProcMutex(new std::mutex), ProcCV(new std::condition_variable)
 {
   for (unsigned int i = 0; i < opts->NumThreads; ++i) {
-    Processors.push_back(std::make_shared<Processor>(prog));
+    Processors.push_back(protoProc->clone());
   }
 }
 

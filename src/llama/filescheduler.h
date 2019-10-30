@@ -8,18 +8,16 @@
 
 #include <boost/asio.hpp>
 
-#include "lightgrep/api.h"
-
 #include "filerecord.h"
-#include "processor.h"
-#include "options.h"
 
+struct Options;
 class OutputBase;
+class Processor;
 
 class FileScheduler {
 public:
   FileScheduler(boost::asio::thread_pool& pool,
-    const std::shared_ptr<ProgramHandle>& prog,
+    const std::shared_ptr<Processor>& protoProc,
     const std::shared_ptr<OutputBase>& output,
     const std::shared_ptr<Options>& opts);
 

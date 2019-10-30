@@ -1,9 +1,10 @@
 #include "llama.h"
 
 #include "cli.h"
-#include "reader.h"
 #include "filescheduler.h"
 #include "outputbase.h"
+#include "processor.h"
+#include "reader.h"
 
 #include <fstream>
 #include <functional>
@@ -75,7 +76,8 @@ void Llama::search() {
               << std::endl;
 
     auto out = OutputBase::createTarWriter(Pool, Opts->TarPath);
-    auto scheduler = std::make_shared<FileScheduler>(Pool, LgProg, out, Opts);
+    auto protoProc = std::make_shared<Processor>(LgProg);
+    auto scheduler = std::make_shared<FileScheduler>(Pool, protoProc, out, Opts);
 
     if (!Input->startReading(scheduler)) {
       std::cerr << "startReading returned an error" << std::endl;
