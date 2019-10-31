@@ -40,9 +40,23 @@ extern "C" {
   // Options for pattern parsing
   typedef struct {
     char FixedString;     // 0 => grep, non-zero => fixed-string
-    char CaseInsensitive; // 0 => case sensitive, non-zero => case-insensitive
+    char CaseInsensitive; // 0 => case sensitive, non-zero => case insensitive
     char AsciiMode;       // 0 => Unicode mode, non-zero => ASCII mode
   } LG_KeyOptions;
+
+  //
+  // ASCII mode has two effects:
+  //
+  // *) The named character classes \d, \s, \w are restricted to match only
+  // ASCII characters. (E.g., \w in ASCII mode will not match Greek letters,
+  // but \w in Unicode mode will.)
+  //
+  // *) ASCII code points in case insensitive patterns case fold to ASCII code
+  // points only. (E.g., case-insensitive [ks] in ASCII mode is eqivalent to
+  // [KSks], but case-insensitive [ks] in Unicode mode is equivalent to
+  // [KSks\N{KELVIN SIGN}\N{LATIN SMALL LETTER LONG S}], because KELVIN SIGN
+  // case folds to k and LATIN SMALL LETTER LONG S case folds to s.
+  //
 
   // Encoding options for patterns
   typedef struct {
