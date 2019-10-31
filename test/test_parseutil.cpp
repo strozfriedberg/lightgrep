@@ -482,7 +482,7 @@ SCOPE_TEST(Z_subset_hv_Test) {
   // Sanity check
   // \p{Z} subset of [\h\v]
   UnicodeSet z;
-  propertyGetter("\\p{Z}", z);
+  propertyGetter("\\p{Z}", z, false);
   SCOPE_ASSERT_EQUAL(HSPACE | VSPACE, HSPACE | VSPACE | z);
 }
 
@@ -512,13 +512,13 @@ SCOPE_TEST(NdNlNo_Equals_N_Test) {
   // Sanity check
   // \p{N} = [\p{Nd}\p{Nl}\p{No}]
   UnicodeSet nd;
-  propertyGetter("\\p{Nd}", nd);
+  propertyGetter("\\p{Nd}", nd, false);
   UnicodeSet nl;
-  propertyGetter("\\p{Nl}", nl);
+  propertyGetter("\\p{Nl}", nl, false);
   UnicodeSet no;
-  propertyGetter("\\p{No}", no);
+  propertyGetter("\\p{No}", no, false);
   UnicodeSet n;
-  propertyGetter("\\p{N}", n);
+  propertyGetter("\\p{N}", n, false);
   SCOPE_ASSERT_EQUAL(nd | nl | no, n);
 }
 
@@ -526,17 +526,17 @@ SCOPE_TEST(LuLlLtLmLo_Equals_L_Test) {
   // Sanity check
   // \p{L} = [\p{Lu}\p{Ll}\p{Lt}\p{Lm}\p{Lo}]
   UnicodeSet lu;
-  propertyGetter("\\p{Lu}", lu);
+  propertyGetter("\\p{Lu}", lu, false);
   UnicodeSet ll;
-  propertyGetter("\\p{Ll}", ll);
+  propertyGetter("\\p{Ll}", ll, false);
   UnicodeSet lt;
-  propertyGetter("\\p{Lt}", lt);
+  propertyGetter("\\p{Lt}", lt, false);
   UnicodeSet lm;
-  propertyGetter("\\p{Lm}", lm);
+  propertyGetter("\\p{Lm}", lm, false);
   UnicodeSet lo;
-  propertyGetter("\\p{Lo}", lo);
+  propertyGetter("\\p{Lo}", lo, false);
   UnicodeSet l;
-  propertyGetter("\\p{L}", l);
+  propertyGetter("\\p{L}", l, false);
   SCOPE_ASSERT_EQUAL(lu | ll | lt | lm | lo, l);
 }
 

@@ -1102,7 +1102,9 @@ namespace {
 
   template <typename F>
   int consumeSet(F func, YYSTYPE* yylval, Context* ctx) {
-    const int val = func(ctx->Text, ctx->TextEnd, ctx->USet);
+    const int val = func(
+      ctx->Text, ctx->TextEnd, ctx->USet, !(ctx->Opts.top() & CASED_MASK)
+    );
     if (val < 0) {
       return BAD;
     }
