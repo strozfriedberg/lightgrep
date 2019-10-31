@@ -805,11 +805,6 @@ charclass:
     );
   }
 | cc_named
-  {
-    if (!(ctx->Opts.top() & CASED_MASK)) {
-      caseDesensitize($$->Set.CodePoints, ctx->Opts.top() & ASCII_MASK);
-    }
-  }
 ;
 
 cc_expr_pos:

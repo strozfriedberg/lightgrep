@@ -2496,17 +2496,13 @@ SCOPE_TEST(parse_ascii_mode_word_03_Test) {
 }
 
 SCOPE_TEST(parse_ascii_mode_word_04_Test) {
-  // Unicode \w is almost closed under case insensitivity: Closing under
-  // case insensitivity gains us U+345 COMBINING GREEK YPOGEGRAMMENI, which
-  // is not a letter but _is_ cased and GREEK CAPITAL LETTER IOTA, GREEK SMALL
-  // LETTER IOTA, and GREEK PROSGEGRAMMENI which are letters case fold to it.
   ParseTree expected;
   expected.init(2);
 
   expected.Root = expected.add(
     ParseNode(ParseNode::REGEXP,
       expected.add(
-        ParseNode(ParseNode::CHAR_CLASS, WORD | UnicodeSet(0x345))
+        ParseNode(ParseNode::CHAR_CLASS, WORD)
       )
     )
   );
@@ -2596,17 +2592,13 @@ SCOPE_TEST(parse_ascii_mode_not_word_03_Test) {
 }
 
 SCOPE_TEST(parse_ascii_mode_not_word_04_Test) {
-  // Unicode \w is almost closed under case insensitivity: Closing under
-  // case insensitivity gains us U+345 COMBINING GREEK YPOGEGRAMMENI, which
-  // is not a letter but _is_ cased and GREEK CAPITAL LETTER IOTA, GREEK SMALL
-  // LETTER IOTA, and GREEK PROSGEGRAMMENI which are letters case fold to it.
   ParseTree expected;
   expected.init(2);
 
   expected.Root = expected.add(
     ParseNode(ParseNode::REGEXP,
       expected.add(
-        ParseNode(ParseNode::CHAR_CLASS, ~(WORD | UnicodeSet(0x345)))
+        ParseNode(ParseNode::CHAR_CLASS, ~WORD)
       )
     )
   );
