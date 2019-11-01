@@ -21,6 +21,7 @@
 #include "basic.h"
 
 #include <algorithm>
+#include <initializer_list>
 #include <limits>
 
 template <typename T>
@@ -70,8 +71,7 @@ public:
     case ONE:
       {
         l.Which = MANY;
-        const T tmp[2] = { l.What, e };
-        Store.emplace_back(&tmp[0], &tmp[2]);
+        Store.emplace_back(std::initializer_list<T>{l.What, e});
         l.What = Store.size() - 1;
       }
       break;
@@ -89,18 +89,11 @@ public:
     case ONE:
       {
         l.Which = MANY;
-
-        T tmp[2];
-        if (i == 0) {
-          tmp[0] = e;
-          tmp[1] = l.What;
-        }
-        else {
-          tmp[0] = l.What;
-          tmp[1] = e;
-        }
-
-        Store.emplace_back(&tmp[0], &tmp[2]);
+        Store.emplace_back(
+          i == 0 ?
+          std::initializer_list<T>{e, l.What} :
+          std::initializer_list<T>{l.What, e}
+        );
         l.What = Store.size() - 1;
       }
       break;
