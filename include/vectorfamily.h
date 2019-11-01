@@ -148,16 +148,7 @@ public:
   }
 
   T& at(Holder& l, typename Holder::size_type i) {
-    switch (l.Which) {
-    case ZERO:
-      {
-        THROW_RUNTIME_ERROR_WITH_OUTPUT(i << " out of bounds");
-      }
-    case ONE:
-      return l.What;
-    default:
-      return Store[l.What][i];
-    }
+    return const_cast<T&>(const_cast<const VectorFamily&>(*this).at(l, i));
   }
 
   const T& at(const Holder& l, typename Holder::size_type i) const {
@@ -174,14 +165,7 @@ public:
   }
 
   typename Holder::iterator find(Holder& l, T e) {
-    switch (l.Which) {
-    case ZERO:
-      return end_zero(l);
-    case ONE:
-      return l.What == e ? begin_few(l) : end_one(l);
-    default:
-      return std::find(begin_many(l), end_many(l), e);
-    }
+    return const_cast<typename Holder::iterator>(const_cast<const VectorFamily&>(*this).find(l, e));
   }
 
   typename Holder::const_iterator find(const Holder& l, T e) const {
@@ -196,13 +180,7 @@ public:
   }
 
   typename Holder::iterator begin(Holder& l) {
-    switch (l.Which) {
-    case ZERO:
-    case ONE:
-      return begin_few(l);
-    default:
-      return begin_many(l);
-    }
+    return const_cast<typename Holder::iterator>(const_cast<const VectorFamily&>(*this).begin(l));
   }
 
   typename Holder::const_iterator begin(const Holder& l) const {
@@ -216,14 +194,7 @@ public:
   }
 
   typename Holder::iterator end(Holder& l) {
-    switch (l.Which) {
-    case ZERO:
-      return end_zero(l);
-    case ONE:
-      return end_one(l);
-    default:
-      return end_many(l);
-    }
+    return const_cast<typename Holder::iterator>(const_cast<const VectorFamily&>(*this).end(l));
   }
 
   typename Holder::const_iterator end(const Holder& l) const {
@@ -238,24 +209,10 @@ public:
   }
 
 private:
-  typename Holder::iterator begin_few(Holder& l) { return &l.What; }
-
-  typename Holder::iterator begin_many(Holder& l) {
-    return &Store[l.What].front();
-  }
-
   typename Holder::const_iterator begin_few(const Holder& l) const { return &l.What; }
 
   typename Holder::const_iterator begin_many(const Holder& l) const {
     return &Store[l.What].front();
-  }
-
-  typename Holder::iterator end_zero(Holder& l) { return &l.What; }
-
-  typename Holder::iterator end_one(Holder& l) { return &l.What + 1; }
-
-  typename Holder::iterator end_many(Holder& l) {
-    return begin_many(l) + Store[l.What].size();
   }
 
   typename Holder::const_iterator end_zero(const Holder& l) const { return &l.What; }
