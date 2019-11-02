@@ -32,35 +32,37 @@ SCOPE_TEST(testCLICommandPrecedence) {
 }
 
 SCOPE_TEST(testCLIDefaultCommand) {
-  const char* args[] = {"llama"};
+  const char *args[] = {"llama"};
   Cli cli;
   auto opts = cli.parse(1, args);
   SCOPE_ASSERT_EQUAL("search", opts->Command);
 }
 
 SCOPE_TEST(testCLIKeywordsFiles) {
-	const char* args[] = {"llama", "-f", "mypatterns.txt", "--file", "morepatterns.txt"};
-	std::vector<std::string> expected{"mypatterns.txt", "morepatterns.txt"};
-	Cli cli;
-	auto opts = cli.parse(5, args);
-	SCOPE_ASSERT_EQUAL(expected, opts->KeyFiles);
+  const char *args[] = {"llama", "-f", "mypatterns.txt", "--file",
+                        "morepatterns.txt"};
+  std::vector<std::string> expected{"mypatterns.txt", "morepatterns.txt"};
+  Cli cli;
+  auto opts = cli.parse(5, args);
+  SCOPE_ASSERT_EQUAL(expected, opts->KeyFiles);
 }
 
 SCOPE_TEST(testCLIReal) {
-	const char* args[] = {"llama", "-f", "patterns.txt", "output.tar", "nosnits_workstation.E01"};
-	Cli cli;
-	auto opts = cli.parse(5, args);
-	SCOPE_ASSERT_EQUAL("nosnits_workstation.E01", opts->Input);
+  const char *args[] = {"llama", "-f", "patterns.txt", "output.tar",
+                        "nosnits_workstation.E01"};
+  Cli cli;
+  auto opts = cli.parse(5, args);
+  SCOPE_ASSERT_EQUAL("nosnits_workstation.E01", opts->Input);
 }
 
 SCOPE_TEST(testCLInumThreads) {
-	const char* args[] = {"llama", "-j", "17"};
-	Cli cli;
-	auto opts = cli.parse(3, args);
-	SCOPE_ASSERT_EQUAL(17u, opts->NumThreads);
+  const char *args[] = {"llama", "-j", "17"};
+  Cli cli;
+  auto opts = cli.parse(3, args);
+  SCOPE_ASSERT_EQUAL(17u, opts->NumThreads);
 
-	opts = cli.parse(1, args); // test default
-	SCOPE_ASSERT_EQUAL(std::thread::hardware_concurrency(), opts->NumThreads);
+  opts = cli.parse(1, args); // test default
+  SCOPE_ASSERT_EQUAL(std::thread::hardware_concurrency(), opts->NumThreads);
 }
 
 SCOPE_TEST(testPrintVersion) {

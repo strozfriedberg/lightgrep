@@ -11,32 +11,30 @@
 
 #include <iostream>
 
-void closeAndFreeArchive(archive* a) {
+void closeAndFreeArchive(archive *a) {
   archive_write_close(a);
   archive_write_free(a);
 }
 
 class OutputTar : public OutputBase {
 public:
-  OutputTar(boost::asio::thread_pool& pool, const std::string& path);
+  OutputTar(boost::asio::thread_pool &pool, const std::string &path);
 
   virtual ~OutputTar() {}
 
-  virtual void outputFile(const FileRecord&) override {
+  virtual void outputFile(const FileRecord &) override {
     // std::cerr << "OutputTar::outputFile: " << rec.Path << std::endl;
     // boost::asio::post(Strand, [=](){ writeFileRecord(rec); });
   }
 
-  virtual void outputRecord(const FileRecord& rec) override {
-    boost::asio::post(Strand, [=](){ writeFileRecord(rec); });
+  virtual void outputRecord(const FileRecord &rec) override {
+    boost::asio::post(Strand, [=]() { writeFileRecord(rec); });
   }
 
-  virtual void outputSearchHit(const std::string&) override {
-
-  }
+  virtual void outputSearchHit(const std::string &) override {}
 
 private:
-  void writeFileRecord(const FileRecord& rec);
+  void writeFileRecord(const FileRecord &rec);
 
   boost::asio::strand<boost::asio::thread_pool::executor_type> Strand;
 
@@ -45,17 +43,16 @@ private:
   std::shared_ptr<archive> Archive;
 };
 
-
-std::shared_ptr<OutputBase> OutputBase::createTarWriter(boost::asio::thread_pool& pool, const std::string& path) {
-  return std::static_pointer_cast<OutputBase>(std::shared_ptr<OutputTar>(new OutputTar(pool, path)));
+std::shared_ptr<OutputBase>
+OutputBase::createTarWriter(boost::asio::thread_pool &pool,
+                            const std::string &path) {
+  return std::static_pointer_cast<OutputBase>(
+      std::shared_ptr<OutputTar>(new OutputTar(pool, path)));
 }
 
-
-OutputTar::OutputTar(boost::asio::thread_pool& pool,const std::string& path):
-  Strand(pool.get_executor()),
-  Path(path),
-  Archive(archive_write_new(), closeAndFreeArchive)
-{
+OutputTar::OutputTar(boost::asio::thread_pool &pool, const std::string &path)
+    : Strand(pool.get_executor()), Path(path),
+      Archive(archive_write_new(), closeAndFreeArchive) {
   Path.append(".tar.lz4");
   archive_write_add_filter_lz4(Archive.get());
   archive_write_set_format_pax_restricted(Archive.get());
@@ -64,7 +61,7 @@ OutputTar::OutputTar(boost::asio::thread_pool& pool,const std::string& path):
   // std::cerr << "Creating " << Path << std::endl;
 }
 
-void OutputTar::writeFileRecord(const FileRecord& rec) {
+void OutputTar::writeFileRecord(const FileRecord &rec) {
   // std::cerr << "Adding " << rec.Path << " to output tarball" << std::endl;
   std::shared_ptr<archive_entry> entry(archive_entry_new(), archive_entry_free);
 

@@ -17,7 +17,6 @@
 
 #include <tsk/libtsk.h>
 
-
 Llama::Llama()
     : CliParser(std::make_shared<Cli>()), Pool(),
       LgProg(nullptr, lg_destroy_program) {}
@@ -45,7 +44,8 @@ void Llama::search() {
 
     auto out = OutputBase::createTarWriter(Pool, Opts->TarPath);
     auto protoProc = std::make_shared<Processor>(LgProg);
-    auto scheduler = std::make_shared<FileScheduler>(Pool, protoProc, out, Opts);
+    auto scheduler =
+        std::make_shared<FileScheduler>(Pool, protoProc, out, Opts);
 
     if (!Input->startReading(scheduler)) {
       std::cerr << "startReading returned an error" << std::endl;
@@ -102,7 +102,7 @@ bool Llama::readpatterns(const std::vector<std::string> &keyFiles) {
   }
 }
 
-bool Llama::openInput(const std::string& input) {
+bool Llama::openInput(const std::string &input) {
   Input = InputReaderBase::createTSK(input);
   return bool(Input);
 }
@@ -113,7 +113,7 @@ bool Llama::init() {
   }
   auto readPats = make_future(
       Pool, [this]() { return readpatterns(this->Opts->KeyFiles); });
-  auto open = make_future(
-      Pool, [this]() { return openInput(this->Opts->Input); });
+  auto open =
+      make_future(Pool, [this]() { return openInput(this->Opts->Input); });
   return readPats.get() && open.get();
 }

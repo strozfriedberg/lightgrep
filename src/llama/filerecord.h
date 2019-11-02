@@ -12,13 +12,9 @@ struct FileRecord {
 
   SFHASH_HashValues Hashes;
 
-  const void* fileBegin() const {
-    return _data.c_str();
-  }
+  const void *fileBegin() const { return _data.c_str(); }
 
-  const void* fileEnd() const {
-    return _data.c_str() + _data.size();
-  }
+  const void *fileEnd() const { return _data.c_str() + _data.size(); }
 
   std::string _data;
 };

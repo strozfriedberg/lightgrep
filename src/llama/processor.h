@@ -10,14 +10,14 @@ class OutputBase;
 
 class Processor {
 public:
-  Processor(const std::shared_ptr<ProgramHandle>& prog);
+  Processor(const std::shared_ptr<ProgramHandle> &prog);
 
   std::shared_ptr<Processor> clone() const;
 
-  void process(FileRecord& rec, OutputBase& out);
+  void process(FileRecord &rec, OutputBase &out);
 
 private:
-  Processor(const Processor&); // noncopyable
+  Processor(const Processor &); // noncopyable
 
   std::shared_ptr<ProgramHandle> LgProg; // shared
 

@@ -22,7 +22,7 @@ public:
 
 private:
   bool readpatterns(const std::vector<std::string> &keyFiles);
-  bool openInput(const std::string& input);
+  bool openInput(const std::string &input);
 
   std::shared_ptr<Cli> CliParser;
 

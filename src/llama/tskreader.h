@@ -2,8 +2,8 @@
 
 #include <tsk/libtsk.h>
 
-#include "reader.h"
 #include "filerecord.h"
+#include "reader.h"
 
 class FileScheduler;
 

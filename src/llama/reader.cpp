@@ -1,6 +1,6 @@
 #include "reader.h"
-#include "tskreader.h"
 #include "filescheduler.h"
+#include "tskreader.h"
 
 #include <iostream>
 
@@ -38,11 +38,13 @@ bool TSKReader::startReading(std::shared_ptr<FileScheduler> sink) {
 }
 
 TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE *fs_file, const char *path) {
-  // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
+  // std::cerr << "processFile " << path << "/" << fs_file->name->name <<
+  // std::endl;
 
   std::string fullpath(path);
   fullpath.append(fs_file->name->name);
-  CurBatch.push_back(FileRecord{fullpath, fs_file->meta ? uint64_t(fs_file->meta->size): 0u});
+  CurBatch.push_back(
+      FileRecord{fullpath, fs_file->meta ? uint64_t(fs_file->meta->size) : 0u});
   if (CurBatch.size() > 200) {
     Sink->scheduleFileBatch(CurBatch);
   }
