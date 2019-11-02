@@ -1,6 +1,7 @@
 #include "llama.h"
 
 #include "cli.h"
+#include "easyfut.h"
 #include "filescheduler.h"
 #include "outputbase.h"
 #include "processor.h"
@@ -8,7 +9,6 @@
 
 #include <fstream>
 #include <functional>
-#include <future>
 #include <iostream>
 #include <streambuf>
 #include <unordered_map>
@@ -16,38 +16,6 @@
 #include <boost/filesystem.hpp>
 
 #include <tsk/libtsk.h>
-
-template <typename ValueType> struct easy_fut {
-  easy_fut() : Promise(), Fut(Promise.get_future()) {}
-
-  template <typename ExecutorType, typename Callable>
-  easy_fut(ExecutorType &exec, Callable functor)
-      : Promise(), Fut(Promise.get_future()) {
-    run(exec, functor);
-  }
-
-  ValueType get() { return Fut.get(); }
-
-  std::promise<ValueType> Promise;
-  std::future<ValueType> Fut;
-
-  template <typename ExecutorType, typename Callable>
-  void run(ExecutorType &exec, Callable functor) {
-    boost::asio::post(exec, [=]() {
-      try {
-        this->Promise.set_value(functor());
-      } catch (...) {
-        this->Promise.set_exception(std::current_exception());
-      }
-    });
-  }
-};
-
-template <typename ExecutorType, typename Callable>
-auto make_future(ExecutorType &exec, Callable functor) {
-  return easy_fut<decltype(functor())>(exec, functor);
-}
-
 
 
 Llama::Llama()

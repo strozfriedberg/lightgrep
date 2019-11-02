@@ -22,13 +22,17 @@ public:
 
   virtual ~OutputTar() {}
 
-  virtual void outputSearchHit(const std::string&) override {
-
+  virtual void outputFile(const FileRecord&) override {
+    // std::cerr << "OutputTar::outputFile: " << rec.Path << std::endl;
+    // boost::asio::post(Strand, [=](){ writeFileRecord(rec); });
   }
 
-  virtual void outputFile(const FileRecord& rec) override {
-    std::cerr << "OutputTar::outputFile: " << rec.Path << std::endl;
+  virtual void outputRecord(const FileRecord& rec) override {
     boost::asio::post(Strand, [=](){ writeFileRecord(rec); });
+  }
+
+  virtual void outputSearchHit(const std::string&) override {
+
   }
 
 private:
@@ -57,11 +61,11 @@ OutputTar::OutputTar(boost::asio::thread_pool& pool,const std::string& path):
   archive_write_set_format_pax_restricted(Archive.get());
   archive_write_open_filename(Archive.get(), Path.c_str());
 
-  std::cerr << "Creating " << Path << std::endl;
+  // std::cerr << "Creating " << Path << std::endl;
 }
 
 void OutputTar::writeFileRecord(const FileRecord& rec) {
-  std::cerr << "Adding " << rec.Path << " to output tarball" << std::endl;
+  // std::cerr << "Adding " << rec.Path << " to output tarball" << std::endl;
   std::shared_ptr<archive_entry> entry(archive_entry_new(), archive_entry_free);
 
   archive_entry_set_pathname(entry.get(), rec.Path.c_str());

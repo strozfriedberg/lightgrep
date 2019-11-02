@@ -14,7 +14,8 @@ FileScheduler::FileScheduler(boost::asio::thread_pool& pool, const std::shared_p
 }
 
 void FileScheduler::scheduleFileBatch(const std::vector<FileRecord>& batch) {
-  boost::asio::post(Strand, [=]() { performScheduling(batch); }); // lambda [=] means the batch is copied, not shared, between threads
+  // lambda [=] means the batch is copied, not shared, between threads
+  boost::asio::post(Strand, [=]() { performScheduling(batch); });
 }
 
 void FileScheduler::performScheduling(const std::vector<FileRecord>& batch) {
@@ -22,7 +23,7 @@ void FileScheduler::performScheduling(const std::vector<FileRecord>& batch) {
   // this is useful work that can be done on a separate thread from TSK traversal
 
   // then post for multithreaded processing
-  auto proc = popProc();
+  auto proc = popProc(); // blocks
   boost::asio::post(Pool, [=](){
     for (auto rec: batch) {
       proc->process(rec, *Output);
@@ -32,9 +33,12 @@ void FileScheduler::performScheduling(const std::vector<FileRecord>& batch) {
 }
 
 std::shared_ptr<Processor> FileScheduler::popProc() {
+  // Having a fixed number of Processor objects adds back pressure to
+  // FileScheduler here -- it cannot dispatch more batches beyond the
+  // size of the Processor pool.
   std::unique_lock<std::mutex> lock(*ProcMutex);
   while (Processors.empty()) {
-    ProcCV->wait(lock);
+    ProcCV->wait(lock); // Releases mutex inside wait(), but reacquires before returning
   }
   auto batterUp = Processors.back();
   Processors.pop_back();
