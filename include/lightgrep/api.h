@@ -41,7 +41,7 @@ extern "C" {
   typedef struct {
     char FixedString;     // 0 => grep, non-zero => fixed-string
     char CaseInsensitive; // 0 => case sensitive, non-zero => case insensitive
-    char AsciiMode;       // 0 => Unicode mode, non-zero => ASCII mode
+    char UnicodeMode;     // 0 => ASCII mode, non-zero => Unicode mode
   } LG_KeyOptions;
 
   //
@@ -56,6 +56,9 @@ extern "C" {
   // [KSks], but case-insensitive [ks] in Unicode mode is equivalent to
   // [KSks\N{KELVIN SIGN}\N{LATIN SMALL LETTER LONG S}], because KELVIN SIGN
   // case folds to k and LATIN SMALL LETTER LONG S case folds to s.
+  //
+  // See also the discussions of /a and /aa in perlre(1) and of (*UCP) in
+  // pcrepattern(3).
   //
 
   // Encoding options for patterns

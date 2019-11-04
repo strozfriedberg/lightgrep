@@ -386,7 +386,7 @@ void search(const Options& opts) {
 
     std::tie(prog, fsm, err) = parsePatterns(
       opts.getPatternLines(), opts.Encodings,
-      {opts.LiteralMode, opts.CaseInsensitive, opts.AsciiMode}
+      {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
     );
 
     const bool printFilename =
@@ -516,7 +516,7 @@ bool writeGraphviz(const Options& opts) {
 
   std::tie(prog, fsm, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.AsciiMode}
+    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
   );
 
   const bool printFilename =
@@ -548,7 +548,7 @@ void writeProgram(const Options& opts) {
 
   std::tie(prog, fsm, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.AsciiMode}
+    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
   );
 
   const bool printFilename =
@@ -586,7 +586,7 @@ void validate(const Options& opts) {
 
   std::tie(std::ignore, std::ignore, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.AsciiMode}
+    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
   );
 
   for (const LG_Error* e = err.get(); e ; e = e->Next) {
@@ -614,7 +614,7 @@ void writeSampleMatches(const Options& opts) {
     const std::pair<std::string,std::string> a[] = { pf };
     std::tie(std::ignore, fsm, err) = parsePatterns(
       a, opts.Encodings,
-      {opts.LiteralMode, opts.CaseInsensitive, opts.AsciiMode}
+      {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
     );
 
     if (err) {

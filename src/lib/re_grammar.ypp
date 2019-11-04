@@ -25,7 +25,7 @@ namespace {
 
     bool LiteralMode;
     bool CaseInsensitive;
-    bool AsciiMode;
+    bool UnicodeMode;
 
     template <class... Args>
     ParseNode* add(Args&&... args) {
@@ -1117,26 +1117,26 @@ namespace {
     // named character classes
     case 'd':
       ctx->USet.reset();
-      setDigitClass(ctx->USet, ctx->AsciiMode);
+      setDigitClass(ctx->USet, !ctx->UnicodeMode);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'D':
       ctx->USet.reset();
-      setDigitClass(ctx->USet, ctx->AsciiMode);
+      setDigitClass(ctx->USet, !ctx->UnicodeMode);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
 
     case 's':
       ctx->USet.reset();
-      setSpaceClass(ctx->USet, ctx->AsciiMode);
+      setSpaceClass(ctx->USet, !ctx->UnicodeMode);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'S':
       ctx->USet.reset();
-      setSpaceClass(ctx->USet, ctx->AsciiMode);
+      setSpaceClass(ctx->USet, !ctx->UnicodeMode);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
@@ -1169,13 +1169,13 @@ namespace {
 
     case 'w':
       ctx->USet.reset();
-      setWordClass(ctx->USet, ctx->AsciiMode);
+      setWordClass(ctx->USet, !ctx->UnicodeMode);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'W':
       ctx->USet.reset();
-      setWordClass(ctx->USet, ctx->AsciiMode);
+      setWordClass(ctx->USet, !ctx->UnicodeMode);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
@@ -1448,7 +1448,7 @@ bool parse(const Pattern& p, ParseTree& tree) {
 
   ctx.LiteralMode = p.FixedString;
   ctx.CaseInsensitive = p.CaseInsensitive;
-  ctx.AsciiMode = p.AsciiMode;
+  ctx.UnicodeMode = p.UnicodeMode;
 
   ctx.TextBegin = ctx.Text = cp.data();
   ctx.TextEnd = ctx.Text + cp.size();

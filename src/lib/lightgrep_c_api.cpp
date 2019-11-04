@@ -87,7 +87,7 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
     pattern,
     static_cast<bool>(options->FixedString),
     static_cast<bool>(options->CaseInsensitive),
-    static_cast<bool>(options->AsciiMode)
+    static_cast<bool>(options->UnicodeMode)
   };
 
   return trapWithVals(
@@ -240,7 +240,7 @@ namespace {
           if (++ccur != cend) {
             opts.CaseInsensitive = boost::lexical_cast<bool>(*ccur);
             if (++ccur != cend) {
-              opts.AsciiMode = boost::lexical_cast<bool>(*ccur);
+              opts.UnicodeMode = boost::lexical_cast<bool>(*ccur);
             }
           }
         }

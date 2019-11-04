@@ -166,14 +166,14 @@ class KeyOpts(Structure):
     _fields_ = [
         ("FixedString", c_char),
         ("CaseInsensitive", c_char),
-        ("AsciiMode", c_char)
+        ("UnicodeMode", c_char)
     ]
 
-    def __init__(self, fixedString = False, caseInsensitive = False, asciiMode = True):
+    def __init__(self, fixedString = False, caseInsensitive = False, unicodeMode = False):
         super().__init__()
         self.FixedString = char_cast_bool(fixedString)
         self.CaseInsensitive = char_cast_bool(caseInsensitive)
-        self.AsciiMode = char_cast_bool(asciiMode)
+        self.UnicodeMode = char_cast_bool(unicodeMode)
 
     def isFixed(self):
         return bool_cast_char(self.FixedString)
@@ -182,8 +182,8 @@ class KeyOpts(Structure):
         # note that this returns "Sensitive", not "Insensitive"
         return not bool_cast_char(self.CaseInsensitive)
 
-    def isAsciiMode(self):
-        return bool_cast_char(self.AsciiMode)
+    def isUnicodeMode(self):
+        return bool_cast_char(self.UnicodeMode)
 
 
 class ProgOpts(Structure):
