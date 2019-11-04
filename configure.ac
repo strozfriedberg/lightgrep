@@ -82,11 +82,11 @@ PKG_PROG_PKG_CONFIG
 AS_IF([test "x$enable_shared" != "xyes"], [PKG_CONFIG="$PKG_CONFIG --static"])
 
 AC_LANG([C])
-AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe], [LG_CFLAGS])
+AX_APPEND_COMPILE_FLAGS([-std=c11 -W -Wall -Wextra -pedantic -pipe -g], [LG_CFLAGS])
 
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
-AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe], [LG_CXXFLAGS])
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -g], [LG_CXXFLAGS])
 
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug],
@@ -95,13 +95,13 @@ AC_ARG_ENABLE([debug],
   [enable_debug=no])
 
 if test "x$enable_debug" = "xyes"; then
-  AX_APPEND_COMPILE_FLAGS([-g -O0], [LG_CFLAGS])
-  AX_APPEND_COMPILE_FLAGS([-g -O0], [LG_CXXFLAGS])
+  OFLAGS='-O0'
 else
-  AX_APPEND_COMPILE_FLAGS([-O3], [LG_CFLAGS])
-  AX_APPEND_COMPILE_FLAGS([-O3], [LG_CXXFLAGS])
+  OFLAGS='-O3'
 fi
 
+AX_APPEND_COMPILE_FLAGS([$OFLAGS], [LG_CFLAGS])
+AX_APPEND_COMPILE_FLAGS([$OFLAGS], [LG_CXXFLAGS])
 
 # FIXME: mingw defaults to -g -O2, along with a bunch of other flags which
 # we want to keep.
