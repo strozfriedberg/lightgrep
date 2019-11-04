@@ -33,7 +33,7 @@ public class LightgrepTest {
     final KeyOptions kopts = new KeyOptions();
     kopts.FixedString = false;
     kopts.CaseInsensitive = false;
-    kopts.AsciiMode = true;
+    kopts.UnicodeMode = false;
 
     hPattern.parsePattern("meh", kopts);
   }
@@ -52,7 +52,7 @@ public class LightgrepTest {
       final KeyOptions kopts = new KeyOptions();
       kopts.FixedString = false;
       kopts.CaseInsensitive = false;
-      kopts.AsciiMode = true;
+      kopts.UnicodeMode = false;
 
       final int ret = hPattern.parsePattern("meh", kopts);
       assertTrue(ret != 0);
@@ -69,7 +69,7 @@ public class LightgrepTest {
       final KeyOptions kopts = new KeyOptions();
       kopts.FixedString = false;
       kopts.CaseInsensitive = false;
-      kopts.AsciiMode = true;
+      kopts.UnicodeMode = false;
 
       hPattern.parsePattern("(xyz", kopts);
     }
@@ -85,7 +85,7 @@ public class LightgrepTest {
       final KeyOptions kopts = new KeyOptions();
       kopts.FixedString = false;
       kopts.CaseInsensitive = false;
-      kopts.AsciiMode = true;
+      kopts.UnicodeMode = false;
 
       hPattern.parsePattern(null, kopts);
     }
@@ -307,7 +307,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
           final int ret = hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
@@ -337,7 +337,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("x*", kopts);
           hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
@@ -367,7 +367,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "UTF-13", 0);
@@ -407,7 +407,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
           hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
@@ -460,7 +460,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           final PatternInfo exp = new PatternInfo(
             "(xyzzy)+", "UTF-8", 42
@@ -540,7 +540,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
           hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
@@ -619,7 +619,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
           hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
@@ -653,7 +653,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
           hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
@@ -689,7 +689,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
           hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
@@ -727,7 +727,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
           hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
@@ -869,7 +869,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -904,7 +904,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -940,7 +940,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -976,7 +976,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1092,7 +1092,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1135,7 +1135,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1178,7 +1178,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1221,7 +1221,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1262,7 +1262,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1305,7 +1305,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1344,7 +1344,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1379,7 +1379,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1435,7 +1435,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1486,7 +1486,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1531,7 +1531,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1579,7 +1579,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1626,7 +1626,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);
@@ -1672,7 +1672,7 @@ public class LightgrepTest {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
-          kopts.AsciiMode = true;
+          kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
           hFsm.addPattern(hProg, hPattern, "ASCII", 0);

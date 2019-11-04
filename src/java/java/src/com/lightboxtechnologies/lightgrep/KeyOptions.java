@@ -9,5 +9,5 @@ public class KeyOptions {
 
   public boolean FixedString;
   public boolean CaseInsensitive;
-  public boolean AsciiMode;
+  public boolean UnicodeMode;
 }
