@@ -1503,10 +1503,9 @@ bool parse(const Pattern& p, ParseTree& tree) {
 
   ctx.LiteralMode = p.FixedString;
   ctx.Opts.push(
-      (p.CaseInsensitive ? 0 : CASED_MASK) |
-      (p.UnicodeMode ? 0 : ASCII_MASK)
+    (p.CaseInsensitive ? 0 : CASED_MASK) |
+    (p.UnicodeMode ? 0 : ASCII_MASK)
   );
->>>>>>> Added handling for in-pattern option flags (?i), (?a).
 
   ctx.TextBegin = ctx.Text = cp.data();
   ctx.TextEnd = ctx.Text + cp.size();

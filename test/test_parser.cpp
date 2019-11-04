@@ -119,7 +119,7 @@ SCOPE_TEST(parseCC_AtoZ_CaseInsensitiveTest) {
   const std::string p = "[A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, false}, actual));
+  SCOPE_ASSERT(parse({p, false, true, true}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -144,7 +144,7 @@ SCOPE_TEST(parseCC_AtoZ_CaseInsensitiveAsciiTest) {
   const std::string p = "[A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, true}, actual));
+  SCOPE_ASSERT(parse({p, false, true, false}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -511,7 +511,7 @@ SCOPE_TEST(parseNegCC_AtoZ_CaseInsensitiveTest) {
   const std::string p = "[^A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, false}, actual));
+  SCOPE_ASSERT(parse({p, false, true, true}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -536,7 +536,7 @@ SCOPE_TEST(parseNegCC_AtoZ_CaseInsensitiveAsciiTest) {
   const std::string p = "[^A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, true}, actual));
+  SCOPE_ASSERT(parse({p, false, true, false}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2148,7 +2148,7 @@ SCOPE_TEST(parse_ascii_mode_ks_03_Test) {
   const std::string p = "[ks]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, false, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2168,7 +2168,7 @@ SCOPE_TEST(parse_ascii_mode_ks_04_Test) {
   const std::string p = "[ks]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, true, false, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2188,7 +2188,7 @@ SCOPE_TEST(parse_ascii_mode_on_digit_Test) {
   const std::string p = "\\d";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2208,7 +2208,7 @@ SCOPE_TEST(parse_ascii_mode_off_digit_Test) {
   const std::string p = "\\d";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2228,7 +2228,7 @@ SCOPE_TEST(parse_ascii_mode_on_not_digit_Test) {
   const std::string p = "\\D";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2248,7 +2248,7 @@ SCOPE_TEST(parse_ascii_mode_off_not_digit_Test) {
   const std::string p = "\\D";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2351,7 +2351,7 @@ SCOPE_TEST(parse_ascii_mode_on_space_Test) {
   const std::string p = "\\s";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2371,7 +2371,7 @@ SCOPE_TEST(parse_ascii_mode_off_space_Test) {
   const std::string p = "\\s";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2394,7 +2394,7 @@ SCOPE_TEST(parse_ascii_mode_on_not_space_Test) {
   const std::string p = "\\S";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2414,7 +2414,7 @@ SCOPE_TEST(parse_ascii_mode_off_not_space_Test) {
   const std::string p = "\\S";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2442,7 +2442,7 @@ SCOPE_TEST(parse_ascii_mode_word_01_Test) {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2470,7 +2470,7 @@ SCOPE_TEST(parse_ascii_mode_word_02_Test) {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, true, false, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2490,7 +2490,7 @@ SCOPE_TEST(parse_ascii_mode_word_03_Test) {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2510,7 +2510,7 @@ SCOPE_TEST(parse_ascii_mode_word_04_Test) {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, false, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2538,7 +2538,7 @@ SCOPE_TEST(parse_ascii_mode_not_word_01_Test) {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2566,7 +2566,7 @@ SCOPE_TEST(parse_ascii_mode_not_word_02_Test) {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, true, false, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2586,7 +2586,7 @@ SCOPE_TEST(parse_ascii_mode_not_word_03_Test) {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
@@ -2606,7 +2606,7 @@ SCOPE_TEST(parse_ascii_mode_not_word_04_Test) {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, false, "UTF-8"}, actual));
+  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }

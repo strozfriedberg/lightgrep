@@ -24,9 +24,9 @@
 #include "stest.h"
 
 SCOPE_FIXTURE_CTOR(ai_switches_Search, STest, STest({
-  {"(?i)x((?-i)x)x", false, false, false, "UTF-8"},
-  {"(?i)k(?-i)k(?ai)k+", false, false, false, "UTF-8"},
-  {"(?i)k(?-i)k(?i)k+", false, false, false, "UTF-8"}
+  {"(?i)x((?-i)x)x", false, false, true, "UTF-8"},
+  {"(?i)k(?-i)k(?ai)k+", false, false, true, "UTF-8"},
+  {"(?i)k(?-i)k(?i)k+", false, false, true, "UTF-8"}
 })) {
   const char text[] = "XXX XxX xxx Kkkk Kk\xE2\x84\xAAK";
   fixture.search(text, text + 23, 0);
