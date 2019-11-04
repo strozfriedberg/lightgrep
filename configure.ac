@@ -76,6 +76,7 @@ AC_DEFINE_UNQUOTED(PACKAGE_DESCRIPTION, "$PACKAGE_DESCRIPTION", [Define to the d
 AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_CC_C_O
+AC_PROG_INSTALL
 
 PKG_PROG_PKG_CONFIG
 AS_IF([test "x$enable_shared" != "xyes"], [PKG_CONFIG="$PKG_CONFIG --static"])
@@ -101,7 +102,6 @@ else
   AX_APPEND_COMPILE_FLAGS([-O3], [LG_CXXFLAGS])
 fi
 
-AC_PROG_INSTALL
 
 # FIXME: mingw defaults to -g -O2, along with a bunch of other flags which
 # we want to keep.
