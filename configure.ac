@@ -90,8 +90,8 @@ AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe], [
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug],
     [build in debug mode, with symbols and no optimization])],
-  [enable-debug=yes],
-  [enable-debug=no])
+  [enable_debug=yes],
+  [enable_debug=no])
 
 if test "x$enable_debug" = "xyes"; then
   AX_APPEND_COMPILE_FLAGS([-g -O0], [LG_CFLAGS])
