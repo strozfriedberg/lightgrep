@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <initializer_list>
 #include <limits>
+#include <type_traits>
 
 template <typename T>
 class VectorFamily {
@@ -148,7 +149,7 @@ public:
   }
 
   T& at(Holder& l, typename Holder::size_type i) {
-    return const_cast<T&>(const_cast<const VectorFamily&>(*this).at(l, i));
+    return const_cast<T&>(std::as_const(*this).at(l, i));
   }
 
   const T& at(const Holder& l, typename Holder::size_type i) const {
@@ -165,7 +166,7 @@ public:
   }
 
   typename Holder::iterator find(Holder& l, T e) {
-    return const_cast<typename Holder::iterator>(const_cast<const VectorFamily&>(*this).find(l, e));
+    return const_cast<typename Holder::iterator>(std::as_const(*this).find(l, e));
   }
 
   typename Holder::const_iterator find(const Holder& l, T e) const {
@@ -180,7 +181,7 @@ public:
   }
 
   typename Holder::iterator begin(Holder& l) {
-    return const_cast<typename Holder::iterator>(const_cast<const VectorFamily&>(*this).begin(l));
+    return const_cast<typename Holder::iterator>(std::as_const(*this).begin(l));
   }
 
   typename Holder::const_iterator begin(const Holder& l) const {
@@ -194,7 +195,7 @@ public:
   }
 
   typename Holder::iterator end(Holder& l) {
-    return const_cast<typename Holder::iterator>(const_cast<const VectorFamily&>(*this).end(l));
+    return const_cast<typename Holder::iterator>(std::as_const(*this).end(l));
   }
 
   typename Holder::const_iterator end(const Holder& l) const {
