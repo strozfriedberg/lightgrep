@@ -63,7 +63,7 @@ private:
 
     VertexData(const VertexType& v): VertexType(v) {}
 
-    typename EdgeDescriptorStorage<EdgeDescriptor>::ListType In, Out;
+    typename EdgeDescriptorStorage<EdgeDescriptor>::List In, Out;
   };
 #pragma pack(pop)
 
@@ -140,7 +140,7 @@ public:
 
   class NeighborList {
   public:
-    typedef typename EdgeDescriptorStorage<EdgeDescriptor>::ListType::const_iterator base_iterator;
+    typedef typename EdgeDescriptorStorage<EdgeDescriptor>::List::const_iterator base_iterator;
 
     NeighborList(const EList& e, base_iterator eb, base_iterator ee, bool in):
       Edges(e), ebeg(eb), eend(ee), In(in) {}

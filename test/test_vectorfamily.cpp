@@ -35,13 +35,13 @@ void empty_test(V&& v, L&& l) {
 
 SCOPE_TEST(vectorfamily_empty_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   empty_test(v, l);
 }
 
 SCOPE_TEST(vectorfamily_const_empty_Test) {
   const VectorFamily<int> v;
-  const VectorFamily<int>::ListType l;
+  const VectorFamily<int>::List l;
   empty_test(v, l);
 }
 
@@ -64,14 +64,14 @@ void one_test(V&& v, L&& l) {
 
 SCOPE_TEST(vectorfamily_one_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 3);
   one_test(v, l);
 }
 
 SCOPE_TEST(vectorfamily_one_const_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 3);
   one_test(std::as_const(v), std::as_const(l));
 }
@@ -102,7 +102,7 @@ void two_test(V&& v, L&& l) {
 
 SCOPE_TEST(vectorfamily_two_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 3);
   v.add(l, 4);
   two_test(v, l);
@@ -110,7 +110,7 @@ SCOPE_TEST(vectorfamily_two_Test) {
 
 SCOPE_TEST(vectorfamily_two_const_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 3);
   v.add(l, 4);
   two_test(std::as_const(v), std::as_const(l));
@@ -146,7 +146,7 @@ void three_test(V&& v, L&& l) {
 
 SCOPE_TEST(vectorfamily_three_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 3);
   v.add(l, 4);
   v.add(l, 5);
@@ -155,7 +155,7 @@ SCOPE_TEST(vectorfamily_three_Test) {
 
 SCOPE_TEST(vectorfamily_three_const_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 3);
   v.add(l, 4);
   v.add(l, 5);
@@ -164,13 +164,13 @@ SCOPE_TEST(vectorfamily_three_const_Test) {
 
 SCOPE_TEST(vectorfamily_empty_remove_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   SCOPE_EXPECT(v.remove(l, 42), std::runtime_error);
 }
 
 SCOPE_TEST(vectorfamily_one_remove_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 42);
   SCOPE_ASSERT_EQUAL(1u, v.size(l));
   SCOPE_EXPECT(v.remove(l, 1), std::runtime_error);
@@ -181,7 +181,7 @@ SCOPE_TEST(vectorfamily_one_remove_Test) {
 
 SCOPE_TEST(vectorfamily_two_remove_first_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 42);
   v.add(l, 43);
   SCOPE_ASSERT_EQUAL(2u, v.size(l));
@@ -194,7 +194,7 @@ SCOPE_TEST(vectorfamily_two_remove_first_Test) {
 
 SCOPE_TEST(vectorfamily_two_remove_second_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 42);
   v.add(l, 43);
   SCOPE_ASSERT_EQUAL(2u, v.size(l));
@@ -207,7 +207,7 @@ SCOPE_TEST(vectorfamily_two_remove_second_Test) {
 
 SCOPE_TEST(vectorfamily_three_remove_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 42);
   v.add(l, 43);
   v.add(l, 44);
@@ -222,7 +222,7 @@ SCOPE_TEST(vectorfamily_three_remove_Test) {
 
 SCOPE_TEST(vectorfamily_empty_clear_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   SCOPE_ASSERT_EQUAL(0u, v.size(l));
   v.clear(l);
   SCOPE_ASSERT_EQUAL(0u, v.size(l));
@@ -230,7 +230,7 @@ SCOPE_TEST(vectorfamily_empty_clear_Test) {
 
 SCOPE_TEST(vectorfamily_one_clear_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 4);
   SCOPE_ASSERT_EQUAL(1u, v.size(l));
   v.clear(l);
@@ -239,7 +239,7 @@ SCOPE_TEST(vectorfamily_one_clear_Test) {
 
 SCOPE_TEST(vectorfamily_two_clear_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 4);
   v.add(l, 5);
   SCOPE_ASSERT_EQUAL(2u, v.size(l));
@@ -249,7 +249,7 @@ SCOPE_TEST(vectorfamily_two_clear_Test) {
 
 SCOPE_TEST(vectorfamily_three_clear_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
   v.add(l, 4);
   v.add(l, 5);
   v.add(l, 6);
@@ -260,7 +260,7 @@ SCOPE_TEST(vectorfamily_three_clear_Test) {
 
 SCOPE_TEST(vectorfamily_one_clear_one_keep_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l1, l2;
+  VectorFamily<int>::List l1, l2;
   v.add(l1, 4);
   v.add(l2, 5);
   SCOPE_ASSERT_EQUAL(1u, v.size(l1));
@@ -273,7 +273,7 @@ SCOPE_TEST(vectorfamily_one_clear_one_keep_Test) {
 
 SCOPE_TEST(vectorfamily_insert_front_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
 
   SCOPE_ASSERT_EQUAL(0u, v.size(l));
   v.insert(l, 0, 17);
@@ -287,7 +287,7 @@ SCOPE_TEST(vectorfamily_insert_front_Test) {
 
 SCOPE_TEST(vectorfamily_insert_back_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
 
   SCOPE_ASSERT_EQUAL(0u, v.size(l));
   v.insert(l, 0, 17);
@@ -301,7 +301,7 @@ SCOPE_TEST(vectorfamily_insert_back_Test) {
 
 SCOPE_TEST(vectorfamily_insert_mid_Test) {
   VectorFamily<int> v;
-  VectorFamily<int>::ListType l;
+  VectorFamily<int>::List l;
 
   SCOPE_ASSERT_EQUAL(0u, v.size(l));
   v.insert(l, 0, 17);
