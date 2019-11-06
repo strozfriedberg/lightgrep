@@ -24,7 +24,7 @@
 
 template <typename V, typename L>
 void empty_test(V&& v, L&& l) {
-  SCOPE_ASSERT_EQUAL(0, v.size(l));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l));
   SCOPE_ASSERT_EQUAL(0, v.end(l) - v.begin(l));
 
   SCOPE_EXPECT(v.at(l, 0), std::runtime_error);
@@ -47,7 +47,7 @@ SCOPE_TEST(vectorfamily_const_empty_Test) {
 
 template <typename V, typename L>
 void one_test(V&& v, L&& l) {
-  SCOPE_ASSERT_EQUAL(1, v.size(l));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l));
   SCOPE_ASSERT_EQUAL(1, v.end(l) - v.begin(l));
 
   SCOPE_ASSERT_EQUAL(3, v.at(l, 0));
@@ -78,7 +78,7 @@ SCOPE_TEST(vectorfamily_one_const_Test) {
 
 template <typename V, typename L>
 void two_test(V&& v, L&& l) {
-  SCOPE_ASSERT_EQUAL(2, v.size(l));
+  SCOPE_ASSERT_EQUAL(2u, v.size(l));
   SCOPE_ASSERT_EQUAL(2, v.end(l) - v.begin(l));
 
   SCOPE_ASSERT_EQUAL(3, v.at(l, 0));
@@ -118,7 +118,7 @@ SCOPE_TEST(vectorfamily_two_const_Test) {
 
 template <typename V, typename L>
 void three_test(V&& v, L&& l) {
-  SCOPE_ASSERT_EQUAL(3, v.size(l));
+  SCOPE_ASSERT_EQUAL(3u, v.size(l));
   SCOPE_ASSERT_EQUAL(3, v.end(l) - v.begin(l));
 
   SCOPE_ASSERT_EQUAL(3, v.at(l, 0));
@@ -172,11 +172,11 @@ SCOPE_TEST(vectorfamily_one_remove_Test) {
   VectorFamily<int> v;
   VectorFamily<int>::ListType l;
   v.add(l, 42);
-  SCOPE_ASSERT_EQUAL(1, v.size(l));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l));
   SCOPE_EXPECT(v.remove(l, 1), std::runtime_error);
-  SCOPE_ASSERT_EQUAL(1, v.size(l));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l));
   v.remove(l, 42);
-  SCOPE_ASSERT_EQUAL(0, v.size(l));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l));
 }
 
 SCOPE_TEST(vectorfamily_two_remove_first_Test) {
@@ -184,11 +184,11 @@ SCOPE_TEST(vectorfamily_two_remove_first_Test) {
   VectorFamily<int>::ListType l;
   v.add(l, 42);
   v.add(l, 43);
-  SCOPE_ASSERT_EQUAL(2, v.size(l));
+  SCOPE_ASSERT_EQUAL(2u, v.size(l));
   SCOPE_EXPECT(v.remove(l, 1), std::runtime_error);
-  SCOPE_ASSERT_EQUAL(2, v.size(l));
+  SCOPE_ASSERT_EQUAL(2u, v.size(l));
   v.remove(l, 42);
-  SCOPE_ASSERT_EQUAL(1, v.size(l));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l));
   SCOPE_ASSERT_EQUAL(43, v.at(l, 0));
 }
 
@@ -197,11 +197,11 @@ SCOPE_TEST(vectorfamily_two_remove_second_Test) {
   VectorFamily<int>::ListType l;
   v.add(l, 42);
   v.add(l, 43);
-  SCOPE_ASSERT_EQUAL(2, v.size(l));
+  SCOPE_ASSERT_EQUAL(2u, v.size(l));
   SCOPE_EXPECT(v.remove(l, 1), std::runtime_error);
-  SCOPE_ASSERT_EQUAL(2, v.size(l));
+  SCOPE_ASSERT_EQUAL(2u, v.size(l));
   v.remove(l, 43);
-  SCOPE_ASSERT_EQUAL(1, v.size(l));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l));
   SCOPE_ASSERT_EQUAL(42, v.at(l, 0));
 }
 
@@ -211,11 +211,11 @@ SCOPE_TEST(vectorfamily_three_remove_Test) {
   v.add(l, 42);
   v.add(l, 43);
   v.add(l, 44);
-  SCOPE_ASSERT_EQUAL(3, v.size(l));
+  SCOPE_ASSERT_EQUAL(3u, v.size(l));
   SCOPE_EXPECT(v.remove(l, 1), std::runtime_error);
-  SCOPE_ASSERT_EQUAL(3, v.size(l));
+  SCOPE_ASSERT_EQUAL(3u, v.size(l));
   v.remove(l, 43);
-  SCOPE_ASSERT_EQUAL(2, v.size(l));
+  SCOPE_ASSERT_EQUAL(2u, v.size(l));
   SCOPE_ASSERT_EQUAL(42, v.at(l, 0));
   SCOPE_ASSERT_EQUAL(44, v.at(l, 1));
 }
@@ -223,18 +223,18 @@ SCOPE_TEST(vectorfamily_three_remove_Test) {
 SCOPE_TEST(vectorfamily_empty_clear_Test) {
   VectorFamily<int> v;
   VectorFamily<int>::ListType l;
-  SCOPE_ASSERT_EQUAL(0, v.size(l));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l));
   v.clear(l);
-  SCOPE_ASSERT_EQUAL(0, v.size(l));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l));
 }
 
 SCOPE_TEST(vectorfamily_one_clear_Test) {
   VectorFamily<int> v;
   VectorFamily<int>::ListType l;
   v.add(l, 4);
-  SCOPE_ASSERT_EQUAL(1, v.size(l));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l));
   v.clear(l);
-  SCOPE_ASSERT_EQUAL(0, v.size(l));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l));
 }
 
 SCOPE_TEST(vectorfamily_two_clear_Test) {
@@ -242,9 +242,9 @@ SCOPE_TEST(vectorfamily_two_clear_Test) {
   VectorFamily<int>::ListType l;
   v.add(l, 4);
   v.add(l, 5);
-  SCOPE_ASSERT_EQUAL(2, v.size(l));
+  SCOPE_ASSERT_EQUAL(2u, v.size(l));
   v.clear(l);
-  SCOPE_ASSERT_EQUAL(0, v.size(l));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l));
 }
 
 SCOPE_TEST(vectorfamily_three_clear_Test) {
@@ -253,9 +253,9 @@ SCOPE_TEST(vectorfamily_three_clear_Test) {
   v.add(l, 4);
   v.add(l, 5);
   v.add(l, 6);
-  SCOPE_ASSERT_EQUAL(3, v.size(l));
+  SCOPE_ASSERT_EQUAL(3u, v.size(l));
   v.clear(l);
-  SCOPE_ASSERT_EQUAL(0, v.size(l));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l));
 }
 
 SCOPE_TEST(vectorfamily_one_clear_one_keep_Test) {
@@ -263,11 +263,11 @@ SCOPE_TEST(vectorfamily_one_clear_one_keep_Test) {
   VectorFamily<int>::ListType l1, l2;
   v.add(l1, 4);
   v.add(l2, 5);
-  SCOPE_ASSERT_EQUAL(1, v.size(l1));
-  SCOPE_ASSERT_EQUAL(1, v.size(l2));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l1));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l2));
   v.clear(l1);
-  SCOPE_ASSERT_EQUAL(0, v.size(l1));
-  SCOPE_ASSERT_EQUAL(1, v.size(l2));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l1));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l2));
   SCOPE_ASSERT_EQUAL(5, v.at(l2, 0));
 }
 
@@ -275,12 +275,12 @@ SCOPE_TEST(vectorfamily_insert_front_Test) {
   VectorFamily<int> v;
   VectorFamily<int>::ListType l;
 
-  SCOPE_ASSERT_EQUAL(0, v.size(l));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l));
   v.insert(l, 0, 17);
-  SCOPE_ASSERT_EQUAL(1, v.size(l));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l));
   SCOPE_ASSERT_EQUAL(17, v.at(l, 0));
   v.insert(l, 0, 18);
-  SCOPE_ASSERT_EQUAL(2, v.size(l));
+  SCOPE_ASSERT_EQUAL(2u, v.size(l));
   SCOPE_ASSERT_EQUAL(18, v.at(l, 0));
   SCOPE_ASSERT_EQUAL(17, v.at(l, 1));
 }
@@ -289,12 +289,12 @@ SCOPE_TEST(vectorfamily_insert_back_Test) {
   VectorFamily<int> v;
   VectorFamily<int>::ListType l;
 
-  SCOPE_ASSERT_EQUAL(0, v.size(l));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l));
   v.insert(l, 0, 17);
-  SCOPE_ASSERT_EQUAL(1, v.size(l));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l));
   SCOPE_ASSERT_EQUAL(17, v.at(l, 0));
   v.insert(l, 1, 18);
-  SCOPE_ASSERT_EQUAL(2, v.size(l));
+  SCOPE_ASSERT_EQUAL(2u, v.size(l));
   SCOPE_ASSERT_EQUAL(17, v.at(l, 0));
   SCOPE_ASSERT_EQUAL(18, v.at(l, 1));
 }
@@ -303,16 +303,16 @@ SCOPE_TEST(vectorfamily_insert_mid_Test) {
   VectorFamily<int> v;
   VectorFamily<int>::ListType l;
 
-  SCOPE_ASSERT_EQUAL(0, v.size(l));
+  SCOPE_ASSERT_EQUAL(0u, v.size(l));
   v.insert(l, 0, 17);
-  SCOPE_ASSERT_EQUAL(1, v.size(l));
+  SCOPE_ASSERT_EQUAL(1u, v.size(l));
   SCOPE_ASSERT_EQUAL(17, v.at(l, 0));
   v.insert(l, 1, 18);
-  SCOPE_ASSERT_EQUAL(2, v.size(l));
+  SCOPE_ASSERT_EQUAL(2u, v.size(l));
   SCOPE_ASSERT_EQUAL(17, v.at(l, 0));
   SCOPE_ASSERT_EQUAL(18, v.at(l, 1));
   v.insert(l, 1, 19);
-  SCOPE_ASSERT_EQUAL(3, v.size(l));
+  SCOPE_ASSERT_EQUAL(3u, v.size(l));
   SCOPE_ASSERT_EQUAL(17, v.at(l, 0));
   SCOPE_ASSERT_EQUAL(19, v.at(l, 1));
   SCOPE_ASSERT_EQUAL(18, v.at(l, 2));
