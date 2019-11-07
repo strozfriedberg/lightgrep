@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-. jenkins-setup/build_config.sh
+. build_setup/build_config.sh
 
 ./bootstrap.sh
 
