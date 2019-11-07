@@ -85,7 +85,7 @@ AC_LANG([C])
 AX_APPEND_COMPILE_FLAGS([-std=c11 -W -Wall -Wextra -pedantic -pipe -g], [LG_CFLAGS])
 
 AC_LANG([C++])
-AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
 AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -g], [LG_CXXFLAGS])
 
 AC_ARG_ENABLE([debug],

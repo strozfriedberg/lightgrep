@@ -40,8 +40,41 @@ extern "C" {
   // Options for pattern parsing
   typedef struct {
     char FixedString;     // 0 => grep, non-zero => fixed-string
-    char CaseInsensitive; // 0 => case sensitive, non-zero => case-insensitive
+    char CaseInsensitive; // 0 => case sensitive, non-zero => case insensitive
+    char UnicodeMode;     // 0 => ASCII mode, non-zero => Unicode mode
   } LG_KeyOptions;
+
+  //
+  // ASCII mode vs Unicode mode
+  //
+  // ASCII mode has two effects:
+  //
+  // *) The named character classes \d, \s, \w are restricted to match only
+  //    ASCII characters. (E.g., \w in ASCII mode will not match Greek letters,
+  //    but \w in Unicode mode will.)
+  //
+  // *) ASCII code points in case insensitive patterns case fold to ASCII code
+  //    points only. (E.g., case-insensitive [ks] in ASCII mode is eqivalent to
+  //    [KSks], but case-insensitive [ks] in Unicode mode is equivalent to
+  //    [KSks\N{KELVIN SIGN}\N{LATIN SMALL LETTER LONG S}], because KELVIN SIGN
+  //    case folds to k and LATIN SMALL LETTER LONG S case folds to s.
+  //
+  // In contrast, Unicode mode is more expansive:
+  //
+  // *) \d matches characters in Unicode category Nd (Number, Decimal Digit)
+  //
+  // *) \s matches characters in Unicode category Z (Separator), along with
+  //    everything matched by \h (horizontal space) and \v (vertical space)
+  //
+  // *) \w matches the underscore '_' and charaters in Unicode categories L
+  //    (Letter) or N (Number).
+  //
+  // *) Full Unicode case folding is applied to case insensitive patterns.
+  //    Hence [ks] will match KELVIN SIGN and LATIN SMALL LETTER LONG S.
+  //
+  // See also the discussions of /a and /aa in perlre(1) and of (*UCP) in
+  // pcrepattern(3).
+  //
 
   // Encoding options for patterns
   typedef struct {
@@ -104,6 +137,19 @@ extern "C" {
                      uint64_t userIndex,
                      LG_Error** err);
 
+  // Adds patterns to the FSM and Program. Each line of the pattern string
+  // shall be formatted as tab separated columns:
+  //
+  //  pattern enc1,enc2,... fixedstring casesensitive asciimode
+  //
+  // where "pattern" is the pattern, "enc1,enc2,..." is a comma-separated
+  // list of encodings, and "fixedstring", "casesensitive", and "asciimode"
+  // are each 0 or 1 to set those options on or off. Any column except the
+  // first (the pattern) may be omitted from any given line, on the condition
+  // that every column to the right of the omitted column is also omitted.
+  // The values of defaultEncodings and defaultOptions are used in case of
+  // omitted columns. The "source" parameter indicates the source of the
+  // patterns string (e.g., a path) and is used in error messages.
   int lg_add_pattern_list(LG_HFSM hFsm,
                           LG_HPROGRAM hProg,
                           const char* patterns,
@@ -113,16 +159,21 @@ extern "C" {
                           const LG_KeyOptions* defaultOptions,
                           LG_Error** err);
 
+  // The number of pattern-encoding pairs recognized by the Program. This
+  // will be one greater than the maximum pattern index accepted by
+  // lg_pattern_info().
   unsigned int lg_pattern_count(const LG_HPROGRAM hProg);
 
   LG_PatternInfo* lg_pattern_info(LG_HPROGRAM hProg,
                                   unsigned int patternIndex);
 
-  // Create a "Program" from a parser, which efficiently encodes the logic for
-  // recognizing all the specified keywords. Once a program has been created,
-  // the parser can be discarded.
+  // Create an empty Program. The Program houses both the search logic and
+  // the list of patterns against which hits may be reported.
   LG_HPROGRAM lg_create_program(unsigned int numTotalPatternsSizeHint);
 
+  // Compile the FSM into the search logic held by a Program. Once a Program
+  // has been compiled, it may no longer be altered and the FSM may be
+  // discarded.
   int lg_compile_program(const LG_HFSM hFsm, LG_HPROGRAM hProg, const LG_ProgramOptions* options);
 
   // The size, in bytes, of the search program. Used for serialization.

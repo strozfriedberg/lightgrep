@@ -221,6 +221,7 @@ test_test_SOURCES = \
 	test/test_utf8.cpp \
 	test/test_utf8decoder.cpp \
 	test/test_utility.cpp \
+	test/test_vectorfamily.cpp \
 	test/test_vm.cpp \
 	test/test_xorencoder.cpp
 

@@ -41,6 +41,15 @@ SCOPE_TEST(testUnicodeSetICUToLGDstNonEmpty) {
   SCOPE_ASSERT_EQUAL(exp, act);
 }
 
+SCOPE_TEST(testUnicodeSetICUToLGDstNonEmptyAdd) {
+  // test that addUnicodeSet does not clear dst
+  std::unique_ptr<USet, void(*)(USet*)> src(uset_open(0x27, 0x3F), uset_close);
+  UnicodeSet exp{{0x27,0x40},{0xBEEF, 0xBEF0}}, act{0xBEEF};
+
+  addUnicodeSet(act, src.get());
+  SCOPE_ASSERT_EQUAL(exp, act);
+}
+
 SCOPE_TEST(testUnicodeSetLGToICUDstEmpty) {
   UnicodeSet src{{0x27,0x40}};
   std::unique_ptr<USet, void(*)(USet*)> exp(uset_open(0x27, 0x3F), uset_close);
