@@ -24,25 +24,30 @@ class Pattern {
 public:
   std::string Expression;
   bool        FixedString,
-              CaseInsensitive;
+              CaseInsensitive,
+              UnicodeMode;
   std::string Encoding;
 
   Pattern(const char* expr,
           bool fixed = false,
           bool insensitive = false,
+          bool unicode_mode = false,
           const std::string& enc = "US-ASCII"):
     Expression(expr),
     FixedString(fixed),
     CaseInsensitive(insensitive),
+    UnicodeMode(unicode_mode),
     Encoding(enc) {}
 
   Pattern(const std::string& expr = "",
           bool fixed = false,
           bool insensitive = false,
+          bool unicode_mode = false,
           const std::string& enc = "US-ASCII"):
     Expression(expr),
     FixedString(fixed),
     CaseInsensitive(insensitive),
+    UnicodeMode(unicode_mode),
     Encoding(enc) {}
 
   Pattern(const Pattern&) = default;
@@ -56,6 +61,7 @@ public:
   bool operator==(const Pattern& p) const {
     return FixedString == p.FixedString &&
            CaseInsensitive == p.CaseInsensitive &&
+           UnicodeMode == p.UnicodeMode &&
            Expression == p.Expression &&
            Encoding == p.Encoding;
   }

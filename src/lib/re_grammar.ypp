@@ -25,6 +25,7 @@ namespace {
 
     bool LiteralMode;
     bool CaseInsensitive;
+    bool UnicodeMode;
 
     template <class... Args>
     ParseNode* add(Args&&... args) {
@@ -290,6 +291,7 @@ atom:
   }
 | WHACK_SMALL_B
   {
+    // TODO: ASCII mode affects \b as it's defined on \w, \W
     // \b  = ((?<!\w)(?!\W)|(?<!\W)(?!\w))
 
     ctx->USet.reset();
@@ -316,6 +318,7 @@ atom:
   }
 | NON_WORD_BOUNDARY
   {
+    // TODO: ASCII mode affects \B as it's defined on \w, \W
     // \B  = ((?<!\w)(?!\w)|(?<!\W)(?!\W))
 
     ctx->USet.reset();
@@ -1114,53 +1117,65 @@ namespace {
     // named character classes
     case 'd':
       ctx->USet.reset();
-      ctx->USet.insert('0', '9' + 1);
+      setDigitClass(ctx->USet, !ctx->UnicodeMode);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'D':
       ctx->USet.reset();
-      ctx->USet.insert('0', '9' + 1);
+      setDigitClass(ctx->USet, !ctx->UnicodeMode);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
 
     case 's':
       ctx->USet.reset();
-      ctx->USet.set('\t');
-      ctx->USet.set('\n');
-      ctx->USet.set('\f');
-      ctx->USet.set('\r');
-      ctx->USet.set(' ');
+      setSpaceClass(ctx->USet, !ctx->UnicodeMode);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'S':
       ctx->USet.reset();
-      ctx->USet.set('\t');
-      ctx->USet.set('\n');
-      ctx->USet.set('\f');
-      ctx->USet.set('\r');
-      ctx->USet.set(' ');
+      setSpaceClass(ctx->USet, !ctx->UnicodeMode);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'h':
+      ctx->USet.reset();
+      setHorizontalSpaceClass(ctx->USet);
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'H':
+      ctx->USet.reset();
+      setHorizontalSpaceClass(ctx->USet);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'v':
+      ctx->USet.reset();
+      setVerticalSpaceClass(ctx->USet);
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'V':
+      ctx->USet.reset();
+      setVerticalSpaceClass(ctx->USet);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
 
     case 'w':
       ctx->USet.reset();
-      ctx->USet.insert('0', '9' + 1);
-      ctx->USet.insert('A', 'Z' + 1);
-      ctx->USet.set('_');
-      ctx->USet.insert('a', 'z' + 1);
+      setWordClass(ctx->USet, !ctx->UnicodeMode);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'W':
       ctx->USet.reset();
-      ctx->USet.insert('0', '9' + 1);
-      ctx->USet.insert('A', 'Z' + 1);
-      ctx->USet.set('_');
-      ctx->USet.insert('a', 'z' + 1);
+      setWordClass(ctx->USet, !ctx->UnicodeMode);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
@@ -1433,6 +1448,7 @@ bool parse(const Pattern& p, ParseTree& tree) {
 
   ctx.LiteralMode = p.FixedString;
   ctx.CaseInsensitive = p.CaseInsensitive;
+  ctx.UnicodeMode = p.UnicodeMode;
 
   ctx.TextBegin = ctx.Text = cp.data();
   ctx.TextEnd = ctx.Text + cp.size();
