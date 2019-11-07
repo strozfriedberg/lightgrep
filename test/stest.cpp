@@ -55,10 +55,7 @@ void STest::init(const std::vector<Pattern>& pats) {
   for (const Pattern& p : pats) {
     LG_Error* err = nullptr;
 
-    keyOpts.FixedString = p.FixedString;
-    keyOpts.CaseInsensitive = p.CaseInsensitive;
-    keyOpts.UnicodeMode = p.UnicodeMode;
-
+    keyOpts = { p.FixedString, p.CaseInsensitive, p.UnicodeMode };
     lg_parse_pattern(pat.get(), p.Expression.c_str(), &keyOpts, &err);
 
     if (!err) {
