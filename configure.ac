@@ -82,11 +82,11 @@ PKG_PROG_PKG_CONFIG
 AS_IF([test "x$enable_shared" != "xyes"], [PKG_CONFIG="$PKG_CONFIG --static"])
 
 AC_LANG([C])
-AX_APPEND_COMPILE_FLAGS([-std=c11 -W -Wall -Wextra -pedantic -pipe -g], [LG_CFLAGS])
+AX_APPEND_COMPILE_FLAGS([-std=c11 -W -Wall -Wextra -pedantic -pipe], [LG_CFLAGS])
 
 AC_LANG([C++])
 AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
-AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -g], [LG_CXXFLAGS])
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe], [LG_CXXFLAGS])
 
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug],
@@ -94,14 +94,18 @@ AC_ARG_ENABLE([debug],
   [enable_debug=yes],
   [enable_debug=no])
 
-if test "x$enable_debug" = "xyes"; then
-  OFLAGS='-O0'
-else
-  OFLAGS='-O3'
-fi
+AS_IF([test "x$enable_debug" = "xyes"], [OFLAGS='-O0'], [OFLAGS='-O3'])
 
-AX_APPEND_COMPILE_FLAGS([$OFLAGS], [LG_CFLAGS])
-AX_APPEND_COMPILE_FLAGS([$OFLAGS], [LG_CXXFLAGS])
+AC_ARG_ENABLE([symbols],
+  [AS_HELP_STRING([--with-symbols],
+    [build with debugging symbols])],
+  [with_symbols=yes],
+  [with_symbols=no])
+
+AS_IF([test "x$with_symbols" != "xno"], [SYMBOLS='-g'], [SYMBOLS=''])
+
+AX_APPEND_COMPILE_FLAGS([$SYMBOLS $OFLAGS], [LG_CFLAGS])
+AX_APPEND_COMPILE_FLAGS([$SYMBOLS $OFLAGS], [LG_CXXFLAGS])
 
 # FIXME: mingw defaults to -g -O2, along with a bunch of other flags which
 # we want to keep.
@@ -397,8 +401,8 @@ AC_MSG_NOTICE([CXX:      $CXX])
 AC_MSG_NOTICE([CPPFLAGS: $CPPFLAGS])
 AC_MSG_NOTICE([CFLAGS:   $CFLAGS])
 AC_MSG_NOTICE([CXXFLAGS: $CXXFLAGS])
-AC_MSG_NOTICE([LIBS:     $LIBS])
 AC_MSG_NOTICE([LDFLAGS:  $LDFLAGS])
+AC_MSG_NOTICE([LIBS:     $LIBS])
 
 AC_CONFIG_FILES([Makefile liblightgrep.spec mingw-liblightgrep.spec])
 AC_OUTPUT
