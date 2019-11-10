@@ -30,10 +30,7 @@ public:
   } Command;
 
   std::string Output,
-              ServerAddr,
-              ServerLog,
               ProgramFile,
-              StatsFileName,
               GroupSeparator;
 
   std::vector<std::string> Inputs,
@@ -47,10 +44,9 @@ public:
   int32_t BeforeContext = -1,
           AfterContext = -1;
 
-  unsigned short ServerPort;
-
   bool CaseInsensitive,
        LiteralMode,
+       UnicodeMode,
        NoOutput,
        Determinize,
        PrintPath,

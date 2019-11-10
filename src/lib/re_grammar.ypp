@@ -1,0 +1,1464 @@
+%code requires {
+#include "parsenode.h"
+#include "parsetree.h"
+#include "parseutil.h"
+#include "pattern.h"
+#include "unicode.h"
+#include "encoders/utf8.h"
+
+#include <iomanip>
+#include <sstream>
+#include <string>
+#include <vector>
+
+namespace {
+  struct Context {
+    const int* Text;
+    const int* TextBegin;
+    const int* TextEnd;
+
+    int TokenType;
+
+    ParseTree* Tree;
+
+    UnicodeSet USet;
+
+    bool LiteralMode;
+    bool CaseInsensitive;
+    bool UnicodeMode;
+
+    template <class... Args>
+    ParseNode* add(Args&&... args) {
+      return Tree->add(std::forward<Args>(args)...);
+    }
+  };
+
+  union YYSTYPE {
+    int c;
+    ParseNode* node;
+    UnicodeSet* s;
+  };
+
+  struct YYLTYPE {
+    int first_line; // unused
+    int first_column;
+    int last_line;  // unused
+    int last_column;
+  };
+
+  struct ParseError {
+    enum {
+      NONATOMIC_REPETITON,
+      REVERSED_REPETITION_BOUNDS,
+      INVALID_ESCAPE,
+      UNMATCHED_PARENTHESIS,
+      UNMATCHED_BRACKET,
+      EMPTY_CHAR_CLASS,
+      REVERSED_CHAR_RANGE_BOUNDS,
+      REVERSED_BYTE_RANGE_BOUNDS,
+      SET_OPERATOR_MISSING_OPERAND
+    } Type;
+
+    int Begin;
+    int End;
+    int First;
+    int Second;
+
+    ParseError(
+      decltype(Type) type, int begin, int end, int first = -1, int second = -1
+    ):
+      Type(type), Begin(begin), End(end), First(first), Second(second)
+    {}
+  };
+
+  static int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, Context* ctx);
+  static void yyerror(YYLTYPE* yylloc, Context* ctx, const char* msg);
+
+  void throwError(ParseError e, Context* ctx);
+}
+
+#define YYLTYPE_IS_DECLARED 1
+#define YYLTYPE_IS_TRIVIAL 1
+
+#define YYDEBUG 0
+
+#if YYDEBUG
+extern int yydebug;
+#endif
+}
+
+%locations
+%define api.pure
+%lex-param { Context* ctx }
+%parse-param { Context* ctx }
+
+%expect 1
+
+//%debug
+
+%error-verbose
+
+%token <c> BYTE
+%token <c> CHAR
+%token <c> DIGIT
+
+%token <c> HYPHEN_HYPHEN
+%token <c> AMP_AMP
+%token <c> TILDE_TILDE
+
+%token <c> TEXT_START
+%token <c> TEXT_END
+%token <c> NON_WORD_BOUNDARY
+%token <c> KILL
+%token <c> WHACK_SMALL_B
+
+%token <c> BAD "invalid escape"
+%token <s> SET
+
+%token END 0 "end of pattern"
+
+%type <node> regexp alt concat rep number atom literal charclass cc_named cc_expr_pos cc_expr_neg cc_atom
+%type <c> character cc_char cc_char_first cc_char_not_first
+
+%type <c> UNION INTERSECT MINUS XOR LEAST
+
+%left LEAST
+%left UNION
+%left INTERSECT MINUS XOR
+%nonassoc '-'
+
+%start regexp
+
+%%
+
+regexp:
+  alt
+  {
+    ctx->Tree->Root = $$ = ctx->add(ParseNode::REGEXP, $1);
+  }
+;
+
+alt:
+  concat
+| alt '|' concat
+  {
+    $$ = ctx->add(ParseNode::ALTERNATION, $1, $3);
+  }
+;
+
+concat:
+  rep
+| concat rep
+  {
+    $$ = ctx->add(ParseNode::CONCATENATION, $1, $2);
+  }
+| concat KILL
+  {
+    $$ = ctx->add(ParseNode::LOOKBEHIND_POS, $1);
+  }
+;
+
+rep:
+  atom
+| atom '*' '?'
+  {
+    $$ = ctx->add(ParseNode::REPETITION_NG, $1, 0, UNBOUNDED);
+  }
+| atom '+' '?'
+  {
+    $$ = ctx->add(ParseNode::REPETITION_NG, $1, 1, UNBOUNDED);
+  }
+| atom '?' '?'
+  {
+    $$ = ctx->add(ParseNode::REPETITION_NG, $1, 0, 1);
+  }
+| atom '{' number '}' '?'
+  {
+    $$ = ctx->add(ParseNode::REPETITION_NG, $1, $3->Val, $3->Val);
+  }
+| atom '{' number ',' '}' '?'
+  {
+    $$ = ctx->add(ParseNode::REPETITION_NG, $1, $3->Val, UNBOUNDED);
+  }
+| atom '{' number ',' number '}' '?'
+  {
+    if ($3->Val > $5->Val) {
+      // {n,m} is ill-formed when n > m
+      throwError(
+        {
+          ParseError::REVERSED_REPETITION_BOUNDS,
+          @2.first_column, @7.last_column,
+          $3->Val, $5->Val
+        },
+        ctx
+      );
+    }
+    else {
+      $$ = ctx->add(ParseNode::REPETITION_NG, $1, $3->Val, $5->Val);
+    }
+  }
+| atom '*'
+  {
+    $$ = ctx->add(ParseNode::REPETITION, $1, 0, UNBOUNDED);
+  }
+| atom '+'
+  {
+    $$ = ctx->add(ParseNode::REPETITION, $1, 1, UNBOUNDED);
+  }
+| atom '?'
+  {
+    $$ = ctx->add(ParseNode::REPETITION, $1, 0, 1);
+  }
+| atom '{' number '}'
+  {
+    $$ = ctx->add(ParseNode::REPETITION, $1, $3->Val, $3->Val);
+  }
+| atom '{' number ',' '}'
+  {
+    $$ = ctx->add(ParseNode::REPETITION, $1, $3->Val, UNBOUNDED);
+  }
+| atom '{' number ',' number '}'
+  {
+    if ($3->Val > $5->Val) {
+      // {n,m} is ill-formed when n > m
+      throwError(
+        {
+          ParseError::REVERSED_REPETITION_BOUNDS,
+          @2.first_column, @6.last_column,
+          $3->Val, $5->Val,
+        },
+        ctx
+      );
+    }
+    else {
+      $$ = ctx->add(ParseNode::REPETITION, $1, $3->Val, $5->Val);
+    }
+  }
+;
+
+number:
+  DIGIT
+  {
+    $$ = ctx->add(ParseNode::TEMPORARY, $1 - 48);
+  }
+| number DIGIT
+  {
+    $$ = $1;
+    $$->Val = $$->Val*10 + ($2 - 48);
+  }
+;
+
+atom:
+  '(' alt ')'
+  {
+    $$ = $2;
+  }
+| '(' alt error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_PARENTHESIS,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '(' error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_PARENTHESIS,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '(' '?' '<' '=' alt ')'
+  {
+    $$ = ctx->add(ParseNode::LOOKBEHIND_POS, $5);
+  }
+| '(' '?' '<' '!' alt ')'
+  {
+    $$ = ctx->add(ParseNode::LOOKBEHIND_NEG, $5);
+  }
+| '(' '?' '=' alt ')'
+  {
+    $$ = ctx->add(ParseNode::LOOKAHEAD_POS, $4);
+  }
+| '(' '?' '!' alt ')'
+  {
+    $$ = ctx->add(ParseNode::LOOKAHEAD_NEG, $4);
+  }
+| WHACK_SMALL_B
+  {
+    // TODO: ASCII mode affects \b as it's defined on \w, \W
+    // \b  = ((?<!\w)(?!\W)|(?<!\W)(?!\w))
+
+    ctx->USet.reset();
+    ctx->USet.insert('0', '9' + 1);
+    ctx->USet.insert('A', 'Z' + 1);
+    ctx->USet.set('_');
+    ctx->USet.insert('a', 'z' + 1);
+    ParseNode* w = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+
+    ctx->USet.flip();
+    ParseNode* W = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+
+    ParseNode* nlw = ctx->add(ParseNode::LOOKBEHIND_NEG, w);
+    ParseNode* nrW = ctx->add(ParseNode::LOOKAHEAD_NEG, W);
+    ParseNode* l = ctx->add(ParseNode::CONCATENATION, nlw, nrW);
+
+    W = ctx->add(*W);
+    w = ctx->add(*w);
+    ParseNode* nlW = ctx->add(ParseNode::LOOKBEHIND_NEG, W);
+    ParseNode* nrw = ctx->add(ParseNode::LOOKAHEAD_NEG, w);
+    ParseNode* r = ctx->add(ParseNode::CONCATENATION, nlW, nrw);
+
+    $$ = ctx->add(ParseNode::ALTERNATION, l, r);
+  }
+| NON_WORD_BOUNDARY
+  {
+    // TODO: ASCII mode affects \B as it's defined on \w, \W
+    // \B  = ((?<!\w)(?!\w)|(?<!\W)(?!\W))
+
+    ctx->USet.reset();
+    ctx->USet.insert('0', '9' + 1);
+    ctx->USet.insert('A', 'Z' + 1);
+    ctx->USet.set('_');
+    ctx->USet.insert('a', 'z' + 1);
+    ParseNode* w = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+
+    ctx->USet.flip();
+    ParseNode* W = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+
+    ParseNode* nlw = ctx->add(ParseNode::LOOKBEHIND_NEG, w);
+    w = ctx->add(*w);
+    ParseNode* nrw = ctx->add(ParseNode::LOOKAHEAD_NEG, w);
+    ParseNode* l = ctx->add(ParseNode::CONCATENATION, nlw, nrw);
+
+    ParseNode* nlW = ctx->add(ParseNode::LOOKBEHIND_NEG, W);
+    W = ctx->add(*W);
+    ParseNode* nrW = ctx->add(ParseNode::LOOKAHEAD_NEG, W);
+    ParseNode* r = ctx->add(ParseNode::CONCATENATION, nlW, nrW);
+
+    $$ = ctx->add(ParseNode::ALTERNATION, l, r);
+  }
+| TEXT_START
+  {
+    ParseNode *dot = ctx->add(ParseNode::DOT, '.');
+    $$ = ctx->add(ParseNode::LOOKBEHIND_NEG, dot);
+  }
+| TEXT_END
+  {
+    ParseNode *dot = ctx->add(ParseNode::DOT, '.');
+    $$ = ctx->add(ParseNode::LOOKAHEAD_NEG, dot);
+  }
+| '^'
+  {
+    ctx->USet.reset();
+    ctx->USet.insert('\n', '\r' + 1); // \n \v \f \r
+    ctx->USet.set(0x85);              // NEL
+    ctx->USet.set(0x2028);            // LINE SEPARATOR
+    ctx->USet.set(0x2029);            // PARAGRAPH SEPARATOR
+
+    ParseNode *linebreak = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+    $$ = ctx->add(ParseNode::LOOKBEHIND_NEG, linebreak);
+  }
+| '$'
+  {
+    ctx->USet.reset();
+    ctx->USet.insert('\n', '\r' + 1); // \n \v \f \r
+    ctx->USet.set(0x85);              // NEL
+    ctx->USet.set(0x2028);            // LINE SEPARATOR
+    ctx->USet.set(0x2029);            // PARAGRAPH SEPARATOR
+
+    ParseNode *linebreak = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+    $$ = ctx->add(ParseNode::LOOKAHEAD_NEG, linebreak);
+  }
+| literal
+;
+
+literal:
+  BYTE
+  {
+    $$ = ctx->add(ParseNode::BYTE, $1);
+  }
+| character
+  {
+    if (ctx->CaseInsensitive) {
+      ctx->USet.reset();
+      ctx->USet.set($1);
+      if (caseDesensitize(ctx->USet)) {
+        // TODO: Maybe handle the commmon ASCII case without going via USet?
+        $$ = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+      }
+      else {
+        $$ = ctx->add(ParseNode::LITERAL, $1);
+      }
+    }
+    else {
+      $$ = ctx->add(ParseNode::LITERAL, $1);
+    }
+  }
+| '.'
+  {
+    $$ = ctx->add(ParseNode::DOT, '.');
+  }
+| HYPHEN_HYPHEN
+  {
+    // This special case exists because -- is the set minus operator inside
+    // character classes. Parsing -- together helps disambiguate set minus
+    // from ranges. Here, outside of a char class, -- is just two hyphens.
+    ParseNode* l = ctx->add(ParseNode::LITERAL, '-');
+    ParseNode* r = ctx->add(ParseNode::LITERAL, '-');
+    $$ = ctx->add(ParseNode::CONCATENATION, l, r);
+  }
+| AMP_AMP
+  {
+    ParseNode* l = ctx->add(ParseNode::LITERAL, '&');
+    ParseNode* r = ctx->add(ParseNode::LITERAL, '&');
+    $$ = ctx->add(ParseNode::CONCATENATION, l, r);
+  }
+| TILDE_TILDE
+  {
+    ParseNode* l = ctx->add(ParseNode::LITERAL, '~');
+    ParseNode* r = ctx->add(ParseNode::LITERAL, '~');
+    $$ = ctx->add(ParseNode::CONCATENATION, l, r);
+  }
+| charclass
+;
+
+character:
+  CHAR
+| DIGIT
+| ']'
+  {
+    $$ = ']';
+  }
+| '-'
+  {
+    $$ = '-';
+  }
+| '{'
+  {
+    $$ = '{';
+  }
+| '}'
+  {
+    $$ = '}';
+  }
+| ','
+  {
+    $$ = ',';
+  }
+| '<'
+  {
+    $$ = '<';
+  }
+| '='
+  {
+    $$ = '=';
+  }
+| '!'
+  {
+    $$ = '!';
+  }
+;
+
+charclass:
+  '[' cc_expr_pos ']'
+  {
+    $$ = $2;
+
+    if (ctx->CaseInsensitive) {
+      caseDesensitize($$->Set.CodePoints);
+    }
+
+    if ($$->Set.CodePoints.none() && $$->Set.Breakout.Bytes.none()) {
+      // empty character class
+      throwError(
+        {
+          ParseError::EMPTY_CHAR_CLASS,
+          @1.first_column, @3.last_column
+        },
+        ctx
+      );
+    }
+  }
+| '[' '^' cc_expr_neg ']'
+  {
+    $$ = $3;
+
+    if ($$->Set.CodePoints.any()) {
+      // NB: PCRE applies case-insensitivity first, then negation. This is
+      // important, as these two operations do not commute on a cc such as
+      // [^a]. Let U be the set of all Unicode code points. Negating first
+      // gives U / {a}, which becomes U again when closing under case-
+      // insensitivity, due to A being a member of U / {a}, while closing
+      // under case-insensitivity first gives {A, a}, which becomes
+      // U / {A, a} after negation.
+
+      if (ctx->CaseInsensitive) {
+        caseDesensitize($$->Set.CodePoints);
+      }
+
+      $$->Set.CodePoints.flip();
+      if ($$->Set.CodePoints.none()) {
+        // empty character class
+        throwError(
+          {
+            ParseError::EMPTY_CHAR_CLASS,
+            @1.first_column, @4.last_column,
+          },
+          ctx
+        );
+      }
+
+      if ($$->Set.Breakout.Bytes.any()) {
+        $$->Set.Breakout.Additive = false;
+      }
+    }
+    else if ($$->Set.Breakout.Bytes.any()) {
+      $$->Set.Breakout.Bytes.flip();
+      if ($$->Set.Breakout.Bytes.none()) {
+        // empty character class
+        throwError(
+          {
+            ParseError::EMPTY_CHAR_CLASS,
+            @1.first_column, @4.last_column,
+          },
+          ctx
+        );
+      }
+    }
+    else {
+      // empty inner character class
+      $$->Set.CodePoints.flip();
+    }
+  }
+| '[' cc_expr_pos error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '[' error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' error
+  {
+    throwError(
+      {
+        ParseError::UNMATCHED_BRACKET,
+        @1.first_column, @1.last_column
+      },
+      ctx
+    );
+  }
+| '[' AMP_AMP
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @2.first_column, @2.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos AMP_AMP ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos AMP_AMP AMP_AMP
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @2.first_column, @2.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos HYPHEN_HYPHEN ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos HYPHEN_HYPHEN HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' TILDE_TILDE
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @2.first_column, @2.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos TILDE_TILDE ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' cc_expr_pos TILDE_TILDE TILDE_TILDE
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' AMP_AMP
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg AMP_AMP ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg AMP_AMP AMP_AMP
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg HYPHEN_HYPHEN ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg HYPHEN_HYPHEN HYPHEN_HYPHEN
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' TILDE_TILDE
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @3.first_column, @3.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg TILDE_TILDE ']'
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| '[' '^' cc_expr_neg TILDE_TILDE TILDE_TILDE
+  {
+    throwError(
+      {
+        ParseError::SET_OPERATOR_MISSING_OPERAND,
+        @4.first_column, @4.last_column
+      },
+      ctx
+    );
+  }
+| cc_named
+  {
+    if (ctx->CaseInsensitive) {
+      caseDesensitize($$->Set.CodePoints);
+    }
+  }
+;
+
+cc_expr_pos:
+  cc_expr_pos cc_atom %prec UNION
+  {
+    $$ = $1;
+    $$->Set.CodePoints |= $2->Set.CodePoints;
+    $$->Set.Breakout.Bytes |= $2->Set.Breakout.Bytes;
+  }
+| cc_expr_pos AMP_AMP cc_atom %prec INTERSECT
+  {
+    $$ = $1;
+    $$->Set.CodePoints &= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes &= $3->Set.Breakout.Bytes;
+  }
+| cc_expr_pos HYPHEN_HYPHEN cc_atom %prec MINUS
+  {
+    $$ = $1;
+    $$->Set.CodePoints -= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes -= $3->Set.Breakout.Bytes;
+  }
+| cc_expr_pos TILDE_TILDE cc_atom %prec XOR
+  {
+    $$ = $1;
+    $$->Set.CodePoints ^= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes ^= $3->Set.Breakout.Bytes;
+  }
+| cc_char_first '-' cc_char_not_first %prec '-'
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      throwError(
+        {
+          ParseError::REVERSED_CHAR_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
+    }
+
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Set.CodePoints.insert($1, $3 + 1);
+  }
+| cc_char_first '-' charclass
+  {
+    $$ = $3;
+    $$->Set.CodePoints.insert($1, $1 + 1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
+  }
+| BYTE '-' BYTE %prec '-'
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      throwError(
+        {
+          ParseError::REVERSED_BYTE_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
+    }
+
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Set.Breakout.Bytes.set($1, $3 + 1, true);
+  }
+| BYTE '-' charclass
+  {
+    $$ = $3;
+    $$->Set.Breakout.Bytes.set($1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
+  }
+| charclass
+| cc_char_first %prec LEAST
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Set.CodePoints.set($1);
+  }
+| BYTE %prec LEAST
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Set.Breakout.Bytes.set($1);
+  }
+;
+
+cc_expr_neg:
+  cc_expr_neg cc_atom %prec UNION
+  {
+    $$ = $1;
+    $$->Set.CodePoints |= $2->Set.CodePoints;
+    $$->Set.Breakout.Bytes |= $2->Set.Breakout.Bytes;
+  }
+| cc_expr_neg AMP_AMP cc_atom %prec INTERSECT
+  {
+    $$ = $1;
+    $$->Set.CodePoints &= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes &= $3->Set.Breakout.Bytes;
+  }
+| cc_expr_neg HYPHEN_HYPHEN cc_atom %prec MINUS
+  {
+    $$ = $1;
+    $$->Set.CodePoints -= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes -= $3->Set.Breakout.Bytes;
+  }
+| cc_expr_neg TILDE_TILDE cc_atom %prec XOR
+  {
+    $$ = $1;
+    $$->Set.CodePoints ^= $3->Set.CodePoints;
+    $$->Set.Breakout.Bytes ^= $3->Set.Breakout.Bytes;
+  }
+| cc_atom %prec LEAST
+;
+
+cc_atom:
+  cc_char_not_first '-' cc_char_not_first %prec '-'
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      throwError(
+        {
+          ParseError::REVERSED_CHAR_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
+    }
+
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Set.CodePoints.insert($1, $3 + 1);
+  }
+| cc_char_not_first '-' charclass
+  {
+    $$ = $3;
+    $$->Set.CodePoints.insert($1, $1 + 1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
+  }
+| BYTE '-' BYTE %prec '-'
+  {
+    if ($3 <= $1) {
+      // x-y is ill-formed when y <= x
+      throwError(
+        {
+          ParseError::REVERSED_BYTE_RANGE_BOUNDS,
+          @1.first_column, @3.last_column,
+          $1, $3
+        },
+        ctx
+      );
+    }
+
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Set.Breakout.Bytes.set($1, $3 + 1, true);
+  }
+| BYTE '-' charclass
+  {
+    $$ = $3;
+    $$->Set.Breakout.Bytes.set($1);
+    $$->Set.CodePoints.insert('-', '-' + 1);
+  }
+| charclass
+| cc_char_not_first %prec LEAST
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Set.CodePoints.set($1);
+  }
+| '-' %prec LEAST
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Set.CodePoints.set('-');
+  }
+| BYTE %prec LEAST
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, 'x');
+    $$->Set.Breakout.Bytes.set($1);
+  }
+;
+
+cc_char_first:
+  ']'
+  {
+    $$ = ']';
+  }
+| '-'
+  {
+    $$ = '-';
+  }
+| cc_char
+;
+
+cc_char_not_first:
+  '^'
+  {
+    $$ = '^';
+  }
+| cc_char
+;
+
+cc_char:
+  CHAR
+| DIGIT
+| '|'
+  {
+    $$ = '|';
+  }
+| '('
+  {
+    $$ = '(';
+  }
+| ')'
+  {
+    $$ = ')';
+  }
+| '?'
+  {
+    $$ = '?';
+  }
+| '+'
+  {
+    $$ = '+';
+  }
+| '*'
+  {
+    $$ = '*';
+  }
+| '.'
+  {
+    $$ = '.';
+  }
+| '{'
+  {
+    $$ = '{';
+  }
+| '}'
+  {
+    $$ = '}';
+  }
+| ','
+  {
+    $$ = ',';
+  }
+| '<'
+  {
+    $$ = '<';
+  }
+| '='
+  {
+    $$ = '=';
+  }
+| '!'
+  {
+    $$ = '!';
+  }
+| '$'
+  {
+    $$ = '$';
+  }
+| WHACK_SMALL_B
+  {
+    $$ = '\b';
+  }
+;
+
+cc_named:
+  SET
+  {
+    $$ = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+  }
+;
+
+%%
+
+namespace {
+
+  template <typename F>
+  int consumeSingleton(F func, yytokentype type, YYSTYPE* yylval, Context* ctx) {
+    const int val = func(ctx->Text, ctx->TextEnd);
+    if (val < 0) {
+      return BAD;
+    }
+    else {
+      yylval->c = val;
+      return type;
+    }
+  }
+
+  template <typename F>
+  int consumeSet(F func, YYSTYPE* yylval, Context* ctx) {
+    const int val = func(ctx->Text, ctx->TextEnd, ctx->USet);
+    if (val < 0) {
+      return BAD;
+    }
+    else {
+      yylval->s = &ctx->USet;
+      return SET;
+    }
+  }
+
+// FIXME: Add \c.
+
+  int consumeEscape(YYSTYPE* yylval, Context* ctx) {
+    if (ctx->Text >= ctx->TextEnd) {
+      return BAD;
+    }
+
+    const int c = *ctx->Text++;
+    switch (c) {
+    // metacharacters as themselves
+    case '|':
+    case '(':
+    case ')':
+    case '?':
+    case '+':
+    case '*':
+    case '.':
+    case '[':
+    case ']':
+    case '^':
+    case '$':
+    case '-':
+    case '{':
+    case '}':
+    case '&':
+    case '~':
+    case '<':
+    case '=':
+    case '!':
+    case '\\':
+      yylval->c = c;
+      return CHAR;
+
+    // ASCII escapes
+    case 'a':
+      yylval->c = '\a';
+      return CHAR;
+    case 'e':
+      yylval->c = 0x1B;
+      return CHAR;
+    case 'f':
+      yylval->c = '\f';
+      return CHAR;
+    case 'n':
+      yylval->c = '\n';
+      return CHAR;
+    case 'r':
+      yylval->c = '\r';
+      return CHAR;
+    case 't':
+      yylval->c = '\t';
+      return CHAR;
+
+    // named character classes
+    case 'd':
+      ctx->USet.reset();
+      setDigitClass(ctx->USet, !ctx->UnicodeMode);
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'D':
+      ctx->USet.reset();
+      setDigitClass(ctx->USet, !ctx->UnicodeMode);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 's':
+      ctx->USet.reset();
+      setSpaceClass(ctx->USet, !ctx->UnicodeMode);
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'S':
+      ctx->USet.reset();
+      setSpaceClass(ctx->USet, !ctx->UnicodeMode);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'h':
+      ctx->USet.reset();
+      setHorizontalSpaceClass(ctx->USet);
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'H':
+      ctx->USet.reset();
+      setHorizontalSpaceClass(ctx->USet);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'v':
+      ctx->USet.reset();
+      setVerticalSpaceClass(ctx->USet);
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'V':
+      ctx->USet.reset();
+      setVerticalSpaceClass(ctx->USet);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'w':
+      ctx->USet.reset();
+      setWordClass(ctx->USet, !ctx->UnicodeMode);
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'W':
+      ctx->USet.reset();
+      setWordClass(ctx->USet, !ctx->UnicodeMode);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
+
+    // hexadecimal characters
+    case 'x':
+      if (ctx->Text == ctx->TextEnd) {
+        return BAD;
+      }
+      else if (*ctx->Text == '{') {
+        ++ctx->Text;
+        return consumeSingleton(parseHexCodePoint<const int*>, CHAR, yylval, ctx);
+      }
+      else {
+        return consumeSingleton(parseHexByte<const int*>, CHAR, yylval, ctx);
+      }
+
+    // breakout bytes
+    case 'z':
+      return consumeSingleton(parseHexByte<const int*>, BYTE, yylval, ctx);
+
+    // octal characters
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+      --ctx->Text;
+      return consumeSingleton(parseOctByte<const int*>, CHAR, yylval, ctx);
+
+    // named Unicode code points
+    case 'N':
+      return consumeSingleton(parseNamedCodePoint<const int*>, CHAR, yylval, ctx);
+
+    // Unicode properties
+    case 'p':
+    case 'P':
+      ctx->Text -= 2;
+      return consumeSet(parseProperty<const int*>, yylval, ctx);
+
+    // assertions
+    case 'A':
+      return TEXT_START;
+    case 'B':
+      return NON_WORD_BOUNDARY;
+    case 'K':
+      return KILL;
+    case 'Z':
+      return TEXT_END;
+    case 'b':
+      return WHACK_SMALL_B; // NB: Also an ASCII escape inside CCs
+
+    default:
+      return BAD;
+    }
+  }
+
+  int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, Context* ctx) {
+    yylloc->first_column = ctx->Text - ctx->TextBegin;
+
+    ctx->TokenType = -1;  // EOF
+
+    if (ctx->Text < ctx->TextEnd) {
+      const int c = *ctx->Text++;
+      yylloc->last_column = yylloc->first_column + 1;
+      if (c < 1) {
+        //   -1 indicates bogus UTF-8
+        //    0 is a prohibited mid-string null byte
+        ctx->TokenType = BAD;
+      }
+      else if (ctx->LiteralMode) {
+        yylval->c = c;
+        ctx->TokenType = CHAR;
+      }
+      else {
+        switch (c) {
+        case '|':
+        case '(':
+        case ')':
+        case '?':
+        case '+':
+        case '*':
+        case '.':
+        case '[':
+        case ']':
+        case '^':
+        case '$':
+        case '{':
+        case '}':
+        case ',':
+        case '<':
+        case '=':
+        case '!':
+          ctx->TokenType = c;
+          break;
+        case '&':
+          if (ctx->Text < ctx->TextEnd && *ctx->Text == '&') {
+              // give the parser a hint that this amp might be an intersection
+              yylloc->last_column = ++ctx->Text - ctx->TextBegin;
+              ctx->TokenType = AMP_AMP;
+          }
+          else {
+            // give the parser a hint that this ampersand is a literal
+            yylval->c = c;
+            ctx->TokenType = CHAR;
+          }
+          break;
+        case '~':
+          if (ctx->Text < ctx->TextEnd && *ctx->Text == '~') {
+            // give the parser a hint that this tilde might be an XOR
+            yylloc->last_column = ++ctx->Text - ctx->TextBegin;
+            ctx->TokenType = TILDE_TILDE;
+          }
+          else {
+            // give the parser a hint that this tilde is a literal
+            yylval->c = c;
+            ctx->TokenType = CHAR;
+          }
+          break;
+        case '-':
+          if (ctx->Text < ctx->TextEnd) {
+            switch (*ctx->Text) {
+            case ']':
+              // give the parser a hint that this hypen is a literal
+              yylval->c = c;
+              ctx->TokenType = CHAR;
+              break;
+            case '-':
+              // give the parser a hint that this hypen might be a minus
+              yylloc->last_column = ++ctx->Text - ctx->TextBegin;
+              ctx->TokenType = HYPHEN_HYPHEN;
+              break;
+            default:
+              // this hyphen might be a range operator if inside a cc
+              ctx->TokenType = '-';
+              break;
+            }
+          }
+          else {
+            yylval->c = c;
+            ctx->TokenType = CHAR;
+          }
+          break;
+        case '\\':
+          ctx->TokenType = consumeEscape(yylval, ctx);
+          yylloc->last_column = ctx->Text - ctx->TextBegin;
+          break;
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+          yylval->c = c;
+          ctx->TokenType = DIGIT;
+          break;
+        default:
+          yylval->c = c;
+          ctx->TokenType = CHAR;
+          break;
+        }
+      }
+    }
+
+    return ctx->TokenType;
+  }
+
+  void yyerror(YYLTYPE* yylloc, Context* ctx, const char*) {
+    /*
+       NB: We do not call yyerror ourselves, in order to ensure that if
+       control arrives here, it happened due to a syntax error detected
+       by bison (as opposed to a semantic error we detect in one of the
+       parse rules. This lets us deduce which error we have by examining
+       the state of the parser.
+    */
+
+    if (ctx->TokenType == BAD) {
+      // The token read was something invalid.
+      ParseError e{
+        ParseError::INVALID_ESCAPE,
+        yylloc->first_column,
+        yylloc->last_column
+      };
+
+      throwError(e, ctx);
+    }
+    else if (yylloc->first_column == yylloc->last_column) {
+      // We ran off the end of the pattern looking for a matching delimiter.
+      // We return rather than throw here to let the error recovery action
+      // execute. The error recovery action knows the location of the
+      // unmatched delimiter.
+      return;
+    }
+    else {
+      // The only remaining way to fail is a repetition operator
+      // following a non-atom.
+      ParseError e{
+        ParseError::NONATOMIC_REPETITON,
+        yylloc->first_column,
+        yylloc->last_column
+      };
+
+      throwError(e, ctx);
+    }
+  }
+
+  void throwError(ParseError e, Context* ctx) {
+    std::ostringstream ss;
+
+    switch (e.Type) {
+    case ParseError::NONATOMIC_REPETITON:
+      ss << "repetition of non-atom by ";
+      break;
+    case ParseError::REVERSED_REPETITION_BOUNDS:
+      ss << e.First << " > " << e.Second << " in ";
+      break;
+    case ParseError::INVALID_ESCAPE:
+      ss << "invalid escape ";
+      break;
+    case ParseError::UNMATCHED_PARENTHESIS:
+      ss << "unmatched left parenthesis ";
+      break;
+    case ParseError::UNMATCHED_BRACKET:
+      ss << "unmatched left bracket ";
+      break;
+    case ParseError::EMPTY_CHAR_CLASS:
+      ss << "empty character class ";
+      break;
+    case ParseError::REVERSED_CHAR_RANGE_BOUNDS:
+      ss << "U+" << std::hex << std::uppercase
+         <<  e.First << " >= U+" << e.Second << std::dec << " in ";
+      break;
+    case ParseError::REVERSED_BYTE_RANGE_BOUNDS:
+      ss << "0x" << std::hex << std::uppercase << std::setfill('0')
+         << std::setw(2) << e.First << " >= 0x"
+         << std::setw(2) << e.Second << std::dec << " in ";
+      break;
+    case ParseError::SET_OPERATOR_MISSING_OPERAND:
+      ss << "missing operand for ";
+      break;
+    }
+
+    std::copy(
+      ctx->TextBegin + e.Begin,
+      ctx->TextBegin + e.End,
+      std::ostream_iterator<char>(ss)
+    );
+
+    ss << ", at [" << e.Begin << ',' << e.End << ')';
+
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT(ss.str());
+  }
+}
+
+bool parse(const Pattern& p, ParseTree& tree) {
+  std::vector<int> cp;
+  cp.reserve(p.Expression.size()); // upper bound, no resizing
+  transform_utf8_to_unicode(
+    p.Expression.begin(), p.Expression.end(), std::back_inserter(cp)
+  );
+
+  Context ctx;
+
+  ctx.LiteralMode = p.FixedString;
+  ctx.CaseInsensitive = p.CaseInsensitive;
+  ctx.UnicodeMode = p.UnicodeMode;
+
+  ctx.TextBegin = ctx.Text = cp.data();
+  ctx.TextEnd = ctx.Text + cp.size();
+
+  ctx.Tree = &tree;
+  ctx.Tree->init(cp.size());
+
+#if YYDEBUG
+  yydebug = 1;
+#endif
+
+  return yyparse(&ctx) == 0;
+}
