@@ -76,8 +76,7 @@ std::unique_ptr<PatternMap> PatternMap::unmarshall(const void* buf, size_t len) 
 
     i = idx + sizeof(LG_PatternInfo::UserIndex); 
   }
-
-  return std::move(p);
+  return p;
 }
 
 bool PatternMap::operator==(const PatternMap& rhs) const {
