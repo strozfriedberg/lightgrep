@@ -169,6 +169,7 @@ namespace {
     }
   }
 
+  // TODO: this function is too long. -- jls
   int addPatternList(LG_HFSM hFsm,
                      LG_HPROGRAM hProg,
                      const char* patterns,
@@ -386,6 +387,7 @@ namespace {
     src += prog_size;
 
 // TODO: don't go beyond size?
+// TODO: indeed, now there's an unused parameter warning -- jls
 
     return hProg.release();
   }
