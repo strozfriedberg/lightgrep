@@ -10,6 +10,8 @@ struct Options {
 
   std::string TarPath;
 
+  std::string MatchSet;
+
   std::vector<std::string> KeyFiles;
 
   unsigned int NumThreads;

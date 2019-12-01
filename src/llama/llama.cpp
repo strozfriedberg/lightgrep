@@ -17,6 +17,9 @@
 
 #include <tsk/libtsk.h>
 
+#include <hasher.h>
+
+
 Llama::Llama()
     : CliParser(std::make_shared<Cli>()), Pool(),
       LgProg(nullptr, lg_destroy_program) {}
@@ -43,7 +46,7 @@ void Llama::search() {
               << std::endl;
 
     auto out = OutputBase::createTarWriter(Pool, Opts->TarPath);
-    auto protoProc = std::make_shared<Processor>(LgProg);
+    std::shared_ptr<Processor> protoProc(new Processor(Matcher, LgProg));
     auto scheduler =
         std::make_shared<FileScheduler>(Pool, protoProc, out, Opts);
 
@@ -107,13 +110,22 @@ bool Llama::openInput(const std::string &input) {
   return bool(Input);
 }
 
+bool Llama::readMatchingSet(const std::string& matchSet) {
+  std::string set = readfile(matchSet);
+  LG_Error* errPtr = nullptr;
+  Matcher = std::shared_ptr<SFHASH_FileMatcher>(sfhash_create_matcher(set.data(), set.data() + set.size(), &errPtr), sfhash_destroy_matcher);
+  return true;
+}
+
 bool Llama::init() {
   if (Opts->KeyFiles.empty()) {
     return false;
   }
   auto readPats = make_future(
       Pool, [this]() { return readpatterns(this->Opts->KeyFiles); });
+  auto readMatches = make_future(Pool, [this](){ return this->Opts->MatchSet.empty() || readMatchingSet(this->Opts->MatchSet); });
   auto open =
       make_future(Pool, [this]() { return openInput(this->Opts->Input); });
-  return readPats.get() && open.get();
+
+  return readPats.get() && readMatches.get() && open.get();
 }

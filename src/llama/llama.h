@@ -6,6 +6,7 @@
 
 struct Options;
 struct ProgramHandle;
+struct SFHASH_FileMatcher;
 
 class Cli;
 class InputReaderBase;
@@ -21,6 +22,7 @@ public:
   bool init();
 
 private:
+  bool readMatchingSet(const std::string& matchSet);
   bool readpatterns(const std::vector<std::string> &keyFiles);
   bool openInput(const std::string &input);
 
@@ -29,6 +31,8 @@ private:
   boost::asio::thread_pool Pool;
 
   std::shared_ptr<Options> Opts;
+
+  std::shared_ptr<SFHASH_FileMatcher> Matcher;
 
   std::shared_ptr<ProgramHandle> LgProg;
 

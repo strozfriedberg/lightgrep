@@ -130,7 +130,8 @@ src_llama_llama_SOURCES = \
 	src/llama/processor.cpp \
 	src/llama/reader.cpp \
 	src/llama/test_cli.cpp \
-	src/llama/test_fileproxy.cpp
+	src/llama/test_fileproxy.cpp \
+	src/llama/test_processor.cpp
 
 src_llama_llama_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS) $(TSK_CPPFLAGS) $(LIBARCHIVE_CPPFLAGS)
 src_llama_llama_LDADD = $(LG_LIB) $(LG_LIBS) $(TSK_LIBS) $(LIBARCHIVE_LIBS) $(HASHER_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)

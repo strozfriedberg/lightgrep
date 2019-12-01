@@ -4,13 +4,15 @@
 
 #include "lightgrep/api.h"
 
+struct SFHASH_FileMatcher;
 struct SFHASH_Hasher;
 struct FileRecord;
 class OutputBase;
 
 class Processor {
 public:
-  Processor(const std::shared_ptr<ProgramHandle> &prog);
+  Processor(const std::shared_ptr<SFHASH_FileMatcher>& matcher,
+            const std::shared_ptr<ProgramHandle>& prog);
 
   std::shared_ptr<Processor> clone() const;
 
@@ -18,6 +20,8 @@ public:
 
 private:
   Processor(const Processor &); // noncopyable
+
+  std::shared_ptr<SFHASH_FileMatcher> Matcher; // shared
 
   std::shared_ptr<ProgramHandle> LgProg; // shared
 
