@@ -447,7 +447,7 @@ void addToDeterminizationGroup(const NFA& src, const NFA::VertexDescriptor srcTa
 
 typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToState;
 
-void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor dstHead, const ByteSet& bs, const VDList& dstList, SubsetStateToState& dstList2Dst, std::stack<SubsetState>& dstStack) {
+void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor dstHead, const ByteSet& bs, const VDList& dstList, SubsetStateToState& dstList2Dst, std::stack<std::pair<SubsetState,int>>& dstStack, uint32_t depth) {
   const SubsetState ss(bs, dstList);
   const SubsetStateToState::const_iterator l(dstList2Dst.find(ss));
 
@@ -455,7 +455,7 @@ void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor 
   if (l == dstList2Dst.end()) {
     // new sublist dst vertex
     dstList2Dst[ss] = dstTail = dst.addVertex();
-    dstStack.push(ss);
+    dstStack.push({ss, depth});
     dst[dstTail].Trans = dst.TransFac->getSmallest(bs);
   }
   else {
@@ -471,7 +471,7 @@ void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor 
   dst.addEdge(dstHead, dstTail);
 }
 
-void handleSubsetState(const NFA& src, NFA& dst, const VDList& srcHeadList, const NFA::VertexDescriptor dstHead, std::stack<SubsetState>& dstStack, ByteSet& outBytes, SubsetStateToState& dstList2Dst) {
+void handleSubsetStateSuccessors(const NFA& src, NFA& dst, const VDList& srcHeadList, const NFA::VertexDescriptor dstHead, std::stack<std::pair<SubsetState,int>>& dstStack, uint32_t depth, ByteSet& outBytes, SubsetStateToState& dstList2Dst) {
   ByteToVertices srcTailLists;
 
   // for each byte, collect all srcTails leaving srcHeads
@@ -507,20 +507,52 @@ void handleSubsetState(const NFA& src, NFA& dst, const VDList& srcHeadList, cons
     const ByteSet& bs(v.first);
     const std::vector<VDList>& dstLists(v.second);
     for (const VDList& dstList : dstLists) {
-      makeDestinationState(src, dst, dstHead, bs, dstList, dstList2Dst, dstStack);
+      makeDestinationState(src, dst, dstHead, bs, dstList, dstList2Dst, dstStack, depth);
     }
   }
 }
 
-void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src) {
+void connectSubsetStateToOriginal(NFA& dst, const VDList& srcHeadList, const NFA::VertexDescriptor dstHead) {
+  std::cerr << dstHead << ' ' << '[';
+  for (const auto& v: srcHeadList) {
+    std::cerr << v << ',';
+  }
+  std::cerr << "] would connect to [";
+
+  for (const auto& v: srcHeadList) {
+    for (const auto& n: dst.outVertices(v)) {
+      std::cerr << n << ',';
+
+      dst.addEdge(dstHead, n);
+    }
+  }
+
+/*
+  for (const auto& v: srcHeadList) {
+    const NFA::EdgeSizeType odeg = dst.outDegree(v);
+    for (NFA::EdgeSizeType i = 0; i < odeg; ++i) {
+//      const NFA::EdgeDescriptor e = dst.outEdge(v, i);
+//      std::cerr << dst(e).Tail << ',';
+      const NFA::VertexDescriptor n = dst.outEdge(v, i);
+    }
+  }
+*/
+  std::cerr << "]\n";
+}
+
+void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t limit) {
   // std::cerr << "starting subsetDFA" << std::endl;
-  std::stack<SubsetState> dstStack;
+  std::stack<std::pair<SubsetState,int>> dstStack;
   SubsetStateToState dstList2Dst;
 
+  // copy src into dst
+  dst = src;
+
   // set up initial dst state
+  const NFA::VertexDescriptor d0d = src.verticesSize();
   const SubsetState d0(ByteSet(), VDList(1, 0));
-  dstList2Dst[d0] = 0;
-  dstStack.push(d0);
+  dstList2Dst[d0] = d0d;
+  dstStack.push({d0, 0});
 
   ByteSet outBytes;
 
@@ -530,13 +562,34 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src) {
     // if (++num % 10000 == 0) {
     //   std::cerr << "processed " << num << " subset states so far" << std::endl;
     // }
-    const SubsetState ss(dstStack.top());
+    const SubsetState ss(dstStack.top().first);
+    const uint32_t depth = dstStack.top().second;
     dstStack.pop();
 
     const VDList& srcHeadList(ss.second);
     const NFA::VertexDescriptor dstHead = dstList2Dst[ss];
 
-    handleSubsetState(src, dst, srcHeadList, dstHead, dstStack, outBytes, dstList2Dst);
+    std::cerr << dstHead << ' ' << '[';
+    for (const auto& v: srcHeadList) {
+      std::cerr << v << ',';
+    }
+    std::cerr << "] " << depth << '\n';
+
+    if (depth < limit) {
+      // continue processing this subset state's successors
+      handleSubsetStateSuccessors(
+        src, dst, srcHeadList, dstHead,
+        dstStack, depth + 1, outBytes, dstList2Dst
+      );
+    }
+    else {
+      // connect this subset state back to the (copy of) the original graph
+      connectSubsetStateToOriginal(
+        dst, srcHeadList, dstHead
+      );
+    }
   }
   // std::cerr << "done with subsetDFA" << std::endl;
+
+  writeGraphviz(std::cout, dst);
 }

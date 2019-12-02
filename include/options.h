@@ -39,7 +39,8 @@ public:
                            KeyFiles,
                            Encodings;
 
-  uint32_t BlockSize;
+  uint32_t BlockSize,
+           DeterminizeDepth;
 
   int32_t BeforeContext = -1,
           AfterContext = -1;
@@ -48,7 +49,6 @@ public:
        LiteralMode,
        UnicodeMode,
        NoOutput,
-       Determinize,
        PrintPath,
        Recursive,
        Binary,

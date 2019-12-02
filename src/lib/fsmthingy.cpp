@@ -46,15 +46,15 @@ void FSMThingy::addPattern(const ParseTree& tree, const char* chain, uint32_t la
   }
 }
 
-void FSMThingy::finalizeGraph(bool determinize) {
+void FSMThingy::finalizeGraph(uint32_t determinizeDepth) {
   if (Fsm->verticesSize() < 2) {
     throw std::runtime_error("No valid patterns were parsed");
   }
 
-  if (determinize && !Fsm->Deterministic) {
+  if (determinizeDepth && !Fsm->Deterministic) {
     NFAPtr dfa(new NFA(1, 2 * Fsm->verticesSize(), Fsm->edgesSize()));
     dfa->TransFac = Fsm->TransFac;
-    Comp.subsetDFA(*dfa, *Fsm);
+    Comp.subsetDFA(*dfa, *Fsm, determinizeDepth);
     Fsm = dfa;
   }
 

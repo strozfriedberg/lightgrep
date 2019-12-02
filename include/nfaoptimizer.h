@@ -21,6 +21,7 @@
 #include "basic.h"
 #include "automata.h"
 
+#include <limits>
 #include <map>
 #include <set>
 #include <stack>
@@ -37,7 +38,7 @@ public:
   void propagateMatchLabels(NFA& g);
   void removeNonMinimalLabels(NFA& g);
 
-  void subsetDFA(NFA& dst, const NFA& src);
+  void subsetDFA(NFA& dst, const NFA& src, uint32_t limit = std::numeric_limits<uint32_t>::max());
 
   void pruneBranches(NFA& g);
 

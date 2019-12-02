@@ -275,7 +275,7 @@ loadProgram(const std::string& pfile) {
 }
 
 bool buildProgram(FSMHandle* fsm, ProgramHandle* prog, const Options& opts) {
-  LG_ProgramOptions progOpts{opts.Determinize};
+  LG_ProgramOptions progOpts{opts.DeterminizeDepth};
 
   if (lg_compile_program(fsm, prog, &progOpts)) {
     std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"

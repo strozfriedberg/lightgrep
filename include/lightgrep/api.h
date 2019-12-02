@@ -85,7 +85,7 @@ extern "C" {
 
   // Options for compiling patterns
   typedef struct {
-    char Determinize;     // 0 => build NFA, non-zero => build (pseudo)DFA
+    uint32_t Determinize;     // 0 => build NFA, non-zero => build (pseudo)DFA
   } LG_ProgramOptions;
 
 // TODO: nix these, don't expose trace in the lib

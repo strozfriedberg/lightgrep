@@ -45,7 +45,7 @@ SCOPE_TEST(testDedupeOnDiffEncodings) {
   lg_add_keyword(parser.get(), "apple", 0, &opts, "UTF-8", err);
 
   LG_ProgramOptions progOpts;
-  progOpts.Determinize = 1;
+  progOpts.DeterminizeDepth = std::numeric_limits<uint32_t>::max();
 
   std::shared_ptr<ProgramHandle> prog(
     lg_create_program(parser.get(), &progOpts),

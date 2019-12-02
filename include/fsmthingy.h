@@ -18,5 +18,5 @@ public:
 
   void addPattern(const ParseTree& tree, const char* chain, uint32_t label);
 
-  void finalizeGraph(bool determinize);
+  void finalizeGraph(uint32_t determinizeDepth);
 };
