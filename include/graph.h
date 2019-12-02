@@ -90,6 +90,14 @@ public:
     Edges.reserve(eReserve);
   }
 
+  Graph(const Graph& g) = default;
+
+  Graph(Graph&& g) = default;
+
+  Graph& operator=(const Graph& g) = default;
+
+  Graph& operator=(Graph&& g) = default;
+
   //
   // lookup & access
   //
