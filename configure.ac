@@ -76,20 +76,36 @@ AC_DEFINE_UNQUOTED(PACKAGE_DESCRIPTION, "$PACKAGE_DESCRIPTION", [Define to the d
 AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_CC_C_O
+AC_PROG_INSTALL
 
 PKG_PROG_PKG_CONFIG
 AS_IF([test "x$enable_shared" != "xyes"], [PKG_CONFIG="$PKG_CONFIG --static"])
 
 AC_LANG([C])
-AX_APPEND_COMPILE_FLAGS([-std=c1x -W -Wall -Wextra -pedantic -pipe -O3], [LG_CFLAGS])
+AX_APPEND_COMPILE_FLAGS([-std=c11 -W -Wall -Wextra -pedantic -pipe], [LG_CFLAGS])
 
 AC_LANG([C++])
-
 AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
+AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe], [LG_CXXFLAGS])
 
-AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe -O3], [LG_CXXFLAGS])
+AC_ARG_ENABLE([debug],
+  [AS_HELP_STRING([--enable-debug],
+    [build in debug mode, with symbols and no optimization])],
+  [enable_debug=yes],
+  [enable_debug=no])
 
-AC_PROG_INSTALL
+AS_IF([test "x$enable_debug" = "xyes"], [OFLAGS='-O0'], [OFLAGS='-O3'])
+
+AC_ARG_ENABLE([symbols],
+  [AS_HELP_STRING([--with-symbols],
+    [build with debugging symbols])],
+  [with_symbols=yes],
+  [with_symbols=no])
+
+AS_IF([test "x$with_symbols" != "xno"], [SYMBOLS='-g'], [SYMBOLS=''])
+
+AX_APPEND_COMPILE_FLAGS([$SYMBOLS $OFLAGS], [LG_CFLAGS])
+AX_APPEND_COMPILE_FLAGS([$SYMBOLS $OFLAGS], [LG_CXXFLAGS])
 
 # FIXME: mingw defaults to -g -O2, along with a bunch of other flags which
 # we want to keep.
@@ -214,8 +230,8 @@ AC_ARG_WITH([asan],
 
 if test "x$with_asan" != "xno"; then
   ASAN_CFLAGS="-fsanitize=address -fno-omit-frame-pointer"
-  ASAN_CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
-  ASAN_LDFLAGS="-fsanitize=address -fno-omit-frame-pointer"
+  ASAN_CXXFLAGS="$ASAN_CFLAGS"
+  ASAN_LDFLAGS="$ASAN_CFLAGS"
   AC_SUBST([ASAN_CFLAGS])
   AC_SUBST([ASAN_CXXFLAGS])
   AC_SUBST([ASAN_LDFLAGS])
@@ -353,11 +369,6 @@ AC_ARG_WITH([customer],
   ]
   [AC_MSG_NOTICE([no customer specified])])
 
-
-# TODO: libtre has a nice display we can steal
-AC_MSG_NOTICE([ICU_CPPFLAGS: $ICU_CPPFLAGS])
-AC_MSG_NOTICE([ICU_CXXFLAGS: $ICU_CXXFLAGS])
-
 # Support for check with valgrind
 AX_VALGRIND_DFLT([sgcheck], [off])
 AX_VALGRIND_DFLT([helgrind], [off])
@@ -378,13 +389,20 @@ AC_MSG_NOTICE([ICU_LIBS:     $ICU_LIBS])
 AC_MSG_NOTICE([BOOST_CPPFLAGS: $BOOST_CPPFLAGS])
 AC_MSG_NOTICE([BOOST_CXXFLAGS: $BOOST_CXXFLAGS])
 
+AC_MSG_NOTICE([ASAN_CFLAGS: $ASAN_CFLAGS])
+AC_MSG_NOTICE([ASAN_CXXFLAGS: $ASAN_CXXFLAGS])
+AC_MSG_NOTICE([ASAN_LDFLAGS: $ASAN_LDFLAGS])
+
+AC_MSG_NOTICE([LG_CFLAGS: $LG_CFLAGS])
+AC_MSG_NOTICE([LG_CXXFLAGS: $LG_CXXFLAGS])
+
 AC_MSG_NOTICE([CC:       $CC])
 AC_MSG_NOTICE([CXX:      $CXX])
 AC_MSG_NOTICE([CPPFLAGS: $CPPFLAGS])
 AC_MSG_NOTICE([CFLAGS:   $CFLAGS])
 AC_MSG_NOTICE([CXXFLAGS: $CXXFLAGS])
-AC_MSG_NOTICE([LIBS:     $LIBS])
 AC_MSG_NOTICE([LDFLAGS:  $LDFLAGS])
+AC_MSG_NOTICE([LIBS:     $LIBS])
 
 AC_CONFIG_FILES([Makefile liblightgrep.spec mingw-liblightgrep.spec])
 AC_OUTPUT
