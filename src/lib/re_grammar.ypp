@@ -95,6 +95,7 @@ extern int yydebug;
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
 
+// we have two shift-reduce conflicts which resolve correctly by default
 %expect 2
 
 //%debug
