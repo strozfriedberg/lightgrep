@@ -38,6 +38,7 @@ SCOPE_TEST(testDedupeOnDiffEncodings) {
   LG_KeyOptions opts;
   opts.FixedString = 1;
   opts.CaseInsensitive = 0;
+  opts.UnicodeMode = 0;
   LG_Error** err = nullptr;
 
   lg_add_keyword(parser.get(), "apple", 0, &opts, "ASCII", err);

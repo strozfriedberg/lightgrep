@@ -67,8 +67,9 @@ int main() {
   LG_HPATTERN pattern = lg_create_pattern();
 
   LG_KeyOptions keyOpts;
-  keyOpts.CaseInsensitive = 1;
   keyOpts.FixedString = 0;
+  keyOpts.CaseInsensitive = 1;
+  keyOpts.UnicodeMode = 0;
 
   // parse the keywords one at a time
   int isgood = 1;
