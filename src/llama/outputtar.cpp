@@ -8,6 +8,7 @@
 #include <boost/asio.hpp>
 
 #include "filerecord.h"
+#include "recordbuffer.h"
 
 #include <iostream>
 
@@ -22,13 +23,17 @@ public:
 
   virtual ~OutputTar() {}
 
-  virtual void outputFile(const FileRecord &) override {
+  virtual void outputFile(const FileRecord &rec) override {
     // std::cerr << "OutputTar::outputFile: " << rec.Path << std::endl;
-    // boost::asio::post(Strand, [=](){ writeFileRecord(rec); });
+    boost::asio::post(MainStrand, [=](){ writeFileRecord(rec); });
   }
 
   virtual void outputRecord(const FileRecord &rec) override {
-    boost::asio::post(Strand, [=]() { writeFileRecord(rec); });
+    boost::asio::post(RecStrand, [=]() { FileRecBuf.write(rec.str()); });
+  }
+
+  virtual void outputRecords(const std::vector<FileRecord>& batch) override {
+    boost::asio::post(RecStrand, [=]() { for (auto& rec: batch) { FileRecBuf.write(rec.str()); } });
   }
 
   virtual void outputSearchHit(const std::string &) override {}
@@ -36,7 +41,10 @@ public:
 private:
   void writeFileRecord(const FileRecord &rec);
 
-  boost::asio::strand<boost::asio::thread_pool::executor_type> Strand;
+  boost::asio::strand<boost::asio::thread_pool::executor_type> MainStrand,
+                                                               RecStrand;
+
+  RecordBuffer FileRecBuf;
 
   std::string Path;
 
@@ -51,7 +59,8 @@ OutputBase::createTarWriter(boost::asio::thread_pool &pool,
 }
 
 OutputTar::OutputTar(boost::asio::thread_pool &pool, const std::string &path)
-    : Strand(pool.get_executor()), Path(path),
+    : MainStrand(pool.get_executor()), RecStrand(pool.get_executor()),
+      FileRecBuf("recs/file_recs", 16 * 1024 * 1024, *this), Path(path),
       Archive(archive_write_new(), closeAndFreeArchive) {
   Path.append(".tar.lz4");
   archive_write_add_filter_lz4(Archive.get());
@@ -71,5 +80,5 @@ void OutputTar::writeFileRecord(const FileRecord &rec) {
   archive_entry_set_perm(entry.get(), 0644);
   archive_write_header(Archive.get(), entry.get());
 
-  archive_write_data(Archive.get(), nullptr, 0);
+  archive_write_data(Archive.get(), rec._data.c_str(), rec._data.size());
 }

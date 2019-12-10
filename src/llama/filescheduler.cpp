@@ -25,6 +25,7 @@ void FileScheduler::performScheduling(const std::vector<FileRecord> &batch) {
   // this is useful work that can be done on a separate thread from TSK
   // traversal
 
+  Output->outputRecords(batch);
   // then post for multithreaded processing
   auto proc = popProc(); // blocks
   boost::asio::post(Pool, [=]() {

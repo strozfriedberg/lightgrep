@@ -47,6 +47,7 @@ TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE *fs_file, const char *path) {
       FileRecord{fullpath, fs_file->meta ? uint64_t(fs_file->meta->size) : 0u});
   if (CurBatch.size() > 200) {
     Sink->scheduleFileBatch(CurBatch);
+    CurBatch.clear();
   }
   return TSK_OK;
 }
