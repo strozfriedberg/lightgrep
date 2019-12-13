@@ -90,17 +90,15 @@ AX_APPEND_COMPILE_FLAGS([-W -Wall -Wextra -Wnon-virtual-dtor -pedantic -pipe], [
 
 AC_ARG_ENABLE([debug],
   [AS_HELP_STRING([--enable-debug],
-    [build in debug mode, with symbols and no optimization])],
-  [enable_debug=yes],
-  [enable_debug=no])
+    [build in debug mode, with symbols and no optimization])])
 
 AS_IF([test "x$enable_debug" = "xyes"], [OFLAGS='-O0'], [OFLAGS='-O3'])
 
-AC_ARG_ENABLE([symbols],
+AC_ARG_WITH([symbols],
   [AS_HELP_STRING([--with-symbols],
     [build with debugging symbols])],
-  [with_symbols=yes],
-  [with_symbols=no])
+  [],
+  [with_symbols=yes])
 
 AS_IF([test "x$with_symbols" != "xno"], [SYMBOLS='-g'], [SYMBOLS=''])
 
