@@ -512,46 +512,80 @@ void handleSubsetStateSuccessors(const NFA& src, NFA& dst, const VDList& srcHead
   }
 }
 
-void connectSubsetStateToOriginal(NFA& dst, const VDList& srcHeadList, const NFA::VertexDescriptor dstHead) {
-  std::cerr << dstHead << ' ' << '[';
+void connectSubsetStateToOriginal(
+  NFA& dst,
+  const NFA& src,
+  const VDList& srcHeadList,
+  const NFA::VertexDescriptor dstHead,
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
+)
+{
   for (const auto& v: srcHeadList) {
-    std::cerr << v << ',';
-  }
-  std::cerr << "] would connect to [";
+    for (const auto& n: src.outVertices(v)) {
+      // get the image of n in dst, creating it if necessary
+      const auto i = src2Dst.find(n);
+      const NFA::VertexDescriptor dst_n = i == src2Dst.end() ? src2Dst[n] = dst.addVertex() : i->second;
 
-  for (const auto& v: srcHeadList) {
-    for (const auto& n: dst.outVertices(v)) {
-      std::cerr << n << ',';
-
-      dst.addEdge(dstHead, n);
+      dst.addEdge(dstHead, dst_n);
     }
   }
+}
 
-/*
-  for (const auto& v: srcHeadList) {
-    const NFA::EdgeSizeType odeg = dst.outDegree(v);
-    for (NFA::EdgeSizeType i = 0; i < odeg; ++i) {
-//      const NFA::EdgeDescriptor e = dst.outEdge(v, i);
-//      std::cerr << dst(e).Tail << ',';
-      const NFA::VertexDescriptor n = dst.outEdge(v, i);
+void completeOriginal(
+  NFA& dst,
+  const NFA& src,
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
+)
+{
+  // Push all the keys in src2Dst onto the stack
+  // While the stack is not empty:
+  //   mark top seen
+  //   add all successors to the stack
+  //
+
+  std::stack<NFA::VertexDescriptor> next;
+
+  for (const auto& p: src2Dst) {
+    next.push(p.first);
+  }
+
+  while (!next.empty()) {
+    NFA::VertexDescriptor h = next.top();
+    next.pop();
+
+    const NFA::VertexDescriptor hh = src2Dst[h];
+    dst[hh].Label = src[h].Label;
+    dst[hh].IsMatch = src[h].IsMatch;
+    dst[hh].Trans = dst.TransFac->get(src[h].Trans);
+
+    for (const auto& t: src.outVertices(h)) {
+      NFA::VertexDescriptor tt;
+      const auto i = src2Dst.find(t);
+      if (i == src2Dst.end()) {
+        // make sure t' exists
+        src2Dst[t] = tt = dst.addVertex();
+
+        next.push(t);
+      }
+      else {
+        tt = i->second;
+      }
+
+      // connect h' to t'
+      dst.addEdge(hh, tt);
     }
   }
-*/
-  std::cerr << "]\n";
 }
 
 void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t limit) {
   // std::cerr << "starting subsetDFA" << std::endl;
   std::stack<std::pair<SubsetState,int>> dstStack;
   SubsetStateToState dstList2Dst;
-
-  // copy src into dst
-  dst = src;
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst;
 
   // set up initial dst state
-  const NFA::VertexDescriptor d0d = src.verticesSize();
   const SubsetState d0(ByteSet(), VDList(1, 0));
-  dstList2Dst[d0] = d0d;
+  dstList2Dst[d0] = 0;
   dstStack.push({d0, 0});
 
   ByteSet outBytes;
@@ -569,12 +603,6 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t limit) {
     const VDList& srcHeadList(ss.second);
     const NFA::VertexDescriptor dstHead = dstList2Dst[ss];
 
-    std::cerr << dstHead << ' ' << '[';
-    for (const auto& v: srcHeadList) {
-      std::cerr << v << ',';
-    }
-    std::cerr << "] " << depth << '\n';
-
     if (depth < limit) {
       // continue processing this subset state's successors
       handleSubsetStateSuccessors(
@@ -584,12 +612,15 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t limit) {
     }
     else {
       // connect this subset state back to the (copy of) the original graph
-      connectSubsetStateToOriginal(
-        dst, srcHeadList, dstHead
-      );
+      connectSubsetStateToOriginal(dst, src, srcHeadList, dstHead, src2Dst);
     }
   }
-  // std::cerr << "done with subsetDFA" << std::endl;
 
-  writeGraphviz(std::cout, dst);
+  if (!src2Dst.empty()) {
+    // we did not fully determinize; paste on the rest of the original graph
+    dst.Deterministic = false;
+    completeOriginal(dst, src, src2Dst);
+  }
+
+  // std::cerr << "done with subsetDFA" << std::endl;
 }

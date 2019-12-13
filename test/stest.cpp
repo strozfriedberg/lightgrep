@@ -72,7 +72,7 @@ void STest::init(const std::vector<Pattern>& pats) {
     ++i;
   }
 
-  LG_ProgramOptions progOpts{1};
+  LG_ProgramOptions progOpts{0xFFFFFFFF};
 
   if (lg_compile_program(fsm.get(), Prog.get(), &progOpts)) {
     LG_ContextOptions ctxOpts;

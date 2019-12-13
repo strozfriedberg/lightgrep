@@ -633,6 +633,153 @@ SCOPE_TEST(testDeterminize5) {
   ASSERT_EQUAL_MATCHES(exp, h);
 }
 
+SCOPE_TEST(testDeterminizePartial0) {
+  const ByteSet az{{'a', 'z' + 1}};
+
+  NFA g(5);
+  edge(0, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 2, g, g.TransFac->getByte('i'));
+  edge(0, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 4, g, g.TransFac->getByte('m'));
+
+  g[1].Label = 0;
+  g[3].Label = 1;
+  g[2].IsMatch = true;
+  g[4].IsMatch = true;
+
+  NFA exp(5);
+  edge(0, 1, exp, exp.TransFac->getByteSet(az));
+  edge(1, 1, exp, exp.TransFac->getByteSet(az));
+  edge(1, 4, exp, exp.TransFac->getByte('i'));
+  edge(0, 2, exp, exp.TransFac->getByteSet(az));
+  edge(2, 2, exp, exp.TransFac->getByteSet(az));
+  edge(2, 3, exp, exp.TransFac->getByte('m'));
+
+  exp[1].Label = 0;
+  exp[2].Label = 1;
+  exp[3].IsMatch = true;
+  exp[4].IsMatch = true;
+
+  NFA h(1);
+  NFAOptimizer comp;
+  comp.subsetDFA(h, g, 0);
+
+  // 0-depth partial determinization = no determinization at all
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
+}
+
+SCOPE_TEST(testDeterminizePartial1) {
+  const ByteSet az{{'a', 'z' + 1}};
+
+  NFA g(5);
+  edge(0, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 2, g, g.TransFac->getByte('i'));
+  edge(0, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 4, g, g.TransFac->getByte('m'));
+
+  g[1].Label = 0;
+  g[3].Label = 1;
+  g[2].IsMatch = true;
+  g[4].IsMatch = true;
+
+  NFA exp(6);
+  edge(0, 1, exp, exp.TransFac->getByteSet(az));
+  edge(1, 2, exp, exp.TransFac->getByteSet(az));
+  edge(1, 3, exp, exp.TransFac->getByte('i'));
+  edge(1, 4, exp, exp.TransFac->getByteSet(az));
+  edge(1, 5, exp, exp.TransFac->getByte('i'));
+  edge(2, 2, exp, exp.TransFac->getByteSet(az));
+  edge(2, 3, exp, exp.TransFac->getByte('i'));
+  edge(4, 4, exp, exp.TransFac->getByteSet(az));
+  edge(4, 5, exp, exp.TransFac->getByte('m'));
+
+  exp[2].Label = 0;
+  exp[4].Label = 1;
+  exp[3].IsMatch = true;
+  exp[5].IsMatch = true;
+
+  NFA h(1);
+  NFAOptimizer comp;
+  comp.subsetDFA(h, g, 1);
+
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
+}
+
+SCOPE_TEST(testDeterminizePartial2) {
+  const ByteSet az{{'a', 'z' + 1}};
+  const ByteSet ahjlnz{{'a', 'h' + 1}, {'j', 'l' + 1}, {'n', 'z' + 1}};
+
+  NFA g(5);
+  edge(0, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 2, g, g.TransFac->getByte('i'));
+  edge(0, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 4, g, g.TransFac->getByte('m'));
+
+  g[1].Label = 0;
+  g[3].Label = 1;
+  g[2].IsMatch = true;
+  g[4].IsMatch = true;
+
+  NFA exp(12);
+  edge(0, 1, exp, exp.TransFac->getByteSet(az));
+
+  edge(1, 2, exp, exp.TransFac->getByte('i'));
+  edge(1, 3, exp, exp.TransFac->getByte('i'));
+  edge(1, 4, exp, exp.TransFac->getByte('i'));
+  edge(1, 5, exp, exp.TransFac->getByte('m'));
+  edge(1, 6, exp, exp.TransFac->getByte('m'));
+  edge(1, 7, exp, exp.TransFac->getByteSet(ahjlnz));
+
+  edge(2, 8, exp, exp.TransFac->getByteSet(az));
+  edge(2, 9, exp, exp.TransFac->getByte('i'));
+
+  edge(4, 10, exp, exp.TransFac->getByteSet(az));
+  edge(4, 11, exp, exp.TransFac->getByte('m'));
+
+  edge(5, 8, exp, exp.TransFac->getByteSet(az));
+  edge(5, 9, exp, exp.TransFac->getByte('i'));
+  edge(5, 10, exp, exp.TransFac->getByteSet(az));
+  edge(5, 11, exp, exp.TransFac->getByte('m'));
+
+  edge(7, 8, exp, exp.TransFac->getByteSet(az));
+  edge(7, 9, exp, exp.TransFac->getByte('i'));
+  edge(7, 10, exp, exp.TransFac->getByteSet(az));
+  edge(7, 11, exp, exp.TransFac->getByte('m'));
+
+  edge(8, 8, exp, exp.TransFac->getByteSet(az));
+  edge(8, 9, exp, exp.TransFac->getByte('i'));
+
+  edge(10, 10, exp, exp.TransFac->getByteSet(az));
+  edge(10, 11, exp, exp.TransFac->getByte('m'));
+
+  // NB: This is an odd looking set of labels becuase we're not calling
+  // comp.labelGuardStates() to walk back the labels
+  exp[8].Label = 0;
+  exp[10].Label = 1;
+  exp[3].IsMatch = true;
+  exp[6].IsMatch = true;
+  exp[9].IsMatch = true;
+  exp[11].IsMatch = true;
+
+  NFA h(1);
+  NFAOptimizer comp;
+  comp.subsetDFA(h, g, 2);
+
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
+}
+
 SCOPE_TEST(testPruneBranches) {
   NFA g(3);
   edge(0, 1, g, g.TransFac->getByte('a'));
