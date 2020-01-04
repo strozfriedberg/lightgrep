@@ -32,8 +32,8 @@ public:
     boost::asio::post(RecStrand, [=]() { FileRecBuf.write(rec.str()); });
   }
 
-  virtual void outputRecords(const std::vector<FileRecord>& batch) override {
-    boost::asio::post(RecStrand, [=]() { for (auto& rec: batch) { FileRecBuf.write(rec.str()); } });
+  virtual void outputRecords(const std::shared_ptr<std::vector<FileRecord>>& batch) override {
+    boost::asio::post(RecStrand, [=]() { for (auto& rec: *batch) { FileRecBuf.write(rec.str()); } });
   }
 
   virtual void outputSearchHit(const std::string &) override {}

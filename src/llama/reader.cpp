@@ -15,14 +15,19 @@ InputReaderBase::createDir(const std::string &) {
   return std::shared_ptr<InputReaderBase>();
 }
 
-TSKReader::TSKReader(const std::string &imgName) : ImgName(imgName) {
+TSKReader::TSKReader(const std::string &imgName) : 
+  ImgName(imgName),
+  CurBatch(new std::vector<FileRecord>())
+{
+  CurBatch->reserve(200);
+
   const char *nameHolder = imgName.c_str();
   if (openImageUtf8(1, &nameHolder, TSK_IMG_TYPE_DETECT, 0) != 0) {
     throw std::runtime_error("Couldn't open image " + imgName);
   }
 }
 
-bool TSKReader::startReading(std::shared_ptr<FileScheduler> sink) {
+bool TSKReader::startReading(const std::shared_ptr<FileScheduler>& sink) {
   // setup
   Sink = sink;
   // tell TskAuto to start giving files to processFile
@@ -43,11 +48,12 @@ TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE *fs_file, const char *path) {
 
   std::string fullpath(path);
   fullpath.append(fs_file->name->name);
-  CurBatch.push_back(
+  CurBatch->push_back(
       FileRecord{fullpath, fs_file->meta ? uint64_t(fs_file->meta->size) : 0u});
-  if (CurBatch.size() > 200) {
+  if (CurBatch->size() >= 200) {
     Sink->scheduleFileBatch(CurBatch);
-    CurBatch.clear();
+    CurBatch.reset(new std::vector<FileRecord>());
+    CurBatch->reserve(200);
   }
   return TSK_OK;
 }

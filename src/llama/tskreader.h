@@ -12,7 +12,7 @@ public:
   TSKReader(const std::string &imgName);
   virtual ~TSKReader() {}
 
-  bool startReading(std::shared_ptr<FileScheduler> sink) override;
+  bool startReading(const std::shared_ptr<FileScheduler>& sink) override;
 
   virtual TSK_RETVAL_ENUM processFile(TSK_FS_FILE *fs_file,
                                       const char *path) override;
@@ -25,5 +25,5 @@ private:
 
   std::shared_ptr<FileScheduler> Sink;
 
-  std::vector<FileRecord> CurBatch;
+  std::shared_ptr<std::vector<FileRecord>> CurBatch;
 };
