@@ -15,7 +15,7 @@ public:
     Received.push_back(rec);
   }
 
-  virtual void outputSearchHit(const std::string &hit) override {}
+  virtual void outputSearchHit(const std::string &) override {}
 
   std::vector<FileRecord> OutFiles;
   std::vector<FileRecord> Received;

@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <boost/asio/thread_pool.hpp>
+#include "boost_asio.h"
 
 struct FileRecord;
 

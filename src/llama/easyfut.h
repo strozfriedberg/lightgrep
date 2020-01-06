@@ -2,7 +2,7 @@
 
 #include <future>
 
-#include <boost/asio.hpp>
+#include "boost_asio.h"
 
 template <typename ValueType> struct easy_fut {
   easy_fut() : Promise(), Fut(Promise.get_future()) {}
