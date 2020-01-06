@@ -33,6 +33,7 @@ void RecordBuffer::flush() {
   rec.Path = pathBuf.str();
 
   Out.outputFile(rec);
+  Buf.str("");
   CurSize = 0;
 }
 

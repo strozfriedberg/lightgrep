@@ -20,6 +20,13 @@ SCOPE_TEST(testRecordBufferFlush) {
   r.write("b");
   SCOPE_ASSERT_EQUAL(2u, r.size());
   SCOPE_ASSERT_EQUAL(1u, mock.OutFiles.size());
+  SCOPE_ASSERT_EQUAL("whatever\na\n", mock.OutFiles[0]._data);
+  r.write("this is terrible");
+  SCOPE_ASSERT_EQUAL(1u, mock.OutFiles.size());
+  r.flush();
+  SCOPE_ASSERT_EQUAL(0u, r.size());
+  SCOPE_ASSERT_EQUAL(2u, mock.OutFiles.size());
+  SCOPE_ASSERT_EQUAL("b\nthis is terrible\n", mock.OutFiles[1]._data);
 }
 
 SCOPE_TEST(testRecordBufferOutput) {
