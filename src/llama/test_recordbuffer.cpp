@@ -47,3 +47,13 @@ SCOPE_TEST(testRecordBufferDirectAccess) {
   SCOPE_ASSERT_EQUAL(9u, r.size());
   SCOPE_ASSERT_EQUAL(0u, mock.OutFiles.size());
 }
+
+SCOPE_TEST(testRecordBufferDestructor) {
+  MockOutput mock;
+  {
+    RecordBuffer r("my-recs", 10u, mock);
+    r.write("whatever");
+    SCOPE_ASSERT_EQUAL(0u, mock.OutFiles.size());;
+  }
+  SCOPE_ASSERT_EQUAL(1u, mock.OutFiles.size());;
+}

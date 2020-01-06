@@ -256,6 +256,12 @@ AC_SUBST([HASHER_CPPFLAGS])
 
 
 #
+# jsoncons
+#
+AC_CHECK_HEADERS([jsoncons/json.hpp], [], [AC_MSG_ERROR([Couldn't find jsoncons/json.hpp])])
+
+
+#
 # libasan
 #
 AC_ARG_WITH([asan],

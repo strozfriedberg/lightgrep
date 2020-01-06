@@ -4,6 +4,8 @@
 #include <sstream>
 #include <hasher.h>
 
+#include "jsoncons.h"
+
 // This is just a placeholder
 struct FileRecord {
   std::string Path;
@@ -18,10 +20,14 @@ struct FileRecord {
 
   const char* fileEnd() const { return _data.c_str() + _data.size(); }
 
+  jsoncons::json Doc;
+
+  void updateDoc() {
+    Doc["Path"] = Path;
+    Doc["Size"] = Size;
+  }
+
   std::string str() const {
-    std::string ret;
-    ret.reserve(Path.size() * 2);
-    ret.append("{\"Path\":\"").append(Path).append("\", \"Size\":").append(std::to_string(Size)).append("}");
-    return ret;
+    return Doc.as<std::string>();
   }
 };

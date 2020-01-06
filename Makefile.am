@@ -132,6 +132,7 @@ src_llama_llama_SOURCES = \
 	src/llama/recordbuffer.cpp \
 	src/llama/test_cli.cpp \
 	src/llama/test_fileproxy.cpp \
+	src/llama/test_filerecord.cpp \
 	src/llama/test_processor.cpp \
 	src/llama/test_recordbuffer.cpp
 

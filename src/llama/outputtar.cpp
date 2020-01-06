@@ -33,7 +33,12 @@ public:
   }
 
   virtual void outputRecords(const std::shared_ptr<std::vector<FileRecord>>& batch) override {
-    boost::asio::post(RecStrand, [=]() { for (auto& rec: *batch) { FileRecBuf.write(rec.str()); } });
+    boost::asio::post(RecStrand, [=]() {
+      for (auto& rec: *batch) {
+        rec.updateDoc();
+        FileRecBuf.get() << rec.Doc << '\n';
+      }
+    });
   }
 
   virtual void outputSearchHit(const std::string &) override {}
@@ -44,11 +49,11 @@ private:
   boost::asio::strand<boost::asio::thread_pool::executor_type> MainStrand,
                                                                RecStrand;
 
-  RecordBuffer FileRecBuf;
-
   std::string Path;
 
   std::shared_ptr<archive> Archive;
+
+  RecordBuffer FileRecBuf; // must be destroyed before Archive
 };
 
 std::shared_ptr<OutputBase>
@@ -60,8 +65,9 @@ OutputBase::createTarWriter(boost::asio::thread_pool &pool,
 
 OutputTar::OutputTar(boost::asio::thread_pool &pool, const std::string &path)
     : MainStrand(pool.get_executor()), RecStrand(pool.get_executor()),
-      FileRecBuf("recs/file_recs", 16 * 1024 * 1024, *this), Path(path),
-      Archive(archive_write_new(), closeAndFreeArchive) {
+      Path(path), Archive(archive_write_new(), closeAndFreeArchive),
+      FileRecBuf("recs/file_recs", 16 * 1024 * 1024, *this)
+{
   Path.append(".tar.lz4");
   archive_write_add_filter_lz4(Archive.get());
   archive_write_set_format_pax_restricted(Archive.get());
