@@ -19,8 +19,6 @@ void RecordBuffer::write(const std::string& s) {
     flush();
   }
   Buf << s << '\n';
-  CurSize += s.size();
-  ++CurSize;
 }
 
 void RecordBuffer::flush() {
@@ -29,14 +27,13 @@ void RecordBuffer::flush() {
   pathBuf << BasePath << '-' << std::setfill('0') << std::setw(4) << Num << ".jsonl";
   FileRecord rec;
   rec._data = Buf.str();
-  rec.Size = CurSize;
+  rec.Size = size();
   rec.Path = pathBuf.str();
 
   Out.outputFile(rec);
   Buf.str("");
-  CurSize = 0;
 }
 
 size_t RecordBuffer::size() const {
-  return CurSize;
+  return Buf.tellp();
 }

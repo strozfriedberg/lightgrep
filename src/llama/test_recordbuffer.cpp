@@ -38,3 +38,12 @@ SCOPE_TEST(testRecordBufferOutput) {
   SCOPE_ASSERT_EQUAL("recs/my-recs-0001.jsonl", mock.OutFiles[0].Path);
   SCOPE_ASSERT_EQUAL(9u, mock.OutFiles[0].Size);
 }
+
+SCOPE_TEST(testRecordBufferDirectAccess) {
+  MockOutput mock;
+  RecordBuffer r("your-recs", 10u, mock);
+
+  r.get() << "whatever\n";
+  SCOPE_ASSERT_EQUAL(9u, r.size());
+  SCOPE_ASSERT_EQUAL(0u, mock.OutFiles.size());
+}
