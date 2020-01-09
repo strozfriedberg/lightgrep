@@ -124,3 +124,36 @@ SCOPE_TEST(testTskConvertMacTimestamps) {
   SCOPE_ASSERT(ts.at("fn_metadata").is_null());
   SCOPE_ASSERT(ts.at("fn_modified").is_null());  
 }
+
+SCOPE_TEST(testTskConvertLinuxTimestamps) {
+  TSK_FS_META meta;
+  meta.atime = 1578364822; // 2020-01-07 02:40:22
+  meta.atime_nano = 123456700;
+  meta.crtime = 31337; // 1970-01-01 08:42:17
+  meta.crtime_nano = 123456400;
+  meta.ctime = 234123870; // 1977-06-02 18:24:30
+  meta.ctime_nano = 315227845;
+  meta.mtime = 314159265; // 1979-12-16 02:27:45
+  meta.mtime_nano = 999999999;
+
+  meta.time2.hfs.bkup_time = 1578602384; // 2020-01-09 20:39:44
+  meta.time2.hfs.bkup_time_nano = 1000;
+
+  jsoncons::json ts;
+
+  TskConverter munge;
+  munge.convertTimestamps(meta, TSK_FS_TYPE_EXT4, ts);
+  // basic four are good
+  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"), "accessed");
+  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"), "created");
+  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", ts.at("metadata"), "metadata");
+  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", ts.at("modified"), "modified");
+  // and hfs+ backup
+  SCOPE_ASSERT_EQUAL("2020-01-09 20:39:44.000001", ts.at("deleted"), "deleted");
+  // but not these
+  SCOPE_ASSERT(ts.at("backup").is_null());
+  SCOPE_ASSERT(ts.at("fn_accessed").is_null());
+  SCOPE_ASSERT(ts.at("fn_created").is_null());
+  SCOPE_ASSERT(ts.at("fn_metadata").is_null());
+  SCOPE_ASSERT(ts.at("fn_modified").is_null());  
+}
