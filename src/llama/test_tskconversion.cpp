@@ -16,10 +16,17 @@ SCOPE_TEST(testTskConvertTimestamps) {
   jsoncons::json ts;
 
   TskConverter munge;
-  munge.convertTimestamps(meta, ts);
-
-  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts["accessed"]);
-  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts["created"]);
-  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", ts["metadata"]);
-  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", ts["modified"]);
+  munge.convertTimestamps(meta, TSK_FS_TYPE_DETECT, ts);
+  // basic four are good
+  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"));
+  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"));
+  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", ts.at("metadata"));
+  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", ts.at("modified"));
+  // others not so much
+  SCOPE_ASSERT(ts.at("deleted").is_null());
+  SCOPE_ASSERT(ts.at("backup").is_null());
+  SCOPE_ASSERT(ts.at("fn_accessed").is_null());
+  SCOPE_ASSERT(ts.at("fn_created").is_null());
+  SCOPE_ASSERT(ts.at("fn_metadata").is_null());
+  SCOPE_ASSERT(ts.at("fn_modified").is_null());
 }

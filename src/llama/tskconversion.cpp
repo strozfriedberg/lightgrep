@@ -7,11 +7,18 @@ TskConverter::TskConverter()
   NanoBuf << std::setprecision(9);
 }
 
-void TskConverter::convertTimestamps(const TSK_FS_META& meta, jsoncons::json& timestamps) {
+void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& timestamps) {
   timestamps["accessed"] = formatTimestamp(meta.atime, meta.atime_nano);
   timestamps["created"] = formatTimestamp(meta.crtime, meta.crtime_nano);
   timestamps["metadata"] = formatTimestamp(meta.ctime, meta.ctime_nano);
   timestamps["modified"] = formatTimestamp(meta.mtime, meta.mtime_nano);
+
+  timestamps["deleted"] = jsoncons::null_type();
+  timestamps["backup"] = jsoncons::null_type();
+  timestamps["fn_accessed"] = jsoncons::null_type();
+  timestamps["fn_created"] = jsoncons::null_type();
+  timestamps["fn_metadata"] = jsoncons::null_type();
+  timestamps["fn_modified"] = jsoncons::null_type();
 }
 
 std::string TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
