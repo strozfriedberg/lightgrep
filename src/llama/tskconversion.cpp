@@ -4,7 +4,7 @@
 
 TskConverter::TskConverter()
 {
-  NanoBuf << std::setprecision(9);
+  NanoBuf << std::fixed << std::setprecision(9);
 }
 
 void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& timestamps) {
@@ -21,10 +21,13 @@ void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM f
   timestamps["fn_modified"] = jsoncons::null_type();
 }
 
-std::string TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
+jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
   std::string ret;
 
   if (0 == unix_time) {
+    if (0 == ns) {
+      return jsoncons::null_type();
+    }
     // some C libs will otherwise print an empty string with strftime
     ret.append("1970-01-01 00:00:00");
   }
@@ -55,7 +58,8 @@ std::string TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
   // fractional seconds
   if (ns - 1 < 999999999) {
     NanoBuf << double(ns) / 1000000000;
-    ret.append(NanoBuf.str().substr(1)); // skips the leading zero
+    auto frac = NanoBuf.str();
+    ret.append(frac.substr(1, frac.find_last_not_of('0'))); // no leading or trailing zeroes
     NanoBuf.str("");
   }
   return ret;

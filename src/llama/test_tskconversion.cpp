@@ -30,3 +30,25 @@ SCOPE_TEST(testTskConvertTimestamps) {
   SCOPE_ASSERT(ts.at("fn_metadata").is_null());
   SCOPE_ASSERT(ts.at("fn_modified").is_null());
 }
+
+SCOPE_TEST(testTskConvertEpochBeginningIsNull) {
+  TSK_FS_META meta;
+  meta.atime = 0; // 1970-01-01 00:00:00
+  meta.atime_nano = 0;
+  meta.crtime = 1; // 1970-01-01 00:00::01
+  meta.crtime_nano = 0;
+  meta.ctime = 0; // 1970-01-01 00:00:00.000000001
+  meta.ctime_nano = 1;
+  meta.mtime = 0; // 1970-01-01 00:00:00
+  meta.mtime_nano = 0;
+
+  jsoncons::json ts;
+
+  TskConverter munge;
+  munge.convertTimestamps(meta, TSK_FS_TYPE_DETECT, ts);
+  // basic four are good
+  SCOPE_ASSERT(ts.at("accessed").is_null());
+  SCOPE_ASSERT_EQUAL("1970-01-01 00:00:01", ts.at("created"));
+  SCOPE_ASSERT_EQUAL("1970-01-01 00:00:00.000000001", ts.at("metadata"));
+  SCOPE_ASSERT(ts.at("modified").is_null());
+}
