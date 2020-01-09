@@ -187,6 +187,11 @@ else
     [AC_MSG_ERROR([Failed to find usable Boost headers.])])
 fi
 
+AX_BOOST_DATE_TIME
+if test "x$ax_cv_boost_date_time" != "xyes"; then
+  AC_MSG_ERROR([Failed to find Boost date_time library.])
+fi
+
 # FIXME: doesn't always find -mt version of boost libs,
 # e.g. for filesystem and system
 AX_BOOST_FILESYSTEM
