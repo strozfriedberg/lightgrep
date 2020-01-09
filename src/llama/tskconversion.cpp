@@ -13,12 +13,24 @@ void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM f
   timestamps["metadata"] = formatTimestamp(meta.ctime, meta.ctime_nano);
   timestamps["modified"] = formatTimestamp(meta.mtime, meta.mtime_nano);
 
-  timestamps["deleted"] = jsoncons::null_type();
-  timestamps["backup"] = jsoncons::null_type();
-  timestamps["fn_accessed"] = jsoncons::null_type();
-  timestamps["fn_created"] = jsoncons::null_type();
-  timestamps["fn_metadata"] = jsoncons::null_type();
-  timestamps["fn_modified"] = jsoncons::null_type();
+
+  switch (fsType) {
+    case TSK_FS_TYPE_NTFS:
+      timestamps["deleted"] = jsoncons::null_type();
+      timestamps["backup"] = jsoncons::null_type();
+      timestamps["fn_accessed"] = formatTimestamp(meta.time2.ntfs.fn_atime, meta.time2.ntfs.fn_atime_nano);
+      timestamps["fn_created"] = formatTimestamp(meta.time2.ntfs.fn_crtime, meta.time2.ntfs.fn_crtime_nano);
+      timestamps["fn_metadata"] = formatTimestamp(meta.time2.ntfs.fn_ctime, meta.time2.ntfs.fn_ctime_nano);
+      timestamps["fn_modified"] = formatTimestamp(meta.time2.ntfs.fn_mtime, meta.time2.ntfs.fn_mtime_nano);
+      break;
+    default:
+      timestamps["deleted"] = jsoncons::null_type();
+      timestamps["backup"] = jsoncons::null_type();
+      timestamps["fn_accessed"] = jsoncons::null_type();
+      timestamps["fn_created"] = jsoncons::null_type();
+      timestamps["fn_metadata"] = jsoncons::null_type();
+      timestamps["fn_modified"] = jsoncons::null_type();
+  }
 }
 
 jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
