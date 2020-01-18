@@ -97,3 +97,12 @@ jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
   }
   return ret;
 }
+
+void TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& nrdr) {
+  nrdr["addr"]   = dataRun.addr;
+  nrdr["len"]    = dataRun.len;
+  nrdr["offset"] = dataRun.offset;
+  if (dataRun.flags & TSK_FS_ATTR_RUN_FLAG_SPARSE) {
+    nrdr["flags"] = "Sparse";
+  }
+}

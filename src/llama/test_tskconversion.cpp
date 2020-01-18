@@ -157,3 +157,18 @@ SCOPE_TEST(testTskConvertLinuxTimestamps) {
   SCOPE_ASSERT(ts.at("fn_metadata").is_null());
   SCOPE_ASSERT(ts.at("fn_modified").is_null());  
 }
+
+SCOPE_TEST(testTskConvertNRDs) {
+  TSK_FS_ATTR_RUN nrd;
+  nrd.addr   = 15;
+  nrd.len    = 3045;
+  nrd.offset = 17;
+  nrd.flags  = TSK_FS_ATTR_RUN_FLAG_SPARSE;
+
+  jsoncons::json js;
+  TskConverter   munge;
+  munge.convertNRDR(nrd, js);
+  std::string expected = "{\"addr\":15,\"flags\":\"Sparse\",\"len\":3045,\"offset\":17}";
+  std::string actual = js.as<std::string>();
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
