@@ -10,6 +10,22 @@ class TskConverter {
 public:
   TskConverter();
 
+  std::string volumeSystemType(unsigned int type);
+  std::string volumeFlags(unsigned int flags);
+
+  std::string filesystemFlags(unsigned int flags);
+
+  std::string nameType(unsigned int type);
+  std::string nameFlags(unsigned int flags);
+
+  std::string metaType(unsigned int type);
+  std::string metaFlags(unsigned int flags);
+
+  std::string attrType(unsigned int type);
+  std::string attrFlags(unsigned int flags);
+
+  std::string nrdRunFlags(unsigned int flags);
+
   void convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& timestamps);
   void convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& nrdr);
 
