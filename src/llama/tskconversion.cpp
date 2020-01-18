@@ -1,5 +1,7 @@
 #include "tskconversion.h"
 
+#include <array>
+
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 TskConverter::TskConverter()
@@ -58,7 +60,7 @@ std::string TskConverter::filesystemFlags(unsigned int flags) {
 }
 
 std::string TskConverter::nameType(unsigned int type) {
-  static const std::vector<std::string> types({
+  static const std::array<std::string, 12> types{{
     "Undefined",
     "Named Pipe",
     "Character Device",
@@ -71,7 +73,7 @@ std::string TskConverter::nameType(unsigned int type) {
     "Whiteout Inode",
     "Virtual",
     "Virtual Folder"
-  });
+  }};
   return type < types.size() ? types[type]: types[0];
 }
 
@@ -97,7 +99,7 @@ std::string TskConverter::nameFlags(unsigned int flags) {
 }
 
 std::string TskConverter::metaType(unsigned int type) {
-  static const std::vector<std::string> types({
+  static const std::array<std::string, 12> types{{
     "Undefined",
     "File",
     "Folder",
@@ -110,7 +112,7 @@ std::string TskConverter::metaType(unsigned int type) {
     "Whiteout Inode",
     "Virtual",
     "Virtual Folder"
-  });
+  }};
   return type < types.size() ? types[type]: types[0];
 }
 
