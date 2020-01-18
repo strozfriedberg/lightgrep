@@ -312,3 +312,22 @@ SCOPE_TEST(testTskNrdRunFlags) {
   SCOPE_ASSERT_EQUAL("Filler", munge.nrdRunFlags(TSK_FS_ATTR_RUN_FLAG_FILLER));
   SCOPE_ASSERT_EQUAL("Sparse", munge.nrdRunFlags(TSK_FS_ATTR_RUN_FLAG_SPARSE));
 }
+
+SCOPE_TEST(testTskConvertAttrRes) {
+  TSK_FS_ATTR attr;
+  attr.flags = TSK_FS_ATTR_RES;
+  attr.id = 1;
+  attr.name = const_cast<char*>("$DATA");
+  attr.name_size = sizeof("$DATA");
+  attr.next = nullptr;
+  attr.rd.buf = (unsigned char*)("whatever");
+  attr.rd.buf_size = 9;
+  attr.rd.offset = 0;
+  attr.size = 9;
+  attr.type = TSK_FS_ATTR_TYPE_NTFS_DATA;
+
+  jsoncons::json js;
+  TskConverter munge;
+  munge.convertAttr(attr, js);
+  SCOPE_ASSERT_EQUAL(1, js["id"]);
+}

@@ -359,6 +359,10 @@ jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
   return ret;
 }
 
+void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) {
+  jsAttr["id"] = attr.id;
+}
+
 void TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& nrdr) {
   nrdr["addr"]   = dataRun.addr;
   nrdr["flags"]  = nrdRunFlags(dataRun.flags);
