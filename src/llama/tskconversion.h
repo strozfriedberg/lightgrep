@@ -30,8 +30,12 @@ public:
   void convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr);
   void convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& nrdr);
 
+  std::string hexEncode(const char* str, unsigned int size) { return hexEncode(reinterpret_cast<const unsigned char*>(str), size); }
+  std::string hexEncode(unsigned const char* str, unsigned int size);
+
 private:
   jsoncons::json formatTimestamp(int64_t unix_time, uint32_t ns);
 
-  std::ostringstream NanoBuf;
+  std::ostringstream NanoBuf,
+                     RdBuf;
 };

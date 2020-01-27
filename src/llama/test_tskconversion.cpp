@@ -313,15 +313,32 @@ SCOPE_TEST(testTskNrdRunFlags) {
   SCOPE_ASSERT_EQUAL("Sparse", munge.nrdRunFlags(TSK_FS_ATTR_RUN_FLAG_SPARSE));
 }
 
+SCOPE_TEST(testTskConvertHexEncode) {
+  TskConverter munge;
+  unsigned char s1[] = {0xFF},
+                s2[] = {0x1c, 0x2d},
+                s3[] = {0x0f, 0xf0, 0x02},
+                s4[] = {0x00, 0x00, 0x00, 0x00},
+                s5[] = {0xE2, 0x49, 0x49, 0x32, 0xCF, 0x01, 0x9D, 0xC8, 0x40, 0x57, 0xF6, 0x48, 0x78, 0x92, 0x6D},
+                s6[] = {0xAE, 0xED, 0x3A, 0xC7, 0x39, 0xD8, 0xFD, 0xDF, 0xCB, 0xD1, 0x91, 0x3B, 0x9E, 0x91, 0xE4};
+
+  SCOPE_ASSERT_EQUAL("ff", munge.hexEncode(s1, 1));
+  SCOPE_ASSERT_EQUAL("1c2d", munge.hexEncode(s2, 2));
+  SCOPE_ASSERT_EQUAL("0ff002", munge.hexEncode(s3, 3));
+  SCOPE_ASSERT_EQUAL("00000000", munge.hexEncode(s4, 4));
+  SCOPE_ASSERT_EQUAL("e2494932cf019dc84057f64878926d", munge.hexEncode(s5, 15));
+  SCOPE_ASSERT_EQUAL("aeed3ac739d8fddfcbd1913b9e91e4", munge.hexEncode(s6, 15));
+}
+
 SCOPE_TEST(testTskConvertAttrRes) {
   TSK_FS_ATTR attr;
   attr.flags = TSK_FS_ATTR_RES;
   attr.id = 1;
   attr.name = const_cast<char*>("$DATA");
-  attr.name_size = sizeof("$DATA");
+  attr.name_size = 5;
   attr.next = nullptr;
   attr.rd.buf = (unsigned char*)("whatever");
-  attr.rd.buf_size = 9;
+  attr.rd.buf_size = 8;
   attr.rd.offset = 0;
   attr.size = 9;
   attr.type = TSK_FS_ATTR_TYPE_NTFS_DATA;
@@ -330,4 +347,10 @@ SCOPE_TEST(testTskConvertAttrRes) {
   TskConverter munge;
   munge.convertAttr(attr, js);
   SCOPE_ASSERT_EQUAL(1, js["id"]);
+  SCOPE_ASSERT_EQUAL("Resident", js["flags"]);
+  SCOPE_ASSERT_EQUAL("$DATA", js["name"]);
+  SCOPE_ASSERT_EQUAL("7768617465766572", js["rd_buf"]);
+  SCOPE_ASSERT_EQUAL(0, js["rd_offset"]);
+  SCOPE_ASSERT_EQUAL(9u, js["size"]);
+  SCOPE_ASSERT_EQUAL("Data", js["type"]);
 }

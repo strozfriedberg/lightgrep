@@ -361,6 +361,12 @@ jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
 
 void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) {
   jsAttr["id"] = attr.id;
+  jsAttr["flags"] = attrFlags(attr.flags);
+  jsAttr["name"] = std::string(attr.name, attr.name_size);
+  jsAttr["rd_buf"] = hexEncode(attr.rd.buf, attr.rd.buf_size);
+  jsAttr["rd_offset"] = attr.rd.offset;
+  jsAttr["size"] = attr.size;
+  jsAttr["type"] = attrType(attr.type);
 }
 
 void TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& nrdr) {
@@ -368,4 +374,56 @@ void TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& n
   nrdr["flags"]  = nrdRunFlags(dataRun.flags);
   nrdr["len"]    = dataRun.len;
   nrdr["offset"] = dataRun.offset;
+}
+
+std::string TskConverter::hexEncode(unsigned const char* str, unsigned int size) {
+  constexpr unsigned int loopChunk = 4;
+  static constexpr char hex[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+  char buf[loopChunk * 2];
+
+  std::string ret;
+  ret.reserve(size * 2);
+
+  unsigned int i = 0;
+  while (size >= loopChunk) {
+    const uint32_t val  = *reinterpret_cast<const uint32_t*>(&str[i]);
+    const uint32_t high = (val & 0xf0f0f0f0) >> 4;
+    const uint32_t low  = (val & 0x0f0f0f0f);
+
+    const uint8_t* h = reinterpret_cast<const uint8_t*>(&high);
+    const uint8_t* l = reinterpret_cast<const uint8_t*>(&low);
+
+    buf[0] = hex[*h];
+    buf[1] = hex[*l];
+    buf[2] = hex[*(h + 1)];
+    buf[3] = hex[*(l + 1)];
+    buf[4] = hex[*(h + 2)];
+    buf[5] = hex[*(l + 2)];
+    buf[6] = hex[*(h + 3)];
+    buf[7] = hex[*(l + 3)];
+
+    ret.append(buf, loopChunk * 2);
+    size -= loopChunk;
+    i += loopChunk;
+  }
+  switch (size) {
+    case 3:
+      buf[0] = hex[(str[i] & 0xf0) >> 4];
+      buf[1] = hex[str[i] & 0x0f];
+      ret.append(buf, 2);
+      ++i;
+    case 2:
+      buf[0] = hex[(str[i] & 0xf0) >> 4];
+      buf[1] = hex[str[i] & 0x0f];
+      ret.append(buf, 2);
+      ++i;
+    case 1:
+      buf[0] = hex[(str[i] & 0xf0) >> 4];
+      buf[1] = hex[str[i] & 0x0f];
+      ret.append(buf, 2);
+    default:
+      break;
+  }
+  return ret;
 }
