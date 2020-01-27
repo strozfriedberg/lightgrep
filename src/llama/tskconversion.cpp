@@ -385,6 +385,10 @@ std::string TskConverter::hexEncode(unsigned const char* str, unsigned int size)
 
   unsigned int i = 0;
   while (size >= loopChunk) {
+    // The idea here is to proceed 4 bytes at a time,
+    // eliminating data dependencies in the operations to allow for ILP.
+    // The remainder is processed with a switch (see Duff's Device for a similar but obsolete approach).
+    // This could likely be optimized further by using pshufb wizardry with SSE3/AVX, but less portable.
     const unsigned int j = i * 2;
     const uint32_t val  = *reinterpret_cast<const uint32_t*>(&str[i]);
     const uint32_t high = (val & 0xf0f0f0f0) >> 4;
