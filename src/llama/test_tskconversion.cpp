@@ -354,3 +354,61 @@ SCOPE_TEST(testTskConvertAttrRes) {
   SCOPE_ASSERT_EQUAL(9u, js["size"]);
   SCOPE_ASSERT_EQUAL("Data", js["type"]);
 }
+
+SCOPE_TEST(testTskConvertAttrNonRes) {
+  TSK_FS_ATTR_RUN nrd1,
+                  nrd2;
+  nrd1.addr = 12;
+  nrd1.flags = TSK_FS_ATTR_RUN_FLAG_NONE;
+  nrd1.len = 2;
+  nrd1.offset = 0;
+  nrd1.next = &nrd2;
+
+  nrd2.addr = 38;
+  nrd2.flags = TSK_FS_ATTR_RUN_FLAG_NONE;
+  nrd2.len = 1;
+  nrd2.offset = 2;
+  nrd2.next = nullptr;
+
+  TSK_FS_ATTR attr;
+  attr.flags = (TSK_FS_ATTR_FLAG_ENUM)(TSK_FS_ATTR_NONRES | TSK_FS_ATTR_INUSE);
+  attr.id = 1;
+  attr.name = const_cast<char*>("$DATA");
+  attr.name_size = 5;
+  attr.next = nullptr;
+  // Set up the nrds
+  attr.nrd.run = &nrd1;
+  attr.nrd.run_end = &nrd2;
+  attr.nrd.allocsize = 1536;
+  // These aren't values we'd expect to see, but tests serialization well enough
+  attr.nrd.compsize = 3;
+  attr.nrd.initsize = 6;
+  attr.nrd.skiplen = 9;
+  // These should be ignored
+  attr.rd.buf = (unsigned char*)("whatever");
+  attr.rd.buf_size = 8;
+  attr.rd.offset = 5;
+
+  attr.size = 1235;
+  attr.type = TSK_FS_ATTR_TYPE_NTFS_DATA;
+
+  jsoncons::json js;
+  TskConverter munge;
+  munge.convertAttr(attr, js);
+  SCOPE_ASSERT_EQUAL(1, js["id"]);
+  SCOPE_ASSERT_EQUAL("In Use, Non-resident", js["flags"]);
+  SCOPE_ASSERT_EQUAL("$DATA", js["name"]);
+
+  SCOPE_ASSERT(!js.contains("rd_buf"));
+  SCOPE_ASSERT(!js.contains("rd_offset"));
+  SCOPE_ASSERT_EQUAL(2u, js["nrd_runs"].size());
+  SCOPE_ASSERT_EQUAL(12, js["nrd_runs"][0]["addr"]);
+  SCOPE_ASSERT_EQUAL(38, js["nrd_runs"][1]["addr"]);
+  SCOPE_ASSERT_EQUAL(1536, js["nrd_allocsize"]);
+  SCOPE_ASSERT_EQUAL(3, js["nrd_compsize"]);
+  SCOPE_ASSERT_EQUAL(6, js["nrd_initsize"]);
+  SCOPE_ASSERT_EQUAL(9, js["nrd_skiplen"]);
+
+  SCOPE_ASSERT_EQUAL(1235u, js["size"]);
+  SCOPE_ASSERT_EQUAL("Data", js["type"]);
+}

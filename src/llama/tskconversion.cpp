@@ -363,10 +363,28 @@ void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) 
   jsAttr["id"] = attr.id;
   jsAttr["flags"] = attrFlags(attr.flags);
   jsAttr["name"] = std::string(attr.name, attr.name_size);
-  jsAttr["rd_buf"] = hexEncode(attr.rd.buf, attr.rd.buf_size);
-  jsAttr["rd_offset"] = attr.rd.offset;
   jsAttr["size"] = attr.size;
   jsAttr["type"] = attrType(attr.type);
+  if (attr.flags & TSK_FS_ATTR_RES) {
+    jsAttr["rd_buf"] = hexEncode(attr.rd.buf, attr.rd.buf_size);
+    jsAttr["rd_offset"] = attr.rd.offset;
+  }
+  else { // non-resident
+    jsAttr["nrd_allocsize"] = attr.nrd.allocsize;
+    jsAttr["nrd_compsize"] = attr.nrd.compsize;
+    jsAttr["nrd_initsize"] = attr.nrd.initsize;
+    jsAttr["nrd_skiplen"] = attr.nrd.skiplen;
+    auto& nrd_runs = (jsAttr["nrd_runs"] = jsoncons::json::make_array());
+    // size_t i = 0;
+    for (auto itr = attr.nrd.run; itr; itr = itr->next) {
+      convertNRDR(*itr, nrd_runs.emplace_back());
+      if (itr == attr.nrd.run_end) {
+        // this is hopefully unnecessary, but what if attr.nrd.run_end.next isn't null?
+        // paranoia is a feature
+        break;
+      }
+    }
+  }
 }
 
 void TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& nrdr) {
