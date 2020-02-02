@@ -268,6 +268,29 @@ std::string TskConverter::nrdRunFlags(unsigned int flags) {
   return "";
 }
 
+void TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& jsMeta) {
+  jsMeta["addr"] = meta.addr;
+  jsMeta["flags"] = metaFlags(meta.flags);
+  jsMeta["type"] = metaType(meta.type);
+
+  jsMeta["uid"] = std::to_string(meta.uid);
+  jsMeta["gid"] = std::to_string(meta.gid);
+
+  jsMeta["link"] = meta.link;
+  jsMeta["nlink"] = meta.nlink;
+
+  jsMeta["seq"] = meta.seq;
+
+  convertTimestamps(meta, fsType, jsMeta);
+
+  if (meta.attr) {
+    auto& jsAttrs = (jsMeta["attrs"] = jsoncons::json::make_array());
+    for (TSK_FS_ATTR* itr = meta.attr->head; itr; itr = itr->next) {
+      convertAttr(*itr, jsAttrs.emplace_back());
+    }
+  }
+}
+
 void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& timestamps) {
   timestamps["accessed"] = formatTimestamp(meta.atime, meta.atime_nano);
   timestamps["created"] = formatTimestamp(meta.crtime, meta.crtime_nano);

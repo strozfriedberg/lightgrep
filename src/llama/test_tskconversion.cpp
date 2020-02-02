@@ -2,177 +2,6 @@
 
 #include "tskconversion.h"
 
-SCOPE_TEST(testTskConvertTimestamps) {
-  TSK_FS_META meta;
-  meta.atime = 1578364822; // 2020-01-07 02:40:22
-  meta.atime_nano = 123456700;
-  meta.crtime = 31337; // 1970-01-01 08:42:17
-  meta.crtime_nano = 123456400;
-  meta.ctime = 234123870; // 1977-06-02 18:24:30
-  meta.ctime_nano = 315227845;
-  meta.mtime = 314159265; // 1979-12-16 02:27:45
-  meta.mtime_nano = 999999999;
-
-  jsoncons::json ts;
-
-  TskConverter munge;
-  munge.convertTimestamps(meta, TSK_FS_TYPE_DETECT, ts);
-  // basic four are good
-  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"));
-  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"));
-  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", ts.at("metadata"));
-  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", ts.at("modified"));
-  // others not so much
-  SCOPE_ASSERT(ts.at("deleted").is_null());
-  SCOPE_ASSERT(ts.at("backup").is_null());
-  SCOPE_ASSERT(ts.at("fn_accessed").is_null());
-  SCOPE_ASSERT(ts.at("fn_created").is_null());
-  SCOPE_ASSERT(ts.at("fn_metadata").is_null());
-  SCOPE_ASSERT(ts.at("fn_modified").is_null());
-}
-
-SCOPE_TEST(testTskConvertEpochBeginningIsNull) {
-  TSK_FS_META meta;
-  meta.atime = 0; // 1970-01-01 00:00:00
-  meta.atime_nano = 0;
-  meta.crtime = 1; // 1970-01-01 00:00::01
-  meta.crtime_nano = 0;
-  meta.ctime = 0; // 1970-01-01 00:00:00.000000001
-  meta.ctime_nano = 1;
-  meta.mtime = 0; // 1970-01-01 00:00:00
-  meta.mtime_nano = 0;
-
-  jsoncons::json ts;
-
-  TskConverter munge;
-  munge.convertTimestamps(meta, TSK_FS_TYPE_DETECT, ts);
-  // basic four are good
-  SCOPE_ASSERT(ts.at("accessed").is_null());
-  SCOPE_ASSERT_EQUAL("1970-01-01 00:00:01", ts.at("created"));
-  SCOPE_ASSERT_EQUAL("1970-01-01 00:00:00.000000001", ts.at("metadata"));
-  SCOPE_ASSERT(ts.at("modified").is_null());
-}
-
-SCOPE_TEST(testTskConvertNTFSTimestamps) {
-  TSK_FS_META meta;
-  meta.atime = 1578364822; // 2020-01-07 02:40:22
-  meta.atime_nano = 123456700;
-  meta.crtime = 31337; // 1970-01-01 08:42:17
-  meta.crtime_nano = 123456400;
-  meta.ctime = 234123870; // 1977-06-02 18:24:30
-  meta.ctime_nano = 315227845;
-  meta.mtime = 314159265; // 1979-12-16 02:27:45
-  meta.mtime_nano = 999999999;
-
-  meta.time2.ntfs.fn_atime = 1578602384; // 2020-01-09 20:39:44
-  meta.time2.ntfs.fn_atime_nano = 1000;
-  meta.time2.ntfs.fn_crtime = 1425542407; // 2015-03-05 08:00:07
-  meta.time2.ntfs.fn_crtime_nano = 0;
-  meta.time2.ntfs.fn_ctime = 1371346223; // 2013-06-16 01:30:23
-  meta.time2.ntfs.fn_ctime_nano = 900000000;
-  meta.time2.ntfs.fn_mtime = 1123946859; // 2005-08-13 15:27:39
-  meta.time2.ntfs.fn_mtime_nano = 1001001;
-
-  jsoncons::json ts;
-
-  TskConverter munge;
-  munge.convertTimestamps(meta, TSK_FS_TYPE_NTFS, ts);
-  // basic four are good
-  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"), "accessed");
-  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"), "created");
-  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", ts.at("metadata"), "metadata");
-  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", ts.at("modified"), "modified");
-  // and filename attr timestamps
-  SCOPE_ASSERT_EQUAL("2020-01-09 20:39:44.000001", ts.at("fn_accessed"), "fn_accessed");
-  SCOPE_ASSERT_EQUAL("2015-03-05 08:00:07", ts.at("fn_created"), "fn_created");
-  SCOPE_ASSERT_EQUAL("2013-06-16 01:30:23.9", ts.at("fn_metadata"), "fn_metadata");
-  SCOPE_ASSERT_EQUAL("2005-08-13 15:27:39.001001001", ts.at("fn_modified"), "fn_modified");
-  // not these
-  SCOPE_ASSERT(ts.at("deleted").is_null());
-  SCOPE_ASSERT(ts.at("backup").is_null());
-}
-
-SCOPE_TEST(testTskConvertMacTimestamps) {
-  TSK_FS_META meta;
-  meta.atime = 1578364822; // 2020-01-07 02:40:22
-  meta.atime_nano = 123456700;
-  meta.crtime = 31337; // 1970-01-01 08:42:17
-  meta.crtime_nano = 123456400;
-  meta.ctime = 234123870; // 1977-06-02 18:24:30
-  meta.ctime_nano = 315227845;
-  meta.mtime = 314159265; // 1979-12-16 02:27:45
-  meta.mtime_nano = 999999999;
-
-  meta.time2.hfs.bkup_time = 1578602384; // 2020-01-09 20:39:44
-  meta.time2.hfs.bkup_time_nano = 1000;
-
-  jsoncons::json ts;
-
-  TskConverter munge;
-  munge.convertTimestamps(meta, TSK_FS_TYPE_HFS, ts);
-  // basic four are good
-  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"), "accessed");
-  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"), "created");
-  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", ts.at("metadata"), "metadata");
-  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", ts.at("modified"), "modified");
-  // and hfs+ backup
-  SCOPE_ASSERT_EQUAL("2020-01-09 20:39:44.000001", ts.at("backup"), "backup");
-  // but not these
-  SCOPE_ASSERT(ts.at("deleted").is_null());
-  SCOPE_ASSERT(ts.at("fn_accessed").is_null());
-  SCOPE_ASSERT(ts.at("fn_created").is_null());
-  SCOPE_ASSERT(ts.at("fn_metadata").is_null());
-  SCOPE_ASSERT(ts.at("fn_modified").is_null());  
-}
-
-SCOPE_TEST(testTskConvertLinuxTimestamps) {
-  TSK_FS_META meta;
-  meta.atime = 1578364822; // 2020-01-07 02:40:22
-  meta.atime_nano = 123456700;
-  meta.crtime = 31337; // 1970-01-01 08:42:17
-  meta.crtime_nano = 123456400;
-  meta.ctime = 234123870; // 1977-06-02 18:24:30
-  meta.ctime_nano = 315227845;
-  meta.mtime = 314159265; // 1979-12-16 02:27:45
-  meta.mtime_nano = 999999999;
-
-  meta.time2.hfs.bkup_time = 1578602384; // 2020-01-09 20:39:44
-  meta.time2.hfs.bkup_time_nano = 1000;
-
-  jsoncons::json ts;
-
-  TskConverter munge;
-  munge.convertTimestamps(meta, TSK_FS_TYPE_EXT4, ts);
-  // basic four are good
-  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"), "accessed");
-  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"), "created");
-  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", ts.at("metadata"), "metadata");
-  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", ts.at("modified"), "modified");
-  // and hfs+ backup
-  SCOPE_ASSERT_EQUAL("2020-01-09 20:39:44.000001", ts.at("deleted"), "deleted");
-  // but not these
-  SCOPE_ASSERT(ts.at("backup").is_null());
-  SCOPE_ASSERT(ts.at("fn_accessed").is_null());
-  SCOPE_ASSERT(ts.at("fn_created").is_null());
-  SCOPE_ASSERT(ts.at("fn_metadata").is_null());
-  SCOPE_ASSERT(ts.at("fn_modified").is_null());  
-}
-
-SCOPE_TEST(testTskConvertNRDs) {
-  TSK_FS_ATTR_RUN nrd;
-  nrd.addr   = 15;
-  nrd.len    = 3045;
-  nrd.offset = 17;
-  nrd.flags  = TSK_FS_ATTR_RUN_FLAG_SPARSE;
-
-  jsoncons::json js;
-  TskConverter   munge;
-  munge.convertNRDR(nrd, js);
-  std::string expected = "{\"addr\":15,\"flags\":\"Sparse\",\"len\":3045,\"offset\":17}";
-  std::string actual = js.as<std::string>();
-  SCOPE_ASSERT_EQUAL(expected, actual);
-}
-
 SCOPE_TEST(testTskVolumeSystemType) {
   TskConverter   munge;
   SCOPE_ASSERT_EQUAL("Unknown", munge.volumeSystemType(0));
@@ -330,8 +159,22 @@ SCOPE_TEST(testTskConvertHexEncode) {
   SCOPE_ASSERT_EQUAL("aeed3ac739d8fddfcbd1913b9e91e4", munge.hexEncode(s6, 15));
 }
 
-SCOPE_TEST(testTskConvertAttrRes) {
-  TSK_FS_ATTR attr;
+SCOPE_TEST(testTskConvertNRDs) {
+  TSK_FS_ATTR_RUN nrd;
+  nrd.addr   = 15;
+  nrd.len    = 3045;
+  nrd.offset = 17;
+  nrd.flags  = TSK_FS_ATTR_RUN_FLAG_SPARSE;
+
+  jsoncons::json js;
+  TskConverter   munge;
+  munge.convertNRDR(nrd, js);
+  std::string expected = "{\"addr\":15,\"flags\":\"Sparse\",\"len\":3045,\"offset\":17}";
+  std::string actual = js.as<std::string>();
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+TSK_FS_ATTR* setResAttr(TSK_FS_ATTR& attr) {
   attr.flags = TSK_FS_ATTR_RES;
   attr.id = 1;
   attr.name = const_cast<char*>("$DATA");
@@ -342,6 +185,12 @@ SCOPE_TEST(testTskConvertAttrRes) {
   attr.rd.offset = 0;
   attr.size = 9;
   attr.type = TSK_FS_ATTR_TYPE_NTFS_DATA;
+  return &attr;
+}
+
+SCOPE_TEST(testTskConvertAttrRes) {
+  TSK_FS_ATTR attr;
+  setResAttr(attr);
 
   jsoncons::json js;
   TskConverter munge;
@@ -355,9 +204,7 @@ SCOPE_TEST(testTskConvertAttrRes) {
   SCOPE_ASSERT_EQUAL("Data", js["type"]);
 }
 
-SCOPE_TEST(testTskConvertAttrNonRes) {
-  TSK_FS_ATTR_RUN nrd1,
-                  nrd2;
+TSK_FS_ATTR* setNonresAttr(TSK_FS_ATTR& attr, TSK_FS_ATTR_RUN& nrd1, TSK_FS_ATTR_RUN& nrd2) {
   nrd1.addr = 12;
   nrd1.flags = TSK_FS_ATTR_RUN_FLAG_NONE;
   nrd1.len = 2;
@@ -370,9 +217,8 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
   nrd2.offset = 2;
   nrd2.next = nullptr;
 
-  TSK_FS_ATTR attr;
   attr.flags = (TSK_FS_ATTR_FLAG_ENUM)(TSK_FS_ATTR_NONRES | TSK_FS_ATTR_INUSE);
-  attr.id = 1;
+  attr.id = 4;
   attr.name = const_cast<char*>("$DATA");
   attr.name_size = 5;
   attr.next = nullptr;
@@ -380,22 +226,22 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
   attr.nrd.run = &nrd1;
   attr.nrd.run_end = &nrd2;
   attr.nrd.allocsize = 1536;
-  // These aren't values we'd expect to see, but tests serialization well enough
+  // The following aren't values we'd expect to see, but test serialization well enough
   attr.nrd.compsize = 3;
   attr.nrd.initsize = 6;
   attr.nrd.skiplen = 9;
-  // These should be ignored
+  // These should be ignored due to flags
   attr.rd.buf = (unsigned char*)("whatever");
   attr.rd.buf_size = 8;
   attr.rd.offset = 5;
 
   attr.size = 1235;
   attr.type = TSK_FS_ATTR_TYPE_NTFS_DATA;
+  return &attr;
+}
 
-  jsoncons::json js;
-  TskConverter munge;
-  munge.convertAttr(attr, js);
-  SCOPE_ASSERT_EQUAL(1, js["id"]);
+void testNonresAttr(const jsoncons::json& js) {
+  SCOPE_ASSERT_EQUAL(4, js["id"]);
   SCOPE_ASSERT_EQUAL("In Use, Non-resident", js["flags"]);
   SCOPE_ASSERT_EQUAL("$DATA", js["name"]);
 
@@ -411,4 +257,233 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
 
   SCOPE_ASSERT_EQUAL(1235u, js["size"]);
   SCOPE_ASSERT_EQUAL("Data", js["type"]);
+}
+
+SCOPE_TEST(testTskConvertAttrNonRes) {
+  TSK_FS_ATTR_RUN nrd1,
+                  nrd2;
+
+  TSK_FS_ATTR attr;
+  setNonresAttr(attr, nrd1, nrd2);
+
+  jsoncons::json js;
+  TskConverter munge;
+  munge.convertAttr(attr, js);
+  testNonresAttr(js);
+}
+
+SCOPE_TEST(testTskMetaConvert) {
+  TSK_FS_ATTR_RUN nrd1,
+                  nrd2;
+
+  TSK_FS_ATTR attrNonRes,
+              attrRes;
+  TSK_FS_ATTRLIST alist;
+  TSK_FS_META meta;
+  meta.addr = 17;
+  meta.flags = TSK_FS_META_FLAG_UNALLOC;
+  meta.type = TSK_FS_META_TYPE_REG;
+
+  meta.uid = 21;
+  meta.gid = 1026;
+
+  meta.link = const_cast<char*>("I_am_the_target"); // terrible that there's no link_size
+  meta.nlink = 2;
+  meta.seq = 8;
+
+  meta.attr = &alist;
+  alist.head = setNonresAttr(attrNonRes, nrd1, nrd2);
+  attrNonRes.next = setResAttr(attrRes);
+
+  meta.atime = 1578364822; // 2020-01-07 02:40:22
+  meta.atime_nano = 123456700;
+  meta.crtime = 31337; // 1970-01-01 08:42:17
+  meta.crtime_nano = 123456400;
+  meta.ctime = 234123870; // 1977-06-02 18:24:30
+  meta.ctime_nano = 315227845;
+  meta.mtime = 314159265; // 1979-12-16 02:27:45
+  meta.mtime_nano = 999999999;
+
+  // meta.name2 = "SHRTNM~2";
+  // the attr_state enum is dumb
+  // we have to set the state to studied, but not worth reporting
+  meta.attr_state = TSK_FS_META_ATTR_STUDIED;
+
+  jsoncons::json js;
+
+  TskConverter munge;
+  munge.convertMeta(meta, TSK_FS_TYPE_DETECT, js);
+
+  SCOPE_ASSERT_EQUAL(17, js["addr"]);
+  SCOPE_ASSERT_EQUAL("Deleted", js["flags"]);
+  SCOPE_ASSERT_EQUAL("File", js["type"]);
+
+  SCOPE_ASSERT_EQUAL("21", js["uid"]); // stringized
+  SCOPE_ASSERT_EQUAL("1026", js["gid"]); // also stringized
+
+  SCOPE_ASSERT_EQUAL("I_am_the_target", js["link"]);
+  SCOPE_ASSERT_EQUAL(2, js["nlink"]);
+  SCOPE_ASSERT_EQUAL(8, js["seq"]);
+  // SCOPE_ASSERT_EQUAL("SHRTNM~2", js["name2"]);
+
+  SCOPE_ASSERT_EQUAL(2u, js["attrs"].size());
+  SCOPE_ASSERT_EQUAL(4, js["attrs"][0]["id"]);
+  SCOPE_ASSERT_EQUAL(1, js["attrs"][1]["id"]);
+
+  // basic four are good
+  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", js.at("accessed"));
+  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", js.at("created"));
+  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", js.at("metadata"));
+  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", js.at("modified"));
+  // others not so much
+  SCOPE_ASSERT(js.at("deleted").is_null());
+  SCOPE_ASSERT(js.at("backup").is_null());
+  SCOPE_ASSERT(js.at("fn_accessed").is_null());
+  SCOPE_ASSERT(js.at("fn_created").is_null());
+  SCOPE_ASSERT(js.at("fn_metadata").is_null());
+  SCOPE_ASSERT(js.at("fn_modified").is_null());
+}
+
+SCOPE_TEST(testTskConvertTimestamps) {
+  TSK_FS_META meta;
+  meta.atime = 1578364822; // 2020-01-07 02:40:22
+  meta.atime_nano = 123456700;
+  meta.crtime = 31337; // 1970-01-01 08:42:17
+  meta.crtime_nano = 123456400;
+  meta.ctime = 234123870; // 1977-06-02 18:24:30
+  meta.ctime_nano = 315227845;
+  meta.mtime = 314159265; // 1979-12-16 02:27:45
+  meta.mtime_nano = 999999999;
+
+  jsoncons::json ts;
+
+  TskConverter munge;
+  munge.convertTimestamps(meta, TSK_FS_TYPE_DETECT, ts);
+}
+
+SCOPE_TEST(testTskConvertEpochBeginningIsNull) {
+  TSK_FS_META meta;
+  meta.atime = 0; // 1970-01-01 00:00:00
+  meta.atime_nano = 0;
+  meta.crtime = 1; // 1970-01-01 00:00::01
+  meta.crtime_nano = 0;
+  meta.ctime = 0; // 1970-01-01 00:00:00.000000001
+  meta.ctime_nano = 1;
+  meta.mtime = 0; // 1970-01-01 00:00:00
+  meta.mtime_nano = 0;
+
+  jsoncons::json ts;
+
+  TskConverter munge;
+  munge.convertTimestamps(meta, TSK_FS_TYPE_DETECT, ts);
+  // basic four are good
+  SCOPE_ASSERT(ts.at("accessed").is_null());
+  SCOPE_ASSERT_EQUAL("1970-01-01 00:00:01", ts.at("created"));
+  SCOPE_ASSERT_EQUAL("1970-01-01 00:00:00.000000001", ts.at("metadata"));
+  SCOPE_ASSERT(ts.at("modified").is_null());
+}
+
+SCOPE_TEST(testTskConvertNTFSTimestamps) {
+  TSK_FS_META meta;
+  meta.atime = 1578364822; // 2020-01-07 02:40:22
+  meta.atime_nano = 123456700;
+  meta.crtime = 31337; // 1970-01-01 08:42:17
+  meta.crtime_nano = 123456400;
+  meta.ctime = 234123870; // 1977-06-02 18:24:30
+  meta.ctime_nano = 315227845;
+  meta.mtime = 314159265; // 1979-12-16 02:27:45
+  meta.mtime_nano = 999999999;
+
+  meta.time2.ntfs.fn_atime = 1578602384; // 2020-01-09 20:39:44
+  meta.time2.ntfs.fn_atime_nano = 1000;
+  meta.time2.ntfs.fn_crtime = 1425542407; // 2015-03-05 08:00:07
+  meta.time2.ntfs.fn_crtime_nano = 0;
+  meta.time2.ntfs.fn_ctime = 1371346223; // 2013-06-16 01:30:23
+  meta.time2.ntfs.fn_ctime_nano = 900000000;
+  meta.time2.ntfs.fn_mtime = 1123946859; // 2005-08-13 15:27:39
+  meta.time2.ntfs.fn_mtime_nano = 1001001;
+
+  jsoncons::json ts;
+
+  TskConverter munge;
+  munge.convertTimestamps(meta, TSK_FS_TYPE_NTFS, ts);
+  // basic four are good
+  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"), "accessed");
+  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"), "created");
+  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", ts.at("metadata"), "metadata");
+  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", ts.at("modified"), "modified");
+  // and filename attr timestamps
+  SCOPE_ASSERT_EQUAL("2020-01-09 20:39:44.000001", ts.at("fn_accessed"), "fn_accessed");
+  SCOPE_ASSERT_EQUAL("2015-03-05 08:00:07", ts.at("fn_created"), "fn_created");
+  SCOPE_ASSERT_EQUAL("2013-06-16 01:30:23.9", ts.at("fn_metadata"), "fn_metadata");
+  SCOPE_ASSERT_EQUAL("2005-08-13 15:27:39.001001001", ts.at("fn_modified"), "fn_modified");
+  // not these
+  SCOPE_ASSERT(ts.at("deleted").is_null());
+  SCOPE_ASSERT(ts.at("backup").is_null());
+}
+
+SCOPE_TEST(testTskConvertMacTimestamps) {
+  TSK_FS_META meta;
+  meta.atime = 1578364822; // 2020-01-07 02:40:22
+  meta.atime_nano = 123456700;
+  meta.crtime = 31337; // 1970-01-01 08:42:17
+  meta.crtime_nano = 123456400;
+  meta.ctime = 234123870; // 1977-06-02 18:24:30
+  meta.ctime_nano = 315227845;
+  meta.mtime = 314159265; // 1979-12-16 02:27:45
+  meta.mtime_nano = 999999999;
+
+  meta.time2.hfs.bkup_time = 1578602384; // 2020-01-09 20:39:44
+  meta.time2.hfs.bkup_time_nano = 1000;
+
+  jsoncons::json ts;
+
+  TskConverter munge;
+  munge.convertTimestamps(meta, TSK_FS_TYPE_HFS, ts);
+  // basic four are good
+  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"), "accessed");
+  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"), "created");
+  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", ts.at("metadata"), "metadata");
+  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", ts.at("modified"), "modified");
+  // and hfs+ backup
+  SCOPE_ASSERT_EQUAL("2020-01-09 20:39:44.000001", ts.at("backup"), "backup");
+  // but not these
+  SCOPE_ASSERT(ts.at("deleted").is_null());
+  SCOPE_ASSERT(ts.at("fn_accessed").is_null());
+  SCOPE_ASSERT(ts.at("fn_created").is_null());
+  SCOPE_ASSERT(ts.at("fn_metadata").is_null());
+  SCOPE_ASSERT(ts.at("fn_modified").is_null());
+}
+
+SCOPE_TEST(testTskConvertLinuxTimestamps) {
+  TSK_FS_META meta;
+  meta.atime = 1578364822; // 2020-01-07 02:40:22
+  meta.atime_nano = 123456700;
+  meta.crtime = 31337; // 1970-01-01 08:42:17
+  meta.crtime_nano = 123456400;
+  meta.ctime = 234123870; // 1977-06-02 18:24:30
+  meta.ctime_nano = 315227845;
+  meta.mtime = 314159265; // 1979-12-16 02:27:45
+  meta.mtime_nano = 999999999;
+
+  meta.time2.hfs.bkup_time = 1578602384; // 2020-01-09 20:39:44
+  meta.time2.hfs.bkup_time_nano = 1000;
+
+  jsoncons::json ts;
+
+  TskConverter munge;
+  munge.convertTimestamps(meta, TSK_FS_TYPE_EXT4, ts);
+  // basic four are good
+  SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"), "accessed");
+  SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"), "created");
+  SCOPE_ASSERT_EQUAL("1977-06-02 18:24:30.315227845", ts.at("metadata"), "metadata");
+  SCOPE_ASSERT_EQUAL("1979-12-16 02:27:45.999999999", ts.at("modified"), "modified");
+  // and hfs+ backup
+  SCOPE_ASSERT_EQUAL("2020-01-09 20:39:44.000001", ts.at("deleted"), "deleted");
+  // but not these
+  SCOPE_ASSERT(ts.at("backup").is_null());
+  SCOPE_ASSERT(ts.at("fn_accessed").is_null());
+  SCOPE_ASSERT(ts.at("fn_created").is_null());
+  SCOPE_ASSERT(ts.at("fn_metadata").is_null());
+  SCOPE_ASSERT(ts.at("fn_modified").is_null());
 }
