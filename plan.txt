@@ -1,0 +1,83 @@
+
+Input
+ - disk image
+   - inode dedupe
+   - resident files (batched)
+   - compressed files
+   - nonresident files (segmented w/ completion handlers)
+   - other attributes
+   - slack
+   - unallocated
+ - directories
+   - boost::filesystem
+ - Merkle tree metadata records
+ - multiple inputs (disk images, directories)
+
+ Signatures
+  - STIX2
+    - RapidJson, basic parse
+    - artifact
+    - file
+    - IP
+    - URL
+    - Boolean eval
+    - contains
+    - match
+  - YARA
+    - grammar
+    - parser
+    - ...tbd...
+
+Processing
+ - Record states on FileRec; impossible vs possible vs identified
+ - Metadata exclusion filter - reduce set of files as early as possible, disjunction of metadata rule terms
+ - File signature analysis
+ - Matcher
+   - Size
+   - Hash
+   - Full path
+ - Exclusion set on strand
+ - Search
+ - Signature evaluation
+ - Signature match triggers second set of signatures? i.e., if {X}, then collect {Y}?
+ - Recursive processing of compressed archives via libarchive
+
+Output
+ - record files by type? names and location...
+ - buffering of record files
+ - no tar, straight to filesystem option
+ - temp dir for files in process
+
+Plugins
+ - manage subprocess lifetime
+ - pass paths to subprocess
+ - pump subprocess stdout and read paths for deletion
+ - delete files
+
+Optimization
+ - TskAuto profiling & patches
+ - Allocators or other pools for file records, batches, and search hits
+
+Open Problems
+ - Memory
+   - not that hard
+ - Event logs
+ - Registry
+
+Data Model
+ - A file is...
+   - one inode
+   - multiple dirents
+   - multiple attributes
+ - Processing
+   - Hash and Search Attribute data
+
+Flow
+ - Directory Walk
+   - write inode record
+   - if meta.nlink == 1, proceed; else, accumulate all dirents
+   - 
+
+
+The default attribute is the one where type matches the filesystem's default, with the lowest id
+
