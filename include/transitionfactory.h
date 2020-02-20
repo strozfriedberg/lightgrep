@@ -129,7 +129,7 @@ public:
   }
 
 private:
-  std::set<Transition*,TransitionComparator> Exemplars;
+  std::set<Transition*, TransitionComparator> Exemplars;
 
   // Local states so we don't have to create one on each lookup
   ByteState Byte;

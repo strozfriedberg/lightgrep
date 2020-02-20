@@ -577,7 +577,7 @@ void completeOriginal(
   }
 }
 
-void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t limit) {
+void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t determinizeLimit) {
   // std::cerr << "starting subsetDFA" << std::endl;
   std::stack<std::pair<SubsetState,int>> dstStack;
   SubsetStateToState dstList2Dst;
@@ -603,7 +603,7 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t limit) {
     const VDList& srcHeadList(ss.second);
     const NFA::VertexDescriptor dstHead = dstList2Dst[ss];
 
-    if (depth < limit) {
+    if (depth < determinizeLimit) {
       // continue processing this subset state's successors
       handleSubsetStateSuccessors(
         src, dst, srcHeadList, dstHead,

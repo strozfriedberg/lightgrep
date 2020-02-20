@@ -187,11 +187,11 @@ class KeyOpts(Structure):
 
 
 class ProgOpts(Structure):
-    _fields_ = [("Determinize", c_uint32)]
+    _fields_ = [("DeterminizeDepth", c_uint32)]
 
-    def __init__(self, detDepth = 0xFFFFFFFF):
+    def __init__(self, determinizeDepth = 0xFFFFFFFF):
         super().__init__()
-        self.Determinize = detDepth
+        self.DeterminizeDepth = determinizeDepth
 
 
 class CtxOpts(Structure):
