@@ -41,18 +41,6 @@
 #define CUSTOMER_NAME JUMP_THROUGH_A_HOOP(LIGHTGREP_CUSTOMER)
 #endif
 
-// FIXME: should this be moved to searchcontroller.cpp?
-// FIXME: is this still necessary?
-//
-// <magic_incantation>
-// this ridiculous piece of crap you see here is necessary to get
-// boost_thread static libraries to link on Windows using MinGW
-// found it in the boost issue tracker
-namespace boost {
-  void tss_cleanup_implemented() { }
-}
-// </magic_incantation>
-
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
