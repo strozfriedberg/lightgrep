@@ -21,8 +21,8 @@
 
 #include <memory>
 
-#include <unicode/uset.h>
-#include <unicode/ustring.h>
+//#include <unicode/uset.h>
+//#include <unicode/ustring.h>
 
 int parseHexChar(int c) {
   switch (c) {
@@ -61,6 +61,9 @@ int parseOctChar(int c) {
 }
 
 int propertyGetter(const std::string& prop, UnicodeSet& us, bool case_insensitive) {
+  throw std::logic_error("Do not use ICU");
+
+/*
   // ask ICU for the set corresponding to this property
   UErrorCode err = U_ZERO_ERROR;
 
@@ -90,9 +93,12 @@ int propertyGetter(const std::string& prop, UnicodeSet& us, bool case_insensitiv
 
   addUnicodeSet(us, icu_us.get());
   return 1;
+*/
 }
 
 bool caseDesensitizeUnicode(UnicodeSet& us) {
+  throw std::logic_error("Do not use ICU");
+/*
   std::unique_ptr<USet, void(*)(USet*)> icu_us(uset_openEmpty(), uset_close);
   convUnicodeSet(icu_us.get(), us);
   uset_closeOver(icu_us.get(), USET_CASE_INSENSITIVE);
@@ -104,6 +110,7 @@ bool caseDesensitizeUnicode(UnicodeSet& us) {
 
   convUnicodeSet(us, icu_us.get());
   return true;
+*/
 }
 
 bool caseDesensitizeAscii(UnicodeSet& us) {
@@ -130,8 +137,13 @@ bool caseDesensitizeAscii(UnicodeSet& us) {
   // desensitize nonascii as normal
   const UnicodeSet nonascii(0x80, 0x110000);
   UnicodeSet high = us & nonascii;
+/*
   if (high.any() && caseDesensitizeUnicode(high)) {
     us |= high;
+  }
+*/
+  if (high.any()) {
+    throw std::logic_error("Do not use ICU");
   }
 
   // return true if closure added something

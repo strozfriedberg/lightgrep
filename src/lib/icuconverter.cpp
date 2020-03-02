@@ -19,28 +19,33 @@
 #include "icuutil.h"
 #include "icuconverter.h"
 
-#include <unicode/uset.h>
+#include <stdexcept>
+
+//#include <unicode/uset.h>
 
 ICUConverter::ICUConverter(const char* name):
-  Name(name),
-  bytes_conv{nullptr, nullptr},
-  cp_conv{nullptr, nullptr}
+  Name(name)
+//  Name(name),
+//  bytes_conv{nullptr, nullptr},
+//  cp_conv{nullptr, nullptr}
 {
   init();
 }
 
 ICUConverter::ICUConverter(const std::string& name):
-  Name(name),
-  bytes_conv{nullptr, nullptr},
-  cp_conv{nullptr, nullptr}
+  Name(name)
+//  Name(name),
+//  bytes_conv{nullptr, nullptr},
+//  cp_conv{nullptr, nullptr}
 {
   init();
 }
 
 ICUConverter::ICUConverter(const ICUConverter& other):
-  Name(other.Name),
-  bytes_conv{nullptr, nullptr},
-  cp_conv{nullptr, nullptr}
+  Name(other.Name)
+//  Name(other.Name),
+//  bytes_conv{nullptr, nullptr},
+//  cp_conv{nullptr, nullptr}
 {
   init();
 }
@@ -51,6 +56,7 @@ ICUConverter& ICUConverter::operator=(const ICUConverter& other) {
   return *this;
 }
 
+/*
 std::unique_ptr<UConverter,void(*)(UConverter*)> make_conv(const char* name) {
   UErrorCode err = U_ZERO_ERROR;
 
@@ -73,8 +79,11 @@ std::unique_ptr<UConverter,void(*)(UConverter*)> make_conv(const char* name) {
   }
   return conv;
 }
+*/
 
 void ICUConverter::init() {
+  throw std::logic_error("Do not use ICU");
+/*
   // The converter used to translate from the encoding to UTF-16.
   bytes_conv = make_conv(Name.c_str());
 
@@ -128,9 +137,12 @@ void ICUConverter::init() {
 
   max_bytes =
     UCNV_GET_MAX_BYTES_FOR_STRING(1, ucnv_getMaxCharSize(bytes_conv.get()));
+*/
 }
 
 UnicodeSet ICUConverter::validCodePoints() const {
+  throw std::logic_error("Do not use ICU");
+/*
   UErrorCode err = U_ZERO_ERROR;
 
   // get the set of valid code points
@@ -146,9 +158,12 @@ UnicodeSet ICUConverter::validCodePoints() const {
   UnicodeSet valid;
   convUnicodeSet(valid, us.get());
   return valid;
+*/
 }
 
 size_t ICUConverter::bytes_to_cp(const byte* beg, const byte* end, int32_t& cp) const {
+  throw std::logic_error("Do not use ICU");
+/*
   if (beg == end) {
     return 0;
   }
@@ -177,9 +192,12 @@ size_t ICUConverter::bytes_to_cp(const byte* beg, const byte* end, int32_t& cp) 
     // this is a UTF-16 surrogate, which is invalid
     return 0;
   }
+*/
 }
 
 size_t ICUConverter::cp_to_bytes(int32_t cp, byte buf[]) const {
+  throw std::logic_error("Do not use ICU");
+/*
   char* dst = reinterpret_cast<char*>(buf);
   const char* src = reinterpret_cast<const char*>(&cp);
 
@@ -205,4 +223,5 @@ size_t ICUConverter::cp_to_bytes(int32_t cp, byte buf[]) const {
   );
 
   return U_FAILURE(err) ? 0 : dst - reinterpret_cast<char*>(buf);
+*/
 }

@@ -67,7 +67,7 @@ src_lib_liblightgrepint_la_SOURCES = \
 # without exporting all C++ classes
 # src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
 
-src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
+src_lib_liblightgrep_la_LIBADD = $(LG_LIB_INT) $(STDCXX_LIB)
 if BUILD_DLL
 src_lib_liblightgrep_la_LDFLAGS = $(AM_LDFLAGS) $(LG_LIB_LDFLAGS) -avoid-version
 else
@@ -117,7 +117,7 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/searchcontroller.cpp \
 	src/cmd/util.cpp
 	
-src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(STDCXX_LIB)
 
 if BUILD_MINGW
 

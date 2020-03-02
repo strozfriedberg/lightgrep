@@ -25,7 +25,7 @@
 #include "unicode.h"
 #include "rangeset.h"
 
-#include <unicode/uchar.h>
+//#include <unicode/uchar.h>
 
 int parseHexChar(int c);
 
@@ -152,6 +152,9 @@ int prepareStringForICU(Iterator& i, const Iterator& end, std::string& out) {
 // Should accept \{U\+[0-9A-Fa-f]{1,6}\} and \{[\w ]+\}
 template <typename Iterator>
 int parseNamedCodePoint(Iterator& i, const Iterator& end) {
+  throw std::logic_error("Do not use ICU");
+
+/*
   if (i == end) {
     return -1;
   }
@@ -174,6 +177,7 @@ int parseNamedCodePoint(Iterator& i, const Iterator& end) {
   UErrorCode err = U_ZERO_ERROR;
   const int val = u_charFromName(U_UNICODE_CHAR_NAME, name.c_str(), &err);
   return U_FAILURE(err) ? -1 : val;
+*/
 }
 
 int propertyGetter(const std::string& prop, UnicodeSet& us, bool case_insensitive);

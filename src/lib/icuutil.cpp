@@ -18,9 +18,14 @@
 
 #include "icuutil.h"
 
-#include <unicode/uset.h>
+//#include <unicode/uset.h>
+
+#include <stdexcept>
 
 void addUnicodeSet(UnicodeSet& dst, const USet* src) {
+  throw std::logic_error("Do not use ICU");
+
+/*
   UErrorCode err = U_ZERO_ERROR;
 
   // get the size of the data array
@@ -57,6 +62,7 @@ void addUnicodeSet(UnicodeSet& dst, const USet* src) {
 
     dst.insert(beg, end+1);
   }
+*/
 }
 
 void convUnicodeSet(UnicodeSet& dst, const USet* src) {
@@ -65,8 +71,11 @@ void convUnicodeSet(UnicodeSet& dst, const USet* src) {
 }
 
 void convUnicodeSet(USet* dst, const UnicodeSet& src) {
+  throw std::logic_error("Do not use ICU");
+/*
   uset_clear(dst);
   for (const UnicodeSet::range& r : src) {
     uset_addRange(dst, r.first, r.second-1);
   }
+*/
 }

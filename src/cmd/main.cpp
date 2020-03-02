@@ -16,7 +16,7 @@
 #include <boost/program_options.hpp>
 #include <boost/graph/graphviz.hpp>
 
-#include <unicode/ucnv.h>
+//#include <unicode/ucnv.h>
 
 #include "handles.h"
 #include "pattern.h"
@@ -585,6 +585,7 @@ void validate(const Options& opts) {
 }
 
 void writeSampleMatches(const Options& opts) {
+/*
 // TODO: Writing sample matches should not be unconditionally EnCase-specific.
 // There should be a switch to turn on the behavior EnCase needs.
 
@@ -642,6 +643,7 @@ void writeSampleMatches(const Options& opts) {
     out.flush();
     ++pnum;
   }
+*/
 }
 
 int main(int argc, char** argv) {
