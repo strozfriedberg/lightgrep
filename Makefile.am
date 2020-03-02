@@ -227,7 +227,7 @@ test_test_SOURCES = \
 	test/test_xorencoder.cpp
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
-test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(STDCXX_LIB)
 
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = src/lib/lightgrep.pc

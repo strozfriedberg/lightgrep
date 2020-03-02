@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
 #include <scope/test.h>
 
 #include "rangeset.h"
@@ -68,3 +69,4 @@ SCOPE_TEST(testUnicodeSetLGToICUDstNonEmpty) {
   convUnicodeSet(act.get(), src);
   SCOPE_ASSERT(uset_equals(exp.get(), act.get()));
 }
+*/

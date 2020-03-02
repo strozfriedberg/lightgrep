@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
 #include "basic.h"
 #include "container_out.h"
 
@@ -42,3 +43,4 @@ SCOPE_TEST(testICUStandards) {
 
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
+*/

@@ -16,6 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
 #include <scope/test.h>
 
 #include <vector>
@@ -97,3 +98,4 @@ SCOPE_TEST(icuDecoder_GB18030_Next) {
     SCOPE_ASSERT_EQUAL(cp, d.next());
   }
 }
+*/
