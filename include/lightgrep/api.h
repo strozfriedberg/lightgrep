@@ -107,7 +107,8 @@ extern "C" {
   void lg_free_error(LG_Error* err);
 
   // Create and destory an LG_HPATTERN.
-  // This can be reused when parsing pattern strings to avoid re-allocating memory.
+  // This can be reused when parsing pattern strings to avoid
+  // re-allocating memory.
   LG_HPATTERN lg_create_pattern();
 
   void lg_destroy_pattern(LG_HPATTERN hPattern);
@@ -216,10 +217,6 @@ extern "C" {
                       void* userData,
                       LG_HITCALLBACK_FN callbackFn);
 
-  // Reset the context to its initial state.
-  // Call this before searching a new file.
-  void lg_reset_context(LG_HCONTEXT hCtx);
-
   // Search a buffer. It assumes it's picking up where it left off, so you can
   // call this in a loop. When a hit is identified, the callback function will
   // be called, on the same stackframe, giving you the starting byte offset of
@@ -254,6 +251,10 @@ extern "C" {
                          const uint64_t startOffset,
                          void* userData,
                          LG_HITCALLBACK_FN callbackFn);
+
+  // Reset the context to its initial state.
+  // Call this before searching a new file.
+  void lg_reset_context(LG_HCONTEXT hCtx);
 
 #ifdef __cplusplus
 }
