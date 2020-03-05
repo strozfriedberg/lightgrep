@@ -62,7 +62,7 @@ SCOPE_TEST(testDedupeOnDiffEncodings) {
 SCOPE_TEST(testLgAddPatternList) {
   const char pats[] =
     "foo\tUTF-8,UTF-16LE\t0\n"
-    "bar\tISO-8859-11,UTF-16BE\t0\t1\n";
+    "bar\tISO-8859-11,UTF-16BE\t0\t1\n"
     "\\w+\tUTF-8\t0\t1\t1\n";
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
