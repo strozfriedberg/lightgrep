@@ -196,7 +196,7 @@ SCOPE_TEST(testLgWriteProgramLgReadProgram) {
 
   const char* defEncs[] = { "ASCII", "UTF-8" };
   const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
-  const LG_KeyOptions defOpts{0, 0};
+  const LG_KeyOptions defOpts{0, 0, 0};
 
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog1(
     lg_create_program(patsNum),
