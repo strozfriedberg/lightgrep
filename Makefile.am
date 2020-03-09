@@ -87,6 +87,7 @@ noinst_PROGRAMS = \
 	c_example/cex \
 	src/enc/enc \
 	src/val/val \
+	src/teddy/teddy \
 	src/what/what
 
 c_example_cex_SOURCES = c_example/main.c
@@ -100,6 +101,9 @@ src_val_val_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_what_what_SOURCES = src/what/what.cpp
 src_what_what_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
+
+src_teddy_teddy_SOURCES = src/teddy/teddy.cpp
+src_teddy_teddy_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
 	src/enc/enc$(EXEEXT) >$@
