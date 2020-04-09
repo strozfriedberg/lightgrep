@@ -536,7 +536,7 @@ bool writeGraphviz(const Options& opts) {
   }
 
   // break on through the C API to print the graph
-  opts.openOutput() << *fsm->Impl->Fsm;
+  writeGraphviz(opts.openOutput(), *fsm->Impl->Fsm);
   return true;
 }
 
