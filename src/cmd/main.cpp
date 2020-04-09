@@ -176,7 +176,7 @@ std::unique_ptr<const char*[]> c_str_arr(const std::vector<std::string>& vec) {
   for (uint32_t i = 0; i < size; ++i) {
     arr[i] = vec[i].c_str();
   }
-  return std::move(arr);
+  return arr;
 }
 
 template <class T>
@@ -536,7 +536,7 @@ bool writeGraphviz(const Options& opts) {
   }
 
   // break on through the C API to print the graph
-  opts.openOutput() << *fsm->Impl->Fsm;
+  writeGraphviz(opts.openOutput(), *fsm->Impl->Fsm);
   return true;
 }
 
