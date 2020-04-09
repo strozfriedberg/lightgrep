@@ -31,7 +31,7 @@ bool TSKReader::startReading(const std::shared_ptr<FileScheduler>& sink) {
   // setup
   Sink = sink;
   // tell TskAuto to start giving files to processFile
-  std::cerr << "Image is " << getImageSize() << " bytes in size" << std::endl;
+  // std::cerr << "Image is " << getImageSize() << " bytes in size" << std::endl;
   bool ret = recurseDisk();
   // std::cerr << "recurseDisk returned " << ret;
   if (!ret) {
@@ -43,8 +43,7 @@ bool TSKReader::startReading(const std::shared_ptr<FileScheduler>& sink) {
 }
 
 TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE *fs_file, const char *path) {
-  // std::cerr << "processFile " << path << "/" << fs_file->name->name <<
-  // std::endl;
+  // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
 
   std::string fullpath(path);
   fullpath.append(fs_file->name->name);

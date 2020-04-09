@@ -10,6 +10,8 @@
 
 #include <vector>
 
+#include "boost_asio.h"
+
 SCOPE_TEST(TestSizeMatch) {
   std::shared_ptr<ProgramHandle> lg;
 
@@ -56,4 +58,18 @@ SCOPE_TEST(TestSizeMatch) {
                       rec3.Hashes.Md5);
   SCOPE_ASSERT_EQUAL({0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
                       rec3.Hashes.Sha1);
+}
+
+SCOPE_TEST(testBoostThreadPool) {
+  unsigned int count = 0;
+  boost::asio::thread_pool pool;
+  boost::asio::post(pool, [&]() {
+    ++count;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    boost::asio::post(pool, [&]() {
+      ++count;
+    });
+  });
+  pool.join();
+  SCOPE_ASSERT_EQUAL(2u, count);
 }

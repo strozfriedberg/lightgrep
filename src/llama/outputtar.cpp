@@ -21,11 +21,21 @@ class OutputTar : public OutputBase {
 public:
   OutputTar(boost::asio::thread_pool &pool, const std::string &path);
 
-  virtual ~OutputTar() {}
+  virtual ~OutputTar() {
+    close();
+  }
 
   virtual void outputFile(const FileRecord &rec) override {
     // std::cerr << "OutputTar::outputFile: " << rec.Path << std::endl;
-    boost::asio::post(MainStrand, [=](){ writeFileRecord(rec); });
+    if (Closed) {
+      // we might still have some records in FileRecBuf, but the 
+      // threadpool has gone away and the MainStrand can no longer be
+      // posted to, so just call into the function directly.
+      writeFileRecord(rec);
+    }
+    else {
+      boost::asio::post(MainStrand, [=](){ writeFileRecord(rec); });      
+    }
   }
 
   virtual void outputRecord(const FileRecord &rec) override {
@@ -36,12 +46,18 @@ public:
     boost::asio::post(RecStrand, [=]() {
       for (auto& rec: *batch) {
         rec.updateDoc();
-        FileRecBuf.get() << rec.Doc << '\n';
+        // std::cerr << "Writing " << rec.str() << std::endl;
+        FileRecBuf.write(rec.str());
+        // FileRecBuf.get() << rec.Doc << '\n';
       }
     });
   }
 
   virtual void outputSearchHit(const std::string &) override {}
+
+  virtual void close() override {
+    Closed = true; // FileRecBuf's destructor will take care of final flush
+  }
 
 private:
   void writeFileRecord(const FileRecord &rec);
@@ -54,6 +70,8 @@ private:
   std::shared_ptr<archive> Archive;
 
   RecordBuffer FileRecBuf; // must be destroyed before Archive
+
+  bool Closed;
 };
 
 std::shared_ptr<OutputBase>
@@ -66,14 +84,15 @@ OutputBase::createTarWriter(boost::asio::thread_pool &pool,
 OutputTar::OutputTar(boost::asio::thread_pool &pool, const std::string &path)
     : MainStrand(pool.get_executor()), RecStrand(pool.get_executor()),
       Path(path), Archive(archive_write_new(), closeAndFreeArchive),
-      FileRecBuf("recs/file_recs", 16 * 1024 * 1024, *this)
+      FileRecBuf("recs/file_recs", 16 * 1024 * 1024, *this),
+      Closed(false)
 {
   Path.append(".tar.lz4");
+  // Path.append(".tar.gz");
   archive_write_add_filter_lz4(Archive.get());
+  // archive_write_add_filter_gzip(Archive.get());
   archive_write_set_format_pax_restricted(Archive.get());
   archive_write_open_filename(Archive.get(), Path.c_str());
-
-  // std::cerr << "Creating " << Path << std::endl;
 }
 
 void OutputTar::writeFileRecord(const FileRecord &rec) {

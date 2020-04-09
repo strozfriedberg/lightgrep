@@ -22,6 +22,8 @@ public:
     for (auto& hit: batch) { outputSearchHit(hit); }
   }
 
+  virtual void close() = 0;
+
   static std::shared_ptr<OutputBase>
   createTarWriter(boost::asio::thread_pool &pool, const std::string &path);
 };

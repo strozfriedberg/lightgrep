@@ -17,6 +17,8 @@ public:
 
   virtual void outputSearchHit(const std::string &) override {}
 
+  virtual void close() override {}
+
   std::vector<FileRecord> OutFiles;
   std::vector<FileRecord> Received;
 };

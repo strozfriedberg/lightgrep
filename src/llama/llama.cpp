@@ -54,7 +54,7 @@ void Llama::search() {
       std::cerr << "startReading returned an error" << std::endl;
     }
     Pool.join();
-    std::cout << "All done" << std::endl;
+    // std::cout << "All done" << std::endl;
   } else {
     std::cerr << "init returned false!" << std::endl;
   }
