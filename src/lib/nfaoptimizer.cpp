@@ -579,7 +579,7 @@ void completeOriginal(
 
 void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t determinizeLimit) {
   // std::cerr << "starting subsetDFA" << std::endl;
-  std::stack<std::pair<SubsetState,int>> dstStack;
+  std::stack<std::pair<SubsetState, int>> dstStack;
   SubsetStateToState dstList2Dst;
   std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst;
 
