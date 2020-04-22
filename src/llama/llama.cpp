@@ -46,9 +46,8 @@ void Llama::search() {
               << std::endl;
 
     auto out = OutputBase::createTarWriter(Pool, Opts->TarPath);
-    std::shared_ptr<Processor> protoProc(new Processor(Matcher, LgProg));
-    auto scheduler =
-        std::make_shared<FileScheduler>(Pool, protoProc, out, Opts);
+    auto protoProc = std::make_shared<Processor>(Matcher, LgProg);
+    auto scheduler = std::make_shared<FileScheduler>(Pool, protoProc, out, Opts);
 
     if (!Input->startReading(scheduler)) {
       std::cerr << "startReading returned an error" << std::endl;
@@ -121,11 +120,14 @@ bool Llama::init() {
   if (Opts->KeyFiles.empty()) {
     return false;
   }
-  auto readPats = make_future(
-      Pool, [this]() { return readpatterns(this->Opts->KeyFiles); });
-  auto readMatches = make_future(Pool, [this](){ return this->Opts->MatchSet.empty() || readMatchingSet(this->Opts->MatchSet); });
-  auto open =
-      make_future(Pool, [this]() { return openInput(this->Opts->Input); });
+  auto readPats = make_future(Pool, [this]() {
+                    return readpatterns(this->Opts->KeyFiles); });
+
+  auto readMatches = make_future(Pool, [this](){
+                       return this->Opts->MatchSet.empty() || readMatchingSet(this->Opts->MatchSet); });
+
+  auto open = make_future(Pool, [this]() {
+                return openInput(this->Opts->Input); });
 
   return readPats.get() && readMatches.get() && open.get();
 }
