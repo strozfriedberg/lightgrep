@@ -1,6 +1,7 @@
 #include "cli.h"
 
 #include <ostream>
+#include <stdexcept>
 #include <thread>
 
 namespace po = boost::program_options;
@@ -12,10 +13,11 @@ Cli::Cli() : All(), Opts(new Options) {
       "version,V", "Print version information and exit");
 
   po::options_description ioOpts("Input/Output Options");
-  ioOpts.add_options()("output", po::value<std::string>(&Opts->TarPath),
-                       "Tar.lz4 file to create for output")(
-      "input", po::value<std::string>(&Opts->Input),
-      "Evidence file or directory to process");
+  ioOpts.add_options()
+    ("output", po::value<std::string>(&Opts->TarPath), "Tar file to create for output, extension will be added")
+    ("codec", po::value<std::string>(&CodecSelect)->default_value("lz4"), "Output tar compression method (none|gzip|lz4)")
+    ("input", po::value<std::string>(&Opts->Input), "Evidence file or directory to process")
+  ;
 
   po::options_description configOpts("Configuration Options");
   configOpts.add_options()(
@@ -45,6 +47,7 @@ std::shared_ptr<Options> Cli::parse(int argc, const char *const argv[]) const {
   po::notify(optsMap);
 
   Opts->Command = figureOutCommand(optsMap);
+  Opts->Codec = figureOutCodec();
 
   return Opts;
 }
@@ -70,4 +73,17 @@ std::string Cli::figureOutCommand(
     return "version";
   }
   return "search";
+}
+
+Options::Codecs Cli::figureOutCodec() const {
+  if (0 == CodecSelect.compare("none")) {
+    return Options::CODEC_NONE;
+  }
+  else if (0 == CodecSelect.compare("gzip")) {
+    return Options::CODEC_GZIP;
+  }
+  else if (0 == CodecSelect.compare("lz4")) {
+    return Options::CODEC_LZ4;
+  }
+  throw std::invalid_argument("'" + CodecSelect + "' is not a valid option for --codec");
 }

@@ -65,6 +65,29 @@ SCOPE_TEST(testCLInumThreads) {
   SCOPE_ASSERT_EQUAL(std::thread::hardware_concurrency(), opts->NumThreads);
 }
 
+SCOPE_TEST(testCLICodec) {
+  Cli cli;
+
+  const char* gzipArgs[] = {"llama", "-f", "patterns.txt", "--codec=gzip", "output.tar", "nosnits_workstation.E01"};
+  auto opts = cli.parse(6, gzipArgs);
+  SCOPE_ASSERT_EQUAL(Options::CODEC_GZIP, opts->Codec);
+
+  const char* lz4Args[] = {"llama", "-f", "patterns.txt", "--codec=lz4", "output.tar", "nosnits_workstation.E01"};
+  opts = cli.parse(6, lz4Args);
+  SCOPE_ASSERT_EQUAL(Options::CODEC_LZ4, opts->Codec);
+
+  const char* noneArgs[] = {"llama", "-f", "patterns.txt", "--codec=none", "output.tar", "nosnits_workstation.E01"};
+  opts = cli.parse(6, noneArgs);
+  SCOPE_ASSERT_EQUAL(Options::CODEC_NONE, opts->Codec);
+
+  const char* badArgs[] = {"llama", "-f", "patterns.txt", "--codec=bad", "output.tar", "nosnits_workstation.E01"};
+  SCOPE_EXPECT(opts = cli.parse(6, badArgs), std::invalid_argument);
+
+  const char* defaultArgs[] = {"llama", "-f", "patterns.txt", "output.tar", "nosnits_workstation.E01"};
+  opts = cli.parse(5, defaultArgs);
+  SCOPE_ASSERT_EQUAL(Options::CODEC_LZ4, opts->Codec);
+}
+
 SCOPE_TEST(testPrintVersion) {
   Cli cli;
   std::stringstream output;

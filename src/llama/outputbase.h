@@ -3,6 +3,7 @@
 #include <string>
 
 #include "boost_asio.h"
+#include "options.h"
 
 struct FileRecord;
 
@@ -25,5 +26,5 @@ public:
   virtual void close() = 0;
 
   static std::shared_ptr<OutputBase>
-  createTarWriter(boost::asio::thread_pool &pool, const std::string &path);
+  createTarWriter(boost::asio::thread_pool &pool, const std::string &path, Options::Codecs codec);
 };

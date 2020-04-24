@@ -17,11 +17,12 @@ public:
   void printHelp(std::ostream &out) const;
 
 private:
-  std::string
-  figureOutCommand(const boost::program_options::variables_map &optsMap) const;
+  std::string figureOutCommand(const boost::program_options::variables_map& optsMap) const;
+  Options::Codecs figureOutCodec() const;
 
   boost::program_options::options_description All;
   boost::program_options::positional_options_description PosOpts;
 
   std::shared_ptr<Options> Opts;
+  std::string CodecSelect;
 };

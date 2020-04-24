@@ -45,7 +45,7 @@ void Llama::search() {
     std::cout << "Number of patterns: " << lg_pattern_count(LgProg.get())
               << std::endl;
 
-    auto out = OutputBase::createTarWriter(Pool, Opts->TarPath);
+    auto out = OutputBase::createTarWriter(Pool, Opts->TarPath, Opts->Codec);
     auto protoProc = std::make_shared<Processor>(Matcher, LgProg);
     auto scheduler = std::make_shared<FileScheduler>(Pool, protoProc, out, Opts);
 

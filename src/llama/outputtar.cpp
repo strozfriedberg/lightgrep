@@ -1,16 +1,15 @@
 #include "outputbase.h"
 
+#include <iostream>
 #include <memory>
 
 #include <archive.h>
 #include <archive_entry.h>
 
 #include "boost_asio.h"
-
 #include "filerecord.h"
+#include "options.h"
 #include "recordbuffer.h"
-
-#include <iostream>
 
 void closeAndFreeArchive(archive *a) {
   archive_write_close(a);
@@ -19,7 +18,7 @@ void closeAndFreeArchive(archive *a) {
 
 class OutputTar : public OutputBase {
 public:
-  OutputTar(boost::asio::thread_pool &pool, const std::string &path);
+  OutputTar(boost::asio::thread_pool &pool, const std::string &path, Options::Codecs codec);
 
   virtual ~OutputTar() {
     close();
@@ -75,21 +74,34 @@ private:
 
 std::shared_ptr<OutputBase>
 OutputBase::createTarWriter(boost::asio::thread_pool &pool,
-                            const std::string &path) {
+                            const std::string &path,
+                            Options::Codecs codec)
+{
   return std::static_pointer_cast<OutputBase>(
-      std::shared_ptr<OutputTar>(new OutputTar(pool, path)));
+      std::shared_ptr<OutputTar>(new OutputTar(pool, path, codec)));
 }
 
-OutputTar::OutputTar(boost::asio::thread_pool &pool, const std::string &path)
+OutputTar::OutputTar(boost::asio::thread_pool &pool, const std::string &path, Options::Codecs codec)
     : MainStrand(pool.get_executor()), RecStrand(pool.get_executor()),
       Path(path), Archive(archive_write_new(), closeAndFreeArchive),
       FileRecBuf("recs/file_recs", 16 * 1024 * 1024, *this),
       Closed(false)
 {
-  Path.append(".tar.lz4");
-  // Path.append(".tar.gz");
-  archive_write_add_filter_lz4(Archive.get());
-  // archive_write_add_filter_gzip(Archive.get());
+  std::string ext;
+  switch (codec) {
+    case Options::CODEC_NONE:
+      ext = ".tar";
+      break;
+    case Options::CODEC_GZIP:
+      ext = ".tar.gz";
+      archive_write_add_filter_gzip(Archive.get());
+      break;
+    case Options::CODEC_LZ4:
+      ext = ".tar.lz4";
+      archive_write_add_filter_lz4(Archive.get());
+      break;
+  }
+  Path.append(ext);
   archive_write_set_format_pax_restricted(Archive.get());
   archive_write_open_filename(Archive.get(), Path.c_str());
 }
