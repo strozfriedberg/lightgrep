@@ -34,6 +34,8 @@ public:
   std::string hexEncode(const char* str, unsigned int size) { return hexEncode(reinterpret_cast<const unsigned char*>(str), size); }
   std::string hexEncode(unsigned const char* str, unsigned int size);
 
+  std::string extractString(const char* str, unsigned int size);
+
 private:
   jsoncons::json formatTimestamp(int64_t unix_time, uint32_t ns);
 

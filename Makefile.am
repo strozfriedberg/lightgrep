@@ -123,6 +123,7 @@ src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_P
 
 src_llama_llama_SOURCES = \
 	src/llama/cli.cpp \
+	src/llama/filerecord.cpp \
 	src/llama/filescheduler.cpp \
 	src/llama/llama.cpp \
 	src/llama/main.cpp \
@@ -136,7 +137,8 @@ src_llama_llama_SOURCES = \
 	src/llama/test_filerecord.cpp \
 	src/llama/test_processor.cpp \
 	src/llama/test_recordbuffer.cpp \
-	src/llama/test_tskconversion.cpp
+	src/llama/test_tskconversion.cpp \
+	src/llama/test_tskreader.cpp
 
 src_llama_llama_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS) $(TSK_CPPFLAGS) $(LIBARCHIVE_CPPFLAGS)
 src_llama_llama_LDADD = $(LG_LIB) $(LG_LIBS) $(TSK_LIBS) $(LIBARCHIVE_LIBS) $(HASHER_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)

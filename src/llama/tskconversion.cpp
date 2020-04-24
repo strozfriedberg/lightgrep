@@ -1,5 +1,6 @@
 #include "tskconversion.h"
 
+#include <algorithm>
 #include <array>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -276,7 +277,7 @@ void TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType,
   jsMeta["uid"] = std::to_string(meta.uid);
   jsMeta["gid"] = std::to_string(meta.gid);
 
-  jsMeta["link"] = meta.link;
+  jsMeta["link"] = meta.link == nullptr ? "": meta.link;
   jsMeta["nlink"] = meta.nlink;
 
   jsMeta["seq"] = meta.seq;
@@ -382,14 +383,25 @@ jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
   return ret;
 }
 
+std::string TskConverter::extractString(const char* str, unsigned int size) {
+  std::string ret(str, size);
+  for (unsigned int i = 0; i < size; ++i) {
+    if (ret[i] == 0) {
+      ret.resize(i);
+      break;
+    }
+  }
+  return ret;
+}
+
 void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) {
   jsAttr["id"] = attr.id;
   jsAttr["flags"] = attrFlags(attr.flags);
-  jsAttr["name"] = std::string(attr.name, attr.name_size);
+  jsAttr["name"] = extractString(attr.name, attr.name_size);
   jsAttr["size"] = attr.size;
   jsAttr["type"] = attrType(attr.type);
   if (attr.flags & TSK_FS_ATTR_RES) {
-    jsAttr["rd_buf"] = hexEncode(attr.rd.buf, attr.rd.buf_size);
+    jsAttr["rd_buf"] = hexEncode(attr.rd.buf, std::min(attr.size, static_cast<int64_t>(attr.rd.buf_size)));
     jsAttr["rd_offset"] = attr.rd.offset;
   }
   else { // non-resident

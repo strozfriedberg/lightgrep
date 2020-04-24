@@ -177,13 +177,13 @@ SCOPE_TEST(testTskConvertNRDs) {
 TSK_FS_ATTR* setResAttr(TSK_FS_ATTR& attr) {
   attr.flags = TSK_FS_ATTR_RES;
   attr.id = 1;
-  attr.name = const_cast<char*>("$DATA");
-  attr.name_size = 5;
+  attr.name = const_cast<char*>("$DATA\0 3.1459"); // will be clipped at null character
+  attr.name_size = 13;
   attr.next = nullptr;
-  attr.rd.buf = (unsigned char*)("whatever");
-  attr.rd.buf_size = 8;
+  attr.rd.buf = (unsigned char*)("whatever\tslack");
+  attr.rd.buf_size = 14;
   attr.rd.offset = 0;
-  attr.size = 9;
+  attr.size = 8;
   attr.type = TSK_FS_ATTR_TYPE_NTFS_DATA;
   return &attr;
 }
@@ -200,7 +200,7 @@ SCOPE_TEST(testTskConvertAttrRes) {
   SCOPE_ASSERT_EQUAL("$DATA", js["name"]);
   SCOPE_ASSERT_EQUAL("7768617465766572", js["rd_buf"]);
   SCOPE_ASSERT_EQUAL(0, js["rd_offset"]);
-  SCOPE_ASSERT_EQUAL(9u, js["size"]);
+  SCOPE_ASSERT_EQUAL(8u, js["size"]);
   SCOPE_ASSERT_EQUAL("Data", js["type"]);
 }
 
@@ -342,6 +342,10 @@ SCOPE_TEST(testTskMetaConvert) {
   SCOPE_ASSERT(js.at("fn_created").is_null());
   SCOPE_ASSERT(js.at("fn_metadata").is_null());
   SCOPE_ASSERT(js.at("fn_modified").is_null());
+
+  meta.link = nullptr;
+  munge.convertMeta(meta, TSK_FS_TYPE_DETECT, js);
+  SCOPE_ASSERT_EQUAL("", js["link"]);
 }
 
 SCOPE_TEST(testTskConvertTimestamps) {

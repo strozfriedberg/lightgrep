@@ -45,7 +45,6 @@ public:
   virtual void outputRecords(const std::shared_ptr<std::vector<FileRecord>>& batch) override {
     boost::asio::post(RecStrand, [=]() {
       for (auto& rec: *batch) {
-        rec.updateDoc();
         // std::cerr << "Writing " << rec.str() << std::endl;
         FileRecBuf.write(rec.str());
         // FileRecBuf.get() << rec.Doc << '\n';
