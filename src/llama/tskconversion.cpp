@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstring>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -385,11 +386,10 @@ jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
 
 std::string TskConverter::extractString(const char* str, unsigned int size) {
   std::string ret(str, size);
-  for (unsigned int i = 0; i < size; ++i) {
-    if (ret[i] == 0) {
-      ret.resize(i);
-      break;
-    }
+  const char* ptr = ret.c_str();
+  const char* nul = static_cast<const char*>(std::memchr(ptr, 0, size));
+  if (nul) {
+    ret.resize(nul - ptr);
   }
   return ret;
 }

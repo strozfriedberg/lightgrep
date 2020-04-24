@@ -491,3 +491,13 @@ SCOPE_TEST(testTskConvertLinuxTimestamps) {
   SCOPE_ASSERT(ts.at("fn_metadata").is_null());
   SCOPE_ASSERT(ts.at("fn_modified").is_null());
 }
+
+SCOPE_TEST(testTskConvertExtractString) {
+  TskConverter munge;
+  const char*  buf1 = "here is a \0string with a null in it";
+  const char*  buf2 = "here is a cstring without any nulls";
+  unsigned int bufLen = 35;
+
+  SCOPE_ASSERT_EQUAL("here is a ", munge.extractString(buf1, bufLen));
+  SCOPE_ASSERT_EQUAL("here is a cstring without any nulls", munge.extractString(buf2, bufLen));
+}
