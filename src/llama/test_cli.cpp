@@ -68,23 +68,39 @@ SCOPE_TEST(testCLInumThreads) {
 SCOPE_TEST(testCLICodec) {
   Cli cli;
 
-  const char* gzipArgs[] = {"llama", "-f", "patterns.txt", "--codec=gzip", "output.tar", "nosnits_workstation.E01"};
-  auto opts = cli.parse(6, gzipArgs);
+  const char* gzipArgs[] = {"llama", "--codec=gzip", "output.tar", "nosnits_workstation.E01"};
+  auto opts = cli.parse(4, gzipArgs);
   SCOPE_ASSERT_EQUAL(Options::CODEC_GZIP, opts->Codec);
 
-  const char* lz4Args[] = {"llama", "-f", "patterns.txt", "--codec=lz4", "output.tar", "nosnits_workstation.E01"};
-  opts = cli.parse(6, lz4Args);
+  const char* lz4Args[] = {"llama", "--codec=lz4", "output.tar", "nosnits_workstation.E01"};
+  opts = cli.parse(4, lz4Args);
   SCOPE_ASSERT_EQUAL(Options::CODEC_LZ4, opts->Codec);
 
-  const char* noneArgs[] = {"llama", "-f", "patterns.txt", "--codec=none", "output.tar", "nosnits_workstation.E01"};
-  opts = cli.parse(6, noneArgs);
+  const char* noneArgs[] = {"llama", "--codec=none", "output.tar", "nosnits_workstation.E01"};
+  opts = cli.parse(4, noneArgs);
   SCOPE_ASSERT_EQUAL(Options::CODEC_NONE, opts->Codec);
 
-  const char* badArgs[] = {"llama", "-f", "patterns.txt", "--codec=bad", "output.tar", "nosnits_workstation.E01"};
-  SCOPE_EXPECT(opts = cli.parse(6, badArgs), std::invalid_argument);
+  const char* lzmaArgs[] = {"llama", "--codec=lzma", "output.tar", "nosnits_workstation.E01"};
+  opts = cli.parse(4, lzmaArgs);
+  SCOPE_ASSERT_EQUAL(Options::CODEC_LZMA, opts->Codec);
 
-  const char* defaultArgs[] = {"llama", "-f", "patterns.txt", "output.tar", "nosnits_workstation.E01"};
-  opts = cli.parse(5, defaultArgs);
+  const char* bz2Args[] = {"llama", "--codec=bzip2", "output.tar", "nosnits_workstation.E01"};
+  opts = cli.parse(4, bz2Args);
+  SCOPE_ASSERT_EQUAL(Options::CODEC_BZIP2, opts->Codec);
+
+  const char* lzoArgs[] = {"llama", "--codec=lzo", "output.tar", "nosnits_workstation.E01"};
+  opts = cli.parse(4, lzoArgs);
+  SCOPE_ASSERT_EQUAL(Options::CODEC_LZOP, opts->Codec);
+
+  const char* xzArgs[] = {"llama", "--codec=xz", "output.tar", "nosnits_workstation.E01"};
+  opts = cli.parse(4, xzArgs);
+  SCOPE_ASSERT_EQUAL(Options::CODEC_XZ, opts->Codec);
+
+  const char* badArgs[] = {"llama", "--codec=bad", "output.tar", "nosnits_workstation.E01"};
+  SCOPE_EXPECT(opts = cli.parse(4, badArgs), std::invalid_argument);
+
+  const char* defaultArgs[] = {"llama", "output.tar", "nosnits_workstation.E01"};
+  opts = cli.parse(3, defaultArgs);
   SCOPE_ASSERT_EQUAL(Options::CODEC_LZ4, opts->Codec);
 }
 

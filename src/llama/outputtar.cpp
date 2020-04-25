@@ -100,6 +100,22 @@ OutputTar::OutputTar(boost::asio::thread_pool &pool, const std::string &path, Op
       ext = ".tar.lz4";
       archive_write_add_filter_lz4(Archive.get());
       break;
+    case Options::CODEC_LZMA:
+      ext = ".tar.lzma";
+      archive_write_add_filter_lzma(Archive.get());
+      break;
+    case Options::CODEC_BZIP2:
+      ext = ".tar.bz2";
+      archive_write_add_filter_bzip2(Archive.get());
+      break;
+    case Options::CODEC_LZOP:
+      ext = ".tar.lzo";
+      archive_write_add_filter_lzop(Archive.get());
+      break;
+    case Options::CODEC_XZ:
+      ext = ".tar.xz";
+      archive_write_add_filter_xz(Archive.get());
+      break;
   }
   Path.append(ext);
   archive_write_set_format_pax_restricted(Archive.get());

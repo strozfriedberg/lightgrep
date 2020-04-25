@@ -7,7 +7,11 @@ struct Options {
   enum Codecs {
     CODEC_NONE,
     CODEC_GZIP,
-    CODEC_LZ4
+    CODEC_LZ4,
+    CODEC_LZMA,
+    CODEC_BZIP2,
+    CODEC_LZOP,
+    CODEC_XZ
   };
 
   std::string Command;
