@@ -42,9 +42,8 @@ int Llama::run(int argc, const char *const argv[]) {
 
 void Llama::search() {
   if (init()) {
-    std::cout << "Number of patterns: " << lg_pattern_count(LgProg.get())
-              << std::endl;
-
+    // std::cout << "Number of patterns: " << lg_pattern_count(LgProg.get())
+    //           << std::endl;
     auto out = OutputBase::createTarWriter(Pool, Opts->TarPath, Opts->Codec);
     auto protoProc = std::make_shared<Processor>(Matcher, LgProg);
     auto scheduler = std::make_shared<FileScheduler>(Pool, protoProc, out, Opts);
@@ -117,11 +116,8 @@ bool Llama::readMatchingSet(const std::string& matchSet) {
 }
 
 bool Llama::init() {
-  if (Opts->KeyFiles.empty()) {
-    return false;
-  }
   auto readPats = make_future(Pool, [this]() {
-                    return readpatterns(this->Opts->KeyFiles); });
+                    return this->Opts->KeyFiles.size() ? readpatterns(this->Opts->KeyFiles): true; });
 
   auto readMatches = make_future(Pool, [this](){
                        return this->Opts->MatchSet.empty() || readMatchingSet(this->Opts->MatchSet); });
