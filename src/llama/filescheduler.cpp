@@ -25,7 +25,7 @@ void FileScheduler::performScheduling(const std::shared_ptr<std::vector<FileReco
   // this is useful work that can be done on a separate thread from TSK
   // traversal
 
-  Output->outputRecords(batch);
+  Output->outputInodes(batch);
   // then post for multithreaded processing
   auto proc = popProc(); // blocks
   boost::asio::post(Pool, [=]() {

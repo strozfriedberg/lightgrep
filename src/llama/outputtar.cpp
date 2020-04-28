@@ -37,15 +37,15 @@ public:
     }
   }
 
-  virtual void outputRecord(const FileRecord &rec) override {
-    boost::asio::post(RecStrand, [=]() { FileRecBuf.write(rec.str()); });
+  virtual void outputInode(const FileRecord &rec) override {
+    boost::asio::post(RecStrand, [=]() { InodesRecBuf.write(rec.str()); });
   }
 
-  virtual void outputRecords(const std::shared_ptr<std::vector<FileRecord>>& batch) override {
+  virtual void outputInodes(const std::shared_ptr<std::vector<FileRecord>>& batch) override {
     boost::asio::post(RecStrand, [=]() {
       for (auto& rec: *batch) {
         // std::cerr << "Writing " << rec.str() << std::endl;
-        FileRecBuf.write(rec.str());
+        InodesRecBuf.write(rec.str());
         // FileRecBuf.get() << rec.Doc << '\n';
       }
     });
@@ -67,7 +67,7 @@ private:
 
   std::shared_ptr<archive> Archive;
 
-  RecordBuffer FileRecBuf; // must be destroyed before Archive
+  RecordBuffer InodesRecBuf; // must be destroyed before Archive
 
   bool Closed;
 };
@@ -84,7 +84,7 @@ OutputBase::createTarWriter(boost::asio::thread_pool &pool,
 OutputTar::OutputTar(boost::asio::thread_pool &pool, const std::string &path, Options::Codecs codec)
     : MainStrand(pool.get_executor()), RecStrand(pool.get_executor()),
       Path(path), Archive(archive_write_new(), closeAndFreeArchive),
-      FileRecBuf("recs/file_recs", 16 * 1024 * 1024, *this),
+      InodesRecBuf("recs/inodes", 16 * 1024 * 1024, *this),
       Closed(false)
 {
   std::string ext;

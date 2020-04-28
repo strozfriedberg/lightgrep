@@ -26,7 +26,7 @@ void Processor::process(FileRecord &rec, OutputBase &out) {
 
     sfhash_get_hashes(Hasher.get(), &rec.Hashes);
     if (sfhash_matcher_has_hash(Matcher.get(), rec.Hashes.Sha1)) {
-      out.outputRecord(rec);
+      out.outputInode(rec);
     }
   }
 }

@@ -11,7 +11,8 @@ public:
   virtual void outputFile(const FileRecord &rec) override {
     OutFiles.push_back(rec);
   }
-  virtual void outputRecord(const FileRecord &rec) override {
+
+  virtual void outputInode(const FileRecord &rec) override {
     Received.push_back(rec);
   }
 
