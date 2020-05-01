@@ -34,7 +34,15 @@ static const NFA::VertexDescriptor UNLABELABLE = 0xFFFFFFFE;
 
 const uint32_t NOLABEL = std::numeric_limits<uint32_t>::max();
 
-bool NFAOptimizer::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const ByteSet& srcBits) const {
+bool NFAOptimizer::canMerge(
+  const NFA& dst,
+  NFA::VertexDescriptor dstTail,
+  const Transition* dstTrans,
+  ByteSet& dstBits,
+  const NFA& src,
+  NFA::VertexDescriptor srcTail,
+  const ByteSet& srcBits) const
+{
   // Explanation of the condition:
   //
   // Vertices match if:
@@ -68,7 +76,13 @@ bool NFAOptimizer::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const
   return false;
 }
 
-NFAOptimizer::StatePair NFAOptimizer::processChild(const NFA& src, NFA& dst, uint32_t si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead) {
+NFAOptimizer::StatePair NFAOptimizer::processChild(
+  const NFA& src,
+  NFA& dst,
+  uint32_t si,
+  NFA::VertexDescriptor srcHead,
+  NFA::VertexDescriptor dstHead)
+{
   const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, si);
 
   NFA::VertexDescriptor dstTail = Src2Dst[srcTail];
@@ -398,7 +412,12 @@ struct SubsetStateComp {
   }
 };
 
-void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor srcHead, ByteToVertices& srcTailLists, ByteSet& outBytes) {
+void makePerByteOutNeighborhoods(
+  const NFA& src,
+  const NFA::VertexDescriptor srcHead,
+  ByteToVertices& srcTailLists,
+  ByteSet& outBytes)
+{
   // for each srcTail, add it to srcHead's per-byte outneighborhood
   for (const NFA::VertexDescriptor srcTail : src.outVertices(srcHead)) {
     src[srcTail].Trans->getBytes(outBytes);
@@ -413,7 +432,10 @@ void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor src
 
 typedef std::map<ByteSet, VDList> BytesToVertices;
 
-void makeByteSetsWithDistinctOutNeighborhoods(const ByteToVertices& srcTailLists, BytesToVertices& bytes2SrcList) {
+void makeByteSetsWithDistinctOutNeighborhoods(
+  const ByteToVertices& srcTailLists,
+  BytesToVertices& bytes2SrcList)
+{
   typedef std::map<VDList, ByteSet> VerticesToBytes;
 
   VerticesToBytes srcList2Bytes;
@@ -431,7 +453,13 @@ void makeByteSetsWithDistinctOutNeighborhoods(const ByteToVertices& srcTailLists
   }
 }
 
-void addToDeterminizationGroup(const NFA& src, const NFA::VertexDescriptor srcTail, const ByteSet& bs, std::map<ByteSet, std::vector<VDList>>& dstListGroups, bool& startGroup) {
+void addToDeterminizationGroup(
+  const NFA& src,
+  const NFA::VertexDescriptor srcTail,
+  const ByteSet& bs,
+  std::map<ByteSet, std::vector<VDList>>& dstListGroups,
+  bool& startGroup)
+{
   if (src[srcTail].IsMatch) {
     // match states are always singleton groups
     dstListGroups[bs].emplace_back();
@@ -447,7 +475,16 @@ void addToDeterminizationGroup(const NFA& src, const NFA::VertexDescriptor srcTa
 
 typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToState;
 
-void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor dstHead, const ByteSet& bs, const VDList& dstList, SubsetStateToState& dstList2Dst, std::stack<std::pair<SubsetState,int>>& dstStack, uint32_t depth) {
+void makeDestinationState(
+  const NFA& src,
+  NFA& dst,
+  const NFA::VertexDescriptor dstHead,
+  const ByteSet& bs,
+  const VDList& dstList,
+  SubsetStateToState& dstList2Dst,
+  std::stack<std::pair<SubsetState,int>>& dstStack,
+  uint32_t depth)
+{
   const SubsetState ss(bs, dstList);
   const SubsetStateToState::const_iterator l(dstList2Dst.find(ss));
 
@@ -471,7 +508,16 @@ void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor 
   dst.addEdge(dstHead, dstTail);
 }
 
-void handleSubsetStateSuccessors(const NFA& src, NFA& dst, const VDList& srcHeadList, const NFA::VertexDescriptor dstHead, std::stack<std::pair<SubsetState,int>>& dstStack, uint32_t depth, ByteSet& outBytes, SubsetStateToState& dstList2Dst) {
+void handleSubsetStateSuccessors(
+  const NFA& src,
+  NFA& dst,
+  const VDList& srcHeadList,
+  const NFA::VertexDescriptor dstHead,
+  std::stack<std::pair<SubsetState,int>>& dstStack,
+  uint32_t depth,
+  ByteSet& outBytes,
+  SubsetStateToState& dstList2Dst)
+{
   ByteToVertices srcTailLists;
 
   // for each byte, collect all srcTails leaving srcHeads
