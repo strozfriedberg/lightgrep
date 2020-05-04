@@ -841,12 +841,98 @@ SCOPE_TEST(testCompleteOriginal1) {
 
   std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{ {1, 1} };
 
-  NFA exp(3);
+  NFA exp(src);
+
+  completeOriginal(dst, src, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
+}
+
+SCOPE_TEST(testCompleteOriginal2) {
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('b'));
+  edge(1, 3, src, src.TransFac->getByte('c'));
+
+  src[2].IsMatch = true;
+  src[2].Label = 1;
+
+  src[3].IsMatch = true;
+  src[3].Label = 2;
+
+  NFA dst(2);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{ {1, 1} };
+
+  NFA exp(src);
+
+  completeOriginal(dst, src, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
+}
+*
+SCOPE_TEST(testCompleteOriginal3) {
+  /*
+            2
+           /
+      0 - 1
+           \
+            3
+
+    applied to
+
+      0 - 1
+       \
+        2
+
+    with 1 mapping to 1 should yield
+
+            3
+           /
+      0 - 1
+      |    \
+      2     4
+
+    with 2 mapping to 3, 3 mapping to 4.
+
+  */
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('b'));
+  edge(1, 3, src, src.TransFac->getByte('c'));
+
+  src[2].IsMatch = true;
+  src[2].Label = 1;
+
+  src[3].IsMatch = true;
+  src[3].Label = 2;
+
+  NFA dst(3);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+  edge(0, 2, dst, dst.TransFac->getByte('d'));
+
+  dst[2].IsMatch = true;
+  dst[2].Label = 3;
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{ {1, 1} };
+
+  NFA exp(5);
   edge(0, 1, exp, exp.TransFac->getByte('a'));
-  edge(1, 2, exp, exp.TransFac->getByte('a'));
+  edge(0, 2, exp, exp.TransFac->getByte('d'));
+  edge(1, 3, exp, exp.TransFac->getByte('b'));
+  edge(1, 4, exp, exp.TransFac->getByte('c'));
 
   exp[2].IsMatch = true;
-  exp[2].Label = 1;
+  exp[2].Label = 3;
+
+  exp[3].IsMatch = true;
+  exp[3].Label = 1;
+
+  exp[4].IsMatch = true;
+  exp[4].Label = 2;
 
   completeOriginal(dst, src, src2Dst);
   ASSERT_EQUAL_GRAPHS(exp, dst);
