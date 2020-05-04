@@ -803,3 +803,53 @@ SCOPE_TEST(testPruneBranches) {
   ASSERT_EQUAL_LABELS(exp, g);
   ASSERT_EQUAL_MATCHES(exp, g);
 }
+
+SCOPE_TEST(testCompleteOriginal0) {
+  // When src and dst are the same and src2Dst is an identity map,
+  // completeOriginal() should be a no-op.
+  NFA src(3);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('a'));
+
+  src[2].IsMatch = true;
+  src[2].Label = 1;
+
+  NFA dst(src);
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{
+    {1, 1}, {2, 2}
+  };
+
+  NFA exp(src);
+
+  completeOriginal(dst, src, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
+}
+
+SCOPE_TEST(testCompleteOriginal1) {
+  NFA src(3);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('a'));
+
+  src[2].IsMatch = true;
+  src[2].Label = 1;
+
+  NFA dst(2);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{ {1, 1} };
+
+  NFA exp(3);
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(1, 2, exp, exp.TransFac->getByte('a'));
+
+  exp[2].IsMatch = true;
+  exp[2].Label = 1;
+
+  completeOriginal(dst, src, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
+}

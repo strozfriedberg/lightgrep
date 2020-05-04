@@ -53,3 +53,9 @@ private:
   std::set<EdgePair> Visited;
   std::map<NFA::VertexDescriptor, uint32_t> DstPos;
 };
+
+void completeOriginal(
+  NFA& dst,
+  const NFA& src,
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
+);
