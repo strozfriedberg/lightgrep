@@ -873,7 +873,7 @@ SCOPE_TEST(testCompleteOriginal2) {
   ASSERT_EQUAL_LABELS(exp, dst);
   ASSERT_EQUAL_MATCHES(exp, dst);
 }
-*
+
 SCOPE_TEST(testCompleteOriginal3) {
   /*
             2
