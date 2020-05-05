@@ -939,3 +939,80 @@ SCOPE_TEST(testCompleteOriginal3) {
   ASSERT_EQUAL_LABELS(exp, dst);
   ASSERT_EQUAL_MATCHES(exp, dst);
 }
+
+SCOPE_TEST(testCompleteOriginal4) {
+  /*
+             o
+         1 - 2 - 3
+        /
+       0
+        \
+         4 - 5
+
+    applied to
+
+                3
+          o    /
+      0 - 1 - 2
+               \
+                4
+
+    with 1 mapping to 3 and 4 mapping to 4 should yield
+
+                    o
+                3 - 6 - 7
+          o    /
+      0 - 1 - 2
+               \
+                4 - 5
+
+    with 2 mapping to 6, 3 mapping to 7, 5 mapping to 5.
+
+  */
+  NFA src(6);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('b'));
+  edge(2, 2, src, src.TransFac->getByte('b'));
+  edge(2, 3, src, src.TransFac->getByte('c'));
+  edge(0, 4, src, src.TransFac->getByte('d'));
+  edge(4, 5, src, src.TransFac->getByte('e'));
+
+  src[3].IsMatch = true;
+  src[3].Label = 1;
+
+  src[5].IsMatch = true;
+  src[5].Label = 2;
+
+  NFA dst(5);
+  edge(0, 1, dst, dst.TransFac->getByte('w'));
+  edge(1, 1, dst, dst.TransFac->getByte('w'));
+  edge(1, 2, dst, dst.TransFac->getByte('x'));
+  edge(2, 3, dst, dst.TransFac->getByte('y'));
+  edge(2, 4, dst, dst.TransFac->getByte('z'));
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{
+    {1, 3}, { 4, 4 }
+  };
+
+  NFA exp(8);
+  edge(0, 1, exp, exp.TransFac->getByte('w'));
+  edge(1, 1, exp, exp.TransFac->getByte('w'));
+  edge(1, 2, exp, exp.TransFac->getByte('x'));
+  edge(2, 3, exp, exp.TransFac->getByte('y'));
+  edge(2, 4, exp, exp.TransFac->getByte('z'));
+  edge(3, 6, exp, exp.TransFac->getByte('b'));
+  edge(6, 6, exp, exp.TransFac->getByte('b'));
+  edge(6, 7, exp, exp.TransFac->getByte('c'));
+  edge(4, 5, exp, exp.TransFac->getByte('e'));
+
+  exp[7].IsMatch = true;
+  exp[7].Label = 1;
+
+  exp[5].IsMatch = true;
+  exp[5].Label = 2;
+
+  completeOriginal(dst, src, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
+}
