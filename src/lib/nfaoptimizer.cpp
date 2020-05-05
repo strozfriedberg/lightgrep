@@ -583,11 +583,39 @@ void completeOriginal(
   std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
 )
 {
-  // Push all the keys in src2Dst onto the stack
-  // While the stack is not empty:
-  //   mark top seen
-  //   add all successors to the stack
-  //
+  /*
+    The purpose of this function is to paste undeterminized tails onto
+    a partially-determinized NFA. Splices between the endpoints of the
+    partially-determinized NFA dst and source NFA src are stored in
+    src2Dst.
+
+    For each x in src2Dst, the subgraph in src rooted at x is copied to
+    src2Dst[x]. That's it.
+
+    E.g., with src
+
+                2 - 3
+               /
+          0 - 1 - 4 - 5
+
+    and dst
+               C
+              /
+         A - B
+              \
+               D - E
+
+    with 1 mapped to C yields
+
+                 2 - 3
+                /
+               C - 4 - 5
+              /
+         A - B
+              \
+               D - E
+
+  */
 
   std::stack<NFA::VertexDescriptor> next;
 
