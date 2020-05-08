@@ -22,6 +22,7 @@ std::ostream& operator<<(std::ostream& out, const Pattern& p) {
   out << p.Expression << ", "
       << (p.FixedString ? "fixed": "grep") << ", "
       << (p.CaseInsensitive ? "no case": "case") << ", "
+      << (p.UnicodeMode ? "Unicode mode": "ASCII mode") << ", "
       << p.Encoding;
 
   return out;

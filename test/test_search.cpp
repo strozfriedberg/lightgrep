@@ -115,7 +115,7 @@ SCOPE_FIXTURE_CTOR(aOrbPlusShorterSearch2, STest, STest("(a|b)+c")) {
 }
 
 SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest({"a(b|c)a", "ac+", "ab?a", "two"})) {
-  //                               01234567890123
+  //                   01234567890123
   const char text[] = "aba aa aca two";
   fixture.search(text, text + 14, 0);
   SCOPE_ASSERT_EQUAL(6u, fixture.Hits.size());
@@ -128,7 +128,7 @@ SCOPE_FIXTURE_CTOR(fourKeysSearch, STest, STest({"a(b|c)a", "ac+", "ab?a", "two"
 }
 
 SCOPE_FIXTURE_CTOR(aOrbStarbPlusSearch, STest, STest("(a|b)*b+")) {
-  //                               01234567890
+  //                    01234567890
   const char text[] = " abbaaaba b";
   fixture.search(text, text+11, 0);
   SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size());

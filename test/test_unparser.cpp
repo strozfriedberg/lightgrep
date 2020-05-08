@@ -295,13 +295,13 @@ SCOPE_TEST(parseUnparse_CCD_Test) {
 SCOPE_TEST(parseUnparse_CCs_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"\\s", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[\\t\\n\\f\\r ]", unparse(tree));
+  SCOPE_ASSERT_EQUAL("[\\t-\\r ]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCS_Test) {
   ParseTree tree;
   SCOPE_ASSERT(parse({"\\S", false, false}, tree));
-  SCOPE_ASSERT_EQUAL("[^\\t\\n\\f\\r ]", unparse(tree));
+  SCOPE_ASSERT_EQUAL("[^\\t-\\r ]", unparse(tree));
 }
 
 SCOPE_TEST(parseUnparse_CCw_Test) {
@@ -968,4 +968,77 @@ SCOPE_TEST(byteSet_right_bracket_to_a_ToCharacterClassTest) {
   SCOPE_ASSERT_EQUAL("]-a", byteSetToCharacterClass(bs));
   bs.flip();
   SCOPE_ASSERT_EQUAL("^]-a", byteSetToCharacterClass(bs));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_01_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"(?i)abcd", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[Aa][Bb][Cc][Dd]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_02_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"ab(?i)cd", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("ab[Cc][Dd]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_03_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"ab((?i)c)d", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("ab[Cc]d", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_04_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"a(?i)b(?-i)cd", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("a[Bb]cd", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_05_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"(?i)((?-i)abcd)", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("abcd", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_06_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"abcd(?i)", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("abcd", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_07_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"a(?i)b|cd", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("a[Bb]|[Cc][Dd]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_08_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"(?i)(?-i)abcd", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("abcd", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_09_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"(?i)((?-i)ab)cd", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("ab[Cc][Dd]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_10_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"(?i)(?i)abcd", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("[Aa][Bb][Cc][Dd]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_11_Test) {
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"ab(?i)|cd", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("ab|[Cc][Dd]", unparse(tree));
+}
+
+SCOPE_TEST(parseUnparse_i_switch_12_Test) {
+  // (?i) is not a switch when inside a character class
+  ParseTree tree;
+  SCOPE_ASSERT(parse({"ab[(?i)]cd", false, false}, tree));
+  SCOPE_ASSERT_EQUAL("ab[()?i]cd", unparse(tree));
 }

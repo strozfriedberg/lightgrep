@@ -18,10 +18,13 @@
 
 #include <scope/test.h>
 
+#include <initializer_list>
+#include <iomanip>
 #include <sstream>
 
 #include "basic.h"
 #include "parseutil.h"
+#include "unicode_sets.h"
 
 SCOPE_TEST(parseHexCharTest) {
   // good
@@ -183,176 +186,362 @@ SCOPE_TEST(parseNamedCodePointNameTest) {
   fixture(parseNamedCodePoint<SItr>, "{}", -1, -1);
 }
 
-SCOPE_TEST(caseDesensitize_a_Test) {
-  UnicodeSet aset('a');
-  SCOPE_ASSERT(caseDesensitize(aset));
+template <typename T, bool Func(UnicodeSet&)>
+void desensitizer(std::initializer_list<T> in,
+                  std::initializer_list<T> out)
+{
+  // I am un chien andalusia
+  // wanna grow up to be a desensitizer
+  UnicodeSet aset(in);
 
-  UnicodeSet eset;
-  eset.set('A');
-  eset.set('a');
+  // true is returned iff in != out
+  SCOPE_ASSERT_EQUAL(in.size() != out.size(), Func(aset));
+
+  // actual out should equal expected out
+  UnicodeSet eset(out);
   SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(caseDesensitize_a_Test) {
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 'a' }, { 'A', 'a' });
 }
 
 SCOPE_TEST(caseDesensitize_A_Test) {
-  UnicodeSet aset('A');
-  SCOPE_ASSERT(caseDesensitize(aset));
-
-  UnicodeSet eset;
-  eset.set('A');
-  eset.set('a');
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 'A' }, { 'A', 'a' });
 }
 
-SCOPE_TEST(caseDesensitizeASCII_DollarSign_Test) {
-  UnicodeSet aset('$');
-  SCOPE_ASSERT(!caseDesensitize(aset));
-
-  UnicodeSet eset('$');
-  SCOPE_ASSERT_EQUAL(eset, aset);
+SCOPE_TEST(caseDesensitize_DollarSign_Test) {
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ '$' }, { '$' });
 }
 
-SCOPE_TEST(caseDesensitizeASCII_Aa_Test) {
-  UnicodeSet aset;
-  aset.set('A');
-  aset.set('a');
-  SCOPE_ASSERT(!caseDesensitize(aset));
+SCOPE_TEST(caseDesensitize_s_Test) {
+  // 0x17F ſ = LATIN SMALL LETTER LONG S
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 's' }, { 'S', 's', U'ſ' });
+}
 
-  UnicodeSet eset;
-  eset.set('A');
-  eset.set('a');
-  SCOPE_ASSERT_EQUAL(eset, aset);
+SCOPE_TEST(caseDesensitize_S_Test) {
+  // 0x17F ſ = LATIN SMALL LETTER LONG S
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 'S' }, { 'S', 's', U'ſ' });
+}
+
+SCOPE_TEST(caseDesensitize_k_Test) {
+  // 0x212A KELVIN SIGN looks exactly like LATIN CAPITAL LETTER K
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 'k' }, { 'K', 'k', 0x212A });
+}
+
+SCOPE_TEST(caseDesensitize_K_Test) {
+  // 0x212A KELVIN SIGN looks exactly like LATIN CAPITAL LETTER K
+  desensitizer<uint32_t, caseDesensitizeUnicode>({ 'K' }, { 'K', 'k', 0x212A });
 }
 
 SCOPE_TEST(caseDesensitize_a_to_z_Test) {
-  UnicodeSet aset('a', 'z' + 1);
-  SCOPE_ASSERT(caseDesensitize(aset));
-
-  UnicodeSet eset{
-    {'A', 'Z' + 1},
-    {'a', 'z' + 1},
-    {0x17F, 0x180},  // LATIN SMALL LETTER LONG S
-    {0x212A, 0x212B} // KELVIN SIGN
-  };
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  desensitizer<UnicodeSet::range, caseDesensitizeUnicode>(
+    { {'a', 'z' + 1} },
+    {
+      {'A', 'Z' + 1},
+      {'a', 'z' + 1},
+      {0x17F, 0x180},  // LATIN SMALL LETTER LONG S
+      {0x212A, 0x212B} // KELVIN SIGN
+    }
+  );
 }
 
 SCOPE_TEST(caseDesensitize_A_to_Z_Test) {
-  UnicodeSet aset('A', 'Z' + 1);
-  SCOPE_ASSERT(caseDesensitize(aset));
+  desensitizer<UnicodeSet::range, caseDesensitizeUnicode>(
+    { {'A', 'Z' + 1} },
+    {
+      {'A', 'Z' + 1},
+      {'a', 'z' + 1},
+      {0x17F, 0x180},  // LATIN SMALL LETTER LONG S
+      {0x212A, 0x212B} // KELVIN SIGN
+    }
+  );
+}
 
-  UnicodeSet eset{
-    {'A', 'Z' + 1},
-    {'a', 'z' + 1},
-    {0x17F, 0x180},  // LATIN SMALL LETTER LONG S
-    {0x212A, 0x212B} // KELVIN SIGN
-  };
-  SCOPE_ASSERT_EQUAL(eset, aset);
+SCOPE_TEST(caseDesensitizeAscii_a_Test) {
+  desensitizer<uint32_t, caseDesensitizeAscii>({ 'a' }, { 'A', 'a' });
+}
+
+SCOPE_TEST(caseDesensitizeAscii_A_Test) {
+  desensitizer<uint32_t, caseDesensitizeAscii>({ 'A' }, { 'A', 'a' });
+}
+
+SCOPE_TEST(caseDesensitizeAscii_DollarSign_Test) {
+  desensitizer<uint32_t, caseDesensitizeAscii>({ '$' }, { '$' });
+}
+
+SCOPE_TEST(caseDesensitizeAscii_s_Test) {
+  // No medial s
+  desensitizer<uint32_t, caseDesensitizeAscii>({ 's' }, { 'S', 's' });
+}
+
+SCOPE_TEST(caseDesensitizeAscii_S_Test) {
+  // No medial s
+  desensitizer<uint32_t, caseDesensitizeAscii>({ 'S' }, { 'S', 's' });
+}
+
+SCOPE_TEST(caseDesensitizeAscii_k_Test) {
+  // No Kelvin sign
+  desensitizer<uint32_t, caseDesensitizeAscii>({ 'k' }, { 'K', 'k' });
+}
+
+SCOPE_TEST(caseDesensitizeAscii_K_Test) {
+  // No Kelvin sign
+  desensitizer<uint32_t, caseDesensitizeAscii>({ 'K' }, { 'K', 'k' });
+}
+
+SCOPE_TEST(caseDesensitizeAscii_a_to_z_Test) {
+  desensitizer<UnicodeSet::range, caseDesensitizeAscii>(
+    { {'a', 'z' + 1} },
+    {
+      {'A', 'Z' + 1},
+      {'a', 'z' + 1},
+    }
+  );
+}
+
+SCOPE_TEST(caseDesensitizeAscii_A_to_Z_Test) {
+  desensitizer<UnicodeSet::range, caseDesensitizeAscii>(
+    { {'A', 'Z' + 1} },
+    {
+      {'A', 'Z' + 1},
+      {'a', 'z' + 1},
+    }
+  );
 }
 
 SCOPE_TEST(caseDesensitize_Sigma_Test) {
-  UnicodeSet aset(U'Σ');
-  SCOPE_ASSERT(caseDesensitize(aset));
-
-  // NB: ς is the version of σ which ends words in Greek.
-
-  UnicodeSet eset;
-  eset.set(U'Σ'); // GREEK CAPITAL LETTER SIGMA
-  eset.set(U'σ'); // GREEK SMALL LETTER SIGMA
-  eset.set(U'ς'); // GREEK SMALL LETTER FINAL SIGMA
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  // NB: ς is the version of σ which ends words in Greek
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
+    { U'Σ' },
+    {
+      U'Σ', // GREEK CAPITAL LETTER SIGMA
+      U'σ', // GREEK SMALL LETTER SIGMA
+      U'ς'  // GREEK SMALL LETTER FINAL SIGMA
+    }
+  );
 }
 
 SCOPE_TEST(caseDesensitize_sigma_Test) {
-  UnicodeSet aset(U'σ');
-  SCOPE_ASSERT(caseDesensitize(aset));
-
-  // NB: ς is the version of σ which ends words in Greek.
-
-  UnicodeSet eset;
-  eset.set(U'Σ'); // GREEK CAPITAL LETTER SIGMA
-  eset.set(U'σ'); // GREEK SMALL LETTER SIGMA
-  eset.set(U'ς'); // GREEK SMALL LETTER FINAL SIGMA
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
+    { U'σ' },
+    {
+      U'Σ', // GREEK CAPITAL LETTER SIGMA
+      U'σ', // GREEK SMALL LETTER SIGMA
+      U'ς'  // GREEK SMALL LETTER FINAL SIGMA
+    }
+  );
 }
 
 SCOPE_TEST(caseDesensitize_final_sigma_Test) {
-  UnicodeSet aset(U'ς');
-  SCOPE_ASSERT(caseDesensitize(aset));
-
   // NB: ς is the version of σ which ends words in Greek.
-
-  UnicodeSet eset;
-  eset.set(U'Σ'); // GREEK CAPITAL LETTER SIGMA
-  eset.set(U'σ'); // GREEK SMALL LETTER SIGMA
-  eset.set(U'ς'); // GREEK SMALL LETTER FINAL SIGMA
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
+    { U'ς' },
+    {
+      U'Σ', // GREEK CAPITAL LETTER SIGMA
+      U'σ', // GREEK SMALL LETTER SIGMA
+      U'ς'  // GREEK SMALL LETTER FINAL SIGMA
+    }
+  );
 }
 
 SCOPE_TEST(caseDesensitize_eszett_Test) {
-  UnicodeSet aset(U'ß');
-  SCOPE_ASSERT(caseDesensitize(aset));
-
   // NB: For UTS #18 Level 2 conformance, ß must also match SS.
   // See also Section 5.18 of the Unicode Standard for a discussion
   // of the Eszett.
-
-  UnicodeSet eset;
-  eset.set(U'ß'); // LATIN SMALL LETTER SHARP S
-  eset.set(U'ẞ'); // LATIN CAPITAL LETTER SHARP S
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
+    { U'ß' },
+    {
+      U'ß', // LATIN SMALL LETTER SHARP S
+      U'ẞ', // LATIN CAPITAL LETTER SHARP S
+    }
+  );
 }
 
 SCOPE_TEST(caseDesensitize_Eszett_Test) {
-  UnicodeSet aset(U'ẞ');
-  SCOPE_ASSERT(caseDesensitize(aset));
-
   // NB: For UTS #18 Level 2 conformance, ß must also match SS.
   // See also Section 5.18 of the Unicode Standard for a discussion
   // of the Eszett.
-
-  UnicodeSet eset;
-  eset.set(U'ß'); // LATIN SMALL LETTER SHARP S
-  eset.set(U'ẞ'); // LATIN CAPITAL LETTER SHARP S
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
+    { U'ẞ' },
+    {
+      U'ß', // LATIN SMALL LETTER SHARP S
+      U'ẞ', // LATIN CAPITAL LETTER SHARP S
+    }
+  );
 }
-SCOPE_TEST(caseDesensitize_dz_digraph_Test) {
-  UnicodeSet aset(U'ǳ');
-  SCOPE_ASSERT(caseDesensitize(aset));
 
+SCOPE_TEST(caseDesensitize_dz_digraph_Test) {
   // NB: Dz is a titlecase version of the dz and DZ digraphs used in
   // various Slavic languages written in the Latin alphabet.
-
-  UnicodeSet eset;
-  eset.set(U'ǳ'); // LATIN SMALL LETTER DZ
-  eset.set(U'Ǳ'); // LATIN CAPITAL LETTER DZ
-  eset.set(U'ǲ'); // LATIN CAPITAL LETTER D WITH SMALL LETTER Z
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
+    { U'ǳ' },
+    {
+      U'ǳ', // LATIN SMALL LETTER DZ
+      U'Ǳ', // LATIN CAPITAL LETTER DZ
+      U'ǲ', // LATIN CAPITAL LETTER D WITH SMALL LETTER Z
+    }
+  );
 }
 
 SCOPE_TEST(caseDesensitize_DZ_digraph_Test) {
-  UnicodeSet aset(U'Ǳ');
-  SCOPE_ASSERT(caseDesensitize(aset));
-
   // NB: Dz is a titlecase version of the dz and DZ digraphs used in
   // various Slavic languages written in the Latin alphabet.
-
-  UnicodeSet eset;
-  eset.set(U'ǳ'); // LATIN SMALL LETTER DZ
-  eset.set(U'Ǳ'); // LATIN CAPITAL LETTER DZ
-  eset.set(U'ǲ'); // LATIN CAPITAL LETTER D WITH SMALL LETTER Z
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
+    { U'Ǳ' },
+    {
+      U'ǳ', // LATIN SMALL LETTER DZ
+      U'Ǳ', // LATIN CAPITAL LETTER DZ
+      U'ǲ', // LATIN CAPITAL LETTER D WITH SMALL LETTER Z
+    }
+  );
 }
 
 SCOPE_TEST(caseDesensitize_Dz_digraph_Test) {
-  UnicodeSet aset(U'ǲ');
-  SCOPE_ASSERT(caseDesensitize(aset));
-
   // NB: Dz is a titlecase version of the dz and DZ digraphs used in
   // various Slavic languages written in the Latin alphabet.
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
+    { U'ǲ' },
+    {
+      U'ǳ', // LATIN SMALL LETTER DZ
+      U'Ǳ', // LATIN CAPITAL LETTER DZ
+      U'ǲ', // LATIN CAPITAL LETTER D WITH SMALL LETTER Z
+    }
+  );
+}
 
-  UnicodeSet eset;
-  eset.set(U'ǳ'); // LATIN SMALL LETTER DZ
-  eset.set(U'Ǳ'); // LATIN CAPITAL LETTER DZ
-  eset.set(U'ǲ'); // LATIN CAPITAL LETTER D WITH SMALL LETTER Z
+SCOPE_TEST(caseDesensitize_mixed_Test) {
+  desensitizer<uint32_t, caseDesensitizeUnicode>(
+    { 's', U'Ω', U'φ' },
+    {
+      'S',
+      's',
+      U'ſ',  // LATIN SMALL LETTER LONG S
+      U'Φ',  // GREEK CAPITAL LETTER PHI
+      U'φ',  // GREEK SMALL LETTER PHI
+      U'Ω',  // GREEK CAPITAL LETTER OMEGA
+      U'ω',  // GREEK SMALL LETTER OMEGA
+      0x3D5, // GREEK PHI SYMBOL
+      0x2126 // OHM SIGN
+    }
+  );
+}
+
+SCOPE_TEST(caseDesensitizeAscii_mixed_Test) {
+  // NB: We do not get the medial S here due to case folding, but we DO
+  // get the math phi and Ohm sign, as we're clipping ASCII case folding
+  // to the ASCII range but leaving non-ASCII case folding unchanged
+  desensitizer<uint32_t, caseDesensitizeAscii>(
+    { 's', U'Ω', U'φ' },
+    {
+      'S',
+      's',
+      U'Φ',  // GREEK CAPITAL LETTER PHI
+      U'φ',  // GREEK SMALL LETTER PHI
+      U'Ω',  // GREEK CAPITAL LETTER OMEGA
+      U'ω',  // GREEK SMALL LETTER OMEGA
+      0x3D5, // GREEK PHI SYMBOL
+      0x2126 // OHM SIGN
+    }
+  );
+}
+
+SCOPE_TEST(setDigitClass_Ascii_Test) {
+  UnicodeSet aset;
+  setDigitClass(aset, true);
+  const UnicodeSet eset('0', '9' + 1);
   SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(setDigitClass_Unicode_Test) {
+  UnicodeSet aset;
+  setDigitClass(aset, false);
+  SCOPE_ASSERT_EQUAL(DIGIT, aset);
+}
+
+SCOPE_TEST(setSpaceClass_Ascii_Test) {
+  UnicodeSet aset;
+  setSpaceClass(aset, true);
+  const UnicodeSet eset({'\t', '\n', '\v', '\f', '\r', ' '});
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(setHorizontalSpaceClass_Test) {
+  UnicodeSet aset;
+  setHorizontalSpaceClass(aset);
+  SCOPE_ASSERT_EQUAL(HSPACE, aset);
+}
+
+SCOPE_TEST(setVerticalSpaceClass_Test) {
+  UnicodeSet aset;
+  setVerticalSpaceClass(aset);
+  SCOPE_ASSERT_EQUAL(VSPACE, aset);
+}
+
+SCOPE_TEST(Z_subset_hv_Test) {
+  // Sanity check
+  // \p{Z} subset of [\h\v]
+  UnicodeSet z;
+  propertyGetter("\\p{Z}", z, false);
+  SCOPE_ASSERT_EQUAL(HSPACE | VSPACE, HSPACE | VSPACE | z);
+}
+
+SCOPE_TEST(setSpaceClass_Unicode_Test) {
+  UnicodeSet aset;
+  setSpaceClass(aset, false);
+
+  // pcrepattern(3): \s = [\p{Z}\h\v]
+  // presently [\v\h] is a superset of \p{Z}, so including \p{Z} is superfluous
+  // SPACE = HSPACE | VSPACE
+  SCOPE_ASSERT_EQUAL(SPACE, aset);
+}
+
+SCOPE_TEST(setWordClass_Ascii_Test) {
+  UnicodeSet aset;
+  setWordClass(aset, true);
+  const UnicodeSet eset({
+    {'A', 'Z' + 1},
+    {'a', 'z' + 1},
+    {'0', '9' + 1},
+    {'_', '_' + 1}
+  });
+  SCOPE_ASSERT_EQUAL(eset, aset);
+}
+
+SCOPE_TEST(NdNlNo_Equals_N_Test) {
+  // Sanity check
+  // \p{N} = [\p{Nd}\p{Nl}\p{No}]
+  UnicodeSet nd;
+  propertyGetter("\\p{Nd}", nd, false);
+  UnicodeSet nl;
+  propertyGetter("\\p{Nl}", nl, false);
+  UnicodeSet no;
+  propertyGetter("\\p{No}", no, false);
+  UnicodeSet n;
+  propertyGetter("\\p{N}", n, false);
+  SCOPE_ASSERT_EQUAL(nd | nl | no, n);
+}
+
+SCOPE_TEST(LuLlLtLmLo_Equals_L_Test) {
+  // Sanity check
+  // \p{L} = [\p{Lu}\p{Ll}\p{Lt}\p{Lm}\p{Lo}]
+  UnicodeSet lu;
+  propertyGetter("\\p{Lu}", lu, false);
+  UnicodeSet ll;
+  propertyGetter("\\p{Ll}", ll, false);
+  UnicodeSet lt;
+  propertyGetter("\\p{Lt}", lt, false);
+  UnicodeSet lm;
+  propertyGetter("\\p{Lm}", lm, false);
+  UnicodeSet lo;
+  propertyGetter("\\p{Lo}", lo, false);
+  UnicodeSet l;
+  propertyGetter("\\p{L}", l, false);
+  SCOPE_ASSERT_EQUAL(lu | ll | lt | lm | lo, l);
+}
+
+SCOPE_TEST(setWordClass_Unicode_Test) {
+  UnicodeSet aset;
+  setWordClass(aset, false);
+  SCOPE_ASSERT_EQUAL(WORD, aset);
 }

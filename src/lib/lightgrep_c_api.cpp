@@ -86,7 +86,8 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
   hPattern->Pat = {
     pattern,
     static_cast<bool>(options->FixedString),
-    static_cast<bool>(options->CaseInsensitive)
+    static_cast<bool>(options->CaseInsensitive),
+    static_cast<bool>(options->UnicodeMode)
   };
 
   return trapWithVals(
@@ -234,21 +235,14 @@ namespace {
           continue;
         }
 
+        // read the options
         if (++ccur != cend) {
-          // read the options
           opts.FixedString = boost::lexical_cast<bool>(*ccur);
           if (++ccur != cend) {
             opts.CaseInsensitive = boost::lexical_cast<bool>(*ccur);
-          }
-          else {
-            if (err) {
-              *err = makeError(
-                "missing case-sensitivity option",
-                pat.c_str(), el.c_str(), source, lnum
-              );
-              err = &((*err)->Next);
+            if (++ccur != cend) {
+              opts.UnicodeMode = boost::lexical_cast<bool>(*ccur);
             }
-            continue;
           }
         }
 

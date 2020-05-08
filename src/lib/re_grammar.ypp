@@ -8,6 +8,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -24,13 +25,16 @@ namespace {
     UnicodeSet USet;
 
     bool LiteralMode;
-    bool CaseInsensitive;
+    std::stack<uint8_t> Opts;
 
     template <class... Args>
     ParseNode* add(Args&&... args) {
       return Tree->add(std::forward<Args>(args)...);
     }
   };
+
+  const uint8_t CASED_MASK = 0x01;
+  const uint8_t ASCII_MASK = 0x02;
 
   union YYSTYPE {
     int c;
@@ -91,7 +95,8 @@ extern int yydebug;
 %lex-param { Context* ctx }
 %parse-param { Context* ctx }
 
-%expect 1
+// we have two shift-reduce conflicts which resolve correctly by default
+%expect 2
 
 //%debug
 
@@ -143,6 +148,10 @@ alt:
   {
     $$ = ctx->add(ParseNode::ALTERNATION, $1, $3);
   }
+| switch alt
+  {
+    $$ = $2;
+  }
 ;
 
 concat:
@@ -154,6 +163,48 @@ concat:
 | concat KILL
   {
     $$ = ctx->add(ParseNode::LOOKBEHIND_POS, $1);
+  }
+| concat switch
+  {
+    $$ = $1;
+  }
+;
+
+switch:
+  '(' '?' switches_on ')'
+| '(' '?' '-' switches_off ')'
+| '(' '?' switches_on '-' switches_off ')'
+;
+
+switches_on:
+  switch_on
+| switches_on switch_on
+;
+
+switch_on:
+  'a'
+  {
+    ctx->Opts.top() |= ASCII_MASK;
+  }
+| 'i'
+  {
+    ctx->Opts.top() &= ~CASED_MASK;
+  }
+;
+
+switches_off:
+  switch_off
+| switches_off switch_off
+;
+
+switch_off:
+  'a'
+  {
+    ctx->Opts.top() &= ~ASCII_MASK;
+  }
+| 'i'
+  {
+    ctx->Opts.top() |= CASED_MASK;
   }
 ;
 
@@ -248,19 +299,10 @@ number:
 ;
 
 atom:
-  '(' alt ')'
+  '(' { ctx->Opts.push(ctx->Opts.top()); } alt ')'
   {
-    $$ = $2;
-  }
-| '(' alt error
-  {
-    throwError(
-      {
-        ParseError::UNMATCHED_PARENTHESIS,
-        @1.first_column, @1.last_column
-      },
-      ctx
-    );
+    ctx->Opts.pop();
+    $$ = $3;
   }
 | '(' error
   {
@@ -290,6 +332,7 @@ atom:
   }
 | WHACK_SMALL_B
   {
+    // TODO: ASCII mode affects \b as it's defined on \w, \W
     // \b  = ((?<!\w)(?!\W)|(?<!\W)(?!\w))
 
     ctx->USet.reset();
@@ -316,6 +359,7 @@ atom:
   }
 | NON_WORD_BOUNDARY
   {
+    // TODO: ASCII mode affects \B as it's defined on \w, \W
     // \B  = ((?<!\w)(?!\w)|(?<!\W)(?!\W))
 
     ctx->USet.reset();
@@ -382,10 +426,10 @@ literal:
   }
 | character
   {
-    if (ctx->CaseInsensitive) {
+    if (!(ctx->Opts.top() & CASED_MASK)) {
       ctx->USet.reset();
       ctx->USet.set($1);
-      if (caseDesensitize(ctx->USet)) {
+      if (caseDesensitize(ctx->USet, ctx->Opts.top() & ASCII_MASK)) {
         // TODO: Maybe handle the commmon ASCII case without going via USet?
         $$ = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
       }
@@ -428,6 +472,14 @@ literal:
 character:
   CHAR
 | DIGIT
+| 'a'
+  {
+    $$ = 'a';
+  }
+| 'i'
+  {
+    $$ = 'i';
+  }
 | ']'
   {
     $$ = ']';
@@ -467,8 +519,8 @@ charclass:
   {
     $$ = $2;
 
-    if (ctx->CaseInsensitive) {
-      caseDesensitize($$->Set.CodePoints);
+    if (!(ctx->Opts.top() & CASED_MASK)) {
+      caseDesensitize($$->Set.CodePoints, ctx->Opts.top() & ASCII_MASK);
     }
 
     if ($$->Set.CodePoints.none() && $$->Set.Breakout.Bytes.none()) {
@@ -495,8 +547,8 @@ charclass:
       // under case-insensitivity first gives {A, a}, which becomes
       // U / {A, a} after negation.
 
-      if (ctx->CaseInsensitive) {
-        caseDesensitize($$->Set.CodePoints);
+      if (!(ctx->Opts.top() & CASED_MASK)) {
+        caseDesensitize($$->Set.CodePoints, ctx->Opts.top() & ASCII_MASK);
       }
 
       $$->Set.CodePoints.flip();
@@ -754,11 +806,6 @@ charclass:
     );
   }
 | cc_named
-  {
-    if (ctx->CaseInsensitive) {
-      caseDesensitize($$->Set.CodePoints);
-    }
-  }
 ;
 
 cc_expr_pos:
@@ -961,6 +1008,14 @@ cc_char_not_first:
 cc_char:
   CHAR
 | DIGIT
+| 'a'
+  {
+    $$ = 'a';
+  }
+| 'i'
+  {
+    $$ = 'i';
+  }
 | '|'
   {
     $$ = '|';
@@ -1048,7 +1103,9 @@ namespace {
 
   template <typename F>
   int consumeSet(F func, YYSTYPE* yylval, Context* ctx) {
-    const int val = func(ctx->Text, ctx->TextEnd, ctx->USet);
+    const int val = func(
+      ctx->Text, ctx->TextEnd, ctx->USet, !(ctx->Opts.top() & CASED_MASK)
+    );
     if (val < 0) {
       return BAD;
     }
@@ -1114,53 +1171,65 @@ namespace {
     // named character classes
     case 'd':
       ctx->USet.reset();
-      ctx->USet.insert('0', '9' + 1);
+      setDigitClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'D':
       ctx->USet.reset();
-      ctx->USet.insert('0', '9' + 1);
+      setDigitClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
 
     case 's':
       ctx->USet.reset();
-      ctx->USet.set('\t');
-      ctx->USet.set('\n');
-      ctx->USet.set('\f');
-      ctx->USet.set('\r');
-      ctx->USet.set(' ');
+      setSpaceClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'S':
       ctx->USet.reset();
-      ctx->USet.set('\t');
-      ctx->USet.set('\n');
-      ctx->USet.set('\f');
-      ctx->USet.set('\r');
-      ctx->USet.set(' ');
+      setSpaceClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'h':
+      ctx->USet.reset();
+      setHorizontalSpaceClass(ctx->USet);
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'H':
+      ctx->USet.reset();
+      setHorizontalSpaceClass(ctx->USet);
+      ctx->USet.flip();
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'v':
+      ctx->USet.reset();
+      setVerticalSpaceClass(ctx->USet);
+      yylval->s = &ctx->USet;
+      return SET;
+
+    case 'V':
+      ctx->USet.reset();
+      setVerticalSpaceClass(ctx->USet);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
 
     case 'w':
       ctx->USet.reset();
-      ctx->USet.insert('0', '9' + 1);
-      ctx->USet.insert('A', 'Z' + 1);
-      ctx->USet.set('_');
-      ctx->USet.insert('a', 'z' + 1);
+      setWordClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       yylval->s = &ctx->USet;
       return SET;
 
     case 'W':
       ctx->USet.reset();
-      ctx->USet.insert('0', '9' + 1);
-      ctx->USet.insert('A', 'Z' + 1);
-      ctx->USet.set('_');
-      ctx->USet.insert('a', 'z' + 1);
+      setWordClass(ctx->USet, ctx->Opts.top() & ASCII_MASK);
       ctx->USet.flip();
       yylval->s = &ctx->USet;
       return SET;
@@ -1240,6 +1309,8 @@ namespace {
       }
       else {
         switch (c) {
+        case 'a':
+        case 'i':
         case '|':
         case '(':
         case ')':
@@ -1432,7 +1503,10 @@ bool parse(const Pattern& p, ParseTree& tree) {
   Context ctx;
 
   ctx.LiteralMode = p.FixedString;
-  ctx.CaseInsensitive = p.CaseInsensitive;
+  ctx.Opts.push(
+    (p.CaseInsensitive ? 0 : CASED_MASK) |
+    (p.UnicodeMode ? 0 : ASCII_MASK)
+  );
 
   ctx.TextBegin = ctx.Text = cp.data();
   ctx.TextEnd = ctx.Text + cp.size();

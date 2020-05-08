@@ -42,7 +42,7 @@ bool readTestData(
     in.read(&encoding[0], len);
     if (!in) return false;
 
-    patterns.emplace_back(pattern, fixed, case_insensitive, encoding);
+    patterns.emplace_back(pattern, fixed, case_insensitive, true, encoding);
   }
 
   // read text

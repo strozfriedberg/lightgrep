@@ -21,7 +21,9 @@
 #include "basic.h"
 
 #include <algorithm>
+#include <initializer_list>
 #include <limits>
+#include <type_traits>
 
 template <typename T>
 class VectorFamily {
@@ -36,7 +38,7 @@ private:
 
 public:
 #pragma pack(push, 1)
-  struct Holder {
+  struct List {
     typedef typename std::vector<Vec>::size_type size_type;
     typedef T* iterator;
     typedef T const* const_iterator;
@@ -44,13 +46,11 @@ public:
     T What;
     byte Which;
 
-    Holder(): What(std::numeric_limits<T>::max()), Which(ZERO) {}
+    List(): What(std::numeric_limits<T>::max()), Which(ZERO) {}
   };
 #pragma pack(pop)
 
-  typedef Holder ListType;
-
-  typename Holder::size_type size(const Holder& l) const {
+  typename List::size_type size(const List& l) const {
     switch (l.Which) {
     case ZERO:
       return 0;
@@ -61,7 +61,7 @@ public:
     }
   }
 
-  void add(Holder& l, T e) {
+  void add(List& l, T e) {
     switch (l.Which) {
     case ZERO:
       l.Which = ONE;
@@ -70,8 +70,7 @@ public:
     case ONE:
       {
         l.Which = MANY;
-        const T tmp[2] = { l.What, e };
-        Store.emplace_back(&tmp[0], &tmp[2]);
+        Store.emplace_back(std::initializer_list<T>{l.What, e});
         l.What = Store.size() - 1;
       }
       break;
@@ -80,7 +79,7 @@ public:
     }
   }
 
-  void insert(Holder& l, typename Holder::size_type i, T e) {
+  void insert(List& l, typename List::size_type i, T e) {
     switch (l.Which) {
     case ZERO:
       l.Which = ONE;
@@ -89,18 +88,11 @@ public:
     case ONE:
       {
         l.Which = MANY;
-
-        T tmp[2];
-        if (i == 0) {
-          tmp[0] = e;
-          tmp[1] = l.What;
-        }
-        else {
-          tmp[0] = l.What;
-          tmp[1] = e;
-        }
-
-        Store.emplace_back(&tmp[0], &tmp[2]);
+        Store.emplace_back(
+          i == 0 ?
+          std::initializer_list<T>{e, l.What} :
+          std::initializer_list<T>{l.What, e}
+        );
         l.What = Store.size() - 1;
       }
       break;
@@ -112,7 +104,7 @@ public:
     }
   }
 
-  void remove(Holder& l, T e) {
+  void remove(List& l, T e) {
     switch (l.Which) {
     case ZERO:
       {
@@ -145,7 +137,7 @@ public:
     }
   }
 
-  void clear(Holder& l) {
+  void clear(List& l) {
     switch (l.Which) {
     case MANY:
       Store[l.What].clear();
@@ -154,7 +146,11 @@ public:
     }
   }
 
-  T& at(Holder& l, typename Holder::size_type i) {
+  T& at(List& l, typename List::size_type i) {
+    return const_cast<T&>(std::as_const(*this).at(l, i));
+  }
+
+  const T& at(const List& l, typename List::size_type i) const {
     switch (l.Which) {
     case ZERO:
       {
@@ -167,83 +163,64 @@ public:
     }
   }
 
-  const T& at(const Holder& l, typename Holder::size_type i) const {
-    switch (l.Which) {
-    case ZERO:
-      {
-        THROW_RUNTIME_ERROR_WITH_OUTPUT(i << " out of bounds");
-      }
-    case ONE:
-      return l.What;
-    default:
-      return Store[l.What][i];
-    }
+  typename List::iterator find(List& l, T e) {
+    return const_cast<typename List::iterator>(std::as_const(*this).find(l, e));
   }
 
-  typename Holder::iterator find(Holder& l, T e) {
+  typename List::const_iterator find(const List& l, T e) const {
     switch (l.Which) {
     case ZERO:
       return end(l);
     case ONE:
-      return l.What == e ? begin(l) : end(l);
+      return l.What == e ? begin_few(l) : end_one(l);
     default:
-      return &*std::find(Store[l.What].begin(), Store[l.What].end(), e);
+      return std::find(begin_many(l), end_many(l), e);
     }
   }
 
-  typename Holder::const_iterator find(const Holder& l, T e) const {
+  typename List::iterator begin(List& l) {
+    return const_cast<typename List::iterator>(std::as_const(*this).begin(l));
+  }
+
+  typename List::const_iterator begin(const List& l) const {
     switch (l.Which) {
     case ZERO:
-      return end(l);
     case ONE:
-      return l.What == e ? begin(l) : end(l);
+      return begin_few(l);
     default:
-      return &*std::find(Store[l.What].begin(), Store[l.What].end(), e);
+      return begin_many(l);
     }
   }
 
-  typename Holder::iterator begin(Holder& l) {
-    switch (l.Which) {
-    case ZERO:
-    case ONE:
-      return &l.What;
-    default:
-      return &*Store[l.What].begin();
-    }
+  typename List::iterator end(List& l) {
+    return const_cast<typename List::iterator>(std::as_const(*this).end(l));
   }
 
-  typename Holder::const_iterator begin(const Holder& l) const {
+  typename List::const_iterator end(const List& l) const {
     switch (l.Which) {
     case ZERO:
+      return end_zero(l);
     case ONE:
-      return &l.What;
+      return end_one(l);
     default:
-      return &*Store[l.What].begin();
-    }
-  }
-
-  typename Holder::iterator end(Holder& l) {
-    switch (l.Which) {
-    case ZERO:
-      return &l.What;
-    case ONE:
-      return &l.What + 1;
-    default:
-      return &*Store[l.What].end();
-    }
-  }
-
-  typename Holder::const_iterator end(const Holder& l) const {
-    switch (l.Which) {
-    case ZERO:
-      return &l.What;
-    case ONE:
-      return &l.What + 1;
-    default:
-      return &*Store[l.What].end();
+      return end_many(l);
     }
   }
 
 private:
+  typename List::const_iterator begin_few(const List& l) const { return &l.What; }
+
+  typename List::const_iterator begin_many(const List& l) const {
+    return &Store[l.What].front();
+  }
+
+  typename List::const_iterator end_zero(const List& l) const { return &l.What; }
+
+  typename List::const_iterator end_one(const List& l) const { return &l.What + 1; }
+
+  typename List::const_iterator end_many(const List& l) const {
+    return begin_many(l) + Store[l.What].size();
+  }
+
   std::vector<Vec> Store;
 };

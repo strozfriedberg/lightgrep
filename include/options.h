@@ -46,6 +46,7 @@ public:
 
   bool CaseInsensitive,
        LiteralMode,
+       UnicodeMode,
        NoOutput,
        Determinize,
        PrintPath,
