@@ -94,7 +94,7 @@ AC_ARG_ENABLE([debug],
   [enable_debug=yes],
   [enable_debug=no])
 
-AS_IF([test "x$enable_debug" = "xyes"], [OFLAGS='-O0'], [OFLAGS='-O3'])
+AS_IF([test "x$enable_debug" = "xyes"], [OFLAGS='-Og'], [OFLAGS='-O3 -march=native'])
 
 AC_ARG_ENABLE([symbols],
   [AS_HELP_STRING([--with-symbols],
