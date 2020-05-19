@@ -804,6 +804,73 @@ SCOPE_TEST(testPruneBranches) {
   ASSERT_EQUAL_MATCHES(exp, g);
 }
 
+SCOPE_TEST(testConnectSubsetStateToOriginal0) {
+  NFA src(6);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('b'));
+  edge(1, 4, src, src.TransFac->getByte('c'));
+  edge(2, 3, src, src.TransFac->getByte('d'));
+  edge(3, 5, src, src.TransFac->getByte('e'));
+
+  NFA dst(1);
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{
+    {1,0}, {3,0}
+  };
+
+  NFA exp(3);
+  exp.addEdge(0, 1);
+  exp.addEdge(0, 2);
+
+  connectSubsetStateToOriginal(dst, src, {1,3}, 0, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+}
+
+SCOPE_TEST(testConnectSubsetStateToOriginal1) {
+  NFA src(6);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('b'));
+  edge(1, 4, src, src.TransFac->getByte('c'));
+  edge(2, 3, src, src.TransFac->getByte('d'));
+  edge(3, 5, src, src.TransFac->getByte('e'));
+
+  NFA dst(2);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{
+    {1,0}, {3,0}, {4,1}
+  };
+
+  NFA exp(2);
+  exp.addEdge(0, 1);
+
+  connectSubsetStateToOriginal(dst, src, {4}, 1, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+}
+
+SCOPE_TEST(testConnectSubsetStateToOriginal2) {
+  NFA src(6);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('b'));
+  edge(1, 4, src, src.TransFac->getByte('c'));
+  edge(2, 3, src, src.TransFac->getByte('d'));
+  edge(3, 5, src, src.TransFac->getByte('e'));
+
+  NFA dst(2);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{
+    {1,0}, {3,0}, {4,1}
+  };
+
+  NFA exp(3);
+  exp.addEdge(0, 1);
+  exp.addEdge(0, 2);
+
+  connectSubsetStateToOriginal(dst, src, {1, 3}, 0, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+}
+
 SCOPE_TEST(testCompleteOriginal0) {
   // When src and dst are the same and src2Dst is an identity map,
   // completeOriginal() should be a no-op.

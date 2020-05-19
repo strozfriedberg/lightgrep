@@ -54,6 +54,14 @@ private:
   std::map<NFA::VertexDescriptor, uint32_t> DstPos;
 };
 
+void connectSubsetStateToOriginal(
+  NFA& dst,
+  const NFA& src,
+  const std::vector<NFA::VertexDescriptor>& srcHeadList,
+  const NFA::VertexDescriptor dstHead,
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
+);
+
 void completeOriginal(
   NFA& dst,
   const NFA& src,

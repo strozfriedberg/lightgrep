@@ -583,6 +583,9 @@ void connectSubsetStateToOriginal(
 
     then this function will ensure that 4' and 5' exist in dst (creating
     them if necessary) and that {1,3} has edges going to them.
+
+    Note that this doesn't bother with labels or matches; completeOriginal()
+    is responsible for setting those.
   */
 
   for (const auto& v: srcHeadList) {
