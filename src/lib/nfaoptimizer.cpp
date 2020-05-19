@@ -566,6 +566,25 @@ void connectSubsetStateToOriginal(
   std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
 )
 {
+  /*
+    A subset state in the partial DFA dst (by definition) corresponds to a
+    set of states in the NFA src. The NFA states in this set have a (possibly
+    empty) set of successors in src. This function creates in dst states
+    corresponding to those successors, and makes edges to them from the given
+    subset state.
+
+    E.g., if {1,3} is a subset state in dst and src is
+
+        1 - 4
+       /
+      0
+       \
+        2 - 3 - 5
+
+    then this function will ensure that 4' and 5' exist in dst (creating
+    them if necessary) and that {1,3} has edges going to them.
+  */
+
   for (const auto& v: srcHeadList) {
     for (const auto& n: src.outVertices(v)) {
       // get the image of n in dst, creating it if necessary
