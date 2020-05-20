@@ -516,7 +516,8 @@ void handleSubsetStateSuccessors(
   std::stack<std::pair<SubsetState,int>>& dstStack,
   uint32_t depth,
   ByteSet& outBytes,
-  SubsetStateToState& dstList2Dst)
+  SubsetStateToState& dstList2Dst,
+  std::map<ByteSet, std::vector<VDList>>& dstListGroups)
 {
   ByteToVertices srcTailLists;
 
@@ -537,7 +538,7 @@ void handleSubsetStateSuccessors(
   // form each srcTailList into determinizable groups
   std::map<ByteSet, std::vector<VDList>> dstListGroups;
 
-  for (const BytesToVertices::value_type& v : bytes2SrcList) {
+  for (const auto& v : bytes2SrcList) {
     const ByteSet& bs(v.first);
     const VDList& srcTailList(v.second);
 
@@ -549,7 +550,7 @@ void handleSubsetStateSuccessors(
   }
 
   // determinize for each outgoing byte
-  for (const std::map<ByteSet, std::vector<VDList>>::value_type& v : dstListGroups) {
+  for (const auto& v : dstListGroups) {
     const ByteSet& bs(v.first);
     const std::vector<VDList>& dstLists(v.second);
     for (const VDList& dstList : dstLists) {
