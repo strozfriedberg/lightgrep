@@ -510,11 +510,11 @@ void makeDestinationState(
 
 void handleSubsetStateSuccessors(
   const NFA& src,
-  NFA& dst,
   const VDList& srcHeadList,
   const NFA::VertexDescriptor dstHead,
-  std::stack<std::pair<SubsetState,int>>& dstStack,
   uint32_t depth,
+  NFA& dst,
+  std::stack<std::pair<SubsetState,int>>& dstStack,
   ByteSet& outBytes,
   SubsetStateToState& dstList2Dst,
   std::map<ByteSet, std::vector<VDList>>& dstListGroups)
@@ -703,8 +703,8 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t determinizeLimit
     if (depth < determinizeLimit) {
       // continue processing this subset state's successors
       handleSubsetStateSuccessors(
-        src, dst, srcHeadList, dstHead,
-        dstStack, depth + 1, outBytes, dstList2Dst
+        src, srcHeadList, dstHead, depth + 1,
+        dst, dstStack, outBytes, dstList2Dst, dstListGroups
       );
     }
     else {
