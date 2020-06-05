@@ -477,13 +477,13 @@ typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStat
 
 void makeDestinationState(
   const NFA& src,
-  NFA& dst,
   const NFA::VertexDescriptor dstHead,
   const ByteSet& bs,
   const VDList& dstList,
+  uint32_t depth,
+  NFA& dst,
   SubsetStateToState& dstList2Dst,
-  std::stack<std::pair<SubsetState,int>>& dstStack,
-  uint32_t depth)
+  std::stack<std::pair<SubsetState,int>>& dstStack)
 {
   const SubsetState ss(bs, dstList);
   const SubsetStateToState::const_iterator l(dstList2Dst.find(ss));
@@ -554,7 +554,7 @@ void handleSubsetStateSuccessors(
     const ByteSet& bs(v.first);
     const std::vector<VDList>& dstLists(v.second);
     for (const VDList& dstList : dstLists) {
-      makeDestinationState(src, dst, dstHead, bs, dstList, dstList2Dst, dstStack, depth);
+      makeDestinationState(src, dstHead, bs, dstList, depth, dst, dstList2Dst, dstStack);
     }
   }
 }
