@@ -93,6 +93,17 @@ struct SubsetStateComp {
 
 using SubsetStateToState = std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp>;
 
+void makeDestinationState(
+  const NFA& src,
+  const NFA::VertexDescriptor dstHead,
+  const ByteSet& bs,
+  const VDList& dstList,
+  uint32_t depth,
+  NFA& dst,
+  SubsetStateToState& dstList2Dst,
+  std::stack<std::pair<SubsetState, int>>& dstStack
+);
+
 void handleSubsetStateSuccessors(
   const NFA& src,
   const VDList& srcHeadList,

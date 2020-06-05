@@ -458,6 +458,9 @@ void makeDestinationState(
   SubsetStateToState& dstList2Dst,
   std::stack<std::pair<SubsetState, int>>& dstStack)
 {
+  // create or retrieve the state reached from dstHead over the transition
+  // on byte set bs, and add an edge from dstHead to that state
+
   const SubsetState ss(bs, dstList);
   const SubsetStateToState::const_iterator l(dstList2Dst.find(ss));
 
