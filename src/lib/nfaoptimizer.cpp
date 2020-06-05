@@ -21,13 +21,8 @@
 #include "states.h"
 #include "utility.h"
 
-#include <algorithm>
-#include <array>
 #include <iostream>
 #include <iterator>
-#include <set>
-#include <stack>
-#include <vector>
 
 static const NFA::VertexDescriptor NONE = 0xFFFFFFFF;
 static const NFA::VertexDescriptor UNLABELABLE = 0xFFFFFFFE;
@@ -392,26 +387,6 @@ void NFAOptimizer::removeNonMinimalLabels(NFA& g) {
   }
 }
 
-typedef std::vector<NFA::VertexDescriptor> VDList;
-typedef std::pair<ByteSet, VDList> SubsetState;
-typedef std::array<VDList,256> ByteToVertices;
-
-struct SubsetStateComp {
-  bool operator()(const SubsetState& a, const SubsetState& b) const {
-    const int c = a.first.compare(b.first);
-    if (c < 0) {
-      return true;
-    }
-    else if (c > 0) {
-      return false;
-    }
-    else {
-      return std::lexicographical_compare(a.second.begin(), a.second.end(),
-                                          b.second.begin(), b.second.end());
-    }
-  }
-};
-
 void makePerByteOutNeighborhoods(
   const NFA& src,
   const NFA::VertexDescriptor srcHead,
@@ -472,8 +447,6 @@ void addToDeterminizationGroup(
 
   dstListGroups[bs].back().push_back(srcTail);
 }
-
-typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToState;
 
 void makeDestinationState(
   const NFA& src,

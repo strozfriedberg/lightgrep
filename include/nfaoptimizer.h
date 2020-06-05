@@ -21,10 +21,17 @@
 #include "basic.h"
 #include "automata.h"
 
+#include <algorithm>
+#include <array>
 #include <limits>
 #include <map>
 #include <set>
 #include <stack>
+#include <vector>
+
+using VDList = std::vector<NFA::VertexDescriptor>;
+using SubsetState = std::pair<ByteSet, VDList>;
+using ByteToVertices = std::array<VDList,256>;
 
 class NFAOptimizer {
 public:
@@ -66,4 +73,34 @@ void completeOriginal(
   NFA& dst,
   const NFA& src,
   std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
+);
+
+struct SubsetStateComp {
+  bool operator()(const SubsetState& a, const SubsetState& b) const {
+    const int c = a.first.compare(b.first);
+    if (c < 0) {
+      return true;
+    }
+    else if (c > 0) {
+      return false;
+    }
+    else {
+      return std::lexicographical_compare(a.second.begin(), a.second.end(),
+                                          b.second.begin(), b.second.end());
+    }
+  }
+};
+
+using SubsetStateToState = std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp>;
+
+void handleSubsetStateSuccessors(
+  const NFA& src,
+  const VDList& srcHeadList,
+  const NFA::VertexDescriptor dstHead,
+  uint32_t depth,
+  NFA& dst,
+  std::stack<std::pair<SubsetState,int>>& dstStack,
+  ByteSet& outBytes,
+  SubsetStateToState& dstList2Dst,
+  std::map<ByteSet, std::vector<std::vector<NFA::VertexDescriptor>>>& dstListGroups
 );
