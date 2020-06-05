@@ -483,7 +483,7 @@ void makeDestinationState(
   uint32_t depth,
   NFA& dst,
   SubsetStateToState& dstList2Dst,
-  std::stack<std::pair<SubsetState,int>>& dstStack)
+  std::stack<std::pair<SubsetState, int>>& dstStack)
 {
   const SubsetState ss(bs, dstList);
   const SubsetStateToState::const_iterator l(dstList2Dst.find(ss));
