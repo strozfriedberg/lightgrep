@@ -1114,8 +1114,8 @@ SCOPE_TEST(testMakeDestinationState0) {
   edge(0, 1, exp, exp.TransFac->getByte('a'));
 
   const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
-  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
 
+  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
   const decltype(dstUnstack) exp_dstUnstack{{SubsetState{bs, {1,2}}, 1}};
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
@@ -1150,8 +1150,8 @@ SCOPE_TEST(testMakeDestinationState1) {
   edge(0, 1, exp, exp.TransFac->getByte('a'));
 
   const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
-  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
 
+  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
   const decltype(dstUnstack) exp_dstUnstack;
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
@@ -1184,7 +1184,15 @@ SCOPE_TEST(testHandleSubstateStateSuccessors0) {
     src, {0}, 0, 1, dst, dstStack, outBytes, dstList2Dst, dstListGroups
   );
 
-//  ASSERT_EQUAL_GRAPHS(exp, dst);
-//  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
-//  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+  NFA exp(2);
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+
+  const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
+
+  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
+  const decltype(dstUnstack) exp_dstUnstack{{SubsetState{bs, {1,2}}, 1}};
+
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
+  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
 }
