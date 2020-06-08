@@ -23,8 +23,12 @@
 #include "parsetree.h"
 #include "states.h"
 
-#include "container_out.h"
 #include "test_helper.h"
+
+// FIXME: Why is this necessary? Should't scope see this without the namespace?
+namespace scope {
+#include "container_out.h"
+}
 
 #include <scope/test.h>
 
@@ -1104,7 +1108,7 @@ SCOPE_TEST(testMakeDestinationState0) {
   SubsetStateToState dstList2Dst;
   std::stack<std::pair<SubsetState, int>> dstStack;
 
-  makeDestinationState(src, 0, bs, {1,2}, 0, dst, dstList2Dst, dstStack);
+  makeDestinationState(src, 0, bs, {1,2}, 1, dst, dstList2Dst, dstStack);
 
   NFA exp(2);
   edge(0, 1, exp, exp.TransFac->getByte('a'));
@@ -1120,8 +1124,8 @@ SCOPE_TEST(testMakeDestinationState0) {
   const decltype(dstUnstack) exp_dstUnstack{{SubsetState{bs, {1,2}}, 1}};
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
-//  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
-//  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
+  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
 }
 
 SCOPE_TEST(testMakeDestinationState1) {
@@ -1145,7 +1149,7 @@ SCOPE_TEST(testMakeDestinationState1) {
   SubsetStateToState dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
   std::stack<std::pair<SubsetState, int>> dstStack;
 
-  makeDestinationState(src, 0, bs, {1,2}, 0, dst, dstList2Dst, dstStack);
+  makeDestinationState(src, 0, bs, {1,2}, 1, dst, dstList2Dst, dstStack);
 
   NFA exp(2);
   edge(0, 1, exp, exp.TransFac->getByte('a'));
@@ -1161,6 +1165,6 @@ SCOPE_TEST(testMakeDestinationState1) {
   const decltype(dstUnstack) exp_dstUnstack;
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
-//  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
-//  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
+  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
 }
