@@ -470,15 +470,15 @@ void makeDestinationState(
     dstList2Dst[ss] = dstTail = dst.addVertex();
     dstStack.push({ss, depth});
     dst[dstTail].Trans = dst.TransFac->getSmallest(bs);
+
+    if (src[dstList.front()].IsMatch) {
+      dst[dstTail].IsMatch = true;
+      dst[dstTail].Label = src[dstList.front()].Label;
+    }
   }
   else {
     // old sublist vertex
     dstTail = l->second;
-  }
-
-  if (src[dstList.front()].IsMatch) {
-    dst[dstTail].IsMatch = true;
-    dst[dstTail].Label = src[dstList.front()].Label;
   }
 
   dst.addEdge(dstHead, dstTail);
