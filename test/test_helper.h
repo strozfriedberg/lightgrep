@@ -22,7 +22,9 @@
 #include "fwd_pointers.h"
 #include "pattern.h"
 
+#include <deque>
 #include <initializer_list>
+#include <stack>
 #include <vector>
 
 void edge(NFA::VertexDescriptor source, NFA::VertexDescriptor target, NFA& fsm, Transition* trans);
@@ -39,3 +41,12 @@ void ASSERT_EQUAL_MATCHES(const NFA& a, const NFA& b);
 
 NFAPtr createGraph(const std::vector<Pattern>& pats, bool determinize);
 
+template <class T, class C = std::deque<T>>
+std::vector<T> unstack(std::stack<T, C>& s) {
+  std::vector<T> v;
+  while (!s.empty()) {
+    v.push_back(s.top());
+    s.pop();
+  }
+  return v;
+}

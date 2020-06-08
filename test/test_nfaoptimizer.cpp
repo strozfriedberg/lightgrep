@@ -1114,12 +1114,7 @@ SCOPE_TEST(testMakeDestinationState0) {
   edge(0, 1, exp, exp.TransFac->getByte('a'));
 
   const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
-
-  std::vector<std::pair<SubsetState, int>> dstUnstack;
-  while (!dstStack.empty()) {
-    dstUnstack.push_back(dstStack.top());
-    dstStack.pop();
-  }
+  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
 
   const decltype(dstUnstack) exp_dstUnstack{{SubsetState{bs, {1,2}}, 1}};
 
@@ -1155,12 +1150,7 @@ SCOPE_TEST(testMakeDestinationState1) {
   edge(0, 1, exp, exp.TransFac->getByte('a'));
 
   const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
-
-  std::vector<std::pair<SubsetState, int>> dstUnstack;
-  while (!dstStack.empty()) {
-    dstUnstack.push_back(dstStack.top());
-    dstStack.pop();
-  }
+  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
 
   const decltype(dstUnstack) exp_dstUnstack;
 
