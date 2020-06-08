@@ -1086,7 +1086,6 @@ SCOPE_TEST(testCompleteOriginal4) {
 }
 
 SCOPE_TEST(testMakeDestinationState0) {
-
   NFA src(4);
   edge(0, 1, src, src.TransFac->getByte('a'));
   edge(1, 1, src, src.TransFac->getByte('a'));
@@ -1110,7 +1109,7 @@ SCOPE_TEST(testMakeDestinationState0) {
   NFA exp(2);
   edge(0, 1, exp, exp.TransFac->getByte('a'));
 
-  const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {2}}, 1}};
+  const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
 
   std::vector<std::pair<SubsetState, int>> dstUnstack;
   while (!dstStack.empty()) {
@@ -1119,6 +1118,47 @@ SCOPE_TEST(testMakeDestinationState0) {
   }
 
   const decltype(dstUnstack) exp_dstUnstack{{SubsetState{bs, {1,2}}, 1}};
+
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+//  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
+//  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+}
+
+SCOPE_TEST(testMakeDestinationState1) {
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 1, src, src.TransFac->getByte('a'));
+  edge(1, 3, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('a'));
+  edge(2, 1, src, src.TransFac->getByte('a'));
+  edge(2, 3, src, src.TransFac->getByte('a'));
+  edge(3, 2, src, src.TransFac->getByte('a'));
+
+  src[3].IsMatch = true;
+  src[3].Label = 1;
+
+  const ByteSet bs('a');
+
+  NFA dst(2);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  SubsetStateToState dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
+  std::stack<std::pair<SubsetState, int>> dstStack;
+
+  makeDestinationState(src, 0, bs, {1,2}, 0, dst, dstList2Dst, dstStack);
+
+  NFA exp(2);
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+
+  const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
+
+  std::vector<std::pair<SubsetState, int>> dstUnstack;
+  while (!dstStack.empty()) {
+    dstUnstack.push_back(dstStack.top());
+    dstStack.pop();
+  }
+
+  const decltype(dstUnstack) exp_dstUnstack;
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
 //  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
