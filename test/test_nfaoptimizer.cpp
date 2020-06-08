@@ -1158,3 +1158,33 @@ SCOPE_TEST(testMakeDestinationState1) {
   SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
   SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
 }
+
+SCOPE_TEST(testHandleSubstateStateSuccessors0) {
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 1, src, src.TransFac->getByte('a'));
+  edge(1, 3, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('a'));
+  edge(2, 1, src, src.TransFac->getByte('a'));
+  edge(2, 3, src, src.TransFac->getByte('a'));
+  edge(3, 2, src, src.TransFac->getByte('a'));
+
+  src[3].IsMatch = true;
+  src[3].Label = 1;
+
+  const ByteSet bs('a');
+
+  NFA dst(1);
+  std::stack<std::pair<SubsetState, int>> dstStack;
+  ByteSet outBytes; // not an output param, supplied for reuse
+  SubsetStateToState dstList2Dst;
+  std::map<ByteSet, std::vector<VDList>> dstListGroups;
+
+  handleSubsetStateSuccessors(
+    src, {0}, 0, 1, dst, dstStack, outBytes, dstList2Dst, dstListGroups
+  );
+
+//  ASSERT_EQUAL_GRAPHS(exp, dst);
+//  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
+//  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+}
