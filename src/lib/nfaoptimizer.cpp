@@ -657,7 +657,7 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t determinizeLimit
   std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst;
 
   // set up initial dst state
-  const SubsetState d0(ByteSet(), VDList(1, 0));
+  const SubsetState d0(ByteSet(), VDList{0});
   dstList2Dst[d0] = 0;
   dstStack.push({d0, 0});
 
