@@ -1178,7 +1178,7 @@ SCOPE_TEST(testHandleSubstateStateSuccessors0) {
   std::stack<std::pair<SubsetState, int>> dstStack;
   ByteSet outBytes; // not an output param, supplied for reuse
   SubsetStateToState dstList2Dst;
-  std::map<ByteSet, std::vector<VDList>> dstListGroups;
+  std::map<ByteSet, std::vector<VList>> dstListGroups;
 
   handleSubsetStateSuccessors(
     src, {0}, 0, 1, dst, dstStack, outBytes, dstList2Dst, dstListGroups
@@ -1218,7 +1218,7 @@ SCOPE_TEST(testHandleSubstateStateSuccessors1) {
   std::stack<std::pair<SubsetState, int>> dstStack;
   ByteSet outBytes; // not an output param, supplied for reuse
   SubsetStateToState dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
-  std::map<ByteSet, std::vector<VDList>> dstListGroups;
+  std::map<ByteSet, std::vector<VList>> dstListGroups;
 
   handleSubsetStateSuccessors(
     src, {1,2}, 1, 2, dst, dstStack, outBytes, dstList2Dst, dstListGroups

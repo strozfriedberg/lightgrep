@@ -29,9 +29,9 @@
 #include <stack>
 #include <vector>
 
-using VDList = std::vector<NFA::VertexDescriptor>;
-using SubsetState = std::pair<ByteSet, VDList>;
-using ByteToVertices = std::array<VDList,256>;
+using VList = std::vector<NFA::VertexDescriptor>;
+using SubsetState = std::pair<ByteSet, VList>;
+using ByteToVertices = std::array<VList,256>;
 
 class NFAOptimizer {
 public:
@@ -97,7 +97,7 @@ void makeDestinationState(
   const NFA& src,
   const NFA::VertexDescriptor dstHead,
   const ByteSet& bs,
-  const VDList& dstList,
+  const VList& dstList,
   uint32_t depth,
   NFA& dst,
   SubsetStateToState& dstList2Dst,
@@ -106,7 +106,7 @@ void makeDestinationState(
 
 void handleSubsetStateSuccessors(
   const NFA& src,
-  const VDList& srcHeadList,
+  const VList& srcHeadList,
   const NFA::VertexDescriptor dstHead,
   uint32_t depth,
   NFA& dst,

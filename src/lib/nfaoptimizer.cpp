@@ -405,13 +405,13 @@ void makePerByteOutNeighborhoods(
   }
 }
 
-using BytesToVertices = std::map<ByteSet, VDList>;
+using BytesToVertices = std::map<ByteSet, VList>;
 
 void makeByteSetsWithDistinctOutNeighborhoods(
   const ByteToVertices& srcTailLists,
   BytesToVertices& bytes2SrcList)
 {
-  using VerticesToBytes = std::map<VDList, ByteSet>;
+  using VerticesToBytes = std::map<VList, ByteSet>;
 
   VerticesToBytes srcList2Bytes;
 
@@ -432,7 +432,7 @@ void addToDeterminizationGroup(
   const NFA& src,
   const NFA::VertexDescriptor srcTail,
   const ByteSet& bs,
-  std::map<ByteSet, std::vector<VDList>>& dstListGroups,
+  std::map<ByteSet, std::vector<VList>>& dstListGroups,
   bool& startGroup)
 {
   if (src[srcTail].IsMatch) {
@@ -452,7 +452,7 @@ void makeDestinationState(
   const NFA& src,
   const NFA::VertexDescriptor dstHead,
   const ByteSet& bs,
-  const VDList& dstList,
+  const VList& dstList,
   uint32_t depth,
   NFA& dst,
   SubsetStateToState& dstList2Dst,
@@ -486,14 +486,14 @@ void makeDestinationState(
 
 void handleSubsetStateSuccessors(
   const NFA& src,
-  const VDList& srcHeadList,
+  const VList& srcHeadList,
   const NFA::VertexDescriptor dstHead,
   uint32_t depth,
   NFA& dst,
   std::stack<std::pair<SubsetState,int>>& dstStack,
   ByteSet& outBytes,
   SubsetStateToState& dstList2Dst,
-  std::map<ByteSet, std::vector<VDList>>& dstListGroups)
+  std::map<ByteSet, std::vector<VList>>& dstListGroups)
 {
   ByteToVertices srcTailLists;
 
@@ -512,11 +512,11 @@ void handleSubsetStateSuccessors(
   makeByteSetsWithDistinctOutNeighborhoods(srcTailLists, bytes2SrcList);
 
   // form each srcTailList into determinizable groups
-  std::map<ByteSet, std::vector<VDList>> dstListGroups;
+  std::map<ByteSet, std::vector<VList>> dstListGroups;
 
   for (const auto& v : bytes2SrcList) {
     const ByteSet& bs(v.first);
-    const VDList& srcTailList(v.second);
+    const VList& srcTailList(v.second);
 
     bool startGroup = true;
 
@@ -528,8 +528,8 @@ void handleSubsetStateSuccessors(
   // determinize for each outgoing byte set
   for (const auto& v : dstListGroups) {
     const ByteSet& bs(v.first);
-    const std::vector<VDList>& dstLists(v.second);
-    for (const VDList& dstList : dstLists) {
+    const std::vector<VList>& dstLists(v.second);
+    for (const VList& dstList : dstLists) {
       makeDestinationState(src, dstHead, bs, dstList, depth, dst, dstList2Dst, dstStack);
     }
   }
@@ -538,7 +538,7 @@ void handleSubsetStateSuccessors(
 void connectSubsetStateToOriginal(
   NFA& dst,
   const NFA& src,
-  const VDList& srcHeadList,
+  const VList& srcHeadList,
   const NFA::VertexDescriptor dstHead,
   std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
 )
@@ -657,7 +657,7 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t determinizeLimit
   std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst;
 
   // set up initial dst state
-  const SubsetState d0(ByteSet(), VDList{0});
+  const SubsetState d0(ByteSet(), VList{0});
   dstList2Dst[d0] = 0;
   dstStack.push({d0, 0});
 
@@ -673,7 +673,7 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t determinizeLimit
     const uint32_t depth = dstStack.top().second;
     dstStack.pop();
 
-    const VDList& srcHeadList(ss.second);
+    const VList& srcHeadList(ss.second);
     const NFA::VertexDescriptor dstHead = dstList2Dst[ss];
 
     if (depth < determinizeLimit) {
