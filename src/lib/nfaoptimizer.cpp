@@ -405,13 +405,13 @@ void makePerByteOutNeighborhoods(
   }
 }
 
-typedef std::map<ByteSet, VDList> BytesToVertices;
+using BytesToVertices = std::map<ByteSet, VDList>;
 
 void makeByteSetsWithDistinctOutNeighborhoods(
   const ByteToVertices& srcTailLists,
   BytesToVertices& bytes2SrcList)
 {
-  typedef std::map<VDList, ByteSet> VerticesToBytes;
+  using VerticesToBytes = std::map<VDList, ByteSet>;
 
   VerticesToBytes srcList2Bytes;
 
