@@ -1196,3 +1196,55 @@ SCOPE_TEST(testHandleSubstateStateSuccessors0) {
   SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
   SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
 }
+
+SCOPE_TEST(testHandleSubstateStateSuccessors1) {
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 1, src, src.TransFac->getByte('a'));
+  edge(1, 3, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('a'));
+  edge(2, 1, src, src.TransFac->getByte('a'));
+  edge(2, 3, src, src.TransFac->getByte('a'));
+  edge(3, 2, src, src.TransFac->getByte('a'));
+
+  src[3].IsMatch = true;
+  src[3].Label = 1;
+
+  const ByteSet bs('a');
+
+  NFA dst(1);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  std::stack<std::pair<SubsetState, int>> dstStack;
+  ByteSet outBytes; // not an output param, supplied for reuse
+  SubsetStateToState dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
+  std::map<ByteSet, std::vector<VDList>> dstListGroups;
+
+  handleSubsetStateSuccessors(
+    src, {1,2}, 1, 2, dst, dstStack, outBytes, dstList2Dst, dstListGroups
+  );
+
+  NFA exp(4);
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(1, 2, exp, exp.TransFac->getByte('a'));
+  edge(1, 3, exp, exp.TransFac->getByte('a'));
+
+  dst[2].IsMatch = true;
+  dst[2].Label = 1;
+
+  const decltype(dstList2Dst) exp_dstList2Dst{
+    {SubsetState{bs, {1,2}}, 1},
+    {SubsetState{bs, {1}},   2},
+    {SubsetState{bs, {3}},   3}
+  };
+
+  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
+  const decltype(dstUnstack) exp_dstUnstack{
+    {SubsetState{bs, {3}}, 2},
+    {SubsetState{bs, {1}}, 2}
+  };
+
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
+  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+}
