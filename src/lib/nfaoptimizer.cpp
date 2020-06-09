@@ -416,9 +416,9 @@ void makeByteSetsWithDistinctOutNeighborhoods(
   VerticesToBytes srcList2Bytes;
 
   // mark the outgoing byte for each out neighborhood
-  const ByteToVertices::const_iterator beg(srcTailLists.begin());
-  const ByteToVertices::const_iterator end(srcTailLists.end());
-  for (ByteToVertices::const_iterator i(beg); i != end; ++i) {
+  const auto beg(srcTailLists.cbegin());
+  const auto end(srcTailLists.cend());
+  for (auto i(beg); i != end; ++i) {
     srcList2Bytes[*i][i - beg] = true;
   }
 
