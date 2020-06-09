@@ -525,7 +525,7 @@ void handleSubsetStateSuccessors(
     }
   }
 
-  // determinize for each outgoing byte
+  // determinize for each outgoing byte set
   for (const auto& v : dstListGroups) {
     const ByteSet& bs(v.first);
     const std::vector<VDList>& dstLists(v.second);
