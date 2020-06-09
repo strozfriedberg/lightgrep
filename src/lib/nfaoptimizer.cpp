@@ -492,8 +492,7 @@ void handleSubsetStateSuccessors(
   NFA& dst,
   std::stack<std::pair<SubsetState,int>>& dstStack,
   ByteSet& outBytes,
-  SubsetStateToState& dstList2Dst,
-  std::map<ByteSet, std::vector<VList>>& dstListGroups)
+  SubsetStateToState& dstList2Dst)
 {
   ByteToVertices srcTailLists;
 
@@ -680,7 +679,7 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t determinizeLimit
       // continue processing this subset state's successors
       handleSubsetStateSuccessors(
         src, srcHeadList, dstHead, depth + 1,
-        dst, dstStack, outBytes, dstList2Dst, dstListGroups
+        dst, dstStack, outBytes, dstList2Dst
       );
     }
     else {

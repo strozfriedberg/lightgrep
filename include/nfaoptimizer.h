@@ -112,6 +112,5 @@ void handleSubsetStateSuccessors(
   NFA& dst,
   std::stack<std::pair<SubsetState,int>>& dstStack,
   ByteSet& outBytes,
-  SubsetStateToState& dstList2Dst,
-  std::map<ByteSet, std::vector<std::vector<NFA::VertexDescriptor>>>& dstListGroups
+  SubsetStateToState& dstList2Dst
 );
