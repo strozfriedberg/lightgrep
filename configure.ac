@@ -97,15 +97,17 @@ AC_ARG_ENABLE([debug],
 AS_IF([test "x$enable_debug" = "xyes"], [OFLAGS='-Og'], [OFLAGS='-O3 -march=native'])
 
 AC_ARG_ENABLE([symbols],
-  [AS_HELP_STRING([--with-symbols],
+  [AS_HELP_STRING([--enable-symbols],
     [build with debugging symbols])],
-  [with_symbols=yes],
-  [with_symbols=no])
+  [enable_symbols=yes],
+  [enable_symbols=no])
 
-AS_IF([test "x$with_symbols" != "xno"], [SYMBOLS='-g'], [SYMBOLS=''])
+AS_IF([test "x$enable_symbols" != "xno"], [SYMBOLS='-g'], [SYMBOLS=''])
 
 AX_APPEND_COMPILE_FLAGS([$SYMBOLS $OFLAGS], [LG_CFLAGS])
 AX_APPEND_COMPILE_FLAGS([$SYMBOLS $OFLAGS], [LG_CXXFLAGS])
+
+PKG_CHECK_MODULES([GPT], [libprofiler], [], [ : ])
 
 # FIXME: mingw defaults to -g -O2, along with a bunch of other flags which
 # we want to keep.
