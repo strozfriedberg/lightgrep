@@ -1,0 +1,102 @@
+# this is our graphql schema describing the types that fsrip emits
+
+# some of our "flags" variables could be enums instead of list of strings
+
+
+type fsrip_timestamp {
+    name: String!
+    ts: String! # ISO 8601
+}
+
+# represents logical metadata of the attribute
+# key: type prefix + hash(fsrip_stream)
+type fsrip_stream {
+    id: Float!
+    flags: [String]!
+    type: Int!
+
+    name: String
+
+    size: Float!
+
+    data_id: String! # hash-based ID of data buffer
+}
+
+
+type fsrip_datarun {
+    offset: Float!
+    addr: Float!
+    len: Float!
+    flags: [String]! # maybe this could be an enum
+}
+
+
+# represents physical metadata of the attribute
+# key: type prefix + hash(fsrip_attribute)
+type fsrip_attribute {
+    stream: fsrip_stream
+
+    init_size: Float!
+    comp_size: Float!
+
+    # resident data
+    rd_buf: String
+    rd_buf_size: Float! # do we need this? we can infer length from rd_buf
+
+    # nonresident data
+    skip_len: Float!
+    alloc_size: Float!
+
+    nrds: [fsrip_datarun]
+}
+
+
+# key of fsrip_inode
+# type prefix + logical hash of struct and attributes? (md5 yada yada)
+type fsrip_inode {
+    addr: Float!
+    flags: [String]!
+    type: String!
+
+    attrs: [fsrip_attribute]!
+
+    timestamps: [fsrip_timestamp]!
+
+    uid: String # nullable??
+    gid: String # ditto?
+    mode: [String]! # tentative; look further into Windows to see how to represent ACLs
+
+
+    # here's a collection of stuff we have questions about
+    link: String # name of target file if symlink; not output by fsrip but this may be necessary
+    nlink: Int # do we care?
+    seq_num: Int # MFT sequence number
+    name2: String # only FAT and NTFS; may be a leaky abstraction
+}
+
+# key of fsrip_path
+# type prefix + hash(path)
+type fsrip_path {
+    path: String!
+}
+
+# key of fsrip_dirent
+# there's local instability introduced by using the index, but it's local to the directory, instead of having global effect on key space
+# hash based somehow... type prefix + ... + hash(parent_path) + varint(index in parent) + varint(addr)
+# type prefix + parent path_id + hash(fsrip_dirent)
+type fsrip_dirent {
+    type: String!
+    flags: [String]!
+
+    path_id: String! # hash of path in fsrip_path
+
+    streams: [String]! # fsrip_stream IDs
+
+    children: [String]! # IDs of child dirents (which are hashes, of course)
+}
+
+
+to-do:
+  filesystem structure -> root dirent, table/mapping of dirent IDs -> inodes?
+  filesystem hashes
+  partitioning of these things
