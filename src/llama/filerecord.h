@@ -6,7 +6,7 @@
 
 #include <tsk/libtsk.h>
 
-#include "jsoncons.h"
+#include <jsoncons.h>
 
 // This is just a placeholder
 struct FileRecord {

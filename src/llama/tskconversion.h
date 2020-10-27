@@ -4,7 +4,7 @@
 
 #include <tsk/libtsk.h>
 
-#include "jsoncons.h"
+#include <jsoncons.h>
 
 class TskConverter {
 public:
