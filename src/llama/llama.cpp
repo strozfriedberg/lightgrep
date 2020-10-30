@@ -110,13 +110,13 @@ bool Llama::openInput(const std::string &input) {
 
 bool Llama::init() {
   auto readPats = make_future(Pool, [this]() {
-                    return this->Opts->KeyFiles.size() ? readpatterns(this->Opts->KeyFiles): true; });
-
-  auto readMatches = make_future(Pool, [this](){
-                       return this->Opts->MatchSet.empty() || readMatchingSet(this->Opts->MatchSet); });
+    return this->Opts->KeyFiles.size() ?
+           readpatterns(this->Opts->KeyFiles): true;
+  });
 
   auto open = make_future(Pool, [this]() {
-                return openInput(this->Opts->Input); });
+    return openInput(this->Opts->Input);
+  });
 
-  return readPats.get() && readMatches.get() && open.get();
+  return readPats.get() && open.get();
 }
