@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cstring>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -11,30 +10,48 @@ TskConverter::TskConverter()
   NanoBuf << std::fixed << std::setprecision(9);
 }
 
-std::string TskConverter::volumeSystemType(unsigned int type) {
-  std::string ret = "Unknown";
-  switch (type) {
-  case TSK_VS_TYPE_DOS:
-    ret = "MBR";
-    break;
-  case TSK_VS_TYPE_BSD:
-    ret = "BSD";
-    break;
-  case TSK_VS_TYPE_SUN:
-    ret = "Sun";
-    break;
-  case TSK_VS_TYPE_MAC:
-    ret = "Macintosh";
-    break;
-  case TSK_VS_TYPE_GPT:
-    ret = "GPT";
-    break;
+template <class F>
+std::string flagsString(unsigned int flags, const F& fmap) {
+  if (!flags) {
+    return "";
   }
+
+  std::string ret;
+  bool first = true;
+  for (const auto& f: fmap) {
+    if (flags & f.first) {
+      if (first) {
+        first = false;
+      }
+      else {
+        ret += ", ";
+      }
+      ret += f.second;
+    }
+  }
+
   return ret;
 }
 
-std::string TskConverter::volumeFlags(unsigned int flags) {
-    // I think these flags are mutually exclusive...
+std::string TskConverter::volumeSystemType(unsigned int type) const {
+  switch (type) {
+  case TSK_VS_TYPE_DOS:
+    return "MBR";
+  case TSK_VS_TYPE_BSD:
+    return "BSD";
+  case TSK_VS_TYPE_SUN:
+    return "Sun";
+  case TSK_VS_TYPE_MAC:
+    return "Macintosh";
+  case TSK_VS_TYPE_GPT:
+    return "GPT";
+  default:
+    return "Unknown";
+  }
+}
+
+std::string TskConverter::volumeFlags(unsigned int flags) const {
+  // I think these flags are mutually exclusive...
   switch (flags) {
   case TSK_VS_PART_FLAG_ALLOC:
     return "Allocated";
@@ -47,7 +64,7 @@ std::string TskConverter::volumeFlags(unsigned int flags) {
   }
 }
 
-std::string TskConverter::filesystemFlags(unsigned int flags) {
+std::string TskConverter::filesystemFlags(unsigned int flags) const {
   // this structure obviously won't scale as more flags are added
   // but it's fine for now
   switch (flags) {
@@ -57,11 +74,13 @@ std::string TskConverter::filesystemFlags(unsigned int flags) {
     return "Nanosecond precision";
   case TSK_FS_INFO_FLAG_HAVE_SEQ | TSK_FS_INFO_FLAG_HAVE_NANOSEC:
     return "Sequenced, Nanosecond precision";
+  default:
+    return "";
   }
-  return "";
 }
 
-std::string TskConverter::nameType(unsigned int type) {
+std::string TskConverter::nameType(unsigned int type) const {
+// FIXME: use the enum?
   static const std::array<std::string, 12> types{{
     "Undefined",
     "Named Pipe",
@@ -79,29 +98,16 @@ std::string TskConverter::nameType(unsigned int type) {
   return type < types.size() ? types[type]: types[0];
 }
 
-std::string TskConverter::nameFlags(unsigned int flags) {
-  std::string ret;
-  if (flags) {
-    bool has = false;
-    std::ostringstream buf;
-    if (flags & TSK_FS_NAME_FLAG_ALLOC) {
-      buf << "Allocated";
-      has = true;
-    }
-    if (flags & TSK_FS_NAME_FLAG_UNALLOC) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Deleted";
-      has = true;
-    }
-    ret = buf.str();
-  }
-  return ret;
+std::string TskConverter::nameFlags(unsigned int flags) const {
+  const static std::array<std::pair<unsigned int, std::string>, 2> fmap{{
+    {TSK_FS_NAME_FLAG_ALLOC,   "Allocated"},
+    {TSK_FS_NAME_FLAG_UNALLOC, "Deleted"}
+  }};
+  return flagsString(flags, fmap);
 }
 
-std::string TskConverter::metaType(unsigned int type) {
-  static const std::array<std::string, 12> types{{
+std::string TskConverter::metaType(unsigned int type) const {
+  static const std::array<std::string, 12> types{
     "Undefined",
     "File",
     "Folder",
@@ -114,60 +120,23 @@ std::string TskConverter::metaType(unsigned int type) {
     "Whiteout Inode",
     "Virtual",
     "Virtual Folder"
-  }};
+  };
   return type < types.size() ? types[type]: types[0];
 }
 
-std::string TskConverter::metaFlags(unsigned int flags) {
-  std::string ret;
-  if (flags) {
-    bool has = false;
-    std::ostringstream buf;
-    if (flags & TSK_FS_META_FLAG_ALLOC) {
-      buf << "Allocated";
-      has = true;
-    }
-    if (flags & TSK_FS_META_FLAG_UNALLOC) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Deleted";
-      has = true;
-    }
-    if (flags & TSK_FS_META_FLAG_USED) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Used";
-      has = true;
-    }
-    if (flags & TSK_FS_META_FLAG_UNUSED) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Unused";
-      has = true;
-    }
-    if (flags & TSK_FS_META_FLAG_COMP) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Compressed";
-      has = true;
-    }
-    if (flags & TSK_FS_META_FLAG_ORPHAN) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Orphan";
-      has = true;
-    }
-    ret = buf.str();
-  }
-  return ret;
+std::string TskConverter::metaFlags(unsigned int flags) const {
+  const static std::array<std::pair<unsigned int, std::string>, 6> fmap{{
+    {TSK_FS_META_FLAG_ALLOC,   "Allocated"},
+    {TSK_FS_META_FLAG_UNALLOC, "Deleted"},
+    {TSK_FS_META_FLAG_USED,    "Used"},
+    {TSK_FS_META_FLAG_UNUSED,  "Unused"},
+    {TSK_FS_META_FLAG_COMP,    "Compressed"},
+    {TSK_FS_META_FLAG_ORPHAN,  "Orphan"}
+  }};
+  return flagsString(flags, fmap);
 }
 
-std::string TskConverter::attrType(unsigned int type) {
+std::string TskConverter::attrType(unsigned int type) const {
   switch (type) {
   case TSK_FS_ATTR_TYPE_NOT_FOUND: return "Unknown";
   case TSK_FS_ATTR_TYPE_DEFAULT: return "Data"; // default _is_ data, so match up with NTFS Data
@@ -205,69 +174,48 @@ std::string TskConverter::attrType(unsigned int type) {
   }
 }
 
-std::string TskConverter::attrFlags(unsigned int flags) {
-  std::string ret;
-  if (flags) {
-    bool has = false;
-    std::ostringstream buf;
-    if (flags & TSK_FS_ATTR_INUSE) {
-      buf << "In Use";
-      has = true;
-    }
-    if (flags & TSK_FS_ATTR_NONRES) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Non-resident";
-      has = true;
-    }
-    if (flags & TSK_FS_ATTR_RES) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Resident";
-      has = true;
-    }
-    if (flags & TSK_FS_ATTR_ENC) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Encrypted";
-      has = true;
-    }
-    if (flags & TSK_FS_ATTR_COMP) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Compressed";
-      has = true;
-    }
-    if (flags & TSK_FS_ATTR_SPARSE) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Sparse";
-      has = true;
-    }
-    if (flags & TSK_FS_ATTR_RECOVERY) {
-      if (has) {
-        buf << ", ";
-      }
-      buf << "Recovered";
-      has = true;
-    }
-    ret = buf.str();
-  }
-  return ret;
+std::string TskConverter::attrFlags(unsigned int flags) const {
+  static std::array<std::pair<unsigned int, std::string>, 7> fmap{{
+    {TSK_FS_ATTR_INUSE,   "In Use"},
+    {TSK_FS_ATTR_NONRES, "Non-resident"},
+    {TSK_FS_ATTR_RES, "Resident"},
+    {TSK_FS_ATTR_ENC, "Encrypted"},
+    {TSK_FS_ATTR_COMP, "Compressed"},
+    {TSK_FS_ATTR_SPARSE, "Sparse"},
+    {TSK_FS_ATTR_RECOVERY, "Recovered"}
+  }};
+  return flagsString(flags, fmap);
 }
 
-std::string TskConverter::nrdRunFlags(unsigned int flags) {
+std::string TskConverter::nrdRunFlags(unsigned int flags) const {
   switch (flags) {
   case TSK_FS_ATTR_RUN_FLAG_NONE: return "";
   case TSK_FS_ATTR_RUN_FLAG_FILLER: return "Filler";
   case TSK_FS_ATTR_RUN_FLAG_SPARSE: return "Sparse";
   }
   return "";
+}
+
+void TskConverter::convertFile(const TSK_FS_FILE& file, jsoncons::json& jsFile) {
+  if (file.name) {
+    auto& jsName = (jsFile["name"] = jsoncons::json());
+    convertName(*file.name, jsName);
+  }
+
+  // TODO: do we need to call convertMeta here?
+
+}
+
+void TskConverter::convertName(const TSK_FS_NAME& name, jsoncons::json& jsName) const {
+  jsName["name"] = name.name;
+  jsName["shrt_name"] = name.shrt_name;
+  jsName["meta_addr"] = std::to_string(name.meta_addr);
+  jsName["meta_seq"] = std::to_string(name.meta_seq);
+  jsName["par_addr"] = std::to_string(name.par_addr);
+  jsName["par_seq"] = std::to_string(name.par_seq);
+//  jsName["date_added"] = name.date_added;
+  jsName["type"] = nameType(name.type);
+  jsName["flags"] = nameFlags(name.flags);
 }
 
 void TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& jsMeta) {
@@ -293,20 +241,55 @@ void TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType,
   }
 }
 
-void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& timestamps) {
-  timestamps["accessed"] = formatTimestamp(meta.atime, meta.atime_nano);
-  timestamps["created"] = formatTimestamp(meta.crtime, meta.crtime_nano);
-  timestamps["metadata"] = formatTimestamp(meta.ctime, meta.ctime_nano);
-  timestamps["modified"] = formatTimestamp(meta.mtime, meta.mtime_nano);
+void TskConverter::convertNTFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
+  ts["deleted"] = jsoncons::null_type();
+  ts["backup"] = jsoncons::null_type();
+  ts["fn_accessed"] = formatTimestamp(meta.time2.ntfs.fn_atime, meta.time2.ntfs.fn_atime_nano);
+  ts["fn_created"] = formatTimestamp(meta.time2.ntfs.fn_crtime, meta.time2.ntfs.fn_crtime_nano);
+  ts["fn_metadata"] = formatTimestamp(meta.time2.ntfs.fn_ctime, meta.time2.ntfs.fn_ctime_nano);
+  ts["fn_modified"] = formatTimestamp(meta.time2.ntfs.fn_mtime, meta.time2.ntfs.fn_mtime_nano);
+}
+
+void TskConverter::convertEXTTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
+  ts["deleted"] = formatTimestamp(meta.time2.hfs.bkup_time, meta.time2.hfs.bkup_time_nano);
+  ts["backup"] = jsoncons::null_type();
+  ts["fn_accessed"] = jsoncons::null_type();
+  ts["fn_created"] = jsoncons::null_type();
+  ts["fn_metadata"] = jsoncons::null_type();
+  ts["fn_modified"] = jsoncons::null_type();
+}
+
+void TskConverter::convertHFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
+  ts["deleted"] = jsoncons::null_type();
+  ts["backup"] = formatTimestamp(meta.time2.hfs.bkup_time, meta.time2.hfs.bkup_time_nano);
+  ts["fn_accessed"] = jsoncons::null_type();
+  ts["fn_created"] = jsoncons::null_type();
+  ts["fn_metadata"] = jsoncons::null_type();
+  ts["fn_modified"] = jsoncons::null_type();
+}
+
+void TskConverter::convertDefaultTimestamps(const TSK_FS_META& /* meta */, jsoncons::json& ts) const {
+  ts["deleted"] = jsoncons::null_type();
+  ts["backup"] = jsoncons::null_type();
+  ts["fn_accessed"] = jsoncons::null_type();
+  ts["fn_created"] = jsoncons::null_type();
+  ts["fn_metadata"] = jsoncons::null_type();
+  ts["fn_modified"] = jsoncons::null_type();
+}
+
+void TskConverter::convertStandardTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
+  ts["accessed"] = formatTimestamp(meta.atime, meta.atime_nano);
+  ts["created"] = formatTimestamp(meta.crtime, meta.crtime_nano);
+  ts["metadata"] = formatTimestamp(meta.ctime, meta.ctime_nano);
+  ts["modified"] = formatTimestamp(meta.mtime, meta.mtime_nano);
+}
+
+void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& ts) {
+  convertStandardTimestamps(meta, ts);
 
   switch (fsType) {
     case TSK_FS_TYPE_NTFS:
-      timestamps["deleted"] = jsoncons::null_type();
-      timestamps["backup"] = jsoncons::null_type();
-      timestamps["fn_accessed"] = formatTimestamp(meta.time2.ntfs.fn_atime, meta.time2.ntfs.fn_atime_nano);
-      timestamps["fn_created"] = formatTimestamp(meta.time2.ntfs.fn_crtime, meta.time2.ntfs.fn_crtime_nano);
-      timestamps["fn_metadata"] = formatTimestamp(meta.time2.ntfs.fn_ctime, meta.time2.ntfs.fn_ctime_nano);
-      timestamps["fn_modified"] = formatTimestamp(meta.time2.ntfs.fn_mtime, meta.time2.ntfs.fn_mtime_nano);
+      convertNTFSTimestamps(meta, ts);
       break;
     case TSK_FS_TYPE_FFS1: // need to double-check this list
     case TSK_FS_TYPE_FFS1B:
@@ -314,28 +297,13 @@ void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM f
     case TSK_FS_TYPE_EXT2:
     case TSK_FS_TYPE_EXT3:
     case TSK_FS_TYPE_EXT4:
-      timestamps["deleted"] = formatTimestamp(meta.time2.hfs.bkup_time, meta.time2.hfs.bkup_time_nano);
-      timestamps["backup"] = jsoncons::null_type();
-      timestamps["fn_accessed"] = jsoncons::null_type();
-      timestamps["fn_created"] = jsoncons::null_type();
-      timestamps["fn_metadata"] = jsoncons::null_type();
-      timestamps["fn_modified"] = jsoncons::null_type();
+      convertEXTTimestamps(meta, ts);
       break;    
     case TSK_FS_TYPE_HFS:
-      timestamps["deleted"] = jsoncons::null_type();
-      timestamps["backup"] = formatTimestamp(meta.time2.hfs.bkup_time, meta.time2.hfs.bkup_time_nano);
-      timestamps["fn_accessed"] = jsoncons::null_type();
-      timestamps["fn_created"] = jsoncons::null_type();
-      timestamps["fn_metadata"] = jsoncons::null_type();
-      timestamps["fn_modified"] = jsoncons::null_type();
+      convertHFSTimestamps(meta, ts);
       break;
     default:
-      timestamps["deleted"] = jsoncons::null_type();
-      timestamps["backup"] = jsoncons::null_type();
-      timestamps["fn_accessed"] = jsoncons::null_type();
-      timestamps["fn_created"] = jsoncons::null_type();
-      timestamps["fn_metadata"] = jsoncons::null_type();
-      timestamps["fn_modified"] = jsoncons::null_type();
+      convertDefaultTimestamps(meta, ts);
       break;
   }
 }
@@ -372,8 +340,13 @@ jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
       if (len) {
         ret.append(tbuf);
       } // else error??? [a greybeard once said, do not test for errors you can't handle... -- jls]
-    } catch (std::exception&) {}
+    }
+    catch (const std::exception&) {
+      // FIXME: Under what conditions can this happen? Should we clear ret
+      // if it does?
+    }
   }
+
   // fractional seconds
   if (ns - 1 < 999999999) {
     NanoBuf << double(ns) / 1000000000;
@@ -384,17 +357,11 @@ jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
   return ret;
 }
 
-std::string TskConverter::extractString(const char* str, unsigned int size) {
-  std::string ret(str, size);
-  const char* ptr = ret.c_str();
-  const char* nul = static_cast<const char*>(std::memchr(ptr, 0, size));
-  if (nul) {
-    ret.resize(nul - ptr);
-  }
-  return ret;
+std::string TskConverter::extractString(const char* str, unsigned int size) const {
+  return std::string(str, std::find(str, str + size, '\0'));
 }
 
-void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) {
+void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) const {
   jsAttr["id"] = attr.id;
   jsAttr["flags"] = attrFlags(attr.flags);
   jsAttr["name"] = extractString(attr.name, attr.name_size);
@@ -414,7 +381,8 @@ void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) 
     for (auto itr = attr.nrd.run; itr; itr = itr->next) {
       convertNRDR(*itr, nrd_runs.emplace_back());
       if (itr == attr.nrd.run_end) {
-        // this is hopefully unnecessary, but what if attr.nrd.run_end.next isn't null?
+        // this is hopefully unnecessary, but what if
+        // attr.nrd.run_end.next isn't null?
         // paranoia is a feature
         break;
       }
@@ -422,60 +390,46 @@ void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) 
   }
 }
 
-void TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& nrdr) {
+void TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& nrdr) const {
   nrdr["addr"]   = dataRun.addr;
   nrdr["flags"]  = nrdRunFlags(dataRun.flags);
   nrdr["len"]    = dataRun.len;
   nrdr["offset"] = dataRun.offset;
 }
 
-std::string TskConverter::hexEncode(unsigned const char* str, unsigned int size) {
-  constexpr unsigned int loopChunk = 4;
-  static constexpr char hex[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+// Provide these temporarily until we have sfhash_hex in libhasher
+template <typename C>
+void to_hex(char* dst, C beg, C end) {
+  static constexpr char hex[] {
+    '0', '1', '2', '3', '4', '5', '6', '7',
+    '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+  };
 
-  std::string ret;
-  ret.resize(size * 2);
+  for (C c = beg; c != end; ++c) {
+    const uint8_t lo = *c & 0x0F;
+    const uint8_t hi = *c >> 4;
 
-  unsigned int i = 0;
-  while (size >= loopChunk) {
-    // The idea here is to proceed 4 bytes at a time,
-    // eliminating data dependencies in the operations to allow for ILP.
-    // The remainder is processed with a switch (see Duff's Device for a similar but obsolete approach).
-    // This could likely be optimized further by using pshufb wizardry with SSE3/AVX, but less portable.
-    const unsigned int j = i * 2;
-    const uint32_t val  = *reinterpret_cast<const uint32_t*>(&str[i]);
-    const uint32_t high = (val & 0xf0f0f0f0) >> 4;
-    const uint32_t low  = (val & 0x0f0f0f0f);
-
-    const uint8_t* h = reinterpret_cast<const uint8_t*>(&high);
-    const uint8_t* l = reinterpret_cast<const uint8_t*>(&low);
-
-    ret[j]     = hex[*h];
-    ret[j + 1] = hex[*l];
-    ret[j + 2] = hex[*(h + 1)];
-    ret[j + 3] = hex[*(l + 1)];
-    ret[j + 4] = hex[*(h + 2)];
-    ret[j + 5] = hex[*(l + 2)];
-    ret[j + 6] = hex[*(h + 3)];
-    ret[j + 7] = hex[*(l + 3)];
-
-    size -= loopChunk;
-    i += loopChunk;
+    *dst++ = hex[hi];
+    *dst++ = hex[lo];
   }
-  switch (size) {
-    case 3:
-      ret[i * 2] = hex[(str[i] & 0xf0) >> 4];
-      ret[i * 2 + 1] = hex[str[i] & 0x0f];
-      ++i;
-    case 2:
-      ret[i * 2] = hex[(str[i] & 0xf0) >> 4];
-      ret[i * 2 + 1] = hex[str[i] & 0x0f];
-      ++i;
-    case 1:
-      ret[i * 2] = hex[(str[i] & 0xf0) >> 4];
-      ret[i * 2 + 1] = hex[str[i] & 0x0f];
-    default:
-      break;
-  }
+}
+
+void to_hex(char* dst, const void* src, size_t slen) {
+  to_hex(dst, static_cast<const uint8_t*>(src),
+              static_cast<const uint8_t*>(src) + slen);
+}
+
+void sfhash_hex(char* dst, const void* src, size_t len) {
+  to_hex(dst, static_cast<const uint8_t*>(src),
+              static_cast<const uint8_t*>(src) + len);
+}
+
+std::string hexString(const void* str, unsigned int size) {
+  std::string ret(2 * size, '\0');
+  sfhash_hex(&ret[0], str, size);
   return ret;
+}
+
+std::string TskConverter::hexEncode(const void* str, unsigned int size) const {
+  return hexString(str, size);
 }
