@@ -53,6 +53,10 @@ public:
 
   virtual void outputSearchHit(const std::string &) override {}
 
+  virtual void outputSearchHits(const std::vector<std::string>& batch) {
+    for (auto& hit: batch) { outputSearchHit(hit); }
+  }
+
   virtual void close() override {
     Closed = true; // FileRecBuf's destructor will take care of final flush
   }
