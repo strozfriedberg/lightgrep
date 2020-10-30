@@ -1,5 +1,7 @@
 #include <scope/test.h>
 
+#include <cstring>
+
 #include "tskreader.h"
 
 #include "filerecord.h"
@@ -10,6 +12,7 @@ SCOPE_TEST(testInodeDedupe) {
   reader.setInumRange(0, 20);
 
   TSK_FS_ATTR attrRes;
+  std::memset(&attrRes, 0, sizeof(attrRes));
   attrRes.flags = TSK_FS_ATTR_RES;
   attrRes.id = 1;
   attrRes.name = const_cast<char*>("$DATA");
@@ -22,16 +25,20 @@ SCOPE_TEST(testInodeDedupe) {
   attrRes.type = TSK_FS_ATTR_TYPE_NTFS_DATA;
 
   TSK_FS_ATTRLIST alist;
+  std::memset(&alist, 0, sizeof(alist));
   alist.head = &attrRes;
 
   TSK_FS_INFO fsInfo;
+  std::memset(&fsInfo, 0, sizeof(fsInfo));
   fsInfo.ftype = TSK_FS_TYPE_NTFS;
 
   TSK_FS_META meta;
+  std::memset(&meta, 0, sizeof(meta));
   meta.attr = &alist;
   meta.link = const_cast<char*>("");
 
   TSK_FS_FILE myFile;
+  std::memset(&myFile, 0, sizeof(myFile));
   myFile.meta = &meta;
   myFile.fs_info = &fsInfo;
 
