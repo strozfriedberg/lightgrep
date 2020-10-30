@@ -196,19 +196,24 @@ std::string TskConverter::nrdRunFlags(unsigned int flags) const {
   return "";
 }
 
-void TskConverter::convertFile(const TSK_FS_FILE& file, jsoncons::json& jsFile) {
-  if (file.name) {
-    auto& jsName = (jsFile["name"] = jsoncons::json());
-    convertName(*file.name, jsName);
+jsoncons::json TskConverter::convertFile(const TSK_FS_FILE& file) {
+  jsoncons::json jsFile;
+
+  if (file.meta) {
+    jsFile["meta"] = convertMeta(*file.meta, file.fs_info->ftype);
   }
 
-  // TODO: do we need to call convertMeta here?
+  if (file.name) {
+    jsFile["name"] = convertName(*file.name);
+  }
 
+  return jsFile;
 }
 
-void TskConverter::convertName(const TSK_FS_NAME& name, jsoncons::json& jsName) const {
-  jsName["name"] = name.name;
-  jsName["shrt_name"] = name.shrt_name;
+jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
+  jsoncons::json jsName;
+  jsName["name"] = extractString(name.name, name.name_size);
+  jsName["shrt_name"] = extractString(name.shrt_name, name.shrt_name_size);
   jsName["meta_addr"] = std::to_string(name.meta_addr);
   jsName["meta_seq"] = std::to_string(name.meta_seq);
   jsName["par_addr"] = std::to_string(name.par_addr);
@@ -216,9 +221,11 @@ void TskConverter::convertName(const TSK_FS_NAME& name, jsoncons::json& jsName) 
 //  jsName["date_added"] = name.date_added;
   jsName["type"] = nameType(name.type);
   jsName["flags"] = nameFlags(name.flags);
+  return jsName;
 }
 
-void TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& jsMeta) {
+jsoncons::json TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType) {
+  jsoncons::json jsMeta;
   jsMeta["addr"] = meta.addr;
   jsMeta["flags"] = metaFlags(meta.flags);
   jsMeta["type"] = metaType(meta.type);
@@ -239,6 +246,8 @@ void TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType,
       convertAttr(*itr, jsAttrs.emplace_back());
     }
   }
+
+  return jsMeta;
 }
 
 void TskConverter::convertNTFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
@@ -298,7 +307,7 @@ void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM f
     case TSK_FS_TYPE_EXT3:
     case TSK_FS_TYPE_EXT4:
       convertEXTTimestamps(meta, ts);
-      break;    
+      break;
     case TSK_FS_TYPE_HFS:
       convertHFSTimestamps(meta, ts);
       break;

@@ -4,9 +4,9 @@
 #include <sstream>
 #include <hasher.h>
 
-#include <tsk/libtsk.h>
-
 #include "jsoncons_wrapper.h"
+
+struct TSK_FS_FILE;
 
 // This is just a placeholder
 struct FileRecord {
@@ -26,7 +26,7 @@ struct FileRecord {
 
   FileRecord(const std::string& path = "", uint64_t size = 0): Path(path), Size(size) {}
 
-  FileRecord(TSK_FS_META* meta, TSK_FS_TYPE_ENUM fsType);
+  FileRecord(const TSK_FS_FILE* file);
 
   void updateDoc() {
     Doc["Path"] = Path;

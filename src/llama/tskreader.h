@@ -18,13 +18,13 @@ public:
 
   bool startReading(const std::shared_ptr<FileScheduler>& sink) override;
 
-  virtual TSK_RETVAL_ENUM processFile(TSK_FS_FILE *fs_file,
-                                      const char *path) override;
+  virtual TSK_RETVAL_ENUM processFile(TSK_FS_FILE* fs_file,
+                                      const char* path) override;
 
   // recurseDisk wraps TskAuto::findFilesInImg(). Override to replace/mock.
   virtual bool recurseDisk();
 
-  bool addToBatch(TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch);
+  bool addToBatch(const TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch);
 
 private:
   std::string ImgName;
@@ -33,7 +33,7 @@ private:
 
   std::shared_ptr<std::vector<FileRecord>> CurBatch;
 
-  TSK_FS_INFO* LastFS;
+  const TSK_FS_INFO* LastFS;
 
   std::vector<bool> InodeEncountered;
 

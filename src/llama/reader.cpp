@@ -5,7 +5,7 @@
 #include <iostream>
 
 std::shared_ptr<InputReaderBase>
-InputReaderBase::createTSK(const std::string &imgName) {
+InputReaderBase::createTSK(const std::string& imgName) {
   auto ret = std::make_shared<TSKReader>(imgName);
   if (!ret->open()) {
     throw std::runtime_error("Couldn't open image " + imgName);
@@ -18,7 +18,7 @@ InputReaderBase::createDir(const std::string &) {
   return std::shared_ptr<InputReaderBase>();
 }
 
-TSKReader::TSKReader(const std::string &imgName) : 
+TSKReader::TSKReader(const std::string& imgName) :
   ImgName(imgName),
   CurBatch(new std::vector<FileRecord>()),
   LastFS(nullptr)
@@ -27,7 +27,7 @@ TSKReader::TSKReader(const std::string &imgName) :
 }
 
 bool TSKReader::open() {
-  const char *nameHolder = ImgName.c_str();
+  const char* nameHolder = ImgName.c_str();
   return openImageUtf8(1, &nameHolder, TSK_IMG_TYPE_DETECT, 0) == 0;
 }
 
@@ -52,7 +52,7 @@ bool TSKReader::startReading(const std::shared_ptr<FileScheduler>& sink) {
   return true;
 }
 
-TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE *fs_file, const char *path) {
+TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* path) {
   // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
   if (fs_file->fs_info != LastFS) {
     LastFS = fs_file->fs_info;
@@ -68,17 +68,17 @@ TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE *fs_file, const char *path) {
 
 bool TSKReader::recurseDisk() { return 0 == findFilesInImg(); }
 
-bool TSKReader::addToBatch(TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch) {
+bool TSKReader::addToBatch(const TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch) {
   if (!fs_file || !fs_file->meta) {
     return false;
   }
-  uint64_t index = fs_file->meta->addr - InumBegin;
+
+  const uint64_t index = fs_file->meta->addr - InumBegin;
   if (InodeEncountered[index]) {
     return false;
   }
-  else {
-    InodeEncountered[index] = true;
-    batch.emplace_back(fs_file->meta, fs_file->fs_info->ftype);
-    return true;
-  }
+
+  InodeEncountered[index] = true;
+  batch.emplace_back(fs_file);
+  return true;
 }

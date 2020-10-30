@@ -2,9 +2,15 @@
 
 #include "tskconversion.h"
 
-FileRecord::FileRecord(TSK_FS_META* meta, TSK_FS_TYPE_ENUM fsType) {
+#include <tsk/libtsk.h>
+
+FileRecord::FileRecord(const TSK_FS_FILE* file) {
   TskConverter converter;
-  jsoncons::json metaRec;
-  converter.convertMeta(*meta, fsType, metaRec);
-  Doc["meta"] = metaRec;
+  if (file->meta) {
+    Doc["meta"] = converter.convertMeta(*file->meta, file->fs_info->ftype);
+  }
+
+  if (file->name) {
+    Doc["name"] = converter.convertName(*file->name);
+  }
 }

@@ -309,10 +309,8 @@ SCOPE_TEST(testTskMetaConvert) {
   // we have to set the state to studied, but not worth reporting
   meta.attr_state = TSK_FS_META_ATTR_STUDIED;
 
-  jsoncons::json js;
-
   TskConverter munge;
-  munge.convertMeta(meta, TSK_FS_TYPE_DETECT, js);
+  jsoncons::json js = munge.convertMeta(meta, TSK_FS_TYPE_DETECT);
 
   SCOPE_ASSERT_EQUAL(17, js["addr"]);
   SCOPE_ASSERT_EQUAL("Deleted", js["flags"]);
@@ -344,7 +342,7 @@ SCOPE_TEST(testTskMetaConvert) {
   SCOPE_ASSERT(js.at("fn_modified").is_null());
 
   meta.link = nullptr;
-  munge.convertMeta(meta, TSK_FS_TYPE_DETECT, js);
+  js = munge.convertMeta(meta, TSK_FS_TYPE_DETECT);
   SCOPE_ASSERT_EQUAL("", js["link"]);
 }
 
