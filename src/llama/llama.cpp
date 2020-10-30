@@ -45,7 +45,7 @@ void Llama::search() {
     // std::cout << "Number of patterns: " << lg_pattern_count(LgProg.get())
     //           << std::endl;
     auto out = OutputBase::createTarWriter(Pool, Opts->TarPath, Opts->Codec);
-    auto protoProc = std::make_shared<Processor>(Matcher, LgProg);
+    auto protoProc = std::make_shared<Processor>(LgProg);
     auto scheduler = std::make_shared<FileScheduler>(Pool, protoProc, out, Opts);
 
     if (!Input->startReading(scheduler)) {
@@ -106,13 +106,6 @@ bool Llama::readpatterns(const std::vector<std::string> &keyFiles) {
 bool Llama::openInput(const std::string &input) {
   Input = InputReaderBase::createTSK(input);
   return bool(Input);
-}
-
-bool Llama::readMatchingSet(const std::string& matchSet) {
-  std::string set = readfile(matchSet);
-  LG_Error* errPtr = nullptr;
-  Matcher = std::shared_ptr<SFHASH_FileMatcher>(sfhash_create_matcher(set.data(), set.data() + set.size(), &errPtr), sfhash_destroy_matcher);
-  return true;
 }
 
 bool Llama::init() {
