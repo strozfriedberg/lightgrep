@@ -226,7 +226,7 @@ void TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType,
   jsMeta["uid"] = std::to_string(meta.uid);
   jsMeta["gid"] = std::to_string(meta.gid);
 
-  jsMeta["link"] = meta.link == nullptr ? "": meta.link;
+  jsMeta["link"] = meta.link ? meta.link : "";
   jsMeta["nlink"] = meta.nlink;
 
   jsMeta["seq"] = meta.seq;

@@ -69,7 +69,7 @@ TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE *fs_file, const char *path) {
 bool TSKReader::recurseDisk() { return 0 == findFilesInImg(); }
 
 bool TSKReader::addToBatch(TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch) {
-  if (fs_file == nullptr || fs_file->meta == nullptr) {
+  if (!fs_file || !fs_file->meta) {
     return false;
   }
   uint64_t index = fs_file->meta->addr - InumBegin;
