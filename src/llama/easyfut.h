@@ -4,7 +4,8 @@
 
 #include "boost_asio.h"
 
-template <typename ValueType> struct easy_fut {
+template <typename ValueType>
+struct easy_fut {
   easy_fut() : Promise(), Fut(Promise.get_future()) {}
 
   template <typename ExecutorType, typename Callable>
@@ -23,7 +24,8 @@ template <typename ValueType> struct easy_fut {
     boost::asio::post(exec, [=]() {
       try {
         this->Promise.set_value(functor());
-      } catch (...) {
+      }
+      catch (...) {
         this->Promise.set_exception(std::current_exception());
       }
     });
