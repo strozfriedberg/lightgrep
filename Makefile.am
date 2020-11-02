@@ -132,6 +132,7 @@ src_llama_llama_SOURCES = \
 	src/llama/reader.cpp \
 	src/llama/recordbuffer.cpp \
 	src/llama/tskconversion.cpp \
+	src/llama/tskreader.cpp \
 	src/llama/test_cli.cpp \
 	src/llama/test_fileproxy.cpp \
 	src/llama/test_filerecord.cpp \
