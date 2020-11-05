@@ -27,15 +27,14 @@ bool TSKReader::startReading(const std::shared_ptr<FileScheduler>& sink) {
   // std::cerr << "Image is " << getImageSize() << " bytes in size" << std::endl;
   const bool ret = recurseDisk();
   // std::cerr << "recurseDisk returned " << ret;
-  if (!ret) {
-    return false;
+  if (ret) {
+    // teardown
+    Sink->scheduleFileBatch(CurBatch);
   }
-  // teardown
-  Sink->scheduleFileBatch(CurBatch);
-  return true;
+  return ret;
 }
 
-TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* path) {
+TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* /* path*/) {
   // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
   if (fs_file->fs_info != LastFS) {
     LastFS = fs_file->fs_info;

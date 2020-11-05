@@ -26,7 +26,7 @@ struct FileRecord {
 
   FileRecord(const std::string& path = "", uint64_t size = 0): Path(path), Size(size) {}
 
-  FileRecord(const TSK_FS_FILE* file);
+  FileRecord(TSK_FS_FILE* file);
 
   void updateDoc() {
     Doc["Path"] = Path;

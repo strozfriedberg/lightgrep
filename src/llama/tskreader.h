@@ -10,6 +10,7 @@ class FileScheduler;
 class TSKReader : public InputReaderBase, public TskAuto {
 public:
   TSKReader(const std::string &imgName);
+
   virtual ~TSKReader() {}
 
   bool open();
@@ -24,7 +25,7 @@ public:
   // recurseDisk wraps TskAuto::findFilesInImg(). Override to replace/mock.
   virtual bool recurseDisk();
 
-  bool addToBatch(const TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch);
+  bool addToBatch(TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch);
 
 private:
   std::string ImgName;

@@ -27,12 +27,11 @@ public:
 
   std::string nrdRunFlags(unsigned int flags) const;
 
-  jsoncons::json convertFile(const TSK_FS_FILE& file);
   jsoncons::json convertName(const TSK_FS_NAME& name) const;
-  jsoncons::json convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType);
-
-  void convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) const;
-  void convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& nrdr) const;
+  jsoncons::json convertMeta(TSK_FS_FILE& file);
+  jsoncons::json convertAttrs(TSK_FS_FILE& file) const; 
+  jsoncons::json convertAttr(const TSK_FS_ATTR& attr) const;
+  jsoncons::json convertNRDR(const TSK_FS_ATTR_RUN& dataRun) const;
 
   void convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& timestamps);
   void convertStandardTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);

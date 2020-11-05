@@ -166,11 +166,10 @@ SCOPE_TEST(testTskConvertNRDs) {
   nrd.offset = 17;
   nrd.flags  = TSK_FS_ATTR_RUN_FLAG_SPARSE;
 
-  jsoncons::json js;
-  TskConverter   munge;
-  munge.convertNRDR(nrd, js);
-  std::string expected = "{\"addr\":15,\"flags\":\"Sparse\",\"len\":3045,\"offset\":17}";
-  std::string actual = js.as<std::string>();
+  TskConverter munge;
+  const jsoncons::json js = munge.convertNRDR(nrd);
+  const std::string expected = "{\"addr\":15,\"flags\":\"Sparse\",\"len\":3045,\"offset\":17}";
+  const std::string actual = js.as<std::string>();
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
@@ -192,9 +191,8 @@ SCOPE_TEST(testTskConvertAttrRes) {
   TSK_FS_ATTR attr;
   setResAttr(attr);
 
-  jsoncons::json js;
   TskConverter munge;
-  munge.convertAttr(attr, js);
+  const jsoncons::json js = munge.convertAttr(attr);
   SCOPE_ASSERT_EQUAL(1, js["id"]);
   SCOPE_ASSERT_EQUAL("Resident", js["flags"]);
   SCOPE_ASSERT_EQUAL("$DATA", js["name"]);
@@ -266,9 +264,8 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
   TSK_FS_ATTR attr;
   setNonresAttr(attr, nrd1, nrd2);
 
-  jsoncons::json js;
   TskConverter munge;
-  munge.convertAttr(attr, js);
+  const jsoncons::json js = munge.convertAttr(attr);
   testNonresAttr(js);
 }
 
@@ -276,10 +273,23 @@ SCOPE_TEST(testTskMetaConvert) {
   TSK_FS_ATTR_RUN nrd1,
                   nrd2;
 
-  TSK_FS_ATTR attrNonRes,
-              attrRes;
+  TSK_FS_ATTR attrNonRes;
+  std::memset(&attrNonRes, 0, sizeof(attrNonRes));
+
+  TSK_FS_ATTR attrRes;
+  std::memset(&attrRes, 0, sizeof(attrRes));
+
   TSK_FS_ATTRLIST alist;
+  std::memset(&alist, 0, sizeof(alist));
+
   TSK_FS_META meta;
+  std::memset(&meta, 0, sizeof(meta));
+
+  TSK_FS_FILE file;
+  std::memset(&file, 0, sizeof(file));
+
+  file.meta = &meta;
+
   meta.addr = 17;
   meta.flags = TSK_FS_META_FLAG_UNALLOC;
   meta.type = TSK_FS_META_TYPE_REG;
@@ -297,11 +307,11 @@ SCOPE_TEST(testTskMetaConvert) {
 
   meta.atime = 1578364822; // 2020-01-07 02:40:22
   meta.atime_nano = 123456700;
-  meta.crtime = 31337; // 1970-01-01 08:42:17
+  meta.crtime = 31337;     // 1970-01-01 08:42:17
   meta.crtime_nano = 123456400;
-  meta.ctime = 234123870; // 1977-06-02 18:24:30
+  meta.ctime = 234123870;  // 1977-06-02 18:24:30
   meta.ctime_nano = 315227845;
-  meta.mtime = 314159265; // 1979-12-16 02:27:45
+  meta.mtime = 314159265;  // 1979-12-16 02:27:45
   meta.mtime_nano = 999999999;
 
   // meta.name2 = "SHRTNM~2";
@@ -310,7 +320,7 @@ SCOPE_TEST(testTskMetaConvert) {
   meta.attr_state = TSK_FS_META_ATTR_STUDIED;
 
   TskConverter munge;
-  jsoncons::json js = munge.convertMeta(meta, TSK_FS_TYPE_DETECT);
+  jsoncons::json js = munge.convertMeta(file);
 
   SCOPE_ASSERT_EQUAL(17, js["addr"]);
   SCOPE_ASSERT_EQUAL("Deleted", js["flags"]);
@@ -342,7 +352,7 @@ SCOPE_TEST(testTskMetaConvert) {
   SCOPE_ASSERT(js.at("fn_modified").is_null());
 
   meta.link = nullptr;
-  js = munge.convertMeta(meta, TSK_FS_TYPE_DETECT);
+  js = munge.convertMeta(file);
   SCOPE_ASSERT_EQUAL("", js["link"]);
 }
 

@@ -176,12 +176,12 @@ std::string TskConverter::attrType(unsigned int type) const {
 
 std::string TskConverter::attrFlags(unsigned int flags) const {
   static std::array<std::pair<unsigned int, std::string>, 7> fmap{{
-    {TSK_FS_ATTR_INUSE,   "In Use"},
-    {TSK_FS_ATTR_NONRES, "Non-resident"},
-    {TSK_FS_ATTR_RES, "Resident"},
-    {TSK_FS_ATTR_ENC, "Encrypted"},
-    {TSK_FS_ATTR_COMP, "Compressed"},
-    {TSK_FS_ATTR_SPARSE, "Sparse"},
+    {TSK_FS_ATTR_INUSE,    "In Use"},
+    {TSK_FS_ATTR_NONRES,   "Non-resident"},
+    {TSK_FS_ATTR_RES,      "Resident"},
+    {TSK_FS_ATTR_ENC,      "Encrypted"},
+    {TSK_FS_ATTR_COMP,     "Compressed"},
+    {TSK_FS_ATTR_SPARSE,   "Sparse"},
     {TSK_FS_ATTR_RECOVERY, "Recovered"}
   }};
   return flagsString(flags, fmap);
@@ -196,56 +196,65 @@ std::string TskConverter::nrdRunFlags(unsigned int flags) const {
   return "";
 }
 
-jsoncons::json TskConverter::convertFile(const TSK_FS_FILE& file) {
-  jsoncons::json jsFile;
-
-  if (file.meta) {
-    jsFile["meta"] = convertMeta(*file.meta, file.fs_info->ftype);
-  }
-
-  if (file.name) {
-    jsFile["name"] = convertName(*file.name);
-  }
-
-  return jsFile;
-}
-
 jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
-  jsoncons::json jsName;
-  jsName["name"] = extractString(name.name, name.name_size);
-  jsName["shrt_name"] = extractString(name.shrt_name, name.shrt_name_size);
-  jsName["meta_addr"] = std::to_string(name.meta_addr);
-  jsName["meta_seq"] = std::to_string(name.meta_seq);
-  jsName["par_addr"] = std::to_string(name.par_addr);
-  jsName["par_seq"] = std::to_string(name.par_seq);
-//  jsName["date_added"] = name.date_added;
-  jsName["type"] = nameType(name.type);
-  jsName["flags"] = nameFlags(name.flags);
-  return jsName;
+  return jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "name",       extractString(name.name, name.name_size) },
+      { "shrt_name",  extractString(name.shrt_name, name.shrt_name_size) },
+      { "meta_addr",  std::to_string(name.meta_addr) },
+      { "meta_seq",   std::to_string(name.meta_seq) },
+      { "par_addr",   std::to_string(name.par_addr) },
+      { "par_seq",    std::to_string(name.par_seq) },
+//      { "date_added", name.date_added },
+      { "type",       nameType(name.type) },
+      { "flags",      nameFlags(name.flags) }
+    }
+  );
 }
 
-jsoncons::json TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType) {
-  jsoncons::json jsMeta;
-  jsMeta["addr"] = meta.addr;
-  jsMeta["flags"] = metaFlags(meta.flags);
-  jsMeta["type"] = metaType(meta.type);
+jsoncons::json TskConverter::convertAttrs(TSK_FS_FILE& file) const {
+  jsoncons::json jsAttrs(jsoncons::json_array_arg);
 
-  jsMeta["uid"] = std::to_string(meta.uid);
-  jsMeta["gid"] = std::to_string(meta.gid);
-
-  jsMeta["link"] = meta.link ? meta.link : "";
-  jsMeta["nlink"] = meta.nlink;
-
-  jsMeta["seq"] = meta.seq;
-
-  convertTimestamps(meta, fsType, jsMeta);
-
-  if (meta.attr) {
-    auto& jsAttrs = (jsMeta["attrs"] = jsoncons::json::make_array());
-    for (TSK_FS_ATTR* itr = meta.attr->head; itr; itr = itr->next) {
-      convertAttr(*itr, jsAttrs.emplace_back());
+  if ((file.meta->attr_state & TSK_FS_META_ATTR_STUDIED) && file.meta->attr) {
+    for (const TSK_FS_ATTR* a = file.meta->attr->head; a; a = a->next) {
+      if (a->flags & TSK_FS_ATTR_INUSE) {
+        jsAttrs.push_back(convertAttr(*a));
+      }
     }
   }
+  else {
+    const int numAttrs = tsk_fs_file_attr_getsize(&file);
+    for (int i = 0; i < numAttrs; ++i) {
+      const TSK_FS_ATTR* a = tsk_fs_file_attr_get_idx(&file, i);
+      if (a && (a->flags & TSK_FS_ATTR_INUSE)) {
+        jsAttrs.push_back(convertAttr(*a));
+      }
+    }
+  }
+
+  return jsAttrs;
+}
+
+jsoncons::json TskConverter::convertMeta(TSK_FS_FILE& file) {
+  const TSK_FS_META& meta = *file.meta;
+
+  jsoncons::json jsMeta(
+    jsoncons::json_object_arg,
+    {
+      { "addr",  meta.addr },
+      { "flags", metaFlags(meta.flags) },
+      { "type",  metaType(meta.type) },
+      { "uid",   std::to_string(meta.uid) },
+      { "gid",   std::to_string(meta.gid) },
+      { "link",  meta.link ? meta.link : "" },
+      { "nlink", meta.nlink },
+      { "seq",   meta.seq },
+      { "attrs", convertAttrs(file) }
+    }
+  );
+
+  convertTimestamps(meta, file.fs_info->ftype, jsMeta);
 
   return jsMeta;
 }
@@ -370,12 +379,18 @@ std::string TskConverter::extractString(const char* str, unsigned int size) cons
   return std::string(str, std::find(str, str + size, '\0'));
 }
 
-void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) const {
-  jsAttr["id"] = attr.id;
-  jsAttr["flags"] = attrFlags(attr.flags);
-  jsAttr["name"] = extractString(attr.name, attr.name_size);
-  jsAttr["size"] = attr.size;
-  jsAttr["type"] = attrType(attr.type);
+jsoncons::json TskConverter::convertAttr(const TSK_FS_ATTR& attr) const {
+  jsoncons::json jsAttr(
+    jsoncons::json_object_arg,
+    {
+      { "id", attr.id },
+      { "flags", attrFlags(attr.flags) },
+      { "name", extractString(attr.name, attr.name_size) },
+      { "size", attr.size },
+      { "type", attrType(attr.type) }
+    }
+  );
+
   if (attr.flags & TSK_FS_ATTR_RES) {
     jsAttr["rd_buf"] = hexEncode(attr.rd.buf, std::min(attr.size, static_cast<int64_t>(attr.rd.buf_size)));
     jsAttr["rd_offset"] = attr.rd.offset;
@@ -385,11 +400,16 @@ void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) 
     jsAttr["nrd_compsize"] = attr.nrd.compsize;
     jsAttr["nrd_initsize"] = attr.nrd.initsize;
     jsAttr["nrd_skiplen"] = attr.nrd.skiplen;
-    auto& nrd_runs = (jsAttr["nrd_runs"] = jsoncons::json::make_array());
-    // size_t i = 0;
-    for (auto itr = attr.nrd.run; itr; itr = itr->next) {
-      convertNRDR(*itr, nrd_runs.emplace_back());
-      if (itr == attr.nrd.run_end) {
+
+    auto& nrd_runs = (jsAttr["nrd_runs"] = jsoncons::json(jsoncons::json_array_arg));
+    for (auto i = attr.nrd.run; i; i = i->next) {
+      if (i->flags == TSK_FS_ATTR_RUN_FLAG_FILLER) {
+        // TODO: check on the exact semantics of this flag
+        continue;
+      }
+
+      nrd_runs.push_back(convertNRDR(*i));
+      if (i == attr.nrd.run_end) {
         // this is hopefully unnecessary, but what if
         // attr.nrd.run_end.next isn't null?
         // paranoia is a feature
@@ -397,13 +417,20 @@ void TskConverter::convertAttr(const TSK_FS_ATTR& attr, jsoncons::json& jsAttr) 
       }
     }
   }
+
+  return jsAttr;
 }
 
-void TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun, jsoncons::json& nrdr) const {
-  nrdr["addr"]   = dataRun.addr;
-  nrdr["flags"]  = nrdRunFlags(dataRun.flags);
-  nrdr["len"]    = dataRun.len;
-  nrdr["offset"] = dataRun.offset;
+jsoncons::json TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun) const {
+  return jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "addr",  dataRun.addr },
+      { "flags", nrdRunFlags(dataRun.flags) },
+      { "len",   dataRun.len },
+      { "offset", dataRun.offset }
+    }
+  );
 }
 
 // Provide these temporarily until we have sfhash_hex in libhasher
