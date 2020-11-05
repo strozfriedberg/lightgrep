@@ -17,7 +17,12 @@ bool TSKReader::open() {
 void TSKReader::setInumRange(uint64_t begin, uint64_t end) {
   InumBegin = begin;
   InumEnd = end;
-  InodeEncountered.resize(end - begin);
+// FIXME: Apparently "first_inum" is first in some way other than the usual
+// meaning of first, because it's 2 on DadeMurphy but we still see inode 0
+// there. WTF? For the timebeing, just waste a few bits at the start of the
+// encountered vector.
+//  InodeEncountered.resize(end - begin);
+  InodeEncountered.resize(end+1);
 }
 
 bool TSKReader::startReading(const std::shared_ptr<FileScheduler>& sink) {
@@ -52,12 +57,14 @@ bool TSKReader::recurseDisk() {
   return 0 == findFilesInImg();
 }
 
-bool TSKReader::addToBatch(const TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch) {
+bool TSKReader::addToBatch(TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch) {
   if (!fs_file || !fs_file->meta) {
     return false;
   }
 
-  const uint64_t index = fs_file->meta->addr - InumBegin;
+//  const uint64_t index = fs_file->meta->addr - InumBegin;
+  const uint64_t index = fs_file->meta->addr;
+
   if (InodeEncountered[index]) {
     return false;
   }
