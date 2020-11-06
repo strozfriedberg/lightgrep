@@ -309,6 +309,10 @@ SCOPE_TEST(testTskMetaConvert) {
   alist.head = setNonresAttr(attrNonRes, nrd1, nrd2);
   attrNonRes.next = setResAttr(attrRes);
 
+  // the attr_state enum is dumb
+  // we have to set the state to studied, but not worth reporting
+  meta.attr_state = TSK_FS_META_ATTR_STUDIED;
+
   meta.atime = 1578364822; // 2020-01-07 02:40:22
   meta.atime_nano = 123456700;
   meta.crtime = 31337;     // 1970-01-01 08:42:17
@@ -319,9 +323,6 @@ SCOPE_TEST(testTskMetaConvert) {
   meta.mtime_nano = 999999999;
 
   // meta.name2 = "SHRTNM~2";
-  // the attr_state enum is dumb
-  // we have to set the state to studied, but not worth reporting
-  meta.attr_state = TSK_FS_META_ATTR_STUDIED;
 
   TskConverter munge;
   jsoncons::json js = munge.convertMeta(file);
