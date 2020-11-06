@@ -213,21 +213,13 @@ jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
   );
 }
 
-jsoncons::json TskConverter::convertAttrs(TSK_FS_FILE& file) const {
+jsoncons::json TskConverter::convertAttrs(TSK_FS_META& meta) const {
   jsoncons::json jsAttrs(jsoncons::json_array_arg);
 
-  if ((file.meta->attr_state & TSK_FS_META_ATTR_STUDIED) && file.meta->attr) {
-    for (const TSK_FS_ATTR* a = file.meta->attr->head; a; a = a->next) {
+//  if ((file.meta->attr_state & TSK_FS_META_ATTR_STUDIED) && file.meta->attr) {
+  if (meta.attr) {
+    for (const TSK_FS_ATTR* a = meta.attr->head; a; a = a->next) {
       if (a->flags & TSK_FS_ATTR_INUSE) {
-        jsAttrs.push_back(convertAttr(*a));
-      }
-    }
-  }
-  else {
-    const int numAttrs = tsk_fs_file_attr_getsize(&file);
-    for (int i = 0; i < numAttrs; ++i) {
-      const TSK_FS_ATTR* a = tsk_fs_file_attr_get_idx(&file, i);
-      if (a && (a->flags & TSK_FS_ATTR_INUSE)) {
         jsAttrs.push_back(convertAttr(*a));
       }
     }
@@ -236,9 +228,7 @@ jsoncons::json TskConverter::convertAttrs(TSK_FS_FILE& file) const {
   return jsAttrs;
 }
 
-jsoncons::json TskConverter::convertMeta(TSK_FS_FILE& file) {
-  const TSK_FS_META& meta = *file.meta;
-
+jsoncons::json TskConverter::convertMeta(TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType) {
   jsoncons::json jsMeta(
     jsoncons::json_object_arg,
     {
@@ -250,11 +240,11 @@ jsoncons::json TskConverter::convertMeta(TSK_FS_FILE& file) {
       { "link",  meta.link ? meta.link : "" },
       { "nlink", meta.nlink },
       { "seq",   meta.seq },
-      { "attrs", convertAttrs(file) }
+      { "attrs", convertAttrs(meta) }
     }
   );
 
-  convertTimestamps(meta, file.fs_info->ftype, jsMeta);
+  convertTimestamps(meta, fsType, jsMeta);
 
   return jsMeta;
 }

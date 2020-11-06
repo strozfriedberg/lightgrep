@@ -270,6 +270,8 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
 }
 
 SCOPE_TEST(testTskMetaConvert) {
+  const TSK_FS_TYPE_ENUM fstype = TSK_FS_TYPE_DETECT; // whatever
+
   TSK_FS_ATTR_RUN nrd1,
                   nrd2;
 
@@ -284,15 +286,6 @@ SCOPE_TEST(testTskMetaConvert) {
 
   TSK_FS_META meta;
   std::memset(&meta, 0, sizeof(meta));
-
-  TSK_FS_FILE file;
-  std::memset(&file, 0, sizeof(file));
-
-  TSK_FS_INFO fsinfo;
-  std::memset(&fsinfo, 0, sizeof(fsinfo));
-
-  file.meta = &meta;
-  file.fs_info = &fsinfo;
 
   meta.addr = 17;
   meta.flags = TSK_FS_META_FLAG_UNALLOC;
@@ -325,7 +318,7 @@ SCOPE_TEST(testTskMetaConvert) {
   // meta.name2 = "SHRTNM~2";
 
   TskConverter munge;
-  jsoncons::json js = munge.convertMeta(file);
+  jsoncons::json js = munge.convertMeta(meta, fstype);
 
   SCOPE_ASSERT_EQUAL(17, js["addr"]);
   SCOPE_ASSERT_EQUAL("Deleted", js["flags"]);
@@ -357,7 +350,7 @@ SCOPE_TEST(testTskMetaConvert) {
   SCOPE_ASSERT(js.at("fn_modified").is_null());
 
   meta.link = nullptr;
-  js = munge.convertMeta(file);
+  js = munge.convertMeta(meta, fstype);
   SCOPE_ASSERT_EQUAL("", js["link"]);
 }
 
