@@ -174,7 +174,7 @@ SCOPE_TEST(testTskConvertNRDs) {
 }
 
 TSK_FS_ATTR* setResAttr(TSK_FS_ATTR& attr) {
-  attr.flags = TSK_FS_ATTR_RES;
+  attr.flags = static_cast<TSK_FS_ATTR_FLAG_ENUM>(TSK_FS_ATTR_RES | TSK_FS_ATTR_INUSE);
   attr.id = 1;
   attr.name = const_cast<char*>("$DATA\0 3.1459"); // will be clipped at null character
   attr.name_size = 13;
@@ -194,7 +194,7 @@ SCOPE_TEST(testTskConvertAttrRes) {
   TskConverter munge;
   const jsoncons::json js = munge.convertAttr(attr);
   SCOPE_ASSERT_EQUAL(1, js["id"]);
-  SCOPE_ASSERT_EQUAL("Resident", js["flags"]);
+  SCOPE_ASSERT_EQUAL("In Use, Resident", js["flags"]);
   SCOPE_ASSERT_EQUAL("$DATA", js["name"]);
   SCOPE_ASSERT_EQUAL("7768617465766572", js["rd_buf"]);
   SCOPE_ASSERT_EQUAL(0, js["rd_offset"]);
