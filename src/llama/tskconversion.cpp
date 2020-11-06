@@ -213,7 +213,7 @@ jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
   );
 }
 
-jsoncons::json TskConverter::convertAttrs(TSK_FS_META& meta) const {
+jsoncons::json TskConverter::convertAttrs(const TSK_FS_META& meta) const {
   jsoncons::json jsAttrs(jsoncons::json_array_arg);
 
 //  if ((file.meta->attr_state & TSK_FS_META_ATTR_STUDIED) && file.meta->attr) {
@@ -228,7 +228,7 @@ jsoncons::json TskConverter::convertAttrs(TSK_FS_META& meta) const {
   return jsAttrs;
 }
 
-jsoncons::json TskConverter::convertMeta(TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType) {
+jsoncons::json TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType) {
   jsoncons::json jsMeta(
     jsoncons::json_object_arg,
     {

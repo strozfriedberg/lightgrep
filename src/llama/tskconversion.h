@@ -28,8 +28,8 @@ public:
   std::string nrdRunFlags(unsigned int flags) const;
 
   jsoncons::json convertName(const TSK_FS_NAME& name) const;
-  jsoncons::json convertMeta(TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType);
-  jsoncons::json convertAttrs(TSK_FS_META& meta) const;
+  jsoncons::json convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType);
+  jsoncons::json convertAttrs(const TSK_FS_META& meta) const;
   jsoncons::json convertAttr(const TSK_FS_ATTR& attr) const;
   jsoncons::json convertNRDR(const TSK_FS_ATTR_RUN& dataRun) const;
 
