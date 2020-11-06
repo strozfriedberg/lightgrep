@@ -288,7 +288,11 @@ SCOPE_TEST(testTskMetaConvert) {
   TSK_FS_FILE file;
   std::memset(&file, 0, sizeof(file));
 
+  TSK_FS_INFO fsinfo;
+  std::memset(&fsinfo, 0, sizeof(fsinfo));
+
   file.meta = &meta;
+  file.fs_info = &fsinfo;
 
   meta.addr = 17;
   meta.flags = TSK_FS_META_FLAG_UNALLOC;
