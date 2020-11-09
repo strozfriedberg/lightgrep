@@ -6,26 +6,35 @@
 
 #include "jsoncons_wrapper.h"
 
+namespace TskUtils {
+  std::string extractString(const char* str, unsigned int size);
+
+  std::string volumeSystemType(unsigned int type);
+  std::string volumeFlags(unsigned int flags);
+
+  std::string filesystemFlags(unsigned int flags);
+
+  std::string nameType(unsigned int type);
+  std::string nameFlags(unsigned int flags);
+
+  std::string metaType(unsigned int type);
+  std::string metaFlags(unsigned int flags);
+
+  std::string attrType(unsigned int type);
+  std::string attrFlags(unsigned int flags);
+
+  std::string nrdRunFlags(unsigned int flags);
+  std::string hexEncode(const void* str, unsigned int size);
+
+}
+
 class TskConverter {
 public:
   TskConverter();
 
-// FIXME: should be static or nonmembers
-  std::string volumeSystemType(unsigned int type) const;
-  std::string volumeFlags(unsigned int flags) const;
-
-  std::string filesystemFlags(unsigned int flags) const;
-
-  std::string nameType(unsigned int type) const;
-  std::string nameFlags(unsigned int flags) const;
-
-  std::string metaType(unsigned int type) const;
-  std::string metaFlags(unsigned int flags) const;
-
-  std::string attrType(unsigned int type) const;
-  std::string attrFlags(unsigned int flags) const;
-
-  std::string nrdRunFlags(unsigned int flags) const;
+// TODO: could some of this be static? nonmembers?
+// TODO: check how slow using stringstreams is
+// TODO: check if it would be faster to use the streaming API
 
   jsoncons::json convertName(const TSK_FS_NAME& name) const;
   jsoncons::json convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType);
@@ -39,11 +48,6 @@ public:
   void convertHFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
   void convertEXTTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
   void convertNTFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
-
-// FIXME: should be static or nonmembers
-  std::string hexEncode(const void* str, unsigned int size) const;
-
-  std::string extractString(const char* str, unsigned int size) const;
 
 private:
   jsoncons::json formatTimestamp(int64_t unix_time, uint32_t ns);

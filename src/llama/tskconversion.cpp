@@ -5,6 +5,8 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+using namespace TskUtils;
+
 TskConverter::TskConverter()
 {
   NanoBuf << std::fixed << std::setprecision(9);
@@ -33,7 +35,7 @@ std::string flagsString(unsigned int flags, const F& fmap) {
   return ret;
 }
 
-std::string TskConverter::volumeSystemType(unsigned int type) const {
+std::string TskUtils::volumeSystemType(unsigned int type) {
   switch (type) {
   case TSK_VS_TYPE_DOS:
     return "MBR";
@@ -50,7 +52,7 @@ std::string TskConverter::volumeSystemType(unsigned int type) const {
   }
 }
 
-std::string TskConverter::volumeFlags(unsigned int flags) const {
+std::string TskUtils::volumeFlags(unsigned int flags) {
   // I think these flags are mutually exclusive...
   switch (flags) {
   case TSK_VS_PART_FLAG_ALLOC:
@@ -64,7 +66,7 @@ std::string TskConverter::volumeFlags(unsigned int flags) const {
   }
 }
 
-std::string TskConverter::filesystemFlags(unsigned int flags) const {
+std::string TskUtils::filesystemFlags(unsigned int flags) {
   // this structure obviously won't scale as more flags are added
   // but it's fine for now
   switch (flags) {
@@ -79,7 +81,7 @@ std::string TskConverter::filesystemFlags(unsigned int flags) const {
   }
 }
 
-std::string TskConverter::nameType(unsigned int type) const {
+std::string TskUtils::nameType(unsigned int type) {
   switch (type) {
   case TSK_FS_NAME_TYPE_UNDEF:
     return "Undefined";
@@ -110,7 +112,7 @@ std::string TskConverter::nameType(unsigned int type) const {
   }
 }
 
-std::string TskConverter::nameFlags(unsigned int flags) const {
+std::string TskUtils::nameFlags(unsigned int flags) {
   const static std::array<std::pair<unsigned int, std::string>, 2> fmap{{
     {TSK_FS_NAME_FLAG_ALLOC,   "Allocated"},
     {TSK_FS_NAME_FLAG_UNALLOC, "Deleted"}
@@ -118,7 +120,7 @@ std::string TskConverter::nameFlags(unsigned int flags) const {
   return flagsString(flags, fmap);
 }
 
-std::string TskConverter::metaType(unsigned int type) const {
+std::string TskUtils::metaType(unsigned int type) {
   switch (type) {
   case TSK_FS_META_TYPE_UNDEF:
     return "Undefined";
@@ -149,7 +151,7 @@ std::string TskConverter::metaType(unsigned int type) const {
   }
 }
 
-std::string TskConverter::metaFlags(unsigned int flags) const {
+std::string TskUtils::metaFlags(unsigned int flags) {
   const static std::array<std::pair<unsigned int, std::string>, 6> fmap{{
     {TSK_FS_META_FLAG_ALLOC,   "Allocated"},
     {TSK_FS_META_FLAG_UNALLOC, "Deleted"},
@@ -161,7 +163,7 @@ std::string TskConverter::metaFlags(unsigned int flags) const {
   return flagsString(flags, fmap);
 }
 
-std::string TskConverter::attrType(unsigned int type) const {
+std::string TskUtils::attrType(unsigned int type) {
   switch (type) {
   case TSK_FS_ATTR_TYPE_NOT_FOUND: return "Unknown";
   case TSK_FS_ATTR_TYPE_DEFAULT: return "Data"; // default _is_ data, so match up with NTFS Data
@@ -199,7 +201,7 @@ std::string TskConverter::attrType(unsigned int type) const {
   }
 }
 
-std::string TskConverter::attrFlags(unsigned int flags) const {
+std::string TskUtils::attrFlags(unsigned int flags) {
   static std::array<std::pair<unsigned int, std::string>, 7> fmap{{
     {TSK_FS_ATTR_INUSE,    "In Use"},
     {TSK_FS_ATTR_NONRES,   "Non-resident"},
@@ -212,7 +214,7 @@ std::string TskConverter::attrFlags(unsigned int flags) const {
   return flagsString(flags, fmap);
 }
 
-std::string TskConverter::nrdRunFlags(unsigned int flags) const {
+std::string TskUtils::nrdRunFlags(unsigned int flags) {
   switch (flags) {
   case TSK_FS_ATTR_RUN_FLAG_NONE: return "";
   case TSK_FS_ATTR_RUN_FLAG_FILLER: return "Filler";
@@ -390,7 +392,7 @@ jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
   return ret;
 }
 
-std::string TskConverter::extractString(const char* str, unsigned int size) const {
+std::string TskUtils::extractString(const char* str, unsigned int size) {
   return std::string(str, std::find(str, str + size, '\0'));
 }
 
@@ -481,6 +483,6 @@ std::string hexString(const void* str, unsigned int size) {
   return ret;
 }
 
-std::string TskConverter::hexEncode(const void* str, unsigned int size) const {
+std::string TskUtils::hexEncode(const void* str, unsigned int size) {
   return hexString(str, size);
 }
