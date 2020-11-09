@@ -80,22 +80,34 @@ std::string TskConverter::filesystemFlags(unsigned int flags) const {
 }
 
 std::string TskConverter::nameType(unsigned int type) const {
-// FIXME: use the enum?
-  static const std::array<std::string, 12> types{{
-    "Undefined",
-    "Named Pipe",
-    "Character Device",
-    "Folder",
-    "Block Device",
-    "File",
-    "Symbolic Link",
-    "Domain Socket",
-    "Shadow Inode",
-    "Whiteout Inode",
-    "Virtual",
-    "Virtual Folder"
-  }};
-  return type < types.size() ? types[type]: types[0];
+  switch (type) {
+  case TSK_FS_NAME_TYPE_UNDEF:
+    return "Undefined";
+  case TSK_FS_NAME_TYPE_FIFO:
+    return "Named Pipe";
+  case TSK_FS_NAME_TYPE_CHR:
+    return "Character Device";
+  case TSK_FS_NAME_TYPE_DIR:
+    return "Folder";
+  case TSK_FS_NAME_TYPE_BLK:
+    return "Block Device";
+  case TSK_FS_NAME_TYPE_REG:
+    return "File";
+  case TSK_FS_NAME_TYPE_LNK:
+    return "Symbolic Link";
+  case TSK_FS_NAME_TYPE_SOCK:
+    return "Domain Socket";
+  case TSK_FS_NAME_TYPE_SHAD:
+    return "Shadow Inode";
+  case TSK_FS_NAME_TYPE_WHT:
+    return "Whiteout Inode";
+  case TSK_FS_NAME_TYPE_VIRT:
+    return "Virtual";
+  case TSK_FS_NAME_TYPE_VIRT_DIR:
+    return "Virtual Folder";
+  default:
+    return "Undefined";
+  }
 }
 
 std::string TskConverter::nameFlags(unsigned int flags) const {
@@ -107,21 +119,34 @@ std::string TskConverter::nameFlags(unsigned int flags) const {
 }
 
 std::string TskConverter::metaType(unsigned int type) const {
-  static const std::array<std::string, 12> types{
-    "Undefined",
-    "File",
-    "Folder",
-    "Named Pipe",
-    "Character Device",
-    "Block Device",
-    "Symbolic Link",
-    "Shadow Inode",
-    "Domain Socket",
-    "Whiteout Inode",
-    "Virtual",
-    "Virtual Folder"
-  };
-  return type < types.size() ? types[type]: types[0];
+  switch (type) {
+  case TSK_FS_META_TYPE_UNDEF:
+    return "Undefined";
+  case TSK_FS_META_TYPE_REG:
+    return "File";
+  case TSK_FS_META_TYPE_DIR:
+    return "Folder";
+  case TSK_FS_META_TYPE_FIFO:
+    return "Named Pipe";
+  case TSK_FS_META_TYPE_CHR:
+    return "Character Device";
+  case TSK_FS_META_TYPE_BLK:
+    return "Block Device";
+  case TSK_FS_META_TYPE_LNK:
+    return "Symbolic Link";
+  case TSK_FS_META_TYPE_SHAD:
+    return "Shadow Inode";
+  case TSK_FS_META_TYPE_SOCK:
+    return "Domain Socket";
+  case TSK_FS_META_TYPE_WHT:
+    return "Whiteout Inode";
+  case TSK_FS_META_TYPE_VIRT:
+    return "Virtual";
+  case TSK_FS_META_TYPE_VIRT_DIR:
+    return "Virtual Folder";
+  default:
+    return "Undefined";
+  }
 }
 
 std::string TskConverter::metaFlags(unsigned int flags) const {
@@ -202,10 +227,10 @@ jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
     {
       { "name",       extractString(name.name, name.name_size) },
       { "shrt_name",  extractString(name.shrt_name, name.shrt_name_size) },
-      { "meta_addr",  std::to_string(name.meta_addr) },
-      { "meta_seq",   std::to_string(name.meta_seq) },
-      { "par_addr",   std::to_string(name.par_addr) },
-      { "par_seq",    std::to_string(name.par_seq) },
+      { "meta_addr",  name.meta_addr },
+      { "meta_seq",   name.meta_seq },
+      { "par_addr",   name.par_addr },
+      { "par_seq",    name.par_seq },
 //      { "date_added", name.date_added },
       { "type",       nameType(name.type) },
       { "flags",      nameFlags(name.flags) }

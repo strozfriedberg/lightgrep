@@ -354,6 +354,33 @@ SCOPE_TEST(testTskMetaConvert) {
   SCOPE_ASSERT_EQUAL("", js["link"]);
 }
 
+SCOPE_TEST(testTskNameConvert) {
+  TSK_FS_NAME name;
+
+  name.name = const_cast<char*>("woowoowoo\0bad bad bad");
+  name.name_size = 9;
+  name.shrt_name = const_cast<char*>("WOOWOO~1");
+  name.shrt_name_size = 8;
+  name.meta_addr = 7;
+  name.meta_seq = 6;
+  name.par_addr = 231;
+  name.par_seq = 72;
+  name.type = TSK_FS_NAME_TYPE_SOCK;
+  name.flags = TSK_FS_NAME_FLAG_ALLOC;
+
+  TskConverter munge;
+  const jsoncons::json js = munge.convertName(name);
+
+  SCOPE_ASSERT_EQUAL("woowoowoo", js["name"]);
+  SCOPE_ASSERT_EQUAL("WOOWOO~1", js["shrt_name"]);
+  SCOPE_ASSERT_EQUAL(7, js["meta_addr"]);
+  SCOPE_ASSERT_EQUAL(6, js["meta_seq"]);
+  SCOPE_ASSERT_EQUAL(231, js["par_addr"]);
+  SCOPE_ASSERT_EQUAL(72, js["par_seq"]);
+  SCOPE_ASSERT_EQUAL("Domain Socket", js["type"]);
+  SCOPE_ASSERT_EQUAL("Allocated", js["flags"]);
+}
+
 SCOPE_TEST(testTskConvertTimestamps) {
   TSK_FS_META meta;
   meta.atime = 1578364822; // 2020-01-07 02:40:22
