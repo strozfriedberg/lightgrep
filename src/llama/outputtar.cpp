@@ -1,6 +1,7 @@
 #include "outputtar.h"
 
 #include "filerecord.h"
+#include "util.h"
 
 #include <iostream>
 
@@ -53,7 +54,7 @@ OutputTar::OutputTar(const std::string& path, Codec codec):
 
 void OutputTar::outputFile(const FileRecord& rec) {
   // std::cerr << "Adding " << rec.Path << " to output tarball" << std::endl;
-  std::shared_ptr<archive_entry> entry(archive_entry_new(), archive_entry_free);
+  auto entry = make_unique_del(archive_entry_new(), archive_entry_free);
 
   archive_entry_set_pathname(entry.get(), rec.Path.c_str());
   archive_entry_set_size(entry.get(), rec.Size);
