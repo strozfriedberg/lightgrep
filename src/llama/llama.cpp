@@ -51,7 +51,7 @@ void Llama::search() {
     //           << std::endl;
     auto out = std::shared_ptr<OutputBase>(Opts->Output == "-" ?
       static_cast<OutputBase*>(new OutputStream(std::cout)) :
-      static_cast<OutputBase*>(new OutputTar(Opts->Output, Opts->Codec))
+      static_cast<OutputBase*>(new OutputTar(Opts->Output, Opts->OutputCodec))
     );
     auto outh = std::shared_ptr<OutputHandler>(new PoolOutputHandler(Pool, out));
 

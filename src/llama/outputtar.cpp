@@ -12,35 +12,35 @@ void closeAndFreeArchive(archive* a) {
   archive_write_free(a);
 }
 
-OutputTar::OutputTar(const std::string& path, Options::Codecs codec):
+OutputTar::OutputTar(const std::string& path, Codec codec):
   Path(path),
   Archive(archive_write_new(), closeAndFreeArchive)
 {
   std::string ext = ".tar";
   switch (codec) {
-  case Options::CODEC_NONE:
+  case Codec::NONE:
     break;
-  case Options::CODEC_GZIP:
+  case Codec::GZIP:
     ext += ".gz";
     archive_write_add_filter_gzip(Archive.get());
     break;
-  case Options::CODEC_LZ4:
+  case Codec::LZ4:
     ext += ".lz4";
     archive_write_add_filter_lz4(Archive.get());
     break;
-  case Options::CODEC_LZMA:
+  case Codec::LZMA:
     ext += ".lzma";
     archive_write_add_filter_lzma(Archive.get());
     break;
-  case Options::CODEC_BZIP2:
+  case Codec::BZIP2:
     ext += ".bz2";
     archive_write_add_filter_bzip2(Archive.get());
     break;
-  case Options::CODEC_LZOP:
+  case Codec::LZOP:
     ext += ".lzo";
     archive_write_add_filter_lzop(Archive.get());
     break;
-  case Options::CODEC_XZ:
+  case Codec::XZ:
     ext += ".xz";
     archive_write_add_filter_xz(Archive.get());
     break;

@@ -3,15 +3,14 @@
 #include <memory>
 #include <string>
 
+#include "codec.h"
 #include "outputbase.h"
-// FIXME: split out codecs enum
-#include "options.h"
 
 class archive;
 
 class OutputTar: public OutputBase {
 public:
-  OutputTar(const std::string& path, Options::Codecs codec);
+  OutputTar(const std::string& path, Codec codec);
 
   virtual ~OutputTar() {
     close();

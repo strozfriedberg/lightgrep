@@ -3,28 +3,14 @@
 #include <string>
 #include <vector>
 
+#include "codec.h"
+
 struct Options {
-  enum Codecs {
-    CODEC_NONE,
-    CODEC_GZIP,
-    CODEC_LZ4,
-    CODEC_LZMA,
-    CODEC_BZIP2,
-    CODEC_LZOP,
-    CODEC_XZ
-  };
-
   std::string Command;
-
   std::string Input;
-
   std::string Output;
-
   std::string MatchSet;
-
   std::vector<std::string> KeyFiles;
-
   unsigned int NumThreads;
-
-  Codecs Codec;
+  Codec OutputCodec;
 };

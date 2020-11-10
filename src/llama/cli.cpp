@@ -47,7 +47,7 @@ std::shared_ptr<Options> Cli::parse(int argc, const char *const argv[]) const {
   po::notify(optsMap);
 
   Opts->Command = figureOutCommand(optsMap);
-  Opts->Codec = figureOutCodec();
+  Opts->OutputCodec = figureOutCodec();
 
   return Opts;
 }
@@ -75,27 +75,27 @@ std::string Cli::figureOutCommand(
   return "search";
 }
 
-Options::Codecs Cli::figureOutCodec() const {
+Codec Cli::figureOutCodec() const {
   if (0 == CodecSelect.compare("none")) {
-    return Options::CODEC_NONE;
+    return Codec::NONE;
   }
   else if (0 == CodecSelect.compare("gzip")) {
-    return Options::CODEC_GZIP;
+    return Codec::GZIP;
   }
   else if (0 == CodecSelect.compare("lz4")) {
-    return Options::CODEC_LZ4;
+    return Codec::LZ4;
   }
   else if (0 == CodecSelect.compare("lzma")) {
-    return Options::CODEC_LZMA;
+    return Codec::LZMA;
   }
   else if (0 == CodecSelect.compare("bzip2")) {
-    return Options::CODEC_BZIP2;
+    return Codec::BZIP2;
   }
   else if (0 == CodecSelect.compare("lzo")) {
-    return Options::CODEC_LZOP;
+    return Codec::LZOP;
   }
   else if (0 == CodecSelect.compare("xz")) {
-    return Options::CODEC_XZ;
+    return Codec::XZ;
   }
   throw std::invalid_argument("'" + CodecSelect + "' is not a valid option for --codec");
 }
