@@ -14,15 +14,15 @@ class Llama {
 public:
   Llama();
 
-  int run(int argc, const char *const argv[]);
+  int run(int argc, const char* const argv[]);
 
   void search();
 
   bool init();
 
 private:
-  bool readpatterns(const std::vector<std::string> &keyFiles);
-  bool openInput(const std::string &input);
+  bool readpatterns(const std::vector<std::string>& keyFiles);
+  bool openInput(const std::string& input);
 
   std::shared_ptr<Cli> CliParser;
 

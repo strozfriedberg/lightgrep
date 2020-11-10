@@ -2,8 +2,7 @@
 
 #include "lightgrep/api.h"
 #include "filerecord.h"
-#include "outputbase.h"
-#include "mockoutput.h"
+#include "mockoutputhandler.h"
 
 #include <hasher.h>
 #include <scope/test.h>
@@ -16,7 +15,7 @@ SCOPE_TEST(TestSizeMatch) {
   std::shared_ptr<ProgramHandle> lg;
   Processor proc(lg);
 
-  MockOutput mock;
+  MockOutputHandler mock;
   FileRecord rec1;
   rec1.Size = 8;
   rec1._data = "whatever";

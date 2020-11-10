@@ -9,7 +9,7 @@ struct easy_fut {
   easy_fut() : Promise(), Fut(Promise.get_future()) {}
 
   template <typename ExecutorType, typename Callable>
-  easy_fut(ExecutorType &exec, Callable functor)
+  easy_fut(ExecutorType& exec, Callable functor)
       : Promise(), Fut(Promise.get_future()) {
     run(exec, functor);
   }
@@ -20,7 +20,7 @@ struct easy_fut {
   std::future<ValueType> Fut;
 
   template <typename ExecutorType, typename Callable>
-  void run(ExecutorType &exec, Callable functor) {
+  void run(ExecutorType& exec, Callable functor) {
     boost::asio::post(exec, [=]() {
       try {
         this->Promise.set_value(functor());
@@ -33,6 +33,6 @@ struct easy_fut {
 };
 
 template <typename ExecutorType, typename Callable>
-auto make_future(ExecutorType &exec, Callable functor) {
+auto make_future(ExecutorType& exec, Callable functor) {
   return easy_fut<decltype(functor())>(exec, functor);
 }

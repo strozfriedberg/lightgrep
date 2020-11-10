@@ -6,7 +6,7 @@
 
 struct SFHASH_Hasher;
 struct FileRecord;
-class OutputBase;
+class OutputHandler;
 
 class Processor {
 public:
@@ -14,9 +14,9 @@ public:
 
   std::shared_ptr<Processor> clone() const;
 
-  void process(FileRecord &rec, OutputBase &out);
+  void process(FileRecord& rec, OutputHandler& out);
 
-  Processor(const Processor &) = delete;
+  Processor(const Processor&) = delete;
 
 private:
   std::shared_ptr<ProgramHandle> LgProg; // shared

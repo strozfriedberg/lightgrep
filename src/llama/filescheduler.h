@@ -8,18 +8,17 @@
 
 #include "boost_asio.h"
 
-#include "filerecord.h"
-
+class FileRecord;
 struct Options;
-class OutputBase;
+class OutputHandler;
 class Processor;
 
 class FileScheduler {
 public:
-  FileScheduler(boost::asio::thread_pool &pool,
-                const std::shared_ptr<Processor> &protoProc,
-                const std::shared_ptr<OutputBase> &output,
-                const std::shared_ptr<Options> &opts);
+  FileScheduler(boost::asio::thread_pool& pool,
+                const std::shared_ptr<Processor>& protoProc,
+                const std::shared_ptr<OutputHandler>& output,
+                const std::shared_ptr<Options>& opts);
 
   void scheduleFileBatch(const std::shared_ptr<std::vector<FileRecord>>& batch);
 
@@ -27,11 +26,11 @@ private:
   void performScheduling(const std::shared_ptr<std::vector<FileRecord>>& batch);
 
   std::shared_ptr<Processor> popProc();
-  void pushProc(const std::shared_ptr<Processor> &proc);
+  void pushProc(const std::shared_ptr<Processor>& proc);
 
-  boost::asio::thread_pool &Pool;
+  boost::asio::thread_pool& Pool;
   boost::asio::strand<boost::asio::thread_pool::executor_type> Strand;
-  std::shared_ptr<OutputBase> Output;
+  std::shared_ptr<OutputHandler> Output;
 
   std::vector<std::shared_ptr<Processor>> Processors;
 

@@ -1,13 +1,12 @@
 #include "recordbuffer.h"
 
 #include "filerecord.h"
+#include "outputhandler.h"
 
 #include <iomanip>
-#include <sstream>
-
 #include <iostream>
 
-RecordBuffer::RecordBuffer(const std::string& basePath, unsigned int flushBufSize, OutputBase& out):
+RecordBuffer::RecordBuffer(const std::string& basePath, unsigned int flushBufSize, OutputHandler& out):
   Buf(), BasePath(basePath), FlushSize(flushBufSize), CurSize(0), Num(0), Out(out) {}
 
 RecordBuffer::~RecordBuffer() {

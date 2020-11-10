@@ -18,7 +18,7 @@ struct Options {
 
   std::string Input;
 
-  std::string TarPath;
+  std::string Output;
 
   std::string MatchSet;
 

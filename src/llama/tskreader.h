@@ -1,15 +1,19 @@
 #pragma once
 
+#include <memory>
+#include <string>
+#include <vector>
+
 #include <tsk/libtsk.h>
 
-#include "filerecord.h"
 #include "reader.h"
 
+class FileRecord;
 class FileScheduler;
 
 class TSKReader : public InputReaderBase, public TskAuto {
 public:
-  TSKReader(const std::string &imgName);
+  TSKReader(const std::string& imgName);
 
   virtual ~TSKReader() {}
 

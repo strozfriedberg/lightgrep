@@ -4,11 +4,11 @@
 #include <iostream>
 
 #include "filerecord.h"
-#include "mockoutput.h"
+#include "mockoutputhandler.h"
 #include "recordbuffer.h"
 
 SCOPE_TEST(testRecordBufferFlush) {
-  MockOutput mock;
+  MockOutputHandler mock;
   RecordBuffer r("my-recs", 10u, mock);
 
   r.write("whatever"); // will also write a \n
@@ -30,7 +30,7 @@ SCOPE_TEST(testRecordBufferFlush) {
 }
 
 SCOPE_TEST(testRecordBufferOutput) {
-  MockOutput mock;
+  MockOutputHandler mock;
   RecordBuffer r("recs/my-recs", 1u, mock);
   r.write("a record");
   r.flush();
@@ -40,7 +40,7 @@ SCOPE_TEST(testRecordBufferOutput) {
 }
 
 SCOPE_TEST(testRecordBufferDirectAccess) {
-  MockOutput mock;
+  MockOutputHandler mock;
   RecordBuffer r("your-recs", 10u, mock);
 
   r.get() << "whatever\n";
@@ -49,7 +49,7 @@ SCOPE_TEST(testRecordBufferDirectAccess) {
 }
 
 SCOPE_TEST(testRecordBufferDestructor) {
-  MockOutput mock;
+  MockOutputHandler mock;
   {
     RecordBuffer r("my-recs", 10u, mock);
     r.write("whatever");

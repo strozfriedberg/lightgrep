@@ -1,5 +1,7 @@
-#include "filescheduler.h"
 #include "tskreader.h"
+
+#include "filerecord.h"
+#include "filescheduler.h"
 
 TSKReader::TSKReader(const std::string& imgName) :
   ImgName(imgName),

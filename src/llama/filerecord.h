@@ -2,6 +2,7 @@
 
 #include <string>
 #include <sstream>
+
 #include <hasher.h>
 
 #include "jsoncons_wrapper.h"

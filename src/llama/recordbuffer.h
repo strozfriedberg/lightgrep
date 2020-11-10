@@ -1,15 +1,21 @@
 #pragma once
 
+#include <ostream>
 #include <sstream>
+#include <string>
 
-#include "outputbase.h"
+class OutputHandler;
 
 class RecordBuffer {
 public:
-  RecordBuffer(const std::string& basePath, unsigned int flushBufSize, OutputBase& output);
+  RecordBuffer(const std::string& basePath, unsigned int flushBufSize, OutputHandler& output);
+
   ~RecordBuffer();
 
+  RecordBuffer(const RecordBuffer&) = delete;
+
   void write(const std::string& s);
+
   void flush();
 
   std::ostream& get() { return Buf; }
@@ -17,8 +23,6 @@ public:
   size_t size() const;
 
 private:
-  RecordBuffer(const RecordBuffer&);
-
   mutable std::stringstream Buf;
 
   std::string BasePath;
@@ -27,5 +31,5 @@ private:
                CurSize,
                Num;
 
-  OutputBase& Out;
+  OutputHandler& Out;
 };

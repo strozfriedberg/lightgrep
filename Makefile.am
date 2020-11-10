@@ -127,7 +127,9 @@ src_llama_llama_SOURCES = \
 	src/llama/filescheduler.cpp \
 	src/llama/llama.cpp \
 	src/llama/main.cpp \
+	src/llama/outputstream.cpp \
 	src/llama/outputtar.cpp \
+	src/llama/pooloutputhandler.cpp \
 	src/llama/processor.cpp \
 	src/llama/reader.cpp \
 	src/llama/recordbuffer.cpp \

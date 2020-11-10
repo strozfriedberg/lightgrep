@@ -25,7 +25,6 @@ namespace TskUtils {
 
   std::string nrdRunFlags(unsigned int flags);
   std::string hexEncode(const void* str, unsigned int size);
-
 }
 
 class TskConverter {

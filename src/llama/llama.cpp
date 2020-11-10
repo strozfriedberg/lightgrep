@@ -3,7 +3,10 @@
 #include "cli.h"
 #include "easyfut.h"
 #include "filescheduler.h"
-#include "outputbase.h"
+#include "outputhandler.h"
+#include "outputstream.h"
+#include "outputtar.h"
+#include "pooloutputhandler.h"
 #include "processor.h"
 #include "reader.h"
 
@@ -46,9 +49,14 @@ void Llama::search() {
   if (init()) {
     // std::cout << "Number of patterns: " << lg_pattern_count(LgProg.get())
     //           << std::endl;
-    auto out = OutputBase::createTarWriter(Pool, Opts->TarPath, Opts->Codec);
+    auto out = std::shared_ptr<OutputBase>(Opts->Output == "-" ?
+      static_cast<OutputBase*>(new OutputStream(std::cout)) :
+      static_cast<OutputBase*>(new OutputTar(Opts->Output, Opts->Codec))
+    );
+    auto outh = std::shared_ptr<OutputHandler>(new PoolOutputHandler(Pool, out));
+
     auto protoProc = std::make_shared<Processor>(LgProg);
-    auto scheduler = std::make_shared<FileScheduler>(Pool, protoProc, out, Opts);
+    auto scheduler = std::make_shared<FileScheduler>(Pool, protoProc, outh, Opts);
 
     if (!Input->startReading(scheduler)) {
       std::cerr << "startReading returned an error" << std::endl;
@@ -61,7 +69,7 @@ void Llama::search() {
   }
 }
 
-std::string readfile(const std::string &path) {
+std::string readfile(const std::string& path) {
   std::ifstream f(path, std::ios::in);
   std::string str;
   f.seekg(0, std::ios::end);
@@ -72,7 +80,7 @@ std::string readfile(const std::string &path) {
   return str;
 }
 
-bool Llama::readpatterns(const std::vector<std::string> &keyFiles) {
+bool Llama::readpatterns(const std::vector<std::string>& keyFiles) {
   // std::cerr << "begin readpatterns" << std::endl;
   std::shared_ptr<FSMHandle> fsm(lg_create_fsm(100000), lg_destroy_fsm);
   LgProg = std::shared_ptr<ProgramHandle>(lg_create_program(100000),
@@ -108,7 +116,7 @@ bool Llama::readpatterns(const std::vector<std::string> &keyFiles) {
   }
 }
 
-bool Llama::openInput(const std::string &input) {
+bool Llama::openInput(const std::string& input) {
   Input = InputReaderBase::createTSK(input);
   return bool(Input);
 }
