@@ -27,7 +27,7 @@ Llama::Llama()
     : CliParser(std::make_shared<Cli>()), Pool(),
       LgProg(nullptr, lg_destroy_program) {}
 
-int Llama::run(int argc, const char *const argv[]) {
+int Llama::run(int argc, const char* const argv[]) {
   Opts = CliParser->parse(argc, argv);
 
   if (Opts) {
@@ -86,7 +86,7 @@ bool Llama::readpatterns(const std::vector<std::string>& keyFiles) {
   LgProg = std::shared_ptr<ProgramHandle>(lg_create_program(100000),
                                           lg_destroy_program);
 
-  const char *defaultEncodings[] = {"utf-8", "utf-16le"};
+  const char* defaultEncodings[] = {"utf-8", "utf-16le"};
   LG_KeyOptions defaultKeyOpts{0, 0, 0};
   LG_Error *errs = nullptr;
 

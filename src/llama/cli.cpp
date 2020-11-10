@@ -37,7 +37,7 @@ Cli::Cli() : All(), Opts(new Options) {
   PosOpts.add("output", 1).add("input", -1);
 }
 
-std::shared_ptr<Options> Cli::parse(int argc, const char *const argv[]) const {
+std::shared_ptr<Options> Cli::parse(int argc, const char* const argv[]) const {
   po::variables_map optsMap;
   po::store(po::command_line_parser(argc, argv)
                 .options(All)

@@ -7,14 +7,14 @@
 #include <thread>
 
 SCOPE_TEST(testCLIVersion) {
-  const char *args[] = {"llama", "--version"};
+  const char* args[] = {"llama", "--version"};
   Cli cli;
   auto opts = cli.parse(2, args);
   SCOPE_ASSERT_EQUAL("version", opts->Command);
 }
 
 SCOPE_TEST(testCLIHelp) {
-  const char *args[] = {"llama", "--help"};
+  const char* args[] = {"llama", "--help"};
   Cli cli;
   auto opts = cli.parse(2, args);
   SCOPE_ASSERT_EQUAL("help", opts->Command);
@@ -22,8 +22,8 @@ SCOPE_TEST(testCLIHelp) {
 
 SCOPE_TEST(testCLICommandPrecedence) {
   // help has precedence over version
-  const char *args1[] = {"llama", "--version", "--help"};
-  const char *args2[] = {"llama", "--help", "--version"};
+  const char* args1[] = {"llama", "--version", "--help"};
+  const char* args2[] = {"llama", "--help", "--version"};
   Cli cli;
   auto opts = cli.parse(3, args1);
   SCOPE_ASSERT_EQUAL("help", opts->Command);
@@ -32,14 +32,14 @@ SCOPE_TEST(testCLICommandPrecedence) {
 }
 
 SCOPE_TEST(testCLIDefaultCommand) {
-  const char *args[] = {"llama"};
+  const char* args[] = {"llama"};
   Cli cli;
   auto opts = cli.parse(1, args);
   SCOPE_ASSERT_EQUAL("search", opts->Command);
 }
 
 SCOPE_TEST(testCLIKeywordsFiles) {
-  const char *args[] = {"llama", "-f", "mypatterns.txt", "--file",
+  const char* args[] = {"llama", "-f", "mypatterns.txt", "--file",
                         "morepatterns.txt"};
   std::vector<std::string> expected{"mypatterns.txt", "morepatterns.txt"};
   Cli cli;
@@ -48,7 +48,7 @@ SCOPE_TEST(testCLIKeywordsFiles) {
 }
 
 SCOPE_TEST(testCLIReal) {
-  const char *args[] = {"llama", "-f", "patterns.txt", "output.tar",
+  const char* args[] = {"llama", "-f", "patterns.txt", "output.tar",
                         "nosnits_workstation.E01"};
   Cli cli;
   auto opts = cli.parse(5, args);
@@ -56,7 +56,7 @@ SCOPE_TEST(testCLIReal) {
 }
 
 SCOPE_TEST(testCLInumThreads) {
-  const char *args[] = {"llama", "-j", "17"};
+  const char* args[] = {"llama", "-j", "17"};
   Cli cli;
   auto opts = cli.parse(3, args);
   SCOPE_ASSERT_EQUAL(17u, opts->NumThreads);
