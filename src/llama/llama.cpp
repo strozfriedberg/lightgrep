@@ -30,9 +30,11 @@ int Llama::run(int argc, const char *const argv[]) {
   if (Opts) {
     if ("help" == Opts->Command) {
       CliParser->printHelp(std::cout);
-    } else if ("version" == Opts->Command) {
+    }
+    else if ("version" == Opts->Command) {
       CliParser->printVersion(std::cout);
-    } else if ("search" == Opts->Command) {
+    }
+    else if ("search" == Opts->Command) {
       search();
     }
     return 0;
@@ -53,7 +55,8 @@ void Llama::search() {
     }
     Pool.join();
     // std::cout << "All done" << std::endl;
-  } else {
+  }
+  else {
     std::cerr << "init returned false!" << std::endl;
   }
 }
@@ -76,7 +79,7 @@ bool Llama::readpatterns(const std::vector<std::string> &keyFiles) {
                                           lg_destroy_program);
 
   const char *defaultEncodings[] = {"utf-8", "utf-16le"};
-  LG_KeyOptions defaultKeyOpts{0, 0};
+  LG_KeyOptions defaultKeyOpts{0, 0, 0};
   LG_Error *errs = nullptr;
 
   for (auto keyf : keyFiles) {
@@ -91,13 +94,15 @@ bool Llama::readpatterns(const std::vector<std::string> &keyFiles) {
       throw std::runtime_error("lg_add_pattern_list errored on file " + keyf);
     }
   }
+
   // std::cerr << "compiling program" << std::endl;
   LG_ProgramOptions progOpts{1};
   if (lg_compile_program(fsm.get(), LgProg.get(), &progOpts)) {
     // std::cerr << "Number of patterns: " << lg_pattern_count(LgProg.get()) <<
     // std::endl; std::cerr << "Done with readpatterns" << std::endl;
     return true;
-  } else {
+  }
+  else {
     // add some error-handling someday
     return false;
   }
