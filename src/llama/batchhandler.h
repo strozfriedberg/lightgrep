@@ -21,4 +21,6 @@ private:
   std::shared_ptr<FileScheduler> Sink;
 // FIXME: why is CurBatch shared? could it just be moved?
   std::shared_ptr<std::vector<FileRecord>> CurBatch;
+
+  const size_t MaxCap = 200;
 };

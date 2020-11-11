@@ -125,7 +125,6 @@ src_llama_llama_SOURCES = \
 	src/llama/batchhandler.cpp \
 	src/llama/cli.cpp \
 	src/llama/dirreader.cpp \
-	src/llama/filerecord.cpp \
 	src/llama/filescheduler.cpp \
 	src/llama/inputreader.cpp \
 	src/llama/llama.cpp \

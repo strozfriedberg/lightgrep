@@ -5,6 +5,7 @@
 #include <tsk/libtsk.h>
 
 #include "inputreader.h"
+#include "tskconversion.h"
 
 class InputHandler;
 class FileRecord;
@@ -42,4 +43,6 @@ private:
 
   uint64_t InumBegin,
            InumEnd;
+
+  TskConverter Conv;
 };

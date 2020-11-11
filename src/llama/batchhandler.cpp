@@ -12,6 +12,9 @@ BatchHandler::BatchHandler(std::shared_ptr<FileScheduler> sink):
 
 void BatchHandler::push(FileRecord&& f) {
   CurBatch->push_back(std::move(f));
+  if (CurBatch->size() >= MaxCap) {
+    flush();
+  }
 }
 
 void BatchHandler::flush() {
@@ -21,5 +24,5 @@ void BatchHandler::flush() {
 
 void BatchHandler::resetCurBatch() {
   CurBatch.reset(new std::vector<FileRecord>());
-  CurBatch->reserve(200);
+  CurBatch->reserve(MaxCap);
 }

@@ -9,11 +9,11 @@ class MockInputHandler: public InputHandler {
 public:
   virtual ~MockInputHandler() {}
 
-  virtual void push(FileRecord&& f) {
+  virtual void push(FileRecord&& f) override {
     batch.push_back(std::move(f));
   }
 
-  virtual void flush() {}
+  virtual void flush() override {}
 
   std::vector<FileRecord> batch;
 };

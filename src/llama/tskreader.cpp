@@ -6,7 +6,8 @@
 TSKReader::TSKReader(const std::string& imgName) :
   ImgName(imgName),
   Input(),
-  LastFS(nullptr)
+  LastFS(nullptr),
+  Conv()
 {
 }
 
@@ -69,6 +70,6 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
   }
 
   InodeEncountered[index] = true;
-  Input->push(FileRecord(fs_file));
+  Input->push(Conv.convertFile(*fs_file));
   return true;
 }

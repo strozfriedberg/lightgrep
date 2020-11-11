@@ -1,13 +1,10 @@
 #pragma once
 
 #include <string>
-#include <sstream>
 
 #include <hasher.h>
 
 #include "jsoncons_wrapper.h"
-
-struct TSK_FS_FILE;
 
 // This is just a placeholder
 struct FileRecord {
@@ -25,9 +22,13 @@ struct FileRecord {
 
   jsoncons::json Doc;
 
-  FileRecord(const std::string& path = "", uint64_t size = 0): Path(path), Size(size) {}
+  FileRecord(const std::string& path = "", uint64_t size = 0):
+    Path(path), Size(size)
+  {}
 
-  FileRecord(TSK_FS_FILE* file);
+  FileRecord(jsoncons::json&& doc):
+    Doc(std::move(doc))
+  {}
 
   void updateDoc() {
     Doc["Path"] = Path;
