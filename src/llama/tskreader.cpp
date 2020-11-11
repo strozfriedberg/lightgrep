@@ -1,14 +1,13 @@
 #include "tskreader.h"
 
 #include "filerecord.h"
-#include "filescheduler.h"
+#include "inputhandler.h"
 
 TSKReader::TSKReader(const std::string& imgName) :
   ImgName(imgName),
-  CurBatch(new std::vector<FileRecord>()),
+  Input(),
   LastFS(nullptr)
 {
-  CurBatch->reserve(200);
 }
 
 bool TSKReader::open() {
@@ -27,16 +26,18 @@ void TSKReader::setInumRange(uint64_t begin, uint64_t end) {
   InodeEncountered.resize(end+1);
 }
 
-bool TSKReader::startReading(const std::shared_ptr<FileScheduler>& sink) {
-  // setup
-  Sink = sink;
+void TSKReader::setInputHandler(std::shared_ptr<InputHandler> in) {
+  Input = in;
+}
+
+bool TSKReader::startReading() {
   // tell TskAuto to start giving files to processFile
   // std::cerr << "Image is " << getImageSize() << " bytes in size" << std::endl;
   const bool ret = recurseDisk();
   // std::cerr << "recurseDisk returned " << ret;
   if (ret) {
     // teardown
-    Sink->scheduleFileBatch(CurBatch);
+    Input->flush();
   }
   return ret;
 }
@@ -47,11 +48,7 @@ TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* /* path
     LastFS = fs_file->fs_info;
     setInumRange(LastFS->first_inum, LastFS->last_inum);
   }
-  if (addToBatch(fs_file, *CurBatch) && CurBatch->size() >= 200) {
-    Sink->scheduleFileBatch(CurBatch);
-    CurBatch.reset(new std::vector<FileRecord>());
-    CurBatch->reserve(200);
-  }
+  addToBatch(fs_file);
   return TSK_OK;
 }
 
@@ -59,7 +56,7 @@ bool TSKReader::recurseDisk() {
   return 0 == findFilesInImg();
 }
 
-bool TSKReader::addToBatch(TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch) {
+bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
   if (!fs_file || !fs_file->meta) {
     return false;
   }
@@ -72,6 +69,6 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file, std::vector<FileRecord>& batch)
   }
 
   InodeEncountered[index] = true;
-  batch.emplace_back(fs_file);
+  Input->push(FileRecord(fs_file));
   return true;
 }

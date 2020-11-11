@@ -122,16 +122,18 @@ src_cmd_lightgrep_SOURCES = \
 src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(GPT_LIBS) $(STDCXX_LIB)
 
 src_llama_llama_SOURCES = \
+	src/llama/batchhandler.cpp \
 	src/llama/cli.cpp \
+	src/llama/dirreader.cpp \
 	src/llama/filerecord.cpp \
 	src/llama/filescheduler.cpp \
+	src/llama/inputreader.cpp \
 	src/llama/llama.cpp \
 	src/llama/main.cpp \
 	src/llama/outputstream.cpp \
 	src/llama/outputtar.cpp \
 	src/llama/pooloutputhandler.cpp \
 	src/llama/processor.cpp \
-	src/llama/reader.cpp \
 	src/llama/recordbuffer.cpp \
 	src/llama/tskconversion.cpp \
 	src/llama/tskreader.cpp \

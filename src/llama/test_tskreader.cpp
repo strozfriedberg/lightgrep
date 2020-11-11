@@ -5,6 +5,7 @@
 #include "tskreader.h"
 
 #include "filerecord.h"
+#include "mockinputhandler.h"
 
 SCOPE_TEST(testInodeDedupe) {
   TSKReader reader("not_an_image.E01");
@@ -42,18 +43,20 @@ SCOPE_TEST(testInodeDedupe) {
   myFile.meta = &meta;
   myFile.fs_info = &fsInfo;
 
+  auto in = std::shared_ptr<MockInputHandler>(new MockInputHandler());
+  reader.setInputHandler(std::static_pointer_cast<InputHandler>(in));
+
   meta.addr = 8;
-  std::vector<FileRecord> batch;
-  SCOPE_ASSERT(reader.addToBatch(&myFile, batch));
-  SCOPE_ASSERT_EQUAL(1u, batch.size());
-  SCOPE_ASSERT_EQUAL(8u, batch.back().Doc["meta"]["addr"]);
+  SCOPE_ASSERT(reader.addToBatch(&myFile));
+  SCOPE_ASSERT_EQUAL(1u, in->batch.size());
+  SCOPE_ASSERT_EQUAL(8u, in->batch.back().Doc["meta"]["addr"]);
 
   meta.addr = 9;
-  SCOPE_ASSERT(reader.addToBatch(&myFile, batch));
-  SCOPE_ASSERT_EQUAL(2u, batch.size());
-  SCOPE_ASSERT_EQUAL(9u, batch.back().Doc["meta"]["addr"]);
+  SCOPE_ASSERT(reader.addToBatch(&myFile));
+  SCOPE_ASSERT_EQUAL(2u, in->batch.size());
+  SCOPE_ASSERT_EQUAL(9u, in->batch.back().Doc["meta"]["addr"]);
 
   meta.addr = 8; // dupe!
-  SCOPE_ASSERT(!reader.addToBatch(&myFile, batch));
-  SCOPE_ASSERT_EQUAL(2u, batch.size());
+  SCOPE_ASSERT(!reader.addToBatch(&myFile));
+  SCOPE_ASSERT_EQUAL(2u, in->batch.size());
 }

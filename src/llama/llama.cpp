@@ -1,15 +1,18 @@
 #include "llama.h"
 
+#include "batchhandler.h"
 #include "cli.h"
 #include "easyfut.h"
 #include "filescheduler.h"
+#include "inputhandler.h"
+#include "inputreader.h"
 #include "outputhandler.h"
 #include "outputstream.h"
 #include "outputtar.h"
 #include "pooloutputhandler.h"
 #include "processor.h"
-#include "reader.h"
 
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -22,6 +25,7 @@
 
 #include <hasher.h>
 
+namespace fs = std::filesystem;
 
 Llama::Llama()
     : CliParser(std::make_shared<Cli>()), Pool(),
@@ -57,8 +61,11 @@ void Llama::search() {
 
     auto protoProc = std::make_shared<Processor>(LgProg);
     auto scheduler = std::make_shared<FileScheduler>(Pool, protoProc, outh, Opts);
+    auto inh = std::shared_ptr<InputHandler>(new BatchHandler(scheduler));
 
-    if (!Input->startReading(scheduler)) {
+    Input->setInputHandler(inh);
+
+    if (!Input->startReading()) {
       std::cerr << "startReading returned an error" << std::endl;
     }
     Pool.join();
@@ -117,7 +124,10 @@ bool Llama::readpatterns(const std::vector<std::string>& keyFiles) {
 }
 
 bool Llama::openInput(const std::string& input) {
-  Input = InputReaderBase::createTSK(input);
+// FIXME: is_directory can throw
+  Input = fs::is_directory(input) ?
+    InputReader::createDir(input) :
+    InputReader::createTSK(input);
   return bool(Input);
 }
 

@@ -8,7 +8,7 @@ struct Options;
 struct ProgramHandle;
 
 class Cli;
-class InputReaderBase;
+class InputReader;
 
 class Llama {
 public:
@@ -30,5 +30,5 @@ private:
 
   std::shared_ptr<Options> Opts;
   std::shared_ptr<ProgramHandle> LgProg;
-  std::shared_ptr<InputReaderBase> Input;
+  std::shared_ptr<InputReader> Input;
 };
