@@ -8,7 +8,6 @@
 #include "tskconversion.h"
 
 class InputHandler;
-class FileRecord;
 
 class TSKReader : public InputReader, public TskAuto {
 public:
