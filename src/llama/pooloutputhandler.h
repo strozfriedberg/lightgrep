@@ -4,11 +4,11 @@
 #include "outputhandler.h"
 #include "recordbuffer.h"
 
-class OutputBase;
+class OutputWriter;
 
 class PoolOutputHandler: public OutputHandler {
 public:
-  PoolOutputHandler(boost::asio::thread_pool& pool, std::shared_ptr<OutputBase> out):
+  PoolOutputHandler(boost::asio::thread_pool& pool, std::shared_ptr<OutputWriter> out):
     MainStrand(pool.get_executor()),
     RecStrand(pool.get_executor()),
     Out(out),
@@ -36,7 +36,7 @@ private:
   boost::asio::strand<boost::asio::thread_pool::executor_type> MainStrand,
                                                                RecStrand;
 
-  std::shared_ptr<OutputBase> Out;
+  std::shared_ptr<OutputWriter> Out;
 
   RecordBuffer InodesRecBuf;
 

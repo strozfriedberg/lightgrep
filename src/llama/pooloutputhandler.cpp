@@ -1,5 +1,5 @@
 #include "filerecord.h"
-#include "outputbase.h"
+#include "outputwriter.h"
 #include "pooloutputhandler.h"
 
 void PoolOutputHandler::outputFile(const FileRecord& rec) {

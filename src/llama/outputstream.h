@@ -2,9 +2,9 @@
 
 #include <iosfwd>
 
-#include "outputbase.h"
+#include "outputwriter.h"
 
-class OutputStream: public OutputBase {
+class OutputStream: public OutputWriter {
 public:
   OutputStream(std::ostream& os): os(os) {}
 

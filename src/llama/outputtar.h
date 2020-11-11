@@ -4,11 +4,11 @@
 #include <string>
 
 #include "codec.h"
-#include "outputbase.h"
+#include "outputwriter.h"
 
 class archive;
 
-class OutputTar: public OutputBase {
+class OutputTar: public OutputWriter {
 public:
   OutputTar(const std::string& path, Codec codec);
 

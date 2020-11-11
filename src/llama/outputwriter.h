@@ -9,9 +9,9 @@
 
 struct FileRecord;
 
-class OutputBase {
+class OutputWriter {
 public:
-  virtual ~OutputBase() {}
+  virtual ~OutputWriter() {}
 
   virtual void outputFile(const FileRecord& rec) = 0;
 
