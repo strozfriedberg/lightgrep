@@ -161,6 +161,8 @@ SCOPE_TEST(testTskConvertHexEncode) {
 
 SCOPE_TEST(testTskConvertNRDs) {
   TSK_FS_ATTR_RUN nrd;
+  std::memset(&nrd, 0, sizeof(nrd));
+
   nrd.addr   = 15;
   nrd.len    = 3045;
   nrd.offset = 17;
@@ -189,6 +191,7 @@ TSK_FS_ATTR* setResAttr(TSK_FS_ATTR& attr) {
 
 SCOPE_TEST(testTskConvertAttrRes) {
   TSK_FS_ATTR attr;
+  std::memset(&attr, 0, sizeof(attr));
   setResAttr(attr);
 
   TskConverter munge;
@@ -258,10 +261,14 @@ void testNonresAttr(const jsoncons::json& js) {
 }
 
 SCOPE_TEST(testTskConvertAttrNonRes) {
-  TSK_FS_ATTR_RUN nrd1,
-                  nrd2;
+  TSK_FS_ATTR_RUN nrd1;
+  std::memset(&nrd1, 0, sizeof(nrd1));
+
+  TSK_FS_ATTR_RUN nrd2;
+  std::memset(&nrd2, 0, sizeof(nrd2));
 
   TSK_FS_ATTR attr;
+  std::memset(&attr, 0, sizeof(attr));
   setNonresAttr(attr, nrd1, nrd2);
 
   TskConverter munge;
@@ -272,8 +279,11 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
 SCOPE_TEST(testTskMetaConvert) {
   const TSK_FS_TYPE_ENUM fstype = TSK_FS_TYPE_DETECT; // whatever
 
-  TSK_FS_ATTR_RUN nrd1,
-                  nrd2;
+  TSK_FS_ATTR_RUN nrd1;
+  std::memset(&nrd1, 0, sizeof(nrd1));
+
+  TSK_FS_ATTR_RUN nrd2;
+  std::memset(&nrd2, 0, sizeof(nrd2));
 
   TSK_FS_ATTR attrNonRes;
   std::memset(&attrNonRes, 0, sizeof(attrNonRes));
@@ -356,6 +366,7 @@ SCOPE_TEST(testTskMetaConvert) {
 
 SCOPE_TEST(testTskNameConvert) {
   TSK_FS_NAME name;
+  std::memset(&name, 0, sizeof(name));
 
   name.name = const_cast<char*>("woowoowoo\0bad bad bad");
   name.name_size = 9;
@@ -383,6 +394,8 @@ SCOPE_TEST(testTskNameConvert) {
 
 SCOPE_TEST(testTskConvertTimestamps) {
   TSK_FS_META meta;
+  std::memset(&meta, 0, sizeof(meta));
+
   meta.atime = 1578364822; // 2020-01-07 02:40:22
   meta.atime_nano = 123456700;
   meta.crtime = 31337; // 1970-01-01 08:42:17
@@ -400,6 +413,8 @@ SCOPE_TEST(testTskConvertTimestamps) {
 
 SCOPE_TEST(testTskConvertEpochBeginningIsNull) {
   TSK_FS_META meta;
+  std::memset(&meta, 0, sizeof(meta));
+
   meta.atime = 0; // 1970-01-01 00:00:00
   meta.atime_nano = 0;
   meta.crtime = 1; // 1970-01-01 00:00::01
@@ -422,6 +437,8 @@ SCOPE_TEST(testTskConvertEpochBeginningIsNull) {
 
 SCOPE_TEST(testTskConvertNTFSTimestamps) {
   TSK_FS_META meta;
+  std::memset(&meta, 0, sizeof(meta));
+
   meta.atime = 1578364822; // 2020-01-07 02:40:22
   meta.atime_nano = 123456700;
   meta.crtime = 31337; // 1970-01-01 08:42:17
@@ -461,6 +478,8 @@ SCOPE_TEST(testTskConvertNTFSTimestamps) {
 
 SCOPE_TEST(testTskConvertMacTimestamps) {
   TSK_FS_META meta;
+  std::memset(&meta, 0, sizeof(meta));
+
   meta.atime = 1578364822; // 2020-01-07 02:40:22
   meta.atime_nano = 123456700;
   meta.crtime = 31337; // 1970-01-01 08:42:17
@@ -494,6 +513,8 @@ SCOPE_TEST(testTskConvertMacTimestamps) {
 
 SCOPE_TEST(testTskConvertLinuxTimestamps) {
   TSK_FS_META meta;
+  std::memset(&meta, 0, sizeof(meta));
+
   meta.atime = 1578364822; // 2020-01-07 02:40:22
   meta.atime_nano = 123456700;
   meta.crtime = 31337; // 1970-01-01 08:42:17
