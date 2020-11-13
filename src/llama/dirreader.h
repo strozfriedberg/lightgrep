@@ -1,5 +1,8 @@
 #pragma once
 
+#include <filesystem>
+
+#include "dirconversion.h"
 #include "inputreader.h"
 
 class InputHandler;
@@ -14,8 +17,12 @@ public:
 
   virtual bool startReading() override;
 
+  void handleFile(const std::filesystem::directory_entry& de);
+
 private:
   std::string Root;
 
   std::shared_ptr<InputHandler> Input;
+
+  DirConverter Conv;
 };

@@ -1,5 +1,6 @@
 #include "dirreader.h"
 
+#include "filerecord.h"
 #include "inputhandler.h"
 
 #include <filesystem>
@@ -20,7 +21,7 @@ void DirReader::setInputHandler(std::shared_ptr<InputHandler> in) {
 bool DirReader::startReading() {
   try {
     for (const auto& de : fs::recursive_directory_iterator(Root)) {
-      std::cout << de.path() << '\n';
+      handleFile(de);
     }
   }
   catch (const fs::filesystem_error& e) {
@@ -29,5 +30,11 @@ bool DirReader::startReading() {
     return false;
   }
 
+  Input->flush();
   return true;
+}
+
+void DirReader::handleFile(const fs::directory_entry& de) {
+  std::cerr << de.path() << '\n';
+  Input->push(FileRecord(Conv.convertDirectoryEntry(de)));
 }

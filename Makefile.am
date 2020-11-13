@@ -124,6 +124,7 @@ src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_P
 src_llama_llama_SOURCES = \
 	src/llama/batchhandler.cpp \
 	src/llama/cli.cpp \
+	src/llama/dirconversion.cpp \
 	src/llama/dirreader.cpp \
 	src/llama/filescheduler.cpp \
 	src/llama/inputreader.cpp \
