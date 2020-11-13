@@ -435,7 +435,7 @@ jsoncons::json TskConverter::convertAttr(const TSK_FS_ATTR& attr) const {
     jsAttr["nrd_initsize"] = attr.nrd.initsize;
     jsAttr["nrd_skiplen"] = attr.nrd.skiplen;
 
-    auto& nrd_runs = (jsAttr["nrd_runs"] = jsoncons::json(jsoncons::json_array_arg));
+    jsoncons::json nrd_runs = jsoncons::json(jsoncons::json_array_arg);
     for (auto i = attr.nrd.run; i; i = i->next) {
       if (i->flags == TSK_FS_ATTR_RUN_FLAG_FILLER) {
         // TODO: check on the exact semantics of this flag
@@ -450,6 +450,8 @@ jsoncons::json TskConverter::convertAttr(const TSK_FS_ATTR& attr) const {
         break;
       }
     }
+
+    jsAttr["nrd_runs"] = std::move(nrd_runs);
   }
 
   return jsAttr;
