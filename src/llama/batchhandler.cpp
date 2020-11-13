@@ -18,8 +18,10 @@ void BatchHandler::push(FileRecord&& f) {
 }
 
 void BatchHandler::flush() {
-  Sink->scheduleFileBatch(CurBatch);
-  resetCurBatch();
+  if (!CurBatch->empty()) {
+    Sink->scheduleFileBatch(CurBatch);
+    resetCurBatch();
+  }
 }
 
 void BatchHandler::resetCurBatch() {
