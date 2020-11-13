@@ -43,6 +43,22 @@ bool TSKReader::startReading() {
   return ret;
 }
 
+bool TSKReader::recurseDisk() {
+  return 0 == findFilesInImg();
+}
+
+TSK_FILTER_ENUM filterVs(const TSK_VS_INFO* vs_info) {
+  return TSK_FILTER_CONT;
+}
+
+TSK_FILTER_ENUM TSKReader::filterVol(const TSK_VS_PART_INFO* vs_part) {
+  return TSK_FILTER_CONT;
+}
+
+TSK_FILTER_ENUM TSKReader::filterFs(TSK_FS_INFO *fs_info) {
+  return TSK_FILTER_CONT;
+}
+
 TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* /* path*/) {
   // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
   if (fs_file->fs_info != LastFS) {
@@ -51,10 +67,6 @@ TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* /* path
   }
   addToBatch(fs_file);
   return TSK_OK;
-}
-
-bool TSKReader::recurseDisk() {
-  return 0 == findFilesInImg();
 }
 
 bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {

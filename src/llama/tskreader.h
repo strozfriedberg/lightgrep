@@ -23,13 +23,22 @@ public:
 
   virtual bool startReading() override;
 
-  virtual TSK_RETVAL_ENUM processFile(TSK_FS_FILE* fs_file,
-                                      const char* path) override;
-
   // recurseDisk wraps TskAuto::findFilesInImg(). Override to replace/mock.
   virtual bool recurseDisk();
 
   bool addToBatch(TSK_FS_FILE* fs_file);
+
+  //
+  // from TskAuto
+  //
+  virtual TSK_RETVAL_ENUM processFile(TSK_FS_FILE* fs_file,
+                                      const char* path) override;
+
+  virtual TSK_FILTER_ENUM filterVs(const TSK_VS_INFO* vs_info) override;
+
+  virtual TSK_FILTER_ENUM filterVol(const TSK_VS_PART_INFO* vs_part) override;
+
+  virtual TSK_FILTER_ENUM filterFs(TSK_FS_INFO* fs_info) override;
 
 private:
   std::string ImgName;
