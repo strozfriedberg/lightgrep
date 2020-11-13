@@ -47,7 +47,7 @@ bool TSKReader::recurseDisk() {
   return 0 == findFilesInImg();
 }
 
-TSK_FILTER_ENUM filterVs(const TSK_VS_INFO* vs_info) {
+TSK_FILTER_ENUM TSKReader::filterVs(const TSK_VS_INFO* vs_info) {
   return TSK_FILTER_CONT;
 }
 
