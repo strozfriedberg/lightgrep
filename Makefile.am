@@ -139,6 +139,8 @@ src_llama_llama_SOURCES = \
 	src/llama/tskconversion.cpp \
 	src/llama/tskreader.cpp \
 	src/llama/test_cli.cpp \
+	src/llama/test_dirconversion.cpp \
+	src/llama/test_dirreader.cpp \
 	src/llama/test_fileproxy.cpp \
 	src/llama/test_filerecord.cpp \
 	src/llama/test_processor.cpp \
