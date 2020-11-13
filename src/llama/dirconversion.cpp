@@ -130,11 +130,11 @@ jsoncons::json DirConverter::convertAttr(const fs::directory_entry& de) const {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
-      { "id", jsoncons::null_type() },
+      { "id",    jsoncons::null_type() },
       { "flags", ATTR_FLAG_INUSE },
-      { "name", jsoncons::null_type() },
-      { "size", DirUtils::fileSize(de) },
-      { "type", ATTR_TYPE_UNKNOWN }
+      { "name",  jsoncons::null_type() },
+      { "size",  DirUtils::fileSize(de) },
+      { "type",  ATTR_TYPE_UNKNOWN }
     }
   );
 }
