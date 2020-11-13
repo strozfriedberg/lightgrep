@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <sstream>
 
 #include <tsk/libtsk.h>
@@ -25,6 +26,29 @@ namespace TskUtils {
 
   std::string nrdRunFlags(unsigned int flags);
   std::string hexEncode(const void* str, unsigned int size);
+
+  template <class F>
+  std::string flagsString(unsigned int flags, const F& fmap) {
+    if (!flags) {
+      return "";
+    }
+
+    std::string ret;
+    bool first = true;
+    for (const auto& f: fmap) {
+      if (flags & f.first) {
+        if (first) {
+          first = false;
+        }
+        else {
+          ret += ", ";
+        }
+        ret += f.second;
+      }
+    }
+
+    return ret;
+  }
 }
 
 class TskConverter {

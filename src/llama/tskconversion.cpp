@@ -15,29 +15,6 @@ TskConverter::TskConverter()
   NanoBuf << std::fixed << std::setprecision(9);
 }
 
-template <class F>
-std::string flagsString(unsigned int flags, const F& fmap) {
-  if (!flags) {
-    return "";
-  }
-
-  std::string ret;
-  bool first = true;
-  for (const auto& f: fmap) {
-    if (flags & f.first) {
-      if (first) {
-        first = false;
-      }
-      else {
-        ret += ", ";
-      }
-      ret += f.second;
-    }
-  }
-
-  return ret;
-}
-
 std::string TskUtils::volumeSystemType(unsigned int type) {
   switch (type) {
   case TSK_VS_TYPE_DOS:

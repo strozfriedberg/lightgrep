@@ -2,6 +2,33 @@
 
 #include "tskconversion.h"
 
+SCOPE_TEST(textExtractString) {
+  using namespace TskUtils;
+  SCOPE_ASSERT_EQUAL("", extractString("", 0));
+  SCOPE_ASSERT_EQUAL("abcde", extractString("abcdefg", 5));
+  SCOPE_ASSERT_EQUAL("abc", extractString("abc\0defg", 5));
+}
+
+SCOPE_TEST(testFlagsString) {
+  using namespace TskUtils;
+
+  const static std::array<std::pair<unsigned int, std::string>, 3> fmap{{
+    {0b001, "one"},
+    {0b010, "two"},
+    {0b100, "three"}
+  }};
+
+  SCOPE_ASSERT_EQUAL("", flagsString(0, fmap));
+  SCOPE_ASSERT_EQUAL("one", flagsString(1, fmap));
+  SCOPE_ASSERT_EQUAL("two", flagsString(2, fmap));
+  SCOPE_ASSERT_EQUAL("one, two", flagsString(3, fmap));
+  SCOPE_ASSERT_EQUAL("three", flagsString(4, fmap));
+  SCOPE_ASSERT_EQUAL("one, three", flagsString(5, fmap));
+  SCOPE_ASSERT_EQUAL("two, three", flagsString(6, fmap));
+  SCOPE_ASSERT_EQUAL("one, two, three", flagsString(7, fmap));
+  SCOPE_ASSERT_EQUAL("", flagsString(8, fmap));
+}
+
 SCOPE_TEST(testTskVolumeSystemType) {
   using namespace TskUtils;
   SCOPE_ASSERT_EQUAL("Unknown", volumeSystemType(0));
