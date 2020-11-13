@@ -134,6 +134,7 @@ src_llama_llama_SOURCES = \
 	src/llama/pooloutputhandler.cpp \
 	src/llama/processor.cpp \
 	src/llama/recordbuffer.cpp \
+	src/llama/schema.cpp \
 	src/llama/tskconversion.cpp \
 	src/llama/tskreader.cpp \
 	src/llama/test_cli.cpp \

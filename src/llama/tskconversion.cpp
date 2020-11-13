@@ -6,6 +6,8 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include "schema.h"
+
 using namespace TskUtils;
 
 TskConverter::TskConverter()
@@ -39,17 +41,17 @@ std::string flagsString(unsigned int flags, const F& fmap) {
 std::string TskUtils::volumeSystemType(unsigned int type) {
   switch (type) {
   case TSK_VS_TYPE_DOS:
-    return "MBR";
+    return VS_TYPE_DOS;
   case TSK_VS_TYPE_BSD:
-    return "BSD";
+    return VS_TYPE_BSD;
   case TSK_VS_TYPE_SUN:
-    return "Sun";
+    return VS_TYPE_SUN;
   case TSK_VS_TYPE_MAC:
-    return "Macintosh";
+    return VS_TYPE_MAC;
   case TSK_VS_TYPE_GPT:
-    return "GPT";
+    return VS_TYPE_GPT;
   default:
-    return "Unknown";
+    return VS_TYPE_UNKNOWN;
   }
 }
 
@@ -57,66 +59,59 @@ std::string TskUtils::volumeFlags(unsigned int flags) {
   // I think these flags are mutually exclusive...
   switch (flags) {
   case TSK_VS_PART_FLAG_ALLOC:
-    return "Allocated";
+    return VS_PART_FLAG_ALLOC;
   case TSK_VS_PART_FLAG_UNALLOC:
-    return "Unallocated";
+    return VS_PART_FLAG_UNALLOC;
   case TSK_VS_PART_FLAG_META:
-    return "Volume System";
+    return VS_PART_FLAG_META; 
   default:
     return "";
   }
 }
 
 std::string TskUtils::filesystemFlags(unsigned int flags) {
-  // this structure obviously won't scale as more flags are added
-  // but it's fine for now
-  switch (flags) {
-  case TSK_FS_INFO_FLAG_HAVE_SEQ:
-    return "Sequenced";
-  case TSK_FS_INFO_FLAG_HAVE_NANOSEC:
-    return "Nanosecond precision";
-  case TSK_FS_INFO_FLAG_HAVE_SEQ | TSK_FS_INFO_FLAG_HAVE_NANOSEC:
-    return "Sequenced, Nanosecond precision";
-  default:
-    return "";
-  }
+  const static std::array<std::pair<unsigned int, std::string>, 2> fmap{{
+    {TSK_FS_INFO_FLAG_HAVE_SEQ,     FS_INFO_FLAG_HAVE_SEQ},
+    {TSK_FS_INFO_FLAG_HAVE_NANOSEC, FS_INFO_FLAG_HAVE_NANOSEC}
+  }};
+  return flagsString(flags, fmap);
 }
 
 std::string TskUtils::nameType(unsigned int type) {
   switch (type) {
   case TSK_FS_NAME_TYPE_UNDEF:
-    return "Undefined";
+    return TYPE_UNDEF;
   case TSK_FS_NAME_TYPE_FIFO:
-    return "Named Pipe";
+    return TYPE_FIFO;
   case TSK_FS_NAME_TYPE_CHR:
-    return "Character Device";
+    return TYPE_CHR;
   case TSK_FS_NAME_TYPE_DIR:
-    return "Folder";
+    return TYPE_DIR;
   case TSK_FS_NAME_TYPE_BLK:
-    return "Block Device";
+    return TYPE_BLK;
   case TSK_FS_NAME_TYPE_REG:
-    return "File";
+    return TYPE_REG;
   case TSK_FS_NAME_TYPE_LNK:
-    return "Symbolic Link";
+    return TYPE_LNK;
   case TSK_FS_NAME_TYPE_SOCK:
-    return "Domain Socket";
+    return TYPE_SOCK;
   case TSK_FS_NAME_TYPE_SHAD:
-    return "Shadow Inode";
+    return TYPE_SHAD;
   case TSK_FS_NAME_TYPE_WHT:
-    return "Whiteout Inode";
+    return TYPE_WHT;
   case TSK_FS_NAME_TYPE_VIRT:
-    return "Virtual";
+    return TYPE_VIRT;
   case TSK_FS_NAME_TYPE_VIRT_DIR:
-    return "Virtual Folder";
+    return TYPE_VIRT_DIR;
   default:
-    return "Undefined";
+    return TYPE_UNDEF;
   }
 }
 
 std::string TskUtils::nameFlags(unsigned int flags) {
   const static std::array<std::pair<unsigned int, std::string>, 2> fmap{{
-    {TSK_FS_NAME_FLAG_ALLOC,   "Allocated"},
-    {TSK_FS_NAME_FLAG_UNALLOC, "Deleted"}
+    {TSK_FS_NAME_FLAG_ALLOC,   NAME_FLAG_ALLOC},
+    {TSK_FS_NAME_FLAG_UNALLOC, NAME_FLAG_UNALLOC}
   }};
   return flagsString(flags, fmap);
 }
@@ -124,102 +119,105 @@ std::string TskUtils::nameFlags(unsigned int flags) {
 std::string TskUtils::metaType(unsigned int type) {
   switch (type) {
   case TSK_FS_META_TYPE_UNDEF:
-    return "Undefined";
+    return TYPE_UNDEF;
   case TSK_FS_META_TYPE_REG:
-    return "File";
+    return TYPE_REG;
   case TSK_FS_META_TYPE_DIR:
-    return "Folder";
+    return TYPE_DIR;
   case TSK_FS_META_TYPE_FIFO:
-    return "Named Pipe";
+    return TYPE_FIFO;
   case TSK_FS_META_TYPE_CHR:
-    return "Character Device";
+    return TYPE_CHR;
   case TSK_FS_META_TYPE_BLK:
-    return "Block Device";
+    return TYPE_BLK;
   case TSK_FS_META_TYPE_LNK:
-    return "Symbolic Link";
+    return TYPE_LNK;
   case TSK_FS_META_TYPE_SHAD:
-    return "Shadow Inode";
+    return TYPE_SHAD;
   case TSK_FS_META_TYPE_SOCK:
-    return "Domain Socket";
+    return TYPE_SOCK;
   case TSK_FS_META_TYPE_WHT:
-    return "Whiteout Inode";
+    return TYPE_WHT;
   case TSK_FS_META_TYPE_VIRT:
-    return "Virtual";
+    return TYPE_VIRT;
   case TSK_FS_META_TYPE_VIRT_DIR:
-    return "Virtual Folder";
+    return TYPE_VIRT_DIR;
   default:
-    return "Undefined";
+    return TYPE_UNDEF;
   }
 }
 
 std::string TskUtils::metaFlags(unsigned int flags) {
   const static std::array<std::pair<unsigned int, std::string>, 6> fmap{{
-    {TSK_FS_META_FLAG_ALLOC,   "Allocated"},
-    {TSK_FS_META_FLAG_UNALLOC, "Deleted"},
-    {TSK_FS_META_FLAG_USED,    "Used"},
-    {TSK_FS_META_FLAG_UNUSED,  "Unused"},
-    {TSK_FS_META_FLAG_COMP,    "Compressed"},
-    {TSK_FS_META_FLAG_ORPHAN,  "Orphan"}
+    {TSK_FS_META_FLAG_ALLOC,   META_FLAG_ALLOC},
+    {TSK_FS_META_FLAG_UNALLOC, META_FLAG_UNALLOC},
+    {TSK_FS_META_FLAG_USED,    META_FLAG_USED},
+    {TSK_FS_META_FLAG_UNUSED,  META_FLAG_UNUSED},
+    {TSK_FS_META_FLAG_COMP,    META_FLAG_COMP},
+    {TSK_FS_META_FLAG_ORPHAN,  META_FLAG_ORPHAN}
   }};
   return flagsString(flags, fmap);
 }
 
 std::string TskUtils::attrType(unsigned int type) {
   switch (type) {
-  case TSK_FS_ATTR_TYPE_NOT_FOUND: return "Unknown";
-  case TSK_FS_ATTR_TYPE_DEFAULT: return "Data"; // default _is_ data, so match up with NTFS Data
-  case TSK_FS_ATTR_TYPE_NTFS_SI: return "Standard Information";
-  case TSK_FS_ATTR_TYPE_NTFS_ATTRLIST: return "NTFS Attributes";
-  case TSK_FS_ATTR_TYPE_NTFS_FNAME: return "Filename";
-  case TSK_FS_ATTR_TYPE_NTFS_OBJID: return "ObjID";
-  case TSK_FS_ATTR_TYPE_NTFS_SEC: return "Sec";
-  case TSK_FS_ATTR_TYPE_NTFS_VNAME: return "VName";
-  case TSK_FS_ATTR_TYPE_NTFS_VINFO: return "VInfo";
-  case TSK_FS_ATTR_TYPE_NTFS_DATA: return "Data";
-  case TSK_FS_ATTR_TYPE_NTFS_IDXROOT: return "IdxRoot";
-  case TSK_FS_ATTR_TYPE_NTFS_IDXALLOC: return "IdxAlloc";
-  case TSK_FS_ATTR_TYPE_NTFS_BITMAP: return "Bitmap";
-  case TSK_FS_ATTR_TYPE_NTFS_SYMLNK: return "Symlink";
+  case TSK_FS_ATTR_TYPE_NOT_FOUND: return ATTR_TYPE_NOT_FOUND;
+  case TSK_FS_ATTR_TYPE_DEFAULT: return ATTR_TYPE_DEFAULT; // default _is_ data, so match up with NTFS Data
+  case TSK_FS_ATTR_TYPE_NTFS_SI: return ATTR_TYPE_NTFS_SI;
+  case TSK_FS_ATTR_TYPE_NTFS_ATTRLIST: return ATTR_TYPE_NTFS_ATTRLIST; 
+  case TSK_FS_ATTR_TYPE_NTFS_FNAME: return ATTR_TYPE_NTFS_FNAME; 
+  case TSK_FS_ATTR_TYPE_NTFS_OBJID: return ATTR_TYPE_NTFS_OBJID; 
+  case TSK_FS_ATTR_TYPE_NTFS_SEC: return ATTR_TYPE_NTFS_SEC; 
+  case TSK_FS_ATTR_TYPE_NTFS_VNAME: return ATTR_TYPE_NTFS_VNAME; 
+  case TSK_FS_ATTR_TYPE_NTFS_VINFO: return ATTR_TYPE_NTFS_VINFO; 
+  case TSK_FS_ATTR_TYPE_NTFS_DATA: return ATTR_TYPE_NTFS_DATA; 
+  case TSK_FS_ATTR_TYPE_NTFS_IDXROOT: return ATTR_TYPE_NTFS_IDXROOT; 
+  case TSK_FS_ATTR_TYPE_NTFS_IDXALLOC: return ATTR_TYPE_NTFS_IDXALLOC; 
+  case TSK_FS_ATTR_TYPE_NTFS_BITMAP: return ATTR_TYPE_NTFS_BITMAP; 
+  case TSK_FS_ATTR_TYPE_NTFS_SYMLNK: return ATTR_TYPE_NTFS_SYMLNK; 
   // Reparse points are a Win2K feature and use the same type code as symlink.
   // So this is technically ambiguous. To bite the bullet, we go with symlinks.
-//  case TSK_FS_ATTR_TYPE_NTFS_REPARSE: return "Reparse";
-  case TSK_FS_ATTR_TYPE_NTFS_EAINFO: return "EAInfo";
-  case TSK_FS_ATTR_TYPE_NTFS_EA: return "EA";
-  case TSK_FS_ATTR_TYPE_NTFS_PROP: return "Prop";
-  case TSK_FS_ATTR_TYPE_NTFS_LOG: return "Log";
+//  case TSK_FS_ATTR_TYPE_NTFS_REPARSE: return ATTR_TYPE_NTFS_REPARSE; 
+  case TSK_FS_ATTR_TYPE_NTFS_EAINFO: return ATTR_TYPE_NTFS_EAINFO; 
+  case TSK_FS_ATTR_TYPE_NTFS_EA: return ATTR_TYPE_NTFS_EA; 
+  case TSK_FS_ATTR_TYPE_NTFS_PROP: return ATTR_TYPE_NTFS_PROP; 
+  case TSK_FS_ATTR_TYPE_NTFS_LOG: return ATTR_TYPE_NTFS_LOG; 
 
-  case TSK_FS_ATTR_TYPE_UNIX_INDIR: return "Indirect";
-  case TSK_FS_ATTR_TYPE_UNIX_EXTENT: return "Extents";
+  case TSK_FS_ATTR_TYPE_UNIX_INDIR: return ATTR_TYPE_UNIX_INDIR; 
+  case TSK_FS_ATTR_TYPE_UNIX_EXTENT: return ATTR_TYPE_UNIX_EXTENT; 
 
   // Types for HFS+ File Attributes
-//  case TSK_FS_ATTR_TYPE_HFS_DEFAULT: return "Data"; // same value as DEFAULT above
-  case TSK_FS_ATTR_TYPE_HFS_DATA: return "Data";
-  case TSK_FS_ATTR_TYPE_HFS_RSRC: return "Resource";
-  case TSK_FS_ATTR_TYPE_HFS_EXT_ATTR: return "EA";
-  case TSK_FS_ATTR_TYPE_HFS_COMP_REC: return "Compressed";
+//  case TSK_FS_ATTR_TYPE_HFS_DEFAULT: return ATTR_TYPE_HFS_DEFAULT; 
+  case TSK_FS_ATTR_TYPE_HFS_DATA: return ATTR_TYPE_HFS_DATA; 
+  case TSK_FS_ATTR_TYPE_HFS_RSRC: return ATTR_TYPE_HFS_RSRC; 
+  case TSK_FS_ATTR_TYPE_HFS_EXT_ATTR: return ATTR_TYPE_HFS_EXT_ATTR; 
+  case TSK_FS_ATTR_TYPE_HFS_COMP_REC: return ATTR_TYPE_HFS_COMP_REC; 
   default:
-    return "Unknown";
+    return ATTR_TYPE_UNKNOWN;
   }
 }
 
 std::string TskUtils::attrFlags(unsigned int flags) {
   static std::array<std::pair<unsigned int, std::string>, 7> fmap{{
-    {TSK_FS_ATTR_INUSE,    "In Use"},
-    {TSK_FS_ATTR_NONRES,   "Non-resident"},
-    {TSK_FS_ATTR_RES,      "Resident"},
-    {TSK_FS_ATTR_ENC,      "Encrypted"},
-    {TSK_FS_ATTR_COMP,     "Compressed"},
-    {TSK_FS_ATTR_SPARSE,   "Sparse"},
-    {TSK_FS_ATTR_RECOVERY, "Recovered"}
+    {TSK_FS_ATTR_INUSE,    ATTR_FLAG_INUSE},
+    {TSK_FS_ATTR_NONRES,   ATTR_FLAG_NONRES},
+    {TSK_FS_ATTR_RES,      ATTR_FLAG_RES},
+    {TSK_FS_ATTR_ENC,      ATTR_FLAG_ENC},
+    {TSK_FS_ATTR_COMP,     ATTR_FLAG_COMP},
+    {TSK_FS_ATTR_SPARSE,   ATTR_FLAG_SPARSE},
+    {TSK_FS_ATTR_RECOVERY, ATTR_FLAG_RECOVERY}
   }};
   return flagsString(flags, fmap);
 }
 
 std::string TskUtils::nrdRunFlags(unsigned int flags) {
   switch (flags) {
-  case TSK_FS_ATTR_RUN_FLAG_NONE: return "";
-  case TSK_FS_ATTR_RUN_FLAG_FILLER: return "Filler";
-  case TSK_FS_ATTR_RUN_FLAG_SPARSE: return "Sparse";
+  case TSK_FS_ATTR_RUN_FLAG_NONE:
+    return ATTR_RUN_FLAG_NONE;
+  case TSK_FS_ATTR_RUN_FLAG_FILLER:
+    return ATTR_RUN_FLAG_FILLER;
+  case TSK_FS_ATTR_RUN_FLAG_SPARSE:
+    return ATTR_RUN_FLAG_SPARSE;
   }
   return "";
 }
