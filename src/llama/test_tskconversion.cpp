@@ -59,7 +59,7 @@ SCOPE_TEST(testTskFilesystemFlags) {
   SCOPE_ASSERT_EQUAL("Sequenced, Nanosecond precision", filesystemFlags(3));
 }
 
-SCOPE_TEST(testTskNameTypeLookup) {
+SCOPE_TEST(testTskNameType) {
   using namespace TskUtils;
   SCOPE_ASSERT_EQUAL("Undefined", nameType(0));
   SCOPE_ASSERT_EQUAL("Named Pipe", nameType(1));
@@ -82,7 +82,7 @@ SCOPE_TEST(testTskNameFlags) {
   SCOPE_ASSERT_EQUAL("Deleted", nameFlags(2));
 }
 
-SCOPE_TEST(testTskMetaTypeLookup) {
+SCOPE_TEST(testTskMetaType) {
   // Seriously, same shit as name type, different order
   using namespace TskUtils;
   SCOPE_ASSERT_EQUAL("Undefined", metaType(0));
@@ -571,14 +571,4 @@ SCOPE_TEST(testTskConvertLinuxTimestamps) {
   SCOPE_ASSERT(ts.at("fn_created").is_null());
   SCOPE_ASSERT(ts.at("fn_metadata").is_null());
   SCOPE_ASSERT(ts.at("fn_modified").is_null());
-}
-
-SCOPE_TEST(testTskUtilsExtractString) {
-  using namespace TskUtils;
-  const char*  buf1 = "here is a \0string with a null in it";
-  const char*  buf2 = "here is a cstring without any nulls";
-  unsigned int bufLen = 35;
-
-  SCOPE_ASSERT_EQUAL("here is a ", extractString(buf1, bufLen));
-  SCOPE_ASSERT_EQUAL("here is a cstring without any nulls", extractString(buf2, bufLen));
 }
