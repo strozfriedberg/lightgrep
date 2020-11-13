@@ -259,7 +259,6 @@ jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
 jsoncons::json TskConverter::convertAttrs(const TSK_FS_META& meta) const {
   jsoncons::json jsAttrs(jsoncons::json_array_arg);
 
-//  if ((file.meta->attr_state & TSK_FS_META_ATTR_STUDIED) && file.meta->attr) {
   if (meta.attr) {
     for (const TSK_FS_ATTR* a = meta.attr->head; a; a = a->next) {
       if (a->flags & TSK_FS_ATTR_INUSE) {
@@ -425,10 +424,12 @@ jsoncons::json TskConverter::convertAttr(const TSK_FS_ATTR& attr) const {
   );
 
   if (attr.flags & TSK_FS_ATTR_RES) {
+    // resident
     jsAttr["rd_buf"] = hexEncode(attr.rd.buf, std::min(attr.size, static_cast<int64_t>(attr.rd.buf_size)));
     jsAttr["rd_offset"] = attr.rd.offset;
   }
-  else { // non-resident
+  else {
+    // non-resident
     jsAttr["nrd_allocsize"] = attr.nrd.allocsize;
     jsAttr["nrd_compsize"] = attr.nrd.compsize;
     jsAttr["nrd_initsize"] = attr.nrd.initsize;
