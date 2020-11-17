@@ -127,14 +127,16 @@ jsoncons::json DirConverter::convertAttrs(const fs::directory_entry& de) const {
 }
 
 jsoncons::json DirConverter::convertAttr(const fs::directory_entry& de) const {
+  static const std::string flags = std::string(ATTR_FLAG_INUSE) + ", " + ATTR_FLAG_NONRES;
+
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
-      { "id",    jsoncons::null_type() },
-      { "flags", ATTR_FLAG_INUSE },
-      { "name",  jsoncons::null_type() },
-      { "size",  DirUtils::fileSize(de) },
-      { "type",  ATTR_TYPE_UNKNOWN }
+      { "id",            jsoncons::null_type() },
+      { "flags",         flags },
+      { "name",          jsoncons::null_type() },
+      { "nrd_allocsize", DirUtils::fileSize(de) },
+      { "type",          ATTR_TYPE_UNKNOWN }
     }
   );
 }
