@@ -4,9 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "boost_asio.h"
-#include "options.h"
-
 struct FileRecord;
 
 class OutputWriter {
