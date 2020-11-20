@@ -25,7 +25,6 @@ namespace TskUtils {
   std::string attrFlags(unsigned int flags);
 
   std::string nrdRunFlags(unsigned int flags);
-  std::string hexEncode(const void* str, unsigned int size);
 
   template <class F>
   std::string flagsString(unsigned int flags, const F& fmap) {

@@ -169,23 +169,6 @@ SCOPE_TEST(testTskNrdRunFlags) {
   SCOPE_ASSERT_EQUAL("Sparse", nrdRunFlags(TSK_FS_ATTR_RUN_FLAG_SPARSE));
 }
 
-SCOPE_TEST(testTskConvertHexEncode) {
-  using namespace TskUtils;
-  unsigned char s1[] = {0xFF},
-                s2[] = {0x1c, 0x2d},
-                s3[] = {0x0f, 0xf0, 0x02},
-                s4[] = {0x00, 0x00, 0x00, 0x00},
-                s5[] = {0xE2, 0x49, 0x49, 0x32, 0xCF, 0x01, 0x9D, 0xC8, 0x40, 0x57, 0xF6, 0x48, 0x78, 0x92, 0x6D},
-                s6[] = {0xAE, 0xED, 0x3A, 0xC7, 0x39, 0xD8, 0xFD, 0xDF, 0xCB, 0xD1, 0x91, 0x3B, 0x9E, 0x91, 0xE4};
-
-  SCOPE_ASSERT_EQUAL("ff", hexEncode(s1, 1));
-  SCOPE_ASSERT_EQUAL("1c2d", hexEncode(s2, 2));
-  SCOPE_ASSERT_EQUAL("0ff002", hexEncode(s3, 3));
-  SCOPE_ASSERT_EQUAL("00000000", hexEncode(s4, 4));
-  SCOPE_ASSERT_EQUAL("e2494932cf019dc84057f64878926d", hexEncode(s5, 15));
-  SCOPE_ASSERT_EQUAL("aeed3ac739d8fddfcbd1913b9e91e4", hexEncode(s6, 15));
-}
-
 SCOPE_TEST(testTskConvertNRDs) {
   TSK_FS_ATTR_RUN nrd;
   std::memset(&nrd, 0, sizeof(nrd));
