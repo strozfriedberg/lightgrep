@@ -25,6 +25,10 @@ FieldHash FieldHasher::get_hash() {
   return h;
 } 
 
+void FieldHasher::hash_it(const char* s) {
+  sfhash_update_hasher(Hasher.get(), s, s + std::strlen(s));
+}
+
 void FieldHasher::hash_it(const std::string& s) {
   sfhash_update_hasher(Hasher.get(), s.c_str(), s.c_str() + s.length());
 }
