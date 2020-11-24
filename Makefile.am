@@ -117,7 +117,7 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/searchcontroller.cpp \
 	src/cmd/util.cpp
 	
-src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(GPT_LIBS) $(STDCXX_LIB)
 
 if BUILD_MINGW
 
@@ -205,6 +205,7 @@ test_test_SOURCES = \
 	test/test_rewriter.cpp \
 	test/test_rotencoder.cpp \
 	test/test_search_assertions.cpp \
+	test/test_search_switches.cpp \
 	test/test_search.cpp \
 	test/test_search_data.cpp \
 	test/test_search_data_driver.cpp \
