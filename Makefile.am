@@ -126,7 +126,9 @@ src_llama_llama_SOURCES = \
 	src/llama/cli.cpp \
 	src/llama/dirconversion.cpp \
 	src/llama/dirreader.cpp \
+	src/llama/fieldhasher.cpp \
 	src/llama/filescheduler.cpp \
+	src/llama/hex.cpp \
 	src/llama/inputreader.cpp \
 	src/llama/llama.cpp \
 	src/llama/main.cpp \
@@ -141,8 +143,10 @@ src_llama_llama_SOURCES = \
 	src/llama/test_cli.cpp \
 	src/llama/test_dirconversion.cpp \
 	src/llama/test_dirreader.cpp \
+	src/llama/test_fieldhasher.cpp \
 	src/llama/test_fileproxy.cpp \
 	src/llama/test_filerecord.cpp \
+	src/llama/test_hex.cpp \
 	src/llama/test_processor.cpp \
 	src/llama/test_recordbuffer.cpp \
 	src/llama/test_tskconversion.cpp \

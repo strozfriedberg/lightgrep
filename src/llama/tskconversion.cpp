@@ -6,6 +6,7 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include "hex.h"
 #include "schema.h"
 
 using namespace TskUtils;
@@ -444,41 +445,4 @@ jsoncons::json TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun) const {
       { "offset", dataRun.offset }
     }
   );
-}
-
-// Provide these temporarily until we have sfhash_hex in libhasher
-template <typename C>
-void to_hex(char* dst, C beg, C end) {
-  static constexpr char hex[] {
-    '0', '1', '2', '3', '4', '5', '6', '7',
-    '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
-  };
-
-  for (C c = beg; c != end; ++c) {
-    const uint8_t lo = *c & 0x0F;
-    const uint8_t hi = *c >> 4;
-
-    *dst++ = hex[hi];
-    *dst++ = hex[lo];
-  }
-}
-
-void to_hex(char* dst, const void* src, size_t slen) {
-  to_hex(dst, static_cast<const uint8_t*>(src),
-              static_cast<const uint8_t*>(src) + slen);
-}
-
-void sfhash_hex(char* dst, const void* src, size_t len) {
-  to_hex(dst, static_cast<const uint8_t*>(src),
-              static_cast<const uint8_t*>(src) + len);
-}
-
-std::string hexString(const void* str, unsigned int size) {
-  std::string ret(2 * size, '\0');
-  sfhash_hex(&ret[0], str, size);
-  return ret;
-}
-
-std::string TskUtils::hexEncode(const void* str, unsigned int size) {
-  return hexString(str, size);
 }

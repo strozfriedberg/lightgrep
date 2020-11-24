@@ -1,0 +1,25 @@
+#include <scope/test.h>
+
+#include "fieldhasher.h"
+
+SCOPE_TEST(testHash) {
+  const FieldHash exp{{
+    0x64, 0x06, 0xc6, 0xe2, 0x18, 0xa2, 0x68, 0xe6,
+    0xaf, 0xcf, 0x0b, 0x1d, 0xac, 0x1a, 0x26, 0xb3,
+    0xa4, 0x1d, 0x91, 0x5c, 0xa9, 0xcf, 0x31, 0xdb,
+    0xa8, 0x32, 0x91, 0x96, 0x21, 0xb1, 0x17, 0xef
+  }};
+
+  FieldHasher hasher;
+
+  // piecewise
+  hasher.hash_it(1);
+  hasher.hash_it(26);
+  hasher.hash_it("foo");
+  hasher.hash_it(std::string("bar"));
+  hasher.hash_it(-0.35);
+  SCOPE_ASSERT_EQUAL(exp, hasher.get_hash());
+
+  // all in one go
+  SCOPE_ASSERT_EQUAL(exp, hasher.hash(1, 26, "foo", std::string("bar"), -0.35));
+}
