@@ -4,7 +4,10 @@
 #include <iosfwd>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <type_traits>
+//#include <vector>
+#include <utility>
 
 #include <hasher/api.h>
 
@@ -30,8 +33,9 @@ public:
   FieldHash get_hash();
 
   template <typename... Args>
-  void hash_em(Args&&... args) {
+  FieldHasher& hash_em(Args&&... args) {
     (hash_it(std::forward<Args>(args)), ...);
+    return *this;
   }
 
   template <
@@ -39,12 +43,38 @@ public:
     std::enable_if_t<std::is_arithmetic_v<T>, bool> = true
   >
   void hash_it(T t) {
-    sfhash_update_hasher(Hasher.get(), &t, reinterpret_cast<const uint8_t*>(&t) + sizeof(t));
+    hash_it(&t, reinterpret_cast<const uint8_t*>(&t) + sizeof(t));
+  }
+
+  template <typename T, size_t N>
+  void hash_it(const T(&a)[N]) {
+    hash_it(std::begin(a), std::end(a));
   }
 
   void hash_it(const char* s);
 
   void hash_it(const std::string& s);
+
+  void hash_it(const std::string_view& s);
+
+  template <
+    typename T,
+    std::enable_if_t<std::is_pointer_v<T>, bool> = true
+  >
+  void hash_it(const std::pair<T, T>& p) {
+    hash_it(p.first, p.second);
+  }
+
+  void hash_it(const void* beg, const void* end);
+
+/*
+  template <typename T>
+  void hash_it(const std::vector<T>& v) {
+    for (const auto& e: v) {
+      hash_it(e);
+    }
+  }
+*/
 
 private:
   std::unique_ptr<SFHASH_Hasher, void(*)(SFHASH_Hasher*)> Hasher{

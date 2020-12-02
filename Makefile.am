@@ -137,6 +137,7 @@ src_llama_llama_SOURCES = \
 	src/llama/pooloutputhandler.cpp \
 	src/llama/processor.cpp \
 	src/llama/recordbuffer.cpp \
+	src/llama/recordhasher.cpp \
 	src/llama/schema.cpp \
 	src/llama/tskconversion.cpp \
 	src/llama/tskreader.cpp \
@@ -149,6 +150,7 @@ src_llama_llama_SOURCES = \
 	src/llama/test_hex.cpp \
 	src/llama/test_processor.cpp \
 	src/llama/test_recordbuffer.cpp \
+	src/llama/test_recordhasher.cpp \
 	src/llama/test_tskconversion.cpp \
 	src/llama/test_tskreader.cpp
 
