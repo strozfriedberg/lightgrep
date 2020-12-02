@@ -1,10 +1,5 @@
 #include "recordhasher.h"
 
-#include "jsoncons_wrapper.h"
-#include "records.h"
-
-#include <cstring>
-#include <ostream>
 #include <string_view>
 
 FieldHash RecordHasher::hashRun(const jsoncons::json& r) {
@@ -50,45 +45,3 @@ FieldHash RecordHasher::hashAttr(const jsoncons::json& r) {
     nrds_hash.hash
   );
 }
-
-FieldHash RecordHasher::hash(const RunRecord& r) {
-  return Hasher.hash(r.offset, r.addr, r.len, r.flags);
-}
-
-FieldHash RecordHasher::hash(const StreamRecord& r) {
-  return Hasher.hash(r.id, r.type, r.size, '\0', r.name, '\0', r.flags);
-}
-
-FieldHash RecordHasher::hash(const AttrRecord& r) {
-  const auto stream_hash = hash(r.stream);
-
-  Hasher.reset();
-  for (const auto& rr: r.nrds) {
-    Hasher.hash_em(hash(rr).hash);
-  }
-  const auto nrds_hash = Hasher.get_hash();
-
-  const auto rd_buf_hash = Hasher.hash(std::make_pair(r.rd_buf.get(), r.rd_buf.get() + r.rd_buf_size));
-
-  return Hasher.hash(r.init_size, r.comp_size, rd_buf_hash.hash, r.rd_buf_size, r.skip_len, r.alloc_size, stream_hash.hash, nrds_hash.hash);
-}
-
-/*
-std::string hash(const AttrRecord& r) {
-
-  std::vector<uint8_t> buf;
-
-  r.Doc["stream"]
-  r.Doc["init_size"]
-  r.Doc["comp_size"]
-  r.Doc["rd_buf"]
-  r.Doc["rd_buf_size"]
-  r.Doc["skip_len"]
-  r.Doc["alloc_size"]
-  
-  for (const auto& run : r.Doc["nrds"]) {
-    buf.push_back(hash(run));
-  }
-
-}
-*/
