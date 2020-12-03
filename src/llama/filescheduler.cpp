@@ -43,8 +43,8 @@ std::shared_ptr<Processor> FileScheduler::popProc() {
   // size of the Processor pool.
   std::unique_lock<std::mutex> lock(*ProcMutex);
   while (Processors.empty()) {
-    ProcCV->wait(
-        lock); // Releases mutex inside wait(), but reacquires before returning
+    // Releases mutex inside wait(), but reacquires before returning
+    ProcCV->wait(lock);
   }
   auto batterUp = Processors.back();
   Processors.pop_back();
