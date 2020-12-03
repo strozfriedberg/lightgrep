@@ -26,15 +26,20 @@ FieldHash FieldHasher::get_hash() {
 } 
 
 void FieldHasher::hash_it(const char* s) {
-  hash_it(s, s + std::strlen(s));
+  hash_it_null_terminated(s, s + std::strlen(s));
 }
 
 void FieldHasher::hash_it(const std::string& s) {
-  hash_it(s.data(), s.data() + s.length());
+  hash_it_null_terminated(s.data(), s.data() + s.length());
 }
 
 void FieldHasher::hash_it(const std::string_view& s) {
-  hash_it(s.data(), s.data() + s.length());
+  hash_it_null_terminated(s.data(), s.data() + s.length());
+}
+
+void FieldHasher::hash_it_null_terminated(const void* beg, const void* end) {
+  hash_it(beg, end);
+  hash_it('\0');
 }
 
 void FieldHasher::hash_it(const void* beg, const void* end) {

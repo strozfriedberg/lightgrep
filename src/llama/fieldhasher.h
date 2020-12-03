@@ -21,6 +21,16 @@ std::ostream& operator<<(std::ostream&, const FieldHash& r);
 
 class FieldHasher {
 public:
+  FieldHasher() = default;
+
+  FieldHasher(const FieldHasher&) = delete;
+  
+  FieldHasher(FieldHasher&&) = default;
+
+  FieldHasher& operator=(const FieldHasher&) = delete;
+
+  FieldHasher& operator=(FieldHasher&&) = default;
+
   template <typename...Args>
   FieldHash hash(Args&&... args) {
     reset();
@@ -37,6 +47,10 @@ public:
     (hash_it(std::forward<Args>(args)), ...);
     return *this;
   }
+
+  FieldHasher& push();
+
+  FieldHasher& pop(); 
 
   template <
     typename T,
@@ -57,6 +71,7 @@ public:
 
   void hash_it(const std::string_view& s);
 
+/*
   template <
     typename T,
     std::enable_if_t<std::is_pointer_v<T>, bool> = true
@@ -64,13 +79,16 @@ public:
   void hash_it(const std::pair<T, T>& p) {
     hash_it(p.first, p.second);
   }
+*/
+
+  void hash_it_null_terminated(const void* beg, const void* end);
 
   void hash_it(const void* beg, const void* end);
 
 /*
-  template <typename T>
-  void hash_it(const std::vector<T>& v) {
-    for (const auto& e: v) {
+  template <typename C>
+  auto hash_it(const C& c) -> decltype(std::cbegin(c), std::cend(c), void()) {
+    for (const auto& e: c) {
       hash_it(e);
     }
   }

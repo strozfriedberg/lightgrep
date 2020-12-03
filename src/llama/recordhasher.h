@@ -2,6 +2,7 @@
 
 #include "fieldhasher.h"
 #include "jsoncons_wrapper.h"
+#include "treehasher.h"
 
 class RecordHasher {
 public:
@@ -11,6 +12,12 @@ public:
 
   FieldHash hashAttr(const jsoncons::json& r);
 
+  FieldHash hashInode(const jsoncons::json& r);
+
+  FieldHash hashPath(const jsoncons::json& r);
+
+  FieldHash hashDirent(const jsoncons::json& r);
+
 private:
-  FieldHasher Hasher;
+  TreeHasher Hasher;
 };

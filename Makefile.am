@@ -139,6 +139,7 @@ src_llama_llama_SOURCES = \
 	src/llama/recordbuffer.cpp \
 	src/llama/recordhasher.cpp \
 	src/llama/schema.cpp \
+	src/llama/treehasher.cpp \
 	src/llama/tskconversion.cpp \
 	src/llama/tskreader.cpp \
 	src/llama/test_cli.cpp \
