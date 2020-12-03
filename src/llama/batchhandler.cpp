@@ -18,6 +18,7 @@ void BatchHandler::push(FileRecord&& f) {
 }
 
 void BatchHandler::flush() {
+// FIXME: should move the batch, don't need a shared_ptr
   if (!CurBatch->empty()) {
     Sink->scheduleFileBatch(CurBatch);
     resetCurBatch();

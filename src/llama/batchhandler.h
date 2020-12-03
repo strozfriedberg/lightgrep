@@ -9,8 +9,10 @@ class BatchHandler: public InputHandler {
 public:
   BatchHandler(std::shared_ptr<FileScheduler> sink);
 
+// FIXME: should the dtor flush?
   virtual ~BatchHandler() {}
 
+// FIXME: would like a varargs emplace version too
   virtual void push(FileRecord&& f) override;
 
   virtual void flush() override;
