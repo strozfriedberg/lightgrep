@@ -10,7 +10,7 @@ class OutputWriter {
 public:
   virtual ~OutputWriter() {}
 
-  virtual void outputFile(const FileRecord& rec) = 0;
+  virtual void outputDirent(const FileRecord& rec) = 0;
 
   virtual void outputInode(const FileRecord& rec) = 0;
   virtual void outputInodes(const std::shared_ptr<std::vector<FileRecord>>& batch) = 0;

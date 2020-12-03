@@ -16,7 +16,7 @@ public:
     close();
   }
 
-  virtual void outputFile(const FileRecord& rec) override;
+  virtual void outputDirent(const FileRecord& rec) override;
 
   virtual void outputInode(const FileRecord& rec) override {
   }

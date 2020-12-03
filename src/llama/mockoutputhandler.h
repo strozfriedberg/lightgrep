@@ -6,12 +6,12 @@ class MockOutputHandler: public OutputHandler {
 public:
   virtual ~MockOutputHandler() {}
 
-  virtual void outputFile(const FileRecord& rec) override {
-    OutFiles.push_back(rec);
+  virtual void outputDirent(const FileRecord& rec) override {
+    Dirents.push_back(rec);
   }
 
   virtual void outputInode(const FileRecord& rec) override {
-    Received.push_back(rec);
+    Inodes.push_back(rec);
   }
 
   virtual void outputInodes(const std::shared_ptr<std::vector<FileRecord>>& batch) override {
@@ -26,6 +26,6 @@ public:
 
   virtual void close() override {}
 
-  std::vector<FileRecord> OutFiles;
-  std::vector<FileRecord> Received;
+  std::vector<FileRecord> Dirents;
+  std::vector<FileRecord> Inodes;
 };

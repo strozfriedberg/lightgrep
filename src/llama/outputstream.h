@@ -8,7 +8,7 @@ class OutputStream: public OutputWriter {
 public:
   OutputStream(std::ostream& os): os(os) {}
 
-  virtual void outputFile(const FileRecord& rec) override;
+  virtual void outputDirent(const FileRecord& rec) override;
 
   virtual void outputInode(const FileRecord& rec) override;
   virtual void outputInodes(const std::shared_ptr<std::vector<FileRecord>>& batch) override;

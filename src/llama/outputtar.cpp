@@ -52,7 +52,7 @@ OutputTar::OutputTar(const std::string& path, Codec codec):
   archive_write_open_filename(Archive.get(), Path.c_str());
 }
 
-void OutputTar::outputFile(const FileRecord& rec) {
+void OutputTar::doOutput(const FileRecord& rec) {
   // std::cerr << "Adding " << rec.Path << " to output tarball" << std::endl;
   auto entry = make_unique_del(archive_entry_new(), archive_entry_free);
 
@@ -63,4 +63,12 @@ void OutputTar::outputFile(const FileRecord& rec) {
   archive_write_header(Archive.get(), entry.get());
 
   archive_write_data(Archive.get(), rec._data.c_str(), rec._data.size());
+}
+
+void OutputTar::outputDirent(const FileRecord& rec) {
+  doOutput(rec);
+}
+
+void OutputTar::outputInode(const FileRecord& rec) {
+  doOutput(rec);
 }

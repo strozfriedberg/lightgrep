@@ -4,11 +4,12 @@
 
 #include <ostream>
 
-void OutputStream::outputFile(const FileRecord& rec) {
+void OutputStream::outputDirent(const FileRecord& rec) {
   os << rec._data;
 }
 
 void OutputStream::outputInode(const FileRecord& rec) {
+  os << rec._data;
 }
 
 void OutputStream::outputInodes(const std::shared_ptr<std::vector<FileRecord>>& batch) {

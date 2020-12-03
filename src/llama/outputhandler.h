@@ -10,7 +10,7 @@ class OutputHandler {
 public:
   virtual ~OutputHandler() {}
 
-  virtual void outputFile(const FileRecord& rec) = 0;
+  virtual void outputDirent(const FileRecord& rec) = 0;
 
   virtual void outputInode(const FileRecord& rec) = 0;
 
@@ -21,4 +21,4 @@ public:
   virtual void outputSearchHits(const std::vector<std::string>& batch) = 0;
 
   virtual void close() = 0;
-};
+}
