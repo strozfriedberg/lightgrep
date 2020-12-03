@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stack>
 #include <vector>
 
 #include <tsk/libtsk.h>
@@ -53,4 +54,6 @@ private:
            InumEnd;
 
   TskConverter Conv;
+
+  std::stack<TSK_INUM_T> Path;
 };
