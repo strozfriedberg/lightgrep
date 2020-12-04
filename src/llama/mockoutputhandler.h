@@ -27,7 +27,6 @@ public:
   virtual void close() override {}
 
   std::vector<FileRecord> OutFiles; // TODO: remove
-  std::vector<FileRecord> Received; // TODO: remove
   std::vector<FileRecord> Dirents;
   std::vector<FileRecord> Inodes;
 };

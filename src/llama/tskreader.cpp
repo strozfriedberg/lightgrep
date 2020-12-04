@@ -97,6 +97,16 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
   // ridiculous bullshit to force attrs to be populated
   tsk_fs_file_attr_get_idx(fs_file, 0);
 
+  if (fs_file->name) {
+    while (!Path.empty() && fs_file->name->par_addr != Path.top()) {
+      std::cerr << Path.top() << " done\n";
+      Path.pop();
+    }
+    Path.push(fs_file->meta->addr);
+
+    std::cerr << fs_file->name->par_addr << " -> " << Path.top() << '\n';
+  }
+
 /*
   if (fs_file->name) {
     std::cerr << fs_file->name->par_addr << " -> " << fs_file->meta->addr;
@@ -107,34 +117,10 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
   std::cerr << '\n';
 */
 
-  while (!Path.empty() && fs_file->name->par_addr != Path.top()) {
-    std::cerr << Path.top() << " done\n";
-    Path.pop();
-  }
-  Path.push(fs_file->meta->addr);
+  Input->push(Conv.convertMeta(*fs_file->meta, fs_file->fs_info->ftype));
 
   if (fs_file->name) {
-    std::cerr << fs_file->name->par_addr << " -> " << Path.top() << '\n';
+    Output->outputDirent(Conv.convertName(*fs_file->name));
   }
-
-/*
-  if (Path.empty()) {
-    Path.push(fs_file->meta->addr);
-    std::cerr << Path.top() << '\n';
-  }
-  else {
-    while (fs_file->name->par_addr != Path.top()) {
-      std::cerr << Path.top() << " done\n";
-      Path.pop();
-    }
-    Path.push(fs_file->meta->addr);
-    std::cerr << fs_file->name->par_addr << " -> " << Path.top() << '\n';
-  }
-*/
-
-  
-  Input->push(Conv.convertMeta(*fs_file->meta, fs_file->fs_info->ftype));
-  Output->outputDirent(Conv.convertName(*fs_file->name));
-
   return true;
 }

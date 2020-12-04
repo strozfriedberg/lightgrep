@@ -36,6 +36,7 @@ SCOPE_TEST(testInodeDedupe) {
   TSK_FS_META meta;
   std::memset(&meta, 0, sizeof(meta));
   meta.attr = &alist;
+  meta.attr_state = TSK_FS_META_ATTR_STUDIED; // make TSK happy
   meta.link = const_cast<char*>("");
 
   TSK_FS_FILE myFile;
@@ -49,12 +50,12 @@ SCOPE_TEST(testInodeDedupe) {
   meta.addr = 8;
   SCOPE_ASSERT(reader.addToBatch(&myFile));
   SCOPE_ASSERT_EQUAL(1u, in->batch.size());
-  SCOPE_ASSERT_EQUAL(8u, in->batch.back().Doc["meta"]["addr"]);
+  SCOPE_ASSERT_EQUAL(8u, in->batch.back().Doc["addr"]);
 
   meta.addr = 9;
   SCOPE_ASSERT(reader.addToBatch(&myFile));
   SCOPE_ASSERT_EQUAL(2u, in->batch.size());
-  SCOPE_ASSERT_EQUAL(9u, in->batch.back().Doc["meta"]["addr"]);
+  SCOPE_ASSERT_EQUAL(9u, in->batch.back().Doc["addr"]);
 
   meta.addr = 8; // dupe!
   SCOPE_ASSERT(!reader.addToBatch(&myFile));
