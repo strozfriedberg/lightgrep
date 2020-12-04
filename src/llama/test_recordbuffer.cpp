@@ -9,7 +9,7 @@
 
 SCOPE_TEST(testRecordBufferFlush) {
   MockOutputHandler mock;
-  RecordBuffer r("my-recs", 10u, mock);
+  RecordBuffer r("my-recs", 10u, [&mock](const FileRecord& f){ mock.OutFiles.push_back(f); });
 
   r.write("whatever"); // will also write a \n
   SCOPE_ASSERT_EQUAL(9u, r.size());
@@ -31,7 +31,7 @@ SCOPE_TEST(testRecordBufferFlush) {
 
 SCOPE_TEST(testRecordBufferOutput) {
   MockOutputHandler mock;
-  RecordBuffer r("recs/my-recs", 1u, mock);
+  RecordBuffer r("recs/my-recs", 1u, [&mock](const FileRecord& f){ mock.OutFiles.push_back(f); });
   r.write("a record");
   r.flush();
   SCOPE_ASSERT_EQUAL(1u, mock.OutFiles.size());
@@ -41,7 +41,7 @@ SCOPE_TEST(testRecordBufferOutput) {
 
 SCOPE_TEST(testRecordBufferDirectAccess) {
   MockOutputHandler mock;
-  RecordBuffer r("your-recs", 10u, mock);
+  RecordBuffer r("your-recs", 10u, [&mock](const FileRecord& f){ mock.OutFiles.push_back(f); });
 
   r.get() << "whatever\n";
   SCOPE_ASSERT_EQUAL(9u, r.size());
@@ -51,7 +51,7 @@ SCOPE_TEST(testRecordBufferDirectAccess) {
 SCOPE_TEST(testRecordBufferDestructor) {
   MockOutputHandler mock;
   {
-    RecordBuffer r("my-recs", 10u, mock);
+    RecordBuffer r("my-recs", 10u, [&mock](const FileRecord& f){ mock.OutFiles.push_back(f); });
     r.write("whatever");
     SCOPE_ASSERT_EQUAL(0u, mock.OutFiles.size());;
   }

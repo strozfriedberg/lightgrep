@@ -12,7 +12,8 @@ public:
     MainStrand(pool.get_executor()),
     RecStrand(pool.get_executor()),
     Out(out),
-    InodesRecBuf("recs/inodes", 16 * 1024 * 1024, *this),
+    InodesRecBuf("recs/inodes", 16 * 1024 * 1024, [this](const FileRecord& f) {  Out->outputInode(f); }),
+    DirentsRecBuf("recs/dirents", 16 * 1024 * 1024, [this](const FileRecord& f) {  Out->outputDirent(f); }),
     Closed(false)
   {}
 
@@ -20,7 +21,7 @@ public:
     close();
   }
 
-  virtual void outputFile(const FileRecord& rec) override;
+  virtual void outputDirent(const FileRecord& rec) override;
 
   virtual void outputInode(const FileRecord& rec) override;
 
@@ -39,6 +40,7 @@ private:
   std::shared_ptr<OutputWriter> Out;
 
   RecordBuffer InodesRecBuf;
+  RecordBuffer DirentsRecBuf;
 
   bool Closed;
 };

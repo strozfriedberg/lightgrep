@@ -64,6 +64,7 @@ void Llama::search() {
     auto inh = std::shared_ptr<InputHandler>(new BatchHandler(scheduler));
 
     Input->setInputHandler(inh);
+    Input->setOutputHandler(outh);
 
     if (!Input->startReading()) {
       std::cerr << "startReading returned an error" << std::endl;

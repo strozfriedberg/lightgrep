@@ -2,6 +2,7 @@
 
 #include "filerecord.h"
 #include "inputhandler.h"
+#include "outputhandler.h"
 
 #include <filesystem>
 #include <iostream>
@@ -16,6 +17,10 @@ DirReader::DirReader(const std::string& path):
 
 void DirReader::setInputHandler(std::shared_ptr<InputHandler> in) {
   Input = in;
+}
+
+void DirReader::setOutputHandler(std::shared_ptr<OutputHandler> out) {
+  Output = out;
 }
 
 bool DirReader::startReading() {

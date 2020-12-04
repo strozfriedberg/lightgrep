@@ -15,6 +15,8 @@ public:
 
   virtual void setInputHandler(std::shared_ptr<InputHandler> in) override;
 
+  virtual void setOutputHandler(std::shared_ptr<OutputHandler> in) override;
+
   virtual bool startReading() override;
 
   void handleFile(const std::filesystem::directory_entry& de);
@@ -23,6 +25,7 @@ private:
   std::string Root;
 
   std::shared_ptr<InputHandler> Input;
+  std::shared_ptr<OutputHandler> Output;
 
   DirConverter Conv;
 };

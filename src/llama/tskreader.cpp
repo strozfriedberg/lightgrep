@@ -2,6 +2,7 @@
 
 #include "filerecord.h"
 #include "inputhandler.h"
+#include "outputhandler.h"
 
 TSKReader::TSKReader(const std::string& imgName) :
   ImgName(imgName),
@@ -31,12 +32,21 @@ void TSKReader::setInputHandler(std::shared_ptr<InputHandler> in) {
   Input = in;
 }
 
+void TSKReader::setOutputHandler(std::shared_ptr<OutputHandler> out) {
+  Output = out;
+}
+
 bool TSKReader::startReading() {
   // tell TskAuto to start giving files to processFile
   // std::cerr << "Image is " << getImageSize() << " bytes in size" << std::endl;
   const bool ret = recurseDisk();
   // std::cerr << "recurseDisk returned " << ret;
   if (ret) {
+    while (!Path.empty()) {
+      std::cerr << Path.top() << " done\n";
+      Path.pop();
+    }
+
     // teardown
     Input->flush();
   }
@@ -77,11 +87,54 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
 //  const uint64_t index = fs_file->meta->addr - InumBegin;
   const uint64_t index = fs_file->meta->addr;
 
+//  std::cerr << fs_file->meta->addr << ' ' << InumBegin << ' ' << index << ' ' << InodeEncountered.size() << std::endl;
+
   if (InodeEncountered[index]) {
     return false;
   }
-
   InodeEncountered[index] = true;
-  Input->push(Conv.convertFile(*fs_file));
+
+  // ridiculous bullshit to force attrs to be populated
+  tsk_fs_file_attr_get_idx(fs_file, 0);
+
+/*
+  if (fs_file->name) {
+    std::cerr << fs_file->name->par_addr << " -> " << fs_file->meta->addr;
+  }
+  else {
+    std::cerr << << fs_file->meta->addr;
+  }
+  std::cerr << '\n';
+*/
+
+  while (!Path.empty() && fs_file->name->par_addr != Path.top()) {
+    std::cerr << Path.top() << " done\n";
+    Path.pop();
+  }
+  Path.push(fs_file->meta->addr);
+
+  if (fs_file->name) {
+    std::cerr << fs_file->name->par_addr << " -> " << Path.top() << '\n';
+  }
+
+/*
+  if (Path.empty()) {
+    Path.push(fs_file->meta->addr);
+    std::cerr << Path.top() << '\n';
+  }
+  else {
+    while (fs_file->name->par_addr != Path.top()) {
+      std::cerr << Path.top() << " done\n";
+      Path.pop();
+    }
+    Path.push(fs_file->meta->addr);
+    std::cerr << fs_file->name->par_addr << " -> " << Path.top() << '\n';
+  }
+*/
+
+  
+  Input->push(Conv.convertMeta(*fs_file->meta, fs_file->fs_info->ftype));
+  Output->outputDirent(Conv.convertName(*fs_file->name));
+
   return true;
 }

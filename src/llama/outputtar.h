@@ -18,22 +18,17 @@ public:
 
   virtual void outputDirent(const FileRecord& rec) override;
 
-  virtual void outputInode(const FileRecord& rec) override {
-  }
-
-  virtual void outputInodes(const std::shared_ptr<std::vector<FileRecord>>& batch) override {
-  }
+  virtual void outputInode(const FileRecord& rec) override;
 
   virtual void outputSearchHit(const std::string&) override {
-  }
-
-  virtual void outputSearchHits(const std::vector<std::string>& batch) override {
   }
 
   virtual void close() override {
   }
 
 private:
+  void doOutput(const FileRecord& rec);
+
   std::string Path;
 
   std::shared_ptr<archive> Archive;

@@ -22,6 +22,8 @@ public:
 
   virtual void setInputHandler(std::shared_ptr<InputHandler> in) override;
 
+  virtual void setOutputHandler(std::shared_ptr<OutputHandler> in) override;
+
   virtual bool startReading() override;
 
   // recurseDisk wraps TskAuto::findFilesInImg(). Override to replace/mock.
@@ -45,6 +47,7 @@ private:
   std::string ImgName;
 
   std::shared_ptr<InputHandler> Input;
+  std::shared_ptr<OutputHandler> Output;
 
   const TSK_FS_INFO* LastFS;
 

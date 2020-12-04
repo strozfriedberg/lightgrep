@@ -200,23 +200,6 @@ std::string TskUtils::nrdRunFlags(unsigned int flags) {
   return "";
 }
 
-jsoncons::json TskConverter::convertFile(TSK_FS_FILE& file) {
-  // ridiculous bullshit to force attrs to be populated
-  tsk_fs_file_attr_get_idx(&file, 0);
-
-  jsoncons::json doc(jsoncons::json_object_arg);
-
-  if (file.meta) {
-    doc["meta"] = convertMeta(*file.meta, file.fs_info->ftype);
-  }
-
-  if (file.name) {
-    doc["name"] = convertName(*file.name);
-  }
-
-  return doc;
-}
-
 jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
   return jsoncons::json(
     jsoncons::json_object_arg,
@@ -235,6 +218,9 @@ jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
 }
 
 jsoncons::json TskConverter::convertAttrs(const TSK_FS_META& meta) const {
+  // NB: attrs must be populated before this is called; TSK can be forced
+  // to do this by calling tsk_fs_file_attr_get_idx(fs_file, 0) first.
+
   jsoncons::json jsAttrs(jsoncons::json_array_arg);
 
   if (meta.attr) {

@@ -6,8 +6,16 @@
 #include <iomanip>
 #include <iostream>
 
-RecordBuffer::RecordBuffer(const std::string& basePath, unsigned int flushBufSize, OutputHandler& out):
-  Buf(), BasePath(basePath), FlushSize(flushBufSize), CurSize(0), Num(0), Out(out) {}
+RecordBuffer::RecordBuffer(
+  const std::string& basePath,
+  unsigned int flushBufSize,
+  std::function<void(const FileRecord&)> output
+):
+  Buf(),
+  BasePath(basePath),
+  FlushSize(flushBufSize),
+  CurSize(0),
+  Num(0), Out(output) {}
 
 RecordBuffer::~RecordBuffer() {
   if (size()) {
@@ -31,8 +39,8 @@ void RecordBuffer::flush() {
   rec.Size = size();
   rec.Path = pathBuf.str();
 
-  // std::cerr << "RecordBuffer flushing " << rec.Path << " (" << rec.Size << " bytes)" << std::endl;
-  Out.outputFile(rec);
+  std::cerr << "RecordBuffer flushing " << rec.Path << " (" << rec.Size << " bytes)" << std::endl;
+  Out(rec);
   Buf.str("");
 }
 

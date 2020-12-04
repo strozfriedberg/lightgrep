@@ -58,8 +58,6 @@ public:
 // TODO: check how slow using stringstreams is
 // TODO: check if it would be faster to use the streaming API
 
-  jsoncons::json convertFile(TSK_FS_FILE& file);
-
   jsoncons::json convertName(const TSK_FS_NAME& name) const;
   jsoncons::json convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType);
   jsoncons::json convertAttrs(const TSK_FS_META& meta) const;

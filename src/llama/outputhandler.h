@@ -21,4 +21,4 @@ public:
   virtual void outputSearchHits(const std::vector<std::string>& batch) = 0;
 
   virtual void close() = 0;
-}
+};
