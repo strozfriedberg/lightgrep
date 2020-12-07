@@ -4,7 +4,7 @@
 #include "filerecord.h"
 #include "mockoutputhandler.h"
 
-#include <hasher.h>
+#include <hasher/api.h>
 #include <scope/test.h>
 
 #include <vector>

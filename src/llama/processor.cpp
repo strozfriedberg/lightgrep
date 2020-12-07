@@ -1,6 +1,6 @@
 #include "processor.h"
 
-#include <hasher.h>
+#include <hasher/api.h>
 
 #include "filerecord.h"
 #include "outputhandler.h"
@@ -12,7 +12,7 @@ const LG_ContextOptions ctxOpts{0, 0};
 Processor::Processor(const std::shared_ptr<ProgramHandle>& prog):
    LgProg(prog),
    Ctx(prog.get() ? lg_create_context(prog.get(), &ctxOpts): nullptr, lg_destroy_context),
-   Hasher(sfhash_create_hasher(MD5 | SHA1 | SHA256 | FUZZY | ENTROPY), sfhash_destroy_hasher)
+   Hasher(sfhash_create_hasher(SFHASH_MD5 | SFHASH_SHA_1 | SFHASH_SHA_2_256 | SFHASH_BLAKE3 | SFHASH_FUZZY | SFHASH_ENTROPY), sfhash_destroy_hasher)
 {
 }
 
