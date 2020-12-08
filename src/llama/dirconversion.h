@@ -18,8 +18,6 @@ namespace DirUtils {
 
 class DirConverter {
 public:
-  jsoncons::json convertDirectoryEntry(const fs::directory_entry& de) const;
-
   jsoncons::json convertMeta(const fs::directory_entry& de) const;
   jsoncons::json convertName(const fs::directory_entry& de) const;
   jsoncons::json convertAttrs(const fs::directory_entry& de) const;

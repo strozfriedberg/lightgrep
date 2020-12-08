@@ -77,16 +77,6 @@ fs::file_time_type DirUtils::mtime(const fs::directory_entry& de) {
 }
 */
 
-jsoncons::json DirConverter::convertDirectoryEntry(const fs::directory_entry& de) const {
-  return jsoncons::json(
-    jsoncons::json_object_arg,
-    {
-      { "meta", convertMeta(de) },
-      { "name", convertName(de) }
-    }
-  );
-}
-
 jsoncons::json DirConverter::convertMeta(const fs::directory_entry& de) const {
   static const std::string flags = std::string(META_FLAG_ALLOC) + ", " + META_FLAG_USED;
 
