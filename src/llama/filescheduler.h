@@ -34,7 +34,6 @@ private:
 
   std::vector<std::shared_ptr<Processor>> Processors;
 
-  std::unique_ptr<std::mutex> ProcMutex;
-
-  std::unique_ptr<std::condition_variable> ProcCV;
+  std::mutex ProcMutex;
+  std::condition_variable ProcCV;
 };
