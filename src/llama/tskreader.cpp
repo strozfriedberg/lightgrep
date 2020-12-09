@@ -16,10 +16,6 @@ TSKReader::TSKReader(const std::string& imgName):
 {
 }
 
-TSKReader::~TSKReader() {
-  std::cerr << "~TSKReader " << "Fs.size() == " << Fs.size() << std::endl;
-}
-
 bool TSKReader::open() {
   const char* nameHolder = ImgName.c_str();
   Img = make_unique_del(

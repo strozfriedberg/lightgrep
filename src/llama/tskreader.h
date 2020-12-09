@@ -17,7 +17,7 @@ class TSKReader: public InputReader {
 public:
   TSKReader(const std::string& imgName);
 
-  virtual ~TSKReader();
+  virtual ~TSKReader() {}
 
   bool open();
 
