@@ -1,15 +1,15 @@
 #include "outputstream.h"
 
-#include "filerecord.h"
+#include "outputchunk.h"
 
 #include <ostream>
 
-void OutputStream::outputDirent(const FileRecord& rec) {
-  os << rec._data;
+void OutputStream::outputDirent(const OutputChunk& c) {
+  os << c.data;
 }
 
-void OutputStream::outputInode(const FileRecord& rec) {
-  os << rec._data;
+void OutputStream::outputInode(const OutputChunk& c) {
+  os << c.data;
 }
 
 void OutputStream::outputSearchHit(const std::string& hit) {

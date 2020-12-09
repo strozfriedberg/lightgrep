@@ -23,7 +23,7 @@ FieldHash FieldHasher::get_hash() {
   FieldHash h;
   std::memcpy(&h.hash, &Hashes.Blake3, sizeof(h.hash));
   return h;
-} 
+}
 
 void FieldHasher::hash_it(const char* s) {
   hash_it_null_terminated(s, s + std::strlen(s));

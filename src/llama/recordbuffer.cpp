@@ -1,6 +1,6 @@
 #include "recordbuffer.h"
 
-#include "filerecord.h"
+#include "outputchunk.h"
 #include "outputhandler.h"
 
 #include <iomanip>
@@ -9,7 +9,7 @@
 RecordBuffer::RecordBuffer(
   const std::string& basePath,
   unsigned int flushBufSize,
-  std::function<void(const FileRecord&)> output
+  std::function<void(const OutputChunk&)> output
 ):
   Buf(),
   BasePath(basePath),
@@ -34,13 +34,10 @@ void RecordBuffer::flush() {
   ++Num;
   std::stringstream pathBuf;
   pathBuf << BasePath << '-' << std::setfill('0') << std::setw(4) << Num << ".jsonl";
-  FileRecord rec;
-  rec._data = Buf.str();
-  rec.Size = size();
-  rec.Path = pathBuf.str();
+  OutputChunk c{size(), pathBuf.str(), Buf.str()};
 
-  std::cerr << "RecordBuffer flushing " << rec.Path << " (" << rec.Size << " bytes)" << std::endl;
-  Out(rec);
+  std::cerr << "RecordBuffer flushing " << c.path << " (" << c.size << " bytes)" << std::endl;
+  Out(c);
   Buf.str("");
 }
 

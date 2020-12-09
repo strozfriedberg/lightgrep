@@ -4,6 +4,7 @@
 #include "outputhandler.h"
 #include "recordbuffer.h"
 
+class OutputChunk;
 class OutputWriter;
 
 class PoolOutputHandler: public OutputHandler {
@@ -12,8 +13,8 @@ public:
     MainStrand(pool.get_executor()),
     RecStrand(pool.get_executor()),
     Out(out),
-    InodesRecBuf("recs/inodes", 16 * 1024 * 1024, [this](const FileRecord& f) {  Out->outputInode(f); }),
-    DirentsRecBuf("recs/dirents", 16 * 1024 * 1024, [this](const FileRecord& f) {  Out->outputDirent(f); }),
+    InodesRecBuf("recs/inodes", 16 * 1024 * 1024, [this](const OutputChunk& c) {  Out->outputInode(c); }),
+    DirentsRecBuf("recs/dirents", 16 * 1024 * 1024, [this](const OutputChunk& c) {  Out->outputDirent(c); }),
     Closed(false)
   {}
 

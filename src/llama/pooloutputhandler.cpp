@@ -5,13 +5,13 @@
 void PoolOutputHandler::outputDirent(const FileRecord& rec) {
 /*
   if (Closed) {
-    // we might still have some records in FileRecBuf, but the 
+    // we might still have some records in FileRecBuf, but the
     // threadpool has gone away and the MainStrand can no longer be
     // posted to, so just call into the function directly.
     Out->outputDirent(rec);
   }
   else {
-    boost::asio::post(MainStrand, [=](){ 
+    boost::asio::post(MainStrand, [=](){
       Out->outputDirent(rec);
     });
   }

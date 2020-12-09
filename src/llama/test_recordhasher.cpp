@@ -48,7 +48,7 @@ SCOPE_TEST(testHashStream) {
     0xc6, 0x83, 0x64, 0xd7, 0x80, 0x56, 0x52, 0x24
   }};
 
-  SCOPE_ASSERT_EQUAL(exp, hasher.hashStream(r));  
+  SCOPE_ASSERT_EQUAL(exp, hasher.hashStream(r));
 }
 
 SCOPE_TEST(testHashAttr) {
@@ -101,7 +101,7 @@ SCOPE_TEST(testHashAttr) {
 
   const uint8_t buf[20] = { 0xFE };
 
-  const jsoncons::json r = jsoncons::json( 
+  const jsoncons::json r = jsoncons::json(
     jsoncons::json_object_arg,
     {
       { "stream", sr },
@@ -111,10 +111,10 @@ SCOPE_TEST(testHashAttr) {
       { "rd_buf", hexEncode(buf, sizeof(buf)) },
       { "skip_len", 5 },
       { "alloc_size", 6 },
-      { "nrds", nrds } 
+      { "nrds", nrds }
     }
   );
- 
+
   const FieldHash exp{{
     0x91, 0x1c, 0x38, 0xe6, 0x84, 0x69, 0x98, 0xc3,
     0xac, 0xaf, 0xef, 0x58, 0xf0, 0x2e, 0xc1, 0xfc,
@@ -122,7 +122,7 @@ SCOPE_TEST(testHashAttr) {
     0x01, 0x51, 0xfb, 0x44, 0x7f, 0x8d, 0x37, 0x54
   }};
 
-  SCOPE_ASSERT_EQUAL(exp, hasher.hashAttr(r));  
+  SCOPE_ASSERT_EQUAL(exp, hasher.hashAttr(r));
 }
 
 SCOPE_TEST(testHashInode) {
@@ -180,7 +180,7 @@ SCOPE_TEST(testHashInode) {
     0x49, 0x45, 0xee, 0xf2, 0x3d, 0x39, 0xcf, 0x9c
   }};
 
-  SCOPE_ASSERT_EQUAL(exp, hasher.hashInode(r));  
+  SCOPE_ASSERT_EQUAL(exp, hasher.hashInode(r));
 }
 
 SCOPE_TEST(testHashPath) {
@@ -200,7 +200,7 @@ SCOPE_TEST(testHashPath) {
     0x49, 0x45, 0xee, 0xf2, 0x3d, 0x39, 0xcf, 0x9c
   }};
 
-  SCOPE_ASSERT_EQUAL(exp, hasher.hashPath(r));  
+  SCOPE_ASSERT_EQUAL(exp, hasher.hashPath(r));
 }
 
 SCOPE_TEST(testHashDirent) {
@@ -212,7 +212,7 @@ SCOPE_TEST(testHashDirent) {
   "flags": "",
   "path_id": "ed3cd7003653d8512b71d473a56127c558be82a1e057ba595fb406d10bbcc0b6" ,
   "streams": [
-    "33328c75c5a0856fe73a66d0a7501dd7c860bbbbb9c334854945eef23d39cf9c", 
+    "33328c75c5a0856fe73a66d0a7501dd7c860bbbbb9c334854945eef23d39cf9c",
     "8f3a29581a930c5f89698e819e40c8edf08391d5bb0ca8664b62291cbe30686f"
   ],
   "children": [

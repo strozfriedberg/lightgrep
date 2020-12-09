@@ -23,7 +23,7 @@
 
 #include <tsk/libtsk.h>
 
-#include <hasher.h>
+#include <hasher/api.h>
 
 namespace fs = std::filesystem;
 

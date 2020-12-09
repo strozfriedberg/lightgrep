@@ -20,10 +20,10 @@ public:
                 const std::shared_ptr<OutputHandler>& output,
                 const std::shared_ptr<Options>& opts);
 
-  void scheduleFileBatch(const std::shared_ptr<std::vector<FileRecord>>& batch);
+  void scheduleFileBatch(std::shared_ptr<std::vector<FileRecord>> batch);
 
 private:
-  void performScheduling(const std::shared_ptr<std::vector<FileRecord>>& batch);
+  void performScheduling(std::shared_ptr<std::vector<FileRecord>> batch);
 
   std::shared_ptr<Processor> popProc();
   void pushProc(const std::shared_ptr<Processor>& proc);

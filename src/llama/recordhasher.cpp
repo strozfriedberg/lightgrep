@@ -40,7 +40,7 @@ FieldHash RecordHasher::hashAttr(const jsoncons::json& r) {
     Hasher.hash_em(hashRun(run).hash);
   }
 
-  return Hasher.get_hash(); 
+  return Hasher.get_hash();
 }
 
 FieldHash RecordHasher::hashInode(const jsoncons::json& r) {
@@ -69,7 +69,7 @@ FieldHash RecordHasher::hashInode(const jsoncons::json& r) {
     Hasher.hash_em(hashAttr(attr).hash);
   }
 
-  return Hasher.get_hash(); 
+  return Hasher.get_hash();
 }
 
 FieldHash RecordHasher::hashPath(const jsoncons::json& r) {

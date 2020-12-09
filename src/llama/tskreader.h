@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+#include <memory>
 #include <stack>
 #include <vector>
 
@@ -9,16 +11,15 @@
 #include "tskconversion.h"
 
 class InputHandler;
+class OutputHandler;
 
-class TSKReader : public InputReader, public TskAuto {
+class TSKReader: public InputReader {
 public:
   TSKReader(const std::string& imgName);
 
-  virtual ~TSKReader() {}
+  virtual ~TSKReader();
 
   bool open();
-
-  void setInumRange(uint64_t begin, uint64_t end);
 
   virtual void setInputHandler(std::shared_ptr<InputHandler> in) override;
 
@@ -31,20 +32,21 @@ public:
 
   bool addToBatch(TSK_FS_FILE* fs_file);
 
-  //
-  // from TskAuto
-  //
-  virtual TSK_RETVAL_ENUM processFile(TSK_FS_FILE* fs_file,
-                                      const char* path) override;
+  void setInumRange(uint64_t begin, uint64_t end);
 
-  virtual TSK_FILTER_ENUM filterVs(const TSK_VS_INFO* vs_info) override;
+  // callbacks
+  TSK_FILTER_ENUM filterVs(const TSK_VS_INFO* vs_info);
 
-  virtual TSK_FILTER_ENUM filterVol(const TSK_VS_PART_INFO* vs_part) override;
+  TSK_FILTER_ENUM filterVol(const TSK_VS_PART_INFO* vs_part);
 
-  virtual TSK_FILTER_ENUM filterFs(TSK_FS_INFO* fs_info) override;
+  TSK_FILTER_ENUM filterFs(TSK_FS_INFO* fs_info);
+
+  TSK_RETVAL_ENUM processFile(TSK_FS_FILE* fs_file, const char* path);
 
 private:
   std::string ImgName;
+  std::unique_ptr<TSK_IMG_INFO, void(*)(TSK_IMG_INFO*)> Img;
+  std::map<TSK_OFF_T, std::unique_ptr<TSK_FS_INFO, void(*)(TSK_FS_INFO*)>> Fs;
 
   std::shared_ptr<InputHandler> Input;
   std::shared_ptr<OutputHandler> Output;

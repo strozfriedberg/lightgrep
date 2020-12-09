@@ -131,6 +131,7 @@ src_llama_llama_SOURCES = \
 	src/llama/hex.cpp \
 	src/llama/inputreader.cpp \
 	src/llama/llama.cpp \
+	src/llama/llamatskauto.cpp \
 	src/llama/main.cpp \
 	src/llama/outputstream.cpp \
 	src/llama/outputtar.cpp \

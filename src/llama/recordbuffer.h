@@ -5,14 +5,14 @@
 #include <sstream>
 #include <string>
 
-class FileRecord;
+class OutputChunk;
 
 class RecordBuffer {
 public:
   RecordBuffer(
     const std::string& basePath,
     unsigned int flushBufSize,
-    std::function<void(const FileRecord&)> output
+    std::function<void(const OutputChunk&)> output
   );
 
   ~RecordBuffer();
@@ -36,5 +36,5 @@ private:
                CurSize,
                Num;
 
-  std::function<void(const FileRecord&)> Out;
+  std::function<void(const OutputChunk&)> Out;
 };

@@ -10,7 +10,7 @@ class HasherHolder {
 public:
   HasherHolder(TreeHasher& th);
 
-  ~HasherHolder(); 
+  ~HasherHolder();
 
 private:
   TreeHasher& th;
@@ -21,7 +21,7 @@ public:
   TreeHasher() = default;
 
   TreeHasher(const TreeHasher&) = delete;
-  
+
   TreeHasher(TreeHasher&&) = default;
 
   TreeHasher& operator=(const TreeHasher&) = delete;
@@ -43,7 +43,7 @@ public:
     InUse.top().reset();
     Spares.push(std::move(InUse.top()));
     InUse.pop();
-    return InUse.top();  
+    return InUse.top();
   }
 
   template <typename...Args>

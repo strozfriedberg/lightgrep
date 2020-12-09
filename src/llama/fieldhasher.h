@@ -24,7 +24,7 @@ public:
   FieldHasher() = default;
 
   FieldHasher(const FieldHasher&) = delete;
-  
+
   FieldHasher(FieldHasher&&) = default;
 
   FieldHasher& operator=(const FieldHasher&) = delete;
@@ -38,7 +38,7 @@ public:
     return get_hash();
   }
 
-  void reset(); 
+  void reset();
 
   FieldHash get_hash();
 
@@ -50,7 +50,7 @@ public:
 
   FieldHasher& push();
 
-  FieldHasher& pop(); 
+  FieldHasher& pop();
 
   template <
     typename T,

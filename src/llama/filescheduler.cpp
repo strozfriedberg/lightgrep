@@ -16,21 +16,24 @@ FileScheduler::FileScheduler(boost::asio::thread_pool& pool,
   }
 }
 
-void FileScheduler::scheduleFileBatch(const std::shared_ptr<std::vector<FileRecord>>& batch) {
-  // lambda [=] means the batch is copied, not shared, between threads
-  boost::asio::post(Strand, [=]() { performScheduling(batch); });
+void FileScheduler::scheduleFileBatch(std::shared_ptr<std::vector<FileRecord>> batch) {
+  boost::asio::post(
+    Strand,
+    [this, batch{std::move(batch)}]() { performScheduling(batch); }
+  );
 }
 
-void FileScheduler::performScheduling(const std::shared_ptr<std::vector<FileRecord>>& batch) {
+void FileScheduler::performScheduling(std::shared_ptr<std::vector<FileRecord>> batch) {
   // check scratch location capacity and other stuff here
   // this is useful work that can be done on a separate thread from TSK
   // traversal
 
-  Output->outputInodes(batch);
+//  Output->outputInodes(batch);
+
   // then post for multithreaded processing
   auto proc = popProc(); // blocks
   boost::asio::post(Pool, [=]() {
-    for (auto rec : *batch) {
+    for (auto& rec : *batch) {
       proc->process(rec, *Output);
     }
     this->pushProc(proc);

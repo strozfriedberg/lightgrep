@@ -16,9 +16,9 @@ public:
     close();
   }
 
-  virtual void outputDirent(const FileRecord& rec) override;
+  virtual void outputDirent(const OutputChunk& c) override;
 
-  virtual void outputInode(const FileRecord& rec) override;
+  virtual void outputInode(const OutputChunk& c) override;
 
   virtual void outputSearchHit(const std::string&) override {
   }
@@ -27,7 +27,7 @@ public:
   }
 
 private:
-  void doOutput(const FileRecord& rec);
+  void doOutput(const OutputChunk& c);
 
   std::string Path;
 

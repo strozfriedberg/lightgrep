@@ -40,6 +40,16 @@ bool DirReader::startReading() {
 }
 
 void DirReader::handleFile(const fs::directory_entry& de) {
-  std::cerr << de.path() << '\n';
-  Input->push(FileRecord(Conv.convertDirectoryEntry(de)));
+  const auto& p = de.path();
+
+  std::cerr << p << '\n';
+
+  Input->push({
+    Conv.convertMeta(de),
+    de.is_directory() ?
+      std::static_pointer_cast<BlockSequence>(std::make_shared<EmptyBlockSequence>()) :
+      std::static_pointer_cast<BlockSequence>(std::make_shared<FileBlockSequence>(p.string()))
+  });
+
+  Output->outputDirent(Conv.convertName(de));
 }
