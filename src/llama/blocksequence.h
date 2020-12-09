@@ -9,6 +9,8 @@
 
 #include <tsk/libtsk.h>
 
+// TODO: Move these classes to their own files
+
 class BlockSequence {
 public:
   virtual ~BlockSequence() {}
