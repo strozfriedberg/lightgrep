@@ -12,7 +12,8 @@ TSKReader::TSKReader(const std::string& imgName):
   Input(),
   Output(),
   LastFS(nullptr),
-  Conv()
+  Conv(),
+  Ass()
 {
 }
 
@@ -35,6 +36,8 @@ void TSKReader::setOutputHandler(std::shared_ptr<OutputHandler> out) {
 }
 
 bool TSKReader::startReading() {
+  Ass.addImage(TskConverter::convertImg(*Img));
+
   // tell TskAuto to start giving files to processFile
   // std::cerr << "Image is " << getImageSize() << " bytes in size" << std::endl;
   const bool ret = recurseDisk();
@@ -44,6 +47,8 @@ bool TSKReader::startReading() {
       std::cerr << Path.top() << " done\n";
       Path.pop();
     }
+
+    Output->outputImage(Ass.dump());
 
     // teardown
     Input->flush();
@@ -64,14 +69,17 @@ bool TSKReader::recurseDisk() {
 }
 
 TSK_FILTER_ENUM TSKReader::filterVs(const TSK_VS_INFO* vs_info) {
+  Ass.addVolumeSystem(TskConverter::convertVS(*vs_info));
   return TSK_FILTER_CONT;
 }
 
 TSK_FILTER_ENUM TSKReader::filterVol(const TSK_VS_PART_INFO* vs_part) {
+  Ass.addVolume(TskConverter::convertVol(*vs_part));
   return TSK_FILTER_CONT;
 }
 
 TSK_FILTER_ENUM TSKReader::filterFs(TSK_FS_INFO* fs_info) {
+  Ass.addFileSystem(TskConverter::convertFS(*fs_info));
   return TSK_FILTER_CONT;
 }
 

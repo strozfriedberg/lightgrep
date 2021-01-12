@@ -13,14 +13,17 @@ public:
     MainStrand(pool.get_executor()),
     RecStrand(pool.get_executor()),
     Out(out),
-    InodesRecBuf("recs/inodes", 16 * 1024 * 1024, [this](const OutputChunk& c) {  Out->outputInode(c); }),
-    DirentsRecBuf("recs/dirents", 16 * 1024 * 1024, [this](const OutputChunk& c) {  Out->outputDirent(c); }),
+    ImageRecBuf("recs/image", 4 * 1024, [this](const OutputChunk& c) { Out->outputImage(c); }),
+    InodesRecBuf("recs/inodes", 16 * 1024 * 1024, [this](const OutputChunk& c) { Out->outputInode(c); }),
+    DirentsRecBuf("recs/dirents", 16 * 1024 * 1024, [this](const OutputChunk& c) { Out->outputDirent(c); }),
     Closed(false)
   {}
 
   virtual ~PoolOutputHandler() {
     close();
   }
+
+  virtual void outputImage(const FileRecord& rec) override;
 
   virtual void outputDirent(const FileRecord& rec) override;
 
@@ -40,6 +43,7 @@ private:
 
   std::shared_ptr<OutputWriter> Out;
 
+  RecordBuffer ImageRecBuf;
   RecordBuffer InodesRecBuf;
   RecordBuffer DirentsRecBuf;
 

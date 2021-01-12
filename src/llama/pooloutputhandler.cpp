@@ -2,6 +2,10 @@
 #include "outputwriter.h"
 #include "pooloutputhandler.h"
 
+void PoolOutputHandler::outputImage(const FileRecord& rec) {
+  ImageRecBuf.write(rec.str());
+}
+
 void PoolOutputHandler::outputDirent(const FileRecord& rec) {
 /*
   if (Closed) {
@@ -47,11 +51,18 @@ void PoolOutputHandler::outputSearchHits(const std::vector<std::string>& batch) 
 
 void PoolOutputHandler::close() {
   Closed = true;
+
+  if (ImageRecBuf.size()) {
+    ImageRecBuf.flush();
+  }
+
   if (DirentsRecBuf.size()) {
     DirentsRecBuf.flush();
   }
+
   if (InodesRecBuf.size()) {
     InodesRecBuf.flush();
   }
+
   Out->close();
 }

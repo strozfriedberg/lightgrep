@@ -169,6 +169,107 @@ SCOPE_TEST(testTskNrdRunFlags) {
   SCOPE_ASSERT_EQUAL("Sparse", nrdRunFlags(TSK_FS_ATTR_RUN_FLAG_SPARSE));
 }
 
+SCOPE_TEST(testTskFileSystemID) {
+  using namespace TskUtils;
+  const uint8_t id[] = { 0xDE, 0xAD, 0xBE, 0xEF };
+  SCOPE_ASSERT_EQUAL("deadbeef", filesystemID(id, sizeof(id), false));
+  SCOPE_ASSERT_EQUAL("efbeadde", filesystemID(id, sizeof(id), true));
+}
+
+SCOPE_TEST(testTskConvertFS) {
+  TSK_FS_INFO fs;
+  std::memset(&fs, 0, sizeof(fs));
+
+  fs.offset = 1;
+  fs.inum_count = 2;
+  fs.root_inum = 3;
+  fs.first_inum = 4;
+  fs.last_inum = 5;
+  fs.block_count = 6;
+  fs.first_block = 7;
+  fs.last_block = 8;
+  fs.block_size = 9;
+  fs.dev_bsize = 10;
+  fs.block_pre_size = 11;
+  fs.block_post_size = 12;
+  fs.journ_inum = 13;
+  fs.ftype = TSK_FS_TYPE_FAT16;
+  fs.duname = "whatever";
+  fs.flags = static_cast<TSK_FS_INFO_FLAG_ENUM>(TSK_FS_INFO_FLAG_HAVE_SEQ | TSK_FS_INFO_FLAG_HAVE_NANOSEC);
+  SCOPE_ASSERT(8 <= TSK_FS_INFO_FS_ID_LEN);
+  fs.fs_id[0] = 0x01;
+  fs.fs_id[1] = 0x23;
+  fs.fs_id[2] = 0x45;
+  fs.fs_id[3] = 0x67;
+  fs.fs_id[4] = 0x89;
+  fs.fs_id[5] = 0xAB;
+  fs.fs_id[6] = 0xCD;
+  fs.fs_id[7] = 0xEF;
+  fs.fs_id_used = 8;
+  fs.endian = TSK_BIG_ENDIAN;
+
+  TskConverter conv;
+  const jsoncons::json js = conv.convertFS(fs);
+  const std::string expected = "{\"blockName\":\"whatever\",\"blockSize\":9,\"byteOffset\":1,\"deviceBlockSize\":10,\"firstBlock\":7,\"firstInum\":4,\"flags\":\"Sequenced, Nanosecond precision\",\"fsID\":\"0123456789abcdef\",\"journalInum\":13,\"lastBlock\":8,\"lastBlockAct\":0,\"lastInum\":5,\"littleEndian\":false,\"numBlocks\":6,\"numInums\":2,\"rootInum\":3,\"type\":\"fat16\"}";
+  const std::string actual = js.as<std::string>();
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(testTskConvertVol) {
+  TSK_VS_PART_INFO vol;
+  std::memset(&vol, 0, sizeof(vol));
+
+  vol.start = 1;
+  vol.len = 11; // this volume goes to 11
+  vol.desc = const_cast<char*>("TURN IT UP");
+  vol.table_num = 2;
+  vol.slot_num = 3;
+  vol.addr = 4;
+  vol.flags = TSK_VS_PART_FLAG_META;
+
+  TskConverter conv;
+  const jsoncons::json js = conv.convertVol(vol);
+  const std::string expected = "{\"addr\":4,\"description\":\"TURN IT UP\",\"flags\":\"Volume System\",\"numBlocks\":11,\"slotNum\":3,\"startBlock\":1,\"tableNum\":2}";
+  const std::string actual = js.as<std::string>();
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(testTskConvertVS) {
+  TSK_VS_INFO vs;
+  std::memset(&vs, 0, sizeof(vs));
+
+  vs.vstype = TSK_VS_TYPE_BSD;
+  vs.is_backup = 1;
+  vs.offset = 2;
+  vs.block_size = 3;
+  vs.endian = TSK_BIG_ENDIAN;
+  vs.part_count = 4;
+
+  TskConverter conv;
+  const jsoncons::json js = conv.convertVS(vs);
+  const std::string expected = "{\"blockSize\":3,\"description\":\"BSD Disk Label\",\"numVolumes\":4,\"offset\":2,\"type\":\"BSD\",\"volumes\":[]}";
+  const std::string actual = js.as<std::string>();
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
+SCOPE_TEST(testTskConvertImg) {
+  TSK_IMG_INFO img;
+  std::memset(&img, 0, sizeof(img));
+
+  img.itype = TSK_IMG_TYPE_EWF_EWF;
+  img.size = 1;
+  img.num_img = 2;
+  img.sector_size = 3;
+  img.page_size = 4;
+  img.spare_size = 5;
+
+  TskConverter conv;
+  const jsoncons::json js = conv.convertImg(img);
+  const std::string expected = "{\"description\":\"Expert Witness Format (EnCase)\",\"sectorSize\":3,\"size\":1,\"type\":\"ewf\"}";
+  const std::string actual = js.as<std::string>();
+  SCOPE_ASSERT_EQUAL(expected, actual);
+}
+
 SCOPE_TEST(testTskConvertNRDs) {
   TSK_FS_ATTR_RUN nrd;
   std::memset(&nrd, 0, sizeof(nrd));
@@ -178,8 +279,8 @@ SCOPE_TEST(testTskConvertNRDs) {
   nrd.offset = 17;
   nrd.flags  = TSK_FS_ATTR_RUN_FLAG_SPARSE;
 
-  TskConverter munge;
-  const jsoncons::json js = munge.convertNRDR(nrd);
+  TskConverter conv;
+  const jsoncons::json js = conv.convertNRDR(nrd);
   const std::string expected = "{\"addr\":15,\"flags\":\"Sparse\",\"len\":3045,\"offset\":17}";
   const std::string actual = js.as<std::string>();
   SCOPE_ASSERT_EQUAL(expected, actual);
@@ -204,8 +305,8 @@ SCOPE_TEST(testTskConvertAttrRes) {
   std::memset(&attr, 0, sizeof(attr));
   setResAttr(attr);
 
-  TskConverter munge;
-  const jsoncons::json js = munge.convertAttr(attr);
+  TskConverter conv;
+  const jsoncons::json js = conv.convertAttr(attr);
   SCOPE_ASSERT_EQUAL(1, js["id"]);
   SCOPE_ASSERT_EQUAL("In Use, Resident", js["flags"]);
   SCOPE_ASSERT_EQUAL("$DATA", js["name"]);
@@ -281,8 +382,8 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
   std::memset(&attr, 0, sizeof(attr));
   setNonresAttr(attr, nrd1, nrd2);
 
-  TskConverter munge;
-  const jsoncons::json js = munge.convertAttr(attr);
+  TskConverter conv;
+  const jsoncons::json js = conv.convertAttr(attr);
   testNonresAttr(js);
 }
 
@@ -337,8 +438,8 @@ SCOPE_TEST(testTskMetaConvert) {
 
   // meta.name2 = "SHRTNM~2";
 
-  TskConverter munge;
-  jsoncons::json js = munge.convertMeta(meta, fstype);
+  TskConverter conv;
+  jsoncons::json js = conv.convertMeta(meta, fstype);
 
   SCOPE_ASSERT_EQUAL(17, js["addr"]);
   SCOPE_ASSERT_EQUAL("Deleted", js["flags"]);
@@ -370,7 +471,7 @@ SCOPE_TEST(testTskMetaConvert) {
   SCOPE_ASSERT(js.at("fn_modified").is_null());
 
   meta.link = nullptr;
-  js = munge.convertMeta(meta, fstype);
+  js = conv.convertMeta(meta, fstype);
   SCOPE_ASSERT_EQUAL("", js["link"]);
 }
 
@@ -389,8 +490,8 @@ SCOPE_TEST(testTskNameConvert) {
   name.type = TSK_FS_NAME_TYPE_SOCK;
   name.flags = TSK_FS_NAME_FLAG_ALLOC;
 
-  TskConverter munge;
-  const jsoncons::json js = munge.convertName(name);
+  TskConverter conv;
+  const jsoncons::json js = conv.convertName(name);
 
   SCOPE_ASSERT_EQUAL("woowoowoo", js["name"]);
   SCOPE_ASSERT_EQUAL("WOOWOO~1", js["shrt_name"]);
@@ -417,8 +518,8 @@ SCOPE_TEST(testTskConvertTimestamps) {
 
   jsoncons::json ts;
 
-  TskConverter munge;
-  munge.convertTimestamps(meta, TSK_FS_TYPE_DETECT, ts);
+  TskConverter conv;
+  conv.convertTimestamps(meta, TSK_FS_TYPE_DETECT, ts);
 }
 
 SCOPE_TEST(testTskConvertEpochBeginningIsNull) {
@@ -436,8 +537,8 @@ SCOPE_TEST(testTskConvertEpochBeginningIsNull) {
 
   jsoncons::json ts;
 
-  TskConverter munge;
-  munge.convertTimestamps(meta, TSK_FS_TYPE_DETECT, ts);
+  TskConverter conv;
+  conv.convertTimestamps(meta, TSK_FS_TYPE_DETECT, ts);
   // basic four are good
   SCOPE_ASSERT(ts.at("accessed").is_null());
   SCOPE_ASSERT_EQUAL("1970-01-01 00:00:01", ts.at("created"));
@@ -469,8 +570,8 @@ SCOPE_TEST(testTskConvertNTFSTimestamps) {
 
   jsoncons::json ts;
 
-  TskConverter munge;
-  munge.convertTimestamps(meta, TSK_FS_TYPE_NTFS, ts);
+  TskConverter conv;
+  conv.convertTimestamps(meta, TSK_FS_TYPE_NTFS, ts);
   // basic four are good
   SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"), "accessed");
   SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"), "created");
@@ -504,8 +605,8 @@ SCOPE_TEST(testTskConvertMacTimestamps) {
 
   jsoncons::json ts;
 
-  TskConverter munge;
-  munge.convertTimestamps(meta, TSK_FS_TYPE_HFS, ts);
+  TskConverter conv;
+  conv.convertTimestamps(meta, TSK_FS_TYPE_HFS, ts);
   // basic four are good
   SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"), "accessed");
   SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"), "created");
@@ -539,8 +640,8 @@ SCOPE_TEST(testTskConvertLinuxTimestamps) {
 
   jsoncons::json ts;
 
-  TskConverter munge;
-  munge.convertTimestamps(meta, TSK_FS_TYPE_EXT4, ts);
+  TskConverter conv;
+  conv.convertTimestamps(meta, TSK_FS_TYPE_EXT4, ts);
   // basic four are good
   SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", ts.at("accessed"), "accessed");
   SCOPE_ASSERT_EQUAL("1970-01-01 08:42:17.1234564", ts.at("created"), "created");
@@ -554,4 +655,123 @@ SCOPE_TEST(testTskConvertLinuxTimestamps) {
   SCOPE_ASSERT(ts.at("fn_created").is_null());
   SCOPE_ASSERT(ts.at("fn_metadata").is_null());
   SCOPE_ASSERT(ts.at("fn_modified").is_null());
+}
+
+SCOPE_TEST(testTskImgAssemblerAddImgVolumeSystemVolumeFS) {
+  TskImgAssembler ass;
+
+  ass.addImage(jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "a", "I'm an Image" }
+    }
+  ));
+
+  ass.addVolumeSystem(jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "b", "I'm a Volume System" },
+      { "volumes", jsoncons::json(jsoncons::json_array_arg) }
+    }
+  ));
+
+  ass.addVolume(jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "c", "I'm Volume 1" }
+    }
+  ));
+
+  ass.addFileSystem(jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "d", "I'm a File System" }
+    }
+  ));
+
+  ass.addVolume(jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "e", "I'm Volume 2" }
+    }
+  ));
+
+  const jsoncons::json exp(
+    jsoncons::json_object_arg,
+    {
+      { "a", "I'm an Image" },
+      {
+        "volumeSystem", jsoncons::json(
+          jsoncons::json_object_arg,
+          {
+            { "b", "I'm a Volume System" },
+            {
+              "volumes", jsoncons::json(
+                jsoncons::json_array_arg,
+                {
+                  jsoncons::json(
+                    jsoncons::json_object_arg,
+                    {
+                      { "c", "I'm Volume 1" },
+                      {
+                        "fileSystem", jsoncons::json(
+                          jsoncons::json_object_arg,
+                          {
+                            { "d", "I'm a File System" }
+                          }
+                        )
+                      }
+                    }
+                  ),
+                  jsoncons::json(
+                    jsoncons::json_object_arg,
+                    {
+                      { "e", "I'm Volume 2" }
+                    }
+                  )
+                }
+              )
+            }
+          }
+        )
+      }
+    }
+  );
+
+  SCOPE_ASSERT_EQUAL(exp, ass.dump());
+}
+
+SCOPE_TEST(testTskImgCollectorAddImgFS) {
+  TskImgAssembler ass;
+
+  ass.addImage(jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "a", "I'm an Image" }
+    }
+  ));
+
+  ass.addFileSystem(jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "b", "I'm a File System" }
+    }
+  ));
+
+  const jsoncons::json exp(
+    jsoncons::json_object_arg,
+    {
+      { "a", "I'm an Image" },
+      {
+        "fileSystem", jsoncons::json(
+          jsoncons::json_object_arg,
+          {
+            { "b", "I'm a File System" }
+          }
+        )
+      }
+    }
+  );
+
+  SCOPE_ASSERT_EQUAL(exp, ass.dump());
 }

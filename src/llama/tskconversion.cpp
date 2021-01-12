@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <iterator>
 #include <utility>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -198,6 +199,23 @@ std::string TskUtils::nrdRunFlags(unsigned int flags) {
     return ATTR_RUN_FLAG_SPARSE;
   }
   return "";
+}
+
+std::string TskUtils::filesystemID(const uint8_t* id, size_t len, bool le) {
+  if (le) {
+    // FIXME: wtf, this came from fsrip, but is it really correct that the
+    // endianness applies to the fs id?!
+
+    // little-endian filesystem, reverse the id
+    const std::vector<uint8_t> v(
+      std::make_reverse_iterator(id + len),
+      std::make_reverse_iterator(id)
+    );
+    return hexEncode(v.data(), v.data() + len);
+  }
+  else {
+    return hexEncode(id, len);
+  }
 }
 
 jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
@@ -431,4 +449,97 @@ jsoncons::json TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun) const {
       { "offset", dataRun.offset }
     }
   );
+}
+
+jsoncons::json TskConverter::convertImg(const TSK_IMG_INFO& img) {
+  return jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "type", tsk_img_type_toname(img.itype) },
+      { "description", tsk_img_type_todesc(img.itype) },
+      { "size", img.size },
+      { "sectorSize", img.sector_size }
+    }
+  );
+}
+
+jsoncons::json TskConverter::convertVS(const TSK_VS_INFO& vs) {
+  return jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "type", volumeSystemType(vs.vstype) },
+      { "description", tsk_vs_type_todesc(vs.vstype) },
+      { "blockSize", vs.block_size },
+      { "numVolumes", vs.part_count },
+      { "offset", vs.offset },
+      { "volumes", jsoncons::json(jsoncons::json_array_arg) }
+    }
+  );
+}
+
+jsoncons::json TskConverter::convertVol(const TSK_VS_PART_INFO& vol) {
+  return jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "addr", vol.addr },
+      { "description", vol.desc },
+      { "flags", volumeFlags(vol.flags) },
+      { "numBlocks", vol.len },
+      { "slotNum", vol.slot_num },
+      { "startBlock", vol.start },
+      { "tableNum", vol.table_num }
+    }
+  );
+}
+
+jsoncons::json TskConverter::convertFS(const TSK_FS_INFO& fs) {
+  const bool littleEndian = fs.endian == TSK_LIT_ENDIAN;
+
+  return jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "numBlocks", fs.block_count },
+      { "blockSize", fs.block_size },
+      { "deviceBlockSize", fs.dev_bsize },
+      { "blockName", fs.duname },
+      { "littleEndian", littleEndian },
+      { "firstBlock", fs.first_block },
+      { "firstInum", fs.first_inum },
+      { "flags", filesystemFlags(fs.flags) },
+      { "fsID", filesystemID(fs.fs_id, fs.fs_id_used, littleEndian) },
+      { "type", tsk_fs_type_toname(fs.ftype) },
+      { "journalInum", fs.journ_inum },
+      { "numInums", fs.inum_count },
+      { "lastBlock", fs.last_block },
+      { "lastBlockAct", fs.last_block_act },
+      { "lastInum", fs.last_inum },
+      { "byteOffset", fs.offset },
+      { "rootInum", fs.root_inum }
+    }
+  );
+}
+
+void TskImgAssembler::addImage(jsoncons::json&& img) {
+  Doc = std::move(img);
+}
+
+void TskImgAssembler::addVolumeSystem(jsoncons::json&& vs) {
+  Doc["volumeSystem"] = std::move(vs);
+}
+
+void TskImgAssembler::addVolume(jsoncons::json&& vol) {
+  Doc["volumeSystem"]["volumes"].push_back(std::move(vol));
+}
+
+void TskImgAssembler::addFileSystem(jsoncons::json&& fs) {
+  // The fs goes in the last volume added, or directly into the image if
+  // there is no volume system.
+  auto i = Doc.find("volumeSystem");
+  auto& fs_parent = i == Doc.object_range().end() ? Doc :
+    *(i->value()["volumes"].array_range().rbegin());
+  fs_parent["fileSystem"] = std::move(fs);
+}
+
+jsoncons::json TskImgAssembler::dump() {
+  return std::move(Doc);
 }

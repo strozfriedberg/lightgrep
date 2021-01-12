@@ -6,6 +6,9 @@ class DummyOutputHandler: public OutputHandler {
 public:
   virtual ~DummyOutputHandler() {}
 
+  virtual void outputImage(const FileRecord& rec) override {
+  }
+
   virtual void outputDirent(const FileRecord& rec) override {
   }
 

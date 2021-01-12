@@ -8,6 +8,8 @@ class OutputStream: public OutputWriter {
 public:
   OutputStream(std::ostream& os): os(os) {}
 
+  virtual void outputImage(const OutputChunk& c) override;
+
   virtual void outputDirent(const OutputChunk& c) override;
 
   virtual void outputInode(const OutputChunk& c) override;

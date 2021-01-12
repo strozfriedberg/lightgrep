@@ -59,6 +59,7 @@ private:
            InumEnd;
 
   TskConverter Conv;
+  TskImgAssembler Ass;
 
   std::stack<TSK_INUM_T> Path;
 };

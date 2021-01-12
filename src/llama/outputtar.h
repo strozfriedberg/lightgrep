@@ -16,6 +16,8 @@ public:
     close();
   }
 
+  virtual void outputImage(const OutputChunk& c) override;
+
   virtual void outputDirent(const OutputChunk& c) override;
 
   virtual void outputInode(const OutputChunk& c) override;
@@ -28,6 +30,7 @@ public:
 
 private:
   void doOutput(const OutputChunk& c);
+  void doOutput(const char* path, const char* data, size_t len);
 
   std::string Path;
 

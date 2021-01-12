@@ -4,6 +4,10 @@
 
 #include <ostream>
 
+void OutputStream::outputImage(const OutputChunk& c) {
+  os << c.data;
+}
+
 void OutputStream::outputDirent(const OutputChunk& c) {
   os << c.data;
 }

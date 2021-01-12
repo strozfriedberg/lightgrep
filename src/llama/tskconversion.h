@@ -14,6 +14,7 @@ namespace TskUtils {
   std::string volumeFlags(unsigned int flags);
 
   std::string filesystemFlags(unsigned int flags);
+  std::string filesystemID(const uint8_t* id, size_t len, bool le);
 
   std::string nameType(unsigned int type);
   std::string nameFlags(unsigned int flags);
@@ -58,6 +59,11 @@ public:
 // TODO: check how slow using stringstreams is
 // TODO: check if it would be faster to use the streaming API
 
+  static jsoncons::json convertImg(const TSK_IMG_INFO& img);
+  static jsoncons::json convertVS(const TSK_VS_INFO& vs);
+  static jsoncons::json convertVol(const TSK_VS_PART_INFO& vol);
+  static jsoncons::json convertFS(const TSK_FS_INFO& fs);
+
   jsoncons::json convertName(const TSK_FS_NAME& name) const;
   jsoncons::json convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType);
   jsoncons::json convertAttrs(const TSK_FS_META& meta) const;
@@ -76,4 +82,17 @@ private:
 
   std::ostringstream NanoBuf,
                      RdBuf;
+};
+
+class TskImgAssembler {
+public:
+  void addImage(jsoncons::json&& img);
+  void addVolumeSystem(jsoncons::json&& vs);
+  void addVolume(jsoncons::json&& vol);
+  void addFileSystem(jsoncons::json&& fs);
+
+  jsoncons::json dump();
+
+private:
+  jsoncons::json Doc;
 };

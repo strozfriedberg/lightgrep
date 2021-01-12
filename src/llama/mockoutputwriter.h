@@ -9,6 +9,10 @@ class MockOutputWriter: public OutputWriter {
 public:
   virtual ~MockOutputWriter() {}
 
+  virtual void outputImage(const OutputChunk& c) override {
+    Images.push_back(c);
+  }
+
   virtual void outputDirent(const OutputChunk& c) override {
      Dirents.push_back(c);
   }
@@ -22,6 +26,7 @@ public:
   virtual void close() override {}
 
   std::vector<OutputChunk> OutFiles; // TODO: remove
+  std::vector<OutputChunk> Images;
   std::vector<OutputChunk> Dirents;
   std::vector<OutputChunk> Inodes;
 };

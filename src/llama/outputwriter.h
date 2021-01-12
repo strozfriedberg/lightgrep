@@ -10,6 +10,8 @@ class OutputWriter {
 public:
   virtual ~OutputWriter() {}
 
+  virtual void outputImage(const OutputChunk& c) = 0;
+
   virtual void outputDirent(const OutputChunk& c) = 0;
 
   virtual void outputInode(const OutputChunk& c) = 0;

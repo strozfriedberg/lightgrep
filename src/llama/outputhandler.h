@@ -10,6 +10,8 @@ class OutputHandler {
 public:
   virtual ~OutputHandler() {}
 
+  virtual void outputImage(const FileRecord& rec) = 0;
+
   virtual void outputDirent(const FileRecord& rec) = 0;
 
   virtual void outputInode(const FileRecord& rec) = 0;

@@ -6,6 +6,10 @@ class MockOutputHandler: public OutputHandler {
 public:
   virtual ~MockOutputHandler() {}
 
+  virtual void outputImage(const FileRecord& rec) override {
+    Images.push_back(rec);
+  }
+
   virtual void outputDirent(const FileRecord& rec) override {
     Dirents.push_back(rec);
   }
@@ -27,6 +31,7 @@ public:
   virtual void close() override {}
 
   std::vector<FileRecord> OutFiles; // TODO: remove
+  std::vector<FileRecord> Images;
   std::vector<FileRecord> Dirents;
   std::vector<FileRecord> Inodes;
 };
