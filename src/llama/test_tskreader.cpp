@@ -10,7 +10,7 @@
 SCOPE_TEST(testInodeDedupe) {
   TSKReader reader("not_an_image.E01");
 
-  reader.setInumRange(0, 20);
+  reader.setInodeRange(0, 20);
 
   TSK_FS_ATTR attrRes;
   std::memset(&attrRes, 0, sizeof(attrRes));

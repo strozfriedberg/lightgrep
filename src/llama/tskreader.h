@@ -32,7 +32,13 @@ public:
 
   bool addToBatch(TSK_FS_FILE* fs_file);
 
-  void setInumRange(uint64_t begin, uint64_t end);
+  void setInodeRange(uint64_t begin, uint64_t end);
+
+  void setBlockRange(uint64_t begin, uint64_t end);
+
+  bool markInodeSeen(uint64_t inum);
+
+  void claimBlockRange(uint64_t begin, uint64_t end);
 
   // callbacks
   TSK_FILTER_ENUM filterVs(const TSK_VS_INFO* vs_info);
@@ -57,6 +63,11 @@ private:
 
   uint64_t InumBegin,
            InumEnd;
+
+  std::vector<bool> Allocated;
+
+  uint64_t BlockBegin,
+           BlockEnd;
 
   TskConverter Conv;
   TskImgAssembler Ass;

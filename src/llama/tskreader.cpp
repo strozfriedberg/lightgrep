@@ -87,13 +87,21 @@ TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* path) {
   // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
   if (fs_file->fs_info != LastFS) {
     LastFS = fs_file->fs_info;
-    setInumRange(LastFS->first_inum, LastFS->last_inum);
+    setInodeRange(LastFS->first_inum, LastFS->last_inum);
   }
   addToBatch(fs_file);
   return TSK_OK;
 }
 
-void TSKReader::setInumRange(uint64_t begin, uint64_t end) {
+void TSKReader::setBlockRange(uint64_t begin, uint64_t end) {
+// FIXME: unclear if we can rely on end - begin + 1 to be the actual count
+  BlockBegin = begin;
+  BlockEnd = end;
+  Allocated.clear();
+  Allocated.resize(end+1);
+}
+
+void TSKReader::setInodeRange(uint64_t begin, uint64_t end) {
   InumBegin = begin;
   InumEnd = end;
 // FIXME: Apparently "first_inum" is first in some way other than the usual
@@ -101,7 +109,20 @@ void TSKReader::setInumRange(uint64_t begin, uint64_t end) {
 // there. WTF? For the time being, just waste a few bits at the start of the
 // encountered vector.
 //  InodeEncountered.resize(end - begin);
+
+  InodeEncountered.clear();
   InodeEncountered.resize(end+1);
+}
+
+bool TSKReader::markInodeSeen(uint64_t inum) {
+  // TODO: bounds checking? inum could be bogus
+  if (InodeEncountered[inum]) {
+    return true;
+  }
+  else {
+    InodeEncountered[inum] = true;
+    return false;
+  }
 }
 
 bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
@@ -110,14 +131,13 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
   }
 
 //  const uint64_t index = fs_file->meta->addr - InumBegin;
-  const uint64_t index = fs_file->meta->addr;
+  const uint64_t inum = fs_file->meta->addr;
 
 //  std::cerr << fs_file->meta->addr << ' ' << InumBegin << ' ' << index << ' ' << InodeEncountered.size() << std::endl;
 
-  if (InodeEncountered[index]) {
+  if (markInodeSeen(inum)) {
     return false;
   }
-  InodeEncountered[index] = true;
 
   // ridiculous bullshit to force attrs to be populated
   tsk_fs_file_attr_get_idx(fs_file, 0);
