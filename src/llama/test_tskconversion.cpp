@@ -208,8 +208,7 @@ SCOPE_TEST(testTskConvertFS) {
   fs.fs_id_used = 8;
   fs.endian = TSK_BIG_ENDIAN;
 
-  TskConverter conv;
-  const jsoncons::json js = conv.convertFS(fs);
+  const jsoncons::json js = TskUtils::convertFS(fs);
   const std::string expected = "{\"blockName\":\"whatever\",\"blockSize\":9,\"byteOffset\":1,\"deviceBlockSize\":10,\"firstBlock\":7,\"firstInum\":4,\"flags\":\"Sequenced, Nanosecond precision\",\"fsID\":\"0123456789abcdef\",\"journalInum\":13,\"lastBlock\":8,\"lastBlockAct\":0,\"lastInum\":5,\"littleEndian\":false,\"numBlocks\":6,\"numInums\":2,\"rootInum\":3,\"type\":\"fat16\"}";
   const std::string actual = js.as<std::string>();
   SCOPE_ASSERT_EQUAL(expected, actual);
@@ -227,8 +226,7 @@ SCOPE_TEST(testTskConvertVol) {
   vol.addr = 4;
   vol.flags = TSK_VS_PART_FLAG_META;
 
-  TskConverter conv;
-  const jsoncons::json js = conv.convertVol(vol);
+  const jsoncons::json js = TskUtils::convertVol(vol);
   const std::string expected = "{\"addr\":4,\"description\":\"TURN IT UP\",\"flags\":\"Volume System\",\"numBlocks\":11,\"slotNum\":3,\"startBlock\":1,\"tableNum\":2}";
   const std::string actual = js.as<std::string>();
   SCOPE_ASSERT_EQUAL(expected, actual);
@@ -245,8 +243,7 @@ SCOPE_TEST(testTskConvertVS) {
   vs.endian = TSK_BIG_ENDIAN;
   vs.part_count = 4;
 
-  TskConverter conv;
-  const jsoncons::json js = conv.convertVS(vs);
+  const jsoncons::json js = TskUtils::convertVS(vs);
   const std::string expected = "{\"blockSize\":3,\"description\":\"BSD Disk Label\",\"numVolumes\":4,\"offset\":2,\"type\":\"BSD\",\"volumes\":[]}";
   const std::string actual = js.as<std::string>();
   SCOPE_ASSERT_EQUAL(expected, actual);
@@ -263,8 +260,7 @@ SCOPE_TEST(testTskConvertImg) {
   img.page_size = 4;
   img.spare_size = 5;
 
-  TskConverter conv;
-  const jsoncons::json js = conv.convertImg(img);
+  const jsoncons::json js = TskUtils::convertImg(img);
   const std::string expected = "{\"description\":\"Expert Witness Format (EnCase)\",\"sectorSize\":3,\"size\":1,\"type\":\"ewf\"}";
   const std::string actual = js.as<std::string>();
   SCOPE_ASSERT_EQUAL(expected, actual);
@@ -490,8 +486,7 @@ SCOPE_TEST(testTskNameConvert) {
   name.type = TSK_FS_NAME_TYPE_SOCK;
   name.flags = TSK_FS_NAME_FLAG_ALLOC;
 
-  TskConverter conv;
-  const jsoncons::json js = conv.convertName(name);
+  const jsoncons::json js = TskUtils::convertName(name);
 
   SCOPE_ASSERT_EQUAL("woowoowoo", js["name"]);
   SCOPE_ASSERT_EQUAL("WOOWOO~1", js["shrt_name"]);

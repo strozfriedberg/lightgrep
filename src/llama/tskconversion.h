@@ -49,6 +49,14 @@ namespace TskUtils {
 
     return ret;
   }
+
+  jsoncons::json convertImg(const TSK_IMG_INFO& img);
+  jsoncons::json convertVS(const TSK_VS_INFO& vs);
+  jsoncons::json convertVol(const TSK_VS_PART_INFO& vol);
+  jsoncons::json convertFS(const TSK_FS_INFO& fs);
+
+  jsoncons::json convertName(const TSK_FS_NAME& name);
+
 }
 
 class TskConverter {
@@ -59,12 +67,7 @@ public:
 // TODO: check how slow using stringstreams is
 // TODO: check if it would be faster to use the streaming API
 
-  static jsoncons::json convertImg(const TSK_IMG_INFO& img);
-  static jsoncons::json convertVS(const TSK_VS_INFO& vs);
-  static jsoncons::json convertVol(const TSK_VS_PART_INFO& vol);
-  static jsoncons::json convertFS(const TSK_FS_INFO& fs);
 
-  jsoncons::json convertName(const TSK_FS_NAME& name) const;
   jsoncons::json convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType);
   jsoncons::json convertAttrs(const TSK_FS_META& meta) const;
   jsoncons::json convertAttr(const TSK_FS_ATTR& attr) const;

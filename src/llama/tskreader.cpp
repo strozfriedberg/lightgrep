@@ -36,7 +36,7 @@ void TSKReader::setOutputHandler(std::shared_ptr<OutputHandler> out) {
 }
 
 bool TSKReader::startReading() {
-  Ass.addImage(TskConverter::convertImg(*Img));
+  Ass.addImage(TskUtils::convertImg(*Img));
 
   // tell TskAuto to start giving files to processFile
   // std::cerr << "Image is " << getImageSize() << " bytes in size" << std::endl;
@@ -69,17 +69,17 @@ bool TSKReader::recurseDisk() {
 }
 
 TSK_FILTER_ENUM TSKReader::filterVs(const TSK_VS_INFO* vs_info) {
-  Ass.addVolumeSystem(TskConverter::convertVS(*vs_info));
+  Ass.addVolumeSystem(TskUtils::convertVS(*vs_info));
   return TSK_FILTER_CONT;
 }
 
 TSK_FILTER_ENUM TSKReader::filterVol(const TSK_VS_PART_INFO* vs_part) {
-  Ass.addVolume(TskConverter::convertVol(*vs_part));
+  Ass.addVolume(TskUtils::convertVol(*vs_part));
   return TSK_FILTER_CONT;
 }
 
 TSK_FILTER_ENUM TSKReader::filterFs(TSK_FS_INFO* fs_info) {
-  Ass.addFileSystem(TskConverter::convertFS(*fs_info));
+  Ass.addFileSystem(TskUtils::convertFS(*fs_info));
   return TSK_FILTER_CONT;
 }
 
@@ -187,7 +187,7 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
   });
 
   if (fs_file->name) {
-    Output->outputDirent(Conv.convertName(*fs_file->name));
+    Output->outputDirent(TskUtils::convertName(*fs_file->name));
   }
   return true;
 }

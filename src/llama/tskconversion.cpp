@@ -218,7 +218,7 @@ std::string TskUtils::filesystemID(const uint8_t* id, size_t len, bool le) {
   }
 }
 
-jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
+jsoncons::json TskUtils::convertName(const TSK_FS_NAME& name) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
@@ -451,7 +451,7 @@ jsoncons::json TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun) const {
   );
 }
 
-jsoncons::json TskConverter::convertImg(const TSK_IMG_INFO& img) {
+jsoncons::json TskUtils::convertImg(const TSK_IMG_INFO& img) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
@@ -463,7 +463,7 @@ jsoncons::json TskConverter::convertImg(const TSK_IMG_INFO& img) {
   );
 }
 
-jsoncons::json TskConverter::convertVS(const TSK_VS_INFO& vs) {
+jsoncons::json TskUtils::convertVS(const TSK_VS_INFO& vs) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
@@ -477,7 +477,7 @@ jsoncons::json TskConverter::convertVS(const TSK_VS_INFO& vs) {
   );
 }
 
-jsoncons::json TskConverter::convertVol(const TSK_VS_PART_INFO& vol) {
+jsoncons::json TskUtils::convertVol(const TSK_VS_PART_INFO& vol) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
@@ -492,7 +492,7 @@ jsoncons::json TskConverter::convertVol(const TSK_VS_PART_INFO& vol) {
   );
 }
 
-jsoncons::json TskConverter::convertFS(const TSK_FS_INFO& fs) {
+jsoncons::json TskUtils::convertFS(const TSK_FS_INFO& fs) {
   const bool littleEndian = fs.endian == TSK_LIT_ENDIAN;
 
   return jsoncons::json(
