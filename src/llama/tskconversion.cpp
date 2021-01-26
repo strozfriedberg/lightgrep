@@ -362,7 +362,7 @@ jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
       //  While in others it takes a std::time_t hours)
       boost::posix_time::time_duration duration(
         static_cast<boost::posix_time::time_res_traits::hour_type>(min / 60),
-        static_cast<boost::posix_time::time_res_traits::min_type>(min  % 60),
+        static_cast<boost::posix_time::time_res_traits::min_type>(min % 60),
         static_cast<boost::posix_time::time_res_traits::sec_type>(unix_time % 60)
       );
       const boost::posix_time::ptime pt = start + duration;
