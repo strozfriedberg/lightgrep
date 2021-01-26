@@ -83,8 +83,7 @@ public:
 private:
   jsoncons::json formatTimestamp(int64_t unix_time, uint32_t ns);
 
-  std::ostringstream NanoBuf,
-                     RdBuf;
+  std::ostringstream NanoBuf;
 };
 
 class TskImgAssembler {
