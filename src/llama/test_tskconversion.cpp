@@ -275,8 +275,7 @@ SCOPE_TEST(testTskConvertNRDs) {
   nrd.offset = 17;
   nrd.flags  = TSK_FS_ATTR_RUN_FLAG_SPARSE;
 
-  TskConverter conv;
-  const jsoncons::json js = conv.convertNRDR(nrd);
+  const jsoncons::json js = TskUtils::convertNRDR(nrd);
   const std::string expected = "{\"addr\":15,\"flags\":\"Sparse\",\"len\":3045,\"offset\":17}";
   const std::string actual = js.as<std::string>();
   SCOPE_ASSERT_EQUAL(expected, actual);

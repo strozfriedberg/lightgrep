@@ -57,6 +57,7 @@ namespace TskUtils {
 
   jsoncons::json convertName(const TSK_FS_NAME& name);
 
+  jsoncons::json convertNRDR(const TSK_FS_ATTR_RUN& dataRun);
 }
 
 class TskConverter {
@@ -67,11 +68,9 @@ public:
 // TODO: check how slow using stringstreams is
 // TODO: check if it would be faster to use the streaming API
 
-
   jsoncons::json convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType);
   jsoncons::json convertAttrs(const TSK_FS_META& meta) const;
   jsoncons::json convertAttr(const TSK_FS_ATTR& attr) const;
-  jsoncons::json convertNRDR(const TSK_FS_ATTR_RUN& dataRun) const;
 
   void convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& timestamps);
   void convertStandardTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);

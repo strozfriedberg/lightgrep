@@ -424,7 +424,7 @@ jsoncons::json TskConverter::convertAttr(const TSK_FS_ATTR& attr) const {
         continue;
       }
 
-      nrd_runs.push_back(convertNRDR(*i));
+      nrd_runs.push_back(TskUtils::convertNRDR(*i));
       if (i == attr.nrd.run_end) {
         // this is hopefully unnecessary, but what if
         // attr.nrd.run_end.next isn't null?
@@ -439,7 +439,7 @@ jsoncons::json TskConverter::convertAttr(const TSK_FS_ATTR& attr) const {
   return jsAttr;
 }
 
-jsoncons::json TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun) const {
+jsoncons::json TskUtils::convertNRDR(const TSK_FS_ATTR_RUN& dataRun) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
