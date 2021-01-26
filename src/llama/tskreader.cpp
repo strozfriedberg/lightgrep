@@ -13,7 +13,8 @@ TSKReader::TSKReader(const std::string& imgName):
   Output(),
   LastFS(nullptr),
   Conv(),
-  Ass()
+  Ass(),
+  Tsg(TskUtils::makeTimestampGetter(TSK_FS_TYPE_DETECT))
 {
 }
 
@@ -80,6 +81,7 @@ TSK_FILTER_ENUM TSKReader::filterVol(const TSK_VS_PART_INFO* vs_part) {
 
 TSK_FILTER_ENUM TSKReader::filterFs(TSK_FS_INFO* fs_info) {
   Ass.addFileSystem(TskUtils::convertFS(*fs_info));
+  Tsg = TskUtils::makeTimestampGetter(fs_info->ftype);
   return TSK_FILTER_CONT;
 }
 
@@ -182,7 +184,7 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
   );
 
   Input->push({
-    Conv.convertMeta(*fs_file->meta, fs_file->fs_info->ftype),
+    Conv.convertMeta(*fs_file->meta, *Tsg),
     std::static_pointer_cast<BlockSequence>(std::make_shared<TskBlockSequence>(std::move(our_file)))
   });
 

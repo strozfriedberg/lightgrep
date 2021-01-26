@@ -7,14 +7,8 @@
 
 #include "hex.h"
 #include "schema.h"
-#include "timestamps.h"
 
 using namespace TskUtils;
-
-TskConverter::TskConverter()
-{
-  NanoBuf << std::fixed << std::setprecision(9);
-}
 
 std::string TskUtils::volumeSystemType(unsigned int type) {
   switch (type) {
@@ -251,8 +245,8 @@ jsoncons::json TskConverter::convertAttrs(const TSK_FS_META& meta) const {
   return jsAttrs;
 }
 
-jsoncons::json TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType) {
-  jsoncons::json jsMeta(
+jsoncons::json TskConverter::convertMeta(const TSK_FS_META& meta, TimestampGetter& ts) const {
+  return jsoncons::json(
     jsoncons::json_object_arg,
     {
       { "addr",  meta.addr },
@@ -263,85 +257,37 @@ jsoncons::json TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_EN
       { "link",  meta.link ? meta.link : "" },
       { "nlink", meta.nlink },
       { "seq",   meta.seq },
-      { "attrs", convertAttrs(meta) }
+      { "attrs", convertAttrs(meta) },
+      { "accessed",    ts.accessed(meta) },
+      { "created",     ts.created(meta) },
+      { "metadata",    ts.metadata(meta) },
+      { "modified",    ts.modified(meta) },
+      { "deleted",     ts.deleted(meta) },
+      { "backup",      ts.backup(meta) },
+      { "fn_accessed", ts.fn_accessed(meta) },
+      { "fn_created",  ts.fn_created(meta) },
+      { "fn_metadata", ts.fn_metadata(meta) },
+      { "fn_modified", ts.fn_modified(meta) }
     }
   );
-
-  convertTimestamps(meta, fsType, jsMeta);
-
-  return jsMeta;
 }
 
-void TskConverter::convertNTFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
-  ts["deleted"] = jsoncons::null_type();
-  ts["backup"] = jsoncons::null_type();
-  ts["fn_accessed"] = formatTimestamp(meta.time2.ntfs.fn_atime, meta.time2.ntfs.fn_atime_nano);
-  ts["fn_created"] = formatTimestamp(meta.time2.ntfs.fn_crtime, meta.time2.ntfs.fn_crtime_nano);
-  ts["fn_metadata"] = formatTimestamp(meta.time2.ntfs.fn_ctime, meta.time2.ntfs.fn_ctime_nano);
-  ts["fn_modified"] = formatTimestamp(meta.time2.ntfs.fn_mtime, meta.time2.ntfs.fn_mtime_nano);
-}
-
-void TskConverter::convertEXTTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
-  ts["deleted"] = formatTimestamp(meta.time2.hfs.bkup_time, meta.time2.hfs.bkup_time_nano);
-  ts["backup"] = jsoncons::null_type();
-  ts["fn_accessed"] = jsoncons::null_type();
-  ts["fn_created"] = jsoncons::null_type();
-  ts["fn_metadata"] = jsoncons::null_type();
-  ts["fn_modified"] = jsoncons::null_type();
-}
-
-void TskConverter::convertHFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
-  ts["deleted"] = jsoncons::null_type();
-  ts["backup"] = formatTimestamp(meta.time2.hfs.bkup_time, meta.time2.hfs.bkup_time_nano);
-  ts["fn_accessed"] = jsoncons::null_type();
-  ts["fn_created"] = jsoncons::null_type();
-  ts["fn_metadata"] = jsoncons::null_type();
-  ts["fn_modified"] = jsoncons::null_type();
-}
-
-void TskConverter::convertDefaultTimestamps(const TSK_FS_META& /* meta */, jsoncons::json& ts) const {
-  ts["deleted"] = jsoncons::null_type();
-  ts["backup"] = jsoncons::null_type();
-  ts["fn_accessed"] = jsoncons::null_type();
-  ts["fn_created"] = jsoncons::null_type();
-  ts["fn_metadata"] = jsoncons::null_type();
-  ts["fn_modified"] = jsoncons::null_type();
-}
-
-void TskConverter::convertStandardTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
-  ts["accessed"] = formatTimestamp(meta.atime, meta.atime_nano);
-  ts["created"] = formatTimestamp(meta.crtime, meta.crtime_nano);
-  ts["metadata"] = formatTimestamp(meta.ctime, meta.ctime_nano);
-  ts["modified"] = formatTimestamp(meta.mtime, meta.mtime_nano);
-}
-
-void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& ts) {
-  convertStandardTimestamps(meta, ts);
-
-  switch (fsType) {
-    case TSK_FS_TYPE_NTFS:
-      convertNTFSTimestamps(meta, ts);
-      break;
-    case TSK_FS_TYPE_FFS1: // need to double-check this list
-    case TSK_FS_TYPE_FFS1B:
-    case TSK_FS_TYPE_FFS2:
-    case TSK_FS_TYPE_EXT2:
-    case TSK_FS_TYPE_EXT3:
-    case TSK_FS_TYPE_EXT4:
-      convertEXTTimestamps(meta, ts);
-      break;
-    case TSK_FS_TYPE_HFS:
-      convertHFSTimestamps(meta, ts);
-      break;
-    default:
-      convertDefaultTimestamps(meta, ts);
-      break;
+std::unique_ptr<TimestampGetter> TskUtils::makeTimestampGetter(TSK_FS_TYPE_ENUM fstype) {
+  switch (fstype) {
+  case TSK_FS_TYPE_NTFS:
+    return std::make_unique<NTFSTimestampGetter>();
+  case TSK_FS_TYPE_FFS1: // need to double-check this list
+  case TSK_FS_TYPE_FFS1B:
+  case TSK_FS_TYPE_FFS2:
+  case TSK_FS_TYPE_EXT2:
+  case TSK_FS_TYPE_EXT3:
+  case TSK_FS_TYPE_EXT4:
+    return std::make_unique<EXTTimestampGetter>();
+  case TSK_FS_TYPE_HFS:
+    return std::make_unique<HFSTimestampGetter>();
+  default:
+    return std::make_unique<CommonTimestampGetter>();
   }
-}
-
-jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
-  std::string ret(::formatTimestamp(unix_time, ns, NanoBuf));
-  return ret.empty() ? jsoncons::null_type() : jsoncons::json(ret);
 }
 
 std::string TskUtils::extractString(const char* str, unsigned int size) {

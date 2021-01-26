@@ -144,6 +144,7 @@ src_llama_llama_SOURCES = \
 	src/llama/treehasher.cpp \
 	src/llama/tskconversion.cpp \
 	src/llama/tskreader.cpp \
+	src/llama/tsktimestamps.cpp \
 	src/llama/test_cli.cpp \
 	src/llama/test_dirconversion.cpp \
 	src/llama/test_dirreader.cpp \
@@ -155,7 +156,8 @@ src_llama_llama_SOURCES = \
 	src/llama/test_recordbuffer.cpp \
 	src/llama/test_recordhasher.cpp \
 	src/llama/test_tskconversion.cpp \
-	src/llama/test_tskreader.cpp
+	src/llama/test_tskreader.cpp \
+	src/llama/test_tsktimestamps.cpp
 
 src_llama_llama_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS) $(TSK_CPPFLAGS) $(LIBARCHIVE_CPPFLAGS)
 src_llama_llama_LDADD = $(LG_LIB) $(LG_LIBS) $(TSK_LIBS) $(LIBARCHIVE_LIBS) $(HASHER_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)

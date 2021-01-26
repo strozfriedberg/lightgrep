@@ -2,6 +2,7 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+// TODO: add direct tests of this
 // TODO: use std::to_chars, get rid of std::ostringstream?
 
 std::string formatTimestamp(int64_t unix_time, uint32_t ns, std::ostringstream& buf) {

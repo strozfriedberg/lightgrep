@@ -1,11 +1,12 @@
 #pragma once
 
-#include <sstream>
+#include <memory>
 #include <string>
 
 #include <tsk/libtsk.h>
 
 #include "jsoncons_wrapper.h"
+#include "tsktimestamps.h"
 
 namespace TskUtils {
   std::string extractString(const char* str, unsigned int size);
@@ -58,17 +59,16 @@ namespace TskUtils {
   jsoncons::json convertName(const TSK_FS_NAME& name);
 
   jsoncons::json convertNRDR(const TSK_FS_ATTR_RUN& dataRun);
+
+  std::unique_ptr<TimestampGetter> makeTimestampGetter(TSK_FS_TYPE_ENUM fstype);
 }
 
 class TskConverter {
 public:
-  TskConverter();
-
 // TODO: could some of this be static? nonmembers?
-// TODO: check how slow using stringstreams is
 // TODO: check if it would be faster to use the streaming API
 
-  jsoncons::json convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType);
+  jsoncons::json convertMeta(const TSK_FS_META& meta, TimestampGetter& ts) const;
   jsoncons::json convertAttrs(const TSK_FS_META& meta) const;
   jsoncons::json convertAttr(const TSK_FS_ATTR& attr) const;
 
@@ -81,8 +81,6 @@ public:
 
 private:
   jsoncons::json formatTimestamp(int64_t unix_time, uint32_t ns);
-
-  std::ostringstream NanoBuf;
 };
 
 class TskImgAssembler {

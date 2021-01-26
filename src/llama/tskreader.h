@@ -12,6 +12,7 @@
 
 class InputHandler;
 class OutputHandler;
+class TimestampGetter;
 
 class TSKReader: public InputReader {
 public:
@@ -71,6 +72,7 @@ private:
 
   TskConverter Conv;
   TskImgAssembler Ass;
+  std::unique_ptr<TimestampGetter> Tsg;
 
   std::stack<TSK_INUM_T> Path;
 };
