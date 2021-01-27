@@ -28,27 +28,27 @@ jsoncons::json CommonTimestampGetter::modified(const TSK_FS_META& meta) {
   return nullEmpty(formatTimestamp(meta.mtime, meta.mtime_nano, Buf));
 }
 
-jsoncons::json CommonTimestampGetter::deleted(const TSK_FS_META& meta) {
+jsoncons::json CommonTimestampGetter::deleted(const TSK_FS_META&) {
   return jsoncons::null_type();
 }
 
-jsoncons::json CommonTimestampGetter::backup(const TSK_FS_META& meta) {
+jsoncons::json CommonTimestampGetter::backup(const TSK_FS_META&) {
   return jsoncons::null_type();
 }
 
-jsoncons::json CommonTimestampGetter::fn_accessed(const TSK_FS_META& meta) {
+jsoncons::json CommonTimestampGetter::fn_accessed(const TSK_FS_META&) {
   return jsoncons::null_type();
 }
 
-jsoncons::json CommonTimestampGetter::fn_created(const TSK_FS_META& meta) {
+jsoncons::json CommonTimestampGetter::fn_created(const TSK_FS_META&) {
   return jsoncons::null_type();
 }
 
-jsoncons::json CommonTimestampGetter::fn_metadata(const TSK_FS_META& meta) {
+jsoncons::json CommonTimestampGetter::fn_metadata(const TSK_FS_META&) {
   return jsoncons::null_type();
 }
 
-jsoncons::json CommonTimestampGetter::fn_modified(const TSK_FS_META& meta) {
+jsoncons::json CommonTimestampGetter::fn_modified(const TSK_FS_META&) {
   return jsoncons::null_type();
 }
 

@@ -71,16 +71,6 @@ public:
   jsoncons::json convertMeta(const TSK_FS_META& meta, TimestampGetter& ts) const;
   jsoncons::json convertAttrs(const TSK_FS_META& meta) const;
   jsoncons::json convertAttr(const TSK_FS_ATTR& attr) const;
-
-  void convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& timestamps);
-  void convertStandardTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
-  void convertDefaultTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) const;
-  void convertHFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
-  void convertEXTTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
-  void convertNTFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
-
-private:
-  jsoncons::json formatTimestamp(int64_t unix_time, uint32_t ns);
 };
 
 class TskImgAssembler {
