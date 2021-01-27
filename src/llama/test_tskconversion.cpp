@@ -300,8 +300,7 @@ SCOPE_TEST(testTskConvertAttrRes) {
   std::memset(&attr, 0, sizeof(attr));
   setResAttr(attr);
 
-  TskConverter conv;
-  const jsoncons::json js = conv.convertAttr(attr);
+  const jsoncons::json js = TskUtils::convertAttr(attr);
   SCOPE_ASSERT_EQUAL(1, js["id"]);
   SCOPE_ASSERT_EQUAL("In Use, Resident", js["flags"]);
   SCOPE_ASSERT_EQUAL("$DATA", js["name"]);
@@ -377,8 +376,7 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
   std::memset(&attr, 0, sizeof(attr));
   setNonresAttr(attr, nrd1, nrd2);
 
-  TskConverter conv;
-  const jsoncons::json js = conv.convertAttr(attr);
+  const jsoncons::json js = TskUtils::convertAttr(attr);
   testNonresAttr(js);
 }
 
@@ -431,9 +429,8 @@ SCOPE_TEST(testTskMetaConvert) {
 
   // meta.name2 = "SHRTNM~2";
 
-  TskConverter conv;
   CommonTimestampGetter tsg;
-  jsoncons::json js = conv.convertMeta(meta, tsg);
+  jsoncons::json js = TskUtils::convertMeta(meta, tsg);
 
   SCOPE_ASSERT_EQUAL(17, js["addr"]);
   SCOPE_ASSERT_EQUAL("Deleted", js["flags"]);
@@ -465,7 +462,7 @@ SCOPE_TEST(testTskMetaConvert) {
   SCOPE_ASSERT(js.at("fn_modified").is_null());
 
   meta.link = nullptr;
-  js = conv.convertMeta(meta, tsg);
+  js = TskUtils::convertMeta(meta, tsg);
   SCOPE_ASSERT_EQUAL("", js["link"]);
 }
 

@@ -70,7 +70,6 @@ private:
   uint64_t BlockBegin,
            BlockEnd;
 
-  TskConverter Conv;
   TskImgAssembler Ass;
   std::unique_ptr<TimestampGetter> Tsg;
 

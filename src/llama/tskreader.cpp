@@ -12,7 +12,6 @@ TSKReader::TSKReader(const std::string& imgName):
   Input(),
   Output(),
   LastFS(nullptr),
-  Conv(),
   Ass(),
   Tsg(TskUtils::makeTimestampGetter(TSK_FS_TYPE_DETECT))
 {
@@ -184,7 +183,7 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
   );
 
   Input->push({
-    Conv.convertMeta(*fs_file->meta, *Tsg),
+    TskUtils::convertMeta(*fs_file->meta, *Tsg),
     std::static_pointer_cast<BlockSequence>(std::make_shared<TskBlockSequence>(std::move(our_file)))
   });
 

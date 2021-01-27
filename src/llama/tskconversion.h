@@ -58,20 +58,13 @@ namespace TskUtils {
 
   jsoncons::json convertName(const TSK_FS_NAME& name);
 
+  jsoncons::json convertMeta(const TSK_FS_META& meta, TimestampGetter& ts);
+  jsoncons::json convertAttrs(const TSK_FS_META& meta);
+  jsoncons::json convertAttr(const TSK_FS_ATTR& attr);
   jsoncons::json convertNRDR(const TSK_FS_ATTR_RUN& dataRun);
 
   std::unique_ptr<TimestampGetter> makeTimestampGetter(TSK_FS_TYPE_ENUM fstype);
 }
-
-class TskConverter {
-public:
-// TODO: could some of this be static? nonmembers?
-// TODO: check if it would be faster to use the streaming API
-
-  jsoncons::json convertMeta(const TSK_FS_META& meta, TimestampGetter& ts) const;
-  jsoncons::json convertAttrs(const TSK_FS_META& meta) const;
-  jsoncons::json convertAttr(const TSK_FS_ATTR& attr) const;
-};
 
 class TskImgAssembler {
 public:

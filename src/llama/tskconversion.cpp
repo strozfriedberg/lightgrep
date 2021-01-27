@@ -228,7 +228,7 @@ jsoncons::json TskUtils::convertName(const TSK_FS_NAME& name) {
   );
 }
 
-jsoncons::json TskConverter::convertAttrs(const TSK_FS_META& meta) const {
+jsoncons::json TskUtils::convertAttrs(const TSK_FS_META& meta) {
   // NB: attrs must be populated before this is called; TSK can be forced
   // to do this by calling tsk_fs_file_attr_get_idx(fs_file, 0) first.
 
@@ -245,7 +245,7 @@ jsoncons::json TskConverter::convertAttrs(const TSK_FS_META& meta) const {
   return jsAttrs;
 }
 
-jsoncons::json TskConverter::convertMeta(const TSK_FS_META& meta, TimestampGetter& ts) const {
+jsoncons::json TskUtils::convertMeta(const TSK_FS_META& meta, TimestampGetter& ts) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
@@ -294,7 +294,7 @@ std::string TskUtils::extractString(const char* str, unsigned int size) {
   return std::string(str, std::find(str, str + size, '\0'));
 }
 
-jsoncons::json TskConverter::convertAttr(const TSK_FS_ATTR& attr) const {
+jsoncons::json TskUtils::convertAttr(const TSK_FS_ATTR& attr) {
   jsoncons::json jsAttr(
     jsoncons::json_object_arg,
     {
