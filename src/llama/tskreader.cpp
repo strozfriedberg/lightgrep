@@ -84,7 +84,7 @@ TSK_FILTER_ENUM TSKReader::filterFs(TSK_FS_INFO* fs_info) {
   return TSK_FILTER_CONT;
 }
 
-TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* path) {
+TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* /* path*/) {
   // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
   if (fs_file->fs_info != LastFS) {
     LastFS = fs_file->fs_info;
@@ -126,6 +126,31 @@ bool TSKReader::markInodeSeen(uint64_t inum) {
   }
 }
 
+std::shared_ptr<BlockSequence> TSKReader::makeBlockSequence(TSK_FS_FILE* fs_file) {
+  TSK_FS_INFO* their_fs = fs_file->fs_info;
+
+  // open our own copy of the fs, since TskAuto closes the ones it opens
+  auto p = Fs.emplace(their_fs->offset, make_unique_del(nullptr, tsk_fs_close));
+  if (p.second) {
+    p.first->second = make_unique_del(
+      tsk_fs_open_img(Img.get(), their_fs->offset, their_fs->ftype),
+      tsk_fs_close
+    );
+  }
+
+  TSK_FS_INFO* our_fs = p.first->second.get();
+
+  // open our own copy of the file, since TskAuto closes the ones it opens
+  return std::static_pointer_cast<BlockSequence>(
+    std::make_shared<TskBlockSequence>(
+      make_unique_del(
+        tsk_fs_file_open_meta(our_fs, nullptr, fs_file->meta->addr),
+        tsk_fs_file_close
+      )
+    )
+  );
+}
+
 bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
   if (!fs_file || !fs_file->meta) {
     return false;
@@ -140,9 +165,9 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
     return false;
   }
 
-  // ridiculous bullshit to force attrs to be populated
-  tsk_fs_file_attr_get_idx(fs_file, 0);
-
+  //
+  // handle the name
+  //
   if (fs_file->name) {
     while (!Path.empty() && fs_file->name->par_addr != Path.top()) {
       std::cerr << Path.top() << " done\n";
@@ -151,44 +176,29 @@ bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
     Path.push(fs_file->meta->addr);
 
     std::cerr << fs_file->name->par_addr << " -> " << Path.top() << '\n';
-  }
 
-/*
-  if (fs_file->name) {
-    std::cerr << fs_file->name->par_addr << " -> " << fs_file->meta->addr;
-  }
-  else {
-    std::cerr << << fs_file->meta->addr;
-  }
-  std::cerr << '\n';
-*/
-
-  TSK_FS_INFO* their_fs = fs_file->fs_info;
-  TSK_FS_INFO* our_fs;
-
-  // open our own copy of the fs, since TskAuto closes the ones it opens
-  auto p = Fs.emplace(their_fs->offset, make_unique_del(nullptr, tsk_fs_close));
-  if (p.second) {
-    p.first->second = make_unique_del(
-      tsk_fs_open_img(Img.get(), their_fs->offset, their_fs->ftype),
-      tsk_fs_close
-    );
-  }
-  our_fs = p.first->second.get();
-
-  // open our own copy of the file, since TskAuto closes the ones it opens
-  auto our_file = make_unique_del(
-    tsk_fs_file_open_meta(our_fs, nullptr, fs_file->meta->addr),
-    tsk_fs_file_close
-  );
-
-  Input->push({
-    TskUtils::convertMeta(*fs_file->meta, *Tsg),
-    std::static_pointer_cast<BlockSequence>(std::make_shared<TskBlockSequence>(std::move(our_file)))
-  });
-
-  if (fs_file->name) {
     Output->outputDirent(TskUtils::convertName(*fs_file->name));
   }
+
+  //
+  // handle the meta
+  //
+  jsoncons::json meta = TskUtils::convertMeta(*fs_file->meta, *Tsg);
+  jsoncons::json& attrs = meta["attrs"];
+
+  // ridiculous bullshit to force attrs to be populated
+  tsk_fs_file_attr_get_idx(fs_file, 0);
+
+  // handle the attrs
+  if (fs_file->meta->attr) {
+    for (const TSK_FS_ATTR* a = fs_file->meta->attr->head; a; a = a->next) {
+      if (a->flags & TSK_FS_ATTR_INUSE) {
+        attrs.push_back(TskUtils::convertAttr(*a));
+      }
+    }
+  }
+
+  Input->push({std::move(meta), makeBlockSequence(fs_file)});
+
   return true;
 }

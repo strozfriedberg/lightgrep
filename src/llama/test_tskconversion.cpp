@@ -381,21 +381,6 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
 }
 
 SCOPE_TEST(testTskMetaConvert) {
-  TSK_FS_ATTR_RUN nrd1;
-  std::memset(&nrd1, 0, sizeof(nrd1));
-
-  TSK_FS_ATTR_RUN nrd2;
-  std::memset(&nrd2, 0, sizeof(nrd2));
-
-  TSK_FS_ATTR attrNonRes;
-  std::memset(&attrNonRes, 0, sizeof(attrNonRes));
-
-  TSK_FS_ATTR attrRes;
-  std::memset(&attrRes, 0, sizeof(attrRes));
-
-  TSK_FS_ATTRLIST alist;
-  std::memset(&alist, 0, sizeof(alist));
-
   TSK_FS_META meta;
   std::memset(&meta, 0, sizeof(meta));
 
@@ -409,14 +394,6 @@ SCOPE_TEST(testTskMetaConvert) {
   meta.link = const_cast<char*>("I_am_the_target"); // terrible that there's no link_size
   meta.nlink = 2;
   meta.seq = 8;
-
-  meta.attr = &alist;
-  alist.head = setNonresAttr(attrNonRes, nrd1, nrd2);
-  attrNonRes.next = setResAttr(attrRes);
-
-  // the attr_state enum is dumb
-  // we have to set the state to studied, but not worth reporting
-  meta.attr_state = TSK_FS_META_ATTR_STUDIED;
 
   meta.atime = 1578364822; // 2020-01-07 02:40:22
   meta.atime_nano = 123456700;
@@ -443,10 +420,6 @@ SCOPE_TEST(testTskMetaConvert) {
   SCOPE_ASSERT_EQUAL(2, js["nlink"]);
   SCOPE_ASSERT_EQUAL(8, js["seq"]);
   // SCOPE_ASSERT_EQUAL("SHRTNM~2", js["name2"]);
-
-  SCOPE_ASSERT_EQUAL(2u, js["attrs"].size());
-  SCOPE_ASSERT_EQUAL(4, js["attrs"][0]["id"]);
-  SCOPE_ASSERT_EQUAL(1, js["attrs"][1]["id"]);
 
   // basic four are good
   SCOPE_ASSERT_EQUAL("2020-01-07 02:40:22.1234567", js.at("accessed"));

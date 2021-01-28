@@ -59,7 +59,6 @@ namespace TskUtils {
   jsoncons::json convertName(const TSK_FS_NAME& name);
 
   jsoncons::json convertMeta(const TSK_FS_META& meta, TimestampGetter& ts);
-  jsoncons::json convertAttrs(const TSK_FS_META& meta);
   jsoncons::json convertAttr(const TSK_FS_ATTR& attr);
   jsoncons::json convertNRDR(const TSK_FS_ATTR_RUN& dataRun);
 

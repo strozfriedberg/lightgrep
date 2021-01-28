@@ -10,6 +10,7 @@
 #include "inputreader.h"
 #include "tskconversion.h"
 
+class BlockSequence;
 class InputHandler;
 class OutputHandler;
 class TimestampGetter;
@@ -51,6 +52,8 @@ public:
   TSK_RETVAL_ENUM processFile(TSK_FS_FILE* fs_file, const char* path);
 
 private:
+  std::shared_ptr<BlockSequence> makeBlockSequence(TSK_FS_FILE* fs_file);
+
   std::string ImgName;
   std::unique_ptr<TSK_IMG_INFO, void(*)(TSK_IMG_INFO*)> Img;
   std::map<TSK_OFF_T, std::unique_ptr<TSK_FS_INFO, void(*)(TSK_FS_INFO*)>> Fs;

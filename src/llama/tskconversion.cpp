@@ -228,23 +228,6 @@ jsoncons::json TskUtils::convertName(const TSK_FS_NAME& name) {
   );
 }
 
-jsoncons::json TskUtils::convertAttrs(const TSK_FS_META& meta) {
-  // NB: attrs must be populated before this is called; TSK can be forced
-  // to do this by calling tsk_fs_file_attr_get_idx(fs_file, 0) first.
-
-  jsoncons::json jsAttrs(jsoncons::json_array_arg);
-
-  if (meta.attr) {
-    for (const TSK_FS_ATTR* a = meta.attr->head; a; a = a->next) {
-      if (a->flags & TSK_FS_ATTR_INUSE) {
-        jsAttrs.push_back(convertAttr(*a));
-      }
-    }
-  }
-
-  return jsAttrs;
-}
-
 jsoncons::json TskUtils::convertMeta(const TSK_FS_META& meta, TimestampGetter& ts) {
   return jsoncons::json(
     jsoncons::json_object_arg,
@@ -257,7 +240,7 @@ jsoncons::json TskUtils::convertMeta(const TSK_FS_META& meta, TimestampGetter& t
       { "link",  meta.link ? meta.link : "" },
       { "nlink", meta.nlink },
       { "seq",   meta.seq },
-      { "attrs", convertAttrs(meta) },
+      { "attrs", jsoncons::json(jsoncons::json_array_arg) },
       { "accessed",    ts.accessed(meta) },
       { "created",     ts.created(meta) },
       { "metadata",    ts.metadata(meta) },
@@ -326,6 +309,7 @@ jsoncons::json TskUtils::convertAttr(const TSK_FS_ATTR& attr) {
       }
 
       nrd_runs.push_back(TskUtils::convertNRDR(*i));
+
       if (i == attr.nrd.run_end) {
         // this is hopefully unnecessary, but what if
         // attr.nrd.run_end.next isn't null?
