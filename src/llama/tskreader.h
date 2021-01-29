@@ -30,9 +30,6 @@ public:
 
   virtual bool startReading() override;
 
-  // recurseDisk wraps TskAuto::findFilesInImg(). Override to replace/mock.
-  virtual bool recurseDisk();
-
   bool addToBatch(TSK_FS_FILE* fs_file);
 
   void setInodeRange(uint64_t begin, uint64_t end);

@@ -42,8 +42,15 @@ bool TSKReader::startReading() {
 
   // tell TskAuto to start giving files to processFile
   // std::cerr << "Image is " << getImageSize() << " bytes in size" << std::endl;
-  const bool ret = recurseDisk();
-  // std::cerr << "recurseDisk returned " << ret;
+
+  const bool ret = Walker->walk(
+    Img.get(),
+    [this](const TSK_VS_INFO* vs_info) { return filterVs(vs_info); },
+    [this](const TSK_VS_PART_INFO* vs_part) { return filterVol(vs_part); },
+    [this](TSK_FS_INFO* fs_info) { return filterFs(fs_info); },
+    [this](TSK_FS_FILE* fs_file, const char* path) { return processFile(fs_file, path); }
+  );
+
   if (ret) {
     while (!Path.empty()) {
       std::cerr << Path.top() << " done\n";
@@ -56,16 +63,6 @@ bool TSKReader::startReading() {
     Input->flush();
   }
   return ret;
-}
-
-bool TSKReader::recurseDisk() {
-  return Walker->walk(
-    Img.get(),
-    [this](const TSK_VS_INFO* vs_info) { return filterVs(vs_info); },
-    [this](const TSK_VS_PART_INFO* vs_part) { return filterVol(vs_part); },
-    [this](TSK_FS_INFO* fs_info) { return filterFs(fs_info); },
-    [this](TSK_FS_FILE* fs_file, const char* path) { return processFile(fs_file, path); }
-  );
 }
 
 TSK_FILTER_ENUM TSKReader::filterVs(const TSK_VS_INFO* vs_info) {
