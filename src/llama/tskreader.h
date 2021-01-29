@@ -9,6 +9,7 @@
 
 #include "inputreader.h"
 #include "tskconversion.h"
+#include "tskwalker.h"
 
 class BlockSequence;
 class InputHandler;
@@ -75,6 +76,8 @@ private:
 
   TskImgAssembler Ass;
   std::unique_ptr<TimestampGetter> Tsg;
+
+  std::unique_ptr<TskWalker> Walker;
 
   std::stack<TSK_INUM_T> Path;
 };

@@ -4,6 +4,7 @@
 #include "inputhandler.h"
 #include "llamatskauto.h"
 #include "outputhandler.h"
+#include "tskwalkerimpl.h"
 #include "util.h"
 
 TSKReader::TSKReader(const std::string& imgName):
@@ -12,6 +13,7 @@ TSKReader::TSKReader(const std::string& imgName):
   Input(),
   Output(),
   LastFS(nullptr),
+  Walker(new TskWalkerImpl()),
   Ass(),
   Tsg(TskUtils::makeTimestampGetter(TSK_FS_TYPE_DETECT))
 {
@@ -57,15 +59,13 @@ bool TSKReader::startReading() {
 }
 
 bool TSKReader::recurseDisk() {
-  LlamaTskAuto walker(
+  return Walker->walk(
     Img.get(),
     [this](const TSK_VS_INFO* vs_info) { return filterVs(vs_info); },
     [this](const TSK_VS_PART_INFO* vs_part) { return filterVol(vs_part); },
     [this](TSK_FS_INFO* fs_info) { return filterFs(fs_info); },
     [this](TSK_FS_FILE* fs_file, const char* path) { return processFile(fs_file, path); }
   );
-
-  return walker.findFilesInImg() == 0;
 }
 
 TSK_FILTER_ENUM TSKReader::filterVs(const TSK_VS_INFO* vs_info) {

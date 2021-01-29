@@ -145,6 +145,7 @@ src_llama_llama_SOURCES = \
 	src/llama/tskconversion.cpp \
 	src/llama/tskreader.cpp \
 	src/llama/tsktimestamps.cpp \
+	src/llama/tskwalkerimpl.cpp \
 	src/llama/test_cli.cpp \
 	src/llama/test_dirconversion.cpp \
 	src/llama/test_dirreader.cpp \
