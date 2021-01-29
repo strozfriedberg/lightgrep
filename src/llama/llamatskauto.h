@@ -17,7 +17,7 @@ public:
     vol_cb(vol_cb),
     fs_cb(fs_cb),
     file_cb(file_cb)
- {
+  {
     m_internalOpen = false;
     m_img_info = info;
   }
