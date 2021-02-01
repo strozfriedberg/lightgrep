@@ -16,11 +16,11 @@ class InputHandler;
 class OutputHandler;
 class TimestampGetter;
 
-class TSKReader: public InputReader {
+class TskReader: public InputReader {
 public:
-  TSKReader(const std::string& imgName);
+  TskReader(const std::string& imgName);
 
-  virtual ~TSKReader() {}
+  virtual ~TskReader() {}
 
   bool open();
 

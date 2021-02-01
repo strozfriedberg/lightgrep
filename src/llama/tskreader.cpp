@@ -7,7 +7,7 @@
 #include "tskwalkerimpl.h"
 #include "util.h"
 
-TSKReader::TSKReader(const std::string& imgName):
+TskReader::TskReader(const std::string& imgName):
   ImgName(imgName),
   Img(nullptr, nullptr),
   Input(),
@@ -19,7 +19,7 @@ TSKReader::TSKReader(const std::string& imgName):
 {
 }
 
-bool TSKReader::open() {
+bool TskReader::open() {
   const char* nameHolder = ImgName.c_str();
   Img = make_unique_del(
     tsk_img_open_utf8(1, &nameHolder, TSK_IMG_TYPE_DETECT, 0),
@@ -29,15 +29,15 @@ bool TSKReader::open() {
   return bool(Img);
 }
 
-void TSKReader::setInputHandler(std::shared_ptr<InputHandler> in) {
+void TskReader::setInputHandler(std::shared_ptr<InputHandler> in) {
   Input = in;
 }
 
-void TSKReader::setOutputHandler(std::shared_ptr<OutputHandler> out) {
+void TskReader::setOutputHandler(std::shared_ptr<OutputHandler> out) {
   Output = out;
 }
 
-bool TSKReader::startReading() {
+bool TskReader::startReading() {
   Ass.addImage(TskUtils::convertImg(*Img));
 
   // tell TskAuto to start giving files to processFile
@@ -65,23 +65,23 @@ bool TSKReader::startReading() {
   return ret;
 }
 
-TSK_FILTER_ENUM TSKReader::filterVs(const TSK_VS_INFO* vs_info) {
+TSK_FILTER_ENUM TskReader::filterVs(const TSK_VS_INFO* vs_info) {
   Ass.addVolumeSystem(TskUtils::convertVS(*vs_info));
   return TSK_FILTER_CONT;
 }
 
-TSK_FILTER_ENUM TSKReader::filterVol(const TSK_VS_PART_INFO* vs_part) {
+TSK_FILTER_ENUM TskReader::filterVol(const TSK_VS_PART_INFO* vs_part) {
   Ass.addVolume(TskUtils::convertVol(*vs_part));
   return TSK_FILTER_CONT;
 }
 
-TSK_FILTER_ENUM TSKReader::filterFs(TSK_FS_INFO* fs_info) {
+TSK_FILTER_ENUM TskReader::filterFs(TSK_FS_INFO* fs_info) {
   Ass.addFileSystem(TskUtils::convertFS(*fs_info));
   Tsg = TskUtils::makeTimestampGetter(fs_info->ftype);
   return TSK_FILTER_CONT;
 }
 
-TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* /* path*/) {
+TSK_RETVAL_ENUM TskReader::processFile(TSK_FS_FILE* fs_file, const char* /* path*/) {
   // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
   if (fs_file->fs_info != LastFS) {
     LastFS = fs_file->fs_info;
@@ -91,7 +91,7 @@ TSK_RETVAL_ENUM TSKReader::processFile(TSK_FS_FILE* fs_file, const char* /* path
   return TSK_OK;
 }
 
-void TSKReader::setBlockRange(uint64_t begin, uint64_t end) {
+void TskReader::setBlockRange(uint64_t begin, uint64_t end) {
 // FIXME: unclear if we can rely on end - begin + 1 to be the actual count
   BlockBegin = begin;
   BlockEnd = end;
@@ -99,7 +99,7 @@ void TSKReader::setBlockRange(uint64_t begin, uint64_t end) {
   Allocated.resize(end+1);
 }
 
-void TSKReader::setInodeRange(uint64_t begin, uint64_t end) {
+void TskReader::setInodeRange(uint64_t begin, uint64_t end) {
   InumBegin = begin;
   InumEnd = end;
 // FIXME: Apparently "first_inum" is first in some way other than the usual
@@ -112,7 +112,7 @@ void TSKReader::setInodeRange(uint64_t begin, uint64_t end) {
   InodeEncountered.resize(end+1);
 }
 
-bool TSKReader::markInodeSeen(uint64_t inum) {
+bool TskReader::markInodeSeen(uint64_t inum) {
   // TODO: bounds checking? inum could be bogus
   if (InodeEncountered[inum]) {
     return true;
@@ -123,7 +123,7 @@ bool TSKReader::markInodeSeen(uint64_t inum) {
   }
 }
 
-std::shared_ptr<BlockSequence> TSKReader::makeBlockSequence(TSK_FS_FILE* fs_file) {
+std::shared_ptr<BlockSequence> TskReader::makeBlockSequence(TSK_FS_FILE* fs_file) {
   TSK_FS_INFO* their_fs = fs_file->fs_info;
 
   // open our own copy of the fs, since TskAuto closes the ones it opens
@@ -148,7 +148,7 @@ std::shared_ptr<BlockSequence> TSKReader::makeBlockSequence(TSK_FS_FILE* fs_file
   );
 }
 
-bool TSKReader::addToBatch(TSK_FS_FILE* fs_file) {
+bool TskReader::addToBatch(TSK_FS_FILE* fs_file) {
   if (!fs_file || !fs_file->meta) {
     return false;
   }

@@ -5,7 +5,7 @@
 
 std::shared_ptr<InputReader>
 InputReader::createTSK(const std::string& imgName) {
-  auto ret = std::make_shared<TSKReader>(imgName);
+  auto ret = std::make_shared<TskReader>(imgName);
   if (!ret->open()) {
     throw std::runtime_error("Couldn't open image " + imgName);
   }

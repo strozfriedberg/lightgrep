@@ -8,7 +8,7 @@
 #include "mockinputhandler.h"
 
 SCOPE_TEST(testInodeDedupe) {
-  TSKReader reader("not_an_image.E01");
+  TskReader reader("not_an_image.E01");
 
   reader.setInodeRange(0, 20);
 
