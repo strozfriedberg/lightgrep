@@ -13,20 +13,15 @@ TskReader::TskReader(const std::string& imgName):
   Input(),
   Output(),
   LastFS(nullptr),
-  Walker(new TskWalkerImpl()),
+  Wrapper(new TskWrapper()),
   Ass(),
-  Tsg(TskUtils::makeTimestampGetter(TSK_FS_TYPE_DETECT))
+  Tsg(TskUtils::makeTimestampGetter(TSK_FS_TYPE_DETECT)),
+  Walker(new TskWalkerImpl())
 {
 }
 
 bool TskReader::open() {
-  const char* nameHolder = ImgName.c_str();
-  Img = make_unique_del(
-    tsk_img_open_utf8(1, &nameHolder, TSK_IMG_TYPE_DETECT, 0),
-    tsk_img_close
-  );
-
-  return bool(Img);
+  return bool(Img = Wrapper->openImg(ImgName.c_str()));
 }
 
 void TskReader::setInputHandler(std::shared_ptr<InputHandler> in) {
@@ -123,15 +118,16 @@ bool TskReader::markInodeSeen(uint64_t inum) {
   }
 }
 
+void dummy_del(TSK_FS_INFO*) {}
+
 std::shared_ptr<BlockSequence> TskReader::makeBlockSequence(TSK_FS_FILE* fs_file) {
   TSK_FS_INFO* their_fs = fs_file->fs_info;
 
   // open our own copy of the fs, since TskAuto closes the ones it opens
-  auto p = Fs.emplace(their_fs->offset, make_unique_del(nullptr, tsk_fs_close));
+  auto p = Fs.emplace(their_fs->offset, make_unique_del(nullptr, dummy_del));
   if (p.second) {
-    p.first->second = make_unique_del(
-      tsk_fs_open_img(Img.get(), their_fs->offset, their_fs->ftype),
-      tsk_fs_close
+    p.first->second = Wrapper->openFS(
+      Img.get(), their_fs->offset, their_fs->ftype
     );
   }
 
@@ -140,10 +136,7 @@ std::shared_ptr<BlockSequence> TskReader::makeBlockSequence(TSK_FS_FILE* fs_file
   // open our own copy of the file, since TskAuto closes the ones it opens
   return std::static_pointer_cast<BlockSequence>(
     std::make_shared<TskBlockSequence>(
-      make_unique_del(
-        tsk_fs_file_open_meta(our_fs, nullptr, fs_file->meta->addr),
-        tsk_fs_file_close
-      )
+      Wrapper->openFile(our_fs, fs_file->meta->addr)
     )
   );
 }
@@ -184,7 +177,7 @@ bool TskReader::addToBatch(TSK_FS_FILE* fs_file) {
   jsoncons::json& attrs = meta["attrs"];
 
   // ridiculous bullshit to force attrs to be populated
-  tsk_fs_file_attr_get_idx(fs_file, 0);
+  Wrapper->populateAttrs(fs_file);
 
   // handle the attrs
   if (fs_file->meta->attr) {
