@@ -143,7 +143,6 @@ src_llama_llama_SOURCES = \
 	src/llama/timestamps.cpp \
 	src/llama/treehasher.cpp \
 	src/llama/tskconversion.cpp \
-	src/llama/tskreader.cpp \
 	src/llama/tsktimestamps.cpp \
 	src/llama/tskwalkerimpl.cpp \
 	src/llama/tskwrapper.cpp \

@@ -1,8 +1,46 @@
 #include <scope/test.h>
 
+#include "tskreader.h"
+
+class FakeTskWrapper {
+public:
+  std::unique_ptr<TSK_IMG_INFO, void(*)(TSK_IMG_INFO*)> openImg(const char* path) const {
+    return {nullptr, nullptr};
+  }
+
+  std::unique_ptr<TSK_FS_INFO, void(*)(TSK_FS_INFO*)> openFS(TSK_IMG_INFO* img, TSK_OFF_T off, TSK_FS_TYPE_ENUM type) const {
+    return {nullptr, nullptr};
+  }
+
+  std::unique_ptr<TSK_FS_FILE, void(*)(TSK_FS_FILE*)> openFile(TSK_FS_INFO* fs, TSK_INUM_T inum) const {
+    return {nullptr, nullptr};
+  }
+
+  void populateAttrs(TSK_FS_FILE* file) const {
+  }
+};
+
+class FakeTskWalker {
+public:
+  bool walk(
+    TSK_IMG_INFO* info,
+    std::function<TSK_FILTER_ENUM(const TSK_VS_INFO*)> vs_cb,
+    std::function<TSK_FILTER_ENUM(const TSK_VS_PART_INFO*)> vol_cb,
+    std::function<TSK_FILTER_ENUM(TSK_FS_INFO*)> fs_cb,
+    std::function<TSK_RETVAL_ENUM(TSK_FS_FILE*, const char*)> file_cb
+  )
+  {
+    return false;
+  }
+};
+
+SCOPE_TEST(testMakeTskReader) {
+  TskReader<FakeTskWrapper, FakeTskWalker>("bogus.E01");
+}
+
+/*
 #include <cstring>
 
-#include "tskreader.h"
 
 #include "filerecord.h"
 #include "mockinputhandler.h"
@@ -61,3 +99,4 @@ SCOPE_TEST(testInodeDedupe) {
   SCOPE_ASSERT(!reader.addToBatch(&myFile));
   SCOPE_ASSERT_EQUAL(2u, in->batch.size());
 }
+*/

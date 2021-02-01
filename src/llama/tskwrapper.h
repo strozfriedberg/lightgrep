@@ -12,5 +12,5 @@ public:
 
   std::unique_ptr<TSK_FS_FILE, void(*)(TSK_FS_FILE*)> openFile(TSK_FS_INFO* fs, TSK_INUM_T inum) const;
 
-  void populateAttrs(TSK_FS_FILE* file) const; 
+  void populateAttrs(TSK_FS_FILE* file) const;
 };
