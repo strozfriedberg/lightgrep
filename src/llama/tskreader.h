@@ -13,12 +13,13 @@
 #include "llamatskauto.h"
 #include "outputhandler.h"
 #include "tskconversion.h"
+#include "tskimgassembler.h"
 #include "util.h"
 
 class BlockSequence;
 class TimestampGetter;
 
-template <class ProviderT, class WalkerT, class AssemblerT>
+template <class ProviderT, class WalkerT>
 class TskReader: public InputReader {
 public:
   TskReader(const std::string& imgPath):
@@ -234,7 +235,7 @@ private:
 
   ProviderT Tsk;
   WalkerT Walker;
-  AssemblerT Ass;
+  TskImgAssembler Ass;
 
   std::unique_ptr<TimestampGetter> Tsg;
 
