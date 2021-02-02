@@ -27,7 +27,6 @@ public:
     Img(nullptr, nullptr),
     Input(),
     Output(),
-    LastFS(nullptr),
     Tsk(),
     Walker(),
     Ass(),
@@ -179,15 +178,12 @@ public:
   TSK_FILTER_ENUM filterFs(TSK_FS_INFO* fs_info) {
     Ass.addFileSystem(TskUtils::convertFS(*fs_info));
     Tsg = TskUtils::makeTimestampGetter(fs_info->ftype);
+    setInodeRange(fs_info->first_inum, fs_info->last_inum);
     return TSK_FILTER_CONT;
   }
 
   TSK_RETVAL_ENUM processFile(TSK_FS_FILE* fs_file, const char* /* path */) {
     // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
-    if (fs_file->fs_info != LastFS) {
-      LastFS = fs_file->fs_info;
-      setInodeRange(LastFS->first_inum, LastFS->last_inum);
-    }
     addToBatch(fs_file);
     return TSK_OK;
   }
@@ -220,8 +216,6 @@ private:
 
   std::shared_ptr<InputHandler> Input;
   std::shared_ptr<OutputHandler> Output;
-
-  const TSK_FS_INFO* LastFS;
 
   std::vector<bool> InodeEncountered;
 
