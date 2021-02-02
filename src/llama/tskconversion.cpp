@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <iterator>
 #include <utility>
 
 #include "hex.h"
