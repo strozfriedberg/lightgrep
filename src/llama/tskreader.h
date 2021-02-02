@@ -12,13 +12,12 @@
 #include "inputreader.h"
 #include "llamatskauto.h"
 #include "outputhandler.h"
-#include "tskwalkerimpl.h"
 #include "tskconversion.h"
+#include "tskimgassembler.h"
+#include "tskwalkerimpl.h"
 #include "util.h"
 
 class BlockSequence;
-class InputHandler;
-class OutputHandler;
 class TimestampGetter;
 
 template <class TskProvider, class TskWalker>

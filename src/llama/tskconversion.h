@@ -64,16 +64,3 @@ namespace TskUtils {
 
   std::unique_ptr<TimestampGetter> makeTimestampGetter(TSK_FS_TYPE_ENUM fstype);
 }
-
-class TskImgAssembler {
-public:
-  void addImage(jsoncons::json&& img);
-  void addVolumeSystem(jsoncons::json&& vs);
-  void addVolume(jsoncons::json&& vol);
-  void addFileSystem(jsoncons::json&& fs);
-
-  jsoncons::json dump();
-
-private:
-  jsoncons::json Doc;
-};

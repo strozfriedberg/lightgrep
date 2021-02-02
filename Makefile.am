@@ -143,6 +143,7 @@ src_llama_llama_SOURCES = \
 	src/llama/timestamps.cpp \
 	src/llama/treehasher.cpp \
 	src/llama/tskconversion.cpp \
+	src/llama/tskimgassembler.cpp \
 	src/llama/tsktimestamps.cpp \
 	src/llama/tskwalkerimpl.cpp \
 	src/llama/tskwrapper.cpp \
@@ -157,6 +158,7 @@ src_llama_llama_SOURCES = \
 	src/llama/test_recordbuffer.cpp \
 	src/llama/test_recordhasher.cpp \
 	src/llama/test_tskconversion.cpp \
+	src/llama/test_tskimgassembler.cpp \
 	src/llama/test_tskreader.cpp \
 	src/llama/test_tsktimestamps.cpp
 
