@@ -30,7 +30,7 @@ public:
     Tsk(),
     Walker(),
     Ass(),
-    Tsg(TskUtils::makeTimestampGetter(TSK_FS_TYPE_DETECT))
+    Tsg(nullptr)
   {
   }
 
