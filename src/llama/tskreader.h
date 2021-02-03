@@ -12,14 +12,14 @@
 #include "inputreader.h"
 #include "llamatskauto.h"
 #include "outputhandler.h"
-#include "tskconversion.h"
+#include "tsk.h"
 #include "tskimgassembler.h"
 #include "util.h"
 
 class BlockSequence;
 class TimestampGetter;
 
-template <class ProviderT, class WalkerT>
+template <class Provider>
 class TskReader: public InputReader {
 public:
   TskReader(const std::string& imgPath):
@@ -28,7 +28,6 @@ public:
     Input(),
     Output(),
     Tsk(),
-    Walker(),
     Ass(),
     Tsg(nullptr)
   {
@@ -49,12 +48,12 @@ public:
   }
 
   virtual bool startReading() override {
-    Ass.addImage(TskUtils::convertImg(*Img));
+    Ass.addImage(Tsk.convertImg(*Img));
 
     // tell TskAuto to start giving files to processFile
     // std::cerr << "Image is " << getImageSize() << " bytes in size" << std::endl;
 
-    const bool ret = Walker.walk(
+    const bool ret = Tsk.walk(
       Img.get(),
       [this](const TSK_VS_INFO* vs_info) { return filterVs(vs_info); },
       [this](const TSK_VS_PART_INFO* vs_part) { return filterVol(vs_part); },
@@ -102,13 +101,13 @@ public:
 
       std::cerr << fs_file->name->par_addr << " -> " << Path.top() << '\n';
 
-      Output->outputDirent(TskUtils::convertName(*fs_file->name));
+      Output->outputDirent(Tsk.convertName(*fs_file->name));
     }
 
     //
     // handle the meta
     //
-    jsoncons::json meta = TskUtils::convertMeta(*fs_file->meta, *Tsg);
+    jsoncons::json meta = Tsk.convertMeta(*fs_file->meta, *Tsg);
     jsoncons::json& attrs = meta["attrs"];
 
     // ridiculous bullshit to force attrs to be populated
@@ -118,7 +117,7 @@ public:
     if (fs_file->meta->attr) {
       for (const TSK_FS_ATTR* a = fs_file->meta->attr->head; a; a = a->next) {
         if (a->flags & TSK_FS_ATTR_INUSE) {
-          attrs.push_back(TskUtils::convertAttr(*a));
+          attrs.push_back(Tsk.convertAttr(*a));
         }
       }
     }
@@ -166,18 +165,18 @@ public:
 
   // callbacks
   TSK_FILTER_ENUM filterVs(const TSK_VS_INFO* vs_info) {
-    Ass.addVolumeSystem(TskUtils::convertVS(*vs_info));
+    Ass.addVolumeSystem(Tsk.convertVS(*vs_info));
     return TSK_FILTER_CONT;
   }
 
   TSK_FILTER_ENUM filterVol(const TSK_VS_PART_INFO* vs_part) {
-    Ass.addVolume(TskUtils::convertVol(*vs_part));
+    Ass.addVolume(Tsk.convertVol(*vs_part));
     return TSK_FILTER_CONT;
   }
 
   TSK_FILTER_ENUM filterFs(TSK_FS_INFO* fs_info) {
-    Ass.addFileSystem(TskUtils::convertFS(*fs_info));
-    Tsg = TskUtils::makeTimestampGetter(fs_info->ftype);
+    Ass.addFileSystem(Tsk.convertFS(*fs_info));
+    Tsg = Tsk.makeTimestampGetter(fs_info->ftype);
     setInodeRange(fs_info->first_inum, fs_info->last_inum);
     return TSK_FILTER_CONT;
   }
@@ -227,8 +226,7 @@ private:
   uint64_t BlockBegin,
            BlockEnd;
 
-  ProviderT Tsk;
-  WalkerT Walker;
+  Provider Tsk;
   TskImgAssembler Ass;
 
   std::unique_ptr<TimestampGetter> Tsg;
