@@ -78,10 +78,19 @@ public:
 
     TSK_VS_PART_INFO vol;
     std::memset(&vol, 0, sizeof(vol));
-    vol_cb(&vol);
 
     TSK_FS_INFO fs;
     std::memset(&fs, 0, sizeof(fs));
+
+    // first volume
+    vol_cb(&vol);
+    fs_cb(&fs);
+
+    // second volume -- no filesystem!
+    vol_cb(&vol);
+
+    // third volume
+    vol_cb(&vol);
     fs_cb(&fs);
 
     return true;
@@ -113,8 +122,21 @@ SCOPE_TEST(testTskReaderVolumeSystem) {
             {
               "volumes",
               jsoncons::json(
+                // volume 1
                 jsoncons::json_array_arg,
                 {
+                  jsoncons::json(
+                    jsoncons::json_object_arg,
+                    {
+                      {
+                        "fileSystem",
+                        jsoncons::json(jsoncons::json_object_arg)
+                      }
+                    }
+                  ),
+                  // volume 2
+                  jsoncons::json(jsoncons::json_object_arg),
+                  // volume 3
                   jsoncons::json(
                     jsoncons::json_object_arg,
                     {
