@@ -228,7 +228,6 @@ private:
 
   Provider Tsk;
   TskImgAssembler Ass;
-
   std::unique_ptr<TimestampGetter> Tsg;
 
   std::stack<TSK_INUM_T> Path;
