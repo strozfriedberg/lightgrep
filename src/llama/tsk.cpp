@@ -1,6 +1,6 @@
 #include "tsk.h"
 
-#include "llamatskauto.h"
+#include "tskautowrapper.h"
 #include "tskconversion.h"
 #include "tsktimestamps.h"
 #include "util.h"
@@ -36,7 +36,7 @@ bool Tsk::walk(
   std::function<TSK_RETVAL_ENUM(TSK_FS_FILE*, const char*)> file_cb
 )
 {
-  return LlamaTskAuto(info, vs_cb, vol_cb, fs_cb, file_cb).findFilesInImg() == 0;
+  return TskAutoWrapper(info, vs_cb, vol_cb, fs_cb, file_cb).findFilesInImg() == 0;
 }
 
 jsoncons::json Tsk::convertImg(const TSK_IMG_INFO& img) const {

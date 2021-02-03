@@ -131,7 +131,6 @@ src_llama_llama_SOURCES = \
 	src/llama/hex.cpp \
 	src/llama/inputreader.cpp \
 	src/llama/llama.cpp \
-	src/llama/llamatskauto.cpp \
 	src/llama/main.cpp \
 	src/llama/outputstream.cpp \
 	src/llama/outputtar.cpp \
@@ -143,6 +142,7 @@ src_llama_llama_SOURCES = \
 	src/llama/timestamps.cpp \
 	src/llama/treehasher.cpp \
 	src/llama/tsk.cpp \
+	src/llama/tskautowrapper.cpp \
 	src/llama/tskconversion.cpp \
 	src/llama/tskimgassembler.cpp \
 	src/llama/tsktimestamps.cpp \

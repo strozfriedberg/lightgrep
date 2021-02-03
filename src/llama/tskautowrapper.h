@@ -4,9 +4,9 @@
 
 #include <tsk/libtsk.h>
 
-class LlamaTskAuto: public TskAuto {
+class TskAutoWrapper: public TskAuto {
 public:
-  LlamaTskAuto(
+  TskAutoWrapper(
     TSK_IMG_INFO* info,
     std::function<TSK_FILTER_ENUM(const TSK_VS_INFO*)> vs_cb,
     std::function<TSK_FILTER_ENUM(const TSK_VS_PART_INFO*)> vol_cb,
@@ -22,7 +22,7 @@ public:
     m_img_info = info;
   }
 
-  virtual ~LlamaTskAuto() {}
+  virtual ~TskAutoWrapper() {}
 
   virtual TSK_RETVAL_ENUM processFile(TSK_FS_FILE* fs_file,
                                       const char* path) override;
