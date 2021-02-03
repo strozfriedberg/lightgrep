@@ -12,5 +12,6 @@ public:
   jsoncons::json dump();
 
 private:
+  enum { INIT, IMG, VS, VOL, FS, END } State = INIT;
   jsoncons::json Doc;
 };
