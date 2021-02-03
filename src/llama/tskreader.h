@@ -10,7 +10,6 @@
 #include "filerecord.h"
 #include "inputhandler.h"
 #include "inputreader.h"
-#include "llamatskauto.h"
 #include "outputhandler.h"
 #include "tsk.h"
 #include "tskimgassembler.h"
