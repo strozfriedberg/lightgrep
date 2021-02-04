@@ -8,6 +8,8 @@
 #include <tsk/libtsk.h>
 
 #include "filerecord.h"
+#include "inodeandblocktracker.h"
+#include "inodeandblocktrackerimpl.h"
 #include "inputhandler.h"
 #include "inputreader.h"
 #include "outputhandler.h"
@@ -28,7 +30,8 @@ public:
     Output(),
     Tsk(),
     Ass(),
-    Tsg(nullptr)
+    Tsg(nullptr),
+    Tracker(new InodeAndBlockTrackerImpl())
   {
   }
 
@@ -75,17 +78,38 @@ public:
   }
 
 private:
+  // callbacks
+  TSK_FILTER_ENUM filterVs(const TSK_VS_INFO* vs_info) {
+    Ass.addVolumeSystem(Tsk.convertVS(*vs_info));
+    return TSK_FILTER_CONT;
+  }
+
+  TSK_FILTER_ENUM filterVol(const TSK_VS_PART_INFO* vs_part) {
+    Ass.addVolume(Tsk.convertVol(*vs_part));
+    return TSK_FILTER_CONT;
+  }
+
+  TSK_FILTER_ENUM filterFs(TSK_FS_INFO* fs_info) {
+    Ass.addFileSystem(Tsk.convertFS(*fs_info));
+    Tsg = Tsk.makeTimestampGetter(fs_info->ftype);
+    Tracker->setInodeRange(fs_info->first_inum, fs_info->last_inum);
+    return TSK_FILTER_CONT;
+  }
+
+  TSK_RETVAL_ENUM processFile(TSK_FS_FILE* fs_file, const char* /* path */) {
+    // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
+    addToBatch(fs_file);
+    return TSK_OK;
+  }
+
   bool addToBatch(TSK_FS_FILE* fs_file) {
     if (!fs_file || !fs_file->meta) {
+      // nothing to process
       return false;
     }
 
-  //  const uint64_t index = fs_file->meta->addr - InumBegin;
-    const uint64_t inum = fs_file->meta->addr;
-
-  //  std::cerr << fs_file->meta->addr << ' ' << InumBegin << ' ' << index << ' ' << InodeEncountered.size() << std::endl;
-
-    if (markInodeSeen(inum)) {
+    if (Tracker->markInodeSeen(fs_file->meta->addr)) {
+      // been here, done that
       return false;
     }
 
@@ -125,66 +149,6 @@ private:
     Input->push({std::move(meta), makeBlockSequence(fs_file)});
 
     return true;
-  }
-
-  void setInodeRange(uint64_t begin, uint64_t end) {
-    InumBegin = begin;
-    InumEnd = end;
-// FIXME: Apparently "first_inum" is first in some way other than the usual
-// meaning of first, because it's 2 on DadeMurphy but we still see inode 0
-// there. WTF? For the time being, just waste a few bits at the start of the
-// encountered vector.
-//  InodeEncountered.resize(end - begin);
-
-    InodeEncountered.clear();
-    InodeEncountered.resize(end+1);
-  }
-
-  void setBlockRange(uint64_t begin, uint64_t end) {
-    // FIXME: unclear if we can rely on end - begin + 1 to be the actual count
-    BlockBegin = begin;
-    BlockEnd = end;
-    Allocated.clear();
-    Allocated.resize(end+1);
-  }
-
-  bool markInodeSeen(uint64_t inum) {
-    // TODO: bounds checking? inum could be bogus
-    if (InodeEncountered[inum]) {
-      return true;
-    }
-    else {
-      InodeEncountered[inum] = true;
-      return false;
-    }
-  }
-
-  void claimBlockRange(uint64_t begin, uint64_t end) {
-
-  }
-
-  // callbacks
-  TSK_FILTER_ENUM filterVs(const TSK_VS_INFO* vs_info) {
-    Ass.addVolumeSystem(Tsk.convertVS(*vs_info));
-    return TSK_FILTER_CONT;
-  }
-
-  TSK_FILTER_ENUM filterVol(const TSK_VS_PART_INFO* vs_part) {
-    Ass.addVolume(Tsk.convertVol(*vs_part));
-    return TSK_FILTER_CONT;
-  }
-
-  TSK_FILTER_ENUM filterFs(TSK_FS_INFO* fs_info) {
-    Ass.addFileSystem(Tsk.convertFS(*fs_info));
-    Tsg = Tsk.makeTimestampGetter(fs_info->ftype);
-    setInodeRange(fs_info->first_inum, fs_info->last_inum);
-    return TSK_FILTER_CONT;
-  }
-
-  TSK_RETVAL_ENUM processFile(TSK_FS_FILE* fs_file, const char* /* path */) {
-    // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
-    addToBatch(fs_file);
-    return TSK_OK;
   }
 
   std::shared_ptr<BlockSequence> makeBlockSequence(TSK_FS_FILE* fs_file) {
@@ -228,6 +192,7 @@ private:
   Provider Tsk;
   TskImgAssembler Ass;
   std::unique_ptr<TimestampGetter> Tsg;
+  std::unique_ptr<InodeAndBlockTracker> Tracker;
 
   std::stack<TSK_INUM_T> Path;
 };
