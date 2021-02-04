@@ -1,6 +1,8 @@
 #include "inodeandblocktrackerimpl.h"
+#include "throw.h"
 
 void InodeAndBlockTrackerImpl::setInodeRange(uint64_t begin, uint64_t end) {
+  THROW_IF(begin > end, "bad range [" << begin << ',' << end << ')');
   InumBegin = begin;
   InumEnd = end;
   // FIXME: Apparently "first_inum" is first in some way other than the usual
@@ -13,6 +15,8 @@ void InodeAndBlockTrackerImpl::setInodeRange(uint64_t begin, uint64_t end) {
 }
 
 bool InodeAndBlockTrackerImpl::markInodeSeen(uint64_t inum) {
+  THROW_IF(inum < InumBegin, "inum " << inum << " < " << InumBegin << " InumBegin");
+  THROW_IF(inum >= InumEnd, "inum " << inum << " >= " << InumEnd << " InumEnd");
   const bool ret = InodeSeen[inum];
   InodeSeen[inum] = true;
   return ret;

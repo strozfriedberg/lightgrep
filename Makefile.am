@@ -154,6 +154,7 @@ src_llama_llama_SOURCES = \
 	src/llama/test_fileproxy.cpp \
 	src/llama/test_filerecord.cpp \
 	src/llama/test_hex.cpp \
+	src/llama/test_inodeandblocktrackerimpl.cpp \
 	src/llama/test_processor.cpp \
 	src/llama/test_recordbuffer.cpp \
 	src/llama/test_recordhasher.cpp \
