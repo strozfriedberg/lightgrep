@@ -74,6 +74,7 @@ public:
     return ret;
   }
 
+private:
   bool addToBatch(TSK_FS_FILE* fs_file) {
     if (!fs_file || !fs_file->meta) {
       return false;
@@ -186,7 +187,6 @@ public:
     return TSK_OK;
   }
 
-private:
   std::shared_ptr<BlockSequence> makeBlockSequence(TSK_FS_FILE* fs_file) {
     TSK_FS_INFO* their_fs = fs_file->fs_info;
 
