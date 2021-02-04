@@ -13,14 +13,9 @@ void InodeAndBlockTrackerImpl::setInodeRange(uint64_t begin, uint64_t end) {
 }
 
 bool InodeAndBlockTrackerImpl::markInodeSeen(uint64_t inum) {
-  // TODO: bounds checking? inum could be bogus
-  if (InodeSeen[inum]) {
-    return true;
-  }
-  else {
-    InodeSeen[inum] = true;
-    return false;
-  }
+  const bool ret = InodeSeen[inum];
+  InodeSeen[inum] = true;
+  return ret;
 }
 
 void InodeAndBlockTrackerImpl::setBlockRange(uint64_t begin, uint64_t end) {
