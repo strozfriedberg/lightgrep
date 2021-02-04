@@ -23,9 +23,10 @@ bool InodeAndBlockTrackerImpl::markInodeSeen(uint64_t inum) {
 }
 
 void InodeAndBlockTrackerImpl::setBlockRange(uint64_t begin, uint64_t end) {
-  // FIXME: unclear if we can rely on end - begin + 1 to be the actual count
+  THROW_IF(begin > end, "bad range [" << begin << ',' << end << ')');
   BlockBegin = begin;
   BlockEnd = end;
+  // FIXME: unclear if we can rely on end - begin + 1 to be the actual count
   AllocatedBlock.clear();
   AllocatedBlock.resize(end+1);
 }
