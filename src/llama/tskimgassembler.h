@@ -12,6 +12,26 @@ public:
   jsoncons::json dump();
 
 private:
-  enum { INIT, IMG, VS, VOL, FS, END } State = INIT;
+  /*
+    This is the graph of our state machine:
+
+    digraph {
+      INIT -> IMG;
+      IMG -> VS;
+      VS -> VOL;
+      VOL -> VOL;
+      VOL -> VOL_FS;
+      VOL_FS -> VOL;
+      IMG -> IMG_FS;
+      INIT -> END;
+      IMG -> END;
+      VS -> END;
+      VOL -> END;
+      IMG_FS -> END;
+      VOL_FS -> END;
+    }
+  */
+  enum { INIT, IMG, IMG_FS, VS, VOL, VOL_FS, END } State = INIT;
+
   jsoncons::json Doc;
 };

@@ -18,7 +18,7 @@ void TskImgAssembler::addVolume(jsoncons::json&& vol) {
   switch (State) {
   case VS:
   case VOL:
-  case FS:
+  case VOL_FS:
     Doc["volumeSystem"]["volumes"].push_back(std::move(vol));
     State = VOL;
     break;
@@ -32,17 +32,18 @@ void TskImgAssembler::addFileSystem(jsoncons::json&& fs) {
   // there is no volume system.
   if (State == IMG) {
     Doc["fileSystem"] = std::move(fs);
+    State = IMG_FS;
   }
   else if (State == VOL) {
     auto i = Doc.find("volumeSystem");
     THROW_IF(i == Doc.object_range().end(), "Inconceivable!");
     auto& fs_parent = *(i->value()["volumes"].array_range().rbegin());
     fs_parent["fileSystem"] = std::move(fs);
+    State = VOL_FS;
   }
   else {
     THROW("Inconceivable!");
   }
-  State = FS;
 }
 
 jsoncons::json TskImgAssembler::dump() {
