@@ -266,7 +266,7 @@ SCOPE_TEST(testTskConvertImg) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(testTskConvertNRDs) {
+SCOPE_TEST(testTskConvertRun) {
   TSK_FS_ATTR_RUN nrd;
   std::memset(&nrd, 0, sizeof(nrd));
 
@@ -275,7 +275,7 @@ SCOPE_TEST(testTskConvertNRDs) {
   nrd.offset = 17;
   nrd.flags  = TSK_FS_ATTR_RUN_FLAG_SPARSE;
 
-  const jsoncons::json js = TskUtils::convertNRDR(nrd);
+  const jsoncons::json js = TskUtils::convertRun(nrd);
   const std::string expected = "{\"addr\":15,\"flags\":\"Sparse\",\"len\":3045,\"offset\":17}";
   const std::string actual = js.as<std::string>();
   SCOPE_ASSERT_EQUAL(expected, actual);

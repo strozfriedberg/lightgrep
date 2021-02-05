@@ -307,7 +307,7 @@ jsoncons::json TskUtils::convertAttr(const TSK_FS_ATTR& attr) {
         continue;
       }
 
-      nrd_runs.push_back(TskUtils::convertNRDR(*i));
+      nrd_runs.push_back(TskUtils::convertRun(*i));
 
       if (i == attr.nrd.run_end) {
         // this is hopefully unnecessary, but what if
@@ -323,7 +323,7 @@ jsoncons::json TskUtils::convertAttr(const TSK_FS_ATTR& attr) {
   return jsAttr;
 }
 
-jsoncons::json TskUtils::convertNRDR(const TSK_FS_ATTR_RUN& dataRun) {
+jsoncons::json TskUtils::convertRun(const TSK_FS_ATTR_RUN& dataRun) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
