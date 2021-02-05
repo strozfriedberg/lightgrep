@@ -40,5 +40,7 @@ public:
 
   jsoncons::json convertAttr(const TSK_FS_ATTR& attr) const;
 
+  jsoncons::json convertRun(const TSK_FS_ATTR_RUN& run) const;
+
   std::unique_ptr<TimestampGetter> makeTimestampGetter(TSK_FS_TYPE_ENUM fstype) const;
 };

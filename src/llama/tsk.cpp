@@ -67,6 +67,10 @@ jsoncons::json Tsk::convertAttr(const TSK_FS_ATTR& attr) const {
   return TskUtils::convertAttr(attr);
 }
 
+jsoncons::json Tsk::convertRun(const TSK_FS_ATTR_RUN& run) const {
+  return TskUtils::convertRun(run);
+}
+
 std::unique_ptr<TimestampGetter> Tsk::makeTimestampGetter(TSK_FS_TYPE_ENUM fstype) const {
   return TskUtils::makeTimestampGetter(fstype);
 }

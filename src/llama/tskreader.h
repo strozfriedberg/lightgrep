@@ -141,7 +141,27 @@ private:
     if (fs_file->meta->attr) {
       for (const TSK_FS_ATTR* a = fs_file->meta->attr->head; a; a = a->next) {
         if (a->flags & TSK_FS_ATTR_INUSE) {
-          attrs.push_back(Tsk.convertAttr(*a));
+          jsoncons::json attr = Tsk.convertAttr(*a);
+          if (!(a->flags & TSK_FS_ATTR_RES)) {
+            jsoncons::json& nrd_runs = attr["nrd_runs"];
+            for (auto r = a->nrd.run; r; r = r->next) {
+              if (r->flags == TSK_FS_ATTR_RUN_FLAG_FILLER) {
+                // TODO: check on the exact semantics of this flag
+                continue;
+              }
+
+              nrd_runs.push_back(Tsk.convertRun(*r));
+
+              if (r == a->nrd.run_end) {
+                // this is hopefully unnecessary, but what if
+                // r->nrd.run_end.next isn't null?
+                // paranoia is a feature
+                break;
+              }
+            }
+          }
+
+          attrs.push_back(std::move(attr));
         }
       }
     }

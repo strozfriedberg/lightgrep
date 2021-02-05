@@ -376,7 +376,9 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
   std::memset(&attr, 0, sizeof(attr));
   setNonresAttr(attr, nrd1, nrd2);
 
-  const jsoncons::json js = TskUtils::convertAttr(attr);
+  jsoncons::json js = TskUtils::convertAttr(attr);
+  js["nrd_runs"].push_back(TskUtils::convertRun(nrd1));
+  js["nrd_runs"].push_back(TskUtils::convertRun(nrd2));
   testNonresAttr(js);
 }
 

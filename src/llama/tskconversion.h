@@ -60,7 +60,7 @@ namespace TskUtils {
 
   jsoncons::json convertMeta(const TSK_FS_META& meta, TimestampGetter& ts);
   jsoncons::json convertAttr(const TSK_FS_ATTR& attr);
-  jsoncons::json convertNRDR(const TSK_FS_ATTR_RUN& dataRun);
+  jsoncons::json convertRun(const TSK_FS_ATTR_RUN& run);
 
   std::unique_ptr<TimestampGetter> makeTimestampGetter(TSK_FS_TYPE_ENUM fstype);
 }

@@ -299,25 +299,7 @@ jsoncons::json TskUtils::convertAttr(const TSK_FS_ATTR& attr) {
     jsAttr["nrd_compsize"] = attr.nrd.compsize;
     jsAttr["nrd_initsize"] = attr.nrd.initsize;
     jsAttr["nrd_skiplen"] = attr.nrd.skiplen;
-
-    jsoncons::json nrd_runs = jsoncons::json(jsoncons::json_array_arg);
-    for (auto i = attr.nrd.run; i; i = i->next) {
-      if (i->flags == TSK_FS_ATTR_RUN_FLAG_FILLER) {
-        // TODO: check on the exact semantics of this flag
-        continue;
-      }
-
-      nrd_runs.push_back(TskUtils::convertRun(*i));
-
-      if (i == attr.nrd.run_end) {
-        // this is hopefully unnecessary, but what if
-        // attr.nrd.run_end.next isn't null?
-        // paranoia is a feature
-        break;
-      }
-    }
-
-    jsAttr["nrd_runs"] = std::move(nrd_runs);
+    jsAttr["nrd_runs"] = jsoncons::json(jsoncons::json_array_arg);
   }
 
   return jsAttr;

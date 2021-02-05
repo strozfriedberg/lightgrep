@@ -63,6 +63,10 @@ public:
     return jsoncons::json();
   }
 
+  jsoncons::json convertRun(const TSK_FS_ATTR_RUN& /* run */) const {
+    return jsoncons::json();
+  }
+
   std::unique_ptr<TimestampGetter> makeTimestampGetter(TSK_FS_TYPE_ENUM /* fstype */) const {
     return nullptr;
   }
