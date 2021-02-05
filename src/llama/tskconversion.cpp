@@ -323,14 +323,14 @@ jsoncons::json TskUtils::convertAttr(const TSK_FS_ATTR& attr) {
   return jsAttr;
 }
 
-jsoncons::json TskUtils::convertRun(const TSK_FS_ATTR_RUN& dataRun) {
+jsoncons::json TskUtils::convertRun(const TSK_FS_ATTR_RUN& run) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
-      { "addr",  dataRun.addr },
-      { "flags", nrdRunFlags(dataRun.flags) },
-      { "len",   dataRun.len },
-      { "offset", dataRun.offset }
+      { "addr",  run.addr },
+      { "flags", nrdRunFlags(run.flags) },
+      { "len",   run.len },
+      { "offset", run.offset }
     }
   );
 }
