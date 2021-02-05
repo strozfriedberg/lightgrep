@@ -92,7 +92,7 @@ private:
   TSK_FILTER_ENUM filterFs(TSK_FS_INFO* fs_info) {
     Ass.addFileSystem(Tsk.convertFS(*fs_info));
     Tsg = Tsk.makeTimestampGetter(fs_info->ftype);
-    Tracker->setInodeRange(fs_info->first_inum, fs_info->last_inum);
+    Tracker->setInodeRange(fs_info->first_inum, fs_info->last_inum + 1);
     return TSK_FILTER_CONT;
   }
 
@@ -100,6 +100,14 @@ private:
     // std::cerr << "processFile " << path << "/" << fs_file->name->name << std::endl;
     addToBatch(fs_file);
     return TSK_OK;
+  }
+
+  void markDeletedRun(uint64_t begin, uint64_t end) {
+
+  }
+
+  void markAllocatedRun(uint64_t begin, uint64_t end) {
+    Tracker->markBlocksAllocated(begin, end);
   }
 
   bool addToBatch(TSK_FS_FILE* fs_file) {
@@ -139,6 +147,10 @@ private:
 
     // handle the attrs
     if (fs_file->meta->attr) {
+      const bool deleted = fs_file->meta->flags & TSK_FS_META_FLAG_UNALLOC;
+      auto claim_run = deleted ? &TskReader::markDeletedRun
+                               : &TskReader::markAllocatedRun;
+
       for (const TSK_FS_ATTR* a = fs_file->meta->attr->head; a; a = a->next) {
         if (a->flags & TSK_FS_ATTR_INUSE) {
           jsoncons::json attr = Tsk.convertAttr(*a);
@@ -151,11 +163,13 @@ private:
               }
 
               nrd_runs.push_back(Tsk.convertRun(*r));
+              (this->*claim_run)(r->addr, r->addr + r->len);
 
               if (r == a->nrd.run_end) {
-                // this is hopefully unnecessary, but what if
+                // This is hopefully unnecessary, but what if
                 // r->nrd.run_end.next isn't null?
                 // paranoia is a feature
+                // FIXME: Maybe we should throw here instead?
                 break;
               }
             }
