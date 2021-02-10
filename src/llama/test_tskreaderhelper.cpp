@@ -48,11 +48,14 @@ SCOPE_TEST(testHandleAttrs) {
     attr[i].next = &attr[i+1];
   }
 
+  const TSK_FS_ATTR_FLAG_ENUM res = static_cast<TSK_FS_ATTR_FLAG_ENUM>(TSK_FS_ATTR_INUSE | TSK_FS_ATTR_RES);
+  const TSK_FS_ATTR_FLAG_ENUM nonres = static_cast<TSK_FS_ATTR_FLAG_ENUM>(TSK_FS_ATTR_INUSE | TSK_FS_ATTR_NONRES);
+
   // set some flags
-  attr[0].flags = static_cast<TSK_FS_ATTR_FLAG_ENUM>(TSK_FS_ATTR_INUSE | TSK_FS_ATTR_RES);
-  attr[1].flags = static_cast<TSK_FS_ATTR_FLAG_ENUM>(TSK_FS_ATTR_INUSE | TSK_FS_ATTR_NONRES);
+  attr[0].flags = res;
+  attr[1].flags = nonres;
   attr[2].flags = TSK_FS_ATTR_FLAG_NONE;
-  attr[3].flags =  static_cast<TSK_FS_ATTR_FLAG_ENUM>(TSK_FS_ATTR_INUSE | TSK_FS_ATTR_NONRES);
+  attr[3].flags = nonres;
   attr[4].flags = TSK_FS_ATTR_FLAG_NONE;
 
   // attach the attrs to a meta
