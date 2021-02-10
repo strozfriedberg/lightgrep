@@ -21,7 +21,7 @@ namespace TskReaderHelper {
   )
   {
     uint64_t skipBytes = a.nrd.skiplen;
-    const uint64_t mainSize = (a.flags & TSK_FS_ATTR_COMP) ? a.nrd.allocsize: a.nrd.initsize;
+    const uint64_t mainSize = (a.flags & TSK_FS_ATTR_COMP) ? a.nrd.allocsize : a.nrd.initsize;
 
     uint64_t fileOffset = 0;
     uint64_t slackOffset = 0;
