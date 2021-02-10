@@ -161,6 +161,7 @@ src_llama_llama_SOURCES = \
 	src/llama/test_tskconversion.cpp \
 	src/llama/test_tskimgassembler.cpp \
 	src/llama/test_tskreader.cpp \
+	src/llama/test_tskreaderhelper.cpp \
 	src/llama/test_tsktimestamps.cpp
 
 src_llama_llama_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS) $(TSK_CPPFLAGS) $(LIBARCHIVE_CPPFLAGS)
