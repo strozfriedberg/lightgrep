@@ -46,7 +46,7 @@ public:
     return jsoncons::json(jsoncons::json_object_arg);
   }
 
-  jsoncons::json convertMeta(const TSK_FS_META&, TimestampGetter&) const{
+  jsoncons::json convertMeta(const TSK_FS_META&, TimestampGetter&) const {
     return jsoncons::json(
       jsoncons::json_object_arg,
       {
