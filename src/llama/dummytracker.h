@@ -8,7 +8,7 @@ public:
 
   virtual void setInodeRange(uint64_t begin, uint64_t end) {}
 
-  virtual bool markInodeSeen(uint64_t inum) {}
+  virtual bool markInodeSeen(uint64_t inum) { return false; }
 
   virtual void setBlockRange(uint64_t begin, uint64_t end) {}
 
