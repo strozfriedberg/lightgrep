@@ -14,7 +14,7 @@ public:
 
   virtual void setBlockRange(uint64_t begin, uint64_t end);
 
-  virtual void markBlocksAllocated(uint64_t begin, uint64_t end);
+  virtual void markBlocksAllocated(uint64_t inum, uint64_t begin, uint64_t end);
 
   virtual void markBlocksClaimed(uint64_t inum, uint64_t begin, uint64_t end);
 

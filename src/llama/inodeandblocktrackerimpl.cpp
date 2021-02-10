@@ -31,7 +31,7 @@ void InodeAndBlockTrackerImpl::setBlockRange(uint64_t begin, uint64_t end) {
   AllocatedBlock.resize(end+1);
 }
 
-void InodeAndBlockTrackerImpl::markBlocksAllocated(uint64_t begin, uint64_t end) {
+void InodeAndBlockTrackerImpl::markBlocksAllocated(uint64_t inum, uint64_t begin, uint64_t end) {
 }
 
 void InodeAndBlockTrackerImpl::markBlocksClaimed(uint64_t inum, uint64_t begin, uint64_t end) {
