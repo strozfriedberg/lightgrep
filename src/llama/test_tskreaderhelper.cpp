@@ -109,6 +109,61 @@ public:
   }
 };
 
+SCOPE_TEST(testHandleRunsFiller) {
+  const uint64_t fsOffset = 12;
+  const uint64_t blockSize = 3;
+  const uint64_t inum = 42;
+
+  TSK_FS_ATTR attr;
+  std::memset(&attr, 0, sizeof(attr));
+
+  std::array<TSK_FS_ATTR_RUN, 5> run;
+  std::memset(&run, 0, sizeof(run));
+
+  for (size_t i = 0; i < run.size() - 1; ++i) {
+    run[i].next = &run[i+1];
+    run[i].addr = i;
+  }
+  run[4].addr = 4;
+  attr.nrd.run = &run[0];
+  attr.nrd.run_end = &run[4];
+
+  run[0].flags = TSK_FS_ATTR_RUN_FLAG_NONE;
+  run[1].flags = TSK_FS_ATTR_RUN_FLAG_FILLER;
+  run[2].flags = TSK_FS_ATTR_RUN_FLAG_FILLER;
+  run[3].flags = TSK_FS_ATTR_RUN_FLAG_NONE;
+  run[4].flags = TSK_FS_ATTR_RUN_FLAG_FILLER;
+
+  FakeHandleRunsTsk tsk;
+  std::unique_ptr<InodeAndBlockTracker> tracker(new DummyTracker());
+  jsoncons::json jnrd_runs(jsoncons::json_array_arg);
+  TskReaderHelper::handleRuns(
+    attr, fsOffset, blockSize, inum, tsk, *tracker,
+    &InodeAndBlockTracker::markBlocksAllocated, jnrd_runs
+  );
+
+  // expect no filler runs
+  const jsoncons::json exp(
+    jsoncons::json_array_arg,
+    {
+      jsoncons::json(
+        jsoncons::json_object_arg,
+        {
+          { "addr", 0 }
+        }
+      ),
+      jsoncons::json(
+        jsoncons::json_object_arg,
+        {
+          { "addr", 3 }
+        }
+      )
+    }
+  );
+
+  SCOPE_ASSERT_EQUAL(exp, jnrd_runs);
+}
+
 SCOPE_TEST(testHandleRunsNoSkipDataNoSlack) {
   const uint64_t fsOffset = 12;
   const uint64_t blockSize = 3;
