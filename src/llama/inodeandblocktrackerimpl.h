@@ -2,11 +2,15 @@
 
 #include "inodeandblocktracker.h"
 
-#include <vector>
+#include <boost/icl/interval_map.hpp>
+#include <boost/icl/interval_set.hpp>
+
+//#include <vector>
+#include <set>
 
 class InodeAndBlockTrackerImpl: public InodeAndBlockTracker {
 public:
-  virtual ~InodeAndBlockTrackerImpl() {}
+  virtual ~InodeAndBlockTrackerImpl();
 
   virtual void setInodeRange(uint64_t begin, uint64_t end);
 
@@ -21,13 +25,17 @@ public:
 //  virtual void handleExtent(const TSK_FS_ATTR_RUN& run);
 
 private:
-  std::vector<bool> InodeSeen;
+  void dump() const;
+
+//  std::vector<bool> InodeSeen;
+  boost::icl::interval_set<uint64_t> InodeSeen;
 
   uint64_t InumBegin,
            InumEnd;
 
-  std::vector<bool> AllocatedBlock;
-
   uint64_t BlockBegin,
            BlockEnd;
+
+  boost::icl::interval_set<uint64_t> AllocatedBlock;
+  boost::icl::interval_map<uint64_t, std::set<uint64_t>> ClaimedBlock;
 };
