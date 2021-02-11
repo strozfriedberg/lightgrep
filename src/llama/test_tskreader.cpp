@@ -212,41 +212,6 @@ SCOPE_TEST(testTskReaderNoVolumeSystem) {
   SCOPE_ASSERT(ih->Batch.empty());
 }
 
-class FakeTskWrongOrder: public FakeTskBase {
-public:
-  bool walk(
-    TSK_IMG_INFO* info,
-    std::function<TSK_FILTER_ENUM(const TSK_VS_INFO*)> vs_cb,
-    std::function<TSK_FILTER_ENUM(const TSK_VS_PART_INFO*)> vol_cb,
-    std::function<TSK_FILTER_ENUM(TSK_FS_INFO*)> fs_cb,
-    std::function<TSK_RETVAL_ENUM(TSK_FS_FILE*, const char*)>
-  )
-  {
-    TSK_VS_PART_INFO vol;
-    std::memset(&vol, 0, sizeof(vol));
-
-    // something is totally screwed up if we see a volume without seeing
-    // a volume system containing it
-    vol_cb(&vol);
-
-    return true;
-  }
-};
-
-// TODO: add more order tests
-SCOPE_TEST(testTskReaderWrongOrder) {
-  TskReader<FakeTskWithNoVolumeSystem> r("bogus.E01");
-
-  auto ih = std::shared_ptr<MockInputHandler>(new MockInputHandler());
-  r.setInputHandler(std::static_pointer_cast<InputHandler>(ih));
-
-  auto oh = std::shared_ptr<MockOutputHandler>(new MockOutputHandler());
-  r.setOutputHandler(std::static_pointer_cast<OutputHandler>(oh));
-
-  SCOPE_ASSERT(r.open());
-  SCOPE_EXPECT(r.startReading(), std::runtime_error);
-}
-
 /*
 #include <cstring>
 
