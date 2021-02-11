@@ -164,6 +164,47 @@ SCOPE_TEST(testHandleRunsFiller) {
   SCOPE_ASSERT_EQUAL(exp, jnrd_runs);
 }
 
+SCOPE_TEST(testHandleRunsEndHasNextWtf) {
+  const uint64_t fsOffset = 12;
+  const uint64_t blockSize = 3;
+  const uint64_t inum = 42;
+
+  TSK_FS_ATTR attr;
+  std::memset(&attr, 0, sizeof(attr));
+
+  TSK_FS_ATTR_RUN run;
+  std::memset(&run, 0, sizeof(run));
+
+  run.addr = 72;
+  run.next = &run; // it's a loop, oh ho ho ho
+  run.flags = TSK_FS_ATTR_RUN_FLAG_NONE;
+
+  attr.nrd.run = &run;
+  attr.nrd.run_end = &run;
+
+  FakeHandleRunsTsk tsk;
+  std::unique_ptr<InodeAndBlockTracker> tracker(new DummyTracker());
+  jsoncons::json jnrd_runs(jsoncons::json_array_arg);
+  TskReaderHelper::handleRuns(
+    attr, fsOffset, blockSize, inum, tsk, *tracker,
+    &InodeAndBlockTracker::markBlocksAllocated, jnrd_runs
+  );
+
+  const jsoncons::json exp(
+    jsoncons::json_array_arg,
+    {
+      jsoncons::json(
+        jsoncons::json_object_arg,
+        {
+          { "addr", 72 }
+        }
+      )
+    }
+  );
+
+  SCOPE_ASSERT_EQUAL(exp, jnrd_runs);
+}
+
 SCOPE_TEST(testHandleRunsNoSkipDataNoSlack) {
   const uint64_t fsOffset = 12;
   const uint64_t blockSize = 3;
