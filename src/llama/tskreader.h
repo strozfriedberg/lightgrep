@@ -30,7 +30,7 @@ public:
     Input(),
     Output(),
     Tsk(),
-    Ass(),
+    Asm(),
     Tsg(nullptr),
     Tracker(new InodeAndBlockTrackerImpl())
   {
@@ -51,7 +51,7 @@ public:
   }
 
   virtual bool startReading() override {
-    Ass.addImage(Tsk.convertImg(*Img));
+    Asm.addImage(Tsk.convertImg(*Img));
 
     // tell TskAuto to start giving files to processFile
     // std::cerr << "Image is " << getImageSize() << " bytes in size" << std::endl;
@@ -70,7 +70,7 @@ public:
         Path.pop();
       }
 
-      Output->outputImage(Ass.dump());
+      Output->outputImage(Asm.dump());
 
       // teardown
       Input->flush();
@@ -81,17 +81,17 @@ public:
 private:
   // callbacks
   TSK_FILTER_ENUM filterVs(const TSK_VS_INFO* vs_info) {
-    Ass.addVolumeSystem(Tsk.convertVS(*vs_info));
+    Asm.addVolumeSystem(Tsk.convertVS(*vs_info));
     return TSK_FILTER_CONT;
   }
 
   TSK_FILTER_ENUM filterVol(const TSK_VS_PART_INFO* vs_part) {
-    Ass.addVolume(Tsk.convertVol(*vs_part));
+    Asm.addVolume(Tsk.convertVol(*vs_part));
     return TSK_FILTER_CONT;
   }
 
   TSK_FILTER_ENUM filterFs(TSK_FS_INFO* fs_info) {
-    Ass.addFileSystem(Tsk.convertFS(*fs_info));
+    Asm.addFileSystem(Tsk.convertFS(*fs_info));
     Tsg = Tsk.makeTimestampGetter(fs_info->ftype);
     Tracker->setInodeRange(fs_info->first_inum, fs_info->last_inum + 1);
     Tracker->setBlockRange(fs_info->first_block * fs_info->block_size, (fs_info->last_block + 1) * fs_info->block_size);
@@ -185,7 +185,7 @@ private:
   std::shared_ptr<OutputHandler> Output;
 
   Provider Tsk;
-  TskImgAssembler Ass;
+  TskImgAssembler Asm;
   std::unique_ptr<TimestampGetter> Tsg;
   std::unique_ptr<InodeAndBlockTracker> Tracker;
 
