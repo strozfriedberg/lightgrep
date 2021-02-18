@@ -6,7 +6,8 @@
 #include <tsk/libtsk.h>
 
 #include "jsoncons_wrapper.h"
-#include "tsktimestamps.h"
+
+class TimestampGetter;
 
 class Tsk {
 public:

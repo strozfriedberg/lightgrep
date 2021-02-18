@@ -16,10 +16,10 @@
 #include "tsk.h"
 #include "tskimgassembler.h"
 #include "tskreaderhelper.h"
+#include "tsktimestamps.h"
 #include "util.h"
 
 class BlockSequence;
-class TimestampGetter;
 
 template <class Provider>
 class TskReader: public InputReader {
