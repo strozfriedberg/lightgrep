@@ -108,6 +108,7 @@ private:
 
   bool addToBatch(TSK_FS_FILE* fs_file) {
     if (!fs_file || !fs_file->meta) {
+      // TODO: Can we have a nonull fs_file->name in this case?
       // nothing to process
       return false;
     }
