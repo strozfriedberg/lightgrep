@@ -145,7 +145,6 @@ private:
     // handle the attrs
     //
 
-    // ridiculous bullshit to force attrs to be populated
     Tsk.populateAttrs(fs_file);
 
     TskReaderHelper::handleAttrs(
