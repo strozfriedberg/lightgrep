@@ -14,6 +14,7 @@
 /autoscan.log
 /c_example/cex
 /c_example/cex.exe
+/config.cache
 /config.h
 /config.h.in
 /config.h.in~
