@@ -2,7 +2,7 @@
 
 . .world/build_config.sh
 
-if [ "$Target" != 'macos']; then
+if [ "$Target" != 'macos' ]; then
   CHECK_TARGET=check-valgrind
 fi
 
