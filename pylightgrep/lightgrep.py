@@ -189,7 +189,7 @@ class KeyOpts(Structure):
 class ProgOpts(Structure):
     _fields_ = [("DeterminizeDepth", c_uint32)]
 
-    def __init__(self, determinizeDepth = 0xFFFFFFFF):
+    def __init__(self, determinizeDepth = 10):
         super().__init__()
         self.DeterminizeDepth = determinizeDepth
 

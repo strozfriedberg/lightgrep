@@ -89,6 +89,7 @@ extern "C" {
   //     0 -> no determinization, i.e., use the NFA;
   //   > 0 -> determinze to given depth, i.e., convert the NFA to partial DFA
   //   UINT32_MAX is effectively full determinization
+  //   10 is a reasonable starting value for partial determinization
   //
   typedef struct {
     uint32_t DeterminizeDepth;
