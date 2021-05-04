@@ -7,12 +7,15 @@
 
 #include <tsk/libtsk.h>
 
+#include "direntstack.h"
 #include "filerecord.h"
+#include "hex.h"
 #include "inodeandblocktracker.h"
 #include "inodeandblocktrackerimpl.h"
 #include "inputhandler.h"
 #include "inputreader.h"
 #include "outputhandler.h"
+#include "recordhasher.h"
 #include "tsk.h"
 #include "tskimgassembler.h"
 #include "tskreaderhelper.h"
@@ -65,9 +68,9 @@ public:
     );
 
     if (ret) {
-      while (!Path.empty()) {
-        std::cerr << Path.top() << " done\n";
-        Path.pop();
+      // wrap up the walk
+      while (!Dirents.empty()) {
+        finishDirent();
       }
 
       Output->outputImage(Asm.dump());
@@ -106,6 +109,21 @@ private:
     return TSK_OK;
   }
 
+  void finishDirent() {
+    jsoncons::json rec{Dirents.pop()};
+
+    const FieldHash fhash{RecHasher.hashDirent(rec)};
+    std::string hash = hexEncode(&fhash.hash, sizeof(fhash.hash));
+
+    std::cerr << hash << '\n';
+
+    if (!Dirents.empty()) {
+      Dirents.top()["children"].push_back(std::move(hash));
+    }
+
+    Output->outputDirent(std::move(rec));
+  }
+
   bool addToBatch(TSK_FS_FILE* fs_file) {
     if (!fs_file || !fs_file->meta) {
       // TODO: Can we have a nonull fs_file->name in this case?
@@ -125,15 +143,14 @@ private:
     // handle the name
     //
     if (fs_file->name) {
-      while (!Path.empty() && fs_file->name->par_addr != Path.top()) {
-        std::cerr << Path.top() << " done\n";
-        Path.pop();
+      const TSK_INUM_T par_addr =  fs_file->name->par_addr;
+
+      while (!Dirents.empty() && par_addr != Dirents.top()["meta_addr"]) {
+        finishDirent();
       }
-      Path.push(inum);
 
-      std::cerr << fs_file->name->par_addr << " -> " << Path.top() << '\n';
-
-      Output->outputDirent(Tsk.convertName(*fs_file->name));
+      std::cerr << par_addr << " -> " << fs_file->meta->addr << '\n';
+      Dirents.push(fs_file->name->name, Tsk.convertName(*fs_file->name));
     }
 
     //
@@ -189,7 +206,8 @@ private:
   std::unique_ptr<TimestampGetter> Tsg;
   std::unique_ptr<InodeAndBlockTracker> Tracker;
 
-  std::stack<TSK_INUM_T> Path;
+  DirentStack Dirents;
+  RecordHasher RecHasher;
 
   uint64_t CurFsOffset;
   uint64_t CurFsBlockSize;
