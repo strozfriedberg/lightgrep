@@ -125,6 +125,7 @@ src_llama_llama_SOURCES = \
 	src/llama/batchhandler.cpp \
 	src/llama/cli.cpp \
 	src/llama/dirconversion.cpp \
+	src/llama/direntstack.cpp \
 	src/llama/dirreader.cpp \
 	src/llama/fieldhasher.cpp \
 	src/llama/filescheduler.cpp \
