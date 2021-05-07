@@ -150,6 +150,7 @@ src_llama_llama_SOURCES = \
 	src/llama/tsktimestamps.cpp \
 	src/llama/test_cli.cpp \
 	src/llama/test_dirconversion.cpp \
+	src/llama/test_direntstack.cpp \
 	src/llama/test_dirreader.cpp \
 	src/llama/test_fieldhasher.cpp \
 	src/llama/test_fileproxy.cpp \

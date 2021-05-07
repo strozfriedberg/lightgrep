@@ -38,7 +38,10 @@ void DirentStack::push(const std::string& filename, jsoncons::json&& rec) {
 
 void DirentStack::push(const char* filename, jsoncons::json&& rec) {
   const size_t sep_idx = Path.length();
-  Path.append("/").append(filename);
+  if (sep_idx > 0) {
+    Path.append("/");
+  }
+  Path.append(filename);
 
   rec["path"] = Path;
   rec["children"] = jsoncons::json(jsoncons::json_array_arg);
