@@ -46,16 +46,12 @@ bool DirReader::startReading() {
   return true;
 }
 
-std::string ensureLeadingSlash(std::string s) {
-  return s.empty() || s[0] != '/' ? "/" + s : s;
-}
-
 void DirReader::handleFile(const fs::directory_entry& de) {
   const auto& p = de.path().lexically_normal();
 
   const std::string filename = p.filename().generic_string();
-  const std::string path = ensureLeadingSlash(p.generic_string());
-  const std::string parent_path = ensureLeadingSlash(p.parent_path().generic_string());
+  const std::string path = p.generic_string();
+  const std::string parent_path = p.parent_path().generic_string();
 
   while (!Dirents.empty() && parent_path != Dirents.top()["path"]) {
     Output->outputDirent(Dirents.pop());
