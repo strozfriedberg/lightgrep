@@ -15,8 +15,6 @@ public:
 
   const jsoncons::json& top() const;
 
-  jsoncons::json& top();
-
   jsoncons::json pop();
 
   void push(const std::string& filename, jsoncons::json&& rec);

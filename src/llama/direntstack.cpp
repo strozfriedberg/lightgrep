@@ -10,10 +10,6 @@ const jsoncons::json& DirentStack::top() const {
   return Stack.top().Record;
 }
 
-jsoncons::json& DirentStack::top() {
-  return Stack.top().Record;
-}
-
 jsoncons::json DirentStack::pop() {
   // pop the record and trim back the path
   Element& e = Stack.top();
