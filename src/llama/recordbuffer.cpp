@@ -36,7 +36,7 @@ void RecordBuffer::flush() {
   pathBuf << BasePath << '-' << std::setfill('0') << std::setw(4) << Num << ".jsonl";
   OutputChunk c{size(), pathBuf.str(), Buf.str()};
 
-  std::cerr << "RecordBuffer flushing " << c.path << " (" << c.size << " bytes)" << std::endl;
+//  std::cerr << "RecordBuffer flushing " << c.path << " (" << c.size << " bytes)" << std::endl;
   Out(c);
   Buf.str("");
 }

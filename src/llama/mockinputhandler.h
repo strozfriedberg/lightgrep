@@ -10,10 +10,10 @@ public:
   virtual ~MockInputHandler() {}
 
   virtual void push(FileRecord&& f) override {
-    batch.push_back(std::move(f));
+    Batch.push_back(std::move(f));
   }
 
   virtual void flush() override {}
 
-  std::vector<FileRecord> batch;
+  std::vector<FileRecord> Batch;
 };

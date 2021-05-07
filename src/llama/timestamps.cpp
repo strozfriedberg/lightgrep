@@ -2,6 +2,7 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+// TODO: we know the precision, so we should print fractional seconds that way
 // TODO: add direct tests of this
 // TODO: use std::to_chars, get rid of std::ostringstream?
 

@@ -129,9 +129,9 @@ src_llama_llama_SOURCES = \
 	src/llama/fieldhasher.cpp \
 	src/llama/filescheduler.cpp \
 	src/llama/hex.cpp \
+	src/llama/inodeandblocktrackerimpl.cpp \
 	src/llama/inputreader.cpp \
 	src/llama/llama.cpp \
-	src/llama/llamatskauto.cpp \
 	src/llama/main.cpp \
 	src/llama/outputstream.cpp \
 	src/llama/outputtar.cpp \
@@ -142,10 +142,11 @@ src_llama_llama_SOURCES = \
 	src/llama/schema.cpp \
 	src/llama/timestamps.cpp \
 	src/llama/treehasher.cpp \
+	src/llama/tsk.cpp \
+	src/llama/tskautowrapper.cpp \
 	src/llama/tskconversion.cpp \
-	src/llama/tskreader.cpp \
+	src/llama/tskimgassembler.cpp \
 	src/llama/tsktimestamps.cpp \
-	src/llama/tskwalkerimpl.cpp \
 	src/llama/test_cli.cpp \
 	src/llama/test_dirconversion.cpp \
 	src/llama/test_dirreader.cpp \
@@ -153,11 +154,14 @@ src_llama_llama_SOURCES = \
 	src/llama/test_fileproxy.cpp \
 	src/llama/test_filerecord.cpp \
 	src/llama/test_hex.cpp \
+	src/llama/test_inodeandblocktrackerimpl.cpp \
 	src/llama/test_processor.cpp \
 	src/llama/test_recordbuffer.cpp \
 	src/llama/test_recordhasher.cpp \
 	src/llama/test_tskconversion.cpp \
+	src/llama/test_tskimgassembler.cpp \
 	src/llama/test_tskreader.cpp \
+	src/llama/test_tskreaderhelper.cpp \
 	src/llama/test_tsktimestamps.cpp
 
 src_llama_llama_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS) $(TSK_CPPFLAGS) $(LIBARCHIVE_CPPFLAGS)

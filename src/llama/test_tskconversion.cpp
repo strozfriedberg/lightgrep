@@ -266,7 +266,7 @@ SCOPE_TEST(testTskConvertImg) {
   SCOPE_ASSERT_EQUAL(expected, actual);
 }
 
-SCOPE_TEST(testTskConvertNRDs) {
+SCOPE_TEST(testTskConvertRun) {
   TSK_FS_ATTR_RUN nrd;
   std::memset(&nrd, 0, sizeof(nrd));
 
@@ -275,7 +275,7 @@ SCOPE_TEST(testTskConvertNRDs) {
   nrd.offset = 17;
   nrd.flags  = TSK_FS_ATTR_RUN_FLAG_SPARSE;
 
-  const jsoncons::json js = TskUtils::convertNRDR(nrd);
+  const jsoncons::json js = TskUtils::convertRun(nrd);
   const std::string expected = "{\"addr\":15,\"flags\":\"Sparse\",\"len\":3045,\"offset\":17}";
   const std::string actual = js.as<std::string>();
   SCOPE_ASSERT_EQUAL(expected, actual);
@@ -376,7 +376,9 @@ SCOPE_TEST(testTskConvertAttrNonRes) {
   std::memset(&attr, 0, sizeof(attr));
   setNonresAttr(attr, nrd1, nrd2);
 
-  const jsoncons::json js = TskUtils::convertAttr(attr);
+  jsoncons::json js = TskUtils::convertAttr(attr);
+  js["nrd_runs"].push_back(TskUtils::convertRun(nrd1));
+  js["nrd_runs"].push_back(TskUtils::convertRun(nrd2));
   testNonresAttr(js);
 }
 
@@ -464,123 +466,4 @@ SCOPE_TEST(testTskNameConvert) {
   SCOPE_ASSERT_EQUAL(72, js["par_seq"]);
   SCOPE_ASSERT_EQUAL("Domain Socket", js["type"]);
   SCOPE_ASSERT_EQUAL("Allocated", js["flags"]);
-}
-
-SCOPE_TEST(testTskImgAssemblerAddImgVolumeSystemVolumeFS) {
-  TskImgAssembler ass;
-
-  ass.addImage(jsoncons::json(
-    jsoncons::json_object_arg,
-    {
-      { "a", "I'm an Image" }
-    }
-  ));
-
-  ass.addVolumeSystem(jsoncons::json(
-    jsoncons::json_object_arg,
-    {
-      { "b", "I'm a Volume System" },
-      { "volumes", jsoncons::json(jsoncons::json_array_arg) }
-    }
-  ));
-
-  ass.addVolume(jsoncons::json(
-    jsoncons::json_object_arg,
-    {
-      { "c", "I'm Volume 1" }
-    }
-  ));
-
-  ass.addFileSystem(jsoncons::json(
-    jsoncons::json_object_arg,
-    {
-      { "d", "I'm a File System" }
-    }
-  ));
-
-  ass.addVolume(jsoncons::json(
-    jsoncons::json_object_arg,
-    {
-      { "e", "I'm Volume 2" }
-    }
-  ));
-
-  const jsoncons::json exp(
-    jsoncons::json_object_arg,
-    {
-      { "a", "I'm an Image" },
-      {
-        "volumeSystem", jsoncons::json(
-          jsoncons::json_object_arg,
-          {
-            { "b", "I'm a Volume System" },
-            {
-              "volumes", jsoncons::json(
-                jsoncons::json_array_arg,
-                {
-                  jsoncons::json(
-                    jsoncons::json_object_arg,
-                    {
-                      { "c", "I'm Volume 1" },
-                      {
-                        "fileSystem", jsoncons::json(
-                          jsoncons::json_object_arg,
-                          {
-                            { "d", "I'm a File System" }
-                          }
-                        )
-                      }
-                    }
-                  ),
-                  jsoncons::json(
-                    jsoncons::json_object_arg,
-                    {
-                      { "e", "I'm Volume 2" }
-                    }
-                  )
-                }
-              )
-            }
-          }
-        )
-      }
-    }
-  );
-
-  SCOPE_ASSERT_EQUAL(exp, ass.dump());
-}
-
-SCOPE_TEST(testTskImgCollectorAddImgFS) {
-  TskImgAssembler ass;
-
-  ass.addImage(jsoncons::json(
-    jsoncons::json_object_arg,
-    {
-      { "a", "I'm an Image" }
-    }
-  ));
-
-  ass.addFileSystem(jsoncons::json(
-    jsoncons::json_object_arg,
-    {
-      { "b", "I'm a File System" }
-    }
-  ));
-
-  const jsoncons::json exp(
-    jsoncons::json_object_arg,
-    {
-      { "a", "I'm an Image" },
-      {
-        "fileSystem", jsoncons::json(
-          jsoncons::json_object_arg,
-          {
-            { "b", "I'm a File System" }
-          }
-        )
-      }
-    }
-  );
-
-  SCOPE_ASSERT_EQUAL(exp, ass.dump());
 }

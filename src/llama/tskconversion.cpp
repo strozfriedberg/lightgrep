@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <array>
-#include <iterator>
 #include <utility>
 
 #include "hex.h"
@@ -300,38 +299,20 @@ jsoncons::json TskUtils::convertAttr(const TSK_FS_ATTR& attr) {
     jsAttr["nrd_compsize"] = attr.nrd.compsize;
     jsAttr["nrd_initsize"] = attr.nrd.initsize;
     jsAttr["nrd_skiplen"] = attr.nrd.skiplen;
-
-    jsoncons::json nrd_runs = jsoncons::json(jsoncons::json_array_arg);
-    for (auto i = attr.nrd.run; i; i = i->next) {
-      if (i->flags == TSK_FS_ATTR_RUN_FLAG_FILLER) {
-        // TODO: check on the exact semantics of this flag
-        continue;
-      }
-
-      nrd_runs.push_back(TskUtils::convertNRDR(*i));
-
-      if (i == attr.nrd.run_end) {
-        // this is hopefully unnecessary, but what if
-        // attr.nrd.run_end.next isn't null?
-        // paranoia is a feature
-        break;
-      }
-    }
-
-    jsAttr["nrd_runs"] = std::move(nrd_runs);
+    jsAttr["nrd_runs"] = jsoncons::json(jsoncons::json_array_arg);
   }
 
   return jsAttr;
 }
 
-jsoncons::json TskUtils::convertNRDR(const TSK_FS_ATTR_RUN& dataRun) {
+jsoncons::json TskUtils::convertRun(const TSK_FS_ATTR_RUN& run) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
-      { "addr",  dataRun.addr },
-      { "flags", nrdRunFlags(dataRun.flags) },
-      { "len",   dataRun.len },
-      { "offset", dataRun.offset }
+      { "addr",  run.addr },
+      { "flags", nrdRunFlags(run.flags) },
+      { "len",   run.len },
+      { "offset", run.offset }
     }
   );
 }
@@ -402,29 +383,4 @@ jsoncons::json TskUtils::convertFS(const TSK_FS_INFO& fs) {
       { "rootInum", fs.root_inum }
     }
   );
-}
-
-void TskImgAssembler::addImage(jsoncons::json&& img) {
-  Doc = std::move(img);
-}
-
-void TskImgAssembler::addVolumeSystem(jsoncons::json&& vs) {
-  Doc["volumeSystem"] = std::move(vs);
-}
-
-void TskImgAssembler::addVolume(jsoncons::json&& vol) {
-  Doc["volumeSystem"]["volumes"].push_back(std::move(vol));
-}
-
-void TskImgAssembler::addFileSystem(jsoncons::json&& fs) {
-  // The fs goes in the last volume added, or directly into the image if
-  // there is no volume system.
-  auto i = Doc.find("volumeSystem");
-  auto& fs_parent = i == Doc.object_range().end() ? Doc :
-    *(i->value()["volumes"].array_range().rbegin());
-  fs_parent["fileSystem"] = std::move(fs);
-}
-
-jsoncons::json TskImgAssembler::dump() {
-  return std::move(Doc);
 }
