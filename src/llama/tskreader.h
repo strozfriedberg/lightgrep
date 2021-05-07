@@ -35,7 +35,9 @@ public:
     Tsk(),
     Asm(),
     Tsg(nullptr),
-    Tracker(new InodeAndBlockTrackerImpl())
+    Tracker(new InodeAndBlockTrackerImpl()),
+    RecHasher(),
+    Dirents(RecHasher)
   {
   }
 
@@ -70,7 +72,7 @@ public:
     if (ret) {
       // wrap up the walk
       while (!Dirents.empty()) {
-        finishDirent();
+        Output->outputDirent(Dirents.pop());
       }
 
       Output->outputImage(Asm.dump());
@@ -109,21 +111,6 @@ private:
     return TSK_OK;
   }
 
-  void finishDirent() {
-    jsoncons::json rec{Dirents.pop()};
-
-    const FieldHash fhash{RecHasher.hashDirent(rec)};
-    std::string hash = hexEncode(&fhash.hash, sizeof(fhash.hash));
-
-    std::cerr << hash << '\n';
-
-    if (!Dirents.empty()) {
-      Dirents.top()["children"].push_back(std::move(hash));
-    }
-
-    Output->outputDirent(std::move(rec));
-  }
-
   bool addToBatch(TSK_FS_FILE* fs_file) {
     if (!fs_file || !fs_file->meta) {
       // TODO: Can we have a nonull fs_file->name in this case?
@@ -146,7 +133,7 @@ private:
       const TSK_INUM_T par_addr =  fs_file->name->par_addr;
 
       while (!Dirents.empty() && par_addr != Dirents.top()["meta_addr"]) {
-        finishDirent();
+        Output->outputDirent(Dirents.pop());
       }
 
       std::cerr << par_addr << " -> " << fs_file->meta->addr << '\n';
@@ -206,8 +193,8 @@ private:
   std::unique_ptr<TimestampGetter> Tsg;
   std::unique_ptr<InodeAndBlockTracker> Tracker;
 
-  DirentStack Dirents;
   RecordHasher RecHasher;
+  DirentStack Dirents;
 
   uint64_t CurFsOffset;
   uint64_t CurFsBlockSize;

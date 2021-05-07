@@ -12,7 +12,9 @@ namespace fs = std::filesystem;
 
 DirReader::DirReader(const std::string& path):
   Root(path),
-  Input()
+  Input(),
+  RecHasher(),
+  Dirents(RecHasher)
 {
 }
 
@@ -22,19 +24,6 @@ void DirReader::setInputHandler(std::shared_ptr<InputHandler> in) {
 
 void DirReader::setOutputHandler(std::shared_ptr<OutputHandler> out) {
   Output = out;
-}
-
-void DirReader::finishDirent() {
-  jsoncons::json rec{Dirents.pop()};
-
-  const FieldHash fhash{RecHasher.hashDirent(rec)};
-  std::string hash = hexEncode(&fhash.hash, sizeof(fhash.hash));
-
-  if (!Dirents.empty()) {
-    Dirents.top()["children"].push_back(std::move(hash));
-  }
-
-  Output->outputDirent(std::move(rec));
 }
 
 bool DirReader::startReading() {
@@ -50,7 +39,7 @@ bool DirReader::startReading() {
   }
 
   while (!Dirents.empty()) {
-    finishDirent();
+    Output->outputDirent(Dirents.pop());
   }
 
   Input->flush();
@@ -69,7 +58,7 @@ void DirReader::handleFile(const fs::directory_entry& de) {
   const std::string parent_path = ensureLeadingSlash(p.parent_path().generic_string());
 
   while (!Dirents.empty() && parent_path != Dirents.top()["path"]) {
-    finishDirent();
+    Output->outputDirent(Dirents.pop());
   }
 
   Dirents.push(filename, Conv.convertName(de));

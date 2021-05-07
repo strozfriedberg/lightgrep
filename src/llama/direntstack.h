@@ -5,8 +5,12 @@
 
 #include "jsoncons_wrapper.h"
 
+class RecordHasher;
+
 class DirentStack {
 public:
+  DirentStack(RecordHasher& rh): RecHasher(rh) {}
+
   bool empty() const;
 
   const jsoncons::json& top() const;
@@ -30,4 +34,5 @@ private:
 
   std::string Path;
   std::stack<Element> Stack;
+  RecordHasher& RecHasher;
 };

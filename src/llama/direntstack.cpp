@@ -1,4 +1,6 @@
 #include "direntstack.h"
+#include "hex.h"
+#include "recordhasher.h"
 
 bool DirentStack::empty() const {
   return Stack.empty();
@@ -13,11 +15,24 @@ jsoncons::json& DirentStack::top() {
 }
 
 jsoncons::json DirentStack::pop() {
-  // return the record and trim back the path
+  // pop the record and trim back the path
   Element& e = Stack.top();
   Path.resize(e.LastPathSepIndex);
   jsoncons::json rec{std::move(e.Record)};
   Stack.pop();
+
+  // hash the record
+  const FieldHash fhash{RecHasher.hashDirent(rec)};
+  std::string hash = hexEncode(&fhash.hash, sizeof(fhash.hash));
+
+  // add the hash to the parent, if any
+  if (!Stack.empty()) {
+    Stack.top().Record["children"].push_back(hash);
+  }
+
+  // put the hash into the record
+  rec["hash"] = std::move(hash);
+
   return rec;
 }
 

@@ -24,8 +24,6 @@ public:
   void handleFile(const std::filesystem::directory_entry& de);
 
 private:
-  void finishDirent();
-
   std::string Root;
 
   std::shared_ptr<InputHandler> Input;
@@ -33,6 +31,6 @@ private:
 
   DirConverter Conv;
 
-  DirentStack Dirents;
   RecordHasher RecHasher;
+  DirentStack Dirents;
 };
