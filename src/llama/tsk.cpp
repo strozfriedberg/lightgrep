@@ -24,7 +24,7 @@ std::unique_ptr<TSK_FS_FILE, void(*)(TSK_FS_FILE*)> Tsk::openFile(TSK_FS_INFO* f
 }
 
 void Tsk::populateAttrs(TSK_FS_FILE* file) const {
-  // ridiculous bullshit to force attrs to be populated
+  // force attrs to be populated
   tsk_fs_file_attr_get_idx(file, 0);
 }
 
