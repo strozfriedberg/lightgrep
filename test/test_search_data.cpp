@@ -21,6 +21,6 @@
 #include "config.h"
 #include "dtest.h"
 
-SCOPE_FIXTURE_CTOR(hundredPatternSearch, DTest, DTest(TDATDIR "/hectotest.dat")) { SCOPE_ASSERT(fixture); }
+SCOPE_FIXTURE_CTOR(hundredPatternSearch, DTest, DTest(LG_TEST_DATA_DIR "/hectotest.dat")) { SCOPE_ASSERT(fixture); }
 
-SCOPE_FIXTURE_CTOR(thousandPatternSearch, DTest, DTest(TDATDIR "/kilotest.dat")) { SCOPE_ASSERT(fixture); }
+SCOPE_FIXTURE_CTOR(thousandPatternSearch, DTest, DTest(LG_TEST_DATA_DIR "/kilotest.dat")) { SCOPE_ASSERT(fixture); }
