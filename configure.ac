@@ -275,7 +275,7 @@ if test "x$scope_ok" != "xyes"; then
   AC_MSG_WARN([])
 fi
 
-AC_DEFINE_UNQUOTED(TDATDIR, "$srcdir/test/data", [Define to the path to the test data.])
+AC_DEFINE_UNQUOTED(LG_TEST_DATA_DIR, "$srcdir/test/data", [Define to the path to the test data.])
 
 #
 # Threading

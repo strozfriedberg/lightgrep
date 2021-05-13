@@ -1,5 +1,7 @@
 #include <scope/test.h>
 
+#include "config.h"
+
 #include <vector>
 
 #include "options.h"
@@ -7,9 +9,9 @@
 SCOPE_TEST(getKeyFilesFromActualFiles) {
   Options opts;
   opts.KeyFiles = {
-    "test/data/pats.0",
-    "test/data/pats.1",
-    "test/data/pats.2"
+    LG_TEST_DATA_DIR "/pats.0",
+    LG_TEST_DATA_DIR "/pats.1",
+    LG_TEST_DATA_DIR "/pats.2"
   };
 
   const std::vector<std::pair<std::string,std::string>> expected = {
