@@ -15,10 +15,13 @@ public:
 
   const jsoncons::json& top() const;
 
+  // Hashes the current dirent, adds that hash to the parent, then pops it
   jsoncons::json pop();
 
+  // Makes this dirent current
   void push(const std::string& filename, jsoncons::json&& rec);
 
+  // Makes this dirent current
   void push(const char* filename, jsoncons::json&& rec);
 
 private:
