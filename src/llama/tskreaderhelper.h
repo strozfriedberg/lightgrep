@@ -28,7 +28,7 @@ namespace TskReaderHelper {
 
     for (auto r = a.nrd.run; r; r = r->next) {
       if (r->flags == TSK_FS_ATTR_RUN_FLAG_FILLER) {
-        // TODO: check on the exact semantics of this flag
+        // TODO: check on the exact semantics of TSK_FS_ATTR_RUN_FLAG_FILLER
         continue;
       }
 
