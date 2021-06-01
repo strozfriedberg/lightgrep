@@ -21,20 +21,23 @@
 #include "states.h"
 #include "utility.h"
 
-#include <algorithm>
-#include <array>
 #include <iostream>
 #include <iterator>
-#include <set>
-#include <stack>
-#include <vector>
 
 static const NFA::VertexDescriptor NONE = 0xFFFFFFFF;
 static const NFA::VertexDescriptor UNLABELABLE = 0xFFFFFFFE;
 
 const uint32_t NOLABEL = std::numeric_limits<uint32_t>::max();
 
-bool NFAOptimizer::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const Transition* dstTrans, ByteSet& dstBits, const NFA& src, NFA::VertexDescriptor srcTail, const ByteSet& srcBits) const {
+bool NFAOptimizer::canMerge(
+  const NFA& dst,
+  NFA::VertexDescriptor dstTail,
+  const Transition* dstTrans,
+  ByteSet& dstBits,
+  const NFA& src,
+  NFA::VertexDescriptor srcTail,
+  const ByteSet& srcBits) const
+{
   // Explanation of the condition:
   //
   // Vertices match if:
@@ -68,7 +71,13 @@ bool NFAOptimizer::canMerge(const NFA& dst, NFA::VertexDescriptor dstTail, const
   return false;
 }
 
-NFAOptimizer::StatePair NFAOptimizer::processChild(const NFA& src, NFA& dst, uint32_t si, NFA::VertexDescriptor srcHead, NFA::VertexDescriptor dstHead) {
+NFAOptimizer::StatePair NFAOptimizer::processChild(
+  const NFA& src,
+  NFA& dst,
+  uint32_t si,
+  NFA::VertexDescriptor srcHead,
+  NFA::VertexDescriptor dstHead)
+{
   const NFA::VertexDescriptor srcTail = src.outVertex(srcHead, si);
 
   NFA::VertexDescriptor dstTail = Src2Dst[srcTail];
@@ -378,27 +387,12 @@ void NFAOptimizer::removeNonMinimalLabels(NFA& g) {
   }
 }
 
-typedef std::vector<NFA::VertexDescriptor> VDList;
-typedef std::pair<ByteSet, VDList> SubsetState;
-typedef std::array<VDList,256> ByteToVertices;
-
-struct SubsetStateComp {
-  bool operator()(const SubsetState& a, const SubsetState& b) const {
-    const int c = a.first.compare(b.first);
-    if (c < 0) {
-      return true;
-    }
-    else if (c > 0) {
-      return false;
-    }
-    else {
-      return std::lexicographical_compare(a.second.begin(), a.second.end(),
-                                          b.second.begin(), b.second.end());
-    }
-  }
-};
-
-void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor srcHead, ByteToVertices& srcTailLists, ByteSet& outBytes) {
+void makePerByteOutNeighborhoods(
+  const NFA& src,
+  const NFA::VertexDescriptor srcHead,
+  ByteToVertices& srcTailLists,
+  ByteSet& outBytes)
+{
   // for each srcTail, add it to srcHead's per-byte outneighborhood
   for (const NFA::VertexDescriptor srcTail : src.outVertices(srcHead)) {
     src[srcTail].Trans->getBytes(outBytes);
@@ -411,17 +405,20 @@ void makePerByteOutNeighborhoods(const NFA& src, const NFA::VertexDescriptor src
   }
 }
 
-typedef std::map<ByteSet, VDList> BytesToVertices;
+using BytesToVertices = std::map<ByteSet, VList>;
 
-void makeByteSetsWithDistinctOutNeighborhoods(const ByteToVertices& srcTailLists, BytesToVertices& bytes2SrcList) {
-  typedef std::map<VDList, ByteSet> VerticesToBytes;
+void makeByteSetsWithDistinctOutNeighborhoods(
+  const ByteToVertices& srcTailLists,
+  BytesToVertices& bytes2SrcList)
+{
+  using VerticesToBytes = std::map<VList, ByteSet>;
 
   VerticesToBytes srcList2Bytes;
 
   // mark the outgoing byte for each out neighborhood
-  const ByteToVertices::const_iterator beg(srcTailLists.begin());
-  const ByteToVertices::const_iterator end(srcTailLists.end());
-  for (ByteToVertices::const_iterator i(beg); i != end; ++i) {
+  const auto beg(srcTailLists.cbegin());
+  const auto end(srcTailLists.cend());
+  for (auto i(beg); i != end; ++i) {
     srcList2Bytes[*i][i - beg] = true;
   }
 
@@ -431,7 +428,13 @@ void makeByteSetsWithDistinctOutNeighborhoods(const ByteToVertices& srcTailLists
   }
 }
 
-void addToDeterminizationGroup(const NFA& src, const NFA::VertexDescriptor srcTail, const ByteSet& bs, std::map<ByteSet, std::vector<VDList>>& dstListGroups, bool& startGroup) {
+void addToDeterminizationGroup(
+  const NFA& src,
+  const NFA::VertexDescriptor srcTail,
+  const ByteSet& bs,
+  std::map<ByteSet, std::vector<VList>>& dstListGroups,
+  bool& startGroup)
+{
   if (src[srcTail].IsMatch) {
     // match states are always singleton groups
     dstListGroups[bs].emplace_back();
@@ -445,9 +448,19 @@ void addToDeterminizationGroup(const NFA& src, const NFA::VertexDescriptor srcTa
   dstListGroups[bs].back().push_back(srcTail);
 }
 
-typedef std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp> SubsetStateToState;
+void makeDestinationState(
+  const NFA& src,
+  const NFA::VertexDescriptor dstHead,
+  const ByteSet& bs,
+  const VList& dstList,
+  uint32_t depth,
+  NFA& dst,
+  SubsetStateToState& dstList2Dst,
+  std::stack<std::pair<SubsetState, int>>& dstStack)
+{
+  // create or retrieve the state reached from dstHead over the transition
+  // on byte set bs, and add an edge from dstHead to that state
 
-void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor dstHead, const ByteSet& bs, const VDList& dstList, SubsetStateToState& dstList2Dst, std::stack<SubsetState>& dstStack) {
   const SubsetState ss(bs, dstList);
   const SubsetStateToState::const_iterator l(dstList2Dst.find(ss));
 
@@ -455,23 +468,32 @@ void makeDestinationState(const NFA& src, NFA& dst, const NFA::VertexDescriptor 
   if (l == dstList2Dst.end()) {
     // new sublist dst vertex
     dstList2Dst[ss] = dstTail = dst.addVertex();
-    dstStack.push(ss);
+    dstStack.push({ss, depth});
     dst[dstTail].Trans = dst.TransFac->getSmallest(bs);
+
+    if (src[dstList.front()].IsMatch) {
+      dst[dstTail].IsMatch = true;
+      dst[dstTail].Label = src[dstList.front()].Label;
+    }
   }
   else {
     // old sublist vertex
     dstTail = l->second;
   }
 
-  if (src[dstList.front()].IsMatch) {
-    dst[dstTail].IsMatch = true;
-    dst[dstTail].Label = src[dstList.front()].Label;
-  }
-
   dst.addEdge(dstHead, dstTail);
 }
 
-void handleSubsetState(const NFA& src, NFA& dst, const VDList& srcHeadList, const NFA::VertexDescriptor dstHead, std::stack<SubsetState>& dstStack, ByteSet& outBytes, SubsetStateToState& dstList2Dst) {
+void handleSubsetStateSuccessors(
+  const NFA& src,
+  const VList& srcHeadList,
+  const NFA::VertexDescriptor dstHead,
+  uint32_t depth,
+  NFA& dst,
+  std::stack<std::pair<SubsetState,int>>& dstStack,
+  ByteSet& outBytes,
+  SubsetStateToState& dstList2Dst)
+{
   ByteToVertices srcTailLists;
 
   // for each byte, collect all srcTails leaving srcHeads
@@ -489,11 +511,11 @@ void handleSubsetState(const NFA& src, NFA& dst, const VDList& srcHeadList, cons
   makeByteSetsWithDistinctOutNeighborhoods(srcTailLists, bytes2SrcList);
 
   // form each srcTailList into determinizable groups
-  std::map<ByteSet, std::vector<VDList>> dstListGroups;
+  std::map<ByteSet, std::vector<VList>> dstListGroups;
 
-  for (const BytesToVertices::value_type& v : bytes2SrcList) {
+  for (const auto& v : bytes2SrcList) {
     const ByteSet& bs(v.first);
-    const VDList& srcTailList(v.second);
+    const VList& srcTailList(v.second);
 
     bool startGroup = true;
 
@@ -502,25 +524,141 @@ void handleSubsetState(const NFA& src, NFA& dst, const VDList& srcHeadList, cons
     }
   }
 
-  // determinize for each outgoing byte
-  for (const std::map<ByteSet, std::vector<VDList>>::value_type& v : dstListGroups) {
+  // determinize for each outgoing byte set
+  for (const auto& v : dstListGroups) {
     const ByteSet& bs(v.first);
-    const std::vector<VDList>& dstLists(v.second);
-    for (const VDList& dstList : dstLists) {
-      makeDestinationState(src, dst, dstHead, bs, dstList, dstList2Dst, dstStack);
+    const std::vector<VList>& dstLists(v.second);
+    for (const VList& dstList : dstLists) {
+      makeDestinationState(src, dstHead, bs, dstList, depth, dst, dstList2Dst, dstStack);
     }
   }
 }
 
-void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src) {
+void connectSubsetStateToOriginal(
+  NFA& dst,
+  const NFA& src,
+  const VList& srcHeadList,
+  const NFA::VertexDescriptor dstHead,
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
+)
+{
+  /*
+    A subset state in the partial DFA dst (by definition) corresponds to a
+    set of states in the NFA src. The NFA states in this set have a (possibly
+    empty) set of successors in src. This function creates in dst states
+    corresponding to those successors, and makes edges to them from the given
+    subset state.
+
+    E.g., if {1,3} is a subset state in dst and src is
+
+        1 - 4
+       /
+      0
+       \
+        2 - 3 - 5
+
+    then this function will ensure that 4' and 5' exist in dst (creating
+    them if necessary) and that {1,3} has edges going to them.
+
+    Note that this doesn't bother with labels or matches; completeOriginal()
+    is responsible for setting those.
+  */
+
+  for (const auto& v: srcHeadList) {
+    for (const auto& n: src.outVertices(v)) {
+      // get the image of n in dst, creating it if necessary
+      const auto i = src2Dst.find(n);
+      const NFA::VertexDescriptor dst_n = i == src2Dst.end() ? src2Dst[n] = dst.addVertex() : i->second;
+
+      dst.addEdge(dstHead, dst_n);
+    }
+  }
+}
+
+void completeOriginal(
+  NFA& dst,
+  const NFA& src,
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
+)
+{
+  /*
+    The purpose of this function is to paste undeterminized tails onto
+    a partially-determinized NFA. Splices between the endpoints of the
+    partially-determinized NFA dst and source NFA src are stored in
+    src2Dst.
+
+    For each x in src2Dst, the subgraph in src rooted at x is copied to
+    src2Dst[x]. That's it.
+
+    E.g., with src
+
+                2 - 3
+               /
+          0 - 1 - 4 - 5
+
+    and dst
+               C
+              /
+         A - B
+              \
+               D - E
+
+    with 1 mapped to C yields
+
+                 2 - 3
+                /
+               C - 4 - 5
+              /
+         A - B
+              \
+               D - E
+
+  */
+
+  std::stack<NFA::VertexDescriptor> next;
+
+  for (const auto& p: src2Dst) {
+    next.push(p.first);
+  }
+
+  while (!next.empty()) {
+    NFA::VertexDescriptor h = next.top();
+    next.pop();
+
+    const NFA::VertexDescriptor hh = src2Dst[h];
+    dst[hh].Label = src[h].Label;
+    dst[hh].IsMatch = src[h].IsMatch;
+    dst[hh].Trans = dst.TransFac->get(src[h].Trans);
+
+    for (const auto& t: src.outVertices(h)) {
+      NFA::VertexDescriptor tt;
+      const auto i = src2Dst.find(t);
+      if (i == src2Dst.end()) {
+        // make sure t' exists
+        src2Dst[t] = tt = dst.addVertex();
+
+        next.push(t);
+      }
+      else {
+        tt = i->second;
+      }
+
+      // connect h' to t'
+      dst.addEdge(hh, tt);
+    }
+  }
+}
+
+void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src, uint32_t determinizeLimit) {
   // std::cerr << "starting subsetDFA" << std::endl;
-  std::stack<SubsetState> dstStack;
+  std::stack<std::pair<SubsetState, int>> dstStack;
   SubsetStateToState dstList2Dst;
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst;
 
   // set up initial dst state
-  const SubsetState d0(ByteSet(), VDList(1, 0));
+  const SubsetState d0(ByteSet(), VList{0});
   dstList2Dst[d0] = 0;
-  dstStack.push(d0);
+  dstStack.push({d0, 0});
 
   ByteSet outBytes;
 
@@ -530,13 +668,31 @@ void NFAOptimizer::subsetDFA(NFA& dst, const NFA& src) {
     // if (++num % 10000 == 0) {
     //   std::cerr << "processed " << num << " subset states so far" << std::endl;
     // }
-    const SubsetState ss(dstStack.top());
+    const SubsetState ss(dstStack.top().first);
+    const uint32_t depth = dstStack.top().second;
     dstStack.pop();
 
-    const VDList& srcHeadList(ss.second);
+    const VList& srcHeadList(ss.second);
     const NFA::VertexDescriptor dstHead = dstList2Dst[ss];
 
-    handleSubsetState(src, dst, srcHeadList, dstHead, dstStack, outBytes, dstList2Dst);
+    if (depth < determinizeLimit) {
+      // continue processing this subset state's successors
+      handleSubsetStateSuccessors(
+        src, srcHeadList, dstHead, depth + 1,
+        dst, dstStack, outBytes, dstList2Dst
+      );
+    }
+    else {
+      // connect this subset state back to the (copy of) the original graph
+      connectSubsetStateToOriginal(dst, src, srcHeadList, dstHead, src2Dst);
+    }
   }
+
+  if (!src2Dst.empty()) {
+    // we did not fully determinize; paste on the rest of the original graph
+    dst.Deterministic = false;
+    completeOriginal(dst, src, src2Dst);
+  }
+
   // std::cerr << "done with subsetDFA" << std::endl;
 }

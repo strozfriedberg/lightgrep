@@ -16,8 +16,6 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
-
 #include "codegen.h"
 #include "nfabuilder.h"
 #include "nfaoptimizer.h"
@@ -26,6 +24,13 @@
 #include "states.h"
 
 #include "test_helper.h"
+
+// FIXME: Why is this necessary? Should't scope see this without the namespace?
+namespace scope {
+#include "container_out.h"
+}
+
+#include <scope/test.h>
 
 ByteSet getBytes(Transition& t) {
   ByteSet b;
@@ -633,6 +638,153 @@ SCOPE_TEST(testDeterminize5) {
   ASSERT_EQUAL_MATCHES(exp, h);
 }
 
+SCOPE_TEST(testDeterminizePartial0) {
+  const ByteSet az{{'a', 'z' + 1}};
+
+  NFA g(5);
+  edge(0, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 2, g, g.TransFac->getByte('i'));
+  edge(0, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 4, g, g.TransFac->getByte('m'));
+
+  g[1].Label = 0;
+  g[3].Label = 1;
+  g[2].IsMatch = true;
+  g[4].IsMatch = true;
+
+  NFA exp(5);
+  edge(0, 1, exp, exp.TransFac->getByteSet(az));
+  edge(1, 1, exp, exp.TransFac->getByteSet(az));
+  edge(1, 4, exp, exp.TransFac->getByte('i'));
+  edge(0, 2, exp, exp.TransFac->getByteSet(az));
+  edge(2, 2, exp, exp.TransFac->getByteSet(az));
+  edge(2, 3, exp, exp.TransFac->getByte('m'));
+
+  exp[1].Label = 0;
+  exp[2].Label = 1;
+  exp[3].IsMatch = true;
+  exp[4].IsMatch = true;
+
+  NFA h(1);
+  NFAOptimizer comp;
+  comp.subsetDFA(h, g, 0);
+
+  // 0-depth partial determinization = no determinization at all
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
+}
+
+SCOPE_TEST(testDeterminizePartial1) {
+  const ByteSet az{{'a', 'z' + 1}};
+
+  NFA g(5);
+  edge(0, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 2, g, g.TransFac->getByte('i'));
+  edge(0, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 4, g, g.TransFac->getByte('m'));
+
+  g[1].Label = 0;
+  g[3].Label = 1;
+  g[2].IsMatch = true;
+  g[4].IsMatch = true;
+
+  NFA exp(6);
+  edge(0, 1, exp, exp.TransFac->getByteSet(az));
+  edge(1, 2, exp, exp.TransFac->getByteSet(az));
+  edge(1, 3, exp, exp.TransFac->getByte('i'));
+  edge(1, 4, exp, exp.TransFac->getByteSet(az));
+  edge(1, 5, exp, exp.TransFac->getByte('i'));
+  edge(2, 2, exp, exp.TransFac->getByteSet(az));
+  edge(2, 3, exp, exp.TransFac->getByte('i'));
+  edge(4, 4, exp, exp.TransFac->getByteSet(az));
+  edge(4, 5, exp, exp.TransFac->getByte('m'));
+
+  exp[2].Label = 0;
+  exp[4].Label = 1;
+  exp[3].IsMatch = true;
+  exp[5].IsMatch = true;
+
+  NFA h(1);
+  NFAOptimizer comp;
+  comp.subsetDFA(h, g, 1);
+
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
+}
+
+SCOPE_TEST(testDeterminizePartial2) {
+  const ByteSet az{{'a', 'z' + 1}};
+  const ByteSet ahjlnz{{'a', 'h' + 1}, {'j', 'l' + 1}, {'n', 'z' + 1}};
+
+  NFA g(5);
+  edge(0, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 1, g, g.TransFac->getByteSet(az));
+  edge(1, 2, g, g.TransFac->getByte('i'));
+  edge(0, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 3, g, g.TransFac->getByteSet(az));
+  edge(3, 4, g, g.TransFac->getByte('m'));
+
+  g[1].Label = 0;
+  g[3].Label = 1;
+  g[2].IsMatch = true;
+  g[4].IsMatch = true;
+
+  NFA exp(12);
+  edge(0, 1, exp, exp.TransFac->getByteSet(az));
+
+  edge(1, 2, exp, exp.TransFac->getByte('i'));
+  edge(1, 3, exp, exp.TransFac->getByte('i'));
+  edge(1, 4, exp, exp.TransFac->getByte('i'));
+  edge(1, 5, exp, exp.TransFac->getByte('m'));
+  edge(1, 6, exp, exp.TransFac->getByte('m'));
+  edge(1, 7, exp, exp.TransFac->getByteSet(ahjlnz));
+
+  edge(2, 8, exp, exp.TransFac->getByteSet(az));
+  edge(2, 9, exp, exp.TransFac->getByte('i'));
+
+  edge(4, 10, exp, exp.TransFac->getByteSet(az));
+  edge(4, 11, exp, exp.TransFac->getByte('m'));
+
+  edge(5, 8, exp, exp.TransFac->getByteSet(az));
+  edge(5, 9, exp, exp.TransFac->getByte('i'));
+  edge(5, 10, exp, exp.TransFac->getByteSet(az));
+  edge(5, 11, exp, exp.TransFac->getByte('m'));
+
+  edge(7, 8, exp, exp.TransFac->getByteSet(az));
+  edge(7, 9, exp, exp.TransFac->getByte('i'));
+  edge(7, 10, exp, exp.TransFac->getByteSet(az));
+  edge(7, 11, exp, exp.TransFac->getByte('m'));
+
+  edge(8, 8, exp, exp.TransFac->getByteSet(az));
+  edge(8, 9, exp, exp.TransFac->getByte('i'));
+
+  edge(10, 10, exp, exp.TransFac->getByteSet(az));
+  edge(10, 11, exp, exp.TransFac->getByte('m'));
+
+  // NB: This is an odd looking set of labels becuase we're not calling
+  // comp.labelGuardStates() to walk back the labels
+  exp[8].Label = 0;
+  exp[10].Label = 1;
+  exp[3].IsMatch = true;
+  exp[6].IsMatch = true;
+  exp[9].IsMatch = true;
+  exp[11].IsMatch = true;
+
+  NFA h(1);
+  NFAOptimizer comp;
+  comp.subsetDFA(h, g, 2);
+
+  ASSERT_EQUAL_GRAPHS(exp, h);
+  ASSERT_EQUAL_LABELS(exp, h);
+  ASSERT_EQUAL_MATCHES(exp, h);
+}
+
 SCOPE_TEST(testPruneBranches) {
   NFA g(3);
   edge(0, 1, g, g.TransFac->getByte('a'));
@@ -655,4 +807,442 @@ SCOPE_TEST(testPruneBranches) {
   ASSERT_EQUAL_GRAPHS(exp, g);
   ASSERT_EQUAL_LABELS(exp, g);
   ASSERT_EQUAL_MATCHES(exp, g);
+}
+
+SCOPE_TEST(testConnectSubsetStateToOriginal0) {
+  NFA src(6);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('b'));
+  edge(1, 4, src, src.TransFac->getByte('c'));
+  edge(2, 3, src, src.TransFac->getByte('d'));
+  edge(3, 5, src, src.TransFac->getByte('e'));
+
+  NFA dst(1);
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{
+    {1,0}, {3,0}
+  };
+
+  NFA exp(3);
+  exp.addEdge(0, 1);
+  exp.addEdge(0, 2);
+
+  connectSubsetStateToOriginal(dst, src, {1,3}, 0, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+}
+
+SCOPE_TEST(testConnectSubsetStateToOriginal1) {
+  NFA src(6);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('b'));
+  edge(1, 4, src, src.TransFac->getByte('c'));
+  edge(2, 3, src, src.TransFac->getByte('d'));
+  edge(3, 5, src, src.TransFac->getByte('e'));
+
+  NFA dst(2);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{
+    {1,0}, {3,0}, {4,1}
+  };
+
+  NFA exp(2);
+  exp.addEdge(0, 1);
+
+  connectSubsetStateToOriginal(dst, src, {4}, 1, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+}
+
+SCOPE_TEST(testConnectSubsetStateToOriginal2) {
+  NFA src(6);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('b'));
+  edge(1, 4, src, src.TransFac->getByte('c'));
+  edge(2, 3, src, src.TransFac->getByte('d'));
+  edge(3, 5, src, src.TransFac->getByte('e'));
+
+  NFA dst(2);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{
+    {1,0}, {3,0}, {4,1}
+  };
+
+  NFA exp(3);
+  exp.addEdge(0, 1);
+  exp.addEdge(0, 2);
+
+  connectSubsetStateToOriginal(dst, src, {1, 3}, 0, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+}
+
+SCOPE_TEST(testCompleteOriginal0) {
+  // When src and dst are the same and src2Dst is an identity map,
+  // completeOriginal() should be a no-op.
+  NFA src(3);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('a'));
+
+  src[2].IsMatch = true;
+  src[2].Label = 1;
+
+  NFA dst(src);
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{
+    {1, 1}, {2, 2}
+  };
+
+  NFA exp(src);
+
+  completeOriginal(dst, src, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
+}
+
+SCOPE_TEST(testCompleteOriginal1) {
+  NFA src(3);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('a'));
+
+  src[2].IsMatch = true;
+  src[2].Label = 1;
+
+  NFA dst(2);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{ {1, 1} };
+
+  NFA exp(src);
+
+  completeOriginal(dst, src, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
+}
+
+SCOPE_TEST(testCompleteOriginal2) {
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('b'));
+  edge(1, 3, src, src.TransFac->getByte('c'));
+
+  src[2].IsMatch = true;
+  src[2].Label = 1;
+
+  src[3].IsMatch = true;
+  src[3].Label = 2;
+
+  NFA dst(2);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{ {1, 1} };
+
+  NFA exp(src);
+
+  completeOriginal(dst, src, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
+}
+
+SCOPE_TEST(testCompleteOriginal3) {
+  /*
+            2
+           /
+      0 - 1
+           \
+            3
+
+    applied to
+
+      0 - 1
+       \
+        2
+
+    with 1 mapping to 1 should yield
+
+            3
+           /
+      0 - 1
+      |    \
+      2     4
+
+    with 2 mapping to 3, 3 mapping to 4.
+
+  */
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('b'));
+  edge(1, 3, src, src.TransFac->getByte('c'));
+
+  src[2].IsMatch = true;
+  src[2].Label = 1;
+
+  src[3].IsMatch = true;
+  src[3].Label = 2;
+
+  NFA dst(3);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+  edge(0, 2, dst, dst.TransFac->getByte('d'));
+
+  dst[2].IsMatch = true;
+  dst[2].Label = 3;
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{ {1, 1} };
+
+  NFA exp(5);
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(0, 2, exp, exp.TransFac->getByte('d'));
+  edge(1, 3, exp, exp.TransFac->getByte('b'));
+  edge(1, 4, exp, exp.TransFac->getByte('c'));
+
+  exp[2].IsMatch = true;
+  exp[2].Label = 3;
+
+  exp[3].IsMatch = true;
+  exp[3].Label = 1;
+
+  exp[4].IsMatch = true;
+  exp[4].Label = 2;
+
+  completeOriginal(dst, src, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
+}
+
+SCOPE_TEST(testCompleteOriginal4) {
+  /*
+             o
+         1 - 2 - 3
+        /
+       0
+        \
+         4 - 5
+
+    applied to
+
+                3
+          o    /
+      0 - 1 - 2
+               \
+                4
+
+    with 1 mapping to 3 and 4 mapping to 4 should yield
+
+                    o
+                3 - 6 - 7
+          o    /
+      0 - 1 - 2
+               \
+                4 - 5
+
+    with 2 mapping to 6, 3 mapping to 7, 5 mapping to 5.
+
+  */
+  NFA src(6);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 2, src, src.TransFac->getByte('b'));
+  edge(2, 2, src, src.TransFac->getByte('b'));
+  edge(2, 3, src, src.TransFac->getByte('c'));
+  edge(0, 4, src, src.TransFac->getByte('d'));
+  edge(4, 5, src, src.TransFac->getByte('e'));
+
+  src[3].IsMatch = true;
+  src[3].Label = 1;
+
+  src[5].IsMatch = true;
+  src[5].Label = 2;
+
+  NFA dst(5);
+  edge(0, 1, dst, dst.TransFac->getByte('w'));
+  edge(1, 1, dst, dst.TransFac->getByte('w'));
+  edge(1, 2, dst, dst.TransFac->getByte('x'));
+  edge(2, 3, dst, dst.TransFac->getByte('y'));
+  edge(2, 4, dst, dst.TransFac->getByte('z'));
+
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor> src2Dst{
+    {1, 3}, { 4, 4 }
+  };
+
+  NFA exp(8);
+  edge(0, 1, exp, exp.TransFac->getByte('w'));
+  edge(1, 1, exp, exp.TransFac->getByte('w'));
+  edge(1, 2, exp, exp.TransFac->getByte('x'));
+  edge(2, 3, exp, exp.TransFac->getByte('y'));
+  edge(2, 4, exp, exp.TransFac->getByte('z'));
+  edge(3, 6, exp, exp.TransFac->getByte('b'));
+  edge(6, 6, exp, exp.TransFac->getByte('b'));
+  edge(6, 7, exp, exp.TransFac->getByte('c'));
+  edge(4, 5, exp, exp.TransFac->getByte('e'));
+
+  exp[7].IsMatch = true;
+  exp[7].Label = 1;
+
+  exp[5].IsMatch = true;
+  exp[5].Label = 2;
+
+  completeOriginal(dst, src, src2Dst);
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  ASSERT_EQUAL_LABELS(exp, dst);
+  ASSERT_EQUAL_MATCHES(exp, dst);
+}
+
+SCOPE_TEST(testMakeDestinationState0) {
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 1, src, src.TransFac->getByte('a'));
+  edge(1, 3, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('a'));
+  edge(2, 1, src, src.TransFac->getByte('a'));
+  edge(2, 3, src, src.TransFac->getByte('a'));
+  edge(3, 2, src, src.TransFac->getByte('a'));
+
+  src[3].IsMatch = true;
+  src[3].Label = 1;
+
+  const ByteSet bs('a');
+
+  NFA dst(1);
+  SubsetStateToState dstList2Dst;
+  std::stack<std::pair<SubsetState, int>> dstStack;
+
+  makeDestinationState(src, 0, bs, {1,2}, 1, dst, dstList2Dst, dstStack);
+
+  NFA exp(2);
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+
+  const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
+
+  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
+  const decltype(dstUnstack) exp_dstUnstack{{SubsetState{bs, {1,2}}, 1}};
+
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
+  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+}
+
+SCOPE_TEST(testMakeDestinationState1) {
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 1, src, src.TransFac->getByte('a'));
+  edge(1, 3, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('a'));
+  edge(2, 1, src, src.TransFac->getByte('a'));
+  edge(2, 3, src, src.TransFac->getByte('a'));
+  edge(3, 2, src, src.TransFac->getByte('a'));
+
+  src[3].IsMatch = true;
+  src[3].Label = 1;
+
+  const ByteSet bs('a');
+
+  NFA dst(2);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  SubsetStateToState dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
+  std::stack<std::pair<SubsetState, int>> dstStack;
+
+  makeDestinationState(src, 0, bs, {1,2}, 1, dst, dstList2Dst, dstStack);
+
+  NFA exp(2);
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+
+  const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
+
+  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
+  const decltype(dstUnstack) exp_dstUnstack;
+
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
+  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+}
+
+SCOPE_TEST(testHandleSubstateStateSuccessors0) {
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 1, src, src.TransFac->getByte('a'));
+  edge(1, 3, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('a'));
+  edge(2, 1, src, src.TransFac->getByte('a'));
+  edge(2, 3, src, src.TransFac->getByte('a'));
+  edge(3, 2, src, src.TransFac->getByte('a'));
+
+  src[3].IsMatch = true;
+  src[3].Label = 1;
+
+  const ByteSet bs('a');
+
+  NFA dst(1);
+  std::stack<std::pair<SubsetState, int>> dstStack;
+  ByteSet outBytes; // not an output param, supplied for reuse
+  SubsetStateToState dstList2Dst;
+
+  handleSubsetStateSuccessors(
+    src, {0}, 0, 1, dst, dstStack, outBytes, dstList2Dst
+  );
+
+  NFA exp(2);
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+
+  const decltype(dstList2Dst) exp_dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
+
+  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
+  const decltype(dstUnstack) exp_dstUnstack{{SubsetState{bs, {1,2}}, 1}};
+
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
+  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+}
+
+SCOPE_TEST(testHandleSubstateStateSuccessors1) {
+  NFA src(4);
+  edge(0, 1, src, src.TransFac->getByte('a'));
+  edge(1, 1, src, src.TransFac->getByte('a'));
+  edge(1, 3, src, src.TransFac->getByte('a'));
+  edge(0, 2, src, src.TransFac->getByte('a'));
+  edge(2, 1, src, src.TransFac->getByte('a'));
+  edge(2, 3, src, src.TransFac->getByte('a'));
+  edge(3, 2, src, src.TransFac->getByte('a'));
+
+  src[3].IsMatch = true;
+  src[3].Label = 1;
+
+  const ByteSet bs('a');
+
+  NFA dst(1);
+  edge(0, 1, dst, dst.TransFac->getByte('a'));
+
+  std::stack<std::pair<SubsetState, int>> dstStack;
+  ByteSet outBytes; // not an output param, supplied for reuse
+  SubsetStateToState dstList2Dst{{SubsetState{bs, {1,2}}, 1}};
+
+  handleSubsetStateSuccessors(
+    src, {1,2}, 1, 2, dst, dstStack, outBytes, dstList2Dst
+  );
+
+  NFA exp(4);
+  edge(0, 1, exp, exp.TransFac->getByte('a'));
+  edge(1, 2, exp, exp.TransFac->getByte('a'));
+  edge(1, 3, exp, exp.TransFac->getByte('a'));
+
+  dst[2].IsMatch = true;
+  dst[2].Label = 1;
+
+  const decltype(dstList2Dst) exp_dstList2Dst{
+    {SubsetState{bs, {1,2}}, 1},
+    {SubsetState{bs, {1}},   2},
+    {SubsetState{bs, {3}},   3}
+  };
+
+  const std::vector<std::pair<SubsetState, int>> dstUnstack = unstack(dstStack);
+  const decltype(dstUnstack) exp_dstUnstack{
+    {SubsetState{bs, {3}}, 2},
+    {SubsetState{bs, {1}}, 2}
+  };
+
+  ASSERT_EQUAL_GRAPHS(exp, dst);
+  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
+  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
 }

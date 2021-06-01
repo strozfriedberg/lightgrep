@@ -21,9 +21,17 @@
 #include "basic.h"
 #include "automata.h"
 
+#include <algorithm>
+#include <array>
+#include <limits>
 #include <map>
 #include <set>
 #include <stack>
+#include <vector>
+
+using VList = std::vector<NFA::VertexDescriptor>;
+using SubsetState = std::pair<ByteSet, VList>;
+using ByteToVertices = std::array<VList,256>;
 
 class NFAOptimizer {
 public:
@@ -37,7 +45,7 @@ public:
   void propagateMatchLabels(NFA& g);
   void removeNonMinimalLabels(NFA& g);
 
-  void subsetDFA(NFA& dst, const NFA& src);
+  void subsetDFA(NFA& dst, const NFA& src, uint32_t determinizeDepth = std::numeric_limits<uint32_t>::max());
 
   void pruneBranches(NFA& g);
 
@@ -52,3 +60,57 @@ private:
   std::set<EdgePair> Visited;
   std::map<NFA::VertexDescriptor, uint32_t> DstPos;
 };
+
+void connectSubsetStateToOriginal(
+  NFA& dst,
+  const NFA& src,
+  const std::vector<NFA::VertexDescriptor>& srcHeadList,
+  const NFA::VertexDescriptor dstHead,
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
+);
+
+void completeOriginal(
+  NFA& dst,
+  const NFA& src,
+  std::map<NFA::VertexDescriptor, NFA::VertexDescriptor>& src2Dst
+);
+
+struct SubsetStateComp {
+  bool operator()(const SubsetState& a, const SubsetState& b) const {
+    const int c = a.first.compare(b.first);
+    if (c < 0) {
+      return true;
+    }
+    else if (c > 0) {
+      return false;
+    }
+    else {
+      return std::lexicographical_compare(a.second.begin(), a.second.end(),
+                                          b.second.begin(), b.second.end());
+    }
+  }
+};
+
+using SubsetStateToState = std::map<SubsetState, NFA::VertexDescriptor, SubsetStateComp>;
+
+void makeDestinationState(
+  const NFA& src,
+  const NFA::VertexDescriptor dstHead,
+  const ByteSet& bs,
+  const VList& dstList,
+  uint32_t depth,
+  NFA& dst,
+  SubsetStateToState& dstList2Dst,
+  std::stack<std::pair<SubsetState, int>>& dstStack
+);
+
+void handleSubsetStateSuccessors(
+  const NFA& src,
+  const VList& srcHeadList,
+  const NFA::VertexDescriptor dstHead,
+  uint32_t depth,
+  NFA& dst,
+  std::stack<std::pair<SubsetState,int>>& dstStack,
+  ByteSet& outBytes,
+  SubsetStateToState& dstList2Dst
+);

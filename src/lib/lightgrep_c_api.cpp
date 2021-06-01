@@ -322,7 +322,7 @@ LG_HPROGRAM lg_create_program(unsigned int numTotalPatternsSizeHint) {
 
 namespace {
   int compile_program(LG_HFSM hFsm, LG_HPROGRAM hProg, const LG_ProgramOptions* opts) {
-    hFsm->Impl->finalizeGraph(opts->Determinize);
+    hFsm->Impl->finalizeGraph(opts->DeterminizeDepth);
     hProg->Prog = Compiler::createProgram(*hFsm->Impl->Fsm);
     return hProg->Prog != nullptr;
   }

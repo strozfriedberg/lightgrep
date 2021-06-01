@@ -106,6 +106,7 @@ int main() {
   if (isgood) {
     // create a "program" from the parsed keywords
     LG_ProgramOptions opts;
+    opts.DeterminizeDepth = UINT32_MAX;
 
     if (!lg_compile_program(fsm, prog, &opts)) {
       fprintf(stderr, "Failed to compile program");
