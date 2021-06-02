@@ -27,15 +27,49 @@ void DirReader::setOutputHandler(std::shared_ptr<OutputHandler> out) {
 }
 
 bool DirReader::startReading() {
+  bool hadError = false;
+  std::stack<fs::directory_iterator> dstack;
+
+  // push the initial directory onto the stack
   try {
-    for (const auto& de : fs::recursive_directory_iterator(Root)) {
-      handleFile(de);
-    }
+    dstack.emplace(Root);
   }
   catch (const fs::filesystem_error& e) {
+    // failure to read the initial directory is fatal
     // TODO: Logger?
     std::cerr << "Error: " << e.path1() << ": " << e.what() << std::endl;
     return false;
+  }
+
+  const fs::directory_iterator dend;
+
+  while (!dstack.empty()) {
+    auto& i = dstack.top();
+
+    if (i == dend) {
+      // this directory is exhausted
+      dstack.pop();
+      continue;
+    }
+
+    for ( ; i != dend; ++i) {
+      const auto& de = *i;
+      handleFile(de);
+
+      if (de.is_directory()) {
+        // recurse, depth first
+        try {
+          dstack.emplace(de.path());
+          ++i;
+          break;
+        }
+        catch (const fs::filesystem_error& e) {
+          // TODO: Logger?
+          std::cerr << "Error: " << e.path1() << ": " << e.what() << std::endl;
+          hadError = true;
+        }
+      }
+    }
   }
 
   while (!Dirents.empty()) {
@@ -43,7 +77,7 @@ bool DirReader::startReading() {
   }
 
   Input->flush();
-  return true;
+  return !hadError;
 }
 
 void DirReader::handleFile(const fs::directory_entry& de) {
