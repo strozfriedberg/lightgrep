@@ -125,6 +125,7 @@ src_llama_llama_SOURCES = \
 	src/llama/batchhandler.cpp \
 	src/llama/cli.cpp \
 	src/llama/dirconversion.cpp \
+	src/llama/direntstack.cpp \
 	src/llama/dirreader.cpp \
 	src/llama/fieldhasher.cpp \
 	src/llama/filescheduler.cpp \
@@ -149,6 +150,7 @@ src_llama_llama_SOURCES = \
 	src/llama/tsktimestamps.cpp \
 	src/llama/test_cli.cpp \
 	src/llama/test_dirconversion.cpp \
+	src/llama/test_direntstack.cpp \
 	src/llama/test_dirreader.cpp \
 	src/llama/test_fieldhasher.cpp \
 	src/llama/test_fileproxy.cpp \

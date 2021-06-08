@@ -14,8 +14,6 @@ public:
 
   FieldHash hashInode(const jsoncons::json& r);
 
-  FieldHash hashPath(const jsoncons::json& r);
-
   FieldHash hashDirent(const jsoncons::json& r);
 
 private:

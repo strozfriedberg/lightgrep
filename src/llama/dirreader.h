@@ -3,7 +3,9 @@
 #include <filesystem>
 
 #include "dirconversion.h"
+#include "direntstack.h"
 #include "inputreader.h"
+#include "recordhasher.h"
 
 class InputHandler;
 
@@ -28,4 +30,7 @@ private:
   std::shared_ptr<OutputHandler> Output;
 
   DirConverter Conv;
+
+  RecordHasher RecHasher;
+  DirentStack Dirents;
 };

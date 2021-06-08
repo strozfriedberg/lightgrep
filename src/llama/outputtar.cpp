@@ -3,6 +3,7 @@
 #include "outputchunk.h"
 #include "util.h"
 
+#include <ctime>
 #include <iostream>
 
 #include <archive.h>
@@ -60,6 +61,7 @@ void OutputTar::doOutput(const char* path, const char* data, size_t len) {
   archive_entry_set_size(entry.get(), len);
   archive_entry_set_filetype(entry.get(), AE_IFREG);
   archive_entry_set_perm(entry.get(), 0644);
+  archive_entry_set_mtime(entry.get(), std::time(nullptr), 0);
   archive_write_header(Archive.get(), entry.get());
   archive_write_data(Archive.get(), data, len);
 }

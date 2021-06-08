@@ -7,12 +7,15 @@
 
 #include <tsk/libtsk.h>
 
+#include "direntstack.h"
 #include "filerecord.h"
+#include "hex.h"
 #include "inodeandblocktracker.h"
 #include "inodeandblocktrackerimpl.h"
 #include "inputhandler.h"
 #include "inputreader.h"
 #include "outputhandler.h"
+#include "recordhasher.h"
 #include "tsk.h"
 #include "tskimgassembler.h"
 #include "tskreaderhelper.h"
@@ -32,7 +35,9 @@ public:
     Tsk(),
     Asm(),
     Tsg(nullptr),
-    Tracker(new InodeAndBlockTrackerImpl())
+    Tracker(new InodeAndBlockTrackerImpl()),
+    RecHasher(),
+    Dirents(RecHasher)
   {
   }
 
@@ -65,9 +70,9 @@ public:
     );
 
     if (ret) {
-      while (!Path.empty()) {
-        std::cerr << Path.top() << " done\n";
-        Path.pop();
+      // wrap up the walk
+      while (!Dirents.empty()) {
+        Output->outputDirent(Dirents.pop());
       }
 
       Output->outputImage(Asm.dump());
@@ -125,15 +130,14 @@ private:
     // handle the name
     //
     if (fs_file->name) {
-      while (!Path.empty() && fs_file->name->par_addr != Path.top()) {
-        std::cerr << Path.top() << " done\n";
-        Path.pop();
+      const TSK_INUM_T par_addr =  fs_file->name->par_addr;
+
+      while (!Dirents.empty() && par_addr != Dirents.top()["meta_addr"]) {
+        Output->outputDirent(Dirents.pop());
       }
-      Path.push(inum);
 
-      std::cerr << fs_file->name->par_addr << " -> " << Path.top() << '\n';
-
-      Output->outputDirent(Tsk.convertName(*fs_file->name));
+      std::cerr << par_addr << " -> " << fs_file->meta->addr << '\n';
+      Dirents.push(fs_file->name->name, Tsk.convertName(*fs_file->name));
     }
 
     //
@@ -189,7 +193,8 @@ private:
   std::unique_ptr<TimestampGetter> Tsg;
   std::unique_ptr<InodeAndBlockTracker> Tracker;
 
-  std::stack<TSK_INUM_T> Path;
+  RecordHasher RecHasher;
+  DirentStack Dirents;
 
   uint64_t CurFsOffset;
   uint64_t CurFsBlockSize;

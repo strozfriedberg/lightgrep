@@ -72,16 +72,11 @@ FieldHash RecordHasher::hashInode(const jsoncons::json& r) {
   return Hasher.get_hash();
 }
 
-FieldHash RecordHasher::hashPath(const jsoncons::json& r) {
-  auto h = Hasher.subhash();
-  return Hasher.hash(r["path"].as<std::string_view>());
-}
-
 FieldHash RecordHasher::hashDirent(const jsoncons::json& r) {
   auto h = Hasher.subhash();
   Hasher.hash_em(
     r["type"].as<std::string_view>(),
-    r["path_id"].as<std::string_view>()
+    r["path"].as<std::string_view>()
   );
 
   for (const auto& s: r["streams"].array_range()) {
