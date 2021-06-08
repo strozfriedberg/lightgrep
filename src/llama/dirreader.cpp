@@ -43,7 +43,7 @@ bool DirReader::startReading() {
 
   const fs::directory_iterator dend;
 
-  while (!dstack.empty()) {
+  do {
     auto& i = dstack.top();
 
     if (i == dend) {
@@ -70,7 +70,7 @@ bool DirReader::startReading() {
         }
       }
     }
-  }
+  } while (!dstack.empty());
 
   while (!Dirents.empty()) {
     Output->outputDirent(Dirents.pop());
