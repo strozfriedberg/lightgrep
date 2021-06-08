@@ -45,29 +45,23 @@ bool DirReader::startReading() {
 
   do {
     auto& i = dstack.top();
-
     if (i == dend) {
-      // this directory is exhausted
       dstack.pop();
       continue;
     }
 
-    for ( ; i != dend; ++i) {
-      const auto& de = *i;
-      handleFile(de);
+    const auto& de = *i++;
+    handleFile(de);
 
-      if (de.is_directory()) {
-        // recurse, depth first
-        try {
-          dstack.emplace(de.path());
-          ++i;
-          break;
-        }
-        catch (const fs::filesystem_error& e) {
-          // TODO: Logger?
-          std::cerr << "Error: " << e.path1() << ": " << e.what() << std::endl;
-          hadError = true;
-        }
+    if (de.is_directory()) {
+      // recurse, depth first
+      try {
+        dstack.emplace(de.path());
+      }
+      catch (const fs::filesystem_error& e) {
+        // TODO: Logger?
+        std::cerr << "Error: " << e.path1() << ": " << e.what() << std::endl;
+        hadError = true;
       }
     }
   } while (!dstack.empty());
