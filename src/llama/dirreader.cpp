@@ -28,11 +28,11 @@ void DirReader::setOutputHandler(std::shared_ptr<OutputHandler> out) {
 
 bool DirReader::startReading() {
   bool hadError = false;
-  std::stack<fs::directory_iterator> dstack;
+  std::stack<fs::directory_iterator> dirStack;
 
   // push the initial directory onto the stack
   try {
-    dstack.emplace(Root);
+    dirStack.emplace(Root);
   }
   catch (const fs::filesystem_error& e) {
     // failure to read the initial directory is fatal
@@ -41,22 +41,22 @@ bool DirReader::startReading() {
     return false;
   }
 
-  const fs::directory_iterator dend;
+  const fs::directory_iterator dirEnd;
 
   do {
-    auto& i = dstack.top();
-    if (i == dend) {
-      dstack.pop();
+    auto& dirItr = dirStack.top();
+    if (dirItr == dirEnd) {
+      dirStack.pop();
       continue;
     }
 
-    const auto& de = *i++;
-    handleFile(de);
+    const auto& entry = *dirItr++;
+    handleFile(entry);
 
-    if (de.is_directory()) {
+    if (entry.is_directory()) {
       // recurse, depth first
       try {
-        dstack.emplace(de.path());
+        dirStack.emplace(entry.path());
       }
       catch (const fs::filesystem_error& e) {
         // TODO: Logger?
@@ -64,7 +64,7 @@ bool DirReader::startReading() {
         hadError = true;
       }
     }
-  } while (!dstack.empty());
+  } while (!dirStack.empty());
 
   while (!Dirents.empty()) {
     Output->outputDirent(Dirents.pop());
