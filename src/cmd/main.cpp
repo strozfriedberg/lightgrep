@@ -342,7 +342,7 @@ void search(
   LG_HITCALLBACK_FN callback)
 {
   if (opts.Recursive) {
-    for (const std::string& i: inputs) {
+    for (auto& i: inputs) {
       if (skipStdin(i, stdinUsed)) {
         continue;
       }
@@ -357,7 +357,7 @@ void search(
     }
   }
   else {
-    for (const std::string& i: inputs) {
+    for (auto& i: inputs) {
       if (skipStdin(i, stdinUsed)) {
         continue;
       }
