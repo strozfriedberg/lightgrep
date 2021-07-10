@@ -46,7 +46,7 @@ void EncoderBase::collectRanges(const UnicodeSet& uset, std::vector<std::vector<
 
   uint32_t clen, plen = 0;
 
-  for (const UnicodeSet::range& r : uset) {
+  for (const UnicodeSet::range r : uset) {
     const uint32_t l = r.first, h = r.second;
     for (uint32_t cp = l; cp < h; ++cp) {
       clen = write(cp, cur.get());
