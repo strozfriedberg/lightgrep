@@ -1,55 +1,30 @@
 #include <scope/test.h>
 
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 #include <boost/program_options.hpp>
 
 #include "options.h"
 #include "optparser.h"
 
-#define TEST_OPTS(cargv, opts) \
-  const int cargc = std::extent<decltype(cargv)>::value; \
-\
-  const int argc = cargc + 1; \
-\
-  uint32_t total_len = 0; \
-  for (int i = 0; i < cargc; ++i) { \
-    total_len += strlen(cargv[i]) + 1; \
-  } \
-\
-  std::unique_ptr<char[]> cs(new char[total_len+1]{}); \
-  std::unique_ptr<char*[]> ss(new char*[argc]); \
-\
-  char** argv = ss.get(); \
-  argv[0] = cs.get(); \
-\
-  for (int i = 0, pos = 1; i < cargc; ++i) { \
-    argv[i+1] = argv[0] + pos; \
-    strcpy(argv[i+1], cargv[i]); \
-    pos += strlen(cargv[i]) + 1; \
-  } \
-\
-  boost::program_options::options_description desc; \
-\
-  parse_opts(argc, argv, desc, opts);
-
 SCOPE_TEST(kAndpIncompatibleOptions) {
-  const char* cargv[] = { "--keywords", "foo", "--pattern", "bar" };
+  const char* argv[] = { "lightgrep", "--keywords", "foo", "--pattern", "bar" };
   Options opts;
+  boost::program_options::options_description desc;
 
   SCOPE_EXPECT(
-    TEST_OPTS(cargv, opts),
+    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
     boost::program_options::error
   );
 }
 
 SCOPE_TEST(kOptionNoPosArg) {
-  const char* cargv[] = { "--keywords", "foo" };
+  const char* argv[] = { "lightgrep", "--keywords", "foo" };
   Options opts;
-  TEST_OPTS(cargv, opts);
+  boost::program_options::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
 
   const std::vector<std::string> kf{ "foo" }, inputs{ "-" };
 
@@ -58,9 +33,10 @@ SCOPE_TEST(kOptionNoPosArg) {
 }
 
 SCOPE_TEST(kOptionOnePosArg) {
-  const char* cargv[] = { "--keywords", "foo", "bar" };
+  const char* argv[] = { "lightgrep", "--keywords", "foo", "bar" };
   Options opts;
-  TEST_OPTS(cargv, opts);
+  boost::program_options::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
 
   const std::vector<std::string> kf{ "foo" }, inputs{ "bar" };
 
@@ -69,9 +45,10 @@ SCOPE_TEST(kOptionOnePosArg) {
 }
 
 SCOPE_TEST(endOnePosArg) {
-  const char* cargv[] = { "--", "foo" };
+  const char* argv[] = { "lightgrep", "--", "foo" };
   Options opts;
-  TEST_OPTS(cargv, opts);
+  boost::program_options::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
 
   const std::vector<std::string> kf{ "foo" }, inputs{ "-" };
 
@@ -80,9 +57,10 @@ SCOPE_TEST(endOnePosArg) {
 }
 
 SCOPE_TEST(endTwoPosArgs) {
-  const char* cargv[] = { "--", "foo", "bar" };
+  const char* argv[] = { "lightgrep", "--", "foo", "bar" };
   Options opts;
-  TEST_OPTS(cargv, opts);
+  boost::program_options::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
 
   const std::vector<std::string> kf{ "foo" }, inputs{ "bar" };
 
@@ -91,9 +69,10 @@ SCOPE_TEST(endTwoPosArgs) {
 }
 
 SCOPE_TEST(endThreePosArgs) {
-  const char* cargv[] = { "--", "foo", "bar", "baz" };
+  const char* argv[] = { "lightgrep", "--", "foo", "bar", "baz" };
   Options opts;
-  TEST_OPTS(cargv, opts);
+  boost::program_options::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
 
   const std::vector<std::string> kf{ "foo" }, inputs{ "bar", "baz" };
 
