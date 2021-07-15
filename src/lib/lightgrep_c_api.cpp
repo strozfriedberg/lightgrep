@@ -368,7 +368,7 @@ namespace {
     );
 
     const char* src = reinterpret_cast<const char*>(buffer);
-    const char* end = src + size;
+    const char* const end = src + size;
 
     if (src + sizeof(uint64_t) > end) {
       return nullptr;
