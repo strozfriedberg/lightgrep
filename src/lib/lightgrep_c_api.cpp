@@ -368,18 +368,30 @@ namespace {
     );
 
     const char* src = reinterpret_cast<const char*>(buffer);
+    const char* end = src + size;
 
+    if (src + sizeof(uint64_t) > end) {
+      return nullptr;
+    }
     const uint64_t pmap_size = *reinterpret_cast<const uint64_t*>(src);
     src += sizeof(pmap_size);
+
+    if (src + pmap_size > end) {
+      return nullptr;
+    }
     hProg->PMap = PatternMap::unmarshall(src, pmap_size);
     src += pmap_size;
 
+    if (src + sizeof(uint64_t) > end) {
+      return nullptr;
+    }
     const uint64_t prog_size = *reinterpret_cast<const uint64_t*>(src);
     src += sizeof(prog_size);
-    hProg->Prog = Program::unmarshall(src, prog_size);
-    src += prog_size;
 
-// TODO: don't go beyond size?
+    if (src + prog_size > end) {
+      return nullptr;
+    }
+    hProg->Prog = Program::unmarshall(src, prog_size);
 
     return hProg.release();
   }
