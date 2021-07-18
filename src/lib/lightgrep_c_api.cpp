@@ -161,7 +161,7 @@ namespace {
     }
 
     for (const std::string& enc : encodings) {
-      const int label = lg_add_pattern(hFsm, hProg, hPat, enc.c_str(), lnum, err);
+      lg_add_pattern(hFsm, hProg, hPat, enc.c_str(), lnum, err);
       if (*err) {
         (*err)->Index = lnum;
         err = &((*err)->Next);

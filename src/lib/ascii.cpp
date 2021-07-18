@@ -33,7 +33,7 @@ uint32_t ASCII::write(int32_t cp, byte buf[]) const {
 
 void ASCII::write(const UnicodeSet& uset, std::vector<std::vector<ByteSet>>& v) const {
   v.emplace_back(1);
-  for (const UnicodeSet::range& r : uset) {
+  for (const UnicodeSet::range r : uset) {
     if (r.first > 0x7F) {
       break;
     }
