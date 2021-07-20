@@ -28,7 +28,7 @@ def main():
         raise Exception('too many arguments')
 
     # print head stuff
-    print('''#include <scope/test.h>
+    print('''#include "catch.hpp"
 
 #include "stest.h"
 ''')
@@ -53,19 +53,23 @@ def main():
         else:
             stest = '{{ R"({})" }}'.format(')", R"('.join(pats))
 
-        print('''SCOPE_FIXTURE_CTOR(autoPatternTest{setnum}, STest, STest({stest})) {{'''.format(setnum=setnum, stest=stest))
+        print(f'''TEST_CASE("autoPatternSearchTest{setnum}") {{
+  STest fixture({stest});''')
 
         if matches is None:
             # every pattern in this set has zero-length matches
-            print('  SCOPE_ASSERT(fixture.parsesButNotValid());')
+            print('  REQUIRE(fixture.parsesButNotValid());')
         else:
             # this pattern set has no zero-length matches
-            print('''  const char text[] = R"({text})";
-  fixture.search(text, text + {textlen}, 0);
-  SCOPE_ASSERT_EQUAL({matchcount}u, fixture.Hits.size());'''.format(text=text, textlen=len(text), matchcount=len(matches)))
+            print(f'''  const char text[] = R"({text})";
+  fixture.search(text, text + {len(text)}, 0);
+  const std::vector<SearchHit> expected{{''')
 
             for i, m in enumerate(matches):
-                print('  SCOPE_ASSERT_EQUAL(SearchHit({}, {}, {}), fixture.Hits[{}]);'.format(m[0], m[1], m[2], i))
+                print(f'    {{{m[0]}, {m[1]}, {m[2]}}},')
+
+            print('  };')
+            print('  REQUIRE(expected == fixture.Hits);')
 
         print('}\n')
 
@@ -76,4 +80,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
