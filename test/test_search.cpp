@@ -781,12 +781,12 @@ TEST_CASE("hitCaching") {
   // 2011-05-06. This pattern causes Vm to continue buffering hits in the Matches vector until closeOut().
   const char text[] = "ping winging it";
   fixture.Grep->search(text, &text[5], 0); // generates hit, but not emitted
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  REQUIRE(0u == fixture.Hits.size());
   fixture.Grep->search(&text[5], &text[15], 5); // generates a hit on 'wing', emits hit on 'ping'
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
+  REQUIRE(1u == fixture.Hits.size());
   fixture.Grep->closeOut(fixture);
-  SCOPE_ASSERT_EQUAL(2u, fixture.Hits.size()); // flushes last hit
-    {0, 4, 0},
-    {5, 12, 0},
+  REQUIRE(2u == fixture.Hits.size()); // flushes last hit
+//    {0, 4, 0},
+//    {5, 12, 0},
 }
 */
