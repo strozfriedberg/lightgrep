@@ -1,4 +1,4 @@
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <string>
 #include <type_traits>
@@ -9,18 +9,18 @@
 #include "options.h"
 #include "optparser.h"
 
-SCOPE_TEST(kAndpIncompatibleOptions) {
+TEST_CASE("kAndpIncompatibleOptions") {
   const char* argv[] = { "lightgrep", "--keywords", "foo", "--pattern", "bar" };
   Options opts;
   boost::program_options::options_description desc;
 
-  SCOPE_EXPECT(
+  REQUIRE_THROWS_AS(
     parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
     boost::program_options::error
   );
 }
 
-SCOPE_TEST(kOptionNoPosArg) {
+TEST_CASE("kOptionNoPosArg") {
   const char* argv[] = { "lightgrep", "--keywords", "foo" };
   Options opts;
   boost::program_options::options_description desc;
@@ -28,11 +28,11 @@ SCOPE_TEST(kOptionNoPosArg) {
 
   const std::vector<std::string> kf{ "foo" }, inputs{ "-" };
 
-  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
-  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
+  REQUIRE(kf == opts.KeyFiles);
+  REQUIRE(inputs == opts.Inputs);
 }
 
-SCOPE_TEST(kOptionOnePosArg) {
+TEST_CASE("kOptionOnePosArg") {
   const char* argv[] = { "lightgrep", "--keywords", "foo", "bar" };
   Options opts;
   boost::program_options::options_description desc;
@@ -40,11 +40,11 @@ SCOPE_TEST(kOptionOnePosArg) {
 
   const std::vector<std::string> kf{ "foo" }, inputs{ "bar" };
 
-  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
-  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
+  REQUIRE(kf == opts.KeyFiles);
+  REQUIRE(inputs == opts.Inputs);
 }
 
-SCOPE_TEST(endOnePosArg) {
+TEST_CASE("endOnePosArg") {
   const char* argv[] = { "lightgrep", "--", "foo" };
   Options opts;
   boost::program_options::options_description desc;
@@ -52,11 +52,11 @@ SCOPE_TEST(endOnePosArg) {
 
   const std::vector<std::string> kf{ "foo" }, inputs{ "-" };
 
-  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
-  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
+  REQUIRE(kf == opts.KeyFiles);
+  REQUIRE(inputs == opts.Inputs);
 }
 
-SCOPE_TEST(endTwoPosArgs) {
+TEST_CASE("endTwoPosArgs") {
   const char* argv[] = { "lightgrep", "--", "foo", "bar" };
   Options opts;
   boost::program_options::options_description desc;
@@ -64,11 +64,11 @@ SCOPE_TEST(endTwoPosArgs) {
 
   const std::vector<std::string> kf{ "foo" }, inputs{ "bar" };
 
-  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
-  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
+  REQUIRE(kf == opts.KeyFiles);
+  REQUIRE(inputs == opts.Inputs);
 }
 
-SCOPE_TEST(endThreePosArgs) {
+TEST_CASE("endThreePosArgs") {
   const char* argv[] = { "lightgrep", "--", "foo", "bar", "baz" };
   Options opts;
   boost::program_options::options_description desc;
@@ -76,6 +76,6 @@ SCOPE_TEST(endThreePosArgs) {
 
   const std::vector<std::string> kf{ "foo" }, inputs{ "bar", "baz" };
 
-  SCOPE_ASSERT_EQUAL(kf, opts.KeyFiles);
-  SCOPE_ASSERT_EQUAL(inputs, opts.Inputs);
+  REQUIRE(kf == opts.KeyFiles);
+  REQUIRE(inputs == opts.Inputs);
 }

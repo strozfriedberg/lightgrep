@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& out, const StateLayoutInfo& state) {
   return out;
 }
 
-SCOPE_TEST(oceUTF8) {
+TEST_CASE("oceUTF8") {
   const std::vector<Pattern> pats{
     {"xxx", false, false, true, "UTF-8|OCE"}
   };
@@ -53,39 +53,39 @@ SCOPE_TEST(oceUTF8) {
   NFAPtr fsm = createGraph(pats, true);
   NFA& g = *fsm;
 
-  SCOPE_ASSERT_EQUAL(4u, g.verticesSize());
+  REQUIRE(4u == g.verticesSize());
 
-  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
+  REQUIRE(0u == g.inDegree(0));
+  REQUIRE(1u == g.outDegree(0));
+  REQUIRE(1u == g.outVertex(0, 0));
 
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
+  REQUIRE(1u == g.inDegree(1));
+  REQUIRE(1u == g.outDegree(1));
+  REQUIRE(2u == g.outVertex(1, 0));
 
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(2));
-  SCOPE_ASSERT_EQUAL(3u, g.outVertex(2, 0));
+  REQUIRE(1u == g.inDegree(2));
+  REQUIRE(1u == g.outDegree(2));
+  REQUIRE(3u == g.outVertex(2, 0));
 
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(3));
-  SCOPE_ASSERT_EQUAL(0u, g.outDegree(3));
+  REQUIRE(1u == g.inDegree(3));
+  REQUIRE(0u == g.outDegree(3));
 
-  SCOPE_ASSERT(!g[0].IsMatch);
-  SCOPE_ASSERT(!g[1].IsMatch);
-  SCOPE_ASSERT(!g[2].IsMatch);
-  SCOPE_ASSERT(g[3].IsMatch);
+  REQUIRE(!g[0].IsMatch);
+  REQUIRE(!g[1].IsMatch);
+  REQUIRE(!g[2].IsMatch);
+  REQUIRE(g[3].IsMatch);
 
-  SCOPE_ASSERT(!g[0].Trans);
+  REQUIRE(!g[0].Trans);
 
   const ByteSet ebs{0x8D};
   ByteSet abs;
   for (uint32_t i = 1; i < 4; ++i) {
     g[i].Trans->getBytes(abs);
-    SCOPE_ASSERT_EQUAL(ebs, abs);
+    REQUIRE(ebs == abs);
   }
 }
 
-SCOPE_TEST(twoUnicode) {
+TEST_CASE("twoUnicode") {
   std::vector<Pattern> pats({"aa", "ab"});
   for (Pattern& p : pats) {
     p.Encoding = LG_CANONICAL_ENCODINGS[LG_ENCODING_UTF_16LE];
@@ -94,42 +94,42 @@ SCOPE_TEST(twoUnicode) {
   NFAPtr fsm = createGraph(pats, true);
   NFA& g = *fsm;
 
-  SCOPE_ASSERT_EQUAL(7u, g.verticesSize());
+  REQUIRE(7u == g.verticesSize());
 
-  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
+  REQUIRE(0u == g.inDegree(0));
+  REQUIRE(1u == g.outDegree(0));
+  REQUIRE(1u == g.outVertex(0, 0));
 
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2u, g.outVertex(1, 0));
+  REQUIRE(1u == g.inDegree(1));
+  REQUIRE(1u == g.outDegree(1));
+  REQUIRE(2u == g.outVertex(1, 0));
 
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(2));
-  SCOPE_ASSERT_EQUAL(2u, g.outDegree(2));
-  SCOPE_ASSERT_EQUAL(3u, g.outVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(4u, g.outVertex(2, 1));
+  REQUIRE(1u == g.inDegree(2));
+  REQUIRE(2u == g.outDegree(2));
+  REQUIRE(3u == g.outVertex(2, 0));
+  REQUIRE(4u == g.outVertex(2, 1));
 
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(3));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(3));
-  SCOPE_ASSERT_EQUAL(6u, g.outVertex(3, 0));
+  REQUIRE(1u == g.inDegree(3));
+  REQUIRE(1u == g.outDegree(3));
+  REQUIRE(6u == g.outVertex(3, 0));
 
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(4));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(4));
-  SCOPE_ASSERT_EQUAL(5u, g.outVertex(4, 0));
+  REQUIRE(1u == g.inDegree(4));
+  REQUIRE(1u == g.outDegree(4));
+  REQUIRE(5u == g.outVertex(4, 0));
 
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(5));
-  SCOPE_ASSERT_EQUAL(0u, g.outDegree(5));
+  REQUIRE(1u == g.inDegree(5));
+  REQUIRE(0u == g.outDegree(5));
 
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(6));
-  SCOPE_ASSERT_EQUAL(0u, g.outDegree(6));
+  REQUIRE(1u == g.inDegree(6));
+  REQUIRE(0u == g.outDegree(6));
 
-  SCOPE_ASSERT(!g[0].Trans);
-  SCOPE_ASSERT(!g[1].IsMatch);
-  SCOPE_ASSERT(!g[2].IsMatch);
-  SCOPE_ASSERT(!g[3].IsMatch);
-  SCOPE_ASSERT(!g[4].IsMatch);
-  SCOPE_ASSERT(g[5].IsMatch);
-  SCOPE_ASSERT(g[6].IsMatch);
+  REQUIRE(!g[0].Trans);
+  REQUIRE(!g[1].IsMatch);
+  REQUIRE(!g[2].IsMatch);
+  REQUIRE(!g[3].IsMatch);
+  REQUIRE(!g[4].IsMatch);
+  REQUIRE(g[5].IsMatch);
+  REQUIRE(g[6].IsMatch);
 
   ByteSet abs, ebs;
 
@@ -141,11 +141,11 @@ SCOPE_TEST(twoUnicode) {
     ebs[exp[i-1]] = true;
     g[i].Trans->getBytes(abs);
 
-    SCOPE_ASSERT_EQUAL(ebs, abs);
+    REQUIRE(ebs == abs);
   }
 }
 
-SCOPE_TEST(aOrbc2ByteSet) {
+TEST_CASE("aOrbc2ByteSet") {
   NFAPtr fsm = createGraph({"a|bc"}, true);
 
   uint32_t off;
@@ -158,11 +158,11 @@ SCOPE_TEST(aOrbc2ByteSet) {
 
   std::tie(off, act) = bestPair(*fsm);
 
-  SCOPE_ASSERT_EQUAL(0u, off);
-  SCOPE_ASSERT_EQUAL(exp, act);
+  REQUIRE(0u == off);
+  REQUIRE(exp == act);
 }
 
-SCOPE_TEST(aOrbQc2ByteSet) {
+TEST_CASE("aOrbQc2ByteSet") {
   NFAPtr fsm = createGraph({"(a|b?)c"}, true);
 
   uint32_t off;
@@ -176,11 +176,11 @@ SCOPE_TEST(aOrbQc2ByteSet) {
 
   std::tie(off, act) = bestPair(*fsm);
 
-  SCOPE_ASSERT_EQUAL(0u, off);
-  SCOPE_ASSERT_EQUAL(exp, act);
+  REQUIRE(0u == off);
+  REQUIRE(exp == act);
 }
 
-SCOPE_TEST(dotaa2ByteSet) {
+TEST_CASE("dotaa2ByteSet") {
   NFAPtr fsm = createGraph({".aa"}, true);
 
   uint32_t off;
@@ -189,35 +189,35 @@ SCOPE_TEST(dotaa2ByteSet) {
 
   std::tie(off, act) = bestPair(*fsm);
 
-  SCOPE_ASSERT_EQUAL(1u, off);
-  SCOPE_ASSERT_EQUAL(exp, act);
+  REQUIRE(1u == off);
+  REQUIRE(exp == act);
 }
 
-SCOPE_TEST(simpleCollapse) {
+TEST_CASE("simpleCollapse") {
   NFAPtr fsm = createGraph({"ab", "ac"}, true);
-  SCOPE_ASSERT_EQUAL(4u, fsm->verticesSize());
-  SCOPE_ASSERT_EQUAL(1u, fsm->outDegree(0));
-  SCOPE_ASSERT_EQUAL(2u, fsm->outDegree(1));
-  SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(2));
-  SCOPE_ASSERT_EQUAL(0u, fsm->outDegree(3));
+  REQUIRE(4u == fsm->verticesSize());
+  REQUIRE(1u == fsm->outDegree(0));
+  REQUIRE(2u == fsm->outDegree(1));
+  REQUIRE(0u == fsm->outDegree(2));
+  REQUIRE(0u == fsm->outDegree(3));
 }
 
-SCOPE_TEST(codeGen2DiscoverVertex) {
+TEST_CASE("codeGen2DiscoverVertex") {
   NFA fsm(2);
   edge(0, 1, fsm, fsm.TransFac->getByte('a'));
   CodeGenHelper cg(fsm.verticesSize());
   CodeGenVisitor vis(cg);
 
   vis.discover_vertex(1, fsm);
-  SCOPE_ASSERT_EQUAL(1u, cg.NumDiscovered);
-  SCOPE_ASSERT_EQUAL(0u, cg.DiscoverRanks[1]);
+  REQUIRE(1u == cg.NumDiscovered);
+  REQUIRE(0u == cg.DiscoverRanks[1]);
 
   vis.discover_vertex(0, fsm);
-  SCOPE_ASSERT_EQUAL(2u, cg.NumDiscovered);
-  SCOPE_ASSERT_EQUAL(1u, cg.DiscoverRanks[0]);
+  REQUIRE(2u == cg.NumDiscovered);
+  REQUIRE(1u == cg.DiscoverRanks[0]);
 }
 
-SCOPE_TEST(codeGen2FinishVertex) {
+TEST_CASE("codeGen2FinishVertex") {
   NFA fsm(5);
   edge(0, 1, fsm, fsm.TransFac->getByte('a'));
   edge(1, 2, fsm, fsm.TransFac->getByte('b'));
@@ -234,27 +234,27 @@ SCOPE_TEST(codeGen2FinishVertex) {
   cg.DiscoverRanks[4] = 4;
 
   vis.finish_vertex(0, fsm);
-  SCOPE_ASSERT_EQUAL(0u, cg.Snippets[0].Start);
-  SCOPE_ASSERT_EQUAL(0u, cg.Snippets[0].numTotal());
+  REQUIRE(0u == cg.Snippets[0].Start);
+  REQUIRE(0u == cg.Snippets[0].numTotal());
 
   vis.finish_vertex(1, fsm);
-  SCOPE_ASSERT_EQUAL(0u, cg.Snippets[1].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[1].numTotal());
+  REQUIRE(0u == cg.Snippets[1].Start);
+  REQUIRE(1u == cg.Snippets[1].numTotal());
 
   vis.finish_vertex(2, fsm);
-  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[2].Start);
-  SCOPE_ASSERT_EQUAL(3u, cg.Snippets[2].numTotal());
+  REQUIRE(1u == cg.Snippets[2].Start);
+  REQUIRE(3u == cg.Snippets[2].numTotal());
 
   vis.finish_vertex(3, fsm);
-  SCOPE_ASSERT_EQUAL(4u, cg.Snippets[3].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[3].numTotal());
+  REQUIRE(4u == cg.Snippets[3].Start);
+  REQUIRE(1u == cg.Snippets[3].numTotal());
 
   vis.finish_vertex(4, fsm);
-  SCOPE_ASSERT_EQUAL(5u, cg.Snippets[4].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[4].numTotal());
+  REQUIRE(5u == cg.Snippets[4].Start);
+  REQUIRE(1u == cg.Snippets[4].numTotal());
 }
 
-SCOPE_TEST(alternationCodeGen2FinishVertex) {
+TEST_CASE("alternationCodeGen2FinishVertex") {
   NFA fsm(3);
   edge(0, 1, fsm, fsm.TransFac->getByte('a'));
   edge(0, 2, fsm, fsm.TransFac->getByte('b'));
@@ -267,19 +267,19 @@ SCOPE_TEST(alternationCodeGen2FinishVertex) {
   cg.DiscoverRanks[2] = 2;
 
   vis.finish_vertex(0, fsm);
-  SCOPE_ASSERT_EQUAL(0u, cg.Snippets[0].Start);
-  SCOPE_ASSERT_EQUAL(2u, cg.Snippets[0].numTotal());
+  REQUIRE(0u == cg.Snippets[0].Start);
+  REQUIRE(2u == cg.Snippets[0].numTotal());
 
   vis.finish_vertex(1, fsm);
-  SCOPE_ASSERT_EQUAL(2u, cg.Snippets[1].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[1].numTotal());
+  REQUIRE(2u == cg.Snippets[1].Start);
+  REQUIRE(1u == cg.Snippets[1].numTotal());
 
   vis.finish_vertex(2, fsm);
-  SCOPE_ASSERT_EQUAL(3u, cg.Snippets[2].Start);
-  SCOPE_ASSERT_EQUAL(1u, cg.Snippets[2].numTotal());
+  REQUIRE(3u == cg.Snippets[2].Start);
+  REQUIRE(1u == cg.Snippets[2].numTotal());
 }
 
-SCOPE_TEST(layoutWithCheckHalt) {
+TEST_CASE("layoutWithCheckHalt") {
   NFA fsm(3);
   edge(0, 1, fsm, fsm.TransFac->getByte('a'));
   edge(1, 2, fsm, fsm.TransFac->getByte('b'));
@@ -292,15 +292,15 @@ SCOPE_TEST(layoutWithCheckHalt) {
   CodeGenVisitor vis(cg);
   specialVisit(fsm, 0, vis);
 
-  SCOPE_ASSERT_EQUAL(0u, cg.DiscoverRanks[0]);
-  SCOPE_ASSERT_EQUAL(1u, cg.DiscoverRanks[1]);
-  SCOPE_ASSERT_EQUAL(2u, cg.DiscoverRanks[2]);
-  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 0u, 0u, NONE), cg.Snippets[0]);
-  SCOPE_ASSERT_EQUAL(StateLayoutInfo(0u, 1u, 0u, NONE), cg.Snippets[1]);
-  SCOPE_ASSERT_EQUAL(StateLayoutInfo(1u, 1u, 7u, 1u), cg.Snippets[2]);
+  REQUIRE(0u == cg.DiscoverRanks[0]);
+  REQUIRE(1u == cg.DiscoverRanks[1]);
+  REQUIRE(2u == cg.DiscoverRanks[2]);
+  REQUIRE(StateLayoutInfo(0u, 0u, 0u, NONE) == cg.Snippets[0]);
+  REQUIRE(StateLayoutInfo(0u, 1u, 0u, NONE) == cg.Snippets[1]);
+  REQUIRE(StateLayoutInfo(1u, 1u, 7u, 1u) == cg.Snippets[2]);
 }
 
-SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
+TEST_CASE("testCodeGenVisitorShouldBeJumpTableRange") {
   NFA g(4);
   edge(0, 1, g, g.TransFac->getByte('a'));
   edge(0, 2, g, g.TransFac->getByte('b'));
@@ -310,14 +310,14 @@ SCOPE_TEST(testCodeGenVisitorShouldBeJumpTableRange) {
   CodeGenHelper cg(g.verticesSize());
   CodeGenVisitor vis(cg);
 
-  SCOPE_ASSERT_EQUAL(6u, vis.calcJumpTableSize(0, g, g.outDegree(0)));
-  SCOPE_ASSERT_EQUAL(JUMP_TABLE_RANGE_OP, cg.Snippets[0].Op);
-  SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(1, g, g.outDegree(1)));
-  SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(2, g, g.outDegree(2)));
-  SCOPE_ASSERT_EQUAL(0u, vis.calcJumpTableSize(3, g, g.outDegree(3)));
+  REQUIRE(6u == vis.calcJumpTableSize(0, g, g.outDegree(0)));
+  REQUIRE(JUMP_TABLE_RANGE_OP == cg.Snippets[0].Op);
+  REQUIRE(0u == vis.calcJumpTableSize(1, g, g.outDegree(1)));
+  REQUIRE(0u == vis.calcJumpTableSize(2, g, g.outDegree(2)));
+  REQUIRE(0u == vis.calcJumpTableSize(3, g, g.outDegree(3)));
 }
 
-SCOPE_TEST(testInitVM) {
+TEST_CASE("testInitVM") {
   NFAPtr fsm = createGraph({"one", "two"}, true);
   ProgramPtr prog = Compiler::createProgram(*fsm);
   std::shared_ptr<VmInterface> vm = VmInterface::create(prog);
@@ -326,14 +326,14 @@ SCOPE_TEST(testInitVM) {
   const byte text[] = "a onetwothree";
 
   std::vector<SearchHit> hits;
-  SCOPE_ASSERT_EQUAL(13u, vm->search(&text[0], &text[13], 0, &mockCallback, &hits));
+  REQUIRE(13u == vm->search(&text[0], &text[13], 0, &mockCallback, &hits));
   vm->closeOut(&mockCallback, &hits);
-  SCOPE_ASSERT_EQUAL(2u, hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(2, 5, 0), hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(5, 8, 1), hits[1]);
+  REQUIRE(2u == hits.size());
+  REQUIRE(SearchHit(2, 5, 0) == hits[0]);
+  REQUIRE(SearchHit(5, 8, 1) == hits[1]);
 }
 
-SCOPE_TEST(testPivotTransitions) {
+TEST_CASE("testPivotTransitions") {
   NFA fsm(5);
   edge(0, 1, fsm, fsm.TransFac->getByte('a'));
   edge(0, 2, fsm, fsm.TransFac->getByte('a'));
@@ -347,30 +347,30 @@ SCOPE_TEST(testPivotTransitions) {
   fsm[2].Label = 1;
 
   std::vector<std::vector<NFA::VertexDescriptor>> tbl = pivotStates(0, fsm);
-  SCOPE_ASSERT_EQUAL(256u, tbl.size());
+  REQUIRE(256u == tbl.size());
   for (uint32_t i = 0; i < 256; ++i) {
     if (i == 'a') {
-      SCOPE_ASSERT_EQUAL(2u, tbl[i].size());
-      SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 1) != tbl[i].end());
-      SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 2) != tbl[i].end());
+      REQUIRE(2u == tbl[i].size());
+      REQUIRE(std::find(tbl[i].begin(), tbl[i].end(), 1) != tbl[i].end());
+      REQUIRE(std::find(tbl[i].begin(), tbl[i].end(), 2) != tbl[i].end());
     }
     else if (i == 'z') {
-      SCOPE_ASSERT_EQUAL(2u, tbl[i].size());
-      SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 3) != tbl[i].end());
-      SCOPE_ASSERT(std::find(tbl[i].begin(), tbl[i].end(), 4) != tbl[i].end());
+      REQUIRE(2u == tbl[i].size());
+      REQUIRE(std::find(tbl[i].begin(), tbl[i].end(), 3) != tbl[i].end());
+      REQUIRE(std::find(tbl[i].begin(), tbl[i].end(), 4) != tbl[i].end());
     }
     else {
-      SCOPE_ASSERT(tbl[i].empty());
+      REQUIRE(tbl[i].empty());
     }
   }
 }
 
-SCOPE_TEST(testMaxOutbound) {
+TEST_CASE("testMaxOutbound") {
   NFA fsm(5);
   edge(0, 1, fsm, fsm.TransFac->getByte('a'));
   edge(0, 2, fsm, fsm.TransFac->getByte('a'));
   edge(0, 3, fsm, fsm.TransFac->getByte('b'));
   edge(0, 4, fsm, fsm.TransFac->getByte('c'));
   std::vector<std::vector<NFA::VertexDescriptor>> tbl = pivotStates(0, fsm);
-  SCOPE_ASSERT_EQUAL(2u, maxOutbound(tbl));
+  REQUIRE(2u == maxOutbound(tbl));
 }

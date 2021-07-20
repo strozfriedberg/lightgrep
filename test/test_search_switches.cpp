@@ -16,24 +16,26 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <algorithm>
 #include <cstring>
 
 #include "stest.h"
 
-SCOPE_FIXTURE_CTOR(ai_switches_Search, STest, STest({
-  {"(?i)x((?-i)x)x", false, false, true, "UTF-8"},
-  {"(?i)k(?-i)k(?ai)k+", false, false, true, "UTF-8"},
-  {"(?i)k(?-i)k(?i)k+", false, false, true, "UTF-8"}
-})) {
-  const char text[] = "XXX XxX xxx Kkkk Kk\xE2\x84\xAAK";
-  fixture.search(text, text + 23, 0);
-  SCOPE_ASSERT_EQUAL(5u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(4, 7, 0), fixture.Hits[0]);
-  SCOPE_ASSERT_EQUAL(SearchHit(8, 11, 0), fixture.Hits[1]);
-  SCOPE_ASSERT_EQUAL(SearchHit(12, 16, 2), fixture.Hits[2]);
-  SCOPE_ASSERT_EQUAL(SearchHit(12, 16, 1), fixture.Hits[3]);
-  SCOPE_ASSERT_EQUAL(SearchHit(17, 23, 2), fixture.Hits[4]);
+TEST_CASE("ai_switches_Search") {
+  STest fixture({
+    {"(?i)x((?-i)x)x", false, false, true, "UTF-8"},
+    {"(?i)k(?-i)k(?ai)k+", false, false, true, "UTF-8"},
+    {"(?i)k(?-i)k(?i)k+", false, false, true, "UTF-8"}
+  });
+  fixture.search("XXX XxX xxx Kkkk Kk\xE2\x84\xAAK", 0);
+  const std::vector<SearchHit> expected {
+    SearchHit(4, 7, 0),
+    SearchHit(8, 11, 0),
+    SearchHit(12, 16, 2),
+    SearchHit(12, 16, 1),
+    SearchHit(17, 23, 2),
+  };
+  REQUIRE(expected == fixture.Hits);
 }

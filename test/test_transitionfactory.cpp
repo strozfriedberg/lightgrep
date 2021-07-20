@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "states.h"
 #include "transition.h"
@@ -26,36 +26,36 @@ template <class StateType>
 void smallestTester(const ByteSet& ebs) {
   TransitionFactory tfac;
   StateType* state = dynamic_cast<StateType*>(tfac.getSmallest(ebs));
-  SCOPE_ASSERT(state);
+  REQUIRE(state);
   ByteSet abs;
   state->getBytes(abs);
-  SCOPE_ASSERT_EQUAL(ebs, abs);
+  REQUIRE(ebs == abs);
 }
 
-SCOPE_TEST(getSmallestNoneTest) {
+TEST_CASE("getSmallestNoneTest") {
   const ByteSet ebs;
   smallestTester<ByteSetState>(ebs);
 }
 
-SCOPE_TEST(getSmallestOneTest) {
+TEST_CASE("getSmallestOneTest") {
   const ByteSet ebs('z');
   smallestTester<ByteState>(ebs);
 }
 
-SCOPE_TEST(getSmallestTwoTest) {
+TEST_CASE("getSmallestTwoTest") {
   ByteSet ebs;
   ebs.set('a');
   ebs.set('z');
   smallestTester<EitherState>(ebs);
 }
 
-SCOPE_TEST(getSmallestRangeTest) {
+TEST_CASE("getSmallestRangeTest") {
   ByteSet ebs;
   ebs.set('a', 'z' + 1, true);
   smallestTester<RangeState>(ebs);
 }
 
-SCOPE_TEST(getSmallestManyTest) {
+TEST_CASE("getSmallestManyTest") {
   ByteSet ebs;
   ebs.set('A');
   ebs.set('a');

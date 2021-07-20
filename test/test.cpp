@@ -16,6 +16,14 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
+
+#include <scope/testrunner.h>
+
+
+/*
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 
@@ -31,7 +39,8 @@
 #error The Scope testing framework is required to compile and run the tests.
 #endif
 
-#endif /* HAVE_CONFIG_H */
+#endif // HAVE_CONFIG_H
+
 
 #include <iostream>
 #include <boost/program_options.hpp>
@@ -81,3 +90,4 @@ int main(int argc, char** argv) {
   }
   return 0;
 }
+*/

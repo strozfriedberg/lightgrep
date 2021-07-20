@@ -19,13 +19,13 @@
 #include "basic.h"
 #include "container_out.h"
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <set>
 
 #include <unicode/ucnv.h>
 
-SCOPE_TEST(testICUStandards) {
+TEST_CASE("testICUStandards") {
   // check that ICU is defining exactly the standards we expect
 
   std::set<std::string> expected{
@@ -37,8 +37,8 @@ SCOPE_TEST(testICUStandards) {
   const uint32_t slen = ucnv_countStandards();
   for (uint32_t i = 0; i < slen; ++i) {
     actual.insert(ucnv_getStandard(i, &err));
-    SCOPE_ASSERT(!U_FAILURE(err));
+    REQUIRE(!U_FAILURE(err));
   }
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }

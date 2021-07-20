@@ -16,34 +16,34 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "sparseset.h"
 
-SCOPE_TEST(basicSparseTest) {
+TEST_CASE("basicSparseTest") {
   SparseSet s(5);
-  SCOPE_ASSERT_EQUAL(0u, s.size());
+  REQUIRE(0u == s.size());
   for (uint32_t i = 0; i < 5; ++i) {
-    SCOPE_ASSERT(!s.find(i));
+    REQUIRE(!s.find(i));
   }
   s.insert(3);
-  SCOPE_ASSERT_EQUAL(1u, s.size());
-  SCOPE_ASSERT(s.find(3));
-  SCOPE_ASSERT(!s.find(0));
-  SCOPE_ASSERT(!s.find(1));
-  SCOPE_ASSERT(!s.find(2));
-  SCOPE_ASSERT(!s.find(4));
+  REQUIRE(1u == s.size());
+  REQUIRE(s.find(3));
+  REQUIRE(!s.find(0));
+  REQUIRE(!s.find(1));
+  REQUIRE(!s.find(2));
+  REQUIRE(!s.find(4));
 }
 
-SCOPE_TEST(sparseClear) {
+TEST_CASE("sparseClear") {
   SparseSet s(5);
-  SCOPE_ASSERT_EQUAL(0u, s.size());
+  REQUIRE(0u == s.size());
   s.insert(4);
   s.insert(2);
-  SCOPE_ASSERT_EQUAL(2u, s.size());
+  REQUIRE(2u == s.size());
   s.clear();
-  SCOPE_ASSERT_EQUAL(0u, s.size());
+  REQUIRE(0u == s.size());
   for (uint32_t i = 0; i < 5; ++i) {
-    SCOPE_ASSERT(!s.find(i));
+    REQUIRE(!s.find(i));
   }
 }

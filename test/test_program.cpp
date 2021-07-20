@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "program.h"
 
@@ -34,29 +34,29 @@ ProgramPtr makeProgram() {
   return p1;
 }
 
-SCOPE_TEST(testProgramSize) {
+TEST_CASE("testProgramSize") {
   ProgramPtr p1(makeProgram());
-  SCOPE_ASSERT_EQUAL(3u, p1->size());
+  REQUIRE(3u == p1->size());
 }
 
-SCOPE_TEST(testProgramSerialization) {
+TEST_CASE("testProgramSerialization") {
   ProgramPtr p1(makeProgram());
 
   const std::vector<char> buf = p1->marshall();
-  SCOPE_ASSERT_EQUAL(p1->bufSize(), buf.size());
+  REQUIRE(p1->bufSize() == buf.size());
 
   // first copy
   ProgramPtr p2 = Program::unmarshall(buf.data(), buf.size());
-  SCOPE_ASSERT(p2);
-  SCOPE_ASSERT_EQUAL(*p1, *p2);
+  REQUIRE(p2);
+  REQUIRE(*p1 == *p2);
 
   // second copy, shares buffer with first copy
   ProgramPtr p3 = Program::unmarshall(buf.data(), buf.size());
-  SCOPE_ASSERT(p3);
-  SCOPE_ASSERT_EQUAL(*p1, *p3);
+  REQUIRE(p3);
+  REQUIRE(*p1 == *p3);
 
   // p2 and p3 have the same buffer
-  SCOPE_ASSERT_EQUAL(&p2->front(), &p3->front());
+  REQUIRE(&p2->front() == &p3->front());
   // p1 and p2 have different buffers
-  SCOPE_ASSERT(&p1->front() != &p2->front());
+  REQUIRE(&p1->front() != &p2->front());
 }

@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "lightgrep/api.h"
 
@@ -33,7 +33,7 @@
 // TODO: complete this test?
 
 /*
-SCOPE_TEST(testDedupeOnDiffEncodings) {
+TEST_CASE("testDedupeOnDiffEncodings") {
   std::shared_ptr<ParserHandle> parser(lg_create_parser(0), lg_destroy_parser);
   LG_KeyOptions opts;
   opts.FixedString = 1;
@@ -59,7 +59,7 @@ SCOPE_TEST(testDedupeOnDiffEncodings) {
 }
 */
 
-SCOPE_TEST(testLgAddPatternList) {
+TEST_CASE("testLgAddPatternList") {
   const char pats[] =
     "foo\tUTF-8,UTF-16LE\t0\n"
     "bar\tISO-8859-11,UTF-16BE\t0\t1\n"
@@ -75,7 +75,7 @@ SCOPE_TEST(testLgAddPatternList) {
     lg_destroy_program
   );
 
-  SCOPE_ASSERT(prog);
+  REQUIRE(prog);
 
   // FIXME: how to estimate NFA size here?
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
@@ -83,7 +83,7 @@ SCOPE_TEST(testLgAddPatternList) {
     lg_destroy_fsm
   );
 
-  SCOPE_ASSERT(fsm);
+  REQUIRE(fsm);
 
   LG_Error* err = nullptr;
 
@@ -93,10 +93,10 @@ SCOPE_TEST(testLgAddPatternList) {
   );
 
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
-  SCOPE_ASSERT(!err);
+  REQUIRE(!err);
 }
 
-SCOPE_TEST(testLgAddPatternListFixedString) {
+TEST_CASE("testLgAddPatternListFixedString") {
   const char pats[] = "++\tASCII\t1\t0";
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
@@ -110,7 +110,7 @@ SCOPE_TEST(testLgAddPatternListFixedString) {
     lg_destroy_program
   );
 
-  SCOPE_ASSERT(prog);
+  REQUIRE(prog);
 
   // FIXME: how to estimate NFA size here?
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
@@ -118,7 +118,7 @@ SCOPE_TEST(testLgAddPatternListFixedString) {
     lg_destroy_fsm
   );
 
-  SCOPE_ASSERT(fsm);
+  REQUIRE(fsm);
 
   LG_Error* err = nullptr;
 
@@ -128,10 +128,10 @@ SCOPE_TEST(testLgAddPatternListFixedString) {
   );
 
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
-  SCOPE_ASSERT(!err);
+  REQUIRE(!err);
 }
 
-SCOPE_TEST(testLgAddPatternListBadEncoding) {
+TEST_CASE("testLgAddPatternListBadEncoding") {
   const char pats[] =
     "foo\tUTF-8,BOGUS\t0\t0\n"
     "x+\tASCII\n"
@@ -148,7 +148,7 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
     lg_destroy_program
   );
 
-  SCOPE_ASSERT(prog);
+  REQUIRE(prog);
 
   // FIXME: how to estimate NFA size here?
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
@@ -156,7 +156,7 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
     lg_destroy_fsm
   );
 
-  SCOPE_ASSERT(fsm);
+  REQUIRE(fsm);
 
 // FIXME: finish this test
 // FIXME: clean up err
@@ -170,15 +170,15 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
 
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
 
-  SCOPE_ASSERT(err);
-  SCOPE_ASSERT_EQUAL(0, err->Index);
+  REQUIRE(err);
+  REQUIRE(0 == err->Index);
 
   err = err->Next;
-  SCOPE_ASSERT(err);
-  SCOPE_ASSERT_EQUAL(2, err->Index);
+  REQUIRE(err);
+  REQUIRE(2 == err->Index);
 
   err = err->Next;
-  SCOPE_ASSERT(!err);
+  REQUIRE(!err);
 
 /*
   for ( ; err; err = err->Next) {
@@ -188,7 +188,7 @@ SCOPE_TEST(testLgAddPatternListBadEncoding) {
 */
 }
 
-SCOPE_TEST(testLgWriteProgramLgReadProgram) {
+TEST_CASE("testLgWriteProgramLgReadProgram") {
   const char pats[] =
     "foo\tUTF-8,UTF-16LE\t0\t0\n"
     "bar\tISO-8859-11,UTF-16BE\t0\t1\n";
@@ -203,7 +203,7 @@ SCOPE_TEST(testLgWriteProgramLgReadProgram) {
     lg_destroy_program
   );
 
-  SCOPE_ASSERT(prog1);
+  REQUIRE(prog1);
 
   {
     // FIXME: how to estimate NFA size here?
@@ -212,7 +212,7 @@ SCOPE_TEST(testLgWriteProgramLgReadProgram) {
       lg_destroy_fsm
     );
 
-    SCOPE_ASSERT(fsm);
+    REQUIRE(fsm);
 
     LG_Error* err = nullptr;
 
@@ -222,11 +222,11 @@ SCOPE_TEST(testLgWriteProgramLgReadProgram) {
     );
 
     std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
-    SCOPE_ASSERT(!err);
+    REQUIRE(!err);
 
     LG_ProgramOptions progOpts{0xFFFFFFFF};
     int ret = lg_compile_program(fsm.get(), prog1.get(), &progOpts);
-    SCOPE_ASSERT(ret);
+    REQUIRE(ret);
   }
 
   const size_t psize = lg_program_size(prog1.get());
@@ -239,20 +239,20 @@ SCOPE_TEST(testLgWriteProgramLgReadProgram) {
     lg_destroy_program
   );
 
-  SCOPE_ASSERT(prog2);
+  REQUIRE(prog2);
 
-  SCOPE_ASSERT_EQUAL(
-    lg_program_size(prog1.get()),
+  REQUIRE(
+    lg_program_size(prog1.get()) ==
     lg_program_size(prog2.get())
   );
 
   const size_t p1count = lg_pattern_count(prog1.get());
   const size_t p2count = lg_pattern_count(prog2.get());
-  SCOPE_ASSERT_EQUAL(p1count, p2count);
+  REQUIRE(p1count == p2count);
 
   for (size_t i = 0; i < p1count; ++i) {
-    SCOPE_ASSERT_EQUAL(
-      *lg_pattern_info(prog1.get(), i),
+    REQUIRE(
+      *lg_pattern_info(prog1.get(), i) ==
       *lg_pattern_info(prog2.get(), i)
     );
   }
@@ -262,19 +262,19 @@ SCOPE_TEST(testLgWriteProgramLgReadProgram) {
     lg_destroy_program
   );
 
-  SCOPE_ASSERT(prog3);
+  REQUIRE(prog3);
 
-  SCOPE_ASSERT_EQUAL(
-    lg_program_size(prog1.get()),
+  REQUIRE(
+    lg_program_size(prog1.get()) ==
     lg_program_size(prog3.get())
   );
 
   const size_t p3count = lg_pattern_count(prog3.get());
-  SCOPE_ASSERT_EQUAL(p1count, p3count);
+  REQUIRE(p1count == p3count);
 
   for (size_t i = 0; i < p1count; ++i) {
-    SCOPE_ASSERT_EQUAL(
-      *lg_pattern_info(prog1.get(), i),
+    REQUIRE(
+      *lg_pattern_info(prog1.get(), i) ==
       *lg_pattern_info(prog3.get(), i)
     );
   }

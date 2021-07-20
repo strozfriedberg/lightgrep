@@ -61,7 +61,11 @@ public:
 
   void search(const char* begin, const char* end, uint64_t offset);
 
+  void search(const std::string& s, uint64_t offset = 0) { search(s.data(), s.data() + s.length(), offset); }
+
   void startsWith(const char* begin, const char* end, uint64_t offset);
+
+  void startsWith(const std::string& s, uint64_t offset = 0) { startsWith(s.data(), s.data() + s.length(), offset); }
 
   bool parsesButNotValid() const;
 
