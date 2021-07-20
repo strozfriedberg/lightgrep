@@ -27,7 +27,7 @@ def main():
         raise Exception('too many arguments')
 
     # print head stuff
-    print('''#include <scope/test.h>
+    print('''#include "catch.hpp"
 
 #include <algorithm>
 
@@ -53,11 +53,11 @@ def main():
             # every pattern in this set has zero-length matches
             if len(pats) == 1:
                 # test single patterns for zero-length matches
-                print('''SCOPE_TEST(autoPatternTest{setnum}) {{
+                print('''TEST_CASE("autoPatternTest{setnum}") {{
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse({R"({pat})", false, false}, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  REQUIRE(parse({R"({pat})", false, false}, tree));
+  REQUIRE(!nfab.build(tree));
 }}
 '''.format(setnum=setnum, pat=pats[0]))
 
@@ -68,16 +68,16 @@ def main():
             else:
                 stest = '{{ R"({})" }}'.format(')", R"('.join(pats))
 
-            print('''SCOPE_FIXTURE_CTOR(autoPatternTest{setnum}, STest, STest({stest})) {{
+            print('''TEST_CASE("autoPatternTest{setnum}") {{
+  STest fixture({stest});
   const byte* text = (const byte*) R"({text})";
   fixture.search(text, text + {textlen}, 0);
   std::vector<SearchHit>& actual(fixture.Hits);
-  SCOPE_ASSERT_EQUAL({matchcount}u, actual.size());
 
   std::vector<SearchHit> expected{''')
 
-            for i, m in enumerate(matches):
-                print('    {{{}, {}, {}}},'.format(m[0], m[1], m[2], i))
+            for m in matches:
+                print(f'    {{{m[0]}, {m[1]}, {m[2]}}},')
 
             print('''  };
 
@@ -90,7 +90,7 @@ def main():
   );
 
   if (mis.first != expected.end()) {
-    SCOPE_ASSERT_EQUAL(*mis.first, *mis.second);
+    REQUIRE(*mis.first == *mis.second);
   }
 }''')
 
@@ -101,4 +101,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
