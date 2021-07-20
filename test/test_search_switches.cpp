@@ -31,11 +31,11 @@ TEST_CASE("ai_switches_Search") {
   });
   fixture.search("XXX XxX xxx Kkkk Kk\xE2\x84\xAAK", 0);
   const std::vector<SearchHit> expected {
-    SearchHit(4, 7, 0),
-    SearchHit(8, 11, 0),
-    SearchHit(12, 16, 2),
-    SearchHit(12, 16, 1),
-    SearchHit(17, 23, 2),
+    {4, 7, 0},
+    {8, 11, 0},
+    {12, 16, 2},
+    {12, 16, 1},
+    {17, 23, 2},
   };
   REQUIRE(expected == fixture.Hits);
 }

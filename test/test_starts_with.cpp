@@ -24,8 +24,8 @@ TEST_CASE("startsWithTest") {
   STest fixture({"ab..ef", "c[a-z][a-z]", "[aA][bc][bc]"});
   fixture.startsWith("abcdefghijklmnop", 0);
   const std::vector<SearchHit> expected {
-    SearchHit(0, 3, 2),
-    SearchHit(0, 6, 0),
+    {0, 3, 2},
+    {0, 6, 0},
   };
   REQUIRE(expected == fixture.Hits);
 }
@@ -34,7 +34,7 @@ TEST_CASE("startsWithShortTest") {
   STest fixture({"a+"});
   fixture.startsWith("a", 0);
   const std::vector<SearchHit> expected {
-    SearchHit(0, 1, 0),
+    {0, 1, 0},
   };
   REQUIRE(expected == fixture.Hits);
 }
