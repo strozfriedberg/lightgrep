@@ -16,1569 +16,2246 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "stest.h"
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest250, STest, STest(R"(aa|b+)")) {
+TEST_CASE("autoPatternStartsWithTest250") {
+  STest fixture(R"(aa|b+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest251, STest, STest(R"(aa|b*)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest251") {
+  STest fixture(R"(aa|b*)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest252, STest, STest(R"(aa|b?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest252") {
+  STest fixture(R"(aa|b?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest253, STest, STest(R"(aa|b+?)")) {
+TEST_CASE("autoPatternStartsWithTest253") {
+  STest fixture(R"(aa|b+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest254, STest, STest(R"(aa|b*?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest254") {
+  STest fixture(R"(aa|b*?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest255, STest, STest(R"(aa|b??)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest255") {
+  STest fixture(R"(aa|b??)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest256, STest, STest(R"(aa|b{0,1})")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest256") {
+  STest fixture(R"(aa|b{0,1})");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest257, STest, STest(R"(aa|b{2})")) {
+TEST_CASE("autoPatternStartsWithTest257") {
+  STest fixture(R"(aa|b{2})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest258, STest, STest(R"(aa|b{1,2})")) {
+TEST_CASE("autoPatternStartsWithTest258") {
+  STest fixture(R"(aa|b{1,2})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest259, STest, STest(R"(aa|b{2,})")) {
+TEST_CASE("autoPatternStartsWithTest259") {
+  STest fixture(R"(aa|b{2,})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest260, STest, STest(R"(aa|b{0,1}?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest260") {
+  STest fixture(R"(aa|b{0,1}?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest261, STest, STest(R"(aa|b{2}?)")) {
+TEST_CASE("autoPatternStartsWithTest261") {
+  STest fixture(R"(aa|b{2}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest262, STest, STest(R"(aa|b{1,2}?)")) {
+TEST_CASE("autoPatternStartsWithTest262") {
+  STest fixture(R"(aa|b{1,2}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest263, STest, STest(R"(aa|b{2,}?)")) {
+TEST_CASE("autoPatternStartsWithTest263") {
+  STest fixture(R"(aa|b{2,}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest264, STest, STest(R"(ab|b+)")) {
+TEST_CASE("autoPatternStartsWithTest264") {
+  STest fixture(R"(ab|b+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest265, STest, STest(R"(ab|b*)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest265") {
+  STest fixture(R"(ab|b*)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest266, STest, STest(R"(ab|b?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest266") {
+  STest fixture(R"(ab|b?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest267, STest, STest(R"(ab|b+?)")) {
+TEST_CASE("autoPatternStartsWithTest267") {
+  STest fixture(R"(ab|b+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest268, STest, STest(R"(ab|b*?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest268") {
+  STest fixture(R"(ab|b*?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest269, STest, STest(R"(ab|b??)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest269") {
+  STest fixture(R"(ab|b??)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest270, STest, STest(R"(ab|b{0,1})")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest270") {
+  STest fixture(R"(ab|b{0,1})");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest271, STest, STest(R"(ab|b{2})")) {
+TEST_CASE("autoPatternStartsWithTest271") {
+  STest fixture(R"(ab|b{2})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest272, STest, STest(R"(ab|b{1,2})")) {
+TEST_CASE("autoPatternStartsWithTest272") {
+  STest fixture(R"(ab|b{1,2})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest273, STest, STest(R"(ab|b{2,})")) {
+TEST_CASE("autoPatternStartsWithTest273") {
+  STest fixture(R"(ab|b{2,})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest274, STest, STest(R"(ab|b{0,1}?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest274") {
+  STest fixture(R"(ab|b{0,1}?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest275, STest, STest(R"(ab|b{2}?)")) {
+TEST_CASE("autoPatternStartsWithTest275") {
+  STest fixture(R"(ab|b{2}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest276, STest, STest(R"(ab|b{1,2}?)")) {
+TEST_CASE("autoPatternStartsWithTest276") {
+  STest fixture(R"(ab|b{1,2}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest277, STest, STest(R"(ab|b{2,}?)")) {
+TEST_CASE("autoPatternStartsWithTest277") {
+  STest fixture(R"(ab|b{2,}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest278, STest, STest(R"(ab|c+)")) {
+TEST_CASE("autoPatternStartsWithTest278") {
+  STest fixture(R"(ab|c+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest279, STest, STest(R"(ab|c*)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest279") {
+  STest fixture(R"(ab|c*)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest280, STest, STest(R"(ab|c?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest280") {
+  STest fixture(R"(ab|c?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest281, STest, STest(R"(ab|c+?)")) {
+TEST_CASE("autoPatternStartsWithTest281") {
+  STest fixture(R"(ab|c+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest282, STest, STest(R"(ab|c*?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest282") {
+  STest fixture(R"(ab|c*?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest283, STest, STest(R"(ab|c??)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest283") {
+  STest fixture(R"(ab|c??)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest284, STest, STest(R"(ab|c{0,1})")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest284") {
+  STest fixture(R"(ab|c{0,1})");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest285, STest, STest(R"(ab|c{2})")) {
+TEST_CASE("autoPatternStartsWithTest285") {
+  STest fixture(R"(ab|c{2})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest286, STest, STest(R"(ab|c{1,2})")) {
+TEST_CASE("autoPatternStartsWithTest286") {
+  STest fixture(R"(ab|c{1,2})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest287, STest, STest(R"(ab|c{2,})")) {
+TEST_CASE("autoPatternStartsWithTest287") {
+  STest fixture(R"(ab|c{2,})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest288, STest, STest(R"(ab|c{0,1}?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest288") {
+  STest fixture(R"(ab|c{0,1}?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest289, STest, STest(R"(ab|c{2}?)")) {
+TEST_CASE("autoPatternStartsWithTest289") {
+  STest fixture(R"(ab|c{2}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest290, STest, STest(R"(ab|c{1,2}?)")) {
+TEST_CASE("autoPatternStartsWithTest290") {
+  STest fixture(R"(ab|c{1,2}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest291, STest, STest(R"(ab|c{2,}?)")) {
+TEST_CASE("autoPatternStartsWithTest291") {
+  STest fixture(R"(ab|c{2,}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest292, STest, STest(R"(aa|a|a)")) {
+TEST_CASE("autoPatternStartsWithTest292") {
+  STest fixture(R"(aa|a|a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest293, STest, STest(R"(ab|a|a)")) {
+TEST_CASE("autoPatternStartsWithTest293") {
+  STest fixture(R"(ab|a|a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest294, STest, STest(R"(aa|b|a)")) {
+TEST_CASE("autoPatternStartsWithTest294") {
+  STest fixture(R"(aa|b|a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest295, STest, STest(R"(ab|b|a)")) {
+TEST_CASE("autoPatternStartsWithTest295") {
+  STest fixture(R"(ab|b|a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest296, STest, STest(R"(ab|c|a)")) {
+TEST_CASE("autoPatternStartsWithTest296") {
+  STest fixture(R"(ab|c|a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest297, STest, STest(R"(aa|a|b)")) {
+TEST_CASE("autoPatternStartsWithTest297") {
+  STest fixture(R"(aa|a|b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest298, STest, STest(R"(ab|a|b)")) {
+TEST_CASE("autoPatternStartsWithTest298") {
+  STest fixture(R"(ab|a|b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest299, STest, STest(R"(aa|b|b)")) {
+TEST_CASE("autoPatternStartsWithTest299") {
+  STest fixture(R"(aa|b|b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest300, STest, STest(R"(ab|b|b)")) {
+TEST_CASE("autoPatternStartsWithTest300") {
+  STest fixture(R"(ab|b|b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest301, STest, STest(R"(ab|c|b)")) {
+TEST_CASE("autoPatternStartsWithTest301") {
+  STest fixture(R"(ab|c|b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest302, STest, STest(R"(ab|a|c)")) {
+TEST_CASE("autoPatternStartsWithTest302") {
+  STest fixture(R"(ab|a|c)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest303, STest, STest(R"(aa|b|c)")) {
+TEST_CASE("autoPatternStartsWithTest303") {
+  STest fixture(R"(aa|b|c)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest304, STest, STest(R"(ab|b|c)")) {
+TEST_CASE("autoPatternStartsWithTest304") {
+  STest fixture(R"(ab|b|c)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest305, STest, STest(R"(ab|c|c)")) {
+TEST_CASE("autoPatternStartsWithTest305") {
+  STest fixture(R"(ab|c|c)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest306, STest, STest(R"(ab|c|.)")) {
+TEST_CASE("autoPatternStartsWithTest306") {
+  STest fixture(R"(ab|c|.)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest307, STest, STest(R"(a+)")) {
+TEST_CASE("autoPatternStartsWithTest307") {
+  STest fixture(R"(a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest308, STest, STest(R"(a*)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest308") {
+  STest fixture(R"(a*)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest309, STest, STest(R"(a?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest309") {
+  STest fixture(R"(a?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest310, STest, STest(R"(a+?)")) {
+TEST_CASE("autoPatternStartsWithTest310") {
+  STest fixture(R"(a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest311, STest, STest(R"(a*?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest311") {
+  STest fixture(R"(a*?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest312, STest, STest(R"(a??)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest312") {
+  STest fixture(R"(a??)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest313, STest, STest(R"(a{0,1})")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest313") {
+  STest fixture(R"(a{0,1})");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest314, STest, STest(R"(a{2})")) {
+TEST_CASE("autoPatternStartsWithTest314") {
+  STest fixture(R"(a{2})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest315, STest, STest(R"(a{1,2})")) {
+TEST_CASE("autoPatternStartsWithTest315") {
+  STest fixture(R"(a{1,2})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest316, STest, STest(R"(a{2,})")) {
+TEST_CASE("autoPatternStartsWithTest316") {
+  STest fixture(R"(a{2,})");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest317, STest, STest(R"(a{0,1}?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest317") {
+  STest fixture(R"(a{0,1}?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest318, STest, STest(R"(a{2}?)")) {
+TEST_CASE("autoPatternStartsWithTest318") {
+  STest fixture(R"(a{2}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest319, STest, STest(R"(a{1,2}?)")) {
+TEST_CASE("autoPatternStartsWithTest319") {
+  STest fixture(R"(a{1,2}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest320, STest, STest(R"(a{2,}?)")) {
+TEST_CASE("autoPatternStartsWithTest320") {
+  STest fixture(R"(a{2,}?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest321, STest, STest(R"(a+(a))")) {
+TEST_CASE("autoPatternStartsWithTest321") {
+  STest fixture(R"(a+(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest322, STest, STest(R"(a*(a))")) {
+TEST_CASE("autoPatternStartsWithTest322") {
+  STest fixture(R"(a*(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest323, STest, STest(R"(a?(a))")) {
+TEST_CASE("autoPatternStartsWithTest323") {
+  STest fixture(R"(a?(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest324, STest, STest(R"(a+?(a))")) {
+TEST_CASE("autoPatternStartsWithTest324") {
+  STest fixture(R"(a+?(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest325, STest, STest(R"(a*?(a))")) {
+TEST_CASE("autoPatternStartsWithTest325") {
+  STest fixture(R"(a*?(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest326, STest, STest(R"(a??(a))")) {
+TEST_CASE("autoPatternStartsWithTest326") {
+  STest fixture(R"(a??(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest327, STest, STest(R"(a{0,1}(a))")) {
+TEST_CASE("autoPatternStartsWithTest327") {
+  STest fixture(R"(a{0,1}(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest328, STest, STest(R"(a{2}(a))")) {
+TEST_CASE("autoPatternStartsWithTest328") {
+  STest fixture(R"(a{2}(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest329, STest, STest(R"(a{1,2}(a))")) {
+TEST_CASE("autoPatternStartsWithTest329") {
+  STest fixture(R"(a{1,2}(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest330, STest, STest(R"(a{2,}(a))")) {
+TEST_CASE("autoPatternStartsWithTest330") {
+  STest fixture(R"(a{2,}(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest331, STest, STest(R"(a{0,1}?(a))")) {
+TEST_CASE("autoPatternStartsWithTest331") {
+  STest fixture(R"(a{0,1}?(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest332, STest, STest(R"(a{2}?(a))")) {
+TEST_CASE("autoPatternStartsWithTest332") {
+  STest fixture(R"(a{2}?(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest333, STest, STest(R"(a{1,2}?(a))")) {
+TEST_CASE("autoPatternStartsWithTest333") {
+  STest fixture(R"(a{1,2}?(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest334, STest, STest(R"(a{2,}?(a))")) {
+TEST_CASE("autoPatternStartsWithTest334") {
+  STest fixture(R"(a{2,}?(a))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest335, STest, STest(R"(a+(b))")) {
+TEST_CASE("autoPatternStartsWithTest335") {
+  STest fixture(R"(a+(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest336, STest, STest(R"(a*(b))")) {
+TEST_CASE("autoPatternStartsWithTest336") {
+  STest fixture(R"(a*(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest337, STest, STest(R"(a?(b))")) {
+TEST_CASE("autoPatternStartsWithTest337") {
+  STest fixture(R"(a?(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest338, STest, STest(R"(a+?(b))")) {
+TEST_CASE("autoPatternStartsWithTest338") {
+  STest fixture(R"(a+?(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest339, STest, STest(R"(a*?(b))")) {
+TEST_CASE("autoPatternStartsWithTest339") {
+  STest fixture(R"(a*?(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest340, STest, STest(R"(a??(b))")) {
+TEST_CASE("autoPatternStartsWithTest340") {
+  STest fixture(R"(a??(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest341, STest, STest(R"(a{0,1}(b))")) {
+TEST_CASE("autoPatternStartsWithTest341") {
+  STest fixture(R"(a{0,1}(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest342, STest, STest(R"(a{2}(b))")) {
+TEST_CASE("autoPatternStartsWithTest342") {
+  STest fixture(R"(a{2}(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest343, STest, STest(R"(a{1,2}(b))")) {
+TEST_CASE("autoPatternStartsWithTest343") {
+  STest fixture(R"(a{1,2}(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest344, STest, STest(R"(a{2,}(b))")) {
+TEST_CASE("autoPatternStartsWithTest344") {
+  STest fixture(R"(a{2,}(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest345, STest, STest(R"(a{0,1}?(b))")) {
+TEST_CASE("autoPatternStartsWithTest345") {
+  STest fixture(R"(a{0,1}?(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest346, STest, STest(R"(a{2}?(b))")) {
+TEST_CASE("autoPatternStartsWithTest346") {
+  STest fixture(R"(a{2}?(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest347, STest, STest(R"(a{1,2}?(b))")) {
+TEST_CASE("autoPatternStartsWithTest347") {
+  STest fixture(R"(a{1,2}?(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest348, STest, STest(R"(a{2,}?(b))")) {
+TEST_CASE("autoPatternStartsWithTest348") {
+  STest fixture(R"(a{2,}?(b))");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest349, STest, STest(R"(a+a)")) {
+TEST_CASE("autoPatternStartsWithTest349") {
+  STest fixture(R"(a+a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest350, STest, STest(R"(a*a)")) {
+TEST_CASE("autoPatternStartsWithTest350") {
+  STest fixture(R"(a*a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest351, STest, STest(R"(a?a)")) {
+TEST_CASE("autoPatternStartsWithTest351") {
+  STest fixture(R"(a?a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest352, STest, STest(R"(a+?a)")) {
+TEST_CASE("autoPatternStartsWithTest352") {
+  STest fixture(R"(a+?a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest353, STest, STest(R"(a*?a)")) {
+TEST_CASE("autoPatternStartsWithTest353") {
+  STest fixture(R"(a*?a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest354, STest, STest(R"(a??a)")) {
+TEST_CASE("autoPatternStartsWithTest354") {
+  STest fixture(R"(a??a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest355, STest, STest(R"(a{0,1}a)")) {
+TEST_CASE("autoPatternStartsWithTest355") {
+  STest fixture(R"(a{0,1}a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest356, STest, STest(R"(a{2}a)")) {
+TEST_CASE("autoPatternStartsWithTest356") {
+  STest fixture(R"(a{2}a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest357, STest, STest(R"(a{1,2}a)")) {
+TEST_CASE("autoPatternStartsWithTest357") {
+  STest fixture(R"(a{1,2}a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest358, STest, STest(R"(a{2,}a)")) {
+TEST_CASE("autoPatternStartsWithTest358") {
+  STest fixture(R"(a{2,}a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest359, STest, STest(R"(a{0,1}?a)")) {
+TEST_CASE("autoPatternStartsWithTest359") {
+  STest fixture(R"(a{0,1}?a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest360, STest, STest(R"(a{2}?a)")) {
+TEST_CASE("autoPatternStartsWithTest360") {
+  STest fixture(R"(a{2}?a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest361, STest, STest(R"(a{1,2}?a)")) {
+TEST_CASE("autoPatternStartsWithTest361") {
+  STest fixture(R"(a{1,2}?a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest362, STest, STest(R"(a{2,}?a)")) {
+TEST_CASE("autoPatternStartsWithTest362") {
+  STest fixture(R"(a{2,}?a)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest363, STest, STest(R"(a+b)")) {
+TEST_CASE("autoPatternStartsWithTest363") {
+  STest fixture(R"(a+b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest364, STest, STest(R"(a*b)")) {
+TEST_CASE("autoPatternStartsWithTest364") {
+  STest fixture(R"(a*b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest365, STest, STest(R"(a?b)")) {
+TEST_CASE("autoPatternStartsWithTest365") {
+  STest fixture(R"(a?b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest366, STest, STest(R"(a+?b)")) {
+TEST_CASE("autoPatternStartsWithTest366") {
+  STest fixture(R"(a+?b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest367, STest, STest(R"(a*?b)")) {
+TEST_CASE("autoPatternStartsWithTest367") {
+  STest fixture(R"(a*?b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest368, STest, STest(R"(a??b)")) {
+TEST_CASE("autoPatternStartsWithTest368") {
+  STest fixture(R"(a??b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest369, STest, STest(R"(a{0,1}b)")) {
+TEST_CASE("autoPatternStartsWithTest369") {
+  STest fixture(R"(a{0,1}b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest370, STest, STest(R"(a{2}b)")) {
+TEST_CASE("autoPatternStartsWithTest370") {
+  STest fixture(R"(a{2}b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest371, STest, STest(R"(a{1,2}b)")) {
+TEST_CASE("autoPatternStartsWithTest371") {
+  STest fixture(R"(a{1,2}b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest372, STest, STest(R"(a{2,}b)")) {
+TEST_CASE("autoPatternStartsWithTest372") {
+  STest fixture(R"(a{2,}b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest373, STest, STest(R"(a{0,1}?b)")) {
+TEST_CASE("autoPatternStartsWithTest373") {
+  STest fixture(R"(a{0,1}?b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest374, STest, STest(R"(a{2}?b)")) {
+TEST_CASE("autoPatternStartsWithTest374") {
+  STest fixture(R"(a{2}?b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest375, STest, STest(R"(a{1,2}?b)")) {
+TEST_CASE("autoPatternStartsWithTest375") {
+  STest fixture(R"(a{1,2}?b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest376, STest, STest(R"(a{2,}?b)")) {
+TEST_CASE("autoPatternStartsWithTest376") {
+  STest fixture(R"(a{2,}?b)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest377, STest, STest(R"(a+aa)")) {
+TEST_CASE("autoPatternStartsWithTest377") {
+  STest fixture(R"(a+aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest378, STest, STest(R"(a*aa)")) {
+TEST_CASE("autoPatternStartsWithTest378") {
+  STest fixture(R"(a*aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest379, STest, STest(R"(a?aa)")) {
+TEST_CASE("autoPatternStartsWithTest379") {
+  STest fixture(R"(a?aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest380, STest, STest(R"(a+?aa)")) {
+TEST_CASE("autoPatternStartsWithTest380") {
+  STest fixture(R"(a+?aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest381, STest, STest(R"(a*?aa)")) {
+TEST_CASE("autoPatternStartsWithTest381") {
+  STest fixture(R"(a*?aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest382, STest, STest(R"(a??aa)")) {
+TEST_CASE("autoPatternStartsWithTest382") {
+  STest fixture(R"(a??aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest383, STest, STest(R"(a{0,1}aa)")) {
+TEST_CASE("autoPatternStartsWithTest383") {
+  STest fixture(R"(a{0,1}aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest384, STest, STest(R"(a{2}aa)")) {
+TEST_CASE("autoPatternStartsWithTest384") {
+  STest fixture(R"(a{2}aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest385, STest, STest(R"(a{1,2}aa)")) {
+TEST_CASE("autoPatternStartsWithTest385") {
+  STest fixture(R"(a{1,2}aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest386, STest, STest(R"(a{2,}aa)")) {
+TEST_CASE("autoPatternStartsWithTest386") {
+  STest fixture(R"(a{2,}aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest387, STest, STest(R"(a{0,1}?aa)")) {
+TEST_CASE("autoPatternStartsWithTest387") {
+  STest fixture(R"(a{0,1}?aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest388, STest, STest(R"(a{2}?aa)")) {
+TEST_CASE("autoPatternStartsWithTest388") {
+  STest fixture(R"(a{2}?aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest389, STest, STest(R"(a{1,2}?aa)")) {
+TEST_CASE("autoPatternStartsWithTest389") {
+  STest fixture(R"(a{1,2}?aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest390, STest, STest(R"(a{2,}?aa)")) {
+TEST_CASE("autoPatternStartsWithTest390") {
+  STest fixture(R"(a{2,}?aa)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest391, STest, STest(R"(a+ba)")) {
+TEST_CASE("autoPatternStartsWithTest391") {
+  STest fixture(R"(a+ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 5, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 5, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest392, STest, STest(R"(a*ba)")) {
+TEST_CASE("autoPatternStartsWithTest392") {
+  STest fixture(R"(a*ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 5, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 5, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest393, STest, STest(R"(a?ba)")) {
+TEST_CASE("autoPatternStartsWithTest393") {
+  STest fixture(R"(a?ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest394, STest, STest(R"(a+?ba)")) {
+TEST_CASE("autoPatternStartsWithTest394") {
+  STest fixture(R"(a+?ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 5, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 5, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest395, STest, STest(R"(a*?ba)")) {
+TEST_CASE("autoPatternStartsWithTest395") {
+  STest fixture(R"(a*?ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 5, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 5, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest396, STest, STest(R"(a??ba)")) {
+TEST_CASE("autoPatternStartsWithTest396") {
+  STest fixture(R"(a??ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest397, STest, STest(R"(a{0,1}ba)")) {
+TEST_CASE("autoPatternStartsWithTest397") {
+  STest fixture(R"(a{0,1}ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest398, STest, STest(R"(a{2}ba)")) {
+TEST_CASE("autoPatternStartsWithTest398") {
+  STest fixture(R"(a{2}ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest399, STest, STest(R"(a{1,2}ba)")) {
+TEST_CASE("autoPatternStartsWithTest399") {
+  STest fixture(R"(a{1,2}ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest400, STest, STest(R"(a{2,}ba)")) {
+TEST_CASE("autoPatternStartsWithTest400") {
+  STest fixture(R"(a{2,}ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 5, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 5, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest401, STest, STest(R"(a{0,1}?ba)")) {
+TEST_CASE("autoPatternStartsWithTest401") {
+  STest fixture(R"(a{0,1}?ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest402, STest, STest(R"(a{2}?ba)")) {
+TEST_CASE("autoPatternStartsWithTest402") {
+  STest fixture(R"(a{2}?ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest403, STest, STest(R"(a{1,2}?ba)")) {
+TEST_CASE("autoPatternStartsWithTest403") {
+  STest fixture(R"(a{1,2}?ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest404, STest, STest(R"(a{2,}?ba)")) {
+TEST_CASE("autoPatternStartsWithTest404") {
+  STest fixture(R"(a{2,}?ba)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 5, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 5, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest405, STest, STest(R"(a+ab)")) {
+TEST_CASE("autoPatternStartsWithTest405") {
+  STest fixture(R"(a+ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest406, STest, STest(R"(a*ab)")) {
+TEST_CASE("autoPatternStartsWithTest406") {
+  STest fixture(R"(a*ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest407, STest, STest(R"(a?ab)")) {
+TEST_CASE("autoPatternStartsWithTest407") {
+  STest fixture(R"(a?ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest408, STest, STest(R"(a+?ab)")) {
+TEST_CASE("autoPatternStartsWithTest408") {
+  STest fixture(R"(a+?ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest409, STest, STest(R"(a*?ab)")) {
+TEST_CASE("autoPatternStartsWithTest409") {
+  STest fixture(R"(a*?ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest410, STest, STest(R"(a??ab)")) {
+TEST_CASE("autoPatternStartsWithTest410") {
+  STest fixture(R"(a??ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest411, STest, STest(R"(a{0,1}ab)")) {
+TEST_CASE("autoPatternStartsWithTest411") {
+  STest fixture(R"(a{0,1}ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest412, STest, STest(R"(a{2}ab)")) {
+TEST_CASE("autoPatternStartsWithTest412") {
+  STest fixture(R"(a{2}ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest413, STest, STest(R"(a{1,2}ab)")) {
+TEST_CASE("autoPatternStartsWithTest413") {
+  STest fixture(R"(a{1,2}ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest414, STest, STest(R"(a{2,}ab)")) {
+TEST_CASE("autoPatternStartsWithTest414") {
+  STest fixture(R"(a{2,}ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest415, STest, STest(R"(a{0,1}?ab)")) {
+TEST_CASE("autoPatternStartsWithTest415") {
+  STest fixture(R"(a{0,1}?ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest416, STest, STest(R"(a{2}?ab)")) {
+TEST_CASE("autoPatternStartsWithTest416") {
+  STest fixture(R"(a{2}?ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest417, STest, STest(R"(a{1,2}?ab)")) {
+TEST_CASE("autoPatternStartsWithTest417") {
+  STest fixture(R"(a{1,2}?ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest418, STest, STest(R"(a{2,}?ab)")) {
+TEST_CASE("autoPatternStartsWithTest418") {
+  STest fixture(R"(a{2,}?ab)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 4, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 4, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest419, STest, STest(R"(a+bb)")) {
+TEST_CASE("autoPatternStartsWithTest419") {
+  STest fixture(R"(a+bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest420, STest, STest(R"(a*bb)")) {
+TEST_CASE("autoPatternStartsWithTest420") {
+  STest fixture(R"(a*bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest421, STest, STest(R"(a?bb)")) {
+TEST_CASE("autoPatternStartsWithTest421") {
+  STest fixture(R"(a?bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest422, STest, STest(R"(a+?bb)")) {
+TEST_CASE("autoPatternStartsWithTest422") {
+  STest fixture(R"(a+?bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest423, STest, STest(R"(a*?bb)")) {
+TEST_CASE("autoPatternStartsWithTest423") {
+  STest fixture(R"(a*?bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest424, STest, STest(R"(a??bb)")) {
+TEST_CASE("autoPatternStartsWithTest424") {
+  STest fixture(R"(a??bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest425, STest, STest(R"(a{0,1}bb)")) {
+TEST_CASE("autoPatternStartsWithTest425") {
+  STest fixture(R"(a{0,1}bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest426, STest, STest(R"(a{2}bb)")) {
+TEST_CASE("autoPatternStartsWithTest426") {
+  STest fixture(R"(a{2}bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest427, STest, STest(R"(a{1,2}bb)")) {
+TEST_CASE("autoPatternStartsWithTest427") {
+  STest fixture(R"(a{1,2}bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest428, STest, STest(R"(a{2,}bb)")) {
+TEST_CASE("autoPatternStartsWithTest428") {
+  STest fixture(R"(a{2,}bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest429, STest, STest(R"(a{0,1}?bb)")) {
+TEST_CASE("autoPatternStartsWithTest429") {
+  STest fixture(R"(a{0,1}?bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest430, STest, STest(R"(a{2}?bb)")) {
+TEST_CASE("autoPatternStartsWithTest430") {
+  STest fixture(R"(a{2}?bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest431, STest, STest(R"(a{1,2}?bb)")) {
+TEST_CASE("autoPatternStartsWithTest431") {
+  STest fixture(R"(a{1,2}?bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest432, STest, STest(R"(a{2,}?bb)")) {
+TEST_CASE("autoPatternStartsWithTest432") {
+  STest fixture(R"(a{2,}?bb)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest433, STest, STest(R"(a+bc)")) {
+TEST_CASE("autoPatternStartsWithTest433") {
+  STest fixture(R"(a+bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest434, STest, STest(R"(a*bc)")) {
+TEST_CASE("autoPatternStartsWithTest434") {
+  STest fixture(R"(a*bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest435, STest, STest(R"(a?bc)")) {
+TEST_CASE("autoPatternStartsWithTest435") {
+  STest fixture(R"(a?bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest436, STest, STest(R"(a+?bc)")) {
+TEST_CASE("autoPatternStartsWithTest436") {
+  STest fixture(R"(a+?bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest437, STest, STest(R"(a*?bc)")) {
+TEST_CASE("autoPatternStartsWithTest437") {
+  STest fixture(R"(a*?bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest438, STest, STest(R"(a??bc)")) {
+TEST_CASE("autoPatternStartsWithTest438") {
+  STest fixture(R"(a??bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest439, STest, STest(R"(a{0,1}bc)")) {
+TEST_CASE("autoPatternStartsWithTest439") {
+  STest fixture(R"(a{0,1}bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest440, STest, STest(R"(a{2}bc)")) {
+TEST_CASE("autoPatternStartsWithTest440") {
+  STest fixture(R"(a{2}bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest441, STest, STest(R"(a{1,2}bc)")) {
+TEST_CASE("autoPatternStartsWithTest441") {
+  STest fixture(R"(a{1,2}bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest442, STest, STest(R"(a{2,}bc)")) {
+TEST_CASE("autoPatternStartsWithTest442") {
+  STest fixture(R"(a{2,}bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest443, STest, STest(R"(a{0,1}?bc)")) {
+TEST_CASE("autoPatternStartsWithTest443") {
+  STest fixture(R"(a{0,1}?bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest444, STest, STest(R"(a{2}?bc)")) {
+TEST_CASE("autoPatternStartsWithTest444") {
+  STest fixture(R"(a{2}?bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest445, STest, STest(R"(a{1,2}?bc)")) {
+TEST_CASE("autoPatternStartsWithTest445") {
+  STest fixture(R"(a{1,2}?bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest446, STest, STest(R"(a{2,}?bc)")) {
+TEST_CASE("autoPatternStartsWithTest446") {
+  STest fixture(R"(a{2,}?bc)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(0u, fixture.Hits.size());
+  const std::vector<SearchHit> expected{
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest447, STest, STest(R"(a+a+)")) {
+TEST_CASE("autoPatternStartsWithTest447") {
+  STest fixture(R"(a+a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest448, STest, STest(R"(a*a+)")) {
+TEST_CASE("autoPatternStartsWithTest448") {
+  STest fixture(R"(a*a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest449, STest, STest(R"(a?a+)")) {
+TEST_CASE("autoPatternStartsWithTest449") {
+  STest fixture(R"(a?a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest450, STest, STest(R"(a+?a+)")) {
+TEST_CASE("autoPatternStartsWithTest450") {
+  STest fixture(R"(a+?a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest451, STest, STest(R"(a*?a+)")) {
+TEST_CASE("autoPatternStartsWithTest451") {
+  STest fixture(R"(a*?a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest452, STest, STest(R"(a??a+)")) {
+TEST_CASE("autoPatternStartsWithTest452") {
+  STest fixture(R"(a??a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest453, STest, STest(R"(a{0,1}a+)")) {
+TEST_CASE("autoPatternStartsWithTest453") {
+  STest fixture(R"(a{0,1}a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest454, STest, STest(R"(a{2}a+)")) {
+TEST_CASE("autoPatternStartsWithTest454") {
+  STest fixture(R"(a{2}a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest455, STest, STest(R"(a{1,2}a+)")) {
+TEST_CASE("autoPatternStartsWithTest455") {
+  STest fixture(R"(a{1,2}a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest456, STest, STest(R"(a{2,}a+)")) {
+TEST_CASE("autoPatternStartsWithTest456") {
+  STest fixture(R"(a{2,}a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest457, STest, STest(R"(a{0,1}?a+)")) {
+TEST_CASE("autoPatternStartsWithTest457") {
+  STest fixture(R"(a{0,1}?a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest458, STest, STest(R"(a{2}?a+)")) {
+TEST_CASE("autoPatternStartsWithTest458") {
+  STest fixture(R"(a{2}?a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest459, STest, STest(R"(a{1,2}?a+)")) {
+TEST_CASE("autoPatternStartsWithTest459") {
+  STest fixture(R"(a{1,2}?a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest460, STest, STest(R"(a{2,}?a+)")) {
+TEST_CASE("autoPatternStartsWithTest460") {
+  STest fixture(R"(a{2,}?a+)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest461, STest, STest(R"(a+a*)")) {
+TEST_CASE("autoPatternStartsWithTest461") {
+  STest fixture(R"(a+a*)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest462, STest, STest(R"(a*a*)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest462") {
+  STest fixture(R"(a*a*)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest463, STest, STest(R"(a?a*)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest463") {
+  STest fixture(R"(a?a*)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest464, STest, STest(R"(a+?a*)")) {
+TEST_CASE("autoPatternStartsWithTest464") {
+  STest fixture(R"(a+?a*)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest465, STest, STest(R"(a*?a*)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest465") {
+  STest fixture(R"(a*?a*)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest466, STest, STest(R"(a??a*)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest466") {
+  STest fixture(R"(a??a*)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest467, STest, STest(R"(a{0,1}a*)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest467") {
+  STest fixture(R"(a{0,1}a*)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest468, STest, STest(R"(a{2}a*)")) {
+TEST_CASE("autoPatternStartsWithTest468") {
+  STest fixture(R"(a{2}a*)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest469, STest, STest(R"(a{1,2}a*)")) {
+TEST_CASE("autoPatternStartsWithTest469") {
+  STest fixture(R"(a{1,2}a*)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest470, STest, STest(R"(a{2,}a*)")) {
+TEST_CASE("autoPatternStartsWithTest470") {
+  STest fixture(R"(a{2,}a*)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest471, STest, STest(R"(a{0,1}?a*)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest471") {
+  STest fixture(R"(a{0,1}?a*)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest472, STest, STest(R"(a{2}?a*)")) {
+TEST_CASE("autoPatternStartsWithTest472") {
+  STest fixture(R"(a{2}?a*)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest473, STest, STest(R"(a{1,2}?a*)")) {
+TEST_CASE("autoPatternStartsWithTest473") {
+  STest fixture(R"(a{1,2}?a*)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest474, STest, STest(R"(a{2,}?a*)")) {
+TEST_CASE("autoPatternStartsWithTest474") {
+  STest fixture(R"(a{2,}?a*)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest475, STest, STest(R"(a+a?)")) {
+TEST_CASE("autoPatternStartsWithTest475") {
+  STest fixture(R"(a+a?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest476, STest, STest(R"(a*a?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest476") {
+  STest fixture(R"(a*a?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest477, STest, STest(R"(a?a?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest477") {
+  STest fixture(R"(a?a?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest478, STest, STest(R"(a+?a?)")) {
+TEST_CASE("autoPatternStartsWithTest478") {
+  STest fixture(R"(a+?a?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest479, STest, STest(R"(a*?a?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest479") {
+  STest fixture(R"(a*?a?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest480, STest, STest(R"(a??a?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest480") {
+  STest fixture(R"(a??a?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest481, STest, STest(R"(a{0,1}a?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest481") {
+  STest fixture(R"(a{0,1}a?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest482, STest, STest(R"(a{2}a?)")) {
+TEST_CASE("autoPatternStartsWithTest482") {
+  STest fixture(R"(a{2}a?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest483, STest, STest(R"(a{1,2}a?)")) {
+TEST_CASE("autoPatternStartsWithTest483") {
+  STest fixture(R"(a{1,2}a?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest484, STest, STest(R"(a{2,}a?)")) {
+TEST_CASE("autoPatternStartsWithTest484") {
+  STest fixture(R"(a{2,}a?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest485, STest, STest(R"(a{0,1}?a?)")) {
-  SCOPE_ASSERT(fixture.parsesButNotValid());
+TEST_CASE("autoPatternStartsWithTest485") {
+  STest fixture(R"(a{0,1}?a?)");
+  REQUIRE(fixture.parsesButNotValid());
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest486, STest, STest(R"(a{2}?a?)")) {
+TEST_CASE("autoPatternStartsWithTest486") {
+  STest fixture(R"(a{2}?a?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest487, STest, STest(R"(a{1,2}?a?)")) {
+TEST_CASE("autoPatternStartsWithTest487") {
+  STest fixture(R"(a{1,2}?a?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest488, STest, STest(R"(a{2,}?a?)")) {
+TEST_CASE("autoPatternStartsWithTest488") {
+  STest fixture(R"(a{2,}?a?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest489, STest, STest(R"(a+a+?)")) {
+TEST_CASE("autoPatternStartsWithTest489") {
+  STest fixture(R"(a+a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest490, STest, STest(R"(a*a+?)")) {
+TEST_CASE("autoPatternStartsWithTest490") {
+  STest fixture(R"(a*a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest491, STest, STest(R"(a?a+?)")) {
+TEST_CASE("autoPatternStartsWithTest491") {
+  STest fixture(R"(a?a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest492, STest, STest(R"(a+?a+?)")) {
+TEST_CASE("autoPatternStartsWithTest492") {
+  STest fixture(R"(a+?a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest493, STest, STest(R"(a*?a+?)")) {
+TEST_CASE("autoPatternStartsWithTest493") {
+  STest fixture(R"(a*?a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest494, STest, STest(R"(a??a+?)")) {
+TEST_CASE("autoPatternStartsWithTest494") {
+  STest fixture(R"(a??a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest495, STest, STest(R"(a{0,1}a+?)")) {
+TEST_CASE("autoPatternStartsWithTest495") {
+  STest fixture(R"(a{0,1}a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 2, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 2, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest496, STest, STest(R"(a{2}a+?)")) {
+TEST_CASE("autoPatternStartsWithTest496") {
+  STest fixture(R"(a{2}a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest497, STest, STest(R"(a{1,2}a+?)")) {
+TEST_CASE("autoPatternStartsWithTest497") {
+  STest fixture(R"(a{1,2}a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest498, STest, STest(R"(a{2,}a+?)")) {
+TEST_CASE("autoPatternStartsWithTest498") {
+  STest fixture(R"(a{2,}a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 3, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 3, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
 
-SCOPE_FIXTURE_CTOR(autoPatternStartsWithTest499, STest, STest(R"(a{0,1}?a+?)")) {
+TEST_CASE("autoPatternStartsWithTest499") {
+  STest fixture(R"(a{0,1}?a+?)");
   const char text[] = "aaabaacabbabcacbaccbbbcbccca";
   fixture.startsWith(text, text + 28, 0);
-  SCOPE_ASSERT_EQUAL(1u, fixture.Hits.size());
-  SCOPE_ASSERT_EQUAL(SearchHit(0, 1, 0), fixture.Hits[0]);
+  const std::vector<SearchHit> expected{
+    {0, 1, 0},
+  };
+  REQUIRE(expected == fixture.Hits);
 }
-

@@ -26,7 +26,8 @@ def run_grep(grep, pats, text, emptymsg):
             cmd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
+            encoding='UTF-8'
         )
 
         gout, gerr = proc.communicate(text)
@@ -48,11 +49,11 @@ def run_grep(grep, pats, text, emptymsg):
     # parse the matches
     matches = []
     for m in gout.splitlines():
-        matches.append(map(int, m.split('\t', 3)[0:3]))
+        s, e, l = m.split('\t', 3)[0:3]
+        matches.append((int(s), int(e), int(l)))
 
     # sort the matches by start, end, label
-    lex = lambda x,y: cmp(x[0], y[0]) or cmp(x[1], y[1]) or cmp(x[2], y[2])
-    matches.sort(lex)
+    matches.sort()
 
     return matches
 
