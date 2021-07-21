@@ -258,11 +258,8 @@ loadProgram(const std::string& pfile) {
     );
   }
 
-// FIXME: we need to handle the case where the read fails
-// FIXME: what to do for the pattern map?
-
   const std::streampos end = stream_size(pin);
-  std::cerr << "program file is " << end << " bytes long" << std::endl;
+  // std::cerr << "program file is " << end << " bytes long" << std::endl;
 
   std::vector<char> buf(end);
   pin.read(&buf[0], end);
@@ -278,9 +275,9 @@ bool buildProgram(FSMHandle* fsm, ProgramHandle* prog, const Options& opts) {
   LG_ProgramOptions progOpts{opts.Determinize};
 
   if (lg_compile_program(fsm, prog, &progOpts)) {
-    std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
-              << prog->Prog->size() << " instructions"
-              << std::endl;
+    // std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
+    //           << prog->Prog->size() << " instructions"
+    //           << std::endl;
     return true;
   }
   else {
@@ -496,17 +493,17 @@ void search(const Options& opts) {
     search(opts.Inputs, opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
   }
 
-  std::cerr << ctrl.BytesSearched << " bytes\n"
-            << ctrl.TotalTime << " searchTime\n";
-  if (ctrl.TotalTime > 0.0) {
-    std::cerr << (ctrl.BytesSearched / ctrl.TotalTime / (1 << 20));
-  }
-  else {
-    std::cerr << "+inf";
-  }
-  std::cerr << " MB/s avg\n"
-            << hinfo->NumHits
-            << " hit" << (hinfo->NumHits != 1 ? "s" : "") << std::endl;
+  // std::cerr << ctrl.BytesSearched << " bytes\n"
+  //           << ctrl.TotalTime << " searchTime\n";
+  // if (ctrl.TotalTime > 0.0) {
+  //   std::cerr << (ctrl.BytesSearched / ctrl.TotalTime / (1 << 20));
+  // }
+  // else {
+  //   std::cerr << "+inf";
+  // }
+  // std::cerr << " MB/s avg\n"
+  //           << hinfo->NumHits
+  //           << " hit" << (hinfo->NumHits != 1 ? "s" : "") << std::endl;
 }
 
 bool writeGraphviz(const Options& opts) {

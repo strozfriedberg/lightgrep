@@ -11,9 +11,9 @@ void print_cumulative_stats(double seconds, uint64_t offset) {
   uint64_t units = offset >> 20;
   const double bw = units / seconds;
   units >>= 10;
-  std::cerr << units << " GB searched in "
-            << seconds << " seconds, "
-            << bw << " MB/s avg" << std::endl;
+  // std::cerr << units << " GB searched in "
+  //           << seconds << " seconds, "
+  //           << bw << " MB/s avg" << std::endl;
 }
 
 bool SearchController::searchFile(
