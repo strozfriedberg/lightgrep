@@ -164,7 +164,6 @@ test_test_SOURCES = \
 	test/test_auto_search_5.cpp \
 	test/test_auto_search_6.cpp \
 	test/test_auto_search_7.cpp \
-	test/test_auto_search_8.cpp \
 	test/test_auto_search_multi_1.cpp \
 	test/test_auto_search_multi_2.cpp \
 	test/test_auto_starts_with_1.cpp \

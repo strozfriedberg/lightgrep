@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
 #
-# Expects either: 
+# Expects either:
 #
 #   * a tab-separated pattern set followed by a text on each stdin line, or
 #   * a tab-separated pattern set on each stdin line, and a text as argv[1].
-# 
+#
 # Writes unit tests to stdout.
 #
 
@@ -15,71 +15,71 @@ import sys
 import lgtestlib
 
 def main():
-  sg = os.path.dirname(__file__) + '/shitgrep'
+    sg = os.path.dirname(__file__) + '/shitgrep'
 
-  # get text from command line?
-  if len(sys.argv) < 2:
-    cl_text = False
-  elif len(sys.argv) == 2:
-    text = sys.argv[1]
-    cl_text = True
-  else:
-    raise Exception('too many arguments') 
+    # get text from command line?
+    if len(sys.argv) < 2:
+        cl_text = False
+    elif len(sys.argv) == 2:
+        text = sys.argv[1]
+        cl_text = True
+    else:
+        raise Exception('too many arguments')
 
-  # print head stuff
-  print '''#include <scope/test.h>
+    # print head stuff
+    print('''#include "catch.hpp"
 
 #include <algorithm>
 
 #include "stest.h"
-'''
+''')
 
-  setnum = 0
+    setnum = 0
 
-  for line in sys.stdin:
-    # read the test set
-    parts = line.rstrip('\n').split('\t')
-   
-    if cl_text:
-      pats = parts
-    else: 
-      pats = parts[0:-1]
-      text = parts[-1]
+    for line in sys.stdin:
+        # read the test set
+        parts = line.rstrip('\n').split('\t')
 
-    # get matches from shitgrep
-    matches = lgtestlib.run_shitgrep(sg, pats, text)
+        if cl_text:
+            pats = parts
+        else:
+            pats = parts[0:-1]
+            text = parts[-1]
 
-    if matches is None:
-      # every pattern in this set has zero-length matches
-      if len(pats) == 1:
-        # test single patterns for zero-length matches
-        print '''SCOPE_TEST(autoPatternTest{setnum}) {{
+        # get matches from shitgrep
+        matches = lgtestlib.run_shitgrep(sg, pats, text)
+
+        if matches is None:
+            # every pattern in this set has zero-length matches
+            if len(pats) == 1:
+                # test single patterns for zero-length matches
+                print('''TEST_CASE("autoPatternTest{setnum}") {{
   NFABuilder nfab;
   ParseTree tree;
-  SCOPE_ASSERT(parse({R"({pat})", false, false}, tree));
-  SCOPE_ASSERT(!nfab.build(tree));
+  REQUIRE(parse({R"({pat})", false, false}, tree));
+  REQUIRE(!nfab.build(tree));
 }}
-'''.format(setnum=setnum, pat=pats[0])
+'''.format(setnum=setnum, pat=pats[0]))
 
-    else:
-      # this pattern set has no zero-length matches
-      if len(pats) == 1:
-        stest = 'R"({})"'.format(pats[0])
-      else:
-        stest = '{{ R"({})" }}'.format(')", R"('.join(pats))
+        else:
+            # this pattern set has no zero-length matches
+            if len(pats) == 1:
+                stest = 'R"({})"'.format(pats[0])
+            else:
+                stest = '{{ R"({})" }}'.format(')", R"('.join(pats))
 
-      print '''SCOPE_FIXTURE_CTOR(autoPatternTest{setnum}, STest, STest({stest})) {{
+            print('''TEST_CASE("autoPatternTest{setnum}") {{
+  STest fixture({stest});
   const byte* text = (const byte*) R"({text})";
   fixture.search(text, text + {textlen}, 0);
   std::vector<SearchHit>& actual(fixture.Hits);
-  SCOPE_ASSERT_EQUAL({matchcount}u, actual.size());
 
-  std::vector<SearchHit> expected{'''
+  std::vector<SearchHit> expected{''')
 
-      for i, m in enumerate(matches):
-        print '    {{{}, {}, {}}},'.format(m[0], m[1], m[2], i)
+            for m in matches:
+                print(f'    {{{m[0]}, {m[1]}, {m[2]}}},')
 
-      print '''  };  
+            print('''  };
 
   std::sort(actual.begin(), actual.end());
   std::sort(expected.begin(), expected.begin());
@@ -90,15 +90,14 @@ def main():
   );
 
   if (mis.first != expected.end()) {
-    SCOPE_ASSERT_EQUAL(*mis.first, *mis.second);
+    REQUIRE(*mis.first == *mis.second);
   }
-}'''
+}''')
 
-    setnum += 1
+        setnum += 1
 
-  return 0
+    return 0
 
 
 if __name__ == "__main__":
-  sys.exit(main())
-
+    sys.exit(main())
