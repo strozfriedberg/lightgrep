@@ -26,6 +26,8 @@
 #include <string>
 #include <vector>
 
+#include "catch.hpp"
+
 #include "basic.h"
 #include "pattern.h"
 
@@ -55,6 +57,7 @@ struct TestCase {
     std::sort(expected.begin(), expected.end());
     std::sort(actual.begin(), actual.end());
 
+    CHECK(actual == expected);
     if (actual == expected) {
       ss << "ok.\n";
     }
@@ -83,12 +86,11 @@ struct TestCase {
 
       ++failed;
     }
-
-    std::cout << ss.str();
-
-    if (++count % 1000 == 0) {
-      std::cerr << count << std::endl;
-    }
+    // std::cout << ss.str();
+    ++count;
+    // if (count % 1000 == 0) {
+    //   std::cerr << count << std::endl;
+    // }
   }
 };
 
@@ -109,13 +111,12 @@ namespace {
   }
 }
 
-bool longTest(std::istream& in) {
+TEST_CASE("longTest", "[.]") {
   // scoping ensures that executor is destroyed before we check failed
   {
     Executor ex;
-    longTest(ex, in);
+    longTest(ex, std::cin);
   }
-
-  std::cerr << TestCase::count << std::endl;
-  return TestCase::failed == 0;
+  REQUIRE(TestCase::count > 0);
+  REQUIRE(TestCase::failed == 0);
 }
