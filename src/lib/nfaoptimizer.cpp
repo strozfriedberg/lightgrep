@@ -565,7 +565,7 @@ void connectSubsetStateToOriginal(
   */
 
   for (const auto& v: srcHeadList) {
-    for (const auto& n: src.outVertices(v)) {
+    for (const auto n: src.outVertices(v)) {
       // get the image of n in dst, creating it if necessary
       const auto i = src2Dst.find(n);
       const NFA::VertexDescriptor dst_n = i == src2Dst.end() ? src2Dst[n] = dst.addVertex() : i->second;
@@ -630,7 +630,7 @@ void completeOriginal(
     dst[hh].IsMatch = src[h].IsMatch;
     dst[hh].Trans = dst.TransFac->get(src[h].Trans);
 
-    for (const auto& t: src.outVertices(h)) {
+    for (const auto t: src.outVertices(h)) {
       NFA::VertexDescriptor tt;
       const auto i = src2Dst.find(t);
       if (i == src2Dst.end()) {

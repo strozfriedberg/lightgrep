@@ -35,7 +35,7 @@ std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
   return result;
 }
 
-void parse_opts(int argc, char** argv,
+void parse_opts(int argc, const char* const * argv,
                 po::options_description& desc, Options& opts) {
 
   //

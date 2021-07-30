@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <initializer_list>
 #include <iomanip>
@@ -26,50 +26,50 @@
 #include "parseutil.h"
 #include "unicode_sets.h"
 
-SCOPE_TEST(parseHexCharTest) {
+TEST_CASE("parseHexCharTest") {
   // good
-  SCOPE_ASSERT_EQUAL(0x0, parseHexChar('0'));
-  SCOPE_ASSERT_EQUAL(0x1, parseHexChar('1'));
-  SCOPE_ASSERT_EQUAL(0x2, parseHexChar('2'));
-  SCOPE_ASSERT_EQUAL(0x3, parseHexChar('3'));
-  SCOPE_ASSERT_EQUAL(0x4, parseHexChar('4'));
-  SCOPE_ASSERT_EQUAL(0x5, parseHexChar('5'));
-  SCOPE_ASSERT_EQUAL(0x6, parseHexChar('6'));
-  SCOPE_ASSERT_EQUAL(0x7, parseHexChar('7'));
-  SCOPE_ASSERT_EQUAL(0x8, parseHexChar('8'));
-  SCOPE_ASSERT_EQUAL(0x9, parseHexChar('9'));
-  SCOPE_ASSERT_EQUAL(0xA, parseHexChar('A'));
-  SCOPE_ASSERT_EQUAL(0xB, parseHexChar('B'));
-  SCOPE_ASSERT_EQUAL(0xC, parseHexChar('C'));
-  SCOPE_ASSERT_EQUAL(0xD, parseHexChar('D'));
-  SCOPE_ASSERT_EQUAL(0xE, parseHexChar('E'));
-  SCOPE_ASSERT_EQUAL(0xF, parseHexChar('F'));
-  SCOPE_ASSERT_EQUAL(0xA, parseHexChar('a'));
-  SCOPE_ASSERT_EQUAL(0xB, parseHexChar('b'));
-  SCOPE_ASSERT_EQUAL(0xC, parseHexChar('c'));
-  SCOPE_ASSERT_EQUAL(0xD, parseHexChar('d'));
-  SCOPE_ASSERT_EQUAL(0xE, parseHexChar('e'));
-  SCOPE_ASSERT_EQUAL(0xF, parseHexChar('f'));
+  REQUIRE(0x0 == parseHexChar('0'));
+  REQUIRE(0x1 == parseHexChar('1'));
+  REQUIRE(0x2 == parseHexChar('2'));
+  REQUIRE(0x3 == parseHexChar('3'));
+  REQUIRE(0x4 == parseHexChar('4'));
+  REQUIRE(0x5 == parseHexChar('5'));
+  REQUIRE(0x6 == parseHexChar('6'));
+  REQUIRE(0x7 == parseHexChar('7'));
+  REQUIRE(0x8 == parseHexChar('8'));
+  REQUIRE(0x9 == parseHexChar('9'));
+  REQUIRE(0xA == parseHexChar('A'));
+  REQUIRE(0xB == parseHexChar('B'));
+  REQUIRE(0xC == parseHexChar('C'));
+  REQUIRE(0xD == parseHexChar('D'));
+  REQUIRE(0xE == parseHexChar('E'));
+  REQUIRE(0xF == parseHexChar('F'));
+  REQUIRE(0xA == parseHexChar('a'));
+  REQUIRE(0xB == parseHexChar('b'));
+  REQUIRE(0xC == parseHexChar('c'));
+  REQUIRE(0xD == parseHexChar('d'));
+  REQUIRE(0xE == parseHexChar('e'));
+  REQUIRE(0xF == parseHexChar('f'));
 
   // bad
   for (int i = -10; i < '0'; ++i) {
-    SCOPE_ASSERT_EQUAL(-1, parseHexChar(i));
+    REQUIRE(-1 == parseHexChar(i));
   }
 
   for (int i = ':'; i < 'A'; ++i) {
-    SCOPE_ASSERT_EQUAL(-1, parseHexChar(i));
+    REQUIRE(-1 == parseHexChar(i));
   }
 
   for (int i = '['; i < 'a'; ++i) {
-    SCOPE_ASSERT_EQUAL(-1, parseHexChar(i));
+    REQUIRE(-1 == parseHexChar(i));
   }
 
   for (int i = '{'; i < 300; ++i) {
-    SCOPE_ASSERT_EQUAL(-1, parseHexChar(i));
+    REQUIRE(-1 == parseHexChar(i));
   }
 }
 
-SCOPE_TEST(parseHexShortTest) {
+TEST_CASE("parseHexShortTest") {
   char b[3] = { 'h', 'h', '\0' };
 
   b[0] = 0x00;
@@ -94,10 +94,10 @@ SCOPE_TEST(parseHexShortTest) {
       }
 
       const char* h = b;
-      SCOPE_ASSERT_EQUAL(exp, parseHexByte(h, h+2));
+      REQUIRE(exp == parseHexByte(h, h+2));
 
       if (exp != -1) {
-        SCOPE_ASSERT_EQUAL(b+2, h);
+        REQUIRE(b+2 == h);
       }
     }
   }
@@ -108,13 +108,13 @@ typedef std::string::const_iterator SItr;
 template <class F>
 void fixture(F func, const std::string& s, int exp, int len) {
   std::string::const_iterator i(s.begin());
-  SCOPE_ASSERT_EQUAL(exp, func(i, s.end()));
+  REQUIRE(exp == func(i, s.end()));
   if (exp != -1) {
-    SCOPE_ASSERT_EQUAL(len, i - s.begin());
+    REQUIRE(len == i - s.begin());
   }
 }
 
-SCOPE_TEST(parseHexCodePointTest) {
+TEST_CASE("parseHexCodePointTest") {
   fixture(parseHexCodePoint<SItr>, "",         -1,       -1);
   fixture(parseHexCodePoint<SItr>, "}",        -1,       -1);
   fixture(parseHexCodePoint<SItr>, "1",        -1,       -1);
@@ -134,28 +134,28 @@ SCOPE_TEST(parseHexCodePointTest) {
   fixture(parseHexCodePoint<SItr>, "1111111}", -1,       -1);  // > 6 digits
 }
 
-SCOPE_TEST(parseOctCharTest) {
+TEST_CASE("parseOctCharTest") {
   // good
-  SCOPE_ASSERT_EQUAL(00, parseOctChar('0'));
-  SCOPE_ASSERT_EQUAL(01, parseOctChar('1'));
-  SCOPE_ASSERT_EQUAL(02, parseOctChar('2'));
-  SCOPE_ASSERT_EQUAL(03, parseOctChar('3'));
-  SCOPE_ASSERT_EQUAL(04, parseOctChar('4'));
-  SCOPE_ASSERT_EQUAL(05, parseOctChar('5'));
-  SCOPE_ASSERT_EQUAL(06, parseOctChar('6'));
-  SCOPE_ASSERT_EQUAL(07, parseOctChar('7'));
+  REQUIRE(00 == parseOctChar('0'));
+  REQUIRE(01 == parseOctChar('1'));
+  REQUIRE(02 == parseOctChar('2'));
+  REQUIRE(03 == parseOctChar('3'));
+  REQUIRE(04 == parseOctChar('4'));
+  REQUIRE(05 == parseOctChar('5'));
+  REQUIRE(06 == parseOctChar('6'));
+  REQUIRE(07 == parseOctChar('7'));
 
   // bad
   for (int i = -10; i < '0'; ++i) {
-    SCOPE_ASSERT_EQUAL(-1, parseOctChar(i));
+    REQUIRE(-1 == parseOctChar(i));
   }
 
   for (int i = '8'; i < 300; ++i) {
-    SCOPE_ASSERT_EQUAL(-1, parseOctChar(i));
+    REQUIRE(-1 == parseOctChar(i));
   }
 }
 
-SCOPE_TEST(parseOctByteTest) {
+TEST_CASE("parseOctByteTest") {
   fixture(parseOctByte<SItr>, "0",      00,  1);
   fixture(parseOctByte<SItr>, "01",     01,  2);
   fixture(parseOctByte<SItr>, "01a",    01,  2);
@@ -166,7 +166,7 @@ SCOPE_TEST(parseOctByteTest) {
   fixture(parseOctByte<SItr>, "400",    -1, -1); // > 377 is multi-byte
 }
 
-SCOPE_TEST(parseNamedCodePointNumberTest) {
+TEST_CASE("parseNamedCodePointNumberTest") {
   fixture(parseNamedCodePoint<SItr>, "{U+BEEF}", 0xBEEF, 8);
   fixture(parseNamedCodePoint<SItr>, "{U+10FFFF}", 0x10FFFF, 10);
   fixture(parseNamedCodePoint<SItr>, "{U+0}", 0x0, 5);
@@ -175,7 +175,7 @@ SCOPE_TEST(parseNamedCodePointNumberTest) {
   fixture(parseNamedCodePoint<SItr>, "{U+bogus}", -1, -1);
 }
 
-SCOPE_TEST(parseNamedCodePointNameTest) {
+TEST_CASE("parseNamedCodePointNameTest") {
   fixture(parseNamedCodePoint<SItr>, "{LATIN CAPITAL LETTER A}", 'A', 24);
   fixture(parseNamedCodePoint<SItr>, "{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O}", 0xA66D, 42);
   fixture(parseNamedCodePoint<SItr>, "{PILE OF POO}", 0x1F4A9, 13);
@@ -195,46 +195,46 @@ void desensitizer(std::initializer_list<T> in,
   UnicodeSet aset(in);
 
   // true is returned iff in != out
-  SCOPE_ASSERT_EQUAL(in.size() != out.size(), Func(aset));
+  REQUIRE((in.size() != out.size()) == Func(aset));
 
   // actual out should equal expected out
   UnicodeSet eset(out);
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  REQUIRE(eset == aset);
 }
 
-SCOPE_TEST(caseDesensitize_a_Test) {
+TEST_CASE("caseDesensitize_a_Test") {
   desensitizer<uint32_t, caseDesensitizeUnicode>({ 'a' }, { 'A', 'a' });
 }
 
-SCOPE_TEST(caseDesensitize_A_Test) {
+TEST_CASE("caseDesensitize_A_Test") {
   desensitizer<uint32_t, caseDesensitizeUnicode>({ 'A' }, { 'A', 'a' });
 }
 
-SCOPE_TEST(caseDesensitize_DollarSign_Test) {
+TEST_CASE("caseDesensitize_DollarSign_Test") {
   desensitizer<uint32_t, caseDesensitizeUnicode>({ '$' }, { '$' });
 }
 
-SCOPE_TEST(caseDesensitize_s_Test) {
+TEST_CASE("caseDesensitize_s_Test") {
   // 0x17F ſ = LATIN SMALL LETTER LONG S
   desensitizer<uint32_t, caseDesensitizeUnicode>({ 's' }, { 'S', 's', U'ſ' });
 }
 
-SCOPE_TEST(caseDesensitize_S_Test) {
+TEST_CASE("caseDesensitize_S_Test") {
   // 0x17F ſ = LATIN SMALL LETTER LONG S
   desensitizer<uint32_t, caseDesensitizeUnicode>({ 'S' }, { 'S', 's', U'ſ' });
 }
 
-SCOPE_TEST(caseDesensitize_k_Test) {
+TEST_CASE("caseDesensitize_k_Test") {
   // 0x212A KELVIN SIGN looks exactly like LATIN CAPITAL LETTER K
   desensitizer<uint32_t, caseDesensitizeUnicode>({ 'k' }, { 'K', 'k', 0x212A });
 }
 
-SCOPE_TEST(caseDesensitize_K_Test) {
+TEST_CASE("caseDesensitize_K_Test") {
   // 0x212A KELVIN SIGN looks exactly like LATIN CAPITAL LETTER K
   desensitizer<uint32_t, caseDesensitizeUnicode>({ 'K' }, { 'K', 'k', 0x212A });
 }
 
-SCOPE_TEST(caseDesensitize_a_to_z_Test) {
+TEST_CASE("caseDesensitize_a_to_z_Test") {
   desensitizer<UnicodeSet::range, caseDesensitizeUnicode>(
     { {'a', 'z' + 1} },
     {
@@ -246,7 +246,7 @@ SCOPE_TEST(caseDesensitize_a_to_z_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitize_A_to_Z_Test) {
+TEST_CASE("caseDesensitize_A_to_Z_Test") {
   desensitizer<UnicodeSet::range, caseDesensitizeUnicode>(
     { {'A', 'Z' + 1} },
     {
@@ -258,39 +258,39 @@ SCOPE_TEST(caseDesensitize_A_to_Z_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitizeAscii_a_Test) {
+TEST_CASE("caseDesensitizeAscii_a_Test") {
   desensitizer<uint32_t, caseDesensitizeAscii>({ 'a' }, { 'A', 'a' });
 }
 
-SCOPE_TEST(caseDesensitizeAscii_A_Test) {
+TEST_CASE("caseDesensitizeAscii_A_Test") {
   desensitizer<uint32_t, caseDesensitizeAscii>({ 'A' }, { 'A', 'a' });
 }
 
-SCOPE_TEST(caseDesensitizeAscii_DollarSign_Test) {
+TEST_CASE("caseDesensitizeAscii_DollarSign_Test") {
   desensitizer<uint32_t, caseDesensitizeAscii>({ '$' }, { '$' });
 }
 
-SCOPE_TEST(caseDesensitizeAscii_s_Test) {
+TEST_CASE("caseDesensitizeAscii_s_Test") {
   // No medial s
   desensitizer<uint32_t, caseDesensitizeAscii>({ 's' }, { 'S', 's' });
 }
 
-SCOPE_TEST(caseDesensitizeAscii_S_Test) {
+TEST_CASE("caseDesensitizeAscii_S_Test") {
   // No medial s
   desensitizer<uint32_t, caseDesensitizeAscii>({ 'S' }, { 'S', 's' });
 }
 
-SCOPE_TEST(caseDesensitizeAscii_k_Test) {
+TEST_CASE("caseDesensitizeAscii_k_Test") {
   // No Kelvin sign
   desensitizer<uint32_t, caseDesensitizeAscii>({ 'k' }, { 'K', 'k' });
 }
 
-SCOPE_TEST(caseDesensitizeAscii_K_Test) {
+TEST_CASE("caseDesensitizeAscii_K_Test") {
   // No Kelvin sign
   desensitizer<uint32_t, caseDesensitizeAscii>({ 'K' }, { 'K', 'k' });
 }
 
-SCOPE_TEST(caseDesensitizeAscii_a_to_z_Test) {
+TEST_CASE("caseDesensitizeAscii_a_to_z_Test") {
   desensitizer<UnicodeSet::range, caseDesensitizeAscii>(
     { {'a', 'z' + 1} },
     {
@@ -300,7 +300,7 @@ SCOPE_TEST(caseDesensitizeAscii_a_to_z_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitizeAscii_A_to_Z_Test) {
+TEST_CASE("caseDesensitizeAscii_A_to_Z_Test") {
   desensitizer<UnicodeSet::range, caseDesensitizeAscii>(
     { {'A', 'Z' + 1} },
     {
@@ -310,7 +310,7 @@ SCOPE_TEST(caseDesensitizeAscii_A_to_Z_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitize_Sigma_Test) {
+TEST_CASE("caseDesensitize_Sigma_Test") {
   // NB: ς is the version of σ which ends words in Greek
   desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'Σ' },
@@ -322,7 +322,7 @@ SCOPE_TEST(caseDesensitize_Sigma_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitize_sigma_Test) {
+TEST_CASE("caseDesensitize_sigma_Test") {
   desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'σ' },
     {
@@ -333,7 +333,7 @@ SCOPE_TEST(caseDesensitize_sigma_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitize_final_sigma_Test) {
+TEST_CASE("caseDesensitize_final_sigma_Test") {
   // NB: ς is the version of σ which ends words in Greek.
   desensitizer<uint32_t, caseDesensitizeUnicode>(
     { U'ς' },
@@ -345,7 +345,7 @@ SCOPE_TEST(caseDesensitize_final_sigma_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitize_eszett_Test) {
+TEST_CASE("caseDesensitize_eszett_Test") {
   // NB: For UTS #18 Level 2 conformance, ß must also match SS.
   // See also Section 5.18 of the Unicode Standard for a discussion
   // of the Eszett.
@@ -358,7 +358,7 @@ SCOPE_TEST(caseDesensitize_eszett_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitize_Eszett_Test) {
+TEST_CASE("caseDesensitize_Eszett_Test") {
   // NB: For UTS #18 Level 2 conformance, ß must also match SS.
   // See also Section 5.18 of the Unicode Standard for a discussion
   // of the Eszett.
@@ -371,7 +371,7 @@ SCOPE_TEST(caseDesensitize_Eszett_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitize_dz_digraph_Test) {
+TEST_CASE("caseDesensitize_dz_digraph_Test") {
   // NB: Dz is a titlecase version of the dz and DZ digraphs used in
   // various Slavic languages written in the Latin alphabet.
   desensitizer<uint32_t, caseDesensitizeUnicode>(
@@ -384,7 +384,7 @@ SCOPE_TEST(caseDesensitize_dz_digraph_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitize_DZ_digraph_Test) {
+TEST_CASE("caseDesensitize_DZ_digraph_Test") {
   // NB: Dz is a titlecase version of the dz and DZ digraphs used in
   // various Slavic languages written in the Latin alphabet.
   desensitizer<uint32_t, caseDesensitizeUnicode>(
@@ -397,7 +397,7 @@ SCOPE_TEST(caseDesensitize_DZ_digraph_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitize_Dz_digraph_Test) {
+TEST_CASE("caseDesensitize_Dz_digraph_Test") {
   // NB: Dz is a titlecase version of the dz and DZ digraphs used in
   // various Slavic languages written in the Latin alphabet.
   desensitizer<uint32_t, caseDesensitizeUnicode>(
@@ -410,7 +410,7 @@ SCOPE_TEST(caseDesensitize_Dz_digraph_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitize_mixed_Test) {
+TEST_CASE("caseDesensitize_mixed_Test") {
   desensitizer<uint32_t, caseDesensitizeUnicode>(
     { 's', U'Ω', U'φ' },
     {
@@ -427,7 +427,7 @@ SCOPE_TEST(caseDesensitize_mixed_Test) {
   );
 }
 
-SCOPE_TEST(caseDesensitizeAscii_mixed_Test) {
+TEST_CASE("caseDesensitizeAscii_mixed_Test") {
   // NB: We do not get the medial S here due to case folding, but we DO
   // get the math phi and Ohm sign, as we're clipping ASCII case folding
   // to the ASCII range but leaving non-ASCII case folding unchanged
@@ -446,57 +446,57 @@ SCOPE_TEST(caseDesensitizeAscii_mixed_Test) {
   );
 }
 
-SCOPE_TEST(setDigitClass_Ascii_Test) {
+TEST_CASE("setDigitClass_Ascii_Test") {
   UnicodeSet aset;
   setDigitClass(aset, true);
   const UnicodeSet eset('0', '9' + 1);
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  REQUIRE(eset == aset);
 }
 
-SCOPE_TEST(setDigitClass_Unicode_Test) {
+TEST_CASE("setDigitClass_Unicode_Test") {
   UnicodeSet aset;
   setDigitClass(aset, false);
-  SCOPE_ASSERT_EQUAL(DIGIT, aset);
+  REQUIRE(DIGIT == aset);
 }
 
-SCOPE_TEST(setSpaceClass_Ascii_Test) {
+TEST_CASE("setSpaceClass_Ascii_Test") {
   UnicodeSet aset;
   setSpaceClass(aset, true);
   const UnicodeSet eset({'\t', '\n', '\v', '\f', '\r', ' '});
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  REQUIRE(eset == aset);
 }
 
-SCOPE_TEST(setHorizontalSpaceClass_Test) {
+TEST_CASE("setHorizontalSpaceClass_Test") {
   UnicodeSet aset;
   setHorizontalSpaceClass(aset);
-  SCOPE_ASSERT_EQUAL(HSPACE, aset);
+  REQUIRE(HSPACE == aset);
 }
 
-SCOPE_TEST(setVerticalSpaceClass_Test) {
+TEST_CASE("setVerticalSpaceClass_Test") {
   UnicodeSet aset;
   setVerticalSpaceClass(aset);
-  SCOPE_ASSERT_EQUAL(VSPACE, aset);
+  REQUIRE(VSPACE == aset);
 }
 
-SCOPE_TEST(Z_subset_hv_Test) {
+TEST_CASE("Z_subset_hv_Test") {
   // Sanity check
   // \p{Z} subset of [\h\v]
   UnicodeSet z;
   propertyGetter("\\p{Z}", z, false);
-  SCOPE_ASSERT_EQUAL(HSPACE | VSPACE, HSPACE | VSPACE | z);
+  REQUIRE((HSPACE | VSPACE) == (HSPACE | VSPACE | z));
 }
 
-SCOPE_TEST(setSpaceClass_Unicode_Test) {
+TEST_CASE("setSpaceClass_Unicode_Test") {
   UnicodeSet aset;
   setSpaceClass(aset, false);
 
   // pcrepattern(3): \s = [\p{Z}\h\v]
   // presently [\v\h] is a superset of \p{Z}, so including \p{Z} is superfluous
   // SPACE = HSPACE | VSPACE
-  SCOPE_ASSERT_EQUAL(SPACE, aset);
+  REQUIRE(SPACE == aset);
 }
 
-SCOPE_TEST(setWordClass_Ascii_Test) {
+TEST_CASE("setWordClass_Ascii_Test") {
   UnicodeSet aset;
   setWordClass(aset, true);
   const UnicodeSet eset({
@@ -505,10 +505,10 @@ SCOPE_TEST(setWordClass_Ascii_Test) {
     {'0', '9' + 1},
     {'_', '_' + 1}
   });
-  SCOPE_ASSERT_EQUAL(eset, aset);
+  REQUIRE(eset == aset);
 }
 
-SCOPE_TEST(NdNlNo_Equals_N_Test) {
+TEST_CASE("NdNlNo_Equals_N_Test") {
   // Sanity check
   // \p{N} = [\p{Nd}\p{Nl}\p{No}]
   UnicodeSet nd;
@@ -519,10 +519,10 @@ SCOPE_TEST(NdNlNo_Equals_N_Test) {
   propertyGetter("\\p{No}", no, false);
   UnicodeSet n;
   propertyGetter("\\p{N}", n, false);
-  SCOPE_ASSERT_EQUAL(nd | nl | no, n);
+  REQUIRE((nd | nl | no) == n);
 }
 
-SCOPE_TEST(LuLlLtLmLo_Equals_L_Test) {
+TEST_CASE("LuLlLtLmLo_Equals_L_Test") {
   // Sanity check
   // \p{L} = [\p{Lu}\p{Ll}\p{Lt}\p{Lm}\p{Lo}]
   UnicodeSet lu;
@@ -537,11 +537,11 @@ SCOPE_TEST(LuLlLtLmLo_Equals_L_Test) {
   propertyGetter("\\p{Lo}", lo, false);
   UnicodeSet l;
   propertyGetter("\\p{L}", l, false);
-  SCOPE_ASSERT_EQUAL(lu | ll | lt | lm | lo, l);
+  REQUIRE((lu | ll | lt | lm | lo) == l);
 }
 
-SCOPE_TEST(setWordClass_Unicode_Test) {
+TEST_CASE("setWordClass_Unicode_Test") {
   UnicodeSet aset;
   setWordClass(aset, false);
-  SCOPE_ASSERT_EQUAL(WORD, aset);
+  REQUIRE(WORD == aset);
 }

@@ -16,13 +16,13 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "basic.h"
 
-SCOPE_TEST(basicTypeSizes) {
-  SCOPE_ASSERT_EQUAL(1u, sizeof(byte));
-  SCOPE_ASSERT_EQUAL(4u, sizeof(uint32_t));
-  SCOPE_ASSERT_EQUAL(8u, sizeof(uint64_t));
-  SCOPE_ASSERT_EQUAL(8u, sizeof(int64_t));
+TEST_CASE("basicTypeSizes") {
+  REQUIRE(1u == sizeof(byte));
+  REQUIRE(4u == sizeof(uint32_t));
+  REQUIRE(8u == sizeof(uint64_t));
+  REQUIRE(8u == sizeof(int64_t));
 }

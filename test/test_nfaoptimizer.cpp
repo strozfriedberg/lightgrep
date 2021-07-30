@@ -16,6 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "catch.hpp"
+
 #include "codegen.h"
 #include "nfabuilder.h"
 #include "nfaoptimizer.h"
@@ -25,20 +27,13 @@
 
 #include "test_helper.h"
 
-// FIXME: Why is this necessary? Should't scope see this without the namespace?
-namespace scope {
-#include "container_out.h"
-}
-
-#include <scope/test.h>
-
 ByteSet getBytes(Transition& t) {
   ByteSet b;
   t.getBytes(b);
   return b;
 }
 
-SCOPE_TEST(testMerge_aaOrab_toEmpty) {
+TEST_CASE("testMerge_aaOrab_toEmpty") {
   NFAOptimizer comp;
   NFA dst(1), src(5);
 
@@ -53,28 +48,28 @@ SCOPE_TEST(testMerge_aaOrab_toEmpty) {
 
   comp.mergeIntoFSM(dst, src);
 
-  SCOPE_ASSERT_EQUAL(4u, dst.verticesSize());
+  REQUIRE(4u == dst.verticesSize());
 
-  SCOPE_ASSERT_EQUAL(0u, dst.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, dst.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, dst.outVertex(0, 0));
+  REQUIRE(0u == dst.inDegree(0));
+  REQUIRE(1u == dst.outDegree(0));
+  REQUIRE(1u == dst.outVertex(0, 0));
 
-  SCOPE_ASSERT_EQUAL(1u, dst.inDegree(1));
-  SCOPE_ASSERT_EQUAL(2u, dst.outDegree(1));
-  SCOPE_ASSERT_EQUAL(2u, dst.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(3u, dst.outVertex(1, 1));
+  REQUIRE(1u == dst.inDegree(1));
+  REQUIRE(2u == dst.outDegree(1));
+  REQUIRE(2u == dst.outVertex(1, 0));
+  REQUIRE(3u == dst.outVertex(1, 1));
 
-  SCOPE_ASSERT_EQUAL(1u, dst.inDegree(2));
-  SCOPE_ASSERT_EQUAL(0u, dst.outDegree(2));
+  REQUIRE(1u == dst.inDegree(2));
+  REQUIRE(0u == dst.outDegree(2));
 
-  SCOPE_ASSERT_EQUAL(1u, dst.inDegree(3));
-  SCOPE_ASSERT_EQUAL(0u, dst.outDegree(3));
+  REQUIRE(1u == dst.inDegree(3));
+  REQUIRE(0u == dst.outDegree(3));
 
-  SCOPE_ASSERT_EQUAL(getBytes(*a), getBytes(*dst[2].Trans));
-  SCOPE_ASSERT_EQUAL(getBytes(*b), getBytes(*dst[3].Trans));
+  REQUIRE(getBytes(*a) == getBytes(*dst[2].Trans));
+  REQUIRE(getBytes(*b) == getBytes(*dst[3].Trans));
 }
 
-SCOPE_TEST(testMerge) {
+TEST_CASE("testMerge") {
   NFAOptimizer comp;
   NFA fsm, key(5);
 
@@ -107,60 +102,60 @@ SCOPE_TEST(testMerge) {
 
   const uint32_t NOLABEL = std::numeric_limits<uint32_t>::max();
 
-  SCOPE_ASSERT_EQUAL(8u, fsm.verticesSize());
+  REQUIRE(8u == fsm.verticesSize());
 
-  SCOPE_ASSERT(!fsm[0].Trans);
-  SCOPE_ASSERT_EQUAL(0u, fsm.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, fsm.outVertex(0, 0));
+  REQUIRE(!fsm[0].Trans);
+  REQUIRE(0u == fsm.inDegree(0));
+  REQUIRE(1u == fsm.outDegree(0));
+  REQUIRE(1u == fsm.outVertex(0, 0));
 
-  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[1].Label);
-  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0u, fsm.inVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(3u, fsm.outDegree(1));
-  SCOPE_ASSERT_EQUAL(6u, fsm.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(2u, fsm.outVertex(1, 1));
-  SCOPE_ASSERT_EQUAL(4u, fsm.outVertex(1, 2));
+  REQUIRE(NOLABEL == fsm[1].Label);
+  REQUIRE(1u == fsm.inDegree(1));
+  REQUIRE(0u == fsm.inVertex(1, 0));
+  REQUIRE(3u == fsm.outDegree(1));
+  REQUIRE(6u == fsm.outVertex(1, 0));
+  REQUIRE(2u == fsm.outVertex(1, 1));
+  REQUIRE(4u == fsm.outVertex(1, 2));
 
-  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[2].Label);
-  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(2));
-  SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(2u, fsm.outDegree(2));
-  SCOPE_ASSERT_EQUAL(3u, fsm.outVertex(2, 0));
-  SCOPE_ASSERT_EQUAL(7u, fsm.outVertex(2, 1));
+  REQUIRE(NOLABEL == fsm[2].Label);
+  REQUIRE(1u == fsm.inDegree(2));
+  REQUIRE(1u == fsm.inVertex(2, 0));
+  REQUIRE(2u == fsm.outDegree(2));
+  REQUIRE(3u == fsm.outVertex(2, 0));
+  REQUIRE(7u == fsm.outVertex(2, 1));
 
-  SCOPE_ASSERT_EQUAL(0u, fsm[3].Label);
-  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(3));
-  SCOPE_ASSERT_EQUAL(2u, fsm.inVertex(3, 0));
-  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(3));
+  REQUIRE(0u == fsm[3].Label);
+  REQUIRE(1u == fsm.inDegree(3));
+  REQUIRE(2u == fsm.inVertex(3, 0));
+  REQUIRE(0u == fsm.outDegree(3));
 
-  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[4].Label);
-  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(4));
-  SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(4, 0));
-  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(4));
-  SCOPE_ASSERT_EQUAL(5u, fsm.outVertex(4, 0));
+  REQUIRE(NOLABEL == fsm[4].Label);
+  REQUIRE(1u == fsm.inDegree(4));
+  REQUIRE(1u == fsm.inVertex(4, 0));
+  REQUIRE(1u == fsm.outDegree(4));
+  REQUIRE(5u == fsm.outVertex(4, 0));
 
-  SCOPE_ASSERT_EQUAL(1u, fsm[5].Label);
-  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(5));
-  SCOPE_ASSERT_EQUAL(4u, fsm.inVertex(5, 0));
-  SCOPE_ASSERT_EQUAL(0u, fsm.outDegree(5));
+  REQUIRE(1u == fsm[5].Label);
+  REQUIRE(1u == fsm.inDegree(5));
+  REQUIRE(4u == fsm.inVertex(5, 0));
+  REQUIRE(0u == fsm.outDegree(5));
 
-  SCOPE_ASSERT_EQUAL(NOLABEL, fsm[6].Label);
-  SCOPE_ASSERT_EQUAL(1u, fsm.inDegree(6));
-  SCOPE_ASSERT_EQUAL(1u, fsm.inVertex(6, 0));
-  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(6));
-  SCOPE_ASSERT_EQUAL(7u, fsm.outVertex(6, 0));
+  REQUIRE(NOLABEL == fsm[6].Label);
+  REQUIRE(1u == fsm.inDegree(6));
+  REQUIRE(1u == fsm.inVertex(6, 0));
+  REQUIRE(1u == fsm.outDegree(6));
+  REQUIRE(7u == fsm.outVertex(6, 0));
 
-  SCOPE_ASSERT_EQUAL(2u, fsm[7].Label);
-  SCOPE_ASSERT_EQUAL(3u, fsm.inDegree(7));
-  SCOPE_ASSERT_EQUAL(6u, fsm.inVertex(7, 0));
-  SCOPE_ASSERT_EQUAL(7u, fsm.inVertex(7, 1));
-  SCOPE_ASSERT_EQUAL(2u, fsm.inVertex(7, 2));
-  SCOPE_ASSERT_EQUAL(1u, fsm.outDegree(7));
-  SCOPE_ASSERT_EQUAL(7u, fsm.outVertex(7, 0));
+  REQUIRE(2u == fsm[7].Label);
+  REQUIRE(3u == fsm.inDegree(7));
+  REQUIRE(6u == fsm.inVertex(7, 0));
+  REQUIRE(7u == fsm.inVertex(7, 1));
+  REQUIRE(2u == fsm.inVertex(7, 2));
+  REQUIRE(1u == fsm.outDegree(7));
+  REQUIRE(7u == fsm.outVertex(7, 0));
 }
 
-SCOPE_TEST(testMergeLabelsSimple) {
+TEST_CASE("testMergeLabelsSimple") {
   NFAOptimizer c;
   NFA src(3), dst(3), exp(4);
 
@@ -197,7 +192,7 @@ SCOPE_TEST(testMergeLabelsSimple) {
   ASSERT_EQUAL_MATCHES(exp, dst);
 }
 
-SCOPE_TEST(testMergeLabelsComplex) {
+TEST_CASE("testMergeLabelsComplex") {
   NFAOptimizer c;
   NFA src(4), dst(4), exp(6);
 
@@ -241,7 +236,7 @@ SCOPE_TEST(testMergeLabelsComplex) {
   ASSERT_EQUAL_MATCHES(exp, dst);
 }
 
-SCOPE_TEST(testGuardLabelsFourKeys) {
+TEST_CASE("testGuardLabelsFourKeys") {
   NFAOptimizer comp;
   NFA key[4], exp;
 
@@ -331,7 +326,7 @@ SCOPE_TEST(testGuardLabelsFourKeys) {
   ASSERT_EQUAL_MATCHES(exp, key[0]);
 }
 
-SCOPE_TEST(testPropagateMatchLabels) {
+TEST_CASE("testPropagateMatchLabels") {
   NFAOptimizer comp;
   NFA g;
 
@@ -351,14 +346,14 @@ SCOPE_TEST(testPropagateMatchLabels) {
 
   comp.propagateMatchLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0u, g[1].Label);
-  SCOPE_ASSERT_EQUAL(1u, g[2].Label);
-  SCOPE_ASSERT_EQUAL(2u, g[3].Label);
-  SCOPE_ASSERT_EQUAL(2u, g[4].Label);
-  SCOPE_ASSERT_EQUAL(2u, g[5].Label);
+  REQUIRE(0u == g[1].Label);
+  REQUIRE(1u == g[2].Label);
+  REQUIRE(2u == g[3].Label);
+  REQUIRE(2u == g[4].Label);
+  REQUIRE(2u == g[5].Label);
 }
 
-SCOPE_TEST(testRemoveNonMinimalLabels) {
+TEST_CASE("testRemoveNonMinimalLabels") {
   NFAOptimizer comp;
   NFA g;
 
@@ -380,14 +375,14 @@ SCOPE_TEST(testRemoveNonMinimalLabels) {
 
   comp.removeNonMinimalLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0u, g[1].Label);
-  SCOPE_ASSERT_EQUAL(1u, g[2].Label);
-  SCOPE_ASSERT_EQUAL(2u, g[3].Label);
-  SCOPE_ASSERT_EQUAL(NONE, g[4].Label);
-  SCOPE_ASSERT_EQUAL(NONE, g[5].Label);
+  REQUIRE(0u == g[1].Label);
+  REQUIRE(1u == g[2].Label);
+  REQUIRE(2u == g[3].Label);
+  REQUIRE(NONE == g[4].Label);
+  REQUIRE(NONE == g[5].Label);
 }
 
-SCOPE_TEST(testLabelGuardStates) {
+TEST_CASE("testLabelGuardStates") {
   NFAOptimizer comp;
   NFA g;
 
@@ -409,14 +404,14 @@ SCOPE_TEST(testLabelGuardStates) {
   comp.propagateMatchLabels(g);
   comp.removeNonMinimalLabels(g);
 
-  SCOPE_ASSERT_EQUAL(0u, g[1].Label);
-  SCOPE_ASSERT_EQUAL(1u, g[2].Label);
-  SCOPE_ASSERT_EQUAL(2u, g[3].Label);
-  SCOPE_ASSERT_EQUAL(NONE, g[4].Label);
-  SCOPE_ASSERT_EQUAL(NONE, g[5].Label);
+  REQUIRE(0u == g[1].Label);
+  REQUIRE(1u == g[2].Label);
+  REQUIRE(2u == g[3].Label);
+  REQUIRE(NONE == g[4].Label);
+  REQUIRE(NONE == g[5].Label);
 }
 
-SCOPE_TEST(testSubstringKey) {
+TEST_CASE("testSubstringKey") {
   NFAOptimizer comp;
   NFA k0, k1, exp;
 
@@ -452,7 +447,7 @@ SCOPE_TEST(testSubstringKey) {
   ASSERT_EQUAL_MATCHES(exp, k0);
 }
 
-SCOPE_TEST(testCreateXXYYY) {
+TEST_CASE("testCreateXXYYY") {
   NFAPtr gptr(createGraph({"x", "x", "yyy"}, true));
   NFA& g = *gptr;
 
@@ -478,7 +473,7 @@ SCOPE_TEST(testCreateXXYYY) {
   ASSERT_EQUAL_MATCHES(exp, g);
 }
 
-SCOPE_TEST(testDeterminize0) {
+TEST_CASE("testDeterminize0") {
   NFA g(7);
   edge(0, 1, g, g.TransFac->getByte('a'));
   edge(1, 2, g, g.TransFac->getByte('1'));
@@ -507,7 +502,7 @@ SCOPE_TEST(testDeterminize0) {
   ASSERT_EQUAL_MATCHES(exp, h);
 }
 
-SCOPE_TEST(testDeterminize1) {
+TEST_CASE("testDeterminize1") {
   NFA g(5);
   edge(0, 2, g, g.TransFac->getByte('a'));
   edge(0, 1, g, g.TransFac->getByte('a'));
@@ -538,7 +533,7 @@ SCOPE_TEST(testDeterminize1) {
   ASSERT_EQUAL_MATCHES(exp, h);
 }
 
-SCOPE_TEST(testDeterminize2) {
+TEST_CASE("testDeterminize2") {
   NFA g(3);
   edge(0, 1, g, g.TransFac->getByte('a'));
   edge(0, 2, g, g.TransFac->getByte('a'));
@@ -564,7 +559,7 @@ SCOPE_TEST(testDeterminize2) {
   ASSERT_EQUAL_MATCHES(exp, h);
 }
 
-SCOPE_TEST(testDeterminize3) {
+TEST_CASE("testDeterminize3") {
   NFA g(2);
   edge(0, 1, g, g.TransFac->getByte('a'));
   edge(1, 1, g, g.TransFac->getByte('a'));
@@ -581,7 +576,7 @@ SCOPE_TEST(testDeterminize3) {
   ASSERT_EQUAL_MATCHES(g, h);
 }
 
-SCOPE_TEST(testDeterminize4) {
+TEST_CASE("testDeterminize4") {
   NFA g(2);
   edge(0, 1, g, g.TransFac->getEither('a', 'b'));
 
@@ -605,7 +600,7 @@ SCOPE_TEST(testDeterminize4) {
   ASSERT_EQUAL_MATCHES(exp, h);
 }
 
-SCOPE_TEST(testDeterminize5) {
+TEST_CASE("testDeterminize5") {
   NFA g(4);
   edge(0, 1, g, g.TransFac->getByte('d'));
   edge(1, 2, g, g.TransFac->getByte('d'));
@@ -638,7 +633,7 @@ SCOPE_TEST(testDeterminize5) {
   ASSERT_EQUAL_MATCHES(exp, h);
 }
 
-SCOPE_TEST(testDeterminizePartial0) {
+TEST_CASE("testDeterminizePartial0") {
   const ByteSet az{{'a', 'z' + 1}};
 
   NFA g(5);
@@ -677,7 +672,7 @@ SCOPE_TEST(testDeterminizePartial0) {
   ASSERT_EQUAL_MATCHES(exp, h);
 }
 
-SCOPE_TEST(testDeterminizePartial1) {
+TEST_CASE("testDeterminizePartial1") {
   const ByteSet az{{'a', 'z' + 1}};
 
   NFA g(5);
@@ -718,7 +713,7 @@ SCOPE_TEST(testDeterminizePartial1) {
   ASSERT_EQUAL_MATCHES(exp, h);
 }
 
-SCOPE_TEST(testDeterminizePartial2) {
+TEST_CASE("testDeterminizePartial2") {
   const ByteSet az{{'a', 'z' + 1}};
   const ByteSet ahjlnz{{'a', 'h' + 1}, {'j', 'l' + 1}, {'n', 'z' + 1}};
 
@@ -785,7 +780,7 @@ SCOPE_TEST(testDeterminizePartial2) {
   ASSERT_EQUAL_MATCHES(exp, h);
 }
 
-SCOPE_TEST(testPruneBranches) {
+TEST_CASE("testPruneBranches") {
   NFA g(3);
   edge(0, 1, g, g.TransFac->getByte('a'));
   edge(0, 2, g, g.TransFac->getByte('a'));
@@ -809,7 +804,7 @@ SCOPE_TEST(testPruneBranches) {
   ASSERT_EQUAL_MATCHES(exp, g);
 }
 
-SCOPE_TEST(testConnectSubsetStateToOriginal0) {
+TEST_CASE("testConnectSubsetStateToOriginal0") {
   NFA src(6);
   edge(0, 1, src, src.TransFac->getByte('a'));
   edge(0, 2, src, src.TransFac->getByte('b'));
@@ -831,7 +826,7 @@ SCOPE_TEST(testConnectSubsetStateToOriginal0) {
   ASSERT_EQUAL_GRAPHS(exp, dst);
 }
 
-SCOPE_TEST(testConnectSubsetStateToOriginal1) {
+TEST_CASE("testConnectSubsetStateToOriginal1") {
   NFA src(6);
   edge(0, 1, src, src.TransFac->getByte('a'));
   edge(0, 2, src, src.TransFac->getByte('b'));
@@ -853,7 +848,7 @@ SCOPE_TEST(testConnectSubsetStateToOriginal1) {
   ASSERT_EQUAL_GRAPHS(exp, dst);
 }
 
-SCOPE_TEST(testConnectSubsetStateToOriginal2) {
+TEST_CASE("testConnectSubsetStateToOriginal2") {
   NFA src(6);
   edge(0, 1, src, src.TransFac->getByte('a'));
   edge(0, 2, src, src.TransFac->getByte('b'));
@@ -876,7 +871,7 @@ SCOPE_TEST(testConnectSubsetStateToOriginal2) {
   ASSERT_EQUAL_GRAPHS(exp, dst);
 }
 
-SCOPE_TEST(testCompleteOriginal0) {
+TEST_CASE("testCompleteOriginal0") {
   // When src and dst are the same and src2Dst is an identity map,
   // completeOriginal() should be a no-op.
   NFA src(3);
@@ -900,7 +895,7 @@ SCOPE_TEST(testCompleteOriginal0) {
   ASSERT_EQUAL_MATCHES(exp, dst);
 }
 
-SCOPE_TEST(testCompleteOriginal1) {
+TEST_CASE("testCompleteOriginal1") {
   NFA src(3);
   edge(0, 1, src, src.TransFac->getByte('a'));
   edge(1, 2, src, src.TransFac->getByte('a'));
@@ -921,7 +916,7 @@ SCOPE_TEST(testCompleteOriginal1) {
   ASSERT_EQUAL_MATCHES(exp, dst);
 }
 
-SCOPE_TEST(testCompleteOriginal2) {
+TEST_CASE("testCompleteOriginal2") {
   NFA src(4);
   edge(0, 1, src, src.TransFac->getByte('a'));
   edge(1, 2, src, src.TransFac->getByte('b'));
@@ -946,7 +941,7 @@ SCOPE_TEST(testCompleteOriginal2) {
   ASSERT_EQUAL_MATCHES(exp, dst);
 }
 
-SCOPE_TEST(testCompleteOriginal3) {
+TEST_CASE("testCompleteOriginal3") {
   /*
             2
            /
@@ -1012,7 +1007,7 @@ SCOPE_TEST(testCompleteOriginal3) {
   ASSERT_EQUAL_MATCHES(exp, dst);
 }
 
-SCOPE_TEST(testCompleteOriginal4) {
+TEST_CASE("testCompleteOriginal4") {
   /*
              o
          1 - 2 - 3
@@ -1089,7 +1084,7 @@ SCOPE_TEST(testCompleteOriginal4) {
   ASSERT_EQUAL_MATCHES(exp, dst);
 }
 
-SCOPE_TEST(testMakeDestinationState0) {
+TEST_CASE("testMakeDestinationState0") {
   NFA src(4);
   edge(0, 1, src, src.TransFac->getByte('a'));
   edge(1, 1, src, src.TransFac->getByte('a'));
@@ -1119,11 +1114,11 @@ SCOPE_TEST(testMakeDestinationState0) {
   const decltype(dstUnstack) exp_dstUnstack{{SubsetState{bs, {1,2}}, 1}};
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
-  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
-  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+  REQUIRE(exp_dstList2Dst == dstList2Dst);
+  REQUIRE(exp_dstUnstack == dstUnstack);
 }
 
-SCOPE_TEST(testMakeDestinationState1) {
+TEST_CASE("testMakeDestinationState1") {
   NFA src(4);
   edge(0, 1, src, src.TransFac->getByte('a'));
   edge(1, 1, src, src.TransFac->getByte('a'));
@@ -1155,11 +1150,11 @@ SCOPE_TEST(testMakeDestinationState1) {
   const decltype(dstUnstack) exp_dstUnstack;
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
-  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
-  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+  REQUIRE(exp_dstList2Dst == dstList2Dst);
+  REQUIRE(exp_dstUnstack == dstUnstack);
 }
 
-SCOPE_TEST(testHandleSubstateStateSuccessors0) {
+TEST_CASE("testHandleSubstateStateSuccessors0") {
   NFA src(4);
   edge(0, 1, src, src.TransFac->getByte('a'));
   edge(1, 1, src, src.TransFac->getByte('a'));
@@ -1192,11 +1187,11 @@ SCOPE_TEST(testHandleSubstateStateSuccessors0) {
   const decltype(dstUnstack) exp_dstUnstack{{SubsetState{bs, {1,2}}, 1}};
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
-  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
-  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+  REQUIRE(exp_dstList2Dst == dstList2Dst);
+  REQUIRE(exp_dstUnstack == dstUnstack);
 }
 
-SCOPE_TEST(testHandleSubstateStateSuccessors1) {
+TEST_CASE("testHandleSubstateStateSuccessors1") {
   NFA src(4);
   edge(0, 1, src, src.TransFac->getByte('a'));
   edge(1, 1, src, src.TransFac->getByte('a'));
@@ -1243,6 +1238,6 @@ SCOPE_TEST(testHandleSubstateStateSuccessors1) {
   };
 
   ASSERT_EQUAL_GRAPHS(exp, dst);
-  SCOPE_ASSERT_EQUAL(exp_dstList2Dst, dstList2Dst);
-  SCOPE_ASSERT_EQUAL(exp_dstUnstack, dstUnstack);
+  REQUIRE(exp_dstList2Dst == dstList2Dst);
+  REQUIRE(exp_dstUnstack == dstUnstack);
 }

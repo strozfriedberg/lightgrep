@@ -16,21 +16,21 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "container_out.h"
 #include "encoders/utf32.h"
 
 template <bool LE>
 void utf32TestFixture(const UTF32Base<LE>& enc) {
-  SCOPE_ASSERT_EQUAL(4u, enc.maxByteLength());
+  REQUIRE(4u == enc.maxByteLength());
 
   byte buf[4];
   uint32_t val;
   uint32_t len;
 
   // too low
-  SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
+  REQUIRE(0u == enc.write(-1, buf));
 
   // low, valid
   for (uint32_t i = 0; i < 0xD800; ++i) {
@@ -41,13 +41,13 @@ void utf32TestFixture(const UTF32Base<LE>& enc) {
           (((uint32_t) buf[LE ? 2 : 1]) << 16) |
           (((uint32_t) buf[LE ? 3 : 0]) << 24);
 
-    SCOPE_ASSERT_EQUAL(4u, len);
-    SCOPE_ASSERT_EQUAL(i, val);
+    REQUIRE(4u == len);
+    REQUIRE(i == val);
   }
 
   // UTF-16 surrogates, invalid
   for (uint32_t i = 0xD800; i < 0xE000; ++i) {
-    SCOPE_ASSERT_EQUAL(0u, enc.write(i, buf));
+    REQUIRE(0u == enc.write(i, buf));
   }
 
   // high, valid
@@ -59,25 +59,25 @@ void utf32TestFixture(const UTF32Base<LE>& enc) {
           (((uint32_t) buf[LE ? 2 : 1]) << 16) |
           (((uint32_t) buf[LE ? 3 : 0]) << 24);
 
-    SCOPE_ASSERT_EQUAL(4u, len);
-    SCOPE_ASSERT_EQUAL(i, val);
+    REQUIRE(4u == len);
+    REQUIRE(i == val);
   }
 
   // too high
-  SCOPE_ASSERT_EQUAL(0u, enc.write(0x110000, buf));
+  REQUIRE(0u == enc.write(0x110000, buf));
 }
 
-SCOPE_TEST(testUTF32LE) {
+TEST_CASE("testUTF32LE") {
   UTF32LE enc;
   utf32TestFixture(enc);
 }
 
-SCOPE_TEST(testUTF32BE) {
+TEST_CASE("testUTF32BE") {
   UTF32BE enc;
   utf32TestFixture(enc);
 }
 
-SCOPE_TEST(testUTF32LERangeFull) {
+TEST_CASE("testUTF32LERangeFull") {
   UTF32LE enc;
 
   UnicodeSet us{{0, 0x110000}};
@@ -91,10 +91,10 @@ SCOPE_TEST(testUTF32LERangeFull) {
   std::vector<std::vector<ByteSet>> a;
   enc.write(us, a);
 
-  SCOPE_ASSERT_EQUAL(e, a);
+  REQUIRE(e == a);
 }
 
-SCOPE_TEST(testUTF32BERangeFull) {
+TEST_CASE("testUTF32BERangeFull") {
   UTF32BE enc;
 
   UnicodeSet us{{0, 0x110000}};
@@ -108,6 +108,6 @@ SCOPE_TEST(testUTF32BERangeFull) {
   std::vector<std::vector<ByteSet>> a;
   enc.write(us, a);
 
-  SCOPE_ASSERT_EQUAL(e, a);
+  REQUIRE(e == a);
 }
 

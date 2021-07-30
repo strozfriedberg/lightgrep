@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -87,16 +87,16 @@ void readWindowTest(
     ecp.begin(), ecp.end()-1, [](int32_t v){ return v < 0; }
   );
 
-  SCOPE_ASSERT_EQUAL(ebad, abad);
+  REQUIRE(ebad == abad);
 
   std::vector<int32_t> acp(chars, chars+clen);
-  SCOPE_ASSERT_EQUAL(ecp, acp);
+  REQUIRE(ecp == acp);
 
   std::vector<size_t> aoff(offsets, offsets+clen);
-  SCOPE_ASSERT_EQUAL(eoff, aoff);
+  REQUIRE(eoff == aoff);
 
-  SCOPE_ASSERT_EQUAL(edhbeg, adh.begin);
-  SCOPE_ASSERT_EQUAL(edhend, adh.end);
+  REQUIRE(edhbeg == adh.begin);
+  REQUIRE(edhend == adh.end);
 }
 
 void hitContextTest(
@@ -150,17 +150,17 @@ void hitContextTest(
     utf8, &lg_free_hit_context_string
   );
 
-  SCOPE_ASSERT_EQUAL(ebad, abad);
-  SCOPE_ASSERT_EQUAL(estr, utf8);
+  REQUIRE(ebad == abad);
+  REQUIRE(estr == utf8);
 
-  SCOPE_ASSERT_EQUAL(doff + wbeg, outer.begin);
-  SCOPE_ASSERT_EQUAL(doff + wend, outer.end);
+  REQUIRE(doff + wbeg == outer.begin);
+  REQUIRE(doff + wend == outer.end);
 
-  SCOPE_ASSERT_EQUAL(edhbeg, adh.begin);
-  SCOPE_ASSERT_EQUAL(edhend, adh.end);
+  REQUIRE(edhbeg == adh.begin);
+  REQUIRE(edhend == adh.end);
 }
 
-SCOPE_TEST(lgReadWindowASCII) {
+TEST_CASE("lgReadWindowASCII") {
   readWindowTest(
     42, "ASCII",
     3, 6, // hit is "def"
@@ -172,7 +172,7 @@ SCOPE_TEST(lgReadWindowASCII) {
   );
 }
 
-SCOPE_TEST(lgReadWindowASCIISmallPrefix) {
+TEST_CASE("lgReadWindowASCIISmallPrefix") {
   readWindowTest(
     42, "ASCII",
     1, 3, // hit is "bc"
@@ -184,7 +184,7 @@ SCOPE_TEST(lgReadWindowASCIISmallPrefix) {
   );
 }
 
-SCOPE_TEST(lgReadWindowASCIISmallSuffix) {
+TEST_CASE("lgReadWindowASCIISmallSuffix") {
   readWindowTest(
     42, "ASCII",
     8, 10, // hit is "ij"
@@ -196,7 +196,7 @@ SCOPE_TEST(lgReadWindowASCIISmallSuffix) {
   );
 }
 
-SCOPE_TEST(lgHitContextASCII) {
+TEST_CASE("lgHitContextASCII") {
   hitContextTest(
     42, "ASCII",
     3, 6, // hit is "def"
@@ -210,7 +210,7 @@ SCOPE_TEST(lgHitContextASCII) {
   );
 }
 
-SCOPE_TEST(lgReadWindowUTF8WithBadSpot) {
+TEST_CASE("lgReadWindowUTF8WithBadSpot") {
   readWindowTest(
     42, "UTF-8",
     3, 4, // hit is "c"
@@ -222,7 +222,7 @@ SCOPE_TEST(lgReadWindowUTF8WithBadSpot) {
   );
 }
 
-SCOPE_TEST(lgReadWindowUTF16LEWithBadSpotRequiringDecoderRestart) {
+TEST_CASE("lgReadWindowUTF16LEWithBadSpotRequiringDecoderRestart") {
   /*
     1) 0x63DF (i.e., 0xDF 'c') is a valid UTF-16LE unit, but decoding
     that would invalidate our hit at 'c'. This test checks that the
@@ -246,7 +246,7 @@ SCOPE_TEST(lgReadWindowUTF16LEWithBadSpotRequiringDecoderRestart) {
   );
 }
 
-SCOPE_TEST(lgReadWindowTestUTF8NoBadSpots) {
+TEST_CASE("lgReadWindowTestUTF8NoBadSpots") {
   readWindowTest(
     0, "UTF-8",
     4, 7, // hit is "abc"
@@ -258,7 +258,7 @@ SCOPE_TEST(lgReadWindowTestUTF8NoBadSpots) {
   );
 }
 
-SCOPE_TEST(lgHitContextUTF8NoBadSpots) {
+TEST_CASE("lgHitContextUTF8NoBadSpots") {
   hitContextTest(
     0, "UTF-8",
     4, 7, // hit is "abc"
@@ -272,7 +272,7 @@ SCOPE_TEST(lgHitContextUTF8NoBadSpots) {
   );
 }
 
-SCOPE_TEST(lgReadWindowTestUTF8LeadingJunk) {
+TEST_CASE("lgReadWindowTestUTF8LeadingJunk") {
   readWindowTest(
     0, "UTF-8",
     4, 7, // hit is "abc"
@@ -284,7 +284,7 @@ SCOPE_TEST(lgReadWindowTestUTF8LeadingJunk) {
   );
 }
 
-SCOPE_TEST(lgHitContextUTF8LeadingJunk) {
+TEST_CASE("lgHitContextUTF8LeadingJunk") {
   hitContextTest(
     0, "UTF-8",
     5, 8, // hit is "abc"
@@ -298,7 +298,7 @@ SCOPE_TEST(lgHitContextUTF8LeadingJunk) {
   );
 }
 
-SCOPE_TEST(lgReadWindowTestLeadingUTF8JunkUTF8Again) {
+TEST_CASE("lgReadWindowTestLeadingUTF8JunkUTF8Again") {
   readWindowTest(
     0, "UTF-8",
     3, 6, // hit is "abc"

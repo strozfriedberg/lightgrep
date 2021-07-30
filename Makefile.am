@@ -164,7 +164,6 @@ test_test_SOURCES = \
 	test/test_auto_search_5.cpp \
 	test/test_auto_search_6.cpp \
 	test/test_auto_search_7.cpp \
-	test/test_auto_search_8.cpp \
 	test/test_auto_search_multi_1.cpp \
 	test/test_auto_search_multi_2.cpp \
 	test/test_auto_starts_with_1.cpp \
@@ -226,7 +225,7 @@ test_test_SOURCES = \
 	test/test_vm.cpp \
 	test/test_xorencoder.cpp
 
-test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
+test_test_CPPFLAGS = $(AM_CPPFLAGS)
 test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 pkgconfigdir = $(libdir)/pkgconfig

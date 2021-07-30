@@ -16,13 +16,13 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "parser.h"
 #include "parsetree.h"
 #include "unicode_sets.h"
 
-SCOPE_TEST(parseCC_A_Test) {
+TEST_CASE("parseCC_A_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -37,12 +37,12 @@ SCOPE_TEST(parseCC_A_Test) {
   const std::string p = "[A]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_AtoZ_Test) {
+TEST_CASE("parseCC_AtoZ_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -57,12 +57,12 @@ SCOPE_TEST(parseCC_AtoZ_Test) {
   const std::string p = "[A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_ZtoA_Test) {
+TEST_CASE("parseCC_ZtoA_Test") {
   const std::string p = "[Z-A]";
   ParseTree actual;
   actual.init(p.length());
@@ -74,10 +74,10 @@ SCOPE_TEST(parseCC_ZtoA_Test) {
     // expected
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseCC_A_CaseInsensitiveTest) {
+TEST_CASE("parseCC_A_CaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -92,12 +92,12 @@ SCOPE_TEST(parseCC_A_CaseInsensitiveTest) {
   const std::string p = "[A]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_AtoZ_CaseInsensitiveTest) {
+TEST_CASE("parseCC_AtoZ_CaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -119,12 +119,12 @@ SCOPE_TEST(parseCC_AtoZ_CaseInsensitiveTest) {
   const std::string p = "[A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, true}, actual));
+  REQUIRE(parse({p, false, true, true}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_AtoZ_CaseInsensitiveAsciiTest) {
+TEST_CASE("parseCC_AtoZ_CaseInsensitiveAsciiTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -144,12 +144,12 @@ SCOPE_TEST(parseCC_AtoZ_CaseInsensitiveAsciiTest) {
   const std::string p = "[A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, false}, actual));
+  REQUIRE(parse({p, false, true, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_Whack_b_Test) {
+TEST_CASE("parseCC_Whack_b_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -164,12 +164,12 @@ SCOPE_TEST(parseCC_Whack_b_Test) {
   const std::string p = "[\\b]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_Whack_b_CaseInsensitiveTest) {
+TEST_CASE("parseCC_Whack_b_CaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -184,12 +184,12 @@ SCOPE_TEST(parseCC_Whack_b_CaseInsensitiveTest) {
   const std::string p = "[\\b]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_FF_BreakoutTest) {
+TEST_CASE("parse_FF_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -204,12 +204,12 @@ SCOPE_TEST(parse_FF_BreakoutTest) {
   const std::string p = "\\zFF";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_FF_BreakoutCaseInsensitiveTest) {
+TEST_CASE("parse_FF_BreakoutCaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -224,12 +224,12 @@ SCOPE_TEST(parse_FF_BreakoutCaseInsensitiveTest) {
   const std::string p = "\\zFF";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_FF_BreakoutTest) {
+TEST_CASE("parseCC_FF_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -244,12 +244,12 @@ SCOPE_TEST(parseCC_FF_BreakoutTest) {
   const std::string p = "[\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_FF_BreakoutCaseInsensitiveTest) {
+TEST_CASE("parseCC_FF_BreakoutCaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -264,12 +264,12 @@ SCOPE_TEST(parseCC_FF_BreakoutCaseInsensitiveTest) {
   const std::string p = "[\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_00toFF_BreakoutTest) {
+TEST_CASE("parseCC_00toFF_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -284,12 +284,12 @@ SCOPE_TEST(parseCC_00toFF_BreakoutTest) {
   const std::string p = "[\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_FFto00_BreakoutTest) {
+TEST_CASE("parseCC_FFto00_BreakoutTest") {
   const std::string p = "[\\zFF-\\z00]";
   ParseTree actual;
   actual.init(p.length());
@@ -301,10 +301,10 @@ SCOPE_TEST(parseCC_FFto00_BreakoutTest) {
     // expected
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseCC_A_FF_BreakoutTest) {
+TEST_CASE("parseCC_A_FF_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -319,12 +319,12 @@ SCOPE_TEST(parseCC_A_FF_BreakoutTest) {
   const std::string p = "[A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_A_FF_BreakoutCaseInsensitiveTest) {
+TEST_CASE("parseCC_A_FF_BreakoutCaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -339,12 +339,12 @@ SCOPE_TEST(parseCC_A_FF_BreakoutCaseInsensitiveTest) {
   const std::string p = "[A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_AtoZ_00toFF_BreakoutTest) {
+TEST_CASE("parseCC_AtoZ_00toFF_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -359,12 +359,12 @@ SCOPE_TEST(parseCC_AtoZ_00toFF_BreakoutTest) {
   const std::string p = "[A-Z\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_00toFF_AtoZ_BreakoutTest) {
+TEST_CASE("parseCC_00toFF_AtoZ_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -379,12 +379,12 @@ SCOPE_TEST(parseCC_00toFF_AtoZ_BreakoutTest) {
   const std::string p = "[\\z00-\\zFFA-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCC_AtoFF_BreakoutTest) {
+TEST_CASE("parseCC_AtoFF_BreakoutTest") {
   const std::string p = "[A-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
@@ -396,10 +396,10 @@ SCOPE_TEST(parseCC_AtoFF_BreakoutTest) {
     // expected
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseCC_00toA_BreakoutTest) {
+TEST_CASE("parseCC_00toA_BreakoutTest") {
   const std::string p = "[\\z00-A]";
   ParseTree actual;
   actual.init(p.length());
@@ -411,10 +411,10 @@ SCOPE_TEST(parseCC_00toA_BreakoutTest) {
     // expected
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseNegCC_A_Test) {
+TEST_CASE("parseNegCC_A_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -429,12 +429,12 @@ SCOPE_TEST(parseNegCC_A_Test) {
   const std::string p = "[^A]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_AtoZ_Test) {
+TEST_CASE("parseNegCC_AtoZ_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -449,12 +449,12 @@ SCOPE_TEST(parseNegCC_AtoZ_Test) {
   const std::string p = "[^A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_ZtoA_Test) {
+TEST_CASE("parseNegCC_ZtoA_Test") {
   const std::string p = "[^Z-A]";
   ParseTree actual;
   actual.init(p.length());
@@ -466,10 +466,10 @@ SCOPE_TEST(parseNegCC_ZtoA_Test) {
     // expected
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseNegCC_A_CaseInsensitiveTest) {
+TEST_CASE("parseNegCC_A_CaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -484,12 +484,12 @@ SCOPE_TEST(parseNegCC_A_CaseInsensitiveTest) {
   const std::string p = "[^A]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_AtoZ_CaseInsensitiveTest) {
+TEST_CASE("parseNegCC_AtoZ_CaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -511,12 +511,12 @@ SCOPE_TEST(parseNegCC_AtoZ_CaseInsensitiveTest) {
   const std::string p = "[^A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, true}, actual));
+  REQUIRE(parse({p, false, true, true}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_AtoZ_CaseInsensitiveAsciiTest) {
+TEST_CASE("parseNegCC_AtoZ_CaseInsensitiveAsciiTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -536,12 +536,12 @@ SCOPE_TEST(parseNegCC_AtoZ_CaseInsensitiveAsciiTest) {
   const std::string p = "[^A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, false}, actual));
+  REQUIRE(parse({p, false, true, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_FF_BreakoutTest) {
+TEST_CASE("parseNegCC_FF_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -556,12 +556,12 @@ SCOPE_TEST(parseNegCC_FF_BreakoutTest) {
   const std::string p = "[^\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_FF_BreakoutCaseInsensitiveTest) {
+TEST_CASE("parseNegCC_FF_BreakoutCaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -576,12 +576,12 @@ SCOPE_TEST(parseNegCC_FF_BreakoutCaseInsensitiveTest) {
   const std::string p = "[^\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_00toFF_BreakoutTest) {
+TEST_CASE("parseNegCC_00toFF_BreakoutTest") {
   const std::string p = "[^\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
@@ -593,10 +593,10 @@ SCOPE_TEST(parseNegCC_00toFF_BreakoutTest) {
     // expected
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseNegCC_00to7F_BreakoutTest) {
+TEST_CASE("parseNegCC_00to7F_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -611,12 +611,12 @@ SCOPE_TEST(parseNegCC_00to7F_BreakoutTest) {
   const std::string p = "[^\\z00-\\z7F]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_FFto00_BreakoutTest) {
+TEST_CASE("parseNegCC_FFto00_BreakoutTest") {
   const std::string p = "[^\\zFF-\\z00]";
   ParseTree actual;
   actual.init(p.length());
@@ -628,10 +628,10 @@ SCOPE_TEST(parseNegCC_FFto00_BreakoutTest) {
     // expected
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseNegCC_A_FF_BreakoutTest) {
+TEST_CASE("parseNegCC_A_FF_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -646,12 +646,12 @@ SCOPE_TEST(parseNegCC_A_FF_BreakoutTest) {
   const std::string p = "[^A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_A_FF_BreakoutCaseInsensitiveTest) {
+TEST_CASE("parseNegCC_A_FF_BreakoutCaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -666,12 +666,12 @@ SCOPE_TEST(parseNegCC_A_FF_BreakoutCaseInsensitiveTest) {
   const std::string p = "[^A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_AtoZ_00toFF_BreakoutTest) {
+TEST_CASE("parseNegCC_AtoZ_00toFF_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -686,12 +686,12 @@ SCOPE_TEST(parseNegCC_AtoZ_00toFF_BreakoutTest) {
   const std::string p = "[^A-Z\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_AtoZ_00to7F_BreakoutTest) {
+TEST_CASE("parseNegCC_AtoZ_00to7F_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -706,12 +706,12 @@ SCOPE_TEST(parseNegCC_AtoZ_00to7F_BreakoutTest) {
   const std::string p = "[^A-Z\\z00-\\z7F]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_00toFF_AtoZ_BreakoutTest) {
+TEST_CASE("parseNegCC_00toFF_AtoZ_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -726,12 +726,12 @@ SCOPE_TEST(parseNegCC_00toFF_AtoZ_BreakoutTest) {
   const std::string p = "[^\\z00-\\zFFA-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_00to7F_AtoZ_BreakoutTest) {
+TEST_CASE("parseNegCC_00to7F_AtoZ_BreakoutTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -746,12 +746,12 @@ SCOPE_TEST(parseNegCC_00to7F_AtoZ_BreakoutTest) {
   const std::string p = "[^\\z00-\\z7FA-Z]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegCC_AtoFF_BreakoutTest) {
+TEST_CASE("parseNegCC_AtoFF_BreakoutTest") {
   const std::string p = "[^A-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
@@ -763,10 +763,10 @@ SCOPE_TEST(parseNegCC_AtoFF_BreakoutTest) {
     // expected
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseNegCC_00toA_BreakoutTest) {
+TEST_CASE("parseNegCC_00toA_BreakoutTest") {
   const std::string p = "[^\\z00-A]";
   ParseTree actual;
   actual.init(p.length());
@@ -778,190 +778,190 @@ SCOPE_TEST(parseNegCC_00toA_BreakoutTest) {
     // expected
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNamedCodePointMissingNameTest) {
+TEST_CASE("parseFailNamedCodePointMissingNameTest") {
   ParseTree tree;
   try {
     parse({"\\N", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "invalid escape \\N, at [0,2)",
+    REQUIRE(
+      "invalid escape \\N, at [0,2)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNamedCodePointMissingLeftBraceTest) {
+TEST_CASE("parseFailNamedCodePointMissingLeftBraceTest") {
   ParseTree tree;
   try {
     parse({"\\NCYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "invalid escape \\NC, at [0,3)",
+    REQUIRE(
+      "invalid escape \\NC, at [0,3)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNamedCodePointMissingRightBraceTest) {
+TEST_CASE("parseFailNamedCodePointMissingRightBraceTest") {
   ParseTree tree;
   try {
     parse({"\\N{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "invalid escape \\N{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O, at [0,43)",
+    REQUIRE(
+      "invalid escape \\N{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O, at [0,43)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailHexCodeMissingValueTest) {
+TEST_CASE("parseFailHexCodeMissingValueTest") {
   ParseTree tree;
   try {
     parse({"\\x", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "invalid escape \\x, at [0,2)",
+    REQUIRE(
+      "invalid escape \\x, at [0,2)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailHexCodeBadValueTest) {
+TEST_CASE("parseFailHexCodeBadValueTest") {
   ParseTree tree;
   try {
     parse({"\\xG", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "invalid escape \\xG, at [0,3)",
+    REQUIRE(
+      "invalid escape \\xG, at [0,3)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailBadEscapeTest) {
+TEST_CASE("parseFailBadEscapeTest") {
   ParseTree tree;
   try {
     parse({"\\#", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "invalid escape \\#, at [0,2)",
+    REQUIRE(
+      "invalid escape \\#, at [0,2)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailPropertyMissingValueTest) {
+TEST_CASE("parseFailPropertyMissingValueTest") {
   ParseTree tree;
   try {
     parse({"\\p", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "invalid escape \\p, at [0,2)",
+    REQUIRE(
+      "invalid escape \\p, at [0,2)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNegatedPropertyMissingValueTest) {
+TEST_CASE("parseFailNegatedPropertyMissingValueTest") {
   ParseTree tree;
   try {
     parse({"\\P", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "invalid escape \\P, at [0,2)",
+    REQUIRE(
+      "invalid escape \\P, at [0,2)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailPropertyMissingLeftBrace) {
+TEST_CASE("parseFailPropertyMissingLeftBrace") {
   ParseTree tree;
   try {
     parse({"\\pLetter", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "invalid escape \\p, at [0,2)",
+    REQUIRE(
+      "invalid escape \\p, at [0,2)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailPropertyMissingRightBrace) {
+TEST_CASE("parseFailPropertyMissingRightBrace") {
   ParseTree tree;
   try {
     parse({"\\p{Letter", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "invalid escape \\p{Letter, at [0,9)",
+    REQUIRE(
+      "invalid escape \\p{Letter, at [0,9)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailReversedBoundedRepetitionTest) {
+TEST_CASE("parseFailReversedBoundedRepetitionTest") {
   ParseTree tree;
   try {
     parse({"a{2,1}", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "2 > 1 in {2,1}, at [1,6)",
+    REQUIRE(
+      "2 > 1 in {2,1}, at [1,6)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailReversedNongreedyBoundedRepetitionTest) {
+TEST_CASE("parseFailReversedNongreedyBoundedRepetitionTest") {
   ParseTree tree;
   try {
     parse({"a{2,1}?", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "2 > 1 in {2,1}?, at [1,7)",
+    REQUIRE(
+      "2 > 1 in {2,1}?, at [1,7)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseAAmp_Test) {
+TEST_CASE("parseAAmp_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -976,12 +976,12 @@ SCOPE_TEST(parseAAmp_Test) {
   const std::string p = "[a&]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseATilde_Test) {
+TEST_CASE("parseATilde_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -996,12 +996,12 @@ SCOPE_TEST(parseATilde_Test) {
   const std::string p = "[a~]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseAHyphen_Test) {
+TEST_CASE("parseAHyphen_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1016,12 +1016,12 @@ SCOPE_TEST(parseAHyphen_Test) {
   const std::string p = "[a-]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseAmpA_Test) {
+TEST_CASE("parseAmpA_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1036,12 +1036,12 @@ SCOPE_TEST(parseAmpA_Test) {
   const std::string p = "[&a]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseTildeA_Test) {
+TEST_CASE("parseTildeA_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1056,12 +1056,12 @@ SCOPE_TEST(parseTildeA_Test) {
   const std::string p = "[~a]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseHyphenA_Test) {
+TEST_CASE("parseHyphenA_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1076,12 +1076,12 @@ SCOPE_TEST(parseHyphenA_Test) {
   const std::string p = "[-a]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseAAmpB_Test) {
+TEST_CASE("parseAAmpB_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1096,12 +1096,12 @@ SCOPE_TEST(parseAAmpB_Test) {
   const std::string p = "[a&b]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseATildeB_Test) {
+TEST_CASE("parseATildeB_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1116,280 +1116,280 @@ SCOPE_TEST(parseATildeB_Test) {
   const std::string p = "[a~b]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseFailHyphenToA_Test) {
+TEST_CASE("parseFailHyphenToA_Test") {
   ParseTree tree;
   try {
     parse({"[--a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for --, at [1,3)",
+    REQUIRE(
+      "missing operand for --, at [1,3)" ==
       std::string(e.what())
     );
     return;
   }
 }
 
-SCOPE_TEST(parseFailAToHyphen_Test) {
+TEST_CASE("parseFailAToHyphen_Test") {
   ParseTree tree;
   try {
     parse({"[a--]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for --, at [2,4)",
+    REQUIRE(
+      "missing operand for --, at [2,4)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNegHyphenToA_Test) {
+TEST_CASE("parseFailNegHyphenToA_Test") {
   ParseTree tree;
   try {
     parse({"[^--a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for --, at [2,4)",
+    REQUIRE(
+      "missing operand for --, at [2,4)" ==
       std::string(e.what())
     );
     return;
   }
 }
 
-SCOPE_TEST(parseFailNegAToHyphen_Test) {
+TEST_CASE("parseFailNegAToHyphen_Test") {
   ParseTree tree;
   try {
     parse({"[^a--]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for --, at [3,5)",
+    REQUIRE(
+      "missing operand for --, at [3,5)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailAAmpAmp_Test) {
+TEST_CASE("parseFailAAmpAmp_Test") {
   ParseTree tree;
   try {
     parse({"[a&&]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for &&, at [2,4)",
+    REQUIRE(
+      "missing operand for &&, at [2,4)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailAmpAmpA_Test) {
+TEST_CASE("parseFailAmpAmpA_Test") {
   ParseTree tree;
   try {
     parse({"[&&a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for &&, at [1,3)",
+    REQUIRE(
+      "missing operand for &&, at [1,3)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNegAAmpAmp_Test) {
+TEST_CASE("parseFailNegAAmpAmp_Test") {
   ParseTree tree;
   try {
     parse({"[^a&&]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for &&, at [3,5)",
+    REQUIRE(
+      "missing operand for &&, at [3,5)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNegAmpAmpA_Test) {
+TEST_CASE("parseFailNegAmpAmpA_Test") {
   ParseTree tree;
   try {
     parse({"[^&&a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for &&, at [2,4)",
+    REQUIRE(
+      "missing operand for &&, at [2,4)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailATildeTilde_Test) {
+TEST_CASE("parseFailATildeTilde_Test") {
   ParseTree tree;
   try {
     parse({"[a~~]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for ~~, at [2,4)",
+    REQUIRE(
+      "missing operand for ~~, at [2,4)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailTildeTildeA_Test) {
+TEST_CASE("parseFailTildeTildeA_Test") {
   ParseTree tree;
   try {
     parse({"[~~a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for ~~, at [1,3)",
+    REQUIRE(
+      "missing operand for ~~, at [1,3)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNegATildeTilde_Test) {
+TEST_CASE("parseFailNegATildeTilde_Test") {
   ParseTree tree;
   try {
     parse({"[^a~~]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for ~~, at [3,5)",
+    REQUIRE(
+      "missing operand for ~~, at [3,5)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNegTildeTildeA_Test) {
+TEST_CASE("parseFailNegTildeTildeA_Test") {
   ParseTree tree;
   try {
     parse({"[^~~a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for ~~, at [2,4)",
+    REQUIRE(
+      "missing operand for ~~, at [2,4)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailAHyphenHyphenHyphenHyphenA_Test) {
+TEST_CASE("parseFailAHyphenHyphenHyphenHyphenA_Test") {
   ParseTree tree;
   try {
     parse({"[a----a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for --, at [2,4)",
+    REQUIRE(
+      "missing operand for --, at [2,4)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailAAmpAmpAmpAmpA_Test) {
+TEST_CASE("parseFailAAmpAmpAmpAmpA_Test") {
   ParseTree tree;
   try {
     parse({"[a&&&&a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for &&, at [2,4)",
+    REQUIRE(
+      "missing operand for &&, at [2,4)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailATildeTildeTildeTildeA_Test) {
+TEST_CASE("parseFailATildeTildeTildeTildeA_Test") {
   ParseTree tree;
   try {
     parse({"[a~~~~a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for ~~, at [2,4)",
+    REQUIRE(
+      "missing operand for ~~, at [2,4)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNegAHyphenHyphenHyphenHyphenA_Test) {
+TEST_CASE("parseFailNegAHyphenHyphenHyphenHyphenA_Test") {
   ParseTree tree;
   try {
     parse({"[^a----a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for --, at [3,5)",
+    REQUIRE(
+      "missing operand for --, at [3,5)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNegAAmpAmpAmpAmpA_Test) {
+TEST_CASE("parseFailNegAAmpAmpAmpAmpA_Test") {
   ParseTree tree;
   try {
     parse({"[^a&&&&a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for &&, at [3,5)",
+    REQUIRE(
+      "missing operand for &&, at [3,5)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailNegATildeTildeTildeTildeA_Test) {
+TEST_CASE("parseFailNegATildeTildeTildeTildeA_Test") {
   ParseTree tree;
   try {
     parse({"[^a~~~~a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "missing operand for ~~, at [3,5)",
+    REQUIRE(
+      "missing operand for ~~, at [3,5)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseAtoCHyphenE_Test) {
+TEST_CASE("parseAtoCHyphenE_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1404,12 +1404,12 @@ SCOPE_TEST(parseAtoCHyphenE_Test) {
   const std::string p = "[a-c-e]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseAHyphenHyphenHyphen_Test) {
+TEST_CASE("parseAHyphenHyphenHyphen_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1424,12 +1424,12 @@ SCOPE_TEST(parseAHyphenHyphenHyphen_Test) {
   const std::string p = "[a---]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseDigitHyphenA_Test) {
+TEST_CASE("parseDigitHyphenA_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1444,12 +1444,12 @@ SCOPE_TEST(parseDigitHyphenA_Test) {
   const std::string p = "[\\d-A]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegDigitHyphenA_Test) {
+TEST_CASE("parseNegDigitHyphenA_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1464,12 +1464,12 @@ SCOPE_TEST(parseNegDigitHyphenA_Test) {
   const std::string p = "[^\\d-A]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseAHyphenDigit_Test) {
+TEST_CASE("parseAHyphenDigit_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1484,12 +1484,12 @@ SCOPE_TEST(parseAHyphenDigit_Test) {
   const std::string p = "[A-\\d]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegAHyphenDigit_Test) {
+TEST_CASE("parseNegAHyphenDigit_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1504,12 +1504,12 @@ SCOPE_TEST(parseNegAHyphenDigit_Test) {
   const std::string p = "[^A-\\d]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseDigitHyphenByte_Test) {
+TEST_CASE("parseDigitHyphenByte_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1525,12 +1525,12 @@ SCOPE_TEST(parseDigitHyphenByte_Test) {
   const std::string p = "[\\d-\\z00]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegDigitHyphenByte_Test) {
+TEST_CASE("parseNegDigitHyphenByte_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1546,12 +1546,12 @@ SCOPE_TEST(parseNegDigitHyphenByte_Test) {
   const std::string p = "[^\\d-\\z00]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseByteHyphenDigit_Test) {
+TEST_CASE("parseByteHyphenDigit_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1566,12 +1566,12 @@ SCOPE_TEST(parseByteHyphenDigit_Test) {
   const std::string p = "[\\z00-\\d]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegByteHyphenDigit_Test) {
+TEST_CASE("parseNegByteHyphenDigit_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -1587,12 +1587,12 @@ SCOPE_TEST(parseNegByteHyphenDigit_Test) {
   const std::string p = "[^\\z00-\\d]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseHyphenHyphenTest) {
+TEST_CASE("parseHyphenHyphenTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -1614,12 +1614,12 @@ SCOPE_TEST(parseHyphenHyphenTest) {
   const std::string p = "--";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseAmpAmpTest) {
+TEST_CASE("parseAmpAmpTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -1641,12 +1641,12 @@ SCOPE_TEST(parseAmpAmpTest) {
   const std::string p = "&&";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseTildeTildeTest) {
+TEST_CASE("parseTildeTildeTest") {
   ParseTree expected;
   expected.init(2);
 
@@ -1668,102 +1668,102 @@ SCOPE_TEST(parseTildeTildeTest) {
   const std::string p = "~~";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseFailUnmatchedLeftBracketCharacterClassTest) {
+TEST_CASE("parseFailUnmatchedLeftBracketCharacterClassTest") {
   ParseTree tree;
   try {
     parse({"[]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "unmatched left bracket [, at [0,1)",
+    REQUIRE(
+      "unmatched left bracket [, at [0,1)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailEmptyCharClassTest) {
+TEST_CASE("parseFailEmptyCharClassTest") {
   ParseTree tree;
   try {
     parse({"[a&&b]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "empty character class [a&&b], at [0,6)",
+    REQUIRE(
+      "empty character class [a&&b], at [0,6)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailEmptyNegCodePointCharClassTest) {
+TEST_CASE("parseFailEmptyNegCodePointCharClassTest") {
   ParseTree tree;
   try {
     parse({"[^\\x{0}-\\x{10FFFF}]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "empty character class [^\\x{0}-\\x{10FFFF}], at [0,19)",
+    REQUIRE(
+      "empty character class [^\\x{0}-\\x{10FFFF}], at [0,19)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailEmptyNegByteCharClassTest) {
+TEST_CASE("parseFailEmptyNegByteCharClassTest") {
   ParseTree tree;
   try {
     parse({"[^\\z00-\\zFF]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "empty character class [^\\z00-\\zFF], at [0,12)",
+    REQUIRE(
+      "empty character class [^\\z00-\\zFF], at [0,12)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailBadCharRangeBoundsCharClassTest) {
+TEST_CASE("parseFailBadCharRangeBoundsCharClassTest") {
   ParseTree tree;
   try {
     parse({"[z-a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "U+7A >= U+61 in z-a, at [1,4)",
+    REQUIRE(
+      "U+7A >= U+61 in z-a, at [1,4)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseFailBadByteRangeBoundsCharClassTest) {
+TEST_CASE("parseFailBadByteRangeBoundsCharClassTest") {
   ParseTree tree;
   try {
     parse({"[\\zFF-\\z00]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
-    SCOPE_ASSERT_EQUAL(
-      "0xFF >= 0x00 in \\zFF-\\z00, at [1,10)",
+    REQUIRE(
+      "0xFF >= 0x00 in \\zFF-\\z00, at [1,10)" ==
       std::string(e.what())
     );
     return;
   }
-  SCOPE_ASSERT(false);
+  REQUIRE(false);
 }
 
-SCOPE_TEST(parseAKillBOrCTest) {
+TEST_CASE("parseAKillBOrCTest") {
   ParseTree expected;
   expected.init(7);
 
@@ -1790,12 +1790,12 @@ SCOPE_TEST(parseAKillBOrCTest) {
   const std::string p = "A\\KB|C";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parsePositiveLookbehindATest) {
+TEST_CASE("parsePositiveLookbehindATest") {
   ParseTree expected;
   expected.init(3);
 
@@ -1814,12 +1814,12 @@ SCOPE_TEST(parsePositiveLookbehindATest) {
   const std::string p = "(?<=A)";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegativeLookbehindATest) {
+TEST_CASE("parseNegativeLookbehindATest") {
   ParseTree expected;
   expected.init(3);
 
@@ -1838,12 +1838,12 @@ SCOPE_TEST(parseNegativeLookbehindATest) {
   const std::string p = "(?<!A)";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parsePositiveLookaheadATest) {
+TEST_CASE("parsePositiveLookaheadATest") {
   ParseTree expected;
   expected.init(3);
 
@@ -1862,12 +1862,12 @@ SCOPE_TEST(parsePositiveLookaheadATest) {
   const std::string p = "(?=A)";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNegativeLookaheadATest) {
+TEST_CASE("parseNegativeLookaheadATest") {
   ParseTree expected;
   expected.init(3);
 
@@ -1886,12 +1886,12 @@ SCOPE_TEST(parseNegativeLookaheadATest) {
   const std::string p = "(?!A)";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseWhackATest) {
+TEST_CASE("parseWhackATest") {
   ParseTree expected;
   expected.init(3);
 
@@ -1910,12 +1910,12 @@ SCOPE_TEST(parseWhackATest) {
   const std::string p = "\\A";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseWhackZTest) {
+TEST_CASE("parseWhackZTest") {
   ParseTree expected;
   expected.init(3);
 
@@ -1934,12 +1934,12 @@ SCOPE_TEST(parseWhackZTest) {
   const std::string p = "\\Z";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseCaretTest) {
+TEST_CASE("parseCaretTest") {
   ParseTree expected;
   expected.init(3);
 
@@ -1959,12 +1959,12 @@ SCOPE_TEST(parseCaretTest) {
   const std::string p = "^";
   ParseTree actual;
   actual.init(3);
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseDollarSignTest) {
+TEST_CASE("parseDollarSignTest") {
   ParseTree expected;
   expected.init(3);
 
@@ -1984,12 +1984,12 @@ SCOPE_TEST(parseDollarSignTest) {
   const std::string p = "$";
   ParseTree actual;
   actual.init(3);
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseWordBoundaryTest) {
+TEST_CASE("parseWordBoundaryTest") {
   // \b  = ((?<!\w)(?!\W)|(?<!\W)(?!\w))
 
   ParseTree expected;
@@ -2036,12 +2036,12 @@ SCOPE_TEST(parseWordBoundaryTest) {
   const std::string p = "\\b";
   ParseTree actual;
   actual.init(10);
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parseNonWordBoundaryTest) {
+TEST_CASE("parseNonWordBoundaryTest") {
   // \B  = ((?<!\w)(?!\w)|(?<!\W)(?!\W))
 
   ParseTree expected;
@@ -2088,12 +2088,12 @@ SCOPE_TEST(parseNonWordBoundaryTest) {
   const std::string p = "\\B";
   ParseTree actual;
   actual.init(10);
-  SCOPE_ASSERT(parse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_ks_01_Test) {
+TEST_CASE("parse_ascii_mode_ks_01_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2108,12 +2108,12 @@ SCOPE_TEST(parse_ascii_mode_ks_01_Test) {
   const std::string p = "[ks]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_ks_02_Test) {
+TEST_CASE("parse_ascii_mode_ks_02_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2128,12 +2128,12 @@ SCOPE_TEST(parse_ascii_mode_ks_02_Test) {
   const std::string p = "[ks]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_ks_03_Test) {
+TEST_CASE("parse_ascii_mode_ks_03_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2148,12 +2148,12 @@ SCOPE_TEST(parse_ascii_mode_ks_03_Test) {
   const std::string p = "[ks]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, true, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_ks_04_Test) {
+TEST_CASE("parse_ascii_mode_ks_04_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2168,12 +2168,12 @@ SCOPE_TEST(parse_ascii_mode_ks_04_Test) {
   const std::string p = "[ks]";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_on_digit_Test) {
+TEST_CASE("parse_ascii_mode_on_digit_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2188,12 +2188,12 @@ SCOPE_TEST(parse_ascii_mode_on_digit_Test) {
   const std::string p = "\\d";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_off_digit_Test) {
+TEST_CASE("parse_ascii_mode_off_digit_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2208,12 +2208,12 @@ SCOPE_TEST(parse_ascii_mode_off_digit_Test) {
   const std::string p = "\\d";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_on_not_digit_Test) {
+TEST_CASE("parse_ascii_mode_on_not_digit_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2228,12 +2228,12 @@ SCOPE_TEST(parse_ascii_mode_on_not_digit_Test) {
   const std::string p = "\\D";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_off_not_digit_Test) {
+TEST_CASE("parse_ascii_mode_off_not_digit_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2248,12 +2248,12 @@ SCOPE_TEST(parse_ascii_mode_off_not_digit_Test) {
   const std::string p = "\\D";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_hspace_Test) {
+TEST_CASE("parse_hspace_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2268,12 +2268,12 @@ SCOPE_TEST(parse_hspace_Test) {
   const std::string p = "\\h";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_not_hspace_Test) {
+TEST_CASE("parse_not_hspace_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2288,12 +2288,12 @@ SCOPE_TEST(parse_not_hspace_Test) {
   const std::string p = "\\H";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_vspace_Test) {
+TEST_CASE("parse_vspace_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2308,12 +2308,12 @@ SCOPE_TEST(parse_vspace_Test) {
   const std::string p = "\\v";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_not_vspace_Test) {
+TEST_CASE("parse_not_vspace_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2328,12 +2328,12 @@ SCOPE_TEST(parse_not_vspace_Test) {
   const std::string p = "\\V";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_on_space_Test) {
+TEST_CASE("parse_ascii_mode_on_space_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2351,12 +2351,12 @@ SCOPE_TEST(parse_ascii_mode_on_space_Test) {
   const std::string p = "\\s";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_off_space_Test) {
+TEST_CASE("parse_ascii_mode_off_space_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2371,12 +2371,12 @@ SCOPE_TEST(parse_ascii_mode_off_space_Test) {
   const std::string p = "\\s";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_on_not_space_Test) {
+TEST_CASE("parse_ascii_mode_on_not_space_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2394,12 +2394,12 @@ SCOPE_TEST(parse_ascii_mode_on_not_space_Test) {
   const std::string p = "\\S";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_off_not_space_Test) {
+TEST_CASE("parse_ascii_mode_off_not_space_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2414,12 +2414,12 @@ SCOPE_TEST(parse_ascii_mode_off_not_space_Test) {
   const std::string p = "\\S";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_word_01_Test) {
+TEST_CASE("parse_ascii_mode_word_01_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2442,12 +2442,12 @@ SCOPE_TEST(parse_ascii_mode_word_01_Test) {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_word_02_Test) {
+TEST_CASE("parse_ascii_mode_word_02_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2470,12 +2470,12 @@ SCOPE_TEST(parse_ascii_mode_word_02_Test) {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_word_03_Test) {
+TEST_CASE("parse_ascii_mode_word_03_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2490,12 +2490,12 @@ SCOPE_TEST(parse_ascii_mode_word_03_Test) {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_word_04_Test) {
+TEST_CASE("parse_ascii_mode_word_04_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2510,12 +2510,12 @@ SCOPE_TEST(parse_ascii_mode_word_04_Test) {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, true, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_not_word_01_Test) {
+TEST_CASE("parse_ascii_mode_not_word_01_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2538,12 +2538,12 @@ SCOPE_TEST(parse_ascii_mode_not_word_01_Test) {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_not_word_02_Test) {
+TEST_CASE("parse_ascii_mode_not_word_02_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2566,12 +2566,12 @@ SCOPE_TEST(parse_ascii_mode_not_word_02_Test) {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, false, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_not_word_03_Test) {
+TEST_CASE("parse_ascii_mode_not_word_03_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2586,12 +2586,12 @@ SCOPE_TEST(parse_ascii_mode_not_word_03_Test) {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
 
-SCOPE_TEST(parse_ascii_mode_not_word_04_Test) {
+TEST_CASE("parse_ascii_mode_not_word_04_Test") {
   ParseTree expected;
   expected.init(2);
 
@@ -2606,7 +2606,7 @@ SCOPE_TEST(parse_ascii_mode_not_word_04_Test) {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  SCOPE_ASSERT(parse({p, false, true, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, true, "UTF-8"}, actual));
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }

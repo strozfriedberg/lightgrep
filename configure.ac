@@ -237,42 +237,6 @@ if test "x$with_asan" != "xno"; then
   AC_SUBST([ASAN_LDFLAGS])
 fi
 
-#
-# tests
-#
-
-# Scope test framework
-AC_ARG_WITH([scope],
-  [AS_HELP_STRING([--with-scope=ARG],
-    [use Scope headers from the specified location])],
-  [SCOPE_CPPFLAGS="-I$withval"],
-  [SCOPE_CPPFLAGS="-I$srcdir/vendors/scope"])
-
-if test "x$with_scope" != "xno"; then
-  # test Scope without adding its path to CPPFLAGS generally
-  CPPFLAGS_saved="$CPPFLAGS"
-  CPPFLAGS="$SCOPE_CPPFLAGS"
-  export CPPFLAGS
-
-  AC_CHECK_HEADERS([scope/test.h],[scope_ok="yes"])
-
-  CPPFLAGS="$CPPFLAGS_saved"
-
-  if test "x$scope_ok" = "xyes"; then
-    AC_DEFINE(HAVE_SCOPE,1,[Define to 1 if Scope test framework is available.])
-    AC_SUBST([SCOPE_CPPFLAGS])
-  fi
-fi
-
-# Tell the user why not if he won't be able to compile the tests
-if test "x$scope_ok" != "xyes"; then
-  AC_MSG_WARN([])
-  AC_MSG_WARN([You will be unable to compile and run the tests because:])
-  AC_MSG_WARN([])
-  AC_MSG_WARN([  * Scope test framework is unavailable])
-  AC_MSG_WARN([])
-fi
-
 AC_DEFINE_UNQUOTED(LG_TEST_DATA_DIR, "$srcdir/test/data", [Define to the path to the test data.])
 
 #

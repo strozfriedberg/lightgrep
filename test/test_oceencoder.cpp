@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <iostream>
 
@@ -24,33 +24,33 @@
 #include "encoders/ascii.h"
 #include "encoders/oceencoder.h"
 
-SCOPE_TEST(testOCEEncoderASCIIName) {
+TEST_CASE("testOCEEncoderASCIIName") {
   OCEEncoder enc{ASCII()};
-  SCOPE_ASSERT_EQUAL("ASCII|OCE", enc.name());
+  REQUIRE("ASCII|OCE" == enc.name());
 }
 
-SCOPE_TEST(testOCEEncoderWriteSingleASCII) {
+TEST_CASE("testOCEEncoderWriteSingleASCII") {
   OCEEncoder enc{ASCII()};
-  SCOPE_ASSERT_EQUAL(1u, enc.maxByteLength());
+  REQUIRE(1u == enc.maxByteLength());
 
   byte buf[1];
   uint32_t len;
 
   // too low
-  SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
+  REQUIRE(0u == enc.write(-1, buf));
 
   // just right
   for (uint32_t i = 0; i < 0x80; ++i) {
     len = enc.write(i, buf);
-    SCOPE_ASSERT_EQUAL(1u, len);
-    SCOPE_ASSERT_EQUAL(OCEEncoder::OCE[i], buf[0]);
+    REQUIRE(1u == len);
+    REQUIRE(OCEEncoder::OCE[i] == buf[0]);
   }
 
   // too high
-  SCOPE_ASSERT_EQUAL(0u, enc.write(0x80, buf));
+  REQUIRE(0u == enc.write(0x80, buf));
 }
 
-SCOPE_TEST(testOCEEncoderWriteSetASCII) {
+TEST_CASE("testOCEEncoderWriteSetASCII") {
   OCEEncoder enc{ASCII()};
 
   const std::vector<std::vector<ByteSet>> expected{
@@ -80,5 +80,5 @@ SCOPE_TEST(testOCEEncoderWriteSetASCII) {
   std::vector<std::vector<ByteSet>> actual;
   enc.write(us, actual);
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 }
