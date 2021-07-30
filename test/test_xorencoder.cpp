@@ -43,7 +43,7 @@ TEST_CASE("testXOREncoderWriteSingleASCII") {
   for (uint32_t i = 0; i < 0x80; ++i) {
     len = enc.write(i, buf);
     REQUIRE(1u == len);
-    REQUIRE(i ^ 0x55 == buf[0]);
+    REQUIRE((i ^ 0x55) == buf[0]);
   }
 
   // too high
