@@ -194,7 +194,7 @@ namespace {
 
     // read each pattern line
     const cstr_tokenizer ltok(
-      patterns, patterns + std::strlen(patterns), char_separator("\n")
+      patterns, patterns + std::strlen(patterns), char_separator("\r\n")
     );
 
     cstr_tokenizer::const_iterator lcur(ltok.begin());

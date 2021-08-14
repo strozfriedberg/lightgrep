@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include "pattern_map.h"
+#include "stest.h"
 
 // #include "basic.h"
 
@@ -105,7 +106,7 @@ TEST_CASE("testLgAddPatternListFixedString") {
 
   const LG_KeyOptions defOpts{0, 0, 1};
 
-   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
     lg_create_program(patsNum),
     lg_destroy_program
   );
@@ -129,6 +130,48 @@ TEST_CASE("testLgAddPatternListFixedString") {
 
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
   REQUIRE(!err);
+}
+
+TEST_CASE("testLgAddPatternListCRLFHeck") {
+  // Mixed line endings is obviously a stupid case
+  // yet, let's remember Postel's Law...
+  std::string pats("foo\r\nbar\n\baz\rquux\r\n\r\n\nxyzzy");
+
+  const char* defEncs[] = { "ASCII" };
+
+  const LG_KeyOptions opts{0, 0, 1};
+
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+    lg_create_program(5),
+    lg_destroy_program
+  );
+
+  REQUIRE(prog);
+
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(0),
+    lg_destroy_fsm
+  );
+
+  REQUIRE(fsm);
+
+  LG_Error* err = nullptr;
+
+  lg_add_pattern_list(
+    fsm.get(), prog.get(), pats.c_str(), "testLgAddPatternListCRLFHeck",
+    defEncs, 1, &opts, &err
+  );
+
+  REQUIRE(!err);
+  REQUIRE(5u == lg_pattern_count(prog.get()));
+
+  STest s(std::move(prog));
+  s.search("Everything's foobar with my bazquux.");
+  REQUIRE(4u == s.Hits.size());
+  REQUIRE(0u == s.Hits[0].KeywordIndex);
+  REQUIRE(1u == s.Hits[1].KeywordIndex);
+  REQUIRE(2u == s.Hits[2].KeywordIndex);
+  REQUIRE(3u == s.Hits[3].KeywordIndex);
 }
 
 TEST_CASE("testLgAddPatternListBadEncoding") {
