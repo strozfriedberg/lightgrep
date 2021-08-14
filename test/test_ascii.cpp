@@ -16,27 +16,27 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "encoders/ascii.h"
 
-SCOPE_TEST(testASCII) {
+TEST_CASE("testASCII") {
   ASCII enc;
-  SCOPE_ASSERT_EQUAL(1u, enc.maxByteLength());
+  REQUIRE(1u == enc.maxByteLength());
 
   byte buf[1];
   uint32_t len;
 
   // too low
-  SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
+  REQUIRE(0u == enc.write(-1, buf));
 
   // just right
   for (uint32_t i = 0; i < 0x80; ++i) {
     len = enc.write(i, buf);
-    SCOPE_ASSERT_EQUAL(1u, len);
-    SCOPE_ASSERT_EQUAL(i, buf[0]);
+    REQUIRE(1u == len);
+    REQUIRE(i == buf[0]);
   }
 
   // too high
-  SCOPE_ASSERT_EQUAL(0u, enc.write(0x80, buf));
+  REQUIRE(0u == enc.write(0x80, buf));
 }

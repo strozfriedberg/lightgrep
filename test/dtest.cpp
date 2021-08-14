@@ -21,8 +21,8 @@
 #include <string>
 #include <vector>
 
-#include <scope/test.h>
-
+#include "catch.hpp"
+  
 #include "basic.h"
 #include "pattern.h"
 #include "searchhit.h"
@@ -44,7 +44,7 @@ namespace {
 
       std::vector<SearchHit>& actual = test.Hits;
 
-      SCOPE_ASSERT_EQUAL(expected.size(), actual.size());
+      REQUIRE(expected.size() == actual.size());
 
       std::sort(expected.begin(), expected.begin());
       std::sort(actual.begin(), actual.end());
@@ -56,7 +56,7 @@ namespace {
 
       if (mis.first != expected.end()) {
         // This is guaranteed to fail. We assert just to get the message.
-        SCOPE_ASSERT_EQUAL(*mis.first, *mis.second);
+        REQUIRE(*mis.first == *mis.second);
       }
     }
   };
@@ -64,13 +64,13 @@ namespace {
 
 void DTest::run(const char* path) {
   std::ifstream in(path, std::ios_base::binary);
-  SCOPE_ASSERT(in);
+  REQUIRE(in);
 
   Executor Exec;
 
   while (in.peek() != -1) {
     TestCase tcase;
-    SCOPE_ASSERT(readTestData(in, tcase.patterns, tcase.text, tcase.expected));
+    REQUIRE(readTestData(in, tcase.patterns, tcase.text, tcase.expected));
     Exec.submit(tcase);
   }
 }

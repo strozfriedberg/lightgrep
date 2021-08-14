@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 
   // parse the character class
   ParseTree tree;
-  if (!parse({expr, false, false}, tree)) {
+  if (!parse({expr, false, false, false}, tree)) {
     throw std::runtime_error("bad parse");
   }
 
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
   char cname[128];
 
   const UnicodeSet uset(cc->Set.CodePoints & enc->validCodePoints());
-  for (const UnicodeSet::range& r : uset) {
+  for (const UnicodeSet::range r : uset) {
     for (uint32_t i = r.first; i < r.second; ++i) {
       // get code point representation if printable
       switch (u_charType(i)) {

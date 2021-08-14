@@ -16,20 +16,20 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <vector>
 
 #include "decoders/bytesource.h"
 #include "decoders/utf8decoder.h"
 
-SCOPE_TEST(utf8DecoderName) {
+TEST_CASE("utf8DecoderName") {
   const byte buf[] = "x";
   UTF8Decoder d(std::unique_ptr<Decoder>(new ByteSource(buf, buf)));
-  SCOPE_ASSERT_EQUAL("UTF-8", d.name());
+  REQUIRE("UTF-8" == d.name());
 }
 
-SCOPE_TEST(utf8DecoderNext) {
+TEST_CASE("utf8DecoderNext") {
   const byte buf[] = {
     'a', 'b', 'c', 0x80, 0x81, 0xF0, 0x9F, 0x92, 0xA9
   };
@@ -47,6 +47,6 @@ SCOPE_TEST(utf8DecoderNext) {
   };
 
   for (const std::pair<int32_t,const byte*>& cp : exp) {
-    SCOPE_ASSERT_EQUAL(cp, d.next());
+    REQUIRE(cp == d.next());
   }
 }

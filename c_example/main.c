@@ -67,8 +67,9 @@ int main() {
   LG_HPATTERN pattern = lg_create_pattern();
 
   LG_KeyOptions keyOpts;
-  keyOpts.CaseInsensitive = 1;
   keyOpts.FixedString = 0;
+  keyOpts.CaseInsensitive = 1;
+  keyOpts.UnicodeMode = 0;
 
   // parse the keywords one at a time
   int isgood = 1;
@@ -105,6 +106,7 @@ int main() {
   if (isgood) {
     // create a "program" from the parsed keywords
     LG_ProgramOptions opts;
+    opts.DeterminizeDepth = UINT32_MAX;
 
     if (!lg_compile_program(fsm, prog, &opts)) {
       fprintf(stderr, "Failed to compile program");

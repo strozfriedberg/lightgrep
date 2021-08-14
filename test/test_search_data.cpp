@@ -16,11 +16,17 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "config.h"
 #include "dtest.h"
 
-SCOPE_FIXTURE_CTOR(hundredPatternSearch, DTest, DTest(TDATDIR "/hectotest.dat")) { SCOPE_ASSERT(fixture); }
+TEST_CASE("hundredPatternSearch") {
+  DTest fixture(LG_TEST_DATA_DIR "/hectotest.dat");
+  REQUIRE(fixture);
+}
 
-SCOPE_FIXTURE_CTOR(thousandPatternSearch, DTest, DTest(TDATDIR "/kilotest.dat")) { SCOPE_ASSERT(fixture); }
+TEST_CASE("thousandPatternSearch") {
+  DTest fixture(LG_TEST_DATA_DIR "/kilotest.dat");
+  REQUIRE(fixture);
+}

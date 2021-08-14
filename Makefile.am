@@ -101,7 +101,7 @@ src_val_val_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 src_what_what_SOURCES = src/what/what.cpp
 src_what_what_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
-include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
+$(srcdir)/include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
 	src/enc/enc$(EXEEXT) >$@
 
 BUILT_SOURCES = include/lightgrep/encodings.h
@@ -117,7 +117,7 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/searchcontroller.cpp \
 	src/cmd/util.cpp
 	
-src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(GPT_LIBS) $(STDCXX_LIB)
 
 if BUILD_MINGW
 
@@ -164,7 +164,6 @@ test_test_SOURCES = \
 	test/test_auto_search_5.cpp \
 	test/test_auto_search_6.cpp \
 	test/test_auto_search_7.cpp \
-	test/test_auto_search_8.cpp \
 	test/test_auto_search_multi_1.cpp \
 	test/test_auto_search_multi_2.cpp \
 	test/test_auto_starts_with_1.cpp \
@@ -205,6 +204,7 @@ test_test_SOURCES = \
 	test/test_rewriter.cpp \
 	test/test_rotencoder.cpp \
 	test/test_search_assertions.cpp \
+	test/test_search_switches.cpp \
 	test/test_search.cpp \
 	test/test_search_data.cpp \
 	test/test_search_data_driver.cpp \
@@ -225,7 +225,7 @@ test_test_SOURCES = \
 	test/test_vm.cpp \
 	test/test_xorencoder.cpp
 
-test_test_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS)
+test_test_CPPFLAGS = $(AM_CPPFLAGS)
 test_test_LDADD = $(LG_LIB_INT) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 pkgconfigdir = $(libdir)/pkgconfig

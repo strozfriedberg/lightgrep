@@ -16,42 +16,42 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "basic.h"
 #include "byteset.h"
 
 #include <iostream>
 
-SCOPE_TEST(byteSetSizeTest) {
+TEST_CASE("byteSetSizeTest") {
   // Our usage of memcmp assumes that ByteSet is laid out as a byte[32].
-  SCOPE_ASSERT_EQUAL(32u, sizeof(ByteSet));
+  REQUIRE(32u == sizeof(ByteSet));
 }
 
-SCOPE_TEST(byteSetDWordComparisionTest) {
+TEST_CASE("byteSetDWordComparisionTest") {
   // This tests that we are getting comparision per dword, instead of a
   // lexicographical order. It's not essential that this be the case, but
   // we want to know if there's an unexpected change.
   ByteSet a(0), b(1);
-  SCOPE_ASSERT(a < b);
+  REQUIRE(a < b);
 }
 
-SCOPE_TEST(fastByteSetOrderTest) {
-  SCOPE_ASSERT(ByteSet(0xFE) < ByteSet(0xFF));
+TEST_CASE("fastByteSetOrderTest") {
+  REQUIRE(ByteSet(0xFE) < ByteSet(0xFF));
 
   ByteSet none, test(1), all;
   all.set();
 
   do {
-    SCOPE_ASSERT(none < test);
-    SCOPE_ASSERT(!(test < none));
-    SCOPE_ASSERT(test < all);
-    SCOPE_ASSERT(!(all < test));
-    SCOPE_ASSERT(!(test < test));
+    REQUIRE(none < test);
+    REQUIRE(!(test < none));
+    REQUIRE(test < all);
+    REQUIRE(!(all < test));
+    REQUIRE(!(test < test));
   } while ((test <<= 1).any());
 }
 
-SCOPE_TEST(byteSetRangeSetTest) {
+TEST_CASE("byteSetRangeSetTest") {
   ByteSet a, b;
 
   // set true ranges on false bits
@@ -67,7 +67,7 @@ SCOPE_TEST(byteSetRangeSetTest) {
         b.set(k, true);
       }
 
-      SCOPE_ASSERT_EQUAL(b, a);
+      REQUIRE(b == a);
     }
   }
 
@@ -84,37 +84,38 @@ SCOPE_TEST(byteSetRangeSetTest) {
         b.set(k, false);
       }
 
-      SCOPE_ASSERT_EQUAL(b, a);
+      REQUIRE(b == a);
     }
   }
 }
 
-SCOPE_TEST(byteSetDifferenceAssignmentEmptyTest) {
+TEST_CASE("byteSetDifferenceAssignmentEmptyTest") {
   ByteSet a{0,5,17}, b{0,5,17,42};
-  SCOPE_ASSERT((a -= b).none());
+  REQUIRE((a -= b).none());
 }
 
-SCOPE_TEST(byteSetDifferenceAssignmentNonemptyTest) {
+TEST_CASE("byteSetDifferenceAssignmentNonemptyTest") {
   ByteSet a{0,5,17}, b{0,5}, c{17};
-  SCOPE_ASSERT_EQUAL(c, a -= b);
+  a -= b;
+  REQUIRE(c == a);
 }
 
-SCOPE_TEST(byteSetDifferenceAssignmentSelfTest) {
+TEST_CASE("byteSetDifferenceAssignmentSelfTest") {
   ByteSet a{0,5,17};
-  SCOPE_ASSERT((a -= a).none());
+  REQUIRE((a -= a).none());
 }
 
-SCOPE_TEST(byteSetDifferenceEmptyTest) {
+TEST_CASE("byteSetDifferenceEmptyTest") {
   ByteSet a{0,5,17}, b{0,5,17,42};
-  SCOPE_ASSERT((a - b).none());
+  REQUIRE((a - b).none());
 }
 
-SCOPE_TEST(byteSetDifferenceNonemptyTest) {
+TEST_CASE("byteSetDifferenceNonemptyTest") {
   ByteSet a{0,5,17}, b{0,5}, c{17};
-  SCOPE_ASSERT_EQUAL(c, a - b);
+  REQUIRE(c == a - b);
 }
 
-SCOPE_TEST(byteSetDifferenceSelfTest) {
+TEST_CASE("byteSetDifferenceSelfTest") {
   ByteSet a{0,5,17};
-  SCOPE_ASSERT((a - a).none());
+  REQUIRE((a - a).none());
 }

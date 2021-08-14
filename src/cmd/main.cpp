@@ -176,7 +176,7 @@ std::unique_ptr<const char*[]> c_str_arr(const std::vector<std::string>& vec) {
   for (uint32_t i = 0; i < size; ++i) {
     arr[i] = vec[i].c_str();
   }
-  return std::move(arr);
+  return arr;
 }
 
 template <class T>
@@ -275,7 +275,7 @@ loadProgram(const std::string& pfile) {
 }
 
 bool buildProgram(FSMHandle* fsm, ProgramHandle* prog, const Options& opts) {
-  LG_ProgramOptions progOpts{opts.Determinize};
+  LG_ProgramOptions progOpts{opts.DeterminizeDepth};
 
   if (lg_compile_program(fsm, prog, &progOpts)) {
     std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
@@ -296,7 +296,7 @@ public:
     return std::getline(is, l.data);
   }
 
-  operator std::string() const { return data; }
+  operator const std::string&() const { return data; }
 
 private:
   std::string data;
@@ -331,8 +331,40 @@ bool skipStdin(const std::string& path, bool& stdinUsed) {
   return false;
 }
 
+void searchRec(
+  const std::string& i,
+  bool mmapped,
+  SearchController& ctrl,
+  ContextHandle* searcher,
+  HitCounterInfo* hinfo,
+  LG_HITCALLBACK_FN callback)
+{
+  // search this path recursively
+  const fs::path p(i);
+  if (fs::is_directory(p)) {
+    searchRecursively(p, mmapped, ctrl, searcher, hinfo, callback);
+  }
+  else {
+    search(i, mmapped, ctrl, searcher, hinfo, callback);
+  }
+}
+
+void searchNonRec(
+  const std::string& i,
+  bool mmapped,
+  SearchController& ctrl,
+  ContextHandle* searcher,
+  HitCounterInfo* hinfo,
+  LG_HITCALLBACK_FN callback)
+{
+  // search this path non-recursively
+  if (!fs::is_directory(fs::path(i))) {
+    search(i, mmapped, ctrl, searcher, hinfo, callback);
+  }
+}
+
 template <class T>
-void search(
+void searchInputs(
   T&& inputs,
   const Options& opts,
   bool& stdinUsed,
@@ -341,31 +373,10 @@ void search(
   HitCounterInfo* hinfo,
   LG_HITCALLBACK_FN callback)
 {
-  if (opts.Recursive) {
-    for (const std::string& i: inputs) {
-      if (skipStdin(i, stdinUsed)) {
-        continue;
-      }
-
-      const fs::path p(i);
-      if (fs::is_directory(p)) {
-        searchRecursively(p, opts.MemoryMapped, ctrl, searcher, hinfo, callback);
-      }
-      else {
-        search(i, opts.MemoryMapped, ctrl, searcher, hinfo, callback);
-      }
-    }
-  }
-  else {
-    for (const std::string& i: inputs) {
-      if (skipStdin(i, stdinUsed)) {
-        continue;
-      }
-
-      if (!fs::is_directory(fs::path(i))) {
-        const fs::path p(i);
-        search(i, opts.MemoryMapped, ctrl, searcher, hinfo, callback);
-      }
+  const auto searchFunc = opts.Recursive ? searchRec : searchNonRec;
+  for (const std::string& i: inputs) {
+    if (!skipStdin(i, stdinUsed)) {
+      searchFunc(i, opts.MemoryMapped, ctrl, searcher, hinfo, callback);
     }
   }
 }
@@ -483,7 +494,7 @@ void search(const Options& opts) {
       is = &ilf;
     }
 
-    search(Lines(*is), opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
+    searchInputs(Lines(*is), opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
 
     if (is->bad()) {
       std::cerr << "Error reading input file list " << i << ": "
@@ -493,7 +504,7 @@ void search(const Options& opts) {
 
   // serach each input file (positional args or stdin)
   if (!opts.Inputs.empty()) {
-    search(opts.Inputs, opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
+    searchInputs(opts.Inputs, opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
   }
 
   std::cerr << ctrl.BytesSearched << " bytes\n"
@@ -536,7 +547,7 @@ bool writeGraphviz(const Options& opts) {
   }
 
   // break on through the C API to print the graph
-  opts.openOutput() << *fsm->Impl->Fsm;
+  writeGraphviz(opts.openOutput(), *fsm->Impl->Fsm);
   return true;
 }
 

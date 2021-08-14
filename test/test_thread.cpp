@@ -16,52 +16,52 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "thread.h"
 
-SCOPE_TEST(defaultThreadConstructor) {
+TEST_CASE("defaultThreadConstructor") {
   Thread t;
   Instruction *nullPtr = 0;
-  SCOPE_ASSERT_EQUAL(nullPtr, t.PC);
-  SCOPE_ASSERT_EQUAL(Thread::NOLABEL, t.Label);
-  SCOPE_ASSERT_EQUAL(0u, t.Start);
-  SCOPE_ASSERT_EQUAL(Thread::NONE, t.End);
+  REQUIRE(nullPtr == t.PC);
+  REQUIRE(Thread::NOLABEL == t.Label);
+  REQUIRE(0u == t.Start);
+  REQUIRE(Thread::NONE == t.End);
 }
 
-SCOPE_TEST(threadSize) {
-  SCOPE_ASSERT(sizeof(Thread) <= 32);
+TEST_CASE("threadSize") {
+  REQUIRE(sizeof(Thread) <= 32);
 }
 
 /*
-SCOPE_TEST(threadInit) {
+TEST_CASE("threadInit") {
   Thread t;
   Instruction* basePtr = reinterpret_cast<Instruction*>(17);
   uint64_t startOffset = 0xfffffffffffffffd;
   t.init(basePtr, startOffset);
-  SCOPE_ASSERT_EQUAL(basePtr, t.PC);
-  SCOPE_ASSERT_EQUAL(std::numeric_limits<uint32_t>::max(), t.Label);
-  SCOPE_ASSERT_EQUAL(startOffset, t.Start);
-  SCOPE_ASSERT_EQUAL(std::numeric_limits<uint64_t>::max(), t.End);
+  REQUIRE(basePtr == t.PC);
+  REQUIRE(std::numeric_limits<uint32_t>::max() == t.Label);
+  REQUIRE(startOffset == t.Start);
+  REQUIRE(std::numeric_limits<uint64_t>::max() == t.End);
 }
 */
 
-SCOPE_TEST(threadJump) {
+TEST_CASE("threadJump") {
   Thread t;
   Instruction* basePtr = reinterpret_cast<Instruction*>(8);
   t.jump(basePtr, 5);
-  SCOPE_ASSERT_EQUAL(reinterpret_cast<Instruction*>(28), t.PC);
-  SCOPE_ASSERT_EQUAL(Thread::NOLABEL, t.Label);
-  SCOPE_ASSERT_EQUAL(0u, t.Start);
-  SCOPE_ASSERT_EQUAL(Thread::NONE, t.End);
+  REQUIRE(reinterpret_cast<Instruction*>(28) == t.PC);
+  REQUIRE(Thread::NOLABEL == t.Label);
+  REQUIRE(0u == t.Start);
+  REQUIRE(Thread::NONE == t.End);
 }
 
-SCOPE_TEST(threadFork) {
+TEST_CASE("threadFork") {
   Thread parent(0, 5, 123, std::numeric_limits<uint64_t>::max()),
          child;
   child.fork(parent, 0, 4);
-  SCOPE_ASSERT_EQUAL(reinterpret_cast<Instruction*>(16), child.PC);
-  SCOPE_ASSERT_EQUAL(5u, child.Label);
-  SCOPE_ASSERT_EQUAL(123u, child.Start);
-  SCOPE_ASSERT_EQUAL(Thread::NONE, child.End);
+  REQUIRE(reinterpret_cast<Instruction*>(16) == child.PC);
+  REQUIRE(5u == child.Label);
+  REQUIRE(123u == child.Start);
+  REQUIRE(Thread::NONE == child.End);
 }

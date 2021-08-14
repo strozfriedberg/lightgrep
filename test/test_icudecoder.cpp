@@ -16,21 +16,21 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <vector>
 
 #include "decoders/bytesource.h"
 #include "decoders/icudecoder.h"
 
-SCOPE_TEST(icuDecoderName) {
+TEST_CASE("icuDecoderName") {
   const char name[] = "ISO-8859-1";
   const byte buf[] = "x";
   ICUDecoder d(name, std::unique_ptr<Decoder>(new ByteSource(buf, buf)));
-  SCOPE_ASSERT_EQUAL(name, d.name());
+  REQUIRE(name == d.name());
 }
 
-SCOPE_TEST(icuDecoder_ISO_8859_1_Next) {
+TEST_CASE("icuDecoder_ISO_8859_1_Next") {
   const byte buf[] = {
     'a', 'b', 'c', 0x80, 0x81, 0xC6, 0xFE
   };
@@ -48,11 +48,11 @@ SCOPE_TEST(icuDecoder_ISO_8859_1_Next) {
   };
 
   for (const std::pair<int32_t,const byte*>& cp : exp) {
-    SCOPE_ASSERT_EQUAL(cp, d.next());
+    REQUIRE(cp == d.next());
   }
 }
 
-SCOPE_TEST(icuDecoder_EUC_KR_Next) {
+TEST_CASE("icuDecoder_EUC_KR_Next") {
   const byte buf[] = {
     'a', 'b', 'c', 0xB0, 0xFD, 0xFF, 0xB2, 0xE1
   };
@@ -71,11 +71,11 @@ SCOPE_TEST(icuDecoder_EUC_KR_Next) {
   };
 
   for (const std::pair<int32_t,const byte*>& cp : exp) {
-    SCOPE_ASSERT_EQUAL(cp, d.next());
+    REQUIRE(cp == d.next());
   }
 }
 
-SCOPE_TEST(icuDecoder_GB18030_Next) {
+TEST_CASE("icuDecoder_GB18030_Next") {
   const byte buf[] = {
     'a', 'b', 'c', 0x90, 0x30, 0x81, 0x31, 0x80, 0x90
   };
@@ -94,6 +94,6 @@ SCOPE_TEST(icuDecoder_GB18030_Next) {
   };
 
   for (const std::pair<int32_t,const byte*>& cp : exp) {
-    SCOPE_ASSERT_EQUAL(cp, d.next());
+    REQUIRE(cp == d.next());
   }
 }

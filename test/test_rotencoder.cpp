@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <iostream>
 
@@ -24,57 +24,57 @@
 #include "encoders/ascii.h"
 #include "encoders/rotencoder.h"
 
-SCOPE_TEST(testRotEncoderASCIIName) {
+TEST_CASE("testRotEncoderASCIIName") {
   RotEncoder enc(13, ASCII());
-  SCOPE_ASSERT_EQUAL("rot13|ASCII", enc.name());
+  REQUIRE("rot13|ASCII" == enc.name());
 }
 
-SCOPE_TEST(testRotEncoderWriteSingleASCII) {
+TEST_CASE("testRotEncoderWriteSingleASCII") {
   RotEncoder enc(13, ASCII());
-  SCOPE_ASSERT_EQUAL(1u, enc.maxByteLength());
+  REQUIRE(1u == enc.maxByteLength());
 
   byte buf[1];
   uint32_t len;
 
   // too low
-  SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
+  REQUIRE(0u == enc.write(-1, buf));
 
   // just right
   for (uint32_t i = 0; i < 'A'; ++i) {
     len = enc.write(i, buf);
-    SCOPE_ASSERT_EQUAL(1u, len);
-    SCOPE_ASSERT_EQUAL(i, buf[0]);
+    REQUIRE(1u == len);
+    REQUIRE(i == buf[0]);
   }
 
   for (uint32_t i = 'A'; i < 'Z' + 1; ++i) {
     len = enc.write(i, buf);
-    SCOPE_ASSERT_EQUAL(1u, len);
-    SCOPE_ASSERT_EQUAL('A'+(i-'A'+13)%26, buf[0]);
+    REQUIRE(1u == len);
+    REQUIRE('A'+(i-'A'+13)%26 == buf[0]);
   }
 
   for (uint32_t i = 'Z' + 1; i < 'a'; ++i) {
     len = enc.write(i, buf);
-    SCOPE_ASSERT_EQUAL(1u, len);
-    SCOPE_ASSERT_EQUAL(i, buf[0]);
+    REQUIRE(1u == len);
+    REQUIRE(i == buf[0]);
   }
 
   for (uint32_t i = 'a'; i < 'z' + 1; ++i) {
     len = enc.write(i, buf);
-    SCOPE_ASSERT_EQUAL(1u, len);
-    SCOPE_ASSERT_EQUAL('a'+(i-'a'+13)%26, buf[0]);
+    REQUIRE(1u == len);
+    REQUIRE('a'+(i-'a'+13)%26 == buf[0]);
   }
 
   for (uint32_t i = 'z' + 1; i < 0x80; ++i) {
     len = enc.write(i, buf);
-    SCOPE_ASSERT_EQUAL(1u, len);
-    SCOPE_ASSERT_EQUAL(i, buf[0]);
+    REQUIRE(1u == len);
+    REQUIRE(i == buf[0]);
   }
 
   // too high
-  SCOPE_ASSERT_EQUAL(0u, enc.write(0x80, buf));
+  REQUIRE(0u == enc.write(0x80, buf));
 }
 
-SCOPE_TEST(testRotEncoderWriteSetASCII) {
+TEST_CASE("testRotEncoderWriteSetASCII") {
 /*
   RotEncoder enc(13, ASCII());
 
@@ -105,6 +105,6 @@ SCOPE_TEST(testRotEncoderWriteSetASCII) {
   std::vector<std::vector<ByteSet>> actual;
   enc.write(us, actual);
 
-  SCOPE_ASSERT_EQUAL(expected, actual);
+  REQUIRE(expected == actual);
 */
 }

@@ -60,7 +60,7 @@ int parseOctChar(int c) {
   return ('0' <= c && c <= '7') ? c - '0' : -1;
 }
 
-int propertyGetter(const std::string& prop, UnicodeSet& us) {
+int propertyGetter(const std::string& prop, UnicodeSet& us, bool case_insensitive) {
   // ask ICU for the set corresponding to this property
   UErrorCode err = U_ZERO_ERROR;
 
@@ -76,8 +76,10 @@ int propertyGetter(const std::string& prop, UnicodeSet& us) {
     );
   }
 
+  const uint32_t opts = case_insensitive ? USET_CASE_INSENSITIVE : 0;
+
   std::unique_ptr<USet, void(*)(USet*)> icu_us(
-    uset_openPattern(ustr.get(), -1, &err), uset_close
+    uset_openPatternOptions(ustr.get(), -1, opts, &err), uset_close
   );
 
   if (U_FAILURE(err)) {
@@ -136,8 +138,8 @@ bool caseDesensitizeAscii(UnicodeSet& us) {
   return orig_count < us.count();
 }
 
-bool caseDesensitize(UnicodeSet& us) {
-  return caseDesensitizeUnicode(us);
+bool caseDesensitize(UnicodeSet& us, bool ascii_mode) {
+  return ascii_mode ? caseDesensitizeAscii(us) : caseDesensitizeUnicode(us);
 }
 
 void setDigitClass(UnicodeSet& us, bool ascii_mode) {
@@ -147,7 +149,7 @@ void setDigitClass(UnicodeSet& us, bool ascii_mode) {
   }
   else {
     // pcrepattern(3): \d = \p{Nd}
-    propertyGetter("\\p{Nd}", us);
+    propertyGetter("\\p{Nd}", us, false);
   }
 }
 
@@ -206,8 +208,8 @@ void setWordClass(UnicodeSet& us, bool ascii_mode) {
   }
   else {
     // pcrepattern(3): \w = [\p{L}\p{N}_]
-    propertyGetter("\\p{L}", us);
-    propertyGetter("\\p{N}", us);
+    propertyGetter("\\p{L}", us, false);
+    propertyGetter("\\p{N}", us, false);
     us.set('_');
   }
 }

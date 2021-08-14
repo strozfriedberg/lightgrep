@@ -16,8 +16,26 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "catch.hpp"
 
-#include <iosfwd>
+#include <algorithm>
+#include <cstring>
 
-bool longTest(std::istream& in);
+#include "stest.h"
+
+TEST_CASE("ai_switches_Search") {
+  STest fixture({
+    {"(?i)x((?-i)x)x", false, false, true, "UTF-8"},
+    {"(?i)k(?-i)k(?ai)k+", false, false, true, "UTF-8"},
+    {"(?i)k(?-i)k(?i)k+", false, false, true, "UTF-8"}
+  });
+  fixture.search("XXX XxX xxx Kkkk Kk\xE2\x84\xAAK", 0);
+  const std::vector<SearchHit> expected {
+    {4, 7, 0},
+    {8, 11, 0},
+    {12, 16, 2},
+    {12, 16, 1},
+    {17, 23, 2},
+  };
+  REQUIRE(expected == fixture.Hits);
+}

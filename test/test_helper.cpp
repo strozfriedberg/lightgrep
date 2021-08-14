@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <memory>
 
@@ -48,37 +48,37 @@ bool edgeExists(const NFA& g, const NFA::VertexDescriptor source, const NFA::Ver
 
 void ASSERT_SUPERGRAPH(const NFA& a, const NFA& b) {
   for (uint32_t av = 0; av < a.verticesSize(); ++av) {
-    SCOPE_ASSERT(av < b.verticesSize());
+    REQUIRE(av < b.verticesSize());
 
     for (uint32_t a_ov = 0; a_ov < a.outDegree(av); ++a_ov) {
-      SCOPE_ASSERT(a.outVertex(av, a_ov) < b.verticesSize());
-      SCOPE_ASSERT(edgeExists(b, av, a.outVertex(av, a_ov)));
+      REQUIRE(a.outVertex(av, a_ov) < b.verticesSize());
+      REQUIRE(edgeExists(b, av, a.outVertex(av, a_ov)));
     }
   }
 }
 
 void ASSERT_EQUAL_GRAPHS(const NFA& a, const NFA& b) {
-  SCOPE_ASSERT_EQUAL(a.verticesSize(), b.verticesSize());
+  REQUIRE(a.verticesSize() == b.verticesSize());
   ASSERT_SUPERGRAPH(a, b);
   ASSERT_SUPERGRAPH(b, a);
 }
 
 void ASSERT_EQUAL_LABELS(const NFA& a, const NFA& b) {
-  SCOPE_ASSERT_EQUAL(a.verticesSize(), b.verticesSize());
+  REQUIRE(a.verticesSize() == b.verticesSize());
   for (uint32_t v = 0; v < a.verticesSize(); ++v) {
-    SCOPE_ASSERT((!a[v].Trans && !b[v].Trans) || (a[v].Trans && b[v].Trans));
+    REQUIRE(((!a[v].Trans && !b[v].Trans) || (a[v].Trans && b[v].Trans)));
     if (a[v].Trans && b[v].Trans) {
-      SCOPE_ASSERT_EQUAL(a[v].Label, b[v].Label);
+      REQUIRE(a[v].Label == b[v].Label);
     }
   }
 }
 
 void ASSERT_EQUAL_MATCHES(const NFA& a, const NFA& b) {
-  SCOPE_ASSERT_EQUAL(a.verticesSize(), b.verticesSize());
+  REQUIRE(a.verticesSize() == b.verticesSize());
   for (uint32_t v = 0; v < a.verticesSize(); ++v) {
-    SCOPE_ASSERT((!a[v].Trans && !b[v].Trans) || (a[v].Trans && b[v].Trans));
+    REQUIRE(((!a[v].Trans && !b[v].Trans) || (a[v].Trans && b[v].Trans)));
     if (a[v].Trans && b[v].Trans) {
-      SCOPE_ASSERT_EQUAL(a[v].IsMatch, b[v].IsMatch);
+      REQUIRE(a[v].IsMatch == b[v].IsMatch);
     }
   }
 }

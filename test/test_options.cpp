@@ -1,15 +1,17 @@
-#include <scope/test.h>
+#include "catch.hpp"
+
+#include "config.h"
 
 #include <vector>
 
 #include "options.h"
 
-SCOPE_TEST(getKeyFilesFromActualFiles) {
+TEST_CASE("getKeyFilesFromActualFiles") {
   Options opts;
   opts.KeyFiles = {
-    "test/data/pats.0",
-    "test/data/pats.1",
-    "test/data/pats.2"
+    LG_TEST_DATA_DIR "/pats.0",
+    LG_TEST_DATA_DIR "/pats.1",
+    LG_TEST_DATA_DIR "/pats.2"
   };
 
   const std::vector<std::pair<std::string,std::string>> expected = {
@@ -18,5 +20,5 @@ SCOPE_TEST(getKeyFilesFromActualFiles) {
     { opts.KeyFiles[2], "\n\n\n\n\n\n\n\n\n" }
   };
 
-  SCOPE_ASSERT_EQUAL(expected, opts.getPatternLines());
+  REQUIRE(expected == opts.getPatternLines());
 }

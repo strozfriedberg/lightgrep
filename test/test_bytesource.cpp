@@ -16,21 +16,21 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include "decoders/bytesource.h"
 
-SCOPE_TEST(byteSourceName) {
+TEST_CASE("byteSourceName") {
   const byte buf[] = "x";
   ByteSource bs(buf, buf);
-  SCOPE_ASSERT_EQUAL("", bs.name());
+  REQUIRE("" == bs.name());
 }
 
-SCOPE_TEST(byteSourceNext) {
+TEST_CASE("byteSourceNext") {
   const byte buf[] = "abcdefghijklmnopqrstuvwxyz\n\t";
   ByteSource bs(buf, buf + sizeof(buf));
   for (size_t i = 0; i < sizeof(buf); ++i) {
-    SCOPE_ASSERT_EQUAL(std::make_pair((int32_t) buf[i], buf+i), bs.next());
+    REQUIRE(std::make_pair((int32_t) buf[i], buf+i) == bs.next());
   }
-  SCOPE_ASSERT_EQUAL(std::make_pair(Decoder::END, buf+sizeof(buf)), bs.next());
+  REQUIRE(std::make_pair(Decoder::END, buf+sizeof(buf)) == bs.next());
 }

@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -29,153 +29,153 @@ struct X {};
 template <typename T>
 struct S: public SimpleVectorFamily<T> {};
 
-SCOPE_TEST(graphNullaryCtor) {
+TEST_CASE("graphNullaryCtor") {
   Graph<X,X,X,S> g;
-  SCOPE_ASSERT_EQUAL(0u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(0u, g.edgesSize());
+  REQUIRE(0u == g.verticesSize());
+  REQUIRE(0u == g.edgesSize());
 }
 
-SCOPE_TEST(graphFiveCtor) {
+TEST_CASE("graphFiveCtor") {
   Graph<X,X,X,S> g(5);
-  SCOPE_ASSERT_EQUAL(5u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(0u, g.edgesSize());
+  REQUIRE(5u == g.verticesSize());
+  REQUIRE(0u == g.edgesSize());
 }
 
-SCOPE_TEST(graphTenTwentyCtor) {
+TEST_CASE("graphTenTwentyCtor") {
   Graph<X,X,X,S> g(10, 20);
-  SCOPE_ASSERT_EQUAL(10u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(20u, g.verticesCapacity());
-  SCOPE_ASSERT_EQUAL(0u, g.edgesSize());
+  REQUIRE(10u == g.verticesSize());
+  REQUIRE(20u == g.verticesCapacity());
+  REQUIRE(0u == g.edgesSize());
 }
 
-SCOPE_TEST(graphSixSevenEightCtor) {
+TEST_CASE("graphSixSevenEightCtor") {
   Graph<X,X,X,S> g(6, 7, 8);
-  SCOPE_ASSERT_EQUAL(6u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(7u, g.verticesCapacity());
-  SCOPE_ASSERT_EQUAL(0u, g.edgesSize());
-  SCOPE_ASSERT_EQUAL(8u, g.edgesCapacity());
+  REQUIRE(6u == g.verticesSize());
+  REQUIRE(7u == g.verticesCapacity());
+  REQUIRE(0u == g.edgesSize());
+  REQUIRE(8u == g.edgesCapacity());
 }
 
-SCOPE_TEST(graphAddVertex) {
+TEST_CASE("graphAddVertex") {
   Graph<X,X,X,S> g(0);
-  SCOPE_ASSERT_EQUAL(0u, g.addVertex());
-  SCOPE_ASSERT_EQUAL(1u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(1u, g.addVertex());
-  SCOPE_ASSERT_EQUAL(2u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(2u, g.addVertex());
-  SCOPE_ASSERT_EQUAL(3u, g.verticesSize());
+  REQUIRE(0u == g.addVertex());
+  REQUIRE(1u == g.verticesSize());
+  REQUIRE(1u == g.addVertex());
+  REQUIRE(2u == g.verticesSize());
+  REQUIRE(2u == g.addVertex());
+  REQUIRE(3u == g.verticesSize());
 }
 
-SCOPE_TEST(graphAddLoop) {
+TEST_CASE("graphAddLoop") {
   Graph<X,X,X,S> g(1);
-  SCOPE_ASSERT_EQUAL(0u, g.addEdge(0, 0));
-  SCOPE_ASSERT_EQUAL(1u, g.edgesSize());
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(0u, g.inVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.inEdge(0, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.outEdge(0, 0));
+  REQUIRE(0u == g.addEdge(0, 0));
+  REQUIRE(1u == g.edgesSize());
+  REQUIRE(1u == g.inDegree(0));
+  REQUIRE(1u == g.outDegree(0));
+  REQUIRE(0u == g.inVertex(0, 0));
+  REQUIRE(0u == g.outVertex(0, 0));
+  REQUIRE(0u == g.inEdge(0, 0));
+  REQUIRE(0u == g.outEdge(0, 0));
 }
 
-SCOPE_TEST(graphAddEdge) {
+TEST_CASE("graphAddEdge") {
   Graph<X,X,X,S> g(2);
 
   // two disconnected vertices
-  SCOPE_ASSERT_EQUAL(2u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(0u, g.edgesSize());
-  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(0u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(0u, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0u, g.outDegree(1));
+  REQUIRE(2u == g.verticesSize());
+  REQUIRE(0u == g.edgesSize());
+  REQUIRE(0u == g.inDegree(0));
+  REQUIRE(0u == g.outDegree(0));
+  REQUIRE(0u == g.inDegree(1));
+  REQUIRE(0u == g.outDegree(1));
 
   // 0 -> 1
-  SCOPE_ASSERT_EQUAL(0u, g.addEdge(0, 1));
-  SCOPE_ASSERT_EQUAL(1u, g.edgesSize());
-  SCOPE_ASSERT_EQUAL(0u, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.outEdge(0, 0));
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(0u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(0u, g.inVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.inEdge(1, 0));
+  REQUIRE(0u == g.addEdge(0, 1));
+  REQUIRE(1u == g.edgesSize());
+  REQUIRE(0u == g.inDegree(0));
+  REQUIRE(1u == g.outDegree(0));
+  REQUIRE(1u == g.outVertex(0, 0));
+  REQUIRE(0u == g.outEdge(0, 0));
+  REQUIRE(1u == g.inDegree(1));
+  REQUIRE(0u == g.outDegree(1));
+  REQUIRE(0u == g.inVertex(1, 0));
+  REQUIRE(0u == g.inEdge(1, 0));
 
   // 1 -> 0
-  SCOPE_ASSERT_EQUAL(1u, g.addEdge(1, 0));
-  SCOPE_ASSERT_EQUAL(2u, g.edgesSize());
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(1u, g.inVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(1u, g.outVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(1u, g.inEdge(0, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.outEdge(0, 0));
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(0u, g.inVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.inEdge(1, 0));
-  SCOPE_ASSERT_EQUAL(1u, g.outEdge(1, 0));
+  REQUIRE(1u == g.addEdge(1, 0));
+  REQUIRE(2u == g.edgesSize());
+  REQUIRE(1u == g.inDegree(0));
+  REQUIRE(1u == g.outDegree(0));
+  REQUIRE(1u == g.inVertex(0, 0));
+  REQUIRE(1u == g.outVertex(0, 0));
+  REQUIRE(1u == g.inEdge(0, 0));
+  REQUIRE(0u == g.outEdge(0, 0));
+  REQUIRE(1u == g.inDegree(1));
+  REQUIRE(1u == g.outDegree(1));
+  REQUIRE(0u == g.inVertex(1, 0));
+  REQUIRE(0u == g.outVertex(1, 0));
+  REQUIRE(0u == g.inEdge(1, 0));
+  REQUIRE(1u == g.outEdge(1, 0));
 }
 
-SCOPE_TEST(graphRemoveEdge) {
+TEST_CASE("graphRemoveEdge") {
   Graph<X,X,X,S> g(2);
 
-  SCOPE_ASSERT_EQUAL(0u, g.addEdge(0, 1));
-  SCOPE_ASSERT_EQUAL(1u, g.addEdge(1, 0));
-  SCOPE_ASSERT_EQUAL(2u, g.edgesSize());
+  REQUIRE(0u == g.addEdge(0, 1));
+  REQUIRE(1u == g.addEdge(1, 0));
+  REQUIRE(2u == g.edgesSize());
   g.removeEdge(0);
-  SCOPE_ASSERT_EQUAL(1u, g.edgesSize());
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(0u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(0u, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, g.inVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.inEdge(0, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.outEdge(1, 0));
+  REQUIRE(1u == g.edgesSize());
+  REQUIRE(1u == g.inDegree(0));
+  REQUIRE(0u == g.outDegree(0));
+  REQUIRE(0u == g.inDegree(1));
+  REQUIRE(1u == g.outDegree(1));
+  REQUIRE(1u == g.inVertex(0, 0));
+  REQUIRE(0u == g.outVertex(1, 0));
+  REQUIRE(0u == g.inEdge(0, 0));
+  REQUIRE(0u == g.outEdge(1, 0));
 }
 
-SCOPE_TEST(graphRemoveVertex) {
+TEST_CASE("graphRemoveVertex") {
   Graph<X,X,X,S> g(3);
   g.addEdge(0, 1);
   g.addEdge(1, 2);
   g.addEdge(2, 0);
 
   g.removeVertex(1);
-  SCOPE_ASSERT_EQUAL(2u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(1u, g.edgesSize());
-  SCOPE_ASSERT_EQUAL(1u, g.inDegree(0));
-  SCOPE_ASSERT_EQUAL(0u, g.outDegree(0));
-  SCOPE_ASSERT_EQUAL(0u, g.inDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, g.outDegree(1));
-  SCOPE_ASSERT_EQUAL(1u, g.inVertex(0, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.outVertex(1, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.inEdge(0, 0));
-  SCOPE_ASSERT_EQUAL(0u, g.outEdge(1, 0));
+  REQUIRE(2u == g.verticesSize());
+  REQUIRE(1u == g.edgesSize());
+  REQUIRE(1u == g.inDegree(0));
+  REQUIRE(0u == g.outDegree(0));
+  REQUIRE(0u == g.inDegree(1));
+  REQUIRE(1u == g.outDegree(1));
+  REQUIRE(1u == g.inVertex(0, 0));
+  REQUIRE(0u == g.outVertex(1, 0));
+  REQUIRE(0u == g.inEdge(0, 0));
+  REQUIRE(0u == g.outEdge(1, 0));
 }
 
-SCOPE_TEST(graphClearVertices) {
+TEST_CASE("graphClearVertices") {
   Graph<X,X,X,S> g(1);
   g.addEdge(0, 0);
-  SCOPE_ASSERT_EQUAL(1u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(1u, g.edgesSize());
+  REQUIRE(1u == g.verticesSize());
+  REQUIRE(1u == g.edgesSize());
   g.clearVertices();
-  SCOPE_ASSERT_EQUAL(0u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(0u, g.edgesSize());
+  REQUIRE(0u == g.verticesSize());
+  REQUIRE(0u == g.edgesSize());
 }
 
-SCOPE_TEST(graphClearEdges) {
+TEST_CASE("graphClearEdges") {
   Graph<X,X,X,S> g(1);
   g.addEdge(0, 0);
-  SCOPE_ASSERT_EQUAL(1u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(1u, g.edgesSize());
+  REQUIRE(1u == g.verticesSize());
+  REQUIRE(1u == g.edgesSize());
   g.clearEdges();
-  SCOPE_ASSERT_EQUAL(1u, g.verticesSize());
-  SCOPE_ASSERT_EQUAL(0u, g.edgesSize());
+  REQUIRE(1u == g.verticesSize());
+  REQUIRE(0u == g.edgesSize());
 }
 
-SCOPE_TEST(graphInVertices) {
+TEST_CASE("graphInVertices") {
   typedef Graph<X,X,X,S> G;
 
   G g(5);
@@ -187,10 +187,10 @@ SCOPE_TEST(graphInVertices) {
   const G::NeighborList nl(g.inVertices(1));
   const std::vector<G::VertexDescriptor> act(nl.begin(), nl.end());
   const std::vector<G::VertexDescriptor> exp{0,2,3,4};
-  SCOPE_ASSERT_EQUAL(exp, act);
+  REQUIRE(exp == act);
 }
 
-SCOPE_TEST(graphOutVertices) {
+TEST_CASE("graphOutVertices") {
   typedef Graph<X,X,X,S> G;
 
   G g(5);
@@ -202,5 +202,5 @@ SCOPE_TEST(graphOutVertices) {
   const G::NeighborList nl(g.outVertices(1));
   const std::vector<G::VertexDescriptor> act(nl.begin(), nl.end());
   const std::vector<G::VertexDescriptor> exp{2,3,4};
-  SCOPE_ASSERT_EQUAL(exp, act);
+  REQUIRE(exp == act);
 }

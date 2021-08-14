@@ -123,13 +123,13 @@ public:
     return getByteSet(bset);
   }
 
-private:
   Transition* get(Transition* t) {
     auto i = Exemplars.find(t);
     return i == Exemplars.end() ? *Exemplars.insert(t->clone()).first : *i;
   }
 
-  std::set<Transition*,TransitionComparator> Exemplars;
+private:
+  std::set<Transition*, TransitionComparator> Exemplars;
 
   // Local states so we don't have to create one on each lookup
   ByteState Byte;

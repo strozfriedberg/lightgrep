@@ -66,7 +66,7 @@ void convUnicodeSet(UnicodeSet& dst, const USet* src) {
 
 void convUnicodeSet(USet* dst, const UnicodeSet& src) {
   uset_clear(dst);
-  for (const UnicodeSet::range& r : src) {
+  for (const UnicodeSet::range r : src) {
     uset_addRange(dst, r.first, r.second-1);
   }
 }

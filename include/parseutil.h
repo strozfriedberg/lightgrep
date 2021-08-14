@@ -176,10 +176,10 @@ int parseNamedCodePoint(Iterator& i, const Iterator& end) {
   return U_FAILURE(err) ? -1 : val;
 }
 
-int propertyGetter(const std::string& prop, UnicodeSet& us);
+int propertyGetter(const std::string& prop, UnicodeSet& us, bool case_insensitive);
 
 template <typename Iterator>
-int parseProperty(Iterator& i, const Iterator& end, UnicodeSet& us) {
+int parseProperty(Iterator& i, const Iterator& end, UnicodeSet& us, bool case_insensitive) {
   if (i == end) {
     return -1;
   }
@@ -201,12 +201,14 @@ int parseProperty(Iterator& i, const Iterator& end, UnicodeSet& us) {
   prop += '}';
 
   us.reset();
-  return propertyGetter(prop, us);
+  return propertyGetter(prop, us, case_insensitive);
 }
 
-bool caseDesensitize(UnicodeSet& us);
+bool caseDesensitize(UnicodeSet& us, bool ascii_mode);
 
 bool caseDesensitizeAscii(UnicodeSet& us);
+
+bool caseDesensitizeUnicode(UnicodeSet& us);
 
 void setDigitClass(UnicodeSet& us, bool ascii_mode);
 

@@ -16,7 +16,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <scope/test.h>
+#include "catch.hpp"
 
 //#include "automata.h"
 #include "container_out.h"
@@ -24,51 +24,51 @@
 //#include "utility.h"
 #include "encoders/utf8.h"
 
-SCOPE_TEST(testUTF8) {
+TEST_CASE("testUTF8") {
   UTF8 enc;
-  SCOPE_ASSERT_EQUAL(4u, enc.maxByteLength());
+  REQUIRE(4u == enc.maxByteLength());
 
   byte buf[4];
   uint32_t len;
   uint32_t val;
 
   // too low
-  SCOPE_ASSERT_EQUAL(0u, enc.write(-1, buf));
+  REQUIRE(0u == enc.write(-1, buf));
 
   // one byte representations
   for (uint32_t i = 0; i < 0x80; ++i) {
     len = enc.write(i, buf);
-    SCOPE_ASSERT_EQUAL(1u, len);
-    SCOPE_ASSERT_EQUAL(i, buf[0]);
+    REQUIRE(1u == len);
+    REQUIRE(i == buf[0]);
   }
 
   // two-byte representations
   for (uint32_t i = 0x80; i < 0x800; ++i) {
     len = enc.write(i, buf);
     val = ((buf[0] & 0x1F) << 6) | (buf[1] & 0x3F);
-    SCOPE_ASSERT_EQUAL(2u, len);
-    SCOPE_ASSERT_EQUAL(i, val);
+    REQUIRE(2u == len);
+    REQUIRE(i == val);
   }
 
   // low three-byte representations
   for (uint32_t i = 0x800; i < 0xD800; ++i) {
     len = enc.write(i, buf);
     val = ((buf[0] & 0x0F) << 12) | ((buf[1] & 0x3F) << 6) | (buf[2] & 0x3F);
-    SCOPE_ASSERT_EQUAL(3u, len);
-    SCOPE_ASSERT_EQUAL(i, val);
+    REQUIRE(3u == len);
+    REQUIRE(i == val);
   }
 
   // UTF-16 surrogates, invalid
   for (uint32_t i = 0xD800; i < 0xE000; ++i) {
-    SCOPE_ASSERT_EQUAL(0u, enc.write(i, buf));
+    REQUIRE(0u == enc.write(i, buf));
   }
 
   // high three-byte representations
   for (uint32_t i = 0xE000; i < 0x10000; ++i) {
     len = enc.write(i, buf);
     val = ((buf[0] & 0x0F) << 12) | ((buf[1] & 0x3F) << 6) | (buf[2] & 0x3F);
-    SCOPE_ASSERT_EQUAL(3u, len);
-    SCOPE_ASSERT_EQUAL(i, val);
+    REQUIRE(3u == len);
+    REQUIRE(i == val);
   }
 
   // four-byte representations
@@ -76,15 +76,15 @@ SCOPE_TEST(testUTF8) {
     len = enc.write(i, buf);
     val = ((buf[0] & 0x07) << 18) | ((buf[1] & 0x3F) << 12) |
           ((buf[2] & 0x3F) <<  6) |  (buf[3] & 0x3F);
-    SCOPE_ASSERT_EQUAL(4u, len);
-    SCOPE_ASSERT_EQUAL(i, val);
+    REQUIRE(4u == len);
+    REQUIRE(i == val);
   }
 
   // too high
-  SCOPE_ASSERT_EQUAL(0u, enc.write(0x110000, buf));
+  REQUIRE(0u == enc.write(0x110000, buf));
 }
 
-SCOPE_TEST(testUTF8Range0) {
+TEST_CASE("testUTF8Range0") {
   UTF8 enc;
 
   UnicodeSet us;
@@ -99,10 +99,10 @@ SCOPE_TEST(testUTF8Range0) {
   std::vector<std::vector<ByteSet>> a;
   enc.write(us, a);
 
-  SCOPE_ASSERT_EQUAL(e, a);
+  REQUIRE(e == a);
 }
 
-SCOPE_TEST(testUTF8Range1) {
+TEST_CASE("testUTF8Range1") {
   UTF8 enc;
 
   UnicodeSet us;
@@ -116,10 +116,10 @@ SCOPE_TEST(testUTF8Range1) {
   std::vector<std::vector<ByteSet>> a;
   enc.write(us, a);
 
-  SCOPE_ASSERT_EQUAL(e, a);
+  REQUIRE(e == a);
 }
 
-SCOPE_TEST(testUTF8Range2) {
+TEST_CASE("testUTF8Range2") {
   UTF8 enc;
 
   UnicodeSet us;
@@ -136,10 +136,10 @@ SCOPE_TEST(testUTF8Range2) {
   std::vector<std::vector<ByteSet>> a;
   enc.write(us, a);
 
-  SCOPE_ASSERT_EQUAL(e, a);
+  REQUIRE(e == a);
 }
 
-SCOPE_TEST(testUTF8RangeFull) {
+TEST_CASE("testUTF8RangeFull") {
   UTF8 enc;
 
   UnicodeSet us{{0, 0x110000}};
@@ -159,10 +159,10 @@ SCOPE_TEST(testUTF8RangeFull) {
   std::vector<std::vector<ByteSet>> a;
   enc.write(us, a);
 
-  SCOPE_ASSERT_EQUAL(e, a);
+  REQUIRE(e == a);
 }
 
-SCOPE_TEST(testUTF8Disjoint) {
+TEST_CASE("testUTF8Disjoint") {
   UTF8 enc;
 
   UnicodeSet us;
@@ -176,11 +176,11 @@ SCOPE_TEST(testUTF8Disjoint) {
   std::vector<std::vector<ByteSet>> a;
   enc.write(us, a);
 
-  SCOPE_ASSERT_EQUAL(e, a);
+  REQUIRE(e == a);
 }
 
 /*
-SCOPE_TEST(testUTF8Graph0) {
+TEST_CASE("testUTF8Graph0") {
   UTF8 enc;
 
   UnicodeSet us;
@@ -225,11 +225,11 @@ SCOPE_TEST(testUTF8Graph0) {
 //  efrag.OutList.emplace_back(3, 0);
 //  efrag.OutList.emplace_back(7, 0);
 //
-//  SCOPE_ASSERT_EQUAL(eg, ag);
-//  SCOPE_ASSERT_EQUAL(efrag, afrag);
+//  REQUIRE(eg == ag);
+//  REQUIRE(efrag == afrag);
 }
 
-SCOPE_TEST(testUTF8Graph1) {
+TEST_CASE("testUTF8Graph1") {
   UTF8 enc;
 
   UnicodeSet us;
@@ -251,7 +251,7 @@ SCOPE_TEST(testUTF8Graph1) {
   writeGraphviz(std::cout, ag);
 }
 
-SCOPE_TEST(testUTF8Graph2) {
+TEST_CASE("testUTF8Graph2") {
   UTF8 enc;
 
   UnicodeSet us;

@@ -35,7 +35,7 @@ std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
   return result;
 }
 
-void parse_opts(int argc, char** argv,
+void parse_opts(int argc, const char* const * argv,
                 po::options_description& desc, Options& opts) {
 
   //
@@ -94,7 +94,7 @@ void parse_opts(int argc, char** argv,
   // Other options
   po::options_description misc("Miscellaneous");
   misc.add_options()
-    ("no-det", "do not determinize NFAs")
+    ("determinize-depth", po::value<uint32_t>(&opts.DeterminizeDepth)->value_name("NUM")->default_value(std::numeric_limits<uint32_t>::max()), "determinze NFA to NUM depth")
     ("binary", "output program as binary")
     ("program-file", po::value<std::string>(&opts.ProgramFile)->value_name("FILE"), "read search program from file")
     #ifdef LBT_TRACE_ENABLED
@@ -196,7 +196,6 @@ void parse_opts(int argc, char** argv,
     opts.LiteralMode = optsMap.count("fixed-strings") > 0;
     opts.Binary = optsMap.count("binary") > 0;
     opts.NoOutput = optsMap.count("no-output") > 0;
-    opts.Determinize = optsMap.count("no-det") == 0;
     opts.Recursive = optsMap.count("recursive") > 0;
     opts.MemoryMapped = optsMap.count("mmap") > 0;
 
