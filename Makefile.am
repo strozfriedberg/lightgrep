@@ -125,10 +125,12 @@ src_llama_llama_SOURCES = \
 	src/llama/batchhandler.cpp \
 	src/llama/cli.cpp \
 	src/llama/dirconversion.cpp \
+	src/llama/direntstack.cpp \
 	src/llama/dirreader.cpp \
 	src/llama/fieldhasher.cpp \
 	src/llama/filescheduler.cpp \
 	src/llama/hex.cpp \
+	src/llama/inodeandblocktrackerimpl.cpp \
 	src/llama/inputreader.cpp \
 	src/llama/llama.cpp \
 	src/llama/main.cpp \
@@ -137,20 +139,32 @@ src_llama_llama_SOURCES = \
 	src/llama/pooloutputhandler.cpp \
 	src/llama/processor.cpp \
 	src/llama/recordbuffer.cpp \
+	src/llama/recordhasher.cpp \
 	src/llama/schema.cpp \
+	src/llama/timestamps.cpp \
+	src/llama/treehasher.cpp \
+	src/llama/tsk.cpp \
+	src/llama/tskautowrapper.cpp \
 	src/llama/tskconversion.cpp \
-	src/llama/tskreader.cpp \
+	src/llama/tskimgassembler.cpp \
+	src/llama/tsktimestamps.cpp \
 	src/llama/test_cli.cpp \
 	src/llama/test_dirconversion.cpp \
+	src/llama/test_direntstack.cpp \
 	src/llama/test_dirreader.cpp \
 	src/llama/test_fieldhasher.cpp \
 	src/llama/test_fileproxy.cpp \
 	src/llama/test_filerecord.cpp \
 	src/llama/test_hex.cpp \
+	src/llama/test_inodeandblocktrackerimpl.cpp \
 	src/llama/test_processor.cpp \
 	src/llama/test_recordbuffer.cpp \
+	src/llama/test_recordhasher.cpp \
 	src/llama/test_tskconversion.cpp \
-	src/llama/test_tskreader.cpp
+	src/llama/test_tskimgassembler.cpp \
+	src/llama/test_tskreader.cpp \
+	src/llama/test_tskreaderhelper.cpp \
+	src/llama/test_tsktimestamps.cpp
 
 src_llama_llama_CPPFLAGS = $(AM_CPPFLAGS) $(SCOPE_CPPFLAGS) $(TSK_CPPFLAGS) $(LIBARCHIVE_CPPFLAGS)
 src_llama_llama_LDADD = $(LG_LIB) $(LG_LIBS) $(TSK_LIBS) $(LIBARCHIVE_LIBS) $(HASHER_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(ICU_LIBS) $(STDCXX_LIB)

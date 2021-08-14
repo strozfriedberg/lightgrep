@@ -1,39 +1,40 @@
 #pragma once
 
+#include <memory>
 #include <string>
 
-#include <hasher.h>
+#include <hasher/api.h>
 
+#include "blocksequence.h"
 #include "jsoncons_wrapper.h"
+
+class BlockSequence;
 
 // This is just a placeholder
 struct FileRecord {
-  std::string Path;
-
-  uint64_t Size;
-
-  std::string _data;
-
   SFHASH_HashValues Hashes;
-
-  const char* fileBegin() const { return _data.c_str(); }
-
-  const char* fileEnd() const { return _data.c_str() + _data.size(); }
-
   jsoncons::json Doc;
+  std::shared_ptr<BlockSequence> Blocks;
 
-  FileRecord(const std::string& path = "", uint64_t size = 0):
-    Path(path), Size(size)
-  {}
+  FileRecord() = delete;
+
+  FileRecord(const FileRecord& r) = default;
+
+  FileRecord(FileRecord&& r) = default;
+
+  FileRecord& operator=(const FileRecord& r) = default;
+
+  FileRecord& operator=(FileRecord&& r) = default;
 
   FileRecord(jsoncons::json&& doc):
-    Doc(std::move(doc))
+    Doc(std::move(doc)),
+    Blocks()
   {}
 
-  void updateDoc() {
-    Doc["Path"] = Path;
-    Doc["Size"] = Size;
-  }
+  FileRecord(jsoncons::json&& doc, std::shared_ptr<BlockSequence>&& bseq):
+    Doc(std::move(doc)),
+    Blocks(std::move(bseq))
+  {}
 
   std::string str() const {
     return Doc.as<std::string>();

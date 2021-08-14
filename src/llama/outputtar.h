@@ -16,24 +16,22 @@ public:
     close();
   }
 
-  virtual void outputFile(const FileRecord& rec) override;
+  virtual void outputImage(const OutputChunk& c) override;
 
-  virtual void outputInode(const FileRecord& rec) override {
-  }
+  virtual void outputDirent(const OutputChunk& c) override;
 
-  virtual void outputInodes(const std::shared_ptr<std::vector<FileRecord>>& batch) override {
-  }
+  virtual void outputInode(const OutputChunk& c) override;
 
   virtual void outputSearchHit(const std::string&) override {
-  }
-
-  virtual void outputSearchHits(const std::vector<std::string>& batch) override {
   }
 
   virtual void close() override {
   }
 
 private:
+  void doOutput(const OutputChunk& c);
+  void doOutput(const char* path, const char* data, size_t len);
+
   std::string Path;
 
   std::shared_ptr<archive> Archive;

@@ -1,23 +1,22 @@
 #include "outputstream.h"
 
-#include "filerecord.h"
+#include "outputchunk.h"
 
 #include <ostream>
 
-void OutputStream::outputFile(const FileRecord& rec) {
-  os << rec._data;
+void OutputStream::outputImage(const OutputChunk& c) {
+  os << c.data;
 }
 
-void OutputStream::outputInode(const FileRecord& rec) {
+void OutputStream::outputDirent(const OutputChunk& c) {
+  os << c.data;
 }
 
-void OutputStream::outputInodes(const std::shared_ptr<std::vector<FileRecord>>& batch) {
+void OutputStream::outputInode(const OutputChunk& c) {
+  os << c.data;
 }
 
 void OutputStream::outputSearchHit(const std::string& hit) {
-}
-
-void OutputStream::outputSearchHits(const std::vector<std::string>& batch) {
 }
 
 void OutputStream::close() {

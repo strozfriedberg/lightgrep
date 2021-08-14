@@ -4,17 +4,10 @@
 #include <array>
 #include <utility>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-
 #include "hex.h"
 #include "schema.h"
 
 using namespace TskUtils;
-
-TskConverter::TskConverter()
-{
-  NanoBuf << std::fixed << std::setprecision(9);
-}
 
 std::string TskUtils::volumeSystemType(unsigned int type) {
   switch (type) {
@@ -41,7 +34,7 @@ std::string TskUtils::volumeFlags(unsigned int flags) {
   case TSK_VS_PART_FLAG_UNALLOC:
     return VS_PART_FLAG_UNALLOC;
   case TSK_VS_PART_FLAG_META:
-    return VS_PART_FLAG_META; 
+    return VS_PART_FLAG_META;
   default:
     return "";
   }
@@ -142,34 +135,34 @@ std::string TskUtils::attrType(unsigned int type) {
   case TSK_FS_ATTR_TYPE_NOT_FOUND: return ATTR_TYPE_NOT_FOUND;
   case TSK_FS_ATTR_TYPE_DEFAULT: return ATTR_TYPE_DEFAULT; // default _is_ data, so match up with NTFS Data
   case TSK_FS_ATTR_TYPE_NTFS_SI: return ATTR_TYPE_NTFS_SI;
-  case TSK_FS_ATTR_TYPE_NTFS_ATTRLIST: return ATTR_TYPE_NTFS_ATTRLIST; 
-  case TSK_FS_ATTR_TYPE_NTFS_FNAME: return ATTR_TYPE_NTFS_FNAME; 
-  case TSK_FS_ATTR_TYPE_NTFS_OBJID: return ATTR_TYPE_NTFS_OBJID; 
-  case TSK_FS_ATTR_TYPE_NTFS_SEC: return ATTR_TYPE_NTFS_SEC; 
-  case TSK_FS_ATTR_TYPE_NTFS_VNAME: return ATTR_TYPE_NTFS_VNAME; 
-  case TSK_FS_ATTR_TYPE_NTFS_VINFO: return ATTR_TYPE_NTFS_VINFO; 
-  case TSK_FS_ATTR_TYPE_NTFS_DATA: return ATTR_TYPE_NTFS_DATA; 
-  case TSK_FS_ATTR_TYPE_NTFS_IDXROOT: return ATTR_TYPE_NTFS_IDXROOT; 
-  case TSK_FS_ATTR_TYPE_NTFS_IDXALLOC: return ATTR_TYPE_NTFS_IDXALLOC; 
-  case TSK_FS_ATTR_TYPE_NTFS_BITMAP: return ATTR_TYPE_NTFS_BITMAP; 
-  case TSK_FS_ATTR_TYPE_NTFS_SYMLNK: return ATTR_TYPE_NTFS_SYMLNK; 
+  case TSK_FS_ATTR_TYPE_NTFS_ATTRLIST: return ATTR_TYPE_NTFS_ATTRLIST;
+  case TSK_FS_ATTR_TYPE_NTFS_FNAME: return ATTR_TYPE_NTFS_FNAME;
+  case TSK_FS_ATTR_TYPE_NTFS_OBJID: return ATTR_TYPE_NTFS_OBJID;
+  case TSK_FS_ATTR_TYPE_NTFS_SEC: return ATTR_TYPE_NTFS_SEC;
+  case TSK_FS_ATTR_TYPE_NTFS_VNAME: return ATTR_TYPE_NTFS_VNAME;
+  case TSK_FS_ATTR_TYPE_NTFS_VINFO: return ATTR_TYPE_NTFS_VINFO;
+  case TSK_FS_ATTR_TYPE_NTFS_DATA: return ATTR_TYPE_NTFS_DATA;
+  case TSK_FS_ATTR_TYPE_NTFS_IDXROOT: return ATTR_TYPE_NTFS_IDXROOT;
+  case TSK_FS_ATTR_TYPE_NTFS_IDXALLOC: return ATTR_TYPE_NTFS_IDXALLOC;
+  case TSK_FS_ATTR_TYPE_NTFS_BITMAP: return ATTR_TYPE_NTFS_BITMAP;
+  case TSK_FS_ATTR_TYPE_NTFS_SYMLNK: return ATTR_TYPE_NTFS_SYMLNK;
   // Reparse points are a Win2K feature and use the same type code as symlink.
   // So this is technically ambiguous. To bite the bullet, we go with symlinks.
-//  case TSK_FS_ATTR_TYPE_NTFS_REPARSE: return ATTR_TYPE_NTFS_REPARSE; 
-  case TSK_FS_ATTR_TYPE_NTFS_EAINFO: return ATTR_TYPE_NTFS_EAINFO; 
-  case TSK_FS_ATTR_TYPE_NTFS_EA: return ATTR_TYPE_NTFS_EA; 
-  case TSK_FS_ATTR_TYPE_NTFS_PROP: return ATTR_TYPE_NTFS_PROP; 
-  case TSK_FS_ATTR_TYPE_NTFS_LOG: return ATTR_TYPE_NTFS_LOG; 
+//  case TSK_FS_ATTR_TYPE_NTFS_REPARSE: return ATTR_TYPE_NTFS_REPARSE;
+  case TSK_FS_ATTR_TYPE_NTFS_EAINFO: return ATTR_TYPE_NTFS_EAINFO;
+  case TSK_FS_ATTR_TYPE_NTFS_EA: return ATTR_TYPE_NTFS_EA;
+  case TSK_FS_ATTR_TYPE_NTFS_PROP: return ATTR_TYPE_NTFS_PROP;
+  case TSK_FS_ATTR_TYPE_NTFS_LOG: return ATTR_TYPE_NTFS_LOG;
 
-  case TSK_FS_ATTR_TYPE_UNIX_INDIR: return ATTR_TYPE_UNIX_INDIR; 
-  case TSK_FS_ATTR_TYPE_UNIX_EXTENT: return ATTR_TYPE_UNIX_EXTENT; 
+  case TSK_FS_ATTR_TYPE_UNIX_INDIR: return ATTR_TYPE_UNIX_INDIR;
+  case TSK_FS_ATTR_TYPE_UNIX_EXTENT: return ATTR_TYPE_UNIX_EXTENT;
 
   // Types for HFS+ File Attributes
-//  case TSK_FS_ATTR_TYPE_HFS_DEFAULT: return ATTR_TYPE_HFS_DEFAULT; 
-  case TSK_FS_ATTR_TYPE_HFS_DATA: return ATTR_TYPE_HFS_DATA; 
-  case TSK_FS_ATTR_TYPE_HFS_RSRC: return ATTR_TYPE_HFS_RSRC; 
-  case TSK_FS_ATTR_TYPE_HFS_EXT_ATTR: return ATTR_TYPE_HFS_EXT_ATTR; 
-  case TSK_FS_ATTR_TYPE_HFS_COMP_REC: return ATTR_TYPE_HFS_COMP_REC; 
+//  case TSK_FS_ATTR_TYPE_HFS_DEFAULT: return ATTR_TYPE_HFS_DEFAULT;
+  case TSK_FS_ATTR_TYPE_HFS_DATA: return ATTR_TYPE_HFS_DATA;
+  case TSK_FS_ATTR_TYPE_HFS_RSRC: return ATTR_TYPE_HFS_RSRC;
+  case TSK_FS_ATTR_TYPE_HFS_EXT_ATTR: return ATTR_TYPE_HFS_EXT_ATTR;
+  case TSK_FS_ATTR_TYPE_HFS_COMP_REC: return ATTR_TYPE_HFS_COMP_REC;
   default:
     return ATTR_TYPE_UNKNOWN;
   }
@@ -200,24 +193,24 @@ std::string TskUtils::nrdRunFlags(unsigned int flags) {
   return "";
 }
 
-jsoncons::json TskConverter::convertFile(TSK_FS_FILE& file) {
-  // ridiculous bullshit to force attrs to be populated
-  tsk_fs_file_attr_get_idx(&file, 0);
+std::string TskUtils::filesystemID(const uint8_t* id, size_t len, bool le) {
+  if (le) {
+    // FIXME: wtf, this came from fsrip, but is it really correct that the
+    // endianness applies to the fs id?!
 
-  jsoncons::json doc(jsoncons::json_object_arg);
-
-  if (file.meta) {
-    doc["meta"] = convertMeta(*file.meta, file.fs_info->ftype);
+    // little-endian filesystem, reverse the id
+    const std::vector<uint8_t> v(
+      std::make_reverse_iterator(id + len),
+      std::make_reverse_iterator(id)
+    );
+    return hexEncode(v.data(), v.data() + len);
   }
-
-  if (file.name) {
-    doc["name"] = convertName(*file.name);
+  else {
+    return hexEncode(id, len);
   }
-
-  return doc;
 }
 
-jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
+jsoncons::json TskUtils::convertName(const TSK_FS_NAME& name) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
@@ -234,22 +227,8 @@ jsoncons::json TskConverter::convertName(const TSK_FS_NAME& name) const {
   );
 }
 
-jsoncons::json TskConverter::convertAttrs(const TSK_FS_META& meta) const {
-  jsoncons::json jsAttrs(jsoncons::json_array_arg);
-
-  if (meta.attr) {
-    for (const TSK_FS_ATTR* a = meta.attr->head; a; a = a->next) {
-      if (a->flags & TSK_FS_ATTR_INUSE) {
-        jsAttrs.push_back(convertAttr(*a));
-      }
-    }
-  }
-
-  return jsAttrs;
-}
-
-jsoncons::json TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType) {
-  jsoncons::json jsMeta(
+jsoncons::json TskUtils::convertMeta(const TSK_FS_META& meta, TimestampGetter& ts) {
+  return jsoncons::json(
     jsoncons::json_object_arg,
     {
       { "addr",  meta.addr },
@@ -260,136 +239,44 @@ jsoncons::json TskConverter::convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_EN
       { "link",  meta.link ? meta.link : "" },
       { "nlink", meta.nlink },
       { "seq",   meta.seq },
-      { "attrs", convertAttrs(meta) }
+      { "attrs", jsoncons::json(jsoncons::json_array_arg) },
+      { "accessed",    ts.accessed(meta) },
+      { "created",     ts.created(meta) },
+      { "metadata",    ts.metadata(meta) },
+      { "modified",    ts.modified(meta) },
+      { "deleted",     ts.deleted(meta) },
+      { "backup",      ts.backup(meta) },
+      { "fn_accessed", ts.fn_accessed(meta) },
+      { "fn_created",  ts.fn_created(meta) },
+      { "fn_metadata", ts.fn_metadata(meta) },
+      { "fn_modified", ts.fn_modified(meta) }
     }
   );
-
-  convertTimestamps(meta, fsType, jsMeta);
-
-  return jsMeta;
 }
 
-void TskConverter::convertNTFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
-  ts["deleted"] = jsoncons::null_type();
-  ts["backup"] = jsoncons::null_type();
-  ts["fn_accessed"] = formatTimestamp(meta.time2.ntfs.fn_atime, meta.time2.ntfs.fn_atime_nano);
-  ts["fn_created"] = formatTimestamp(meta.time2.ntfs.fn_crtime, meta.time2.ntfs.fn_crtime_nano);
-  ts["fn_metadata"] = formatTimestamp(meta.time2.ntfs.fn_ctime, meta.time2.ntfs.fn_ctime_nano);
-  ts["fn_modified"] = formatTimestamp(meta.time2.ntfs.fn_mtime, meta.time2.ntfs.fn_mtime_nano);
-}
-
-void TskConverter::convertEXTTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
-  ts["deleted"] = formatTimestamp(meta.time2.hfs.bkup_time, meta.time2.hfs.bkup_time_nano);
-  ts["backup"] = jsoncons::null_type();
-  ts["fn_accessed"] = jsoncons::null_type();
-  ts["fn_created"] = jsoncons::null_type();
-  ts["fn_metadata"] = jsoncons::null_type();
-  ts["fn_modified"] = jsoncons::null_type();
-}
-
-void TskConverter::convertHFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
-  ts["deleted"] = jsoncons::null_type();
-  ts["backup"] = formatTimestamp(meta.time2.hfs.bkup_time, meta.time2.hfs.bkup_time_nano);
-  ts["fn_accessed"] = jsoncons::null_type();
-  ts["fn_created"] = jsoncons::null_type();
-  ts["fn_metadata"] = jsoncons::null_type();
-  ts["fn_modified"] = jsoncons::null_type();
-}
-
-void TskConverter::convertDefaultTimestamps(const TSK_FS_META& /* meta */, jsoncons::json& ts) const {
-  ts["deleted"] = jsoncons::null_type();
-  ts["backup"] = jsoncons::null_type();
-  ts["fn_accessed"] = jsoncons::null_type();
-  ts["fn_created"] = jsoncons::null_type();
-  ts["fn_metadata"] = jsoncons::null_type();
-  ts["fn_modified"] = jsoncons::null_type();
-}
-
-void TskConverter::convertStandardTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) {
-  ts["accessed"] = formatTimestamp(meta.atime, meta.atime_nano);
-  ts["created"] = formatTimestamp(meta.crtime, meta.crtime_nano);
-  ts["metadata"] = formatTimestamp(meta.ctime, meta.ctime_nano);
-  ts["modified"] = formatTimestamp(meta.mtime, meta.mtime_nano);
-}
-
-void TskConverter::convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& ts) {
-  convertStandardTimestamps(meta, ts);
-
-  switch (fsType) {
-    case TSK_FS_TYPE_NTFS:
-      convertNTFSTimestamps(meta, ts);
-      break;
-    case TSK_FS_TYPE_FFS1: // need to double-check this list
-    case TSK_FS_TYPE_FFS1B:
-    case TSK_FS_TYPE_FFS2:
-    case TSK_FS_TYPE_EXT2:
-    case TSK_FS_TYPE_EXT3:
-    case TSK_FS_TYPE_EXT4:
-      convertEXTTimestamps(meta, ts);
-      break;
-    case TSK_FS_TYPE_HFS:
-      convertHFSTimestamps(meta, ts);
-      break;
-    default:
-      convertDefaultTimestamps(meta, ts);
-      break;
+std::unique_ptr<TimestampGetter> TskUtils::makeTimestampGetter(TSK_FS_TYPE_ENUM fstype) {
+  switch (fstype) {
+  case TSK_FS_TYPE_NTFS:
+    return std::make_unique<NTFSTimestampGetter>();
+  case TSK_FS_TYPE_FFS1: // need to double-check this list
+  case TSK_FS_TYPE_FFS1B:
+  case TSK_FS_TYPE_FFS2:
+  case TSK_FS_TYPE_EXT2:
+  case TSK_FS_TYPE_EXT3:
+  case TSK_FS_TYPE_EXT4:
+    return std::make_unique<EXTTimestampGetter>();
+  case TSK_FS_TYPE_HFS:
+    return std::make_unique<HFSTimestampGetter>();
+  default:
+    return std::make_unique<CommonTimestampGetter>();
   }
-}
-
-jsoncons::json TskConverter::formatTimestamp(int64_t unix_time, uint32_t ns) {
-  std::string ret;
-
-  if (0 == unix_time) {
-    if (0 == ns) {
-      return jsoncons::null_type();
-    }
-    // some C libs will otherwise print an empty string with strftime
-    ret.append("1970-01-01 00:00:00");
-  }
-  else {
-    // Boost, you tried.
-    //const boost::posix_time::ptime pt = boost::posix_time::from_time_t(unix_time);
-    try {
-      const boost::posix_time::ptime start(boost::gregorian::date(1970, 1, 1));
-      const int64_t min = unix_time / 60;
-      // Boost Date-Time has a maximum year of around 10000,
-      // Which means the number of _hours_ since 1970 will fit in a int32_t
-      // (In some versions of Boost (1_64), the time_duration takes an int32_t hours param,
-      //  While in others it takes a std::time_t hours)
-      boost::posix_time::time_duration duration(
-        static_cast<boost::posix_time::time_res_traits::hour_type>(min / 60),
-        static_cast<boost::posix_time::time_res_traits::min_type>(min  % 60),
-        static_cast<boost::posix_time::time_res_traits::sec_type>(unix_time % 60)
-      );
-      const boost::posix_time::ptime pt = start + duration;
-      const tm pt_tm = boost::posix_time::to_tm(pt);
-      char tbuf[100];
-      const size_t len = strftime(tbuf, 100, "%Y-%m-%d %H:%M:%S", &pt_tm);
-      if (len) {
-        ret.append(tbuf);
-      } // else error??? [a greybeard once said, do not test for errors you can't handle... -- jls]
-    }
-    catch (const std::exception&) {
-      // FIXME: Under what conditions can this happen? Should we clear ret
-      // if it does?
-    }
-  }
-
-  // fractional seconds
-  if (ns - 1 < 999999999) {
-    NanoBuf << double(ns) / 1000000000;
-    auto frac = NanoBuf.str();
-    ret.append(frac.substr(1, frac.find_last_not_of('0'))); // no leading or trailing zeroes
-    NanoBuf.str("");
-  }
-  return ret;
 }
 
 std::string TskUtils::extractString(const char* str, unsigned int size) {
   return std::string(str, std::find(str, str + size, '\0'));
 }
 
-jsoncons::json TskConverter::convertAttr(const TSK_FS_ATTR& attr) const {
+jsoncons::json TskUtils::convertAttr(const TSK_FS_ATTR& attr) {
   jsoncons::json jsAttr(
     jsoncons::json_object_arg,
     {
@@ -412,37 +299,88 @@ jsoncons::json TskConverter::convertAttr(const TSK_FS_ATTR& attr) const {
     jsAttr["nrd_compsize"] = attr.nrd.compsize;
     jsAttr["nrd_initsize"] = attr.nrd.initsize;
     jsAttr["nrd_skiplen"] = attr.nrd.skiplen;
-
-    jsoncons::json nrd_runs = jsoncons::json(jsoncons::json_array_arg);
-    for (auto i = attr.nrd.run; i; i = i->next) {
-      if (i->flags == TSK_FS_ATTR_RUN_FLAG_FILLER) {
-        // TODO: check on the exact semantics of this flag
-        continue;
-      }
-
-      nrd_runs.push_back(convertNRDR(*i));
-      if (i == attr.nrd.run_end) {
-        // this is hopefully unnecessary, but what if
-        // attr.nrd.run_end.next isn't null?
-        // paranoia is a feature
-        break;
-      }
-    }
-
-    jsAttr["nrd_runs"] = std::move(nrd_runs);
+    jsAttr["nrd_runs"] = jsoncons::json(jsoncons::json_array_arg);
   }
 
   return jsAttr;
 }
 
-jsoncons::json TskConverter::convertNRDR(const TSK_FS_ATTR_RUN& dataRun) const {
+jsoncons::json TskUtils::convertRun(const TSK_FS_ATTR_RUN& run) {
   return jsoncons::json(
     jsoncons::json_object_arg,
     {
-      { "addr",  dataRun.addr },
-      { "flags", nrdRunFlags(dataRun.flags) },
-      { "len",   dataRun.len },
-      { "offset", dataRun.offset }
+      { "addr",  run.addr },
+      { "flags", nrdRunFlags(run.flags) },
+      { "len",   run.len },
+      { "offset", run.offset }
+    }
+  );
+}
+
+jsoncons::json TskUtils::convertImg(const TSK_IMG_INFO& img) {
+  return jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "type", tsk_img_type_toname(img.itype) },
+      { "description", tsk_img_type_todesc(img.itype) },
+      { "size", img.size },
+      { "sectorSize", img.sector_size }
+    }
+  );
+}
+
+jsoncons::json TskUtils::convertVS(const TSK_VS_INFO& vs) {
+  return jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "type", volumeSystemType(vs.vstype) },
+      { "description", tsk_vs_type_todesc(vs.vstype) },
+      { "blockSize", vs.block_size },
+      { "numVolumes", vs.part_count },
+      { "offset", vs.offset },
+      { "volumes", jsoncons::json(jsoncons::json_array_arg) }
+    }
+  );
+}
+
+jsoncons::json TskUtils::convertVol(const TSK_VS_PART_INFO& vol) {
+  return jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "addr", vol.addr },
+      { "description", vol.desc },
+      { "flags", volumeFlags(vol.flags) },
+      { "numBlocks", vol.len },
+      { "slotNum", vol.slot_num },
+      { "startBlock", vol.start },
+      { "tableNum", vol.table_num }
+    }
+  );
+}
+
+jsoncons::json TskUtils::convertFS(const TSK_FS_INFO& fs) {
+  const bool littleEndian = fs.endian == TSK_LIT_ENDIAN;
+
+  return jsoncons::json(
+    jsoncons::json_object_arg,
+    {
+      { "numBlocks", fs.block_count },
+      { "blockSize", fs.block_size },
+      { "deviceBlockSize", fs.dev_bsize },
+      { "blockName", fs.duname },
+      { "littleEndian", littleEndian },
+      { "firstBlock", fs.first_block },
+      { "firstInum", fs.first_inum },
+      { "flags", filesystemFlags(fs.flags) },
+      { "fsID", filesystemID(fs.fs_id, fs.fs_id_used, littleEndian) },
+      { "type", tsk_fs_type_toname(fs.ftype) },
+      { "journalInum", fs.journ_inum },
+      { "numInums", fs.inum_count },
+      { "lastBlock", fs.last_block },
+      { "lastBlockAct", fs.last_block_act },
+      { "lastInum", fs.last_inum },
+      { "byteOffset", fs.offset },
+      { "rootInum", fs.root_inum }
     }
   );
 }

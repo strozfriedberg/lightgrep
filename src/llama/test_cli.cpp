@@ -66,7 +66,7 @@ SCOPE_TEST(testCLInumThreads) {
 }
 
 std::ostream& operator<<(std::ostream& out, Codec c) {
-  return out << static_cast<int>(c); 
+  return out << static_cast<int>(c);
 }
 
 SCOPE_TEST(testCLICodec) {

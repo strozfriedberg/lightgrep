@@ -1,11 +1,12 @@
 #pragma once
 
-#include <sstream>
+#include <memory>
 #include <string>
 
 #include <tsk/libtsk.h>
 
 #include "jsoncons_wrapper.h"
+#include "tsktimestamps.h"
 
 namespace TskUtils {
   std::string extractString(const char* str, unsigned int size);
@@ -14,6 +15,7 @@ namespace TskUtils {
   std::string volumeFlags(unsigned int flags);
 
   std::string filesystemFlags(unsigned int flags);
+  std::string filesystemID(const uint8_t* id, size_t len, bool le);
 
   std::string nameType(unsigned int type);
   std::string nameFlags(unsigned int flags);
@@ -48,34 +50,17 @@ namespace TskUtils {
 
     return ret;
   }
+
+  jsoncons::json convertImg(const TSK_IMG_INFO& img);
+  jsoncons::json convertVS(const TSK_VS_INFO& vs);
+  jsoncons::json convertVol(const TSK_VS_PART_INFO& vol);
+  jsoncons::json convertFS(const TSK_FS_INFO& fs);
+
+  jsoncons::json convertName(const TSK_FS_NAME& name);
+
+  jsoncons::json convertMeta(const TSK_FS_META& meta, TimestampGetter& ts);
+  jsoncons::json convertAttr(const TSK_FS_ATTR& attr);
+  jsoncons::json convertRun(const TSK_FS_ATTR_RUN& run);
+
+  std::unique_ptr<TimestampGetter> makeTimestampGetter(TSK_FS_TYPE_ENUM fstype);
 }
-
-class TskConverter {
-public:
-  TskConverter();
-
-// TODO: could some of this be static? nonmembers?
-// TODO: check how slow using stringstreams is
-// TODO: check if it would be faster to use the streaming API
-
-  jsoncons::json convertFile(TSK_FS_FILE& file);
-
-  jsoncons::json convertName(const TSK_FS_NAME& name) const;
-  jsoncons::json convertMeta(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType);
-  jsoncons::json convertAttrs(const TSK_FS_META& meta) const;
-  jsoncons::json convertAttr(const TSK_FS_ATTR& attr) const;
-  jsoncons::json convertNRDR(const TSK_FS_ATTR_RUN& dataRun) const;
-
-  void convertTimestamps(const TSK_FS_META& meta, TSK_FS_TYPE_ENUM fsType, jsoncons::json& timestamps);
-  void convertStandardTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
-  void convertDefaultTimestamps(const TSK_FS_META& meta, jsoncons::json& ts) const;
-  void convertHFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
-  void convertEXTTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
-  void convertNTFSTimestamps(const TSK_FS_META& meta, jsoncons::json& ts);
-
-private:
-  jsoncons::json formatTimestamp(int64_t unix_time, uint32_t ns);
-
-  std::ostringstream NanoBuf,
-                     RdBuf;
-};

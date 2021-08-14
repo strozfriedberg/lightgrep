@@ -2,18 +2,27 @@
 #include "outputwriter.h"
 #include "pooloutputhandler.h"
 
-void PoolOutputHandler::outputFile(const FileRecord& rec) {
+void PoolOutputHandler::outputImage(const FileRecord& rec) {
+  ImageRecBuf.write(rec.str());
+}
+
+void PoolOutputHandler::outputDirent(const FileRecord& rec) {
+/*
   if (Closed) {
-    // we might still have some records in FileRecBuf, but the 
+    // we might still have some records in FileRecBuf, but the
     // threadpool has gone away and the MainStrand can no longer be
     // posted to, so just call into the function directly.
-    Out->outputFile(rec);
+    Out->outputDirent(rec);
   }
   else {
-    boost::asio::post(MainStrand, [=](){ 
-      Out->outputFile(rec);
+    boost::asio::post(MainStrand, [=](){
+      Out->outputDirent(rec);
     });
   }
+*/
+  boost::asio::post(RecStrand, [=]() {
+    DirentsRecBuf.write(rec.str());
+  });
 }
 
 void PoolOutputHandler::outputInode(const FileRecord& rec) {
@@ -42,8 +51,18 @@ void PoolOutputHandler::outputSearchHits(const std::vector<std::string>& batch) 
 
 void PoolOutputHandler::close() {
   Closed = true;
+
+  if (ImageRecBuf.size()) {
+    ImageRecBuf.flush();
+  }
+
+  if (DirentsRecBuf.size()) {
+    DirentsRecBuf.flush();
+  }
+
   if (InodesRecBuf.size()) {
     InodesRecBuf.flush();
   }
+
   Out->close();
 }

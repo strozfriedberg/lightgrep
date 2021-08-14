@@ -1,14 +1,19 @@
 #pragma once
 
+#include <functional>
 #include <ostream>
 #include <sstream>
 #include <string>
 
-class OutputHandler;
+class OutputChunk;
 
 class RecordBuffer {
 public:
-  RecordBuffer(const std::string& basePath, unsigned int flushBufSize, OutputHandler& output);
+  RecordBuffer(
+    const std::string& basePath,
+    unsigned int flushBufSize,
+    std::function<void(const OutputChunk&)> output
+  );
 
   ~RecordBuffer();
 
@@ -31,5 +36,5 @@ private:
                CurSize,
                Num;
 
-  OutputHandler& Out;
+  std::function<void(const OutputChunk&)> Out;
 };

@@ -35,7 +35,7 @@ fs::file_type DirUtils::fileType(const fs::directory_entry& de) {
   std::error_code err;
   const fs::file_status status = de.symlink_status(err);
   if (err) {
-    std::cerr << "Error: " << err.message() << std::endl;
+    std::cerr << "Error: " << de.path() << ": " << err.message() << std::endl;
     return fs::file_type::unknown;
   }
 
@@ -46,7 +46,7 @@ std::uintmax_t DirUtils::nlink(const fs::directory_entry& de) {
   std::error_code err;
   const auto c = de.hard_link_count(err);
   if (err) {
-    std::cerr << "Error: " << err.message() << std::endl;
+    std::cerr << "Error: " << de.path() << ": " << err.message() << std::endl;
     return 0;
   }
 
@@ -57,7 +57,12 @@ std::uintmax_t DirUtils::fileSize(const fs::directory_entry& de) {
   std::error_code err;
   const auto c = de.file_size(err);
   if (err) {
-    std::cerr << "Error: " << err.message() << std::endl;
+    if (err == std::errc::is_a_directory) {
+      // ignore
+    }
+    else {
+      std::cerr << "Error: " << de.path() << ": " << err.message() << std::endl;
+    }
     return 0;
   }
 
@@ -76,16 +81,6 @@ fs::file_time_type DirUtils::mtime(const fs::directory_entry& de) {
   return m;
 }
 */
-
-jsoncons::json DirConverter::convertDirectoryEntry(const fs::directory_entry& de) const {
-  return jsoncons::json(
-    jsoncons::json_object_arg,
-    {
-      { "meta", convertMeta(de) },
-      { "name", convertName(de) }
-    }
-  );
-}
 
 jsoncons::json DirConverter::convertMeta(const fs::directory_entry& de) const {
   static const std::string flags = std::string(META_FLAG_ALLOC) + ", " + META_FLAG_USED;

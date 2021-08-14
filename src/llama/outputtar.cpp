@@ -1,8 +1,9 @@
 #include "outputtar.h"
 
-#include "filerecord.h"
+#include "outputchunk.h"
 #include "util.h"
 
+#include <ctime>
 #include <iostream>
 
 #include <archive.h>
@@ -52,15 +53,31 @@ OutputTar::OutputTar(const std::string& path, Codec codec):
   archive_write_open_filename(Archive.get(), Path.c_str());
 }
 
-void OutputTar::outputFile(const FileRecord& rec) {
-  // std::cerr << "Adding " << rec.Path << " to output tarball" << std::endl;
+void OutputTar::doOutput(const char* path, const char* data, size_t len) {
+  // std::cerr << "Adding " << path << " to output tarball" << std::endl;
   auto entry = make_unique_del(archive_entry_new(), archive_entry_free);
 
-  archive_entry_set_pathname(entry.get(), rec.Path.c_str());
-  archive_entry_set_size(entry.get(), rec.Size);
+  archive_entry_set_pathname(entry.get(), path);
+  archive_entry_set_size(entry.get(), len);
   archive_entry_set_filetype(entry.get(), AE_IFREG);
   archive_entry_set_perm(entry.get(), 0644);
+  archive_entry_set_mtime(entry.get(), std::time(nullptr), 0);
   archive_write_header(Archive.get(), entry.get());
+  archive_write_data(Archive.get(), data, len);
+}
 
-  archive_write_data(Archive.get(), rec._data.c_str(), rec._data.size());
+void OutputTar::doOutput(const OutputChunk& c) {
+  doOutput(c.path.c_str(), c.data.c_str(), c.data.size());
+}
+
+void OutputTar::outputImage(const OutputChunk& c) {
+  doOutput(c);
+}
+
+void OutputTar::outputDirent(const OutputChunk& c) {
+  doOutput(c);
+}
+
+void OutputTar::outputInode(const OutputChunk& c) {
+  doOutput(c);
 }
