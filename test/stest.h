@@ -69,6 +69,8 @@ public:
 
   bool parsesButNotValid() const;
 
+  void reset();
+
 private:
   template <typename T>
   static std::vector<Pattern> make_patterns(const T& keys) {

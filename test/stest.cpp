@@ -99,3 +99,8 @@ void STest::startsWith(const char* begin, const char* end, uint64_t offset) {
 bool STest::parsesButNotValid() const {
   return !Prog;
 }
+
+void STest::reset() {
+  Hits.clear();
+  lg_reset_context(Ctx.get());
+}
