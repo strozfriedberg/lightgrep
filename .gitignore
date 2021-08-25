@@ -53,6 +53,7 @@
 /stamp-h1
 /test-suite.log
 /test-suite-memcheck.log
+/test/benchmarks/benchmarks
 /test/test
 /test/test.exe
 /test/test.log

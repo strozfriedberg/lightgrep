@@ -87,7 +87,8 @@ noinst_PROGRAMS = \
 	c_example/cex \
 	src/enc/enc \
 	src/val/val \
-	src/what/what
+	src/what/what \
+	test/benchmarks/benchmarks
 
 c_example_cex_SOURCES = c_example/main.c
 c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
@@ -105,6 +106,14 @@ $(srcdir)/include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
 	src/enc/enc$(EXEEXT) >$@
 
 BUILT_SOURCES = include/lightgrep/encodings.h
+
+# cheats a bit by including some useful objs from test/test
+test_benchmarks_benchmarks_SOURCES = \
+	test/stest.cpp \
+	test/benchmarks/bench_searches.cpp \
+	test/benchmarks/benchmarks.cpp
+
+test_benchmarks_benchmarks_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 bin_PROGRAMS = src/cmd/lightgrep
 
