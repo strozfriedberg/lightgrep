@@ -135,7 +135,7 @@ TEST_CASE("testLgAddPatternListFixedString") {
 TEST_CASE("testLgAddPatternListCRLFHeck") {
   // Mixed line endings is obviously a stupid case
   // yet, let's remember Postel's Law...
-  std::string pats("foo\r\nbar\n\baz\rquux\r\n\r\n\nxyzzy");
+  const std::string pats("foo\r\nbar\n\baz\rquux\r\n\r\n\nxyzzy");
 
   const char* defEncs[] = { "ASCII" };
 
@@ -165,13 +165,13 @@ TEST_CASE("testLgAddPatternListCRLFHeck") {
   REQUIRE(!err);
   REQUIRE(5u == lg_pattern_count(prog.get()));
 
-  STest s(std::move(prog));
-  s.search("Everything's foobar with my bazquux.");
-  REQUIRE(4u == s.Hits.size());
-  REQUIRE(0u == s.Hits[0].KeywordIndex);
-  REQUIRE(1u == s.Hits[1].KeywordIndex);
-  REQUIRE(2u == s.Hits[2].KeywordIndex);
-  REQUIRE(3u == s.Hits[3].KeywordIndex);
+  LG_PatternInfo* pi;
+  const char* exp_pats[] = { "foo", "bar", "\baz", "quux", "xyzzy" };
+  for (int i = 0; i < 5; ++i) {
+    const LG_PatternInfo* pi = lg_pattern_info(prog.get(), i);
+    REQUIRE(pi);
+    REQUIRE(!std::strcmp(exp_pats[i], pi->Pattern));
+  }
 }
 
 TEST_CASE("testLgAddPatternListBadEncoding") {
