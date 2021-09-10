@@ -142,6 +142,11 @@ extern "C" {
 
   // Returns negative on failure; otherwise returns unique index for the
   // pattern-encoding pair.
+  //
+  // userIndex sets the LG_PatternInfo::UserIndex for this pattern. There
+  // are no constraints on the value of userIndex. Set it for each pattern
+  // to whatever you want to see as the LG_PatternInfo::UserIndex for that
+  // pattern.
   int lg_add_pattern(LG_HFSM hFsm,
                      LG_HPROGRAM hProg,
                      LG_HPATTERN hPattern,
