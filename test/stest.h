@@ -30,8 +30,10 @@
 
 class STest {
 public:
+  using ProgPtr = std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>;
+
   std::vector<SearchHit> Hits;
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> Prog;
+  ProgPtr Prog;
   uint64_t RetVal;
 
   STest(const char* key):
@@ -57,6 +59,16 @@ public:
     Prog(nullptr, nullptr), Ctx(nullptr, nullptr)
   {
     init(patterns);
+  }
+
+  STest(ProgPtr prog):
+    Hits(), Prog(std::move(prog)), RetVal(0), Ctx(nullptr, nullptr)
+  {
+    LG_ContextOptions ctxOpts;
+    Ctx = std::unique_ptr<ContextHandle, void(*)(ContextHandle*)>(
+      lg_create_context(Prog.get(), &ctxOpts),
+      lg_destroy_context
+    );
   }
 
   void search(const char* begin, const char* end, uint64_t offset);
