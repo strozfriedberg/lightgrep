@@ -186,24 +186,15 @@ std::tuple<
   std::unique_ptr<LG_Error,void(*)(LG_Error*)>
 >
 parsePatterns(const T& keyFiles,
-              const std::vector<std::string>& defaultEncodings = { "ASCII" },
-              const LG_KeyOptions& defaultOpts = {0, 0, 1})
+              const std::vector<std::string>& defaultEncodings,
+              const LG_KeyOptions& defaultKOpts,
+              const LG_ProgramOptions& progOpts)
 {
   // read the patterns and parse them
 
-  // FIXME: size the pattern map here?
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-    lg_create_program(0),
-    lg_destroy_program
-  );
-
-  if (!prog) {
-// FIXME: what do do here?
-  }
-
   // FIXME: estimate NFA size here?
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
-    lg_create_fsm(0),
+    lg_create_fsm(0, 0),
     lg_destroy_fsm
   );
 
@@ -222,9 +213,9 @@ parsePatterns(const T& keyFiles,
     LG_Error* local_err = nullptr;
 
     lg_add_pattern_list(
-      fsm.get(), prog.get(),
+      fsm.get(),
       pf.second.c_str(), pf.first.c_str(),
-      defEncs.get(), defaultEncodings.size(), &defaultOpts, &local_err
+      defEncs.get(), defaultEncodings.size(), &defaultKOpts, &local_err
     );
 
     if (local_err) {
@@ -243,6 +234,20 @@ parsePatterns(const T& keyFiles,
       // walk to the end of the error chain
       for ( ; tail_err->Next; tail_err = tail_err->Next);
     }
+  }
+
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+    lg_create_program(fsm.get(), &progOpts),
+    lg_destroy_program
+  );
+
+  if (prog) {
+    std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
+              << prog->Prog->size() << " instructions"
+              << std::endl;
+  }
+  else {
+    std::cerr << "Failed to create program" << std::endl;
   }
 
   return std::make_tuple(std::move(prog), std::move(fsm), std::move(err));
@@ -273,22 +278,6 @@ loadProgram(const std::string& pfile) {
     lg_destroy_program
   );
 }
-
-bool buildProgram(FSMHandle* fsm, ProgramHandle* prog, const Options& opts) {
-  LG_ProgramOptions progOpts{opts.DeterminizeDepth};
-
-  if (lg_compile_program(fsm, prog, &progOpts)) {
-    std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
-              << prog->Prog->size() << " instructions"
-              << std::endl;
-    return true;
-  }
-  else {
-    std::cerr << "Failed to create program" << std::endl;
-    return false;
-  }
-}
-
 
 class Line {
 public:
@@ -397,20 +386,14 @@ void search(const Options& opts) {
 
     std::tie(prog, fsm, err) = parsePatterns(
       opts.getPatternLines(), opts.Encodings,
-      {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
+      {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
+      {opts.DeterminizeDepth}
     );
 
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
     handleParseErrors(err.get(), printFilename);
-
-    // build a program from parsed patterns
-    if (fsm) {
-      if (!buildProgram(fsm.get(), prog.get(), opts)) {
-        prog.reset();
-      }
-    }
   }
 
   if (!prog) {
@@ -527,7 +510,8 @@ bool writeGraphviz(const Options& opts) {
 
   std::tie(prog, fsm, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
+    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
+    {opts.DeterminizeDepth}
   );
 
   const bool printFilename =
@@ -537,12 +521,7 @@ bool writeGraphviz(const Options& opts) {
 
   std::cerr << "numErrors = " << countErrors(err.get()) << std::endl;
 
-  if (!fsm) {
-    return false;
-  }
-
-  // build the program to force determinization
-  if (!buildProgram(fsm.get(), prog.get(), opts)) {
+  if (!fsm || !prog) {
     return false;
   }
 
@@ -559,7 +538,8 @@ void writeProgram(const Options& opts) {
 
   std::tie(prog, fsm, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
+    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
+    {opts.DeterminizeDepth}
   );
 
   const bool printFilename =
@@ -567,11 +547,7 @@ void writeProgram(const Options& opts) {
 
   handleParseErrors(err.get(), printFilename);
 
-  if (!fsm) {
-    return;
-  }
-
-  if (!buildProgram(fsm.get(), prog.get(), opts)) {
+  if (!fsm || !prog) {
     return;
   }
 
@@ -597,7 +573,8 @@ void validate(const Options& opts) {
 
   std::tie(std::ignore, std::ignore, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
+    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
+    {opts.DeterminizeDepth}
   );
 
   for (const LG_Error* e = err.get(); e ; e = e->Next) {
@@ -625,7 +602,8 @@ void writeSampleMatches(const Options& opts) {
     const std::pair<std::string,std::string> a[] = { pf };
     std::tie(std::ignore, fsm, err) = parsePatterns(
       a, opts.Encodings,
-      {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
+      {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
+      {opts.DeterminizeDepth}
     );
 
     if (err) {

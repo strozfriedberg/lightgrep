@@ -16,13 +16,12 @@ public:
   }
 
   ~PatternMap() {
-    if (!Shared) {
-      for (LG_PatternInfo& pi: Patterns) {
-        delete[] pi.Pattern;
-        delete[] pi.EncodingChain;
-      }
-    }
+    clearPatterns();
   }
+
+  PatternMap(const PatternMap& other);
+
+  PatternMap& operator=(const PatternMap& other);
 
   void addPattern(const char* pattern, const char* chain, uint64_t index);
 
@@ -35,6 +34,10 @@ public:
 
 private:
   void usePattern(const char* pattern, const char* chain, uint64_t index);
+
+  void copyOther(const PatternMap& other);
+
+  void clearPatterns();
 
   bool Shared;
 };

@@ -136,7 +136,10 @@ extern "C" {
   // and fragmentation. A good rule of thumb is to pass the total number of
   // characters in all of the keywords. Everything will work fine with 0,
   // though.
-  LG_HFSM lg_create_fsm(unsigned int numFsmStateSizeHint);
+  LG_HFSM lg_create_fsm(
+    unsigned int patternCountHint,
+    unsigned int numFsmStateSizeHint
+  );
 
   void lg_destroy_fsm(LG_HFSM hFsm);
 
@@ -147,12 +150,13 @@ extern "C" {
   // are no constraints on the value of userIndex. Set it for each pattern
   // to whatever you want to see as the LG_PatternInfo::UserIndex for that
   // pattern.
-  int lg_add_pattern(LG_HFSM hFsm,
-                     LG_HPROGRAM hProg,
-                     LG_HPATTERN hPattern,
-                     const char* encoding,
-                     uint64_t userIndex,
-                     LG_Error** err);
+  int lg_add_pattern(
+    LG_HFSM hFsm,
+    LG_HPATTERN hPattern,
+    const char* encoding,
+    uint64_t userIndex,
+    LG_Error** err
+  );
 
   // Adds patterns to the FSM and Program. Each line of the pattern string
   // shall be formatted as tab separated columns:
@@ -167,14 +171,15 @@ extern "C" {
   // The values of defaultEncodings and defaultOptions are used in case of
   // omitted columns. The "source" parameter indicates the source of the
   // patterns string (e.g., a path) and is used in error messages.
-  int lg_add_pattern_list(LG_HFSM hFsm,
-                          LG_HPROGRAM hProg,
-                          const char* patterns,
-                          const char* source,
-                          const char** defaultEncodings,
-                          unsigned int defaultEncodingsNum,
-                          const LG_KeyOptions* defaultOptions,
-                          LG_Error** err);
+  int lg_add_pattern_list(
+    LG_HFSM hFsm,
+    const char* patterns,
+    const char* source,
+    const char** defaultEncodings,
+    unsigned int defaultEncodingsNum,
+    const LG_KeyOptions* defaultOptions,
+    LG_Error** err
+  );
 
   // The number of pattern-encoding pairs recognized by the Program. This
   // will be one greater than the maximum pattern index accepted by
@@ -184,14 +189,11 @@ extern "C" {
   LG_PatternInfo* lg_pattern_info(LG_HPROGRAM hProg,
                                   unsigned int patternIndex);
 
-  // Create an empty Program. The Program houses both the search logic and
-  // the list of patterns against which hits may be reported.
-  LG_HPROGRAM lg_create_program(unsigned int numTotalPatternsSizeHint);
-
-  // Compile the FSM into the search logic held by a Program. Once a Program
-  // has been compiled, it may no longer be altered and the FSM may be
-  // discarded.
-  int lg_compile_program(const LG_HFSM hFsm, LG_HPROGRAM hProg, const LG_ProgramOptions* options);
+  // Create a Program by compiling the FSM into bytecode. The Program houses
+  // both the search logic and the list of patterns against which hits may be
+  // reported. Once a Program has been compiled, it may no longer be altered
+  // and the FSM may be discarded.
+  LG_HPROGRAM lg_create_program(LG_HFSM hFsm, const LG_ProgramOptions* options);
 
   // The size, in bytes, of the search program. Used for serialization.
   unsigned int lg_program_size(const LG_HPROGRAM hProg);

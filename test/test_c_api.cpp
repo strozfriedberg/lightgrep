@@ -71,16 +71,9 @@ TEST_CASE("testLgAddPatternList") {
   const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
   const LG_KeyOptions defOpts{0, 0, 1};
 
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-    lg_create_program(patsNum),
-    lg_destroy_program
-  );
-
-  REQUIRE(prog);
-
   // FIXME: how to estimate NFA size here?
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
-    lg_create_fsm(0),
+    lg_create_fsm(patsNum, 0),
     lg_destroy_fsm
   );
 
@@ -89,7 +82,7 @@ TEST_CASE("testLgAddPatternList") {
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), prog.get(), pats, "testLgAddPatternList",
+    fsm.get(), pats, "testLgAddPatternList",
     defEncs, defEncsNum, &defOpts, &err
   );
 
@@ -106,16 +99,9 @@ TEST_CASE("testLgAddPatternListFixedString") {
 
   const LG_KeyOptions defOpts{0, 0, 1};
 
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-    lg_create_program(patsNum),
-    lg_destroy_program
-  );
-
-  REQUIRE(prog);
-
   // FIXME: how to estimate NFA size here?
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
-    lg_create_fsm(0),
+    lg_create_fsm(patsNum, 0),
     lg_destroy_fsm
   );
 
@@ -124,7 +110,7 @@ TEST_CASE("testLgAddPatternListFixedString") {
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), prog.get(), pats, "testLgAddPatternListFixedString",
+    fsm.get(), pats, "testLgAddPatternListFixedString",
     defEncs, defEncsNum, &defOpts, &err
   );
 
@@ -136,20 +122,12 @@ TEST_CASE("testLgAddPatternListCRLFHeck") {
   // Mixed line endings is obviously a stupid case
   // yet, let's remember Postel's Law...
   const std::string pats("foo\r\nbar\n\baz\rquux\r\n\r\n\nxyzzy");
-
   const char* defEncs[] = { "ASCII" };
 
   const LG_KeyOptions opts{0, 0, 1};
 
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-    lg_create_program(5),
-    lg_destroy_program
-  );
-
-  REQUIRE(prog);
-
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
-    lg_create_fsm(0),
+    lg_create_fsm(5, 0),
     lg_destroy_fsm
   );
 
@@ -158,11 +136,20 @@ TEST_CASE("testLgAddPatternListCRLFHeck") {
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), prog.get(), pats.c_str(), "testLgAddPatternListCRLFHeck",
+    fsm.get(), pats.c_str(), "testLgAddPatternListCRLFHeck",
     defEncs, 1, &opts, &err
   );
 
   REQUIRE(!err);
+
+  const LG_ProgramOptions progOpts{0xFFFFFFFF};
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+    lg_create_program(fsm.get(), &progOpts),
+    lg_destroy_program
+  );
+
+  REQUIRE(prog);
+
   REQUIRE(5u == lg_pattern_count(prog.get()));
 
   LG_PatternInfo* pi;
@@ -186,16 +173,9 @@ TEST_CASE("testLgAddPatternListBadEncoding") {
   const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
   const LG_KeyOptions defOpts{0, 0, 1};
 
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-    lg_create_program(patsNum),
-    lg_destroy_program
-  );
-
-  REQUIRE(prog);
-
   // FIXME: how to estimate NFA size here?
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
-    lg_create_fsm(0),
+    lg_create_fsm(patsNum, 0),
     lg_destroy_fsm
   );
 
@@ -207,7 +187,7 @@ TEST_CASE("testLgAddPatternListBadEncoding") {
   LG_Error* err = nullptr;
 
   lg_add_pattern_list(
-    fsm.get(), prog.get(), pats, "testLgAddPatternListBadEncoding",
+    fsm.get(), pats, "testLgAddPatternListBadEncoding",
     defEncs, defEncsNum, &defOpts, &err
   );
 
@@ -241,36 +221,33 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
   const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
   const LG_KeyOptions defOpts{0, 0, 0};
 
+  // FIXME: how to estimate NFA size here?
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(patsNum, 0),
+    lg_destroy_fsm
+  );
+
+  REQUIRE(fsm);
+
+  LG_Error* err = nullptr;
+
+  lg_add_pattern_list(
+    fsm.get(), pats, "testLgAddPatternList",
+    defEncs, defEncsNum, &defOpts, &err
+  );
+
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
+  REQUIRE(!err);
+
+  const LG_ProgramOptions progOpts{0xFFFFFFFF};
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog1(
-    lg_create_program(patsNum),
+    lg_create_program(fsm.get(), &progOpts),
     lg_destroy_program
   );
 
   REQUIRE(prog1);
 
-  {
-    // FIXME: how to estimate NFA size here?
-    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
-      lg_create_fsm(0),
-      lg_destroy_fsm
-    );
-
-    REQUIRE(fsm);
-
-    LG_Error* err = nullptr;
-
-    lg_add_pattern_list(
-      fsm.get(), prog1.get(), pats, "testLgAddPatternList",
-      defEncs, defEncsNum, &defOpts, &err
-    );
-
-    std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
-    REQUIRE(!err);
-
-    LG_ProgramOptions progOpts{0xFFFFFFFF};
-    int ret = lg_compile_program(fsm.get(), prog1.get(), &progOpts);
-    REQUIRE(ret);
-  }
+  fsm.reset();
 
   const size_t psize = lg_program_size(prog1.get());
   std::unique_ptr<char[]> buf(new char[psize]);

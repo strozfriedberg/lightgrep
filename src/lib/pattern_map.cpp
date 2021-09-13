@@ -6,6 +6,34 @@
 #include <memory>
 #include <numeric>
 
+void PatternMap::clearPatterns() {
+  if (!Shared) {
+    for (LG_PatternInfo& pi: Patterns) {
+      delete[] pi.Pattern;
+      delete[] pi.EncodingChain;
+    }
+  }
+  Patterns.clear();
+  Shared = false;
+}
+
+void PatternMap::copyOther(const PatternMap& other) {
+  Patterns.reserve(other.Patterns.size());
+  for (const LG_PatternInfo& pi: other.Patterns) {
+    addPattern(pi.Pattern, pi.EncodingChain, pi.UserIndex);
+  }
+}
+
+PatternMap::PatternMap(const PatternMap& other): Patterns(), Shared(false) {
+  copyOther(other);
+}
+
+PatternMap& PatternMap::operator=(const PatternMap& other) {
+  clearPatterns();
+  copyOther(other);
+  return *this;
+}
+
 void PatternMap::addPattern(const char* pattern, const char* chain, uint64_t idx) {
   std::unique_ptr<char[]> patcopy(new char[std::strlen(pattern)+1]);
   std::strcpy(patcopy.get(), pattern);
