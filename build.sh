@@ -8,7 +8,6 @@ if [ "$Target" != 'macos' ]; then
   CHECK_TARGET=check-valgrind
 fi
 
-CONFIGURE="$CONFIGURE --with-boost=$DEPS"
 build_it
 install_it
 
