@@ -290,7 +290,6 @@ private:
   std::string data;
 };
 
-
 class Lines {
 public:
   Lines(std::istream& is): is(is) {}
