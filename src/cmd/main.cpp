@@ -201,6 +201,12 @@ parsePatterns(const T& keyFiles,
 
   if (!fsm) {
 // FIXME: What to do here?
+    std::cerr << "Failed to create program" << std::endl;
+    return std::make_tuple(
+      std::move(fsm),
+      std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>(nullptr, nullptr),
+      std::move(err)
+    );
   }
 
   // set default encoding(s) of patterns which have none specified
@@ -250,7 +256,7 @@ parsePatterns(const T& keyFiles,
     std::cerr << "Failed to create program" << std::endl;
   }
 
-  return std::make_tuple(std::move(prog), std::move(fsm), std::move(err));
+  return std::make_tuple(std::move(fsm), std::move(prog), std::move(err));
 }
 
 std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>
@@ -383,7 +389,7 @@ void search(const Options& opts) {
     std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
     std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    std::tie(prog, fsm, err) = parsePatterns(
+    std::tie(fsm, prog, err) = parsePatterns(
       opts.getPatternLines(), opts.Encodings,
       {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
       {opts.DeterminizeDepth}
@@ -507,7 +513,7 @@ bool writeGraphviz(const Options& opts) {
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(prog, fsm, err) = parsePatterns(
+  std::tie(fsm, prog, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
     {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
     {opts.DeterminizeDepth}
@@ -535,7 +541,7 @@ void writeProgram(const Options& opts) {
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(prog, fsm, err) = parsePatterns(
+  std::tie(fsm, prog, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
     {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
     {opts.DeterminizeDepth}
@@ -599,7 +605,7 @@ void writeSampleMatches(const Options& opts) {
   size_t pnum = 0;
   for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
     const std::pair<std::string,std::string> a[] = { pf };
-    std::tie(std::ignore, fsm, err) = parsePatterns(
+    std::tie(fsm, std::ignore, err) = parsePatterns(
       a, opts.Encodings,
       {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
       {opts.DeterminizeDepth}
