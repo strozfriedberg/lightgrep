@@ -62,24 +62,23 @@ void startup(
   const Options& opts
 );
 
-void printVersion() {
-  std::cout << "lightgrep " << VERSION
-            << "\nCopyright (c) 2010-2017, Stroz Friedberg, LLC"
-               "\nBuilt " << __DATE__ << std::endl;
+void printVersion(std::ostream& out) {
+  out << "lightgrep " << VERSION
+      << "\nCopyright (c) 2010-2017, Stroz Friedberg, LLC"
+         "\nBuilt " << __DATE__ << std::endl;
 }
 
-void printHelp(const po::options_description& desc) {
-  printVersion();
-  std::cout
-    << "\nUsage: lightgrep [OPTIONS] PATTERN_FILE [FILE...]\n"
+void printHelp(std::ostream& out, const po::options_description& desc) {
+  printVersion(out);
+  out << "\nUsage: lightgrep [OPTIONS] PATTERN_FILE [FILE...]\n"
          "       lightgrep [OPTIONS] [-p PATTERN | -k FILE] [FILE...]\n\n"
 #ifdef LIGHTGREP_CUSTOMER
-    << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
+      << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
 #endif
-    << desc << std::endl;
+      << desc << std::endl;
 }
 
-void printEncodings() {
+void printEncodings(std::ostream& out) {
   const size_t slen = std::extent<decltype(LG_ENCODINGS)>::value;
   const uint32_t clen = std::extent<decltype(LG_CANONICAL_ENCODINGS)>::value;
 
@@ -97,15 +96,15 @@ void printEncodings() {
 
   for (size_t i = 0; i < clen; ++i) {
     // print the canonical name for the encoding
-    std::cout << LG_CANONICAL_ENCODINGS[i] << '\n';
+    out << LG_CANONICAL_ENCODINGS[i] << '\n';
 
     // print the aliases for the encoding
     for (const std::string& alias : aliases[i]) {
-      std::cout << '\t' << alias << '\n';
+      out << '\t' << alias << '\n';
     }
   }
 
-  std::cout << std::endl;
+  out << std::endl;
 }
 
 void handleParseErrors(LG_Error* err, bool printFilename) {
@@ -667,13 +666,13 @@ int main(int argc, char** argv) {
       validate(opts);
       break;
     case Options::SHOW_VERSION:
-      printVersion();
+      printVersion(std::cout);
       break;
     case Options::SHOW_HELP:
-      printHelp(desc);
+      printHelp(std::cout, desc);
       break;
     case Options::LIST_ENCODINGS:
-      printEncodings();
+      printEncodings(std::cout);
       break;
     default:
       // this should be impossible
@@ -684,7 +683,7 @@ int main(int argc, char** argv) {
   }
   catch (const std::exception& err) {
     std::cerr << "Error: " << err.what() << "\n\n";
-    printHelp(desc);
+    printHelp(std::cout, desc);
     return 1;
   }
   return 0;
