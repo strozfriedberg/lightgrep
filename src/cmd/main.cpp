@@ -180,9 +180,9 @@ std::unique_ptr<const char*[]> c_str_arr(const std::vector<std::string>& vec) {
 
 template <class T>
 std::tuple<
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>,
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>,
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)>
+  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)>,
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>,
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)>
 >
 parsePatterns(const T& keyFiles,
               const std::vector<std::string>& defaultEncodings,
@@ -191,8 +191,10 @@ parsePatterns(const T& keyFiles,
 {
   // read the patterns and parse them
 
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
+
   // FIXME: estimate NFA size here?
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(
     lg_create_fsm(0, 0),
     lg_destroy_fsm
   );
@@ -204,7 +206,6 @@ parsePatterns(const T& keyFiles,
   // set default encoding(s) of patterns which have none specified
   const std::unique_ptr<const char*[]> defEncs(c_str_arr(defaultEncodings));
 
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
   LG_Error* tail_err = nullptr;
 
   for (const std::pair<std::string,std::string>& pf : keyFiles) {
@@ -224,7 +225,7 @@ parsePatterns(const T& keyFiles,
       }
       else {
         // first error, start a new error chain
-        err = std::unique_ptr<LG_Error,void(*)(LG_Error*)>(
+        err = std::unique_ptr<LG_Error, void(*)(LG_Error*)>(
           local_err, lg_free_error
         );
         tail_err = local_err;
@@ -235,7 +236,7 @@ parsePatterns(const T& keyFiles,
     }
   }
 
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(
     lg_create_program(fsm.get(), &progOpts),
     lg_destroy_program
   );
@@ -252,12 +253,12 @@ parsePatterns(const T& keyFiles,
   return std::make_tuple(std::move(prog), std::move(fsm), std::move(err));
 }
 
-std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>
+std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>
 loadProgram(const std::string& pfile) {
   std::ifstream pin(pfile, std::ios::in | std::ios::binary);
   if (!pin) {
     std::cerr << "Could not open program file " << pfile << std::endl;
-    return std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>(
+    return std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>(
       nullptr, nullptr
     );
   }
@@ -272,7 +273,7 @@ loadProgram(const std::string& pfile) {
   pin.read(&buf[0], end);
   pin.close();
 
-  return std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>(
+  return std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>(
     lg_read_program(&buf[0], end),
     lg_destroy_program
   );
@@ -369,7 +370,7 @@ void searchInputs(
 }
 
 void search(const Options& opts) {
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(
     nullptr, nullptr
   );
 
@@ -379,8 +380,8 @@ void search(const Options& opts) {
   }
   else {
     // read the patterns and parse them
-    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-    std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+    std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+    std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
     std::tie(prog, fsm, err) = parsePatterns(
       opts.getPatternLines(), opts.Encodings,
@@ -502,9 +503,9 @@ void search(const Options& opts) {
 }
 
 bool writeGraphviz(const Options& opts) {
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(nullptr, nullptr);
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
+  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   std::tie(prog, fsm, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
@@ -530,9 +531,9 @@ bool writeGraphviz(const Options& opts) {
 
 void writeProgram(const Options& opts) {
   // get the patterns and parse them
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(nullptr, nullptr);
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
+  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   std::tie(prog, fsm, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
@@ -567,7 +568,7 @@ void writeProgram(const Options& opts) {
 }
 
 void validate(const Options& opts) {
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   std::tie(std::ignore, std::ignore, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings,
@@ -592,8 +593,8 @@ void writeSampleMatches(const Options& opts) {
   out << (char) 0xFF << (char) 0xFE;
 
   // parse the patterns one at a time
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   size_t pnum = 0;
   for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
