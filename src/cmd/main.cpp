@@ -178,16 +178,25 @@ std::unique_ptr<const char*[]> c_str_arr(const std::vector<std::string>& vec) {
   return arr;
 }
 
+LG_KeyOptions patOpts(const Options& opts) {
+  return { opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode };
+}
+
+LG_ProgramOptions progOpts(const Options& opts) {
+  return { opts.DeterminizeDepth };
+}
+
 template <class T>
 std::tuple<
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)>,
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>,
   std::unique_ptr<LG_Error, void(*)(LG_Error*)>
 >
-parsePatterns(const T& keyFiles,
-              const std::vector<std::string>& defaultEncodings,
-              const LG_KeyOptions& defaultKOpts,
-              const LG_ProgramOptions& progOpts)
+parsePatterns(
+  const T& keyFiles,
+  const std::vector<std::string>& defaultEncodings,
+  const LG_KeyOptions& defaultKOpts,
+  const LG_ProgramOptions& progOpts)
 {
   // read the patterns and parse them
 
@@ -390,9 +399,7 @@ void search(const Options& opts) {
     std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
     std::tie(fsm, prog, err) = parsePatterns(
-      opts.getPatternLines(), opts.Encodings,
-      {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
-      {opts.DeterminizeDepth}
+      opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
     );
 
     const bool printFilename =
@@ -514,9 +521,7 @@ bool writeGraphviz(const Options& opts) {
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   std::tie(fsm, prog, err) = parsePatterns(
-    opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
-    {opts.DeterminizeDepth}
+    opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
   );
 
   const bool printFilename =
@@ -542,9 +547,7 @@ void writeProgram(const Options& opts) {
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   std::tie(fsm, prog, err) = parsePatterns(
-    opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
-    {opts.DeterminizeDepth}
+    opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
   );
 
   const bool printFilename =
@@ -577,9 +580,7 @@ void validate(const Options& opts) {
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   std::tie(std::ignore, std::ignore, err) = parsePatterns(
-    opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
-    {opts.DeterminizeDepth}
+    opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
   );
 
   for (const LG_Error* e = err.get(); e ; e = e->Next) {
@@ -606,9 +607,7 @@ void writeSampleMatches(const Options& opts) {
   for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
     const std::pair<std::string,std::string> a[] = { pf };
     std::tie(fsm, std::ignore, err) = parsePatterns(
-      a, opts.Encodings,
-      {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode},
-      {opts.DeterminizeDepth}
+      a, opts.Encodings, patOpts(opts), progOpts(opts)
     );
 
     if (err) {
