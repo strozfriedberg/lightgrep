@@ -289,23 +289,26 @@ class Pattern(Handle):
 
 
 class Fsm(Handle):
-    def __init__(self, size):
+    def __init__(self, patcount, size):
+        if patcount < 0:
+            raise ValueError(f"Pattern count hint must be >= 0, but was {patcount}")
         if size < 0:
             raise ValueError(f"Size hint must be >= 0, but was {size}")
-        super().__init__(_LG.lg_create_fsm(size))
+
+        super().__init__(_LG.lg_create_fsm(patcount, size))
 
     def close(self):
         _LG.lg_destroy_fsm(self.handle)
         super().close()
 
-    def add_pattern(self, prog, pat, enc, userIdx):
+    def add_pattern(self, pat, enc, userIdx):
         with Error() as err:
-            idx = _LG.lg_add_pattern(self.get(), prog.get(), pat.get(), enc.encode("utf-8"), userIdx, byref(err.get()))
+            idx = _LG.lg_add_pattern(self.get(), pat.get(), enc.encode("utf-8"), userIdx, byref(err.get()))
             if idx < 0:
                 raise RuntimeError(f"Error adding pattern: {err}")
             return idx
 
-    def add_patterns(self, prog, pat, patlist):
+    def add_patterns(self, pat, patlist):
         # patlist is a list of ("pattern", ["encoding"], keyOpts)
         for i, p in enumerate(patlist):
             if not p[0]:
@@ -317,30 +320,36 @@ class Fsm(Handle):
             pat.parse(p[0], p[2])
 
             for enc in p[1]:
-                self.add_pattern(prog, pat, enc, i)
+                self.add_pattern(pat, enc, i)
 
 
 class Program(Handle):
-    def __init__(self, arg, shared=False):
-        if isinstance(arg, int):
-            # nonnegative ints create fresh programs
-            if arg < 0:
-                raise ValueError(f"Size hint must be >= 0, but was {arg}")
-            handle = _LG.lg_create_program(arg)
+    def __init__(self, *args, shared=False):
+        if len(args) == 1:
+            # unserialize program from a buffer
+            c_buf = buf_beg(args[0], c_char)
+            handle = _LG.lg_read_program(c_buf, len(args[0])) if shared else _LG.lg_read_program(c_buf, len(args[0]))
+
+        elif len(args) == 2:
+            if not isinstance(args[0], Fsm):
+                raise TypeError(f"args[0] must be an Fsm, not {type(args[0])}")
+
+            if not isinstance(args[1], ProgOpts):
+                raise TypeError(f"args[1] must be a ProgOpts, not {type(args[1])}")
+            # create a program from an Fsm and opts
+            handle = _LG.lg_create_program(args[0].get(), args[1])
+
         else:
-            # buffers unserialize programs
-            c_buf = buf_beg(arg, c_char)
-            handle = _LG.lg_read_program(c_buf, len(arg)) if shared else _LG.lg_read_program(c_buf, len(arg))
+            raise TypeError(f"Program.__init__ expcted 1 or 2 arguments, got {len(args)}")
+
+        if not handle:
+            raise RuntimeError('Failed to create program')
 
         super().__init__(handle)
 
     def close(self):
         _LG.lg_destroy_program(self.handle)
         super().close()
-
-    def compile(self, fsm, opts):
-        if _LG.lg_compile_program(fsm.get(), self.get(), byref(opts)) == 0:
-            raise RuntimeError(f"Failed to compile program")
 
     def count(self):
         return _LG.lg_pattern_count(self.get())
@@ -493,16 +502,16 @@ _LG.lg_destroy_pattern.restype = None
 _LG.lg_parse_pattern.argtypes = [c_void_p, c_char_p, POINTER(KeyOpts), POINTER(POINTER(Err))]
 _LG.lg_parse_pattern.restype = c_int
 
-_LG.lg_create_fsm.argtypes = [c_uint]
+_LG.lg_create_fsm.argtypes = [c_uint, c_uint]
 _LG.lg_create_fsm.restype = c_void_p
 
 _LG.lg_destroy_fsm.argtypes = [c_void_p]
 _LG.lg_destroy_fsm.restype = None
 
-_LG.lg_add_pattern.argtypes = [c_void_p, c_void_p, c_void_p, c_char_p, c_int, POINTER(POINTER(Err))]
+_LG.lg_add_pattern.argtypes = [c_void_p, c_void_p, c_char_p, c_int, POINTER(POINTER(Err))]
 _LG.lg_add_pattern.restype = c_int
 
-_LG.lg_add_pattern_list.argtypes = [c_void_p, c_void_p, c_char_p, c_char_p, POINTER(c_char_p), c_uint, POINTER(KeyOpts), POINTER(POINTER(Err))]
+_LG.lg_add_pattern_list.argtypes = [c_void_p, c_char_p, c_char_p, POINTER(c_char_p), c_uint, POINTER(KeyOpts), POINTER(POINTER(Err))]
 _LG.lg_add_pattern_list.restype = c_int
 
 _LG.lg_pattern_count.argtypes = [c_void_p]
@@ -511,11 +520,8 @@ _LG.lg_pattern_count.restype = c_uint
 _LG.lg_pattern_info.argtypes = [c_void_p, c_uint]
 _LG.lg_pattern_info.restype = POINTER(PatternInfo)
 
-_LG.lg_create_program.argtypes = [c_uint]
+_LG.lg_create_program.argtypes = [c_void_p, POINTER(ProgOpts)]
 _LG.lg_create_program.restype = c_void_p
-
-_LG.lg_compile_program.argtypes = [c_void_p, c_void_p, POINTER(ProgOpts)]
-_LG.lg_compile_program.restype = c_int
 
 _LG.lg_program_size.argtypes = [c_void_p]
 _LG.lg_program_size.restype = c_uint
@@ -588,20 +594,10 @@ _LG.lg_free_hit_context_string.restype = None
 #
 
 def make_program_from_patterns(patlist, progOpts):
-    # pattern list + opts parses and compiles them
-
-    prog = Program(len(patlist) * 10)
-    try:
-        with Fsm(len(patlist) * 10) as fsm:
-            with Pattern() as pat:
-                fsm.add_patterns(prog, pat, patlist)
-
-                prog.compile(fsm, progOpts)
-    except Exception as e:
-        prog.close()
-        raise e
-
-    return prog
+    with Fsm(len(patlist), len(patlist) * 10) as fsm:
+        with Pattern() as pat:
+            fsm.add_patterns(pat, patlist)
+        return Program(fsm, progOpts)
 
 
 # check for errors on handles
