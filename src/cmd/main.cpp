@@ -267,7 +267,6 @@ loadProgram(const std::string& pfile) {
   }
 
 // FIXME: we need to handle the case where the read fails
-// FIXME: what to do for the pattern map?
 
   const std::streampos end = stream_size(pin);
   std::cerr << "program file is " << end << " bytes long" << std::endl;
