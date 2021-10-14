@@ -510,13 +510,15 @@ void writeGraphviz(const Options& opts) {
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
   handleParseErrors(std::cerr, err.get(), printFilename);
-
   std::cerr << "numErrors = " << countErrors(err.get()) << std::endl;
 
-  if (!fsm || !prog) {
-    throw std::runtime_error("TODO");
+  if (!fsm) {
+    throw std::runtime_error("failed to create fsm");
   }
 
+  if (!prog) {
+    throw std::runtime_error("failed to create program");
+  }
   // we don't need the prog; we just need the compilation to succeed
   prog.reset();
 
