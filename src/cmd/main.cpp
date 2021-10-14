@@ -242,9 +242,6 @@ parsePatterns(
               << prog->Prog->size() << " instructions"
               << std::endl;
   }
-  else {
-    std::cerr << "Failed to create program" << std::endl;
-  }
 
   return std::make_tuple(std::move(fsm), std::move(prog), std::move(err));
 }
