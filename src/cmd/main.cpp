@@ -530,7 +530,6 @@ void writeGraphviz(const Options& opts) {
 void writeProgram(const Options& opts) {
   // get the patterns and parse them
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
-  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   std::tie(std::ignore, prog, err) = parsePatterns(
