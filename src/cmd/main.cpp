@@ -103,7 +103,6 @@ void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename) {
     }
     out << "pattern " << err->Index << ": " << err->Message << '\n';
   }
-
   out.flush();
 }
 
@@ -197,13 +196,7 @@ parsePatterns(
   );
 
   if (!fsm) {
-// FIXME: What to do here?
-    std::cerr << "Failed to create program" << std::endl;
-    return std::make_tuple(
-      std::move(fsm),
-      std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>(nullptr, nullptr),
-      std::move(err)
-    );
+    throw std::runtime_error("failed to create fsm");
   }
 
   // set default encoding(s) of patterns which have none specified
@@ -511,10 +504,6 @@ void writeGraphviz(const Options& opts) {
   handleParseErrors(std::cerr, err.get(), printFilename);
   std::cerr << "numErrors = " << countErrors(err.get()) << std::endl;
 
-  if (!fsm) {
-    throw std::runtime_error("failed to create fsm");
-  }
-
   if (!prog) {
     throw std::runtime_error("failed to create program");
   }
@@ -614,7 +603,7 @@ void writeSampleMatches(const Options& opts) {
       out << std::string(buf.get(), len)
           << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
     }
-    else if (fsm) {
+    else {
       // break on through the C API to get the graph
       NFAPtr g(fsm->Impl->Fsm);
 
