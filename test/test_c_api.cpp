@@ -152,7 +152,6 @@ TEST_CASE("testLgAddPatternListCRLFHeck") {
 
   REQUIRE(5u == lg_pattern_count(prog.get()));
 
-  LG_PatternInfo* pi;
   const char* exp_pats[] = { "foo", "bar", "\baz", "quux", "xyzzy" };
   for (int i = 0; i < 5; ++i) {
     const LG_PatternInfo* pi = lg_pattern_info(prog.get(), i);
