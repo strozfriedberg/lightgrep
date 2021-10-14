@@ -4,6 +4,17 @@
 
 #include "pattern_map.h"
 
+TEST_CASE("testPatternMapCopyCtor") {
+  PatternMap p1(3);
+  p1.addPattern("foo", "bar", 0);
+  p1.addPattern(".+", "UTF-8", 1);
+  p1.addPattern("a|b|c", "ASCII,ISO-8859", 2);
+
+  PatternMap p2(p1);
+
+  REQUIRE(p1 == p2);
+}
+
 TEST_CASE("testPatternMapSerialization") {
   PatternMap p1(3);
   p1.addPattern("foo", "bar", 0);
