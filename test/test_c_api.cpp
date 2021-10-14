@@ -210,6 +210,69 @@ TEST_CASE("testLgAddPatternListBadEncoding") {
 */
 }
 
+TEST_CASE("testLgAddPatternListCopyOnWritePatternMap") {
+  const char pats1[] = "foo\tUTF-8\t0\t0\n";
+  const size_t pats1Num = std::count(pats1, pats1 + std::strlen(pats1), '\n');
+
+  const char* defEncs[] = { "UTF-8" };
+  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
+  const LG_KeyOptions defOpts{0, 0, 1};
+
+  // FIXME: how to estimate NFA size here?
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(pats1Num, 0),
+    lg_destroy_fsm
+  );
+
+  REQUIRE(fsm);
+
+  LG_Error* err = nullptr;
+  std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
+
+  // put some patterns into the fsm
+  lg_add_pattern_list(
+    fsm.get(), pats1, "whatever",
+    defEncs, defEncsNum, &defOpts, &err
+  );
+
+  REQUIRE(!err);
+
+  // make a program
+  const LG_ProgramOptions progOpts{0xFFFFFFFF};
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog1(
+    lg_create_program(fsm.get(), &progOpts),
+    lg_destroy_program
+  );
+
+  REQUIRE(prog1);
+
+  // put more patterns into the fsm
+  const char pats2[] = "bar\tUTF-8\t0\t0\n";
+
+  lg_add_pattern_list(
+    fsm.get(), pats2, "whatever",
+    defEncs, defEncsNum, &defOpts, &err
+  );
+
+  REQUIRE(!err);
+
+  // the first program still has one pattern
+  REQUIRE(lg_pattern_count(prog1.get()) == 1);
+
+  // make another program
+  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog2(
+    lg_create_program(fsm.get(), &progOpts),
+    lg_destroy_program
+  );
+
+  REQUIRE(prog2);
+
+  // the second program has two patterns
+  REQUIRE(lg_pattern_count(prog2.get()) == 2);
+  // the first program still has one pattern
+  REQUIRE(lg_pattern_count(prog1.get()) == 1);
+}
+
 TEST_CASE("testLgWriteProgramLgReadProgram") {
   const char pats[] =
     "foo\tUTF-8,UTF-16LE\t0\t0\n"
