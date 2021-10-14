@@ -63,19 +63,24 @@ void startup(
 );
 
 void printVersion(std::ostream& out) {
-  out << "lightgrep " << VERSION
-      << "\nCopyright (c) 2010-2017, Stroz Friedberg, LLC"
-         "\nBuilt " << __DATE__ << std::endl;
+  out << "lightgrep " << VERSION << '\n'
+      << "Copyright (c) 2010-2017, Stroz Friedberg, LLC\n"
+         "Built " << __DATE__ << std::endl;
+}
+
+void printUsage(std::ostream& out) {
+  out << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]...\n"
+         "       lightgrep [OPTION]... [-p PATTERN | -k FILE]... [FILE]..."
+      << std::endl;
 }
 
 void printHelp(std::ostream& out, const po::options_description& desc) {
   printVersion(out);
-  out << "\nUsage: lightgrep [OPTIONS] PATTERN_FILE [FILE...]\n"
-         "       lightgrep [OPTIONS] [-p PATTERN | -k FILE] [FILE...]\n\n"
+  printUsage(out);
 #ifdef LIGHTGREP_CUSTOMER
-      << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
+  out << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n";
 #endif
-      << desc << std::endl;
+  out << desc << std::endl;
 }
 
 void printEncodings(std::ostream& out) {
@@ -681,14 +686,13 @@ int main(int argc, char** argv) {
       break;
     default:
       // this should be impossible
-      std::cerr << "Unrecognized command. Use --help for list of options."
-                << std::endl;
-      return 1;
+      throw std::runtime_error("unrecognized command");
     }
   }
   catch (const std::exception& err) {
-    std::cerr << "Error: " << err.what() << "\n\n";
-    printHelp(std::cout, desc);
+    std::cerr << "Error: " << err.what() << "\n";
+    printUsage(std::cerr);
+    std::cerr << "Try 'lightgrep --help' for more information." << std::endl;
     return 1;
   }
   return 0;
