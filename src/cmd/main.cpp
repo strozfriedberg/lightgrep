@@ -95,16 +95,16 @@ void printEncodings(std::ostream& out) {
   out << std::endl;
 }
 
-void handleParseErrors(LG_Error* err, bool printFilename) {
+void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename) {
   // walk the error chain
   for ( ; err; err = err->Next) {
     if (printFilename) {
-      std::cerr << err->Source << ", ";
+      out << err->Source << ", ";
     }
-    std::cerr << "pattern " << err->Index << ": " << err->Message << '\n';
+    out << "pattern " << err->Index << ": " << err->Message << '\n';
   }
 
-  std::cerr.flush();
+  out.flush();
 }
 
 size_t countErrors(const LG_Error* err) {
@@ -390,7 +390,7 @@ void search(const Options& opts) {
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-    handleParseErrors(err.get(), printFilename);
+    handleParseErrors(std::cerr, err.get(), printFilename);
   }
 
   if (!prog) {
@@ -512,7 +512,7 @@ void writeGraphviz(const Options& opts) {
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-  handleParseErrors(err.get(), printFilename);
+  handleParseErrors(std::cerr, err.get(), printFilename);
 
   std::cerr << "numErrors = " << countErrors(err.get()) << std::endl;
 
@@ -520,7 +520,7 @@ void writeGraphviz(const Options& opts) {
     throw std::runtime_error("TODO");
   }
 
-  // we don't need the prog; we just need the compilation to happen
+  // we don't need the prog; we just need the compilation to succeed
   prog.reset();
 
   // break on through the C API to print the graph
@@ -539,7 +539,7 @@ void writeProgram(const Options& opts) {
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-  handleParseErrors(err.get(), printFilename);
+  handleParseErrors(std::cerr, err.get(), printFilename);
 
   if (!prog) {
     throw std::runtime_error("TODO");
