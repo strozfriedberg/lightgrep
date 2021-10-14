@@ -655,9 +655,9 @@ void writeSampleMatches(const Options& opts) {
 }
 
 int main(int argc, char** argv) {
-  Options opts;
-  po::options_description desc;
   try {
+    Options opts;
+    po::options_description desc;
     parse_opts(argc, argv, desc, opts);
 
     switch (opts.Command) {
@@ -688,6 +688,7 @@ int main(int argc, char** argv) {
       // this should be impossible
       throw std::runtime_error("unrecognized command");
     }
+    return 0;
   }
   catch (const std::exception& err) {
     std::cerr << "Error: " << err.what() << "\n";
@@ -695,5 +696,4 @@ int main(int argc, char** argv) {
     std::cerr << "Try 'lightgrep --help' for more information." << std::endl;
     return 1;
   }
-  return 0;
 }
