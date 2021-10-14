@@ -533,7 +533,7 @@ void writeProgram(const Options& opts) {
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(fsm, prog, err) = parsePatterns(
+  std::tie(std::ignore, prog, err) = parsePatterns(
     opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
   );
 
@@ -542,11 +542,9 @@ void writeProgram(const Options& opts) {
 
   handleParseErrors(err.get(), printFilename);
 
-  if (!fsm || !prog) {
+  if (!prog) {
     throw std::runtime_error("TODO");
   }
-
-  fsm.reset();
 
   // break on through the C API to print the program
   ProgramPtr p(prog->Prog);
