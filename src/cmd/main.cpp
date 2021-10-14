@@ -11,6 +11,7 @@
 #include <iostream>
 #include <iterator>
 #include <set>
+#include <stdexcept>
 #include <tuple>
 
 #include <boost/program_options.hpp>
@@ -508,7 +509,7 @@ void search(const Options& opts) {
             << " hit" << (hinfo->NumHits != 1 ? "s" : "") << std::endl;
 }
 
-bool writeGraphviz(const Options& opts) {
+void writeGraphviz(const Options& opts) {
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
@@ -525,12 +526,11 @@ bool writeGraphviz(const Options& opts) {
   std::cerr << "numErrors = " << countErrors(err.get()) << std::endl;
 
   if (!fsm || !prog) {
-    return false;
+    throw std::runtime_error("TODO");
   }
 
   // break on through the C API to print the graph
   writeGraphviz(opts.openOutput(), *fsm->Impl->Fsm);
-  return true;
 }
 
 void writeProgram(const Options& opts) {
@@ -549,7 +549,7 @@ void writeProgram(const Options& opts) {
   handleParseErrors(err.get(), printFilename);
 
   if (!fsm || !prog) {
-    return;
+    throw std::runtime_error("TODO");
   }
 
   fsm.reset();
@@ -653,7 +653,8 @@ int main(int argc, char** argv) {
       search(opts);
       break;
     case Options::GRAPH:
-      return writeGraphviz(opts) ? 0: 1;
+      writeGraphviz(opts);
+      break;
     case Options::PROGRAM:
       writeProgram(opts);
       break;
