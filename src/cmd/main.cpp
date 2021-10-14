@@ -373,9 +373,7 @@ void searchInputs(
 }
 
 void search(const Options& opts) {
-  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(
-    nullptr, nullptr
-  );
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
 
   if (!opts.ProgramFile.empty()) {
     // read a program in from file
@@ -383,10 +381,9 @@ void search(const Options& opts) {
   }
   else {
     // read the patterns and parse them
-    std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
     std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    std::tie(fsm, prog, err) = parsePatterns(
+    std::tie(std::ignore, prog, err) = parsePatterns(
       opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
     );
 
