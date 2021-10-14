@@ -394,8 +394,7 @@ void search(const Options& opts) {
   }
 
   if (!prog) {
-    std::cerr << "Did not get a proper program" << std::endl;
-    return;
+    throw std::runtime_error("failed to create a program");
   }
 
   // setup hit callback
@@ -465,10 +464,8 @@ void search(const Options& opts) {
     }
     else {
       ilf.open(i, std::ios::in | std::ios::binary);
-
       if (!ilf) {
-        std::cerr << "Could not open input file list " << i << std::endl;
-        return;
+        throw std::runtime_error("could not open input file list " + i);
       }
 
       is = &ilf;
