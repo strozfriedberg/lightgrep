@@ -541,7 +541,7 @@ void writeProgram(const Options& opts) {
   handleParseErrors(std::cerr, err.get(), printFilename);
 
   if (!prog) {
-    throw std::runtime_error("TODO");
+    throw std::runtime_error("failed to create program");
   }
 
   // break on through the C API to print the program
