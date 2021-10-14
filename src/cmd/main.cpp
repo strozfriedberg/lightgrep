@@ -504,8 +504,8 @@ void search(const Options& opts) {
 }
 
 void writeGraphviz(const Options& opts) {
-  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   std::tie(fsm, prog, err) = parsePatterns(
@@ -522,6 +522,9 @@ void writeGraphviz(const Options& opts) {
   if (!fsm || !prog) {
     throw std::runtime_error("TODO");
   }
+
+  // we don't need the prog; we just need the compilation to happen
+  prog.reset();
 
   // break on through the C API to print the graph
   writeGraphviz(opts.openOutput(), *fsm->Impl->Fsm);
