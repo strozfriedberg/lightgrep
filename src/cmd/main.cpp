@@ -107,7 +107,7 @@ void handleParseErrors(LG_Error* err, bool printFilename) {
   std::cerr.flush();
 }
 
-size_t countErrors(LG_Error* err) {
+size_t countErrors(const LG_Error* err) {
   size_t numErrors = 0;
   for (const LG_Error* e = err; e; e = e->Next, ++numErrors);
   return numErrors;
