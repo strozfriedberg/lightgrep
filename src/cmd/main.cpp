@@ -482,7 +482,7 @@ void search(const Options& opts) {
     }
   }
 
-  // serach each input file (positional args or stdin)
+  // search each input file (positional args or stdin)
   if (!opts.Inputs.empty()) {
     searchInputs(opts.Inputs, opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
   }
