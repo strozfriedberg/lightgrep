@@ -45,12 +45,6 @@
 namespace po = boost::program_options;
 namespace fs = std::filesystem;
 
-void startup(
-  std::shared_ptr<ProgramHandle> prog,
-  uint32_t numUserPatterns,
-  const Options& opts
-);
-
 void printVersion(std::ostream& out) {
   out << "lightgrep " << VERSION << '\n'
       << "Copyright (c) 2010-2017, Stroz Friedberg, LLC\n"
