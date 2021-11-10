@@ -173,14 +173,13 @@ LG_ProgramOptions progOpts(const Options& opts) {
   return { opts.DeterminizeDepth };
 }
 
-template <class T>
 std::tuple<
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)>,
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>,
   std::unique_ptr<LG_Error, void(*)(LG_Error*)>
 >
 parsePatterns(
-  const T& keyFiles,
+  const std::vector<std::pair<std::string, std::string>> & keyFiles,
   const std::vector<std::string>& defaultEncodings,
   const LG_KeyOptions& defaultKOpts,
   const LG_ProgramOptions& progOpts)
@@ -559,6 +558,11 @@ void validate(const Options& opts) {
 }
 
 void writeSampleMatches(const Options& opts) {
+// TODO:
+// - This behavior should be turned into a C API, to avoid the cast of the FSM.
+// - It should be unit tested.
+// - Output should be UTF-8. There's no longer any reason to support EnCase's UTF-16LE.
+
 // TODO: Writing sample matches should not be unconditionally EnCase-specific.
 // There should be a switch to turn on the behavior EnCase needs.
 
@@ -573,7 +577,9 @@ void writeSampleMatches(const Options& opts) {
 
   size_t pnum = 0;
   for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
-    const std::pair<std::string,std::string> a[] = { pf };
+    // FIXME: opts.getPatternLines() returns a vector of the pairs, it's not clear
+    // why when looping over the pairs we then turn around and put each into a vector/array.
+    const std::vector<std::pair<std::string, std::string>> a = { pf };
     std::tie(fsm, std::ignore, err) = parsePatterns(
       a, opts.Encodings, patOpts(opts), progOpts(opts)
     );
