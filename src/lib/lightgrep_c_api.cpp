@@ -82,6 +82,14 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
                      const LG_KeyOptions* options,
                      LG_Error** err)
 {
+  if (hPattern == nullptr) {
+    *err = makeError("hPattern parameter was null. Use lg_create_pattern() to allocate.");
+    return 0;
+  }
+  if (options == nullptr) {
+    *err = makeError("LG_KeyOptions parameter was null. Please pass a valid struct.");
+    return 0;
+  }
   // set up the pattern handle
   hPattern->Pat = {
     pattern,

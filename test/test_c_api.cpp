@@ -60,6 +60,25 @@ TEST_CASE("testDedupeOnDiffEncodings") {
 }
 */
 
+TEST_CASE("testParsePatternWithNull") {
+  LG_KeyOptions keyOpts;
+  LG_Error* errPtr = nullptr;
+
+  int result = lg_parse_pattern(nullptr, "foo", &keyOpts, &errPtr);
+  REQUIRE(result == 0);
+  REQUIRE(errPtr != nullptr);
+  REQUIRE(0 == std::strcmp(errPtr->Message, "hPattern parameter was null. Use lg_create_pattern() to allocate."));
+  lg_free_error(errPtr);
+
+  LG_HPATTERN p = lg_create_pattern();
+  result = lg_parse_pattern(p, "foo", nullptr, &errPtr);
+  REQUIRE(result == 0);
+  REQUIRE(errPtr != nullptr);
+  REQUIRE(0 == std::strcmp(errPtr->Message, "LG_KeyOptions parameter was null. Please pass a valid struct."));
+  lg_free_error(errPtr);
+  lg_destroy_pattern(p);
+}
+
 TEST_CASE("testLgAddPatternList") {
   const char pats[] =
     "foo\tUTF-8,UTF-16LE\t0\n"
