@@ -64,6 +64,10 @@ TEST_CASE("testFreeErrorWithNull") {
   lg_free_error(nullptr);
 }
 
+TEST_CASE("testDestroyPatternWithNull") {
+  lg_destroy_pattern(nullptr);
+}
+
 TEST_CASE("testParsePatternWithNull") {
   LG_KeyOptions keyOpts;
   LG_Error* errPtr = nullptr;
