@@ -76,6 +76,13 @@ TEST_CASE("testParsePatternWithNull") {
   REQUIRE(errPtr != nullptr);
   REQUIRE(0 == std::strcmp(errPtr->Message, "LG_KeyOptions parameter was null. Please pass a valid struct."));
   lg_free_error(errPtr);
+
+  result = lg_parse_pattern(nullptr, "foo", &keyOpts, nullptr);
+  REQUIRE(result == 0);
+
+  result = lg_parse_pattern(p, "foo", nullptr, nullptr);
+  REQUIRE(result == 0);
+
   lg_destroy_pattern(p);
 }
 

@@ -51,6 +51,12 @@ namespace {
       return false;
     }
   }
+
+  void setError(LG_Error** err, const std::string msg) {
+    if (err) {
+      *err = makeError(msg.c_str());
+    }
+  }
 }
 
 void lg_free_error(LG_Error* err) {
@@ -83,11 +89,11 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
                      LG_Error** err)
 {
   if (hPattern == nullptr) {
-    *err = makeError("hPattern parameter was null. Use lg_create_pattern() to allocate.");
+    setError(err, "hPattern parameter was null. Use lg_create_pattern() to allocate.");
     return 0;
   }
   if (options == nullptr) {
-    *err = makeError("LG_KeyOptions parameter was null. Please pass a valid struct.");
+    setError(err, "LG_KeyOptions parameter was null. Please pass a valid struct.");
     return 0;
   }
   // set up the pattern handle
