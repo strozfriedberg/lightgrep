@@ -85,6 +85,7 @@ TEST_CASE("testParsePatternWithNull") {
   REQUIRE(0 == std::strcmp(errPtr->Message, "LG_KeyOptions parameter was null. Please pass a valid struct."));
   lg_free_error(errPtr);
 
+  // recreate the errors, but pass in nullptr for the error handle
   result = lg_parse_pattern(nullptr, "foo", &keyOpts, nullptr);
   REQUIRE(result == 0);
 
@@ -92,6 +93,39 @@ TEST_CASE("testParsePatternWithNull") {
   REQUIRE(result == 0);
 
   lg_destroy_pattern(p);
+}
+
+TEST_CASE("testLgAddPatternWithNulls") {
+  int result = 1;
+  LG_HPATTERN pat = lg_create_pattern();
+  LG_HFSM fsm = lg_create_fsm(0, 0);
+  LG_Error* err = nullptr;
+
+  result = lg_add_pattern(nullptr, pat, "UTF-8", 17, &err);
+  REQUIRE(result < 0);
+  REQUIRE(err != nullptr);
+  REQUIRE(std::string(err->Message) == "hFsm parameter was null. Use lg_create_fsm() to allocate.");
+
+  result = lg_add_pattern(fsm, nullptr, "UTF-8", 17, &err);
+  REQUIRE(result < 0);
+  REQUIRE(err != nullptr);
+  REQUIRE(std::string(err->Message) == "hPattern parameter was null. Use lg_create_pattern() and lg_parse_pattern() first.");
+
+  result = lg_add_pattern(fsm, pat, nullptr, 17, &err);
+  REQUIRE(result < 0);
+  REQUIRE(err != nullptr);
+  REQUIRE(std::string(err->Message) == "encoding string pointer was null. Please specify a valid encoding.");
+
+  err = nullptr;
+  LG_KeyOptions keyOpts;
+  REQUIRE(0 < lg_parse_pattern(pat, "foo", &keyOpts, &err));
+  REQUIRE(err == nullptr);
+  result = lg_add_pattern(fsm, pat, "UTF-39", 17, &err);
+  REQUIRE(result < 0);
+  REQUIRE(err != nullptr);
+
+  lg_destroy_pattern(pat);
+  lg_destroy_fsm(fsm);
 }
 
 TEST_CASE("testLgAddPatternList") {

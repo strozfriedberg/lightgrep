@@ -156,6 +156,18 @@ int lg_add_pattern(LG_HFSM hFsm,
                    uint64_t userIndex,
                    LG_Error** err)
 {
+  if (hFsm == nullptr) {
+    setError(err, "hFsm parameter was null. Use lg_create_fsm() to allocate.");
+    return -1;
+  }
+  if (hPattern == nullptr) {
+    setError(err, "hPattern parameter was null. Use lg_create_pattern() and lg_parse_pattern() first.");
+    return -2;
+  }
+  if (encoding == nullptr) {
+    setError(err, "encoding string pointer was null. Please specify a valid encoding.");
+    return -3;
+  }
   return trapWithRetval(
     [hFsm, hPattern, encoding, userIndex]() {
       return addPattern(hFsm, hPattern, encoding, userIndex);
