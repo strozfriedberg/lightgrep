@@ -88,11 +88,11 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
                      const LG_KeyOptions* options,
                      LG_Error** err)
 {
-  if (hPattern == nullptr) {
+  if (!hPattern) {
     setError(err, "hPattern parameter was null. Use lg_create_pattern() to allocate.");
     return 0;
   }
-  if (options == nullptr) {
+  if (!options) {
     setError(err, "LG_KeyOptions parameter was null. Please pass a valid struct.");
     return 0;
   }
@@ -156,15 +156,15 @@ int lg_add_pattern(LG_HFSM hFsm,
                    uint64_t userIndex,
                    LG_Error** err)
 {
-  if (hFsm == nullptr) {
+  if (!hFsm) {
     setError(err, "hFsm parameter was null. Use lg_create_fsm() to allocate.");
     return -1;
   }
-  if (hPattern == nullptr) {
+  if (!hPattern) {
     setError(err, "hPattern parameter was null. Use lg_create_pattern() and lg_parse_pattern() first.");
     return -2;
   }
-  if (encoding == nullptr) {
+  if (!encoding) {
     setError(err, "encoding string pointer was null. Please specify a valid encoding.");
     return -3;
   }
