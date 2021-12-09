@@ -181,13 +181,21 @@ extern "C" {
     LG_Error** err
   );
 
+  // The number of pattern-encoding pairs recognized by the FSM. This
+  // will be one greater than the maximum pattern index accepted by
+  // lg_fsm_pattern_info().
+  unsigned int lg_fsm_pattern_count(const LG_HFSM hFsm);
+
+  LG_PatternInfo* lg_fsm_pattern_info(const LG_HFSM hFsm,
+                                      unsigned int patternIndex);
+
   // The number of pattern-encoding pairs recognized by the Program. This
   // will be one greater than the maximum pattern index accepted by
-  // lg_pattern_info().
-  unsigned int lg_pattern_count(const LG_HPROGRAM hProg);
+  // lg_prog_pattern_info().
+  unsigned int lg_prog_pattern_count(const LG_HPROGRAM hProg);
 
-  LG_PatternInfo* lg_pattern_info(LG_HPROGRAM hProg,
-                                  unsigned int patternIndex);
+  LG_PatternInfo* lg_prog_pattern_info(LG_HPROGRAM hProg,
+                                       unsigned int patternIndex);
 
   // Create a Program by compiling the FSM into bytecode. The Program houses
   // both the search logic and the list of patterns against which hits may be

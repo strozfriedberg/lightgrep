@@ -198,6 +198,30 @@ class FsmTests(unittest.TestCase):
     def test_add_patterns(self):
         self.fsm.add_patterns(self.pat, PATLIST)
 
+    def test_fsm_count_empty(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            self.assertEqual(fsm.count(), 0)
+
+    def test_count_three(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            with lightgrep.Pattern() as pat:
+                pat.parse("a+b", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+                pat.parse("foo", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 1)
+                pat.parse(".+", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 75)
+            self.assertEqual(fsm.count(), 3)
+
+    def test_count_closed(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            with lightgrep.Pattern() as pat:
+                pat.parse("a+b", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+                fsm.close()
+                with self.assertRaises(RuntimeError):
+                    fsm.count()
+
 
 class ProgSimpleTests(unittest.TestCase):
     def test_ctor_bad_args(self):

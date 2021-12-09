@@ -322,6 +322,9 @@ class Fsm(Handle):
             for enc in p[1]:
                 self.add_pattern(pat, enc, i)
 
+    def count(self):
+        return _LG.lg_fsm_pattern_count(self.get())
+
 
 class Program(Handle):
     def __init__(self, *args, shared=False):
@@ -352,7 +355,7 @@ class Program(Handle):
         super().close()
 
     def count(self):
-        return _LG.lg_pattern_count(self.get())
+        return _LG.lg_prog_pattern_count(self.get())
 
     def size(self):
         return _LG.lg_program_size(self.get())
@@ -406,7 +409,7 @@ class Context(Handle):
 
 def _the_callback_impl(holder, hitPtr):
     idx = hitPtr.contents.KeywordIndex
-    hitinfo = _LG.lg_pattern_info(holder[0].get(), idx).contents
+    hitinfo = _LG.lg_prog_pattern_info(holder[0].get(), idx).contents
     holder[1](hitPtr.contents, hitinfo)
 
 
@@ -514,11 +517,17 @@ _LG.lg_add_pattern.restype = c_int
 _LG.lg_add_pattern_list.argtypes = [c_void_p, c_char_p, c_char_p, POINTER(c_char_p), c_uint, POINTER(KeyOpts), POINTER(POINTER(Err))]
 _LG.lg_add_pattern_list.restype = c_int
 
-_LG.lg_pattern_count.argtypes = [c_void_p]
-_LG.lg_pattern_count.restype = c_uint
+_LG.lg_fsm_pattern_count.argtypes = [c_void_p]
+_LG.lg_fsm_pattern_count.restype = c_uint
 
-_LG.lg_pattern_info.argtypes = [c_void_p, c_uint]
-_LG.lg_pattern_info.restype = POINTER(PatternInfo)
+_LG.lg_fsm_pattern_info.argtypes = [c_void_p, c_uint]
+_LG.lg_fsm_pattern_info.restype = POINTER(PatternInfo)
+
+_LG.lg_prog_pattern_count.argtypes = [c_void_p]
+_LG.lg_prog_pattern_count.restype = c_uint
+
+_LG.lg_prog_pattern_info.argtypes = [c_void_p, c_uint]
+_LG.lg_prog_pattern_info.restype = POINTER(PatternInfo)
 
 _LG.lg_create_program.argtypes = [c_void_p, POINTER(ProgOpts)]
 _LG.lg_create_program.restype = c_void_p

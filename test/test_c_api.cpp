@@ -210,6 +210,16 @@ TEST_CASE("testLgAddPatternListCRLFHeck") {
 
   REQUIRE(!err);
 
+  const char* exp_pats[] = { "foo", "bar", "\baz", "quux", "xyzzy" };
+
+  REQUIRE(5u == lg_fsm_pattern_count(fsm.get()));
+
+  for (int i = 0; i < 5; ++i) {
+    const LG_PatternInfo* pi = lg_fsm_pattern_info(fsm.get(), i);
+    REQUIRE(pi);
+    REQUIRE(!std::strcmp(exp_pats[i], pi->Pattern));
+  }
+
   const LG_ProgramOptions progOpts{0xFFFFFFFF};
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
     lg_create_program(fsm.get(), &progOpts),
@@ -218,11 +228,10 @@ TEST_CASE("testLgAddPatternListCRLFHeck") {
 
   REQUIRE(prog);
 
-  REQUIRE(5u == lg_pattern_count(prog.get()));
+  REQUIRE(5u == lg_prog_pattern_count(prog.get()));
 
-  const char* exp_pats[] = { "foo", "bar", "\baz", "quux", "xyzzy" };
   for (int i = 0; i < 5; ++i) {
-    const LG_PatternInfo* pi = lg_pattern_info(prog.get(), i);
+    const LG_PatternInfo* pi = lg_prog_pattern_info(prog.get(), i);
     REQUIRE(pi);
     REQUIRE(!std::strcmp(exp_pats[i], pi->Pattern));
   }
@@ -305,6 +314,8 @@ TEST_CASE("testLgAddPatternListCopyOnWritePatternMap") {
 
   REQUIRE(!err);
 
+  REQUIRE(lg_fsm_pattern_count(fsm.get()) == 1);
+
   // make a program
   const LG_ProgramOptions progOpts{0xFFFFFFFF};
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog1(
@@ -324,8 +335,10 @@ TEST_CASE("testLgAddPatternListCopyOnWritePatternMap") {
 
   REQUIRE(!err);
 
+  REQUIRE(lg_fsm_pattern_count(fsm.get()) == 2);
+
   // the first program still has one pattern
-  REQUIRE(lg_pattern_count(prog1.get()) == 1);
+  REQUIRE(lg_prog_pattern_count(prog1.get()) == 1);
 
   // make another program
   std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog2(
@@ -336,9 +349,9 @@ TEST_CASE("testLgAddPatternListCopyOnWritePatternMap") {
   REQUIRE(prog2);
 
   // the second program has two patterns
-  REQUIRE(lg_pattern_count(prog2.get()) == 2);
+  REQUIRE(lg_prog_pattern_count(prog2.get()) == 2);
   // the first program still has one pattern
-  REQUIRE(lg_pattern_count(prog1.get()) == 1);
+  REQUIRE(lg_prog_pattern_count(prog1.get()) == 1);
 }
 
 TEST_CASE("testLgWriteProgramLgReadProgram") {
@@ -396,14 +409,14 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
     lg_program_size(prog2.get())
   );
 
-  const size_t p1count = lg_pattern_count(prog1.get());
-  const size_t p2count = lg_pattern_count(prog2.get());
+  const size_t p1count = lg_prog_pattern_count(prog1.get());
+  const size_t p2count = lg_prog_pattern_count(prog2.get());
   REQUIRE(p1count == p2count);
 
   for (size_t i = 0; i < p1count; ++i) {
     REQUIRE(
-      *lg_pattern_info(prog1.get(), i) ==
-      *lg_pattern_info(prog2.get(), i)
+      *lg_prog_pattern_info(prog1.get(), i) ==
+      *lg_prog_pattern_info(prog2.get(), i)
     );
   }
 
@@ -419,13 +432,13 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
     lg_program_size(prog3.get())
   );
 
-  const size_t p3count = lg_pattern_count(prog3.get());
+  const size_t p3count = lg_prog_pattern_count(prog3.get());
   REQUIRE(p1count == p3count);
 
   for (size_t i = 0; i < p1count; ++i) {
     REQUIRE(
-      *lg_pattern_info(prog1.get(), i) ==
-      *lg_pattern_info(prog3.get(), i)
+      *lg_prog_pattern_info(prog1.get(), i) ==
+      *lg_prog_pattern_info(prog3.get(), i)
     );
   }
 }

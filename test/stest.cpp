@@ -24,7 +24,7 @@ namespace {
 
     stest->Hits.push_back(*static_cast<const SearchHit*>(hit));
 
-    const LG_PatternInfo* info = lg_pattern_info(
+    const LG_PatternInfo* info = lg_prog_pattern_info(
       stest->Prog.get(), hit->KeywordIndex
     );
 

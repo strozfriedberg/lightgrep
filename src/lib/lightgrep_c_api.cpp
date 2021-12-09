@@ -321,12 +321,22 @@ int lg_add_pattern_list(LG_HFSM hFsm,
   return ret;
 }
 
-unsigned int lg_pattern_count(const LG_HPROGRAM hProg) {
+unsigned int lg_fsm_pattern_count(const LG_HFSM hFsm) {
+  return hFsm->PMap->Patterns.size();
+}
+
+LG_PatternInfo* lg_fsm_pattern_info(LG_HFSM hFsm,
+                                    unsigned int patternIndex)
+{
+  return &hFsm->PMap->Patterns[patternIndex];
+}
+
+unsigned int lg_prog_pattern_count(const LG_HPROGRAM hProg) {
   return hProg->PMap->Patterns.size();
 }
 
-LG_PatternInfo* lg_pattern_info(LG_HPROGRAM hProg,
-                                unsigned int patternIndex)
+LG_PatternInfo* lg_prog_pattern_info(LG_HPROGRAM hProg,
+                                     unsigned int patternIndex)
 {
   return &hProg->PMap->Patterns[patternIndex];
 }
