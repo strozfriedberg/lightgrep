@@ -169,6 +169,16 @@ fi
 
 AC_SUBST([ICU_CPPFLAGS])
 
+case "$host" in
+*-*-mingw*)
+  for i in $ICU_LIBS ; do
+    ICU_LDFLAGS+=$(echo $i | grep '^-L')
+  done
+esac
+
+AC_SUBST([ICU_CPPFLAGS])
+AC_SUBST([ICU_LDFLAGS])
+
 #
 # Boost
 #
