@@ -102,7 +102,7 @@ src_what_what_SOURCES = src/what/what.cpp
 src_what_what_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 $(srcdir)/include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
-	src/enc/enc$(EXEEXT) >$@
+	$(LOG_COMPILER) src/enc/enc$(EXEEXT) >$@
 
 BUILT_SOURCES = include/lightgrep/encodings.h
 
@@ -144,6 +144,9 @@ check_PROGRAMS = test/test
 TESTS = \
 	$(check_PROGRAMS) \
 	pylightgrep/test.sh
+
+TEST_EXTENSIONS = .sh
+SH_LOG_COMPILER =
 
 AM_TESTS_ENVIRONMENT = builddir=`pwd`;
 
