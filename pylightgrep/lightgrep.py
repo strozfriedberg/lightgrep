@@ -9,6 +9,7 @@
 
 import collections
 from ctypes import *
+import os
 import sys
 
 #
@@ -18,6 +19,7 @@ import sys
 def load_library(base):
     if sys.platform == 'win32':
         ext = '.dll'
+        os.add_dll_directory(f"{os.getcwd()}\\asdf\\libs\\win64")
     elif sys.platform == 'linux':
         ext = '.so'
     elif sys.platform == 'darwin':
