@@ -15,7 +15,6 @@
 #include <tuple>
 
 #include <boost/program_options.hpp>
-#include <boost/graph/graphviz.hpp>
 
 #include <unicode/ucnv.h>
 
