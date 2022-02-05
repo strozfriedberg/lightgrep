@@ -34,13 +34,6 @@
 #include <lightgrep/api.h>
 #include <lightgrep/encodings.h>
 
-#ifdef LIGHTGREP_CUSTOMER
-// check this out: http://stackoverflow.com/questions/2751870/how-exactly-does-the-double-stringize-trick-work
-#define STRINGIZE(whatever) #whatever
-#define JUMP_THROUGH_A_HOOP(yo) STRINGIZE(yo)
-#define CUSTOMER_NAME JUMP_THROUGH_A_HOOP(LIGHTGREP_CUSTOMER)
-#endif
-
 namespace po = boost::program_options;
 namespace fs = std::filesystem;
 
@@ -59,9 +52,6 @@ void printUsage(std::ostream& out) {
 void printHelp(std::ostream& out, const po::options_description& desc) {
   printVersion(out);
   printUsage(out);
-#ifdef LIGHTGREP_CUSTOMER
-  out << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n";
-#endif
   out << desc << std::endl;
 }
 
