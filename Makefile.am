@@ -117,7 +117,7 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/searchcontroller.cpp \
 	src/cmd/util.cpp
 	
-src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(ICU_LIBS) $(BOOST_FILESYSTEM_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(GPT_LIBS) $(STDCXX_LIB)
+src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(ICU_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(GPT_LIBS) $(STDCXX_LIB)
 
 if BUILD_MINGW
 

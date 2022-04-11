@@ -6,13 +6,13 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <set>
 #include <tuple>
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/graph/graphviz.hpp>
 
@@ -54,7 +54,7 @@ namespace boost {
 // </magic_incantation>
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 void startup(
   std::shared_ptr<ProgramHandle> prog,
