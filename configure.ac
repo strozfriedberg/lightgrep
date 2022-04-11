@@ -202,11 +202,6 @@ fi
 
 # FIXME: doesn't always find -mt version of boost libs,
 # e.g. for filesystem and system
-AX_BOOST_FILESYSTEM
-if test "x$ax_cv_boost_filesystem" != "xyes"; then
-  AC_MSG_ERROR([Failed to find Boost filesystem library.])
-fi
-
 AX_BOOST_PROGRAM_OPTIONS
 if test "x$ax_cv_boost_program_options" != "xyes"; then
   AC_MSG_ERROR([Failed to find Boost program_options library.])
@@ -225,8 +220,6 @@ case "$host" in
 
   # FIXME: wrong boost_system lib gets detected!
   BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
-  # FIXME: wrong boost_filesystem lib gets detected!
-  BOOST_FILESYSTEM_LIB=`echo "$BOOST_FILESYSTEM_LIB" | sed 's/.dll/-mt/'`
   ;;
 esac
 
