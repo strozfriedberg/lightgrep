@@ -117,7 +117,7 @@ src_cmd_lightgrep_SOURCES = \
 	src/cmd/searchcontroller.cpp \
 	src/cmd/util.cpp
 	
-src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(ICU_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(GPT_LIBS) $(STDCXX_LIB)
+src_cmd_lightgrep_LDADD = $(LG_LIB) $(LG_LIBS) $(ICU_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_ASIO_LIB) $(GPT_LIBS) $(STDCXX_LIB)
 
 if BUILD_MINGW
 
@@ -229,7 +229,7 @@ test_test_SOURCES = \
 	test/test_xorencoder.cpp
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS)
-test_test_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_SYSTEM_LIB) $(BOOST_ASIO_LIB) $(STDCXX_LIB)
+test_test_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_ASIO_LIB) $(STDCXX_LIB)
 
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = src/lib/lightgrep.pc
