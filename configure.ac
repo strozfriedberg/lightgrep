@@ -207,9 +207,9 @@ if test "x$ax_cv_boost_program_options" != "xyes"; then
   AC_MSG_ERROR([Failed to find Boost program_options library.])
 fi
 
-AX_BOOST_SYSTEM
-if test "x$ax_cv_boost_system" != "xyes"; then
-  AC_MSG_ERROR([Failed to find Boost system library.])
+AX_BOOST_ASIO
+if test "x$ax_cv_boost_asio" != "xyes"; then
+  AC_MSG_ERROR([Failed to find Boost asio library.])
 fi
 
 case "$host" in
@@ -217,9 +217,6 @@ case "$host" in
   # Boost ASIO needs ws2_32 and mswsock on Windows
   BOOST_ASIO_LIB="-lws2_32 -lmswsock"
   AC_SUBST([BOOST_ASIO_LIB])
-
-  # FIXME: wrong boost_system lib gets detected!
-  BOOST_SYSTEM_LIB=`echo "$BOOST_SYSTEM_LIB" | sed 's/.dll/-mt/'`
   ;;
 esac
 
