@@ -289,13 +289,13 @@ class Pattern(Handle):
 
 
 class Fsm(Handle):
-    def __init__(self, patcount, size):
-        if patcount < 0:
-            raise ValueError(f"Pattern count hint must be >= 0, but was {patcount}")
+    def __init__(self, patcount_hint, size_hint):
+        if patcount_hint < 0:
+            raise ValueError(f"Pattern count hint must be >= 0, but was {patcount_hint}")
         if size < 0:
-            raise ValueError(f"Size hint must be >= 0, but was {size}")
+            raise ValueError(f"Size hint must be >= 0, but was {size_hint}")
 
-        super().__init__(_LG.lg_create_fsm(patcount, size))
+        super().__init__(_LG.lg_create_fsm(patcount_hint, size_hint))
 
     def close(self):
         _LG.lg_destroy_fsm(self.handle)
