@@ -244,10 +244,10 @@ class Handle(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         self.handle = None
 
-    def throw_if_closed(self):
+    def throw_if_closed(self) -> None:
         if not self.handle:
             raise RuntimeError(f"{self.__class__.__name__} handle is closed")
 
@@ -260,7 +260,7 @@ class Error(Handle):
     def __init__(self):
         super().__init__(POINTER(Err)())
 
-    def close(self):
+    def close(self) -> None:
         _LG.lg_free_error(self.handle)
         super().close()
 
@@ -278,11 +278,11 @@ class Pattern(Handle):
     def __init__(self):
         super().__init__(_LG.lg_create_pattern())
 
-    def close(self):
+    def close(self) -> None:
         _LG.lg_destroy_pattern(self.handle)
         super().close()
 
-    def parse(self, pat, opts):
+    def parse(self, pat: str, opts: KeyOpts) -> None:
         with Error() as err:
             if _LG.lg_parse_pattern(self.get(), pat.encode("utf-8"), byref(opts), byref(err.get())) <= 0:
                 raise RuntimeError(f"Error parsing pattern: {err}")
