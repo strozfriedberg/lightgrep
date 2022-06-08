@@ -16,7 +16,7 @@ import sys
 # Library initialization
 #
 
-def load_library(base):
+def load_library(base: str) -> None:
     if sys.platform == 'win32':
         ext = '.dll'
         os.add_dll_directory(f"{os.getcwd()}\\asdf\\libs\\win64")
