@@ -265,6 +265,9 @@ class Error(Handle):
         super().close()
 
     def get(self):
+        # We do not check for closure (which on the C-side is "== NULL") here
+        # because a pointer to an LG_Error* which is NULL must be passed to
+        # the various functions in the C API which use it.
         return self.handle
 
     def __str__(self):
