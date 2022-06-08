@@ -235,13 +235,13 @@ class Handle(object):
     def __init__(self, handle):
         self.handle = handle
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.handle)
 
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.close()
 
     def close(self) -> None:
