@@ -289,7 +289,7 @@ class Pattern(Handle):
 
 
 class Fsm(Handle):
-    def __init__(self, patcount_hint, size_hint):
+    def __init__(self, patcount_hint: int, size_hint: int):
         if patcount_hint < 0:
             raise ValueError(f"Pattern count hint must be >= 0, but was {patcount_hint}")
         if size_hint < 0:
@@ -297,11 +297,11 @@ class Fsm(Handle):
 
         super().__init__(_LG.lg_create_fsm(patcount_hint, size_hint))
 
-    def close(self):
+    def close(self) -> None:
         _LG.lg_destroy_fsm(self.handle)
         super().close()
 
-    def add_pattern(self, pat, enc, userIdx):
+    def add_pattern(self, pat: Pattern, enc: str, userIdx: int) -> int:
         with Error() as err:
             idx = _LG.lg_add_pattern(self.get(), pat.get(), enc.encode("utf-8"), userIdx, byref(err.get()))
             if idx < 0:
@@ -322,7 +322,7 @@ class Fsm(Handle):
             for enc in p[1]:
                 self.add_pattern(pat, enc, i)
 
-    def count(self):
+    def count(self) -> int:
         return _LG.lg_fsm_pattern_count(self.get())
 
 
