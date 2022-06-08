@@ -264,9 +264,6 @@ class Error(Handle):
         _LG.lg_free_error(self.handle)
         super().close()
 
-    def throw_if_closed(self):
-        pass
-
     def get(self):
         return self.handle
 
