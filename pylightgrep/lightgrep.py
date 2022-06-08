@@ -171,7 +171,7 @@ class KeyOpts(Structure):
         ("UnicodeMode", c_char)
     ]
 
-    def __init__(self, fixedString = False, caseInsensitive = False, unicodeMode = False):
+    def __init__(self, fixedString: bool = False, caseInsensitive: bool = False, unicodeMode: bool = False):
         super().__init__()
         self.FixedString = char_cast_bool(fixedString)
         self.CaseInsensitive = char_cast_bool(caseInsensitive)
