@@ -177,14 +177,14 @@ class KeyOpts(Structure):
         self.CaseInsensitive = char_cast_bool(caseInsensitive)
         self.UnicodeMode = char_cast_bool(unicodeMode)
 
-    def isFixed(self):
+    def isFixed(self) -> bool:
         return bool_cast_char(self.FixedString)
 
-    def isCaseSensitive(self):
+    def isCaseSensitive(self) -> bool:
         # note that this returns "Sensitive", not "Insensitive"
         return not bool_cast_char(self.CaseInsensitive)
 
-    def isUnicodeMode(self):
+    def isUnicodeMode(self) -> bool:
         return bool_cast_char(self.UnicodeMode)
 
 
