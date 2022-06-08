@@ -327,7 +327,7 @@ class Fsm(Handle):
 
 
 class Program(Handle):
-    def __init__(self, *args, shared=False):
+    def __init__(self, *args, shared: bool = False):
         if len(args) == 1:
             # unserialize program from a buffer
             c_buf = buf_beg(args[0], c_char)
@@ -350,14 +350,14 @@ class Program(Handle):
 
         super().__init__(handle)
 
-    def close(self):
+    def close(self) -> None:
         _LG.lg_destroy_program(self.handle)
         super().close()
 
-    def count(self):
+    def count(self) -> int:
         return _LG.lg_prog_pattern_count(self.get())
 
-    def size(self):
+    def size(self) -> int:
         return _LG.lg_program_size(self.get())
 
     def write(self):
@@ -373,11 +373,11 @@ class Context(Handle):
         super().__init__(_LG.lg_create_context(prog.get(), byref(opts)))
         self.prog = prog
 
-    def close(self):
+    def close(self) -> None:
         _LG.lg_destroy_context(self.handle)
         super().close()
 
-    def reset(self):
+    def reset(self) -> None:
         _LG.lg_reset_context(self.get())
 
     def search(self, data, startOffset, accumulator):
@@ -390,7 +390,7 @@ class Context(Handle):
         beg, end = buf_range(data, c_char)
         _LG.lg_starts_with(self.get(), beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim);
 
-    def closeout(self, accumulator):
+    def closeout(self, accumulator) -> None:
         self.prog.throw_if_closed()
         _LG.lg_closeout_search(self.get(), (self.prog, accumulator.lgCallback), _the_callback_shim)
 
@@ -420,7 +420,7 @@ class HitDecoder(Handle):
     def __init__(self):
         super().__init__(_LG.lg_create_decoder())
 
-    def close(self):
+    def close(self) -> None:
         _LG.lg_destroy_decoder(self.handle)
         super().close()
 
