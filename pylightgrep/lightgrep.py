@@ -154,13 +154,13 @@ class PatternInfo(Structure):
 
     # lg strings are always utf-8 to avoid cross-platform confusion
 
-    def pat(self):
+    def pat(self) -> str:
         return self.Pattern.decode("utf-8")
 
-    def encChain(self):
+    def encChain(self) -> str:
         return self.EncodingChain.decode("utf-8")
 
-    def userIdx(self):
+    def userIdx(self) -> int:
         return self.UserIndex
 
 
