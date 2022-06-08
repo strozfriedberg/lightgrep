@@ -106,7 +106,7 @@ def char_cast_bool(boolValue):
     return b'\x01' if boolValue else b'\x00'
 
 
-def bool_cast_char(charValue):
+def bool_cast_char(charValue) -> bool:
     return charValue != b'\x00'
 
 
