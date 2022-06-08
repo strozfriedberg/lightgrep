@@ -470,11 +470,11 @@ class HitAccumulator(object):
     def __init__(self):
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         self.KeyCounts = collections.Counter()
         self.Hits = []
 
-    def lgCallback(self, hitInfo, patInfo):
+    def lgCallback(self, hitInfo, patInfo) -> None:
         d = {
             "start": hitInfo.Start,
             "end": hitInfo.End,
