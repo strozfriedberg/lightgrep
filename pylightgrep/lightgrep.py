@@ -308,7 +308,7 @@ class Fsm(Handle):
                 raise RuntimeError(f"Error adding pattern: {err}")
             return idx
 
-    def add_patterns(self, pat, patlist):
+    def add_patterns(self, pat: Pattern, patlist) -> None:
         # patlist is a list of ("pattern", ["encoding"], keyOpts)
         for i, p in enumerate(patlist):
             if not p[0]:
