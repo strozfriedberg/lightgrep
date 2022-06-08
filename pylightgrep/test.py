@@ -82,15 +82,15 @@ class HandleTests(unittest.TestCase):
         self.assertFalse(h)
         self.assertEqual(h.handle, None)
 
-    def test_throwIfClosed_open(self):
+    def test_throw_if_closed_open(self):
         h = lightgrep.Handle(42)
-        h.throwIfClosed()
+        h.throw_if_closed()
 
-    def test_throwIfClosed_closed(self):
+    def test_throw_if_closed_closed(self):
         h = lightgrep.Handle(42)
         h.close()
         with self.assertRaises(RuntimeError):
-            h.throwIfClosed()
+            h.throw_if_closed()
 
     def test_get_closed(self):
         h = lightgrep.Handle(42)
