@@ -610,7 +610,7 @@ def make_program_from_patterns(patlist, progOpts):
 
 
 # check for errors on handles
-def _checkHandleForErrors(ret, func, args):
+def _checkHandleForErrors(ret, func, args) -> int:
     if ret == 0:
         raise RuntimeError(f"Lightgrep could not create return object in call to {func.__name__}")
     return ret
