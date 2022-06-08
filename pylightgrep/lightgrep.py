@@ -292,7 +292,7 @@ class Fsm(Handle):
     def __init__(self, patcount_hint, size_hint):
         if patcount_hint < 0:
             raise ValueError(f"Pattern count hint must be >= 0, but was {patcount_hint}")
-        if size < 0:
+        if size_hint < 0:
             raise ValueError(f"Size hint must be >= 0, but was {size_hint}")
 
         super().__init__(_LG.lg_create_fsm(patcount_hint, size_hint))
