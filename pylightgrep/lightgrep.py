@@ -247,12 +247,12 @@ class Handle(object):
     def close(self):
         self.handle = None
 
-    def throwIfClosed(self):
+    def throw_if_closed(self):
         if not self.handle:
             raise RuntimeError(f"{self.__class__.__name__} handle is closed")
 
     def get(self):
-        self.throwIfClosed()
+        self.throw_if_closed()
         return self.handle
 
 
@@ -264,7 +264,7 @@ class Error(Handle):
         _LG.lg_free_error(self.handle)
         super().close()
 
-    def throwIfClosed(self):
+    def throw_if_closed(self):
         pass
 
     def get(self):
@@ -381,17 +381,17 @@ class Context(Handle):
         _LG.lg_reset_context(self.get())
 
     def search(self, data, startOffset, accumulator):
-        self.prog.throwIfClosed()
+        self.prog.throw_if_closed()
         beg, end = buf_range(data, c_char)
         return _LG.lg_search(self.get(), beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim)
 
     def startswith(self, data, startOffset, accumulator):
-        self.prog.throwIfClosed()
+        self.prog.throw_if_closed()
         beg, end = buf_range(data, c_char)
         _LG.lg_starts_with(self.get(), beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim);
 
     def closeout(self, accumulator):
-        self.prog.throwIfClosed()
+        self.prog.throw_if_closed()
         _LG.lg_closeout_search(self.get(), (self.prog, accumulator.lgCallback), _the_callback_shim)
 
     def searchBuffer(self, data, accumulator):
