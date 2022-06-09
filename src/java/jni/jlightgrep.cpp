@@ -382,7 +382,7 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
     throwIfPatternIndexOOB(env, ptr, patternIndex);
 
     // finally actually do something
-    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
+    LG_PatternInfo* pinfo = lg_prog_pattern_info(ptr, patternIndex);
     return makePatternInfo(env, pinfo);
   }
   catch (const PendingJavaException&) {
@@ -400,7 +400,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_get
     throwIfPatternIndexOOB(env, ptr, patternIndex);
 
     // finally actually do something
-    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
+    LG_PatternInfo* pinfo = lg_prog_pattern_info(ptr, patternIndex);
     return pinfo->UserIndex;
   }
   catch (const PendingJavaException&) {
@@ -417,7 +417,7 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_set
 
     throwIfPatternIndexOOB(env, ptr, patternIndex);
 
-    LG_PatternInfo* pinfo = lg_pattern_info(ptr, patternIndex);
+    LG_PatternInfo* pinfo = lg_prog_pattern_info(ptr, patternIndex);
     pinfo->UserIndex = userIndex;
   }
   catch (const PendingJavaException&) {
