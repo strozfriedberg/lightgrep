@@ -342,7 +342,7 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_cou
   LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
     env->GetLongField(hProg, handlePointerField)
   );
-  return lg_pattern_count(ptr);
+  return lg_prog_pattern_count(ptr);
 }
 
 static jobject makePatternInfo(JNIEnv* env, LG_PatternInfo* pinfo) {
