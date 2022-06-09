@@ -32,15 +32,13 @@ public class FSMHandle extends Handle {
    *
    * FIXME: some unknown encoding exception
    */
-  public int addPattern(ProgramHandle hProg, PatternHandle hPattern, String encoding, int userIndex) {
-    throwIfNull("hProg", hProg);
+  public int addPattern(PatternHandle hPattern, String encoding, int userIndex) {
     throwIfNull("hPattern", hPattern);
     throwIfNull("encoding", encoding);
     throwIfDestroyed(this);
-    throwIfDestroyed(hProg);
     throwIfDestroyed(hPattern);
-    return addPatternImpl(hProg, hPattern, encoding, userIndex);
+    return addPatternImpl(hPattern, encoding, userIndex);
   }
 
-  private native int addPatternImpl(ProgramHandle hProg, PatternHandle hPattern, String encoding, int userIndex);
+  private native int addPatternImpl(PatternHandle hPattern, String encoding, int userIndex);
 }

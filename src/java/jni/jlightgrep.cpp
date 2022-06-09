@@ -432,16 +432,12 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_destroy
   destroyHandle<LG_HFSM>(env, hFsm, lg_destroy_fsm);
 }
 
-JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_addPatternImpl(JNIEnv* env, jobject hFsm, jobject hProg, jobject hPattern, jstring encoding, jint idx) {
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_addPatternImpl(JNIEnv* env, jobject hFsm, jobject hPattern, jstring encoding, jint idx) {
   LG_Error* err = nullptr;
   try {
     // convert all of the Java objects to C
     LG_HFSM fsmptr = reinterpret_cast<LG_HFSM>(
       env->GetLongField(hFsm, handlePointerField)
-    );
-
-    LG_HPROGRAM progptr = reinterpret_cast<LG_HPROGRAM>(
-      env->GetLongField(hProg, handlePointerField)
     );
 
     LG_HPATTERN patptr = reinterpret_cast<LG_HPATTERN>(
@@ -453,7 +449,6 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_addPatt
     // finally actually do something
     const int ret = lg_add_pattern(
       fsmptr,
-      progptr,
       patptr,
       enc.get(),
       idx,
