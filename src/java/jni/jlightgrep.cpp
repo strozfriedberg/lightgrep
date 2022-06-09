@@ -364,7 +364,7 @@ static jobject makePatternInfo(JNIEnv* env, LG_PatternInfo* pinfo) {
 }
 
 static void throwIfPatternIndexOOB(JNIEnv* env, LG_HPROGRAM hProg, int patternIndex) {
-  const int size = lg_pattern_count(hProg);
+  const int size = lg_prog_pattern_count(hProg);
   if (patternIndex >= size) {
     std::stringstream ss;
     ss << "patternIndex == " << patternIndex << " >= " << size << " == size()";
