@@ -1,6 +1,6 @@
 package com.lightboxtechnologies.lightgrep;
 
-abstract class Handle {
+abstract class Handle implements AutoCloseable {
   static {
     LibraryLoader.init();
   }
@@ -17,5 +17,9 @@ abstract class Handle {
 
   public boolean isDestroyed() {
     return Pointer == 0;
+  }
+
+  public void close() {
+    destroy();
   }
 }
