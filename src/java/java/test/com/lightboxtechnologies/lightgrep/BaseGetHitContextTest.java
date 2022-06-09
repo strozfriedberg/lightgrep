@@ -74,12 +74,8 @@ public abstract class BaseGetHitContextTest extends AbstractDataDrivenTest {
   }
 
   protected void doTest() throws Throwable {
-    final DecoderHandle hDec = new DecoderHandle();
-    try {
+    try (final DecoderHandle hDec = new DecoderHandle()) {
       runGetHitContext(hDec);
-    }
-    finally {
-      hDec.destroy();
     }
   }
 

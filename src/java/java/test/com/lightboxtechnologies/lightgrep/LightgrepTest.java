@@ -16,12 +16,8 @@ import static org.junit.Assert.assertTrue;
 public class LightgrepTest {
   @Test
   public void createDestroyPatternTest() {
-    final PatternHandle hPattern = new PatternHandle();
-    try {
+    try (final PatternHandle hPattern = new PatternHandle()) {
       assertNotNull(hPattern);
-    }
-    finally {
-      hPattern.destroy();
     }
   }
 
@@ -47,8 +43,7 @@ public class LightgrepTest {
 
   @Test
   public void parsePatternGoodTest() throws Exception {
-    final PatternHandle hPattern = new PatternHandle();
-    try {
+    try (final PatternHandle hPattern = new PatternHandle()) {
       final KeyOptions kopts = new KeyOptions();
       kopts.FixedString = false;
       kopts.CaseInsensitive = false;
@@ -57,15 +52,11 @@ public class LightgrepTest {
       final int ret = hPattern.parsePattern("meh", kopts);
       assertTrue(ret != 0);
     }
-    finally {
-      hPattern.destroy();
-    }
   }
 
   @Test(expected=KeywordException.class)
   public void parsePatternMalformedTest() throws Exception {
-    final PatternHandle hPattern = new PatternHandle();
-    try {
+    try (final PatternHandle hPattern = new PatternHandle()) {
       final KeyOptions kopts = new KeyOptions();
       kopts.FixedString = false;
       kopts.CaseInsensitive = false;
@@ -73,15 +64,11 @@ public class LightgrepTest {
 
       hPattern.parsePattern("(xyz", kopts);
     }
-    finally {
-      hPattern.destroy();
-    }
   }
 
   @Test(expected=NullPointerException.class)
   public void parsePatternNullTest() throws Exception {
-    final PatternHandle hPattern = new PatternHandle();
-    try {
+    try (final PatternHandle hPattern = new PatternHandle()) {
       final KeyOptions kopts = new KeyOptions();
       kopts.FixedString = false;
       kopts.CaseInsensitive = false;
@@ -89,30 +76,19 @@ public class LightgrepTest {
 
       hPattern.parsePattern(null, kopts);
     }
-    finally {
-      hPattern.destroy();
-    }
   }
 
   @Test(expected=NullPointerException.class)
   public void parsePatternNullOptionsTest() throws Exception {
-    final PatternHandle hPattern = new PatternHandle();
-    try {
+    try (final PatternHandle hPattern = new PatternHandle()) {
       hPattern.parsePattern("meh", null);
-    }
-    finally {
-      hPattern.destroy();
     }
   }
 
   @Test
   public void createDestroyProgramTest() {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
       assertNotNull(hProg);
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
@@ -152,12 +128,8 @@ public class LightgrepTest {
 
   @Test
   public void createDestroyFSMTest() {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
       assertNotNull(hFsm);
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
@@ -179,94 +151,50 @@ public class LightgrepTest {
     final FSMHandle hFsm = new FSMHandle(0);
     hFsm.destroy();
 
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
-      final PatternHandle hPattern = new PatternHandle();
-      try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
+      try (final PatternHandle hPattern = new PatternHandle()) {
         hFsm.addPattern(hProg, hPattern, "ASCII", 0);
       }
-      finally {
-        hPattern.destroy();
-      }
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test(expected=IllegalStateException.class)
   public void noCompileProgramAfterDestroyProgramTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
-      final FSMHandle hFsm = new FSMHandle(0);
-      try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
+      try (final FSMHandle hFsm = new FSMHandle(0)) {
         hProg.destroy();
         final ProgramOptions popts = new ProgramOptions();
         hProg.compile(hFsm, popts);
       }
-      finally {
-        hFsm.destroy();
-      }
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test(expected=NullPointerException.class)
   public void addPatternNullProgramTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final PatternHandle hPattern = new PatternHandle();
-      try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final PatternHandle hPattern = new PatternHandle()) {
         hFsm.addPattern(null, hPattern, "ASCII", 0);
       }
-      finally {
-        hPattern.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=NullPointerException.class)
   public void addPatternNullPatternTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try{
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
         hFsm.addPattern(hProg, null, "ASCII", 0);
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=NullPointerException.class)
   public void addPatternNullEncodingTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           hFsm.addPattern(hProg, hPattern, null, 0);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
@@ -298,12 +226,9 @@ public class LightgrepTest {
 
   @Test
   public void addPatternGoodTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -313,27 +238,15 @@ public class LightgrepTest {
           final int ret = hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
           assertEquals(0, ret);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=KeywordException.class)
   public void addPatternEmptyMatchesTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -342,28 +255,16 @@ public class LightgrepTest {
           hPattern.parsePattern("x*", kopts);
           hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
 // FIXME: should throw some sort of encoding exception?
   @Test(expected=KeywordException.class)
   public void addPatternBadEncodingTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -372,38 +273,22 @@ public class LightgrepTest {
           hPattern.parsePattern("meh", kopts);
           hFsm.addPattern(hProg, hPattern, "UTF-13", 0);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test
   public void countEmptyProgramTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
       assertEquals(0, hProg.count());
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test
   public void countNonEmptyProgramTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -414,49 +299,29 @@ public class LightgrepTest {
 
           assertEquals(1, hProg.count());
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void getPatternInfoNegativeIndexTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getPatternInfo(-1);
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void getPatternInfoIndexTooLargeTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getPatternInfo(42);
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test
   public void getPatternInfoIndexJustRightTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -472,71 +337,43 @@ public class LightgrepTest {
           final PatternInfo act = hProg.getPatternInfo(0);
           assertEquals(exp, act);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void getUserIndexNegativeIndexTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getUserIndex(-1);
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void getUserIndexIndexTooLargeTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getUserIndex(42);
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void setUserIndexNegativeIndexTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.setUserIndex(-1, 1);
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void setUserIndexIndexTooLargeTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.setUserIndex(42, 1);
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test
   public void setUserIndexGetUserIndexProgramTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -548,74 +385,42 @@ public class LightgrepTest {
           hProg.setUserIndex(0, 42);
           assertEquals(42, hProg.getUserIndex(0));
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=NullPointerException.class)
   public void compileNullFsmTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
       final ProgramOptions popts = new ProgramOptions();
       hProg.compile(null, popts);
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test(expected=NullPointerException.class)
   public void compileNullOptionsTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
-      final FSMHandle hFsm = new FSMHandle(0);
-      try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
+      try (final FSMHandle hFsm = new FSMHandle(0)) {
         hProg.compile(hFsm, null);
       }
-      finally {
-        hFsm.destroy();
-      }
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test(expected=ProgramException.class)
   public void compileEmptyTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
-      final FSMHandle hFsm = new FSMHandle(0);
-      try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
+      try (final FSMHandle hFsm = new FSMHandle(0)) {
         final ProgramOptions popts = new ProgramOptions();
         hProg.compile(hFsm, popts);
       }
-      finally {
-        hFsm.destroy();
-      }
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test
   public void compileProgramGoodTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -629,27 +434,15 @@ public class LightgrepTest {
 
           assertTrue(hProg.compile(hFsm, popts) > 0);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test
   public void doubleDestroyProgramTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -665,27 +458,15 @@ public class LightgrepTest {
           hProg.destroy();
           hProg.destroy();
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=IllegalStateException.class)
   public void noWriteAfterDestroyProgramTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -703,27 +484,15 @@ public class LightgrepTest {
 
           hProg.write(buf, 0);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=IllegalStateException.class)
   public void noCreateContextAfterDestroyProgramTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -741,16 +510,7 @@ public class LightgrepTest {
           final ContextOptions copts = new ContextOptions();
           hProg.createContext(copts);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
@@ -860,12 +620,9 @@ public class LightgrepTest {
 
   @Test(expected=NullPointerException.class)
   public void writeProgramNullBufferTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -880,27 +637,15 @@ public class LightgrepTest {
           hProg.compile(hFsm, popts);
           hProg.write(null, 0);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void writeProgramNegativeOffsetTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -916,27 +661,15 @@ public class LightgrepTest {
           final byte[] buf = new byte[hProg.size()];
           hProg.write(buf, -1);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void writeProgramOffsetOffEndTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -952,27 +685,15 @@ public class LightgrepTest {
           final byte[] buf = new byte[hProg.size()];
           hProg.write(buf, buf.length);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void writeProgramOffsetTooLargeTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -988,16 +709,7 @@ public class LightgrepTest {
           final byte[] buf = new byte[hProg.size()];
           hProg.write(buf, 1);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
@@ -1083,12 +795,9 @@ public class LightgrepTest {
 
   @Test
   public void createContextGoodTest() throws Exception {
-    final ProgramHandle hProg = new ProgramHandle(0);
-    try {
-      final FSMHandle hFsm = new FSMHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final ProgramHandle hProg = new ProgramHandle(0)) {
+      try (final FSMHandle hFsm = new FSMHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1102,36 +811,20 @@ public class LightgrepTest {
 
           hProg.compile(hFsm, popts);
         }
-        finally {
-          hPattern.destroy();
-        }
-      }
-      finally {
-        hFsm.destroy();
       }
 
       final ContextOptions copts = new ContextOptions();
-      final ContextHandle hCtx = hProg.createContext(copts);
-      try {
+      try (final ContextHandle hCtx = hProg.createContext(copts)) {
         assertNotNull(hCtx);
       }
-      finally {
-        hCtx.destroy();
-      }
-    }
-    finally {
-      hProg.destroy();
     }
   }
 
   @Test(expected=IllegalStateException.class)
   public void noResetAfterDestroyContextTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1150,16 +843,7 @@ public class LightgrepTest {
           hCtx.destroy();
           hCtx.reset();
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
@@ -1169,12 +853,9 @@ public class LightgrepTest {
 
   @Test(expected=IllegalStateException.class)
   public void noSearchAfterDestroyContextTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1197,27 +878,15 @@ public class LightgrepTest {
 
           hCtx.search(buf, 0, buf.length, 0, cb);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=IllegalStateException.class)
   public void noCloseoutSearchAfterDestroyContextTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1238,27 +907,15 @@ public class LightgrepTest {
           final HitCallback cb = new DummyCallback();
           hCtx.closeoutSearch(cb);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=IllegalStateException.class)
   public void noStartsWithAfterDestroyContextTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1281,27 +938,15 @@ public class LightgrepTest {
 
           hCtx.startsWith(buf, 0, buf.length, 0, cb);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test
   public void doubleDestroyContextTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1320,27 +965,15 @@ public class LightgrepTest {
           hCtx.destroy();
           hCtx.destroy();
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=NullPointerException.class)
   public void createContextNullOptionsTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1355,27 +988,15 @@ public class LightgrepTest {
           hProg.compile(hFsm, popts);
           hProg.createContext(null);
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test
   public void resetContextTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1390,25 +1011,12 @@ public class LightgrepTest {
           hProg.compile(hFsm, popts);
 
           final ContextOptions copts = new ContextOptions();
-          final ContextHandle hCtx = hProg.createContext(copts);
-          try {
+          try (final ContextHandle hCtx = hProg.createContext(copts)) {
             hCtx.reset();
 // FIXME: test that we're now at the beginning for new input
           }
-          finally {
-            hCtx.destroy();
-          }
-        }
-        finally {
-          hPattern.destroy();
         }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
@@ -1426,12 +1034,9 @@ public class LightgrepTest {
 
   @Test(expected=NullPointerException.class)
   public void searchArrayNullCallbackTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1445,27 +1050,13 @@ public class LightgrepTest {
 
           hProg.compile(hFsm, popts);
 
+          final byte[] buf = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
           final ContextOptions copts = new ContextOptions();
-          final ContextHandle hCtx = hProg.createContext(copts);
-          try {
-            final byte[] buf = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
-
+          try (final ContextHandle hCtx = hProg.createContext(copts)) {
             hCtx.search(buf, 0, buf.length, 0, null);
           }
-          finally {
-            hCtx.destroy();
-          }
-        }
-        finally {
-          hPattern.destroy();
         }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
@@ -1477,12 +1068,9 @@ public class LightgrepTest {
 
   @Test(expected=RuntimeException.class)
   public void searchArrayBadCallbackTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1496,38 +1084,21 @@ public class LightgrepTest {
 
           hProg.compile(hFsm, popts);
 
+          final byte[] buf = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
           final ContextOptions copts = new ContextOptions();
-          final ContextHandle hCtx = hProg.createContext(copts);
-          try {
-            final byte[] buf = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
-
+          try (final ContextHandle hCtx = hProg.createContext(copts)) {
             hCtx.search(buf, 0, buf.length, 0, new CallbackExploder());
           }
-          finally {
-            hCtx.destroy();
-          }
-        }
-        finally {
-          hPattern.destroy();
         }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=NullPointerException.class)
   public void searchDirectByteBufferNullCallbackTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1541,41 +1112,24 @@ public class LightgrepTest {
 
           hProg.compile(hFsm, popts);
 
+          final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
+          final ByteBuffer buf = ByteBuffer.allocateDirect(arr.length);
+          buf.put(arr).flip();
+
           final ContextOptions copts = new ContextOptions();
-          final ContextHandle hCtx = hProg.createContext(copts);
-          try {
-            final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
-            final ByteBuffer buf = ByteBuffer.allocateDirect(arr.length);
-            buf.put(arr).flip();
-
+          try (final ContextHandle hCtx = hProg.createContext(copts)) {
             hCtx.search(buf, arr.length, 0, null);
-
-          }
-          finally {
-            hCtx.destroy();
           }
         }
-        finally {
-          hPattern.destroy();
-        }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=RuntimeException.class)
   public void searchDirectByteBufferBadCallbackTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1589,40 +1143,24 @@ public class LightgrepTest {
 
           hProg.compile(hFsm, popts);
 
-          final ContextOptions copts = new ContextOptions();
-          final ContextHandle hCtx = hProg.createContext(copts);
-          try {
-            final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
-            final ByteBuffer buf = ByteBuffer.allocateDirect(arr.length);
-            buf.put(arr).flip();
+          final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
+          final ByteBuffer buf = ByteBuffer.allocateDirect(arr.length);
+          buf.put(arr).flip();
 
+          final ContextOptions copts = new ContextOptions();
+          try (final ContextHandle hCtx = hProg.createContext(copts)) {
             hCtx.search(buf, arr.length, 0, new CallbackExploder());
           }
-          finally {
-            hCtx.destroy();
-          }
-        }
-        finally {
-          hPattern.destroy();
         }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=NullPointerException.class)
   public void searchWrappedByteBufferNullCallbackTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1636,39 +1174,23 @@ public class LightgrepTest {
 
           hProg.compile(hFsm, popts);
 
-          final ContextOptions copts = new ContextOptions();
-          final ContextHandle hCtx = hProg.createContext(copts);
-          try {
-            final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
-            final ByteBuffer buf = ByteBuffer.wrap(arr);
+          final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
+          final ByteBuffer buf = ByteBuffer.wrap(arr);
 
+          final ContextOptions copts = new ContextOptions();
+          try (final ContextHandle hCtx = hProg.createContext(copts)) {
             hCtx.search(buf, arr.length, 0, null);
           }
-          finally {
-            hCtx.destroy();
-          }
-        }
-        finally {
-          hPattern.destroy();
         }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 
   @Test(expected=RuntimeException.class)
   public void searchWrappedByteBufferBadCallbackTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
-    try {
-      final ProgramHandle hProg = new ProgramHandle(0);
-      try {
-        final PatternHandle hPattern = new PatternHandle();
-        try {
+    try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final ProgramHandle hProg = new ProgramHandle(0)) {
+        try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
           kopts.CaseInsensitive = false;
@@ -1682,28 +1204,15 @@ public class LightgrepTest {
 
           hProg.compile(hFsm, popts);
 
-          final ContextOptions copts = new ContextOptions();
-          final ContextHandle hCtx = hProg.createContext(copts);
-          try {
-            final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
-            final ByteBuffer buf = ByteBuffer.wrap(arr);
+          final byte[] arr = "aaabaacabbabcacbaccbbbcbccca".getBytes("ASCII");
+          final ByteBuffer buf = ByteBuffer.wrap(arr);
 
+          final ContextOptions copts = new ContextOptions();
+          try (final ContextHandle hCtx = hProg.createContext(copts)) {
             hCtx.search(buf, arr.length, 0, new CallbackExploder());
           }
-          finally {
-            hCtx.destroy();
-          }
-        }
-        finally {
-          hPattern.destroy();
         }
       }
-      finally {
-        hProg.destroy();
-      }
-    }
-    finally {
-      hFsm.destroy();
     }
   }
 

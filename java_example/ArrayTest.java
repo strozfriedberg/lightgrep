@@ -52,40 +52,28 @@ public class ArrayTest {
   }
 
   public static void main(String[] args) throws Exception {
-    final ParserHandle hParser = new ParserHandle(10000);
-    try {
+    try (final ParserHandle hParser = new ParserHandle(10000)) {
       final KeyOptions kopts = new KeyOptions();
       kopts.FixedString = false;
       kopts.CaseInsensitive = false;
       kopts.UnicodeMode = false;
 
-      final FileReader fr = new FileReader(args[0]);
-      try {
-        final BufferedReader r = new BufferedReader(fr);
-        try {
-          int linenum = 0;
-          String line;
-          while ((line = r.readLine()) != null) {
-            hParser.addKeyword(line, linenum++, kopts, "ASCII");
-          }
-        }
-        finally {
-          r.close();
+      try (final FileReader fr = new FileReader(args[0]),
+           final BufferedReader r = new BufferedReader(fr)) {
+        int linenum = 0;
+        String line;
+        while ((line = r.readLine()) != null) {
+          hParser.addKeyword(line, linenum++, kopts, "ASCII");
         }
       }
-      finally {
-        fr.close();
-      } 
 
       final ProgramOptions popts = new ProgramOptions();
       popts.Determinize = true;        
 
-      final ProgramHandle hProg = hParser.createProgram(popts);
-      try {
+      try (final ProgramHandle hProg = hParser.createProgram(popts)) {
         final ContextOptions copts = new ContextOptions();
 
-        final ContextHandle hCtx = hProg.createContext(copts);
-        try {
+        try (final ContextHandle hCtx = hProg.createContext(copts)) {
           final HitCounter cb = new HitCounter();
 
           long streamOffset = 0;
@@ -95,8 +83,7 @@ public class ArrayTest {
           byte[] cur = new byte[8*1024*1024];
           byte[] next = new byte[8*1024*1024];
 
-          final InputStream in = new FileInputStream(args[1]);
-          try {
+          try (final InputStream in = new FileInputStream(args[1])) {
             int size = fillBuffer(in, cur);
 
             final long startTime = System.currentTimeMillis();
@@ -116,23 +103,12 @@ public class ArrayTest {
             final long searchTime = System.currentTimeMillis() - startTime;
             System.out.println((searchTime/1000.0) + " searchTime");
           }
-          finally {
-            in.close();
-          }
 
           System.out.println(cb.hitCount + " hits");
         }
-        finally {
-          hCtx.destroy();
-        }
-      }
-      finally {
-        hProg.destroy();
       }
     }
-    finally {
-      hParser.destroy();
-    }    
+
     System.exit(0);
   }
 }
