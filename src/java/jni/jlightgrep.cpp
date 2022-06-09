@@ -424,8 +424,8 @@ JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_set
   }
 }
 
-JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_create(JNIEnv*, jclass, jint numFsmStateSizeHint) {
-  return reinterpret_cast<jlong>(lg_create_fsm(numFsmStateSizeHint));
+JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_create(JNIEnv*, jclass, jint patternCountHint, jint numFsmStateSizeHint) {
+  return reinterpret_cast<jlong>(lg_create_fsm(patternCountHint, numFsmStateSizeHint));
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_destroy(JNIEnv* env, jobject hFsm) {

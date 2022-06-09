@@ -10,13 +10,14 @@ public class FSMHandle extends Handle {
   /**
    * @throws IndexOutOfBoundsException
    */
-  public FSMHandle(int numFsmStateSizeHint) {
+  public FSMHandle(int patternCountHint, int numFsmStateSizeHint) {
     super(0);
+    throwIfNegative("patternCountHint", patternCountHint);
     throwIfNegative("numFsmStateSizeHint", numFsmStateSizeHint);
-    Pointer = FSMHandle.create(numFsmStateSizeHint);
+    Pointer = FSMHandle.create(patternCountHint, numFsmStateSizeHint);
   }
 
-  private static native long create(int numFsmStateSizeHint);
+  private static native long create(int patternCountHint, int numFsmStateSizeHint);
 
   /**
    * Releases resources held by the {@code FSMHandle}. {@code destroy()}
