@@ -128,27 +128,27 @@ public class LightgrepTest {
 
   @Test
   public void createDestroyFSMTest() {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       assertNotNull(hFsm);
     }
   }
 
   @Test
   public void doubleDestroyFSMTest() {
-    final FSMHandle hFsm = new FSMHandle(0);
+    final FSMHandle hFsm = new FSMHandle(0, 0);
     hFsm.destroy();
     hFsm.destroy();
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void createFSMNegativeSizeHintTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(-1);
+    final FSMHandle hFsm = new FSMHandle(0, -1);
     hFsm.destroy();
   }
 
   @Test(expected=IllegalStateException.class)
   public void noAddPatternAfterDestroyFSMTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
+    final FSMHandle hFsm = new FSMHandle(0, 0);
     hFsm.destroy();
 
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
@@ -161,7 +161,7 @@ public class LightgrepTest {
   @Test(expected=IllegalStateException.class)
   public void noCompileProgramAfterDestroyProgramTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
-      try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
         hProg.destroy();
         final ProgramOptions popts = new ProgramOptions();
         hProg.compile(hFsm, popts);
@@ -171,7 +171,7 @@ public class LightgrepTest {
 
   @Test(expected=NullPointerException.class)
   public void addPatternNullProgramTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final PatternHandle hPattern = new PatternHandle()) {
         hFsm.addPattern(null, hPattern, "ASCII", 0);
       }
@@ -180,7 +180,7 @@ public class LightgrepTest {
 
   @Test(expected=NullPointerException.class)
   public void addPatternNullPatternTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         hFsm.addPattern(null, "ASCII", 0);
       }
@@ -189,7 +189,7 @@ public class LightgrepTest {
 
   @Test(expected=NullPointerException.class)
   public void addPatternNullEncodingTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           hFsm.addPattern(hPattern, null, 0);
@@ -202,7 +202,7 @@ public class LightgrepTest {
 /*
   @Test
   public void addPatternEmptyTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
+    final FSMHandle hFsm = new FSMHandle(0, 0);
     try {
       final ProgramHandle hProg = new ProgramHandle(0);
       try {
@@ -226,7 +226,7 @@ public class LightgrepTest {
 
   @Test
   public void addPatternGoodTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -244,7 +244,7 @@ public class LightgrepTest {
 
   @Test(expected=KeywordException.class)
   public void addPatternEmptyMatchesTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -262,7 +262,7 @@ public class LightgrepTest {
 // FIXME: should throw some sort of encoding exception?
   @Test(expected=KeywordException.class)
   public void addPatternBadEncodingTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -286,7 +286,7 @@ public class LightgrepTest {
 
   @Test
   public void countNonEmptyProgramTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -319,7 +319,7 @@ public class LightgrepTest {
 
   @Test
   public void getPatternInfoIndexJustRightTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -371,7 +371,7 @@ public class LightgrepTest {
 
   @Test
   public void setUserIndexGetUserIndexProgramTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -400,7 +400,7 @@ public class LightgrepTest {
   @Test(expected=NullPointerException.class)
   public void compileNullOptionsTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
-      try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
         hProg.compile(hFsm, null);
       }
     }
@@ -409,7 +409,7 @@ public class LightgrepTest {
   @Test(expected=ProgramException.class)
   public void compileEmptyTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
-      try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
         final ProgramOptions popts = new ProgramOptions();
         hProg.compile(hFsm, popts);
       }
@@ -418,7 +418,7 @@ public class LightgrepTest {
 
   @Test
   public void compileProgramGoodTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -440,7 +440,7 @@ public class LightgrepTest {
 
   @Test
   public void doubleDestroyProgramTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -464,7 +464,7 @@ public class LightgrepTest {
 
   @Test(expected=IllegalStateException.class)
   public void noWriteAfterDestroyProgramTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -490,7 +490,7 @@ public class LightgrepTest {
 
   @Test(expected=IllegalStateException.class)
   public void noCreateContextAfterDestroyProgramTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -518,7 +518,7 @@ public class LightgrepTest {
 /*
   @Test(expected=IllegalStateException.class)
   public void writeProgramGoodTest() throws Exception {
-    final FSMHandle hFsm = new FSMHandle(0);
+    final FSMHandle hFsm = new FSMHandle(0, 0);
     try {
       final ProgramHandle hProg = new ProgramHandle(0);
       try {
@@ -620,7 +620,7 @@ public class LightgrepTest {
 
   @Test(expected=NullPointerException.class)
   public void writeProgramNullBufferTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -643,7 +643,7 @@ public class LightgrepTest {
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void writeProgramNegativeOffsetTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -667,7 +667,7 @@ public class LightgrepTest {
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void writeProgramOffsetOffEndTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -691,7 +691,7 @@ public class LightgrepTest {
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void writeProgramOffsetTooLargeTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -718,7 +718,7 @@ public class LightgrepTest {
   public void writeReadProgramGoodTest() throws Exception {
     final ProgramHandle hProg1 = new ProgramHandle(0);
     try {
-      final FSMHandle hFsm = new FSMHandle(0);
+      final FSMHandle hFsm = new FSMHandle(0, 0);
       try {
         final PatternHandle hPattern = new PatternHandle();
         try {
@@ -796,7 +796,7 @@ public class LightgrepTest {
   @Test
   public void createContextGoodTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
-      try (final FSMHandle hFsm = new FSMHandle(0)) {
+      try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
           kopts.FixedString = false;
@@ -822,7 +822,7 @@ public class LightgrepTest {
 
   @Test(expected=IllegalStateException.class)
   public void noResetAfterDestroyContextTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -853,7 +853,7 @@ public class LightgrepTest {
 
   @Test(expected=IllegalStateException.class)
   public void noSearchAfterDestroyContextTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -884,7 +884,7 @@ public class LightgrepTest {
 
   @Test(expected=IllegalStateException.class)
   public void noCloseoutSearchAfterDestroyContextTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -913,7 +913,7 @@ public class LightgrepTest {
 
   @Test(expected=IllegalStateException.class)
   public void noStartsWithAfterDestroyContextTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -944,7 +944,7 @@ public class LightgrepTest {
 
   @Test
   public void doubleDestroyContextTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -971,7 +971,7 @@ public class LightgrepTest {
 
   @Test(expected=NullPointerException.class)
   public void createContextNullOptionsTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -994,7 +994,7 @@ public class LightgrepTest {
 
   @Test
   public void resetContextTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -1034,7 +1034,7 @@ public class LightgrepTest {
 
   @Test(expected=NullPointerException.class)
   public void searchArrayNullCallbackTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -1068,7 +1068,7 @@ public class LightgrepTest {
 
   @Test(expected=RuntimeException.class)
   public void searchArrayBadCallbackTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -1096,7 +1096,7 @@ public class LightgrepTest {
 
   @Test(expected=NullPointerException.class)
   public void searchDirectByteBufferNullCallbackTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -1127,7 +1127,7 @@ public class LightgrepTest {
 
   @Test(expected=RuntimeException.class)
   public void searchDirectByteBufferBadCallbackTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -1158,7 +1158,7 @@ public class LightgrepTest {
 
   @Test(expected=NullPointerException.class)
   public void searchWrappedByteBufferNullCallbackTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
@@ -1188,7 +1188,7 @@ public class LightgrepTest {
 
   @Test(expected=RuntimeException.class)
   public void searchWrappedByteBufferBadCallbackTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0)) {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           final KeyOptions kopts = new KeyOptions();
