@@ -262,7 +262,7 @@ public class LightgrepTest {
     }
   }
 
-  @Test
+  @Test(expected=IllegalStateException.class)
   public void countEmptyProgramTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       assertEquals(0, hProg.count());
