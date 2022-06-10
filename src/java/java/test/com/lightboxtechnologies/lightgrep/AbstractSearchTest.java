@@ -63,7 +63,7 @@ public abstract class AbstractSearchTest extends AbstractDataDrivenTest {
       try (final FSMHandle hFsm = new FSMHandle(pmapSizeHint, fsmSizeHint)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
           int i = 0;
-          for (Pat p : pats) {
+          for (final Pat p : pats) {
             hPattern.parsePattern(p.pattern, p.opts);
             for (String e : p.encs) {
               hFsm.addPattern(hPattern, e, i);
