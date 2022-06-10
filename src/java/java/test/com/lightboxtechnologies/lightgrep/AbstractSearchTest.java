@@ -66,7 +66,7 @@ public abstract class AbstractSearchTest extends AbstractDataDrivenTest {
           for (Pat p : pats) {
             hPattern.parsePattern(p.pattern, p.opts);
             for (String e : p.encs) {
-              hFsm.addPattern(hProg, hPattern, e, i);
+              hFsm.addPattern(hPattern, e, i);
             }
             ++i;
           }
