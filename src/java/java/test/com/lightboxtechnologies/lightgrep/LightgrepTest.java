@@ -157,10 +157,8 @@ public class LightgrepTest {
     final FSMHandle hFsm = new FSMHandle(0, 0);
     hFsm.destroy();
 
-    try (final ProgramHandle hProg = new ProgramHandle(0)) {
-      try (final PatternHandle hPattern = new PatternHandle()) {
-        hFsm.addPattern(hPattern, "ASCII", 0);
-      }
+    try (final PatternHandle hPattern = new PatternHandle()) {
+      hFsm.addPattern(hPattern, "ASCII", 0);
     }
   }
 
@@ -178,19 +176,15 @@ public class LightgrepTest {
   @Test(expected=NullPointerException.class)
   public void addPatternNullPatternTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
-      try (final ProgramHandle hProg = new ProgramHandle(0)) {
-        hFsm.addPattern(null, "ASCII", 0);
-      }
+      hFsm.addPattern(null, "ASCII", 0);
     }
   }
 
   @Test(expected=NullPointerException.class)
   public void addPatternNullEncodingTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
-      try (final ProgramHandle hProg = new ProgramHandle(0)) {
-        try (final PatternHandle hPattern = new PatternHandle()) {
-          hFsm.addPattern(hPattern, null, 0);
-        }
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        hFsm.addPattern(hPattern, null, 0);
       }
     }
   }
@@ -224,17 +218,15 @@ public class LightgrepTest {
   @Test
   public void addPatternGoodTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
-      try (final ProgramHandle hProg = new ProgramHandle(0)) {
-        try (final PatternHandle hPattern = new PatternHandle()) {
-          final KeyOptions kopts = new KeyOptions();
-          kopts.FixedString = false;
-          kopts.CaseInsensitive = false;
-          kopts.UnicodeMode = false;
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        final KeyOptions kopts = new KeyOptions();
+        kopts.FixedString = false;
+        kopts.CaseInsensitive = false;
+        kopts.UnicodeMode = false;
 
-          hPattern.parsePattern("(xyzzy)+", kopts);
-          final int ret = hFsm.addPattern(hPattern, "UTF-8", 0);
-          assertEquals(0, ret);
-        }
+        hPattern.parsePattern("(xyzzy)+", kopts);
+        final int ret = hFsm.addPattern(hPattern, "UTF-8", 0);
+        assertEquals(0, ret);
       }
     }
   }
@@ -242,16 +234,14 @@ public class LightgrepTest {
   @Test(expected=KeywordException.class)
   public void addPatternEmptyMatchesTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
-      try (final ProgramHandle hProg = new ProgramHandle(0)) {
-        try (final PatternHandle hPattern = new PatternHandle()) {
-          final KeyOptions kopts = new KeyOptions();
-          kopts.FixedString = false;
-          kopts.CaseInsensitive = false;
-          kopts.UnicodeMode = false;
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        final KeyOptions kopts = new KeyOptions();
+        kopts.FixedString = false;
+        kopts.CaseInsensitive = false;
+        kopts.UnicodeMode = false;
 
-          hPattern.parsePattern("x*", kopts);
-          hFsm.addPattern(hPattern, "UTF-8", 0);
-        }
+        hPattern.parsePattern("x*", kopts);
+        hFsm.addPattern(hPattern, "UTF-8", 0);
       }
     }
   }
@@ -260,16 +250,14 @@ public class LightgrepTest {
   @Test(expected=KeywordException.class)
   public void addPatternBadEncodingTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
-      try (final ProgramHandle hProg = new ProgramHandle(0)) {
-        try (final PatternHandle hPattern = new PatternHandle()) {
-          final KeyOptions kopts = new KeyOptions();
-          kopts.FixedString = false;
-          kopts.CaseInsensitive = false;
-          kopts.UnicodeMode = false;
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        final KeyOptions kopts = new KeyOptions();
+        kopts.FixedString = false;
+        kopts.CaseInsensitive = false;
+        kopts.UnicodeMode = false;
 
-          hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hPattern, "UTF-13", 0);
-        }
+        hPattern.parsePattern("meh", kopts);
+        hFsm.addPattern(hPattern, "UTF-13", 0);
       }
     }
   }
