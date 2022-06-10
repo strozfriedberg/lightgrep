@@ -141,6 +141,12 @@ public class LightgrepTest {
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
+  public void createFSMNegativePatternCountHintTest() throws Exception {
+    final FSMHandle hFsm = new FSMHandle(-1, 0);
+    hFsm.destroy();
+  }
+
+  @Test(expected=IndexOutOfBoundsException.class)
   public void createFSMNegativeSizeHintTest() throws Exception {
     final FSMHandle hFsm = new FSMHandle(0, -1);
     hFsm.destroy();
