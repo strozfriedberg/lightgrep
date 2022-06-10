@@ -176,15 +176,6 @@ public class LightgrepTest {
   }
 
   @Test(expected=NullPointerException.class)
-  public void addPatternNullProgramTest() throws Exception {
-    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
-      try (final PatternHandle hPattern = new PatternHandle()) {
-        hFsm.addPattern(null, hPattern, "ASCII", 0);
-      }
-    }
-  }
-
-  @Test(expected=NullPointerException.class)
   public void addPatternNullPatternTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
