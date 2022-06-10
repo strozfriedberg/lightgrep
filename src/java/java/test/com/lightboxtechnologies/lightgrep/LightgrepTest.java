@@ -153,7 +153,7 @@ public class LightgrepTest {
 
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       try (final PatternHandle hPattern = new PatternHandle()) {
-        hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+        hFsm.addPattern(hPattern, "ASCII", 0);
       }
     }
   }
@@ -182,7 +182,7 @@ public class LightgrepTest {
   public void addPatternNullPatternTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
-        hFsm.addPattern(hProg, null, "ASCII", 0);
+        hFsm.addPattern(null, "ASCII", 0);
       }
     }
   }
@@ -192,7 +192,7 @@ public class LightgrepTest {
     try (final FSMHandle hFsm = new FSMHandle(0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
-          hFsm.addPattern(hProg, hPattern, null, 0);
+          hFsm.addPattern(hPattern, null, 0);
         }
       }
     }
@@ -208,7 +208,7 @@ public class LightgrepTest {
       try {
         final PatternHandle hPattern = new PatternHandle();
         try {
-          hFsm.addPattern(hProg, hPattern, "UTF-8");
+          hFsm.addPattern(hPattern, "UTF-8");
         }
         finally {
           hPattern.destroy();
@@ -235,7 +235,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
-          final int ret = hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
+          final int ret = hFsm.addPattern(hPattern, "UTF-8", 0);
           assertEquals(0, ret);
         }
       }
@@ -253,7 +253,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("x*", kopts);
-          hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
+          hFsm.addPattern(hPattern, "UTF-8", 0);
         }
       }
     }
@@ -271,7 +271,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "UTF-13", 0);
+          hFsm.addPattern(hPattern, "UTF-13", 0);
         }
       }
     }
@@ -295,7 +295,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
-          hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
+          hFsm.addPattern(hPattern, "UTF-8", 0);
 
           assertEquals(1, hProg.count());
         }
@@ -332,7 +332,7 @@ public class LightgrepTest {
           );
 
           hPattern.parsePattern(exp.Pattern, kopts);
-          hFsm.addPattern(hProg, hPattern, exp.EncodingChain, 42);
+          hFsm.addPattern(hPattern, exp.EncodingChain, 42);
 
           final PatternInfo act = hProg.getPatternInfo(0);
           assertEquals(exp, act);
@@ -380,7 +380,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
-          hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
+          hFsm.addPattern(hPattern, "UTF-8", 0);
 
           hProg.setUserIndex(0, 42);
           assertEquals(42, hProg.getUserIndex(0));
@@ -427,7 +427,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
-          hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
+          hFsm.addPattern(hPattern, "UTF-8", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -449,7 +449,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
-          hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
+          hFsm.addPattern(hPattern, "UTF-8", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -473,7 +473,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
-          hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
+          hFsm.addPattern(hPattern, "UTF-8", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -499,7 +499,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("(xyzzy)+", kopts);
-          hFsm.addPattern(hProg, hPattern, "UTF-8", 0);
+          hFsm.addPattern(hPattern, "UTF-8", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -529,7 +529,7 @@ public class LightgrepTest {
           kopts.CaseInsensitive = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII");
+          hFsm.addPattern(hPattern, "ASCII");
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -629,7 +629,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -652,7 +652,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -676,7 +676,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -700,7 +700,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -804,7 +804,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -831,7 +831,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -862,7 +862,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -893,7 +893,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -922,7 +922,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -953,7 +953,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -980,7 +980,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -1003,7 +1003,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("meh", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -1043,7 +1043,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -1077,7 +1077,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -1105,7 +1105,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -1136,7 +1136,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -1167,7 +1167,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
@@ -1197,7 +1197,7 @@ public class LightgrepTest {
           kopts.UnicodeMode = false;
 
           hPattern.parsePattern("a+b", kopts);
-          hFsm.addPattern(hProg, hPattern, "ASCII", 0);
+          hFsm.addPattern(hPattern, "ASCII", 0);
 
           final ProgramOptions popts = new ProgramOptions();
           popts.Determinize = true;
