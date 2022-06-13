@@ -316,6 +316,42 @@ public class LightgrepTest {
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
+  public void getFSMPatternInfoNegativeIndexTest() throws Exception {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      hFsm.getPatternInfo(-1);
+    }
+  }
+
+  @Test(expected=IndexOutOfBoundsException.class)
+  public void getFSMPatternInfoIndexTooLargeTest() throws Exception {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      hFsm.getPatternInfo(42);
+    }
+  }
+
+  @Test
+  public void getFSMPatternInfoIndexJustRightTest() throws Exception {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        final KeyOptions kopts = new KeyOptions();
+        kopts.FixedString = false;
+        kopts.CaseInsensitive = false;
+        kopts.UnicodeMode = false;
+
+        final PatternInfo exp = new PatternInfo(
+          "(xyzzy)+", "UTF-8", 42
+        );
+
+        hPattern.parsePattern(exp.Pattern, kopts);
+        hFsm.addPattern(hPattern, exp.EncodingChain, 42);
+
+        final PatternInfo act = hFsm.getPatternInfo(0);
+        assertEquals(exp, act);
+      }
+    }
+  }
+
+  @Test(expected=IndexOutOfBoundsException.class)
   public void getProgramPatternInfoNegativeIndexTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getPatternInfo(-1);
