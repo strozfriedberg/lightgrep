@@ -335,7 +335,7 @@ static jobject makeProgramHandle(JNIEnv* env, LG_HPROGRAM hProg) {
 }
 
 JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_create(JNIEnv*, jclass, jint numTotalPatternsSizeHint) {
-  return reinterpret_cast<jlong>(lg_create_program(numTotalPatternsSizeHint));
+  return 0;
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_countImpl(JNIEnv* env, jobject hProg) {
@@ -469,10 +469,6 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_addPatt
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_compileImpl(JNIEnv* env, jobject hProg, jobject hFsm, jobject options) {
   try {
     // convert all of the Java objects to C
-    LG_HPROGRAM prog_ptr = reinterpret_cast<LG_HPROGRAM>(
-      env->GetLongField(hProg, handlePointerField)
-    );
-
     LG_HFSM fsm_ptr = reinterpret_cast<LG_HFSM>(
       env->GetLongField(hFsm, handlePointerField)
     );
@@ -482,9 +478,11 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_com
     };
 
     // finally actually do something
-    const int ret = lg_compile_program(fsm_ptr, prog_ptr, &opts);
-    if (ret) {
-      return ret;
+    LG_HPROGRAM prog_ptr = lg_create_program(fsm_ptr, &opts);
+
+    if (prog_ptr) {
+      env->SetLongField(hProg, handlePointerField, reinterpret_cast<jlong>(prog_ptr));
+      return 1;
     }
     throwException(env, programExceptionClassName, "Failed to compile program");
   }
