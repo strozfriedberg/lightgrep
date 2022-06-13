@@ -453,20 +453,24 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_get
   return getUserIndex<LG_HPROGRAM>(env, hProg, patternIndex);
 }
 
-JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_setUserIndexImpl(JNIEnv* env, jobject hProg, jint patternIndex, jint userIndex) {
-  try {
+template <class LgHandle>
+void setUserIndex(JNIEnv* env, jobject& h, jint patternIndex, jint userIndex) {  try {
     // convert all of the Java objects to C
-    LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
-      env->GetLongField(hProg, handlePointerField)
+    LgHandle ptr = reinterpret_cast<LgHandle>(
+      env->GetLongField(h, handlePointerField)
     );
 
     throwIfPatternIndexOOB(env, ptr, patternIndex);
 
-    LG_PatternInfo* pinfo = lg_prog_pattern_info(ptr, patternIndex);
+    LG_PatternInfo* pinfo = get_pattern_info(ptr, patternIndex);
     pinfo->UserIndex = userIndex;
   }
   catch (const PendingJavaException&) {
   }
+}
+
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_setUserIndexImpl(JNIEnv* env, jobject hProg, jint patternIndex, jint userIndex) {
+  setUserIndex<LG_HPROGRAM>(env, hProg, patternIndex, userIndex);
 }
 
 JNIEXPORT jlong JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_create(JNIEnv*, jclass, jint patternCountHint, jint numFsmStateSizeHint) {
