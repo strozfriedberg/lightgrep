@@ -403,7 +403,7 @@ template <class LgHandle>
 jobject getPatternInfo(JNIEnv* env, jobject& h, jint patternIndex) {
   try {
     // convert all of the Java objects to C
-    Handle ptr = reinterpret_cast<Handle>(
+    LgHandle ptr = reinterpret_cast<LgHandle>(
       env->GetLongField(h, handlePointerField)
     );
 
