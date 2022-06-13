@@ -419,21 +419,7 @@ jobject getPatternInfo(JNIEnv* env, jobject& h, jint patternIndex) {
 }
 
 JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_getPatternInfoImpl(JNIEnv* env, jobject hProg, jint patternIndex) {
-  try {
-    // convert all of the Java objects to C
-    LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
-      env->GetLongField(hProg, handlePointerField)
-    );
-
-    throwIfPatternIndexOOB(env, ptr, patternIndex);
-
-    // finally actually do something
-    LG_PatternInfo* pinfo = lg_prog_pattern_info(ptr, patternIndex);
-    return makePatternInfo(env, pinfo);
-  }
-  catch (const PendingJavaException&) {
-    return nullptr;
-  }
+  return getPatternInfo<LG_HPROGRAM>(env, hProg, patternIndex);
 }
 
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_getUserIndexImpl(JNIEnv* env, jobject hProg, jint patternIndex) {
