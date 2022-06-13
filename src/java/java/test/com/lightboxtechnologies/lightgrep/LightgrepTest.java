@@ -377,8 +377,7 @@ public class LightgrepTest {
   @Test(expected=NullPointerException.class)
   public void compileNullFsmTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
-      final ProgramOptions popts = new ProgramOptions();
-      hProg.compile(null, popts);
+      hProg.compile(null, new ProgramOptions());
     }
   }
 
@@ -395,8 +394,7 @@ public class LightgrepTest {
   public void compileEmptyTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
-        final ProgramOptions popts = new ProgramOptions();
-        hProg.compile(hFsm, popts);
+        hProg.compile(hFsm, new ProgramOptions());
       }
     }
   }
