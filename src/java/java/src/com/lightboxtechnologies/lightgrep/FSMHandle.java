@@ -65,4 +65,18 @@ public class FSMHandle extends Handle {
   }
 
   private native PatternInfo getPatternInfoImpl(int patternIndex);
+
+    /**
+   * @throws IllegalStateException
+   * @throws IndexOutOfBoundsException
+   */
+  public int getUserIndex(int patternIndex) {
+    throwIfDestroyed(this);
+    throwIfNegative("patternIndex", patternIndex);
+    // NB: getUserIndexImpl checks for patternIndex >= size()
+    // because doing it here would mean an extra JNI call.
+    return getUserIndexImpl(patternIndex);
+  }
+
+  private native int getUserIndexImpl(int patternIndex);
 }

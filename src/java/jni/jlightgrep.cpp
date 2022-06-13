@@ -445,6 +445,10 @@ jint getUserIndex(JNIEnv* env, jobject& h, jint patternIndex) {
   }
 }
 
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_getUserIndexImpl(JNIEnv* env, jobject hFsm, jint patternIndex) {
+  return getUserIndex<LG_HFSM>(env, hFsm, patternIndex);
+}
+
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_getUserIndexImpl(JNIEnv* env, jobject hProg, jint patternIndex) {
   return getUserIndex<LG_HPROGRAM>(env, hProg, patternIndex);
 }
