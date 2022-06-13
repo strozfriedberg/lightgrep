@@ -316,21 +316,21 @@ public class LightgrepTest {
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
-  public void getPatternInfoNegativeIndexTest() throws Exception {
+  public void getProgramPatternInfoNegativeIndexTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getPatternInfo(-1);
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
-  public void getPatternInfoIndexTooLargeTest() throws Exception {
+  public void getPatternInfoProgramIndexTooLargeTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getPatternInfo(42);
     }
   }
 
   @Test
-  public void getPatternInfoIndexJustRightTest() throws Exception {
+  public void getProgramPatternInfoIndexJustRightTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
         try (final PatternHandle hPattern = new PatternHandle()) {
