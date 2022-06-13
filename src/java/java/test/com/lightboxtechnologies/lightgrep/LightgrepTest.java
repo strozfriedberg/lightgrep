@@ -384,16 +384,17 @@ public class LightgrepTest {
   @Test
   public void setUserIndexGetUserIndexProgramTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
-      try (final ProgramHandle hProg = new ProgramHandle(0)) {
-        try (final PatternHandle hPattern = new PatternHandle()) {
-          final KeyOptions kopts = new KeyOptions();
-          kopts.FixedString = false;
-          kopts.CaseInsensitive = false;
-          kopts.UnicodeMode = false;
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        final KeyOptions kopts = new KeyOptions();
+        kopts.FixedString = false;
+        kopts.CaseInsensitive = false;
+        kopts.UnicodeMode = false;
 
-          hPattern.parsePattern("(xyzzy)+", kopts);
-          hFsm.addPattern(hPattern, "UTF-8", 0);
+        hPattern.parsePattern("(xyzzy)+", kopts);
+        hFsm.addPattern(hPattern, "UTF-8", 0);
 
+        try (final ProgramHandle hProg = new ProgramHandle(0)) {
+          hProg.compile(hFsm, new ProgramOptions());
           hProg.setUserIndex(0, 42);
           assertEquals(42, hProg.getUserIndex(0));
         }
