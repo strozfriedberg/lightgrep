@@ -363,8 +363,22 @@ static jobject makePatternInfo(JNIEnv* env, LG_PatternInfo* pinfo) {
   return obj;
 }
 
-static void throwIfPatternIndexOOB(JNIEnv* env, LG_HPROGRAM hProg, int patternIndex) {
-  const int size = lg_prog_pattern_count(hProg);
+template <class LgHandle>
+unsigned int get_pattern_count(LgHandle h);
+
+template <>
+unsigned int get_pattern_count<LG_HFSM>(LG_HFSM h) {
+  return lg_fsm_pattern_count(h);
+}
+
+template <>
+unsigned int get_pattern_count<LG_HPROGRAM>(LG_HPROGRAM h) {
+  return lg_prog_pattern_count(h);
+}
+
+template <class LgHandle>
+static void throwIfPatternIndexOOB(JNIEnv* env, LgHandle h, int patternIndex) {
+  const int size = get_pattern_count(h);
   if (patternIndex >= size) {
     std::stringstream ss;
     ss << "patternIndex == " << patternIndex << " >= " << size << " == size()";
