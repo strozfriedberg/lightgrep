@@ -368,20 +368,21 @@ public class LightgrepTest {
   @Test
   public void getProgramPatternInfoIndexJustRightTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
-      try (final ProgramHandle hProg = new ProgramHandle(0)) {
-        try (final PatternHandle hPattern = new PatternHandle()) {
-          final KeyOptions kopts = new KeyOptions();
-          kopts.FixedString = false;
-          kopts.CaseInsensitive = false;
-          kopts.UnicodeMode = false;
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        final KeyOptions kopts = new KeyOptions();
+        kopts.FixedString = false;
+        kopts.CaseInsensitive = false;
+        kopts.UnicodeMode = false;
 
-          final PatternInfo exp = new PatternInfo(
-            "(xyzzy)+", "UTF-8", 42
-          );
+        final PatternInfo exp = new PatternInfo(
+          "(xyzzy)+", "UTF-8", 42
+        );
 
-          hPattern.parsePattern(exp.Pattern, kopts);
-          hFsm.addPattern(hPattern, exp.EncodingChain, 42);
+        hPattern.parsePattern(exp.Pattern, kopts);
+        hFsm.addPattern(hPattern, exp.EncodingChain, 42);
 
+        try (final ProgramHandle hProg = new ProgramHandle(0)) {
+          hProg.compile(hFsm, new ProgramOptions());
           final PatternInfo act = hProg.getPatternInfo(0);
           assertEquals(exp, act);
         }
