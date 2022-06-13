@@ -386,6 +386,38 @@ static void throwIfPatternIndexOOB(JNIEnv* env, LgHandle h, int patternIndex) {
   }
 }
 
+template <class LgHandle>
+LG_PatternInfo* get_pattern_info(LgHandle h, unsigned int i);
+
+template <>
+LG_PatternInfo* get_pattern_info<LG_HFSM>(LG_HFSM h, unsigned int i) {
+  return lg_fsm_pattern_info(h, i);
+}
+
+template <>
+LG_PatternInfo* get_pattern_info<LG_HPROGRAM>(LG_HPROGRAM h, unsigned int i) {
+  return lg_prog_pattern_info(h, i);
+}
+
+template <class LgHandle>
+jobject getPatternInfo(JNIEnv* env, jobject& h, jint patternIndex) {
+  try {
+    // convert all of the Java objects to C
+    Handle ptr = reinterpret_cast<Handle>(
+      env->GetLongField(h, handlePointerField)
+    );
+
+    throwIfPatternIndexOOB(env, ptr, patternIndex);
+
+    // finally actually do something
+    LG_PatternInfo* pinfo = get_pattern_info(ptr, patternIndex);
+    return makePatternInfo(env, pinfo);
+  }
+  catch (const PendingJavaException&) {
+    return nullptr;
+  }
+}
+
 JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_getPatternInfoImpl(JNIEnv* env, jobject hProg, jint patternIndex) {
   try {
     // convert all of the Java objects to C
