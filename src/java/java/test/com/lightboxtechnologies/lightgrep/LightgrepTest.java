@@ -162,17 +162,6 @@ public class LightgrepTest {
     }
   }
 
-  @Test(expected=IllegalStateException.class)
-  public void noCompileProgramAfterDestroyProgramTest() throws Exception {
-    try (final ProgramHandle hProg = new ProgramHandle(0)) {
-      try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
-        hProg.destroy();
-        final ProgramOptions popts = new ProgramOptions();
-        hProg.compile(hFsm, popts);
-      }
-    }
-  }
-
   @Test(expected=NullPointerException.class)
   public void addPatternNullPatternTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
