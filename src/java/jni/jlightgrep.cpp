@@ -418,6 +418,10 @@ jobject getPatternInfo(JNIEnv* env, jobject& h, jint patternIndex) {
   }
 }
 
+JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_getPatternInfoImpl(JNIEnv* env, jobject hFsm, jint patternIndex) {
+  return getPatternInfo<LG_HFSM>(env, hFsm, patternIndex);
+}
+
 JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_getPatternInfoImpl(JNIEnv* env, jobject hProg, jint patternIndex) {
   return getPatternInfo<LG_HPROGRAM>(env, hProg, patternIndex);
 }
