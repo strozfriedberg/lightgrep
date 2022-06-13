@@ -426,22 +426,27 @@ JNIEXPORT jobject JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_
   return getPatternInfo<LG_HPROGRAM>(env, hProg, patternIndex);
 }
 
-JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_getUserIndexImpl(JNIEnv* env, jobject hProg, jint patternIndex) {
+template <class LgHandle>
+jint getUserIndex(JNIEnv* env, jobject& h, jint patternIndex) {
   try {
     // convert all of the Java objects to C
-    LG_HPROGRAM ptr = reinterpret_cast<LG_HPROGRAM>(
-      env->GetLongField(hProg, handlePointerField)
+    LgHandle ptr = reinterpret_cast<LgHandle>(
+      env->GetLongField(h, handlePointerField)
     );
 
     throwIfPatternIndexOOB(env, ptr, patternIndex);
 
     // finally actually do something
-    LG_PatternInfo* pinfo = lg_prog_pattern_info(ptr, patternIndex);
+    LG_PatternInfo* pinfo = get_pattern_info(ptr, patternIndex);
     return pinfo->UserIndex;
   }
   catch (const PendingJavaException&) {
     return 0;
   }
+}
+
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_getUserIndexImpl(JNIEnv* env, jobject hProg, jint patternIndex) {
+  return getUserIndex<LG_HPROGRAM>(env, hProg, patternIndex);
 }
 
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_setUserIndexImpl(JNIEnv* env, jobject hProg, jint patternIndex, jint userIndex) {
