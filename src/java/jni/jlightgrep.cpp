@@ -466,6 +466,13 @@ JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_addPatt
   }
 }
 
+JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_countImpl(JNIEnv* env, jobject hFsm) {
+  LG_HFSM ptr = reinterpret_cast<LG_HFSM>(
+    env->GetLongField(hFsm, handlePointerField)
+  );
+  return lg_fsm_pattern_count(ptr);
+}
+
 JNIEXPORT jint JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_compileImpl(JNIEnv* env, jobject hProg, jobject hFsm, jobject options) {
   try {
     // convert all of the Java objects to C

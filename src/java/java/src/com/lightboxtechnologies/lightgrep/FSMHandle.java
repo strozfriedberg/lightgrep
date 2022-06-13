@@ -41,4 +41,14 @@ public class FSMHandle extends Handle {
   }
 
   private native int addPatternImpl(PatternHandle hPattern, String encoding, int userIndex);
+
+  /**
+   * @throws IllegalStateException
+   */
+  public int count() {
+    throwIfDestroyed(this);
+    return countImpl();
+  }
+
+  private native int countImpl();
 }

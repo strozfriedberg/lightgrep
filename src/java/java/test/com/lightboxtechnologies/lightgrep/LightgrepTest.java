@@ -178,6 +178,43 @@ public class LightgrepTest {
     }
   }
 
+  @Test
+  public void zeroPatternsFSMCountTest() throws Exception {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      assertEquals(0, hFsm.count());
+    }
+  }
+
+  @Test
+  public void onePatternFSMCountTest() throws Exception {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        hPattern.parsePattern("bob", new KeyOptions());
+        hFsm.addPattern(hPattern, "UTF-8", 0);
+      }
+      assertEquals(1, hFsm.count());
+    }
+  }
+
+  @Test
+  public void twoPatternFSMCountTest() throws Exception {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        hPattern.parsePattern("bob", new KeyOptions());
+        hFsm.addPattern(hPattern, "UTF-8", 0);
+        hFsm.addPattern(hPattern, "UTF-8", 1);
+      }
+      assertEquals(2, hFsm.count());
+    }
+  }
+
+  @Test(expected=IllegalStateException.class)
+  public void noCountAfterDestroyFSMTest() throws Exception {
+    final FSMHandle hFsm = new FSMHandle(0, 0);
+    hFsm.destroy();
+    hFsm.count();
+  }
+
 // FIMXE: Shouldn't this throw something?
 /*
   @Test
