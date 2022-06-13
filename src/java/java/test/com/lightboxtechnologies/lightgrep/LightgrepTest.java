@@ -298,18 +298,19 @@ public class LightgrepTest {
   @Test
   public void countNonEmptyProgramTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        final KeyOptions kopts = new KeyOptions();
+        kopts.FixedString = false;
+        kopts.CaseInsensitive = false;
+        kopts.UnicodeMode = false;
+
+        hPattern.parsePattern("(xyzzy)+", kopts);
+        hFsm.addPattern(hPattern, "UTF-8", 0);
+      }
+
       try (final ProgramHandle hProg = new ProgramHandle(0)) {
-        try (final PatternHandle hPattern = new PatternHandle()) {
-          final KeyOptions kopts = new KeyOptions();
-          kopts.FixedString = false;
-          kopts.CaseInsensitive = false;
-          kopts.UnicodeMode = false;
-
-          hPattern.parsePattern("(xyzzy)+", kopts);
-          hFsm.addPattern(hPattern, "UTF-8", 0);
-
-          assertEquals(1, hProg.count());
-        }
+        hProg.compile(hFsm, new ProgramOptions());
+        assertEquals(1, hProg.count());
       }
     }
   }
