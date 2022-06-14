@@ -385,8 +385,21 @@ public class LightgrepTest {
 
   @Test(expected=IndexOutOfBoundsException.class)
   public void getProgramPatternInfoNegativeIndexTest() throws Exception {
-    try (final ProgramHandle hProg = new ProgramHandle(0)) {
-      hProg.getPatternInfo(-1);
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        final KeyOptions kopts = new KeyOptions();
+        kopts.FixedString = false;
+        kopts.CaseInsensitive = false;
+        kopts.UnicodeMode = false;
+
+        hPattern.parsePattern("foo", kopts);
+        hFsm.addPattern(hPattern, "UTF-8", 0);
+
+        try (final ProgramHandle hProg = new ProgramHandle(0)) {
+          hProg.compile(hFsm, new ProgramOptions());
+          hProg.getPatternInfo(-1);
+        }
+      }
     }
   }
 
