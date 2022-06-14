@@ -352,6 +352,38 @@ public class LightgrepTest {
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
+  public void setFSMUserIndexNegativeIndexTest() throws Exception {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      hFsm.setUserIndex(-1, 1);
+    }
+  }
+
+  @Test(expected=IndexOutOfBoundsException.class)
+  public void setFSMUserIndexIndexTooLargeTest() throws Exception {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      hFsm.setUserIndex(42, 1);
+    }
+  }
+
+  @Test
+  public void setFSMUserIndexGetUserIndexProgramTest() throws Exception {
+    try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
+      try (final PatternHandle hPattern = new PatternHandle()) {
+        final KeyOptions kopts = new KeyOptions();
+        kopts.FixedString = false;
+        kopts.CaseInsensitive = false;
+        kopts.UnicodeMode = false;
+
+        hPattern.parsePattern("(xyzzy)+", kopts);
+        hFsm.addPattern(hPattern, "UTF-8", 0);
+
+        hFsm.setUserIndex(0, 42);
+        assertEquals(42, hFsm.getUserIndex(0));
+      }
+    }
+  }
+
+  @Test(expected=IndexOutOfBoundsException.class)
   public void getProgramPatternInfoNegativeIndexTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getPatternInfo(-1);
