@@ -469,6 +469,10 @@ void setUserIndex(JNIEnv* env, jobject& h, jint patternIndex, jint userIndex) { 
   }
 }
 
+JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_FSMHandle_setUserIndexImpl(JNIEnv* env, jobject hFsm, jint patternIndex, jint userIndex) {
+  setUserIndex<LG_HFSM>(env, hFsm, patternIndex, userIndex);
+}
+
 JNIEXPORT void JNICALL Java_com_lightboxtechnologies_lightgrep_ProgramHandle_setUserIndexImpl(JNIEnv* env, jobject hProg, jint patternIndex, jint userIndex) {
   setUserIndex<LG_HPROGRAM>(env, hProg, patternIndex, userIndex);
 }
