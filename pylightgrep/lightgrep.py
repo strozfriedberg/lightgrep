@@ -329,9 +329,7 @@ class Fsm(Handle):
 class Program(Handle):
     def __init__(self, *args, shared: bool = False):
         if len(args) == 1:
-            # unserialize program from a buffer
-            c_buf = buf_beg(args[0], c_char)
-            handle = _LG.lg_read_program(c_buf, len(args[0])) if shared else _LG.lg_read_program(c_buf, len(args[0]))
+            handle = self.from_buffer(args[0], shared=shared)
 
         elif len(args) == 2:
             handle = self.from_fsm(args[0], args[1])
@@ -343,6 +341,12 @@ class Program(Handle):
             raise RuntimeError('Failed to create program')
 
         super().__init__(handle)
+
+    @classmethod
+    def from_buffer(cls, buf, shared: bool = False):
+        # unserialize program from a buffer
+        c_buf = buf_beg(buf, c_char)
+        return _LG.lg_read_program(c_buf, len(buf)) if shared else _LG.lg_read_program(c_buf, len(buf))
 
     @classmethod
     def from_fsm(cls, fsm, progOpts):
