@@ -32,11 +32,10 @@ public class ProgramHandle extends Handle {
 
   /**
    * @throws IllegalStateException
-   * @throws KeywordException // FIXME: correct?
    * @throws NullPointerException
    * @throws ProgramException
    */
-  public int compile(FSMHandle hFsm, ProgramOptions options) throws KeywordException {
+  public int compile(FSMHandle hFsm, ProgramOptions options) {
     throwIfNull("hFsm", hFsm);
     throwIfNull("options", options);
     throwIfDestroyed(this);
@@ -44,7 +43,7 @@ public class ProgramHandle extends Handle {
     return compileImpl(hFsm, options);
   }
 
-  private native int compileImpl(FSMHandle hFsm, ProgramOptions options) throws KeywordException;
+  private native int compileImpl(FSMHandle hFsm, ProgramOptions options);
 
   /**
    * @throws IllegalStateException
