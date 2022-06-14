@@ -334,13 +334,7 @@ class Program(Handle):
             handle = _LG.lg_read_program(c_buf, len(args[0])) if shared else _LG.lg_read_program(c_buf, len(args[0]))
 
         elif len(args) == 2:
-            if not isinstance(args[0], Fsm):
-                raise TypeError(f"args[0] must be an Fsm, not {type(args[0])}")
-
-            if not isinstance(args[1], ProgOpts):
-                raise TypeError(f"args[1] must be a ProgOpts, not {type(args[1])}")
-            # create a program from an Fsm and opts
-            handle = _LG.lg_create_program(args[0].get(), args[1])
+            handle = self.from_fsm(args[0], args[1])
 
         else:
             raise TypeError(f"Program.__init__ expcted 1 or 2 arguments, got {len(args)}")
@@ -349,6 +343,16 @@ class Program(Handle):
             raise RuntimeError('Failed to create program')
 
         super().__init__(handle)
+
+    @classmethod
+    def from_fsm(cls, fsm, progOpts):
+        if not isinstance(fsm, Fsm):
+            raise TypeError(f"fsm must be an Fsm, not {type(fsm)}")
+
+        if not isinstance(progOpts, ProgOpts):
+            raise TypeError(f"progOpts must be a ProgOpts, not {type(progOpts)}")
+        # create a program from an fsm and opts
+        return _LG.lg_create_program(fsm.get(), progOpts)
 
     def close(self) -> None:
         _LG.lg_destroy_program(self.handle)
