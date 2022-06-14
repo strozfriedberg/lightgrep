@@ -35,11 +35,15 @@ public class ProgramHandle extends Handle {
    * @throws NullPointerException
    * @throws ProgramException
    */
-  public int compile(FSMHandle hFsm, ProgramOptions options) {
+  public int compile(FSMHandle hFsm, ProgramOptions options) throws ProgramException {
     throwIfNull("hFsm", hFsm);
     throwIfNull("options", options);
-    throwIfDestroyed(this);
     throwIfDestroyed(hFsm);
+
+    if (!isDestroyed()) {
+      throw new ProgramException("Tried calling compile() on an active handle");
+    }
+
     return compileImpl(hFsm, options);
   }
 
