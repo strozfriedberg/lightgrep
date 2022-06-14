@@ -359,7 +359,7 @@ public class LightgrepTest {
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
-  public void getPatternInfoIndexTooLargeTest() throws Exception {
+  public void getProgramPatternInfoIndexTooLargeTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getPatternInfo(42);
     }
