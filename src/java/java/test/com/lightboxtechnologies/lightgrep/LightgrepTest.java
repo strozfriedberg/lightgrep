@@ -391,35 +391,35 @@ public class LightgrepTest {
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
-  public void getUserIndexNegativeIndexTest() throws Exception {
+  public void getProgramUserIndexNegativeIndexTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getUserIndex(-1);
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
-  public void getUserIndexIndexTooLargeTest() throws Exception {
+  public void getProgramUserIndexIndexTooLargeTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.getUserIndex(42);
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
-  public void setUserIndexNegativeIndexTest() throws Exception {
+  public void setProgramUserIndexNegativeIndexTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.setUserIndex(-1, 1);
     }
   }
 
   @Test(expected=IndexOutOfBoundsException.class)
-  public void setUserIndexIndexTooLargeTest() throws Exception {
+  public void setProgramUserIndexIndexTooLargeTest() throws Exception {
     try (final ProgramHandle hProg = new ProgramHandle(0)) {
       hProg.setUserIndex(42, 1);
     }
   }
 
   @Test
-  public void setUserIndexGetUserIndexProgramTest() throws Exception {
+  public void setProgramUserIndexGetUserIndexProgramTest() throws Exception {
     try (final FSMHandle hFsm = new FSMHandle(0, 0)) {
       try (final PatternHandle hPattern = new PatternHandle()) {
         final KeyOptions kopts = new KeyOptions();
