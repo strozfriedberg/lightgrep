@@ -139,6 +139,11 @@ endif
 
 @VALGRIND_CHECK_RULES@
 
+TEST_EXTENSIONS = .sh
+SH_LOG_COMPILER =
+
+AM_TESTS_ENVIRONMENT = builddir=`pwd`;
+
 check_PROGRAMS = test/test
 
 TESTS = $(check_PROGRAMS)
@@ -146,11 +151,6 @@ TESTS = $(check_PROGRAMS)
 if BUILD_PYTHON
 TESTS += pylightgrep/test.sh
 endif
-
-TEST_EXTENSIONS = .sh
-SH_LOG_COMPILER =
-
-AM_TESTS_ENVIRONMENT = builddir=`pwd`;
 
 test_test_SOURCES = \
 	src/cmd/hitwriter.cpp \
