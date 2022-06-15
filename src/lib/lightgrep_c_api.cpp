@@ -322,7 +322,7 @@ int lg_add_pattern_list(LG_HFSM hFsm,
 }
 
 unsigned int lg_fsm_pattern_count(const LG_HFSM hFsm) {
-  return hFsm->PMap->Patterns.size();
+  return hFsm->PMap->count();
 }
 
 LG_PatternInfo* lg_fsm_pattern_info(LG_HFSM hFsm,
@@ -332,7 +332,7 @@ LG_PatternInfo* lg_fsm_pattern_info(LG_HFSM hFsm,
 }
 
 unsigned int lg_prog_pattern_count(const LG_HPROGRAM hProg) {
-  return hProg->PMap->Patterns.size();
+  return hProg->PMap->count();
 }
 
 LG_PatternInfo* lg_prog_pattern_info(LG_HPROGRAM hProg,
