@@ -328,7 +328,7 @@ unsigned int lg_fsm_pattern_count(const LG_HFSM hFsm) {
 LG_PatternInfo* lg_fsm_pattern_info(LG_HFSM hFsm,
                                     unsigned int patternIndex)
 {
-  return &hFsm->PMap->Patterns[patternIndex];
+  return &(*hFsm->PMap)[patternIndex];
 }
 
 unsigned int lg_prog_pattern_count(const LG_HPROGRAM hProg) {
@@ -338,7 +338,7 @@ unsigned int lg_prog_pattern_count(const LG_HPROGRAM hProg) {
 LG_PatternInfo* lg_prog_pattern_info(LG_HPROGRAM hProg,
                                      unsigned int patternIndex)
 {
-  return &hProg->PMap->Patterns[patternIndex];
+  return &(*hProg->PMap)[patternIndex];
 }
 
 namespace {

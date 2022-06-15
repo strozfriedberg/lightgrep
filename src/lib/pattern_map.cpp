@@ -50,6 +50,14 @@ size_t PatternMap::count() const {
   return Patterns.size();
 }
 
+LG_PatternInfo& PatternMap::operator[](size_t index) {
+  return Patterns[index];
+}
+
+const LG_PatternInfo& PatternMap::operator[](size_t index) const {
+  return Patterns[index];
+}
+
 void PatternMap::usePattern(const char* pattern, const char* chain, uint64_t idx) {
   Patterns.push_back({pattern, chain, idx});
 }
