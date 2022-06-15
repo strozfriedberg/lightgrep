@@ -26,6 +26,7 @@
 /design/*.aux
 /design/*.log
 /include/lightgrep/encodings.h
+/java_example/*.class
 /liblightgrep.spec
 /libtool
 /m4/libtool.m4
@@ -44,6 +45,13 @@
 /src/cmd/version.lo
 /src/enc/enc
 /src/enc/enc.exe
+/src/java/java/**/*.class
+/src/java/java/src/jlightgrep.jar
+/src/java/java/test/run_test.sh
+/src/java/java/test/run_test.sh.log
+/src/java/java/test/run_test.sh.trs
+/src/java/jni/jlightgrep.h
+/src/java/jni/com_lightboxtechnologies_lightgrep_*.h
 /src/lib/lightgrep.pc
 /src/lib/re_grammar.cpp
 /src/lib/re_grammar.output
