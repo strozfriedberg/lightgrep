@@ -124,7 +124,11 @@ bool operator==(const LG_PatternInfo& lhs, const LG_PatternInfo& rhs) {
 
 std::ostream& operator<<(std::ostream& out, const PatternMap& p) {
   out << '[';
-  std::copy(p.Patterns.begin(), p.Patterns.end(), std::ostream_iterator<LG_PatternInfo>(out, ", "));
+  std::copy(
+    p.Patterns.begin(),
+    p.Patterns.end(),
+    std::ostream_iterator<LG_PatternInfo>(out, ", ")
+  );
   return out << ']';
 }
 
