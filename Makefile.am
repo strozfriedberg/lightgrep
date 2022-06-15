@@ -141,9 +141,11 @@ endif
 
 check_PROGRAMS = test/test
 
-TESTS = \
-	$(check_PROGRAMS) \
-	pylightgrep/test.sh
+TESTS = $(check_PROGRAMS)
+
+if BUILD_PYTHON
+TESTS += pylightgrep/test.sh
+endif
 
 TEST_EXTENSIONS = .sh
 SH_LOG_COMPILER =

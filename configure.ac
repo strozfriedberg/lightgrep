@@ -341,6 +341,14 @@ AX_VALGRIND_DFLT([memcheck], [on])
 AX_VALGRIND_CHECK
 
 #
+# Python bindings
+#
+AC_ARG_ENABLE([python],
+  [AS_HELP_STRING([--enable-python], [build Python bindings])])
+
+AM_CONDITIONAL([BUILD_PYTHON], [test "x$enable_python" = "xyes"])
+
+#
 # Cleanup flags
 #
 
