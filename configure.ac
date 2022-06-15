@@ -354,6 +354,27 @@ AM_CONDITIONAL([BUILD_PYTHON], [test "x$enable_python" = "xyes"])
 AC_ARG_ENABLE([java],
   [AS_HELP_STRING([--enable-java], [build Java bindings])])
 
+AS_IF(
+  [test "x$enable_java" = "xyes"],
+  [
+    AC_PATH_PROG([JAVA], [java])
+    AC_PATH_PROG([JAVAC], [javac])
+    AC_PATH_PROG([JAR], [jar])
+
+    AX_JNI_INCLUDE_DIR
+    for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS; do
+      JNI_CPPFLAGS="$JNI_CPPFLAGS -I$JNI_INCLUDE_DIR"
+    done
+
+    AC_SUBST([JNI_CPPFLAGS])
+    AC_SUBST([JNI_CXXFLAGS])
+    AC_SUBST([JNI_LDFLAGS])
+
+    JUNIT_JARS=/usr/share/java/junit.jar:/usr/share/java/hamcrest/hamcrest.jar
+    AC_SUBST([JUNIT_JARS])
+  ]
+)
+
 AM_CONDITIONAL([BUILD_JAVA], [test "x$enable_java" = "xyes"])
 
 #
