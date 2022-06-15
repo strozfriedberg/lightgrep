@@ -281,7 +281,7 @@ lib_LTLIBRARIES += src/java/jni/libjlightgrep.la
 
 src_java_jni_libjlightgrep_la_SOURCES = src/java/jni/jlightgrep.cpp
 
-src_java_jni_libjlightgrep_la_CPPFLAGS = -Iinclude $(JNI_CPPFLAGS) $(LG_CPPFLAGS)
+src_java_jni_libjlightgrep_la_CPPFLAGS = $(JNI_CPPFLAGS) $(LG_CPPFLAGS)
 src_java_jni_libjlightgrep_la_CXXFLAGS = $(STDCXX_CXXFLAGS) $(JNI_CXXFLAGS) $(LG_CXXFLAGS)
 src_java_jni_libjlightgrep_la_LDFLAGS = $(JNI_LDFLAGS) $(LG_LDFLAGS) -module -avoid-version
 src_java_jni_libjlightgrep_la_LIBADD = $(LG_LIB) $(STDCXX_LIB)
@@ -338,7 +338,7 @@ src/java/jni/jlightgrep.h: $(JNI_HEADER_FILES)
 		echo "#include \"$$i\"" ; \
 	done >$@
 
-src/java/jni/jlightgrep.lo: src/jni/jlightgrep.h
+BUILT_SOURCES += src/java/jni/jlightgrep.h
 
 noinst_jar_DATA = src/java/java/src/jlightgrep.jar
 noinst_jardir = $(libdir)
