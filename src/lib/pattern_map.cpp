@@ -46,6 +46,10 @@ void PatternMap::addPattern(const char* pattern, const char* chain, uint64_t idx
   chcopy.release();
 }
 
+size_t PatternMap::count() const {
+  return Patterns.size();
+}
+
 void PatternMap::usePattern(const char* pattern, const char* chain, uint64_t idx) {
   Patterns.push_back({pattern, chain, idx});
 }

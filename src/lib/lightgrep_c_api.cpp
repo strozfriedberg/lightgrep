@@ -137,7 +137,7 @@ void lg_destroy_fsm(LG_HFSM hFsm) {
 
 namespace {
   int addPattern(LG_HFSM hFsm, LG_HPATTERN hPattern, const char* encoding, uint64_t userIndex) {
-    const uint32_t label = hFsm->PMap->Patterns.size();
+    const uint32_t label = hFsm->PMap->count();
     hFsm->Impl->addPattern(hPattern->Tree, encoding, label);
 
     // modify a copy if anything else depends on this pattern map

@@ -25,6 +25,8 @@ public:
 
   void addPattern(const char* pattern, const char* chain, uint64_t index);
 
+  size_t count() const;
+
   size_t bufSize() const;
   std::vector<char> marshall() const;
 
