@@ -349,6 +349,14 @@ AC_ARG_ENABLE([python],
 AM_CONDITIONAL([BUILD_PYTHON], [test "x$enable_python" = "xyes"])
 
 #
+# Java bindings
+#
+AC_ARG_ENABLE([java],
+  [AS_HELP_STRING([--enable-java], [build Java bindings])])
+
+AM_CONDITIONAL([BUILD_JAVA], [test "x$enable_java" = "xyes"])
+
+#
 # Cleanup flags
 #
 

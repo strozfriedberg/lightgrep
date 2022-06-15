@@ -10,6 +10,6 @@ if [ $Target = 'windows' ]; then
   LDFLAGS+=' -fstack-protector'
 fi
 
-CONF_FLAGS+=' --enable-python'
+CONF_FLAGS+=' --enable-python --enable-java'
 
 configure_it
