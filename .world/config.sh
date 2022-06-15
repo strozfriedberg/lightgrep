@@ -10,6 +10,10 @@ if [ $Target = 'windows' ]; then
   LDFLAGS+=' -fstack-protector'
 fi
 
-CONF_FLAGS+=' --enable-python --enable-java'
+if [ "$Target" = 'linux' -a "$Linkage" = 'shared' ]; then
+  CONF_FLAGS+=' --enable-java'
+fi
+
+CONF_FLAGS+=' --enable-python'
 
 configure_it
