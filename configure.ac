@@ -346,6 +346,11 @@ AX_VALGRIND_CHECK
 AC_ARG_ENABLE([python],
   [AS_HELP_STRING([--enable-python], [build Python bindings])])
 
+AS_IF(
+  [test "x$enable_python" = "xyes"],
+  [AC_PATH_PROG([PYTHON], [python])]
+)
+
 AM_CONDITIONAL([BUILD_PYTHON], [test "x$enable_python" = "xyes"])
 
 #
