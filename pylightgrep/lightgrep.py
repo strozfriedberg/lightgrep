@@ -16,7 +16,7 @@ import sys
 # Library initialization
 #
 
-def load_library(base):
+def load_library(base: str) -> None:
     if sys.platform == 'win32':
         ext = '.dll'
         os.add_dll_directory(f"{os.getcwd()}\\asdf\\libs\\win64")
@@ -106,7 +106,7 @@ def char_cast_bool(boolValue):
     return b'\x01' if boolValue else b'\x00'
 
 
-def bool_cast_char(charValue):
+def bool_cast_char(charValue) -> bool:
     return charValue != b'\x00'
 
 
@@ -154,13 +154,13 @@ class PatternInfo(Structure):
 
     # lg strings are always utf-8 to avoid cross-platform confusion
 
-    def pat(self):
+    def pat(self) -> str:
         return self.Pattern.decode("utf-8")
 
-    def encChain(self):
+    def encChain(self) -> str:
         return self.EncodingChain.decode("utf-8")
 
-    def userIdx(self):
+    def userIdx(self) -> int:
         return self.UserIndex
 
 
@@ -171,27 +171,27 @@ class KeyOpts(Structure):
         ("UnicodeMode", c_char)
     ]
 
-    def __init__(self, fixedString = False, caseInsensitive = False, unicodeMode = False):
+    def __init__(self, fixedString: bool = False, caseInsensitive: bool = False, unicodeMode: bool = False):
         super().__init__()
         self.FixedString = char_cast_bool(fixedString)
         self.CaseInsensitive = char_cast_bool(caseInsensitive)
         self.UnicodeMode = char_cast_bool(unicodeMode)
 
-    def isFixed(self):
+    def isFixed(self) -> bool:
         return bool_cast_char(self.FixedString)
 
-    def isCaseSensitive(self):
+    def isCaseSensitive(self) -> bool:
         # note that this returns "Sensitive", not "Insensitive"
         return not bool_cast_char(self.CaseInsensitive)
 
-    def isUnicodeMode(self):
+    def isUnicodeMode(self) -> bool:
         return bool_cast_char(self.UnicodeMode)
 
 
 class ProgOpts(Structure):
     _fields_ = [("DeterminizeDepth", c_uint32)]
 
-    def __init__(self, determinizeDepth = 10):
+    def __init__(self, determinizeDepth: int = 10):
         super().__init__()
         self.DeterminizeDepth = determinizeDepth
 
@@ -235,24 +235,24 @@ class Handle(object):
     def __init__(self, handle):
         self.handle = handle
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.handle)
 
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         self.handle = None
 
-    def throwIfClosed(self):
+    def throw_if_closed(self) -> None:
         if not self.handle:
             raise RuntimeError(f"{self.__class__.__name__} handle is closed")
 
     def get(self):
-        self.throwIfClosed()
+        self.throw_if_closed()
         return self.handle
 
 
@@ -260,14 +260,14 @@ class Error(Handle):
     def __init__(self):
         super().__init__(POINTER(Err)())
 
-    def close(self):
+    def close(self) -> None:
         _LG.lg_free_error(self.handle)
         super().close()
 
-    def throwIfClosed(self):
-        pass
-
     def get(self):
+        # We do not check for closure (which on the C-side is "== NULL") here
+        # because a pointer to an LG_Error* which is NULL must be passed to
+        # the various functions in the C API which use it.
         return self.handle
 
     def __str__(self):
@@ -278,34 +278,37 @@ class Pattern(Handle):
     def __init__(self):
         super().__init__(_LG.lg_create_pattern())
 
-    def close(self):
+    def close(self) -> None:
         _LG.lg_destroy_pattern(self.handle)
         super().close()
 
-    def parse(self, pat, opts):
+    def parse(self, pat: str, opts: KeyOpts) -> None:
         with Error() as err:
             if _LG.lg_parse_pattern(self.get(), pat.encode("utf-8"), byref(opts), byref(err.get())) <= 0:
                 raise RuntimeError(f"Error parsing pattern: {err}")
 
 
 class Fsm(Handle):
-    def __init__(self, size):
-        if size < 0:
-            raise ValueError(f"Size hint must be >= 0, but was {size}")
-        super().__init__(_LG.lg_create_fsm(size))
+    def __init__(self, patcount_hint: int, size_hint: int):
+        if patcount_hint < 0:
+            raise ValueError(f"Pattern count hint must be >= 0, but was {patcount_hint}")
+        if size_hint < 0:
+            raise ValueError(f"Size hint must be >= 0, but was {size_hint}")
 
-    def close(self):
+        super().__init__(_LG.lg_create_fsm(patcount_hint, size_hint))
+
+    def close(self) -> None:
         _LG.lg_destroy_fsm(self.handle)
         super().close()
 
-    def add_pattern(self, prog, pat, enc, userIdx):
+    def add_pattern(self, pat: Pattern, enc: str, userIdx: int) -> int:
         with Error() as err:
-            idx = _LG.lg_add_pattern(self.get(), prog.get(), pat.get(), enc.encode("utf-8"), userIdx, byref(err.get()))
+            idx = _LG.lg_add_pattern(self.get(), pat.get(), enc.encode("utf-8"), userIdx, byref(err.get()))
             if idx < 0:
                 raise RuntimeError(f"Error adding pattern: {err}")
             return idx
 
-    def add_patterns(self, prog, pat, patlist):
+    def add_patterns(self, pat: Pattern, patlist) -> None:
         # patlist is a list of ("pattern", ["encoding"], keyOpts)
         for i, p in enumerate(patlist):
             if not p[0]:
@@ -317,35 +320,52 @@ class Fsm(Handle):
             pat.parse(p[0], p[2])
 
             for enc in p[1]:
-                self.add_pattern(prog, pat, enc, i)
+                self.add_pattern(pat, enc, i)
+
+    def count(self) -> int:
+        return _LG.lg_fsm_pattern_count(self.get())
 
 
 class Program(Handle):
-    def __init__(self, arg, shared=False):
-        if isinstance(arg, int):
-            # nonnegative ints create fresh programs
-            if arg < 0:
-                raise ValueError(f"Size hint must be >= 0, but was {arg}")
-            handle = _LG.lg_create_program(arg)
+    def __init__(self, *args, shared: bool = False):
+        if len(args) == 1:
+            handle = Program.from_buffer(args[0], shared=shared)
+
+        elif len(args) == 2:
+            handle = Program.from_fsm(args[0], args[1])
+
         else:
-            # buffers unserialize programs
-            c_buf = buf_beg(arg, c_char)
-            handle = _LG.lg_read_program(c_buf, len(arg)) if shared else _LG.lg_read_program(c_buf, len(arg))
+            raise TypeError(f"Program.__init__ expcted 1 or 2 arguments, got {len(args)}")
+
+        if not handle:
+            raise RuntimeError('Failed to create program')
 
         super().__init__(handle)
 
-    def close(self):
+    @staticmethod
+    def from_buffer(buf, shared: bool = False):
+        # unserialize program from a buffer
+        c_buf = buf_beg(buf, c_char)
+        return _LG.lg_read_program(c_buf, len(buf)) if shared else _LG.lg_read_program(c_buf, len(buf))
+
+    @staticmethod
+    def from_fsm(fsm, progOpts):
+        if not isinstance(fsm, Fsm):
+            raise TypeError(f"fsm must be an Fsm, not {type(fsm)}")
+
+        if not isinstance(progOpts, ProgOpts):
+            raise TypeError(f"progOpts must be a ProgOpts, not {type(progOpts)}")
+        # create a program from an fsm and opts
+        return _LG.lg_create_program(fsm.get(), progOpts)
+
+    def close(self) -> None:
         _LG.lg_destroy_program(self.handle)
         super().close()
 
-    def compile(self, fsm, opts):
-        if _LG.lg_compile_program(fsm.get(), self.get(), byref(opts)) == 0:
-            raise RuntimeError(f"Failed to compile program")
+    def count(self) -> int:
+        return _LG.lg_prog_pattern_count(self.get())
 
-    def count(self):
-        return _LG.lg_pattern_count(self.get())
-
-    def size(self):
+    def size(self) -> int:
         return _LG.lg_program_size(self.get())
 
     def write(self):
@@ -361,25 +381,25 @@ class Context(Handle):
         super().__init__(_LG.lg_create_context(prog.get(), byref(opts)))
         self.prog = prog
 
-    def close(self):
+    def close(self) -> None:
         _LG.lg_destroy_context(self.handle)
         super().close()
 
-    def reset(self):
+    def reset(self) -> None:
         _LG.lg_reset_context(self.get())
 
     def search(self, data, startOffset, accumulator):
-        self.prog.throwIfClosed()
+        self.prog.throw_if_closed()
         beg, end = buf_range(data, c_char)
         return _LG.lg_search(self.get(), beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim)
 
     def startswith(self, data, startOffset, accumulator):
-        self.prog.throwIfClosed()
+        self.prog.throw_if_closed()
         beg, end = buf_range(data, c_char)
         _LG.lg_starts_with(self.get(), beg, end, startOffset, (self.prog, accumulator.lgCallback), _the_callback_shim);
 
-    def closeout(self, accumulator):
-        self.prog.throwIfClosed()
+    def closeout(self, accumulator) -> None:
+        self.prog.throw_if_closed()
         _LG.lg_closeout_search(self.get(), (self.prog, accumulator.lgCallback), _the_callback_shim)
 
     def searchBuffer(self, data, accumulator):
@@ -397,7 +417,7 @@ class Context(Handle):
 
 def _the_callback_impl(holder, hitPtr):
     idx = hitPtr.contents.KeywordIndex
-    hitinfo = _LG.lg_pattern_info(holder[0].get(), idx).contents
+    hitinfo = _LG.lg_prog_pattern_info(holder[0].get(), idx).contents
     holder[1](hitPtr.contents, hitinfo)
 
 
@@ -408,7 +428,7 @@ class HitDecoder(Handle):
     def __init__(self):
         super().__init__(_LG.lg_create_decoder())
 
-    def close(self):
+    def close(self) -> None:
         _LG.lg_destroy_decoder(self.handle)
         super().close()
 
@@ -458,11 +478,11 @@ class HitAccumulator(object):
     def __init__(self):
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         self.KeyCounts = collections.Counter()
         self.Hits = []
 
-    def lgCallback(self, hitInfo, patInfo):
+    def lgCallback(self, hitInfo, patInfo) -> None:
         d = {
             "start": hitInfo.Start,
             "end": hitInfo.End,
@@ -493,29 +513,32 @@ _LG.lg_destroy_pattern.restype = None
 _LG.lg_parse_pattern.argtypes = [c_void_p, c_char_p, POINTER(KeyOpts), POINTER(POINTER(Err))]
 _LG.lg_parse_pattern.restype = c_int
 
-_LG.lg_create_fsm.argtypes = [c_uint]
+_LG.lg_create_fsm.argtypes = [c_uint, c_uint]
 _LG.lg_create_fsm.restype = c_void_p
 
 _LG.lg_destroy_fsm.argtypes = [c_void_p]
 _LG.lg_destroy_fsm.restype = None
 
-_LG.lg_add_pattern.argtypes = [c_void_p, c_void_p, c_void_p, c_char_p, c_int, POINTER(POINTER(Err))]
+_LG.lg_add_pattern.argtypes = [c_void_p, c_void_p, c_char_p, c_int, POINTER(POINTER(Err))]
 _LG.lg_add_pattern.restype = c_int
 
-_LG.lg_add_pattern_list.argtypes = [c_void_p, c_void_p, c_char_p, c_char_p, POINTER(c_char_p), c_uint, POINTER(KeyOpts), POINTER(POINTER(Err))]
+_LG.lg_add_pattern_list.argtypes = [c_void_p, c_char_p, c_char_p, POINTER(c_char_p), c_uint, POINTER(KeyOpts), POINTER(POINTER(Err))]
 _LG.lg_add_pattern_list.restype = c_int
 
-_LG.lg_pattern_count.argtypes = [c_void_p]
-_LG.lg_pattern_count.restype = c_uint
+_LG.lg_fsm_pattern_count.argtypes = [c_void_p]
+_LG.lg_fsm_pattern_count.restype = c_uint
 
-_LG.lg_pattern_info.argtypes = [c_void_p, c_uint]
-_LG.lg_pattern_info.restype = POINTER(PatternInfo)
+_LG.lg_fsm_pattern_info.argtypes = [c_void_p, c_uint]
+_LG.lg_fsm_pattern_info.restype = POINTER(PatternInfo)
 
-_LG.lg_create_program.argtypes = [c_uint]
+_LG.lg_prog_pattern_count.argtypes = [c_void_p]
+_LG.lg_prog_pattern_count.restype = c_uint
+
+_LG.lg_prog_pattern_info.argtypes = [c_void_p, c_uint]
+_LG.lg_prog_pattern_info.restype = POINTER(PatternInfo)
+
+_LG.lg_create_program.argtypes = [c_void_p, POINTER(ProgOpts)]
 _LG.lg_create_program.restype = c_void_p
-
-_LG.lg_compile_program.argtypes = [c_void_p, c_void_p, POINTER(ProgOpts)]
-_LG.lg_compile_program.restype = c_int
 
 _LG.lg_program_size.argtypes = [c_void_p]
 _LG.lg_program_size.restype = c_uint
@@ -588,24 +611,14 @@ _LG.lg_free_hit_context_string.restype = None
 #
 
 def make_program_from_patterns(patlist, progOpts):
-    # pattern list + opts parses and compiles them
-
-    prog = Program(len(patlist) * 10)
-    try:
-        with Fsm(len(patlist) * 10) as fsm:
-            with Pattern() as pat:
-                fsm.add_patterns(prog, pat, patlist)
-
-                prog.compile(fsm, progOpts)
-    except Exception as e:
-        prog.close()
-        raise e
-
-    return prog
+    with Fsm(len(patlist), len(patlist) * 10) as fsm:
+        with Pattern() as pat:
+            fsm.add_patterns(pat, patlist)
+        return Program(fsm, progOpts)
 
 
 # check for errors on handles
-def _checkHandleForErrors(ret, func, args):
+def _checkHandleForErrors(ret, func, args) -> int:
     if ret == 0:
         raise RuntimeError(f"Lightgrep could not create return object in call to {func.__name__}")
     return ret

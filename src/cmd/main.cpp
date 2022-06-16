@@ -11,10 +11,10 @@
 #include <iostream>
 #include <iterator>
 #include <set>
+#include <stdexcept>
 #include <tuple>
 
 #include <boost/program_options.hpp>
-#include <boost/graph/graphviz.hpp>
 
 #include <unicode/ucnv.h>
 
@@ -34,52 +34,28 @@
 #include <lightgrep/api.h>
 #include <lightgrep/encodings.h>
 
-#ifdef LIGHTGREP_CUSTOMER
-// check this out: http://stackoverflow.com/questions/2751870/how-exactly-does-the-double-stringize-trick-work
-#define STRINGIZE(whatever) #whatever
-#define JUMP_THROUGH_A_HOOP(yo) STRINGIZE(yo)
-#define CUSTOMER_NAME JUMP_THROUGH_A_HOOP(LIGHTGREP_CUSTOMER)
-#endif
-
-// FIXME: should this be moved to searchcontroller.cpp?
-// FIXME: is this still necessary?
-//
-// <magic_incantation>
-// this ridiculous piece of crap you see here is necessary to get
-// boost_thread static libraries to link on Windows using MinGW
-// found it in the boost issue tracker
-namespace boost {
-  void tss_cleanup_implemented() { }
-}
-// </magic_incantation>
-
 namespace po = boost::program_options;
 namespace fs = std::filesystem;
 
-void startup(
-  std::shared_ptr<ProgramHandle> prog,
-  uint32_t numUserPatterns,
-  const Options& opts
-);
-
-void printVersion() {
-  std::cout << "lightgrep " << VERSION
-            << "\nCopyright (c) 2010-2017, Stroz Friedberg, LLC"
-               "\nBuilt " << __DATE__ << std::endl;
+void printVersion(std::ostream& out) {
+  out << "lightgrep " << VERSION << '\n'
+      << "Copyright (c) 2010-2017, Stroz Friedberg, LLC\n"
+         "Built " << __DATE__ << std::endl;
 }
 
-void printHelp(const po::options_description& desc) {
-  printVersion();
-  std::cout
-    << "\nUsage: lightgrep [OPTIONS] PATTERN_FILE [FILE...]\n"
-         "       lightgrep [OPTIONS] [-p PATTERN | -k FILE] [FILE...]\n\n"
-#ifdef LIGHTGREP_CUSTOMER
-    << "This copy provided EXCLUSIVELY to " << CUSTOMER_NAME << ".\n\n"
-#endif
-    << desc << std::endl;
+void printUsage(std::ostream& out) {
+  out << "Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]...\n"
+         "       lightgrep [OPTION]... [-p PATTERN | -k FILE]... [FILE]..."
+      << std::endl;
 }
 
-void printEncodings() {
+void printHelp(std::ostream& out, const po::options_description& desc) {
+  printVersion(out);
+  printUsage(out);
+  out << desc << std::endl;
+}
+
+void printEncodings(std::ostream& out) {
   const size_t slen = std::extent<decltype(LG_ENCODINGS)>::value;
   const uint32_t clen = std::extent<decltype(LG_CANONICAL_ENCODINGS)>::value;
 
@@ -97,30 +73,29 @@ void printEncodings() {
 
   for (size_t i = 0; i < clen; ++i) {
     // print the canonical name for the encoding
-    std::cout << LG_CANONICAL_ENCODINGS[i] << '\n';
+    out << LG_CANONICAL_ENCODINGS[i] << '\n';
 
     // print the aliases for the encoding
     for (const std::string& alias : aliases[i]) {
-      std::cout << '\t' << alias << '\n';
+      out << '\t' << alias << '\n';
     }
   }
 
-  std::cout << std::endl;
+  out << std::endl;
 }
 
-void handleParseErrors(LG_Error* err, bool printFilename) {
+void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename) {
   // walk the error chain
   for ( ; err; err = err->Next) {
     if (printFilename) {
-      std::cerr << err->Source << ", ";
+      out << err->Source << ", ";
     }
-    std::cerr << "pattern " << err->Index << ": " << err->Message << '\n';
+    out << "pattern " << err->Index << ": " << err->Message << '\n';
   }
-
-  std::cerr.flush();
+  out.flush();
 }
 
-size_t countErrors(LG_Error* err) {
+size_t countErrors(const LG_Error* err) {
   size_t numErrors = 0;
   for (const LG_Error* e = err; e; e = e->Next, ++numErrors);
   return numErrors;
@@ -179,42 +154,42 @@ std::unique_ptr<const char*[]> c_str_arr(const std::vector<std::string>& vec) {
   return arr;
 }
 
-template <class T>
+LG_KeyOptions patOpts(const Options& opts) {
+  return { opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode };
+}
+
+LG_ProgramOptions progOpts(const Options& opts) {
+  return { opts.DeterminizeDepth };
+}
+
 std::tuple<
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>,
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)>,
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)>
+  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)>,
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>,
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)>
 >
-parsePatterns(const T& keyFiles,
-              const std::vector<std::string>& defaultEncodings = { "ASCII" },
-              const LG_KeyOptions& defaultOpts = {0, 0, 1})
+parsePatterns(
+  const std::vector<std::pair<std::string, std::string>> & keyFiles,
+  const std::vector<std::string>& defaultEncodings,
+  const LG_KeyOptions& defaultKOpts,
+  const LG_ProgramOptions& progOpts)
 {
   // read the patterns and parse them
 
-  // FIXME: size the pattern map here?
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-    lg_create_program(0),
-    lg_destroy_program
-  );
-
-  if (!prog) {
-// FIXME: what do do here?
-  }
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   // FIXME: estimate NFA size here?
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
-    lg_create_fsm(0),
+  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(0, 0),
     lg_destroy_fsm
   );
 
   if (!fsm) {
-// FIXME: What to do here?
+    throw std::runtime_error("failed to create fsm");
   }
 
   // set default encoding(s) of patterns which have none specified
   const std::unique_ptr<const char*[]> defEncs(c_str_arr(defaultEncodings));
 
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
   LG_Error* tail_err = nullptr;
 
   for (const std::pair<std::string,std::string>& pf : keyFiles) {
@@ -222,9 +197,9 @@ parsePatterns(const T& keyFiles,
     LG_Error* local_err = nullptr;
 
     lg_add_pattern_list(
-      fsm.get(), prog.get(),
+      fsm.get(),
       pf.second.c_str(), pf.first.c_str(),
-      defEncs.get(), defaultEncodings.size(), &defaultOpts, &local_err
+      defEncs.get(), defaultEncodings.size(), &defaultKOpts, &local_err
     );
 
     if (local_err) {
@@ -234,7 +209,7 @@ parsePatterns(const T& keyFiles,
       }
       else {
         // first error, start a new error chain
-        err = std::unique_ptr<LG_Error,void(*)(LG_Error*)>(
+        err = std::unique_ptr<LG_Error, void(*)(LG_Error*)>(
           local_err, lg_free_error
         );
         tail_err = local_err;
@@ -245,21 +220,31 @@ parsePatterns(const T& keyFiles,
     }
   }
 
-  return std::make_tuple(std::move(prog), std::move(fsm), std::move(err));
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(
+    lg_create_program(fsm.get(), &progOpts),
+    lg_destroy_program
+  );
+
+  if (prog) {
+    std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
+              << prog->Prog->size() << " instructions"
+              << std::endl;
+  }
+
+  return std::make_tuple(std::move(fsm), std::move(prog), std::move(err));
 }
 
-std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>
+std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>
 loadProgram(const std::string& pfile) {
   std::ifstream pin(pfile, std::ios::in | std::ios::binary);
   if (!pin) {
     std::cerr << "Could not open program file " << pfile << std::endl;
-    return std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>(
+    return std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>(
       nullptr, nullptr
     );
   }
 
 // FIXME: we need to handle the case where the read fails
-// FIXME: what to do for the pattern map?
 
   const std::streampos end = stream_size(pin);
   std::cerr << "program file is " << end << " bytes long" << std::endl;
@@ -268,27 +253,11 @@ loadProgram(const std::string& pfile) {
   pin.read(&buf[0], end);
   pin.close();
 
-  return std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>(
+  return std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>(
     lg_read_program(&buf[0], end),
     lg_destroy_program
   );
 }
-
-bool buildProgram(FSMHandle* fsm, ProgramHandle* prog, const Options& opts) {
-  LG_ProgramOptions progOpts{opts.DeterminizeDepth};
-
-  if (lg_compile_program(fsm, prog, &progOpts)) {
-    std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
-              << prog->Prog->size() << " instructions"
-              << std::endl;
-    return true;
-  }
-  else {
-    std::cerr << "Failed to create program" << std::endl;
-    return false;
-  }
-}
-
 
 class Line {
 public:
@@ -301,7 +270,6 @@ public:
 private:
   std::string data;
 };
-
 
 class Lines {
 public:
@@ -382,9 +350,7 @@ void searchInputs(
 }
 
 void search(const Options& opts) {
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
-    nullptr, nullptr
-  );
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
 
   if (!opts.ProgramFile.empty()) {
     // read a program in from file
@@ -392,30 +358,20 @@ void search(const Options& opts) {
   }
   else {
     // read the patterns and parse them
-    std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-    std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+    std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    std::tie(prog, fsm, err) = parsePatterns(
-      opts.getPatternLines(), opts.Encodings,
-      {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
+    std::tie(std::ignore, prog, err) = parsePatterns(
+      opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
     );
 
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-    handleParseErrors(err.get(), printFilename);
-
-    // build a program from parsed patterns
-    if (fsm) {
-      if (!buildProgram(fsm.get(), prog.get(), opts)) {
-        prog.reset();
-      }
-    }
+    handleParseErrors(std::cerr, err.get(), printFilename);
   }
 
   if (!prog) {
-    std::cerr << "Did not get a proper program" << std::endl;
-    return;
+    throw std::runtime_error("failed to create a program");
   }
 
   // setup hit callback
@@ -485,10 +441,8 @@ void search(const Options& opts) {
     }
     else {
       ilf.open(i, std::ios::in | std::ios::binary);
-
       if (!ilf) {
-        std::cerr << "Could not open input file list " << i << std::endl;
-        return;
+        throw std::runtime_error("could not open input file list " + i);
       }
 
       is = &ilf;
@@ -502,7 +456,7 @@ void search(const Options& opts) {
     }
   }
 
-  // serach each input file (positional args or stdin)
+  // search each input file (positional args or stdin)
   if (!opts.Inputs.empty()) {
     searchInputs(opts.Inputs, opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
   }
@@ -520,62 +474,48 @@ void search(const Options& opts) {
             << " hit" << (hinfo->NumHits != 1 ? "s" : "") << std::endl;
 }
 
-bool writeGraphviz(const Options& opts) {
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(nullptr, nullptr);
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+void writeGraphviz(const Options& opts) {
+  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(prog, fsm, err) = parsePatterns(
-    opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
+  std::tie(fsm, prog, err) = parsePatterns(
+    opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
   );
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-  handleParseErrors(err.get(), printFilename);
-
+  handleParseErrors(std::cerr, err.get(), printFilename);
   std::cerr << "numErrors = " << countErrors(err.get()) << std::endl;
 
-  if (!fsm) {
-    return false;
+  if (!prog) {
+    throw std::runtime_error("failed to create program");
   }
-
-  // build the program to force determinization
-  if (!buildProgram(fsm.get(), prog.get(), opts)) {
-    return false;
-  }
+  // we don't need the prog; we just need the compilation to succeed
+  prog.reset();
 
   // break on through the C API to print the graph
   writeGraphviz(opts.openOutput(), *fsm->Impl->Fsm);
-  return true;
 }
 
 void writeProgram(const Options& opts) {
   // get the patterns and parse them
-  std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(nullptr, nullptr);
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(prog, fsm, err) = parsePatterns(
-    opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
+  std::tie(std::ignore, prog, err) = parsePatterns(
+    opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
   );
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-  handleParseErrors(err.get(), printFilename);
+  handleParseErrors(std::cerr, err.get(), printFilename);
 
-  if (!fsm) {
-    return;
+  if (!prog) {
+    throw std::runtime_error("failed to create program");
   }
-
-  if (!buildProgram(fsm.get(), prog.get(), opts)) {
-    return;
-  }
-
-  fsm.reset();
 
   // break on through the C API to print the program
   ProgramPtr p(prog->Prog);
@@ -593,11 +533,10 @@ void writeProgram(const Options& opts) {
 }
 
 void validate(const Options& opts) {
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   std::tie(std::ignore, std::ignore, err) = parsePatterns(
-    opts.getPatternLines(), opts.Encodings,
-    {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
+    opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
   );
 
   for (const LG_Error* e = err.get(); e ; e = e->Next) {
@@ -608,6 +547,11 @@ void validate(const Options& opts) {
 }
 
 void writeSampleMatches(const Options& opts) {
+// TODO:
+// - This behavior should be turned into a C API, to avoid the cast of the FSM.
+// - It should be unit tested.
+// - Output should be UTF-8. There's no longer any reason to support EnCase's UTF-16LE.
+
 // TODO: Writing sample matches should not be unconditionally EnCase-specific.
 // There should be a switch to turn on the behavior EnCase needs.
 
@@ -617,15 +561,16 @@ void writeSampleMatches(const Options& opts) {
   out << (char) 0xFF << (char) 0xFE;
 
   // parse the patterns one at a time
-  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error,void(*)(LG_Error*)> err(nullptr, nullptr);
+  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   size_t pnum = 0;
   for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
-    const std::pair<std::string,std::string> a[] = { pf };
-    std::tie(std::ignore, fsm, err) = parsePatterns(
-      a, opts.Encodings,
-      {opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode}
+    // FIXME: opts.getPatternLines() returns a vector of the pairs, it's not clear
+    // why when looping over the pairs we then turn around and put each into a vector/array.
+    const std::vector<std::pair<std::string, std::string>> a = { pf };
+    std::tie(fsm, std::ignore, err) = parsePatterns(
+      a, opts.Encodings, patOpts(opts), progOpts(opts)
     );
 
     if (err) {
@@ -650,7 +595,7 @@ void writeSampleMatches(const Options& opts) {
       out << std::string(buf.get(), len)
           << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
     }
-    else if (fsm) {
+    else {
       // break on through the C API to get the graph
       NFAPtr g(fsm->Impl->Fsm);
 
@@ -668,9 +613,9 @@ void writeSampleMatches(const Options& opts) {
 }
 
 int main(int argc, char** argv) {
-  Options opts;
-  po::options_description desc;
   try {
+    Options opts;
+    po::options_description desc;
     parse_opts(argc, argv, desc, opts);
 
     switch (opts.Command) {
@@ -678,7 +623,8 @@ int main(int argc, char** argv) {
       search(opts);
       break;
     case Options::GRAPH:
-      return writeGraphviz(opts) ? 0: 1;
+      writeGraphviz(opts);
+      break;
     case Options::PROGRAM:
       writeProgram(opts);
       break;
@@ -689,25 +635,24 @@ int main(int argc, char** argv) {
       validate(opts);
       break;
     case Options::SHOW_VERSION:
-      printVersion();
+      printVersion(std::cout);
       break;
     case Options::SHOW_HELP:
-      printHelp(desc);
+      printHelp(std::cout, desc);
       break;
     case Options::LIST_ENCODINGS:
-      printEncodings();
+      printEncodings(std::cout);
       break;
     default:
       // this should be impossible
-      std::cerr << "Unrecognized command. Use --help for list of options."
-                << std::endl;
-      return 1;
+      throw std::runtime_error("unrecognized command");
     }
+    return 0;
   }
   catch (const std::exception& err) {
-    std::cerr << "Error: " << err.what() << "\n\n";
-    printHelp(desc);
+    std::cerr << "Error: " << err.what() << "\n";
+    printUsage(std::cerr);
+    std::cerr << "Try 'lightgrep --help' for more information." << std::endl;
     return 1;
   }
-  return 0;
 }

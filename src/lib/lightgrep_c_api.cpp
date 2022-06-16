@@ -51,6 +51,12 @@ namespace {
       return false;
     }
   }
+
+  void setError(LG_Error** err, const std::string msg) {
+    if (err) {
+      *err = makeError(msg.c_str());
+    }
+  }
 }
 
 void lg_free_error(LG_Error* err) {
@@ -82,6 +88,14 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
                      const LG_KeyOptions* options,
                      LG_Error** err)
 {
+  if (!hPattern) {
+    setError(err, "hPattern parameter was null. Use lg_create_pattern() to allocate.");
+    return 0;
+  }
+  if (!options) {
+    setError(err, "LG_KeyOptions parameter was null. Please pass a valid struct.");
+    return 0;
+  }
   // set up the pattern handle
   hPattern->Pat = {
     pattern,
@@ -96,19 +110,23 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
   );
 }
 
-LG_HFSM create_fsm(unsigned int numFsmStateSizeHint) {
+LG_HFSM create_fsm(unsigned int patternCountHint, int numFsmStateSizeHint) {
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> hFsm(
     new FSMHandle,
     lg_destroy_fsm
   );
 
   hFsm->Impl.reset(new FSMThingy(numFsmStateSizeHint));
+  hFsm->PMap.reset(new PatternMap(patternCountHint));
+
   return hFsm.release();
 }
 
-LG_HFSM lg_create_fsm(unsigned int numFsmStateSizeHint) {
+LG_HFSM lg_create_fsm(unsigned int patternCountHint, unsigned int numFsmStateSizeHint) {
   return trapWithRetval(
-    [numFsmStateSizeHint](){ return create_fsm(numFsmStateSizeHint); },
+    [patternCountHint, numFsmStateSizeHint](){
+      return create_fsm(patternCountHint, numFsmStateSizeHint);
+    },
     nullptr
   );
 }
@@ -118,24 +136,41 @@ void lg_destroy_fsm(LG_HFSM hFsm) {
 }
 
 namespace {
-  int addPattern(LG_HFSM hFsm, LG_HPROGRAM hProg, LG_HPATTERN hPattern, const char* encoding, uint64_t userIndex) {
-    const uint32_t label = hProg->PMap->Patterns.size();
+  int addPattern(LG_HFSM hFsm, LG_HPATTERN hPattern, const char* encoding, uint64_t userIndex) {
+    const uint32_t label = hFsm->PMap->count();
     hFsm->Impl->addPattern(hPattern->Tree, encoding, label);
-    hProg->PMap->addPattern(hPattern->Pat.Expression.c_str(), encoding, userIndex);
+
+    // modify a copy if anything else depends on this pattern map
+    if (hFsm->PMap.use_count() > 1) {
+      hFsm->PMap.reset(new PatternMap(*hFsm->PMap));
+    }
+
+    hFsm->PMap->addPattern(hPattern->Pat.Expression.c_str(), encoding, userIndex);
     return (int) label;
   }
 }
 
 int lg_add_pattern(LG_HFSM hFsm,
-                   LG_HPROGRAM hProg,
                    LG_HPATTERN hPattern,
                    const char* encoding,
                    uint64_t userIndex,
                    LG_Error** err)
 {
+  if (!hFsm) {
+    setError(err, "hFsm parameter was null. Use lg_create_fsm() to allocate.");
+    return -1;
+  }
+  if (!hPattern) {
+    setError(err, "hPattern parameter was null. Use lg_create_pattern() and lg_parse_pattern() first.");
+    return -2;
+  }
+  if (!encoding) {
+    setError(err, "encoding string pointer was null. Please specify a valid encoding.");
+    return -3;
+  }
   return trapWithRetval(
-    [hFsm, hProg, hPattern, encoding, userIndex]() {
-      return addPattern(hFsm, hProg, hPattern, encoding, userIndex);
+    [hFsm, hPattern, encoding, userIndex]() {
+      return addPattern(hFsm, hPattern, encoding, userIndex);
     },
     -1,
     err
@@ -145,7 +180,6 @@ int lg_add_pattern(LG_HFSM hFsm,
 namespace {
   template <class E>
   void addPattern(LG_HFSM hFsm,
-                  LG_HPROGRAM hProg,
                   LG_HPATTERN hPat,
                   const std::string& pat,
                   LG_KeyOptions* keyOpts,
@@ -161,7 +195,7 @@ namespace {
     }
 
     for (const std::string& enc : encodings) {
-      lg_add_pattern(hFsm, hProg, hPat, enc.c_str(), lnum, err);
+      lg_add_pattern(hFsm, hPat, enc.c_str(), lnum, err);
       if (*err) {
         (*err)->Index = lnum;
         err = &((*err)->Next);
@@ -171,7 +205,6 @@ namespace {
   }
 
   int addPatternList(LG_HFSM hFsm,
-                     LG_HPROGRAM hProg,
                      const char* patterns,
                      const char* source,
                      const char** defaultEncodings,
@@ -245,11 +278,11 @@ namespace {
           }
         }
 
-        addPattern(hFsm, hProg, ph.get(), pat, &opts, etok, lnum, err);
+        addPattern(hFsm, ph.get(), pat, &opts, etok, lnum, err);
       }
       else {
         // use default encodings and options
-        addPattern(hFsm, hProg, ph.get(), pat, &opts, defEncs, lnum, err);
+        addPattern(hFsm, ph.get(), pat, &opts, defEncs, lnum, err);
       }
     }
 
@@ -258,7 +291,6 @@ namespace {
 }
 
 int lg_add_pattern_list(LG_HFSM hFsm,
-                        LG_HPROGRAM hProg,
                         const char* patterns,
                         const char* source,
                         const char** defaultEncodings,
@@ -269,8 +301,8 @@ int lg_add_pattern_list(LG_HFSM hFsm,
   LG_Error* in_err = nullptr;
 
   int ret = trapWithRetval(
-    [hFsm, hProg, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err]() {
-      return addPatternList(hFsm, hProg, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err);
+    [hFsm, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err]() {
+      return addPatternList(hFsm, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err);
     },
     -1,
     err
@@ -289,51 +321,46 @@ int lg_add_pattern_list(LG_HFSM hFsm,
   return ret;
 }
 
-unsigned int lg_pattern_count(const LG_HPROGRAM hProg) {
-  return hProg->PMap->Patterns.size();
+unsigned int lg_fsm_pattern_count(const LG_HFSM hFsm) {
+  return hFsm->PMap->count();
 }
 
-LG_PatternInfo* lg_pattern_info(LG_HPROGRAM hProg,
-                                unsigned int patternIndex)
+LG_PatternInfo* lg_fsm_pattern_info(LG_HFSM hFsm,
+                                    unsigned int patternIndex)
 {
-  return &hProg->PMap->Patterns[patternIndex];
+  return &(*hFsm->PMap)[patternIndex];
+}
+
+unsigned int lg_prog_pattern_count(const LG_HPROGRAM hProg) {
+  return hProg->PMap->count();
+}
+
+LG_PatternInfo* lg_prog_pattern_info(LG_HPROGRAM hProg,
+                                     unsigned int patternIndex)
+{
+  return &(*hProg->PMap)[patternIndex];
 }
 
 namespace {
-  LG_HPROGRAM create_program(unsigned int numTotalPatternsSizeHint) {
+  LG_HPROGRAM create_program(LG_HFSM hFsm, const LG_ProgramOptions* opts) {
     std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> hProg(
       new ProgramHandle,
       lg_destroy_program
     );
 
-    hProg->PMap.reset(new PatternMap(numTotalPatternsSizeHint));
-    hProg->Prog = nullptr;
+    hFsm->Impl->finalizeGraph(opts->DeterminizeDepth);
+
+    hProg->PMap = hFsm->PMap;
+    hProg->Prog = Compiler::createProgram(*hFsm->Impl->Fsm);
 
     return hProg.release();
   }
 }
 
-LG_HPROGRAM lg_create_program(unsigned int numTotalPatternsSizeHint) {
+LG_HPROGRAM lg_create_program(LG_HFSM hFsm, const LG_ProgramOptions* options) {
   return trapWithRetval(
-    [numTotalPatternsSizeHint](){ return create_program(numTotalPatternsSizeHint); },
+    [hFsm, options](){ return create_program(hFsm, options); },
     nullptr
-  );
-}
-
-namespace {
-  int compile_program(LG_HFSM hFsm, LG_HPROGRAM hProg, const LG_ProgramOptions* opts) {
-    hFsm->Impl->finalizeGraph(opts->DeterminizeDepth);
-    hProg->Prog = Compiler::createProgram(*hFsm->Impl->Fsm);
-    return hProg->Prog != nullptr;
-  }
-}
-
-int lg_compile_program(LG_HFSM hFsm, LG_HPROGRAM hProg,
-                       const LG_ProgramOptions* options)
-{
-  return trapWithRetval(
-    [hFsm, hProg, options](){ return compile_program(hFsm, hProg, options); },
-    0
   );
 }
 

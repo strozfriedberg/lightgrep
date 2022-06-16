@@ -6,6 +6,34 @@
 #include <memory>
 #include <numeric>
 
+void PatternMap::clearPatterns() {
+  if (!Shared) {
+    for (LG_PatternInfo& pi: Patterns) {
+      delete[] pi.Pattern;
+      delete[] pi.EncodingChain;
+    }
+  }
+  Patterns.clear();
+  Shared = false;
+}
+
+void PatternMap::copyOther(const PatternMap& other) {
+  Patterns.reserve(other.Patterns.size());
+  for (const LG_PatternInfo& pi: other.Patterns) {
+    addPattern(pi.Pattern, pi.EncodingChain, pi.UserIndex);
+  }
+}
+
+PatternMap::PatternMap(const PatternMap& other): Patterns(), Shared(false) {
+  copyOther(other);
+}
+
+PatternMap& PatternMap::operator=(const PatternMap& other) {
+  clearPatterns();
+  copyOther(other);
+  return *this;
+}
+
 void PatternMap::addPattern(const char* pattern, const char* chain, uint64_t idx) {
   std::unique_ptr<char[]> patcopy(new char[std::strlen(pattern)+1]);
   std::strcpy(patcopy.get(), pattern);
@@ -16,6 +44,18 @@ void PatternMap::addPattern(const char* pattern, const char* chain, uint64_t idx
   usePattern(patcopy.get(), chcopy.get(), idx);
   patcopy.release();
   chcopy.release();
+}
+
+size_t PatternMap::count() const {
+  return Patterns.size();
+}
+
+LG_PatternInfo& PatternMap::operator[](size_t index) {
+  return Patterns[index];
+}
+
+const LG_PatternInfo& PatternMap::operator[](size_t index) const {
+  return Patterns[index];
 }
 
 void PatternMap::usePattern(const char* pattern, const char* chain, uint64_t idx) {
@@ -92,7 +132,11 @@ bool operator==(const LG_PatternInfo& lhs, const LG_PatternInfo& rhs) {
 
 std::ostream& operator<<(std::ostream& out, const PatternMap& p) {
   out << '[';
-  std::copy(p.Patterns.begin(), p.Patterns.end(), std::ostream_iterator<LG_PatternInfo>(out, ", "));
+  std::copy(
+    p.Patterns.begin(),
+    p.Patterns.end(),
+    std::ostream_iterator<LG_PatternInfo>(out, ", ")
+  );
   return out << ']';
 }
 

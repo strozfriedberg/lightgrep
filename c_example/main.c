@@ -53,15 +53,13 @@ int main() {
   const char* keys[] = {"mary", "lamb", "[a-z]+"};
   const unsigned int kcount = sizeof(keys)/sizeof(keys[0]);
 
-  LG_HPROGRAM prog = lg_create_program(kcount);
-
   // find the total length (in characters) of the patterns
   unsigned int klen = 0;
   for (unsigned int i = 0; i < kcount; ++i) {
     klen += strlen(keys[i]);
   }
 
-  LG_HFSM fsm = lg_create_fsm(klen);
+  LG_HFSM fsm = lg_create_fsm(kcount, klen);
 
   // create a pattern handle, which we'll reuse for each pattern
   LG_HPATTERN pattern = lg_create_pattern();
@@ -86,7 +84,7 @@ int main() {
       break;
     }
 
-    lg_add_pattern(fsm, prog, pattern, "ASCII", i, &err);
+    lg_add_pattern(fsm, pattern, "ASCII", i, &err);
 
     if (err) {
       fprintf(
@@ -108,7 +106,8 @@ int main() {
     LG_ProgramOptions opts;
     opts.DeterminizeDepth = UINT32_MAX;
 
-    if (!lg_compile_program(fsm, prog, &opts)) {
+    LG_HPROGRAM prog = lg_create_program(fsm, &opts);
+    if (!prog) {
       fprintf(stderr, "Failed to compile program");
     }
 

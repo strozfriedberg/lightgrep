@@ -24,7 +24,7 @@ namespace {
 
     stest->Hits.push_back(*static_cast<const SearchHit*>(hit));
 
-    const LG_PatternInfo* info = lg_pattern_info(
+    const LG_PatternInfo* info = lg_prog_pattern_info(
       stest->Prog.get(), hit->KeywordIndex
     );
 
@@ -39,13 +39,8 @@ void STest::init(const std::vector<Pattern>& pats) {
     lg_destroy_pattern
   );
 
-  Prog = std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>(
-    lg_create_program(pats.size()),
-    lg_destroy_program
-  );
-
   std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
-    lg_create_fsm(0),
+    lg_create_fsm(pats.size(), 0),
     lg_destroy_fsm
   );
 
@@ -59,9 +54,7 @@ void STest::init(const std::vector<Pattern>& pats) {
     lg_parse_pattern(pat.get(), p.Expression.c_str(), &keyOpts, &err);
 
     if (!err) {
-      lg_add_pattern(
-        fsm.get(), Prog.get(), pat.get(), p.Encoding.c_str(), i, &err
-      );
+      lg_add_pattern(fsm.get(), pat.get(), p.Encoding.c_str(), i, &err);
     }
 
     if (err) {
@@ -74,16 +67,18 @@ void STest::init(const std::vector<Pattern>& pats) {
 
   LG_ProgramOptions progOpts{0xFFFFFFFF};
 
-  if (lg_compile_program(fsm.get(), Prog.get(), &progOpts)) {
+  Prog = std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)>(
+    lg_create_program(fsm.get(), &progOpts),
+    lg_destroy_program
+  );
+
+  if (Prog) {
     LG_ContextOptions ctxOpts;
 
     Ctx = std::unique_ptr<ContextHandle,void(*)(ContextHandle*)>(
       lg_create_context(Prog.get(), &ctxOpts),
       lg_destroy_context
     );
-  }
-  else {
-    Prog.reset();
   }
 }
 

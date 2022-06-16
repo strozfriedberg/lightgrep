@@ -43,11 +43,12 @@ struct PatternMapHandle {
 
 struct FSMHandle {
   std::unique_ptr<FSMThingy> Impl;
+  std::shared_ptr<PatternMap> PMap;
 };
 
 struct ProgramHandle {
-  std::unique_ptr<PatternMap> PMap;
   ProgramPtr Prog;
+  std::shared_ptr<PatternMap> PMap;
 };
 
 struct ContextHandle {

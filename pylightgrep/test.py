@@ -82,15 +82,15 @@ class HandleTests(unittest.TestCase):
         self.assertFalse(h)
         self.assertEqual(h.handle, None)
 
-    def test_throwIfClosed_open(self):
+    def test_throw_if_closed_open(self):
         h = lightgrep.Handle(42)
-        h.throwIfClosed()
+        h.throw_if_closed()
 
-    def test_throwIfClosed_closed(self):
+    def test_throw_if_closed_closed(self):
         h = lightgrep.Handle(42)
         h.close()
         with self.assertRaises(RuntimeError):
-            h.throwIfClosed()
+            h.throw_if_closed()
 
     def test_get_closed(self):
         h = lightgrep.Handle(42)
@@ -160,51 +160,67 @@ class FsmSimpleTests(unittest.TestCase):
 
     def test_close_unused(self):
         # test that closing an unused Fsm doesn't throw
-        fsm = lightgrep.Fsm(0)
+        fsm = lightgrep.Fsm(0, 0)
         fsm.close()
 
 
 class FsmTests(unittest.TestCase):
     def setUp(self):
-        self.prog = lightgrep.Program(0)
-        self.addCleanup(self.prog.close)
-        self.fsm = lightgrep.Fsm(0)
+        self.fsm = lightgrep.Fsm(0, 0)
         self.addCleanup(self.fsm.close)
         self.pat = lightgrep.Pattern()
         self.addCleanup(self.pat.close)
-
-    def test_add_pattern_closed_prog(self):
-        self.pat.parse("a+b", lightgrep.KeyOpts())
-        self.prog.close()
-        with self.assertRaises(RuntimeError):
-            self.fsm.add_pattern(self.prog, self.pat, 'UTF-8', 42)
 
     def test_add_pattern_closed_pat(self):
         self.pat.parse("a+b", lightgrep.KeyOpts())
         self.pat.close()
         with self.assertRaises(RuntimeError):
-            self.fsm.add_pattern(self.prog, self.pat, 'UTF-8', 42)
+            self.fsm.add_pattern(self.pat, 'UTF-8', 42)
 
     def test_add_pattern_bad_args(self):
         # fuzz add_pattern()
         self.pat.parse("a+b", lightgrep.KeyOpts())
-        arglist = [self.prog, self.pat, 'UTF-8', 42]
+        arglist = [self.pat, 'UTF-8', 42]
         subs = (None, 'bogus')
         fuzz_it(self, self.fsm.add_pattern, arglist, subs)
 
     def test_add_pattern_good(self):
         self.pat.parse("a+b", lightgrep.KeyOpts())
-        idx = self.fsm.add_pattern(self.prog, self.pat, 'UTF-8', 42)
+        idx = self.fsm.add_pattern(self.pat, 'UTF-8', 42)
         self.assertEqual(idx, 0)
 
     def test_add_patterns_bad_args(self):
         # fuzz add_patterns()
-        arglist = [self.prog, self.pat, PATLIST]
+        arglist = [self.pat, PATLIST]
         subs = (None, 'bogus')
         fuzz_it(self, self.fsm.add_patterns, arglist, subs)
 
     def test_add_patterns(self):
-        self.fsm.add_patterns(self.prog, self.pat, PATLIST)
+        self.fsm.add_patterns(self.pat, PATLIST)
+
+    def test_fsm_count_empty(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            self.assertEqual(fsm.count(), 0)
+
+    def test_count_three(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            with lightgrep.Pattern() as pat:
+                pat.parse("a+b", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+                pat.parse("foo", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 1)
+                pat.parse(".+", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 75)
+            self.assertEqual(fsm.count(), 3)
+
+    def test_count_closed(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            with lightgrep.Pattern() as pat:
+                pat.parse("a+b", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+                fsm.close()
+                with self.assertRaises(RuntimeError):
+                    fsm.count()
 
 
 class ProgSimpleTests(unittest.TestCase):
@@ -213,123 +229,108 @@ class ProgSimpleTests(unittest.TestCase):
         subs = (None, '*', -1)
         fuzz_it(self, lightgrep.Program, arglist, subs)
 
-    def test_close_unused(self):
-        # test that closing an unused Program doesn't throw
-        prog = lightgrep.Program(0)
-        prog.close()
-
-    def test_count_unused(self):
-        with lightgrep.Program(0) as prog:
-            self.assertEqual(prog.count(), 0)
-
-    def test_count_closed(self):
-        with lightgrep.Program(0) as prog:
-            prog.close()
-            with self.assertRaises(RuntimeError):
-                prog.count()
-
-    def test_size_closed(self):
-        with lightgrep.Program(0) as prog:
-            prog.close()
-            with self.assertRaises(RuntimeError):
-                prog.size()
-
-    def test_write_closed(self):
-        with lightgrep.Program(0) as prog:
-            prog.close()
-            with self.assertRaises(RuntimeError):
-                prog.write()
-
 
 class ProgTests(unittest.TestCase):
-    def setUp(self):
-        self.prog = lightgrep.Program(0)
-        self.addCleanup(self.prog.close)
-        self.fsm = lightgrep.Fsm(0)
-        self.addCleanup(self.fsm.close)
-        self.pat = lightgrep.Pattern()
-        self.addCleanup(self.pat.close)
-
     def test_count_three(self):
-        self.pat.parse("a+b", lightgrep.KeyOpts())
-        self.fsm.add_pattern(self.prog, self.pat, 'UTF-8', 42)
-        self.pat.parse("foo", lightgrep.KeyOpts())
-        self.fsm.add_pattern(self.prog, self.pat, 'UTF-8', 1)
-        self.pat.parse(".+", lightgrep.KeyOpts())
-        self.fsm.add_pattern(self.prog, self.pat, 'UTF-8', 75)
-        self.assertEqual(self.prog.count(), 3)
+        with lightgrep.Fsm(0, 0) as fsm:
+            with lightgrep.Pattern() as pat:
+                pat.parse("a+b", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+                pat.parse("foo", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 1)
+                pat.parse(".+", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 75)
+            with lightgrep.Program(fsm, lightgrep.ProgOpts()) as prog:
+               self.assertEqual(prog.count(), 3)
 
-    def test_compile_nothing(self):
+    def test_create_fsm_empty(self):
         with self.assertRaises(RuntimeError):
-            self.prog.compile(self.fsm, lightgrep.ProgOpts())
+            lightgrep.Program(lightgrep.Fsm(0, 0), lightgrep.ProgOpts())
 
-    def test_compile_closed(self):
-        self.prog.close()
-        with self.assertRaises(RuntimeError):
-            self.prog.compile(self.fsm, lightgrep.ProgOpts())
+    def test_program_fsm_closed(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            fsm.close()
+            with self.assertRaises(RuntimeError):
+                lightgrep.Program(fsm, lightgrep.ProgOpts())
 
-    def test_compile_fsm_closed(self):
-        self.fsm.close()
-        with self.assertRaises(RuntimeError):
-            self.prog.compile(self.fsm, lightgrep.ProgOpts())
+    def test_program_bad_args_1(self):
+        arglist = [None]
+        subs = (None,)
+        fuzz_it(self, lightgrep.Program, arglist, subs)
 
-    def test_compile_bad_args(self):
-        arglist = [self.fsm, lightgrep.ProgOpts()]
-        subs = (None, 'bogus')
-        fuzz_it(self, self.prog.compile, arglist, subs)
+    def test_program_bad_args_2(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            arglist = [fsm, lightgrep.ProgOpts()]
+            subs = (None, 'bogus')
+            fuzz_it(self, lightgrep.Program, arglist, subs)
 
     def test_size(self):
-        with lightgrep.Program(0) as prog:
+        with lightgrep.Fsm(0, 0) as fsm:
             with lightgrep.Pattern() as pat:
-                with lightgrep.Fsm(0) as fsm:
-                    pat.parse("a+b", lightgrep.KeyOpts())
-                    fsm.add_pattern(prog, pat, 'UTF-8', 42)
-                    prog.compile(fsm, lightgrep.ProgOpts())
-
-            self.assertTrue(prog.size() > 0)
+                pat.parse("a+b", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+            with lightgrep.Program(fsm, lightgrep.ProgOpts()) as prog:
+                self.assertTrue(prog.size() > 0)
 
     def test_write_read(self):
-        with lightgrep.Program(0) as prog1:
+        with lightgrep.Fsm(0, 0) as fsm:
             with lightgrep.Pattern() as pat:
-                with lightgrep.Fsm(0) as fsm:
-                    pat.parse("a+b", lightgrep.KeyOpts())
-                    fsm.add_pattern(prog1, pat, 'UTF-8', 42)
-                    prog1.compile(fsm, lightgrep.ProgOpts())
+                pat.parse("a+b", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+            with lightgrep.Program(fsm, lightgrep.ProgOpts()) as prog1:
+                buf = prog1.write()
 
-            buf = prog1.write()
+                with lightgrep.Program(buf) as prog2:
+                    self.assertEqual(prog2.count(), prog1.count())
+                    self.assertEqual(prog2.size(), prog1.size())
 
-            with lightgrep.Program(buf) as prog2:
-                self.assertEqual(prog2.count(), prog1.count())
-                self.assertEqual(prog2.size(), prog1.size())
+    def test_count_closed(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            with lightgrep.Pattern() as pat:
+                pat.parse("a+b", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+            with lightgrep.Program(fsm, lightgrep.ProgOpts()) as prog:
+                prog.close()
+                with self.assertRaises(RuntimeError):
+                    prog.count()
 
+    def test_size_closed(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            with lightgrep.Pattern() as pat:
+                pat.parse("a+b", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+            with lightgrep.Program(fsm, lightgrep.ProgOpts()) as prog:
+                prog.close()
+                with self.assertRaises(RuntimeError):
+                    prog.count()
 
-class ContextSimpleTests(unittest.TestCase):
-    def test_ctor_prog_closed(self):
-        with lightgrep.Program(0) as prog:
-            prog.close()
-            with self.assertRaises(RuntimeError):
-                lightgrep.Context(prog, lightgrep.CtxOpts())
-
-    def test_ctor_bad_args(self):
-        with lightgrep.Program(0) as prog:
-            arglist = [prog, lightgrep.CtxOpts()]
-            subs = (None, 'bogus')
-            fuzz_it(self, lightgrep.Context, arglist, subs)
+    def test_write_closed(self):
+        with lightgrep.Fsm(0, 0) as fsm:
+            with lightgrep.Pattern() as pat:
+                pat.parse("a+b", lightgrep.KeyOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+            with lightgrep.Program(fsm, lightgrep.ProgOpts()) as prog:
+                prog.close()
+                with self.assertRaises(RuntimeError):
+                    prog.write()
 
 
 class ContextTests(unittest.TestCase):
     def setUp(self):
-        self.prog = lightgrep.Program(0)
-        self.addCleanup(self.prog.close)
-
-        with lightgrep.Pattern() as pat:
-            with lightgrep.Fsm(0) as fsm:
+        with lightgrep.Fsm(0, 0) as fsm:
+            with lightgrep.Pattern() as pat:
                 pat.parse("a+b", lightgrep.KeyOpts())
-                fsm.add_pattern(self.prog, pat, 'UTF-8', 42)
-                self.prog.compile(fsm, lightgrep.ProgOpts())
+                fsm.add_pattern(pat, 'UTF-8', 42)
+                self.prog = lightgrep.Program(fsm, lightgrep.ProgOpts())
+                self.addCleanup(self.prog.close)
 
         self.ctx = lightgrep.Context(self.prog, lightgrep.CtxOpts())
         self.addCleanup(self.ctx.close)
+
+    def test_ctor_bad_args(self):
+        arglist = [self.prog, lightgrep.CtxOpts()]
+        subs = (None, 'bogus')
+        fuzz_it(self, lightgrep.Context, arglist, subs)
 
     def test_search_ctx_closed(self):
         self.ctx.close()
