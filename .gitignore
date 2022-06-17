@@ -35,8 +35,8 @@
 /m4/ltversion.m4
 /m4/lt~obsolete.m4
 /mingw-liblightgrep.spec
-/pylightgrep/test.sh.log
-/pylightgrep/test.sh.trs
+/pylightgrep/test.log
+/pylightgrep/test.trs
 /re_gen/parsecheck
 /re_gen/randpat
 /re_gen/shitgrep
