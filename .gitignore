@@ -48,8 +48,8 @@
 /src/java/java/**/*.class
 /src/java/java/src/jlightgrep.jar
 /src/java/java/test/run_test.sh
-/src/java/java/test/run_test.sh.log
-/src/java/java/test/run_test.sh.trs
+/src/java/java/test/run_test.log
+/src/java/java/test/run_test.trs
 /src/java/jni/jlightgrep.h
 /src/java/jni/com_lightboxtechnologies_lightgrep_*.h
 /src/lib/lightgrep.pc
