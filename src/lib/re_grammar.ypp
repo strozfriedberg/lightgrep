@@ -100,7 +100,7 @@ extern int yydebug;
 
 //%debug
 
-%error-verbose
+%define parse.error verbose
 
 %token <c> BYTE
 %token <c> CHAR
