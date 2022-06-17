@@ -84,13 +84,13 @@ src_lib_liblightgrep_la_HEADERS = \
 	include/lightgrep/search_hit.h
 
 noinst_PROGRAMS = \
-	c_example/cex \
+	examples/c_example/cex \
 	src/enc/enc \
 	src/val/val \
 	src/what/what
 
-c_example_cex_SOURCES = c_example/main.c
-c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+examples_c_example_cex_SOURCES = examples/c_example/main.c
+examples_c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_enc_enc_SOURCES = src/enc/encodings.cpp
 src_enc_enc_LDADD = $(ICU_LIBS) $(STDCXX_LIB)
