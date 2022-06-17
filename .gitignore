@@ -12,8 +12,6 @@
 /aclocal.m4
 /autom4te.cache
 /autoscan.log
-/c_example/cex
-/c_example/cex.exe
 /config.cache
 /config.h
 /config.h.in
@@ -25,6 +23,8 @@
 /configure.scan
 /design/*.aux
 /design/*.log
+/examples/c_example/cex
+/examples/c_example/cex.exe
 /include/lightgrep/encodings.h
 /java_example/*.class
 /liblightgrep.spec
