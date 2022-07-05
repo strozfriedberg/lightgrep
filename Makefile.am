@@ -281,9 +281,9 @@ lib_LTLIBRARIES += src/java/jni/libjlightgrep.la
 
 src_java_jni_libjlightgrep_la_SOURCES = src/java/jni/jlightgrep.cpp
 
-src_java_jni_libjlightgrep_la_CPPFLAGS = $(JNI_CPPFLAGS) $(LG_CPPFLAGS)
-src_java_jni_libjlightgrep_la_CXXFLAGS = $(STDCXX_CXXFLAGS) $(JNI_CXXFLAGS) $(LG_CXXFLAGS)
-src_java_jni_libjlightgrep_la_LDFLAGS = $(JNI_LDFLAGS) $(LG_LDFLAGS) -module -avoid-version
+src_java_jni_libjlightgrep_la_CPPFLAGS = -I$(srcdir)/include $(JNI_CPPFLAGS) $(LG_CPPFLAGS)
+src_java_jni_libjlightgrep_la_CXXFLAGS = $(STDCXX_CXXFLAGS) $(LG_CXXFLAGS)
+src_java_jni_libjlightgrep_la_LDFLAGS = $(LG_LDFLAGS) -module -avoid-version
 src_java_jni_libjlightgrep_la_LIBADD = $(LG_LIB) $(STDCXX_LIB)
 
 JROOT:=src/java
@@ -332,6 +332,8 @@ JNI_HEADER_FILES:=\
 
 $(JNI_HEADER_FILES): $(SRC_SOURCE_FILES)
 	$(JAVAC) -h $(JNI_DIR) $^
+
+.PRECIOUS: $(JNI_HEADER_FILES)
 
 src/java/jni/jlightgrep.h: $(JNI_HEADER_FILES)
 	for i in $(notdir $(JNI_HEADER_FILES)) ; do \

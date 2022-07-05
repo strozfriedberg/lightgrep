@@ -362,22 +362,25 @@ AC_ARG_ENABLE([java],
 AS_IF(
   [test "x$enable_java" = "xyes"],
   [
-    # calls AC_PATH_PROG for javac
+    # calls AC_PATH_PROG using JAVAC; setting it here with AC_PATH_PROG messes
+    # up the check, so do this first
+    saved_JAVAC="$JAVAC"
+    JAVAC=
     AX_JNI_INCLUDE_DIR
-
-    AC_PATH_PROG([JAVA], [java])
-    AC_PATH_PROG([JAR], [jar])
+    JAVAC="$saved_JAVAC"
 
     for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS; do
       JNI_CPPFLAGS="$JNI_CPPFLAGS -I$JNI_INCLUDE_DIR"
     done
 
     AC_SUBST([JNI_CPPFLAGS])
-    AC_SUBST([JNI_CXXFLAGS])
-    AC_SUBST([JNI_LDFLAGS])
 
     JUNIT_JARS=/usr/share/java/junit.jar:/usr/share/java/hamcrest/hamcrest.jar
     AC_SUBST([JUNIT_JARS])
+
+    AC_PATH_PROG([JAVA], [java])
+    AC_PATH_PROG([JAR], [jar])
+    AC_PATH_PROG([JAVAC], [javac])
   ]
 )
 
