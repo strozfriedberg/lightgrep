@@ -362,11 +362,12 @@ AC_ARG_ENABLE([java],
 AS_IF(
   [test "x$enable_java" = "xyes"],
   [
+    # calls AC_PATH_PROG for javac
+    AX_JNI_INCLUDE_DIR
+
     AC_PATH_PROG([JAVA], [java])
-    AC_PATH_PROG([JAVAC], [javac])
     AC_PATH_PROG([JAR], [jar])
 
-    AX_JNI_INCLUDE_DIR
     for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS; do
       JNI_CPPFLAGS="$JNI_CPPFLAGS -I$JNI_INCLUDE_DIR"
     done
