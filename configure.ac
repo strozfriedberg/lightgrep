@@ -341,6 +341,52 @@ AX_VALGRIND_DFLT([memcheck], [on])
 AX_VALGRIND_CHECK
 
 #
+# Python bindings
+#
+AC_ARG_ENABLE([python],
+  [AS_HELP_STRING([--enable-python], [build Python bindings])])
+
+AS_IF(
+  [test "x$enable_python" = "xyes"],
+  [AC_PATH_PROG([PYTHON], [python])]
+)
+
+AM_CONDITIONAL([BUILD_PYTHON], [test "x$enable_python" = "xyes"])
+
+#
+# Java bindings
+#
+AC_ARG_ENABLE([java],
+  [AS_HELP_STRING([--enable-java], [build Java bindings])])
+
+AS_IF(
+  [test "x$enable_java" = "xyes"],
+  [
+    # calls AC_PATH_PROG using JAVAC; setting it here with AC_PATH_PROG messes
+    # up the check, so do this first
+    saved_JAVAC="$JAVAC"
+    JAVAC=
+    AX_JNI_INCLUDE_DIR
+    JAVAC="$saved_JAVAC"
+
+    for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS; do
+      JNI_CPPFLAGS="$JNI_CPPFLAGS -I$JNI_INCLUDE_DIR"
+    done
+
+    AC_SUBST([JNI_CPPFLAGS])
+
+    JUNIT_JARS=/usr/share/java/junit.jar:/usr/share/java/hamcrest/hamcrest.jar
+    AC_SUBST([JUNIT_JARS])
+
+    AC_PATH_PROG([JAVA], [java])
+    AC_PATH_PROG([JAR], [jar])
+    AC_PATH_PROG([JAVAC], [javac])
+  ]
+)
+
+AM_CONDITIONAL([BUILD_JAVA], [test "x$enable_java" = "xyes"])
+
+#
 # Cleanup flags
 #
 

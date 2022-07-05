@@ -84,13 +84,13 @@ src_lib_liblightgrep_la_HEADERS = \
 	include/lightgrep/search_hit.h
 
 noinst_PROGRAMS = \
-	c_example/cex \
+	examples/c_example/cex \
 	src/enc/enc \
 	src/val/val \
 	src/what/what
 
-c_example_cex_SOURCES = c_example/main.c
-c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
+examples_c_example_cex_SOURCES = examples/c_example/main.c
+examples_c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_enc_enc_SOURCES = src/enc/encodings.cpp
 src_enc_enc_LDADD = $(ICU_LIBS) $(STDCXX_LIB)
@@ -139,16 +139,18 @@ endif
 
 @VALGRIND_CHECK_RULES@
 
-check_PROGRAMS = test/test
-
-TESTS = \
-	$(check_PROGRAMS) \
-	pylightgrep/test.sh
-
 TEST_EXTENSIONS = .sh
 SH_LOG_COMPILER =
 
 AM_TESTS_ENVIRONMENT = builddir=`pwd`;
+
+check_PROGRAMS = test/test
+
+TESTS = $(check_PROGRAMS)
+
+if BUILD_PYTHON
+TESTS += pylightgrep/test.sh
+endif
 
 test_test_SOURCES = \
 	src/cmd/hitwriter.cpp \
@@ -266,3 +268,120 @@ endif
 
 install-exec-hook:
 	$(RM) $(DESTDIR)$(libdir)/liblightgrep.la
+
+# must be set before we can append to it
+MOSTLYCLEANFILES =
+
+#
+# Java bindings
+#
+if BUILD_JAVA
+
+lib_LTLIBRARIES += src/java/jni/libjlightgrep.la
+
+src_java_jni_libjlightgrep_la_SOURCES = src/java/jni/jlightgrep.cpp
+
+src_java_jni_libjlightgrep_la_CPPFLAGS = -I$(srcdir)/include $(JNI_CPPFLAGS) $(LG_CPPFLAGS)
+src_java_jni_libjlightgrep_la_CXXFLAGS = $(STDCXX_CXXFLAGS) $(LG_CXXFLAGS)
+src_java_jni_libjlightgrep_la_LDFLAGS = $(LG_LDFLAGS) -module -avoid-version
+src_java_jni_libjlightgrep_la_LIBADD = $(LG_LIB) $(STDCXX_LIB)
+
+JROOT:=src/java
+JSRC_DIR:=$(JROOT)/java/src
+JNI_DIR:=$(JROOT)/jni
+JTEST_DIR:=$(JROOT)/java/test
+JPKG_DIR:=com/lightboxtechnologies/lightgrep
+
+SRC_SOURCE_FILES:=\
+	$(JSRC_DIR)/$(JPKG_DIR)/ContextHandle.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/ContextOptions.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/DecoderHandle.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/FSMHandle.java \
+  $(JSRC_DIR)/$(JPKG_DIR)/Handle.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/HitCallback.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/HitContext.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/KeyOptions.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/KeywordException.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/LGUtil.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/LibraryLoader.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/PatternHandle.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/PatternInfo.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/ProgramException.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/ProgramHandle.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/ProgramOptions.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/SearchHit.java \
+	$(JSRC_DIR)/$(JPKG_DIR)/Throws.java
+
+path_to_class = $(subst /,.,$(subst $(1)/,,$(basename $(2))))
+
+SRC_CLASS_NAMES:=$(call path_to_class,$(JSRC_DIR),$(SRC_SOURCE_FILES))
+SRC_CLASS_FILES:=$(SRC_SOURCE_FILES:.java=.class)
+
+JNI_HEADER_FILES:=\
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_ContextHandle.h \
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_DecoderHandle.h \
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_FSMHandle.h \
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_Handle.h \
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_HitContext.h \
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_KeyOptions.h \
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_LGUtil.h \
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_PatternHandle.h \
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_PatternInfo.h \
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_ProgramHandle.h \
+	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_ProgramOptions.h
+
+$(JNI_HEADER_FILES): $(SRC_SOURCE_FILES)
+	$(JAVAC) -h $(JNI_DIR) $^
+
+.PRECIOUS: $(JNI_HEADER_FILES)
+
+src/java/jni/jlightgrep.h: $(JNI_HEADER_FILES)
+	for i in $(notdir $(JNI_HEADER_FILES)) ; do \
+		echo "#include \"$$i\"" ; \
+	done >$@
+
+BUILT_SOURCES += src/java/jni/jlightgrep.h
+
+noinst_jar_DATA = src/java/java/src/jlightgrep.jar
+noinst_jardir = $(libdir)
+
+$(JSRC_DIR)/jlightgrep.jar: $(SRC_CLASS_FILES)
+	$(JAR) cf $@ -C $(JSRC_DIR) .
+
+$(SRC_CLASS_FILES): $(SRC_SOURCE_FILES)
+	$(JAVAC) -d $(JSRC_DIR) -cp $(JSRC_DIR) -Xlint $^
+
+TEST_SOURCE_FILES:=\
+	$(JTEST_DIR)/$(JPKG_DIR)/AbstractDataDrivenTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/AbstractSearchTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/BaseGetHitContextTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/BaseSearchTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/BaseStartsWithTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/GetHitContextArrayTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/GetHitContextDirectByteBufferTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/GetHitContextWrappedByteBufferTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/LightgrepTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/SearchArrayTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/SearchDirectByteBufferTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/SearchWrappedByteBufferTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/StartsWithArrayTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/StartsWithDirectByteBufferTest.java \
+	$(JTEST_DIR)/$(JPKG_DIR)/StartsWithWrappedByteBufferTest.java
+
+TEST_CLASS_NAMES:=$(call path_to_class,$(JTEST_DIR),$(TEST_SOURCE_FILES))
+TEST_CLASS_FILES:=$(TEST_SOURCE_FILES:.java=.class)
+
+TEST_CLASSPATH:=$(JSRC_DIR):$(JTEST_DIR):$(JUNIT_JARS)
+
+$(TEST_CLASS_FILES): $(TEST_SOURCE_FILES) $(SRC_CLASS_FILES)
+	$(JAVAC) -encoding UTF-8 -d $(JTEST_DIR) -cp $(TEST_CLASSPATH) -Xlint $(filter %.java,$^)
+
+TESTS += $(JTEST_DIR)/run_test.sh
+
+$(JTEST_DIR)/run_test.sh: $(TEST_CLASS_FILES)
+	echo -e "#!/bin/bash -ex\n\n$(JAVA) -cp $(TEST_CLASSPATH) -Djava.library.path=src/java/jni/.libs org.junit.runner.JUnitCore $(filter-out com.lightboxtechnologies.lightgrep.Base%,$(filter-out com.lightboxtechnologies.lightgrep.Abstract%,$(TEST_CLASS_NAMES)))" >$@
+	chmod a+x $@
+
+MOSTLYCLEANFILES += src/java/jni/jlightgrep.h $(JNI_HEADER_FILES) $(SRC_CLASS_FILES:.class=*.class) $(TEST_CLASS_FILES:.class=*.class) $(noinst_jar_DATA)
+
+endif

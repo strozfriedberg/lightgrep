@@ -12,8 +12,6 @@
 /aclocal.m4
 /autom4te.cache
 /autoscan.log
-/c_example/cex
-/c_example/cex.exe
 /config.cache
 /config.h
 /config.h.in
@@ -25,7 +23,10 @@
 /configure.scan
 /design/*.aux
 /design/*.log
+/examples/c_example/cex
+/examples/c_example/cex.exe
 /include/lightgrep/encodings.h
+/java_example/*.class
 /liblightgrep.spec
 /libtool
 /m4/libtool.m4
@@ -34,8 +35,8 @@
 /m4/ltversion.m4
 /m4/lt~obsolete.m4
 /mingw-liblightgrep.spec
-/pylightgrep/test.sh.log
-/pylightgrep/test.sh.trs
+/pylightgrep/test.log
+/pylightgrep/test.trs
 /re_gen/parsecheck
 /re_gen/randpat
 /re_gen/shitgrep
@@ -44,6 +45,13 @@
 /src/cmd/version.lo
 /src/enc/enc
 /src/enc/enc.exe
+/src/java/java/**/*.class
+/src/java/java/src/jlightgrep.jar
+/src/java/java/test/run_test.sh
+/src/java/java/test/run_test.log
+/src/java/java/test/run_test.trs
+/src/java/jni/jlightgrep.h
+/src/java/jni/com_lightboxtechnologies_lightgrep_*.h
 /src/lib/lightgrep.pc
 /src/lib/re_grammar.cpp
 /src/lib/re_grammar.output
