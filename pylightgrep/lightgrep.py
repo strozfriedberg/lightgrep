@@ -327,9 +327,9 @@ class Fsm(Handle):
 
 
 class Program(Handle):
-    def __init__(self, *args, shared: bool = False):
+    def __init__(self, *args):
         if len(args) == 1:
-            handle = Program.from_buffer(args[0], shared=shared)
+            handle = Program.from_buffer(args[0])
 
         elif len(args) == 2:
             handle = Program.from_fsm(args[0], args[1])
@@ -343,10 +343,10 @@ class Program(Handle):
         super().__init__(handle)
 
     @staticmethod
-    def from_buffer(buf, shared: bool = False):
+    def from_buffer(buf):
         # unserialize program from a buffer
         c_buf = buf_beg(buf, c_char)
-        return _LG.lg_read_program(c_buf, len(buf)) if shared else _LG.lg_read_program(c_buf, len(buf))
+        return _LG.lg_read_program(c_buf, len(buf))
 
     @staticmethod
     def from_fsm(fsm, progOpts):
