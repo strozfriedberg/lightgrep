@@ -100,7 +100,7 @@ SCOPE_FIXTURE_CTOR(lastWordOnLineSearch, STest, STest(R"(\w+$)")) {
   SCOPE_ASSERT_EQUAL(SearchHit(127, 129, 0), fixture.Hits[9]);
   SCOPE_ASSERT_EQUAL(SearchHit(140, 149, 0), fixture.Hits[10]);
   SCOPE_ASSERT_EQUAL(SearchHit(153, 158, 0), fixture.Hits[11]);
-  SCOPE_ASSERT_EQUAL(SearchHit(166, 170, 0), fixture.Hits[12]);  
+  SCOPE_ASSERT_EQUAL(SearchHit(166, 170, 0), fixture.Hits[12]);
 }
 
 SCOPE_FIXTURE_CTOR(firstWordSearch, STest, STest(R"(\A\w+)")) {
