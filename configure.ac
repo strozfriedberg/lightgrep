@@ -321,6 +321,12 @@ AM_CONDITIONAL([BUILD_DLL], [test "x$enable_shared" = "xyes" && echo "$host" | g
 AC_SUBST([LG_LIB_LDFLAGS])
 
 #
+# Test Dependencies
+#
+
+AX_PKG_CHECK_MODULES([CATCH2], [], [catch2-with-main])
+
+#
 # Customer name
 #
 AC_ARG_WITH([customer],

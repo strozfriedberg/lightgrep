@@ -185,7 +185,6 @@ test_test_SOURCES = \
 	test/test_bytesource.cpp \
 	test/test_c_api.cpp \
 	test/test_compiler.cpp \
-	test/test.cpp \
 	test/test_c_util.cpp \
 	test/test_graph.cpp \
 	test/test_helper.cpp \
@@ -231,7 +230,8 @@ test_test_SOURCES = \
 	test/test_xorencoder.cpp
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS)
-test_test_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_ASIO_LIB) $(STDCXX_LIB)
+test_test_CFLAGS = $(AM_CFLAGS) $(CATCH2_CFLAGS)
+test_test_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_ASIO_LIB) $(CATCH2_LIBS) $(STDCXX_LIB)
 
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = src/lib/lightgrep.pc
