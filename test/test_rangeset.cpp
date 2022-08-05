@@ -22,7 +22,7 @@
 #include "basic.h"
 #include "rangeset.h"
 
-#include "catch.hpp"
+#include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("rangeSetEqualsTest") {
   RangeSet<uint32_t,256> r, s, u{{0,1}};
