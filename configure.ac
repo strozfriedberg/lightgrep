@@ -200,8 +200,6 @@ else
     [AC_MSG_ERROR([Failed to find usable Boost headers.])])
 fi
 
-# FIXME: doesn't always find -mt version of boost libs,
-# e.g. for filesystem and system
 AX_BOOST_PROGRAM_OPTIONS
 if test "x$ax_cv_boost_program_options" != "xyes"; then
   AC_MSG_ERROR([Failed to find Boost program_options library.])
