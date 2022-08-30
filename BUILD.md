@@ -60,7 +60,7 @@ $ test/test
 All tests passed (89026670 assertions in 5475 test cases)
 
 $
-</code></pre>
+</pre></code>
 
 
 Installation
