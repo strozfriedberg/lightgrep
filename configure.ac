@@ -205,19 +205,6 @@ if test "x$ax_cv_boost_program_options" != "xyes"; then
   AC_MSG_ERROR([Failed to find Boost program_options library.])
 fi
 
-AX_BOOST_ASIO
-if test "x$ax_cv_boost_asio" != "xyes"; then
-  AC_MSG_ERROR([Failed to find Boost asio library.])
-fi
-
-case "$host" in
-*-*-mingw*)
-  # Boost ASIO needs ws2_32 and mswsock on Windows
-  BOOST_ASIO_LIB="-lws2_32 -lmswsock"
-  AC_SUBST([BOOST_ASIO_LIB])
-  ;;
-esac
-
 #
 # libasan
 #
@@ -322,7 +309,30 @@ AC_SUBST([LG_LIB_LDFLAGS])
 # Test Dependencies
 #
 
-AX_PKG_CHECK_MODULES([CATCH2], [], [catch2-with-main])
+AX_PKG_CHECK_MODULES([CATCH2], [], [catch2-with-main], [], [with_catch2=no])
+
+AX_BOOST_ASIO
+
+if test "x$ax_cv_boost_asio" != 'xyes' -o "x$with_catch2" = 'xno'; then
+  AC_MSG_WARN([])
+  AC_MSG_WARN([You will be unable to compile and run the tests because:])
+  AC_MSG_WARN([])
+  if test "x$ax_cv_boost_asio" != 'xyes'; then
+    AC_MSG_WARN([  * boost::asio is unavailable])
+  fi
+  if test "x$with_catch2" = 'xno'; then
+    AC_MSG_WARN([  * Catch2 is unavailable])
+  fi
+  AC_MSG_WARN([])
+fi
+
+case "$host" in
+*-*-mingw*)
+  # Boost ASIO needs ws2_32 and mswsock on Windows
+  BOOST_ASIO_LIB="-lws2_32 -lmswsock"
+  AC_SUBST([BOOST_ASIO_LIB])
+  ;;
+esac
 
 #
 # Customer name
