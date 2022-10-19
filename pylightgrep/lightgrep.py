@@ -10,6 +10,7 @@
 import collections
 from ctypes import *
 import os
+from pathlib import Path
 import sys
 
 #
@@ -19,7 +20,7 @@ import sys
 def load_library(base: str) -> None:
     if sys.platform == 'win32':
         ext = '.dll'
-        os.add_dll_directory(f"{os.getcwd()}\\asdf\\libs\\win64")
+        os.add_dll_directory(Path(__file__).parent.parent / Path("win64"))
     elif sys.platform == 'linux':
         ext = '.so'
     elif sys.platform == 'darwin':
