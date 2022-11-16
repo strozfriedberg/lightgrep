@@ -37,7 +37,7 @@ namespace {
   }
 }
 
-
+bool bisonParse(const Pattern& pattern, ParseTree& tree);
 
 bool Parser::parse(const Pattern& pattern, ParseTree& tree) {
   return bisonParse(pattern, tree);
@@ -65,4 +65,9 @@ void Parser::reduce(const std::string& text, ParseTree& tree) {
     reduceEmptySubtrees(tree.Root);
     reduceUselessRepetitions(tree.Root);
   }
+}
+
+bool parse(const Pattern& pattern, ParseTree& tree) {
+  Parser p;
+  return p.parse(pattern, tree);
 }

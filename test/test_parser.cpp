@@ -37,7 +37,7 @@ TEST_CASE("parseCC_A_Test") {
   const std::string p = "[A]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -57,7 +57,7 @@ TEST_CASE("parseCC_AtoZ_Test") {
   const std::string p = "[A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -68,7 +68,7 @@ TEST_CASE("parseCC_ZtoA_Test") {
   actual.init(p.length());
 
   try {
-    bisonParse({p, false, false}, actual);
+    parse({p, false, false}, actual);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -92,7 +92,7 @@ TEST_CASE("parseCC_A_CaseInsensitiveTest") {
   const std::string p = "[A]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -119,7 +119,7 @@ TEST_CASE("parseCC_AtoZ_CaseInsensitiveTest") {
   const std::string p = "[A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true, true}, actual));
+  REQUIRE(parse({p, false, true, true}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -144,7 +144,7 @@ TEST_CASE("parseCC_AtoZ_CaseInsensitiveAsciiTest") {
   const std::string p = "[A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true, false}, actual));
+  REQUIRE(parse({p, false, true, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -164,7 +164,7 @@ TEST_CASE("parseCC_Whack_b_Test") {
   const std::string p = "[\\b]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -184,7 +184,7 @@ TEST_CASE("parseCC_Whack_b_CaseInsensitiveTest") {
   const std::string p = "[\\b]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -204,7 +204,7 @@ TEST_CASE("parse_FF_BreakoutTest") {
   const std::string p = "\\zFF";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -224,7 +224,7 @@ TEST_CASE("parse_FF_BreakoutCaseInsensitiveTest") {
   const std::string p = "\\zFF";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -244,7 +244,7 @@ TEST_CASE("parseCC_FF_BreakoutTest") {
   const std::string p = "[\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -264,7 +264,7 @@ TEST_CASE("parseCC_FF_BreakoutCaseInsensitiveTest") {
   const std::string p = "[\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -284,7 +284,7 @@ TEST_CASE("parseCC_00toFF_BreakoutTest") {
   const std::string p = "[\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -295,7 +295,7 @@ TEST_CASE("parseCC_FFto00_BreakoutTest") {
   actual.init(p.length());
 
   try {
-    bisonParse({p, false, false}, actual);
+    parse({p, false, false}, actual);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -319,7 +319,7 @@ TEST_CASE("parseCC_A_FF_BreakoutTest") {
   const std::string p = "[A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -339,7 +339,7 @@ TEST_CASE("parseCC_A_FF_BreakoutCaseInsensitiveTest") {
   const std::string p = "[A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -359,7 +359,7 @@ TEST_CASE("parseCC_AtoZ_00toFF_BreakoutTest") {
   const std::string p = "[A-Z\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -379,7 +379,7 @@ TEST_CASE("parseCC_00toFF_AtoZ_BreakoutTest") {
   const std::string p = "[\\z00-\\zFFA-Z]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -390,7 +390,7 @@ TEST_CASE("parseCC_AtoFF_BreakoutTest") {
   actual.init(p.length());
 
   try {
-    bisonParse({p, false, false}, actual);
+    parse({p, false, false}, actual);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -405,7 +405,7 @@ TEST_CASE("parseCC_00toA_BreakoutTest") {
   actual.init(p.length());
 
   try {
-    bisonParse({p, false, false}, actual);
+    parse({p, false, false}, actual);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -429,7 +429,7 @@ TEST_CASE("parseNegCC_A_Test") {
   const std::string p = "[^A]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -449,7 +449,7 @@ TEST_CASE("parseNegCC_AtoZ_Test") {
   const std::string p = "[^A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -460,7 +460,7 @@ TEST_CASE("parseNegCC_ZtoA_Test") {
   actual.init(p.length());
 
   try {
-    bisonParse({p, false, false}, actual);
+    parse({p, false, false}, actual);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -484,7 +484,7 @@ TEST_CASE("parseNegCC_A_CaseInsensitiveTest") {
   const std::string p = "[^A]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -511,7 +511,7 @@ TEST_CASE("parseNegCC_AtoZ_CaseInsensitiveTest") {
   const std::string p = "[^A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true, true}, actual));
+  REQUIRE(parse({p, false, true, true}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -536,7 +536,7 @@ TEST_CASE("parseNegCC_AtoZ_CaseInsensitiveAsciiTest") {
   const std::string p = "[^A-Z]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true, false}, actual));
+  REQUIRE(parse({p, false, true, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -556,7 +556,7 @@ TEST_CASE("parseNegCC_FF_BreakoutTest") {
   const std::string p = "[^\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -576,7 +576,7 @@ TEST_CASE("parseNegCC_FF_BreakoutCaseInsensitiveTest") {
   const std::string p = "[^\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -587,7 +587,7 @@ TEST_CASE("parseNegCC_00toFF_BreakoutTest") {
   actual.init(p.length());
 
   try {
-    bisonParse({p, false, false}, actual);
+    parse({p, false, false}, actual);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -611,7 +611,7 @@ TEST_CASE("parseNegCC_00to7F_BreakoutTest") {
   const std::string p = "[^\\z00-\\z7F]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -622,7 +622,7 @@ TEST_CASE("parseNegCC_FFto00_BreakoutTest") {
   actual.init(p.length());
 
   try {
-    bisonParse({p, false, false}, actual);
+    parse({p, false, false}, actual);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -646,7 +646,7 @@ TEST_CASE("parseNegCC_A_FF_BreakoutTest") {
   const std::string p = "[^A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -666,7 +666,7 @@ TEST_CASE("parseNegCC_A_FF_BreakoutCaseInsensitiveTest") {
   const std::string p = "[^A\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true}, actual));
+  REQUIRE(parse({p, false, true}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -686,7 +686,7 @@ TEST_CASE("parseNegCC_AtoZ_00toFF_BreakoutTest") {
   const std::string p = "[^A-Z\\z00-\\zFF]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -706,7 +706,7 @@ TEST_CASE("parseNegCC_AtoZ_00to7F_BreakoutTest") {
   const std::string p = "[^A-Z\\z00-\\z7F]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -726,7 +726,7 @@ TEST_CASE("parseNegCC_00toFF_AtoZ_BreakoutTest") {
   const std::string p = "[^\\z00-\\zFFA-Z]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -746,7 +746,7 @@ TEST_CASE("parseNegCC_00to7F_AtoZ_BreakoutTest") {
   const std::string p = "[^\\z00-\\z7FA-Z]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -757,7 +757,7 @@ TEST_CASE("parseNegCC_AtoFF_BreakoutTest") {
   actual.init(p.length());
 
   try {
-    bisonParse({p, false, false}, actual);
+    parse({p, false, false}, actual);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -772,7 +772,7 @@ TEST_CASE("parseNegCC_00toA_BreakoutTest") {
   actual.init(p.length());
 
   try {
-    bisonParse({p, false, false}, actual);
+    parse({p, false, false}, actual);
   }
   catch (const std::runtime_error&) {
     // expected
@@ -784,7 +784,7 @@ TEST_CASE("parseNegCC_00toA_BreakoutTest") {
 TEST_CASE("parseFailNamedCodePointMissingNameTest") {
   ParseTree tree;
   try {
-    bisonParse({"\\N", false, false}, tree);
+    parse({"\\N", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -799,7 +799,7 @@ TEST_CASE("parseFailNamedCodePointMissingNameTest") {
 TEST_CASE("parseFailNamedCodePointMissingLeftBraceTest") {
   ParseTree tree;
   try {
-    bisonParse({"\\NCYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
+    parse({"\\NCYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -814,7 +814,7 @@ TEST_CASE("parseFailNamedCodePointMissingLeftBraceTest") {
 TEST_CASE("parseFailNamedCodePointMissingRightBraceTest") {
   ParseTree tree;
   try {
-    bisonParse({"\\N{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
+    parse({"\\N{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -829,7 +829,7 @@ TEST_CASE("parseFailNamedCodePointMissingRightBraceTest") {
 TEST_CASE("parseFailHexCodeMissingValueTest") {
   ParseTree tree;
   try {
-    bisonParse({"\\x", false, false}, tree);
+    parse({"\\x", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -844,7 +844,7 @@ TEST_CASE("parseFailHexCodeMissingValueTest") {
 TEST_CASE("parseFailHexCodeBadValueTest") {
   ParseTree tree;
   try {
-    bisonParse({"\\xG", false, false}, tree);
+    parse({"\\xG", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -859,7 +859,7 @@ TEST_CASE("parseFailHexCodeBadValueTest") {
 TEST_CASE("parseFailBadEscapeTest") {
   ParseTree tree;
   try {
-    bisonParse({"\\#", false, false}, tree);
+    parse({"\\#", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -874,7 +874,7 @@ TEST_CASE("parseFailBadEscapeTest") {
 TEST_CASE("parseFailPropertyMissingValueTest") {
   ParseTree tree;
   try {
-    bisonParse({"\\p", false, false}, tree);
+    parse({"\\p", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -889,7 +889,7 @@ TEST_CASE("parseFailPropertyMissingValueTest") {
 TEST_CASE("parseFailNegatedPropertyMissingValueTest") {
   ParseTree tree;
   try {
-    bisonParse({"\\P", false, false}, tree);
+    parse({"\\P", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -904,7 +904,7 @@ TEST_CASE("parseFailNegatedPropertyMissingValueTest") {
 TEST_CASE("parseFailPropertyMissingLeftBrace") {
   ParseTree tree;
   try {
-    bisonParse({"\\pLetter", false, false}, tree);
+    parse({"\\pLetter", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -919,7 +919,7 @@ TEST_CASE("parseFailPropertyMissingLeftBrace") {
 TEST_CASE("parseFailPropertyMissingRightBrace") {
   ParseTree tree;
   try {
-    bisonParse({"\\p{Letter", false, false}, tree);
+    parse({"\\p{Letter", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -934,7 +934,7 @@ TEST_CASE("parseFailPropertyMissingRightBrace") {
 TEST_CASE("parseFailReversedBoundedRepetitionTest") {
   ParseTree tree;
   try {
-    bisonParse({"a{2,1}", false, false}, tree);
+    parse({"a{2,1}", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -949,7 +949,7 @@ TEST_CASE("parseFailReversedBoundedRepetitionTest") {
 TEST_CASE("parseFailReversedNongreedyBoundedRepetitionTest") {
   ParseTree tree;
   try {
-    bisonParse({"a{2,1}?", false, false}, tree);
+    parse({"a{2,1}?", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -976,7 +976,7 @@ TEST_CASE("parseAAmp_Test") {
   const std::string p = "[a&]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -996,7 +996,7 @@ TEST_CASE("parseATilde_Test") {
   const std::string p = "[a~]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1016,7 +1016,7 @@ TEST_CASE("parseAHyphen_Test") {
   const std::string p = "[a-]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1036,7 +1036,7 @@ TEST_CASE("parseAmpA_Test") {
   const std::string p = "[&a]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1056,7 +1056,7 @@ TEST_CASE("parseTildeA_Test") {
   const std::string p = "[~a]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1076,7 +1076,7 @@ TEST_CASE("parseHyphenA_Test") {
   const std::string p = "[-a]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1096,7 +1096,7 @@ TEST_CASE("parseAAmpB_Test") {
   const std::string p = "[a&b]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1116,7 +1116,7 @@ TEST_CASE("parseATildeB_Test") {
   const std::string p = "[a~b]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1124,7 +1124,7 @@ TEST_CASE("parseATildeB_Test") {
 TEST_CASE("parseFailHyphenToA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[--a]", false, false}, tree);
+    parse({"[--a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1138,7 +1138,7 @@ TEST_CASE("parseFailHyphenToA_Test") {
 TEST_CASE("parseFailAToHyphen_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[a--]", false, false}, tree);
+    parse({"[a--]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1153,7 +1153,7 @@ TEST_CASE("parseFailAToHyphen_Test") {
 TEST_CASE("parseFailNegHyphenToA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[^--a]", false, false}, tree);
+    parse({"[^--a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1167,7 +1167,7 @@ TEST_CASE("parseFailNegHyphenToA_Test") {
 TEST_CASE("parseFailNegAToHyphen_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[^a--]", false, false}, tree);
+    parse({"[^a--]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1182,7 +1182,7 @@ TEST_CASE("parseFailNegAToHyphen_Test") {
 TEST_CASE("parseFailAAmpAmp_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[a&&]", false, false}, tree);
+    parse({"[a&&]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1197,7 +1197,7 @@ TEST_CASE("parseFailAAmpAmp_Test") {
 TEST_CASE("parseFailAmpAmpA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[&&a]", false, false}, tree);
+    parse({"[&&a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1212,7 +1212,7 @@ TEST_CASE("parseFailAmpAmpA_Test") {
 TEST_CASE("parseFailNegAAmpAmp_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[^a&&]", false, false}, tree);
+    parse({"[^a&&]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1227,7 +1227,7 @@ TEST_CASE("parseFailNegAAmpAmp_Test") {
 TEST_CASE("parseFailNegAmpAmpA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[^&&a]", false, false}, tree);
+    parse({"[^&&a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1242,7 +1242,7 @@ TEST_CASE("parseFailNegAmpAmpA_Test") {
 TEST_CASE("parseFailATildeTilde_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[a~~]", false, false}, tree);
+    parse({"[a~~]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1257,7 +1257,7 @@ TEST_CASE("parseFailATildeTilde_Test") {
 TEST_CASE("parseFailTildeTildeA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[~~a]", false, false}, tree);
+    parse({"[~~a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1272,7 +1272,7 @@ TEST_CASE("parseFailTildeTildeA_Test") {
 TEST_CASE("parseFailNegATildeTilde_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[^a~~]", false, false}, tree);
+    parse({"[^a~~]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1287,7 +1287,7 @@ TEST_CASE("parseFailNegATildeTilde_Test") {
 TEST_CASE("parseFailNegTildeTildeA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[^~~a]", false, false}, tree);
+    parse({"[^~~a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1302,7 +1302,7 @@ TEST_CASE("parseFailNegTildeTildeA_Test") {
 TEST_CASE("parseFailAHyphenHyphenHyphenHyphenA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[a----a]", false, false}, tree);
+    parse({"[a----a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1317,7 +1317,7 @@ TEST_CASE("parseFailAHyphenHyphenHyphenHyphenA_Test") {
 TEST_CASE("parseFailAAmpAmpAmpAmpA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[a&&&&a]", false, false}, tree);
+    parse({"[a&&&&a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1332,7 +1332,7 @@ TEST_CASE("parseFailAAmpAmpAmpAmpA_Test") {
 TEST_CASE("parseFailATildeTildeTildeTildeA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[a~~~~a]", false, false}, tree);
+    parse({"[a~~~~a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1347,7 +1347,7 @@ TEST_CASE("parseFailATildeTildeTildeTildeA_Test") {
 TEST_CASE("parseFailNegAHyphenHyphenHyphenHyphenA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[^a----a]", false, false}, tree);
+    parse({"[^a----a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1362,7 +1362,7 @@ TEST_CASE("parseFailNegAHyphenHyphenHyphenHyphenA_Test") {
 TEST_CASE("parseFailNegAAmpAmpAmpAmpA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[^a&&&&a]", false, false}, tree);
+    parse({"[^a&&&&a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1377,7 +1377,7 @@ TEST_CASE("parseFailNegAAmpAmpAmpAmpA_Test") {
 TEST_CASE("parseFailNegATildeTildeTildeTildeA_Test") {
   ParseTree tree;
   try {
-    bisonParse({"[^a~~~~a]", false, false}, tree);
+    parse({"[^a~~~~a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1404,7 +1404,7 @@ TEST_CASE("parseAtoCHyphenE_Test") {
   const std::string p = "[a-c-e]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1424,7 +1424,7 @@ TEST_CASE("parseAHyphenHyphenHyphen_Test") {
   const std::string p = "[a---]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1444,7 +1444,7 @@ TEST_CASE("parseDigitHyphenA_Test") {
   const std::string p = "[\\d-A]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1464,7 +1464,7 @@ TEST_CASE("parseNegDigitHyphenA_Test") {
   const std::string p = "[^\\d-A]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1484,7 +1484,7 @@ TEST_CASE("parseAHyphenDigit_Test") {
   const std::string p = "[A-\\d]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1504,7 +1504,7 @@ TEST_CASE("parseNegAHyphenDigit_Test") {
   const std::string p = "[^A-\\d]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1525,7 +1525,7 @@ TEST_CASE("parseDigitHyphenByte_Test") {
   const std::string p = "[\\d-\\z00]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1546,7 +1546,7 @@ TEST_CASE("parseNegDigitHyphenByte_Test") {
   const std::string p = "[^\\d-\\z00]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1566,7 +1566,7 @@ TEST_CASE("parseByteHyphenDigit_Test") {
   const std::string p = "[\\z00-\\d]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1587,7 +1587,7 @@ TEST_CASE("parseNegByteHyphenDigit_Test") {
   const std::string p = "[^\\z00-\\d]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1614,7 +1614,7 @@ TEST_CASE("parseHyphenHyphenTest") {
   const std::string p = "--";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1641,7 +1641,7 @@ TEST_CASE("parseAmpAmpTest") {
   const std::string p = "&&";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1668,7 +1668,7 @@ TEST_CASE("parseTildeTildeTest") {
   const std::string p = "~~";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1676,7 +1676,7 @@ TEST_CASE("parseTildeTildeTest") {
 TEST_CASE("parseFailUnmatchedLeftBracketCharacterClassTest") {
   ParseTree tree;
   try {
-    bisonParse({"[]", false, false}, tree);
+    parse({"[]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1691,7 +1691,7 @@ TEST_CASE("parseFailUnmatchedLeftBracketCharacterClassTest") {
 TEST_CASE("parseFailEmptyCharClassTest") {
   ParseTree tree;
   try {
-    bisonParse({"[a&&b]", false, false}, tree);
+    parse({"[a&&b]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1706,7 +1706,7 @@ TEST_CASE("parseFailEmptyCharClassTest") {
 TEST_CASE("parseFailEmptyNegCodePointCharClassTest") {
   ParseTree tree;
   try {
-    bisonParse({"[^\\x{0}-\\x{10FFFF}]", false, false}, tree);
+    parse({"[^\\x{0}-\\x{10FFFF}]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1721,7 +1721,7 @@ TEST_CASE("parseFailEmptyNegCodePointCharClassTest") {
 TEST_CASE("parseFailEmptyNegByteCharClassTest") {
   ParseTree tree;
   try {
-    bisonParse({"[^\\z00-\\zFF]", false, false}, tree);
+    parse({"[^\\z00-\\zFF]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1736,7 +1736,7 @@ TEST_CASE("parseFailEmptyNegByteCharClassTest") {
 TEST_CASE("parseFailBadCharRangeBoundsCharClassTest") {
   ParseTree tree;
   try {
-    bisonParse({"[z-a]", false, false}, tree);
+    parse({"[z-a]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1751,7 +1751,7 @@ TEST_CASE("parseFailBadCharRangeBoundsCharClassTest") {
 TEST_CASE("parseFailBadByteRangeBoundsCharClassTest") {
   ParseTree tree;
   try {
-    bisonParse({"[\\zFF-\\z00]", false, false}, tree);
+    parse({"[\\zFF-\\z00]", false, false}, tree);
   }
   catch (const std::runtime_error& e) {
     REQUIRE(
@@ -1790,7 +1790,7 @@ TEST_CASE("parseAKillBOrCTest") {
   const std::string p = "A\\KB|C";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1814,7 +1814,7 @@ TEST_CASE("parsePositiveLookbehindATest") {
   const std::string p = "(?<=A)";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1838,7 +1838,7 @@ TEST_CASE("parseNegativeLookbehindATest") {
   const std::string p = "(?<!A)";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1862,7 +1862,7 @@ TEST_CASE("parsePositiveLookaheadATest") {
   const std::string p = "(?=A)";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1886,7 +1886,7 @@ TEST_CASE("parseNegativeLookaheadATest") {
   const std::string p = "(?!A)";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1910,7 +1910,7 @@ TEST_CASE("parseWhackATest") {
   const std::string p = "\\A";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1934,7 +1934,7 @@ TEST_CASE("parseWhackZTest") {
   const std::string p = "\\Z";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1959,7 +1959,7 @@ TEST_CASE("parseCaretTest") {
   const std::string p = "^";
   ParseTree actual;
   actual.init(3);
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -1984,7 +1984,7 @@ TEST_CASE("parseDollarSignTest") {
   const std::string p = "$";
   ParseTree actual;
   actual.init(3);
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2036,7 +2036,7 @@ TEST_CASE("parseWordBoundaryTest") {
   const std::string p = "\\b";
   ParseTree actual;
   actual.init(10);
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2088,7 +2088,7 @@ TEST_CASE("parseNonWordBoundaryTest") {
   const std::string p = "\\B";
   ParseTree actual;
   actual.init(10);
-  REQUIRE(bisonParse({p, false, false}, actual));
+  REQUIRE(parse({p, false, false}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2108,7 +2108,7 @@ TEST_CASE("parse_ascii_mode_ks_01_Test") {
   const std::string p = "[ks]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2128,7 +2128,7 @@ TEST_CASE("parse_ascii_mode_ks_02_Test") {
   const std::string p = "[ks]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2148,7 +2148,7 @@ TEST_CASE("parse_ascii_mode_ks_03_Test") {
   const std::string p = "[ks]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, true, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2168,7 +2168,7 @@ TEST_CASE("parse_ascii_mode_ks_04_Test") {
   const std::string p = "[ks]";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2188,7 +2188,7 @@ TEST_CASE("parse_ascii_mode_on_digit_Test") {
   const std::string p = "\\d";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2208,7 +2208,7 @@ TEST_CASE("parse_ascii_mode_off_digit_Test") {
   const std::string p = "\\d";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2228,7 +2228,7 @@ TEST_CASE("parse_ascii_mode_on_not_digit_Test") {
   const std::string p = "\\D";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2248,7 +2248,7 @@ TEST_CASE("parse_ascii_mode_off_not_digit_Test") {
   const std::string p = "\\D";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2268,7 +2268,7 @@ TEST_CASE("parse_hspace_Test") {
   const std::string p = "\\h";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2288,7 +2288,7 @@ TEST_CASE("parse_not_hspace_Test") {
   const std::string p = "\\H";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2308,7 +2308,7 @@ TEST_CASE("parse_vspace_Test") {
   const std::string p = "\\v";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2328,7 +2328,7 @@ TEST_CASE("parse_not_vspace_Test") {
   const std::string p = "\\V";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2351,7 +2351,7 @@ TEST_CASE("parse_ascii_mode_on_space_Test") {
   const std::string p = "\\s";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2371,7 +2371,7 @@ TEST_CASE("parse_ascii_mode_off_space_Test") {
   const std::string p = "\\s";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2394,7 +2394,7 @@ TEST_CASE("parse_ascii_mode_on_not_space_Test") {
   const std::string p = "\\S";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2414,7 +2414,7 @@ TEST_CASE("parse_ascii_mode_off_not_space_Test") {
   const std::string p = "\\S";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2442,7 +2442,7 @@ TEST_CASE("parse_ascii_mode_word_01_Test") {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2470,7 +2470,7 @@ TEST_CASE("parse_ascii_mode_word_02_Test") {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2490,7 +2490,7 @@ TEST_CASE("parse_ascii_mode_word_03_Test") {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2510,7 +2510,7 @@ TEST_CASE("parse_ascii_mode_word_04_Test") {
   const std::string p = "\\w";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, true, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2538,7 +2538,7 @@ TEST_CASE("parse_ascii_mode_not_word_01_Test") {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2566,7 +2566,7 @@ TEST_CASE("parse_ascii_mode_not_word_02_Test") {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true, false, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, false, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2586,7 +2586,7 @@ TEST_CASE("parse_ascii_mode_not_word_03_Test") {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, false, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, false, true, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }
@@ -2606,7 +2606,7 @@ TEST_CASE("parse_ascii_mode_not_word_04_Test") {
   const std::string p = "\\W";
   ParseTree actual;
   actual.init(p.length());
-  REQUIRE(bisonParse({p, false, true, true, "UTF-8"}, actual));
+  REQUIRE(parse({p, false, true, true, "UTF-8"}, actual));
 
   REQUIRE(expected == actual);
 }

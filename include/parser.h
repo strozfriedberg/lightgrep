@@ -30,4 +30,4 @@ public:
   void reduce(const std::string& text, ParseTree& tree);
 };
 
-bool bisonParse(const Pattern& pattern, ParseTree& tree);
+bool parse(const Pattern& pattern, ParseTree& tree);
