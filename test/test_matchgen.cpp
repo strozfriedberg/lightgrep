@@ -32,7 +32,7 @@
 void fixture(const char* pattern, const char** expected, uint32_t max_matches, uint32_t max_loops) {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({pattern, false, false}, tree));
+  REQUIRE(bisonParse({pattern, false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   std::set<std::string> aset;

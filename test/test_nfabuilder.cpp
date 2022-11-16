@@ -39,7 +39,7 @@ TEST_CASE("parseAorB") {
   NFABuilder nfab;
   NFA& fsm(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"a|b", false, false}, tree));
+  REQUIRE(bisonParse({"a|b", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(3u == fsm.verticesSize());
@@ -54,7 +54,7 @@ TEST_CASE("parseAorBorC") {
   NFABuilder nfab;
   NFA& fsm(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"a|b|c", false, false}, tree));
+  REQUIRE(bisonParse({"a|b|c", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == fsm.verticesSize());
@@ -71,7 +71,7 @@ TEST_CASE("parseAB") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"ab", false, false}, tree));
+  REQUIRE(bisonParse({"ab", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(3u == fsm.verticesSize());
@@ -86,7 +86,7 @@ TEST_CASE("parseAlternationAndConcatenation") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"a|bc", false, false}, tree));
+  REQUIRE(bisonParse({"a|bc", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == fsm.verticesSize());
@@ -103,7 +103,7 @@ TEST_CASE("parseGroup") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"a(b|c)", false, false}, tree));
+  REQUIRE(bisonParse({"a(b|c)", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == fsm.verticesSize());
@@ -116,12 +116,12 @@ TEST_CASE("parseGroup") {
 TEST_CASE("parseQuestionMark") {
   NFABuilder nfab;
   ParseTree tree;
-  // REQUIRE(parse({"a?", false, false}, tree std::bind(&parseOutput, _1, _2)));
+  // REQUIRE(bisonParse({"a?", false, false}, tree std::bind(&parseOutput, _1, _2)));
   // tree.Store.clear();
-  // REQUIRE(parse({"a?", false, false}, tree std::bind(&Parser::callback, &p, _1, _2)));
+  // REQUIRE(bisonParse({"a?", false, false}, tree std::bind(&Parser::callback, &p, _1, _2)));
   // REQUIRE(!p.good());
   // tree.Store.clear();
-  REQUIRE(parse({"ab?", false, false}, tree));
+  REQUIRE(bisonParse({"ab?", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   NFA& fsm(*nfab.getFsm());
@@ -140,7 +140,7 @@ TEST_CASE("parseQuestionMarkFirst") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"a?b", false, false}, tree));
+  REQUIRE(bisonParse({"a?b", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(3u == fsm.verticesSize());
@@ -153,7 +153,7 @@ TEST_CASE("parseTwoQuestionMarks") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"ab?c?d", false, false}, tree));
+  REQUIRE(bisonParse({"ab?c?d", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(5u == fsm.verticesSize());
@@ -177,7 +177,7 @@ TEST_CASE("parseQuestionWithAlternation") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"(a|b?)c", false, false}, tree));
+  REQUIRE(bisonParse({"(a|b?)c", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == fsm.verticesSize());
@@ -198,7 +198,7 @@ TEST_CASE("parseQuestionWithGrouping") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"a(bc)?d", false, false}, tree));
+  REQUIRE(bisonParse({"a(bc)?d", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(5u == fsm.verticesSize());
@@ -221,7 +221,7 @@ TEST_CASE("parsePlus") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"a+", false, false}, tree));
+  REQUIRE(bisonParse({"a+", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == fsm.verticesSize());
@@ -237,7 +237,7 @@ TEST_CASE("parseaPQb") {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  REQUIRE(parse({"a+?b", false, false}, tree));
+  REQUIRE(bisonParse({"a+?b", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(3u == g.verticesSize());
@@ -266,7 +266,7 @@ TEST_CASE("parseStar") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"ab*c", false, false}, tree));
+  REQUIRE(bisonParse({"ab*c", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == fsm.verticesSize());
@@ -282,7 +282,7 @@ TEST_CASE("parseStarWithGrouping") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"a(bc)*d", false, false}, tree));
+  REQUIRE(bisonParse({"a(bc)*d", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(5u == fsm.verticesSize());
@@ -305,7 +305,7 @@ TEST_CASE("parseaQQb") {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  REQUIRE(parse({"a??b", false, false}, tree));
+  REQUIRE(bisonParse({"a??b", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(3u == g.verticesSize());
@@ -332,7 +332,7 @@ TEST_CASE("parseaQQbQQc") {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  REQUIRE(parse({"a??b??c", false, false}, tree));
+  REQUIRE(bisonParse({"a??b??c", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == g.verticesSize());
@@ -366,7 +366,7 @@ TEST_CASE("parseaQQbQc") {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  REQUIRE(parse({"a??b?c", false, false}, tree));
+  REQUIRE(bisonParse({"a??b?c", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == g.verticesSize());
@@ -400,7 +400,7 @@ TEST_CASE("parseaQQOrbQQc") {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  REQUIRE(parse({R"((a??|b??)c)", false, false}, tree));
+  REQUIRE(bisonParse({R"((a??|b??)c)", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == g.verticesSize());
@@ -433,7 +433,7 @@ TEST_CASE("parseaOrbQa") {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  REQUIRE(parse({"(a|b?)a", false, false}, tree));
+  REQUIRE(bisonParse({"(a|b?)a", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == g.verticesSize());
@@ -466,7 +466,7 @@ TEST_CASE("parseaOrbQQa") {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  REQUIRE(parse({R"((a|b??)a)", false, false}, tree));
+  REQUIRE(bisonParse({R"((a|b??)a)", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == g.verticesSize());
@@ -499,7 +499,7 @@ TEST_CASE("parseaSQb") {
   ParseTree tree;
   NFA& g(*nfab.getFsm());
 
-  REQUIRE(parse({"a*?b", false, false}, tree));
+  REQUIRE(bisonParse({"a*?b", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(3u == g.verticesSize());
@@ -526,7 +526,7 @@ TEST_CASE("parseDot") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({".+", false, false}, tree));
+  REQUIRE(bisonParse({".+", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == fsm.verticesSize());
@@ -543,7 +543,7 @@ TEST_CASE("parseHexCode") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"\\x20", false, false}, tree));
+  REQUIRE(bisonParse({"\\x20", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == fsm.verticesSize());
@@ -560,7 +560,7 @@ TEST_CASE("parseHexDotPlus") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"\\x20\\zFF.+\\x20", false, false}, tree));
+  REQUIRE(bisonParse({"\\x20\\zFF.+\\x20", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(5u == fsm.verticesSize());
@@ -578,7 +578,7 @@ TEST_CASE("parse2ByteUnicode") {
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
   nfab.setEncoder(std::shared_ptr<Encoder>(new UTF16LE));
-  REQUIRE(parse({"ab", false, false}, tree));
+  REQUIRE(bisonParse({"ab", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(5u == fsm.verticesSize());
@@ -588,7 +588,7 @@ TEST_CASE("parseHighHex") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"\\zE5", false, false}, tree));
+  REQUIRE(bisonParse({"\\zE5", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == fsm.verticesSize());
@@ -603,7 +603,7 @@ TEST_CASE("parseSimpleCharClass") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"[AaBb]", false, false}, tree));
+  REQUIRE(bisonParse({"[AaBb]", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == fsm.verticesSize());
@@ -624,7 +624,7 @@ TEST_CASE("parseUnprintableCharClass") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"[A\\zFF\\z00]", false, false}, tree));
+  REQUIRE(bisonParse({"[A\\zFF\\z00]", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == fsm.verticesSize());
@@ -644,7 +644,7 @@ TEST_CASE("parseNegatedRanges") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"[^a-zA-Z0-9]", false, false}, tree));
+  REQUIRE(bisonParse({"[^a-zA-Z0-9]", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == fsm.verticesSize());
@@ -667,7 +667,7 @@ TEST_CASE("parseCaseInsensitive") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"ab", false, true}, tree));
+  REQUIRE(bisonParse({"ab", false, true}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(3u == fsm.verticesSize());
@@ -688,7 +688,7 @@ TEST_CASE("parseCaseInsensitiveCC") {
   NFABuilder nfab;
   ParseTree tree;
   NFA& fsm(*nfab.getFsm());
-  REQUIRE(parse({"[a-z]", false, true}, tree));
+  REQUIRE(bisonParse({"[a-z]", false, true}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == fsm.verticesSize());
@@ -714,7 +714,7 @@ TEST_CASE("parseCaseInsensitiveCC") {
 TEST_CASE("parseSZeroMatchState") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"a?", false, false}, tree));
+  REQUIRE(bisonParse({"a?", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
@@ -746,7 +746,7 @@ TEST_CASE("parseZeroDotStarZero") {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"0.*0", false, false}, tree));
+  REQUIRE(bisonParse({"0.*0", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == g.verticesSize());
@@ -781,7 +781,7 @@ TEST_CASE("parseZeroDotStarZero") {
   NFABuilder nfab; \
   NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
-  REQUIRE(parse({ss.str(), false, false}, tree)); \
+  REQUIRE(bisonParse({ss.str(), false, false}, tree)); \
   REQUIRE(nfab.build(tree)); \
 \
   REQUIRE(n + 1 == g.verticesSize()); \
@@ -814,7 +814,7 @@ TEST_CASE("parse_aLCnRC") {
   NFABuilder nfab; \
   NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
-  REQUIRE(parse({ss.str(), false, false}, tree)); \
+  REQUIRE(bisonParse({ss.str(), false, false}, tree)); \
   REQUIRE(nfab.build(tree)); \
 \
   REQUIRE(n + 1 == g.verticesSize()); \
@@ -845,7 +845,7 @@ TEST_CASE("parse_aLC0_RCQb") {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"a{0,}?b", false, false}, tree));
+  REQUIRE(bisonParse({"a{0,}?b", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(3u == g.verticesSize());
@@ -873,7 +873,7 @@ TEST_CASE("parse_aLC0_RCQb") {
   NFABuilder nfab; \
   NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
-  REQUIRE(parse({ss.str(), false, false}, tree)); \
+  REQUIRE(bisonParse({ss.str(), false, false}, tree)); \
   REQUIRE(nfab.build(tree)); \
 \
   REQUIRE(n + 2 == g.verticesSize()); \
@@ -909,7 +909,7 @@ TEST_CASE("parse_xa0_") {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"xa{0,}", false, false}, tree));
+  REQUIRE(bisonParse({"xa{0,}", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(3u == g.verticesSize());
@@ -937,7 +937,7 @@ TEST_CASE("parse_xa0_") {
   NFABuilder nfab; \
   NFA& g(*nfab.getFsm()); \
   ParseTree tree; \
-  REQUIRE(parse({ss.str(), false, false}, tree)); \
+  REQUIRE(bisonParse({ss.str(), false, false}, tree)); \
   REQUIRE(nfab.build(tree)); \
 \
   REQUIRE(m + 1 == g.verticesSize()); \
@@ -976,7 +976,7 @@ TEST_CASE("parse_aaQQb") {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"aa??b", false, false}, tree));
+  REQUIRE(bisonParse({"aa??b", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == g.verticesSize());
@@ -1006,7 +1006,7 @@ TEST_CASE("parse_xLPaORaQQRPy") {
   NFABuilder nfab;
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({R"(x(a|a??)y)", false, false}, tree));
+  REQUIRE(bisonParse({R"(x(a|a??)y)", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(5u == g.verticesSize());
@@ -1046,7 +1046,7 @@ TEST_CASE("parseEncodingByteBreakout") {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"\\z80", false, false}, tree));
+  REQUIRE(bisonParse({"\\z80", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == g.verticesSize());
@@ -1078,7 +1078,7 @@ TEST_CASE("parseEncodingNotByteBreakout") {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"\\x{80}", false, false}, tree));
+  REQUIRE(bisonParse({"\\x{80}", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(3u == g.verticesSize());
@@ -1121,7 +1121,7 @@ TEST_CASE("parseEncodingCCCodePointWithBreakout") {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"[A\\zFF]", false, false}, tree));
+  REQUIRE(bisonParse({"[A\\zFF]", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == g.verticesSize());
@@ -1150,7 +1150,7 @@ TEST_CASE("parseEncodingCCCodePoint2ByteWithBreakout") {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"[\\x{80}\\zFF]", false, false}, tree));
+  REQUIRE(bisonParse({"[\\x{80}\\zFF]", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(4u == g.verticesSize());
@@ -1205,7 +1205,7 @@ TEST_CASE("parseEncodingCCBreakoutOnly") {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"[\\zFF]", false, false}, tree));
+  REQUIRE(bisonParse({"[\\zFF]", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == g.verticesSize());
@@ -1234,7 +1234,7 @@ TEST_CASE("parseEncodingNegCCCodePointWithBreakout") {
 
   NFA& g(*nfab.getFsm());
   ParseTree tree;
-  REQUIRE(parse({"[^\\x{02}-\\x{10FFFF}\\x01]", false, false}, tree));
+  REQUIRE(bisonParse({"[^\\x{02}-\\x{10FFFF}\\x01]", false, false}, tree));
   REQUIRE(nfab.build(tree));
 
   REQUIRE(2u == g.verticesSize());

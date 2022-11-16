@@ -37,7 +37,13 @@ namespace {
   }
 }
 
-void parseAndReduce(const Pattern& pattern, ParseTree& tree) {
+
+
+bool Parser::parse(const Pattern& pattern, ParseTree& tree) {
+  return bisonParse(pattern, tree);
+}
+
+void Parser::parseAndReduce(const Pattern& pattern, ParseTree& tree) {
   // parse the pattern
   if (!parse(pattern, tree)) {
     THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("Could not parse");
@@ -45,7 +51,7 @@ void parseAndReduce(const Pattern& pattern, ParseTree& tree) {
   reduce(pattern.Expression, tree);
 }
 
-void reduce(const std::string& text, ParseTree& tree) {
+void Parser::reduce(const std::string& text, ParseTree& tree) {
   // rewrite the parse tree, if necessary
   bool rewrite = makeBinopsRightAssociative(tree.Root);
   rewrite |= combineConsecutiveRepetitions(tree.Root);

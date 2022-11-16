@@ -91,7 +91,7 @@ NFAPtr createGraph(const std::vector<Pattern>& pats, bool determinize) {
   NFAPtr g(new NFA(1));
 
   for (uint32_t i = 0; i < pats.size(); ++i) {
-    parse(pats[i], tree);
+    bisonParse(pats[i], tree);
 
     nfab.reset();
     nfab.setCurLabel(i);

@@ -26,6 +26,7 @@
 #include "basic.h"
 #include "fsmthingy.h"
 #include "fwd_pointers.h"
+#include "parser.h"
 #include "parsetree.h"
 #include "pattern_map.h"
 #include "vm_interface.h"
@@ -35,6 +36,7 @@
 struct PatternHandle {
   Pattern   Pat;
   ParseTree Tree;
+  Parser    TheParser;
 };
 
 struct PatternMapHandle {

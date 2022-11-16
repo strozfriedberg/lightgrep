@@ -117,14 +117,14 @@ TEST_CASE("testregexBasicModifiedSearch9") {
 TEST_CASE("testregexBasicModifiedSearch10") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(..)*(...)*", false, false}, tree));
+  REQUIRE(bisonParse({"(..)*(...)*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
 TEST_CASE("testregexBasicModifiedSearch11") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(..)*(...)*", false, false}, tree));
+  REQUIRE(bisonParse({"(..)*(...)*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
@@ -220,7 +220,7 @@ TEST_CASE("testregexBasicModifiedSearch21") {
 TEST_CASE("testregexBasicModifiedSearch22") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(a|b)?.*", false, false}, tree));
+  REQUIRE(bisonParse({"(a|b)?.*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
@@ -319,14 +319,14 @@ TEST_CASE("testregexBasicModifiedSearch32") {
 TEST_CASE("testregexBasicModifiedSearch33") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(aa|aaa)*|(a|aaaaa)", false, false}, tree));
+  REQUIRE(bisonParse({"(aa|aaa)*|(a|aaaaa)", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
 TEST_CASE("testregexBasicModifiedSearch34") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(a.|.a.)*|(a|.a...)", false, false}, tree));
+  REQUIRE(bisonParse({"(a.|.a.)*|(a|.a...)", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
@@ -351,7 +351,7 @@ TEST_CASE("testregexBasicModifiedSearch36") {
 TEST_CASE("testregexBasicModifiedSearch37") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(Ab|cD)*", false, false}, tree));
+  REQUIRE(bisonParse({"(Ab|cD)*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
@@ -367,14 +367,14 @@ TEST_CASE("testregexBasicModifiedSearch38") {
 TEST_CASE("testregexBasicModifiedSearch39") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"[a\\-]*", false, false}, tree));
+  REQUIRE(bisonParse({"[a\\-]*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
 TEST_CASE("testregexBasicModifiedSearch40") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"[a-m\\-]*", false, false}, tree));
+  REQUIRE(bisonParse({"[a-m\\-]*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
@@ -535,14 +535,14 @@ TEST_CASE("testregexBasicModifiedSearch58") {
 TEST_CASE("testregexBasicModifiedSearch59") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"((((((((((((((((((((((((((((((x))))))))))))))))))))))))))))))*", false, false}, tree));
+  REQUIRE(bisonParse({"((((((((((((((((((((((((((((((x))))))))))))))))))))))))))))))*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
 TEST_CASE("testregexBasicModifiedSearch60") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"a?(ab|ba)*", false, false}, tree));
+  REQUIRE(bisonParse({"a?(ab|ba)*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
@@ -576,7 +576,7 @@ TEST_CASE("testregexBasicModifiedSearch63") {
 TEST_CASE("testregexBasicModifiedSearch64") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({".*", false, false}, tree));
+  REQUIRE(bisonParse({".*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
@@ -905,35 +905,35 @@ TEST_CASE("testregexBasicModifiedSearch100") {
 TEST_CASE("testregexBasicModifiedSearch101") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"a*", false, false}, tree));
+  REQUIRE(bisonParse({"a*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
 TEST_CASE("testregexBasicModifiedSearch102") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(a*)*", false, false}, tree));
+  REQUIRE(bisonParse({"(a*)*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
 TEST_CASE("testregexBasicModifiedSearch103") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(a*)+", false, false}, tree));
+  REQUIRE(bisonParse({"(a*)+", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
 TEST_CASE("testregexBasicModifiedSearch104") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(a*|b)*", false, false}, tree));
+  REQUIRE(bisonParse({"(a*|b)*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
 TEST_CASE("testregexBasicModifiedSearch105") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(a+|b)*", false, false}, tree));
+  REQUIRE(bisonParse({"(a+|b)*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
@@ -949,21 +949,21 @@ TEST_CASE("testregexBasicModifiedSearch106") {
 TEST_CASE("testregexBasicModifiedSearch107") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"(a+|b)?", false, false}, tree));
+  REQUIRE(bisonParse({"(a+|b)?", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
 TEST_CASE("testregexBasicModifiedSearch108") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"[^ab]*", false, false}, tree));
+  REQUIRE(bisonParse({"[^ab]*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
 TEST_CASE("testregexBasicModifiedSearch109") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"a*", false, false}, tree));
+  REQUIRE(bisonParse({"a*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 
@@ -1006,7 +1006,7 @@ TEST_CASE("testregexBasicModifiedSearch113") {
 TEST_CASE("testregexBasicModifiedSearch114") {
   NFABuilder nfab;
   ParseTree tree;
-  REQUIRE(parse({"((a*|b))*", false, false}, tree));
+  REQUIRE(bisonParse({"((a*|b))*", false, false}, tree));
   REQUIRE(!nfab.build(tree));
 }
 

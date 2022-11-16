@@ -21,8 +21,13 @@
 #include "parsetree.h"
 #include "pattern.h"
 
-bool parse(const Pattern& pattern, ParseTree& tree);
+class Parser {
+public:
+  bool parse(const Pattern& pattern, ParseTree& tree);
 
-void parseAndReduce(const Pattern& pattern, ParseTree& tree);
+  void parseAndReduce(const Pattern& pattern, ParseTree& tree);
 
-void reduce(const std::string& text, ParseTree& tree);
+  void reduce(const std::string& text, ParseTree& tree);
+};
+
+bool bisonParse(const Pattern& pattern, ParseTree& tree);

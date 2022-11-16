@@ -105,7 +105,7 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
   };
 
   return trapWithVals(
-    [hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); },
+    [hPattern](){ hPattern->TheParser.parseAndReduce(hPattern->Pat, hPattern->Tree); },
     1, 0, err
   );
 }
