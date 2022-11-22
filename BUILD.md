@@ -40,7 +40,7 @@ Basic:
 
 Unit tests:
  - Boost::asio
- - Catch2 >= 3.0.1
+ - [Catch2](https://github.com/catchorg/Catch2) >= 3.0.1
 
 Lightgrep uses the Boost project extensively. The lightgrep library itself depends on several header-only Boost libraries. The unit test suite, however, also relies on the program_options library having been built and available. These libraries must be built with the same compiler as lightgrep. Boost 1.48 is known not to work in various configurations due to problems in Boost Thread.
 
