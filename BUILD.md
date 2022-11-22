@@ -42,7 +42,7 @@ Unit tests:
  - Boost::asio
  - [Catch2](https://github.com/catchorg/Catch2) >= 3.0.1
 
-Lightgrep uses the Boost project extensively. The lightgrep library itself depends on several header-only Boost libraries. The unit test suite, however, also relies on the program_options library having been built and available. These libraries must be built with the same compiler as lightgrep. Boost 1.48 is known not to work in various configurations due to problems in Boost Thread.
+These libraries must be built with the same compiler as lightgrep.
 
 Lightgrep uses the awesome ICU libraries to do the gruntwork for Unicode regexp features and the wide array of supported encodings. We only use ICU's C API, so chances are high that lightgrep will work with your system's default version of ICU, even if a different compiler was used. However, ICU may be transitioning away from the C API, so this flexibility may change in the future.
 
