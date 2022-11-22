@@ -24,9 +24,9 @@ You'll need the following:
 
 1. GNU Autotools and Make
 2. GNU Bison
-3. GCC 4.6+ or Clang 3.1+
+3. GCC or Clang with C++17 support
 
-lightgrep requires pretty good (but not great) C++11 support. Visual Studio isn't quite there yet, but lightgrep could probably be hammered into shape if needed. Why would you do that when you could just use your Linux distro's MinGW cross-compiler?
+lightgrep requires C++17 support. Visual Studio isn't quite there yet, but lightgrep could probably be hammered into shape if needed. Why would you do that when you could just use your Linux distro's MinGW cross-compiler?
 
 If you plan on building lightgrep frequently, we highly recommend installing and using Tridge's excellent ccache.
 
@@ -34,38 +34,42 @@ If you plan on building lightgrep frequently, we highly recommend installing and
 Dependencies
 ------------
 Basic:
- - Boost headers (1.49+)
- - ICU (1.48+)
+ - Boost headers >= 1.49
+ - Boost::program_options
+ - ICU >= 1.48
 
 Unit tests:
  - Boost::asio
- - Boost::program_options
- - Boost::system
- - Scope (a git submodule)
+ - [Catch2](https://github.com/catchorg/Catch2) >= 3.0.1
 
-Lightgrep uses the Boost project extensively. The lightgrep library itself depends on several header-only Boost libraries. The unit test suite, however, also relies on the system  and program_options libraries having been built and available. These libraries must be built with the same compiler as lightgrep. Boost 1.48 is known not to work in various configurations due to problems in Boost Thread.
+These libraries must be built with the same compiler as lightgrep.
 
 Lightgrep uses the awesome ICU libraries to do the gruntwork for Unicode regexp features and the wide array of supported encodings. We only use ICU's C API, so chances are high that lightgrep will work with your system's default version of ICU, even if a different compiler was used. However, ICU may be transitioning away from the C API, so this flexibility may change in the future.
+
+Catch2 requires cmake to build it. We build Catch2 as follows ourselves:
+```
+cmake -Bbuild -H. -DCMAKE_INSTALL_PREFIX=$INSTALL -DCMAKE_INSTALL_LIBDIR=lib -DPKGCONFIG_INSTALL_DIR=$INSTALL/lib/pkgconfig
+cmake --build build/
+cmake --install build
+```
+where `$INSTALL` is the base directory where we want to install it. (You could build Catch2 differently, so long as lightgrep can find it.)
 
 
 Unit Tests
 ----------
-If you've installed the other Boost libraries, you can run "make check" to build and execute the unit tests. Note that one source file may take several minutes to compile.
+If you've installed Catch2 and Boost::asio, you can run "make check" to build and execute the unit tests. Note that one source file may take several minutes to compile.
 
-Example:
+Example (of running the tests manually):
 
 <code><pre>
-$ make check
-make  test/test
-make[1]: Entering directory '/mnt/raid/jon/data/code/lightgrep'
-make[1]: Leaving directory '/mnt/raid/jon/data/code/lightgrep'
-make  check-TESTS
-make[1]: Entering directory '/mnt/raid/jon/data/code/lightgrep'
-OK (2992 tests)
-PASS: test/test
-1 test passed
-make[1]: Leaving directory '/mnt/raid/jon/data/code/lightgrep'
+$ test/test
+
+===============================================================================
+All tests passed (89026670 assertions in 5475 test cases)
+
+$
 </pre></code>
+
 
 Installation
 ------------
