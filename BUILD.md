@@ -24,7 +24,7 @@ You'll need the following:
 
 1. GNU Autotools and Make
 2. GNU Bison
-3. GCC >= 4.6 or Clang >= 3.1
+3. GCC or Clang with C++17 support
 
 lightgrep requires C++17 support. Visual Studio isn't quite there yet, but lightgrep could probably be hammered into shape if needed. Why would you do that when you could just use your Linux distro's MinGW cross-compiler?
 
