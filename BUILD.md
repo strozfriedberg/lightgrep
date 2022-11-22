@@ -46,6 +46,14 @@ These libraries must be built with the same compiler as lightgrep.
 
 Lightgrep uses the awesome ICU libraries to do the gruntwork for Unicode regexp features and the wide array of supported encodings. We only use ICU's C API, so chances are high that lightgrep will work with your system's default version of ICU, even if a different compiler was used. However, ICU may be transitioning away from the C API, so this flexibility may change in the future.
 
+Catch2 requires cmake to build it. We build Catch2 as follows ourselves:
+```
+cmake -Bbuild -H. -DCMAKE_INSTALL_PREFIX=$INSTALL -DCMAKE_INSTALL_LIBDIR=lib -DPKGCONFIG_INSTALL_DIR=$INSTALL/lib/pkgconfig
+cmake --build build/
+cmake --install build
+```
+where `$INSTALL` is the base directory where we want to install it. (You could build Catch2 differently, so long as lightgrep can find it.)
+
 
 Unit Tests
 ----------
