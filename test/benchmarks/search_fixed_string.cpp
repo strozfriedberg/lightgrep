@@ -28,21 +28,33 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
 
 		STest searcher("foo");
 
-		BENCHMARK("hits_short") {
+		BENCHMARK("hits short") {
 			return searcher.search("This is a clear example of the foo going fubar.");
 		};
 
-		BENCHMARK("no hits_short") {
+		BENCHMARK("no hits short") {
 			return searcher.search("This is another example of the baz going fubar.");
 		};
 
-		BENCHMARK("hits_short") {
+		BENCHMARK("hits long") {
 			return searcher.search(holmes1);
 		};
 
-		BENCHMARK("no hits_short") {
+		BENCHMARK("no hits long") {
 			return searcher.search(holmes2);
 		};
 	}
 
+
+	TEST_CASE("discretion") {
+		STest searcher("discretion");
+
+		BENCHMARK("hits long") {
+			return searcher.search(holmes2);
+		};
+
+		BENCHMARK("no hits long") {
+			return searcher.search(holmes1);
+		};
+	}
 }
