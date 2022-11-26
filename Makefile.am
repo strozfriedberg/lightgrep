@@ -144,7 +144,7 @@ SH_LOG_COMPILER =
 
 AM_TESTS_ENVIRONMENT = builddir=`pwd`;
 
-check_PROGRAMS = test/test
+check_PROGRAMS = test/test test/benchmarks/benchmarks
 
 TESTS = $(check_PROGRAMS)
 
@@ -234,6 +234,15 @@ test_test_SOURCES = \
 test_test_CPPFLAGS = $(AM_CPPFLAGS)
 test_test_CFLAGS = $(AM_CFLAGS) $(CATCH2_CFLAGS)
 test_test_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_ASIO_LIB) $(CATCH2_LIBS) $(STDCXX_LIB)
+
+
+test_benchmarks_benchmarks_SOURCES = \
+	test/benchmarks/search_fixed_string.cpp
+
+test_benchmarks_benchmarks_CPPFLAGS = $(AM_CPPFLAGS)
+test_benchmarks_benchmarks_CFLAGS = $(AM_CFLAGS) $(CATCH2_CFLAGS)
+test_benchmarks_benchmarks_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(CATCH2_LIBS) $(STDCXX_LIB)
+
 
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = src/lib/lightgrep.pc
