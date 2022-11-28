@@ -137,6 +137,9 @@ src/cmd/version.o: config.h
 
 endif
 
+
+#   *** TESTS ***
+
 @VALGRIND_CHECK_RULES@
 
 TEST_EXTENSIONS = .sh
@@ -144,10 +147,13 @@ SH_LOG_COMPILER =
 
 AM_TESTS_ENVIRONMENT = builddir=`pwd`;
 
+# unit tests and benchmarks are part of 'check' target
 check_PROGRAMS = test/test test/benchmarks/benchmarks
 
-TESTS = $(check_PROGRAMS)
+# ...but don't run benchmarks automatically with 'check'
+TESTS = test/test
 
+# add tests for Python bindings, if they're built (they're fast to run)
 if BUILD_PYTHON
 TESTS += pylightgrep/test.sh
 endif
@@ -245,6 +251,8 @@ test_benchmarks_benchmarks_CFLAGS = $(AM_CFLAGS) $(CATCH2_CFLAGS)
 test_benchmarks_benchmarks_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(CATCH2_LIBS) $(STDCXX_LIB)
 
 
+# pkgconfig
+
 pkgconfigdir = $(libdir)/pkgconfig
 nodist_pkgconfig_DATA = src/lib/lightgrep.pc
 
@@ -257,6 +265,8 @@ src/lib/lightgrep.pc: src/lib/lightgrep.pc.in Makefile
       $< >$@
 
 CLEANFILES = src/lib/lightgrep.pc include/lightgrep/encodings.h src/cmd/version.lo
+
+
 
 if BUILD_DLL
 src/lib/.libs/version.o: config.h
