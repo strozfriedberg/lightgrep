@@ -204,6 +204,7 @@ test_test_SOURCES = \
 	test/test_matchgen.cpp \
 	test/test_nfabuilder.cpp \
 	test/test_nfaoptimizer.cpp \
+	test/test_ng_backend.cpp \
 	test/test_oceencoder.cpp \
 	test/test_options.cpp \
 	test/test_optparser.cpp \
