@@ -1,9 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <cassert>
+#include <limits>
+
 #include "instructions.h"
 
 enum OpCodesNG {
   BYTE_OP_NG = 0,
+  SET_START,
   MATCH_OP_NG
 };
 
@@ -23,14 +27,21 @@ struct InstructionNG {
   }
 };
 
+
 struct CurEnd {
   uint32_t cur;
   uint32_t end;
 };
 
 struct MatchInfo {
-  uint32_t som;   // buffer index of start of match; needs to get remapped by callee
-  uint32_t label; // pattern index number
+  uint64_t Start,
+           End;
+  uint32_t Label; // pattern index number
+
+  MatchInfo():
+    Start(std::numeric_limits<uint64_t>::max()),
+    End(std::numeric_limits<uint64_t>::max()),
+    Label(std::numeric_limits<uint32_t>::max()) {}
 };
 
 #pragma pack(pop)
@@ -40,8 +51,12 @@ struct MatchInfo {
 
 class VmNG {
 public:
+  VmNG(): BufOffset(0) {}
+
+  uint64_t curBufOffset() const { return BufOffset; }
 
 private:
+  uint64_t BufOffset;
 };
 
 /*
@@ -69,7 +84,7 @@ int do_byte_op(const byte* buf,
                CurEnd& curBuf,
                const InstructionNG* prog,
                CurEnd& curProg,
-               MatchInfo info,
+               MatchInfo& info,
                void* vm)
 {
   const InstructionNG inst = prog[curProg.cur];
@@ -88,7 +103,7 @@ int do_branch_byte_op(const byte* buf,
                      CurEnd& curBuf,
                      const InstructionNG* prog,
                      CurEnd& curProg,
-                     MatchInfo info,
+                     MatchInfo& info,
                      void* vm)
 {
   if (UNLIKELY(curBuf.cur >= curBuf.end)) {
@@ -105,11 +120,27 @@ int do_branch_byte_op(const byte* buf,
   return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
+template<auto DispatcherFn>
+int do_set_start_op(const byte* buf,
+             CurEnd& curBuf,
+             const InstructionNG* prog,
+             CurEnd& curProg,
+             MatchInfo& info,
+             void* vm)
+{
+  VmNG& vmRef(*reinterpret_cast<VmNG*>(vm));
+
+  assert(vmRef.curBufOffset() + curBuf.cur >= prog[curProg.cur].Op.Offset);
+
+  info.Start = vmRef.curBufOffset() + curBuf.cur - prog[curProg.cur].Op.Offset;
+  return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+}
+
 int dispatch(const byte* buf,
              CurEnd& curBuf,
              const InstructionNG* prog,
              CurEnd& curProg,
-             MatchInfo info,
+             MatchInfo& info,
              void* vm)
 {
   if (UNLIKELY(curBuf.cur == curBuf.end)) {
@@ -124,7 +155,7 @@ int dispatch(const byte* buf,
 }
 
 
-struct TestDispatcher {
+struct TestDispatcher: public VmNG {
 
   const byte* Buf;
   CurEnd      CurBuf;
@@ -140,7 +171,7 @@ int test_dispatch(const byte* buf,
                      CurEnd& curBuf,
                      const InstructionNG* prog,
                      CurEnd& curProg,
-                     MatchInfo info,
+                     MatchInfo& info,
                      void* vm)
 {
   TestDispatcher* dPtr = reinterpret_cast<TestDispatcher*>(vm);
@@ -162,7 +193,7 @@ TEST_CASE("do_byte_op") {
   prog.OpCode = OpCodesNG::BYTE_OP_NG;
   prog.Op.T1.Byte = 'e';
   CurEnd curProg = {0, 1};
-  MatchInfo info = {0, 0};
+  MatchInfo info;
 
   int result = do_byte_op<test_dispatch>(buf, curBuf, &prog, curProg, info, &disp);
   REQUIRE(result == 0);
@@ -181,7 +212,7 @@ TEST_CASE("do_branch_byte_op") {
   prog[0].Op.T1.Byte = 'e';
   prog[1].set(0);
   CurEnd curProg = {0, 2};
-  MatchInfo info = {0, 0};
+  MatchInfo info;
 
   int result = do_branch_byte_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
   REQUIRE(curProg.cur == 0); // fails, branches back to zero
@@ -196,4 +227,21 @@ TEST_CASE("do_branch_byte_op") {
   REQUIRE(result == 0);
   REQUIRE(curProg.cur == 0);
   REQUIRE(curBuf.cur == 5);
+}
+
+TEST_CASE("set_start") {
+  TestDispatcher disp;
+
+  std::string data("hello");
+  const byte* buf = (const byte*)data.data();
+  CurEnd curBuf = {3, 5};
+  InstructionNG prog[2];
+  prog[0].OpCode = OpCodesNG::SET_START;
+  prog[0].Op.Offset = 0;
+  CurEnd curProg = {0, 1};
+  MatchInfo info;
+
+  int result = do_set_start_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(result == 1);
+  REQUIRE(info.Start == 3);
 }
