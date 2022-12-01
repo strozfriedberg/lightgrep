@@ -13,6 +13,14 @@ struct InstructionNG {
   Operand Op;
 
   byte OpCode; // low byte
+
+  void set(const uint32_t val) {
+    *reinterpret_cast<uint32_t*>(this) = val;
+  }
+
+  explicit operator uint32_t() const {
+    return *reinterpret_cast<const uint32_t*>(this);
+  }
 };
 
 struct CurEnd {
@@ -58,9 +66,9 @@ private:
 
 template<auto DispatcherFn>
 int do_byte_op(const byte* buf,
-               CurEnd curBuf,
+               CurEnd& curBuf,
                const InstructionNG* prog,
-               CurEnd curProg,
+               CurEnd& curProg,
                MatchInfo info,
                void* vm)
 {
@@ -75,10 +83,32 @@ int do_byte_op(const byte* buf,
   }
 }
 
+template<auto DispatcherFn>
+int do_branch_byte_op(const byte* buf,
+                     CurEnd& curBuf,
+                     const InstructionNG* prog,
+                     CurEnd& curProg,
+                     MatchInfo info,
+                     void* vm)
+{
+  if (UNLIKELY(curBuf.cur >= curBuf.end)) {
+    return 0;
+  }
+  const InstructionNG inst = prog[curProg.cur];
+  if (UNLIKELY(buf[curBuf.cur] == inst.Op.T1.Byte)) {
+    curProg.cur += 2;
+  }
+  else {
+    curProg.cur = uint32_t(prog[curProg.cur + 1]);
+  }
+  ++curBuf.cur;
+  return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+}
+
 int dispatch(const byte* buf,
-             CurEnd curBuf,
+             CurEnd& curBuf,
              const InstructionNG* prog,
-             CurEnd curProg,
+             CurEnd& curProg,
              MatchInfo info,
              void* vm)
 {
@@ -107,9 +137,9 @@ struct TestDispatcher {
 };
 
 int test_dispatch(const byte* buf,
-                     CurEnd curBuf,
+                     CurEnd& curBuf,
                      const InstructionNG* prog,
-                     CurEnd curProg,
+                     CurEnd& curProg,
                      MatchInfo info,
                      void* vm)
 {
@@ -140,17 +170,30 @@ TEST_CASE("do_byte_op") {
   REQUIRE(result == 1);
 }
 
-// TEST_CASE("do_branch_byte_op") {
-//   TestDispatcher disp;
+TEST_CASE("do_branch_byte_op") {
+  TestDispatcher disp;
 
-//   std::string data("hello");
-//   const byte* buf = (const byte*)data.data();
-//   CurEnd curBuf = {0, 5};
-//   InstructionNG prog[]
-//   prog.OpCode = OpCodesNG::BYTE_OP_NG;
-//   prog.Op.T1.Byte = 'e';
-//   CurEnd curProg = {0, 1};
-//   MatchInfo info = {0, 0};
+  std::string data("hello");
+  const byte* buf = (const byte*)data.data();
+  CurEnd curBuf = {0, 5};
+  InstructionNG prog[2];
+  prog[0].OpCode = OpCodesNG::BYTE_OP_NG;
+  prog[0].Op.T1.Byte = 'e';
+  prog[1].set(0);
+  CurEnd curProg = {0, 2};
+  MatchInfo info = {0, 0};
 
-//   int result = do_branch_byte_op<test_dispatch>(buf, curBuf, &prog, curProg, info, &disp);
-// }
+  int result = do_branch_byte_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(curProg.cur == 0); // fails, branches back to zero
+  REQUIRE(curBuf.cur == 1);
+  result = do_branch_byte_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(curProg.cur == 2); // succeeds, skips ahead
+  REQUIRE(curBuf.cur == 2);
+
+  curBuf.cur = 5; // return 0 since we're at the end of the buffer
+  curProg.cur = 0;
+  result = do_branch_byte_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(result == 0);
+  REQUIRE(curProg.cur == 0);
+  REQUIRE(curBuf.cur == 5);
+}
