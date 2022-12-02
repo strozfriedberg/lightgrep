@@ -131,8 +131,23 @@ int do_set_start_op(const byte* buf,
   VmNG& vmRef(*reinterpret_cast<VmNG*>(vm));
 
   assert(vmRef.curBufOffset() + curBuf.cur >= prog[curProg.cur].Op.Offset);
-
   info.Start = vmRef.curBufOffset() + curBuf.cur - prog[curProg.cur].Op.Offset;
+  ++curProg.cur;
+  return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+}
+
+template<auto DispatcherFn>
+int do_match_op(const byte* buf,
+             CurEnd& curBuf,
+             const InstructionNG* prog,
+             CurEnd& curProg,
+             MatchInfo& info,
+             void* vm)
+{
+  VmNG& vmRef(*reinterpret_cast<VmNG*>(vm));
+
+  info.End = vmRef.curBufOffset() + curBuf.cur + 1;
+  ++curProg.cur;
   return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
@@ -235,7 +250,7 @@ TEST_CASE("set_start") {
   std::string data("hello");
   const byte* buf = (const byte*)data.data();
   CurEnd curBuf = {3, 5};
-  InstructionNG prog[2];
+  InstructionNG prog[1];
   prog[0].OpCode = OpCodesNG::SET_START;
   prog[0].Op.Offset = 0;
   CurEnd curProg = {0, 1};
@@ -244,4 +259,23 @@ TEST_CASE("set_start") {
   int result = do_set_start_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
   REQUIRE(result == 1);
   REQUIRE(info.Start == 3);
+  REQUIRE(curProg.cur == 1);
+}
+
+TEST_CASE("match_op") {
+  TestDispatcher disp;
+
+  std::string data("hello");
+  const byte* buf = (const byte*)data.data();
+  CurEnd curBuf = {3, 5};
+  InstructionNG prog[1];
+  prog[0].OpCode = OpCodesNG::MATCH_OP_NG;
+  prog[0].Op.Offset = 0;
+  CurEnd curProg = {0, 1};
+  MatchInfo info;
+
+  int result = do_match_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(result == 1);
+  REQUIRE(info.End == 4);
+  REQUIRE(curProg.cur == 1);
 }
