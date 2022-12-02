@@ -8,7 +8,7 @@
 enum OpCodesNG {
   BYTE_OP_NG = 0,
   SET_START,
-  MATCH_OP_NG
+  SET_END
 };
 
 #pragma pack(push, 1)
@@ -137,7 +137,7 @@ int do_set_start_op(const byte* buf,
 }
 
 template<auto DispatcherFn>
-int do_match_op(const byte* buf,
+int do_set_end_op(const byte* buf,
              CurEnd& curBuf,
              const InstructionNG* prog,
              CurEnd& curProg,
@@ -262,19 +262,19 @@ TEST_CASE("set_start") {
   REQUIRE(curProg.cur == 1);
 }
 
-TEST_CASE("match_op") {
+TEST_CASE("set_end") {
   TestDispatcher disp;
 
   std::string data("hello");
   const byte* buf = (const byte*)data.data();
   CurEnd curBuf = {3, 5};
   InstructionNG prog[1];
-  prog[0].OpCode = OpCodesNG::MATCH_OP_NG;
+  prog[0].OpCode = OpCodesNG::SET_END;
   prog[0].Op.Offset = 0;
   CurEnd curProg = {0, 1};
   MatchInfo info;
 
-  int result = do_match_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  int result = do_set_end_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
   REQUIRE(result == 1);
   REQUIRE(info.End == 4);
   REQUIRE(curProg.cur == 1);
