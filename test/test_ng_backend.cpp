@@ -192,6 +192,14 @@ int dispatch(const byte* buf,
   switch(prog[curProg.cur].OpCode) {
   case BYTE_OP_NG:
     return do_byte_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+  case BRANCH_BYTE:
+    return do_branch_byte_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+  case SET_START:
+    return do_set_start_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+  case SET_END:
+    return do_set_end_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+  case MATCH_OP_NG:
+    return do_match_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   default:
     return 0;
   }
