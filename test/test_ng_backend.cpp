@@ -127,6 +127,7 @@ TEST_CASE("match_op") {
 
   REQUIRE(disp.hits().empty());
   int result = do_match_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(result == 1);
   REQUIRE(curProg.cur == 1);
   REQUIRE(disp.hits().size() == 1);
   REQUIRE(info == disp.hits()[0]);
