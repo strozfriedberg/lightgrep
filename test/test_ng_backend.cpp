@@ -56,6 +56,13 @@ struct MatchInfo {
 #define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
 
+int dispatch(const byte* buf,
+             CurEnd& curBuf,
+             const InstructionNG* prog,
+             CurEnd& curProg,
+             MatchInfo& info,
+             void* vm);
+
 class VmNG {
 public:
   VmNG(): BufOffset(0) {}
@@ -65,6 +72,15 @@ public:
   uint64_t curBufOffset() const { return BufOffset; }
 
   void addHit(const MatchInfo& hit) { Hits.push_back(hit); }
+
+  void search(const byte* buf, const byte* bufEnd, const InstructionNG* prog) {
+    BufOffset = 0;
+    CurEnd curBuf = {0, static_cast<uint32_t>(bufEnd - buf)};
+    CurEnd curProg = {0, 10};
+    MatchInfo info;
+
+    dispatch(buf, curBuf, prog, curProg, info, this);
+  }
 
 private:
   std::vector<MatchInfo> Hits;
@@ -159,7 +175,7 @@ int do_set_end_op(const byte* buf,
 {
   VmNG& vmRef(*reinterpret_cast<VmNG*>(vm));
 
-  info.End = vmRef.curBufOffset() + curBuf.cur + 1;
+  info.End = vmRef.curBufOffset() + curBuf.cur;
   ++curProg.cur;
   return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
@@ -293,6 +309,7 @@ TEST_CASE("set_start") {
 
   int result = do_set_start_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
   REQUIRE(result == 1);
+  REQUIRE(curBuf.cur == 3);
   REQUIRE(info.Start == 3);
   REQUIRE(curProg.cur == 1);
 }
@@ -311,7 +328,8 @@ TEST_CASE("set_end") {
 
   int result = do_set_end_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
   REQUIRE(result == 1);
-  REQUIRE(info.End == 4);
+  REQUIRE(curBuf.cur == 3);
+  REQUIRE(info.End == 3);
   REQUIRE(curProg.cur == 1);
 }
 
@@ -332,4 +350,46 @@ TEST_CASE("match_op") {
   REQUIRE(curProg.cur == 1);
   REQUIRE(disp.hits().size() == 1);
   REQUIRE(info == disp.hits()[0]);
+}
+
+TEST_CASE("simple_foo_search") {
+  VmNG vm;
+  //                0         1         2         3
+  //                0123456789012345678901234567890123456789
+  std::string data("This is a clear example of the foo going fubar.");
+  const byte* buf = (const byte*)data.data();
+
+  InstructionNG prog[11];
+  prog[0].OpCode = OpCodesNG::BRANCH_BYTE;
+  prog[0].Op.T1.Byte = 'f';
+  prog[1].set(0);
+  prog[2].OpCode = OpCodesNG::BRANCH_BYTE;
+  prog[2].Op.T1.Byte = 'o';
+  prog[3].set(0);
+  prog[4].OpCode = OpCodesNG::BRANCH_BYTE;
+  prog[4].Op.T1.Byte = 'o';
+  prog[5].set(0);
+  prog[6].OpCode = OpCodesNG::SET_START;
+  prog[6].Op.Offset = 3;
+  prog[7].OpCode = OpCodesNG::SET_END;
+  // need a label instruction
+  prog[8].OpCode = OpCodesNG::MATCH_OP_NG;
+  // need a prog[8] = Jmp 0
+  prog[9].OpCode = OpCodesNG::BRANCH_BYTE;
+  prog[9].Op.T1.Byte = 0; // null won't exist, so this is a poor man's jump
+  prog[10].set(0);
+
+  CurEnd curBuf = {0, static_cast<uint32_t>(data.length())};
+  CurEnd curProg = {0, 11};
+  MatchInfo info;
+
+  dispatch(buf, curBuf, prog, curProg, info, &vm);
+  REQUIRE(curBuf.cur == curBuf.end);
+  CHECK(curProg.cur == 0);
+//  vm.search(buf, buf + data.length(), &prog[0]);
+  REQUIRE(vm.hits().size() == 1);
+  const MatchInfo& hit = vm.hits()[0];
+  CHECK(hit.Start == 31);
+  CHECK(hit.End == 34);
+  CHECK(hit.Label == std::numeric_limits<uint32_t>::max());
 }
