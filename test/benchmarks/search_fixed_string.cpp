@@ -111,4 +111,61 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
       return searcher.search(holmes1);
     };
   }
+
+  TEST_CASE("ng-discretion") {
+    InstructionNG prog[25];
+    prog[0].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[0].Op.T1.Byte = 'd';
+    prog[1].set(0);
+    prog[2].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[2].Op.T1.Byte = 'i';
+    prog[3].set(0);
+    prog[4].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[4].Op.T1.Byte = 's';
+    prog[5].set(0);
+    prog[6].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[6].Op.T1.Byte = 'c';
+    prog[7].set(0);
+    prog[8].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[8].Op.T1.Byte = 'r';
+    prog[9].set(0);
+    prog[10].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[10].Op.T1.Byte = 'e';
+    prog[11].set(0);
+    prog[12].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[12].Op.T1.Byte = 't';
+    prog[13].set(0);
+    prog[14].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[14].Op.T1.Byte = 'i';
+    prog[15].set(0);
+    prog[16].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[16].Op.T1.Byte = 'o';
+    prog[17].set(0);
+    prog[18].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[18].Op.T1.Byte = 'n';
+    prog[19].set(0);
+    prog[20].OpCode = OpCodesNG::SET_START;
+    prog[20].Op.Offset = 10;
+    prog[21].OpCode = OpCodesNG::SET_END;
+    // need a label instruction
+    prog[22].OpCode = OpCodesNG::MATCH_OP_NG;
+    // need a prog[8] = Jmp 0
+    prog[23].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[23].Op.T1.Byte = 0; // null won't exist, so this is a poor man's jump
+    prog[24].set(0);
+
+    VmNG vm;
+
+    const byte* buf = (const byte*)holmes1.data();
+    const byte* bufEnd = buf + holmes1.length();
+    BENCHMARK("hits long") {
+      return vm.search(buf, bufEnd, &prog[0]);
+    };
+
+    buf = (const byte*)holmes2.data();
+    bufEnd = buf + holmes2.length();
+    BENCHMARK("no hits long") {
+      return vm.search(buf, bufEnd, &prog[0]);
+    };
+  }
 }
