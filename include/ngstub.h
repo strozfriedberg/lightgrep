@@ -48,7 +48,9 @@ struct MatchInfo {
   MatchInfo(uint64_t s, uint64_t e, uint32_t l):
     Start(s), End(e), Label(l) {}
 
-  bool operator==(const MatchInfo&) const = default;
+  bool operator==(const MatchInfo& x) const {
+		return Start == x.Start && End == x.End && Label == x.Label;
+	}
 };
 
 #pragma pack(pop)
