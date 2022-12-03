@@ -8,7 +8,8 @@
 enum OpCodesNG {
   BYTE_OP_NG = 0,
   SET_START,
-  SET_END
+  SET_END,
+  MATCH_OP_NG
 };
 
 #pragma pack(push, 1)
@@ -42,6 +43,11 @@ struct MatchInfo {
     Start(std::numeric_limits<uint64_t>::max()),
     End(std::numeric_limits<uint64_t>::max()),
     Label(std::numeric_limits<uint32_t>::max()) {}
+
+  MatchInfo(uint64_t s, uint64_t e, uint32_t l):
+    Start(s), End(e), Label(l) {}
+
+  bool operator==(const MatchInfo&) const = default;
 };
 
 #pragma pack(pop)
@@ -53,9 +59,15 @@ class VmNG {
 public:
   VmNG(): BufOffset(0) {}
 
+  const std::vector<MatchInfo>& hits() const { return Hits; }
+
   uint64_t curBufOffset() const { return BufOffset; }
 
+  void addHit(const MatchInfo& hit) { Hits.push_back(hit); }
+
 private:
+  std::vector<MatchInfo> Hits;
+
   uint64_t BufOffset;
 };
 
@@ -151,6 +163,21 @@ int do_set_end_op(const byte* buf,
   return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
+template<auto DispatcherFn>
+int do_match_op(const byte* buf,
+             CurEnd& curBuf,
+             const InstructionNG* prog,
+             CurEnd& curProg,
+             MatchInfo& info,
+             void* vm)
+{
+  VmNG& vmRef(*reinterpret_cast<VmNG*>(vm));
+
+  vmRef.addHit(info);
+  ++curProg.cur;
+  return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+}
+
 int dispatch(const byte* buf,
              CurEnd& curBuf,
              const InstructionNG* prog,
@@ -179,7 +206,6 @@ struct TestDispatcher: public VmNG {
   CurEnd               CurProg;
 
   MatchInfo   Info;
-
 };
 
 int test_dispatch(const byte* buf,
@@ -278,4 +304,23 @@ TEST_CASE("set_end") {
   REQUIRE(result == 1);
   REQUIRE(info.End == 4);
   REQUIRE(curProg.cur == 1);
+}
+
+TEST_CASE("match_op") {
+  TestDispatcher disp;
+
+  std::string data("hello");
+  const byte* buf = (const byte*)data.data();
+  CurEnd curBuf = {3, 5};
+  InstructionNG prog[1];
+  prog[0].OpCode = OpCodesNG::MATCH_OP_NG;
+  prog[0].Op.Offset = 0;
+  CurEnd curProg = {0, 1};
+  MatchInfo info = {1, 3, 2};
+
+  REQUIRE(disp.hits().empty());
+  int result = do_match_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(curProg.cur == 1);
+  REQUIRE(disp.hits().size() == 1);
+  REQUIRE(info == disp.hits()[0]);
 }
