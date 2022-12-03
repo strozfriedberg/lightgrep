@@ -7,6 +7,7 @@
 
 enum OpCodesNG {
   BYTE_OP_NG = 0,
+  BRANCH_BYTE,
   SET_START,
   SET_END,
   MATCH_OP_NG
@@ -249,7 +250,7 @@ TEST_CASE("do_branch_byte_op") {
   const byte* buf = (const byte*)data.data();
   CurEnd curBuf = {0, 5};
   InstructionNG prog[2];
-  prog[0].OpCode = OpCodesNG::BYTE_OP_NG;
+  prog[0].OpCode = OpCodesNG::BRANCH_BYTE;
   prog[0].Op.T1.Byte = 'e';
   prog[1].set(0);
   CurEnd curProg = {0, 2};
