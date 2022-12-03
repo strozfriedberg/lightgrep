@@ -120,7 +120,7 @@ int do_byte_op(const byte* buf,
   if (UNLIKELY(buf[curBuf.cur] == inst.Op.T1.Byte)) {
     ++curBuf.cur;
     ++curProg.cur;
-    return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+    [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
   }
   else {
     return 0;
@@ -146,7 +146,7 @@ int do_branch_byte_op(const byte* buf,
     curProg.cur = uint32_t(prog[curProg.cur + 1]);
   }
   ++curBuf.cur;
-  return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+  [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
 template<auto DispatcherFn>
@@ -162,7 +162,7 @@ int do_set_start_op(const byte* buf,
   assert(vmRef.curBufOffset() + curBuf.cur >= prog[curProg.cur].Op.Offset);
   info.Start = vmRef.curBufOffset() + curBuf.cur - prog[curProg.cur].Op.Offset;
   ++curProg.cur;
-  return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+  [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
 template<auto DispatcherFn>
@@ -177,7 +177,7 @@ int do_set_end_op(const byte* buf,
 
   info.End = vmRef.curBufOffset() + curBuf.cur;
   ++curProg.cur;
-  return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+  [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
 template<auto DispatcherFn>
@@ -192,7 +192,7 @@ int do_match_op(const byte* buf,
 
   vmRef.addHit(info);
   ++curProg.cur;
-  return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+  [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
 int dispatch(const byte* buf,
@@ -207,15 +207,15 @@ int dispatch(const byte* buf,
   }
   switch(prog[curProg.cur].OpCode) {
   case BYTE_OP_NG:
-    return do_byte_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+    [[clang::musttail]] return do_byte_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   case BRANCH_BYTE:
-    return do_branch_byte_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+    [[clang::musttail]] return do_branch_byte_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   case SET_START:
-    return do_set_start_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+    [[clang::musttail]] return do_set_start_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   case SET_END:
-    return do_set_end_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+    [[clang::musttail]] return do_set_end_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   case MATCH_OP_NG:
-    return do_match_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+    [[clang::musttail]] return do_match_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   default:
     return 0;
   }
