@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <limits>
+#include <cstring>
 
 #include "instructions.h"
 
@@ -10,7 +11,8 @@ enum OpCodesNG {
   BRANCH_BYTE,
   SET_START,
   SET_END,
-  MATCH_OP_NG
+  MATCH_OP_NG,
+  MEMCHR_OP
 };
 
 #pragma pack(push, 1)
@@ -194,6 +196,28 @@ int do_match_op(const byte* buf,
 
   vmRef.addHit(info);
   ++curProg.cur;
+  [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+}
+
+template<auto DispatcherFn>
+int do_memchr_op(const byte* buf,
+             CurEnd& curBuf,
+             const InstructionNG* prog,
+             CurEnd& curProg,
+             MatchInfo& info,
+             void* vm)
+{
+	const byte* cur = &buf[curBuf.cur];
+	const byte* end = &buf[curBuf.end];
+	const byte* found(reinterpret_cast<const byte*>(std::memchr(cur, prog[curProg.cur].Op.T1.Byte, end - cur)));
+	if (found) {
+		++curProg.cur;
+		curBuf.cur = found - cur;
+		++curBuf.cur;
+	}
+	else {
+		curBuf.cur = curBuf.end;
+	}
   [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 

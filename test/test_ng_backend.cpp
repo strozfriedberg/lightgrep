@@ -133,6 +133,32 @@ TEST_CASE("match_op") {
   REQUIRE(info == disp.hits()[0]);
 }
 
+TEST_CASE("memchr_op") {
+  TestDispatcher disp;
+
+  std::string data("hello");
+  const byte* buf = (const byte*)data.data();
+  CurEnd curBuf = {0, 5};
+  InstructionNG prog[1];
+  prog[0].OpCode = OpCodesNG::MEMCHR_OP;
+  prog[0].Op.T1.Byte = 'l';
+  CurEnd curProg = {0, 1};
+  MatchInfo info;
+
+  int result = do_memchr_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(result == 1);
+  REQUIRE(curProg.cur == 1);
+  REQUIRE(curBuf.cur == 3); // remember, one past, since it consumes
+
+  curBuf.cur = 0;
+  curProg.cur = 0;
+  prog[0].Op.T1.Byte = 'j';
+  result = do_memchr_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(result == 1);
+  REQUIRE(curProg.cur == 0);
+  REQUIRE(curBuf.cur == 5);
+}
+
 TEST_CASE("simple_foo_search") {
   VmNG vm;
   //                0         1         2         3
