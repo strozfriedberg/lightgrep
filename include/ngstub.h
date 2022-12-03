@@ -67,7 +67,7 @@ int dispatch(const byte* buf,
 
 class VmNG {
 public:
-  VmNG(): BufOffset(0) {}
+  VmNG(): BufOffset(0) { Hits.reserve(100); }
 
   const std::vector<MatchInfo>& hits() const { return Hits; }
 
