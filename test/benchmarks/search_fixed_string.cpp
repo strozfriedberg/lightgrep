@@ -75,29 +75,118 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
     prog[9].Op.T1.Byte = 0; // null won't exist, so this is a poor man's jump
     prog[10].set(0);
 
-    VmNG vm;
+    VmNG searcher;
+    searcher.search(buf, bufEnd, &prog[0]);
+    REQUIRE(searcher.hits().size() == 1);
+    CHECK(searcher.hits()[0].Start == 31);
+    CHECK(searcher.hits()[0].End == 34);
+    searcher.reset();
 
     BENCHMARK("hits short") {
-      return vm.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd, &prog[0]);
     };
+    searcher.reset();
 
     buf = (const byte*)bazStr.data();
     bufEnd = buf + bazStr.length();
+    searcher.search(buf, bufEnd, &prog[0]);
+    REQUIRE(searcher.hits().size() == 0);
+    searcher.reset();
+
     BENCHMARK("no hits short") {
-      return vm.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd, &prog[0]);
     };
+    searcher.reset();
 
     buf = (const byte*)holmes1.data();
     bufEnd = buf + holmes1.length();
+    searcher.search(buf, bufEnd, &prog[0]);
+    REQUIRE(searcher.hits().size() == 1);
+    CHECK(searcher.hits()[0].Start == 392);
+    CHECK(searcher.hits()[0].End == 395);
+    searcher.reset();
+
     BENCHMARK("hits long") {
-      return vm.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd, &prog[0]);
     };
+    searcher.reset();
+
+    buf = (const byte*)holmes2.data();
+    bufEnd = buf + holmes2.length();
+    searcher.search(buf, bufEnd, &prog[0]);
+    REQUIRE(searcher.hits().size() == 0);
+    searcher.reset();
+
+    BENCHMARK("no hits long") {
+      return searcher.search(buf, bufEnd, &prog[0]);
+    };
+  }
+
+  TEST_CASE("ng-foo-memchr") {
+    const byte* buf = (const byte*)fooStr.data();
+    const byte* bufEnd = buf + fooStr.length();
+
+    InstructionNG prog[10];
+    prog[0].OpCode = OpCodesNG::MEMCHR_OP;
+    prog[0].Op.T1.Byte = 'f';
+    prog[1].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[1].Op.T1.Byte = 'o';
+    prog[2].set(0);
+    prog[3].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[3].Op.T1.Byte = 'o';
+    prog[4].set(0);
+    prog[5].OpCode = OpCodesNG::SET_START;
+    prog[5].Op.Offset = 3;
+    prog[6].OpCode = OpCodesNG::SET_END;
+    // need a label instruction
+    prog[7].OpCode = OpCodesNG::MATCH_OP_NG;
+    // need a prog[8] = Jmp 0
+    prog[8].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[8].Op.T1.Byte = 0; // null won't exist, so this is a poor man's jump
+    prog[9].set(0);
+
+    VmNG searcher;
+    searcher.search(buf, bufEnd, &prog[0]);
+    REQUIRE(searcher.hits().size() == 1);
+    CHECK(searcher.hits()[0].Start == 31);
+    CHECK(searcher.hits()[0].End == 34);
+    searcher.reset();
+
+    BENCHMARK("hits short") {
+      return searcher.search(buf, bufEnd, &prog[0]);
+    };
+    searcher.reset();
+
+    buf = (const byte*)bazStr.data();
+    bufEnd = buf + bazStr.length();
+    searcher.search(buf, bufEnd, &prog[0]);
+    REQUIRE(searcher.hits().size() == 0);
+    searcher.reset();
+
+    BENCHMARK("no hits short") {
+      return searcher.search(buf, bufEnd, &prog[0]);
+    };
+    searcher.reset();
+
+    buf = (const byte*)holmes1.data();
+    bufEnd = buf + holmes1.length();
+    searcher.search(buf, bufEnd, &prog[0]);
+    REQUIRE(searcher.hits().size() == 1);
+    CHECK(searcher.hits()[0].Start == 392);
+    CHECK(searcher.hits()[0].End == 395);
+    searcher.reset();
+
+    BENCHMARK("hits long") {
+      return searcher.search(buf, bufEnd, &prog[0]);
+    };
+    searcher.reset();
 
     buf = (const byte*)holmes2.data();
     bufEnd = buf + holmes2.length();
     BENCHMARK("no hits long") {
-      return vm.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd, &prog[0]);
     };
+    REQUIRE(searcher.hits().size() == 0);
   }
 
   TEST_CASE("discretion") {
@@ -153,6 +242,62 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
     prog[23].OpCode = OpCodesNG::BRANCH_BYTE;
     prog[23].Op.T1.Byte = 0; // null won't exist, so this is a poor man's jump
     prog[24].set(0);
+
+    VmNG vm;
+
+    const byte* buf = (const byte*)holmes1.data();
+    const byte* bufEnd = buf + holmes1.length();
+    BENCHMARK("hits long") {
+      return vm.search(buf, bufEnd, &prog[0]);
+    };
+
+    buf = (const byte*)holmes2.data();
+    bufEnd = buf + holmes2.length();
+    BENCHMARK("no hits long") {
+      return vm.search(buf, bufEnd, &prog[0]);
+    };
+  }
+
+  TEST_CASE("ng-discretion-memchr") {
+    InstructionNG prog[24];
+    prog[0].OpCode = OpCodesNG::MEMCHR_OP;
+    prog[0].Op.T1.Byte = 'd';
+    prog[1].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[1].Op.T1.Byte = 'i';
+    prog[2].set(0);
+    prog[3].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[3].Op.T1.Byte = 's';
+    prog[4].set(0);
+    prog[5].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[5].Op.T1.Byte = 'c';
+    prog[6].set(0);
+    prog[7].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[7].Op.T1.Byte = 'r';
+    prog[8].set(0);
+    prog[9].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[9].Op.T1.Byte = 'e';
+    prog[10].set(0);
+    prog[11].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[11].Op.T1.Byte = 't';
+    prog[12].set(0);
+    prog[13].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[13].Op.T1.Byte = 'i';
+    prog[14].set(0);
+    prog[15].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[15].Op.T1.Byte = 'o';
+    prog[16].set(0);
+    prog[17].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[17].Op.T1.Byte = 'n';
+    prog[18].set(0);
+    prog[19].OpCode = OpCodesNG::SET_START;
+    prog[19].Op.Offset = 10;
+    prog[20].OpCode = OpCodesNG::SET_END;
+    // need a label instruction
+    prog[21].OpCode = OpCodesNG::MATCH_OP_NG;
+    // need a prog[8] = Jmp 0
+    prog[22].OpCode = OpCodesNG::BRANCH_BYTE;
+    prog[22].Op.T1.Byte = 0; // null won't exist, so this is a poor man's jump
+    prog[23].set(0);
 
     VmNG vm;
 

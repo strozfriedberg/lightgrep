@@ -150,6 +150,13 @@ TEST_CASE("memchr_op") {
   REQUIRE(curProg.cur == 1);
   REQUIRE(curBuf.cur == 3); // remember, one past, since it consumes
 
+  // find the next 'l', which is currently pointed at
+  curProg.cur = 0;
+  result = do_memchr_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(result == 1);
+  REQUIRE(curProg.cur == 1);
+  REQUIRE(curBuf.cur == 4);
+
   curBuf.cur = 0;
   curProg.cur = 0;
   prog[0].Op.T1.Byte = 'j';

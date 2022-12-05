@@ -51,8 +51,8 @@ struct MatchInfo {
     Start(s), End(e), Label(l) {}
 
   bool operator==(const MatchInfo& x) const {
-		return Start == x.Start && End == x.End && Label == x.Label;
-	}
+    return Start == x.Start && End == x.End && Label == x.Label;
+  }
 };
 
 #pragma pack(pop)
@@ -84,6 +84,11 @@ public:
     MatchInfo info;
 
     dispatch(buf, curBuf, prog, curProg, info, this);
+  }
+
+  void reset() {
+    Hits.clear();
+    BufOffset = 0;
   }
 
 private:
@@ -207,17 +212,20 @@ int do_memchr_op(const byte* buf,
              MatchInfo& info,
              void* vm)
 {
-	const byte* cur = &buf[curBuf.cur];
-	const byte* end = &buf[curBuf.end];
-	const byte* found(reinterpret_cast<const byte*>(std::memchr(cur, prog[curProg.cur].Op.T1.Byte, end - cur)));
-	if (found) {
-		++curProg.cur;
-		curBuf.cur = found - cur;
-		++curBuf.cur;
-	}
-	else {
-		curBuf.cur = curBuf.end;
-	}
+  // std::cerr << "memchr'ing for '" << prog[curProg.cur].Op.T1.Byte << "' [" << curBuf.cur << ", " << curBuf.end << ") of " << buf << '\n';
+  const byte* cur = &buf[curBuf.cur];
+  const byte* end = &buf[curBuf.end];
+  const byte* found(reinterpret_cast<const byte*>(std::memchr(cur, prog[curProg.cur].Op.T1.Byte, end - cur)));
+  if (found) {
+    ++curProg.cur;
+    curBuf.cur = found - buf;
+    ++curBuf.cur;
+    // std::cerr << "Found at " << (curBuf.cur - 1) << ", curProg.cur at " << curProg.cur << '\n';
+  }
+  else {
+    // std::cerr << "Not found\n";
+    curBuf.cur = curBuf.end;
+  }
   [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
@@ -242,6 +250,8 @@ int dispatch(const byte* buf,
     [[clang::musttail]] return do_set_end_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   case MATCH_OP_NG:
     [[clang::musttail]] return do_match_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+   case MEMCHR_OP:
+    [[clang::musttail]] return do_memchr_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   default:
     return 0;
   }
