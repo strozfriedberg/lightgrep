@@ -207,3 +207,168 @@ TEST_CASE("simple_foo_search") {
   CHECK(hit.End == 34);
   CHECK(hit.Label == std::numeric_limits<uint32_t>::max());
 }
+
+#include <list>
+
+TEST_CASE("list_test") {
+  std::list<int> l;
+  auto itr = l.insert(l.begin(), 5);
+  REQUIRE(itr == l.begin());
+  REQUIRE(*itr == 5);
+
+  itr = l.insert(l.begin(), 6);
+  REQUIRE(itr == l.begin());
+  REQUIRE(*itr == 6);
+}
+
+#include "lightgrep/search_hit.h"
+
+#include <iterator>
+
+struct ThreadNG {
+  uint32_t PC;
+
+  LG_SearchHit Hit;
+};
+
+class Threadlist {
+public:
+  class TLIterator {
+  public:
+    friend class Threadlist;
+
+    using iterator_category = std::bidirectional_iterator_tag;
+    using difference_type   = std::ptrdiff_t;
+    using value_type        = ThreadNG;
+    using pointer           = value_type*;
+    using reference         = value_type&;
+
+    // constructors
+    // constructible, copy-constructible, copy-assignable, destructible, swappable
+
+    // operators
+    reference operator*() const { return TL->Vec[Index].T; }
+    pointer operator->() { return &TL->Vec[Index].T; }
+
+    TLIterator& operator++() {
+      if (Index != SENTINEL) {
+        Index = TL->Vec[Index].next;
+      }
+      return *this;
+    }
+
+    TLIterator operator++(int) {
+      TLIterator ret(*this);
+      if (Index != SENTINEL) {
+        Index = TL->Vec[Index].next;
+      }
+      return ret;
+    }
+
+    friend bool operator==(const TLIterator& a, const TLIterator& b) { return a.TL == b.TL && a.Index == b.Index; }
+    friend bool operator!=(const TLIterator& a, const TLIterator& b) { return a.TL != b.TL || a.Index != b.Index; }
+
+  private:
+    TLIterator(Threadlist* tl, uint32_t i): TL(tl), Index(i) {}
+
+    Threadlist* TL; // look, pointers still work, it'll be okay
+
+    uint32_t Index;
+  };
+
+  friend class TLIterator;
+
+  Threadlist(): First(SENTINEL), Last(SENTINEL), Size(0) {}
+
+  bool empty() const { return Size == 0; }
+
+  size_t size() const { return Size; }
+
+
+  TLIterator insert(TLIterator pos, const ThreadNG& t) {
+    uint32_t i = alloc_node(t);
+
+    if (pos.Index == First) {
+      Vec[i].next = First;
+      First = i;
+    }
+    else {
+      auto& posRef(Vec[pos.Index]);
+      Vec[i].prev = posRef.prev;
+      Vec[i].next = pos.Index;
+
+      Vec[posRef.prev].next = i;
+      posRef.prev = i;
+    }
+    return TLIterator(this, i);
+  }
+
+  TLIterator begin() { return TLIterator(this, First); }
+  TLIterator end() { return TLIterator(this, Last); }
+
+private:
+  static const uint32_t SENTINEL = std::numeric_limits<uint32_t>::max();
+
+  uint32_t alloc_node(const ThreadNG& t) {
+    Vec.push_back(t);
+    ++Size;
+    return Vec.size() - 1;
+  }
+
+  struct ThreadNode {
+    ThreadNG T;
+
+    uint32_t prev;
+    uint32_t next;
+
+    ThreadNode(): T(), prev(SENTINEL), next(SENTINEL) {}
+    ThreadNode(const ThreadNG& t): T(t), prev(SENTINEL), next(SENTINEL) {}
+  };
+
+  std::vector<ThreadNode> Vec;
+
+  uint32_t First,
+           Last;
+
+  size_t Size;
+};
+
+TEST_CASE("threadlist") {
+  Threadlist list;
+
+  ThreadNG t;
+  t.PC = 5;
+
+  REQUIRE(list.empty());
+  REQUIRE(list.size() == 0);
+  auto itr = list.insert(list.begin(), t);
+  REQUIRE(!list.empty());
+  REQUIRE(list.size() == 1);
+  REQUIRE(itr == list.begin());
+  REQUIRE(itr != list.end());
+  REQUIRE(itr->PC == 5);
+  REQUIRE((*itr).PC == 5);
+
+  itr = list.insert(list.begin(), ThreadNG{6, LG_SearchHit()});
+  REQUIRE(list.size() == 2);
+  REQUIRE(itr == list.begin());
+  REQUIRE(itr != list.end());
+  REQUIRE(itr->PC == 6);
+
+  ++itr;
+  REQUIRE(itr != list.begin());
+  REQUIRE(itr != list.end());
+  REQUIRE(itr->PC == 5);
+
+  auto prevItr = itr++;
+  REQUIRE(prevItr != itr);
+  REQUIRE(prevItr != list.begin());
+  REQUIRE(prevItr != list.end());
+  REQUIRE(prevItr->PC == 5);
+  REQUIRE(itr == list.end());
+
+  auto end = list.end();
+  REQUIRE(end == list.end());
+  ++end;
+  REQUIRE(end == list.end());
+}
