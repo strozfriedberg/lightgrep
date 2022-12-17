@@ -284,7 +284,6 @@ public:
 
   size_t size() const { return Size; }
 
-
   TLIterator insert(TLIterator pos, const ThreadNG& t) {
     uint32_t i = alloc_node(t);
 
@@ -305,6 +304,11 @@ public:
 
   TLIterator begin() { return TLIterator(this, First); }
   TLIterator end() { return TLIterator(this, Last); }
+
+  void clear() {
+    First = Last = SENTINEL;
+    Size = 0;
+  }
 
 private:
   static const uint32_t SENTINEL = std::numeric_limits<uint32_t>::max();
@@ -371,4 +375,9 @@ TEST_CASE("threadlist") {
   REQUIRE(end == list.end());
   ++end;
   REQUIRE(end == list.end());
+
+  list.clear();
+  REQUIRE(list.empty());
+  REQUIRE(list.size() == 0);
+  REQUIRE(list.begin() == list.end());
 }
