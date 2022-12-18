@@ -251,19 +251,21 @@ public:
     pointer operator->() { return &TL->Vec[Index].T; }
 
     TLIterator& operator++() {
-      if (Index != SENTINEL) {
-        Index = TL->Vec[Index].next;
+      if (Index != TL->Last) {
+        Index = TL->Vec[Index].Next;
       }
       return *this;
     }
 
     TLIterator operator++(int) {
       TLIterator ret(*this);
-      if (Index != SENTINEL) {
-        Index = TL->Vec[Index].next;
+      if (Index != TL->Last) {
+        Index = TL->Vec[Index].Next;
       }
       return ret;
     }
+
+    uint32_t index() const { return Index; }
 
     friend bool operator==(const TLIterator& a, const TLIterator& b) { return a.TL == b.TL && a.Index == b.Index; }
     friend bool operator!=(const TLIterator& a, const TLIterator& b) { return a.TL != b.TL || a.Index != b.Index; }
@@ -278,7 +280,24 @@ public:
 
   friend class TLIterator;
 
-  Threadlist(): First(SENTINEL), Last(SENTINEL), Size(0) {}
+  struct ThreadNode {
+    ThreadNG T;
+
+    uint32_t Prev;
+    uint32_t Next;
+
+    ThreadNode(): T(), Prev(SENTINEL), Next(SENTINEL) {}
+    ThreadNode(const ThreadNG& t, uint32_t prev = SENTINEL, uint32_t next = SENTINEL): T(t), Prev(prev), Next(next) {}
+  };
+
+
+  Threadlist():
+    First(0), Last(1), Size(0)
+  {
+    Vec.reserve(20);
+    Vec.emplace_back(ThreadNG(), SENTINEL, 1u);
+    Vec.emplace_back(ThreadNG(), 0u, SENTINEL);
+  }
 
   bool empty() const { return Size == 0; }
 
@@ -287,26 +306,23 @@ public:
   TLIterator insert(TLIterator pos, const ThreadNG& t) {
     uint32_t i = alloc_node(t);
 
-    if (pos.Index == First) {
-      Vec[i].next = First;
-      First = i;
-    }
-    else {
-      auto& posRef(Vec[pos.Index]);
-      Vec[i].prev = posRef.prev;
-      Vec[i].next = pos.Index;
+    auto& posRef(Vec[pos.Index]);
+    auto& newRef(Vec[i]);
+    newRef.Prev = posRef.Prev;
+    newRef.Next = pos.Index;
 
-      Vec[posRef.prev].next = i;
-      posRef.prev = i;
-    }
+    Vec[posRef.Prev].Next = i;
+    posRef.Prev = i;
+
     return TLIterator(this, i);
   }
 
-  TLIterator begin() { return TLIterator(this, First); }
+  TLIterator begin() { return TLIterator(this, Vec[First].Next); }
   TLIterator end() { return TLIterator(this, Last); }
 
   void clear() {
-    First = Last = SENTINEL;
+    Vec[First].Next = Last;
+    Vec[Last].Prev = First;
     Size = 0;
   }
 
@@ -319,16 +335,6 @@ private:
     return Vec.size() - 1;
   }
 
-  struct ThreadNode {
-    ThreadNG T;
-
-    uint32_t prev;
-    uint32_t next;
-
-    ThreadNode(): T(), prev(SENTINEL), next(SENTINEL) {}
-    ThreadNode(const ThreadNG& t): T(t), prev(SENTINEL), next(SENTINEL) {}
-  };
-
   std::vector<ThreadNode> Vec;
 
   uint32_t First,
@@ -336,6 +342,7 @@ private:
 
   size_t Size;
 };
+
 
 TEST_CASE("threadlist") {
   Threadlist list;
@@ -369,6 +376,14 @@ TEST_CASE("threadlist") {
   REQUIRE(prevItr != list.begin());
   REQUIRE(prevItr != list.end());
   REQUIRE(prevItr->PC == 5);
+  REQUIRE(itr == list.end());
+
+  itr = list.insert(list.end(), ThreadNG{7, LG_SearchHit()});
+  REQUIRE(itr != list.begin());
+  REQUIRE(itr != list.end());
+  REQUIRE(list.size() == 3);
+  REQUIRE(itr->PC == 7);
+  ++itr;
   REQUIRE(itr == list.end());
 
   auto end = list.end();
