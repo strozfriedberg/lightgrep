@@ -320,6 +320,21 @@ public:
   TLIterator begin() { return TLIterator(this, Vec[First].Next); }
   TLIterator end() { return TLIterator(this, Last); }
 
+  ThreadNG& front() { return Vec[Vec[First].Next].T; }
+  ThreadNG& back() { return Vec[Vec[Last].Prev].T; }
+
+  TLIterator erase(TLIterator pos) {
+    // it should not be possible to get an itr where pos.Index == First
+    if (pos.Index == Last || pos.Index == SENTINEL) {
+      return end();
+    }
+    auto& posRef(Vec[pos.Index]);
+    Vec[posRef.Prev].Next = posRef.Next;
+    Vec[posRef.Next].Prev = posRef.Prev;
+    --Size;
+    return TLIterator(this, posRef.Next);
+  }
+
   void clear() {
     Vec[First].Next = Last;
     Vec[Last].Prev = First;
@@ -395,4 +410,17 @@ TEST_CASE("threadlist") {
   REQUIRE(list.empty());
   REQUIRE(list.size() == 0);
   REQUIRE(list.begin() == list.end());
+
+  list.insert(list.end(), ThreadNG{1, LG_SearchHit()});
+  itr = list.insert(list.end(), ThreadNG{2, LG_SearchHit()});
+  list.insert(list.end(), ThreadNG{3, LG_SearchHit()});
+  REQUIRE(list.size() == 3);
+  itr = list.erase(itr);
+  REQUIRE(list.size() == 2);
+  REQUIRE(itr->PC == 3);
+  REQUIRE(list.front().PC == 1);
+  REQUIRE(list.back().PC == 3);
+  itr = list.erase(itr);
+  REQUIRE(list.size() == 1);
+  REQUIRE(itr == list.end());
 }
