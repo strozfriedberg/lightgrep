@@ -209,19 +209,6 @@ TEST_CASE("simple_foo_search") {
   CHECK(hit.Label == std::numeric_limits<uint32_t>::max());
 }
 
-#include <list>
-
-TEST_CASE("list_test") {
-  std::list<int> l;
-  auto itr = l.insert(l.begin(), 5);
-  REQUIRE(itr == l.begin());
-  REQUIRE(*itr == 5);
-
-  itr = l.insert(l.begin(), 6);
-  REQUIRE(itr == l.begin());
-  REQUIRE(*itr == 6);
-}
-
 #include "lightgrep/search_hit.h"
 
 #include <iterator>
@@ -405,6 +392,7 @@ private:
   size_t Size;
 };
 
+#include <list>
 
 TEST_CASE("threadlist") {
   Threadlist list;
