@@ -1,3 +1,4 @@
+#include <catch2/benchmark/catch_benchmark_all.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include "ngstub.h"
@@ -232,6 +233,32 @@ struct ThreadNG {
 };
 
 class Threadlist {
+/*
+  The point of this data structure is to provide for fast O(1) insertion and deletion
+  in a list while avoiding the deleterious heap allocations and pointer-chasing of
+  a conventional linked list (e.g., std::list). The below is not a full-fledged 
+  implementation of the std::list<> API, but is intended to be a compatible subset
+  and further rounding out of std::list<> API is fine.
+
+  The basic idea is to use a std::vector as a backing store for the nodes in the list.
+  Rather than use 2 64-bit pointers in the nodes, 2 32-bit indices are used. Two sentinel
+  nodes are reserved first in the vector, for a zeroth node pointing to the first node
+  in the list and for an end node beyond the last. By using two sentinel nodes, 
+  several conditionals are avoided in insert() and erase().
+
+  The vector expands as the list grows. However, nodes in the list may be erased, leaving
+  holes. This would have two negative consequences: first, more memory than necessary
+  would be used over the time as new nodes in the list were created at the end of the
+  vector (instead of reusing these 'holes'); second, memory locality would decrease,
+  leading to cache misses. To keep this from happening, a second list is maintained--a
+  free list (stack), of all the nodes that have been deleted and are now free. When a node is
+  erased from the list, it is added onto the free list. When a new node is created,
+  the space for it comes from the free list. Only when the free list is empty will the
+  backing vector grow its size. The free list is maintained by reusing the Next index
+  in the Node struct. The free list is effectively singly-linked so Prev is not
+  manipulated. The only overhead cost of maintaining this second free list is the
+  single uint32_t for knowing the index of the first element in the free list.
+*/
 public:
   class TLIterator {
   public:
@@ -292,7 +319,7 @@ public:
 
 
   Threadlist():
-    First(0), Last(1), Size(0)
+    First(0), Last(1), Free(SENTINEL), Size(0)
   {
     Vec.reserve(20);
     Vec.emplace_back(ThreadNG(), SENTINEL, 1u);
@@ -302,6 +329,10 @@ public:
   bool empty() const { return Size == 0; }
 
   size_t size() const { return Size; }
+  size_t capacity() const { return Vec.capacity(); }
+  size_t vector_size() const { return Vec.size(); }
+
+  void reserve(size_t capacity) { Vec.reserve(capacity); }
 
   TLIterator insert(TLIterator pos, const ThreadNG& t) {
     uint32_t i = alloc_node(t);
@@ -332,7 +363,14 @@ public:
     Vec[posRef.Prev].Next = posRef.Next;
     Vec[posRef.Next].Prev = posRef.Prev;
     --Size;
-    return TLIterator(this, posRef.Next);
+
+    TLIterator ret(this, posRef.Next);
+
+    // add to free list
+    posRef.Next = Free;
+    Free = pos.Index;
+
+    return ret;
   }
 
   void clear() {
@@ -345,15 +383,24 @@ private:
   static const uint32_t SENTINEL = std::numeric_limits<uint32_t>::max();
 
   uint32_t alloc_node(const ThreadNG& t) {
-    Vec.push_back(t);
+    uint32_t ret;
     ++Size;
-    return Vec.size() - 1;
+    if (Free == SENTINEL) {
+      Vec.push_back(t);
+      ret = Vec.size() - 1;
+    }
+    else {
+      ret = Free;
+      Free = Vec[Free].Next;
+    }
+    return ret;
   }
 
   std::vector<ThreadNode> Vec;
 
   uint32_t First,
-           Last;
+           Last,
+           Free;
 
   size_t Size;
 };
@@ -423,4 +470,61 @@ TEST_CASE("threadlist") {
   itr = list.erase(itr);
   REQUIRE(list.size() == 1);
   REQUIRE(itr == list.end());
+
+  const size_t vec_size = list.vector_size();
+  itr = list.insert(list.end(), ThreadNG{8, LG_SearchHit()});
+  REQUIRE(vec_size == list.vector_size());
+
+  Threadlist list1;
+  list1.reserve(100);
+  BENCHMARK("threadlist performance") {
+    list1.clear();
+    for (unsigned int i = 0; i < 40; ++i) {
+      list1.insert(list1.begin(), ThreadNG{i, LG_SearchHit()});
+    }
+    auto itr = list1.begin();
+    for (unsigned int i = 0; i < 10; ++i) {
+      itr = list1.erase(itr);
+      ++itr;
+      ++itr;
+    }
+    for (unsigned int i = 0; i < 10; ++i) {
+      list1.insert(list1.begin(), ThreadNG{i, LG_SearchHit()});
+    }
+  };
+
+  std::list<ThreadNG> list2;
+  BENCHMARK("stdlist performance") {
+    list2.clear();
+    for (unsigned int i = 0; i < 40; ++i) {
+      list2.insert(list2.begin(), ThreadNG{i, LG_SearchHit()});
+    }
+    auto itr = list2.begin();
+    for (unsigned int i = 0; i < 10; ++i) {
+      itr = list2.erase(itr);
+      ++itr;
+      ++itr;
+    }
+    for (unsigned int i = 0; i < 10; ++i) {
+      list2.insert(list2.begin(), ThreadNG{i, LG_SearchHit()});
+    }
+  };
+
+  std::vector<ThreadNG> list3;
+  list3.reserve(100);
+  BENCHMARK("vectorlist performance") {
+    list3.clear();
+    for (unsigned int i = 0; i < 40; ++i) {
+      list3.insert(list3.begin(), ThreadNG{i, LG_SearchHit()});
+    }
+    auto itr = list3.begin();
+    for (unsigned int i = 0; i < 10; ++i) {
+      itr = list3.erase(itr);
+      ++itr;
+      ++itr;
+    }
+    for (unsigned int i = 0; i < 10; ++i) {
+      list3.insert(list3.begin(), ThreadNG{i, LG_SearchHit()});
+    }
+  };
 }
