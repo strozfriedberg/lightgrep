@@ -3,9 +3,8 @@
 
 #include "../stest.h"
 
-#include "ngstub.h"
-
 namespace {
+#include "ngstub.h"
 
   std::string fooStr("This is a clear example of the foo going fubar.");
   std::string bazStr("This is another example of the baz going fubar.");
