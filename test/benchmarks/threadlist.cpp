@@ -7,58 +7,42 @@
 
 namespace {
 
+template<class T>
+class stdlist: public std::list<T> {
+public:
+	void reserve(size_t) {}
+};
+
+template<class ListT, unsigned int INITIAL, unsigned int DELETE, unsigned int ADDITIONAL>
+void list_mixed_benchmark(const char* name) {
+	BENCHMARK(name) {
+		ListT list;
+		list.reserve(INITIAL * 2);
+    for (unsigned int i = 0; i < INITIAL; ++i) {
+      list.insert(list.begin(), ThreadNG{i, LG_SearchHit()});
+    }
+    auto itr = list.begin();
+    for (unsigned int i = 0; i < DELETE; ++i) {
+      itr = list.erase(itr);
+      ++itr;
+    }
+    for (unsigned int i = 0; i < ADDITIONAL; ++i) {
+      list.insert(list.begin(), ThreadNG{i, LG_SearchHit()});
+    }
+	};
+}
+
 TEST_CASE("threadlist") {
-  Threadlist list1;
-  list1.reserve(100);
-  BENCHMARK("threadlist performance") {
-    list1.clear();
-    for (unsigned int i = 0; i < 40; ++i) {
-      list1.insert(list1.begin(), ThreadNG{i, LG_SearchHit()});
-    }
-    auto itr = list1.begin();
-    for (unsigned int i = 0; i < 10; ++i) {
-      itr = list1.erase(itr);
-      ++itr;
-      ++itr;
-    }
-    for (unsigned int i = 0; i < 10; ++i) {
-      list1.insert(list1.begin(), ThreadNG{i, LG_SearchHit()});
-    }
-  };
+	list_mixed_benchmark<Threadlist, 5, 3, 2>("threadlist(5, 3, 2)");
+	list_mixed_benchmark<stdlist<ThreadNG>, 5, 3, 2>("std::list(5, 3, 2)");
+	list_mixed_benchmark<std::vector<ThreadNG>, 5, 3, 2>("std::vector(5, 3, 2)");
 
-  std::list<ThreadNG> list2;
-  BENCHMARK("stdlist performance") {
-    list2.clear();
-    for (unsigned int i = 0; i < 40; ++i) {
-      list2.insert(list2.begin(), ThreadNG{i, LG_SearchHit()});
-    }
-    auto itr = list2.begin();
-    for (unsigned int i = 0; i < 10; ++i) {
-      itr = list2.erase(itr);
-      ++itr;
-      ++itr;
-    }
-    for (unsigned int i = 0; i < 10; ++i) {
-      list2.insert(list2.begin(), ThreadNG{i, LG_SearchHit()});
-    }
-  };
+	list_mixed_benchmark<Threadlist, 10, 5, 3>("threadlist(10, 5, 3)");
+	list_mixed_benchmark<stdlist<ThreadNG>, 10, 5, 3>("std::list(10, 5, 3)");
+	list_mixed_benchmark<std::vector<ThreadNG>, 10, 5, 3>("std::vector(10, 5, 3)");
 
-  std::vector<ThreadNG> list3;
-  list3.reserve(100);
-  BENCHMARK("vectorlist performance") {
-    list3.clear();
-    for (unsigned int i = 0; i < 40; ++i) {
-      list3.insert(list3.begin(), ThreadNG{i, LG_SearchHit()});
-    }
-    auto itr = list3.begin();
-    for (unsigned int i = 0; i < 10; ++i) {
-      itr = list3.erase(itr);
-      ++itr;
-      ++itr;
-    }
-    for (unsigned int i = 0; i < 10; ++i) {
-      list3.insert(list3.begin(), ThreadNG{i, LG_SearchHit()});
-    }
-  };
+	list_mixed_benchmark<Threadlist, 30, 10, 10>("threadlist(30, 10, 10)");
+	list_mixed_benchmark<stdlist<ThreadNG>, 30, 10, 10>("std::list(30, 10, 10)");
+	list_mixed_benchmark<std::vector<ThreadNG>, 30, 10, 10>("std::vector(30, 10, 10)");
 }
 }

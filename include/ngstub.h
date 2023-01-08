@@ -55,6 +55,7 @@ struct MatchInfo {
   }
 };
 
+
 #pragma pack(pop)
 
 #define LIKELY(x) __builtin_expect(!!(x), 1)
@@ -177,7 +178,7 @@ public:
   size_t capacity() const { return Vec.capacity(); }
   size_t vector_size() const { return Vec.size(); }
 
-  void reserve(size_t capacity) { Vec.reserve(capacity); }
+  void reserve(size_t capacity) { Vec.reserve(capacity + 2); }
 
   TLIterator insert(TLIterator pos, const ThreadNG& t) {
     uint32_t i = alloc_node(t);
