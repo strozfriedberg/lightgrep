@@ -54,7 +54,7 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
     const byte* buf = (const byte*)fooStr.data();
     const byte* bufEnd = buf + fooStr.length();
 
-    InstructionNG prog[11];
+    std::vector<InstructionNG> prog(11);
     prog[0].OpCode = OpCodesNG::BRANCH_BYTE;
     prog[0].Op.T1.Byte = 'f';
     prog[1].set(0);
@@ -74,50 +74,50 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
     prog[9].Op.T1.Byte = 0; // null won't exist, so this is a poor man's jump
     prog[10].set(0);
 
-    VmNG searcher;
-    searcher.search(buf, bufEnd, &prog[0]);
+    VmNG searcher(prog);
+    searcher.search(buf, bufEnd);
     REQUIRE(searcher.hits().size() == 1);
     CHECK(searcher.hits()[0].Start == 31);
     CHECK(searcher.hits()[0].End == 34);
     searcher.reset();
 
     BENCHMARK("hits short") {
-      return searcher.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd);
     };
     searcher.reset();
 
     buf = (const byte*)bazStr.data();
     bufEnd = buf + bazStr.length();
-    searcher.search(buf, bufEnd, &prog[0]);
+    searcher.search(buf, bufEnd);
     REQUIRE(searcher.hits().size() == 0);
     searcher.reset();
 
     BENCHMARK("no hits short") {
-      return searcher.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd);
     };
     searcher.reset();
 
     buf = (const byte*)holmes1.data();
     bufEnd = buf + holmes1.length();
-    searcher.search(buf, bufEnd, &prog[0]);
+    searcher.search(buf, bufEnd);
     REQUIRE(searcher.hits().size() == 1);
     CHECK(searcher.hits()[0].Start == 392);
     CHECK(searcher.hits()[0].End == 395);
     searcher.reset();
 
     BENCHMARK("hits long") {
-      return searcher.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd);
     };
     searcher.reset();
 
     buf = (const byte*)holmes2.data();
     bufEnd = buf + holmes2.length();
-    searcher.search(buf, bufEnd, &prog[0]);
+    searcher.search(buf, bufEnd);
     REQUIRE(searcher.hits().size() == 0);
     searcher.reset();
 
     BENCHMARK("no hits long") {
-      return searcher.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd);
     };
   }
 
@@ -125,7 +125,7 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
     const byte* buf = (const byte*)fooStr.data();
     const byte* bufEnd = buf + fooStr.length();
 
-    InstructionNG prog[10];
+    std::vector<InstructionNG> prog(11);
     prog[0].OpCode = OpCodesNG::MEMCHR_OP;
     prog[0].Op.T1.Byte = 'f';
     prog[1].OpCode = OpCodesNG::BRANCH_BYTE;
@@ -144,46 +144,46 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
     prog[8].Op.T1.Byte = 0; // null won't exist, so this is a poor man's jump
     prog[9].set(0);
 
-    VmNG searcher;
-    searcher.search(buf, bufEnd, &prog[0]);
+    VmNG searcher(prog);
+    searcher.search(buf, bufEnd);
     REQUIRE(searcher.hits().size() == 1);
     CHECK(searcher.hits()[0].Start == 31);
     CHECK(searcher.hits()[0].End == 34);
     searcher.reset();
 
     BENCHMARK("hits short") {
-      return searcher.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd);
     };
     searcher.reset();
 
     buf = (const byte*)bazStr.data();
     bufEnd = buf + bazStr.length();
-    searcher.search(buf, bufEnd, &prog[0]);
+    searcher.search(buf, bufEnd);
     REQUIRE(searcher.hits().size() == 0);
     searcher.reset();
 
     BENCHMARK("no hits short") {
-      return searcher.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd);
     };
     searcher.reset();
 
     buf = (const byte*)holmes1.data();
     bufEnd = buf + holmes1.length();
-    searcher.search(buf, bufEnd, &prog[0]);
+    searcher.search(buf, bufEnd);
     REQUIRE(searcher.hits().size() == 1);
     CHECK(searcher.hits()[0].Start == 392);
     CHECK(searcher.hits()[0].End == 395);
     searcher.reset();
 
     BENCHMARK("hits long") {
-      return searcher.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd);
     };
     searcher.reset();
 
     buf = (const byte*)holmes2.data();
     bufEnd = buf + holmes2.length();
     BENCHMARK("no hits long") {
-      return searcher.search(buf, bufEnd, &prog[0]);
+      return searcher.search(buf, bufEnd);
     };
     REQUIRE(searcher.hits().size() == 0);
   }
@@ -201,7 +201,7 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
   }
 
   TEST_CASE("ng-discretion") {
-    InstructionNG prog[25];
+    std::vector<InstructionNG> prog(25);
     prog[0].OpCode = OpCodesNG::BRANCH_BYTE;
     prog[0].Op.T1.Byte = 'd';
     prog[1].set(0);
@@ -242,23 +242,23 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
     prog[23].Op.T1.Byte = 0; // null won't exist, so this is a poor man's jump
     prog[24].set(0);
 
-    VmNG vm;
+    VmNG vm(prog);
 
     const byte* buf = (const byte*)holmes1.data();
     const byte* bufEnd = buf + holmes1.length();
     BENCHMARK("hits long") {
-      return vm.search(buf, bufEnd, &prog[0]);
+      return vm.search(buf, bufEnd);
     };
 
     buf = (const byte*)holmes2.data();
     bufEnd = buf + holmes2.length();
     BENCHMARK("no hits long") {
-      return vm.search(buf, bufEnd, &prog[0]);
+      return vm.search(buf, bufEnd);
     };
   }
 
   TEST_CASE("ng-discretion-memchr") {
-    InstructionNG prog[24];
+    std::vector<InstructionNG> prog(24);
     prog[0].OpCode = OpCodesNG::MEMCHR_OP;
     prog[0].Op.T1.Byte = 'd';
     prog[1].OpCode = OpCodesNG::BRANCH_BYTE;
@@ -298,18 +298,18 @@ I smiled and shook my head. "I can quite understand your thinking so." I said. "
     prog[22].Op.T1.Byte = 0; // null won't exist, so this is a poor man's jump
     prog[23].set(0);
 
-    VmNG vm;
+    VmNG vm(prog);
 
     const byte* buf = (const byte*)holmes1.data();
     const byte* bufEnd = buf + holmes1.length();
     BENCHMARK("hits long") {
-      return vm.search(buf, bufEnd, &prog[0]);
+      return vm.search(buf, bufEnd);
     };
 
     buf = (const byte*)holmes2.data();
     bufEnd = buf + holmes2.length();
     BENCHMARK("no hits long") {
-      return vm.search(buf, bufEnd, &prog[0]);
+      return vm.search(buf, bufEnd);
     };
   }
 }

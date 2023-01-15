@@ -251,9 +251,29 @@ private:
   size_t Size;
 };
 
+class ProgramNG {
+public:
+  ProgramNG(): Code() {}
+  ProgramNG(const std::vector<InstructionNG>& code): Code(code) {}
+
+  void swapCode(std::vector<InstructionNG>& newCode) {
+    Code.swap(newCode);
+  }
+
+  const InstructionNG* begin() const { return &Code[0]; }
+  const InstructionNG* end() const { return &Code[Code.size()]; }
+
+  uint32_t numInstructions() const { return static_cast<uint32_t>(Code.size()); }
+
+private:
+  std::vector<InstructionNG> Code;
+};
+
 class VmNG {
 public:
-  VmNG(): BufOffset(0) { Hits.reserve(100); }
+  VmNG(): Prog(), Hits(), BufOffset(0) { Hits.reserve(100); }
+
+  VmNG(const ProgramNG& prog): Prog(prog), Hits(), BufOffset(0) { Hits.reserve(100); }
 
   const std::vector<MatchInfo>& hits() const { return Hits; }
 
@@ -261,13 +281,13 @@ public:
 
   void addHit(const MatchInfo& hit) { Hits.push_back(hit); }
 
-  void search(const byte* buf, const byte* bufEnd, const InstructionNG* prog) {
+  void search(const byte* buf, const byte* bufEnd) {
     BufOffset = 0;
     CurEnd curBuf = {0, static_cast<uint32_t>(bufEnd - buf)};
-    CurEnd curProg = {0, 10};
+    CurEnd curProg = {0, Prog.numInstructions()};
     MatchInfo info;
 
-    dispatch(buf, curBuf, prog, curProg, info, this);
+    dispatch(buf, curBuf, Prog.begin(), curProg, info, this);
   }
 
   void reset() {
@@ -276,6 +296,8 @@ public:
   }
 
 private:
+  ProgramNG Prog;
+
   std::vector<MatchInfo> Hits;
 
   uint64_t BufOffset;
