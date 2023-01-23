@@ -166,6 +166,25 @@ TEST_CASE("memchr_op") {
   REQUIRE(curBuf.cur == 5);
 }
 
+TEST_CASE("jump_op") {
+  TestDispatcher disp;
+
+  std::string data("hello");
+  const byte* buf = (const byte*)data.data();
+  CurEnd curBuf = {3, 5};
+  InstructionNG prog[2];
+  prog[0].OpCode = OpCodesNG::JUMP_OP_NG;
+  prog[0].Op.Offset = 0;
+  prog[1].set(37);
+  CurEnd curProg = {0, 2};
+  MatchInfo info = {1, 3, 2};
+
+  int result = do_jump_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(result == 1);
+  REQUIRE(curProg.cur == 37);
+  REQUIRE(curBuf.cur == 3);
+}
+
 TEST_CASE("simple_foo_search") {
   VmNG vm;
   //                0         1         2         3

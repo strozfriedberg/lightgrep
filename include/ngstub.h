@@ -9,6 +9,7 @@
 enum OpCodesNG {
   BYTE_OP_NG = 0,
   BRANCH_BYTE,
+  JUMP_OP_NG,
   SET_START,
   SET_END,
   MATCH_OP_NG,
@@ -432,6 +433,18 @@ int do_memchr_op(const byte* buf,
     // std::cerr << "Not found\n";
     curBuf.cur = curBuf.end;
   }
+  [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
+}
+
+template<auto DispatcherFn>
+int do_jump_op(const byte* buf,
+             CurEnd& curBuf,
+             const InstructionNG* prog,
+             CurEnd& curProg,
+             MatchInfo& info,
+             void* vm)
+{
+  curProg.cur = uint32_t(prog[curProg.cur + 1]);
   [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
