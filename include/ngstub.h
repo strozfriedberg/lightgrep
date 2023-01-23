@@ -463,6 +463,8 @@ int dispatch(const byte* buf,
     [[clang::musttail]] return do_byte_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   case BRANCH_BYTE:
     [[clang::musttail]] return do_branch_byte_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+  case JUMP_OP_NG:
+    [[clang::musttail]] return do_jump_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   case SET_START:
     [[clang::musttail]] return do_set_start_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   case SET_END:
