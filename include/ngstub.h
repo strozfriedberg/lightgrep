@@ -252,7 +252,17 @@ private:
   size_t Size;
 };
 
+
 class ProgramNG {
+/*
+  A program is at base an array of 32-bit instructions.
+
+  However, often other state needs to be bunbled with these instructions.
+  For example, it's good to know how many patterns are encoded in the instructions,
+  and maybe what they were originally, and there could be all sorts of statistics
+  about the automata involved that are useful to keep around, and other
+  data structures that can be profitably used by the VM. So, this is where to put that.
+*/
 public:
   ProgramNG(): Code() {}
   ProgramNG(const std::vector<InstructionNG>& code): Code(code) {}
@@ -270,7 +280,27 @@ private:
   std::vector<InstructionNG> Code;
 };
 
+
 class VmNG {
+/*
+  A VM is a virtual machine for executing programs in a regexp-oriented bytecode
+  fantasy land. The VM provides high-level methods for searching and matching
+  data, while invoking low-level machinery behind the scenes to do just that.
+
+  This particular VM allows for multiple "threads" (green threads) of execution
+  to be active. The threads are kept in order, which corresponds to automaton-
+  precedence rules within the patterns. However, the threads are not executed in
+  lock-step, byte by byte. This allows for optimizations, but can complicate
+  reporting of search hits (aka matches).
+
+  Execution of the instructions actually occurs in a series of free functions
+  that utilize "tail call optimization" to avoid function call and stack overhead.
+  The purpose of the VM is to kick this process off and to provide a place for
+  executing programs to retain state and, sometimes, synchronize with each other.
+
+  A VM is not threadsafe from a client perspective, however. Multithreaded clients
+  can safely share a ProgramNG amongst multiple VmNGs running in separate threads.
+*/
 public:
   VmNG(): Prog(), Hits(), BufOffset(0) { Hits.reserve(100); }
 
