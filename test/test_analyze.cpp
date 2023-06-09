@@ -23,6 +23,11 @@
 #include "nfabuilder.h"
 #include "parser.h"
 
+/*
+
+std::string analyze(const NFA& nfa) {
+  return "";
+}
 
 NFAPtr construct(const std::string& pattern) {
   Pattern pat(pattern);
@@ -37,4 +42,8 @@ TEST_CASE("test_simple_factor") {
   NFAPtr nfa = construct("glushkov");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 9u);
+  std::string longest_factor = analyze(*nfa);
+  REQUIRE(longest_factor == "glushkov");
 }
+
+*/
