@@ -20,12 +20,21 @@
 
 #include "automata.h"
 #include "fwd_pointers.h"
+#include "nfabuilder.h"
+#include "parser.h"
+
 
 NFAPtr construct(const std::string& pattern) {
-  return NFAPtr(new NFA);
+  Pattern pat(pattern);
+  ParseTree tree;
+  parse(pat, tree);
+  NFABuilder builder;
+  builder.build(tree);
+  return builder.getFsm();
 }
 
 TEST_CASE("test_simple_factor") {
   NFAPtr nfa = construct("glushkov");
   REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 9u);
 }
