@@ -161,6 +161,7 @@ test_test_SOURCES = \
 	test/dtest.cpp \
 	test/mockcallback.cpp \
 	test/stest.cpp \
+	test/test_analyze.cpp \
 	test/test_ascii.cpp \
 	test/test_auto_search_1.cpp \
 	test/test_auto_search_2.cpp \
