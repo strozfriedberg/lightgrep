@@ -18,6 +18,14 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include "automata.h"
+#include "fwd_pointers.h"
+
+NFAPtr construct(const std::string& pattern) {
+  return NFAPtr(new NFA);
+}
+
 TEST_CASE("test_simple_factor") {
-  REQUIRE(true);
+  NFAPtr nfa = construct("glushkov");
+  REQUIRE(nfa);
 }
