@@ -389,9 +389,6 @@ AS_IF(
 
     AC_SUBST([JNI_CPPFLAGS])
 
-    JUNIT_JARS=/usr/share/java/junit.jar:/usr/share/java/hamcrest/hamcrest.jar
-    AC_SUBST([JUNIT_JARS])
-
     AC_PATH_PROG([JAVA], [java])
     AC_PATH_PROG([JAR], [jar])
     AC_PATH_PROG([JAVAC], [javac])
