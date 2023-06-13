@@ -4,4 +4,6 @@
 
 ./bootstrap.sh
 
+pushd src/java
 mvn wrapper:wrapper
+popd
