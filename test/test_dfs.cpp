@@ -74,6 +74,17 @@ TEST_CASE("testListsConcatenator") {
   REQUIRE(exp == act);
 }
 
+bool listContains(List l, G::VertexDescriptor node) {
+  return false;
+}
+
+TEST_CASE("testListContains") {
+  const bool act = listContains({1, 2, 3, 4, 5, 6, 7}, 6);
+
+  REQUIRE(true == act);
+}
+
+
 Lists depthFirstSearch(
   G::VertexDescriptor startingNode, 
   G::VertexDescriptor endingNode, 
