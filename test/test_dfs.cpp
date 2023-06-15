@@ -48,15 +48,16 @@ TEST_CASE("testEdgeCount") {
   REQUIRE(3u == edgeCount(nl));
 }
 
+typedef std::vector<G::VertexDescriptor> PATH;
 
 
-std::vector<std::vector<G::VertexDescriptor>> depthFirstSearch(
+std::vector<PATH> depthFirstSearch(
   G::VertexDescriptor startingNode, 
   G::VertexDescriptor endingNode, 
   G graph, 
-  std::vector<G::VertexDescriptor> path = std::vector<G::VertexDescriptor>{}) {
+  PATH path = PATH{}) {
 
-  return std::vector<std::vector<G::VertexDescriptor>> {};
+  return std::vector<PATH> {};
 }
 
 
@@ -71,7 +72,7 @@ TEST_CASE("testDFS") {
   g.addEdge(5, 7);
   g.addEdge(2, 7);
 
-  const std::vector<std::vector<G::VertexDescriptor>> act = depthFirstSearch(0, 7, g);
-  const std::vector<std::vector<G::VertexDescriptor>> exp{{0, 1, 4, 5, 7}, {0, 2, 7}};
+  const std::vector<PATH> act = depthFirstSearch(0, 7, g);
+  const std::vector<PATH> exp{{0, 1, 4, 5, 7}, {0, 2, 7}};
   REQUIRE(exp == act);
 }
