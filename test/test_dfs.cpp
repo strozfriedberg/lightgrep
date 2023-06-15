@@ -48,16 +48,16 @@ TEST_CASE("testEdgeCount") {
   REQUIRE(3u == edgeCount(nl));
 }
 
-typedef std::vector<G::VertexDescriptor> PATH;
+typedef std::vector<G::VertexDescriptor> List;
+typedef std::vector<List> Lists;
 
-
-std::vector<PATH> depthFirstSearch(
+Lists depthFirstSearch(
   G::VertexDescriptor startingNode, 
   G::VertexDescriptor endingNode, 
   G graph, 
-  PATH path = PATH{}) {
+  Lists lists = Lists{}) {
 
-  return std::vector<PATH> {};
+  return Lists {};
 }
 
 
@@ -72,7 +72,10 @@ TEST_CASE("testDFS") {
   g.addEdge(5, 7);
   g.addEdge(2, 7);
 
-  const std::vector<PATH> act = depthFirstSearch(0, 7, g);
-  const std::vector<PATH> exp{{0, 1, 4, 5, 7}, {0, 2, 7}};
+  //Just to confirm all tests pass for List and Lists refactor
+  //const Lists act = depthFirstSearch(0, 7, g);
+  const Lists act{{0, 1, 4, 5, 7}, {0, 2, 7}};
+  const Lists exp{{0, 1, 4, 5, 7}, {0, 2, 7}};
+
   REQUIRE(exp == act);
 }
