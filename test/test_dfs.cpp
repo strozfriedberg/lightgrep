@@ -33,7 +33,7 @@ struct S: public SimpleVectorFamily<T> {};
 typedef Graph<X,X,X,S> G;
 
 int edgeCount(G::NeighborList nl) {
-  return 0;
+  return nl.end() - nl.begin();
 }
 
 TEST_CASE("testEdgeCount") {
