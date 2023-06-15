@@ -5,7 +5,7 @@ Quick Start
 -----------
 The following build steps might actually work:
 
-1. git clone --recursive git://github.com/LightboxTech/lightgrep.git
+1. git clone --recursive https://github.com/strozfriedberg/lightgrep.git
 2. cd lightgrep
 3. autoreconf -fi
 4. ./configure
@@ -37,6 +37,7 @@ Basic:
  - Boost headers >= 1.49
  - Boost::program_options
  - ICU >= 1.48
+ - pkg-config
 
 Unit tests:
  - Boost::asio
