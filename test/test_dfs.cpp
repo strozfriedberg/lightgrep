@@ -75,7 +75,7 @@ TEST_CASE("testListsConcatenator") {
 }
 
 bool listContains(List l, G::VertexDescriptor node) {
-  return false;
+  return std::find(l.begin(), l.end(), node) != l.end();
 }
 
 TEST_CASE("testListContains") {
