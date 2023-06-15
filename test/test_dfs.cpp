@@ -51,6 +51,17 @@ TEST_CASE("testEdgeCount") {
 typedef std::vector<G::VertexDescriptor> List;
 typedef std::vector<List> Lists;
 
+Lists listsConcatenator(std::vector<Lists> l) {
+  return Lists {};
+}
+
+TEST_CASE("testListsConcatenator") {
+  const Lists act = listsConcatenator({{{0, 1, 2, 3, 4}, {5, 6, 7}}, {{8, 9}}, {{10, 11}, {12, 13, 14, 15}}});
+  const Lists exp{{0, 1, 2, 3, 4}, {5, 6, 7}, {8, 9}, {10, 11}, {12, 13, 14, 15}};
+
+  REQUIRE(exp == act);
+}
+
 Lists depthFirstSearch(
   G::VertexDescriptor startingNode, 
   G::VertexDescriptor endingNode, 
