@@ -89,10 +89,37 @@ Lists depthFirstSearch(
   G::VertexDescriptor startingNode, 
   G::VertexDescriptor endingNode, 
   G graph, 
-  Lists lists = Lists{}) {
+  Lists lists = Lists{},
+  List list = List{}) {
 
-  return Lists {};
-}
+    //check if we hit node we've already visited
+    if (listContains(list, startingNode)) {
+      return lists;
+    }
+
+    // Add our current starting node
+    list.push_back(startingNode);
+
+    //If we hit our goal, add our current list to our list and end
+    if (startingNode == endingNode) {
+      lists.push_back(list);
+      return lists;
+    }
+
+    std::vector<Lists> allLists;
+
+    const G::NeighborList nl(graph.outVertices(startingNode));
+    List outputNodes(nl.begin(), nl.end());
+
+    // If there are any nodes to explore to
+    for (unsigned int i = 0; i < outputNodes.size(); i++) {
+      G::VertexDescriptor currentNode = outputNodes[i];
+      allLists.push_back(depthFirstSearch(currentNode, endingNode, graph, lists, list));
+    }
+
+    return listsConcatenator(allLists);
+  }
+
 
 
 TEST_CASE("testDFS") {
@@ -106,9 +133,7 @@ TEST_CASE("testDFS") {
   g.addEdge(5, 7);
   g.addEdge(2, 7);
 
-  //Just to confirm all tests pass for List and Lists refactor
-  //const Lists act = depthFirstSearch(0, 7, g);
-  const Lists act{{0, 1, 4, 5, 7}, {0, 2, 7}};
+  const Lists act = depthFirstSearch(0, 7, g);
   const Lists exp{{0, 1, 4, 5, 7}, {0, 2, 7}};
 
   REQUIRE(exp == act);
