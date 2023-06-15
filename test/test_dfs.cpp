@@ -154,3 +154,18 @@ TEST_CASE("testDFSLoop") {
 
   REQUIRE(exp == act);
 }
+
+TEST_CASE("testDFSMultipath") {
+  G g(6);
+  g.addEdge(0, 1);
+  g.addEdge(1, 2);
+  g.addEdge(2, 3);
+  g.addEdge(0, 4);
+  g.addEdge(4, 5);
+  g.addEdge(5, 3);
+
+  const Lists act = depthFirstSearch(0, 3, g);
+  const Lists exp{{0, 1, 2, 3}, {0, 4, 5, 3}};
+
+  REQUIRE(exp == act);
+}
