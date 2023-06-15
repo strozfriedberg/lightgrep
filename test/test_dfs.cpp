@@ -52,7 +52,19 @@ typedef std::vector<G::VertexDescriptor> List;
 typedef std::vector<List> Lists;
 
 Lists listsConcatenator(std::vector<Lists> l) {
-  return Lists {};
+  Lists ret;
+
+  for (unsigned int i = 0; i < l.size(); i++) {
+    Lists currLists = l[i];
+    for (unsigned int j = 0; j < currLists.size(); j++) {
+      List currList = currLists[j];
+      if (currList.size() > 0) {
+        ret.push_back(currList);
+      }
+    }
+  }
+
+  return ret;
 }
 
 TEST_CASE("testListsConcatenator") {
