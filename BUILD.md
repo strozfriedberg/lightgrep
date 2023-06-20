@@ -25,7 +25,8 @@ You'll need the following:
 1. GNU Autotools and Make
 2. GNU Bison
 3. GNU Libtool
-3. GCC or Clang with C++17 support
+4. GCC or Clang with C++17 support
+5. pkg-config
 
 lightgrep requires C++17 support. Visual Studio isn't quite there yet, but lightgrep could probably be hammered into shape if needed. Why would you do that when you could just use your Linux distro's MinGW cross-compiler?
 
@@ -38,7 +39,6 @@ Basic:
  - Boost headers >= 1.49
  - Boost::program_options
  - ICU >= 1.48
- - pkg-config
 
 Unit tests:
  - Boost::asio
