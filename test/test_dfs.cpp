@@ -51,15 +51,12 @@ TEST_CASE("testEdgeCount") {
 typedef std::vector<G::VertexDescriptor> List;
 typedef std::vector<List> Lists;
 
-Lists listsConcatenator(std::vector<Lists> l) {
+Lists listsConcatenator(std::vector<Lists> vector_lists) {
   Lists ret;
-
-  for (unsigned int i = 0; i < l.size(); i++) {
-    Lists curLists = l[i];
-    for (unsigned int j = 0; j < curLists.size(); j++) {
-      List currList = curLists[j];
-      if (currList.size() > 0) {
-        ret.push_back(currList);
+  for (Lists lists : vector_lists) {
+    for (List list : lists) {
+      if (list.size() > 0) {
+        ret.push_back(list);
       }
     }
   }
