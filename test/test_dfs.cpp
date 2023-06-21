@@ -55,15 +55,14 @@ Lists listsConcatenator(std::vector<Lists> l) {
   Lists ret;
 
   for (unsigned int i = 0; i < l.size(); i++) {
-    Lists currLists = l[i];
-    for (unsigned int j = 0; j < currLists.size(); j++) {
-      List currList = currLists[j];
+    Lists curLists = l[i];
+    for (unsigned int j = 0; j < curLists.size(); j++) {
+      List currList = curLists[j];
       if (currList.size() > 0) {
         ret.push_back(currList);
       }
     }
   }
-
   return ret;
 }
 
@@ -119,8 +118,6 @@ Lists depthFirstSearch(
 
     return listsConcatenator(allLists);
   }
-
-
 
 TEST_CASE("testDFS") {
   G g(8);
