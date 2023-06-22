@@ -167,13 +167,14 @@ std::tuple<
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>,
   std::unique_ptr<LG_Error, void(*)(LG_Error*)>
 >
-parsePatterns(
-  const std::vector<std::pair<std::string, std::string>> & keyFiles,
-  const std::vector<std::string>& defaultEncodings,
-  const LG_KeyOptions& defaultKOpts,
-  const LG_ProgramOptions& progOpts)
+parsePatterns(const Options& opts)
 {
   // read the patterns and parse them
+
+  const std::vector<std::pair<std::string, std::string>> &patLines(opts.getPatternLines());
+  const std::vector<std::string>& defaultEncodings(opts.Encodings);
+  const LG_KeyOptions& defaultKOpts(patOpts(opts));
+  const LG_ProgramOptions& defaultProgOpts(progOpts(opts));
 
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
@@ -192,7 +193,7 @@ parsePatterns(
 
   LG_Error* tail_err = nullptr;
 
-  for (const std::pair<std::string,std::string>& pf : keyFiles) {
+  for (const std::pair<std::string,std::string>& pf : patLines) {
     // parse a complete pattern file
     LG_Error* local_err = nullptr;
 
@@ -221,7 +222,7 @@ parsePatterns(
   }
 
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(
-    lg_create_program(fsm.get(), &progOpts),
+    lg_create_program(fsm.get(), &defaultProgOpts),
     lg_destroy_program
   );
 
@@ -360,9 +361,7 @@ void search(const Options& opts) {
     // read the patterns and parse them
     std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    std::tie(std::ignore, prog, err) = parsePatterns(
-      opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
-    );
+    std::tie(std::ignore, prog, err) = parsePatterns(opts);
 
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -479,9 +478,7 @@ void writeGraphviz(const Options& opts) {
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(fsm, prog, err) = parsePatterns(
-    opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
-  );
+  std::tie(fsm, prog, err) = parsePatterns(opts);
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -504,9 +501,7 @@ void writeProgram(const Options& opts) {
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, prog, err) = parsePatterns(
-    opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
-  );
+  std::tie(std::ignore, prog, err) = parsePatterns(opts);
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -535,9 +530,7 @@ void writeProgram(const Options& opts) {
 void validate(const Options& opts) {
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, std::ignore, err) = parsePatterns(
-    opts.getPatternLines(), opts.Encodings, patOpts(opts), progOpts(opts)
-  );
+  std::tie(std::ignore, std::ignore, err) = parsePatterns(opts);
 
   for (const LG_Error* e = err.get(); e ; e = e->Next) {
     std::cerr << e->Index << ": pattern \"" << e->Pattern
@@ -565,51 +558,51 @@ void writeSampleMatches(const Options& opts) {
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   size_t pnum = 0;
-  for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
-    // FIXME: opts.getPatternLines() returns a vector of the pairs, it's not clear
-    // why when looping over the pairs we then turn around and put each into a vector/array.
-    const std::vector<std::pair<std::string, std::string>> a = { pf };
-    std::tie(fsm, std::ignore, err) = parsePatterns(
-      a, opts.Encodings, patOpts(opts), progOpts(opts)
+  //for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
+
+  // FIXME: opts.getPatternLines() returns a vector of the pairs, it's not clear
+  // why when looping over the pairs we then turn around and put each into a vector/array.
+  // const std::vector<std::pair<std::string, std::string>> a = { pf };
+
+  std::tie(fsm, std::ignore, err) = parsePatterns(opts);
+
+  if (err) {
+    std::stringstream ss;
+    ss << err->Message << " on pattern " << pnum
+        << ", '"<< err->Pattern << "'";
+    std::string msg(ss.str());
+
+    std::unique_ptr<char[]> buf(new char[4*msg.length()+1]);
+    UErrorCode ec = U_ZERO_ERROR;
+    const uint32_t len = ucnv_convert(
+      "UTF-16LE", "UTF-8",
+      buf.get(),
+      4*msg.length()+1,
+      msg.c_str(), -1,
+      &ec
     );
-
-    if (err) {
-      std::stringstream ss;
-      ss << err->Message << " on pattern " << pnum
-         << ", '"<< err->Pattern << "'";
-      std::string msg(ss.str());
-
-      std::unique_ptr<char[]> buf(new char[4*msg.length()+1]);
-      UErrorCode ec = U_ZERO_ERROR;
-      const uint32_t len = ucnv_convert(
-        "UTF-16LE", "UTF-8",
-        buf.get(),
-        4*msg.length()+1,
-        msg.c_str(), -1,
-        &ec
-      );
-      if (U_FAILURE(ec)) {
-        std::cerr << "Error: " << u_errorName(ec) << std::endl;
-      }
-
-      out << std::string(buf.get(), len)
-          << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
-    }
-    else {
-      // break on through the C API to get the graph
-      NFAPtr g(fsm->Impl->Fsm);
-
-      std::set<std::string> matches;
-      matchgen(*g, matches, opts.SampleLimit, opts.LoopLimit);
-
-      for (const std::string& m : matches) {
-        out << m << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
-      }
+    if (U_FAILURE(ec)) {
+      std::cerr << "Error: " << u_errorName(ec) << std::endl;
     }
 
-    out.flush();
-    ++pnum;
+    out << std::string(buf.get(), len)
+        << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
   }
+  else {
+    // break on through the C API to get the graph
+    NFAPtr g(fsm->Impl->Fsm);
+
+    std::set<std::string> matches;
+    matchgen(*g, matches, opts.SampleLimit, opts.LoopLimit);
+
+    for (const std::string& m : matches) {
+      out << m << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
+    }
+  }
+
+  out.flush();
+  ++pnum;
+  // }
 }
 
 int main(int argc, char** argv) {
