@@ -516,8 +516,9 @@ void writeProgram(const Options& opts) {
 
   // break on through the C API to print the program
   ProgramPtr p(prog->Prog);
-  std::cerr << p->size() << " instructions\n"
-            << p->bufSize() << " program size in bytes" << std::endl;
+  if (opts.Verbose) {
+    std::cerr << p->bufSize() << " program size in bytes" << std::endl;
+  }
 
   std::ostream& out(opts.openOutput());
   if (opts.Binary) {
