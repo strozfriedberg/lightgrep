@@ -98,7 +98,7 @@ TEST_CASE("test_same_length") {
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 8u);
   // std::string longest_factor = analyze(*nfa);
-  // REQUIRE(longest_factor == "aaaa");
+  // REQUIRE(longest_factor == "aaa");
 }
 
 TEST_CASE("test_same_length_multi_accept") {
@@ -114,7 +114,7 @@ TEST_CASE("test_longer_factor") {
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 9u);
   // std::string longest_factor = analyze(*nfa);
-  // REQUIRE(longest_factor == "abba");
+  // REQUIRE(longest_factor == "bbbb");
 }
 
 TEST_CASE("test_longer_factor_multi_accept") {
