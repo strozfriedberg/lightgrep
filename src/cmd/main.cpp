@@ -226,10 +226,9 @@ parsePatterns(const Options& opts)
     lg_destroy_program
   );
 
-  if (prog) {
+  if (prog && opts.Verbose) {
     std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
-              << prog->Prog->size() << " instructions"
-              << std::endl;
+              << prog->Prog->size() << " instructions\n";
   }
 
   return std::make_tuple(std::move(fsm), std::move(prog), std::move(err));
@@ -459,18 +458,19 @@ void search(const Options& opts) {
   if (!opts.Inputs.empty()) {
     searchInputs(opts.Inputs, opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
   }
-
-  std::cerr << ctrl.BytesSearched << " bytes\n"
-            << ctrl.TotalTime << " searchTime\n";
-  if (ctrl.TotalTime > 0.0) {
-    std::cerr << (ctrl.BytesSearched / ctrl.TotalTime / (1 << 20));
+  if (opts.Verbose) {
+    std::cerr << ctrl.BytesSearched << " bytes\n"
+              << ctrl.TotalTime << " searchTime\n";
+    if (ctrl.TotalTime > 0.0) {
+      std::cerr << (ctrl.BytesSearched / ctrl.TotalTime / (1 << 20));
+    }
+    else {
+      std::cerr << "+inf";
+    }
+    std::cerr << " MB/s avg\n"
+              << hinfo->NumHits
+              << " hit" << (hinfo->NumHits != 1 ? "s" : "") << std::endl;
   }
-  else {
-    std::cerr << "+inf";
-  }
-  std::cerr << " MB/s avg\n"
-            << hinfo->NumHits
-            << " hit" << (hinfo->NumHits != 1 ? "s" : "") << std::endl;
 }
 
 void writeGraphviz(const Options& opts) {
