@@ -557,7 +557,7 @@ void writeSampleMatches(const Options& opts) {
 
 	std::ostream& out(opts.openOutput());
 
-  // Write a LE BOM because EnCase is retarded and expectes a BOM for UTF-16LE
+  // Write a LE BOM because EnCase is silly and expectes a BOM for UTF-16LE
   out << (char) 0xFF << (char) 0xFE;
 
   // parse the patterns one at a time
