@@ -24,7 +24,6 @@
 #include "parser.h"
 
 /*
-
 std::string analyze(const NFA& nfa) {
   return "";
 }
@@ -42,8 +41,55 @@ TEST_CASE("test_simple_factor") {
   NFAPtr nfa = construct("glushkov");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 9u);
-  std::string longest_factor = analyze(*nfa);
-  REQUIRE(longest_factor == "glushkov");
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "glushkov");
 }
 
+TEST_CASE("test_nondominant_factor") {
+  NFAPtr nfa = construct("(abc|def).*ghi");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 11u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "ghi");
+}
+
+TEST_CASE("test_one_more") {
+  NFAPtr nfa = construct("a+b+c+");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 4u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "abc");
+}
+
+TEST_CASE("test_zero_more") {
+  NFAPtr nfa = construct("fooa*b*c*");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 7u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "foobar");
+}
+
+TEST_CASE("test_zero_or_one") {
+  NFAPtr nfa = construct("a?fooc?");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 6u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "foo");
+}
+
+TEST_CASE("test_case_insensitive_factor") {
+  NFAPtr nfa = construct("foo(h|H)(t|T)(t|T)(p|P)");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 12u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "foo");
+}
+
+TEST_CASE("test_too_short") {
+  NFAPtr nfa = construct("fox*bar");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 7u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "bar");
+}
 */
