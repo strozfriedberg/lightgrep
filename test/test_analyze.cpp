@@ -62,11 +62,11 @@ TEST_CASE("test_one_more") {
 }
 
 TEST_CASE("test_zero_more") {
-  NFAPtr nfa = construct("fooa*b*c*");
+  NFAPtr nfa = construct("a*foob*c*");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 7u);
   // std::string longest_factor = analyze(*nfa);
-  // REQUIRE(longest_factor == "foobar");
+  // REQUIRE(longest_factor == "foo");
 }
 
 TEST_CASE("test_zero_or_one") {
@@ -101,11 +101,27 @@ TEST_CASE("test_same_length") {
   // REQUIRE(longest_factor == "aaaa");
 }
 
+TEST_CASE("test_same_length_multi_accept") {
+  NFAPtr nfa = construct("a(aa|bb)");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 6u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "aaa");
+}
+
 TEST_CASE("test_longer_factor") {
   NFAPtr nfa = construct("aaac*bbbb");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 9u);
   // std::string longest_factor = analyze(*nfa);
   // REQUIRE(longest_factor == "abba");
+}
+
+TEST_CASE("test_longer_factor_multi_accept") {
+  NFAPtr nfa = construct("a(aa|bbb)");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 7u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "abbb");
 }
 */
