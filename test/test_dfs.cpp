@@ -52,7 +52,9 @@ typedef std::vector<G::VertexDescriptor> List;
 typedef std::vector<List> Lists;
 
 void add_edges(G* graph, Lists pairs) {
-
+  for (List p : pairs) {
+    graph->addEdge(p[0], p[1]);
+  }
 }
 
 TEST_CASE("testAddEdges") {
