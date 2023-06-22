@@ -189,6 +189,31 @@ TEST_CASE("testDFSMultipath") {
   REQUIRE(exp == act);
 }
 
+template<typename T>
+bool containsSubset(std::vector<T> vectorToSearch, std::vector<T> v) {
+  bool result = true;
+
+  return result;
+}
+
+TEST_CASE("testContainsSubset") {
+  bool act1 = containsSubset<int>({0,1,2,3,4,5,6,7,8}, {4, 5, 6});
+  bool act2 = containsSubset<int>({0,1,2,3,4,5,6,7,8}, {4, 6});
+  bool act3 = containsSubset<int>({0,1,2,3,4,5,6,7,8}, {9, 10});
+  bool act4 = containsSubset<int>({0,1,2,3,4,5}, {0,1,2,3,4,5});
+  bool act5 = containsSubset<int>({0,1,2,3,4,5}, {1,1,1,1,1,1});
+  bool act6 = containsSubset<int>({0,1,2,3,4,5}, {3,4,5});
+  bool act7 = containsSubset<int>({0,1,2,3,4,5}, {3,4,5,6});
+
+  REQUIRE(true == act1);
+  REQUIRE(false == act2);
+  REQUIRE(false == act3);
+  REQUIRE(true == act4);
+  REQUIRE(false == act5);
+  REQUIRE(true == act6);
+  REQUIRE(false == act7);
+}
+
 List dominantPath(  
   G::VertexDescriptor startingNode, 
   G::VertexDescriptor endingNode, 
