@@ -188,3 +188,38 @@ TEST_CASE("testDFSMultipath") {
 
   REQUIRE(exp == act);
 }
+
+List dominantPath(  
+  G::VertexDescriptor startingNode, 
+  G::VertexDescriptor endingNode, 
+  G graph) {
+  return {};
+}
+
+TEST_CASE("testDFSDominator") {
+  G g(14);
+
+  add_edges(&g, {
+    {0, 1},
+    {1, 2},
+    {1, 11},
+    {2, 3},
+    {3, 4},
+    {4, 5},
+    {5, 6},
+    {6, 7},
+    {6, 10},
+    {7, 8},
+    {8, 9},
+    {10, 9},
+    {11, 12},
+    {11, 13},
+    {12, 4},
+    {13, 4},
+  });
+
+  const List act = dominantPath(0, 9, g);
+  const List exp {4, 5, 6};
+
+  REQUIRE(exp == act);
+}
