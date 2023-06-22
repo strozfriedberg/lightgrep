@@ -97,6 +97,7 @@ void parse_opts(int argc, const char* const * argv,
     ("determinize-depth", po::value<uint32_t>(&opts.DeterminizeDepth)->value_name("NUM")->default_value(std::numeric_limits<uint32_t>::max()), "determinze NFA to NUM depth")
     ("binary", "output program as binary")
     ("program-file", po::value<std::string>(&opts.ProgramFile)->value_name("FILE"), "read search program from file")
+    ("verbose", "enable verbose output")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value<uint64_t>(&opts.DebugBegin)->default_value(std::numeric_limits<uint64_t>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value<uint64_t>(&opts.DebugEnd)->default_value(std::numeric_limits<uint64_t>::max()), "offset for end of debug logging")
@@ -198,6 +199,7 @@ void parse_opts(int argc, const char* const * argv,
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Recursive = optsMap.count("recursive") > 0;
     opts.MemoryMapped = optsMap.count("mmap") > 0;
+    opts.Verbose = optsMap.count("verbose") > 0;
 
     if (optsMap.count("context") > 0) {
       // "-C N" is equivalent to "-B N -A N"

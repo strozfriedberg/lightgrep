@@ -52,7 +52,8 @@ public:
        PrintPath,
        Recursive,
        Binary,
-       MemoryMapped;
+       MemoryMapped,
+       Verbose;
 
   mutable std::ofstream OutputFile;
 
