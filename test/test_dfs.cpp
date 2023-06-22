@@ -241,7 +241,34 @@ List dominantPath(
   G::VertexDescriptor startingNode, 
   G::VertexDescriptor endingNode, 
   G graph) {
-  return {};
+        
+  Lists pos(depthFirstSearch(startingNode, endingNode, graph));
+
+  int n = pos.size();
+
+  List s = pos[0];
+  int len = s.size();
+
+  List res = {};
+
+  for (int i = 0; i < len; i++) {
+    for (int j = i + 1; j <= len; j++) {
+      List stem(s.begin() + i, s.begin() + j);
+      int k = 1;
+
+      for (k = 1; k < n; k++) {
+        if (!containsSubset<G::VertexDescriptor>(pos[k], stem)) {
+          break;
+        }
+      }
+
+      if (k == n && res.size() < stem.size()) {
+        res = stem;
+      }
+    }
+  }
+
+  return res;
 }
 
 TEST_CASE("testDFSDominator") {
