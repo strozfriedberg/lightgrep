@@ -92,4 +92,20 @@ TEST_CASE("test_too_short") {
   // std::string longest_factor = analyze(*nfa);
   // REQUIRE(longest_factor == "bar");
 }
+
+TEST_CASE("test_same_length") {
+  NFAPtr nfa = construct("aaac*bbb");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 8u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "aaaa");
+}
+
+TEST_CASE("test_longer_factor") {
+  NFAPtr nfa = construct("aaac*bbbb");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 9u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "abba");
+}
 */
