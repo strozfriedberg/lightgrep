@@ -51,6 +51,29 @@ TEST_CASE("testEdgeCount") {
 typedef std::vector<G::VertexDescriptor> List;
 typedef std::vector<List> Lists;
 
+void add_edges(G* graph, Lists pairs) {
+
+}
+
+TEST_CASE("testAddEdges") {
+  G g(3);
+
+  add_edges(&g, {
+    {0, 1},
+    {1, 0},
+    {1, 2},
+    {2, 0}
+  });
+
+  const G::NeighborList nl0(g.outVertices(0));
+  const G::NeighborList nl1(g.outVertices(1));
+  const G::NeighborList nl2(g.outVertices(2));
+
+  REQUIRE(1u == edgeCount(nl0));
+  REQUIRE(2u == edgeCount(nl1));
+  REQUIRE(1u == edgeCount(nl2));
+}
+
 Lists listsConcatenator(std::vector<Lists> vector_lists) {
   Lists ret;
   for (Lists lists : vector_lists) {
