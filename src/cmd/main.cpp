@@ -90,7 +90,10 @@ void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename) {
     if (printFilename) {
       out << err->Source << ", ";
     }
-    out << "pattern " << err->Index << ": " << err->Message << '\n';
+    out << "pattern " << err->Index
+        << " " << (err->Pattern? err->Pattern : "Pattern is nullptr") 
+        << " " << (err->EncodingChain? err->EncodingChain : "EC is nullptr")
+        << ": " << err->Message << '\n';
   }
   out.flush();
 }
@@ -531,11 +534,8 @@ void validate(const Options& opts) {
 
   std::tie(std::ignore, std::ignore, err) = parsePatterns(opts);
 
-  for (const LG_Error* e = err.get(); e ; e = e->Next) {
-    std::cerr << e->Index << ": pattern \"" << e->Pattern
-              << "\" is invalid for encoding "
-              << e->EncodingChain << std::endl;
-  }
+  const bool printFilename = opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
+  handleParseErrors(std::cerr, err.get(), printFilename);
 }
 
 void writeSampleMatches(const Options& opts) {
