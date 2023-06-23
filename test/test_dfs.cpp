@@ -51,6 +51,49 @@ TEST_CASE("testEdgeCount") {
 typedef std::vector<G::VertexDescriptor> List;
 typedef std::vector<List> Lists;
 
+void add_edges(G& graph, const std::vector<std::pair<G::VertexDescriptor, G::VertexDescriptor>> pairs) {
+  for (std::pair<G::VertexDescriptor, G::VertexDescriptor> p : pairs) {
+     graph.addEdge(p.first, p.second);
+  }
+}
+
+TEST_CASE("testAddEdges") {
+  G g(3);
+
+  add_edges(g, {
+    {0, 1},
+    {1, 0},
+    {1, 2},
+    {2, 0}
+  });
+
+  const G::NeighborList nl0(g.outVertices(0));
+  const G::NeighborList nl1(g.outVertices(1));
+  const G::NeighborList nl2(g.outVertices(2));
+
+  REQUIRE(1u == edgeCount(nl0));
+  REQUIRE(2u == edgeCount(nl1));
+  REQUIRE(1u == edgeCount(nl2));
+
+  REQUIRE(4u == g.edgesSize());
+
+  // 0
+  REQUIRE(2u == g.inDegree(0));
+  REQUIRE(1u == g.outDegree(0));
+  REQUIRE(1u == g.outVertex(0, 0));
+
+  // 1
+  REQUIRE(1u == g.inDegree(1));
+  REQUIRE(2u == g.outDegree(1));
+  REQUIRE(0u == g.outVertex(1, 0));
+  REQUIRE(2u == g.outVertex(1, 1));
+
+  // 2
+  REQUIRE(1u == g.inDegree(2));
+  REQUIRE(1u == g.outDegree(2));
+  REQUIRE(0u == g.outVertex(2, 0));
+}
+
 Lists listsConcatenator(std::vector<Lists> vector_lists) {
   Lists ret;
   for (Lists lists : vector_lists) {
