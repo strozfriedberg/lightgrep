@@ -51,9 +51,9 @@ TEST_CASE("testEdgeCount") {
 typedef std::vector<G::VertexDescriptor> List;
 typedef std::vector<List> Lists;
 
-void add_edges(G* graph, Lists pairs) {
-  for (List p : pairs) {
-    graph->addEdge(p[0], p[1]);
+void add_edges(G* graph, std::vector<std::pair<G::VertexDescriptor, G::VertexDescriptor>> pairs) {
+  for (std::pair<G::VertexDescriptor, G::VertexDescriptor> p : pairs) {
+    graph->addEdge(p.first, p.second);
   }
 }
 
