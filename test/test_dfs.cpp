@@ -74,6 +74,24 @@ TEST_CASE("testAddEdges") {
   REQUIRE(1u == edgeCount(nl0));
   REQUIRE(2u == edgeCount(nl1));
   REQUIRE(1u == edgeCount(nl2));
+
+  REQUIRE(4u == g.edgesSize());
+
+  // 0
+  REQUIRE(2u == g.inDegree(0));
+  REQUIRE(1u == g.outDegree(0));
+  REQUIRE(1u == g.outVertex(0, 0));
+
+  // 1
+  REQUIRE(1u == g.inDegree(1));
+  REQUIRE(2u == g.outDegree(1));
+  REQUIRE(0u == g.outVertex(1, 0));
+  REQUIRE(2u == g.outVertex(1, 1));
+
+  // 2
+  REQUIRE(1u == g.inDegree(2));
+  REQUIRE(1u == g.outDegree(2));
+  REQUIRE(0u == g.outVertex(2, 0));
 }
 
 Lists listsConcatenator(std::vector<Lists> vector_lists) {
