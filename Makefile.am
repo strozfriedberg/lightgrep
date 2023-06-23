@@ -289,9 +289,8 @@ src_java_jni_libjlightgrep_la_LDFLAGS = $(LG_LDFLAGS) -module -avoid-version
 src_java_jni_libjlightgrep_la_LIBADD = $(LG_LIB) $(STDCXX_LIB)
 
 JROOT:=src/java
-JSRC_DIR:=$(JROOT)/java/src
+JSRC_DIR:=$(JROOT)/src/main/java
 JNI_DIR:=$(JROOT)/jni
-JTEST_DIR:=$(JROOT)/java/test
 JPKG_DIR:=com/lightboxtechnologies/lightgrep
 
 SRC_SOURCE_FILES:=\
@@ -313,11 +312,6 @@ SRC_SOURCE_FILES:=\
 	$(JSRC_DIR)/$(JPKG_DIR)/ProgramOptions.java \
 	$(JSRC_DIR)/$(JPKG_DIR)/SearchHit.java \
 	$(JSRC_DIR)/$(JPKG_DIR)/Throws.java
-
-path_to_class = $(subst /,.,$(subst $(1)/,,$(basename $(2))))
-
-SRC_CLASS_NAMES:=$(call path_to_class,$(JSRC_DIR),$(SRC_SOURCE_FILES))
-SRC_CLASS_FILES:=$(SRC_SOURCE_FILES:.java=.class)
 
 JNI_HEADER_FILES:=\
 	$(JNI_DIR)/com_lightboxtechnologies_lightgrep_ContextHandle.h \
@@ -344,46 +338,15 @@ src/java/jni/jlightgrep.h: $(JNI_HEADER_FILES)
 
 BUILT_SOURCES += src/java/jni/jlightgrep.h
 
-noinst_jar_DATA = src/java/java/src/jlightgrep.jar
+noinst_jar_DATA = src/java/target/jlightgrep-0.0.1.jar
 noinst_jardir = $(libdir)
 
-$(JSRC_DIR)/jlightgrep.jar: $(SRC_CLASS_FILES)
-	$(JAR) cf $@ -C $(JSRC_DIR) .
+src/java/target/jlightgrep-0.0.1.jar: src/java/jni/libjlightgrep.la
+	pushd $(JROOT) ; ./mvnw package	; popd
 
-$(SRC_CLASS_FILES): $(SRC_SOURCE_FILES)
-	$(JAVAC) -d $(JSRC_DIR) -cp $(JSRC_DIR) -Xlint $^
+MOSTLYCLEANFILES += src/java/jni/jlightgrep.h $(JNI_HEADER_FILES)
 
-TEST_SOURCE_FILES:=\
-	$(JTEST_DIR)/$(JPKG_DIR)/AbstractDataDrivenTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/AbstractSearchTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/BaseGetHitContextTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/BaseSearchTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/BaseStartsWithTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/GetHitContextArrayTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/GetHitContextDirectByteBufferTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/GetHitContextWrappedByteBufferTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/LightgrepTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/SearchArrayTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/SearchDirectByteBufferTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/SearchWrappedByteBufferTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/StartsWithArrayTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/StartsWithDirectByteBufferTest.java \
-	$(JTEST_DIR)/$(JPKG_DIR)/StartsWithWrappedByteBufferTest.java
-
-TEST_CLASS_NAMES:=$(call path_to_class,$(JTEST_DIR),$(TEST_SOURCE_FILES))
-TEST_CLASS_FILES:=$(TEST_SOURCE_FILES:.java=.class)
-
-TEST_CLASSPATH:=$(JSRC_DIR):$(JTEST_DIR):$(JUNIT_JARS)
-
-$(TEST_CLASS_FILES): $(TEST_SOURCE_FILES) $(SRC_CLASS_FILES)
-	$(JAVAC) -encoding UTF-8 -d $(JTEST_DIR) -cp $(TEST_CLASSPATH) -Xlint $(filter %.java,$^)
-
-TESTS += $(JTEST_DIR)/run_test.sh
-
-$(JTEST_DIR)/run_test.sh: $(TEST_CLASS_FILES)
-	echo -e "#!/bin/bash -ex\n\n$(JAVA) -cp $(TEST_CLASSPATH) -Djava.library.path=src/java/jni/.libs org.junit.runner.JUnitCore $(filter-out com.lightboxtechnologies.lightgrep.Base%,$(filter-out com.lightboxtechnologies.lightgrep.Abstract%,$(TEST_CLASS_NAMES)))" >$@
-	chmod a+x $@
-
-MOSTLYCLEANFILES += src/java/jni/jlightgrep.h $(JNI_HEADER_FILES) $(SRC_CLASS_FILES:.class=*.class) $(TEST_CLASS_FILES:.class=*.class) $(noinst_jar_DATA)
+clean-local:
+	pushd $(JROOT) ; ./mvnw clean ; popd
 
 endif
