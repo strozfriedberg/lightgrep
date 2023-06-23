@@ -343,4 +343,24 @@ TEST_CASE("testDFSDominator3") {
   REQUIRE(exp == act);
 }
 
+TEST_CASE("testDFSDominator4") {
+  G g(7);
+
+  add_edges(&g, {
+    {0, 1},
+    {1, 2},
+    {1, 5},
+    {2, 3},
+    {2, 6},
+    {3, 4},
+    {5, 6},
+    {6, 2}
+  });
+
+  const List act = dominantPath(0, 4, g);
+  const List exp {2, 3, 4};
+
+  REQUIRE(exp == act);
+}
+
 
