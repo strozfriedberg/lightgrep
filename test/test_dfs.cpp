@@ -292,7 +292,7 @@ List dominantPath(
 TEST_CASE("testDFSDominator") {
   G g(14);
 
-  add_edges(&g, {
+  add_edges(g, {
     {0, 1},
     {1, 2},
     {1, 11},
@@ -320,7 +320,7 @@ TEST_CASE("testDFSDominator") {
 TEST_CASE("testDFSDominator2") {
   G g(12);
 
-  add_edges(&g, {
+  add_edges(g, {
     {0, 1},
     {1, 2},
     {2, 3},
@@ -345,7 +345,7 @@ TEST_CASE("testDFSDominator2") {
 TEST_CASE("testDFSDominator3") {
   G g(7);
 
-  add_edges(&g, {
+  add_edges(g, {
     {0, 1},
     {1, 2},
     {1, 5},
@@ -364,7 +364,7 @@ TEST_CASE("testDFSDominator3") {
 TEST_CASE("testDFSDominator4") {
   G g(7);
 
-  add_edges(&g, {
+  add_edges(g, {
     {0, 1},
     {1, 2},
     {1, 5},
