@@ -124,4 +124,28 @@ TEST_CASE("test_longer_factor_multi_accept") {
   // std::string longest_factor = analyze(*nfa);
   // REQUIRE(longest_factor == "abbb");
 }
+
+TEST_CASE("test_dominant_too_short") {
+  NFAPtr nfa = construct("aa*bb");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 5u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "");
+}
+
+TEST_CASE("test_no_dominant") {
+  NFAPtr nfa = construct("aa(abc|def)g");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 10u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "");
+}
+
+TEST_CASE("test_back_edges") {
+  NFAPtr nfa = construct("((abc)+d)+");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 5u);
+  // std::string longest_factor = analyze(*nfa);
+  // REQUIRE(longest_factor == "abcd");
+}
 */
