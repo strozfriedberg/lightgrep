@@ -21,14 +21,6 @@
 
 #include "c_api_util.h"
 
-namespace {
-  // Our own strdup, using new.
-  char* clone_c_str(const char* s) {
-    return std::strcpy(new char[std::strlen(s)+1], s);
-  }
-}
-
-
 LG_Error* makeError(
   const char* msg,
   const char* pattern,
