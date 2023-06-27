@@ -104,10 +104,12 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
     static_cast<bool>(options->UnicodeMode)
   };
 
-  return trapWithVals(
-    [hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); },
-    1, 0, err
-  );
+  int result = trapWithVals([hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); }, 1, 0, err);
+  if (result == 0) {
+    (*err)->Pattern = clone_c_str(pattern);
+  }
+
+  return result;
 }
 
 LG_HFSM create_fsm(unsigned int patternCountHint, int numFsmStateSizeHint) {
