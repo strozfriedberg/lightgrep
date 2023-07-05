@@ -92,6 +92,14 @@ TEST_CASE("test_too_short", "[!shouldfail]") {
   REQUIRE(longest_factor == "bar");
 }
 
+TEST_CASE("test_min_length", "[!shouldfail]") {
+  NFAPtr nfa = construct("fox*");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 4u);
+  std::string longest_factor = analyze(*nfa, 2);
+  REQUIRE(longest_factor == "fo");
+}
+
 TEST_CASE("test_same_length", "[!shouldfail]") {
   NFAPtr nfa = construct("aaac*bbb");
   REQUIRE(nfa);
