@@ -80,6 +80,28 @@ TEST_CASE("testParsePatternWithBadPattern") {
 
 }
 
+TEST_CASE("testAddPatternWithBadPattern") {
+  std::string s = "\\x{2642}";
+  LG_KeyOptions keyOpts{0, 0, 0};
+  LG_Error* errPtr = nullptr;
+  LG_HPATTERN pat = lg_create_pattern();
+  LG_HFSM fsm = lg_create_fsm(0, 0);
+
+  int result = lg_parse_pattern(pat, s.c_str(), &keyOpts, &errPtr);
+
+  REQUIRE(result == 1);
+
+  int tree = lg_add_pattern(fsm, pat, "ASCII", 0, &errPtr);
+
+  REQUIRE(tree < 0);
+  REQUIRE(std::string(errPtr->Message) == "code point U+2642 does not exist in ASCII");
+  REQUIRE(!errPtr->EncodingChain);
+  REQUIRE(errPtr->Pattern);
+  REQUIRE(std::string(errPtr->Pattern) == s);
+
+
+}
+
 TEST_CASE("testFreeErrorWithNull") {
   lg_free_error(nullptr);
 }

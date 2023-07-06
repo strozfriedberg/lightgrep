@@ -170,13 +170,19 @@ int lg_add_pattern(LG_HFSM hFsm,
     setError(err, "encoding string pointer was null. Please specify a valid encoding.");
     return -3;
   }
-  return trapWithRetval(
+  int result = trapWithRetval(
     [hFsm, hPattern, encoding, userIndex]() {
       return addPattern(hFsm, hPattern, encoding, userIndex);
     },
     -1,
     err
   );
+
+  if (result == -1) {
+    (*err)->Pattern = clone_c_str(hPattern->Pat.Expression.c_str());
+  }
+
+  return result;
 }
 
 namespace {
