@@ -312,10 +312,12 @@ TEST_CASE("testLgAddPatternListBadEncoding") {
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
 
   REQUIRE(err);
+  REQUIRE(err->Message);
   REQUIRE(0 == err->Index);
 
   err = err->Next;
   REQUIRE(err);
+  REQUIRE(err->Message);
   REQUIRE(2 == err->Index);
 
   err = err->Next;
