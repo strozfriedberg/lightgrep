@@ -188,7 +188,7 @@ int lg_add_pattern(LG_HFSM hFsm,
 
 namespace {
   template <class E>
-  void addPattern(LG_HFSM hFsm,
+  void addPatternHelper(LG_HFSM hFsm,
                   LG_HPATTERN hPat,
                   const std::string& pat,
                   LG_KeyOptions* keyOpts,
@@ -287,11 +287,11 @@ namespace {
           }
         }
 
-        addPattern(hFsm, ph.get(), pat, &opts, etok, lnum, err);
+        addPatternHelper(hFsm, ph.get(), pat, &opts, etok, lnum, err);
       }
       else {
         // use default encodings and options
-        addPattern(hFsm, ph.get(), pat, &opts, defEncs, lnum, err);
+        addPatternHelper(hFsm, ph.get(), pat, &opts, defEncs, lnum, err);
       }
     }
 
