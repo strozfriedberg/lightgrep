@@ -180,6 +180,7 @@ int lg_add_pattern(LG_HFSM hFsm,
 
   if (result == -1) {
     (*err)->Pattern = clone_c_str(hPattern->Pat.Expression.c_str());
+    (*err)->EncodingChain = clone_c_str(encoding);
   }
 
   return result;
