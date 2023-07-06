@@ -208,12 +208,12 @@ TEST_CASE("testDFSMultipath") {
 }
 
 template<typename T>
-bool containsSubset(std::vector<T> vectorToSearch, std::vector<T> v) {
-  unsigned int range = vectorToSearch.size() - v.size();
+bool containsSubset(std::vector<T> vectorToSearch, std::vector<T> vertices) {
+  unsigned int range = vectorToSearch.size() - vertices.size();
 
   if (range == 0) {
     for (unsigned int i = 0; i < vectorToSearch.size(); i++) {
-      if (vectorToSearch[i] != v[i]) {
+      if (vectorToSearch[i] != vertices[i]) {
         return false;
       }
     }
@@ -221,9 +221,9 @@ bool containsSubset(std::vector<T> vectorToSearch, std::vector<T> v) {
   }
 
   for (unsigned int i = 0; i <= range; i++) {
-    if (vectorToSearch[i] == v[0]) {
-      for(unsigned int j = 1; j < v.size(); j++) {
-        if (vectorToSearch[i + j] != v[j]) {
+    if (vectorToSearch[i] == vertices[0]) {
+      for(unsigned int j = 1; j < vertices.size(); j++) {
+        if (vectorToSearch[i + j] != vertices[j]) {
           return false;
         }
       }
