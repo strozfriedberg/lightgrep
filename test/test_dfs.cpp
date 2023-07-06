@@ -127,7 +127,7 @@ TEST_CASE("testListContains") {
 Lists depthFirstSearch(
   G::VertexDescriptor startingNode, 
   G::VertexDescriptor endingNode, 
-  G graph, 
+  const G& graph,
   Lists lists = Lists{},
   List list = List{}) {
 
@@ -258,7 +258,7 @@ TEST_CASE("testContainsSubset") {
 List dominantPath(  
   G::VertexDescriptor startingNode, 
   G::VertexDescriptor endingNode, 
-  G graph) {
+  const G& graph) {
         
   Lists pos(depthFirstSearch(startingNode, endingNode, graph));
 
