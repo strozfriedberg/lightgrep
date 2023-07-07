@@ -60,9 +60,6 @@ struct MatchInfo {
 
 #pragma pack(pop)
 
-#define LIKELY(x) __builtin_expect(!!(x), 1)
-#define UNLIKELY(x) __builtin_expect(!!(x), 0)
-
 int dispatch(const byte* buf,
              CurEnd& curBuf,
              const InstructionNG* prog,

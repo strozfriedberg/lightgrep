@@ -46,3 +46,6 @@ typedef unsigned char byte;
   std::ostringstream buf; \
   buf << expression; \
   throw std::runtime_error(buf.str())
+
+#define LIKELY(x) __builtin_expect(!!(x), 1)
+#define UNLIKELY(x) __builtin_expect(!!(x), 0)
