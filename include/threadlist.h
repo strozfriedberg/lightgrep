@@ -1,5 +1,8 @@
 #pragma once
 
+#include <utility>
+
+#include "basic.h"
 #include "lightgrep/search_hit.h"
 
 struct ThreadNG {
@@ -8,7 +11,8 @@ struct ThreadNG {
   LG_SearchHit Hit;
 };
 
-class Threadlist {
+template<class TypeT>
+class Fastlist {
 /*
   The point of this data structure is to provide for fast O(1) insertion and deletion
   in a list while avoiding the deleterious heap allocations and pointer-chasing of
@@ -35,14 +39,21 @@ class Threadlist {
   manipulated. The only overhead cost of maintaining this second free list is the
   single uint32_t for knowing the index of the first element in the free list.
 */
+private:
+  enum {
+    LAST = 0, // It may be a hair faster to have LAST == 0
+    FIRST = 1,
+    SENTINEL = 0xFFFFFFFF
+  };
+
 public:
   class TLIterator {
   public:
-    friend class Threadlist;
+    friend class Fastlist;
 
     using iterator_category = std::bidirectional_iterator_tag;
     using difference_type   = std::ptrdiff_t;
-    using value_type        = ThreadNG;
+    using value_type        = TypeT;
     using pointer           = value_type*;
     using reference         = value_type&;
 
@@ -54,7 +65,7 @@ public:
     pointer operator->() { return &TL->Vec[Index].T; }
 
     TLIterator& operator++() {
-      if (Index != TL->Last) {
+      if (LIKELY(Index != LAST)) {
         Index = TL->Vec[Index].Next;
       }
       return *this;
@@ -62,7 +73,7 @@ public:
 
     TLIterator operator++(int) {
       TLIterator ret(*this);
-      if (Index != TL->Last) {
+      if (LIKELY(Index != LAST)) {
         Index = TL->Vec[Index].Next;
       }
       return ret;
@@ -74,32 +85,37 @@ public:
     friend bool operator!=(const TLIterator& a, const TLIterator& b) { return a.TL != b.TL || a.Index != b.Index; }
 
   private:
-    TLIterator(Threadlist* tl, uint32_t i): TL(tl), Index(i) {}
+    TLIterator(Fastlist* tl, uint32_t i): TL(tl), Index(i) {}
 
-    Threadlist* TL; // look, pointers still work, it'll be okay
+    Fastlist* TL; // look, pointers still work, it'll be okay
 
     uint32_t Index;
   };
 
   friend class TLIterator;
 
+  using iterator = TLIterator;
+  using const_iterator = const TLIterator;
+
   struct ThreadNode {
-    ThreadNG T;
+    TypeT T;
 
     uint32_t Prev;
     uint32_t Next;
 
     ThreadNode(): T(), Prev(SENTINEL), Next(SENTINEL) {}
-    ThreadNode(const ThreadNG& t, uint32_t prev = SENTINEL, uint32_t next = SENTINEL): T(t), Prev(prev), Next(next) {}
+    ThreadNode(const TypeT& t, uint32_t prev = SENTINEL, uint32_t next = SENTINEL): T(t), Prev(prev), Next(next) {}
   };
 
 
-  Threadlist():
-    First(0), Last(1), Free(SENTINEL), Size(0)
+  Fastlist():
+    Size(0), Free(SENTINEL)
   {
     Vec.reserve(20);
-    Vec.emplace_back(ThreadNG(), SENTINEL, 1u);
-    Vec.emplace_back(ThreadNG(), 0u, SENTINEL);
+    Vec.emplace_back(TypeT(), FIRST, SENTINEL);
+    Vec.emplace_back(TypeT(), SENTINEL, LAST);
+    // Vec.emplace_back(TypeT(), SENTINEL, LAST);
+    // Vec.emplace_back(TypeT(), FIRST, SENTINEL);
   }
 
   bool empty() const { return Size == 0; }
@@ -110,7 +126,13 @@ public:
 
   void reserve(size_t capacity) { Vec.reserve(capacity + 2); }
 
-  TLIterator insert(TLIterator pos, const ThreadNG& t) {
+  TLIterator begin() { return TLIterator(this, Vec[FIRST].Next); }
+  TLIterator end() { return TLIterator(this, LAST); }
+
+  TypeT& front() { return Vec[Vec[FIRST].Next].T; }
+  TypeT& back() { return Vec[Vec[LAST].Prev].T; }
+
+  TLIterator insert(TLIterator pos, const TypeT& t) {
     uint32_t i = alloc_node(t);
 
     auto& posRef(Vec[pos.Index]);
@@ -124,15 +146,21 @@ public:
     return TLIterator(this, i);
   }
 
-  TLIterator begin() { return TLIterator(this, Vec[First].Next); }
-  TLIterator end() { return TLIterator(this, Last); }
+  void push_back(const TypeT& t) {
+    uint32_t i = alloc_node(t);
 
-  ThreadNG& front() { return Vec[Vec[First].Next].T; }
-  ThreadNG& back() { return Vec[Vec[Last].Prev].T; }
+    auto& lastRef(Vec[LAST]);
+    auto& newRef(Vec[i]);
+    newRef.Prev = lastRef.Prev;
+    newRef.Next = LAST;
+
+    Vec[newRef.Prev].Next = i;
+    lastRef.Prev = i;
+  }
 
   TLIterator erase(TLIterator pos) {
     // it should not be possible to get an itr where pos.Index == First
-    if (pos.Index == Last || pos.Index == SENTINEL) {
+    if (UNLIKELY(pos.Index == LAST || pos.Index == SENTINEL)) {
       return end();
     }
     auto& posRef(Vec[pos.Index]);
@@ -149,24 +177,30 @@ public:
     return ret;
   }
 
+  void swap(Fastlist& x) {
+    Vec.swap(x.Vec);
+    std::swap(Size, x.Size);
+    std::swap(Free, x.Free);
+  }
+
   void clear() {
-    Vec[First].Next = Last;
-    Vec[Last].Prev = First;
+    Vec[FIRST].Next = LAST;
+    Vec[LAST].Prev = FIRST;
+    Free = SENTINEL;
     Size = 0;
   }
 
 private:
-  static const uint32_t SENTINEL = std::numeric_limits<uint32_t>::max();
-
-  uint32_t alloc_node(const ThreadNG& t) {
+  uint32_t alloc_node(const TypeT& t) {
     uint32_t ret;
     ++Size;
-    if (Free == SENTINEL) {
+    if (LIKELY(Free == SENTINEL)) {
+      ret = Vec.size();
       Vec.push_back(t);
-      ret = Vec.size() - 1;
     }
     else {
       ret = Free;
+      Vec[ret] = t;
       Free = Vec[Free].Next;
     }
     return ret;
@@ -174,9 +208,7 @@ private:
 
   std::vector<ThreadNode> Vec;
 
-  uint32_t First,
-           Last,
-           Free;
-
   size_t Size;
+
+  uint32_t Free;
 };

@@ -229,8 +229,8 @@ TEST_CASE("simple_foo_search") {
 
 #include <list>
 
-TEST_CASE("threadlist") {
-  Threadlist list;
+TEST_CASE("fastlist") {
+  Fastlist<ThreadNG> list;
 
   ThreadNG t;
   t.PC = 5;
