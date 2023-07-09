@@ -14,7 +14,8 @@ enum OpCodesNG {
   SET_START,
   SET_END,
   MATCH_OP_NG,
-  MEMCHR_OP
+  MEMCHR_OP,
+  HALT_OP_NG
 };
 
 #pragma pack(push, 1)
@@ -76,11 +77,15 @@ class ProgramNG {
 /*
   A program is at base an array of 32-bit instructions.
 
-  However, often other state needs to be bunbled with these instructions.
+  However, often other state needs to be bundled with these instructions.
   For example, it's good to know how many patterns are encoded in the instructions,
   and maybe what they were originally, and there could be all sorts of statistics
   about the automata involved that are useful to keep around, and other
   data structures that can be profitably used by the VM. So, this is where to put that.
+
+  However, an important caveat: a program must be const/immutable as it executes, so
+  that it can be serialized/deserialized and so that it can be shared between different
+  VMs searching different streams.
 */
 public:
   ProgramNG(): Code() {}
@@ -137,6 +142,10 @@ public:
     CurEnd curProg = {0, Prog.numInstructions()};
     MatchInfo info;
 
+
+    // Must iterate threads and execute them
+    // Must also return search hits, somehow
+
     dispatch(buf, curBuf, Prog.begin(), curProg, info, this);
   }
 
@@ -154,7 +163,13 @@ private:
 };
 
 /*
+  Bytecode implementation
+
   State:
+    return value of 0 indicates thread should be discarded
+    1 indicates thread reached end of current input buffer and needs to be run
+    on the next buffer in the input stream
+
     current instruction/offset into program (cur instruction)
     [begin, end) of program
 
@@ -168,7 +183,7 @@ private:
   CPS on Intel: six registers, 64 bits apiece
     - should they be out-parameters so state becomes visible to callee?
     - does making them out-parameters even work with __fastcall semantics???
-    - it's okay for complex functions to manipulate lots of data, but calling functions could screw up all of CSP
+    - it's okay for complex functions to manipulate lots of data, but calling functions could screw up all of CPS
 */
 
 
@@ -200,9 +215,6 @@ int do_branch_byte_op(const byte* buf,
                      MatchInfo& info,
                      void* vm)
 {
-  if (UNLIKELY(curBuf.cur >= curBuf.end)) {
-    return 0;
-  }
   const InstructionNG inst = prog[curProg.cur];
   if (UNLIKELY(buf[curBuf.cur] == inst.Op.T1.Byte)) {
     curProg.cur += 2;
@@ -272,16 +284,23 @@ int do_memchr_op(const byte* buf,
   const byte* cur = &buf[curBuf.cur];
   const byte* end = &buf[curBuf.end];
   const byte* found(reinterpret_cast<const byte*>(std::memchr(cur, prog[curProg.cur].Op.T1.Byte, end - cur)));
+
+  // curProg.cur = found ? curProg.cur + 1: curProg.cur;
+  // // ++curProg.cur;
+  // curBuf.cur = found ? found - buf + 1: curBuf.end;
+
   if (found) {
     ++curProg.cur;
-    curBuf.cur = found - buf;
-    ++curBuf.cur;
+    curBuf.cur = found - buf + 1;
+    // ++curBuf.cur;
     // std::cerr << "Found at " << (curBuf.cur - 1) << ", curProg.cur at " << curProg.cur << '\n';
   }
   else {
     // std::cerr << "Not found\n";
     curBuf.cur = curBuf.end;
   }
+
+
   [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
@@ -297,6 +316,17 @@ int do_jump_op(const byte* buf,
   [[clang::musttail]] return DispatcherFn(buf, curBuf, prog, curProg, info, vm);
 }
 
+template<auto DispatcherFn>
+int do_halt_op(const byte*,
+             CurEnd&,
+             const InstructionNG*,
+             CurEnd&,
+             MatchInfo&,
+             void*)
+{
+  return 0;
+}
+
 int dispatch(const byte* buf,
              CurEnd& curBuf,
              const InstructionNG* prog,
@@ -305,7 +335,7 @@ int dispatch(const byte* buf,
              void* vm)
 {
   if (UNLIKELY(curBuf.cur == curBuf.end)) {
-    return 0;
+    return 1;
   }
   switch(prog[curProg.cur].OpCode) {
   case BYTE_OP_NG:
@@ -322,6 +352,8 @@ int dispatch(const byte* buf,
     [[clang::musttail]] return do_match_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
    case MEMCHR_OP:
     [[clang::musttail]] return do_memchr_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
+  case HALT_OP_NG:
+    [[clang::musttail]] return do_halt_op<dispatch>(buf, curBuf, prog, curProg, info, vm);
   default:
     return 0;
   }

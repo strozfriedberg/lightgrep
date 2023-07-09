@@ -60,19 +60,12 @@ TEST_CASE("do_branch_byte_op") {
   CurEnd curProg = {0, 2};
   MatchInfo info;
 
-  int result = do_branch_byte_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  do_branch_byte_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
   REQUIRE(curProg.cur == 0); // fails, branches back to zero
   REQUIRE(curBuf.cur == 1);
-  result = do_branch_byte_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  do_branch_byte_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
   REQUIRE(curProg.cur == 2); // succeeds, skips ahead
   REQUIRE(curBuf.cur == 2);
-
-  curBuf.cur = 5; // return 0 since we're at the end of the buffer
-  curProg.cur = 0;
-  result = do_branch_byte_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
-  REQUIRE(result == 0);
-  REQUIRE(curProg.cur == 0);
-  REQUIRE(curBuf.cur == 5);
 }
 
 TEST_CASE("set_start") {
@@ -183,6 +176,19 @@ TEST_CASE("jump_op") {
   REQUIRE(result == 1);
   REQUIRE(curProg.cur == 37);
   REQUIRE(curBuf.cur == 3);
+}
+
+TEST_CASE("halt_op") {
+  TestDispatcher disp;
+  std::string data("hello");
+  const byte* buf = (const byte*)data.data();
+  CurEnd curBuf = {3, 5};
+  InstructionNG prog[1];
+  prog[0].OpCode = OpCodesNG::HALT_OP_NG;
+  CurEnd curProg = {0, 1};
+  MatchInfo info = {1, 3, 2};
+  int result = do_halt_op<test_dispatch>(buf, curBuf, prog, curProg, info, &disp);
+  REQUIRE(result == 0);
 }
 
 TEST_CASE("simple_foo_search") {
