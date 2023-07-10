@@ -127,7 +127,7 @@ TEST_CASE("testListContains") {
 Lists depthFirstSearch(
   G::VertexDescriptor startingNode, 
   G::VertexDescriptor endingNode, 
-  G graph, 
+  const G& graph,
   Lists lists = Lists{},
   List list = List{}) {
 
@@ -206,3 +206,179 @@ TEST_CASE("testDFSMultipath") {
 
   REQUIRE(exp == act);
 }
+
+template<typename T>
+bool containsSubset(const std::vector<T>& vectorToSearch, const std::vector<T>& vertices) {
+  unsigned int range = vectorToSearch.size() - vertices.size();
+
+  if (range == 0) {
+    for (unsigned int i = 0; i < vectorToSearch.size(); i++) {
+      if (vectorToSearch[i] != vertices[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  for (unsigned int i = 0; i <= range; i++) {
+    if (vectorToSearch[i] == vertices[0]) {
+      for(unsigned int j = 1; j < vertices.size(); j++) {
+        if (vectorToSearch[i + j] != vertices[j]) {
+          return false;
+        }
+      }
+      return true;
+    }
+    if (i == range) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+TEST_CASE("testContainsSubset") {
+  bool act1 = containsSubset<int>({0,1,2,3,4,5,6,7,8}, {4, 5, 6});
+  bool act2 = containsSubset<int>({0,1,2,3,4,5,6,7,8}, {4, 6});
+  bool act3 = containsSubset<int>({0,1,2,3,4,5,6,7,8}, {9, 10});
+  bool act4 = containsSubset<int>({0,1,2,3,4,5}, {0,1,2,3,4,5});
+  bool act5 = containsSubset<int>({0,1,2,3,4,5}, {1,1,1,1,1,1});
+  bool act6 = containsSubset<int>({0,1,2,3,4,5}, {3,4,5});
+  bool act7 = containsSubset<int>({0,1,2,3,4,5}, {3,4,5,6});
+
+  REQUIRE(true == act1);
+  REQUIRE(false == act2);
+  REQUIRE(false == act3);
+  REQUIRE(true == act4);
+  REQUIRE(false == act5);
+  REQUIRE(true == act6);
+  REQUIRE(false == act7);
+}
+
+List dominantPath(  
+  G::VertexDescriptor startingNode, 
+  G::VertexDescriptor endingNode, 
+  const G& graph) {
+        
+  Lists pos(depthFirstSearch(startingNode, endingNode, graph));
+
+  int n = pos.size();
+
+  List s = pos[0];
+  int len = s.size();
+
+  List res = {};
+
+  for (int i = 0; i < len; i++) {
+    for (int j = i + 1; j <= len; j++) {
+      List stem(s.begin() + i, s.begin() + j);
+      int k = 1;
+
+      for (k = 1; k < n; k++) {
+        if (!containsSubset<G::VertexDescriptor>(pos[k], stem)) {
+          break;
+        }
+      }
+
+      if (k == n && res.size() < stem.size()) {
+        res = stem;
+      }
+    }
+  }
+
+  return res;
+}
+
+TEST_CASE("testDFSDominator") {
+  G g(14);
+
+  add_edges(g, {
+    {0, 1},
+    {1, 2},
+    {1, 11},
+    {2, 3},
+    {3, 4},
+    {4, 5},
+    {5, 6},
+    {6, 7},
+    {6, 10},
+    {7, 8},
+    {8, 9},
+    {10, 9},
+    {11, 12},
+    {11, 13},
+    {12, 4},
+    {13, 4},
+  });
+
+  const List act = dominantPath(0, 9, g);
+  const List exp {4, 5, 6};
+
+  REQUIRE(exp == act);
+}
+
+TEST_CASE("testDFSDominator2") {
+  G g(12);
+
+  add_edges(g, {
+    {0, 1},
+    {1, 2},
+    {2, 3},
+    {2, 11},
+    {3, 4},
+    {4, 5},
+    {5, 6},
+    {6, 7},
+    {7, 8},
+    {7, 10},
+    {8, 9},
+    {10, 9},
+    {11, 5}
+  });
+
+  const List act = dominantPath(0, 9, g);
+  const List exp {0, 1, 2};
+
+  REQUIRE(exp == act);
+}
+
+TEST_CASE("testDFSDominator3") {
+  G g(7);
+
+  add_edges(g, {
+    {0, 1},
+    {1, 2},
+    {1, 5},
+    {2, 3},
+    {3, 4},
+    {5, 6},
+    {6, 2}
+  });
+
+  const List act = dominantPath(0, 4, g);
+  const List exp {2, 3, 4};
+
+  REQUIRE(exp == act);
+}
+
+TEST_CASE("testDFSDominator4") {
+  G g(7);
+
+  add_edges(g, {
+    {0, 1},
+    {1, 2},
+    {1, 5},
+    {2, 3},
+    {2, 6},
+    {3, 4},
+    {5, 6},
+    {6, 2}
+  });
+
+  const List act = dominantPath(0, 4, g);
+  const List exp {2, 3, 4};
+
+  REQUIRE(exp == act);
+}
+
+
