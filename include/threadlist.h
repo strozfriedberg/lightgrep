@@ -47,6 +47,8 @@ private:
   };
 
 public:
+  struct ThreadNode;
+
   class TLIterator {
   public:
     friend class Fastlist;
@@ -61,33 +63,32 @@ public:
     // constructible, copy-constructible, copy-assignable, destructible, swappable
 
     // operators
-    reference operator*() const { return TL->Vec[Index].T; }
-    pointer operator->() { return &TL->Vec[Index].T; }
+    reference operator*() const { return (*Vec)[Index].T; }
+    pointer operator->() { return &(*Vec)[Index].T; }
 
     TLIterator& operator++() {
-      if (LIKELY(Index != LAST)) {
-        Index = TL->Vec[Index].Next;
-      }
+      Index = (*Vec)[Index].Next;
       return *this;
     }
 
     TLIterator operator++(int) {
       TLIterator ret(*this);
-      if (LIKELY(Index != LAST)) {
-        Index = TL->Vec[Index].Next;
-      }
+      Index = (*Vec)[Index].Next;
+      // if (LIKELY(Index != LAST)) {
+      //   Index = TL->Vec[Index].Next;
+      // }
       return ret;
     }
 
     uint32_t index() const { return Index; }
 
-    friend bool operator==(const TLIterator& a, const TLIterator& b) { return a.TL == b.TL && a.Index == b.Index; }
-    friend bool operator!=(const TLIterator& a, const TLIterator& b) { return a.TL != b.TL || a.Index != b.Index; }
+    friend bool operator==(const TLIterator& a, const TLIterator& b) { return a.Vec == b.Vec && a.Index == b.Index; }
+    friend bool operator!=(const TLIterator& a, const TLIterator& b) { return a.Vec != b.Vec || a.Index != b.Index; }
 
   private:
-    TLIterator(Fastlist* tl, uint32_t i): TL(tl), Index(i) {}
+    TLIterator(Fastlist* tl, uint32_t i): Vec(&(tl->Vec)), Index(i) {}
 
-    Fastlist* TL; // look, pointers still work, it'll be okay
+    std::vector<ThreadNode>* Vec;
 
     uint32_t Index;
   };
@@ -112,8 +113,8 @@ public:
     Size(0), Free(SENTINEL)
   {
     Vec.reserve(20);
-    Vec.emplace_back(TypeT(), FIRST, SENTINEL);
-    Vec.emplace_back(TypeT(), SENTINEL, LAST);
+    Vec.emplace_back(TypeT(), FIRST, LAST);
+    Vec.emplace_back(TypeT(), FIRST, LAST);
     // Vec.emplace_back(TypeT(), SENTINEL, LAST);
     // Vec.emplace_back(TypeT(), FIRST, SENTINEL);
   }

@@ -77,6 +77,21 @@ void list_iterate_erase_append(const char* name) {
 	};
 }
 
+template<class ListT, unsigned int LIST_SIZE>
+void list_iterate(const char* name) {
+	ListT one;
+	for (unsigned int i = 0; i < LIST_SIZE; ++i) {
+		one.push_back(ThreadNG());
+	}
+	BENCHMARK(name) {
+		unsigned int sum = 0;
+		for (auto& t: one) {
+			sum += t.Hit.Start;
+		}
+		return sum;
+	};
+}
+
 TEST_CASE("threadlist") {
 	list_mixed_benchmark<Fastlist<ThreadNG>, 5, 3, 2>("threadlist(5, 3, 2)");
 	list_mixed_benchmark<stdlist<ThreadNG>, 5, 3, 2>("std::list(5, 3, 2)");
@@ -104,6 +119,19 @@ TEST_CASE("threadlist") {
 	list_iterate_append_swap<std::list<ThreadNG>, 10, 40>("std::list iter swap(10, 40)");
 	list_iterate_append_swap<std::vector<ThreadNG>, 10, 40>("std::vector iter swap(10, 40)");
 	list_iterate_erase_append<Fastlist<ThreadNG>, 5, 20>("TL iter append(10, 40)");
+
+	list_iterate<Fastlist<ThreadNG>, 5>("fastlist_iter(5)");
+	list_iterate<std::list<ThreadNG>, 5>("std::list_iter(5)");
+	list_iterate<std::vector<ThreadNG>, 5>("std::vector_iter(5)");
+	list_iterate<Fastlist<ThreadNG>, 20>("fastlist_iter(20)");
+	list_iterate<std::list<ThreadNG>, 20>("std::list_iter(20)");
+	list_iterate<std::vector<ThreadNG>, 20>("std::vector_iter(20)");
+	list_iterate<Fastlist<ThreadNG>, 50>("fastlist_iter(50)");
+	list_iterate<std::list<ThreadNG>, 50>("std::list_iter(50)");
+	list_iterate<std::vector<ThreadNG>, 50>("std::vector_iter(50)");
+	list_iterate<Fastlist<ThreadNG>, 1000>("fastlist_iter(1000)");
+	list_iterate<std::list<ThreadNG>, 1000>("std::list_iter(1000)");
+	list_iterate<std::vector<ThreadNG>, 1000>("std::vector_iter(1000)");
 }
 
 }
