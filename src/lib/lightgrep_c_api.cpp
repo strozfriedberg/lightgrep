@@ -295,7 +295,7 @@ namespace {
       }
     }
 
-    return 0;
+    return *err ? -1 : 0;
   }
 }
 
@@ -307,25 +307,25 @@ int lg_add_pattern_list(LG_HFSM hFsm,
                         const LG_KeyOptions* defaultOptions,
                         LG_Error** err)
 {
-  LG_Error* in_err = nullptr;
+  // LG_Error* in_err = nullptr;
 
-  int ret = trapWithRetval(
-    [hFsm, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err]() {
-      return addPatternList(hFsm, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err);
+  const int ret = trapWithRetval(
+    [hFsm, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, err]() {
+      return addPatternList(hFsm, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, err);
     },
     -1,
     err
   );
 
-  if (err) {
-    if (in_err) {
-      if (*err) {
-        // append the error from addPatternList to the chain
-        in_err->Next = *err;
-      }
-      *err = in_err;
-    }
-  }
+  // if (err) {
+  //   if (in_err) {
+  //     if (*err) {
+  //       // append the error from addPatternList to the chain
+  //       in_err->Next = *err;
+  //     }
+  //     *err = in_err;
+  //   }
+  // }
 
   return ret;
 }

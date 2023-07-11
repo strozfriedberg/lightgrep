@@ -102,6 +102,31 @@ TEST_CASE("testAddPatternWithBadPattern") {
   REQUIRE(std::string(errPtr->EncodingChain) == enc);
 }
 
+TEST_CASE("testAddPatternListWithBadPatterns") {
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(0, 0),
+    lg_destroy_fsm
+  );
+  const char* badPatterns = "+badpattern\ngood\\d+pattern\n\\x{2642}\tASCII";
+  const char* fileName = "/path/to/pattern/file";
+  const char* defEnc[] = { "ASCII" };
+  unsigned int defEncNum = 1;
+  LG_KeyOptions keyOpts{0, 0, 0};
+  LG_Error* errPtr = nullptr;
+
+  int result = lg_add_pattern_list(fsm.get(), badPatterns, fileName, defEnc, defEncNum, &keyOpts, &errPtr);
+
+  //REQUIRE(result == -1);
+  REQUIRE(errPtr);
+  REQUIRE(std::string(errPtr->Pattern) == "+badpattern");
+  REQUIRE(!errPtr->EncodingChain);
+  errPtr = errPtr->Next;
+  REQUIRE(errPtr);
+  REQUIRE(std::string(errPtr->Pattern) == "\\x{2642}");
+  REQUIRE(std::string(errPtr->EncodingChain) == "ASCII");
+
+}
+
 TEST_CASE("testFreeErrorWithNull") {
   lg_free_error(nullptr);
 }
