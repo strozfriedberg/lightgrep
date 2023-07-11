@@ -116,7 +116,7 @@ TEST_CASE("testAddPatternListWithBadPatterns") {
 
   int result = lg_add_pattern_list(fsm.get(), badPatterns, fileName, defEnc, defEncNum, &keyOpts, &errPtr);
 
-  //REQUIRE(result == -1);
+  REQUIRE(result == -1);
   REQUIRE(errPtr);
   REQUIRE(std::string(errPtr->Pattern) == "+badpattern");
   REQUIRE(!errPtr->EncodingChain);

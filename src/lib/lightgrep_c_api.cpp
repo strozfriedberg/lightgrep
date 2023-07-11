@@ -295,7 +295,7 @@ namespace {
       }
     }
 
-    return *err ? -1 : 0;
+    return err ? -1 : 0;
   }
 }
 
