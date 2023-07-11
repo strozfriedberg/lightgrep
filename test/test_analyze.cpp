@@ -55,7 +55,7 @@ TEST_CASE("test_nondominant_factor", "[!shouldfail]") {
 TEST_CASE("test_one_more", "[!shouldfail]") {
   NFAPtr nfa = construct("a+b+c+foo");
   REQUIRE(nfa);
-  REQUIRE(nfa->verticesSize() == 4u);
+  REQUIRE(nfa->verticesSize() == 7u);
   std::string longest_factor = analyze(*nfa, 3);
   REQUIRE(longest_factor == "foo");
 }
