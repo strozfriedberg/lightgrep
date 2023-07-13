@@ -3,12 +3,13 @@
 #include <utility>
 
 #include "basic.h"
-#include "lightgrep/search_hit.h"
+// #include "lightgrep/search_hit.h"
 
 struct ThreadNG {
+  uint64_t  Start,        // starting offset of the hit
+            End;          // one past the hit, i.e., End - Start = Length
+  uint32_t  KeywordIndex; // index of keyword that hit
   uint32_t PC;
-
-  LG_SearchHit Hit;
 };
 
 template<class TypeT>

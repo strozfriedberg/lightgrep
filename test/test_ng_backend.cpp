@@ -238,6 +238,10 @@ TEST_CASE("simple_foo_search") {
 TEST_CASE("fastlist") {
   Fastlist<ThreadNG> list;
 
+  REQUIRE(sizeof(LG_SearchHit) == 24);
+  REQUIRE(sizeof(ThreadNG) == 24);
+  REQUIRE(sizeof(Fastlist<ThreadNG>::ThreadNode) == 32);
+
   ThreadNG t;
   t.PC = 5;
 
@@ -251,7 +255,7 @@ TEST_CASE("fastlist") {
   REQUIRE(itr->PC == 5);
   REQUIRE((*itr).PC == 5);
 
-  itr = list.insert(list.begin(), ThreadNG{6, LG_SearchHit()});
+  itr = list.insert(list.begin(), ThreadNG{0, 0, 0, 6});
   REQUIRE(list.size() == 2);
   REQUIRE(itr == list.begin());
   REQUIRE(itr != list.end());
@@ -269,7 +273,7 @@ TEST_CASE("fastlist") {
   REQUIRE(prevItr->PC == 5);
   REQUIRE(itr == list.end());
 
-  itr = list.insert(list.end(), ThreadNG{7, LG_SearchHit()});
+  itr = list.insert(list.end(), ThreadNG{0, 0, 0, 7});
   REQUIRE(itr != list.begin());
   REQUIRE(itr != list.end());
   REQUIRE(list.size() == 3);
@@ -287,9 +291,9 @@ TEST_CASE("fastlist") {
   REQUIRE(list.size() == 0);
   REQUIRE(list.begin() == list.end());
 
-  list.insert(list.end(), ThreadNG{1, LG_SearchHit()});
-  itr = list.insert(list.end(), ThreadNG{2, LG_SearchHit()});
-  list.insert(list.end(), ThreadNG{3, LG_SearchHit()});
+  list.insert(list.end(), ThreadNG{0, 0, 0, 1});
+  itr = list.insert(list.end(), ThreadNG{0, 0, 0, 2});
+  list.insert(list.end(), ThreadNG{0, 0, 0, 3});
   REQUIRE(list.size() == 3);
   itr = list.erase(itr);
   REQUIRE(list.size() == 2);
@@ -301,6 +305,6 @@ TEST_CASE("fastlist") {
   REQUIRE(itr == list.end());
 
   const size_t vec_size = list.vector_size();
-  itr = list.insert(list.end(), ThreadNG{8, LG_SearchHit()});
+  itr = list.insert(list.end(), ThreadNG{0, 0, 0, 8});
   REQUIRE(vec_size == list.vector_size());
 }

@@ -19,7 +19,7 @@ void list_mixed_benchmark(const char* name) {
 		ListT list;
 		list.reserve(INITIAL * 2);
     for (unsigned int i = 0; i < INITIAL; ++i) {
-      list.insert(list.begin(), ThreadNG{i, LG_SearchHit()});
+      list.insert(list.begin(), ThreadNG());
     }
     auto itr = list.begin();
     for (unsigned int i = 0; i < DELETE; ++i) {
@@ -27,7 +27,7 @@ void list_mixed_benchmark(const char* name) {
       ++itr;
     }
     for (unsigned int i = 0; i < ADDITIONAL; ++i) {
-      list.insert(list.begin(), ThreadNG{i, LG_SearchHit()});
+      list.insert(list.begin(), ThreadNG());
     }
 	};
 }
@@ -43,7 +43,7 @@ void list_iterate_append_swap(const char* name) {
 		uint64_t sum = 0;
 		for (unsigned int i = 0; i < ITERATIONS; ++i) {
 			for (auto itr(one.begin()); itr != one.end(); ++itr) {
-				sum += itr->Hit.Start;
+				sum += itr->Start;
 				two.push_back(*itr);
 			}
 			one.swap(two);
@@ -63,11 +63,11 @@ void list_iterate_erase_append(const char* name) {
 		uint64_t sum = 0;
 		for (unsigned int i = 0; i < ITERATIONS - 1; ++i) {
 			for (auto itr(one.begin()); itr != one.end(); ++itr) {
-				sum += itr->Hit.Start;
+				sum += itr->Start;
 			}
 		}
 		for (auto itr(one.begin()); itr != one.end(); ++itr) {
-			sum += itr->Hit.Start;
+			sum += itr->Start;
 			if (itr == one.begin()) {
 				one.erase(itr);
 			}
@@ -86,7 +86,7 @@ void list_iterate(const char* name) {
 	BENCHMARK(name) {
 		unsigned int sum = 0;
 		for (auto& t: one) {
-			sum += t.Hit.Start;
+			sum += t.Start;
 		}
 		return sum;
 	};
