@@ -132,6 +132,9 @@ TEST_CASE("threadlist") {
 	list_iterate<Fastlist<ThreadNG>, 1000>("fastlist_iter(1000)");
 	list_iterate<std::list<ThreadNG>, 1000>("std::list_iter(1000)");
 	list_iterate<std::vector<ThreadNG>, 1000>("std::vector_iter(1000)");
+	list_iterate<Fastlist<ThreadNG>, 1000000>("fastlist_iter(1000000)");
+	list_iterate<std::list<ThreadNG>, 1000000>("std::list_iter(1000000)");
+	list_iterate<std::vector<ThreadNG>, 1000000>("std::vector_iter(1000000)");
 }
 
 }
