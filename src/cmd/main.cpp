@@ -547,15 +547,7 @@ void analyze(const Options& opts) {
   std::tie(fsm, std::ignore, err) = parsePatterns(opts);
 
   NFAPtr g(fsm->Impl->Fsm);
-
-  NFA::VertexDescriptor end = 0;
-  for (NFA::VertexDescriptor vi = 0; vi < g->verticesSize(); ++vi) {
-    if ((*g)[vi].IsMatch) {
-      end = vi;
-      break;
-    }
-  }
-  List res = dominantPath(0, end, *g);
+  List res = dominantPath(0, *g);
 
   std::cout << "Dominant path is {";
   for (auto vi : res) {

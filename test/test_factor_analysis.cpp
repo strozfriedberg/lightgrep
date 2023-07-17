@@ -100,8 +100,8 @@ TEST_CASE("testDFS") {
   g.addEdge(5, 7);
   g.addEdge(2, 7);
 
-  const Lists act = depthFirstSearch(0, 7, g);
-  const Lists exp{{0, 1, 4, 5, 7}, {0, 2, 7}};
+  const Lists act = depthFirstSearch(0, g);
+  const Lists exp{{0, 1, 3}, {0, 1, 4, 5, 6}, {0, 1, 4, 5, 7}, {0, 2, 7}};
 
   REQUIRE(exp == act);
 }
@@ -116,7 +116,7 @@ TEST_CASE("testDFSLoop") {
   g.addEdge(3, 4);
   g.addEdge(1, 2);
 
-  const Lists act = depthFirstSearch(1, 4, g);
+  const Lists act = depthFirstSearch(1, g);
   const Lists exp{{1, 0, 2, 3, 4}, {1, 2, 3, 4}};
 
   REQUIRE(exp == act);
@@ -131,7 +131,7 @@ TEST_CASE("testDFSMultipath") {
   g.addEdge(4, 5);
   g.addEdge(5, 3);
 
-  const Lists act = depthFirstSearch(0, 3, g);
+  const Lists act = depthFirstSearch(0, g);
   const Lists exp{{0, 1, 2, 3}, {0, 4, 5, 3}};
 
   REQUIRE(exp == act);
@@ -177,7 +177,7 @@ TEST_CASE("testDFSDominator") {
     {13, 4},
   });
 
-  const List act = dominantPath(0, 9, g);
+  const List act = dominantPath(0, g);
   const List exp {4, 5, 6};
 
   REQUIRE(exp == act);
@@ -202,7 +202,7 @@ TEST_CASE("testDFSDominator2") {
     {11, 5}
   });
 
-  const List act = dominantPath(0, 9, g);
+  const List act = dominantPath(0, g);
   const List exp {0, 1, 2};
 
   REQUIRE(exp == act);
@@ -221,7 +221,7 @@ TEST_CASE("testDFSDominator3") {
     {6, 2}
   });
 
-  const List act = dominantPath(0, 4, g);
+  const List act = dominantPath(0, g);
   const List exp {2, 3, 4};
 
   REQUIRE(exp == act);
@@ -241,52 +241,10 @@ TEST_CASE("testDFSDominator4") {
     {6, 2}
   });
 
-  const List act = dominantPath(0, 4, g);
+  const List act = dominantPath(0, g);
   const List exp {2, 3, 4};
 
   REQUIRE(exp == act);
-}
-
-List extendDominantPath(
-  NFA::VertexDescriptor startingNode,
-  std::list<NFA::VertexDescriptor> endingNodes,
-  const NFA& graph) {
-
-  std::vector<Lists> all_paths;
-
-  for (NFA::VertexDescriptor endingNode : endingNodes) {
-    Lists paths(depthFirstSearch(startingNode, endingNode, graph));
-
-    all_paths.push_back(paths);
-  }
-
-  Lists pos = listsConcatenator(all_paths);
-
-  int n = pos.size();
-
-  List s = pos[0];
-  int len = s.size();
-
-  List res = {};
-
-  for (int i = 0; i < len; i++) {
-    for (int j = i + 1; j <= len; j++) {
-      List stem(s.begin() + i, s.begin() + j);
-      int k = 1;
-
-      for (k = 1; k < n; k++) {
-        if (!containsSubset<NFA::VertexDescriptor>(pos[k], stem)) {
-          break;
-        }
-      }
-
-      if (k == n && res.size() < stem.size()) {
-        res = stem;
-      }
-    }
-  }
-
-  return res;
 }
 
 TEST_CASE("testDFSExtendDominator") {
@@ -311,7 +269,7 @@ TEST_CASE("testDFSExtendDominator") {
     {13, 4},
   });
 
-  const List act = extendDominantPath(0, {9, 14}, g);
+  const List act = dominantPath(0, g);
   const List exp {4, 5, 6};
 
   REQUIRE(exp == act);
@@ -329,7 +287,7 @@ TEST_CASE("testDFSExtendDominator2") {
     {4, 5},
   });
 
-  const List act = extendDominantPath(0, {3, 5}, g);
+  const List act = dominantPath(0, g);
   const List exp {0, 1};
 
   REQUIRE(exp == act);

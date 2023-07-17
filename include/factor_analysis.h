@@ -58,7 +58,6 @@ bool listContains(List l, NFA::VertexDescriptor node) {
 
 Lists depthFirstSearch(
   NFA::VertexDescriptor startingNode, 
-  NFA::VertexDescriptor endingNode, 
   const NFA& graph,
   Lists lists = Lists{},
   List list = List{}) {
@@ -72,20 +71,20 @@ Lists depthFirstSearch(
     list.push_back(startingNode);
 
     //If we hit our goal, add our current list to our list and end
-    if (startingNode == endingNode) {
+    const NFA::NeighborList nl(graph.outVertices(startingNode));
+    List outputNodes(nl.begin(), nl.end());
+
+    if (nl.begin() == nl.end()) {
       lists.push_back(list);
       return lists;
     }
 
     std::vector<Lists> allLists;
 
-    const NFA::NeighborList nl(graph.outVertices(startingNode));
-    List outputNodes(nl.begin(), nl.end());
-
     // If there are any nodes to explore to
     for (unsigned int i = 0; i < outputNodes.size(); i++) {
       NFA::VertexDescriptor currentNode = outputNodes[i];
-      allLists.push_back(depthFirstSearch(currentNode, endingNode, graph, lists, list));
+      allLists.push_back(depthFirstSearch(currentNode, graph, lists, list));
     }
 
     return listsConcatenator(allLists);
@@ -123,11 +122,10 @@ bool containsSubset(const std::vector<T>& vectorToSearch, const std::vector<T>& 
 }
 
 List dominantPath(  
-  NFA::VertexDescriptor startingNode, 
-  NFA::VertexDescriptor endingNode, 
+  NFA::VertexDescriptor startingNode,
   const NFA& graph) {
         
-  Lists pos(depthFirstSearch(startingNode, endingNode, graph));
+  Lists pos(depthFirstSearch(startingNode, graph));
 
   int n = pos.size();
 
