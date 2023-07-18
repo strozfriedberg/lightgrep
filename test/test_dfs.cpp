@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "automata.h"
 #include "graph.h"
 #include "simplevectorfamily.h"
 
@@ -32,18 +33,19 @@ struct S: public SimpleVectorFamily<T> {};
 
 typedef Graph<X,X,X,S> G;
 
-int edgeCount(G::NeighborList nl) {
+template <class NeighborListType>
+int edgeCount(NeighborListType nl) {
   return nl.end() - nl.begin();
 }
 
 TEST_CASE("testEdgeCount") {
-  G g(5);
+  NFA g(5);
   g.addEdge(0, 1);
   g.addEdge(1, 2);
   g.addEdge(1, 3);
   g.addEdge(1, 4);
 
-  const G::NeighborList nl(g.outVertices(1));
+  const NFA::NeighborList nl(g.outVertices(1));
 
   REQUIRE(3u == edgeCount(nl));
 }
@@ -51,14 +53,15 @@ TEST_CASE("testEdgeCount") {
 typedef std::vector<G::VertexDescriptor> List;
 typedef std::vector<List> Lists;
 
-void add_edges(G& graph, const std::vector<std::pair<G::VertexDescriptor, G::VertexDescriptor>> pairs) {
-  for (std::pair<G::VertexDescriptor, G::VertexDescriptor> p : pairs) {
+template <class GraphType>
+void add_edges(GraphType& graph, const std::vector<std::pair<typename GraphType::VertexDescriptor, typename GraphType::VertexDescriptor>> pairs) {
+  for (std::pair<typename GraphType::VertexDescriptor, typename GraphType::VertexDescriptor> p : pairs) {
      graph.addEdge(p.first, p.second);
   }
 }
 
 TEST_CASE("testAddEdges") {
-  G g(3);
+  NFA g(3);
 
   add_edges(g, {
     {0, 1},
@@ -67,9 +70,9 @@ TEST_CASE("testAddEdges") {
     {2, 0}
   });
 
-  const G::NeighborList nl0(g.outVertices(0));
-  const G::NeighborList nl1(g.outVertices(1));
-  const G::NeighborList nl2(g.outVertices(2));
+  const NFA::NeighborList nl0(g.outVertices(0));
+  const NFA::NeighborList nl1(g.outVertices(1));
+  const NFA::NeighborList nl2(g.outVertices(2));
 
   REQUIRE(1u == edgeCount(nl0));
   REQUIRE(2u == edgeCount(nl1));
@@ -125,9 +128,9 @@ TEST_CASE("testListContains") {
 
 
 Lists depthFirstSearch(
-  G::VertexDescriptor startingNode, 
-  G::VertexDescriptor endingNode, 
-  const G& graph,
+  NFA::VertexDescriptor startingNode, 
+  NFA::VertexDescriptor endingNode, 
+  const NFA& graph,
   Lists lists = Lists{},
   List list = List{}) {
 
@@ -147,12 +150,12 @@ Lists depthFirstSearch(
 
     std::vector<Lists> allLists;
 
-    const G::NeighborList nl(graph.outVertices(startingNode));
+    const NFA::NeighborList nl(graph.outVertices(startingNode));
     List outputNodes(nl.begin(), nl.end());
 
     // If there are any nodes to explore to
     for (unsigned int i = 0; i < outputNodes.size(); i++) {
-      G::VertexDescriptor currentNode = outputNodes[i];
+      NFA::VertexDescriptor currentNode = outputNodes[i];
       allLists.push_back(depthFirstSearch(currentNode, endingNode, graph, lists, list));
     }
 
@@ -160,7 +163,7 @@ Lists depthFirstSearch(
   }
 
 TEST_CASE("testDFS") {
-  G g(8);
+  NFA g(8);
   g.addEdge(0, 1);
   g.addEdge(0, 2);
   g.addEdge(1, 3);
@@ -177,7 +180,7 @@ TEST_CASE("testDFS") {
 }
 
 TEST_CASE("testDFSLoop") {
-  G g(5);
+  NFA g(5);
   g.addEdge(0, 1);
   g.addEdge(1, 0);
   g.addEdge(0, 2);
@@ -193,7 +196,7 @@ TEST_CASE("testDFSLoop") {
 }
 
 TEST_CASE("testDFSMultipath") {
-  G g(6);
+  NFA g(6);
   g.addEdge(0, 1);
   g.addEdge(1, 2);
   g.addEdge(2, 3);
@@ -256,9 +259,9 @@ TEST_CASE("testContainsSubset") {
 }
 
 List dominantPath(  
-  G::VertexDescriptor startingNode, 
-  G::VertexDescriptor endingNode, 
-  const G& graph) {
+  NFA::VertexDescriptor startingNode, 
+  NFA::VertexDescriptor endingNode, 
+  const NFA& graph) {
         
   Lists pos(depthFirstSearch(startingNode, endingNode, graph));
 
@@ -275,7 +278,7 @@ List dominantPath(
       int k = 1;
 
       for (k = 1; k < n; k++) {
-        if (!containsSubset<G::VertexDescriptor>(pos[k], stem)) {
+        if (!containsSubset<NFA::VertexDescriptor>(pos[k], stem)) {
           break;
         }
       }
@@ -290,7 +293,7 @@ List dominantPath(
 }
 
 TEST_CASE("testDFSDominator") {
-  G g(14);
+  NFA g(14);
 
   add_edges(g, {
     {0, 1},
@@ -318,7 +321,7 @@ TEST_CASE("testDFSDominator") {
 }
 
 TEST_CASE("testDFSDominator2") {
-  G g(12);
+  NFA g(12);
 
   add_edges(g, {
     {0, 1},
@@ -343,7 +346,7 @@ TEST_CASE("testDFSDominator2") {
 }
 
 TEST_CASE("testDFSDominator3") {
-  G g(7);
+  NFA g(7);
 
   add_edges(g, {
     {0, 1},
@@ -362,7 +365,7 @@ TEST_CASE("testDFSDominator3") {
 }
 
 TEST_CASE("testDFSDominator4") {
-  G g(7);
+  NFA g(7);
 
   add_edges(g, {
     {0, 1},
