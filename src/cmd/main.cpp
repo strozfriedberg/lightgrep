@@ -23,6 +23,7 @@
 #include "program.h"
 #include "utility.h"
 
+#include "factor_analysis.h"
 #include "hitwriter.h"
 #include "matchgen.h"
 #include "options.h"
@@ -545,7 +546,26 @@ void analyze(const Options& opts) {
 
   std::tie(fsm, std::ignore, err) = parsePatterns(opts);
 
-  
+  NFAPtr g(fsm->Impl->Fsm);
+
+  NFA::VertexDescriptor end = 0;
+  for (NFA::VertexDescriptor vi = 0; vi < g->verticesSize(); ++vi) {
+    if ((*g)[vi].IsMatch) {
+      end = vi;
+      break;
+    }
+  }
+  List res = dominantPath(0, end, *g);
+
+  std::cout << "Dominant path is {";
+  for (auto vi : res) {
+    if (vi == 0) {
+      continue;
+    }
+    std::cout << (*g)[vi].Trans->label() << " , ";
+  }
+  std::cout << "}\n";
+
 }
 
 void writeSampleMatches(const Options& opts) {
