@@ -187,7 +187,7 @@ test_test_SOURCES = \
 	test/test_c_api.cpp \
 	test/test_compiler.cpp \
 	test/test_c_util.cpp \
-	test/test_dfs.cpp \
+	test/test_factor_analysis.cpp \
 	test/test_graph.cpp \
 	test/test_helper.cpp \
 	test/test_hitwriter.cpp \
