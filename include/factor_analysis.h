@@ -178,5 +178,5 @@ std::string analyze(const NFA& nfa, int minLength) {
     s += (nfa)[vi].Trans->label();
   }
 
-  return s;
+  return s.length() >= minLength ? s : "";
 }
