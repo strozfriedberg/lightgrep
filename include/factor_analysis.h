@@ -158,7 +158,7 @@ List dominantPath(
         }
       }
 
-      if (k == n && res.size() < stem.size()) {
+      if (k == n && res.size() <= stem.size()) {
         res = stem;
       }
     }
