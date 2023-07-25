@@ -185,6 +185,9 @@ TEST_CASE("testDFSDominator") {
     {13, 4},
   });
 
+
+  (g)[9].IsMatch = true;
+
   const List act = dominantPath(0, g);
   const List exp {4, 5, 6};
 
@@ -210,8 +213,10 @@ TEST_CASE("testDFSDominator2") {
     {11, 5}
   });
 
+  (g)[9].IsMatch = true;
+
   const List act = dominantPath(0, g);
-  const List exp {0, 1, 2};
+  const List exp {5, 6, 7};
 
   REQUIRE(exp == act);
 }
@@ -228,6 +233,8 @@ TEST_CASE("testDFSDominator3") {
     {5, 6},
     {6, 2}
   });
+
+  (g)[4].IsMatch = true;
 
   const List act = dominantPath(0, g);
   const List exp {2, 3, 4};
@@ -248,6 +255,8 @@ TEST_CASE("testDFSDominator4") {
     {5, 6},
     {6, 2}
   });
+
+  (g)[4].IsMatch = true;
 
   const List act = dominantPath(0, g);
   const List exp {2, 3, 4};
@@ -277,6 +286,9 @@ TEST_CASE("testDFSExtendDominator") {
     {13, 4},
   });
 
+  (g)[9].IsMatch = true;
+  (g)[14].IsMatch = true;
+
   const List act = dominantPath(0, g);
   const List exp {4, 5, 6};
 
@@ -294,6 +306,9 @@ TEST_CASE("testDFSExtendDominator2") {
     {1, 4},
     {4, 5},
   });
+
+  (g)[3].IsMatch = true;
+  (g)[5].IsMatch = true;
 
   const List act = dominantPath(0, g);
   const List exp {0, 1};
@@ -318,7 +333,7 @@ TEST_CASE("test_simple_factor") /*"[!shouldfail]")*/ {
   REQUIRE(longest_factor == "glushkov");
 }
 
-TEST_CASE("test_nondominant_factor", "[!shouldfail]") {
+TEST_CASE("test_nondominant_factor") {
   NFAPtr nfa = construct("(abc|def).*ghi");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 11u);
@@ -326,7 +341,7 @@ TEST_CASE("test_nondominant_factor", "[!shouldfail]") {
   REQUIRE(longest_factor == "ghi");
 }
 
-TEST_CASE("test_one_more", "[!shouldfail]") {
+TEST_CASE("test_one_more") {
   NFAPtr nfa = construct("a+b+c+foo");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 7u);
@@ -334,7 +349,7 @@ TEST_CASE("test_one_more", "[!shouldfail]") {
   REQUIRE(longest_factor == "foo");
 }
 
-TEST_CASE("test_zero_more", "[!shouldfail]") {
+TEST_CASE("test_zero_more") {
   NFAPtr nfa = construct("a*foob*c*");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 7u);
@@ -342,7 +357,7 @@ TEST_CASE("test_zero_more", "[!shouldfail]") {
   REQUIRE(longest_factor == "foo");
 }
 
-TEST_CASE("test_zero_or_one", "[!shouldfail]") {
+TEST_CASE("test_zero_or_one") {
   NFAPtr nfa = construct("a?fooc?");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 6u);
@@ -350,7 +365,7 @@ TEST_CASE("test_zero_or_one", "[!shouldfail]") {
   REQUIRE(longest_factor == "foo");
 }
 
-TEST_CASE("test_case_insensitive_factor", "[!shouldfail]") {
+TEST_CASE("test_case_insensitive_factor") {
   NFAPtr nfa = construct("foo(h|H)(t|T)(t|T)(p|P)");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 12u);
@@ -358,7 +373,7 @@ TEST_CASE("test_case_insensitive_factor", "[!shouldfail]") {
   REQUIRE(longest_factor == "foo");
 }
 
-TEST_CASE("test_too_short", "[!shouldfail]") {
+TEST_CASE("test_too_short") {
   NFAPtr nfa = construct("fox*bar");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 7u);
@@ -366,7 +381,7 @@ TEST_CASE("test_too_short", "[!shouldfail]") {
   REQUIRE(longest_factor == "bar");
 }
 
-TEST_CASE("test_min_length", "[!shouldfail]") {
+TEST_CASE("test_min_length") {
   NFAPtr nfa = construct("fox*");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 4u);
@@ -374,7 +389,7 @@ TEST_CASE("test_min_length", "[!shouldfail]") {
   REQUIRE(longest_factor == "fo");
 }
 
-TEST_CASE("test_same_length", "[!shouldfail]") {
+TEST_CASE("test_same_length") {
   NFAPtr nfa = construct("aaac*bbb");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 8u);
@@ -382,15 +397,15 @@ TEST_CASE("test_same_length", "[!shouldfail]") {
   REQUIRE(longest_factor == "aaa");
 }
 
-TEST_CASE("test_same_length_multi_accept", "[!shouldfail]") {
+TEST_CASE("test_same_length_multi_accept") {
   NFAPtr nfa = construct("a(aa|bb)");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 6u);
   std::string longest_factor = analyze(*nfa, 3);
-  REQUIRE(longest_factor == "aaa");
+  REQUIRE(longest_factor == "");
 }
 
-TEST_CASE("test_longer_factor", "[!shouldfail]") {
+TEST_CASE("test_longer_factor") {
   NFAPtr nfa = construct("aaac*bbbb");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 9u);
@@ -398,12 +413,12 @@ TEST_CASE("test_longer_factor", "[!shouldfail]") {
   REQUIRE(longest_factor == "bbbb");
 }
 
-TEST_CASE("test_longer_factor_multi_accept", "[!shouldfail]") {
+TEST_CASE("test_longer_factor_multi_accept") {
   NFAPtr nfa = construct("a(aa|bbb)");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 7u);
   std::string longest_factor = analyze(*nfa, 3);
-  REQUIRE(longest_factor == "abbb");
+  REQUIRE(longest_factor == "");
 }
 
 TEST_CASE("test_dominant_too_short") {
@@ -422,7 +437,7 @@ TEST_CASE("test_no_dominant") {
   REQUIRE(longest_factor == "");
 }
 
-TEST_CASE("test_back_edges", "[!shouldfail]") {
+TEST_CASE("test_back_edges",) {
   NFAPtr nfa = construct("((abc)+d)+");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 5u);
