@@ -18,13 +18,23 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include "automata.h"
+#include "factor_analysis.h"
 #include "fwd_pointers.h"
 #include "nfabuilder.h"
 #include "parser.h"
 
 std::string analyze(const NFA& nfa, int minLength) {
-  return "";
+  List res = dominantPath(0, nfa);
+  std::string s = "";
+
+  for (auto vi : res) {
+    if (vi == 0) {
+      continue;
+    }
+    s += (nfa)[vi].Trans->label();
+  }
+
+  return s;
 }
 
 NFAPtr construct(const std::string& pattern) {
@@ -36,7 +46,7 @@ NFAPtr construct(const std::string& pattern) {
   return builder.getFsm();
 }
 
-TEST_CASE("test_simple_factor", "[!shouldfail]") {
+TEST_CASE("test_simple_factor") /*"[!shouldfail]")*/ {
   NFAPtr nfa = construct("glushkov");
   REQUIRE(nfa);
   REQUIRE(nfa->verticesSize() == 9u);
