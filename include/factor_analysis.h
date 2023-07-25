@@ -72,7 +72,7 @@ Lists depthFirstSearch(
     const NFA::NeighborList nl(graph.outVertices(startingNode));
     List outputNodes(nl.begin(), nl.end());
 
-    if (nl.begin() == nl.end()) {
+    if ((graph)[startingNode].IsMatch) {
       lists.push_back(list);
       return lists;
     }
