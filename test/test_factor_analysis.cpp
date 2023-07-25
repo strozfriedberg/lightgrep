@@ -100,6 +100,10 @@ TEST_CASE("testDFS") {
   g.addEdge(5, 7);
   g.addEdge(2, 7);
 
+  (g)[3].IsMatch = true;
+  (g)[6].IsMatch = true;
+  (g)[7].IsMatch = true;
+
   const Lists act = depthFirstSearch(0, g);
   const Lists exp{{0, 1, 3}, {0, 1, 4, 5, 6}, {0, 1, 4, 5, 7}, {0, 2, 7}};
 
@@ -116,6 +120,8 @@ TEST_CASE("testDFSLoop") {
   g.addEdge(3, 4);
   g.addEdge(1, 2);
 
+  (g)[4].IsMatch = true;
+
   const Lists act = depthFirstSearch(1, g);
   const Lists exp{{1, 0, 2, 3, 4}, {1, 2, 3, 4}};
 
@@ -130,6 +136,8 @@ TEST_CASE("testDFSMultipath") {
   g.addEdge(0, 4);
   g.addEdge(4, 5);
   g.addEdge(5, 3);
+
+  (g)[3].IsMatch = true;
 
   const Lists act = depthFirstSearch(0, g);
   const Lists exp{{0, 1, 2, 3}, {0, 4, 5, 3}};
