@@ -21,8 +21,6 @@
 #include <vector>
 
 #include "automata.h"
-#include "graph.h"
-
 
 template <class NeighborListType>
 int edgeCount(NeighborListType nl) {
@@ -152,4 +150,18 @@ List dominantPath(
   }
 
   return res;
+}
+
+std::string analyze(const NFA& nfa, int minLength) {
+  List res = dominantPath(0, nfa);
+  std::string s = "";
+
+  for (auto vi : res) {
+    if (vi == 0) {
+      continue;
+    }
+    s += (nfa)[vi].Trans->label();
+  }
+
+  return s;
 }
