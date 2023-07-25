@@ -58,22 +58,28 @@ Lists depthFirstSearch(
   NFA::VertexDescriptor startingNode, 
   const NFA& graph,
   Lists lists = Lists{},
-  List list = List{}) {
+  List path = List{}) {
 
     //check if we hit node we've already visited
-    if (listContains(list, startingNode)) {
+    if (listContains(path, startingNode)) {
       return lists;
     }
 
-    // Add our current starting node
-    list.push_back(startingNode);
-
-    //If we hit our goal, add our current list to our list and end
     const NFA::NeighborList nl(graph.outVertices(startingNode));
     List outputNodes(nl.begin(), nl.end());
 
+    bool recursOnItself = false;
+
+    // Add our current starting node if it doesn't recur on itself
+    if (listContains(outputNodes, startingNode)){
+      recursOnItself = true;
+    }
+
+    path.push_back(startingNode);
+
+    //If we hit our goal, add our current list to our list and end
     if ((graph)[startingNode].IsMatch) {
-      lists.push_back(list);
+      lists.push_back(path);
       return lists;
     }
 
@@ -82,7 +88,16 @@ Lists depthFirstSearch(
     // If there are any nodes to explore to
     for (unsigned int i = 0; i < outputNodes.size(); i++) {
       NFA::VertexDescriptor currentNode = outputNodes[i];
-      allLists.push_back(depthFirstSearch(currentNode, graph, lists, list));
+
+      //If recurs on itself, continue with thread that includes self recursion and thread that doesn't
+      // as acceptable paths
+      if (recursOnItself) {
+        List alternatePath = List(path);
+        alternatePath.push_back(startingNode);
+        allLists.push_back(depthFirstSearch(currentNode, graph, lists, alternatePath));
+      }
+
+      allLists.push_back(depthFirstSearch(currentNode, graph, lists, path));
     }
 
     return listsConcatenator(allLists);
