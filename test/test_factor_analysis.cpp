@@ -89,7 +89,7 @@ TEST_CASE("testListContains") {
   REQUIRE(true == act);
 }
 
-TEST_CASE("testDFS") {
+TEST_CASE("testBFS") {
   NFA g(8);
   g.addEdge(0, 1);
   g.addEdge(0, 2);
@@ -110,7 +110,7 @@ TEST_CASE("testDFS") {
   REQUIRE(exp == act);
 }
 
-TEST_CASE("testDFSLoop") {
+TEST_CASE("testBFSLoop") {
   NFA g(5);
   g.addEdge(0, 1);
   g.addEdge(1, 0);
@@ -128,7 +128,7 @@ TEST_CASE("testDFSLoop") {
   REQUIRE(exp == act);
 }
 
-TEST_CASE("testDFSMultipath") {
+TEST_CASE("testBFSMultipath") {
   NFA g(6);
   g.addEdge(0, 1);
   g.addEdge(1, 2);
@@ -163,7 +163,7 @@ TEST_CASE("testContainsSubset") {
   REQUIRE(false == act7);
 }
 
-TEST_CASE("testDFSDominator") {
+TEST_CASE("testBFSDominator") {
   NFA g(14);
 
   add_edges(g, {
@@ -194,7 +194,7 @@ TEST_CASE("testDFSDominator") {
   REQUIRE(exp == act);
 }
 
-TEST_CASE("testDFSDominator2") {
+TEST_CASE("testBFSDominator2") {
   NFA g(12);
 
   add_edges(g, {
@@ -221,7 +221,7 @@ TEST_CASE("testDFSDominator2") {
   REQUIRE(exp == act);
 }
 
-TEST_CASE("testDFSDominator3") {
+TEST_CASE("testBFSDominator3") {
   NFA g(7);
 
   add_edges(g, {
@@ -242,7 +242,7 @@ TEST_CASE("testDFSDominator3") {
   REQUIRE(exp == act);
 }
 
-TEST_CASE("testDFSDominator4") {
+TEST_CASE("testBFSDominator4") {
   NFA g(7);
 
   add_edges(g, {
@@ -264,7 +264,7 @@ TEST_CASE("testDFSDominator4") {
   REQUIRE(exp == act);
 }
 
-TEST_CASE("testDFSExtendDominator") {
+TEST_CASE("testBFSExtendDominator") {
   NFA g(15);
 
   add_edges(g, {
@@ -295,7 +295,7 @@ TEST_CASE("testDFSExtendDominator") {
   REQUIRE(exp == act);
 }
 
-TEST_CASE("testDFSExtendDominator2") {
+TEST_CASE("testBFSExtendDominator2") {
   NFA g(6);
 
   add_edges(g, {
