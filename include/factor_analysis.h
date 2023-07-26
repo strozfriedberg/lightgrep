@@ -59,20 +59,27 @@ Lists breadthFirstSearch(
   NFA::VertexDescriptor startingNode, 
   const NFA& graph) {
 
+    //Create empty queue
     std::queue<std::vector<NFA::VertexDescriptor>> bfsQueue;
 
+    //initialize path
     std::vector<NFA::VertexDescriptor> path;
+
+    //add starting node to path and add path to queue
     path.push_back(startingNode);
     bfsQueue.push(path);
 
     Lists allLists = Lists{};
 
+    //recur while the queue isn't empty
     while (!bfsQueue.empty()) {
       path = bfsQueue.front();
       bfsQueue.pop();
 
+      //get our ending node and go from there
       startingNode = path[path.size() - 1];
 
+      //if our node is an accept state, return our current path to allLists
       if (graph[startingNode].IsMatch){
         allLists.push_back(path);
       }
@@ -82,7 +89,7 @@ Lists breadthFirstSearch(
 
         bool recursOnItself = false;
 
-        // Add our current starting node if it doesn't recur on itself
+        // check if starting node recurs on itself
         if (listContains(outputNodes, startingNode)){
           recursOnItself = true;
         }
@@ -93,7 +100,7 @@ Lists breadthFirstSearch(
 
           if (!listContains(path, currentNode)) {
             //If recurs on itself, continue with thread that includes self recursion and thread that doesn't
-            // as acceptable paths
+            // as acceptable paths to cover all cases
             if (recursOnItself) {
               std::vector<NFA::VertexDescriptor> newPath(path);
               newPath.push_back(startingNode);
@@ -101,6 +108,7 @@ Lists breadthFirstSearch(
               bfsQueue.push(newPath);
             }
 
+            //recur on possible path
             std::vector<NFA::VertexDescriptor> newPath(path);
             newPath.push_back(currentNode);
             bfsQueue.push(newPath);
