@@ -55,7 +55,7 @@ bool listContains(List l, NFA::VertexDescriptor node) {
   return std::find(l.begin(), l.end(), node) != l.end();
 }
 
-Lists depthFirstSearch(
+Lists breadthFirstSearch(
   NFA::VertexDescriptor startingNode, 
   const NFA& graph) {
 
@@ -148,7 +148,7 @@ List dominantPath(
   NFA::VertexDescriptor startingNode,
   const NFA& graph) {
         
-  Lists pos(depthFirstSearch(startingNode, graph));
+  Lists pos(breadthFirstSearch(startingNode, graph));
 
   int n = pos.size();
 
