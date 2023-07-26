@@ -100,9 +100,9 @@ TEST_CASE("testDFS") {
   g.addEdge(5, 7);
   g.addEdge(2, 7);
 
-  (g)[3].IsMatch = true;
-  (g)[6].IsMatch = true;
-  (g)[7].IsMatch = true;
+  g[3].IsMatch = true;
+  g[6].IsMatch = true;
+  g[7].IsMatch = true;
 
   const Lists act = depthFirstSearch(0, g);
   const Lists exp{{0, 1, 3}, {0, 1, 4, 5, 6}, {0, 1, 4, 5, 7}, {0, 2, 7}};
@@ -120,7 +120,7 @@ TEST_CASE("testDFSLoop") {
   g.addEdge(3, 4);
   g.addEdge(1, 2);
 
-  (g)[4].IsMatch = true;
+  g[4].IsMatch = true;
 
   const Lists act = depthFirstSearch(1, g);
   const Lists exp{{1, 0, 2, 3, 4}, {1, 2, 3, 4}};
@@ -137,7 +137,7 @@ TEST_CASE("testDFSMultipath") {
   g.addEdge(4, 5);
   g.addEdge(5, 3);
 
-  (g)[3].IsMatch = true;
+  g[3].IsMatch = true;
 
   const Lists act = depthFirstSearch(0, g);
   const Lists exp{{0, 1, 2, 3}, {0, 4, 5, 3}};
@@ -186,7 +186,7 @@ TEST_CASE("testDFSDominator") {
   });
 
 
-  (g)[9].IsMatch = true;
+  g[9].IsMatch = true;
 
   const List act = dominantPath(0, g);
   const List exp {4, 5, 6};
@@ -213,7 +213,7 @@ TEST_CASE("testDFSDominator2") {
     {11, 5}
   });
 
-  (g)[9].IsMatch = true;
+  g[9].IsMatch = true;
 
   const List act = dominantPath(0, g);
   const List exp {5, 6, 7};
@@ -234,7 +234,7 @@ TEST_CASE("testDFSDominator3") {
     {6, 2}
   });
 
-  (g)[4].IsMatch = true;
+  g[4].IsMatch = true;
 
   const List act = dominantPath(0, g);
   const List exp {2, 3, 4};
@@ -256,7 +256,7 @@ TEST_CASE("testDFSDominator4") {
     {6, 2}
   });
 
-  (g)[4].IsMatch = true;
+  g[4].IsMatch = true;
 
   const List act = dominantPath(0, g);
   const List exp {2, 3, 4};
@@ -286,8 +286,8 @@ TEST_CASE("testDFSExtendDominator") {
     {13, 4},
   });
 
-  (g)[9].IsMatch = true;
-  (g)[14].IsMatch = true;
+  g[9].IsMatch = true;
+  g[14].IsMatch = true;
 
   const List act = dominantPath(0, g);
   const List exp {4, 5, 6};
@@ -307,8 +307,8 @@ TEST_CASE("testDFSExtendDominator2") {
     {4, 5},
   });
 
-  (g)[3].IsMatch = true;
-  (g)[5].IsMatch = true;
+  g[3].IsMatch = true;
+  g[5].IsMatch = true;
 
   const List act = dominantPath(0, g);
   const List exp {0, 1};

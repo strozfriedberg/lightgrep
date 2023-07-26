@@ -78,7 +78,7 @@ Lists depthFirstSearch(
     path.push_back(startingNode);
 
     //If we hit our goal, add our current list to our list and end
-    if ((graph)[startingNode].IsMatch) {
+    if (graph[startingNode].IsMatch) {
       lists.push_back(path);
       return lists;
     }
