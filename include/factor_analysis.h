@@ -69,7 +69,7 @@ Lists breadthFirstSearch(
     path.push_back(startingNode);
     bfsQueue.push(path);
 
-    Lists allLists = Lists{};
+    Lists acceptablePaths = Lists{};
 
     //recur while the queue isn't empty
     while (!bfsQueue.empty()) {
@@ -79,9 +79,9 @@ Lists breadthFirstSearch(
       //get our ending node and go from there
       startingNode = path[path.size() - 1];
 
-      //if our node is an accept state, return our current path to allLists
+      //if our node is an accept state, return our current path to acceptablePaths
       if (graph[startingNode].IsMatch){
-        allLists.push_back(path);
+        acceptablePaths.push_back(path);
       }
       else {
         const NFA::NeighborList nl(graph.outVertices(startingNode));
@@ -117,8 +117,7 @@ Lists breadthFirstSearch(
       }
     }
 
-
-    return allLists;
+    return acceptablePaths;
   }
 
 
