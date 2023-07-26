@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <list>
 #include <vector>
+#include <queue>
+
 
 #include "automata.h"
 
@@ -53,54 +55,62 @@ bool listContains(List l, NFA::VertexDescriptor node) {
   return std::find(l.begin(), l.end(), node) != l.end();
 }
 
-
 Lists depthFirstSearch(
   NFA::VertexDescriptor startingNode, 
-  const NFA& graph,
-  Lists lists = Lists{},
-  List path = List{}) {
+  const NFA& graph) {
 
-    //check if we hit node we've already visited
-    if (listContains(path, startingNode)) {
-      return lists;
-    }
+    std::queue<std::vector<NFA::VertexDescriptor>> q;
 
-    const NFA::NeighborList nl(graph.outVertices(startingNode));
-    List outputNodes(nl.begin(), nl.end());
-
-    bool recursOnItself = false;
-
-    // Add our current starting node if it doesn't recur on itself
-    if (listContains(outputNodes, startingNode)){
-      recursOnItself = true;
-    }
-
+    std::vector<NFA::VertexDescriptor> path;
     path.push_back(startingNode);
+    q.push(path);
 
-    //If we hit our goal, add our current list to our list and end
-    if (graph[startingNode].IsMatch) {
-      lists.push_back(path);
-      return lists;
-    }
+    Lists allLists = Lists{};
 
-    std::vector<Lists> allLists;
+    while (!q.empty()) {
+      path = q.front();
+      q.pop();
 
-    // If there are any nodes to explore to
-    for (unsigned int i = 0; i < outputNodes.size(); i++) {
-      NFA::VertexDescriptor currentNode = outputNodes[i];
+      startingNode = path[path.size() - 1];
 
-      //If recurs on itself, continue with thread that includes self recursion and thread that doesn't
-      // as acceptable paths
-      if (recursOnItself) {
-        List alternatePath = List(path);
-        alternatePath.push_back(startingNode);
-        allLists.push_back(depthFirstSearch(currentNode, graph, lists, alternatePath));
+      if (graph[startingNode].IsMatch){
+        allLists.push_back(path);
       }
+      else {
+        const NFA::NeighborList nl(graph.outVertices(startingNode));
+        List outputNodes(nl.begin(), nl.end());
 
-      allLists.push_back(depthFirstSearch(currentNode, graph, lists, path));
+        bool recursOnItself = false;
+
+        // Add our current starting node if it doesn't recur on itself
+        if (listContains(outputNodes, startingNode)){
+          recursOnItself = true;
+        }
+
+        // If there are any nodes to explore to
+        for (unsigned int i = 0; i < outputNodes.size(); i++) {
+          NFA::VertexDescriptor currentNode = outputNodes[i];
+
+          if (!listContains(path, currentNode)) {
+            //If recurs on itself, continue with thread that includes self recursion and thread that doesn't
+            // as acceptable paths
+            if (recursOnItself) {
+              std::vector<NFA::VertexDescriptor> newPath(path);
+              newPath.push_back(startingNode);
+              newPath.push_back(currentNode);
+              q.push(newPath);
+            }
+
+            std::vector<NFA::VertexDescriptor> newPath(path);
+            newPath.push_back(currentNode);
+            q.push(newPath);
+          }
+        }
+      }
     }
 
-    return listsConcatenator(allLists);
+
+    return allLists;
   }
 
 
