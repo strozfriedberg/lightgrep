@@ -23,6 +23,7 @@
 #include "program.h"
 #include "utility.h"
 
+#include "factor_analysis.h"
 #include "hitwriter.h"
 #include "matchgen.h"
 #include "options.h"
@@ -539,6 +540,26 @@ void validate(const Options& opts) {
   handleParseErrors(std::cerr, err.get(), printFilename);
 }
 
+void analyze(const Options& opts) {
+  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
+
+  std::tie(fsm, std::ignore, err) = parsePatterns(opts);
+
+  NFAPtr g(fsm->Impl->Fsm);
+  List res = dominantPath(0, *g);
+
+  std::cout << "Dominant path is {";
+  for (auto vi : res) {
+    if (vi == 0) {
+      continue;
+    }
+    std::cout << (*g)[vi].Trans->label() << " , ";
+  }
+  std::cout << "}\n";
+
+}
+
 void writeSampleMatches(const Options& opts) {
 // TODO:
 // - This behavior should be turned into a C API, to avoid the cast of the FSM.
@@ -626,6 +647,9 @@ int main(int argc, char** argv) {
       break;
     case Options::VALIDATE:
       validate(opts);
+      break;
+    case Options::ANALYZE:
+      analyze(opts);
       break;
     case Options::SHOW_VERSION:
       printVersion(std::cout);

@@ -161,7 +161,6 @@ test_test_SOURCES = \
 	test/dtest.cpp \
 	test/mockcallback.cpp \
 	test/stest.cpp \
-	test/test_analyze.cpp \
 	test/test_ascii.cpp \
 	test/test_auto_search_1.cpp \
 	test/test_auto_search_2.cpp \
@@ -187,7 +186,7 @@ test_test_SOURCES = \
 	test/test_c_api.cpp \
 	test/test_compiler.cpp \
 	test/test_c_util.cpp \
-	test/test_dfs.cpp \
+	test/test_factor_analysis.cpp \
 	test/test_graph.cpp \
 	test/test_helper.cpp \
 	test/test_hitwriter.cpp \

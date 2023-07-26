@@ -22,7 +22,7 @@ public:
     PROGRAM,
     SAMPLES,
     VALIDATE,
-    SERVER,
+    ANALYZE,
     SHOW_VERSION,
     SHOW_HELP,
     LIST_ENCODINGS,
