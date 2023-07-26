@@ -105,7 +105,7 @@ TEST_CASE("testDFS") {
   g[7].IsMatch = true;
 
   const Lists act = depthFirstSearch(0, g);
-  const Lists exp{{0, 1, 3}, {0, 1, 4, 5, 6}, {0, 1, 4, 5, 7}, {0, 2, 7}};
+  const Lists exp{{ 0, 1, 3 }, { 0, 2, 7 }, { 0, 1, 4, 5, 6 }, { 0, 1, 4, 5, 7 }};
 
   REQUIRE(exp == act);
 }
@@ -123,7 +123,7 @@ TEST_CASE("testDFSLoop") {
   g[4].IsMatch = true;
 
   const Lists act = depthFirstSearch(1, g);
-  const Lists exp{{1, 0, 2, 3, 4}, {1, 2, 3, 4}};
+  const Lists exp{{1, 2, 3, 4}, {1, 0, 2, 3, 4}};
 
   REQUIRE(exp == act);
 }
