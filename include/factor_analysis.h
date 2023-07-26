@@ -59,17 +59,17 @@ Lists breadthFirstSearch(
   NFA::VertexDescriptor startingNode, 
   const NFA& graph) {
 
-    std::queue<std::vector<NFA::VertexDescriptor>> q;
+    std::queue<std::vector<NFA::VertexDescriptor>> bfsQueue;
 
     std::vector<NFA::VertexDescriptor> path;
     path.push_back(startingNode);
-    q.push(path);
+    bfsQueue.push(path);
 
     Lists allLists = Lists{};
 
-    while (!q.empty()) {
-      path = q.front();
-      q.pop();
+    while (!bfsQueue.empty()) {
+      path = bfsQueue.front();
+      bfsQueue.pop();
 
       startingNode = path[path.size() - 1];
 
@@ -98,12 +98,12 @@ Lists breadthFirstSearch(
               std::vector<NFA::VertexDescriptor> newPath(path);
               newPath.push_back(startingNode);
               newPath.push_back(currentNode);
-              q.push(newPath);
+              bfsQueue.push(newPath);
             }
 
             std::vector<NFA::VertexDescriptor> newPath(path);
             newPath.push_back(currentNode);
-            q.push(newPath);
+            bfsQueue.push(newPath);
           }
         }
       }
