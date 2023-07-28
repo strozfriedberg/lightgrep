@@ -66,6 +66,32 @@ class Path {
     }
 };
 
+//updates given queue based on given parameters
+void updateQueue(
+  std::queue<Path> *bfsQueue,
+  const std::vector<NFA::VertexDescriptor> &path,
+  const std::vector<bool> &visited,
+  const NFA::VertexDescriptor &startingNode,
+  const NFA::VertexDescriptor &currentNode,
+  const bool &recursOnItself) {
+    //make mutable copy of path
+    std::vector<NFA::VertexDescriptor> pathCopy(path);
+    pathCopy.reserve(path.size() + 2);
+
+    //If recurs on itself, continue with thread that includes self recursion and thread that doesn't
+    // as acceptable paths to cover all cases
+    if (recursOnItself) {
+      pathCopy.insert(pathCopy.end(), {startingNode, currentNode});
+      bfsQueue->push(Path(pathCopy, visited));
+      //delete added elements
+      pathCopy.erase(pathCopy.begin() + path.size(), pathCopy.end());
+    }
+
+    //push back current node to end of path
+    pathCopy.push_back(currentNode);
+    bfsQueue->push(Path(pathCopy, visited));
+}
+
 Lists breadthFirstSearch(
   NFA::VertexDescriptor startingNode, 
   const NFA& graph) {
@@ -73,67 +99,62 @@ Lists breadthFirstSearch(
     //Create empty queue
     std::queue<Path> bfsQueue;
 
+    //initialize variables
     std::vector<NFA::VertexDescriptor> path;
+    path.reserve(graph.verticesSize() * 2);
     std::vector<bool> visited(graph.verticesSize(), false);
 
     //add starting node to path and add path to queue
     path.push_back(startingNode);
-
     Path pathObject(path, visited);
-
     bfsQueue.push(pathObject);
     Lists acceptablePaths = Lists{};
 
     //recur while the queue isn't empty
     while (!bfsQueue.empty()) {
+      //get the pathObject at the front of our queue
       pathObject = bfsQueue.front();
+      bfsQueue.pop();
 
+      //update our variables
       path = pathObject.path;
       visited = pathObject.visited;
 
-      bfsQueue.pop();
-
-      //get our ending node and go from there
+      //get our ending node and use that as starting point
       startingNode = path[path.size() - 1];
+      visited[startingNode] = true;
 
       //if our node is an accept state, return our current path to acceptablePaths
       if (graph[startingNode].IsMatch){
         acceptablePaths.push_back(path);
       }
       else {
+        // get output nodes
         const NFA::NeighborList nl(graph.outVertices(startingNode));
         List outputNodes(nl.begin(), nl.end());
 
-        bool recursOnItself = false;
-
         // check if starting node recurs on itself
-        if (listContains(outputNodes, startingNode)){
-          recursOnItself = true;
-        }
+        bool recursOnItself = listContains(outputNodes, startingNode);
+
+        //check if current node can be in dominant region
+        std::string label = (graph[startingNode]).label();
+        bool invalidCharacter = (label.length() > 1);
 
         // If there are any nodes to explore to
         for (unsigned int i = 0; i < outputNodes.size(); i++) {
           NFA::VertexDescriptor currentNode = outputNodes[i];
-
-          if (!listContains(path, currentNode)) {
-            //If recurs on itself, continue with thread that includes self recursion and thread that doesn't
-            // as acceptable paths to cover all cases
-            if (recursOnItself) {
-              std::vector<NFA::VertexDescriptor> newPath(path);
-
-              std::vector<bool> newVisited(visited);
-              visited[startingNode] = true;
-              newPath.push_back(startingNode);
-              newPath.push_back(currentNode);
-              bfsQueue.push(Path(newPath, newVisited));
+          //if node is unvisited
+          if (!visited[currentNode]) {
+            //if node can't be in dominant region, replace with non-existant node
+            if (invalidCharacter) {
+              path[path.size() - 1] = -1;
+              updateQueue(&bfsQueue, path, visited, -1, currentNode, recursOnItself);
+              path[path.size() - 1] = -2;
+              updateQueue(&bfsQueue, path, visited, -2, currentNode, recursOnItself);
             }
-
-            //recur on possible path
-            std::vector<NFA::VertexDescriptor> newPath(path);
-            std::vector<bool> newVisited(visited);
-            visited[startingNode] = true;
-            newPath.push_back(currentNode);
-            bfsQueue.push(Path(newPath, newVisited));
+            else {
+              updateQueue(&bfsQueue, path, visited, startingNode, currentNode, recursOnItself);
+            }
           }
         }
       }
@@ -214,8 +235,11 @@ std::string analyze(const NFA& nfa, int minLength) {
     if (vi == 0) {
       continue;
     }
+    else if (vi < 0) {
+      continue;
+    }
     s += (nfa)[vi].Trans->label();
   }
 
-  return s.length() >= minLength ? s : "";
+  return (int)s.length() >= minLength ? s : "";
 }
