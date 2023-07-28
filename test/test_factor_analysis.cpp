@@ -445,3 +445,83 @@ TEST_CASE("test_back_edges",) {
   REQUIRE(longest_factor == "abcd");
 }
 
+TEST_CASE("test_.",) {
+  NFAPtr nfa = construct("longfoo.bar");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 12u);
+
+  std::string longest_factor = analyze(*nfa, 3);
+  REQUIRE(longest_factor == "longfoo");
+}
+
+TEST_CASE("test_.*",) {
+  NFAPtr nfa = construct("longfoo.*bar");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 12u);
+
+  std::string longest_factor = analyze(*nfa, 3);
+  REQUIRE(longest_factor == "longfoo");
+}
+
+TEST_CASE("test_[Ff]",) {
+  NFAPtr nfa = construct("[Ff]oobars");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 8u);
+
+  std::string longest_factor = analyze(*nfa, 3);
+  REQUIRE(longest_factor == "oobars");
+}
+
+TEST_CASE("test_[Ff]and.",) {
+  NFAPtr nfa = construct("[Ff]oo.bars");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 9u);
+
+  std::string longest_factor = analyze(*nfa, 3);
+  REQUIRE(longest_factor == "bars");
+}
+
+TEST_CASE("test_[Ff]*",) {
+  NFAPtr nfa = construct("[Ff]*oobar");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 7u);
+
+  std::string longest_factor = analyze(*nfa, 3);
+  REQUIRE(longest_factor == "oobar");
+}
+
+TEST_CASE("test_[Ff]*and.",) {
+  NFAPtr nfa = construct("[Ff]*oo.*bars");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 9u);
+
+  std::string longest_factor = analyze(*nfa, 3);
+  REQUIRE(longest_factor == "bars");
+}
+
+TEST_CASE("test_bulk",) {
+  NFAPtr nfa = construct("([Ff]*oo.*bars)+pop+(abc|def)");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 18u);
+
+  std::string longest_factor = analyze(*nfa, 3);
+  REQUIRE(longest_factor == "barspop");
+}
+
+TEST_CASE("test_bulk2",) {
+  NFAPtr nfa = construct("([Ff]*oo.*bars)+pop+(abc|def)|xyz");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 21u);
+
+  std::string longest_factor = analyze(*nfa, 3);
+  REQUIRE(longest_factor == "");
+}
+
+TEST_CASE("test_bulk3",) {
+  NFAPtr nfa = construct("(((abc)+)+)+");
+  REQUIRE(nfa);
+  REQUIRE(nfa->verticesSize() == 4u);
+
+  std::string longest_factor = analyze(*nfa, 3);
+  REQUIRE(longest_factor == "abc");
+}
