@@ -55,25 +55,42 @@ bool listContains(List l, NFA::VertexDescriptor node) {
   return std::find(l.begin(), l.end(), node) != l.end();
 }
 
+class Path {
+  public:
+    std::vector<NFA::VertexDescriptor> path;
+    std::vector<bool> visited;
+
+    Path(std::vector<NFA::VertexDescriptor> p, std::vector<bool> v) {
+      path = p;
+      visited = v;
+    }
+};
+
 Lists breadthFirstSearch(
   NFA::VertexDescriptor startingNode, 
   const NFA& graph) {
 
     //Create empty queue
-    std::queue<std::vector<NFA::VertexDescriptor>> bfsQueue;
+    std::queue<Path> bfsQueue;
 
-    //initialize path
     std::vector<NFA::VertexDescriptor> path;
+    std::vector<bool> visited(graph.verticesSize(), false);
 
     //add starting node to path and add path to queue
     path.push_back(startingNode);
-    bfsQueue.push(path);
 
+    Path pathObject(path, visited);
+
+    bfsQueue.push(pathObject);
     Lists acceptablePaths = Lists{};
 
     //recur while the queue isn't empty
     while (!bfsQueue.empty()) {
-      path = bfsQueue.front();
+      pathObject = bfsQueue.front();
+
+      path = pathObject.path;
+      visited = pathObject.visited;
+
       bfsQueue.pop();
 
       //get our ending node and go from there
@@ -103,15 +120,20 @@ Lists breadthFirstSearch(
             // as acceptable paths to cover all cases
             if (recursOnItself) {
               std::vector<NFA::VertexDescriptor> newPath(path);
+
+              std::vector<bool> newVisited(visited);
+              visited[startingNode] = true;
               newPath.push_back(startingNode);
               newPath.push_back(currentNode);
-              bfsQueue.push(newPath);
+              bfsQueue.push(Path(newPath, newVisited));
             }
 
             //recur on possible path
             std::vector<NFA::VertexDescriptor> newPath(path);
+            std::vector<bool> newVisited(visited);
+            visited[startingNode] = true;
             newPath.push_back(currentNode);
-            bfsQueue.push(newPath);
+            bfsQueue.push(Path(newPath, newVisited));
           }
         }
       }
