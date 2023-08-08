@@ -47,4 +47,12 @@ typedef unsigned char byte;
   buf << expression; \
   throw std::runtime_error(buf.str())
 
-inline char* clone_c_str(const char* s) {return std::strcpy(new char[std::strlen(s)+1], s);}
+inline char* clone_c_str(const char* s) {
+  try {
+    char* res = std::strcpy(new char[std::strlen(s)+1], s);
+    return res;
+  }
+  catch (std::bad_alloc&) {
+    return nullptr;
+  }
+}
