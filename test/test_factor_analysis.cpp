@@ -163,6 +163,66 @@ TEST_CASE("testContainsSubset") {
   REQUIRE(false == act7);
 }
 
+template<typename VisitFnT>
+void breadthFirstSearch(const NFA& g, NFA::VertexDescriptor start, VisitFnT fn) {
+  std::vector<bool> visited(g.verticesSize(), false);
+  std::queue<NFA::VertexDescriptor> toVisit;
+
+  toVisit.push(start);
+  while (!toVisit.empty()) {
+    NFA::VertexDescriptor v(toVisit.front());
+    if (!visited[v]) {
+      for (auto target : g.outVertices(v)) {
+        toVisit.push(target);
+      }
+      fn(g, v); // callback, pass graph so callback has a reference to it
+      visited[v] = true;
+    }
+    toVisit.pop();
+  }
+}
+
+TEST_CASE("testBFSdiscover") {
+  NFA g(4);
+
+  add_edges(g, { // diamond graph
+    {0, 1},
+    {0, 2},
+    {1, 3},
+    {2, 3},
+  });
+
+  std::vector<NFA::VertexDescriptor> discovered,
+                                     expected = {0, 1 , 2, 3};
+
+  /*
+    breadthFirstSearch is templated off its third parameter, which it treats like a 2-arity function
+    to which it passes a const ref to the graph and the vertex descriptor of the current vertex.
+
+    It's easy to run into compiler errors with functor template parameters in C++, but there's an 
+    easier way in C++11 (and beyond): just use C++ lambdas. C++ will deduce the type of the lambda 
+    and all will be well.
+
+    In the lambda below, "[&discovered]" means that a -reference- to 'discovered' should be in scope
+    within the lambda (i.e., closure). "(const NF&, NFA::VertexDescriptor)" are the function arguments
+    to the lambda, and then "{ discovered.push_back(v); }" is the body of the lambda. By taking discovered
+    by reference, the lambda can easily manipulate its state, so after the call to breadthFirstSearch(), 
+    discovered is now size 4 and should match the "expected" std::vector.
+
+    Big complicated lambdas are discouraged -- since they're anonymous, they can't be unit tested very easily
+    if at all. But it's easy enough to imagine that you could create a struct with the necesssary members
+    for figuring out all the paths through the graph, and then that struct could have a method for updating 
+    those member data structures when a new vertex is visited, and the lambda passe to breadthFirstSearch()
+    could just take an instance of the struct as a closure and directly call the method. In this way the 
+    lambda is nothing more than glue.
+  */
+  breadthFirstSearch(g, 0, [&discovered](const NFA&, NFA::VertexDescriptor v) {
+    discovered.push_back(v);
+  });
+
+  REQUIRE(expected == discovered);
+}
+
 TEST_CASE("testBFSDominator") {
   NFA g(14);
 
