@@ -219,7 +219,8 @@ List dominantPath(
 
   int n = pos.size();
 
-  List s = pos[0];
+  List s = getShortestPath(pos);
+
   int len = s.size();
 
   List res = {};
