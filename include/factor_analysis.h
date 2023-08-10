@@ -194,6 +194,23 @@ bool containsSubset(const std::vector<T>& vectorToSearch, const std::vector<T>& 
   return true;
 }
 
+List getShortestPath(Lists pos) {
+  int n = pos.size();
+  int minimum = -1;
+  int tempSize;
+  List s;
+
+  for (int i = 0; i < n; i++) {
+    tempSize = pos[i].size();
+    if (minimum == -1 || tempSize < minimum) {
+      minimum = tempSize;
+      s = pos[i];
+    }
+  }
+
+  return s;
+}
+
 List dominantPath(  
   NFA::VertexDescriptor startingNode,
   const NFA& graph) {
