@@ -55,6 +55,7 @@ bool listContains(List l, NFA::VertexDescriptor node) {
   return std::find(l.begin(), l.end(), node) != l.end();
 }
 
+// A Path object represents a "traversed" path (path) and a log of whether or not a node has been visited (visited).
 class Path {
   public:
     std::vector<NFA::VertexDescriptor> path;
