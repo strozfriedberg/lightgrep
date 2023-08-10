@@ -585,3 +585,12 @@ TEST_CASE("test_bulk3",) {
   std::string longest_factor = analyze(*nfa, 3);
   REQUIRE(longest_factor == "abc");
 }
+
+TEST_CASE("test_get_shortest_path",) {
+  const Lists data{{ 0, 1, 3 }, { 0, 2, 7 }, { 0, 1, 4, 5, 6 }, { 0, 1, 4, 5, 7 }};
+
+  const List exp = {0, 1, 3};
+  const List act = getShortestPath(data);
+
+  REQUIRE(exp == act);
+}
