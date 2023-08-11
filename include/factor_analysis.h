@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <list>
 #include <vector>
+#include <queue>
+
 
 #include "automata.h"
 
@@ -53,54 +55,113 @@ bool listContains(List l, NFA::VertexDescriptor node) {
   return std::find(l.begin(), l.end(), node) != l.end();
 }
 
+// A Path object represents a "traversed" path (path) and a log of whether or not a node has been visited (visited).
+class Path {
+  public:
+    std::vector<NFA::VertexDescriptor> path;
+    std::vector<bool> visited;
 
-Lists depthFirstSearch(
+    Path(std::vector<NFA::VertexDescriptor> p, std::vector<bool> v) {
+      path = p;
+      visited = v;
+    }
+};
+
+//updates given queue based on given parameters
+void updateQueue(
+  std::queue<Path> *bfsQueue,
+  const std::vector<NFA::VertexDescriptor> &path,
+  const std::vector<bool> &visited,
+  const NFA::VertexDescriptor &startingNode,
+  const NFA::VertexDescriptor &currentNode,
+  const bool &recursOnItself) {
+    //make mutable copy of path
+    std::vector<NFA::VertexDescriptor> pathCopy(path);
+    pathCopy.reserve(path.size() + 2);
+
+    //If recurs on itself, continue with thread that includes self recursion and thread that doesn't
+    // as acceptable paths to cover all cases
+    if (recursOnItself) {
+      pathCopy.insert(pathCopy.end(), {startingNode, currentNode});
+      bfsQueue->push(Path(pathCopy, visited));
+      //delete added elements
+      pathCopy.erase(pathCopy.begin() + path.size(), pathCopy.end());
+    }
+
+    //push back current node to end of path
+    pathCopy.push_back(currentNode);
+    bfsQueue->push(Path(pathCopy, visited));
+}
+
+Lists breadthFirstSearch(
   NFA::VertexDescriptor startingNode, 
-  const NFA& graph,
-  Lists lists = Lists{},
-  List path = List{}) {
+  const NFA& graph) {
 
-    //check if we hit node we've already visited
-    if (listContains(path, startingNode)) {
-      return lists;
-    }
+    //Create empty queue
+    std::queue<Path> bfsQueue;
 
-    const NFA::NeighborList nl(graph.outVertices(startingNode));
-    List outputNodes(nl.begin(), nl.end());
+    //initialize variables
+    std::vector<NFA::VertexDescriptor> path;
+    path.reserve(graph.verticesSize() * 2);
+    std::vector<bool> visited(graph.verticesSize(), false);
 
-    bool recursOnItself = false;
-
-    // Add our current starting node if it doesn't recur on itself
-    if (listContains(outputNodes, startingNode)){
-      recursOnItself = true;
-    }
-
+    //add starting node to path and add path to queue
     path.push_back(startingNode);
+    Path pathObject(path, visited);
+    bfsQueue.push(pathObject);
+    Lists acceptablePaths = Lists{};
 
-    //If we hit our goal, add our current list to our list and end
-    if (graph[startingNode].IsMatch) {
-      lists.push_back(path);
-      return lists;
-    }
+    //recur while the queue isn't empty
+    while (!bfsQueue.empty()) {
+      //get the pathObject at the front of our queue
+      pathObject = bfsQueue.front();
+      bfsQueue.pop();
 
-    std::vector<Lists> allLists;
+      //update our variables
+      path = pathObject.path;
+      visited = pathObject.visited;
 
-    // If there are any nodes to explore to
-    for (unsigned int i = 0; i < outputNodes.size(); i++) {
-      NFA::VertexDescriptor currentNode = outputNodes[i];
+      //get our ending node and use that as starting point
+      startingNode = path[path.size() - 1];
+      visited[startingNode] = true;
 
-      //If recurs on itself, continue with thread that includes self recursion and thread that doesn't
-      // as acceptable paths
-      if (recursOnItself) {
-        List alternatePath = List(path);
-        alternatePath.push_back(startingNode);
-        allLists.push_back(depthFirstSearch(currentNode, graph, lists, alternatePath));
+      //if our node is an accept state, return our current path to acceptablePaths
+      if (graph[startingNode].IsMatch){
+        acceptablePaths.push_back(path);
       }
+      else {
+        // get output nodes
+        const NFA::NeighborList nl(graph.outVertices(startingNode));
+        List outputNodes(nl.begin(), nl.end());
 
-      allLists.push_back(depthFirstSearch(currentNode, graph, lists, path));
+        // check if starting node recurs on itself
+        bool recursOnItself = listContains(outputNodes, startingNode);
+
+        //check if current node can be in dominant region
+        std::string label = (graph[startingNode]).label();
+        bool invalidCharacter = (label.length() > 1);
+
+        // If there are any nodes to explore to
+        for (unsigned int i = 0; i < outputNodes.size(); i++) {
+          NFA::VertexDescriptor currentNode = outputNodes[i];
+          //if node is unvisited
+          if (!visited[currentNode]) {
+            //if node can't be in dominant region, replace with non-existant node
+            if (invalidCharacter) {
+              path[path.size() - 1] = -1;
+              updateQueue(&bfsQueue, path, visited, -1, currentNode, recursOnItself);
+              path[path.size() - 1] = -2;
+              updateQueue(&bfsQueue, path, visited, -2, currentNode, recursOnItself);
+            }
+            else {
+              updateQueue(&bfsQueue, path, visited, startingNode, currentNode, recursOnItself);
+            }
+          }
+        }
+      }
     }
 
-    return listsConcatenator(allLists);
+    return acceptablePaths;
   }
 
 
@@ -134,15 +195,33 @@ bool containsSubset(const std::vector<T>& vectorToSearch, const std::vector<T>& 
   return true;
 }
 
+List getShortestPath(Lists pos) {
+  int n = pos.size();
+  int minimum = -1;
+  int tempSize;
+  List s;
+
+  for (int i = 0; i < n; i++) {
+    tempSize = pos[i].size();
+    if (minimum == -1 || tempSize < minimum) {
+      minimum = tempSize;
+      s = pos[i];
+    }
+  }
+
+  return s;
+}
+
 List dominantPath(  
   NFA::VertexDescriptor startingNode,
   const NFA& graph) {
         
-  Lists pos(depthFirstSearch(startingNode, graph));
+  Lists pos(breadthFirstSearch(startingNode, graph));
 
   int n = pos.size();
 
-  List s = pos[0];
+  List s = getShortestPath(pos);
+
   int len = s.size();
 
   List res = {};
@@ -175,8 +254,11 @@ std::string analyze(const NFA& nfa, int minLength) {
     if (vi == 0) {
       continue;
     }
+    else if (vi < 0) {
+      continue;
+    }
     s += (nfa)[vi].Trans->label();
   }
 
-  return s.length() >= minLength ? s : "";
+  return (int)s.length() >= minLength ? s : "";
 }

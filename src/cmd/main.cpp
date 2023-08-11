@@ -547,17 +547,10 @@ void analyze(const Options& opts) {
   std::tie(fsm, std::ignore, err) = parsePatterns(opts);
 
   NFAPtr g(fsm->Impl->Fsm);
-  List res = dominantPath(0, *g);
 
-  std::cout << "Dominant path is {";
-  for (auto vi : res) {
-    if (vi == 0) {
-      continue;
-    }
-    std::cout << (*g)[vi].Trans->label() << " , ";
-  }
-  std::cout << "}\n";
+  std::string dominantPath = analyze(*g, 0);
 
+  std::cout << "Dominant path is {" << dominantPath << "}\n";
 }
 
 void writeSampleMatches(const Options& opts) {
