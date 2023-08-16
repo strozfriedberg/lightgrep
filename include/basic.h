@@ -49,8 +49,7 @@ typedef unsigned char byte;
 
 inline char* clone_c_str(const char* s) {
   try {
-    char* res = std::strcpy(new char[std::strlen(s)+1], s);
-    return res;
+    return std::strcpy(new char[std::strlen(s) + 1], s);
   }
   catch (std::bad_alloc&) {
     return nullptr;
