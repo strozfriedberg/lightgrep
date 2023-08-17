@@ -79,3 +79,13 @@ TEST_CASE("endThreePosArgs") {
   REQUIRE(kf == opts.KeyFiles);
   REQUIRE(inputs == opts.Inputs);
 }
+
+TEST_CASE("analyzeCommandOption") {
+  const char* argv[] = { "lightgrep", "-c", "analyze", "-p", "foo"};
+  Options opts;
+
+  boost::program_options::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+
+  REQUIRE(Options::ANALYZE == opts.Command);
+}

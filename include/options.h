@@ -22,7 +22,7 @@ public:
     PROGRAM,
     SAMPLES,
     VALIDATE,
-    SERVER,
+    ANALYZE,
     SHOW_VERSION,
     SHOW_HELP,
     LIST_ENCODINGS,
@@ -52,7 +52,8 @@ public:
        PrintPath,
        Recursive,
        Binary,
-       MemoryMapped;
+       MemoryMapped,
+       Verbose;
 
   mutable std::ofstream OutputFile;
 

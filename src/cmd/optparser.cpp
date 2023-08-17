@@ -58,7 +58,7 @@ void parse_opts(int argc, const char* const * argv,
   // Command selection options
   po::options_description general("Command selection");
   general.add_options()
-    ("command,c", po::value<std::string>(&command)->value_name("CMD")->default_value("search"), "command to perform [search|graph|prog|samp|validate]")
+    ("command,c", po::value<std::string>(&command)->value_name("CMD")->default_value("search"), "command to perform [search|graph|prog|samp|validate|analyze]")
     ("help", "display this help message")
     ("list-encodings", "list known encodings")
     ("version,V", "print version information and exit")
@@ -97,6 +97,7 @@ void parse_opts(int argc, const char* const * argv,
     ("determinize-depth", po::value<uint32_t>(&opts.DeterminizeDepth)->value_name("NUM")->default_value(std::numeric_limits<uint32_t>::max()), "determinze NFA to NUM depth")
     ("binary", "output program as binary")
     ("program-file", po::value<std::string>(&opts.ProgramFile)->value_name("FILE"), "read search program from file")
+    ("verbose", "enable verbose output")
     #ifdef LBT_TRACE_ENABLED
     ("begin-debug", po::value<uint64_t>(&opts.DebugBegin)->default_value(std::numeric_limits<uint64_t>::max()), "offset for beginning of debug logging")
     ("end-debug", po::value<uint64_t>(&opts.DebugEnd)->default_value(std::numeric_limits<uint64_t>::max()), "offset for end of debug logging")
@@ -153,6 +154,7 @@ void parse_opts(int argc, const char* const * argv,
     cmds.insert(std::make_pair("prog",     Options::PROGRAM));
     cmds.insert(std::make_pair("samp",     Options::SAMPLES));
     cmds.insert(std::make_pair("validate", Options::VALIDATE));
+    cmds.insert(std::make_pair("analyze", Options::ANALYZE));
 
     auto i = cmds.find(command);
     if (i != cmds.end()) {
@@ -170,6 +172,7 @@ void parse_opts(int argc, const char* const * argv,
   case Options::PROGRAM:
   case Options::SAMPLES:
   case Options::VALIDATE:
+  case Options::ANALYZE:
     // determine the source of our patterns
     if (!optsMap["pattern"].empty()) {
       // keywords from --pattern
@@ -198,6 +201,7 @@ void parse_opts(int argc, const char* const * argv,
     opts.NoOutput = optsMap.count("no-output") > 0;
     opts.Recursive = optsMap.count("recursive") > 0;
     opts.MemoryMapped = optsMap.count("mmap") > 0;
+    opts.Verbose = optsMap.count("verbose") > 0;
 
     if (optsMap.count("context") > 0) {
       // "-C N" is equivalent to "-B N -A N"

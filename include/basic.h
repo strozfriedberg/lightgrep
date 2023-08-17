@@ -24,6 +24,7 @@
 #include <memory>
 #include <limits>
 #include <cinttypes>
+#include <cstring>
 
 typedef unsigned char byte;
 
@@ -49,3 +50,13 @@ typedef unsigned char byte;
 
 #define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
+
+inline char* clone_c_str(const char* s) {
+  try {
+    return std::strcpy(new char[std::strlen(s) + 1], s);
+  }
+  catch (std::bad_alloc&) {
+    return nullptr;
+  }
+}
+

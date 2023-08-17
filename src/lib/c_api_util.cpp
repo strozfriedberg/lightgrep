@@ -21,13 +21,6 @@
 
 #include "c_api_util.h"
 
-namespace {
-  // Our own strdup, using new.
-  char* dup(const char* s) {
-    return std::strcpy(new char[std::strlen(s)+1], s);
-  }
-}
-
 LG_Error* makeError(
   const char* msg,
   const char* pattern,
@@ -37,10 +30,10 @@ LG_Error* makeError(
 ) {
   try {
     return new LG_Error{
-      dup(msg), // don't make messageless errors
-      pattern ? dup(pattern) : nullptr,
-      encodingChain ? dup(encodingChain) : nullptr,
-      source ? dup(source) : nullptr,
+      clone_c_str(msg), // don't make messageless errors
+      pattern ? clone_c_str(pattern) : nullptr,
+      encodingChain ? clone_c_str(encodingChain) : nullptr,
+      source ? clone_c_str(source) : nullptr,
       index,
       nullptr
     };
