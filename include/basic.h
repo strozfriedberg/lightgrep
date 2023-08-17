@@ -24,6 +24,7 @@
 #include <memory>
 #include <limits>
 #include <cinttypes>
+#include <cstring>
 
 typedef unsigned char byte;
 
@@ -46,3 +47,12 @@ typedef unsigned char byte;
   std::ostringstream buf; \
   buf << expression; \
   throw std::runtime_error(buf.str())
+
+inline char* clone_c_str(const char* s) {
+  try {
+    return std::strcpy(new char[std::strlen(s) + 1], s);
+  }
+  catch (std::bad_alloc&) {
+    return nullptr;
+  }
+}

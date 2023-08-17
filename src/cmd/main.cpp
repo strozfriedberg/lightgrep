@@ -92,8 +92,8 @@ void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename) {
       out << err->Source << ", ";
     }
     out << "pattern " << err->Index
-        << " " << (err->Pattern? err->Pattern : "Pattern is nullptr") 
-        << " " << (err->EncodingChain? err->EncodingChain : "EC is nullptr")
+        << " " << (err->Pattern? err->Pattern : "") 
+        << " " << (err->EncodingChain? err->EncodingChain : "")
         << ": " << err->Message << '\n';
   }
   out.flush();

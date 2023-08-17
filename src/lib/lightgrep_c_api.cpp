@@ -104,10 +104,12 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
     static_cast<bool>(options->UnicodeMode)
   };
 
-  return trapWithVals(
-    [hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); },
-    1, 0, err
-  );
+  int result = trapWithVals([hPattern](){ parseAndReduce(hPattern->Pat, hPattern->Tree); }, 1, 0, err);
+  if (result == 0) {
+    (*err)->Pattern = clone_c_str(pattern);
+  }
+
+  return result;
 }
 
 LG_HFSM create_fsm(unsigned int patternCountHint, int numFsmStateSizeHint) {
@@ -168,18 +170,25 @@ int lg_add_pattern(LG_HFSM hFsm,
     setError(err, "encoding string pointer was null. Please specify a valid encoding.");
     return -3;
   }
-  return trapWithRetval(
+  int result = trapWithRetval(
     [hFsm, hPattern, encoding, userIndex]() {
       return addPattern(hFsm, hPattern, encoding, userIndex);
     },
     -1,
     err
   );
+
+  if (result == -1) {
+    (*err)->Pattern = clone_c_str(hPattern->Pat.Expression.c_str());
+    (*err)->EncodingChain = clone_c_str(encoding);
+  }
+
+  return result;
 }
 
 namespace {
   template <class E>
-  void addPattern(LG_HFSM hFsm,
+  void addPatternHelper(LG_HFSM hFsm,
                   LG_HPATTERN hPat,
                   const std::string& pat,
                   LG_KeyOptions* keyOpts,
@@ -278,15 +287,15 @@ namespace {
           }
         }
 
-        addPattern(hFsm, ph.get(), pat, &opts, etok, lnum, err);
+        addPatternHelper(hFsm, ph.get(), pat, &opts, etok, lnum, err);
       }
       else {
         // use default encodings and options
-        addPattern(hFsm, ph.get(), pat, &opts, defEncs, lnum, err);
+        addPatternHelper(hFsm, ph.get(), pat, &opts, defEncs, lnum, err);
       }
     }
 
-    return 0;
+    return err ? -1 : 0;
   }
 }
 
@@ -298,25 +307,25 @@ int lg_add_pattern_list(LG_HFSM hFsm,
                         const LG_KeyOptions* defaultOptions,
                         LG_Error** err)
 {
-  LG_Error* in_err = nullptr;
+  // LG_Error* in_err = nullptr;
 
-  int ret = trapWithRetval(
-    [hFsm, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err]() {
-      return addPatternList(hFsm, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, &in_err);
+  const int ret = trapWithRetval(
+    [hFsm, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, err]() {
+      return addPatternList(hFsm, patterns, source, defaultEncodings, defaultEncodingsNum, defaultOptions, err);
     },
     -1,
     err
   );
 
-  if (err) {
-    if (in_err) {
-      if (*err) {
-        // append the error from addPatternList to the chain
-        in_err->Next = *err;
-      }
-      *err = in_err;
-    }
-  }
+  // if (err) {
+  //   if (in_err) {
+  //     if (*err) {
+  //       // append the error from addPatternList to the chain
+  //       in_err->Next = *err;
+  //     }
+  //     *err = in_err;
+  //   }
+  // }
 
   return ret;
 }

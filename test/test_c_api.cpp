@@ -60,6 +60,73 @@ TEST_CASE("testDedupeOnDiffEncodings") {
 }
 */
 
+TEST_CASE("testParsePatternWithBadPattern") {
+  std::string s = "*test";
+  LG_KeyOptions keyOpts{0, 0, 0};
+  LG_Error* errPtr = nullptr;
+  LG_HPATTERN pat = lg_create_pattern();
+
+  int result = lg_parse_pattern(pat, s.c_str(), &keyOpts, &errPtr);
+
+  REQUIRE(keyOpts.FixedString == 0);
+  REQUIRE(result == 0);
+  REQUIRE(errPtr);
+  REQUIRE(errPtr->Message);
+  REQUIRE(!errPtr->EncodingChain);
+  REQUIRE(!errPtr->Source);
+  REQUIRE(errPtr->Index == -1);
+  REQUIRE(errPtr->Pattern);
+  REQUIRE(std::string(errPtr->Pattern) == s);
+
+}
+
+TEST_CASE("testAddPatternWithBadPattern") {
+  std::string s = "\\x{2642}";
+  std::string enc = "ASCII";
+  LG_KeyOptions keyOpts{0, 0, 0};
+  LG_Error* errPtr = nullptr;
+  LG_HPATTERN pat = lg_create_pattern();
+  LG_HFSM fsm = lg_create_fsm(0, 0);
+
+  int result = lg_parse_pattern(pat, s.c_str(), &keyOpts, &errPtr);
+
+  REQUIRE(result == 1);
+
+  int tree = lg_add_pattern(fsm, pat, enc.c_str(), 0, &errPtr);
+
+  REQUIRE(tree < 0);
+  REQUIRE(std::string(errPtr->Message) == "code point U+2642 does not exist in ASCII");
+  REQUIRE(errPtr->Pattern);
+  REQUIRE(std::string(errPtr->Pattern) == s);
+  REQUIRE(errPtr->EncodingChain);
+  REQUIRE(std::string(errPtr->EncodingChain) == enc);
+}
+
+TEST_CASE("testAddPatternListWithBadPatterns") {
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(0, 0),
+    lg_destroy_fsm
+  );
+  const char* badPatterns = "+badpattern\ngood\\d+pattern\n\\x{2642}\tASCII";
+  const char* fileName = "/path/to/pattern/file";
+  const char* defEnc[] = { "ASCII" };
+  unsigned int defEncNum = 1;
+  LG_KeyOptions keyOpts{0, 0, 0};
+  LG_Error* errPtr = nullptr;
+
+  int result = lg_add_pattern_list(fsm.get(), badPatterns, fileName, defEnc, defEncNum, &keyOpts, &errPtr);
+
+  REQUIRE(result == -1);
+  REQUIRE(errPtr);
+  REQUIRE(std::string(errPtr->Pattern) == "+badpattern");
+  REQUIRE(!errPtr->EncodingChain);
+  errPtr = errPtr->Next;
+  REQUIRE(errPtr);
+  REQUIRE(std::string(errPtr->Pattern) == "\\x{2642}");
+  REQUIRE(std::string(errPtr->EncodingChain) == "ASCII");
+
+}
+
 TEST_CASE("testFreeErrorWithNull") {
   lg_free_error(nullptr);
 }
@@ -270,10 +337,12 @@ TEST_CASE("testLgAddPatternListBadEncoding") {
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
 
   REQUIRE(err);
+  REQUIRE(err->Message);
   REQUIRE(0 == err->Index);
 
   err = err->Next;
   REQUIRE(err);
+  REQUIRE(err->Message);
   REQUIRE(2 == err->Index);
 
   err = err->Next;
