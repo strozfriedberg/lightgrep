@@ -24,6 +24,7 @@
 #include <memory>
 #include <limits>
 #include <cinttypes>
+#include <cstring>
 
 typedef unsigned char byte;
 
