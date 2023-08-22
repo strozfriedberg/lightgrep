@@ -245,7 +245,7 @@ test_test_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST
 test_benchmarks_benchmarks_SOURCES = \
 	test/stest.cpp \
 	test/benchmarks/search_fixed_string.cpp \
-	test/benchmarks/threadlist.cpp
+	test/benchmarks/fastlist.cpp
 
 test_benchmarks_benchmarks_CPPFLAGS = $(AM_CPPFLAGS)
 test_benchmarks_benchmarks_CFLAGS = $(AM_CFLAGS) $(CATCH2_CFLAGS)
