@@ -3,7 +3,7 @@
 . .world/build_config.sh
 
 if [ "$Target" = 'windows' ]; then
-  MAKE_FLAGS+=' LOG_COMPILER=wine'
+  MAKE_FLAGS+=' LOG_COMPILER=.world/wine_wrapper.sh'
 fi
 
 make_it
