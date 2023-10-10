@@ -37,25 +37,26 @@ std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
 
 void validateOptions(const po::variables_map &optsMap, Options &opts, std::vector<std::string> &pargs) {
   // determine the source of our patterns
-    if (!optsMap["pattern"].empty()) {
-      // keywords from --pattern
-      if (!optsMap["keywords"].empty()) {
+
+    if (!optsMap["program-file"].empty()) {
+      if (!optsMap["pattern"].empty() || !optsMap["keywords"].empty()) {
+        throw po::error("--program-file is incompatible with --pattern and --keywords");
+      }
+    }
+    else if (!optsMap["keywords"].empty() || !optsMap["pattern"].empty()) {
+      // keywords from --keywords, not from the first positional argument
+      if (!optsMap["keywords"].empty() && !optsMap["pattern"].empty()) {
         throw po::error("--pattern and --keywords are incompatible options");
       }
     }
     else {
-      if (!optsMap["keywords"].empty() || !optsMap["program-file"].empty()) {
-        // keywords from --keywords
+      // keywords from parg
+      if (pargs.empty()) {
+        throw po::required_option("keywords");
       }
-      else {
-        // keywords from parg
-        if (pargs.empty()) {
-          throw po::required_option("keywords");
-        }
 
-        opts.KeyFiles.push_back(pargs.front());
-        pargs.erase(pargs.begin());
-      }
+      opts.KeyFiles.push_back(pargs.front());
+      pargs.erase(pargs.begin());
     }
 
     opts.CaseInsensitive = optsMap.count("ignore-case") > 0;

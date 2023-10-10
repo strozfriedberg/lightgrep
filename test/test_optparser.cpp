@@ -102,3 +102,27 @@ TEST_CASE("programFileOption") {
   REQUIRE(0 == opts.KeyFiles.size());
   REQUIRE("test1.txt" == opts.Inputs.at(0));
 }
+
+TEST_CASE("programFileAndPatternOption") {
+  const char* argv[] = { "lightgrep", "--program-file", "test-prog.txt", "--pattern", "test", "test1.txt"};
+  Options opts;
+
+  boost::program_options::options_description desc;
+
+  REQUIRE_THROWS_AS(
+    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    boost::program_options::error
+  );
+}
+
+TEST_CASE("programFileAndKeywordsOption") {
+  const char* argv[] = { "lightgrep", "--program-file", "test-prog.txt", "--keywords", "patterns.txt", "test1.txt"};
+  Options opts;
+
+  boost::program_options::options_description desc;
+
+  REQUIRE_THROWS_AS(
+    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    boost::program_options::error
+  );
+}
