@@ -518,7 +518,7 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
   }
 
   LG_ContextOptions ctxOpts;
-  LG_HCONTEXT ctx = lg_create_context(prog1.get(), &ctxOpts);
+  LG_HCONTEXT ctx = lg_create_context(prog2.get(), &ctxOpts);
 
   std::string s = "foo is totally bar";
 
