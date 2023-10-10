@@ -480,6 +480,7 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
 
   const size_t p1count = lg_prog_pattern_count(prog1.get());
   const size_t p2count = lg_prog_pattern_count(prog2.get());
+  REQUIRE(4 == p1count);
   REQUIRE(p1count == p2count);
 
   for (size_t i = 0; i < p1count; ++i) {
