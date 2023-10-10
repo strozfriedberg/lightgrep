@@ -35,6 +35,102 @@ std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
   return result;
 }
 
+void validateOptions(const po::variables_map &optsMap, Options &opts, std::vector<std::string> &pargs) {
+  // determine the source of our patterns
+    if (!optsMap["pattern"].empty()) {
+      // keywords from --pattern
+      if (!optsMap["keywords"].empty()) {
+        throw po::error("--pattern and --keywords are incompatible options");
+      }
+    }
+    else {
+      if (!optsMap["keywords"].empty()) {
+        // keywords from --keywords
+      }
+      else {
+        // keywords from parg
+        if (pargs.empty()) {
+          throw po::required_option("keywords");
+        }
+
+        opts.KeyFiles.push_back(pargs.front());
+        pargs.erase(pargs.begin());
+      }
+    }
+
+    opts.CaseInsensitive = optsMap.count("ignore-case") > 0;
+    opts.LiteralMode = optsMap.count("fixed-strings") > 0;
+    opts.Binary = optsMap.count("binary") > 0;
+    opts.NoOutput = optsMap.count("no-output") > 0;
+    opts.Recursive = optsMap.count("recursive") > 0;
+    opts.MemoryMapped = optsMap.count("mmap") > 0;
+    opts.Verbose = optsMap.count("verbose") > 0;
+
+    if (optsMap.count("context") > 0) {
+      // "-C N" is equivalent to "-B N -A N"
+      opts.AfterContext = opts.BeforeContext;
+    }
+
+    if (opts.BeforeContext != -1 || opts.AfterContext != -1) {
+      // -C N, -B N, -A N imply --mmap
+      opts.MemoryMapped = true;
+    }
+
+    // uppercase encoding names
+    for (std::string& e : opts.Encodings) {
+      std::transform(e.begin(), e.end(), e.begin(), toupper);
+    }
+
+    if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
+      throw po::error("--with-filename and --no-filename are incompatible options");
+    }
+
+    if (opts.Command == Options::SEARCH) {
+      // filename printing defaults off for single files, on for multiple files
+      opts.PrintPath = optsMap.count("with-filename") > 0;
+
+      // determine the source of our input
+      if (optsMap.count("arg-file") > 0) {
+        opts.PrintPath = optsMap.count("no-filename") == 0;
+      }
+
+      if (!pargs.empty()) {
+        // input from pargs
+        opts.Inputs = pargs;
+        pargs.clear();
+        opts.PrintPath = optsMap.count("no-filename") == 0;
+      }
+      else if (opts.InputLists.empty()) {
+        // input from stdin
+        opts.Inputs.push_back("-");
+      }
+
+      if (opts.MemoryMapped && std::find(opts.Inputs.begin(), opts.Inputs.end(), "-") != opts.Inputs.end()) {
+        throw po::error("--mmap is incompatible with reading from stdin");
+      }
+    }
+    else if (opts.Command == Options::SAMPLES) {
+      opts.SampleLimit =
+        std::numeric_limits<std::set<std::string>::size_type>::max();
+      opts.LoopLimit = 1;
+
+      if (!pargs.empty()) {
+        opts.SampleLimit = boost::lexical_cast<uint32_t>(pargs.front());
+        pargs.erase(pargs.begin());
+
+        if (!pargs.empty()) {
+          opts.LoopLimit = boost::lexical_cast<uint32_t>(pargs.front());
+          pargs.erase(pargs.begin());
+        }
+      }
+    }
+
+    // there should be no unused positional arguments now
+    if (!pargs.empty()) {
+      throw po::too_many_positional_options_error();
+    }
+}
+
 void parse_opts(int argc, const char* const * argv,
                 po::options_description& desc, Options& opts) {
 
@@ -173,99 +269,7 @@ void parse_opts(int argc, const char* const * argv,
   case Options::SAMPLES:
   case Options::VALIDATE:
   case Options::ANALYZE:
-    // determine the source of our patterns
-    if (!optsMap["pattern"].empty()) {
-      // keywords from --pattern
-      if (!optsMap["keywords"].empty()) {
-        throw po::error("--pattern and --keywords are incompatible options");
-      }
-    }
-    else {
-      if (!optsMap["keywords"].empty()) {
-        // keywords from --keywords
-      }
-      else {
-        // keywords from parg
-        if (pargs.empty()) {
-          throw po::required_option("keywords");
-        }
-
-        opts.KeyFiles.push_back(pargs.front());
-        pargs.erase(pargs.begin());
-      }
-    }
-
-    opts.CaseInsensitive = optsMap.count("ignore-case") > 0;
-    opts.LiteralMode = optsMap.count("fixed-strings") > 0;
-    opts.Binary = optsMap.count("binary") > 0;
-    opts.NoOutput = optsMap.count("no-output") > 0;
-    opts.Recursive = optsMap.count("recursive") > 0;
-    opts.MemoryMapped = optsMap.count("mmap") > 0;
-    opts.Verbose = optsMap.count("verbose") > 0;
-
-    if (optsMap.count("context") > 0) {
-      // "-C N" is equivalent to "-B N -A N"
-      opts.AfterContext = opts.BeforeContext;
-    }
-
-    if (opts.BeforeContext != -1 || opts.AfterContext != -1) {
-      // -C N, -B N, -A N imply --mmap
-      opts.MemoryMapped = true;
-    }
-
-    // uppercase encoding names
-    for (std::string& e : opts.Encodings) {
-      std::transform(e.begin(), e.end(), e.begin(), toupper);
-    }
-
-    if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
-      throw po::error("--with-filename and --no-filename are incompatible options");
-    }
-
-    if (opts.Command == Options::SEARCH) {
-      // filename printing defaults off for single files, on for multiple files
-      opts.PrintPath = optsMap.count("with-filename") > 0;
-
-      // determine the source of our input
-      if (optsMap.count("arg-file") > 0) {
-        opts.PrintPath = optsMap.count("no-filename") == 0;
-      }
-
-      if (!pargs.empty()) {
-        // input from pargs
-        opts.Inputs = pargs;
-        pargs.clear();
-        opts.PrintPath = optsMap.count("no-filename") == 0;
-      }
-      else if (opts.InputLists.empty()) {
-        // input from stdin
-        opts.Inputs.push_back("-");
-      }
-
-      if (opts.MemoryMapped && std::find(opts.Inputs.begin(), opts.Inputs.end(), "-") != opts.Inputs.end()) {
-        throw po::error("--mmap is incompatible with reading from stdin");
-      }
-    }
-    else if (opts.Command == Options::SAMPLES) {
-      opts.SampleLimit =
-        std::numeric_limits<std::set<std::string>::size_type>::max();
-      opts.LoopLimit = 1;
-
-      if (!pargs.empty()) {
-        opts.SampleLimit = boost::lexical_cast<uint32_t>(pargs.front());
-        pargs.erase(pargs.begin());
-
-        if (!pargs.empty()) {
-          opts.LoopLimit = boost::lexical_cast<uint32_t>(pargs.front());
-          pargs.erase(pargs.begin());
-        }
-      }
-    }
-
-    // there should be no unused positional arguments now
-    if (!pargs.empty()) {
-      throw po::too_many_positional_options_error();
-    }
+    validateOptions(optsMap, opts, pargs);
 
     break;
 
