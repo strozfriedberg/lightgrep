@@ -89,3 +89,16 @@ TEST_CASE("analyzeCommandOption") {
 
   REQUIRE(Options::ANALYZE == opts.Command);
 }
+
+TEST_CASE("programFileOption") {
+  const char* argv[] = { "lightgrep", "--program-file", "test-prog.txt", "test1.txt"};
+  Options opts;
+
+  boost::program_options::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+
+  REQUIRE(Options::SEARCH == opts.Command);
+  REQUIRE("test-prog.txt" == opts.ProgramFile);
+  REQUIRE(0 == opts.KeyFiles.size());
+  REQUIRE("test1.txt" == opts.Inputs.at(0));
+}

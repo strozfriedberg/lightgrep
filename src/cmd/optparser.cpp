@@ -44,7 +44,7 @@ void validateOptions(const po::variables_map &optsMap, Options &opts, std::vecto
       }
     }
     else {
-      if (!optsMap["keywords"].empty()) {
+      if (!optsMap["keywords"].empty() || !optsMap["program-file"].empty()) {
         // keywords from --keywords
       }
       else {
