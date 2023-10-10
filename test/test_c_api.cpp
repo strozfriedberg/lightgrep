@@ -423,6 +423,11 @@ TEST_CASE("testLgAddPatternListCopyOnWritePatternMap") {
   REQUIRE(lg_prog_pattern_count(prog1.get()) == 1);
 }
 
+uint64_t g_numHits = 0;
+void gotHit(void*, const LG_SearchHit* const) {
+  ++g_numHits;
+}
+
 TEST_CASE("testLgWriteProgramLgReadProgram") {
   const char pats[] =
     "foo\tUTF-8,UTF-16LE\t0\t0\n"
@@ -511,4 +516,13 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
       *lg_prog_pattern_info(prog3.get(), i)
     );
   }
+
+  LG_ContextOptions ctxOpts;
+  LG_HCONTEXT ctx = lg_create_context(prog1.get(), &ctxOpts);
+
+  std::string s = "foo is totally bar";
+
+  g_numHits = 0;
+  lg_search(ctx, s.data(), s.data() + s.size(), 0, nullptr, gotHit);
+  REQUIRE(g_numHits == 2);
 }
