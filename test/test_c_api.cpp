@@ -28,6 +28,7 @@
 
 #include "pattern_map.h"
 #include "stest.h"
+#include "handles.h"
 
 // #include "basic.h"
 
