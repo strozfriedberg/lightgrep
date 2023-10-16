@@ -77,7 +77,7 @@ std::vector<std::pair<std::string,std::string>> Options::getPatternLines() const
 void Options::populateOptions(const po::variables_map &optsMap, std::vector<std::string> &pargs) {
 // determine the source of our patterns
 
-    validateKeyfiles(optsMap, pargs);
+    validateKeyFiles(optsMap, pargs);
 
     CaseInsensitive = optsMap.count("ignore-case") > 0;
     LiteralMode = optsMap.count("fixed-strings") > 0;
@@ -87,15 +87,7 @@ void Options::populateOptions(const po::variables_map &optsMap, std::vector<std:
     MemoryMapped = optsMap.count("mmap") > 0;
     Verbose = optsMap.count("verbose") > 0;
 
-    if (optsMap.count("context") > 0) {
-      // "-C N" is equivalent to "-B N -A N"
-      AfterContext = BeforeContext;
-    }
-
-    if (BeforeContext != -1 || AfterContext != -1) {
-      // -C N, -B N, -A N imply --mmap
-      MemoryMapped = true;
-    }
+    populateContextOptions(optsMap, pargs);
 
     // uppercase encoding names
     for (std::string& e : Encodings) {
@@ -152,7 +144,7 @@ void Options::populateOptions(const po::variables_map &optsMap, std::vector<std:
     }
 }
 
-void Options::validateKeyfiles(
+void Options::validateKeyFiles(
   const boost::program_options::variables_map& optsMap, 
   std::vector<std::string>& pargs) {
     
@@ -175,5 +167,17 @@ void Options::validateKeyfiles(
 
       KeyFiles.push_back(pargs.front());
       pargs.erase(pargs.begin());
+    }
+}
+
+void Options::populateContextOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>&){
+  if (optsMap.count("context") > 0) {
+      // "-C N" is equivalent to "-B N -A N"
+      AfterContext = BeforeContext;
+    }
+
+    if (BeforeContext != -1 || AfterContext != -1) {
+      // -C N, -B N, -A N imply --mmap
+      MemoryMapped = true;
     }
 }
