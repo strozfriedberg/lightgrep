@@ -22,27 +22,13 @@ namespace {
     return { opts.DeterminizeDepth };
   }
 }
-
-class NoName {
-public:
-  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm;
-  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog;
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err;
-
-  NoName(
-    std::unique_ptr<FSMHandle, void(*)(FSMHandle*)>,
-    std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog,
-    std::unique_ptr<LG_Error, void(*)(LG_Error*)> err
-    ) : fsm(std::move(fsm)), prog(std::move(prog)), err(std::move(err)) {};
-};
   
-
-std::tuple<
-  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)>,
-  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>,
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)>
-> 
-parsePatterns(const Options& opts)
+// std::tuple<
+//   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)>,
+//   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>,
+//   std::unique_ptr<LG_Error, void(*)(LG_Error*)>
+// > 
+NoName parsePatterns(const Options& opts)
 {
   // read the patterns and parse them
 
@@ -106,7 +92,7 @@ parsePatterns(const Options& opts)
               << prog->Prog->size() << " instructions\n";
   }
 
-  return std::make_tuple(std::move(fsm), std::move(prog), std::move(err));
+  return NoName(std::move(fsm), std::move(prog), std::move(err));
 }
 
 void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename) {
@@ -128,26 +114,26 @@ void writeProgram(const Options& opts, std::ostream& out) {
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(std::ignore, prog, err) = parsePatterns(opts);
+  NoName n = parsePatterns(opts);
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-  handleParseErrors(std::cerr, err.get(), printFilename);
+  handleParseErrors(std::cerr, n.err.get(), printFilename);
 
-  if (!prog) {
+  if (!n.prog) {
     throw std::runtime_error("failed to create program");
   }
 
   // break on through the C API to print the program
-  ProgramPtr p(prog->Prog);
+  ProgramPtr p(n.prog->Prog);
   if (opts.Verbose) {
     std::cerr << p->size() << " program size in bytes" << std::endl;
   }
 
   if (opts.Binary) {
-    std::string buf(lg_program_size(prog.get()), '\0');
-    lg_write_program(prog.get(), buf.data());
+    std::string buf(lg_program_size(n.prog.get()), '\0');
+    lg_write_program(n.prog.get(), buf.data());
     out.write(buf.data(), buf.size());
   }
   else {
