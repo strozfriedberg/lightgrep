@@ -168,7 +168,7 @@ void parse_opts(int argc, const char* const * argv,
   case Options::SAMPLES:
   case Options::VALIDATE:
   case Options::ANALYZE:
-    opts.validateOptions(optsMap, pargs);
+    opts.populateOptions(optsMap, pargs);
 
     break;
 

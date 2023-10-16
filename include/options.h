@@ -64,5 +64,8 @@ public:
 
   std::vector<std::pair<std::string, std::string>> getPatternLines() const;
 
-  void validateOptions(const boost::program_options::variables_map& , std::vector<std::string>&);
+  void populateOptions(const boost::program_options::variables_map& , std::vector<std::string>&);
+
+private:
+  void validateKeyfiles(const boost::program_options::variables_map& , std::vector<std::string>&);
 };

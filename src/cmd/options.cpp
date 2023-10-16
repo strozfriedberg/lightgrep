@@ -74,29 +74,10 @@ std::vector<std::pair<std::string,std::string>> Options::getPatternLines() const
   return ret;
 }
 
-void Options::validateOptions(const po::variables_map &optsMap, std::vector<std::string> &pargs) {
+void Options::populateOptions(const po::variables_map &optsMap, std::vector<std::string> &pargs) {
 // determine the source of our patterns
 
-    if (!optsMap["program-file"].empty()) {
-      if (!optsMap["pattern"].empty() || !optsMap["keywords"].empty()) {
-        throw po::error("--program-file is incompatible with --pattern and --keywords");
-      }
-    }
-    else if (!optsMap["keywords"].empty() || !optsMap["pattern"].empty()) {
-      // keywords from --keywords, not from the first positional argument
-      if (!optsMap["keywords"].empty() && !optsMap["pattern"].empty()) {
-        throw po::error("--pattern and --keywords are incompatible options");
-      }
-    }
-    else {
-      // keywords from parg
-      if (pargs.empty()) {
-        throw po::required_option("keywords");
-      }
-
-      KeyFiles.push_back(pargs.front());
-      pargs.erase(pargs.begin());
-    }
+    validateKeyfiles(optsMap, pargs);
 
     CaseInsensitive = optsMap.count("ignore-case") > 0;
     LiteralMode = optsMap.count("fixed-strings") > 0;
@@ -168,5 +149,31 @@ void Options::validateOptions(const po::variables_map &optsMap, std::vector<std:
     // there should be no unused positional arguments now
     if (!pargs.empty()) {
       throw po::too_many_positional_options_error();
+    }
+}
+
+void Options::validateKeyfiles(
+  const boost::program_options::variables_map& optsMap, 
+  std::vector<std::string>& pargs) {
+    
+    if (!optsMap["program-file"].empty()) {
+      if (!optsMap["pattern"].empty() || !optsMap["keywords"].empty()) {
+        throw po::error("--program-file is incompatible with --pattern and --keywords");
+      }
+    }
+    else if (!optsMap["keywords"].empty() || !optsMap["pattern"].empty()) {
+      // keywords from --keywords, not from the first positional argument
+      if (!optsMap["keywords"].empty() && !optsMap["pattern"].empty()) {
+        throw po::error("--pattern and --keywords are incompatible options");
+      }
+    }
+    else {
+      // keywords from parg
+      if (pargs.empty()) {
+        throw po::required_option("keywords");
+      }
+
+      KeyFiles.push_back(pargs.front());
+      pargs.erase(pargs.begin());
     }
 }
