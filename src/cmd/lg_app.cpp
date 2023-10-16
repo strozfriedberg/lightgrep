@@ -23,11 +23,6 @@ namespace {
   }
 }
   
-// std::tuple<
-//   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)>,
-//   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>,
-//   std::unique_ptr<LG_Error, void(*)(LG_Error*)>
-// > 
 NoName parsePatterns(const Options& opts)
 {
   // read the patterns and parse them
@@ -114,26 +109,28 @@ void writeProgram(const Options& opts, std::ostream& out) {
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
+
   NoName n = parsePatterns(opts);
+  prog = std::move(n.prog);
+  err = std::move(n.err);
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-  handleParseErrors(std::cerr, n.err.get(), printFilename);
 
-  if (!n.prog) {
+  if (!prog) {
     throw std::runtime_error("failed to create program");
   }
 
   // break on through the C API to print the program
-  ProgramPtr p(n.prog->Prog);
+  ProgramPtr p(prog->Prog);
   if (opts.Verbose) {
     std::cerr << p->size() << " program size in bytes" << std::endl;
   }
 
   if (opts.Binary) {
-    std::string buf(lg_program_size(n.prog.get()), '\0');
-    lg_write_program(n.prog.get(), buf.data());
+    std::string buf(lg_program_size(prog.get()), '\0');
+    lg_write_program(prog.get(), buf.data());
     out.write(buf.data(), buf.size());
   }
   else {
