@@ -8,6 +8,9 @@
 #include <string>
 #include <vector>
 
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
+
 class Options {
 public:
   uint64_t DebugBegin,
@@ -59,5 +62,7 @@ public:
 
   std::ostream& openOutput() const;
 
-  std::vector<std::pair<std::string,std::string>> getPatternLines() const;
+  std::vector<std::pair<std::string, std::string>> getPatternLines() const;
+
+  void validateOptions(const boost::program_options::variables_map& , std::vector<std::string>&);
 };

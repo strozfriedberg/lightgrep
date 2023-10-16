@@ -12,8 +12,6 @@
 
 #include <boost/lexical_cast.hpp>
 
-namespace po = boost::program_options;
-
 // This is a special parser which puts all options after '--' into "pargs"
 std::vector<po::option> end_of_opts_parser(std::vector<std::string>& args) {
   std::vector<po::option> result;
