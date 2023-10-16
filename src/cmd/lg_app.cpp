@@ -110,9 +110,9 @@ void writeProgram(const Options& opts, std::ostream& out) {
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
 
-  LgAppCollection n = parsePatterns(opts);
-  prog = std::move(n.prog);
-  err = std::move(n.err);
+  LgAppCollection col = parsePatterns(opts);
+  prog = std::move(col.prog);
+  err = std::move(col.err);
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;

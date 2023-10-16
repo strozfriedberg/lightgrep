@@ -262,9 +262,9 @@ void search(const Options& opts) {
     // read the patterns and parse them
     std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-    LgAppCollection n = parsePatterns(opts);
-    prog = std::move(n.prog);
-    err = std::move(n.err);
+    LgAppCollection col = parsePatterns(opts);
+    prog = std::move(col.prog);
+    err = std::move(col.err);
 
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -382,10 +382,10 @@ void writeGraphviz(const Options& opts) {
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  LgAppCollection n = parsePatterns(opts);
-  fsm = std::move(n.fsm);
-  prog = std::move(n.prog);
-  err = std::move(n.err);
+  LgAppCollection col = parsePatterns(opts);
+  fsm = std::move(col.fsm);
+  prog = std::move(col.prog);
+  err = std::move(col.err);
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
@@ -405,8 +405,8 @@ void writeGraphviz(const Options& opts) {
 void validate(const Options& opts) {
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  LgAppCollection n = parsePatterns(opts);
-  err = std::move(n.err);
+  LgAppCollection col = parsePatterns(opts);
+  err = std::move(col.err);
 
   const bool printFilename = opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
   handleParseErrors(std::cerr, err.get(), printFilename);
@@ -416,8 +416,8 @@ void analyze(const Options& opts) {
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  LgAppCollection n = parsePatterns(opts);
-  fsm = std::move(n.fsm);
+  LgAppCollection col = parsePatterns(opts);
+  fsm = std::move(col.fsm);
 
   NFAPtr g(fsm->Impl->Fsm);
 
@@ -451,7 +451,7 @@ void writeSampleMatches(const Options& opts) {
   // why when looping over the pairs we then turn around and put each into a vector/array.
   // const std::vector<std::pair<std::string, std::string>> a = { pf };
 
-  LgAppCollection n = parsePatterns(opts);
+  LgAppCollection col = parsePatterns(opts);
 
   if (err) {
     std::stringstream ss;
