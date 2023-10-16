@@ -54,7 +54,7 @@ parsePatterns(const Options& opts)
 
   LG_Error* tail_err = nullptr;
 
-  for (const std::pair<std::string,std::string>& pf : patLines) {
+  for (const std::pair<std::string, std::string>& pf : patLines) {
     // parse a complete pattern file
     LG_Error* local_err = nullptr;
 
