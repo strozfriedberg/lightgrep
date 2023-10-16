@@ -23,7 +23,7 @@ namespace {
   }
 }
   
-NoName parsePatterns(const Options& opts)
+LgAppCollection parsePatterns(const Options& opts)
 {
   // read the patterns and parse them
 
@@ -87,7 +87,7 @@ NoName parsePatterns(const Options& opts)
               << prog->Prog->size() << " instructions\n";
   }
 
-  return NoName(std::move(fsm), std::move(prog), std::move(err));
+  return LgAppCollection(std::move(fsm), std::move(prog), std::move(err));
 }
 
 void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename) {
@@ -110,7 +110,7 @@ void writeProgram(const Options& opts, std::ostream& out) {
   std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
 
-  NoName n = parsePatterns(opts);
+  LgAppCollection n = parsePatterns(opts);
   prog = std::move(n.prog);
   err = std::move(n.err);
 
