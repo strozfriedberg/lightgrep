@@ -77,64 +77,64 @@ std::vector<std::pair<std::string,std::string>> Options::getPatternLines() const
 void Options::validateAndPopulateOptions(const po::variables_map &optsMap, std::vector<std::string> &pargs) {
 // determine the source of our patterns
 
-    validateAndPopulateKeyFiles(optsMap, pargs);
+  validateAndPopulateKeyFiles(optsMap, pargs);
 
-    CaseInsensitive = optsMap.count("ignore-case") > 0;
-    LiteralMode = optsMap.count("fixed-strings") > 0;
-    Binary = optsMap.count("binary") > 0;
-    NoOutput = optsMap.count("no-output") > 0;
-    Recursive = optsMap.count("recursive") > 0;
-    MemoryMapped = optsMap.count("mmap") > 0;
-    Verbose = optsMap.count("verbose") > 0;
+  CaseInsensitive = optsMap.count("ignore-case") > 0;
+  LiteralMode = optsMap.count("fixed-strings") > 0;
+  Binary = optsMap.count("binary") > 0;
+  NoOutput = optsMap.count("no-output") > 0;
+  Recursive = optsMap.count("recursive") > 0;
+  MemoryMapped = optsMap.count("mmap") > 0;
+  Verbose = optsMap.count("verbose") > 0;
 
-    populateContextOptions(optsMap, pargs);
+  populateContextOptions(optsMap, pargs);
 
-    // uppercase encoding names
-    for (std::string& e : Encodings) {
-      std::transform(e.begin(), e.end(), e.begin(), toupper);
-    }
+  // uppercase encoding names
+  for (std::string& e : Encodings) {
+    std::transform(e.begin(), e.end(), e.begin(), toupper);
+  }
 
-    if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
-      throw po::error("--with-filename and --no-filename are incompatible options");
-    }
+  if (optsMap.count("with-filename") && optsMap.count("no-filename")) {
+    throw po::error("--with-filename and --no-filename are incompatible options");
+  }
 
-    if (Command == Options::SEARCH) {
-      validateAndPopulateSearchOptions(optsMap, pargs);
-    }
-    else if (Command == Options::SAMPLES) {
-      populateSampleOptions(optsMap, pargs);
-    }
+  if (Command == Options::SEARCH) {
+    validateAndPopulateSearchOptions(optsMap, pargs);
+  }
+  else if (Command == Options::SAMPLES) {
+    populateSampleOptions(optsMap, pargs);
+  }
 
-    // there should be no unused positional arguments now
-    if (!pargs.empty()) {
-      throw po::too_many_positional_options_error();
-    }
+  // there should be no unused positional arguments now
+  if (!pargs.empty()) {
+    throw po::too_many_positional_options_error();
+  }
 }
 
 void Options::validateAndPopulateKeyFiles(
   const boost::program_options::variables_map& optsMap, 
   std::vector<std::string>& pargs) {
     
-    if (!optsMap["program-file"].empty()) {
-      if (!optsMap["pattern"].empty() || !optsMap["keywords"].empty()) {
-        throw po::error("--program-file is incompatible with --pattern and --keywords");
-      }
+  if (!optsMap["program-file"].empty()) {
+    if (!optsMap["pattern"].empty() || !optsMap["keywords"].empty()) {
+      throw po::error("--program-file is incompatible with --pattern and --keywords");
     }
-    else if (!optsMap["keywords"].empty() || !optsMap["pattern"].empty()) {
-      // keywords from --keywords, not from the first positional argument
-      if (!optsMap["keywords"].empty() && !optsMap["pattern"].empty()) {
-        throw po::error("--pattern and --keywords are incompatible options");
-      }
+  }
+  else if (!optsMap["keywords"].empty() || !optsMap["pattern"].empty()) {
+    // keywords from --keywords, not from the first positional argument
+    if (!optsMap["keywords"].empty() && !optsMap["pattern"].empty()) {
+      throw po::error("--pattern and --keywords are incompatible options");
     }
-    else {
-      // keywords from parg
-      if (pargs.empty()) {
-        throw po::required_option("keywords");
-      }
+  }
+  else {
+    // keywords from parg
+    if (pargs.empty()) {
+      throw po::required_option("keywords");
+    }
 
-      KeyFiles.push_back(pargs.front());
-      pargs.erase(pargs.begin());
-    }
+    KeyFiles.push_back(pargs.front());
+    pargs.erase(pargs.begin());
+  }
 }
 
 void Options::populateContextOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>&) {
@@ -143,49 +143,49 @@ void Options::populateContextOptions(const boost::program_options::variables_map
       AfterContext = BeforeContext;
     }
 
-    if (BeforeContext != -1 || AfterContext != -1) {
-      // -C N, -B N, -A N imply --mmap
-      MemoryMapped = true;
-    }
+  if (BeforeContext != -1 || AfterContext != -1) {
+    // -C N, -B N, -A N imply --mmap
+    MemoryMapped = true;
+  }
 }
 
 void Options::validateAndPopulateSearchOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>& pargs) {
   // filename printing defaults off for single files, on for multiple files
-      PrintPath = optsMap.count("with-filename") > 0;
+  PrintPath = optsMap.count("with-filename") > 0;
 
-      // determine the source of our input
-      if (optsMap.count("arg-file") > 0) {
-        PrintPath = optsMap.count("no-filename") == 0;
-      }
+  // determine the source of our input
+  if (optsMap.count("arg-file") > 0) {
+    PrintPath = optsMap.count("no-filename") == 0;
+  }
 
-      if (!pargs.empty()) {
-        // input from pargs
-        Inputs = pargs;
-        pargs.clear();
-        PrintPath = optsMap.count("no-filename") == 0;
-      }
-      else if (InputLists.empty()) {
-        // input from stdin
-        Inputs.push_back("-");
-      }
+  if (!pargs.empty()) {
+    // input from pargs
+    Inputs = pargs;
+    pargs.clear();
+    PrintPath = optsMap.count("no-filename") == 0;
+  }
+  else if (InputLists.empty()) {
+    // input from stdin
+    Inputs.push_back("-");
+  }
 
-      if (MemoryMapped && std::find(Inputs.begin(), Inputs.end(), "-") != Inputs.end()) {
-        throw po::error("--mmap is incompatible with reading from stdin");
-      }
+  if (MemoryMapped && std::find(Inputs.begin(), Inputs.end(), "-") != Inputs.end()) {
+    throw po::error("--mmap is incompatible with reading from stdin");
+  }
 }
 
 void Options::populateSampleOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>& pargs) {
   SampleLimit =
         std::numeric_limits<std::set<std::string>::size_type>::max();
-      LoopLimit = 1;
+  LoopLimit = 1;
 
-      if (!pargs.empty()) {
-        SampleLimit = boost::lexical_cast<uint32_t>(pargs.front());
-        pargs.erase(pargs.begin());
+  if (!pargs.empty()) {
+    SampleLimit = boost::lexical_cast<uint32_t>(pargs.front());
+    pargs.erase(pargs.begin());
 
-        if (!pargs.empty()) {
-          LoopLimit = boost::lexical_cast<uint32_t>(pargs.front());
-          pargs.erase(pargs.begin());
-        }
-      }
+    if (!pargs.empty()) {
+      LoopLimit = boost::lexical_cast<uint32_t>(pargs.front());
+      pargs.erase(pargs.begin());
+    }
+  }
 }
