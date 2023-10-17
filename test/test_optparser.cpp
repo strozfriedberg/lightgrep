@@ -126,3 +126,16 @@ TEST_CASE("programFileAndKeywordsOption") {
     boost::program_options::error
   );
 }
+
+TEST_CASE("memoryMappedOption") {
+  const char* argv[] = { "lightgrep", "--program-file", "test-prog.txt", "-C", "3", "test1.txt"};
+  Options opts;
+
+  po::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+
+  REQUIRE(Options::SEARCH == opts.Command);
+  REQUIRE("test-prog.txt" == opts.ProgramFile);
+  REQUIRE(0 == opts.KeyFiles.size());
+  REQUIRE(opts.MemoryMapped == true);
+}
