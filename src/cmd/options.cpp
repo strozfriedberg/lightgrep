@@ -102,19 +102,7 @@ void Options::populateOptions(const po::variables_map &optsMap, std::vector<std:
       populateSearchOptions(optsMap, pargs);
     }
     else if (Command == Options::SAMPLES) {
-      SampleLimit =
-        std::numeric_limits<std::set<std::string>::size_type>::max();
-      LoopLimit = 1;
-
-      if (!pargs.empty()) {
-        SampleLimit = boost::lexical_cast<uint32_t>(pargs.front());
-        pargs.erase(pargs.begin());
-
-        if (!pargs.empty()) {
-          LoopLimit = boost::lexical_cast<uint32_t>(pargs.front());
-          pargs.erase(pargs.begin());
-        }
-      }
+      populateSampleOptions(optsMap, pargs);
     }
 
     // there should be no unused positional arguments now
@@ -183,5 +171,21 @@ void Options::populateSearchOptions(const boost::program_options::variables_map&
 
       if (MemoryMapped && std::find(Inputs.begin(), Inputs.end(), "-") != Inputs.end()) {
         throw po::error("--mmap is incompatible with reading from stdin");
+      }
+}
+
+void Options::populateSampleOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>& pargs) {
+  SampleLimit =
+        std::numeric_limits<std::set<std::string>::size_type>::max();
+      LoopLimit = 1;
+
+      if (!pargs.empty()) {
+        SampleLimit = boost::lexical_cast<uint32_t>(pargs.front());
+        pargs.erase(pargs.begin());
+
+        if (!pargs.empty()) {
+          LoopLimit = boost::lexical_cast<uint32_t>(pargs.front());
+          pargs.erase(pargs.begin());
+        }
       }
 }
