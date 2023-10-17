@@ -74,10 +74,10 @@ std::vector<std::pair<std::string,std::string>> Options::getPatternLines() const
   return ret;
 }
 
-void Options::populateOptions(const po::variables_map &optsMap, std::vector<std::string> &pargs) {
+void Options::validateAndPopulateOptions(const po::variables_map &optsMap, std::vector<std::string> &pargs) {
 // determine the source of our patterns
 
-    validateKeyFiles(optsMap, pargs);
+    validateAndPopulateKeyFiles(optsMap, pargs);
 
     CaseInsensitive = optsMap.count("ignore-case") > 0;
     LiteralMode = optsMap.count("fixed-strings") > 0;
@@ -99,7 +99,7 @@ void Options::populateOptions(const po::variables_map &optsMap, std::vector<std:
     }
 
     if (Command == Options::SEARCH) {
-      populateSearchOptions(optsMap, pargs);
+      validateAndPopulateSearchOptions(optsMap, pargs);
     }
     else if (Command == Options::SAMPLES) {
       populateSampleOptions(optsMap, pargs);
@@ -111,7 +111,7 @@ void Options::populateOptions(const po::variables_map &optsMap, std::vector<std:
     }
 }
 
-void Options::validateKeyFiles(
+void Options::validateAndPopulateKeyFiles(
   const boost::program_options::variables_map& optsMap, 
   std::vector<std::string>& pargs) {
     
@@ -149,7 +149,7 @@ void Options::populateContextOptions(const boost::program_options::variables_map
     }
 }
 
-void Options::populateSearchOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>& pargs) {
+void Options::validateAndPopulateSearchOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>& pargs) {
   // filename printing defaults off for single files, on for multiple files
       PrintPath = optsMap.count("with-filename") > 0;
 
