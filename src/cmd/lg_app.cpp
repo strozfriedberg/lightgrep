@@ -5,6 +5,8 @@
 #include <iostream>
 
 namespace {
+  // the lifetime of the input vec must exceed that of the returned array
+  // because loop creates shallow copies of elements of vec
   std::unique_ptr<const char*[]> c_str_arr(const std::vector<std::string>& vec) {
     const size_t size = vec.size();
     std::unique_ptr<const char*[]> arr(new const char*[size]);
