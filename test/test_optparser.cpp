@@ -179,3 +179,15 @@ TEST_CASE("sampleOptions") {
   REQUIRE(opts.SampleLimit == 3);
   REQUIRE(opts.LoopLimit == 5);
 }
+
+TEST_CASE("readFromStdinWhenNoInputsProvided") {
+  const char* argv[] = { "lightgrep", "--program-file", "test-prog.txt"};
+  Options opts;
+
+  po::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+
+  REQUIRE(Options::SEARCH == opts.Command);
+  REQUIRE("test-prog.txt" == opts.ProgramFile);
+  REQUIRE(opts.Inputs.at(0) == "-");
+}
