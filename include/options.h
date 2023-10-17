@@ -64,11 +64,11 @@ public:
 
   std::vector<std::pair<std::string, std::string>> getPatternLines() const;
 
-  void validateAndPopulateOptions(const boost::program_options::variables_map&, std::vector<std::string>&);
+  void validateAndPopulateOptions(const po::variables_map&, std::vector<std::string>&);
 
 private:
-  void validateAndPopulateKeyFiles(const boost::program_options::variables_map&, std::vector<std::string>&);
-  void populateContextOptions(const boost::program_options::variables_map&, std::vector<std::string>&);
-  void validateAndPopulateSearchOptions(const boost::program_options::variables_map&, std::vector<std::string>&);
-  void populateSampleOptions(const boost::program_options::variables_map&, std::vector<std::string>&);
+  void validateAndPopulateKeyFiles(const po::variables_map&, std::vector<std::string>&);
+  void populateContextOptions(const po::variables_map&, std::vector<std::string>&);
+  void validateAndPopulateSearchOptions(const po::variables_map&, std::vector<std::string>&);
+  void populateSampleOptions(const po::variables_map&, std::vector<std::string>&);
 };

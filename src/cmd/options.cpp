@@ -112,7 +112,7 @@ void Options::validateAndPopulateOptions(const po::variables_map &optsMap, std::
 }
 
 void Options::validateAndPopulateKeyFiles(
-  const boost::program_options::variables_map& optsMap, 
+  const po::variables_map& optsMap, 
   std::vector<std::string>& pargs) {
     
   if (!optsMap["program-file"].empty()) {
@@ -137,7 +137,7 @@ void Options::validateAndPopulateKeyFiles(
   }
 }
 
-void Options::populateContextOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>&) {
+void Options::populateContextOptions(const po::variables_map& optsMap, std::vector<std::string>&) {
   if (optsMap.count("context") > 0) {
       // "-C N" is equivalent to "-B N -A N"
       AfterContext = BeforeContext;
@@ -149,7 +149,7 @@ void Options::populateContextOptions(const boost::program_options::variables_map
   }
 }
 
-void Options::validateAndPopulateSearchOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>& pargs) {
+void Options::validateAndPopulateSearchOptions(const po::variables_map& optsMap, std::vector<std::string>& pargs) {
   // filename printing defaults off for single files, on for multiple files
   PrintPath = optsMap.count("with-filename") > 0;
 
@@ -174,7 +174,7 @@ void Options::validateAndPopulateSearchOptions(const boost::program_options::var
   }
 }
 
-void Options::populateSampleOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>& pargs) {
+void Options::populateSampleOptions(const po::variables_map& optsMap, std::vector<std::string>& pargs) {
   SampleLimit =
         std::numeric_limits<std::set<std::string>::size_type>::max();
   LoopLimit = 1;
