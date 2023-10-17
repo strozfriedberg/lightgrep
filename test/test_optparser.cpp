@@ -154,3 +154,15 @@ TEST_CASE("afterAndBeforeContextOption") {
   REQUIRE(opts.AfterContext == 3);
   REQUIRE(opts.BeforeContext == 5);
 }
+
+TEST_CASE("mmapIncompatibleWithReadFromStdin") {
+  const char* argv[] = { "lightgrep", "--program-file", "test-prog.txt", "-A", "3"};
+  Options opts;
+
+  po::options_description desc;
+
+  REQUIRE_THROWS_AS(
+    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    boost::program_options::error
+  );
+}
