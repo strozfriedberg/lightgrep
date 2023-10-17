@@ -69,4 +69,5 @@ public:
 private:
   void validateKeyFiles(const boost::program_options::variables_map&, std::vector<std::string>&);
   void populateContextOptions(const boost::program_options::variables_map&, std::vector<std::string>&);
+  void populateSearchOptions(const boost::program_options::variables_map&, std::vector<std::string>&);
 };

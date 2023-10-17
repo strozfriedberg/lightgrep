@@ -99,28 +99,7 @@ void Options::populateOptions(const po::variables_map &optsMap, std::vector<std:
     }
 
     if (Command == Options::SEARCH) {
-      // filename printing defaults off for single files, on for multiple files
-      PrintPath = optsMap.count("with-filename") > 0;
-
-      // determine the source of our input
-      if (optsMap.count("arg-file") > 0) {
-        PrintPath = optsMap.count("no-filename") == 0;
-      }
-
-      if (!pargs.empty()) {
-        // input from pargs
-        Inputs = pargs;
-        pargs.clear();
-        PrintPath = optsMap.count("no-filename") == 0;
-      }
-      else if (InputLists.empty()) {
-        // input from stdin
-        Inputs.push_back("-");
-      }
-
-      if (MemoryMapped && std::find(Inputs.begin(), Inputs.end(), "-") != Inputs.end()) {
-        throw po::error("--mmap is incompatible with reading from stdin");
-      }
+      populateSearchOptions(optsMap, pargs);
     }
     else if (Command == Options::SAMPLES) {
       SampleLimit =
@@ -170,7 +149,7 @@ void Options::validateKeyFiles(
     }
 }
 
-void Options::populateContextOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>&){
+void Options::populateContextOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>&) {
   if (optsMap.count("context") > 0) {
       // "-C N" is equivalent to "-B N -A N"
       AfterContext = BeforeContext;
@@ -180,4 +159,29 @@ void Options::populateContextOptions(const boost::program_options::variables_map
       // -C N, -B N, -A N imply --mmap
       MemoryMapped = true;
     }
+}
+
+void Options::populateSearchOptions(const boost::program_options::variables_map& optsMap, std::vector<std::string>& pargs) {
+  // filename printing defaults off for single files, on for multiple files
+      PrintPath = optsMap.count("with-filename") > 0;
+
+      // determine the source of our input
+      if (optsMap.count("arg-file") > 0) {
+        PrintPath = optsMap.count("no-filename") == 0;
+      }
+
+      if (!pargs.empty()) {
+        // input from pargs
+        Inputs = pargs;
+        pargs.clear();
+        PrintPath = optsMap.count("no-filename") == 0;
+      }
+      else if (InputLists.empty()) {
+        // input from stdin
+        Inputs.push_back("-");
+      }
+
+      if (MemoryMapped && std::find(Inputs.begin(), Inputs.end(), "-") != Inputs.end()) {
+        throw po::error("--mmap is incompatible with reading from stdin");
+      }
 }
