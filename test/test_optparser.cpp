@@ -191,3 +191,15 @@ TEST_CASE("readFromStdinWhenNoInputsProvided") {
   REQUIRE("test-prog.txt" == opts.ProgramFile);
   REQUIRE(opts.Inputs.at(0) == "-");
 }
+
+TEST_CASE("tooManyPositionalArguments") {
+  const char* argv[] = {"lightgrep", "-c", "samp", "--program-file", "test-prog.txt", "3", "5", "this", "is", "too", "many", "positional", "args"};
+  Options opts;
+
+  po::options_description desc;
+
+  REQUIRE_THROWS_AS(
+    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    po::too_many_positional_options_error
+  );
+}
