@@ -89,3 +89,14 @@ TEST_CASE("analyzeCommandOption") {
 
   REQUIRE(Options::ANALYZE == opts.Command);
 }
+
+TEST_CASE("histogramOption") {
+  const char* argv[] = {"lightgrep", "-p", "test", "--histogram-file", "histogram.txt", "test_corpora.txt"};
+  Options opts;
+
+  boost::program_options::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+
+  REQUIRE(Options::SEARCH == opts.Command);
+  REQUIRE(opts.HistogramFile == "histogram.txt");
+}

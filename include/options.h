@@ -31,7 +31,8 @@ public:
 
   std::string Output,
               ProgramFile,
-              GroupSeparator;
+              GroupSeparator,
+              HistogramFile;
 
   std::vector<std::string> Inputs,
                            InputLists,
