@@ -140,8 +140,8 @@ TEST_CASE("memoryMappedOption") {
   REQUIRE(opts.MemoryMapped == true);
 }
 
-TEST_CASE("afterContextOption") {
-  const char* argv[] = { "lightgrep", "--program-file", "test-prog.txt", "-A", "3", "test1.txt"};
+TEST_CASE("afterAndBeforeContextOption") {
+  const char* argv[] = { "lightgrep", "--program-file", "test-prog.txt", "-A", "3", "-B", "5", "test1.txt"};
   Options opts;
 
   po::options_description desc;
@@ -152,4 +152,5 @@ TEST_CASE("afterContextOption") {
   REQUIRE(0 == opts.KeyFiles.size());
   REQUIRE(opts.MemoryMapped == true);
   REQUIRE(opts.AfterContext == 3);
+  REQUIRE(opts.BeforeContext == 5);
 }
