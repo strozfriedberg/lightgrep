@@ -166,3 +166,16 @@ TEST_CASE("mmapIncompatibleWithReadFromStdin") {
     boost::program_options::error
   );
 }
+
+TEST_CASE("sampleOptions") {
+  const char* argv[] = { "lightgrep", "-c", "samp", "--program-file", "test-prog.txt", "3", "5"};
+  Options opts;
+
+  po::options_description desc;
+  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+
+  REQUIRE(Options::SAMPLES == opts.Command);
+  REQUIRE("test-prog.txt" == opts.ProgramFile);
+  REQUIRE(opts.SampleLimit == 3);
+  REQUIRE(opts.LoopLimit == 5);
+}
