@@ -203,3 +203,15 @@ TEST_CASE("tooManyPositionalArguments") {
     po::too_many_positional_options_error
   );
 }
+
+TEST_CASE("withFilenameIncompatibleWithNoFilename") {
+  const char* argv[] = {"lightgrep", "-p", "test", "--with-filename", "--no-filename", "test_file.txt"};
+  Options opts;
+
+  po::options_description desc;
+
+  REQUIRE_THROWS_AS(
+    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    po::error
+  );
+}
