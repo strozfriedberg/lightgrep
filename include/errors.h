@@ -1,6 +1,6 @@
 #include "lightgrep/api.h"
 
-#include <memory>
+#include <iostream>
 
 class Errors {
 public:
@@ -8,5 +8,7 @@ public:
     LG_Error* tail_err;
 
     Errors() { err = nullptr; tail_err = nullptr; }
+    Errors(LG_Error*);
     void append(LG_Error* new_err);
+    void handleParseErrors(std::ostream&, bool);
 };
