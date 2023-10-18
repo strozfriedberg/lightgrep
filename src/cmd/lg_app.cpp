@@ -34,8 +34,6 @@ LgAppCollection parsePatterns(const Options& opts)
   const LG_KeyOptions& defaultKOpts(patOpts(opts));
   const LG_ProgramOptions& defaultProgOpts(progOpts(opts));
 
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
-
   // FIXME: estimate NFA size here?
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(
     lg_create_fsm(0, 0),
@@ -49,7 +47,7 @@ LgAppCollection parsePatterns(const Options& opts)
   // set default encoding(s) of patterns which have none specified
   const std::unique_ptr<const char*[]> defEncs(c_str_arr(defaultEncodings));
 
-  LG_Error* tail_err = nullptr;
+  Errors errors;
 
   for (const std::pair<std::string, std::string>& pf : patLines) {
     // parse a complete pattern file
@@ -62,20 +60,7 @@ LgAppCollection parsePatterns(const Options& opts)
     );
 
     if (local_err) {
-      if (err) {
-        // attach the new error to the existing chain
-        tail_err->Next = local_err;
-      }
-      else {
-        // first error, start a new error chain
-        err = std::unique_ptr<LG_Error, void(*)(LG_Error*)>(
-          local_err, lg_free_error
-        );
-        tail_err = local_err;
-      }
-
-      // walk to the end of the error chain
-      for ( ; tail_err->Next; tail_err = tail_err->Next);
+      errors.append(local_err);
     }
   }
 
@@ -88,6 +73,8 @@ LgAppCollection parsePatterns(const Options& opts)
     std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
               << prog->Prog->size() << " instructions\n";
   }
+
+  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(errors.err, nullptr);
 
   return LgAppCollection(std::move(fsm), std::move(prog), std::move(err));
 }

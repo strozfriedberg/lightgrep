@@ -3,6 +3,7 @@
 #include <tuple>
 
 #include "handles.h"
+#include "errors.h"
 
 class Options;
 

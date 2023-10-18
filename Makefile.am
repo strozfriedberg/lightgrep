@@ -32,6 +32,7 @@ src_lib_liblightgrepint_la_SOURCES = \
 	src/lib/compiler.cpp \
 	src/lib/encoderbase.cpp \
 	src/lib/encoderfactory.cpp \
+	src/lib/errors.cpp \
 	src/lib/fsmthingy.cpp \
 	src/lib/icuconverter.cpp \
 	src/lib/icuencoder.cpp \
