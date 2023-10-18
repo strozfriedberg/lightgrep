@@ -7,6 +7,16 @@ Errors::Errors(LG_Error* err) {
     }
 }
 
+Errors::~Errors() {
+    LG_Error* temp;
+    while (err != tail_err) {
+        temp = err;
+        err = err->Next;
+        delete temp;
+    }
+    delete err;
+}
+
 void Errors::append(LG_Error* new_err) {
     if (err) {
         tail_err->Next = new_err;
