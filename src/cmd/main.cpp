@@ -259,17 +259,14 @@ void search(const Options& opts) {
     prog = loadProgram(opts.ProgramFile);
   }
   else {
-    // read the patterns and parse them
-    std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
-
     LgAppCollection col = parsePatterns(opts);
     prog = std::move(col.prog);
-    err = std::move(col.err);
+    Errors errors = Errors(col.err.get());
 
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-    handleParseErrors(std::cerr, err.get(), printFilename);
+    errors.handleParseErrors(std::cerr, printFilename);
   }
 
   if (!prog) {
@@ -380,17 +377,17 @@ void search(const Options& opts) {
 void writeGraphviz(const Options& opts) {
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   LgAppCollection col = parsePatterns(opts);
   fsm = std::move(col.fsm);
   prog = std::move(col.prog);
-  err = std::move(col.err);
+
+  Errors errors(col.err.get());
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-  handleParseErrors(std::cerr, err.get(), printFilename);
+  errors.handleParseErrors(std::cerr, printFilename);
 
   if (!prog) {
     throw std::runtime_error("failed to create program");
@@ -407,9 +404,10 @@ void validate(const Options& opts) {
 
   LgAppCollection col = parsePatterns(opts);
   err = std::move(col.err);
+  Errors errors(err.get());
 
   const bool printFilename = opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
-  handleParseErrors(std::cerr, err.get(), printFilename);
+  errors.handleParseErrors(std::cerr, printFilename);
 }
 
 void analyze(const Options& opts) {
