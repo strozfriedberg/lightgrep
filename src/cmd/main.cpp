@@ -400,11 +400,8 @@ void writeGraphviz(const Options& opts) {
 }
 
 void validate(const Options& opts) {
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
-
   LgAppCollection col = parsePatterns(opts);
-  err = std::move(col.err);
-  Errors errors(err.get());
+  Errors errors(col.err.get());
 
   const bool printFilename = opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
   errors.handleParseErrors(std::cerr, printFilename);
