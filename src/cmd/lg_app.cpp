@@ -47,7 +47,7 @@ LgAppCollection parsePatterns(const Options& opts)
   // set default encoding(s) of patterns which have none specified
   const std::unique_ptr<const char*[]> defEncs(c_str_arr(defaultEncodings));
 
-  std::unique_ptr<Errors> errors(new Errors);
+  std::unique_ptr<Errors> errors(new Errors());
 
   for (const std::pair<std::string, std::string>& pf : patLines) {
     // parse a complete pattern file

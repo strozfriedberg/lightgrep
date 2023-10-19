@@ -432,7 +432,6 @@ void writeSampleMatches(const Options& opts) {
 
   // parse the patterns one at a time
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   size_t pnum = 0;
   //for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
@@ -442,6 +441,8 @@ void writeSampleMatches(const Options& opts) {
   // const std::vector<std::pair<std::string, std::string>> a = { pf };
 
   LgAppCollection col = parsePatterns(opts);
+  LG_Error* err = col.errors.get()->err;
+  fsm = std::move(col.fsm);
 
   if (err) {
     std::stringstream ss;
