@@ -2,9 +2,8 @@
 
 Errors::Errors(LG_Error* err) {
     this->err = err;
-    for ( ; err; err = err->Next) {
-        tail_err = err;
-    }
+    tail_err = err;
+    for ( ; tail_err->Next; tail_err = tail_err->Next);
 }
 
 Errors::~Errors() {
@@ -30,14 +29,15 @@ void Errors::append(LG_Error* new_err) {
 }
 
 void Errors::handleParseErrors(std::ostream &out, bool printFilename) {
-    for ( ; err; err = err->Next) {
+  LG_Error* curr = err;
+  for ( ; curr; curr = curr->Next) {
     if (printFilename) {
-      out << err->Source << ", ";
+        out << curr->Source << ", ";
     }
-    out << "pattern " << err->Index
-        << " " << (err->Pattern? err->Pattern : "") 
-        << " " << (err->EncodingChain? err->EncodingChain : "")
-        << ": " << err->Message << '\n';
-  }
+    out << "pattern " << curr->Index
+        << " " << (curr->Pattern? curr->Pattern : "")
+        << " " << (curr->EncodingChain? curr->EncodingChain : "")
+        << ": " << curr->Message << '\n';
+    }
   out.flush();
 }
