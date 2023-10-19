@@ -77,20 +77,6 @@ LgAppCollection parsePatterns(const Options& opts)
   return LgAppCollection(std::move(fsm), std::move(prog), std::move(errors));
 }
 
-void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename) {
-  // walk the error chain
-  for ( ; err; err = err->Next) {
-    if (printFilename) {
-      out << err->Source << ", ";
-    }
-    out << "pattern " << err->Index
-        << " " << (err->Pattern? err->Pattern : "") 
-        << " " << (err->EncodingChain? err->EncodingChain : "")
-        << ": " << err->Message << '\n';
-  }
-  out.flush();
-}
-
 void writeProgram(const Options& opts, std::ostream& out) {
   // get the patterns and parse them
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);

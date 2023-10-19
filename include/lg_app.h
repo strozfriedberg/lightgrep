@@ -22,7 +22,5 @@ public:
 
 LgAppCollection parsePatterns(const Options& opts);
 
-void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename);
-
 void writeProgram(const Options& opts, std::ostream& out);
 
