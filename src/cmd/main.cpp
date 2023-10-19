@@ -441,7 +441,7 @@ void writeSampleMatches(const Options& opts) {
   // const std::vector<std::pair<std::string, std::string>> a = { pf };
 
   LgAppCollection col = parsePatterns(opts);
-  LG_Error* err = col.errors.get()->err;
+  LG_Error* err = col.getError();
   fsm = std::move(col.fsm);
 
   if (err) {
