@@ -1,11 +1,5 @@
 #include "errors.h"
 
-Errors::Errors(LG_Error* err) {
-    this->err = err;
-    tail_err = err;
-    for ( ; tail_err->Next; tail_err = tail_err->Next);
-}
-
 Errors::~Errors() {
     LG_Error* temp;
     while (err != tail_err) {
