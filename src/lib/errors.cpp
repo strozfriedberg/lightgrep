@@ -2,6 +2,7 @@
 
 Errors::~Errors() {
     lg_free_error(err);
+    tail_err = nullptr;
 }
 
 void Errors::append(LG_Error* new_err) {
