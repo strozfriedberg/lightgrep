@@ -1,13 +1,7 @@
 #include "errors.h"
 
 Errors::~Errors() {
-    LG_Error* temp;
-    while (err != tail_err) {
-        temp = err;
-        err = err->Next;
-        delete temp;
-    }
-    delete err;
+    lg_free_error(err);
 }
 
 void Errors::append(LG_Error* new_err) {
