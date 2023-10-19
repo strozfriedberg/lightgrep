@@ -11,13 +11,13 @@ class LgAppCollection {
 public:
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm;
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog;
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err;
+  std::unique_ptr<Errors> errors;
 
   LgAppCollection(
     std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm,
     std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog,
-    std::unique_ptr<LG_Error, void(*)(LG_Error*)> err
-    ) : fsm(std::move(fsm)), prog(std::move(prog)), err(std::move(err)) {};
+    std::unique_ptr<Errors> errors
+    ) : fsm(std::move(fsm)), prog(std::move(prog)), errors(std::move(errors)) {};
 };
 
 LgAppCollection parsePatterns(const Options& opts);

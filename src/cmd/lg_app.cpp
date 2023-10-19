@@ -47,7 +47,7 @@ LgAppCollection parsePatterns(const Options& opts)
   // set default encoding(s) of patterns which have none specified
   const std::unique_ptr<const char*[]> defEncs(c_str_arr(defaultEncodings));
 
-  Errors errors;
+  std::unique_ptr<Errors> errors(new Errors);
 
   for (const std::pair<std::string, std::string>& pf : patLines) {
     // parse a complete pattern file
@@ -60,7 +60,7 @@ LgAppCollection parsePatterns(const Options& opts)
     );
 
     if (local_err) {
-      errors.append(local_err);
+      errors->append(local_err);
     }
   }
 
@@ -74,9 +74,7 @@ LgAppCollection parsePatterns(const Options& opts)
               << prog->Prog->size() << " instructions\n";
   }
 
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(errors.err, nullptr);
-
-  return LgAppCollection(std::move(fsm), std::move(prog), std::move(err));
+  return LgAppCollection(std::move(fsm), std::move(prog), std::move(errors));
 }
 
 void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename) {
@@ -101,11 +99,11 @@ void writeProgram(const Options& opts, std::ostream& out) {
 
   LgAppCollection col = parsePatterns(opts);
   prog = std::move(col.prog);
-  err = std::move(col.err);
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
+  col.errors->handleParseErrors(std::cerr, printFilename);
 
   if (!prog) {
     throw std::runtime_error("failed to create program");
