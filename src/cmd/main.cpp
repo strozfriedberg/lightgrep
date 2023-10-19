@@ -405,7 +405,6 @@ void validate(const Options& opts) {
 
 void analyze(const Options& opts) {
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   LgAppCollection col = parsePatterns(opts);
   fsm = std::move(col.fsm);
