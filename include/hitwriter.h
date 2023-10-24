@@ -31,6 +31,16 @@ struct HitWriterInfo: public HitCounterInfo {
   const ProgramHandle* Prog;
 };
 
+class HitCounterDecorator: public HitCounterInfo {
+public:
+  HitCounterDecorator(HitCounterInfo* hci) { _hitCounterInfo = hci; }
+
+  virtual void setPath(const std::string& s) { _hitCounterInfo->setPath(s); }
+  virtual void setBuffer(const char* buf, size_t blen, uint64_t boff) { _hitCounterInfo->setBuffer(buf, blen, boff); }
+
+  HitCounterInfo* _hitCounterInfo;
+};
+
 void hitWriter(void* userData, const LG_SearchHit* const hit);
 
 struct PathWriterInfo: public HitWriterInfo {
