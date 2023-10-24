@@ -97,3 +97,64 @@ TEST_CASE("findTrailingContext5") {
 TEST_CASE("findTrailingContext6") {
   REQUIRE(TXT+19 == find_trailing_context(TXT+11, TXT+19, 6));
 }
+
+struct HitOutputData {
+  std::ostream &out;
+  std::string path;
+  uint64_t numHits;
+  ProgramHandle* Prog;
+  char separator;
+
+  void writeContext(const LG_SearchHit& searchHit) {
+    // writeLineContext from hitwriter.cpp
+  }
+};
+
+template<typename PathOutputFn, typename ContextFn, bool shouldOutput>
+void callbackFn(void* userData, const LG_SearchHit* searchHit) {
+  HitOutputData* data = reinterpret_cast<HitOutputData*>(userData);
+  if (shouldOutput) {
+    PathOutputFn::write(*data);
+    // write hit
+    ContextFn::write(*data, *searchHit);
+  }
+
+  data->numHits++;
+
+}
+
+struct WritePath {
+  static void write(HitOutputData& data) {
+    data.out << data.path << data.separator;
+  }
+};
+
+struct DoNotWritePath {
+  static void write(HitOutputData& data) {}
+};
+
+struct WriteContext {
+  static void write(HitOutputData& data, const LG_SearchHit& searchHit) {
+    data.writeContext(searchHit);
+  }
+};
+
+struct NoContext {
+  static void write(HitOutputData& data, const LG_SearchHit& searchHit) {}
+};
+
+TEST_CASE("callbackFn") {
+  LG_HITCALLBACK_FN a = &callbackFn<WritePath, WriteContext, true>;
+  LG_HITCALLBACK_FN b = &callbackFn<WritePath, NoContext, true>;
+  LG_HITCALLBACK_FN c = &callbackFn<DoNotWritePath, NoContext, true>;
+  LG_HITCALLBACK_FN d = &callbackFn<DoNotWritePath, WriteContext, true>;
+  //LG_HITCALLBACK_FN d = &callbackFn<DoNotWritePath, NoContext, false>;
+
+  LG_HITCALLBACK_FN arr[] = {a, b, c, d};
+
+  bool shouldWritePath = true;
+  bool shouldWriteContext = true;
+
+  LG_HITCALLBACK_FN selection = arr[( 2*shouldWritePath ) + ( shouldWriteContext )];
+
+}
