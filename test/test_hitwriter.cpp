@@ -1,5 +1,7 @@
 #include "hitwriter.h"
+#include "stest.h"
 
+#include <sstream>
 #include <catch2/catch_test_macros.hpp>
 
 /*
@@ -99,14 +101,24 @@ TEST_CASE("findTrailingContext6") {
 }
 
 struct HitOutputData {
-  std::ostream &out;
+  std::ostream &Out;
   std::string path;
-  uint64_t numHits;
+  uint64_t NumHits;
   ProgramHandle* Prog;
   char separator;
 
   void writeContext(const LG_SearchHit& searchHit) {
     // writeLineContext from hitwriter.cpp
+  }
+
+  void writeHit(const LG_SearchHit& hit){
+    const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
+
+    Out << hit.Start << '\t'
+        << hit.End << '\t'
+        << info->UserIndex << '\t'
+        << info->Pattern << '\t'
+        << info->EncodingChain;
   }
 };
 
@@ -115,17 +127,18 @@ void callbackFn(void* userData, const LG_SearchHit* searchHit) {
   HitOutputData* data = reinterpret_cast<HitOutputData*>(userData);
   if (shouldOutput) {
     PathOutputFn::write(*data);
-    // write hit
+    data->writeHit(*searchHit);
     ContextFn::write(*data, *searchHit);
+    data->Out << "\n";
   }
 
-  data->numHits++;
+  data->NumHits++;
 
 }
 
 struct WritePath {
   static void write(HitOutputData& data) {
-    data.out << data.path << data.separator;
+    data.Out << data.path << data.separator;
   }
 };
 
@@ -157,4 +170,43 @@ TEST_CASE("callbackFn") {
 
   LG_HITCALLBACK_FN selection = arr[( 2*shouldWritePath ) + ( shouldWriteContext )];
 
+}
+
+TEST_CASE("hitOutputDataAndCallback") {
+  STest s("foo");
+  std::stringstream stream;
+  std::string path = "path/to/input/file";
+  uint64_t numHits = 0;
+  std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
+
+  HitOutputData data{stream, path, numHits, s.Prog.get(), '\t'};
+  SECTION("noContextNoPath") {
+    LG_SearchHit searchHit{0, 8, 0};
+    // std::string expected = "8\t11\t0\tfoo\tASCII\n44\t47\t0\tfoo\tASCII\n59\t62\t0\tfoo\tASCII\n74\t77\t0\tfoo\tASCII";
+    std::string expected = "0\t8\t0\tfoo\tUS-ASCII\n";
+    LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
+    fn(&data, &searchHit);
+    REQUIRE(expected == stream.str());
+  };
+
+  SECTION("noOutput") {
+    LG_SearchHit searchHit{0, 8, 0};
+    LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, false>;
+    fn(&data, &searchHit);
+    REQUIRE("" == stream.str());
+    REQUIRE(1 == data.NumHits);
+  };
+
+  SECTION("noContextYesPath") {
+    LG_SearchHit searchHit0{0, 8, 0};
+    LG_SearchHit searchHit1{44, 47, 0};
+    LG_SearchHit searchHit2{59, 62, 0};
+    LG_HITCALLBACK_FN fn = &callbackFn<WritePath, NoContext, true>;
+    fn(&data, &searchHit0);
+    fn(&data, &searchHit1);
+    fn(&data, &searchHit2);
+    std::string expected = "path/to/input/file\t0\t8\t0\tfoo\tUS-ASCII\npath/to/input/file\t44\t47\t0\tfoo\tUS-ASCII\npath/to/input/file\t59\t62\t0\tfoo\tUS-ASCII\n";
+    REQUIRE(expected == stream.str());
+    REQUIRE(3 == data.NumHits);
+  };
 }
