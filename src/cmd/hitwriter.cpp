@@ -156,7 +156,25 @@ void lineContextPathWriter(void* userData, const LG_SearchHit* const hit) {
   hi->Out << '\n';
 }
 
-void HitOutputData::writeContext(const LG_SearchHit& searchHit) {
+void HitOutputData::writeContext(const LG_SearchHit& searchHit, const char* const utf8) {
+    // print the hit, escaping \t, \n, \r
+    const char* utf8_end = utf8 + std::strlen(utf8);
+    const char esc[] = "\t\n\r";
+    for (const char* l = utf8, *r; l != utf8_end; l = r) {
+      r = std::find_first_of(l, utf8_end, esc, esc + 3);
+      Out.write(l, r - l);
+      if (r != utf8_end) {
+        switch (*r) {
+        case '\t': Out << "\\t"; break;
+        case '\n': Out << "\\n"; break;
+        case '\r': Out << "\\r"; break;
+        }
+        ++r;
+      }
+    }
+  }
+
+  std::unique_ptr<const char[],void(*)(const char*)> HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
     const char* const hbeg = Buf + (searchHit.Start < BufOff ? 0 : searchHit.Start - BufOff);
     const char* const hend = Buf + std::min(searchHit.End - BufOff, static_cast<uint64_t>(BufLen));
 
@@ -171,7 +189,9 @@ void HitOutputData::writeContext(const LG_SearchHit& searchHit) {
 
     // transcode the context to UTF-8
     LG_Error* err = nullptr;
-    LG_Window inner{searchHit.Start, searchHit.End}, outer, dh;
+    LG_Window inner{searchHit.Start, searchHit.End},
+              outer,
+              dh;
     const char* utf8 = nullptr;
     const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), searchHit.KeywordIndex);
 
@@ -193,22 +213,8 @@ void HitOutputData::writeContext(const LG_SearchHit& searchHit) {
     if (err) {
       std::cerr << err->Message << std::endl;
       lg_free_error(err);
-      return;
+      return std::unique_ptr<const char[],void(*)(const char*)>(nullptr, nullptr);
     }
 
-    // print the hit, escaping \t, \n, \r
-    const char* utf8_end = utf8 + std::strlen(utf8);
-    const char esc[] = "\t\n\r";
-    for (const char* l = utf8, *r; l != utf8_end; l = r) {
-      r = std::find_first_of(l, utf8_end, esc, esc + 3);
-      Out.write(l, r - l);
-      if (r != utf8_end) {
-        switch (*r) {
-        case '\t': Out << "\\t"; break;
-        case '\n': Out << "\\n"; break;
-        case '\r': Out << "\\r"; break;
-        }
-        ++r;
-      }
-    }
+    return utf8_ptr;
   }

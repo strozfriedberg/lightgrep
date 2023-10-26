@@ -132,8 +132,8 @@ struct HitOutputData {
     BufLen = blen;
     BufOff = boff;
   }
-
-  void writeContext(const LG_SearchHit& searchHit);
+  std::unique_ptr<const char[],void(*)(const char*)> decodeContext(const LG_SearchHit& searchHit);
+  void writeContext(const LG_SearchHit& searchHit, const char* const utf8);
 
   void writeHit(const LG_SearchHit& hit){
     const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
@@ -172,7 +172,7 @@ struct DoNotWritePath {
 
 struct WriteContext {
   static void write(HitOutputData& data, const LG_SearchHit& searchHit) {
-    data.writeContext(searchHit);
+    data.writeContext(searchHit, data.decodeContext(searchHit).get());
   }
 };
 
