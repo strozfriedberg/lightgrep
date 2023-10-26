@@ -169,4 +169,20 @@ TEST_CASE("hitOutputDataAndCallback") {
     REQUIRE(expected == stream.str());
     REQUIRE(1 == data.NumHits);
   };
+
+  SECTION("withLineContextYesPath") {
+    data.AfterContext = 0;
+    data.BeforeContext = 0;
+    data.Decoder = lg_create_decoder();
+    data.Buf = textToSearch.data();
+    data.BufLen = textToSearch.size();
+    data.BufOff = 0;
+
+    LG_SearchHit searchHit{0, 8, 0};
+    LG_HITCALLBACK_FN fn = &callbackFn<WritePath, WriteContext, true>;
+    fn(&data, &searchHit);
+    std::string expected = "path/to/input/file\t0\t8\t0\tfoo\tUS-ASCII\t0\tthis is foo\n";
+    REQUIRE(expected == stream.str());
+    REQUIRE(1 == data.NumHits);
+  };
 }
