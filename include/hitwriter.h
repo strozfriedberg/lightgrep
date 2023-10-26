@@ -109,3 +109,73 @@ void lineContextPathWriter(void* userData, const LG_SearchHit* const hit);
 const char* find_leading_context(const char* const bbeg, const char* const hbeg, size_t lines);
 
 const char* find_trailing_context(const char* const hend, const char* const bend, size_t lines);
+
+void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hit);
+
+struct HitOutputData {
+  std::ostream &Out;
+  std::string path;
+  uint64_t NumHits;
+  ProgramHandle* Prog;
+  char Separator;
+  int32_t BeforeContext;
+  int32_t AfterContext;
+
+  const char* Buf;
+  size_t BufLen;
+  uint64_t BufOff;
+
+  LG_HDECODER Decoder;
+
+  void setBuffer(const char* buf, size_t blen, uint64_t boff) {
+    Buf = buf;
+    BufLen = blen;
+    BufOff = boff;
+  }
+
+  void writeContext(const LG_SearchHit& searchHit);
+
+  void writeHit(const LG_SearchHit& hit){
+    const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
+
+    Out << hit.Start << '\t'
+        << hit.End << '\t'
+        << info->UserIndex << '\t'
+        << info->Pattern << '\t'
+        << info->EncodingChain;
+  }
+};
+
+template<typename PathOutputFn, typename ContextFn, bool shouldOutput>
+void callbackFn(void* userData, const LG_SearchHit* searchHit) {
+  HitOutputData* data = reinterpret_cast<HitOutputData*>(userData);
+  if (shouldOutput) {
+    PathOutputFn::write(*data);
+    data->writeHit(*searchHit);
+    ContextFn::write(*data, *searchHit);
+    data->Out << "\n";
+  }
+
+  data->NumHits++;
+
+}
+
+struct WritePath {
+  static void write(HitOutputData& data) {
+    data.Out << data.path << data.Separator;
+  }
+};
+
+struct DoNotWritePath {
+  static void write(HitOutputData& data) {}
+};
+
+struct WriteContext {
+  static void write(HitOutputData& data, const LG_SearchHit& searchHit) {
+    data.writeContext(searchHit);
+  }
+};
+
+struct NoContext {
+  static void write(HitOutputData& data, const LG_SearchHit& searchHit) {}
+};

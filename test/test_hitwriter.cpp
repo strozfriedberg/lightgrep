@@ -100,62 +100,6 @@ TEST_CASE("findTrailingContext6") {
   REQUIRE(TXT+19 == find_trailing_context(TXT+11, TXT+19, 6));
 }
 
-struct HitOutputData {
-  std::ostream &Out;
-  std::string path;
-  uint64_t NumHits;
-  ProgramHandle* Prog;
-  char separator;
-
-  void writeContext(const LG_SearchHit& searchHit) {
-    // writeLineContext from hitwriter.cpp
-  }
-
-  void writeHit(const LG_SearchHit& hit){
-    const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
-
-    Out << hit.Start << '\t'
-        << hit.End << '\t'
-        << info->UserIndex << '\t'
-        << info->Pattern << '\t'
-        << info->EncodingChain;
-  }
-};
-
-template<typename PathOutputFn, typename ContextFn, bool shouldOutput>
-void callbackFn(void* userData, const LG_SearchHit* searchHit) {
-  HitOutputData* data = reinterpret_cast<HitOutputData*>(userData);
-  if (shouldOutput) {
-    PathOutputFn::write(*data);
-    data->writeHit(*searchHit);
-    ContextFn::write(*data, *searchHit);
-    data->Out << "\n";
-  }
-
-  data->NumHits++;
-
-}
-
-struct WritePath {
-  static void write(HitOutputData& data) {
-    data.Out << data.path << data.separator;
-  }
-};
-
-struct DoNotWritePath {
-  static void write(HitOutputData& data) {}
-};
-
-struct WriteContext {
-  static void write(HitOutputData& data, const LG_SearchHit& searchHit) {
-    data.writeContext(searchHit);
-  }
-};
-
-struct NoContext {
-  static void write(HitOutputData& data, const LG_SearchHit& searchHit) {}
-};
-
 TEST_CASE("callbackFn") {
   LG_HITCALLBACK_FN a = &callbackFn<WritePath, WriteContext, true>;
   LG_HITCALLBACK_FN b = &callbackFn<WritePath, NoContext, true>;
@@ -208,5 +152,21 @@ TEST_CASE("hitOutputDataAndCallback") {
     std::string expected = "path/to/input/file\t0\t8\t0\tfoo\tUS-ASCII\npath/to/input/file\t44\t47\t0\tfoo\tUS-ASCII\npath/to/input/file\t59\t62\t0\tfoo\tUS-ASCII\n";
     REQUIRE(expected == stream.str());
     REQUIRE(3 == data.NumHits);
+  };
+
+  SECTION("withLineContextNoPath") {
+    data.AfterContext = 0;
+    data.BeforeContext = 0;
+    data.Decoder = lg_create_decoder();
+    data.Buf = textToSearch.data();
+    data.BufLen = textToSearch.size();
+    data.BufOff = 0;
+
+    LG_SearchHit searchHit{0, 8, 0};
+    LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, WriteContext, true>;
+    fn(&data, &searchHit);
+    std::string expected = "0\t8\t0\tfoo\tUS-ASCII\t0\tthis is foo\n";
+    REQUIRE(expected == stream.str());
+    REQUIRE(1 == data.NumHits);
   };
 }
