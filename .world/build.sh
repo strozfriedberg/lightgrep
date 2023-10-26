@@ -28,10 +28,10 @@ if [[ "$Target" == 'linux' && "$Linkage" == 'shared' ]]; then
   fi
 
   pushd pylightgrep
-  python -m venv $VENV
+  $PYTHON -m venv $VENV
   . "$VENV/$VENVBIN/activate"
   pip install build
-  python -m build -w
+  $PYTHON -m build -w
   deactivate
   popd
 fi
