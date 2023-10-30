@@ -135,25 +135,19 @@ struct HitOutputData {
   std::unique_ptr<const char[],void(*)(const char*)> decodeContext(const LG_SearchHit& searchHit);
   void writeContext(const LG_SearchHit& searchHit, const char* const utf8);
 
-  void writeHit(const LG_SearchHit& hit){
-    const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
-
-    Out << hit.Start << '\t'
-        << hit.End << '\t'
-        << info->UserIndex << '\t'
-        << info->Pattern << '\t'
-        << info->EncodingChain;
-  }
+  void writeHit(const LG_SearchHit& hit);
+  void writeNewLine();
 };
 
 template<typename PathOutputFn, typename ContextFn, bool shouldOutput>
 void callbackFn(void* userData, const LG_SearchHit* searchHit) {
   HitOutputData* data = reinterpret_cast<HitOutputData*>(userData);
   if (shouldOutput) {
+
     PathOutputFn::write(*data);
     data->writeHit(*searchHit);
     ContextFn::write(*data, *searchHit);
-    data->Out << "\n";
+    data->writeNewLine();
   }
 
   data->NumHits++;
@@ -161,9 +155,7 @@ void callbackFn(void* userData, const LG_SearchHit* searchHit) {
 }
 
 struct WritePath {
-  static void write(HitOutputData& data) {
-    data.Out << data.path << data.Separator;
-  }
+  static void write(HitOutputData& data);
 };
 
 struct DoNotWritePath {

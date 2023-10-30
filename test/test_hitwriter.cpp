@@ -1,3 +1,4 @@
+#include <iostream>
 #include "hitwriter.h"
 #include "stest.h"
 
@@ -185,4 +186,20 @@ TEST_CASE("hitOutputDataAndCallback") {
     REQUIRE(expected == stream.str());
     REQUIRE(1 == data.NumHits);
   };
+}
+
+TEST_CASE("decodeContextNoLineContext") {
+  // // what do AfterContext and BeforeContext have to be to only get the hit?
+  // STest s("foo");
+  // std::stringstream stream;
+  // std::string path = "path/to/input/file";
+  // uint64_t numHits = 0;
+  // LG_SearchHit searchHit{0, 8, 0};
+
+  // HitOutputData data{stream, path, numHits, s.Prog.get(), '\t', 1, 1};
+  // data.Decoder = lg_create_decoder();
+  // std::unique_ptr<const char[],void(*)(const char*)> utf8 = data.decodeContext(searchHit);
+
+  // REQUIRE(utf8.get() == "foo");
+
 }

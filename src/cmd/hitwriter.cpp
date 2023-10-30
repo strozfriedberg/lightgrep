@@ -5,7 +5,6 @@
 #include <iterator>
 #include <memory>
 #include <iostream>
-#include <ostream>
 
 
 void nullWriter(void* userData, const LG_SearchHit* const) {
@@ -156,65 +155,84 @@ void lineContextPathWriter(void* userData, const LG_SearchHit* const hit) {
   hi->Out << '\n';
 }
 
+void WritePath::write(HitOutputData& data) {
+  data.Out << data.path;
+  data.Out << data.Separator;
+}
+
+void HitOutputData::writeHit(const LG_SearchHit& hit){
+  const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
+
+  Out << hit.Start << '\t'
+      << hit.End << '\t'
+      << info->UserIndex << '\t'
+      << info->Pattern << '\t'
+      << info->EncodingChain;
+}
+
+void HitOutputData::writeNewLine() {
+  Out << '\n';
+}
+
 void HitOutputData::writeContext(const LG_SearchHit& searchHit, const char* const utf8) {
-    // print the hit, escaping \t, \n, \r
-    const char* utf8_end = utf8 + std::strlen(utf8);
-    const char esc[] = "\t\n\r";
-    for (const char* l = utf8, *r; l != utf8_end; l = r) {
-      r = std::find_first_of(l, utf8_end, esc, esc + 3);
-      Out.write(l, r - l);
-      if (r != utf8_end) {
-        switch (*r) {
-        case '\t': Out << "\\t"; break;
-        case '\n': Out << "\\n"; break;
-        case '\r': Out << "\\r"; break;
-        }
-        ++r;
+  // print the hit, escaping \t, \n, \r
+  const char* utf8_end = utf8 + std::strlen(utf8);
+  const char esc[] = "\t\n\r";
+  for (const char* l = utf8, *r; l != utf8_end; l = r) {
+    r = std::find_first_of(l, utf8_end, esc, esc + 3);
+    Out.write(l, r - l);
+    if (r != utf8_end) {
+      switch (*r) {
+      case '\t': Out << "\\t"; break;
+      case '\n': Out << "\\n"; break;
+      case '\r': Out << "\\r"; break;
       }
+      ++r;
     }
   }
+}
 
-  std::unique_ptr<const char[],void(*)(const char*)> HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
-    const char* const hbeg = Buf + (searchHit.Start < BufOff ? 0 : searchHit.Start - BufOff);
-    const char* const hend = Buf + std::min(searchHit.End - BufOff, static_cast<uint64_t>(BufLen));
+std::unique_ptr<const char[],void(*)(const char*)> HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
+  const char* const hbeg = Buf + (searchHit.Start < BufOff ? 0 : searchHit.Start - BufOff);
+  const char* const hend = Buf + std::min(searchHit.End - BufOff, static_cast<uint64_t>(BufLen));
 
-    // beginning of context (left of hit)
-    const char* const cbeg = find_leading_context(Buf, hbeg, BeforeContext);
+  // beginning of context (left of hit)
+  const char* const cbeg = find_leading_context(Buf, hbeg, BeforeContext);
 
-    // end of context (right of hit)
-    const char* const cend = find_trailing_context(hend, Buf + BufLen, AfterContext);
+  // end of context (right of hit)
+  const char* const cend = find_trailing_context(hend, Buf + BufLen, AfterContext);
 
-    // print the offset of the start of context
-    Out << '\t' << (BufOff + (cbeg - Buf)) << '\t';
+  // print the offset of the start of context
+  Out << '\t' << (BufOff + (cbeg - Buf)) << '\t';
 
-    // transcode the context to UTF-8
-    LG_Error* err = nullptr;
-    LG_Window inner{searchHit.Start, searchHit.End},
-              outer,
-              dh;
-    const char* utf8 = nullptr;
-    const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), searchHit.KeywordIndex);
+  // transcode the context to UTF-8
+  LG_Error* err = nullptr;
+  LG_Window inner{searchHit.Start, searchHit.End},
+            outer,
+            dh;
+  const char* utf8 = nullptr;
+  const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), searchHit.KeywordIndex);
 
-    lg_hit_context(
-      Decoder,
-      cbeg, cend,
-      BufOff + (cbeg - Buf),
-      &inner,
-      info->EncodingChain,
-      cend - cbeg,
-      0xFFFD,
-      &utf8, &outer, &dh, &err
-    );
+  lg_hit_context(
+    Decoder,
+    cbeg, cend,
+    BufOff + (cbeg - Buf),
+    &inner,
+    info->EncodingChain,
+    cend - cbeg,
+    0xFFFD,
+    &utf8, &outer, &dh, &err
+  );
 
-    std::unique_ptr<const char[],void(*)(const char*)> utf8_ptr(
-      utf8, &lg_free_hit_context_string
-    );
+  std::unique_ptr<const char[],void(*)(const char*)> utf8_ptr(
+    utf8, &lg_free_hit_context_string
+  );
 
-    if (err) {
-      std::cerr << err->Message << std::endl;
-      lg_free_error(err);
-      return std::unique_ptr<const char[],void(*)(const char*)>(nullptr, nullptr);
-    }
-
-    return utf8_ptr;
+  if (err) {
+    std::cerr << err->Message << std::endl;
+    lg_free_error(err);
+    return std::unique_ptr<const char[],void(*)(const char*)>(nullptr, nullptr);
   }
+
+  return utf8_ptr;
+}
