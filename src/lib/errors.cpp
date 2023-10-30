@@ -5,7 +5,7 @@ Errors::~Errors() {
     TailErr = nullptr;
 }
 
-void Errors::append(LG_Error* newErr) {
+void Errors::push_back(LG_Error* newErr) {
     if (Err) {
         TailErr->Next = newErr;
     }

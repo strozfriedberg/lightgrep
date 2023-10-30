@@ -10,6 +10,6 @@ public:
     Errors(): Err(nullptr), TailErr(nullptr) {}
     ~Errors();
 
-    void append(LG_Error* newErr);
+    void push_back(LG_Error* newErr);
     void handleParseErrors(std::ostream&, bool);
 };

@@ -60,7 +60,7 @@ LgAppCollection parsePatterns(const Options& opts)
     );
 
     if (local_err) {
-      errors->append(local_err);
+      errors->push_back(local_err);
     }
   }
 
