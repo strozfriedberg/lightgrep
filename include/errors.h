@@ -7,7 +7,7 @@ public:
     LG_Error* err;
     LG_Error* tail_err;
 
-    Errors() { err = nullptr; tail_err = nullptr; }
+    Errors(): err(nullptr), tail_err(nullptr) {}
     ~Errors();
 
     void append(LG_Error* new_err);
