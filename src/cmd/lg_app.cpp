@@ -84,8 +84,8 @@ void writeProgram(const Options& opts, std::ostream& out) {
   LgAppCollection col = parsePatterns(opts);
   prog = std::move(col.prog);
 
-  const bool printFilename =
-    opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
+  const bool printFilename = opts.CmdLinePatterns.empty()
+                          && opts.KeyFiles.size() > 1;
 
   col.errors->outputErrors(std::cerr, printFilename);
 
