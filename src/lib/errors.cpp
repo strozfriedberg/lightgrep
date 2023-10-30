@@ -23,8 +23,8 @@ void Errors::outputErrors(std::ostream &out, bool printFilename) {
       out << curr->Source << ", ";
     }
     out << "pattern " << curr->Index
-      << " " << (curr->Pattern? curr->Pattern : "")
-      << " " << (curr->EncodingChain? curr->EncodingChain : "")
+      << " " << (curr->Pattern ? curr->Pattern : "")
+      << " " << (curr->EncodingChain ? curr->EncodingChain : "")
       << ": " << curr->Message << '\n';
     }
   out.flush();
