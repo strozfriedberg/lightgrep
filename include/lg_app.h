@@ -19,7 +19,7 @@ public:
     std::unique_ptr<Errors> errors
     ) : fsm(std::move(fsm)), prog(std::move(prog)), errors(std::move(errors)) {};
 
-    LG_Error* getError() { return errors.get()->err; }
+    LG_Error* getError() { return errors.get()->Err; }
 };
 
 LgAppCollection parsePatterns(const Options& opts);

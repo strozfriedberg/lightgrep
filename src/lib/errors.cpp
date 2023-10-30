@@ -1,24 +1,24 @@
 #include "errors.h"
 
 Errors::~Errors() {
-    lg_free_error(err);
-    tail_err = nullptr;
+    lg_free_error(Err);
+    TailErr = nullptr;
 }
 
-void Errors::append(LG_Error* new_err) {
-    if (err) {
-        tail_err->Next = new_err;
+void Errors::append(LG_Error* newErr) {
+    if (Err) {
+        TailErr->Next = newErr;
     }
     else {
-        err = new_err;
-        tail_err = new_err;
+        Err = newErr;
+        TailErr = newErr;
     }
 
-    for ( ; tail_err->Next; tail_err = tail_err->Next);
+    for ( ; TailErr->Next; TailErr = TailErr->Next);
 }
 
 void Errors::handleParseErrors(std::ostream &out, bool printFilename) {
-  LG_Error* curr = err;
+  LG_Error* curr = Err;
   for ( ; curr; curr = curr->Next) {
     if (printFilename) {
         out << curr->Source << ", ";

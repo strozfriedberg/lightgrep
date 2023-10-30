@@ -4,12 +4,12 @@
 
 class Errors {
 public:
-    LG_Error* err;
-    LG_Error* tail_err;
+    LG_Error* Err;
+    LG_Error* TailErr;
 
-    Errors(): err(nullptr), tail_err(nullptr) {}
+    Errors(): Err(nullptr), TailErr(nullptr) {}
     ~Errors();
 
-    void append(LG_Error* new_err);
+    void append(LG_Error* newErr);
     void handleParseErrors(std::ostream&, bool);
 };
