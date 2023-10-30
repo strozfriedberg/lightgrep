@@ -2,7 +2,6 @@
 
 Errors::~Errors() {
     lg_free_error(Err);
-    TailErr = nullptr;
 }
 
 void Errors::extend(LG_Error* newErr) {

@@ -17,7 +17,7 @@ public:
     std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm,
     std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog,
     std::unique_ptr<Errors> errors
-    ) : fsm(std::move(fsm)), prog(std::move(prog)), errors(std::move(errors)) {};
+  ) : fsm(std::move(fsm)), prog(std::move(prog)), errors(std::move(errors)) {};
 
     LG_Error* getError() { return errors.get()->Err; }
 };
