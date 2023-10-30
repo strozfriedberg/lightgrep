@@ -29,7 +29,7 @@ LgAppCollection parsePatterns(const Options& opts)
 {
   // read the patterns and parse them
 
-  const std::vector<std::pair<std::string, std::string>> &patLines(opts.getPatternLines());
+  const std::vector<std::pair<std::string, std::string>>& patLines(opts.getPatternLines());
   const std::vector<std::string>& defaultEncodings(opts.Encodings);
   const LG_KeyOptions& defaultKOpts(patOpts(opts));
   const LG_ProgramOptions& defaultProgOpts(progOpts(opts));
