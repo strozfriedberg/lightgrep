@@ -5,7 +5,7 @@ Errors::~Errors() {
     TailErr = nullptr;
 }
 
-void Errors::push_back(LG_Error* newErr) {
+void Errors::extend(LG_Error* newErr) {
     if (Err) {
         TailErr->Next = newErr;
     }
@@ -17,7 +17,7 @@ void Errors::push_back(LG_Error* newErr) {
     for ( ; TailErr->Next; TailErr = TailErr->Next);
 }
 
-void Errors::handleParseErrors(std::ostream &out, bool printFilename) {
+void Errors::outputErrors(std::ostream &out, bool printFilename) {
   LG_Error* curr = Err;
   for ( ; curr; curr = curr->Next) {
     if (printFilename) {

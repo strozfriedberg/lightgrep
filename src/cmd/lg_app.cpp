@@ -60,7 +60,7 @@ LgAppCollection parsePatterns(const Options& opts)
     );
 
     if (local_err) {
-      errors->push_back(local_err);
+      errors->extend(local_err);
     }
   }
 
@@ -87,7 +87,7 @@ void writeProgram(const Options& opts, std::ostream& out) {
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-  col.errors->handleParseErrors(std::cerr, printFilename);
+  col.errors->outputErrors(std::cerr, printFilename);
 
   if (!prog) {
     throw std::runtime_error("failed to create program");

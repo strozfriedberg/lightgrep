@@ -265,7 +265,7 @@ void search(const Options& opts) {
     const bool printFilename =
       opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-    col.errors->handleParseErrors(std::cerr, printFilename);
+    col.errors->outputErrors(std::cerr, printFilename);
   }
 
   if (!prog) {
@@ -384,7 +384,7 @@ void writeGraphviz(const Options& opts) {
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-  col.errors->handleParseErrors(std::cerr, printFilename);
+  col.errors->outputErrors(std::cerr, printFilename);
 
   if (!prog) {
     throw std::runtime_error("failed to create program");
@@ -400,7 +400,7 @@ void validate(const Options& opts) {
   LgAppCollection col = parsePatterns(opts);
 
   const bool printFilename = opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
-  col.errors->handleParseErrors(std::cerr, printFilename);
+  col.errors->outputErrors(std::cerr, printFilename);
 }
 
 void analyze(const Options& opts) {
