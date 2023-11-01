@@ -32,7 +32,7 @@ def load_library(base: str) -> None:
 
     try:
         # try the current directory
-        return CDLL(Path(__file__).parent / name)
+        return CDLL(str(Path(__file__).parent / name))
     except OSError:
         try:
             # try sys.path
