@@ -32,13 +32,14 @@ def load_library(base: str) -> None:
 
     try:
         # try the current directory
-        return CDLL(str(Path(__file__).parent / name))
+        here = str(Path(__file__).parent / name)
+        return CDLL(here)
     except OSError:
         try:
             # try sys.path
             return CDLL(name)
         except OSError as e:
-            raise ImportError(f"Failed to load {name} from '.' or {sys.path}") from e
+            raise ImportError(f"Failed to load {name} from {here} or {sys.path}") from e
 
 
 _LG = load_library('liblightgrep')
