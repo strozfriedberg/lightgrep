@@ -125,10 +125,9 @@ TEST_CASE("hitOutputDataAndCallback") {
   uint64_t numHits = 0;
   std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
 
-  HitOutputData data{stream, path, numHits, s.Prog.get(), '\t', -1, -1, nullptr, 0, 0, nullptr};
+  HitOutputData data{stream, path, numHits, s.Prog.get(), '\t', -1, -1, textToSearch.data(), textToSearch.size(), 0, lg_create_decoder()};
   SECTION("noContextNoPath") {
     LG_SearchHit searchHit{0, 8, 0};
-    // std::string expected = "8\t11\t0\tfoo\tASCII\n44\t47\t0\tfoo\tASCII\n59\t62\t0\tfoo\tASCII\n74\t77\t0\tfoo\tASCII";
     std::string expected = "0\t8\t0\tfoo\tUS-ASCII\n";
     LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
     fn(&data, &searchHit);
@@ -159,10 +158,6 @@ TEST_CASE("hitOutputDataAndCallback") {
   SECTION("withLineContextNoPath") {
     data.AfterContext = 0;
     data.BeforeContext = 0;
-    data.Decoder = lg_create_decoder();
-    data.Buf = textToSearch.data();
-    data.BufLen = textToSearch.size();
-    data.BufOff = 0;
 
     LG_SearchHit searchHit{0, 8, 0};
     LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, WriteContext, true>;
@@ -175,10 +170,6 @@ TEST_CASE("hitOutputDataAndCallback") {
   SECTION("withLineContextYesPath") {
     data.AfterContext = 0;
     data.BeforeContext = 0;
-    data.Decoder = lg_create_decoder();
-    data.Buf = textToSearch.data();
-    data.BufLen = textToSearch.size();
-    data.BufOff = 0;
 
     LG_SearchHit searchHit{0, 8, 0};
     LG_HITCALLBACK_FN fn = &callbackFn<WritePath, WriteContext, true>;
@@ -189,16 +180,11 @@ TEST_CASE("hitOutputDataAndCallback") {
   };
 
   SECTION("decodeContextNoLineContext") {
-    // what do AfterContext and BeforeContext have to be to only get the hit?
-    STest s("foo");
-    std::stringstream stream;
-    std::string path = "path/to/input/file";
-    uint64_t numHits = 0;
+    data.AfterContext = 0;
+    data.BeforeContext = 0;
     LG_SearchHit searchHit{8, 11, 0};
-
-    HitOutputData dataToDecode{stream, path, numHits, s.Prog.get(), '\t', 0, 0, textToSearch.data(), textToSearch.size(), 0, lg_create_decoder()};
     HitBuffer expectedHitBuffer{"this is foo", LG_Window{8, 11}};
-    HitBuffer actualHitBuffer = dataToDecode.decodeContext(searchHit);
+    HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
     REQUIRE(expectedHitBuffer.context == actualHitBuffer.context);
     REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);
@@ -207,16 +193,12 @@ TEST_CASE("hitOutputDataAndCallback") {
   }
 
   SECTION("decodeContextNoLineContextSecondLine") {
-    // what do AfterContext and BeforeContext have to be to only get the hit?
-    STest s("foo");
-    std::stringstream stream;
-    std::string path = "path/to/input/file";
-    uint64_t numHits = 0;
+    data.AfterContext = 0;
+    data.BeforeContext = 0;
     LG_SearchHit searchHit{44, 47, 0};
 
-    HitOutputData dataToDecode{stream, path, numHits, s.Prog.get(), '\t', 0, 0, textToSearch.data(), textToSearch.size(), 0, lg_create_decoder()};
     HitBuffer expectedHitBuffer{"this is foobar", LG_Window{8, 11}};
-    HitBuffer actualHitBuffer = dataToDecode.decodeContext(searchHit);
+    HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
     REQUIRE(expectedHitBuffer.context == actualHitBuffer.context);
     REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);
