@@ -112,6 +112,15 @@ const char* find_trailing_context(const char* const hend, const char* const bend
 
 void writeLineContext(LineContextHitWriterInfo* hi, const LG_SearchHit* const hit);
 
+struct HitBuffer {
+  std::string context;
+  LG_Window hitWindow;
+
+  std::string hit() const {
+    return context.substr(hitWindow.begin, (hitWindow.end - hitWindow.begin));
+  }
+};
+
 struct HitOutputData {
   std::ostream &Out;
   std::string path;
@@ -132,7 +141,7 @@ struct HitOutputData {
     BufLen = blen;
     BufOff = boff;
   }
-  std::unique_ptr<const char[],void(*)(const char*)> decodeContext(const LG_SearchHit& searchHit);
+  HitBuffer decodeContext(const LG_SearchHit& searchHit);
   void writeContext(const LG_SearchHit& searchHit, const char* const utf8);
 
   void writeHit(const LG_SearchHit& hit);
@@ -164,7 +173,7 @@ struct DoNotWritePath {
 
 struct WriteContext {
   static void write(HitOutputData& data, const LG_SearchHit& searchHit) {
-    data.writeContext(searchHit, data.decodeContext(searchHit).get());
+    data.writeContext(searchHit, data.decodeContext(searchHit).context.data());
   }
 };
 

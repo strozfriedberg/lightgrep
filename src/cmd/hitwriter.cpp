@@ -192,7 +192,7 @@ void HitOutputData::writeContext(const LG_SearchHit& searchHit, const char* cons
   }
 }
 
-std::unique_ptr<const char[],void(*)(const char*)> HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
+HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   const char* const hbeg = Buf + (searchHit.Start < BufOff ? 0 : searchHit.Start - BufOff);
   const char* const hend = Buf + std::min(searchHit.End - BufOff, static_cast<uint64_t>(BufLen));
 
@@ -231,8 +231,8 @@ std::unique_ptr<const char[],void(*)(const char*)> HitOutputData::decodeContext(
   if (err) {
     std::cerr << err->Message << std::endl;
     lg_free_error(err);
-    return std::unique_ptr<const char[],void(*)(const char*)>(nullptr, nullptr);
+    return HitBuffer();
   }
 
-  return utf8_ptr;
+  return HitBuffer{std::string(utf8_ptr.get()), dh};
 }
