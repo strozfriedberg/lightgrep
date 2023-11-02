@@ -110,7 +110,7 @@ void search(
   bool mmapped,
   SearchController& ctrl,
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   LG_HITCALLBACK_FN callback)
 {
   std::unique_ptr<Reader> reader;
@@ -137,7 +137,7 @@ void searchRecursively(
   bool mmapped,
   SearchController& ctrl,
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   LG_HITCALLBACK_FN callback)
 {
   const fs::recursive_directory_iterator end;
@@ -308,7 +308,7 @@ void searchRec(
   bool mmapped,
   SearchController& ctrl,
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   LG_HITCALLBACK_FN callback)
 {
   // search this path recursively
@@ -326,7 +326,7 @@ void searchNonRec(
   bool mmapped,
   SearchController& ctrl,
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   LG_HITCALLBACK_FN callback)
 {
   // search this path non-recursively
@@ -342,7 +342,7 @@ void searchInputs(
   bool& stdinUsed,
   SearchController& ctrl,
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   LG_HITCALLBACK_FN callback)
 {
   const auto searchFunc = opts.Recursive ? searchRec : searchNonRec;
@@ -376,42 +376,67 @@ void search(const Options& opts) {
     throw std::runtime_error("failed to create a program");
   }
 
-  // setup hit callback
-  LG_HITCALLBACK_FN callback = 0;
-  std::unique_ptr<HitCounterInfo> hinfo;
+  std::unique_ptr<HitOutputData> hinfo( new HitOutputData{
+    opts.openOutput(),
+    "",
+    0,
+    prog.get(),
+    opts.GroupSeparator[0],
+    std::max(opts.BeforeContext, 0),
+    std::max(opts.AfterContext, 0),
+    nullptr,
+    0, 0, lg_create_decoder()
+  });
 
-  if (opts.NoOutput) {
-    callback = &nullWriter;
-    hinfo.reset(new HitCounterInfo);
-  }
-  else if (opts.BeforeContext > -1 || opts.AfterContext > -1) {
-    if (opts.PrintPath) {
-      callback = &lineContextPathWriter;
-      hinfo.reset(new LineContextPathWriterInfo(
-        opts.openOutput(), prog.get(),
-        std::max(opts.BeforeContext, 0),
-        std::max(opts.AfterContext, 0),
-        opts.GroupSeparator
-      ));
-    }
-    else {
-      callback = &lineContextHitWriter;
-      hinfo.reset(new LineContextHitWriterInfo(
-        opts.openOutput(), prog.get(),
-        std::max(opts.BeforeContext, 0),
-        std::max(opts.AfterContext, 0),
-        opts.GroupSeparator
-      ));
-    }
-  }
-  else if (opts.PrintPath) {
-    callback = &pathWriter;
-    hinfo.reset(new PathWriterInfo(opts.openOutput(), prog.get()));
-  }
-  else {
-    callback = &hitWriter;
-    hinfo.reset(new HitWriterInfo(opts.openOutput(), prog.get()));
-  }
+  LG_HITCALLBACK_FN callbackFnOptions[] = {
+    &callbackFn<DoNotWritePath, NoContext, false>,
+    &callbackFn<DoNotWritePath, NoContext, true>,
+    &callbackFn<DoNotWritePath, WriteContext, true>,
+    &callbackFn<WritePath, NoContext, true>,
+    &callbackFn<WritePath, WriteContext, true>,
+  };
+
+  bool shouldWritePath = opts.PrintPath;
+  bool shouldWriteContext = (opts.BeforeContext > -1 || opts.AfterContext > -1);
+
+  // if (opts.NoOutput) {
+  //   callback = &nullWriter;
+  //   hinfo.reset(new HitCounterInfo);
+  // }
+  // else if (opts.BeforeContext > -1 || opts.AfterContext > -1) {
+  //   shouldWriteContext = true;
+
+  //   if (opts.PrintPath) {
+  //     shouldWritePath = true;
+  //     callback = &lineContextPathWriter;
+  //     hinfo.reset(new LineContextPathWriterInfo(
+  //       opts.openOutput(), prog.get(),
+  //       std::max(opts.BeforeContext, 0),
+  //       std::max(opts.AfterContext, 0),
+  //       opts.GroupSeparator
+  //     ));
+  //   }
+  //   else {
+  //     callback = &lineContextHitWriter;
+  //     hinfo.reset(new LineContextHitWriterInfo(
+  //       opts.openOutput(), prog.get(),
+  //       std::max(opts.BeforeContext, 0),
+  //       std::max(opts.AfterContext, 0),
+  //       opts.GroupSeparator
+  //     ));
+  //   }
+  // }
+  // else if (opts.PrintPath) {
+  //   shouldWritePath = true;
+  //   callback = &pathWriter;
+  //   hinfo.reset(new PathWriterInfo(opts.openOutput(), prog.get()));
+  // }
+  // else {
+  //   callback = &hitWriter;
+  //   hinfo.reset(new HitWriterInfo(opts.openOutput(), prog.get()));
+  // }
+
+  LG_HITCALLBACK_FN callback = callbackFnOptions[!opts.NoOutput + ( 2*shouldWritePath ) + ( shouldWriteContext )];
 
   // setup search context
   LG_ContextOptions ctxOpts;

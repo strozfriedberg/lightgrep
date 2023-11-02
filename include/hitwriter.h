@@ -136,6 +136,7 @@ struct HitOutputData {
 
   LG_HDECODER Decoder;
 
+  void setPath(const std::string& path) { this->path = path; }
   void setBuffer(const char* buf, size_t blen, uint64_t boff) {
     Buf = buf;
     BufLen = blen;
