@@ -102,18 +102,19 @@ TEST_CASE("findTrailingContext6") {
 }
 
 TEST_CASE("callbackFn") {
-  LG_HITCALLBACK_FN a = &callbackFn<WritePath, WriteContext, true>;
-  LG_HITCALLBACK_FN b = &callbackFn<WritePath, NoContext, true>;
-  LG_HITCALLBACK_FN c = &callbackFn<DoNotWritePath, NoContext, true>;
-  LG_HITCALLBACK_FN d = &callbackFn<DoNotWritePath, WriteContext, true>;
-  //LG_HITCALLBACK_FN d = &callbackFn<DoNotWritePath, NoContext, false>;
+  LG_HITCALLBACK_FN a = &callbackFn<DoNotWritePath, NoContext, true>;
+  LG_HITCALLBACK_FN b = &callbackFn<DoNotWritePath, WriteContext, true>;
+  LG_HITCALLBACK_FN c = &callbackFn<WritePath, NoContext, true>;
+  LG_HITCALLBACK_FN d = &callbackFn<WritePath, WriteContext, true>;
+  LG_HITCALLBACK_FN e = &callbackFn<DoNotWritePath, NoContext, false>;
 
-  LG_HITCALLBACK_FN arr[] = {a, b, c, d};
+  LG_HITCALLBACK_FN arr[] = {a, b, c, d, e};
 
   bool shouldWritePath = true;
   bool shouldWriteContext = true;
 
   LG_HITCALLBACK_FN selection = arr[( 2*shouldWritePath ) + ( shouldWriteContext )];
+  REQUIRE(selection == d);
 
 }
 
@@ -124,7 +125,7 @@ TEST_CASE("hitOutputDataAndCallback") {
   uint64_t numHits = 0;
   std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
 
-  HitOutputData data{stream, path, numHits, s.Prog.get(), '\t', -1, -1};
+  HitOutputData data{stream, path, numHits, s.Prog.get(), '\t', -1, -1, nullptr, 0, 0, nullptr};
   SECTION("noContextNoPath") {
     LG_SearchHit searchHit{0, 8, 0};
     // std::string expected = "8\t11\t0\tfoo\tASCII\n44\t47\t0\tfoo\tASCII\n59\t62\t0\tfoo\tASCII\n74\t77\t0\tfoo\tASCII";
@@ -195,11 +196,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     uint64_t numHits = 0;
     LG_SearchHit searchHit{8, 11, 0};
 
-    HitOutputData dataToDecode{stream, path, numHits, s.Prog.get(), '\t', 0, 0};
-    dataToDecode.Buf = textToSearch.data();
-    dataToDecode.BufLen = textToSearch.size();
-    dataToDecode.BufOff = 0;
-    dataToDecode.Decoder = lg_create_decoder();
+    HitOutputData dataToDecode{stream, path, numHits, s.Prog.get(), '\t', 0, 0, textToSearch.data(), textToSearch.size(), 0, lg_create_decoder()};
     HitBuffer expectedHitBuffer{"this is foo", LG_Window{8, 11}};
     HitBuffer actualHitBuffer = dataToDecode.decodeContext(searchHit);
 
@@ -217,11 +214,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     uint64_t numHits = 0;
     LG_SearchHit searchHit{44, 47, 0};
 
-    HitOutputData dataToDecode{stream, path, numHits, s.Prog.get(), '\t', 0, 0};
-    dataToDecode.Buf = textToSearch.data();
-    dataToDecode.BufLen = textToSearch.size();
-    dataToDecode.BufOff = 0;
-    dataToDecode.Decoder = lg_create_decoder();
+    HitOutputData dataToDecode{stream, path, numHits, s.Prog.get(), '\t', 0, 0, textToSearch.data(), textToSearch.size(), 0, lg_create_decoder()};
     HitBuffer expectedHitBuffer{"this is foobar", LG_Window{8, 11}};
     HitBuffer actualHitBuffer = dataToDecode.decodeContext(searchHit);
 

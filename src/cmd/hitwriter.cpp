@@ -174,7 +174,7 @@ void HitOutputData::writeNewLine() {
   Out << '\n';
 }
 
-void HitOutputData::writeContext(const LG_SearchHit& searchHit, const char* const utf8) {
+void HitOutputData::writeContext(const char* const utf8) {
   // print the hit, escaping \t, \n, \r
   const char* utf8_end = utf8 + std::strlen(utf8);
   const char esc[] = "\t\n\r";

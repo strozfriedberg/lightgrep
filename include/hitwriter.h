@@ -142,7 +142,7 @@ struct HitOutputData {
     BufOff = boff;
   }
   HitBuffer decodeContext(const LG_SearchHit& searchHit);
-  void writeContext(const LG_SearchHit& searchHit, const char* const utf8);
+  void writeContext(const char* const utf8);
 
   void writeHit(const LG_SearchHit& hit);
   void writeNewLine();
@@ -168,15 +168,15 @@ struct WritePath {
 };
 
 struct DoNotWritePath {
-  static void write(HitOutputData& data) {}
+  static void write(HitOutputData&) {}
 };
 
 struct WriteContext {
   static void write(HitOutputData& data, const LG_SearchHit& searchHit) {
-    data.writeContext(searchHit, data.decodeContext(searchHit).context.data());
+    data.writeContext(data.decodeContext(searchHit).context.data());
   }
 };
 
 struct NoContext {
-  static void write(HitOutputData& data, const LG_SearchHit& searchHit) {}
+  static void write(HitOutputData&, const LG_SearchHit&) {}
 };
