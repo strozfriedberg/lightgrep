@@ -483,6 +483,11 @@ void writeSampleMatches(const Options& opts) {
   // }
 }
 
+void outputProgram(const Options& opts) {
+  std::ostream& out(opts.openOutput());
+  writeProgram(opts, out);
+}
+
 int main(int argc, char** argv) {
   try {
     Options opts;
@@ -497,10 +502,7 @@ int main(int argc, char** argv) {
       writeGraphviz(opts);
       break;
     case Options::PROGRAM:
-      {
-        std::ostream& out(opts.openOutput());
-        writeProgram(opts, out);
-      }
+      outputProgram(opts);
       break;
     case Options::SAMPLES:
       writeSampleMatches(opts);
