@@ -376,18 +376,6 @@ void search(const Options& opts) {
     throw std::runtime_error("failed to create a program");
   }
 
-  // std::unique_ptr<HitOutputData> hinfo( new HitOutputData{
-  //   opts.openOutput(),
-  //   "",
-  //   0,
-  //   prog.get(),
-  //   opts.GroupSeparator[0],
-  //   std::max(opts.BeforeContext, 0),
-  //   std::max(opts.AfterContext, 0),
-  //   nullptr,
-  //   0, 0, lg_create_decoder()
-  // });
-
   std::unique_ptr<HitOutputData> hinfo( new HitOutputData(opts.openOutput(),
                                                           prog.get(),
                                                           opts.GroupSeparator[0],
@@ -404,43 +392,6 @@ void search(const Options& opts) {
 
   bool shouldWritePath = opts.PrintPath;
   bool shouldWriteContext = (opts.BeforeContext > -1 || opts.AfterContext > -1);
-
-  // if (opts.NoOutput) {
-  //   callback = &nullWriter;
-  //   hinfo.reset(new HitCounterInfo);
-  // }
-  // else if (opts.BeforeContext > -1 || opts.AfterContext > -1) {
-  //   shouldWriteContext = true;
-
-  //   if (opts.PrintPath) {
-  //     shouldWritePath = true;
-  //     callback = &lineContextPathWriter;
-  //     hinfo.reset(new LineContextPathWriterInfo(
-  //       opts.openOutput(), prog.get(),
-  //       std::max(opts.BeforeContext, 0),
-  //       std::max(opts.AfterContext, 0),
-  //       opts.GroupSeparator
-  //     ));
-  //   }
-  //   else {
-  //     callback = &lineContextHitWriter;
-  //     hinfo.reset(new LineContextHitWriterInfo(
-  //       opts.openOutput(), prog.get(),
-  //       std::max(opts.BeforeContext, 0),
-  //       std::max(opts.AfterContext, 0),
-  //       opts.GroupSeparator
-  //     ));
-  //   }
-  // }
-  // else if (opts.PrintPath) {
-  //   shouldWritePath = true;
-  //   callback = &pathWriter;
-  //   hinfo.reset(new PathWriterInfo(opts.openOutput(), prog.get()));
-  // }
-  // else {
-  //   callback = &hitWriter;
-  //   hinfo.reset(new HitWriterInfo(opts.openOutput(), prog.get()));
-  // }
 
   LG_HITCALLBACK_FN callback = callbackFnOptions[!opts.NoOutput + ( 2*shouldWritePath ) + ( shouldWriteContext )];
 
