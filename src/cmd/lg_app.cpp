@@ -79,10 +79,9 @@ LgAppCollection parsePatterns(const Options& opts)
 
 void writeProgram(const Options& opts, std::ostream& out) {
   // get the patterns and parse them
-  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
 
   LgAppCollection col = parsePatterns(opts);
-  prog = std::move(col.prog);
+  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(std::move(col.prog));
 
   const bool printFilename = opts.CmdLinePatterns.empty()
                           && opts.KeyFiles.size() > 1;
