@@ -121,11 +121,12 @@ TEST_CASE("callbackFn") {
 TEST_CASE("hitOutputDataAndCallback") {
   STest s("foo");
   std::stringstream stream;
-  std::string path = "path/to/input/file";
-  uint64_t numHits = 0;
   std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
 
-  HitOutputData data{stream, path, numHits, s.Prog.get(), '\t', -1, -1, textToSearch.data(), textToSearch.size(), 0, lg_create_decoder()};
+  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1);
+  data.setPath("path/to/input/file");
+  data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
+
   SECTION("noContextNoPath") {
     LG_SearchHit searchHit{0, 8, 0};
     std::string expected = "0\t8\t0\tfoo\tUS-ASCII\n";

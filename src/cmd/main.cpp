@@ -376,17 +376,23 @@ void search(const Options& opts) {
     throw std::runtime_error("failed to create a program");
   }
 
-  std::unique_ptr<HitOutputData> hinfo( new HitOutputData{
-    opts.openOutput(),
-    "",
-    0,
-    prog.get(),
-    opts.GroupSeparator[0],
-    std::max(opts.BeforeContext, 0),
-    std::max(opts.AfterContext, 0),
-    nullptr,
-    0, 0, lg_create_decoder()
-  });
+  // std::unique_ptr<HitOutputData> hinfo( new HitOutputData{
+  //   opts.openOutput(),
+  //   "",
+  //   0,
+  //   prog.get(),
+  //   opts.GroupSeparator[0],
+  //   std::max(opts.BeforeContext, 0),
+  //   std::max(opts.AfterContext, 0),
+  //   nullptr,
+  //   0, 0, lg_create_decoder()
+  // });
+
+  std::unique_ptr<HitOutputData> hinfo( new HitOutputData(opts.openOutput(),
+                                                          prog.get(),
+                                                          opts.GroupSeparator[0],
+                                                          opts.BeforeContext,
+                                                          opts.AfterContext));
 
   LG_HITCALLBACK_FN callbackFnOptions[] = {
     &callbackFn<DoNotWritePath, NoContext, false>,
