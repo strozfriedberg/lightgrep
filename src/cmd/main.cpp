@@ -366,15 +366,12 @@ void search(const Options& opts) {
 
     std::tie(std::ignore, prog, err) = parsePatterns(opts);
 
-    const bool printFilename =
-      opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
+    const bool printFilename = opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
     handleParseErrors(std::cerr, err.get(), printFilename);
   }
 
-  if (!prog) {
-    throw std::runtime_error("failed to create a program");
-  }
+  if (!prog) { throw std::runtime_error("failed to create a program"); }
 
   std::unique_ptr<HitOutputData> hinfo( new HitOutputData(opts.openOutput(),
                                                           prog.get(),

@@ -41,6 +41,12 @@ void WritePath::write(HitOutputData& data) {
   data.Out << data.Separator;
 }
 
+void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
+  Buf = buf;
+  BufLen = blen;
+  BufOff = boff;
+}
+
 void HitOutputData::writeHit(const LG_SearchHit& hit){
   const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
 

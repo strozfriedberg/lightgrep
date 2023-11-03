@@ -7,6 +7,10 @@
 #include <iosfwd>
 #include <string>
 
+const char* find_leading_context(const char* const bbeg, const char* const hbeg, size_t lines);
+
+const char* find_trailing_context(const char* const hend, const char* const bend, size_t lines);
+
 struct HitBuffer {
   std::string context;
   LG_Window hitWindow;
@@ -37,11 +41,7 @@ public:
                 AfterContext(ac), Decoder(lg_create_decoder()) {}
 
   void setPath(const std::string& path) { this->path = path; }
-  void setBuffer(const char* buf, size_t blen, uint64_t boff) {
-    Buf = buf;
-    BufLen = blen;
-    BufOff = boff;
-  }
+  void setBuffer(const char* buf, size_t blen, uint64_t boff);
 
   HitBuffer decodeContext(const LG_SearchHit& searchHit);
 
@@ -82,7 +82,3 @@ struct WriteContext {
 struct NoContext {
   static void write(HitOutputData&, const LG_SearchHit&) {}
 };
-
-const char* find_leading_context(const char* const bbeg, const char* const hbeg, size_t lines);
-
-const char* find_trailing_context(const char* const hend, const char* const bend, size_t lines);
