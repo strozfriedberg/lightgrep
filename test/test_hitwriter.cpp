@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 #include "hitwriter.h"
 #include "stest.h"
 
@@ -206,4 +207,24 @@ TEST_CASE("hitOutputDataAndCallback") {
     REQUIRE(expectedHitBuffer.hitWindow.end == actualHitBuffer.hitWindow.end);
     REQUIRE(actualHitBuffer.hit() == "foo");
   }
+}
+
+TEST_CASE("getHistogramFromHitOutputData") {
+  STest s({"c[auo]t", "foo", "[bch]at"});
+  std::stringstream stream;
+  std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat";
+
+  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1);
+  data.setPath("path/to/input/file");
+  data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
+
+  // hit: {pattern, userIndex, count}
+
+  std::map<std::tuple<std::string, std::string, int>, int> expected_histogram {
+    {{"cat", "c[auo]t", 0}, 2},
+    {{"cat", "[bch]at", 2}, 2},
+    {{"hat", "[bch]at", 2}, 1},
+    {{"foo", "foo", 1}, 1}
+  };
+
 }
