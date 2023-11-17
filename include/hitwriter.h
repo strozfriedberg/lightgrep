@@ -5,6 +5,7 @@
 #include <lightgrep/util.h>
 
 #include <iosfwd>
+#include <map>
 #include <string>
 
 const char* find_leading_context(const char* const bbeg, const char* const hbeg, size_t lines);
@@ -35,10 +36,11 @@ public:
   uint64_t BufOff;
 
   LG_HDECODER Decoder;
+  std::map<std::tuple<std::string, std::string, int>, int> Histogram;
 
   HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac)
                 : Out(out), path(""), NumHits(0), Prog(prog), Separator(sep), BeforeContext(bc),
-                AfterContext(ac), Decoder(lg_create_decoder()) {}
+                AfterContext(ac), Decoder(lg_create_decoder()), Histogram({}) {}
 
   void setPath(const std::string& path) { this->path = path; }
   void setBuffer(const char* buf, size_t blen, uint64_t boff);

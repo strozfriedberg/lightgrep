@@ -1,5 +1,4 @@
 #include <iostream>
-#include <map>
 #include "hitwriter.h"
 #include "stest.h"
 
@@ -226,5 +225,7 @@ TEST_CASE("getHistogramFromHitOutputData") {
     {{"hat", "[bch]at", 2}, 1},
     {{"foo", "foo", 1}, 1}
   };
+
+  REQUIRE(expected_histogram == data.Histogram);
 
 }
