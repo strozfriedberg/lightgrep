@@ -36,7 +36,7 @@ public:
   uint64_t BufOff;
 
   LG_HDECODER Decoder;
-  std::map<std::tuple<std::string, std::string, int>, int> Histogram;
+  std::map<std::tuple<std::string, const char*, uint64_t>, int> Histogram;
 
   HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac)
                 : Out(out), path(""), NumHits(0), Prog(prog), Separator(sep), BeforeContext(bc),
@@ -47,6 +47,7 @@ public:
 
   HitBuffer decodeContext(const LG_SearchHit& searchHit);
 
+  void writeHitToHistogram(const LG_SearchHit& hit);
   void writeContext(const char* const utf8);
   void writeHit(const LG_SearchHit& hit);
   void writeNewLine();

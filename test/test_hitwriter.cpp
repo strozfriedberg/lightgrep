@@ -219,7 +219,7 @@ TEST_CASE("getHistogramFromHitOutputData") {
 
   // hit: {pattern, userIndex, count}
 
-  std::map<std::tuple<std::string, std::string, int>, int> expected_histogram {
+  std::map<std::tuple<std::string, const char*, uint64_t>, int> expected_histogram {
     {{"cat", "c[auo]t", 0}, 2},
     {{"cat", "[bch]at", 2}, 2},
     {{"hat", "[bch]at", 2}, 1},
