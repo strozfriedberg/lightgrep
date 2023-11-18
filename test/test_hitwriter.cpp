@@ -216,14 +216,30 @@ TEST_CASE("getHistogramFromHitOutputData") {
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -1);
   data.setPath("path/to/input/file");
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
+  data.AfterContext = 0;
+  data.BeforeContext = 0;
+
+  SearchHit searchHit1{10, 13, 0};
+  SearchHit searchHit2{10, 13, 2};
+  SearchHit searchHit3{19, 22, 2};
+  SearchHit searchHit4{23, 26, 1};
+  SearchHit searchHit5{46, 49, 0};
+  SearchHit searchHit6{46, 49, 2};
+
+  data.writeHitToHistogram(searchHit1);
+  data.writeHitToHistogram(searchHit2);
+  data.writeHitToHistogram(searchHit3);
+  data.writeHitToHistogram(searchHit4);
+  data.writeHitToHistogram(searchHit5);
+  data.writeHitToHistogram(searchHit6);
 
   // hit: {pattern, userIndex, count}
 
   std::map<std::tuple<std::string, const char*, uint64_t>, int> expected_histogram {
     {{"cat", "c[auo]t", 0}, 2},
     {{"cat", "[bch]at", 2}, 2},
+    {{"foo", "foo", 1}, 1},
     {{"hat", "[bch]at", 2}, 1},
-    {{"foo", "foo", 1}, 1}
   };
 
   REQUIRE(expected_histogram == data.Histogram);
