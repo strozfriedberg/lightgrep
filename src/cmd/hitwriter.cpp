@@ -55,7 +55,7 @@ void HitOutputData::writeHistogram() {
     sortedHistogram.push_back(i);
   }
 
-  std::sort(sortedHistogram.begin(), sortedHistogram.end(), [](std::pair<HistogramKey, int> a, std::pair<HistogramKey, int> b){return a.second < b.second;});
+  std::sort(sortedHistogram.begin(), sortedHistogram.end(), [](std::pair<HistogramKey, int> a, std::pair<HistogramKey, int> b){return a.second > b.second;});
 
   for (const auto& [hKey, count] : sortedHistogram) {
     Out << hKey.Pattern      << Separator;

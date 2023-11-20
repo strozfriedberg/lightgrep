@@ -275,6 +275,6 @@ TEST_CASE("writeHistogram") {
   data.writeHitToHistogram(searchHit6);
 
   data.writeHistogram();
-  std::string expectedOutput = "";
+  std::string expectedOutput = "cat\t[bch]at\t2\t2\ncat\tc[auo]t\t0\t2\nhat\t[bch]at\t2\t1\nfoo\tfoo\t1\t1\n";
   CHECK(stream.str() == expectedOutput);
 }
