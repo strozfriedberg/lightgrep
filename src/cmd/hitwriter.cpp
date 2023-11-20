@@ -93,10 +93,15 @@ void HitOutputData::writeNewLine() {
   Out << '\n';
 }
 
-void HitOutputData::writeContext(const char* const utf8) {
+void HitOutputData::writeContext(HitBuffer hitBuf) {
   // print the hit, escaping \t, \n, \r
+  const char* utf8 = hitBuf.context.data();
   const char* utf8_end = utf8 + std::strlen(utf8);
   const char esc[] = "\t\n\r";
+
+  // print offset of start of context
+  Out << Separator << hitBuf.dataOffset << Separator;
+
   for (const char* l = utf8, *r; l != utf8_end; l = r) {
     r = std::find_first_of(l, utf8_end, esc, esc + 3);
     Out.write(l, r - l);
@@ -121,8 +126,8 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   // end of context (right of hit)
   const char* const cend = find_trailing_context(hend, Buf + BufLen, AfterContext);
 
-  // print the offset of the start of context
-  Out << '\t' << (BufOff + (cbeg - Buf)) << '\t';
+  // offset of the start of context
+  uint64_t dataOffset = BufOff + (cbeg - Buf);
 
   // transcode the context to UTF-8
   LG_Error* err = nullptr;
@@ -153,5 +158,5 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
     return HitBuffer();
   }
 
-  return HitBuffer{std::string(utf8_ptr.get()), dh};
+  return HitBuffer{dataOffset, std::string(utf8_ptr.get()), dh};
 }

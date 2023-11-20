@@ -184,9 +184,10 @@ TEST_CASE("hitOutputDataAndCallback") {
     data.AfterContext = 0;
     data.BeforeContext = 0;
     LG_SearchHit searchHit{8, 11, 0};
-    HitBuffer expectedHitBuffer{"this is foo", LG_Window{8, 11}};
+    HitBuffer expectedHitBuffer{0, "this is foo", LG_Window{8, 11}};
     HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
+    REQUIRE(expectedHitBuffer.dataOffset == actualHitBuffer.dataOffset);
     REQUIRE(expectedHitBuffer.context == actualHitBuffer.context);
     REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);
     REQUIRE(expectedHitBuffer.hitWindow.end == actualHitBuffer.hitWindow.end);
@@ -198,9 +199,10 @@ TEST_CASE("hitOutputDataAndCallback") {
     data.BeforeContext = 0;
     LG_SearchHit searchHit{44, 47, 0};
 
-    HitBuffer expectedHitBuffer{"this is foobar", LG_Window{8, 11}};
+    HitBuffer expectedHitBuffer{36, "this is foobar", LG_Window{8, 11}};
     HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
+    REQUIRE(expectedHitBuffer.dataOffset == actualHitBuffer.dataOffset);
     REQUIRE(expectedHitBuffer.context == actualHitBuffer.context);
     REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);
     REQUIRE(expectedHitBuffer.hitWindow.end == actualHitBuffer.hitWindow.end);

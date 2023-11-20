@@ -14,6 +14,7 @@ const char* find_leading_context(const char* const bbeg, const char* const hbeg,
 const char* find_trailing_context(const char* const hend, const char* const bend, size_t lines);
 
 struct HitBuffer {
+  uint64_t dataOffset;
   std::string context;
   LG_Window hitWindow;
 
@@ -75,7 +76,7 @@ public:
 
   void writeHitToHistogram(const LG_SearchHit& hit);
   void writeHistogram();
-  void writeContext(const char* const utf8);
+  void writeContext(HitBuffer);
   void writeHit(const LG_SearchHit& hit);
   void writeNewLine();
 };
@@ -105,7 +106,7 @@ struct DoNotWritePath {
 
 struct WriteContext {
   static void write(HitOutputData& data, const LG_SearchHit& searchHit) {
-    data.writeContext(data.decodeContext(searchHit).context.data());
+    data.writeContext(data.decodeContext(searchHit));
   }
 };
 
