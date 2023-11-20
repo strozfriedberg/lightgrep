@@ -246,3 +246,33 @@ TEST_CASE("getHistogramFromHitOutputData") {
   CHECK(expectedHistogram[{"foo", "foo", 1}] == data.Histogram[{"foo", "foo", 1}]);
   CHECK(expectedHistogram[{"hat", "[bch]at", 2}] == data.Histogram[{"hat", "[bch]at", 2}]);
 }
+
+TEST_CASE("writeHistogram") {
+  STest s({"c[auo]t", "foo", "[bch]at"});
+  std::stringstream stream;
+  std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat";
+
+  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1);
+  data.setPath("path/to/input/file");
+  data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
+  data.AfterContext = 0;
+  data.BeforeContext = 0;
+
+  SearchHit searchHit1{10, 13, 0};
+  SearchHit searchHit2{10, 13, 2};
+  SearchHit searchHit3{19, 22, 2};
+  SearchHit searchHit4{23, 26, 1};
+  SearchHit searchHit5{46, 49, 0};
+  SearchHit searchHit6{46, 49, 2};
+
+  data.writeHitToHistogram(searchHit1);
+  data.writeHitToHistogram(searchHit2);
+  data.writeHitToHistogram(searchHit3);
+  data.writeHitToHistogram(searchHit4);
+  data.writeHitToHistogram(searchHit5);
+  data.writeHitToHistogram(searchHit6);
+
+  data.writeHistogram();
+  std::string expectedOutput = "";
+  CHECK(stream.str() == expectedOutput);
+}

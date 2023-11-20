@@ -7,6 +7,7 @@
 #include <iosfwd>
 #include <map>
 #include <string>
+#include <vector>
 
 const char* find_leading_context(const char* const bbeg, const char* const hbeg, size_t lines);
 
@@ -31,6 +32,8 @@ public:
     return (node.Pattern == Pattern && node.HitText == HitText && node.KeywordIndex == KeywordIndex);
   }
 };
+
+typedef std::unordered_map<HistogramKey, int> LG_Histogram;
 
 template<>
 struct std::hash<HistogramKey>
@@ -71,6 +74,7 @@ public:
   HitBuffer decodeContext(const LG_SearchHit& searchHit);
 
   void writeHitToHistogram(const LG_SearchHit& hit);
+  void writeHistogram();
   void writeContext(const char* const utf8);
   void writeHit(const LG_SearchHit& hit);
   void writeNewLine();

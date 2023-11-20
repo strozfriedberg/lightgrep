@@ -47,6 +47,26 @@ void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
   BufOff = boff;
 }
 
+void HitOutputData::writeHistogram() {
+  std::vector<std::pair<HistogramKey, int>> sortedHistogram;
+  sortedHistogram.reserve(Histogram.size());
+
+  for (auto i : Histogram) {
+    sortedHistogram.push_back(i);
+  }
+
+  std::sort(sortedHistogram.begin(), sortedHistogram.end(), [](std::pair<HistogramKey, int> a, std::pair<HistogramKey, int> b){return a.second < b.second;});
+
+  for (const auto& [hKey, count] : sortedHistogram) {
+    Out << hKey.Pattern      << Separator;
+    Out << hKey.HitText      << Separator;
+    Out << hKey.KeywordIndex << Separator;
+    Out << count;
+    Out << std::endl;
+  }
+
+}
+
 void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
   const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
   HitBuffer hitText = decodeContext(hit);
