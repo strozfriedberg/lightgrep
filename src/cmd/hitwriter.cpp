@@ -50,7 +50,7 @@ void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
 void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
   const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
   HitBuffer hitText = decodeContext(hit);
-  std::tuple<std::string, const char*, uint64_t> hitKey {hitText.hit(), info->Pattern, info->UserIndex};
+  HistogramKey hitKey {hitText.hit(), info->Pattern, info->UserIndex};
   if (auto found = Histogram.find(hitKey); found != Histogram.end()) {
     Histogram[hitKey]++;
   }

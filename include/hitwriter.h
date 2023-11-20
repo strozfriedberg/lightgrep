@@ -21,6 +21,29 @@ struct HitBuffer {
   }
 };
 
+class HistogramKey {
+public:
+  std::string Pattern;
+  const char* HitText;
+  uint64_t KeywordIndex;
+
+  bool operator==(const HistogramKey& node) const {
+    return (node.Pattern == Pattern && node.HitText == HitText && node.KeywordIndex == KeywordIndex);
+  }
+};
+
+template<>
+struct std::hash<HistogramKey>
+{
+    std::size_t operator()(const HistogramKey& node) const noexcept
+    {
+        std::size_t h1 = std::hash<std::string>{}(node.Pattern);
+        std::size_t h2 = std::hash<std::string>{}(node.HitText);
+        std::size_t h3 = std::hash<uint64_t>{}(node.KeywordIndex);
+        return h1 ^ ((h2 << 1) >> 1) ^ (h3 << 1);
+    }
+};
+
 class HitOutputData {
 public:
   std::ostream &Out;
@@ -36,7 +59,7 @@ public:
   uint64_t BufOff;
 
   LG_HDECODER Decoder;
-  std::map<std::tuple<std::string, const char*, uint64_t>, int> Histogram;
+  std::unordered_map<HistogramKey, int> Histogram;
 
   HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac)
                 : Out(out), path(""), NumHits(0), Prog(prog), Separator(sep), BeforeContext(bc),
