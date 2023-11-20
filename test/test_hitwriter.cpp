@@ -208,6 +208,13 @@ TEST_CASE("hitOutputDataAndCallback") {
   }
 }
 
+void print_map(const std::map<std::tuple<std::string, const char*, uint64_t>, int>& m)
+{
+    for (const auto& [key, value] : m)
+        std::cout << '[' << std::get<0>(key) << ", " << std::get<1>(key) << ", " << std::get<2>(key) << "] = " << value << "; ";
+    std::cout << '\n';
+}
+
 TEST_CASE("getHistogramFromHitOutputData") {
   STest s({"c[auo]t", "foo", "[bch]at"});
   std::stringstream stream;
@@ -235,13 +242,21 @@ TEST_CASE("getHistogramFromHitOutputData") {
 
   // hit: {pattern, userIndex, count}
 
-  std::map<std::tuple<std::string, const char*, uint64_t>, int> expected_histogram {
-    {{"cat", "c[auo]t", 0}, 2},
-    {{"cat", "[bch]at", 2}, 2},
-    {{"foo", "foo", 1}, 1},
-    {{"hat", "[bch]at", 2}, 1},
-  };
+  std::map<std::tuple<std::string, const char*, uint64_t>, int> expectedHistogram;
+  expectedHistogram[{"cat", "c[auo]t", 0}] = 2;
+  expectedHistogram[{"cat", "[bch]at", 2}] = 2;
+  expectedHistogram[{"foo", "foo", 1}] = 1;
+  expectedHistogram[{"hat", "[bch]at", 2}] = 1;
 
-  REQUIRE(expected_histogram == data.Histogram);
+  std::cout << "expected histogram: ";
+  print_map(expectedHistogram);
 
+  std::cout << "actual histogram:   ";
+  print_map(data.Histogram);
+
+
+  CHECK(expectedHistogram[{"cat", "c[auo]t", 0}] == data.Histogram[{"cat", "c[auo]t", 0}]);
+  CHECK(expectedHistogram[{"cat", "[bch]at", 2}] == data.Histogram[{"cat", "[bch]at", 2}]);
+  CHECK(expectedHistogram[{"foo", "foo", 1}] == data.Histogram[{"foo", "foo", 1}]);
+  CHECK(expectedHistogram[{"hat", "[bch]at", 2}] == data.Histogram[{"hat", "[bch]at", 2}]);
 }
