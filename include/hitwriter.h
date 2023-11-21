@@ -26,9 +26,11 @@ struct HitBuffer {
 
 class HistogramKey {
 public:
-  std::string Pattern;
   std::string HitText;
+  std::string Pattern;
   uint64_t UserIndex;
+
+  HistogramKey(std::string hit, std::string pat, uint64_t indx) : HitText(hit), Pattern(pat), UserIndex(indx) {};
 
   bool operator==(const HistogramKey& node) const {
     return (node.Pattern == Pattern && node.HitText == HitText && node.UserIndex == UserIndex);
@@ -42,6 +44,8 @@ std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey);
 typedef std::unordered_map<HistogramKey, int> LG_Histogram;
 
 std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram);
+
+bool histogramKeyComp(const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b);
 
 // custom hash function copied from https://stackoverflow.com/a/17017281
 template<>

@@ -37,7 +37,7 @@ const char* find_trailing_context(const char* const hend, const char* const bend
 }
 
 std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey) {
-  out << hKey.Pattern << ", " << hKey.HitText << ", " << hKey.UserIndex;
+  out << hKey.HitText << ", " << hKey.Pattern << ", " << hKey.UserIndex;
   return out;
 }
 
@@ -59,6 +59,20 @@ void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
   BufOff = boff;
 }
 
+bool histogramKeyComp(const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b) {
+  if (a.second == b.second) {
+    if (a.first.UserIndex == b.first.UserIndex ) {
+      return a.first.HitText < b.first.HitText;
+    }
+    else {
+      return a.first.UserIndex < b.first.UserIndex;
+    }
+  }
+  else {
+    return a.second > b.second;
+  }
+}
+
 void HitOutputData::writeHistogram() {
   std::vector<std::pair<HistogramKey, int>> sortedHistogram;
   sortedHistogram.reserve(Histogram.size());
@@ -67,11 +81,13 @@ void HitOutputData::writeHistogram() {
     sortedHistogram.push_back(i);
   }
 
-  std::sort(sortedHistogram.begin(), sortedHistogram.end(), [](std::pair<HistogramKey, int> a, std::pair<HistogramKey, int> b){return a.second > b.second;});
+  std::sort(sortedHistogram.begin(),
+            sortedHistogram.end(),
+            [](const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b){return histogramKeyComp(a, b);});
 
   for (const auto& [hKey, count] : sortedHistogram) {
-    Out << hKey.Pattern      << Separator;
     Out << hKey.HitText      << Separator;
+    Out << hKey.Pattern      << Separator;
     Out << hKey.UserIndex << Separator;
     Out << count;
     Out << std::endl;

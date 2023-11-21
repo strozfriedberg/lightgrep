@@ -249,7 +249,7 @@ TEST_CASE("getHistogramFromHitOutputData") {
 TEST_CASE("writeHistogram") {
   STest s({"c[auo]t", "foo", "[bch]at"});
   std::stringstream stream;
-  std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat";
+  std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat in a hat";
 
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -1);
   data.setPath("path/to/input/file");
@@ -263,6 +263,7 @@ TEST_CASE("writeHistogram") {
   SearchHit searchHit4{23, 26, 1};
   SearchHit searchHit5{46, 49, 0};
   SearchHit searchHit6{46, 49, 2};
+  SearchHit searchHit7{55, 58, 2};
 
   data.writeHitToHistogram(searchHit1);
   data.writeHitToHistogram(searchHit2);
@@ -270,8 +271,26 @@ TEST_CASE("writeHistogram") {
   data.writeHitToHistogram(searchHit4);
   data.writeHitToHistogram(searchHit5);
   data.writeHitToHistogram(searchHit6);
+  data.writeHitToHistogram(searchHit7);
+
+  CAPTURE(data.Histogram);
 
   data.writeHistogram();
-  std::string expectedOutput = "cat\t[bch]at\t2\t2\ncat\tc[auo]t\t0\t2\nhat\t[bch]at\t2\t1\nfoo\tfoo\t1\t1\n";
-  CHECK(stream.str() == expectedOutput);
+  std::string expectedOutput = "cat\tc[auo]t\t0\t2\ncat\t[bch]at\t2\t2\nhat\t[bch]at\t2\t2\nfoo\tfoo\t1\t1\n";
+  REQUIRE(stream.str() == expectedOutput);
+}
+
+TEST_CASE("testHistogramKeyComp") {
+  REQUIRE(false == histogramKeyComp({{"foo", "", 1}, 1}, {{"foo", "", 1}, 1}));
+  REQUIRE(true == histogramKeyComp({{"afoo", "", 1}, 1}, {{"foo", "", 1}, 1}));
+  REQUIRE(true == histogramKeyComp({{"foo", "", 1}, 1}, {{"foo", "", 2}, 1}));
+  REQUIRE(true == histogramKeyComp({{"afoo", "", 1}, 1}, {{"foo", "", 2}, 1}));
+  REQUIRE(true == histogramKeyComp({{"foo", "", 1}, 2}, {{"foo", "", 1}, 1}));
+  REQUIRE(true == histogramKeyComp({{"foo", "", 1}, 2}, {{"afoo", "", 1}, 1}));
+  REQUIRE(true == histogramKeyComp({{"foo", "", 2}, 2}, {{"foo", "", 1}, 1}));
+  REQUIRE(true == histogramKeyComp({{"foo", "", 2}, 2}, {{"afoo", "", 1}, 1}));
+  REQUIRE(false == histogramKeyComp({{"afoo", "afoo", 1}, 1}, {{"foo", "", 2}, 2}));
+  REQUIRE(true == histogramKeyComp({{"cat", "", 2}, 2}, {{"hat", "", 2}, 2}));
+  REQUIRE(false == histogramKeyComp({{"hat", "", 2}, 2}, {{"cat", "", 2}, 2}));
+
 }
