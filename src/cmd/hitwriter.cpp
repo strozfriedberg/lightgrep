@@ -36,6 +36,18 @@ const char* find_trailing_context(const char* const hend, const char* const bend
   return rnl;
 }
 
+std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey) {
+  out << hKey.Pattern << ", " << hKey.HitText << ", " << hKey.UserIndex;
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram) {
+  for (auto [hKey, count] : histogram) {
+    out << "[" << hKey << "]: " << count << std::endl;
+  }
+  return out;
+}
+
 void WritePath::write(HitOutputData& data) {
   data.Out << data.path;
   data.Out << data.Separator;
@@ -60,7 +72,7 @@ void HitOutputData::writeHistogram() {
   for (const auto& [hKey, count] : sortedHistogram) {
     Out << hKey.Pattern      << Separator;
     Out << hKey.HitText      << Separator;
-    Out << hKey.KeywordIndex << Separator;
+    Out << hKey.UserIndex << Separator;
     Out << count;
     Out << std::endl;
   }
@@ -71,11 +83,12 @@ void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
   const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
   HitBuffer hitText = decodeContext(hit);
   HistogramKey hitKey {hitText.hit(), info->Pattern, info->UserIndex};
-  if (auto found = Histogram.find(hitKey); found != Histogram.end()) {
-    Histogram[hitKey]++;
+  auto found = Histogram.find(hitKey);
+  if (found != Histogram.end()) {
+    ++found->second;
   }
   else {
-    Histogram[hitKey] = 1;
+    Histogram.insert({hitKey, 1});
   }
 }
 

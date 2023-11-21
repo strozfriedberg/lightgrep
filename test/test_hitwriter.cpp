@@ -243,7 +243,7 @@ TEST_CASE("getHistogramFromHitOutputData") {
   expectedHistogram[HistogramKey{"foo", "foo", 1}] = 1;
   expectedHistogram[HistogramKey{"hat", "[bch]at", 2}] = 1;
 
-  REQUIRE(data.Histogram.size() == 4);
+  REQUIRE(expectedHistogram == data.Histogram);
 }
 
 TEST_CASE("writeHistogram") {

@@ -6,6 +6,7 @@
 
 #include <iosfwd>
 #include <map>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -26,16 +27,23 @@ struct HitBuffer {
 class HistogramKey {
 public:
   std::string Pattern;
-  const char* HitText;
-  uint64_t KeywordIndex;
+  std::string HitText;
+  uint64_t UserIndex;
 
   bool operator==(const HistogramKey& node) const {
-    return (node.Pattern == Pattern && node.HitText == HitText && node.KeywordIndex == KeywordIndex);
+    return (node.Pattern == Pattern && node.HitText == HitText && node.UserIndex == UserIndex);
   }
+
+  friend std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey);
 };
+
+std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey);
 
 typedef std::unordered_map<HistogramKey, int> LG_Histogram;
 
+std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram);
+
+// custom hash function copied from https://stackoverflow.com/a/17017281
 template<>
 struct std::hash<HistogramKey>
 {
@@ -43,7 +51,7 @@ struct std::hash<HistogramKey>
     {
         std::size_t h1 = std::hash<std::string>{}(node.Pattern);
         std::size_t h2 = std::hash<std::string>{}(node.HitText);
-        std::size_t h3 = std::hash<uint64_t>{}(node.KeywordIndex);
+        std::size_t h3 = std::hash<uint64_t>{}(node.UserIndex);
         return h1 ^ ((h2 << 1) >> 1) ^ (h3 << 1);
     }
 };
