@@ -123,7 +123,7 @@ TEST_CASE("hitOutputDataAndCallback") {
   std::stringstream stream;
   std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
 
-  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1);
+  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
   data.setPath("path/to/input/file");
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
 
@@ -133,6 +133,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
     fn(&data, &searchHit);
     REQUIRE(expected == stream.str());
+    REQUIRE(data.Histogram.size() == 0);
   };
 
   SECTION("noOutput") {
@@ -141,6 +142,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     fn(&data, &searchHit);
     REQUIRE("" == stream.str());
     REQUIRE(1 == data.NumHits);
+    REQUIRE(data.Histogram.size() == 0);
   };
 
   SECTION("noContextYesPath") {
@@ -154,6 +156,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     std::string expected = "path/to/input/file\t0\t8\t0\tfoo\tUS-ASCII\npath/to/input/file\t44\t47\t0\tfoo\tUS-ASCII\npath/to/input/file\t59\t62\t0\tfoo\tUS-ASCII\n";
     REQUIRE(expected == stream.str());
     REQUIRE(3 == data.NumHits);
+    REQUIRE(data.Histogram.size() == 0);
   };
 
   SECTION("withLineContextNoPath") {
@@ -166,6 +169,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     std::string expected = "0\t8\t0\tfoo\tUS-ASCII\t0\tthis is foo\n";
     REQUIRE(expected == stream.str());
     REQUIRE(1 == data.NumHits);
+    REQUIRE(data.Histogram.size() == 0);
   };
 
   SECTION("withLineContextYesPath") {
@@ -178,6 +182,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     std::string expected = "path/to/input/file\t0\t8\t0\tfoo\tUS-ASCII\t0\tthis is foo\n";
     REQUIRE(expected == stream.str());
     REQUIRE(1 == data.NumHits);
+    REQUIRE(data.Histogram.size() == 0);
   };
 
   SECTION("decodeContextNoLineContext") {
@@ -191,7 +196,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     REQUIRE(expectedHitBuffer.context == actualHitBuffer.context);
     REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);
     REQUIRE(expectedHitBuffer.hitWindow.end == actualHitBuffer.hitWindow.end);
-
+    REQUIRE(data.Histogram.size() == 0);
   }
 
   SECTION("decodeContextNoLineContextSecondLine") {
@@ -207,6 +212,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);
     REQUIRE(expectedHitBuffer.hitWindow.end == actualHitBuffer.hitWindow.end);
     REQUIRE(actualHitBuffer.hit() == "foo");
+    REQUIRE(data.Histogram.size() == 0);
   }
 }
 
@@ -215,7 +221,7 @@ TEST_CASE("getHistogramFromHitOutputData") {
   std::stringstream stream;
   std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat";
 
-  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1);
+  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
   data.setPath("path/to/input/file");
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
   data.AfterContext = 0;
@@ -251,7 +257,7 @@ TEST_CASE("writeHistogram") {
   std::stringstream stream;
   std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat in a hat";
 
-  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1);
+  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
   data.setPath("path/to/input/file");
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
   data.AfterContext = 0;
@@ -292,5 +298,4 @@ TEST_CASE("testHistogramKeyComp") {
   REQUIRE(false == histogramKeyComp({{"afoo", "afoo", 1}, 1}, {{"foo", "", 2}, 2}));
   REQUIRE(true == histogramKeyComp({{"cat", "", 2}, 2}, {{"hat", "", 2}, 2}));
   REQUIRE(false == histogramKeyComp({{"hat", "", 2}, 2}, {{"cat", "", 2}, 2}));
-
 }

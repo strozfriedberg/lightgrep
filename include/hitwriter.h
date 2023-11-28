@@ -69,6 +69,7 @@ public:
   char Separator;
   int32_t BeforeContext;
   int32_t AfterContext;
+  bool HistogramEnabled;
 
   const char* Buf;
   size_t BufLen;
@@ -77,9 +78,9 @@ public:
   LG_HDECODER Decoder;
   std::unordered_map<HistogramKey, int> Histogram;
 
-  HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac)
+  HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool hist)
                 : Out(out), path(""), NumHits(0), Prog(prog), Separator(sep), BeforeContext(bc),
-                AfterContext(ac), Decoder(lg_create_decoder()), Histogram({}) {}
+                AfterContext(ac), HistogramEnabled(hist), Decoder(lg_create_decoder()), Histogram({}) {}
 
   void setPath(const std::string& path) { this->path = path; }
   void setBuffer(const char* buf, size_t blen, uint64_t boff);

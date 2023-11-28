@@ -377,7 +377,7 @@ void search(const Options& opts) {
                                                           prog.get(),
                                                           opts.GroupSeparator[0],
                                                           opts.BeforeContext,
-                                                          opts.AfterContext));
+                                                          opts.AfterContext, false));
 
   LG_HITCALLBACK_FN callbackFnOptions[] = {
     &callbackFn<DoNotWritePath, NoContext, false>,
