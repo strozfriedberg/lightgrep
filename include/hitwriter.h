@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include "searchhit.h"
+
 const char* find_leading_context(const char* const bbeg, const char* const hbeg, size_t lines);
 
 const char* find_trailing_context(const char* const hend, const char* const bend, size_t lines);
@@ -19,8 +21,19 @@ struct HitBuffer {
   std::string context;
   LG_Window hitWindow;
 
+  HitBuffer() : dataOffset(0), context(""), hitWindow({0,0} ) {}
+  HitBuffer(uint64_t dO, std::string con, LG_Window win): dataOffset(dO), context(con), hitWindow(win) {}
+
   std::string hit() const {
     return context.substr(hitWindow.begin, (hitWindow.end - hitWindow.begin));
+  }
+
+  bool empty() const {
+    return context.empty();
+  }
+
+  void clear() {
+    *this = HitBuffer();
   }
 };
 
@@ -76,6 +89,8 @@ public:
   uint64_t BufOff;
 
   LG_HDECODER Decoder;
+  HitBuffer DecodedContext;
+  SearchHit LastSearchHit;
   std::unordered_map<HistogramKey, int> Histogram;
 
   HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool hist)

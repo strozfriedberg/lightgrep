@@ -54,6 +54,8 @@ void WritePath::write(HitOutputData& data) {
 }
 
 void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
+  LastSearchHit = SearchHit();
+  DecodedContext.clear();
   Buf = buf;
   BufLen = blen;
   BufOff = boff;
@@ -96,7 +98,7 @@ void HitOutputData::writeHistogram(std::ostream& histOut) {
 
 void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
   const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
-  HitBuffer hitText = decodeContext(hit);
+  HitBuffer hitText = (SearchHit(hit) == LastSearchHit && !DecodedContext.empty()) ? DecodedContext : decodeContext(hit);
   HistogramKey hitKey {hitText.hit(), info->Pattern, info->UserIndex};
   auto found = Histogram.find(hitKey);
   if (found != Histogram.end()) {
@@ -185,5 +187,7 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
     return HitBuffer();
   }
 
-  return HitBuffer{dataOffset, std::string(utf8_ptr.get()), dh};
+  LastSearchHit = SearchHit(searchHit);
+  DecodedContext = HitBuffer(dataOffset, std::string(utf8_ptr.get()), dh);
+  return DecodedContext;
 }
