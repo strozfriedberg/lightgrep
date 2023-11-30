@@ -192,10 +192,10 @@ TEST_CASE("hitOutputDataAndCallback") {
     HitBuffer expectedHitBuffer{0, "this is foo", LG_Window{8, 11}};
     HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
-    REQUIRE(expectedHitBuffer.dataOffset == actualHitBuffer.dataOffset);
-    REQUIRE(expectedHitBuffer.context == actualHitBuffer.context);
-    REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);
-    REQUIRE(expectedHitBuffer.hitWindow.end == actualHitBuffer.hitWindow.end);
+    REQUIRE(expectedHitBuffer.DataOffset == actualHitBuffer.DataOffset);
+    REQUIRE(expectedHitBuffer.Context == actualHitBuffer.Context);
+    REQUIRE(expectedHitBuffer.HitWindow.begin == actualHitBuffer.HitWindow.begin);
+    REQUIRE(expectedHitBuffer.HitWindow.end == actualHitBuffer.HitWindow.end);
     REQUIRE(data.Histogram.size() == 0);
   }
 
@@ -207,10 +207,10 @@ TEST_CASE("hitOutputDataAndCallback") {
     HitBuffer expectedHitBuffer{36, "this is foobar", LG_Window{8, 11}};
     HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
-    REQUIRE(expectedHitBuffer.dataOffset == actualHitBuffer.dataOffset);
-    REQUIRE(expectedHitBuffer.context == actualHitBuffer.context);
-    REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);
-    REQUIRE(expectedHitBuffer.hitWindow.end == actualHitBuffer.hitWindow.end);
+    REQUIRE(expectedHitBuffer.DataOffset == actualHitBuffer.DataOffset);
+    REQUIRE(expectedHitBuffer.Context == actualHitBuffer.Context);
+    REQUIRE(expectedHitBuffer.HitWindow.begin == actualHitBuffer.HitWindow.begin);
+    REQUIRE(expectedHitBuffer.HitWindow.end == actualHitBuffer.HitWindow.end);
     REQUIRE(actualHitBuffer.hit() == "foo");
     REQUIRE(data.Histogram.size() == 0);
   }
@@ -222,10 +222,10 @@ TEST_CASE("hitOutputDataAndCallback") {
     HitBuffer expectedHitBuffer{44, "foo", LG_Window{0, 3}};
     HitBuffer actualHitBuffer = data.decodeContext(searchHit);
   
-    REQUIRE(expectedHitBuffer.dataOffset == actualHitBuffer.dataOffset);
-    REQUIRE(expectedHitBuffer.context == actualHitBuffer.context);
-    REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);
-    REQUIRE(expectedHitBuffer.hitWindow.end == actualHitBuffer.hitWindow.end);
+    REQUIRE(expectedHitBuffer.DataOffset == actualHitBuffer.DataOffset);
+    REQUIRE(expectedHitBuffer.Context == actualHitBuffer.Context);
+    REQUIRE(expectedHitBuffer.HitWindow.begin == actualHitBuffer.HitWindow.begin);
+    REQUIRE(expectedHitBuffer.HitWindow.end == actualHitBuffer.HitWindow.end);
     REQUIRE(actualHitBuffer.hit() == "foo");
     REQUIRE(data.Histogram.size() == 0);
   }

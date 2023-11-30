@@ -125,12 +125,12 @@ void HitOutputData::writeNewLine() {
 
 void HitOutputData::writeContext(HitBuffer hitBuf) {
   // print the hit, escaping \t, \n, \r
-  const char* utf8 = hitBuf.context.data();
+  const char* utf8 = hitBuf.Context.data();
   const char* utf8_end = utf8 + std::strlen(utf8);
   const char esc[] = "\t\n\r";
 
   // print offset of start of context
-  Out << Separator << hitBuf.dataOffset << Separator;
+  Out << Separator << hitBuf.DataOffset << Separator;
 
   for (const char* l = utf8, *r; l != utf8_end; l = r) {
     r = std::find_first_of(l, utf8_end, esc, esc + 3);

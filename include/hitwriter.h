@@ -17,19 +17,19 @@ const char* find_leading_context(const char* const bbeg, const char* const hbeg,
 const char* find_trailing_context(const char* const hend, const char* const bend, size_t lines);
 
 struct HitBuffer {
-  uint64_t dataOffset;
-  std::string context;
-  LG_Window hitWindow;
+  uint64_t DataOffset;
+  std::string Context;
+  LG_Window HitWindow;
 
-  HitBuffer() : dataOffset(0), context(""), hitWindow({0,0} ) {}
-  HitBuffer(uint64_t dO, std::string con, LG_Window win): dataOffset(dO), context(con), hitWindow(win) {}
+  HitBuffer() : DataOffset(0), Context(""), HitWindow({0,0} ) {}
+  HitBuffer(uint64_t dO, std::string con, LG_Window win): DataOffset(dO), Context(con), HitWindow(win) {}
 
   std::string hit() const {
-    return context.substr(hitWindow.begin, (hitWindow.end - hitWindow.begin));
+    return Context.substr(HitWindow.begin, (HitWindow.end - HitWindow.begin));
   }
 
   bool empty() const {
-    return context.empty();
+    return Context.empty();
   }
 
   void clear() {
