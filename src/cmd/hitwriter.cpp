@@ -49,7 +49,7 @@ std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram) {
 }
 
 void WritePath::write(HitOutputData& data) {
-  data.Out << data.path;
+  data.Out << data.Path;
   data.Out << data.Separator;
 }
 
