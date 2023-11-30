@@ -128,8 +128,8 @@ TEST_CASE("hitOutputDataAndCallback") {
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
 
   SECTION("noContextNoPath") {
-    LG_SearchHit searchHit{0, 8, 0};
-    std::string expected = "0\t8\t0\tfoo\tUS-ASCII\n";
+    LG_SearchHit searchHit{8, 11, 0};
+    std::string expected = "8\t11\t0\tfoo\tUS-ASCII\n";
     LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
     fn(&data, &searchHit);
     REQUIRE(expected == stream.str());
@@ -207,6 +207,21 @@ TEST_CASE("hitOutputDataAndCallback") {
     HitBuffer expectedHitBuffer{36, "this is foobar", LG_Window{8, 11}};
     HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
+    REQUIRE(expectedHitBuffer.dataOffset == actualHitBuffer.dataOffset);
+    REQUIRE(expectedHitBuffer.context == actualHitBuffer.context);
+    REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);
+    REQUIRE(expectedHitBuffer.hitWindow.end == actualHitBuffer.hitWindow.end);
+    REQUIRE(actualHitBuffer.hit() == "foo");
+    REQUIRE(data.Histogram.size() == 0);
+  }
+
+  SECTION("NegativeAfterAndBeforeContextOnlyHitText") {
+    data.AfterContext = -1;
+    data.BeforeContext = -3;
+    LG_SearchHit searchHit{44, 47, 0};
+    HitBuffer expectedHitBuffer{44, "foo", LG_Window{0, 3}};
+    HitBuffer actualHitBuffer = data.decodeContext(searchHit);
+  
     REQUIRE(expectedHitBuffer.dataOffset == actualHitBuffer.dataOffset);
     REQUIRE(expectedHitBuffer.context == actualHitBuffer.context);
     REQUIRE(expectedHitBuffer.hitWindow.begin == actualHitBuffer.hitWindow.begin);

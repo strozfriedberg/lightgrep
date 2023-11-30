@@ -150,10 +150,9 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   const char* const hend = Buf + std::min(searchHit.End - BufOff, static_cast<uint64_t>(BufLen));
 
   // beginning of context (left of hit)
-  const char* const cbeg = find_leading_context(Buf, hbeg, BeforeContext);
-
+  const char* const cbeg = (BeforeContext < 0) ? hbeg : find_leading_context(Buf, hbeg, BeforeContext);
   // end of context (right of hit)
-  const char* const cend = find_trailing_context(hend, Buf + BufLen, AfterContext);
+  const char* const cend = (AfterContext < 0) ? hend : find_trailing_context(hend, Buf + BufLen, AfterContext);
 
   // offset of the start of context
   uint64_t dataOffset = BufOff + (cbeg - Buf);
