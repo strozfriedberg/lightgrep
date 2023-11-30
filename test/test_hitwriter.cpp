@@ -314,3 +314,23 @@ TEST_CASE("testHistogramKeyComp") {
   REQUIRE(true == histogramKeyComp({{"cat", "", 2}, 2}, {{"hat", "", 2}, 2}));
   REQUIRE(false == histogramKeyComp({{"hat", "", 2}, 2}, {{"cat", "", 2}, 2}));
 }
+
+TEST_CASE("decodeContextNoLineContextSecondLineAndHistogramEnabled") {
+  STest s("foo");
+  std::stringstream stream;
+  std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
+
+  HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
+  data.setPath("path/to/input/file");
+  data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
+
+  LG_SearchHit searchHit{8, 11, 0};
+  std::string expected = "8\t11\t0\tfoo\tUS-ASCII\n";
+  LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
+  fn(&data, &searchHit);
+  REQUIRE(expected == stream.str());
+  CHECK(data.Histogram.size() == 1);
+  auto found = data.Histogram.find(HistogramKey{"foo", "foo", 0});
+  REQUIRE(found != data.Histogram.end());
+  CHECK(found->second == 1);
+}

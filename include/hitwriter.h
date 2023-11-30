@@ -105,6 +105,10 @@ void callbackFn(void* userData, const LG_SearchHit* searchHit) {
     data->writeNewLine();
   }
 
+  if (data->HistogramEnabled) {
+    data->writeHitToHistogram(*searchHit);
+  }
+
   data->NumHits++;
 
 }
