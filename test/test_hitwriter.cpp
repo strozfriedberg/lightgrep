@@ -269,7 +269,7 @@ TEST_CASE("getHistogramFromHitOutputData") {
 
 TEST_CASE("writeHistogram") {
   STest s({"c[auo]t", "foo", "[bch]at"});
-  std::stringstream stream;
+  std::stringstream stream, histStream;
   std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat in a hat";
 
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
@@ -296,9 +296,9 @@ TEST_CASE("writeHistogram") {
 
   CAPTURE(data.Histogram);
 
-  data.writeHistogram();
+  data.writeHistogram(histStream);
   std::string expectedOutput = "cat\tc[auo]t\t0\t2\ncat\t[bch]at\t2\t2\nhat\t[bch]at\t2\t2\nfoo\tfoo\t1\t1\n";
-  REQUIRE(stream.str() == expectedOutput);
+  REQUIRE(histStream.str() == expectedOutput);
 }
 
 TEST_CASE("testHistogramKeyComp") {

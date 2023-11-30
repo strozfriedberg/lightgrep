@@ -88,7 +88,7 @@ public:
   HitBuffer decodeContext(const LG_SearchHit& searchHit);
 
   void writeHitToHistogram(const LG_SearchHit& hit);
-  void writeHistogram();
+  void writeHistogram(std::ostream& histOut);
   void writeContext(HitBuffer);
   void writeHit(const LG_SearchHit& hit);
   void writeNewLine();

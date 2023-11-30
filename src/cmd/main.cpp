@@ -373,11 +373,21 @@ void search(const Options& opts) {
 
   if (!prog) { throw std::runtime_error("failed to create a program"); }
 
+  bool histogramEnabled = !opts.HistogramFile.empty();
+
+  std::ofstream histFile;
+  if (histogramEnabled) {
+    histFile.open(opts.HistogramFile, std::ios::out | std::ios::trunc);
+    if (!histFile) {
+      THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("Could not open file for histogram at " << opts.HistogramFile);
+    }
+  }
+
   std::unique_ptr<HitOutputData> hinfo( new HitOutputData(opts.openOutput(),
                                                           prog.get(),
                                                           opts.GroupSeparator[0],
                                                           opts.BeforeContext,
-                                                          opts.AfterContext, false));
+                                                          opts.AfterContext, histogramEnabled));
 
   LG_HITCALLBACK_FN callbackFnOptions[] = {
     &callbackFn<DoNotWritePath, NoContext, false>,
@@ -441,6 +451,11 @@ void search(const Options& opts) {
   if (!opts.Inputs.empty()) {
     searchInputs(opts.Inputs, opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
   }
+
+  if (histogramEnabled) {
+    hinfo.get()->writeHistogram(histFile);
+  }
+
   if (opts.Verbose) {
     std::cerr << ctrl.BytesSearched << " bytes\n"
               << ctrl.TotalTime << " searchTime\n";

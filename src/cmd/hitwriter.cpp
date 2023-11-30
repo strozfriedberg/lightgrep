@@ -73,7 +73,7 @@ bool histogramKeyComp(const std::pair<HistogramKey, int> &a, const std::pair<His
   }
 }
 
-void HitOutputData::writeHistogram() {
+void HitOutputData::writeHistogram(std::ostream& histOut) {
   std::vector<std::pair<HistogramKey, int>> sortedHistogram;
   sortedHistogram.reserve(Histogram.size());
 
@@ -86,13 +86,12 @@ void HitOutputData::writeHistogram() {
             [](const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b){return histogramKeyComp(a, b);});
 
   for (const auto& [hKey, count] : sortedHistogram) {
-    Out << hKey.HitText      << Separator;
-    Out << hKey.Pattern      << Separator;
-    Out << hKey.UserIndex << Separator;
-    Out << count;
-    Out << std::endl;
+    histOut << hKey.HitText   << Separator;
+    histOut << hKey.Pattern   << Separator;
+    histOut << hKey.UserIndex << Separator;
+    histOut << count;
+    histOut << '\n';
   }
-
 }
 
 void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
