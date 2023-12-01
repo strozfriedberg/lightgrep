@@ -88,21 +88,25 @@ struct OutputInfo {
   int32_t AfterContext;
 };
 
-class HitOutputData {
-public:
-  OutputInfo OutInfo;
-  ProgramHandle* Prog;
-  ContextBuffer CtxBuf;
-
+struct HistogramInfo {
   bool HistogramEnabled;
   HitBuffer DecodedContext;
   SearchHit LastSearchHit;
   std::unordered_map<HistogramKey, int> Histogram;
 
+  HistogramInfo(bool histEnabled) : HistogramEnabled(histEnabled), Histogram({}) {}
+};
+
+class HitOutputData {
+public:
+  OutputInfo OutInfo;
+  ProgramHandle* Prog;
+  ContextBuffer CtxBuf;
+  HistogramInfo HistInfo;
   LG_HDECODER Decoder;
 
-  HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool hist)
-                : OutInfo({out, "", sep, 0, bc, ac}), Prog(prog), HistogramEnabled(hist), Histogram({}), Decoder(lg_create_decoder()) {}
+  HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool histEnabled)
+                : OutInfo({out, "", sep, 0, bc, ac}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder()) {}
 
   void setPath(const std::string& path) { this->OutInfo.Path = path; }
   void setBuffer(const char* buf, size_t blen, uint64_t boff);
@@ -127,7 +131,7 @@ void callbackFn(void* userData, const LG_SearchHit* searchHit) {
     data->writeNewLine();
   }
 
-  if (data->HistogramEnabled) {
+  if (data->HistInfo.HistogramEnabled) {
     data->writeHitToHistogram(*searchHit);
   }
   ++data->OutInfo.NumHits;

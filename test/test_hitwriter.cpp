@@ -133,7 +133,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
     fn(&data, &searchHit);
     REQUIRE(expected == stream.str());
-    REQUIRE(data.Histogram.size() == 0);
+    REQUIRE(data.HistInfo.Histogram.size() == 0);
   };
 
   SECTION("noOutput") {
@@ -142,7 +142,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     fn(&data, &searchHit);
     REQUIRE("" == stream.str());
     REQUIRE(1 == data.OutInfo.NumHits);
-    REQUIRE(data.Histogram.size() == 0);
+    REQUIRE(data.HistInfo.Histogram.size() == 0);
   };
 
   SECTION("noContextYesPath") {
@@ -156,7 +156,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     std::string expected = "path/to/input/file\t0\t8\t0\tfoo\tUS-ASCII\npath/to/input/file\t44\t47\t0\tfoo\tUS-ASCII\npath/to/input/file\t59\t62\t0\tfoo\tUS-ASCII\n";
     REQUIRE(expected == stream.str());
     REQUIRE(3 == data.OutInfo.NumHits);
-    REQUIRE(data.Histogram.size() == 0);
+    REQUIRE(data.HistInfo.Histogram.size() == 0);
   };
 
   SECTION("withLineContextNoPath") {
@@ -169,7 +169,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     std::string expected = "0\t8\t0\tfoo\tUS-ASCII\t0\tthis is foo\n";
     REQUIRE(expected == stream.str());
     REQUIRE(1 == data.OutInfo.NumHits);
-    REQUIRE(data.Histogram.size() == 0);
+    REQUIRE(data.HistInfo.Histogram.size() == 0);
   };
 
   SECTION("withLineContextYesPath") {
@@ -182,7 +182,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     std::string expected = "path/to/input/file\t0\t8\t0\tfoo\tUS-ASCII\t0\tthis is foo\n";
     REQUIRE(expected == stream.str());
     REQUIRE(1 == data.OutInfo.NumHits);
-    REQUIRE(data.Histogram.size() == 0);
+    REQUIRE(data.HistInfo.Histogram.size() == 0);
   };
 
   SECTION("decodeContextNoLineContext") {
@@ -196,7 +196,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     REQUIRE(expectedHitBuffer.Context == actualHitBuffer.Context);
     REQUIRE(expectedHitBuffer.HitWindow.begin == actualHitBuffer.HitWindow.begin);
     REQUIRE(expectedHitBuffer.HitWindow.end == actualHitBuffer.HitWindow.end);
-    REQUIRE(data.Histogram.size() == 0);
+    REQUIRE(data.HistInfo.Histogram.size() == 0);
   }
 
   SECTION("decodeContextNoLineContextSecondLine") {
@@ -212,7 +212,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     REQUIRE(expectedHitBuffer.HitWindow.begin == actualHitBuffer.HitWindow.begin);
     REQUIRE(expectedHitBuffer.HitWindow.end == actualHitBuffer.HitWindow.end);
     REQUIRE(actualHitBuffer.hit() == "foo");
-    REQUIRE(data.Histogram.size() == 0);
+    REQUIRE(data.HistInfo.Histogram.size() == 0);
   }
 
   SECTION("NegativeAfterAndBeforeContextOnlyHitText") {
@@ -227,7 +227,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     REQUIRE(expectedHitBuffer.HitWindow.begin == actualHitBuffer.HitWindow.begin);
     REQUIRE(expectedHitBuffer.HitWindow.end == actualHitBuffer.HitWindow.end);
     REQUIRE(actualHitBuffer.hit() == "foo");
-    REQUIRE(data.Histogram.size() == 0);
+    REQUIRE(data.HistInfo.Histogram.size() == 0);
   }
 }
 
@@ -264,7 +264,7 @@ TEST_CASE("getHistogramFromHitOutputData") {
   expectedHistogram[HistogramKey{"foo", "foo", 1}] = 1;
   expectedHistogram[HistogramKey{"hat", "[bch]at", 2}] = 1;
 
-  REQUIRE(expectedHistogram == data.Histogram);
+  REQUIRE(expectedHistogram == data.HistInfo.Histogram);
 }
 
 TEST_CASE("writeHistogram") {
@@ -294,7 +294,7 @@ TEST_CASE("writeHistogram") {
   data.writeHitToHistogram(searchHit6);
   data.writeHitToHistogram(searchHit7);
 
-  CAPTURE(data.Histogram);
+  CAPTURE(data.HistInfo.Histogram);
 
   data.writeHistogram(histStream);
   std::string expectedOutput = "cat\tc[auo]t\t0\t2\ncat\t[bch]at\t2\t2\nhat\t[bch]at\t2\t2\nfoo\tfoo\t1\t1\n";
@@ -329,8 +329,8 @@ TEST_CASE("decodeContextNoLineContextSecondLineAndHistogramEnabled") {
   LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
   fn(&data, &searchHit);
   REQUIRE(expected == stream.str());
-  CHECK(data.Histogram.size() == 1);
-  auto found = data.Histogram.find(HistogramKey{"foo", "foo", 0});
-  REQUIRE(found != data.Histogram.end());
+  CHECK(data.HistInfo.Histogram.size() == 1);
+  auto found = data.HistInfo.Histogram.find(HistogramKey{"foo", "foo", 0});
+  REQUIRE(found != data.HistInfo.Histogram.end());
   CHECK(found->second == 1);
 }

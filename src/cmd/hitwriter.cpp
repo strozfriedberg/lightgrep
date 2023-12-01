@@ -54,8 +54,8 @@ void WritePath::write(HitOutputData& data) {
 }
 
 void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
-  LastSearchHit = SearchHit();
-  DecodedContext.clear();
+  HistInfo.LastSearchHit = SearchHit();
+  HistInfo.DecodedContext.clear();
   CtxBuf.Buf = buf;
   CtxBuf.BufLen = blen;
   CtxBuf.BufOff = boff;
@@ -77,9 +77,9 @@ bool histogramKeyComp(const std::pair<HistogramKey, int> &a, const std::pair<His
 
 void HitOutputData::writeHistogram(std::ostream& histOut) {
   std::vector<std::pair<HistogramKey, int>> sortedHistogram;
-  sortedHistogram.reserve(Histogram.size());
+  sortedHistogram.reserve(HistInfo.Histogram.size());
 
-  for (auto i : Histogram) {
+  for (auto i : HistInfo.Histogram) {
     sortedHistogram.push_back(i);
   }
 
@@ -98,14 +98,14 @@ void HitOutputData::writeHistogram(std::ostream& histOut) {
 
 void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
   const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
-  HitBuffer hitText = (SearchHit(hit) == LastSearchHit && !DecodedContext.empty()) ? DecodedContext : decodeContext(hit);
+  HitBuffer hitText = (SearchHit(hit) == HistInfo.LastSearchHit && !HistInfo.DecodedContext.empty()) ? HistInfo.DecodedContext : decodeContext(hit);
   HistogramKey hitKey {hitText.hit(), info->Pattern, info->UserIndex};
-  auto found = Histogram.find(hitKey);
-  if (found != Histogram.end()) {
+  auto found = HistInfo.Histogram.find(hitKey);
+  if (found != HistInfo.Histogram.end()) {
     ++found->second;
   }
   else {
-    Histogram.insert({hitKey, 1});
+    HistInfo.Histogram.insert({hitKey, 1});
   }
 }
 
@@ -187,7 +187,7 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
     return HitBuffer();
   }
 
-  LastSearchHit = SearchHit(searchHit);
-  DecodedContext = HitBuffer(dataOffset, std::string(utf8_ptr.get()), dh);
-  return DecodedContext;
+  HistInfo.LastSearchHit = SearchHit(searchHit);
+  HistInfo.DecodedContext = HitBuffer(dataOffset, std::string(utf8_ptr.get()), dh);
+  return HistInfo.DecodedContext;
 }
