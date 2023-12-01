@@ -53,6 +53,9 @@ void WritePath::write(HitOutputData& data) {
   data.OutInfo.Out << data.OutInfo.Separator;
 }
 
+HitOutputData::HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool histEnabled)
+              : OutInfo({out, "", sep, 0, bc, ac}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder()) {}
+
 void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
   HistInfo.LastSearchHit = SearchHit();
   HistInfo.DecodedContext.clear();

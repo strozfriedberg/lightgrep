@@ -95,6 +95,7 @@ struct HistogramInfo {
   std::unordered_map<HistogramKey, int> Histogram;
 
   HistogramInfo(bool histEnabled) : HistogramEnabled(histEnabled), Histogram({}) {}
+
 };
 
 class HitOutputData {
@@ -105,8 +106,7 @@ public:
   HistogramInfo HistInfo;
   LG_HDECODER Decoder;
 
-  HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool histEnabled)
-                : OutInfo({out, "", sep, 0, bc, ac}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder()) {}
+  HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool histEnabled);
 
   void setPath(const std::string& path) { this->OutInfo.Path = path; }
   void setBuffer(const char* buf, size_t blen, uint64_t boff);
