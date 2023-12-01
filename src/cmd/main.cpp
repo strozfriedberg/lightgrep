@@ -466,8 +466,8 @@ void search(const Options& opts) {
       std::cerr << "+inf";
     }
     std::cerr << " MB/s avg\n"
-              << hinfo->NumHits
-              << " hit" << (hinfo->NumHits != 1 ? "s" : "") << std::endl;
+              << hinfo->OutInfo.NumHits
+              << " hit" << (hinfo->OutInfo.NumHits != 1 ? "s" : "") << std::endl;
   }
 }
 

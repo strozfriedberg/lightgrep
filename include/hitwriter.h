@@ -79,29 +79,32 @@ struct ContextBuffer {
   uint64_t BufOff;
 };
 
-class HitOutputData {
-public:
+struct OutputInfo {
   std::ostream &Out;
   std::string Path;
-  uint64_t NumHits;
-  ProgramHandle* Prog;
   char Separator;
+  uint64_t NumHits;
   int32_t BeforeContext;
   int32_t AfterContext;
-  bool HistogramEnabled;
+};
 
+class HitOutputData {
+public:
+  OutputInfo OutInfo;
+  ProgramHandle* Prog;
   ContextBuffer CtxBuf;
 
-  LG_HDECODER Decoder;
+  bool HistogramEnabled;
   HitBuffer DecodedContext;
   SearchHit LastSearchHit;
   std::unordered_map<HistogramKey, int> Histogram;
 
-  HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool hist)
-                : Out(out), Path(""), NumHits(0), Prog(prog), Separator(sep), BeforeContext(bc),
-                AfterContext(ac), HistogramEnabled(hist), Decoder(lg_create_decoder()), Histogram({}) {}
+  LG_HDECODER Decoder;
 
-  void setPath(const std::string& path) { this->Path = path; }
+  HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool hist)
+                : OutInfo({out, "", sep, 0, bc, ac}), Prog(prog), HistogramEnabled(hist), Histogram({}), Decoder(lg_create_decoder()) {}
+
+  void setPath(const std::string& path) { this->OutInfo.Path = path; }
   void setBuffer(const char* buf, size_t blen, uint64_t boff);
 
   HitBuffer decodeContext(const LG_SearchHit& searchHit);
@@ -127,7 +130,7 @@ void callbackFn(void* userData, const LG_SearchHit* searchHit) {
   if (data->HistogramEnabled) {
     data->writeHitToHistogram(*searchHit);
   }
-  ++data->NumHits;
+  ++data->OutInfo.NumHits;
 }
 
 struct WritePath {

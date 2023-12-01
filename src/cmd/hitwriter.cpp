@@ -49,8 +49,8 @@ std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram) {
 }
 
 void WritePath::write(HitOutputData& data) {
-  data.Out << data.Path;
-  data.Out << data.Separator;
+  data.OutInfo.Out << data.OutInfo.Path;
+  data.OutInfo.Out << data.OutInfo.Separator;
 }
 
 void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
@@ -88,9 +88,9 @@ void HitOutputData::writeHistogram(std::ostream& histOut) {
             [](const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b){return histogramKeyComp(a, b);});
 
   for (const auto& [hKey, count] : sortedHistogram) {
-    histOut << hKey.HitText   << Separator;
-    histOut << hKey.Pattern   << Separator;
-    histOut << hKey.UserIndex << Separator;
+    histOut << hKey.HitText   << OutInfo.Separator;
+    histOut << hKey.Pattern   << OutInfo.Separator;
+    histOut << hKey.UserIndex << OutInfo.Separator;
     histOut << count;
     histOut << '\n';
   }
@@ -112,7 +112,7 @@ void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
 void HitOutputData::writeHit(const LG_SearchHit& hit){
   const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
 
-  Out << hit.Start << '\t'
+  OutInfo.Out << hit.Start << '\t'
       << hit.End << '\t'
       << info->UserIndex << '\t'
       << info->Pattern << '\t'
@@ -120,7 +120,7 @@ void HitOutputData::writeHit(const LG_SearchHit& hit){
 }
 
 void HitOutputData::writeNewLine() {
-  Out << '\n';
+  OutInfo.Out << '\n';
 }
 
 void HitOutputData::writeContext(HitBuffer hitBuf) {
@@ -130,16 +130,16 @@ void HitOutputData::writeContext(HitBuffer hitBuf) {
   const char esc[] = "\t\n\r";
 
   // print offset of start of context
-  Out << Separator << hitBuf.DataOffset << Separator;
+  OutInfo.Out << OutInfo.Separator << hitBuf.DataOffset << OutInfo.Separator;
 
   for (const char* l = utf8, *r; l != utf8_end; l = r) {
     r = std::find_first_of(l, utf8_end, esc, esc + 3);
-    Out.write(l, r - l);
+    OutInfo.Out.write(l, r - l);
     if (r != utf8_end) {
       switch (*r) {
-      case '\t': Out << "\\t"; break;
-      case '\n': Out << "\\n"; break;
-      case '\r': Out << "\\r"; break;
+      case '\t': OutInfo.Out << "\\t"; break;
+      case '\n': OutInfo.Out << "\\n"; break;
+      case '\r': OutInfo.Out << "\\r"; break;
       }
       ++r;
     }
@@ -151,9 +151,9 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   const char* const hend = CtxBuf.Buf + std::min(searchHit.End - CtxBuf.BufOff, static_cast<uint64_t>(CtxBuf.BufLen));
 
   // beginning of context (left of hit)
-  const char* const cbeg = (BeforeContext < 0) ? hbeg : find_leading_context(CtxBuf.Buf, hbeg, BeforeContext);
+  const char* const cbeg = (OutInfo.BeforeContext < 0) ? hbeg : find_leading_context(CtxBuf.Buf, hbeg, OutInfo.BeforeContext);
   // end of context (right of hit)
-  const char* const cend = (AfterContext < 0) ? hend : find_trailing_context(hend, CtxBuf.Buf + CtxBuf.BufLen, AfterContext);
+  const char* const cend = (OutInfo.AfterContext < 0) ? hend : find_trailing_context(hend, CtxBuf.Buf + CtxBuf.BufLen, OutInfo.AfterContext);
 
   // offset of the start of context
   uint64_t dataOffset = CtxBuf.BufOff + (cbeg - CtxBuf.Buf);
