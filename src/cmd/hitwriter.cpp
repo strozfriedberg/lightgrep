@@ -78,11 +78,11 @@ bool histogramKeyComp(const std::pair<HistogramKey, int> &a, const std::pair<His
   }
 }
 
-void HitOutputData::writeHistogram(std::ostream& histOut) {
+void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
   std::vector<std::pair<HistogramKey, int>> sortedHistogram;
-  sortedHistogram.reserve(HistInfo.Histogram.size());
+  sortedHistogram.reserve(Histogram.size());
 
-  for (auto i : HistInfo.Histogram) {
+  for (auto i : Histogram) {
     sortedHistogram.push_back(i);
   }
 
@@ -91,9 +91,9 @@ void HitOutputData::writeHistogram(std::ostream& histOut) {
             [](const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b){return histogramKeyComp(a, b);});
 
   for (const auto& [hKey, count] : sortedHistogram) {
-    histOut << hKey.HitText   << OutInfo.Separator;
-    histOut << hKey.Pattern   << OutInfo.Separator;
-    histOut << hKey.UserIndex << OutInfo.Separator;
+    histOut << hKey.HitText   << sep;
+    histOut << hKey.Pattern   << sep;
+    histOut << hKey.UserIndex << sep;
     histOut << count;
     histOut << '\n';
   }

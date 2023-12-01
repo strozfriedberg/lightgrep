@@ -95,7 +95,7 @@ struct HistogramInfo {
   std::unordered_map<HistogramKey, int> Histogram;
 
   HistogramInfo(bool histEnabled) : HistogramEnabled(histEnabled), Histogram({}) {}
-
+  void writeHistogram(std::ostream& histOut, char sep);
 };
 
 class HitOutputData {
@@ -114,7 +114,7 @@ public:
   HitBuffer decodeContext(const LG_SearchHit& searchHit);
 
   void writeHitToHistogram(const LG_SearchHit& hit);
-  void writeHistogram(std::ostream& histOut);
+  void writeHistogram(std::ostream& histOut) {HistInfo.writeHistogram(histOut, OutInfo.Separator);}
   void writeContext(HitBuffer);
   void writeHit(const LG_SearchHit& hit);
   void writeNewLine();
