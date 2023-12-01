@@ -73,6 +73,12 @@ struct std::hash<HistogramKey>
     }
 };
 
+struct ContextBuffer {
+  const char* Buf;
+  size_t BufLen;
+  uint64_t BufOff;
+};
+
 class HitOutputData {
 public:
   std::ostream &Out;
@@ -84,9 +90,7 @@ public:
   int32_t AfterContext;
   bool HistogramEnabled;
 
-  const char* Buf;
-  size_t BufLen;
-  uint64_t BufOff;
+  ContextBuffer CtxBuf;
 
   LG_HDECODER Decoder;
   HitBuffer DecodedContext;

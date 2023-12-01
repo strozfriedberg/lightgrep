@@ -56,9 +56,9 @@ void WritePath::write(HitOutputData& data) {
 void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
   LastSearchHit = SearchHit();
   DecodedContext.clear();
-  Buf = buf;
-  BufLen = blen;
-  BufOff = boff;
+  CtxBuf.Buf = buf;
+  CtxBuf.BufLen = blen;
+  CtxBuf.BufOff = boff;
 }
 
 bool histogramKeyComp(const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b) {
@@ -147,16 +147,16 @@ void HitOutputData::writeContext(HitBuffer hitBuf) {
 }
 
 HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
-  const char* const hbeg = Buf + (searchHit.Start < BufOff ? 0 : searchHit.Start - BufOff);
-  const char* const hend = Buf + std::min(searchHit.End - BufOff, static_cast<uint64_t>(BufLen));
+  const char* const hbeg = CtxBuf.Buf + (searchHit.Start < CtxBuf.BufOff ? 0 : searchHit.Start - CtxBuf.BufOff);
+  const char* const hend = CtxBuf.Buf + std::min(searchHit.End - CtxBuf.BufOff, static_cast<uint64_t>(CtxBuf.BufLen));
 
   // beginning of context (left of hit)
-  const char* const cbeg = (BeforeContext < 0) ? hbeg : find_leading_context(Buf, hbeg, BeforeContext);
+  const char* const cbeg = (BeforeContext < 0) ? hbeg : find_leading_context(CtxBuf.Buf, hbeg, BeforeContext);
   // end of context (right of hit)
-  const char* const cend = (AfterContext < 0) ? hend : find_trailing_context(hend, Buf + BufLen, AfterContext);
+  const char* const cend = (AfterContext < 0) ? hend : find_trailing_context(hend, CtxBuf.Buf + CtxBuf.BufLen, AfterContext);
 
   // offset of the start of context
-  uint64_t dataOffset = BufOff + (cbeg - Buf);
+  uint64_t dataOffset = CtxBuf.BufOff + (cbeg - CtxBuf.Buf);
 
   // transcode the context to UTF-8
   LG_Error* err = nullptr;
@@ -169,7 +169,7 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   lg_hit_context(
     Decoder,
     cbeg, cend,
-    BufOff + (cbeg - Buf),
+    CtxBuf.BufOff + (cbeg - CtxBuf.Buf),
     &inner,
     info->EncodingChain,
     cend - cbeg,
