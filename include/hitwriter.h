@@ -77,6 +77,12 @@ struct ContextBuffer {
   const char* Buf;
   size_t BufLen;
   uint64_t BufOff;
+
+  void set(const char* buf, size_t len, uint64_t off) {
+    Buf = buf;
+    BufLen = len;
+    BufOff = off;
+  }
 };
 
 struct OutputInfo {

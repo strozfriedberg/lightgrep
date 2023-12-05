@@ -59,9 +59,7 @@ HitOutputData::HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, i
 void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
   HistInfo.LastSearchHit = SearchHit();
   HistInfo.DecodedContext.clear();
-  CtxBuf.Buf = buf;
-  CtxBuf.BufLen = blen;
-  CtxBuf.BufOff = boff;
+  CtxBuf.set(buf, blen, boff);
 }
 
 bool histogramKeyComp(const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b) {
