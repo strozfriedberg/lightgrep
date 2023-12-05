@@ -36,6 +36,20 @@ const char* find_trailing_context(const char* const hend, const char* const bend
   return rnl;
 }
 
+bool histogramKeyComp(const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b) {
+  if (a.second == b.second) {
+    if (a.first.UserIndex == b.first.UserIndex ) {
+      return a.first.HitText < b.first.HitText;
+    }
+    else {
+      return a.first.UserIndex < b.first.UserIndex;
+    }
+  }
+  else {
+    return a.second > b.second;
+  }
+}
+
 std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey) {
   out << hKey.HitText << ", " << hKey.Pattern << ", " << hKey.UserIndex;
   return out;
@@ -53,66 +67,18 @@ void WritePath::write(HitOutputData& data) {
   data.OutInfo.Out << data.OutInfo.Separator;
 }
 
-HitOutputData::HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool histEnabled)
-              : OutInfo({out, "", sep, 0, bc, ac}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder()) {}
+/********************************************* OutputInfo ****************************************/
 
-void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
-  HistInfo.LastSearchHit = SearchHit();
-  HistInfo.DecodedContext.clear();
-  CtxBuf.set(buf, blen, boff);
+void OutputInfo::writeHit(const LG_SearchHit& hit, const LG_PatternInfo* info) {
+  Out << hit.Start << '\t'
+      << hit.End << '\t'
+      << info->UserIndex << '\t'
+      << info->Pattern << '\t'
+      << info->EncodingChain;
 }
 
-bool histogramKeyComp(const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b) {
-  if (a.second == b.second) {
-    if (a.first.UserIndex == b.first.UserIndex ) {
-      return a.first.HitText < b.first.HitText;
-    }
-    else {
-      return a.first.UserIndex < b.first.UserIndex;
-    }
-  }
-  else {
-    return a.second > b.second;
-  }
-}
-
-void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
-  std::vector<std::pair<HistogramKey, int>> sortedHistogram;
-  sortedHistogram.reserve(Histogram.size());
-
-  for (auto i : Histogram) {
-    sortedHistogram.push_back(i);
-  }
-
-  std::sort(sortedHistogram.begin(),
-            sortedHistogram.end(),
-            [](const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b){return histogramKeyComp(a, b);});
-
-  for (const auto& [hKey, count] : sortedHistogram) {
-    histOut << hKey.HitText   << sep;
-    histOut << hKey.Pattern   << sep;
-    histOut << hKey.UserIndex << sep;
-    histOut << count;
-    histOut << '\n';
-  }
-}
-
-void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
-  LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
-  HistInfo.writeHitToHistogram(hit, info, [this](const LG_SearchHit& hit){ return this->decodeContext(hit); });
-  
-}
-
-void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info, std::function<HitBuffer(const LG_SearchHit&)> decodeFun) {
-  HitBuffer hitText = (SearchHit(hit) == LastSearchHit && !DecodedContext.empty()) ? DecodedContext : decodeFun(hit);
-  HistogramKey hitKey {hitText.hit(), info->Pattern, info->UserIndex};
-  auto found = Histogram.find(hitKey);
-  if (found != Histogram.end()) {
-    ++found->second;
-  }
-  else {
-    Histogram.insert({hitKey, 1});
-  }
+void OutputInfo::writeNewLine() {
+  Out << '\n';
 }
 
 void OutputInfo::writeContext(const HitBuffer& hitBuf) {
@@ -138,21 +104,50 @@ void OutputInfo::writeContext(const HitBuffer& hitBuf) {
   }
 }
 
-void HitOutputData::writeHit(const LG_SearchHit& hit) {
-  const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
-  OutInfo.writeHit(hit, info);
+/********************************************* HistogramInfo ****************************************/
+
+void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
+  std::vector<std::pair<HistogramKey, int>> sortedHistogram;
+  sortedHistogram.reserve(Histogram.size());
+
+  for (auto i : Histogram) {
+    sortedHistogram.push_back(i);
+  }
+
+  std::sort(sortedHistogram.begin(),
+            sortedHistogram.end(),
+            [](const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b){return histogramKeyComp(a, b);});
+
+  for (const auto& [hKey, count] : sortedHistogram) {
+    histOut << hKey.HitText   << sep;
+    histOut << hKey.Pattern   << sep;
+    histOut << hKey.UserIndex << sep;
+    histOut << count;
+    histOut << '\n';
+  }
 }
 
-void OutputInfo::writeHit(const LG_SearchHit& hit, const LG_PatternInfo* info) {
-  Out << hit.Start << '\t'
-      << hit.End << '\t'
-      << info->UserIndex << '\t'
-      << info->Pattern << '\t'
-      << info->EncodingChain;
+void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info, std::function<HitBuffer(const LG_SearchHit&)> decodeFun) {
+  HitBuffer hitText = (SearchHit(hit) == LastSearchHit && !DecodedContext.empty()) ? DecodedContext : decodeFun(hit);
+  HistogramKey hitKey {hitText.hit(), info->Pattern, info->UserIndex};
+  auto found = Histogram.find(hitKey);
+  if (found != Histogram.end()) {
+    ++found->second;
+  }
+  else {
+    Histogram.insert({hitKey, 1});
+  }
 }
 
-void OutputInfo::writeNewLine() {
-  Out << '\n';
+/********************************************* HitOutputData ****************************************/
+
+HitOutputData::HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool histEnabled)
+              : OutInfo({out, "", sep, 0, bc, ac}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder()) {}
+
+void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
+  HistInfo.LastSearchHit = SearchHit();
+  HistInfo.DecodedContext.clear();
+  CtxBuf.set(buf, blen, boff);
 }
 
 HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
@@ -199,6 +194,16 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   HistInfo.LastSearchHit = SearchHit(searchHit);
   HistInfo.DecodedContext = HitBuffer(dataOffset, std::string(utf8_ptr.get()), dh);
   return HistInfo.DecodedContext;
+}
+
+void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
+  LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
+  HistInfo.writeHitToHistogram(hit, info, [this](const LG_SearchHit& hit){ return this->decodeContext(hit); });
+}
+
+void HitOutputData::writeHit(const LG_SearchHit& hit) {
+  const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
+  OutInfo.writeHit(hit, info);
 }
 
 
