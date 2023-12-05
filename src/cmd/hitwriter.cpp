@@ -119,10 +119,10 @@ void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
             [](const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b){return histogramKeyComp(a, b);});
 
   for (const auto& [hKey, count] : sortedHistogram) {
+    histOut << count          << sep;
     histOut << hKey.HitText   << sep;
-    histOut << hKey.Pattern   << sep;
     histOut << hKey.UserIndex << sep;
-    histOut << count;
+    histOut << hKey.Pattern;
     histOut << '\n';
   }
 }

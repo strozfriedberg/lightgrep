@@ -297,7 +297,7 @@ TEST_CASE("writeHistogram") {
   CAPTURE(data.HistInfo.Histogram);
 
   data.writeHistogram(histStream);
-  std::string expectedOutput = "cat\tc[auo]t\t0\t2\ncat\t[bch]at\t2\t2\nhat\t[bch]at\t2\t2\nfoo\tfoo\t1\t1\n";
+  std::string expectedOutput = "2\tcat\t0\tc[auo]t\n2\tcat\t2\t[bch]at\n2\that\t2\t[bch]at\n1\tfoo\t1\tfoo\n";
   REQUIRE(histStream.str() == expectedOutput);
 }
 
