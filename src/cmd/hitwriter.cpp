@@ -151,8 +151,8 @@ void OutputInfo::writeHit(const LG_SearchHit& hit, const LG_PatternInfo* info) {
       << info->EncodingChain;
 }
 
-void HitOutputData::writeNewLine() {
-  OutInfo.Out << '\n';
+void OutputInfo::writeNewLine() {
+  Out << '\n';
 }
 
 HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {

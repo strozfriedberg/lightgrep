@@ -95,6 +95,7 @@ struct OutputInfo {
 
   void writeHit(const LG_SearchHit& hit, const LG_PatternInfo* info);
   void writeContext(const HitBuffer&);
+  void writeNewLine();
 };
 
 struct HistogramInfo {
@@ -127,7 +128,7 @@ public:
   void writeHistogram(std::ostream& histOut) { HistInfo.writeHistogram(histOut, OutInfo.Separator); }
   void writeContext(const HitBuffer& hBuf) { OutInfo.writeContext(hBuf); }
   void writeHit(const LG_SearchHit& hit);
-  void writeNewLine();
+  void writeNewLine() { OutInfo.writeNewLine(); }
 };
 
 template<typename PathOutputFn, typename ContextFn, bool shouldOutput>
