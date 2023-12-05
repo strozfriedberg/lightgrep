@@ -334,3 +334,14 @@ TEST_CASE("decodeContextNoLineContextSecondLineAndHistogramEnabled") {
   REQUIRE(found != data.HistInfo.Histogram.end());
   CHECK(found->second == 1);
 }
+
+TEST_CASE("testDecodeContextPassedAsFunction") {
+  // Initial State
+  // Write custom decode function that returns a default HitBuffer
+  // Action
+  // Call HistInfo.writeHitToHistogram with a custom decode function
+  // Outcome
+  // Histogram should contain one key HitBuffer{0, "", {0,0} with value of 0
+  // This verified that the expected decodeFunction was called
+  ;
+}
