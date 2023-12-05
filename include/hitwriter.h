@@ -92,6 +92,9 @@ struct OutputInfo {
   uint64_t NumHits;
   int32_t BeforeContext;
   int32_t AfterContext;
+
+  void writeHit(const LG_SearchHit& hit, const LG_PatternInfo* info);
+  void writeContext(const HitBuffer&);
 };
 
 struct HistogramInfo {
@@ -122,7 +125,7 @@ public:
 
   void writeHitToHistogram(const LG_SearchHit& hit);
   void writeHistogram(std::ostream& histOut) { HistInfo.writeHistogram(histOut, OutInfo.Separator); }
-  void writeContext(const HitBuffer&);
+  void writeContext(const HitBuffer& hBuf) { OutInfo.writeContext(hBuf); }
   void writeHit(const LG_SearchHit& hit);
   void writeNewLine();
 };

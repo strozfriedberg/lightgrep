@@ -115,10 +115,36 @@ void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_Patter
   }
 }
 
-void HitOutputData::writeHit(const LG_SearchHit& hit){
-  const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
+void OutputInfo::writeContext(const HitBuffer& hitBuf) {
+  // print the hit, escaping \t, \n, \r
+  const char* utf8 = hitBuf.Context.data();
+  const char* utf8_end = utf8 + std::strlen(utf8);
+  const char esc[] = "\t\n\r";
 
-  OutInfo.Out << hit.Start << '\t'
+  // print offset of start of context
+  Out << Separator << hitBuf.DataOffset << Separator;
+
+  for (const char* l = utf8, *r; l != utf8_end; l = r) {
+    r = std::find_first_of(l, utf8_end, esc, esc + 3);
+    Out.write(l, r - l);
+    if (r != utf8_end) {
+      switch (*r) {
+      case '\t': Out << "\\t"; break;
+      case '\n': Out << "\\n"; break;
+      case '\r': Out << "\\r"; break;
+      }
+      ++r;
+    }
+  }
+}
+
+void HitOutputData::writeHit(const LG_SearchHit& hit) {
+  const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
+  OutInfo.writeHit(hit, info);
+}
+
+void OutputInfo::writeHit(const LG_SearchHit& hit, const LG_PatternInfo* info) {
+  Out << hit.Start << '\t'
       << hit.End << '\t'
       << info->UserIndex << '\t'
       << info->Pattern << '\t'
@@ -127,29 +153,6 @@ void HitOutputData::writeHit(const LG_SearchHit& hit){
 
 void HitOutputData::writeNewLine() {
   OutInfo.Out << '\n';
-}
-
-void HitOutputData::writeContext(const HitBuffer& hitBuf) {
-  // print the hit, escaping \t, \n, \r
-  const char* utf8 = hitBuf.Context.data();
-  const char* utf8_end = utf8 + std::strlen(utf8);
-  const char esc[] = "\t\n\r";
-
-  // print offset of start of context
-  OutInfo.Out << OutInfo.Separator << hitBuf.DataOffset << OutInfo.Separator;
-
-  for (const char* l = utf8, *r; l != utf8_end; l = r) {
-    r = std::find_first_of(l, utf8_end, esc, esc + 3);
-    OutInfo.Out.write(l, r - l);
-    if (r != utf8_end) {
-      switch (*r) {
-      case '\t': OutInfo.Out << "\\t"; break;
-      case '\n': OutInfo.Out << "\\n"; break;
-      case '\r': OutInfo.Out << "\\r"; break;
-      }
-      ++r;
-    }
-  }
 }
 
 HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
