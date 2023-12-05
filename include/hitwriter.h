@@ -96,10 +96,8 @@ struct HistogramInfo {
 
   HistogramInfo(bool histEnabled) : HistogramEnabled(histEnabled), Histogram({}) {}
   void writeHistogram(std::ostream& histOut, char sep);
-  void writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info);
+  void writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info, HitBuffer (HitOutputData::*)(const LG_SearchHit&));
 };
-
-HitBuffer decodeContextExt(const LG_SearchHit& searchHit, const ContextBuffer& ctxBuf, HistogramInfo& histInfo, const OutputInfo& outInfo, LG_HDECODER decoder, LG_PatternInfo* info);
 
 class HitOutputData {
 public:
@@ -114,14 +112,10 @@ public:
   void setPath(const std::string& path) { this->OutInfo.Path = path; }
   void setBuffer(const char* buf, size_t blen, uint64_t boff);
 
-  HitBuffer decodeContext(const LG_SearchHit& searchHit) {
-    LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), searchHit.KeywordIndex);
-    return decodeContextExt(searchHit, CtxBuf, HistInfo, OutInfo, Decoder, info);
-  }
-  // HitBuffer decodeContext(const LG_SearchHit& searchHit, const ContextBuffer& CtxBuf, HistogramInfo& histInfo);
+  HitBuffer decodeContext(const LG_SearchHit& searchHit);
 
   void writeHitToHistogram(const LG_SearchHit& hit);
-  void writeHistogram(std::ostream& histOut) {HistInfo.writeHistogram(histOut, OutInfo.Separator);}
+  void writeHistogram(std::ostream& histOut) { HistInfo.writeHistogram(histOut, OutInfo.Separator); }
   void writeContext(HitBuffer);
   void writeHit(const LG_SearchHit& hit);
   void writeNewLine();

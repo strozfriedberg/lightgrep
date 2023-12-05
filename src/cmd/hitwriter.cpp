@@ -36,57 +36,6 @@ const char* find_trailing_context(const char* const hend, const char* const bend
   return rnl;
 }
 
-HitBuffer decodeContext(
-  const LG_SearchHit& searchHit,
-  const ContextBuffer& ctxBuf,
-  HistogramInfo& histInfo,
-  const OutputInfo& outInfo,
-  LG_HDECODER decoder,
-  LG_PatternInfo* info) {
-  const char* const hbeg = ctxBuf.Buf + (searchHit.Start < ctxBuf.BufOff ? 0 : searchHit.Start - ctxBuf.BufOff);
-  const char* const hend = ctxBuf.Buf + std::min(searchHit.End - ctxBuf.BufOff, static_cast<uint64_t>(ctxBuf.BufLen));
-
-  // beginning of context (left of hit)
-  const char* const cbeg = (outInfo.BeforeContext < 0) ? hbeg : find_leading_context(ctxBuf.Buf, hbeg, outInfo.BeforeContext);
-  // end of context (right of hit)
-  const char* const cend = (outInfo.AfterContext < 0) ? hend : find_trailing_context(hend, ctxBuf.Buf + ctxBuf.BufLen, outInfo.AfterContext);
-
-  // offset of the start of context
-  uint64_t dataOffset = ctxBuf.BufOff + (cbeg - ctxBuf.Buf);
-
-  // transcode the context to UTF-8
-  LG_Error* err = nullptr;
-  LG_Window inner{searchHit.Start, searchHit.End},
-            outer,
-            dh;
-  const char* utf8 = nullptr;
-
-  lg_hit_context(
-    decoder,
-    cbeg, cend,
-    ctxBuf.BufOff + (cbeg - ctxBuf.Buf),
-    &inner,
-    info->EncodingChain,
-    cend - cbeg,
-    0xFFFD,
-    &utf8, &outer, &dh, &err
-  );
-
-  std::unique_ptr<const char[],void(*)(const char*)> utf8_ptr(
-    utf8, &lg_free_hit_context_string
-  );
-
-  if (err) {
-    std::cerr << err->Message << std::endl;
-    lg_free_error(err);
-    return HitBuffer();
-  }
-
-  histInfo.LastSearchHit = SearchHit(searchHit);
-  histInfo.DecodedContext = HitBuffer(dataOffset, std::string(utf8_ptr.get()), dh);
-  return histInfo.DecodedContext;
-}
-
 std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey) {
   out << hKey.HitText << ", " << hKey.Pattern << ", " << hKey.UserIndex;
   return out;
@@ -151,20 +100,13 @@ void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
 }
 
 void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
-  const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
-  HitBuffer hitText = (SearchHit(hit) == HistInfo.LastSearchHit && !HistInfo.DecodedContext.empty()) ? HistInfo.DecodedContext : decodeContext(hit);
-  HistogramKey hitKey {hitText.hit(), info->Pattern, info->UserIndex};
-  auto found = HistInfo.Histogram.find(hitKey);
-  if (found != HistInfo.Histogram.end()) {
-    ++found->second;
-  }
-  else {
-    HistInfo.Histogram.insert({hitKey, 1});
-  }
+  LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
+  HistInfo.writeHitToHistogram(hit, info, &HitOutputData::decodeContext);
+  
 }
 
-void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info) {
-  HitBuffer hitText = (SearchHit(hit) == LastSearchHit && !DecodedContext.empty()) ? DecodedContext : decodeContext(hit);
+void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info, HitBuffer (HitOutputData::*f)(const LG_SearchHit&)) {
+  HitBuffer hitText = (SearchHit(hit) == LastSearchHit && !DecodedContext.empty()) ? DecodedContext : f(hit);
   HistogramKey hitKey {hitText.hit(), info->Pattern, info->UserIndex};
   auto found = Histogram.find(hitKey);
   if (found != Histogram.end()) {
@@ -174,6 +116,7 @@ void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_Patter
     Histogram.insert({hitKey, 1});
   }
 }
+
 void HitOutputData::writeHit(const LG_SearchHit& hit){
   const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
 
