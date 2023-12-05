@@ -336,7 +336,6 @@ TEST_CASE("decodeContextNoLineContextSecondLineAndHistogramEnabled") {
 }
 
 TEST_CASE("testDecodeContextPassedAsFunction") {
-  // Initial State
   STest s("foo");
   HistogramInfo hInfo(true);
   LG_SearchHit hit{8, 11, 0};
@@ -348,4 +347,16 @@ TEST_CASE("testDecodeContextPassedAsFunction") {
   HistogramInfo expectedHist{true};
   expectedHist.Histogram[hKey] = 1;
   REQUIRE(hInfo.Histogram == expectedHist.Histogram);
+}
+
+TEST_CASE("testDecodeContextFnSimpler") {
+  bool called = false;
+  STest s("foo");
+  HistogramInfo hInfo(true);
+  LG_SearchHit hit{8, 11, 0};
+  LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
+
+  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{hit.KeywordIndex, "", {0,0}}; };
+  hInfo.writeHitToHistogram(hit, info, decodeFn);
+  REQUIRE(called);
 }
