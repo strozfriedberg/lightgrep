@@ -337,11 +337,15 @@ TEST_CASE("decodeContextNoLineContextSecondLineAndHistogramEnabled") {
 
 TEST_CASE("testDecodeContextPassedAsFunction") {
   // Initial State
-  // Write custom decode function that returns a default HitBuffer
-  // Action
-  // Call HistInfo.writeHitToHistogram with a custom decode function
-  // Outcome
-  // Histogram should contain one key HitBuffer{0, "", {0,0} with value of 0
-  // This verified that the expected decodeFunction was called
-  ;
+  STest s("foo");
+  HistogramInfo hInfo(true);
+  LG_SearchHit hit{8, 11, 0};
+  LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
+
+  auto decodeFn = [](const LG_SearchHit& hit) { return HitBuffer{hit.KeywordIndex, "", {0,0}}; };
+  hInfo.writeHitToHistogram(hit, info, decodeFn);
+  HistogramKey hKey("", "foo", 0);
+  HistogramInfo expectedHist{true};
+  expectedHist.Histogram[hKey] = 1;
+  REQUIRE(hInfo.Histogram == expectedHist.Histogram);
 }

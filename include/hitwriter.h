@@ -96,7 +96,7 @@ struct HistogramInfo {
 
   HistogramInfo(bool histEnabled) : HistogramEnabled(histEnabled), Histogram({}) {}
   void writeHistogram(std::ostream& histOut, char sep);
-  void writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info, HitBuffer (HitOutputData::*)(const LG_SearchHit&));
+  void writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info, std::function<HitBuffer(const LG_SearchHit&)>fn);
 };
 
 class HitOutputData {

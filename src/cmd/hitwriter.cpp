@@ -101,12 +101,12 @@ void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
 
 void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
   LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
-  HistInfo.writeHitToHistogram(hit, info, &HitOutputData::decodeContext);
+  HistInfo.writeHitToHistogram(hit, info, [this](const LG_SearchHit& hit){ return this->decodeContext(hit); });
   
 }
 
-void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info, HitBuffer (HitOutputData::*f)(const LG_SearchHit&)) {
-  HitBuffer hitText = (SearchHit(hit) == LastSearchHit && !DecodedContext.empty()) ? DecodedContext : f(hit);
+void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info, std::function<HitBuffer(const LG_SearchHit&)> decodeFun) {
+  HitBuffer hitText = (SearchHit(hit) == LastSearchHit && !DecodedContext.empty()) ? DecodedContext : decodeFun(hit);
   HistogramKey hitKey {hitText.hit(), info->Pattern, info->UserIndex};
   auto found = Histogram.find(hitKey);
   if (found != Histogram.end()) {
