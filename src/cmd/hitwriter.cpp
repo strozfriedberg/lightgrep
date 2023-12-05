@@ -129,7 +129,7 @@ void HitOutputData::writeNewLine() {
   OutInfo.Out << '\n';
 }
 
-void HitOutputData::writeContext(HitBuffer hitBuf) {
+void HitOutputData::writeContext(const HitBuffer& hitBuf) {
   // print the hit, escaping \t, \n, \r
   const char* utf8 = hitBuf.Context.data();
   const char* utf8_end = utf8 + std::strlen(utf8);

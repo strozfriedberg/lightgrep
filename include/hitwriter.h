@@ -122,7 +122,7 @@ public:
 
   void writeHitToHistogram(const LG_SearchHit& hit);
   void writeHistogram(std::ostream& histOut) { HistInfo.writeHistogram(histOut, OutInfo.Separator); }
-  void writeContext(HitBuffer);
+  void writeContext(const HitBuffer&);
   void writeHit(const LG_SearchHit& hit);
   void writeNewLine();
 };
