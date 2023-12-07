@@ -144,9 +144,9 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   const char* const hend = CtxBuf.Buf + std::min(searchHit.End - CtxBuf.BufOff, static_cast<uint64_t>(CtxBuf.BufLen));
 
   // beginning of context (left of hit)
-  const char* const cbeg = (OutInfo.BeforeContext < 0) ? hbeg : find_leading_context(CtxBuf.Buf, hbeg, OutInfo.BeforeContext);
+  const char* const cbeg = OutInfo.BeforeContext < 0 ? hbeg : find_leading_context(CtxBuf.Buf, hbeg, OutInfo.BeforeContext);
   // end of context (right of hit)
-  const char* const cend = (OutInfo.AfterContext < 0) ? hend : find_trailing_context(hend, CtxBuf.Buf + CtxBuf.BufLen, OutInfo.AfterContext);
+  const char* const cend = OutInfo.AfterContext < 0 ? hend : find_trailing_context(hend, CtxBuf.Buf + CtxBuf.BufLen, OutInfo.AfterContext);
 
   // offset of the start of context
   uint64_t dataOffset = CtxBuf.BufOff + (cbeg - CtxBuf.Buf);
@@ -155,7 +155,7 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   LG_Error* err = nullptr;
   LG_Window inner{searchHit.Start, searchHit.End},
             outer,
-            dh;
+            decodedHit;
   const char* utf8 = nullptr;
   const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), searchHit.KeywordIndex);
 
@@ -167,7 +167,7 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
     info->EncodingChain,
     cend - cbeg,
     0xFFFD,
-    &utf8, &outer, &dh, &err
+    &utf8, &outer, &decodedHit, &err
   );
 
   std::unique_ptr<const char[],void(*)(const char*)> utf8_ptr(
@@ -181,7 +181,7 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   }
 
   HistInfo.LastSearchHit = SearchHit(searchHit);
-  HistInfo.DecodedContext = HitBuffer(std::string(utf8_ptr.get()), dh, dataOffset);
+  HistInfo.DecodedContext = HitBuffer(std::string(utf8_ptr.get()), decodedHit, dataOffset);
   return HistInfo.DecodedContext;
 }
 
