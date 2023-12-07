@@ -379,3 +379,23 @@ TEST_CASE("testDecodedContextUsedForHit") {
 
   REQUIRE(!called);
 }
+
+TEST_CASE("testDecodeContextCalledIfLastSearchHitDifferent") {
+  bool called = false;
+  STest s("foo");
+  std::string textToSearch = "this is foo";
+  LG_SearchHit hit{8, 11, 0};
+  LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
+
+  std::stringstream stream;
+  HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
+  data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
+  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{hit.KeywordIndex, "", {0,0}}; };
+
+  WriteContext wc;
+  wc.write(data, hit);
+  data.HistInfo.LastSearchHit = LG_SearchHit{7, 10, 0};
+  data.HistInfo.writeHitToHistogram(hit, info, decodeFn);
+
+  REQUIRE(called);
+}
