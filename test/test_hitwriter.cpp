@@ -362,16 +362,20 @@ TEST_CASE("testDecodeContextFnSimpler") {
 }
 
 TEST_CASE("testDecodedContextUsedForHit") {
-  // Irrelevant
-  // Given a "called" flag initially set to false, an STest object initialized with the pattern "foo",
-  // a sample text string containing "this is foo", an LG_SearchHit object containing the window for the hit,
-  // an LG_PatternInfo object created from the STest prog, an empty string stream, a HitOutputData
-  // object (with a buffer set based on the sample search text), and a decode lambda that
-  // flips the "called" flag to true.
-  // Initial State
-  // Call WriteContext, which calls decodeContext and assigns a DecodedContext.
-  // Action
-  // Call HistInfo::writeHitToHistogram with our decode lambda.
-  // Outcome
+  bool called = false;
+  STest s("foo");
+  std::string textToSearch = "this is foo";
+  LG_SearchHit hit{8, 11, 0};
+  LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
+
+  std::stringstream stream;
+  HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
+  data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
+  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{hit.KeywordIndex, "", {0,0}}; };
+
+  WriteContext wc;
+  wc.write(data, hit);
+  data.HistInfo.writeHitToHistogram(hit, info, decodeFn);
+
   REQUIRE(!called);
 }
