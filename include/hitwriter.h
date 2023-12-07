@@ -89,11 +89,12 @@ struct ContextBuffer {
 struct OutputInfo {
   std::ostream &Out;
   std::string Path;
-  char Separator;
   uint64_t NumHits;
   int32_t BeforeContext;
   int32_t AfterContext;
+  char Separator;
 
+  void setPath(const std::string& path) { Path = path; }
   void writeHit(const LG_SearchHit& hit, const LG_PatternInfo* info);
   void writeContext(const HitBuffer&);
   void writeNewLine();
@@ -120,7 +121,7 @@ public:
 
   HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool histEnabled);
 
-  void setPath(const std::string& path) { this->OutInfo.Path = path; }
+  void setPath(const std::string& path) { OutInfo.setPath(path); }
   void setBuffer(const char* buf, size_t blen, uint64_t boff);
 
   HitBuffer decodeContext(const LG_SearchHit& searchHit);
