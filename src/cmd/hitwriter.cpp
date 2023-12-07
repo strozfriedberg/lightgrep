@@ -36,7 +36,7 @@ const char* find_trailing_context(const char* const hend, const char* const bend
   return rnl;
 }
 
-bool histogramKeyComp(const std::pair<HistogramKey, uint64_t> &a, const std::pair<HistogramKey, uint64_t> &b) {
+bool histogramKeyComp(const LG_Histogram::value_type &a, const LG_Histogram::value_type &b) {
   if (a.second == b.second) {
     if (a.first.UserIndex == b.first.UserIndex ) {
       return a.first.HitText < b.first.HitText;
@@ -116,7 +116,7 @@ void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
 
   std::sort(sortedHistogram.begin(),
             sortedHistogram.end(),
-            [](const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b){return histogramKeyComp(a, b);});
+            [](const LG_Histogram::value_type &a, const LG_Histogram::value_type &b){return histogramKeyComp(a, b);});
 
   for (const auto& [hKey, count] : sortedHistogram) {
     histOut << count          << sep;

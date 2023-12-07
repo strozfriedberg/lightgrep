@@ -55,12 +55,6 @@ public:
 
 std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey);
 
-typedef std::unordered_map<HistogramKey, uint64_t> LG_Histogram;
-
-std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram);
-
-bool histogramKeyComp(const std::pair<HistogramKey, uint64_t> &a, const std::pair<HistogramKey, uint64_t> &b);
-
 // custom hash function copied from https://stackoverflow.com/a/17017281
 template<>
 struct std::hash<HistogramKey>
@@ -73,6 +67,12 @@ struct std::hash<HistogramKey>
         return h1 ^ ((h2 << 1) >> 1) ^ (h3 << 1);
     }
 };
+
+typedef std::unordered_map<HistogramKey, uint64_t> LG_Histogram;
+
+std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram);
+
+bool histogramKeyComp(const LG_Histogram::value_type &a, const LG_Histogram::value_type &b);
 
 struct ContextBuffer {
   const char* Buf;
