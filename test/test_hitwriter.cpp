@@ -360,3 +360,18 @@ TEST_CASE("testDecodeContextFnSimpler") {
   hInfo.writeHitToHistogram(hit, info, decodeFn);
   REQUIRE(called);
 }
+
+TEST_CASE("testDecodedContextUsedForHit") {
+  // Irrelevant
+  // Given a "called" flag initially set to false, an STest object initialized with the pattern "foo",
+  // a sample text string containing "this is foo", an LG_SearchHit object containing the window for the hit,
+  // an LG_PatternInfo object created from the STest prog, an empty string stream, a HitOutputData
+  // object (with a buffer set based on the sample search text), and a decode lambda that
+  // flips the "called" flag to true.
+  // Initial State
+  // Call WriteContext, which calls decodeContext and assigns a DecodedContext.
+  // Action
+  // Call HistInfo::writeHitToHistogram with our decode lambda.
+  // Outcome
+  // Called should be false.
+}
