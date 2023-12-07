@@ -157,7 +157,7 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
             outer,
             decodedHit;
   const char* utf8 = nullptr;
-  const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), searchHit.KeywordIndex);
+  const LG_PatternInfo* info = lg_prog_pattern_info(Prog, searchHit.KeywordIndex);
 
   lg_hit_context(
     Decoder,
@@ -186,12 +186,12 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
 }
 
 void HitOutputData::writeHitToHistogram(const LG_SearchHit& hit){
-  LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
-  HistInfo.writeHitToHistogram(hit, info, [this](const LG_SearchHit& hit){ return this->decodeContext(hit); });
+  LG_PatternInfo* info = lg_prog_pattern_info(Prog, hit.KeywordIndex);
+  HistInfo.writeHitToHistogram(hit, info, [this](const LG_SearchHit& hit){ return decodeContext(hit); });
 }
 
 void HitOutputData::writeHit(const LG_SearchHit& hit) {
-  const LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(Prog), hit.KeywordIndex);
+  const LG_PatternInfo* info = lg_prog_pattern_info(Prog, hit.KeywordIndex);
   OutInfo.writeHit(hit, info);
 }
 
