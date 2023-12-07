@@ -189,7 +189,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     data.OutInfo.AfterContext = 0;
     data.OutInfo.BeforeContext = 0;
     LG_SearchHit searchHit{8, 11, 0};
-    HitBuffer expectedHitBuffer{0, "this is foo", LG_Window{8, 11}};
+    HitBuffer expectedHitBuffer{"this is foo", LG_Window{8, 11}, 0};
     HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
     REQUIRE(expectedHitBuffer.DataOffset == actualHitBuffer.DataOffset);
@@ -204,7 +204,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     data.OutInfo.BeforeContext = 0;
     LG_SearchHit searchHit{44, 47, 0};
 
-    HitBuffer expectedHitBuffer{36, "this is foobar", LG_Window{8, 11}};
+    HitBuffer expectedHitBuffer{"this is foobar", LG_Window{8, 11}, 36};
     HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
     REQUIRE(expectedHitBuffer.DataOffset == actualHitBuffer.DataOffset);
@@ -219,7 +219,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     data.OutInfo.AfterContext = -1;
     data.OutInfo.BeforeContext = -3;
     LG_SearchHit searchHit{44, 47, 0};
-    HitBuffer expectedHitBuffer{44, "foo", LG_Window{0, 3}};
+    HitBuffer expectedHitBuffer{"foo", LG_Window{0, 3}, 44};
     HitBuffer actualHitBuffer = data.decodeContext(searchHit);
   
     REQUIRE(expectedHitBuffer.DataOffset == actualHitBuffer.DataOffset);
@@ -339,7 +339,7 @@ TEST_CASE("testDecodeContextPassedAsFunction") {
   LG_SearchHit hit{8, 11, 0};
   LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
 
-  auto decodeFn = [](const LG_SearchHit& hit) { return HitBuffer{hit.KeywordIndex, "", {0,0}}; };
+  auto decodeFn = [](const LG_SearchHit& hit) { return HitBuffer{"", {0,0}, hit.KeywordIndex}; };
   hInfo.writeHitToHistogram(hit, info, decodeFn);
   HistogramKey hKey("", "foo", 0);
   HistogramInfo expectedHist{true};
@@ -354,7 +354,7 @@ TEST_CASE("testDecodeContextFnSimpler") {
   LG_SearchHit hit{8, 11, 0};
   LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
 
-  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{hit.KeywordIndex, "", {0,0}}; };
+  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{"", {0,0}, hit.KeywordIndex}; };
   hInfo.writeHitToHistogram(hit, info, decodeFn);
   REQUIRE(called);
 }
@@ -369,7 +369,7 @@ TEST_CASE("testDecodedContextUsedForHit") {
   std::stringstream stream;
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
-  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{hit.KeywordIndex, "", {0,0}}; };
+  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{"", {0,0}, hit.KeywordIndex}; };
 
   WriteContext wc;
   wc.write(data, hit);
@@ -388,7 +388,7 @@ TEST_CASE("testDecodeContextCalledIfLastSearchHitDifferent") {
   std::stringstream stream;
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
-  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{hit.KeywordIndex, "", {0,0}}; };
+  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{"", {0,0}, hit.KeywordIndex}; };
 
   WriteContext wc;
   wc.write(data, hit);

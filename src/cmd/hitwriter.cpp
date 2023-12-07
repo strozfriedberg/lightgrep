@@ -192,7 +192,7 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   }
 
   HistInfo.LastSearchHit = SearchHit(searchHit);
-  HistInfo.DecodedContext = HitBuffer(dataOffset, std::string(utf8_ptr.get()), dh);
+  HistInfo.DecodedContext = HitBuffer(std::string(utf8_ptr.get()), dh, dataOffset);
   return HistInfo.DecodedContext;
 }
 
