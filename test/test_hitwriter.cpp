@@ -373,5 +373,5 @@ TEST_CASE("testDecodedContextUsedForHit") {
   // Action
   // Call HistInfo::writeHitToHistogram with our decode lambda.
   // Outcome
-  // Called should be false.
+  REQUIRE(!called);
 }
