@@ -21,7 +21,7 @@ struct HitBuffer {
   LG_Window HitWindow;
 
   HitBuffer() : DataOffset(0), Context(""), HitWindow({0,0} ) {}
-  HitBuffer(uint64_t dO, std::string con, LG_Window win): DataOffset(dO), Context(con), HitWindow(win) {}
+  HitBuffer(uint64_t dataOff, std::string con, LG_Window win): DataOffset(dataOff), Context(con), HitWindow(win) {}
 
   std::string hit() const {
     return Context.substr(HitWindow.begin, (HitWindow.end - HitWindow.begin));
