@@ -32,7 +32,9 @@ struct HitBuffer {
   }
 
   void clear() {
-    *this = HitBuffer();
+    Context.clear();
+    HitWindow = LG_Window{0,0};
+    DataOffset = 0;
   }
 };
 
