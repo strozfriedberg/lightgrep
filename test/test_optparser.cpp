@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <boost/program_options.hpp>
+#include "boost_program_options.h"
 
 #include "options.h"
 #include "optparser.h"

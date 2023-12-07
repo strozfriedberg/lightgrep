@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <tuple>
 
-#include <boost/program_options.hpp>
+#include "boost_program_options.h"
 
 #include <unicode/ucnv.h>
 
