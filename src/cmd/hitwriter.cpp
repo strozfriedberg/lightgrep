@@ -15,39 +15,29 @@ const char* find_leading_context(const char* const bbeg, const char* const hbeg,
   for (int i = lines + 1; i > 0 && lnl != lend; --i) {
     lnl = std::find(lnl + 1, lend, '\n');
   }
-
   return bbeg + (lend - lnl);
 }
 
 const char* find_trailing_context(const char* const hend, const char* const bend, size_t lines) {
-
+  // context right of hit
   auto rnl = hend - 1;
   for (int i = lines + 1; i > 0 && rnl != bend; --i) {
     rnl = std::find(rnl + 1, bend, '\n');
   }
-
   if (rnl != bend && *(rnl-1) == '\r') {
     // Back up one byte on the right end in case of CRLF line endings;
     // not necessary for the left end due to the LF being on the right
     // half of the EOL.
     --rnl;
   }
-
   return rnl;
 }
 
 bool histogramKeyComp(const LG_Histogram::value_type &a, const LG_Histogram::value_type &b) {
-  if (a.second == b.second) {
-    if (a.first.UserIndex == b.first.UserIndex ) {
-      return a.first.HitText < b.first.HitText;
-    }
-    else {
-      return a.first.UserIndex < b.first.UserIndex;
-    }
-  }
-  else {
-    return a.second > b.second;
-  }
+  // order descending by count, then ascending by user index and hit text
+  return (a.second > b.second)
+      || (a.second == b.second && (a.first.UserIndex < b.first.UserIndex 
+                                    || (a.first.UserIndex == b.first.UserIndex && a.first.HitText < b.first.HitText)));
 }
 
 std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey) {

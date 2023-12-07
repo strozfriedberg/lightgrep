@@ -139,13 +139,11 @@ template<typename PathOutputFn, typename ContextFn, bool shouldOutput>
 void callbackFn(void* userData, const LG_SearchHit* searchHit) {
   HitOutputData* data = reinterpret_cast<HitOutputData*>(userData);
   if (shouldOutput) {
-
     PathOutputFn::write(*data);
     data->writeHit(*searchHit);
     ContextFn::write(*data, *searchHit);
     data->writeNewLine();
   }
-
   if (data->HistInfo.HistogramEnabled) {
     data->writeHitToHistogram(*searchHit);
   }
