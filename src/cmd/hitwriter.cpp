@@ -141,8 +141,8 @@ void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_Patter
 
 /********************************************* HitOutputData ****************************************/
 
-HitOutputData::HitOutputData(std::ostream &out, ProgramHandle* prog, char sep, int32_t bc, int32_t ac, bool histEnabled)
-              : OutInfo({out, "", 0, bc, ac, sep}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder()) {}
+HitOutputData::HitOutputData(std::ostream &out, ProgramHandle* prog, char separator, int32_t beforeContext, int32_t afterContext, bool histEnabled)
+              : OutInfo({out, "", 0, beforeContext, afterContext, separator}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder()) {}
 
 void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
   HistInfo.resetCache();
