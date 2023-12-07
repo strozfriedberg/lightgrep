@@ -97,7 +97,7 @@ void OutputInfo::writeContext(const HitBuffer& hitBuf) {
 /********************************************* HistogramInfo ****************************************/
 
 void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
-  std::vector<std::pair<HistogramKey, int>> sortedHistogram;
+  std::vector<std::pair<HistogramKey, uint64_t>> sortedHistogram;
   sortedHistogram.reserve(Histogram.size());
 
   for (auto i : Histogram) {
