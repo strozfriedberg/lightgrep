@@ -256,7 +256,7 @@ TEST_CASE("getHistogramFromHitOutputData") {
   data.writeHitToHistogram(searchHit5);
   data.writeHitToHistogram(searchHit6);
 
-  std::unordered_map<HistogramKey, int> expectedHistogram;
+  LG_Histogram expectedHistogram;
   expectedHistogram[HistogramKey{"cat", "c[auo]t", 0}] = 2;
   expectedHistogram[HistogramKey{"cat", "[bch]at", 2}] = 2;
   expectedHistogram[HistogramKey{"foo", "foo", 1}] = 1;

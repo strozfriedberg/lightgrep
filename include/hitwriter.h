@@ -55,11 +55,11 @@ public:
 
 std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey);
 
-typedef std::unordered_map<HistogramKey, int> LG_Histogram;
+typedef std::unordered_map<HistogramKey, uint64_t> LG_Histogram;
 
 std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram);
 
-bool histogramKeyComp(const std::pair<HistogramKey, int> &a, const std::pair<HistogramKey, int> &b);
+bool histogramKeyComp(const std::pair<HistogramKey, uint64_t> &a, const std::pair<HistogramKey, uint64_t> &b);
 
 // custom hash function copied from https://stackoverflow.com/a/17017281
 template<>
@@ -103,7 +103,7 @@ struct HistogramInfo {
   bool HistogramEnabled;
   HitBuffer DecodedContext;
   SearchHit LastSearchHit;
-  std::unordered_map<HistogramKey, int> Histogram;
+  LG_Histogram Histogram;
 
   HistogramInfo(bool histEnabled) : HistogramEnabled(histEnabled), Histogram({}) {}
   void writeHistogram(std::ostream& histOut, char sep);
