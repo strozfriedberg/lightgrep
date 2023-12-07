@@ -107,6 +107,8 @@ struct HistogramInfo {
   LG_Histogram Histogram;
 
   HistogramInfo(bool histEnabled) : HistogramEnabled(histEnabled), Histogram({}) {}
+
+  void resetCache() { DecodedContext.clear(); LastSearchHit = SearchHit(); }
   void writeHistogram(std::ostream& histOut, char sep);
   void writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info, std::function<HitBuffer(const LG_SearchHit&)>fn);
 };
