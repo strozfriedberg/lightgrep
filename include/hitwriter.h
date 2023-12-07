@@ -44,10 +44,10 @@ public:
   std::string Pattern;
   uint64_t UserIndex;
 
-  HistogramKey(std::string hit, std::string pat, uint64_t indx) : HitText(hit), Pattern(pat), UserIndex(indx) {};
+  HistogramKey(const std::string& hit, const std::string& pat, const uint64_t indx) : HitText(hit), Pattern(pat), UserIndex(indx) {};
 
   bool operator==(const HistogramKey& node) const {
-    return (node.Pattern == Pattern && node.HitText == HitText && node.UserIndex == UserIndex);
+    return node.Pattern == Pattern && node.HitText == HitText && node.UserIndex == UserIndex;
   }
 
   friend std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey);
