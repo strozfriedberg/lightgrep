@@ -1,7 +1,7 @@
 #pragma once
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#pragma GCC diagnostic ignored "-Wdeprecated-builtins"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#pragma clang diagnostic ignored "-Wdeprecated-builtins"
 #include <boost/program_options.hpp>
-#pragma GCC diagnostic pop
+#pragma clang diagnostic pop
