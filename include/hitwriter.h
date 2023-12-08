@@ -5,9 +5,10 @@
 #include <lightgrep/util.h>
 
 #include <iosfwd>
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <vector>
+#include <functional>
 
 #include "searchhit.h"
 
