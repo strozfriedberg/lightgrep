@@ -347,53 +347,36 @@ TEST_CASE("testDecodeContextPassedAsFunction") {
   REQUIRE(hInfo.Histogram == expectedHist.Histogram);
 }
 
-TEST_CASE("testDecodeContextFnSimpler") {
-  bool called = false;
-  STest s("foo");
-  HistogramInfo hInfo(true);
-  LG_SearchHit hit{8, 11, 0};
-  LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
-
-  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{"", {0,0}, hit.KeywordIndex}; };
-  hInfo.writeHitToHistogram(hit, info, decodeFn);
-  REQUIRE(called);
-}
-
-TEST_CASE("testDecodedContextUsedForHit") {
+TEST_CASE("HistInfo::writeHitToHistogram Should Use DecodedContext Provided By WriteContext If Present") {
   bool called = false;
   STest s("foo");
   std::string textToSearch = "this is foo";
   LG_SearchHit hit{8, 11, 0};
   LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
-
   std::stringstream stream;
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
   auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{"", {0,0}, hit.KeywordIndex}; };
 
-  WriteContext wc;
-  wc.write(data, hit);
-  data.HistInfo.writeHitToHistogram(hit, info, decodeFn);
+  SECTION("Should use cached DecodedContext when WriteContext was called before for the same hit") {
+    WriteContext wc;
+    wc.write(data, hit);
+    data.HistInfo.writeHitToHistogram(hit, info, decodeFn);
 
-  REQUIRE(!called);
-}
+    REQUIRE(!called);
+  };
 
-TEST_CASE("testDecodeContextCalledIfLastSearchHitDifferent") {
-  bool called = false;
-  STest s("foo");
-  std::string textToSearch = "this is foo";
-  LG_SearchHit hit{8, 11, 0};
-  LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
+  SECTION("Should not use cached DecodedContext if LastSearchHit is different from current SearchHit") {
+    WriteContext wc;
+    wc.write(data, hit);
+    data.HistInfo.LastSearchHit = LG_SearchHit{7, 10, 0};
+    data.HistInfo.writeHitToHistogram(hit, info, decodeFn);
 
-  std::stringstream stream;
-  HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
-  data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
-  auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{"", {0,0}, hit.KeywordIndex}; };
+    REQUIRE(called);
+  };
 
-  WriteContext wc;
-  wc.write(data, hit);
-  data.HistInfo.LastSearchHit = LG_SearchHit{7, 10, 0};
-  data.HistInfo.writeHitToHistogram(hit, info, decodeFn);
-
-  REQUIRE(called);
+  SECTION("Should call decodeContext if no cached DecodedContext") {
+    data.HistInfo.writeHitToHistogram(hit, info, decodeFn);
+    REQUIRE(called);
+  };
 }
