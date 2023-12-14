@@ -46,7 +46,7 @@ std::ostream& operator<<(std::ostream& out, const HistogramKey& hKey) {
 }
 
 std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram) {
-  for (auto [hKey, count] : histogram) {
+  for (const auto& [hKey, count] : histogram) {
     out << "[" << hKey << "]: " << count << std::endl;
   }
   return out;
