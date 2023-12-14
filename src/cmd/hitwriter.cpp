@@ -53,8 +53,7 @@ std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram) {
 }
 
 void WritePath::write(HitOutputData& data) {
-  data.OutInfo.Out << data.OutInfo.Path;
-  data.OutInfo.Out << data.OutInfo.Separator;
+  data.OutInfo.Out << data.OutInfo.Path << data.OutInfo.Separator;
 }
 
 /********************************************* OutputInfo ****************************************/
@@ -109,11 +108,10 @@ void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
             [](const LG_Histogram::value_type &a, const LG_Histogram::value_type &b){return histogramKeyComp(a, b);});
 
   for (const auto& [hKey, count] : sortedHistogram) {
-    histOut << count          << sep;
-    histOut << hKey.HitText   << sep;
-    histOut << hKey.UserIndex << sep;
-    histOut << hKey.Pattern;
-    histOut << '\n';
+    histOut << count << sep
+            << hKey.HitText << sep
+            << hKey.UserIndex << sep
+            << hKey.Pattern << '\n';
   }
 }
 
