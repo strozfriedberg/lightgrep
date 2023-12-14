@@ -21,7 +21,7 @@ struct HitBuffer {
   LG_Window HitWindow;
   uint64_t DataOffset;
 
-  HitBuffer() : Context(""), HitWindow({0,0}), DataOffset(0) {}
+  HitBuffer(): Context(), HitWindow({0,0}), DataOffset(0) {}
   HitBuffer(const std::string& con, const LG_Window& win, const uint64_t dataOff): Context(con), HitWindow(win), DataOffset(dataOff) {}
 
   std::string hit() const {
@@ -107,7 +107,7 @@ struct HistogramInfo {
   SearchHit LastSearchHit;
   LG_Histogram Histogram;
 
-  HistogramInfo(bool histEnabled) : HistogramEnabled(histEnabled), Histogram({}) {}
+  HistogramInfo(bool histEnabled): HistogramEnabled(histEnabled), Histogram({}) {}
 
   void resetCache() { DecodedContext.clear(); LastSearchHit = SearchHit(); }
   void writeHistogram(std::ostream& histOut, char sep);

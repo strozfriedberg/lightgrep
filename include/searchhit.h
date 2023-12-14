@@ -24,7 +24,7 @@
 class SearchHit: public LG_SearchHit {
 public:
   SearchHit() {}
-  SearchHit(const LG_SearchHit& s) {Start = s.Start; End = s.End; KeywordIndex = s.KeywordIndex;}
+  SearchHit(const LG_SearchHit& s): LG_SearchHit{s.Start, s.End, s.KeywordIndex} {} 
 
   // note that this takes the length
   SearchHit(uint64_t start, uint64_t end, uint32_t lbl) {

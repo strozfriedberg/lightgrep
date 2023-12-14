@@ -371,7 +371,10 @@ void search(const Options& opts) {
     handleParseErrors(std::cerr, err.get(), printFilename);
   }
 
-  if (!prog) { throw std::runtime_error("failed to create a program"); }
+  if (!prog) {
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("failed to create a program");
+    //std::runtime_error("failed to create a program");
+  }
 
   bool histogramEnabled = !opts.HistogramFile.empty();
 
@@ -383,7 +386,7 @@ void search(const Options& opts) {
     }
   }
 
-  std::unique_ptr<HitOutputData> hinfo( new HitOutputData(opts.openOutput(),
+  std::unique_ptr<HitOutputData> hinfo(new HitOutputData(opts.openOutput(),
                                                           prog.get(),
                                                           opts.GroupSeparator[0],
                                                           opts.BeforeContext,
@@ -484,7 +487,8 @@ void writeGraphviz(const Options& opts) {
   handleParseErrors(std::cerr, err.get(), printFilename);
 
   if (!prog) {
-    throw std::runtime_error("failed to create program");
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("failed to create a program");
+    //throw std::runtime_error("failed to create program");
   }
   // we don't need the prog; we just need the compilation to succeed
   prog.reset();
@@ -506,7 +510,8 @@ void writeProgram(const Options& opts) {
   handleParseErrors(std::cerr, err.get(), printFilename);
 
   if (!prog) {
-    throw std::runtime_error("failed to create program");
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("failed to create a program");
+    //throw std::runtime_error("failed to create program");
   }
 
   // break on through the C API to print the program
