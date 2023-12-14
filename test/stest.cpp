@@ -46,7 +46,7 @@ void STest::init(const std::vector<Pattern>& pats) {
 
   LG_KeyOptions keyOpts;
 
-  size_t i = 0, numErrors = 0;
+  size_t i = 0;
   for (const Pattern& p : pats) {
     LG_Error* err = nullptr;
 
@@ -59,7 +59,6 @@ void STest::init(const std::vector<Pattern>& pats) {
 
     if (err) {
       lg_free_error(err);
-      ++numErrors;
     }
 
     ++i;

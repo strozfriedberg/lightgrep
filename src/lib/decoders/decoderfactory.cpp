@@ -28,7 +28,7 @@
 #include "decoders/utf32decoder.h"
 #include "decoders/xordecoder.h"
 
-#include <boost/lexical_cast.hpp>
+#include "boost_lexical_cast.h"
 
 std::shared_ptr<Decoder> DecoderFactory::get(const std::string& chain) {
   // return a cached encoder if we have one
