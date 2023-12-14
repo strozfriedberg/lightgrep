@@ -403,7 +403,7 @@ void search(const Options& opts) {
   bool shouldWritePath = opts.PrintPath;
   bool shouldWriteContext = (opts.BeforeContext > -1 || opts.AfterContext > -1);
 
-  LG_HITCALLBACK_FN callback = callbackFnOptions[!opts.NoOutput + ( 2*shouldWritePath ) + ( shouldWriteContext )];
+  LG_HITCALLBACK_FN callback = callbackFnOptions[!opts.NoOutput + (2 * shouldWritePath) + shouldWriteContext];
 
   // setup search context
   LG_ContextOptions ctxOpts;
