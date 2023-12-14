@@ -20,7 +20,7 @@ import sys
 def load_library(base: str) -> None:
     if sys.platform == 'win32':
         ext = '.dll'
-        os.add_dll_directory(Path(__file__).parent.parent / Path("win64"))
+        os.add_dll_directory(Path(__file__).parent.parent.parent / Path("win64"))
     elif sys.platform == 'linux':
         ext = '.so'
     elif sys.platform == 'darwin':
@@ -31,9 +31,15 @@ def load_library(base: str) -> None:
     name = base + ext
 
     try:
-        return CDLL(name)
-    except Exception as e:
-        raise RuntimeError(f"Failed to load {name} from {sys.path}") from e
+        # try the current directory
+        here = str(Path(__file__).parent / name)
+        return CDLL(here)
+    except OSError:
+        try:
+            # try sys.path
+            return CDLL(name)
+        except OSError as e:
+            raise ImportError(f"Failed to load {name} from {here} or {sys.path}") from e
 
 
 _LG = load_library('liblightgrep')

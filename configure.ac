@@ -229,7 +229,7 @@ AC_DEFINE_UNQUOTED(LG_TEST_DATA_DIR, "$srcdir/test/data", [Define to the path to
 #
 case "$host" in
 *-*-mingw*)
-  AX_APPEND_COMPILE_FLAGS([-mthreads], [LG_CPPLAGS])
+  AX_APPEND_COMPILE_FLAGS([-mthreads], [LG_CPPFLAGS])
   AX_APPEND_LINK_FLAGS([-mthreads], [LG_LDFLAGS])
   ;;
 *-apple-darwin*)
