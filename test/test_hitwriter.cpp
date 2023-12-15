@@ -1,9 +1,10 @@
 #include <iostream>
+#include <sstream>
+
+#include <catch2/catch_test_macros.hpp>
+
 #include "hitwriter.h"
 #include "stest.h"
-
-#include <sstream>
-#include <catch2/catch_test_macros.hpp>
 
 /*
 TEST_CASE("hitWriterOutput") {
