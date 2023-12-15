@@ -298,8 +298,11 @@ TEST_CASE("testHistogramKeyComp") {
     {false, {HistogramKey{"hat", "", 2}, 2}, {HistogramKey{"cat", "", 2}, 2}}
   };
 
+  int idx = 0;
   for (const auto& [exp, l, r]: tests) {
+    CAPTURE(idx); // prints index of misbehaving iteration if test fails
     REQUIRE(exp == histogramKeyComp(l, r));
+    ++idx;
   }
 }
 
