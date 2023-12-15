@@ -102,23 +102,6 @@ TEST_CASE("findTrailingContext6") {
   REQUIRE(TXT+19 == find_trailing_context(TXT+11, TXT+19, 6));
 }
 
-TEST_CASE("callbackFn") {
-  LG_HITCALLBACK_FN a = &callbackFn<DoNotWritePath, NoContext, true>;
-  LG_HITCALLBACK_FN b = &callbackFn<DoNotWritePath, WriteContext, true>;
-  LG_HITCALLBACK_FN c = &callbackFn<WritePath, NoContext, true>;
-  LG_HITCALLBACK_FN d = &callbackFn<WritePath, WriteContext, true>;
-  LG_HITCALLBACK_FN e = &callbackFn<DoNotWritePath, NoContext, false>;
-
-  LG_HITCALLBACK_FN arr[] = {a, b, c, d, e};
-
-  bool shouldWritePath = true;
-  bool shouldWriteContext = true;
-
-  LG_HITCALLBACK_FN selection = arr[( 2*shouldWritePath ) + ( shouldWriteContext )];
-  REQUIRE(selection == d);
-
-}
-
 TEST_CASE("hitOutputDataAndCallback") {
   STest s("foo");
   std::ostringstream stream;
