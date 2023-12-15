@@ -167,7 +167,6 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   );
 
   if (err) {
-    std::cerr << err->Message << std::endl;
     lg_free_error(err);
     return HitBuffer();
   }
