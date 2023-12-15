@@ -33,7 +33,7 @@ const char* find_trailing_context(const char* const hend, const char* const bend
   return rnl;
 }
 
-bool histogramKeyComp(const LG_Histogram::value_type &a, const LG_Histogram::value_type &b) {
+bool histogramKeyComp(const LG_Histogram::value_type& a, const LG_Histogram::value_type& b) {
   // order descending by count, then ascending by user index and hit text
   return (a.second > b.second)
       || (a.second == b.second && (a.first.UserIndex < b.first.UserIndex 
