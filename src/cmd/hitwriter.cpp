@@ -105,7 +105,7 @@ void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
 
   std::sort(sortedHistogram.begin(),
             sortedHistogram.end(),
-            [](const LG_Histogram::value_type &a, const LG_Histogram::value_type &b){return histogramKeyComp(a, b);});
+            [](const LG_Histogram::value_type& a, const LG_Histogram::value_type& b){return histogramKeyComp(a, b);});
 
   for (const auto& [hKey, count] : sortedHistogram) {
     histOut << count << sep
