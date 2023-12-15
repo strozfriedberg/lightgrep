@@ -118,13 +118,7 @@ void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
 void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_PatternInfo* info, std::function<HitBuffer(const LG_SearchHit&)> decodeFun) {
   HitBuffer hitText = (SearchHit(hit) == LastSearchHit && !DecodedContext.empty()) ? DecodedContext : decodeFun(hit);
   HistogramKey hitKey {hitText.hit(), info->Pattern, info->UserIndex};
-  auto found = Histogram.find(hitKey);
-  if (found != Histogram.end()) {
-    ++found->second;
-  }
-  else {
-    Histogram.insert({hitKey, 1});
-  }
+  ++Histogram[hitKey];
 }
 
 /********************************************* HitOutputData ****************************************/
