@@ -49,7 +49,7 @@ void searchText(const char** textArray, unsigned int numStrings, LG_HCONTEXT sea
   lg_closeout_search(searcher, (void*)17, getHit);
 }
 
-int main(int argc, char** argv) {
+int main(int, char**) {
   const char* keys[] = {"mary", "lamb", "[a-z]+"};
   const unsigned int kcount = sizeof(keys)/sizeof(keys[0]);
 
