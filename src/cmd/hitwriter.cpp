@@ -141,7 +141,7 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   const char* const cend = OutInfo.AfterContext < 0 ? hend : find_trailing_context(hend, CtxBuf.Buf + CtxBuf.BufLen, OutInfo.AfterContext);
 
   // offset of the start of context
-  uint64_t dataOffset = CtxBuf.BufOff + (cbeg - CtxBuf.Buf);
+  const uint64_t dataOffset = CtxBuf.BufOff + (cbeg - CtxBuf.Buf);
 
   // transcode the context to UTF-8
   LG_Error* err = nullptr;
