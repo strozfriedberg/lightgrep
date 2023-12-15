@@ -392,7 +392,7 @@ void search(const Options& opts) {
                                                           opts.BeforeContext,
                                                           opts.AfterContext, histogramEnabled));
 
-  LG_HITCALLBACK_FN callbackFnOptions[] = {
+  const LG_HITCALLBACK_FN callbackFnOptions[] = {
     &callbackFn<DoNotWritePath, NoContext, false>,
     &callbackFn<DoNotWritePath, NoContext, true>,
     &callbackFn<DoNotWritePath, WriteContext, true>,
@@ -400,8 +400,8 @@ void search(const Options& opts) {
     &callbackFn<WritePath, WriteContext, true>,
   };
 
-  bool shouldWritePath = opts.PrintPath;
-  bool shouldWriteContext = (opts.BeforeContext > -1 || opts.AfterContext > -1);
+  const bool shouldWritePath = opts.PrintPath;
+  const bool shouldWriteContext = (opts.BeforeContext > -1 || opts.AfterContext > -1);
 
   LG_HITCALLBACK_FN callback = callbackFnOptions[!opts.NoOutput + (2 * shouldWritePath) + shouldWriteContext];
 
