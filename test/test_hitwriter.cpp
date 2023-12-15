@@ -120,7 +120,7 @@ TEST_CASE("callbackFn") {
 
 TEST_CASE("hitOutputDataAndCallback") {
   STest s("foo");
-  std::stringstream stream;
+  std::ostringstream stream;
   std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
 
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
@@ -233,7 +233,7 @@ TEST_CASE("hitOutputDataAndCallback") {
 
 TEST_CASE("getHistogramFromHitOutputData") {
   STest s({"c[auo]t", "foo", "[bch]at"});
-  std::stringstream stream;
+  std::ostringstream stream;
   std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat";
 
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
@@ -267,7 +267,7 @@ TEST_CASE("getHistogramFromHitOutputData") {
 
 TEST_CASE("writeHistogram") {
   STest s({"c[auo]t", "foo", "[bch]at"});
-  std::stringstream stream, histStream;
+  std::ostringstream stream, histStream;
   std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat in a hat";
 
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
@@ -315,7 +315,7 @@ TEST_CASE("testHistogramKeyComp") {
 
 TEST_CASE("decodeContextNoLineContextSecondLineAndHistogramEnabled") {
   STest s("foo");
-  std::stringstream stream;
+  std::ostringstream stream;
   std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
 
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
@@ -353,7 +353,7 @@ TEST_CASE("HistInfo::writeHitToHistogram Should Use DecodedContext Provided By W
   std::string textToSearch = "this is foo";
   LG_SearchHit hit{8, 11, 0};
   LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
-  std::stringstream stream;
+  std::ostringstream stream;
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
   auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{"", {0,0}, hit.KeywordIndex}; };
