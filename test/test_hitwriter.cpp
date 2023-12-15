@@ -103,26 +103,26 @@ TEST_CASE("findTrailingContext6") {
 }
 
 TEST_CASE("hitOutputDataAndCallback") {
-  STest s("foo");
+  const STest s("foo");
   std::ostringstream stream;
-  std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
+  const std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
 
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
   data.setPath("path/to/input/file");
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
 
   SECTION("noContextNoPath") {
-    LG_SearchHit searchHit{8, 11, 0};
-    std::string expected = "8\t11\t0\tfoo\tUS-ASCII\n";
-    LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
+    const LG_SearchHit searchHit{8, 11, 0};
+    const std::string expected = "8\t11\t0\tfoo\tUS-ASCII\n";
+    const LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
     fn(&data, &searchHit);
     REQUIRE(expected == stream.str());
     REQUIRE(data.HistInfo.Histogram.size() == 0);
   };
 
   SECTION("noOutput") {
-    LG_SearchHit searchHit{0, 8, 0};
-    LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, false>;
+    const LG_SearchHit searchHit{0, 8, 0};
+    const LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, false>;
     fn(&data, &searchHit);
     REQUIRE("" == stream.str());
     REQUIRE(1 == data.OutInfo.NumHits);
@@ -130,10 +130,10 @@ TEST_CASE("hitOutputDataAndCallback") {
   };
 
   SECTION("noContextYesPath") {
-    LG_SearchHit searchHit0{0, 8, 0};
-    LG_SearchHit searchHit1{44, 47, 0};
-    LG_SearchHit searchHit2{59, 62, 0};
-    LG_HITCALLBACK_FN fn = &callbackFn<WritePath, NoContext, true>;
+    const LG_SearchHit searchHit0{0, 8, 0};
+    const LG_SearchHit searchHit1{44, 47, 0};
+    const LG_SearchHit searchHit2{59, 62, 0};
+    const LG_HITCALLBACK_FN fn = &callbackFn<WritePath, NoContext, true>;
     fn(&data, &searchHit0);
     fn(&data, &searchHit1);
     fn(&data, &searchHit2);
@@ -147,8 +147,8 @@ TEST_CASE("hitOutputDataAndCallback") {
     data.OutInfo.AfterContext = 0;
     data.OutInfo.BeforeContext = 0;
 
-    LG_SearchHit searchHit{0, 8, 0};
-    LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, WriteContext, true>;
+    const LG_SearchHit searchHit{0, 8, 0};
+    const LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, WriteContext, true>;
     fn(&data, &searchHit);
     std::string expected = "0\t8\t0\tfoo\tUS-ASCII\t0\tthis is foo\n";
     REQUIRE(expected == stream.str());
@@ -172,7 +172,7 @@ TEST_CASE("hitOutputDataAndCallback") {
   SECTION("decodeContextNoLineContext") {
     data.OutInfo.AfterContext = 0;
     data.OutInfo.BeforeContext = 0;
-    LG_SearchHit searchHit{8, 11, 0};
+    const LG_SearchHit searchHit{8, 11, 0};
     HitBuffer expectedHitBuffer{"this is foo", LG_Window{8, 11}, 0};
     HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
@@ -186,10 +186,10 @@ TEST_CASE("hitOutputDataAndCallback") {
   SECTION("decodeContextNoLineContextSecondLine") {
     data.OutInfo.AfterContext = 0;
     data.OutInfo.BeforeContext = 0;
-    LG_SearchHit searchHit{44, 47, 0};
+    const LG_SearchHit searchHit{44, 47, 0};
 
-    HitBuffer expectedHitBuffer{"this is foobar", LG_Window{8, 11}, 36};
-    HitBuffer actualHitBuffer = data.decodeContext(searchHit);
+    const HitBuffer expectedHitBuffer{"this is foobar", LG_Window{8, 11}, 36};
+    const HitBuffer actualHitBuffer = data.decodeContext(searchHit);
 
     REQUIRE(expectedHitBuffer.DataOffset == actualHitBuffer.DataOffset);
     REQUIRE(expectedHitBuffer.Context == actualHitBuffer.Context);
@@ -202,9 +202,9 @@ TEST_CASE("hitOutputDataAndCallback") {
   SECTION("NegativeAfterAndBeforeContextOnlyHitText") {
     data.OutInfo.AfterContext = -1;
     data.OutInfo.BeforeContext = -3;
-    LG_SearchHit searchHit{44, 47, 0};
-    HitBuffer expectedHitBuffer{"foo", LG_Window{0, 3}, 44};
-    HitBuffer actualHitBuffer = data.decodeContext(searchHit);
+    const LG_SearchHit searchHit{44, 47, 0};
+    const HitBuffer expectedHitBuffer{"foo", LG_Window{0, 3}, 44};
+    const HitBuffer actualHitBuffer = data.decodeContext(searchHit);
   
     REQUIRE(expectedHitBuffer.DataOffset == actualHitBuffer.DataOffset);
     REQUIRE(expectedHitBuffer.Context == actualHitBuffer.Context);
@@ -216,9 +216,9 @@ TEST_CASE("hitOutputDataAndCallback") {
 }
 
 TEST_CASE("getHistogramFromHitOutputData") {
-  STest s({"c[auo]t", "foo", "[bch]at"});
+  const STest s({"c[auo]t", "foo", "[bch]at"});
   std::ostringstream stream;
-  std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat";
+  const std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat";
 
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
   data.setPath("path/to/input/file");
@@ -250,9 +250,9 @@ TEST_CASE("getHistogramFromHitOutputData") {
 }
 
 TEST_CASE("writeHistogram") {
-  STest s({"c[auo]t", "foo", "[bch]at"});
+  const STest s({"c[auo]t", "foo", "[bch]at"});
   std::ostringstream stream, histStream;
-  std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat in a hat";
+  const std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat in a hat";
 
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
   data.setPath("path/to/input/file");
@@ -307,17 +307,17 @@ TEST_CASE("testHistogramKeyComp") {
 }
 
 TEST_CASE("decodeContextNoLineContextSecondLineAndHistogramEnabled") {
-  STest s("foo");
+  const STest s("foo");
   std::ostringstream stream;
-  std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
+  const std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
 
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
   data.setPath("path/to/input/file");
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
 
-  LG_SearchHit searchHit{8, 11, 0};
-  std::string expected = "8\t11\t0\tfoo\tUS-ASCII\n";
-  LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
+  const LG_SearchHit searchHit{8, 11, 0};
+  const std::string expected = "8\t11\t0\tfoo\tUS-ASCII\n";
+  const LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, true>;
   fn(&data, &searchHit);
   REQUIRE(expected == stream.str());
   CHECK(data.HistInfo.Histogram.size() == 1);
@@ -327,9 +327,9 @@ TEST_CASE("decodeContextNoLineContextSecondLineAndHistogramEnabled") {
 }
 
 TEST_CASE("testDecodeContextPassedAsFunction") {
-  STest s("foo");
+  const STest s("foo");
   HistogramInfo hInfo(true);
-  LG_SearchHit hit{8, 11, 0};
+  const LG_SearchHit hit{8, 11, 0};
   LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
 
   auto decodeFn = [](const LG_SearchHit& hit) { return HitBuffer{"", {0,0}, hit.KeywordIndex}; };
@@ -342,9 +342,9 @@ TEST_CASE("testDecodeContextPassedAsFunction") {
 
 TEST_CASE("HistInfo::writeHitToHistogram Should Use DecodedContext Provided By WriteContext If Present") {
   bool called = false;
-  STest s("foo");
-  std::string textToSearch = "this is foo";
-  LG_SearchHit hit{8, 11, 0};
+  const STest s("foo");
+  const std::string textToSearch = "this is foo";
+  const LG_SearchHit hit{8, 11, 0};
   LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
   std::ostringstream stream;
   HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
@@ -360,7 +360,7 @@ TEST_CASE("HistInfo::writeHitToHistogram Should Use DecodedContext Provided By W
   };
 
   SECTION("Should not use cached DecodedContext if LastSearchHit is different from current SearchHit") {
-    WriteContext wc;
+    const WriteContext wc;
     wc.write(data, hit);
     data.HistInfo.LastSearchHit = LG_SearchHit{7, 10, 0};
     data.HistInfo.writeHitToHistogram(hit, info, decodeFn);
