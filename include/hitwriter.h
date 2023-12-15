@@ -73,7 +73,7 @@ typedef std::unordered_map<HistogramKey, uint64_t> LG_Histogram;
 
 std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram);
 
-bool histogramKeyComp(const LG_Histogram::value_type &a, const LG_Histogram::value_type &b);
+bool histogramKeyComp(const LG_Histogram::value_type& a, const LG_Histogram::value_type& b);
 
 struct ContextBuffer {
   const char* Buf;
@@ -88,7 +88,7 @@ struct ContextBuffer {
 };
 
 struct OutputInfo {
-  std::ostream &Out;
+  std::ostream& Out;
   std::string Path;
   uint64_t NumHits;
   int32_t BeforeContext;
@@ -122,7 +122,7 @@ public:
   HistogramInfo HistInfo;
   LG_HDECODER Decoder;
 
-  HitOutputData(std::ostream &out, ProgramHandle* prog, char separator, int32_t beforeContext, int32_t afterContext, bool histEnabled);
+  HitOutputData(std::ostream& out, ProgramHandle* prog, char separator, int32_t beforeContext, int32_t afterContext, bool histEnabled);
 
   void setPath(const std::string& path) { OutInfo.setPath(path); }
   void setBuffer(const char* buf, size_t blen, uint64_t boff);
