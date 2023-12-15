@@ -284,17 +284,23 @@ TEST_CASE("writeHistogram") {
 }
 
 TEST_CASE("testHistogramKeyComp") {
-  REQUIRE(false == histogramKeyComp({{"foo", "", 1}, 1}, {{"foo", "", 1}, 1}));
-  REQUIRE(true == histogramKeyComp({{"afoo", "", 1}, 1}, {{"foo", "", 1}, 1}));
-  REQUIRE(true == histogramKeyComp({{"foo", "", 1}, 1}, {{"foo", "", 2}, 1}));
-  REQUIRE(true == histogramKeyComp({{"afoo", "", 1}, 1}, {{"foo", "", 2}, 1}));
-  REQUIRE(true == histogramKeyComp({{"foo", "", 1}, 2}, {{"foo", "", 1}, 1}));
-  REQUIRE(true == histogramKeyComp({{"foo", "", 1}, 2}, {{"afoo", "", 1}, 1}));
-  REQUIRE(true == histogramKeyComp({{"foo", "", 2}, 2}, {{"foo", "", 1}, 1}));
-  REQUIRE(true == histogramKeyComp({{"foo", "", 2}, 2}, {{"afoo", "", 1}, 1}));
-  REQUIRE(false == histogramKeyComp({{"afoo", "afoo", 1}, 1}, {{"foo", "", 2}, 2}));
-  REQUIRE(true == histogramKeyComp({{"cat", "", 2}, 2}, {{"hat", "", 2}, 2}));
-  REQUIRE(false == histogramKeyComp({{"hat", "", 2}, 2}, {{"cat", "", 2}, 2}));
+  const std::vector<std::tuple<bool, LG_Histogram::value_type, LG_Histogram::value_type>> tests = {
+    {false, {HistogramKey{"foo", "", 1}, 1}, {HistogramKey{"foo", "", 1}, 1}},
+    {true, {HistogramKey{"afoo", "", 1}, 1}, {HistogramKey{"foo", "", 1}, 1}},
+    {true, {HistogramKey{"foo", "", 1}, 1}, {HistogramKey{"foo", "", 2}, 1}},
+    {true, {HistogramKey{"afoo", "", 1}, 1}, {HistogramKey{"foo", "", 2}, 1}},
+    {true, {HistogramKey{"foo", "", 1}, 2}, {HistogramKey{"foo", "", 1}, 1}},
+    {true, {HistogramKey{"foo", "", 1}, 2}, {HistogramKey{"afoo", "", 1}, 1}},
+    {true, {HistogramKey{"foo", "", 2}, 2}, {HistogramKey{"foo", "", 1}, 1}},
+    {true, {HistogramKey{"foo", "", 2}, 2}, {HistogramKey{"afoo", "", 1}, 1}},
+    {true, {HistogramKey{"cat", "", 2}, 2}, {HistogramKey{"hat", "", 2}, 2}},
+    {false, {HistogramKey{"afoo", "afoo", 1}, 1}, {HistogramKey{"foo", "", 2}, 2}},
+    {false, {HistogramKey{"hat", "", 2}, 2}, {HistogramKey{"cat", "", 2}, 2}}
+  };
+
+  for (const auto& [exp, l, r]: tests) {
+    REQUIRE(exp == histogramKeyComp(l, r));
+  }
 }
 
 TEST_CASE("decodeContextNoLineContextSecondLineAndHistogramEnabled") {
