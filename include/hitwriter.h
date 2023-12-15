@@ -69,7 +69,7 @@ struct std::hash<HistogramKey>
     }
 };
 
-typedef std::unordered_map<HistogramKey, uint64_t> LG_Histogram;
+using LG_Histogram = std::unordered_map<HistogramKey, uint64_t>;
 
 std::ostream& operator<<(std::ostream& out, const LG_Histogram& histogram);
 
