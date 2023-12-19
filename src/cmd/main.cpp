@@ -388,7 +388,8 @@ void search(const Options& opts) {
 
   std::unique_ptr<HitOutputData> hinfo(new HitOutputData(opts.openOutput(),
                                                           prog.get(),
-                                                          opts.GroupSeparator[0],
+                                                          '\t',
+                                                          opts.GroupSeparator,
                                                           opts.BeforeContext,
                                                           opts.AfterContext, histogramEnabled));
 
@@ -469,8 +470,8 @@ void search(const Options& opts) {
       std::cerr << "+inf";
     }
     std::cerr << " MB/s avg\n"
-              << hinfo->OutInfo.NumHits
-              << " hit" << (hinfo->OutInfo.NumHits != 1 ? "s" : "") << std::endl;
+              << hinfo->NumHits
+              << " hit" << (hinfo->NumHits != 1 ? "s" : "") << std::endl;
   }
 }
 

@@ -107,7 +107,7 @@ TEST_CASE("hitOutputDataAndCallback") {
   std::ostringstream stream;
   const std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
 
-  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
+  HitOutputData data(stream, s.Prog.get(), '\t', "--", -1, -1, false);
   data.setPath("path/to/input/file");
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
 
@@ -125,7 +125,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     const LG_HITCALLBACK_FN fn = &callbackFn<DoNotWritePath, NoContext, false>;
     fn(&data, &searchHit);
     REQUIRE("" == stream.str());
-    REQUIRE(1 == data.OutInfo.NumHits);
+    REQUIRE(1 == data.NumHits);
     REQUIRE(data.HistInfo.Histogram.size() == 0);
   };
 
@@ -139,7 +139,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     fn(&data, &searchHit2);
     std::string expected = "path/to/input/file\t0\t8\t0\tfoo\tUS-ASCII\npath/to/input/file\t44\t47\t0\tfoo\tUS-ASCII\npath/to/input/file\t59\t62\t0\tfoo\tUS-ASCII\n";
     REQUIRE(expected == stream.str());
-    REQUIRE(3 == data.OutInfo.NumHits);
+    REQUIRE(3 == data.NumHits);
     REQUIRE(data.HistInfo.Histogram.size() == 0);
   };
 
@@ -152,7 +152,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     fn(&data, &searchHit);
     std::string expected = "0\t8\t0\tfoo\tUS-ASCII\t0\tthis is foo\n";
     REQUIRE(expected == stream.str());
-    REQUIRE(1 == data.OutInfo.NumHits);
+    REQUIRE(1 == data.NumHits);
     REQUIRE(data.HistInfo.Histogram.size() == 0);
   };
 
@@ -165,7 +165,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     fn(&data, &searchHit);
     std::string expected = "path/to/input/file\t0\t8\t0\tfoo\tUS-ASCII\t0\tthis is foo\n";
     REQUIRE(expected == stream.str());
-    REQUIRE(1 == data.OutInfo.NumHits);
+    REQUIRE(1 == data.NumHits);
     REQUIRE(data.HistInfo.Histogram.size() == 0);
   };
 
@@ -213,6 +213,23 @@ TEST_CASE("hitOutputDataAndCallback") {
     REQUIRE(actualHitBuffer.hit() == "foo");
     REQUIRE(data.HistInfo.Histogram.size() == 0);
   }
+
+  SECTION("Multiple lines of context should be separated by group separator") {
+    data.OutInfo.AfterContext = 3;
+    data.OutInfo.BeforeContext = 2;
+
+    const LG_SearchHit searchHit0{0, 8, 0};
+    const LG_SearchHit searchHit1{44, 47, 0};
+    const LG_SearchHit searchHit2{59, 62, 0};
+    const LG_HITCALLBACK_FN fn = &callbackFn<WritePath, WriteContext, true>;
+    fn(&data, &searchHit0);
+    fn(&data, &searchHit1);
+    fn(&data, &searchHit2);
+    std::string expected = "path/to/input/file\t0\t8\t0\tfoo\tUS-ASCII\t0\tthis is foo\\nthis is bar\\nthis is baz\\nthis is foobar\n--\npath/to/input/file\t44\t47\t0\tfoo\tUS-ASCII\t12\tthis is bar\\nthis is baz\\nthis is foobar\\nthis is foobaz\\nthis is foobarbaz\n--\npath/to/input/file\t59\t62\t0\tfoo\tUS-ASCII\t24\tthis is baz\\nthis is foobar\\nthis is foobaz\\nthis is foobarbaz\n";
+    REQUIRE(expected == stream.str());
+    REQUIRE(3 == data.NumHits);
+    REQUIRE(data.HistInfo.Histogram.size() == 0);
+  }
 }
 
 TEST_CASE("getHistogramFromHitOutputData") {
@@ -220,7 +237,7 @@ TEST_CASE("getHistogramFromHitOutputData") {
   std::ostringstream stream;
   const std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat";
 
-  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
+  HitOutputData data(stream, s.Prog.get(), '\t', "--", -1, -1, false);
   data.setPath("path/to/input/file");
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
   data.OutInfo.AfterContext = 0;
@@ -254,7 +271,7 @@ TEST_CASE("writeHistogram") {
   std::ostringstream stream, histStream;
   const std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat in a hat";
 
-  HitOutputData data(stream, s.Prog.get(), '\t', -1, -1, false);
+  HitOutputData data(stream, s.Prog.get(), '\t', "--", -1, -1, false);
   data.setPath("path/to/input/file");
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
   data.OutInfo.AfterContext = 0;
@@ -311,7 +328,7 @@ TEST_CASE("decodeContextNoLineContextSecondLineAndHistogramEnabled") {
   std::ostringstream stream;
   const std::string textToSearch = "this is foo\nthis is bar\nthis is baz\nthis is foobar\nthis is foobaz\nthis is foobarbaz";
 
-  HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
+  HitOutputData data(stream, s.Prog.get(), '\t', "--", -1, -3, true);
   data.setPath("path/to/input/file");
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
 
@@ -347,7 +364,7 @@ TEST_CASE("HistInfo::writeHitToHistogram Should Use DecodedContext Provided By W
   const LG_SearchHit hit{8, 11, 0};
   LG_PatternInfo* info = lg_prog_pattern_info(const_cast<ProgramHandle*>(s.Prog.get()), hit.KeywordIndex);
   std::ostringstream stream;
-  HitOutputData data(stream, s.Prog.get(), '\t', -1, -3, true);
+  HitOutputData data(stream, s.Prog.get(), '\t', "--", -1, -3, true);
   data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
   auto decodeFn = [&called](const LG_SearchHit& hit) { called = true; return HitBuffer{"", {0,0}, hit.KeywordIndex}; };
 
