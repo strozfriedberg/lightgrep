@@ -23,7 +23,7 @@
 #include <iomanip>
 #include <ostream>
 
-#include <boost/lexical_cast.hpp>
+#include "boost_lexical_cast.h"
 
 bool is_binary(const ParseNode* n) {
   return n->Type == ParseNode::ALTERNATION || n->Type == ParseNode::CONCATENATION;

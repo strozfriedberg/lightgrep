@@ -37,7 +37,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/lexical_cast.hpp>
+#include "boost_lexical_cast.h"
 #include <boost/tokenizer.hpp>
 
 namespace {

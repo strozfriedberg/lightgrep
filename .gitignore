@@ -35,6 +35,10 @@
 /m4/ltversion.m4
 /m4/lt~obsolete.m4
 /mingw-liblightgrep.spec
+/pylightgrep/.venv
+/pylightgrep/build
+/pylightgrep/dist
+/pylightgrep/lightgrep.egg-info
 /pylightgrep/test.log
 /pylightgrep/test.trs
 /re_gen/parsecheck
