@@ -56,6 +56,10 @@ void WritePath::write(HitOutputData& data) {
   data.OutInfo.Out << data.OutInfo.Path << data.OutInfo.Separator;
 }
 
+void WriteContext::writeGroupSeparator(HitOutputData& data) {
+  data.writeGroupSeparator();
+}
+
 /********************************************* OutputInfo ****************************************/
 
 void OutputInfo::writeHit(const LG_SearchHit& hit, const LG_PatternInfo* info) {
@@ -93,6 +97,10 @@ void OutputInfo::writeContext(const HitBuffer& hitBuf) {
   }
 }
 
+void OutputInfo::writeGroupSeparator() {
+  Out << GroupSeparator << '\n';
+}
+
 /********************************************* HistogramInfo ****************************************/
 
 void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
@@ -123,8 +131,8 @@ void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_Patter
 
 /********************************************* HitOutputData ****************************************/
 
-HitOutputData::HitOutputData(std::ostream &out, ProgramHandle* prog, char separator, int32_t beforeContext, int32_t afterContext, bool histEnabled)
-              : OutInfo({out, "", 0, beforeContext, afterContext, separator}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder()) {}
+HitOutputData::HitOutputData(std::ostream &out, ProgramHandle* prog, char separator, const std::string& groupSep, int32_t beforeContext, int32_t afterContext, bool histEnabled)
+              : OutInfo({out, "", beforeContext, afterContext, separator, groupSep}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder()) {}
 
 void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
   HistInfo.resetCache();

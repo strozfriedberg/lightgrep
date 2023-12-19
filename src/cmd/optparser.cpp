@@ -81,7 +81,7 @@ void parse_opts(int argc, const char* const * argv,
     ("after-context,A", po::value<int32_t>(&opts.AfterContext)->value_name("NUM"), "print NUM lines of trailing context")
     ("before-context,B", po::value<int32_t>(&opts.BeforeContext)->value_name("NUM"), "print NUM lines of leading context")
     ("context,C", po::value<int32_t>(&opts.BeforeContext)->value_name("NUM"), "print NUM lines of context")
-    ("group-separator", po::value<std::string>(&opts.GroupSeparator)->value_name("SEP")->default_value("\t"), "use SEP as the group separator")
+    ("group-separator", po::value<std::string>(&opts.GroupSeparator)->value_name("SEP")->default_value("--"), "use SEP as the group separator")
     ("no-output", "do not output hits (good for profiling)")
     ("block-size", po::value<uint32_t>(&opts.BlockSize)->default_value(8 * 1024 * 1024)->value_name("BYTES"), "block size to use for buffering, in bytes")
     ("mmap", "memory-map input file(s)")
