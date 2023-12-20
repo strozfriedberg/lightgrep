@@ -21,7 +21,7 @@
 #include <iostream>
 #include <stack>
 
-#include <boost/lexical_cast.hpp>
+#include "boost_lexical_cast.h"
 
 void print_tree(std::ostream& out, const ParseNode& n) {
   switch (n.Type) {

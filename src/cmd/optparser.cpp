@@ -80,6 +80,7 @@ void parse_opts(int argc, const char* const * argv,
     ("output,o", po::value<std::string>(&opts.Output)->value_name("FILE")->default_value("-"), "output file (stdout default)")
     ("arg-file,a", po::value<std::vector<std::string>>(&opts.InputLists)->composing()->value_name("FILE"), "read input paths from file")
     ("recursive,r", "traverse directories recursively")
+    ("histogram-file", po::value<std::string>(&opts.HistogramFile)->value_name("FILE"), "output file for histogram")
     ("with-filename,H", "print the filename for each match")
     ("no-filename,h", "suppress the filename for each match")
     ("after-context,A", po::value<int32_t>(&opts.AfterContext)->value_name("NUM"), "print NUM lines of trailing context")

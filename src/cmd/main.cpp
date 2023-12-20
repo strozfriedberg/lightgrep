@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <tuple>
 
-#include <boost/program_options.hpp>
+#include "boost_program_options.h"
 
 #include <unicode/ucnv.h>
 
@@ -110,7 +110,7 @@ void search(
   bool mmapped,
   SearchController& ctrl,
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   LG_HITCALLBACK_FN callback)
 {
   std::unique_ptr<Reader> reader;
@@ -137,7 +137,7 @@ void searchRecursively(
   bool mmapped,
   SearchController& ctrl,
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   LG_HITCALLBACK_FN callback)
 {
   const fs::recursive_directory_iterator end;
@@ -308,7 +308,7 @@ void searchRec(
   bool mmapped,
   SearchController& ctrl,
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   LG_HITCALLBACK_FN callback)
 {
   // search this path recursively
@@ -326,7 +326,7 @@ void searchNonRec(
   bool mmapped,
   SearchController& ctrl,
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   LG_HITCALLBACK_FN callback)
 {
   // search this path non-recursively
@@ -342,7 +342,7 @@ void searchInputs(
   bool& stdinUsed,
   SearchController& ctrl,
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   LG_HITCALLBACK_FN callback)
 {
   const auto searchFunc = opts.Recursive ? searchRec : searchNonRec;
@@ -366,52 +366,45 @@ void search(const Options& opts) {
 
     std::tie(std::ignore, prog, err) = parsePatterns(opts);
 
-    const bool printFilename =
-      opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
+    const bool printFilename = opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
     handleParseErrors(std::cerr, err.get(), printFilename);
   }
 
   if (!prog) {
-    throw std::runtime_error("failed to create a program");
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("failed to create a program");
+    //std::runtime_error("failed to create a program");
   }
 
-  // setup hit callback
-  LG_HITCALLBACK_FN callback = 0;
-  std::unique_ptr<HitCounterInfo> hinfo;
+  bool histogramEnabled = !opts.HistogramFile.empty();
 
-  if (opts.NoOutput) {
-    callback = &nullWriter;
-    hinfo.reset(new HitCounterInfo);
-  }
-  else if (opts.BeforeContext > -1 || opts.AfterContext > -1) {
-    if (opts.PrintPath) {
-      callback = &lineContextPathWriter;
-      hinfo.reset(new LineContextPathWriterInfo(
-        opts.openOutput(), prog.get(),
-        std::max(opts.BeforeContext, 0),
-        std::max(opts.AfterContext, 0),
-        opts.GroupSeparator
-      ));
-    }
-    else {
-      callback = &lineContextHitWriter;
-      hinfo.reset(new LineContextHitWriterInfo(
-        opts.openOutput(), prog.get(),
-        std::max(opts.BeforeContext, 0),
-        std::max(opts.AfterContext, 0),
-        opts.GroupSeparator
-      ));
+  std::ofstream histFile;
+  if (histogramEnabled) {
+    histFile.open(opts.HistogramFile, std::ios::out | std::ios::trunc);
+    if (!histFile) {
+      THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("Could not open file for histogram at " << opts.HistogramFile);
     }
   }
-  else if (opts.PrintPath) {
-    callback = &pathWriter;
-    hinfo.reset(new PathWriterInfo(opts.openOutput(), prog.get()));
-  }
-  else {
-    callback = &hitWriter;
-    hinfo.reset(new HitWriterInfo(opts.openOutput(), prog.get()));
-  }
+
+  std::unique_ptr<HitOutputData> hinfo(new HitOutputData(opts.openOutput(),
+                                                          prog.get(),
+                                                          '\t',
+                                                          opts.GroupSeparator,
+                                                          opts.BeforeContext,
+                                                          opts.AfterContext, histogramEnabled));
+
+  const LG_HITCALLBACK_FN callbackFnOptions[] = {
+    &callbackFn<DoNotWritePath, NoContext, false>,
+    &callbackFn<DoNotWritePath, NoContext, true>,
+    &callbackFn<DoNotWritePath, WriteContext, true>,
+    &callbackFn<WritePath, NoContext, true>,
+    &callbackFn<WritePath, WriteContext, true>,
+  };
+
+  const bool shouldWritePath = opts.PrintPath;
+  const bool shouldWriteContext = (opts.BeforeContext > -1 || opts.AfterContext > -1);
+
+  LG_HITCALLBACK_FN callback = callbackFnOptions[!opts.NoOutput + (2 * shouldWritePath) + shouldWriteContext];
 
   // setup search context
   LG_ContextOptions ctxOpts;
@@ -462,6 +455,11 @@ void search(const Options& opts) {
   if (!opts.Inputs.empty()) {
     searchInputs(opts.Inputs, opts, stdinUsed, ctrl, searcher.get(), hinfo.get(), callback);
   }
+
+  if (histogramEnabled) {
+    hinfo.get()->writeHistogram(histFile);
+  }
+
   if (opts.Verbose) {
     std::cerr << ctrl.BytesSearched << " bytes\n"
               << ctrl.TotalTime << " searchTime\n";
@@ -490,7 +488,8 @@ void writeGraphviz(const Options& opts) {
   handleParseErrors(std::cerr, err.get(), printFilename);
 
   if (!prog) {
-    throw std::runtime_error("failed to create program");
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("failed to create a program");
+    //throw std::runtime_error("failed to create program");
   }
   // we don't need the prog; we just need the compilation to succeed
   prog.reset();
@@ -512,7 +511,8 @@ void writeProgram(const Options& opts) {
   handleParseErrors(std::cerr, err.get(), printFilename);
 
   if (!prog) {
-    throw std::runtime_error("failed to create program");
+    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("failed to create a program");
+    //throw std::runtime_error("failed to create program");
   }
 
   // break on through the C API to print the program

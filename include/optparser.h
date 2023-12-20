@@ -2,7 +2,7 @@
 
 #include "options.h"
 
-#include <boost/program_options.hpp>
+#include "boost_program_options.h"
 
 void parse_opts(int argc, const char* const * argv,
                 boost::program_options::options_description& desc,

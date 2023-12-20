@@ -23,7 +23,7 @@
 #include "basic.h"
 #include "encoders/charencoder.h"
 
-#include <boost/lexical_cast.hpp>
+#include "boost_lexical_cast.h"
 
 class RotEncoder: public CharEncoder {
 public:

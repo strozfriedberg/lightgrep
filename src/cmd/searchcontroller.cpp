@@ -18,7 +18,7 @@ void print_cumulative_stats(double seconds, uint64_t offset) {
 
 bool SearchController::searchFile(
   ContextHandle* searcher,
-  HitCounterInfo* hinfo,
+  HitOutputData* hinfo,
   Reader& reader,
   LG_HITCALLBACK_FN callback)
 {
