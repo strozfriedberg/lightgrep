@@ -79,21 +79,18 @@ TEST_CASE("icuDecoder_GB18030_Next") {
   const byte buf[] = {
     'a', 'b', 'c', 0x90, 0x30, 0x81, 0x31, 0x80, 0x90
   };
-  // a    b    c |        U+10001        | bad | bad
+  // a    b    c |        U+10001        | euro symbol | bad
 
   ICUDecoder d("GB18030", std::unique_ptr<Decoder>(
     new ByteSource(buf, buf + sizeof(buf))
   ));
 
-  const std::vector<std::pair<int32_t,const byte*>> exp{
-    {'a', buf}, {'b', buf+1}, {'c', buf+2},
-    {0x10001, buf+3},
-    {-0x81, buf+7},
-    {-0x91, buf+8},
-    {Decoder::END, buf+9}
-  };
+  REQUIRE(std::make_pair(int('a'), buf) == d.next());
+  REQUIRE(std::make_pair(int('b'), buf+1) == d.next());
+  REQUIRE(std::make_pair(int('c'), buf+2) == d.next());
+  REQUIRE(std::make_pair(0x10001, buf+3) == d.next());
+  REQUIRE(std::make_pair(0x20ac, buf+7) == d.next()); // 0x80 is valid in GB18030 in ICU 74.1
+  REQUIRE(std::make_pair(-0x91, buf+8) == d.next());
+  REQUIRE(std::make_pair(Decoder::END, buf+9) == d.next());
 
-  for (const std::pair<int32_t,const byte*>& cp : exp) {
-    REQUIRE(cp == d.next());
-  }
 }
