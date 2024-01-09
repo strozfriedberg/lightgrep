@@ -7,7 +7,7 @@ setuptools.setup(
     author='Joel Uckelman <joel.uckelman@aon.co.uk>',
     packages=['lightgrep'],
     package_data={
-        'lightgrep': ['liblightgrep.so']
+        'lightgrep': ['liblightgrep.so', 'liblightgrep.dylib']
     },
     include_package_data=True,
     has_ext_modules=lambda: True
