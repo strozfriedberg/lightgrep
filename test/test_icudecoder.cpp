@@ -54,11 +54,8 @@ TEST_CASE("icuDecoder_ISO_8859_1_Next") {
     {Decoder::END, buf+7}
   };
 
-  for (size_t index = 0; index < exp.size(); ++index) {
-    DecoderPair comp = d.next();
-    DecoderPair cp = exp.at(index);
-    CAPTURE(index);
-    REQUIRE(cp == comp);
+  for (const DecoderPair& cp : exp) {
+    REQUIRE(cp == d.next());
   }
 }
 
@@ -80,11 +77,8 @@ TEST_CASE("icuDecoder_EUC_KR_Next") {
     {Decoder::END, buf+8}
   };
 
-  for (size_t index = 0; index < exp.size(); ++index) {
-    DecoderPair comp = d.next();
-    DecoderPair cp = exp.at(index);
-    CAPTURE(index);
-    REQUIRE(cp == comp);
+  for (const DecoderPair& cp : exp) {
+    REQUIRE(cp == d.next());
   }
 }
 
@@ -108,10 +102,7 @@ TEST_CASE("icuDecoder_GB18030_Next") {
     {Decoder::END, buf+9}
   };
 
-  for (size_t index = 0; index < exp.size(); ++index) {
-    DecoderPair comp = d.next();
-    DecoderPair cp = exp.at(index);
-    CAPTURE(index);
-    REQUIRE(cp == comp);
+  for (const DecoderPair& cp : exp) {
+    REQUIRE(cp == d.next());
   }
 }
