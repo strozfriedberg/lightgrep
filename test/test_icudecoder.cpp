@@ -16,12 +16,19 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <catch2/catch_test_macros.hpp>
-
 #include <vector>
 
 #include "decoders/bytesource.h"
 #include "decoders/icudecoder.h"
+
+using DecoderPair = std::pair<int32_t, const byte*>;
+
+std::ostream& operator<<(std::ostream& out, const DecoderPair& dp) {
+  out << '{' << dp.first << ", " << *dp.second << '}' << '\n';
+  return out;
+}
+
+#include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("icuDecoderName") {
   const char name[] = "ISO-8859-1";
@@ -47,8 +54,11 @@ TEST_CASE("icuDecoder_ISO_8859_1_Next") {
     {Decoder::END, buf+7}
   };
 
-  for (const std::pair<int32_t,const byte*>& cp : exp) {
-    REQUIRE(cp == d.next());
+  for (size_t index = 0; index < exp.size(); ++index) {
+    DecoderPair comp = d.next();
+    DecoderPair cp = exp.at(index);
+    CAPTURE(index);
+    REQUIRE(cp == comp);
   }
 }
 
@@ -70,8 +80,11 @@ TEST_CASE("icuDecoder_EUC_KR_Next") {
     {Decoder::END, buf+8}
   };
 
-  for (const std::pair<int32_t,const byte*>& cp : exp) {
-    REQUIRE(cp == d.next());
+  for (size_t index = 0; index < exp.size(); ++index) {
+    DecoderPair comp = d.next();
+    DecoderPair cp = exp.at(index);
+    CAPTURE(index);
+    REQUIRE(cp == comp);
   }
 }
 
@@ -85,12 +98,20 @@ TEST_CASE("icuDecoder_GB18030_Next") {
     new ByteSource(buf, buf + sizeof(buf))
   ));
 
-  REQUIRE(std::make_pair(int('a'), buf) == d.next());
-  REQUIRE(std::make_pair(int('b'), buf+1) == d.next());
-  REQUIRE(std::make_pair(int('c'), buf+2) == d.next());
-  REQUIRE(std::make_pair(0x10001, buf+3) == d.next());
-  REQUIRE(std::make_pair(0x20ac, buf+7) == d.next()); // 0x80 is valid in GB18030 in ICU 74.1
-  REQUIRE(std::make_pair(-0x91, buf+8) == d.next());
-  REQUIRE(std::make_pair(Decoder::END, buf+9) == d.next());
+  const std::vector<DecoderPair> exp{
+    {'a', buf},
+    {'b', buf+1},
+    {'c', buf+2},
+    {0x10001, buf+3},
+    {0x20ac, buf+7},
+    {-0x91, buf+8},
+    {Decoder::END, buf+9}
+  };
 
+  for (size_t index = 0; index < exp.size(); ++index) {
+    DecoderPair comp = d.next();
+    DecoderPair cp = exp.at(index);
+    CAPTURE(index);
+    REQUIRE(cp == comp);
+  }
 }
