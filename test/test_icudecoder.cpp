@@ -84,9 +84,9 @@ TEST_CASE("icuDecoder_EUC_KR_Next") {
 
 TEST_CASE("icuDecoder_GB18030_Next") {
   const byte buf[] = {
-    'a', 'b', 'c', 0x90, 0x30, 0x81, 0x31, 0x80, 0x90
+    'a', 'b', 'c', 0x90, 0x30, 0x81, 0x31, 0x80, 0xFF, 0x90
   };
-  // a    b    c |        U+10001        | euro symbol | bad
+  // a    b    c |        U+10001        | euro | bad | bad
 
   ICUDecoder d("GB18030", std::unique_ptr<Decoder>(
     new ByteSource(buf, buf + sizeof(buf))
@@ -98,8 +98,9 @@ TEST_CASE("icuDecoder_GB18030_Next") {
     {'c', buf+2},
     {0x10001, buf+3},
     {0x20ac, buf+7},
-    {-0x91, buf+8},
-    {Decoder::END, buf+9}
+    {-0x100, buf+8},
+    {-0x91, buf+9},
+    {Decoder::END, buf+10}
   };
 
   for (const DecoderPair& cp : exp) {
