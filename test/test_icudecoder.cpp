@@ -49,11 +49,11 @@ TEST_CASE("icuDecoder_ISO_8859_1_Next") {
 
   const std::vector<std::pair<int32_t,const byte*>> exp{
     {'a', buf},
-    {'b', buf+1},
-    {'c', buf+2},
-    {0x80, buf+3}, {0x81, buf+4},
-    {0xC6, buf+5}, {0xFE, buf+6},
-    {Decoder::END, buf+7}
+    {'b', buf + 1},
+    {'c', buf + 2},
+    {0x80, buf + 3}, {0x81, buf + 4},
+    {0xC6, buf + 5}, {0xFE, buf + 6},
+    {Decoder::END, buf + 7}
   };
 
   for (const DecoderPair& cp : exp) {
@@ -73,12 +73,12 @@ TEST_CASE("icuDecoder_EUC_KR_Next") {
 
   const std::vector<std::pair<int32_t,const byte*>> exp{
     {'a', buf},
-    {'b', buf+1},
-    {'c', buf+2},
-    {0xAD04, buf+3},
-    { -0x100, buf+5},
-    {0xAFCD, buf+6},
-    {Decoder::END, buf+8}
+    {'b', buf + 1},
+    {'c', buf + 2},
+    {0xAD04, buf + 3},
+    { -0x100, buf + 5},
+    {0xAFCD, buf + 6},
+    {Decoder::END, buf + 8}
   };
 
   for (const DecoderPair& cp : exp) {
@@ -98,13 +98,13 @@ TEST_CASE("icuDecoder_GB18030_Next") {
 
   const std::vector<DecoderPair> exp{
     {'a', buf},
-    {'b', buf+1},
-    {'c', buf+2},
-    {0x10001, buf+3},
-    {0x20ac, buf+7},
-    {-0x100, buf+8},
-    {-0x91, buf+9},
-    {Decoder::END, buf+10}
+    {'b', buf + 1},
+    {'c', buf + 2},
+    {0x10001, buf + 3}, // 4-byte code point
+    {0x20ac, buf + 7},
+    {-0x100, buf + 8},
+    {-0x91, buf + 9},
+    {Decoder::END, buf + 10}
   };
 
   for (const DecoderPair& cp : exp) {
