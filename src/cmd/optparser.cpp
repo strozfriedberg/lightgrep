@@ -170,7 +170,6 @@ void parse_opts(int argc, const char* const * argv,
   case Options::VALIDATE:
   case Options::ANALYZE:
     opts.validateAndPopulateOptions(optsMap, pargs);
-
     break;
 
   case Options::SHOW_VERSION:
