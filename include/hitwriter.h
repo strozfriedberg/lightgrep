@@ -90,15 +90,16 @@ struct ContextBuffer {
 struct OutputInfo {
   std::ostream& Out;
   std::string Path;
-  uint64_t NumHits;
   int32_t BeforeContext;
   int32_t AfterContext;
   char Separator;
+  std::string GroupSeparator;
 
   void setPath(const std::string& path) { Path = path; }
   void writeHit(const LG_SearchHit& hit, const LG_PatternInfo* info);
   void writeContext(const HitBuffer&);
   void writeNewLine();
+  void writeGroupSeparator();
 };
 
 struct HistogramInfo {
@@ -121,8 +122,9 @@ public:
   ContextBuffer CtxBuf;
   HistogramInfo HistInfo;
   LG_HDECODER Decoder;
+  uint64_t NumHits = 0;
 
-  HitOutputData(std::ostream& out, ProgramHandle* prog, char separator, int32_t beforeContext, int32_t afterContext, bool histEnabled);
+  HitOutputData(std::ostream& out, ProgramHandle* prog, char separator, const std::string& groupSep, int32_t beforeContext, int32_t afterContext, bool histEnabled);
 
   void setPath(const std::string& path) { OutInfo.setPath(path); }
   void setBuffer(const char* buf, size_t blen, uint64_t boff);
@@ -134,12 +136,16 @@ public:
   void writeContext(const HitBuffer& hBuf) { OutInfo.writeContext(hBuf); }
   void writeHit(const LG_SearchHit& hit);
   void writeNewLine() { OutInfo.writeNewLine(); }
+  void writeGroupSeparator() { OutInfo.writeGroupSeparator(); };
 };
 
 template<typename PathOutputFn, typename ContextFn, bool shouldOutput>
 void callbackFn(void* userData, const LG_SearchHit* searchHit) {
   HitOutputData* data = reinterpret_cast<HitOutputData*>(userData);
   if (shouldOutput) {
+    if (data->NumHits > 0) {
+      ContextFn::writeGroupSeparator(*data);
+    }
     PathOutputFn::write(*data);
     data->writeHit(*searchHit);
     ContextFn::write(*data, *searchHit);
@@ -148,7 +154,7 @@ void callbackFn(void* userData, const LG_SearchHit* searchHit) {
   if (data->HistInfo.HistogramEnabled) {
     data->writeHitToHistogram(*searchHit);
   }
-  ++data->OutInfo.NumHits;
+  ++data->NumHits;
 }
 
 struct WritePath {
@@ -160,11 +166,13 @@ struct DoNotWritePath {
 };
 
 struct WriteContext {
+  static void writeGroupSeparator(HitOutputData& data);
   static void write(HitOutputData& data, const LG_SearchHit& searchHit) {
     data.writeContext(data.decodeContext(searchHit));
   }
 };
 
 struct NoContext {
+  static void writeGroupSeparator(HitOutputData&) {}
   static void write(HitOutputData&, const LG_SearchHit&) {}
 };
