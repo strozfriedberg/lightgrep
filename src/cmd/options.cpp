@@ -138,11 +138,11 @@ void Options::validateAndPopulateKeyFiles(
 }
 
 void Options::populateContextOptions(const po::variables_map& optsMap, std::vector<std::string>&) {
-  if ((BeforeContext < 0 && optsMap.count("before-context") > 0) ||
-        (AfterContext < 0 && optsMap.count("after-context") > 0) ||
-        (BeforeContext < 0 && optsMap.count("context") > 0)) {
-      throw po::error("Invalid context length argument. -C/-B/-A must not be negative.");
-    }
+  if ((BeforeContext < 0 && (optsMap.count("before-context") > 0 || optsMap.count("context") > 0)) ||
+      (AfterContext < 0 && optsMap.count("after-context") > 0))
+  {
+    throw po::error("Invalid context length argument. -C/-B/-A must not be negative.");
+  }
     
   if (optsMap.count("context") > 0) {
       // "-C N" is equivalent to "-B N -A N"
