@@ -16,12 +16,15 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <catch2/catch_test_macros.hpp>
-
 #include <vector>
 
 #include "decoders/bytesource.h"
 #include "decoders/icudecoder.h"
+
+using DecoderPair = std::pair<int32_t, const byte*>;
+
+
+#include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("icuDecoderName") {
   const char name[] = "ISO-8859-1";
@@ -40,14 +43,18 @@ TEST_CASE("icuDecoder_ISO_8859_1_Next") {
     new ByteSource(buf, buf + sizeof(buf))
   ));
 
-  const std::vector<std::pair<int32_t,const byte*>> exp{
-    {'a', buf}, {'b', buf+1}, {'c', buf+2},
-    {0x80, buf+3}, {0x81, buf+4},
-    {0xC6, buf+5}, {0xFE, buf+6},
-    {Decoder::END, buf+7}
+  const std::vector<DecoderPair> exp{
+    {'a', buf},
+    {'b', buf + 1},
+    {'c', buf + 2},
+    {0x80, buf + 3},
+    {0x81, buf + 4},
+    {0xC6, buf + 5},
+    {0xFE, buf + 6},
+    {Decoder::END, buf + 7}
   };
 
-  for (const std::pair<int32_t,const byte*>& cp : exp) {
+  for (const DecoderPair& cp : exp) {
     REQUIRE(cp == d.next());
   }
 }
@@ -62,38 +69,42 @@ TEST_CASE("icuDecoder_EUC_KR_Next") {
     new ByteSource(buf, buf + sizeof(buf))
   ));
 
-  const std::vector<std::pair<int32_t,const byte*>> exp{
-    {'a', buf}, {'b', buf+1}, {'c', buf+2},
-    {0xAD04, buf+3},
-    { -0x100, buf+5},
-    {0xAFCD, buf+6},
-    {Decoder::END, buf+8}
+  const std::vector<DecoderPair> exp{
+    {'a', buf},
+    {'b', buf + 1},
+    {'c', buf + 2},
+    {0xAD04, buf + 3}, // 2-byte code point
+    { -0x100, buf + 5},
+    {0xAFCD, buf + 6}, // 2-byte code point
+    {Decoder::END, buf + 8}
   };
 
-  for (const std::pair<int32_t,const byte*>& cp : exp) {
+  for (const DecoderPair& cp : exp) {
     REQUIRE(cp == d.next());
   }
 }
 
 TEST_CASE("icuDecoder_GB18030_Next") {
   const byte buf[] = {
-    'a', 'b', 'c', 0x90, 0x30, 0x81, 0x31, 0x80, 0x90
+    'a', 'b', 'c', 0x90, 0x30, 0x81, 0x31, 0xFF, 0x90
   };
-  // a    b    c |        U+10001        | bad | bad
+  // a    b    c |        U+10001         | bad | bad
 
   ICUDecoder d("GB18030", std::unique_ptr<Decoder>(
     new ByteSource(buf, buf + sizeof(buf))
   ));
 
-  const std::vector<std::pair<int32_t,const byte*>> exp{
-    {'a', buf}, {'b', buf+1}, {'c', buf+2},
-    {0x10001, buf+3},
-    {-0x81, buf+7},
-    {-0x91, buf+8},
-    {Decoder::END, buf+9}
+  const std::vector<DecoderPair> exp{
+    {'a', buf},
+    {'b', buf + 1},
+    {'c', buf + 2},
+    {0x10001, buf + 3}, // 4-byte code point
+    {-0x100, buf + 7},
+    {-0x91, buf + 8},
+    {Decoder::END, buf + 9}
   };
 
-  for (const std::pair<int32_t,const byte*>& cp : exp) {
+  for (const DecoderPair& cp : exp) {
     REQUIRE(cp == d.next());
   }
 }
