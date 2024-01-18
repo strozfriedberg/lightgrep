@@ -23,10 +23,6 @@
 
 using DecoderPair = std::pair<int32_t, const byte*>;
 
-std::ostream& operator<<(std::ostream& out, const DecoderPair& dp) {
-  out << '{' << dp.first << ", " << *dp.second << '}' << '\n';
-  return out;
-}
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -47,7 +43,7 @@ TEST_CASE("icuDecoder_ISO_8859_1_Next") {
     new ByteSource(buf, buf + sizeof(buf))
   ));
 
-  const std::vector<std::pair<int32_t,const byte*>> exp{
+  const std::vector<DecoderPair> exp{
     {'a', buf},
     {'b', buf + 1},
     {'c', buf + 2},
@@ -73,7 +69,7 @@ TEST_CASE("icuDecoder_EUC_KR_Next") {
     new ByteSource(buf, buf + sizeof(buf))
   ));
 
-  const std::vector<std::pair<int32_t,const byte*>> exp{
+  const std::vector<DecoderPair> exp{
     {'a', buf},
     {'b', buf + 1},
     {'c', buf + 2},
