@@ -225,5 +225,41 @@ TEST_CASE("histogramOption") {
 
   REQUIRE(Options::SEARCH == opts.Command);
   REQUIRE(opts.HistogramFile == "histogram.txt");
+}
+
+TEST_CASE("Negative context option should align with grep behavior") {
+  SECTION("C option should throw exception if negative") {
+    const char* argv[] = {"lightgrep", "-p", "test", "-C", "-1", "test_corpora.txt"};
+    Options opts;
+    boost::program_options::options_description desc;
+
+    CHECK_THROWS_AS(
+      parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+      boost::program_options::error
+    );
+  }
+
+  SECTION("A option should throw exception if negative") {
+    const char* argv[] = {"lightgrep", "-p", "test", "-A", "-1", "test_corpora.txt"};
+    Options opts;
+    boost::program_options::options_description desc;
+
+    CHECK_THROWS_AS(
+      parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+      boost::program_options::error
+    );
+  }
+
+  SECTION("B option should throw exception if negative") {
+    const char* argv[] = {"lightgrep", "-p", "test", "-B", "-1", "test_corpora.txt"};
+    Options opts;
+    boost::program_options::options_description desc;
+
+    CHECK_THROWS_AS(
+      parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+      boost::program_options::error
+    );
+  }
+
 
 }

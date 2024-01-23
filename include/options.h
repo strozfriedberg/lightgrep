@@ -49,15 +49,15 @@ public:
   int32_t BeforeContext = -1,
           AfterContext = -1;
 
-  bool CaseInsensitive,
-       LiteralMode,
-       UnicodeMode,
-       NoOutput,
-       PrintPath,
-       Recursive,
-       Binary,
-       MemoryMapped,
-       Verbose;
+  bool CaseInsensitive = false,
+       LiteralMode = false,
+       UnicodeMode = false,
+       NoOutput = false,
+       PrintPath = false,
+       Recursive = false,
+       Binary = false,
+       MemoryMapped = false,
+       Verbose = false;
 
   mutable std::ofstream OutputFile;
 
