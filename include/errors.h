@@ -1,6 +1,6 @@
 #include "lightgrep/api.h"
 
-#include <iostream>
+#include <iosfwd>
 
 class Errors {
 public:

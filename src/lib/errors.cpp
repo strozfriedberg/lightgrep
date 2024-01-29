@@ -1,5 +1,7 @@
 #include "errors.h"
 
+#include <iostream>
+
 Errors::~Errors() {
   lg_free_error(Err);
 }
