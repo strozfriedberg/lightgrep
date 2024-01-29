@@ -15,7 +15,7 @@ TEST_CASE("testWriteProgramWithBinaryOpt") {
     opts.DeterminizeDepth = 10;
     opts.Binary = true;
     
-    std::stringstream buf;
+    std::ostringstream buf;
 
     writeProgram(opts, buf);
 
