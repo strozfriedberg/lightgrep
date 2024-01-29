@@ -11,8 +11,7 @@ void Errors::extend(LG_Error* newErr) {
     TailErr->Next = newErr;
   }
   else {
-    Err = newErr;
-    TailErr = newErr;
+    Err = TailErr = newErr;
   }
 
   for ( ; TailErr->Next; TailErr = TailErr->Next);
