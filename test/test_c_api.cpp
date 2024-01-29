@@ -424,9 +424,8 @@ TEST_CASE("testLgAddPatternListCopyOnWritePatternMap") {
   REQUIRE(lg_prog_pattern_count(prog1.get()) == 1);
 }
 
-uint64_t g_numHits = 0;
-void gotHit(void*, const LG_SearchHit* const) {
-  ++g_numHits;
+void gotHit(void* ctx, const LG_SearchHit* const) {
+  ++*static_cast<uint64_t*>(ctx);
 }
 
 TEST_CASE("testLgWriteProgramLgReadProgram") {
@@ -518,12 +517,12 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
     );
   }
 
-  LG_ContextOptions ctxOpts;
+  const LG_ContextOptions ctxOpts = LG_ContextOptions();
   LG_HCONTEXT ctx = lg_create_context(prog2.get(), &ctxOpts);
 
   std::string s = "foo is totally bar";
 
-  g_numHits = 0;
-  lg_search(ctx, s.data(), s.data() + s.size(), 0, nullptr, gotHit);
-  REQUIRE(g_numHits == 2);
+  uint64_t numHits = 0;
+  lg_search(ctx, s.data(), s.data() + s.size(), 0, &numHits, gotHit);
+  REQUIRE(numHits == 2);
 }
