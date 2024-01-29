@@ -15,7 +15,7 @@ TEST_CASE("kAndpIncompatibleOptions") {
   po::options_description desc;
 
   REQUIRE_THROWS_AS(
-    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts),
     po::error
   );
 }
@@ -24,7 +24,7 @@ TEST_CASE("kOptionNoPosArg") {
   const char* argv[] = {"lightgrep", "--keywords", "foo"};
   Options opts;
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   const std::vector<std::string> kf{"foo"}, inputs{"-"};
 
@@ -36,7 +36,7 @@ TEST_CASE("kOptionOnePosArg") {
   const char* argv[] = {"lightgrep", "--keywords", "foo", "bar"};
   Options opts;
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   const std::vector<std::string> kf{"foo"}, inputs{"bar"};
 
@@ -48,7 +48,7 @@ TEST_CASE("endOnePosArg") {
   const char* argv[] = {"lightgrep", "--", "foo"};
   Options opts;
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   const std::vector<std::string> kf{"foo"}, inputs{"-"};
 
@@ -60,7 +60,7 @@ TEST_CASE("endTwoPosArgs") {
   const char* argv[] = {"lightgrep", "--", "foo", "bar"};
   Options opts;
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   const std::vector<std::string> kf{"foo"}, inputs{"bar"};
 
@@ -72,7 +72,7 @@ TEST_CASE("endThreePosArgs") {
   const char* argv[] = {"lightgrep", "--", "foo", "bar", "baz"};
   Options opts;
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   const std::vector<std::string> kf{"foo"}, inputs{"bar", "baz"};
 
@@ -85,7 +85,7 @@ TEST_CASE("analyzeCommandOption") {
   Options opts;
 
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   REQUIRE(Options::ANALYZE == opts.Command);
 }
@@ -95,7 +95,7 @@ TEST_CASE("programFileOption") {
   Options opts;
 
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   REQUIRE(Options::SEARCH == opts.Command);
   REQUIRE("test-prog.txt" == opts.ProgramFile);
@@ -110,7 +110,7 @@ TEST_CASE("programFileAndPatternOption") {
   po::options_description desc;
 
   REQUIRE_THROWS_AS(
-    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts),
     po::error
   );
 }
@@ -122,7 +122,7 @@ TEST_CASE("programFileAndKeywordsOption") {
   po::options_description desc;
 
   REQUIRE_THROWS_AS(
-    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts),
     po::error
   );
 }
@@ -132,7 +132,7 @@ TEST_CASE("memoryMappedOption") {
   Options opts;
 
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   REQUIRE(Options::SEARCH == opts.Command);
   REQUIRE("test-prog.txt" == opts.ProgramFile);
@@ -145,7 +145,7 @@ TEST_CASE("afterAndBeforeContextOption") {
   Options opts;
 
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   REQUIRE(Options::SEARCH == opts.Command);
   REQUIRE("test-prog.txt" == opts.ProgramFile);
@@ -162,7 +162,7 @@ TEST_CASE("mmapIncompatibleWithReadFromStdin") {
   po::options_description desc;
 
   REQUIRE_THROWS_AS(
-    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts),
     po::error
   );
 }
@@ -172,7 +172,7 @@ TEST_CASE("sampleOptions") {
   Options opts;
 
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   REQUIRE(Options::SAMPLES == opts.Command);
   REQUIRE("test-prog.txt" == opts.ProgramFile);
@@ -185,7 +185,7 @@ TEST_CASE("readFromStdinWhenNoInputsProvided") {
   Options opts;
 
   po::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   REQUIRE(Options::SEARCH == opts.Command);
   REQUIRE("test-prog.txt" == opts.ProgramFile);
@@ -199,7 +199,7 @@ TEST_CASE("tooManyPositionalArguments") {
   po::options_description desc;
 
   REQUIRE_THROWS_AS(
-    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts),
     po::too_many_positional_options_error
   );
 }
@@ -211,7 +211,7 @@ TEST_CASE("withFilenameIncompatibleWithNoFilename") {
   po::options_description desc;
 
   REQUIRE_THROWS_AS(
-    parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+    parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts),
     po::error
   );
 }
@@ -221,7 +221,7 @@ TEST_CASE("histogramOption") {
   Options opts;
 
   boost::program_options::options_description desc;
-  parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts);
+  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
 
   REQUIRE(Options::SEARCH == opts.Command);
   REQUIRE(opts.HistogramFile == "histogram.txt");
@@ -234,7 +234,7 @@ TEST_CASE("Negative context option should align with grep behavior") {
     boost::program_options::options_description desc;
 
     CHECK_THROWS_AS(
-      parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+      parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts),
       boost::program_options::error
     );
   }
@@ -245,7 +245,7 @@ TEST_CASE("Negative context option should align with grep behavior") {
     boost::program_options::options_description desc;
 
     CHECK_THROWS_AS(
-      parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+      parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts),
       boost::program_options::error
     );
   }
@@ -256,7 +256,7 @@ TEST_CASE("Negative context option should align with grep behavior") {
     boost::program_options::options_description desc;
 
     CHECK_THROWS_AS(
-      parse_opts(std::extent<decltype(argv)>::value, argv, desc, opts),
+      parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts),
       boost::program_options::error
     );
   }

@@ -58,8 +58,8 @@ void printHelp(std::ostream& out, const po::options_description& desc) {
 }
 
 void printEncodings(std::ostream& out) {
-  const size_t slen = std::extent<decltype(LG_ENCODINGS)>::value;
-  const uint32_t clen = std::extent<decltype(LG_CANONICAL_ENCODINGS)>::value;
+  const size_t slen = std::extent_v<decltype(LG_ENCODINGS)>;
+  const uint32_t clen = std::extent_v<decltype(LG_CANONICAL_ENCODINGS)>;
 
   // group the aliases by the indices of their canonical names
   std::vector<std::vector<std::string>> aliases(clen);
