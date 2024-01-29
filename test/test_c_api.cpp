@@ -520,7 +520,7 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
   const LG_ContextOptions ctxOpts = LG_ContextOptions();
   LG_HCONTEXT ctx = lg_create_context(prog2.get(), &ctxOpts);
 
-  std::string s = "foo is totally bar";
+  const std::string s = "foo is totally bar";
 
   uint64_t numHits = 0;
   lg_search(ctx, s.data(), s.data() + s.size(), 0, &numHits, gotHit);

@@ -19,8 +19,8 @@ TEST_CASE("testWriteProgramWithBinaryOpt") {
 
     writeProgram(opts, buf);
 
-    std::string s = buf.str();
-    int buf_size = s.size();
+    const std::string s = buf.str();
+    const int buf_size = s.size();
 
     LG_HPROGRAM prog = lg_read_program(s.data(), buf_size);
 
