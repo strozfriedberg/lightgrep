@@ -19,6 +19,7 @@
 #include <unicode/ucnv.h>
 
 #include "handles.h"
+#include "lg_app.h"
 #include "pattern.h"
 #include "program.h"
 #include "utility.h"
@@ -57,8 +58,8 @@ void printHelp(std::ostream& out, const po::options_description& desc) {
 }
 
 void printEncodings(std::ostream& out) {
-  const size_t slen = std::extent<decltype(LG_ENCODINGS)>::value;
-  const uint32_t clen = std::extent<decltype(LG_CANONICAL_ENCODINGS)>::value;
+  const size_t slen = std::extent_v<decltype(LG_ENCODINGS)>;
+  const uint32_t clen = std::extent_v<decltype(LG_CANONICAL_ENCODINGS)>;
 
   // group the aliases by the indices of their canonical names
   std::vector<std::vector<std::string>> aliases(clen);
@@ -83,20 +84,6 @@ void printEncodings(std::ostream& out) {
   }
 
   out << std::endl;
-}
-
-void handleParseErrors(std::ostream& out, LG_Error* err, bool printFilename) {
-  // walk the error chain
-  for ( ; err; err = err->Next) {
-    if (printFilename) {
-      out << err->Source << ", ";
-    }
-    out << "pattern " << err->Index
-        << " " << (err->Pattern? err->Pattern : "") 
-        << " " << (err->EncodingChain? err->EncodingChain : "")
-        << ": " << err->Message << '\n';
-  }
-  out.flush();
 }
 
 size_t countErrors(const LG_Error* err) {
@@ -147,95 +134,6 @@ void searchRecursively(
       search(p.string(), mmapped, ctrl, searcher, hinfo, callback);
     }
   }
-}
-
-std::unique_ptr<const char*[]> c_str_arr(const std::vector<std::string>& vec) {
-  const size_t size = vec.size();
-  std::unique_ptr<const char*[]> arr(new const char*[size]);
-  for (uint32_t i = 0; i < size; ++i) {
-    arr[i] = vec[i].c_str();
-  }
-  return arr;
-}
-
-LG_KeyOptions patOpts(const Options& opts) {
-  return { opts.LiteralMode, opts.CaseInsensitive, opts.UnicodeMode };
-}
-
-LG_ProgramOptions progOpts(const Options& opts) {
-  return { opts.DeterminizeDepth };
-}
-
-std::tuple<
-  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)>,
-  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>,
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)>
->
-parsePatterns(const Options& opts)
-{
-  // read the patterns and parse them
-
-  const std::vector<std::pair<std::string, std::string>> &patLines(opts.getPatternLines());
-  const std::vector<std::string>& defaultEncodings(opts.Encodings);
-  const LG_KeyOptions& defaultKOpts(patOpts(opts));
-  const LG_ProgramOptions& defaultProgOpts(progOpts(opts));
-
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
-
-  // FIXME: estimate NFA size here?
-  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(
-    lg_create_fsm(0, 0),
-    lg_destroy_fsm
-  );
-
-  if (!fsm) {
-    throw std::runtime_error("failed to create fsm");
-  }
-
-  // set default encoding(s) of patterns which have none specified
-  const std::unique_ptr<const char*[]> defEncs(c_str_arr(defaultEncodings));
-
-  LG_Error* tail_err = nullptr;
-
-  for (const std::pair<std::string,std::string>& pf : patLines) {
-    // parse a complete pattern file
-    LG_Error* local_err = nullptr;
-
-    lg_add_pattern_list(
-      fsm.get(),
-      pf.second.c_str(), pf.first.c_str(),
-      defEncs.get(), defaultEncodings.size(), &defaultKOpts, &local_err
-    );
-
-    if (local_err) {
-      if (err) {
-        // attach the new error to the existing chain
-        tail_err->Next = local_err;
-      }
-      else {
-        // first error, start a new error chain
-        err = std::unique_ptr<LG_Error, void(*)(LG_Error*)>(
-          local_err, lg_free_error
-        );
-        tail_err = local_err;
-      }
-
-      // walk to the end of the error chain
-      for ( ; tail_err->Next; tail_err = tail_err->Next);
-    }
-  }
-
-  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(
-    lg_create_program(fsm.get(), &defaultProgOpts),
-    lg_destroy_program
-  );
-
-  if (prog && opts.Verbose) {
-    std::cerr << fsm->Impl->Fsm->verticesSize() << " vertices\n"
-              << prog->Prog->size() << " instructions\n";
-  }
-
-  return std::make_tuple(std::move(fsm), std::move(prog), std::move(err));
 }
 
 std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)>
@@ -361,14 +259,12 @@ void search(const Options& opts) {
     prog = loadProgram(opts.ProgramFile);
   }
   else {
-    // read the patterns and parse them
-    std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
-
-    std::tie(std::ignore, prog, err) = parsePatterns(opts);
+    LgAppCollection col = parsePatterns(opts);
+    prog = std::move(col.prog);
 
     const bool printFilename = opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-    handleParseErrors(std::cerr, err.get(), printFilename);
+    col.errors->outputErrors(std::cerr, printFilename);
   }
 
   if (!prog) {
@@ -478,14 +374,15 @@ void search(const Options& opts) {
 void writeGraphviz(const Options& opts) {
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
   std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(fsm, prog, err) = parsePatterns(opts);
+  LgAppCollection col = parsePatterns(opts);
+  fsm = std::move(col.fsm);
+  prog = std::move(col.prog);
 
   const bool printFilename =
     opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
 
-  handleParseErrors(std::cerr, err.get(), printFilename);
+  col.errors->outputErrors(std::cerr, printFilename);
 
   if (!prog) {
     THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("failed to create a program");
@@ -498,53 +395,18 @@ void writeGraphviz(const Options& opts) {
   writeGraphviz(opts.openOutput(), *fsm->Impl->Fsm);
 }
 
-void writeProgram(const Options& opts) {
-  // get the patterns and parse them
-  std::unique_ptr<ProgramHandle, void(*)(ProgramHandle*)> prog(nullptr, nullptr);
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
-
-  std::tie(std::ignore, prog, err) = parsePatterns(opts);
-
-  const bool printFilename =
-    opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
-
-  handleParseErrors(std::cerr, err.get(), printFilename);
-
-  if (!prog) {
-    THROW_RUNTIME_ERROR_WITH_CLEAN_OUTPUT("failed to create a program");
-    //throw std::runtime_error("failed to create program");
-  }
-
-  // break on through the C API to print the program
-  ProgramPtr p(prog->Prog);
-  if (opts.Verbose) {
-    std::cerr << p->size() << " program size in bytes" << std::endl;
-  }
-
-  std::ostream& out(opts.openOutput());
-  if (opts.Binary) {
-    const std::vector<char> s = p->marshall();
-    out.write(s.data(), s.size());
-  }
-  else {
-    out << *p << std::endl;
-  }
-}
-
 void validate(const Options& opts) {
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
-
-  std::tie(std::ignore, std::ignore, err) = parsePatterns(opts);
+  LgAppCollection col = parsePatterns(opts);
 
   const bool printFilename = opts.CmdLinePatterns.empty() && opts.KeyFiles.size() > 1;
-  handleParseErrors(std::cerr, err.get(), printFilename);
+  col.errors->outputErrors(std::cerr, printFilename);
 }
 
 void analyze(const Options& opts) {
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
-  std::tie(fsm, std::ignore, err) = parsePatterns(opts);
+  LgAppCollection col = parsePatterns(opts);
+  fsm = std::move(col.fsm);
 
   NFAPtr g(fsm->Impl->Fsm);
 
@@ -569,7 +431,6 @@ void writeSampleMatches(const Options& opts) {
 
   // parse the patterns one at a time
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-  std::unique_ptr<LG_Error, void(*)(LG_Error*)> err(nullptr, nullptr);
 
   size_t pnum = 0;
   //for (const std::pair<std::string,std::string>& pf : opts.getPatternLines()) {
@@ -578,7 +439,9 @@ void writeSampleMatches(const Options& opts) {
   // why when looping over the pairs we then turn around and put each into a vector/array.
   // const std::vector<std::pair<std::string, std::string>> a = { pf };
 
-  std::tie(fsm, std::ignore, err) = parsePatterns(opts);
+  LgAppCollection col = parsePatterns(opts);
+  LG_Error* err = col.getError();
+  fsm = std::move(col.fsm);
 
   if (err) {
     std::stringstream ss;
@@ -619,6 +482,11 @@ void writeSampleMatches(const Options& opts) {
   // }
 }
 
+void outputProgram(const Options& opts) {
+  std::ostream& out(opts.openOutput());
+  writeProgram(opts, out);
+}
+
 int main(int argc, char** argv) {
   try {
     Options opts;
@@ -633,7 +501,7 @@ int main(int argc, char** argv) {
       writeGraphviz(opts);
       break;
     case Options::PROGRAM:
-      writeProgram(opts);
+      outputProgram(opts);
       break;
     case Options::SAMPLES:
       writeSampleMatches(opts);

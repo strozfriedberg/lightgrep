@@ -8,6 +8,9 @@
 #include <string>
 #include <vector>
 
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
+
 class Options {
 public:
   uint64_t DebugBegin,
@@ -46,19 +49,27 @@ public:
   int32_t BeforeContext = -1,
           AfterContext = -1;
 
-  bool CaseInsensitive,
-       LiteralMode,
-       UnicodeMode,
-       NoOutput,
-       PrintPath,
-       Recursive,
-       Binary,
-       MemoryMapped,
-       Verbose;
+  bool CaseInsensitive = false,
+       LiteralMode = false,
+       UnicodeMode = false,
+       NoOutput = false,
+       PrintPath = false,
+       Recursive = false,
+       Binary = false,
+       MemoryMapped = false,
+       Verbose = false;
 
   mutable std::ofstream OutputFile;
 
   std::ostream& openOutput() const;
 
-  std::vector<std::pair<std::string,std::string>> getPatternLines() const;
+  std::vector<std::pair<std::string, std::string>> getPatternLines() const;
+
+  void validateAndPopulateOptions(const po::variables_map& optsMap, std::vector<std::string>& pargs);
+
+private:
+  void validateAndPopulateKeyFiles(const po::variables_map& optsMap, std::vector<std::string>& pargs);
+  void populateContextOptions(const po::variables_map& optsMap, std::vector<std::string>& pargs);
+  void validateAndPopulateSearchOptions(const po::variables_map& optsMap, std::vector<std::string>& pargs);
+  void populateSampleOptions(const po::variables_map& optsMap, std::vector<std::string>& pargs);
 };

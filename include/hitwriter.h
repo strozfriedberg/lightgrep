@@ -62,9 +62,9 @@ struct std::hash<HistogramKey>
 {
     std::size_t operator()(const HistogramKey& node) const noexcept
     {
-        std::size_t h1 = std::hash<std::string>{}(node.Pattern);
-        std::size_t h2 = std::hash<std::string>{}(node.HitText);
-        std::size_t h3 = std::hash<uint64_t>{}(node.UserIndex);
+        const std::size_t h1 = std::hash<std::string>{}(node.Pattern);
+        const std::size_t h2 = std::hash<std::string>{}(node.HitText);
+        const std::size_t h3 = std::hash<uint64_t>{}(node.UserIndex);
         return h1 ^ ((h2 << 1) >> 1) ^ (h3 << 1);
     }
 };

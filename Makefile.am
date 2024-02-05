@@ -32,6 +32,7 @@ src_lib_liblightgrepint_la_SOURCES = \
 	src/lib/compiler.cpp \
 	src/lib/encoderbase.cpp \
 	src/lib/encoderfactory.cpp \
+	src/lib/errors.cpp \
 	src/lib/fsmthingy.cpp \
 	src/lib/icuconverter.cpp \
 	src/lib/icuencoder.cpp \
@@ -110,6 +111,7 @@ bin_PROGRAMS = src/cmd/lightgrep
 
 src_cmd_lightgrep_SOURCES = \
 	src/cmd/hitwriter.cpp \
+	src/cmd/lg_app.cpp \
 	src/cmd/main.cpp \
 	src/cmd/optparser.cpp \
 	src/cmd/options.cpp \
@@ -154,6 +156,7 @@ endif
 
 test_test_SOURCES = \
 	src/cmd/hitwriter.cpp \
+	src/cmd/lg_app.cpp \
 	src/cmd/options.cpp \
 	src/cmd/optparser.cpp \
 	src/cmd/util.cpp \
@@ -194,6 +197,7 @@ test_test_SOURCES = \
 	test/test_icudecoder.cpp \
 	test/test_icuutil.cpp \
 	test/test_instructions.cpp \
+	test/test_main.cpp \
 	test/test_matchgen.cpp \
 	test/test_nfabuilder.cpp \
 	test/test_nfaoptimizer.cpp \

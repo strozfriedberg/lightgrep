@@ -28,6 +28,7 @@
 
 #include "pattern_map.h"
 #include "stest.h"
+#include "handles.h"
 
 // #include "basic.h"
 
@@ -203,7 +204,7 @@ TEST_CASE("testLgAddPatternList") {
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
   const char* defEncs[] = { "ASCII", "UTF-8" };
-  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
+  const size_t defEncsNum = std::extent_v<decltype(defEncs)>;
   const LG_KeyOptions defOpts{0, 0, 1};
 
   // FIXME: how to estimate NFA size here?
@@ -230,7 +231,7 @@ TEST_CASE("testLgAddPatternListFixedString") {
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
   const char* defEncs[] = { "ASCII" };
-  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
+  const size_t defEncsNum = std::extent_v<decltype(defEncs)>;
 
   const LG_KeyOptions defOpts{0, 0, 1};
 
@@ -313,7 +314,7 @@ TEST_CASE("testLgAddPatternListBadEncoding") {
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
   const char* defEncs[] = { "ASCII", "UTF-8" };
-  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
+  const size_t defEncsNum = std::extent_v<decltype(defEncs)>;
   const LG_KeyOptions defOpts{0, 0, 1};
 
   // FIXME: how to estimate NFA size here?
@@ -361,7 +362,7 @@ TEST_CASE("testLgAddPatternListCopyOnWritePatternMap") {
   const size_t pats1Num = std::count(pats1, pats1 + std::strlen(pats1), '\n');
 
   const char* defEncs[] = { "UTF-8" };
-  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
+  const size_t defEncsNum = std::extent_v<decltype(defEncs)>;
   const LG_KeyOptions defOpts{0, 0, 1};
 
   // FIXME: how to estimate NFA size here?
@@ -423,6 +424,10 @@ TEST_CASE("testLgAddPatternListCopyOnWritePatternMap") {
   REQUIRE(lg_prog_pattern_count(prog1.get()) == 1);
 }
 
+void gotHit(void* ctx, const LG_SearchHit* const) {
+  ++*static_cast<uint64_t*>(ctx);
+}
+
 TEST_CASE("testLgWriteProgramLgReadProgram") {
   const char pats[] =
     "foo\tUTF-8,UTF-16LE\t0\t0\n"
@@ -430,7 +435,7 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
   const char* defEncs[] = { "ASCII", "UTF-8" };
-  const size_t defEncsNum = std::extent<decltype(defEncs)>::value;
+  const size_t defEncsNum = std::extent_v<decltype(defEncs)>;
   const LG_KeyOptions defOpts{0, 0, 0};
 
   // FIXME: how to estimate NFA size here?
@@ -480,6 +485,7 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
 
   const size_t p1count = lg_prog_pattern_count(prog1.get());
   const size_t p2count = lg_prog_pattern_count(prog2.get());
+  REQUIRE(4 == p1count);
   REQUIRE(p1count == p2count);
 
   for (size_t i = 0; i < p1count; ++i) {
@@ -510,4 +516,13 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
       *lg_prog_pattern_info(prog3.get(), i)
     );
   }
+
+  const LG_ContextOptions ctxOpts = LG_ContextOptions();
+  LG_HCONTEXT ctx = lg_create_context(prog2.get(), &ctxOpts);
+
+  const std::string s = "foo is totally bar";
+
+  uint64_t numHits = 0;
+  lg_search(ctx, s.data(), s.data() + s.size(), 0, &numHits, gotHit);
+  REQUIRE(numHits == 2);
 }

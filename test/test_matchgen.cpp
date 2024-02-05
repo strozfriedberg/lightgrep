@@ -45,14 +45,14 @@ void fixture(const char* pattern, const char** expected, uint32_t max_matches, u
 TEST_CASE("aSampleMatches") {
   const char pattern[] = "a";
   const char* expected[] = { "a" };
-  fixture(pattern, expected, std::extent<decltype(expected)>::value, 1);
+  fixture(pattern, expected, std::extent_v<decltype(expected)>, 1);
 }
 
 /*
 TEST_CASE("aOrbSampleMatches") {
   const char pattern[] = "a|b";
   const char* expected[] = { "a", "b" };
-  fixture(pattern, expected, std::extent<decltype(expected)>::value, 1);
+  fixture(pattern, expected, std::extent_v<decltype(expected)>, 1);
 }
 */
 
@@ -60,26 +60,26 @@ TEST_CASE("aOrbSampleMatches") {
 TEST_CASE("LPaOrbRPLPcOrdRPSampleMatches") {
   const char pattern[] = "(a|b)(c|d)";
   const char* expected[] = { "ac", "ad", "bc", "bd" };
-  fixture(pattern, expected, std::extent<decltype(expected)>::value, 1);
+  fixture(pattern, expected, std::extent_v<decltype(expected)>, 1);
 }
 */
 
 TEST_CASE("aPSampleMatches1") {
   const char pattern[] = "a+";
   const char* expected[] = { "a" };
-  fixture(pattern, expected, std::extent<decltype(expected)>::value, 1);
+  fixture(pattern, expected, std::extent_v<decltype(expected)>, 1);
 }
 
 /*
 TEST_CASE("aPSampleMatches2") {
   const char pattern[] = "a+";
   const char* expected[] = { "a", "aa" };
-  fixture(pattern, expected, std::extent<decltype(expected)>::value, 2);
+  fixture(pattern, expected, std::extent_v<decltype(expected)>, 2);
 }
 
 TEST_CASE("aPSampleMatches3") {
   const char pattern[] = "a+";
   const char* expected[] = { "a", "aa", "aaa" };
-  fixture(pattern, expected, std::extent<decltype(expected)>::value, 3);
+  fixture(pattern, expected, std::extent_v<decltype(expected)>, 3);
 }
 */
