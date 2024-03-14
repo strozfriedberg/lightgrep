@@ -201,6 +201,26 @@ bool skipStdin(const std::string& path, bool& stdinUsed) {
   return false;
 }
 
+LG_HITCALLBACK_FN selectCallbackFn(const Options& opts) {
+  static const LG_HITCALLBACK_FN callbackFnOptions[] = {
+    &callbackFn<DoNotWritePath, NoContext, false>,
+    &callbackFn<DoNotWritePath, NoContext, true>,
+    &callbackFn<DoNotWritePath, WriteContext, true>,
+    &callbackFn<WritePath, NoContext, true>,
+    &callbackFn<WritePath, WriteContext, true>,
+  };
+
+  if (opts.NoOutput) {
+    return callbackFnOptions[0];
+  }
+  else {
+    const bool shouldWritePath = opts.PrintPath;
+    const bool shouldWriteContext = (opts.BeforeContext > -1 || opts.AfterContext > -1);
+
+    return callbackFnOptions[1 + (2 * shouldWritePath) + shouldWriteContext];
+  }
+}
+
 void searchRec(
   const std::string& i,
   bool mmapped,
@@ -289,18 +309,7 @@ void search(const Options& opts) {
                                                           opts.BeforeContext,
                                                           opts.AfterContext, histogramEnabled));
 
-  const LG_HITCALLBACK_FN callbackFnOptions[] = {
-    &callbackFn<DoNotWritePath, NoContext, false>,
-    &callbackFn<DoNotWritePath, NoContext, true>,
-    &callbackFn<DoNotWritePath, WriteContext, true>,
-    &callbackFn<WritePath, NoContext, true>,
-    &callbackFn<WritePath, WriteContext, true>,
-  };
-
-  const bool shouldWritePath = opts.PrintPath;
-  const bool shouldWriteContext = (opts.BeforeContext > -1 || opts.AfterContext > -1);
-
-  LG_HITCALLBACK_FN callback = callbackFnOptions[!opts.NoOutput + (2 * shouldWritePath) + shouldWriteContext];
+  LG_HITCALLBACK_FN callback = selectCallbackFn(opts);
 
   // setup search context
   LG_ContextOptions ctxOpts;
