@@ -92,7 +92,14 @@ Lightgrep writes search hits to stdout by default. The `-o/--output` flag can be
 
 Lightgrep searches one or more files specified as its last arguments. To search a directory of files recursively, use `-r/--recursive`. Specific files can be searched by providing their paths in a file with the `-a/--arg-file` flag. 
 
-<!-- #### Context -->
+##### Context
+
+Unlike grep, lightgrep does not print matching lines by default. This is because lightgrep presumes the input is binary. However, when faced with gigabytes of logs and many IOCs for keywords, it's convenient to print matching lines. Lightgrep handles this by adding columns for the file offset of the beginning of the context and for the extracted text of the context. With `-C 0`, lightgrep will print only the line containing the search hit. Increasing the context size adds lines of input before and after the search hit. To control the context before and after the search hit separately, use `-B` and `-A`, respectively, instead of `-C`. Search hit records with context will also use a group separator (`--group-separator=--`), to help with making them machine readable.
+
+Printing context also implies the `--mmap` flag, so that lightgrep does not need to manage seeking backwards and forwards.
+
+![Example of `lightgrep -C 2 --group-separator="*** search hit ***" pytest/keys/----10.txt pytest/corpora/norvig1mb.txt`](documentation/gifs/context.gif)
+
 <!-- #### Histograms -->
 
 Technical Info
