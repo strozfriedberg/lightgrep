@@ -104,6 +104,22 @@ Printing context also implies the `--mmap` flag, so that lightgrep does not need
 
 In addition to outputting search hits, lightgrep can count the unique occurrences of matching text per keyword and report them as a separate histogram. This is useful when searching for patterns like phone numbers, email addresses, Social Security Numbers, credit card numbers, IPv4 addresses, etc. The histogram is tracked in memory with a hash table, so it possibly be memory-intensive depending on the patterns and input. The histogram feature is enabled by passing a path with the `--histogram-file` flag. The histogram will be written out to the file at the end of the search.
 
+### Other Commands
+
+Lightgrep accepts several commands beyond the default "search" command. The others are useful for exploring the pattern set and how lightgrep treats it.
+
+##### Graphviz output of finite state machine
+
+Lightgrep can output a representation of the pattern set's finite state machine in Graphviz's .dot format. The Graphviz `dot` command can then render the graph into a variety of image formats.
+
+```
+lightgrep -c graph -p "cat|code" > gv.dot
+dot -Tsvg -O gv.dot
+open gv.dot.svg
+```
+![An FSM of "cat|code"](documentation/images/cat_or_code.svg)
+
+
 Technical Info
 --------------
 Lightgrep is implemented in portable C++17 but exposes a concise C API. The core of the API is defined in [include/lightgrep/api.h](./include/lightgrep/api.h). You can see a small example program at [c_example/main.c](./c_example/main.c).
