@@ -64,7 +64,7 @@ void parse_opts(int argc, const char* const * argv,
   pats.add_options()
     ("keywords,k", po::value<std::vector<std::string>>(&opts.KeyFiles)->composing()->value_name("FILE"), "path to keywords file")
     ("pattern,p", po::value<std::vector<std::string>>(&opts.CmdLinePatterns)->composing()->value_name("PATTERN"), "a keyword on the command-line")
-    ("encoding,e", po::value<std::vector<std::string>>(&opts.Encodings)->default_value(std::vector<std::string>{"ASCII"}, "ASCII")->composing()->value_name("ENCODING"), "encoding to use (e.g., ASCII, UTF-8)")
+    ("encoding,e", po::value<std::vector<std::string>>(&opts.Encodings)->default_value(std::vector<std::string>{"US-ASCII"}, "US-ASCII")->composing()->value_name("ENCODING"), "encoding to use (e.g., US-ASCII, UTF-8)")
     ("ignore-case,i", "ignore case distinctions")
     ("fixed-strings,F", "interpret patterns as fixed strings")
     ;
