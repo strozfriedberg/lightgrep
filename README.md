@@ -133,6 +133,29 @@ open gv.dot.svg
 ```
 ![An FSM of "cat|code"](documentation/images/cat_or_code.svg)
 
+##### Lightgrep bytecode
+
+Lightgrep assembles patterns into a nondeterministic finite automaton (NFA) and then compiles that NFA into a program for a specialized virtual machine. Instructions in the virtual machine are 32-bit aligned and can be of different word sizes. While it's unlikely that the bytecode will help anyone better understand a given pattern set, lightgrep will print out the compiled program for a pattern set as text with the `prog` command.
+```
+$ lightgrep -c prog -p "cat|code"
+00000000 Byte 0x63/'c'
+00000001 Label 0
+00000002 Fork 0x00000008/8
+00000003 8
+00000004 Byte 0x61/'a'
+00000005 Byte 0x74/'t'
+00000006 Match
+00000007 Finish
+00000008 Byte 0x6f/'o'
+00000009 Byte 0x64/'d'
+0000000a Byte 0x65/'e'
+0000000b Match
+0000000c Finish
+0000000d Halt
+0000000e Finish
+
+$
+```
 
 Technical Info
 --------------
