@@ -1,11 +1,11 @@
-liblightgrep
+lightgrep
 ============
 
 not the worst forensics regexp engine
 
 About
 -----
-Lightgrep is a new regular expression engine, designed specifically for digital forensics. Why another regexp engine?
+Lightgrep is a regular expression engine, designed specifically for digital forensics. Why another regexp engine?
 
 Lightgrep:
  * searches for many patterns simultaneously
@@ -13,9 +13,11 @@ Lightgrep:
  * searches for patterns in many different encodings; give it dirty data, lightgrep don't care
  * never, ever, ever, never, never looks at a byte twice or backs up in your input
 
-Lightgrep is still pretty new and doesn't have all the regexp features you might be used to. But it has enough features to be more than a toy, and what is supported is well-tested.
+Lightgrep is an [automata-based engine](https://en.wikipedia.org/wiki/Finite-state_machine) and doesn't have all the regexp features you might be used to. However, it has proved very useful in digital investigations and is well-tested.
 
-liblightgrep is copyright (c) 2010-2015, Stroz Friedberg, LLC. liblightgrep is available under version 3 of the GNU Public License. See [COPYING](COPYING) for details.
+Lightgrep has both a command-line program for conducting searches against files and a C library, liblightgrep, for using in programs and scripts. The command-line program can search binary and text. The library has a C API and has bindings for both Python and Java. 
+
+Lightgrep is copyright (c) 2010-2024, Stroz Friedberg, LLC. Lightgrep is available under version 3 of the GNU Public License. See [COPYING](COPYING) for details.
 
 Technical Info
 --------------
