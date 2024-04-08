@@ -133,6 +133,41 @@ open gv.dot.svg
 ```
 ![An FSM of "cat|code"](documentation/images/cat_or_code.svg)
 
+##### Keyword sampling
+
+Many people struggle with understanding regular expressions as they become more complex. To help build intuition, lightgrep can output samples of matching text with the `sample` command. The command requires that you enter the maxinum number of samples for lightgrep to generate, though whether that number will be generated depends on the pattern and the sampling algorithm.
+```
+$ lightgrep -c sample -p "d[aeiou][dtnmbpgkszvw]{0,2}" 15
+da
+dakz
+danz
+dat
+daz
+de
+dem
+dep
+det
+dew
+di
+didv
+dimp
+diw
+diwv
+diz
+do
+dod
+dogm
+dop
+dopn
+dowt
+du
+dukp
+duw
+$
+```
+
+The sampling algorithm is biased in order to generate samples from a broader section of the NFA and to favor printable characters.
+
 ##### Lightgrep bytecode
 
 Lightgrep assembles patterns into a nondeterministic finite automaton (NFA) and then compiles that NFA into a program for a specialized virtual machine. Instructions in the virtual machine are 32-bit aligned and can be of different word sizes. While it's unlikely that the bytecode will help anyone better understand a given pattern set, lightgrep will print out the compiled program for a pattern set as text with the `prog` command.
