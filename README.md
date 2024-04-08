@@ -108,6 +108,20 @@ In addition to outputting search hits, lightgrep can count the unique occurrence
 
 Lightgrep accepts several commands beyond the default "search" command. The others are useful for exploring the pattern set and how lightgrep treats it.
 
+##### Validating patterns
+
+Sometimes it's useful simply to know whether lightgrep can successfully parse all the patterns in a pattern file. This is easily done with the `validate` command:
+```
+$ cat >> badkeywords.txt
+trailing|
+*whatever
+$ lightgrep -c validate badkeywords.txt
+pattern 0 trailing| : Could not parse
+pattern 1 *whatever : repetition of non-atom by *, at [0,1)
+$
+```
+Lightgrep will return 0 if all the patterns parse successfully and nonzero if one or more of them could not be parsed. This functionality is useful when scripting with lightgrep.
+
 ##### Graphviz output of finite state machine
 
 Lightgrep can output a representation of the pattern set's finite state machine in Graphviz's .dot format. The Graphviz `dot` command can then render the graph into a variety of image formats.
