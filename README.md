@@ -86,6 +86,15 @@ Multiple encodings may be specified by repeating the `-e/--encoding` flag with d
 
 The Unicode standard changes over time and the ICU libraries are updated to suit. Depending how lightgrep was built and which version of the ICU libraries were used, lightgrep may not be up-to-date with the latest Unicode standard. To get a list of which encodings Lightgrep understands, use `lightgrep --list-encodings` (the list will be long, so you may want to pipe to `less` or redirect to a file). Please note that encodings often have a "canonical" name and several alternate names.
 
+#### I/O
+
+Lightgrep writes search hits to stdout by default. The `-o/--output` flag can be used to specify an output file instead.
+
+Lightgrep searches one or more files specified as its last arguments. To search a directory of files recursively, use `-r/--recursive`. Specific files can be searched by providing their paths in a file with the `-a/--arg-file` flag. 
+
+<!-- #### Context -->
+<!-- #### Histograms -->
+
 Technical Info
 --------------
 Lightgrep is implemented in portable C++17 but exposes a concise C API. The core of the API is defined in [include/lightgrep/api.h](./include/lightgrep/api.h). You can see a small example program at [c_example/main.c](./c_example/main.c).
