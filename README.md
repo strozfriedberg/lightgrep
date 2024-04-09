@@ -200,7 +200,7 @@ $
 
 Regular Expression Syntax
 -------------------------
-Lightgrep supports a subset of [Perl regular expression syntax](https://perldoc.perl.org/perlre) and its matching semantics. The [Lightgrep Cheat Sheet](./documentation/LightgrepSyntaxCheatSheet) \[pdf\] is the best overview of supported syntax and features.
+Lightgrep supports a subset of [Perl regular expression syntax](https://perldoc.perl.org/perlre) and its matching semantics. The [Lightgrep Cheat Sheet](./documentation/LightgrepSyntaxCheatSheet.pdf) (pdf) is the best overview of supported syntax and features.
 
 Technical Info
 --------------
