@@ -104,6 +104,12 @@ Printing context also implies the `--mmap` flag, so that lightgrep does not need
 
 In addition to outputting search hits, lightgrep can count the unique occurrences of matching text per keyword and report them as a separate histogram. This is useful when searching for patterns like phone numbers, email addresses, Social Security Numbers, credit card numbers, IPv4 addresses, etc. The histogram is tracked in memory with a hash table, so it possibly be memory-intensive depending on the patterns and input. The histogram feature is enabled by passing a path with the `--histogram-file` flag. The histogram will be written out to the file at the end of the search.
 
+##### Binary pattern files
+
+Lightgrep performs considerable analysis on a pattern set prior to searching input for the patterns. This can take a few seconds, even minutes, for large pattern sets, which can be tedious if you need to run the same searches repeatedly (especially in distributed computing scenarios). To mitigate this, lightgrep can output the search logic for a pattern set as a binary file, with `lightgrep -c prog --binary keywords.txt > keywords.bin` and then take that binary file for searching with `lightgrep --program-file keywords.bin file_to_search`, skipping any need to parse, analyze, and compile the patterns.
+
+![Demonstration of saving a binary pattern file and then using it for a search](documentation/gifs/binary_file.gif)
+
 ### Other Commands
 
 Lightgrep accepts several commands beyond the default "search" command. The others are useful for exploring the pattern set and how lightgrep treats it.
