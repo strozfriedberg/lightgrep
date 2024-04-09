@@ -228,12 +228,14 @@ Lightgrep's core engine only understands _binary_ patterns. Rather than attempt 
 
 ##### Specifying Unicode characters
 
-| Syntax | Example | Description |
-----------------------------------
+
+| Syntax                     | Example                      | Description |
+| -------------------------- | ---------------------------- | ----------- |
 | \x{_hhhhh_}, \N{U+_hhhhh_} | `\x{e28892}`, `\N{U+e28892}` | Specify hex value of Unicode code point, e.g., ∞ |
 | \N{_name_} | `\N{INFINITY}` | Specify the proper name of a Unicode character |
 | \p{_property-name_} | `\p{Script=Cyrillic}` | Specify a character class by Unicode property, e.g., [characters in the Cyrillic script](https://www.fileformat.info/info/unicode/block/cyrillic/list.htm) |
 | \P{_property-name_} | `\P{White_Space}` | Specify all characters _not_ having a Unicode property |
+
 
 Lightgrep relies on the ICU libraries to translate character and property names to sets of codepoints. It also uses ICU to mapping codepoints to byte strings for legacy encodings. While ICU has its own regular expression engine, lightgrep does not use ICU in any aspect of searching.
 
