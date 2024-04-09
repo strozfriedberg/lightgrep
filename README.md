@@ -226,6 +226,21 @@ Lightgrep provides excellent support for Unicode. Regular expressions should be 
 
 Lightgrep's core engine only understands _binary_ patterns. Rather than attempt to decode input in specified encodings, Lightgrep transforms abstract Unicode-aware patterns to binary, given a specified encoding. For example, non-ASCII characters will be multiple bytes in UTF-8 (commonly used on Linux and macOS) and two bytes in UTF-16LE (commonly used on Windows). As a multi-pattern engine, lightgrep can search for the same pattern in a variety of encodings simultaneously; when it generates a search hit, it can then see which pattern matched and deduce the encoding from it. This approach makes lightgrep robust in the face of mixed-encoding/corrupt data, which is often encountered in file slack, unallocated disk space, and virtual memory swap files.
 
+##### Specifying Unicode characters
+
+| Syntax | Example | Description |
+----------------------------------
+| \x{_hhhhh_}, \N{U+_hhhhh_} | `\x{e28892}`, `\N{U+e28892}` | Specify hex value of Unicode code point, e.g., ∞ |
+| \N{_name_} | `\N{INFINITY}` | Specify the proper name of a Unicode character |
+| \p{_property-name_} | `\p{Script=Cyrillic}` | Specify a character class by Unicode property, e.g., [characters in the Cyrillic script](https://www.fileformat.info/info/unicode/block/cyrillic/list.htm) |
+| \P{_property-name_} | `\P{White_Space}` | Specify all characters _not_ having a Unicode property |
+
+Lightgrep relies on the ICU libraries to translate character and property names to sets of codepoints. It also uses ICU to mapping codepoints to byte strings for legacy encodings. While ICU has its own regular expression engine, lightgrep does not use ICU in any aspect of searching.
+
+##### Bytes is bytes
+
+Lightgrep has one novel extension in its syntax. Lightgrep uses `\z_hh_` to specify a literal byte by its hex value, regardless of the encoding selected. This may be useful when looking for normal strings in different encodings, but which are separated in a record by binary values, e.g., a null byte.
+
 Technical Info
 --------------
 Lightgrep is implemented in portable C++17 but exposes a concise C API. The core of the API is defined in [include/lightgrep/api.h](./include/lightgrep/api.h). You can see a small example program at [examples/c_example/main.c](./examples/c_example/main.c).
