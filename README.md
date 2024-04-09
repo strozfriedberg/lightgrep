@@ -214,6 +214,10 @@ Some investigators feel that all possible matches of a keyword should be reporte
 
 When using regular expressions in digital investigations, it is **strongly recommended** that investigators create sample input for complicated keywords and test the patterns thoroughly before running searches against digital evidence. This is the best way to avoid unpleasant surprises in cases involving searches.
 
+#### Pattern independence
+
+Lightgrep will match on all occurrences of provided patterns, regardless of the order in which they are provided to lightgrep. Lightgrep's multi-pattern support is therefore _not_ based simply on yoking patterns together with the `|` alternation operator.
+
 Technical Info
 --------------
 Lightgrep is implemented in portable C++17 but exposes a concise C API. The core of the API is defined in [include/lightgrep/api.h](./include/lightgrep/api.h). You can see a small example program at [examples/c_example/main.c](./examples/c_example/main.c).
