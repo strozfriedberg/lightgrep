@@ -218,6 +218,10 @@ When using regular expressions in digital investigations, it is **strongly recom
 
 Lightgrep will match on all occurrences of provided patterns, regardless of the order in which they are provided to lightgrep. Lightgrep's multi-pattern support is therefore _not_ based simply on yoking patterns together with the `|` alternation operator.
 
+#### Search hit ordering
+
+Lightgrep provides a partial ordering guarantee: search hits for the same keyword, i.e., with the same keyword index, will be reported in order of starting file offset. However, no guarantees are made about when search hits are reported relative to the current position in the stream being searched or relative to different keyword indices. Fixed-string keywords are generally reported as soon as they can be, but more complicated regular expressions may necessitate reading a lot of data, potentially up to the end of the stream, from their starting position in order to be resolved, due to the precedence rules.
+
 ### Unicode & encodings
 
 ##### Unicode
