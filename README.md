@@ -218,7 +218,7 @@ When using regular expressions in digital investigations, it is **strongly recom
 
 Lightgrep will match on all occurrences of provided patterns, regardless of the order in which they are provided to lightgrep. Lightgrep's multi-pattern support is therefore _not_ based simply on yoking patterns together with the `|` alternation operator.
 
-#### Unicode & encodings
+### Unicode & encodings
 
 ##### Unicode
 
