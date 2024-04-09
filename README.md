@@ -198,6 +198,10 @@ $ lightgrep -c prog -p "cat|code"
 $
 ```
 
+Regular Expression Syntax
+-------------------------
+Lightgrep supports a subset of [Perl regular expression syntax](https://perldoc.perl.org/perlre) and its matching semantics. The [Lightgrep Cheat Sheet](./documentation/LightgrepSyntaxCheatSheet) \[pdf\] is the best overview of supported syntax and features.
+
 Technical Info
 --------------
 Lightgrep is implemented in portable C++17 but exposes a concise C API. The core of the API is defined in [include/lightgrep/api.h](./include/lightgrep/api.h). You can see a small example program at [c_example/main.c](./c_example/main.c).
