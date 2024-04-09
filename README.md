@@ -206,6 +206,14 @@ Lightgrep supports a subset of [Perl regular expression syntax](https://perldoc.
 
 Lightgrep's automata-based algorithm provides reliability in performance and is a better fit for streaming through large inputs, but comes with the trade-off that some popular extended regular expression syntax and features are not supported. These include boundary assertions, lookaround assertions, back-references, and captured subgroups. These features tend to be used more for text-processing applications, while lightgrep's core mission is to provide multi-pattern search over binary streams for digital investigations. Limited support for assertions may be supported in a future version of lightgrep.
 
+### Matching
+
+Perl, Python, Java, and most other engines define a notion of _precedence_ for matching. For example, given an input of `aaaaabc`, `a+b|a` will generate a single search hit from the first byte to the `b` as the left-branch of the alternation (as denoted by the "|" character) has higher precedence then the right branch which will match a single `a`. In contrast, `a|a+b` will generate five search hits on each occurrence of `a` while the `b` character will not be included in any reported search hits.
+
+Some investigators feel that all possible matches of a keyword should be reported, without regard to these precedence rules. In some respects this would simplify lightgrep. However, by adhering to Perl's de facto matching standards, lightgrep can be tested and compared against several other engines to bolster its defensibility.
+
+When using regular expressions in digital investigations, it is **strongly recommended** that investigators create sample input for complicated keywords and test the patterns thoroughly before running searches against digital evidence. This is the best way to avoid unpleasant surprises in cases involving searches.
+
 Technical Info
 --------------
 Lightgrep is implemented in portable C++17 but exposes a concise C API. The core of the API is defined in [include/lightgrep/api.h](./include/lightgrep/api.h). You can see a small example program at [examples/c_example/main.c](./examples/c_example/main.c).
