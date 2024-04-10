@@ -259,7 +259,43 @@ Python bindings are also provided, based on [ctypes](https://docs.python.org/3/l
 
 Technical Info
 --------------
-Lightgrep depends on a number of [Boost](http://www.boost.org/) libraries and also on [ICU](http://www.icu-project.org).
+### Dependencies
+Lightgrep is implemented in C++17. It depends on a few [Boost](http://www.boost.org/) libraries and also on [ICU](http://www.icu-project.org). Building the unit tests requires [Catch2](https://github.com/catchorg/Catch2/releases). 
+
+Building lightgrep requires a contemporary gcc or clang for compiler with standard C++ packages, pkg-config, a full GNU autotools install, and GNU bison.
+
+### Theory and publications
+Lightgrep was borne of the need of a forensics search engine like EnCase's, but that didn't slow to the speed of a 2400 baud modem when given a couple hundred keywords, and of the path lighted by [Russ Cox with RE2](https://swtch.com/~rsc/regexp/).
+
+[Lightgrep was first described](https://dl.ifip.org/db/conf/ifip11-9/df2011/StewartU11.pdf) in Springer's _Advances in Digital Forensics VII_, the proceedings of the 2011 IFIP 11.9 Digital Forensics working group conference. The key insight for supporting multipattern search was to use Thompson's NFA search algorithm with Ville Laurikari's tagged automata ([SPIRE 2000](https://laurikari.net/ville/spire2000-tnfa.pdf), [master's thesis](https://www.researchgate.net/publication/2398754_Efficient_Submatch_Addressing_for_Regular_Expressions)) concept.
+
+Handling Unicode and encodings and decoding surrounding context of search hits are complicated topics. We explored these issues in our [DFRWS 2013 paper](https://dfrws.org/sites/default/files/session-files/2013_USA_paper-unicode_search_of_dirty_data_or_how_i_learned_to_stop_worrying_and_love_unicode_technical_standard_18.pdf) and [presentation](https://dfrws.org/sites/default/files/session-files/2013_USA_pres-unicode_search_of_dirty_data_or_how_i_learned_to_stop_worrying_and_love_unicode_technical_standard_18.pdf). [Unicode Technical Standard #18](https://unicode.org/reports/tr18/) provides a great deal of guidance, but has also been justly criticized (and duly revised, thankfully) for proposing idealized features that may not be applicable or even feasible in all circumstances.
+
+### Comparisons
+
+Lightgrep is most like [RE2](https://github.com/google/re2), but there are notable feature differences:
+
+| Aspect | Lightgrep | RE2 |
+| ------ | --------- | --- |
+| Core algorithm | Ken Thompson's NFA search | DFA search with on-the-fly construction and fallback to Thompson's NFA |
+| Automata | [Glushkov NFA](https://en.wikipedia.org/wiki/Glushkov%27s_construction_algorithm) | [Thompson NFA](https://en.wikipedia.org/wiki/Thompson%27s_construction) |
+| Streaming | Yes | No |
+| Multipattern | Yes | No, but kind of with [Set](https://github.com/google/re2/blob/main/re2/set.h) |
+| Input model | binary | lines of text |
+| Unicode support | Embodied in binary patterns | Input decoding |
+| Encodings | ASCII, UTF-8, UTF-16, and [many others](./include/lightgrep/encodings.h) | UTF-8, Latin1 |
+| Performance | Fair | Good |
+| Optimizations | Parse-tree rules, determinization with rank limit, JumpTable, Two-byte l-min filter | BitState, OnePass, caching DFA |
+| Matching | No | Yes |
+| Searching | Yes | Yes |
+| Submatches | No | Yes |
+| Semantics | PCRE | PCRE default, POSIX option |
+| Zero-length patterns | No | Yes |
+| Portability | Linux, macOS, Windows | Linux, macOS, on your own with Windows |
+
+
+While more similar to RE2 in implementation, lightgrep's chosen domain and design goals overlap more with [HyperScan](https://github.com/intel/hyperscan), in that its built for supporting binary-oriented streaming multi-pattern search for broad cybersecurity purposes; both were first developed around the same time. HyperScan set a new bar for regular expression search performance with its [decomposition of patterns](https://www.usenix.org/conference/nsdi19/presentation/wang-xiang) into different automata and aggressive use of SIMD/bit-parallel algorithms for different types of automata. HyperScan's performance far outclasses lightgrep, while lightgrep offers PCRE matching semantics, Unicode/multiple-encodings support, and portability. HyperScan is well-suited for use in NIDS/DPI applications while lightgrep focuses more on digital forensics.
+
 
 Install
 -------
