@@ -247,10 +247,18 @@ Lightgrep relies on the ICU libraries to translate character and property names 
 
 Lightgrep has one novel extension in its syntax. Lightgrep uses `\z_hh_` to specify a literal byte by its hex value, regardless of the encoding selected. This may be useful when looking for normal strings in different encodings, but which are separated in a record by binary values, e.g., a null byte is expressed as `\z00`.
 
+Liblightgrep
+------------
+The lightgrep engine is available as a native library. It is implemented in C++, but the API is pure C so there is no need to match compilers between building the library and whatever uses the library, to avoid ABI incompatibilities. The library is agnostic about both I/O and multithreading, so it can be used in a variety of contexts. The library only depends on ICU.
+
+The C API is primarily contained in [include/lightgrep/api.h](./include/lightgrep/api.h) with a few other headers in [include/lightgrep/](./include/lightgrep/). The API is relatively small with comments in the headers. An example user program is provided at [examples/c_example/main.c](./examples/c_example/main.c). A [pkg-config](https://people.freedesktop.org/~dbn/pkg-config-guide.html) `.pc` file is installed with the library, to aid in development on Unix systems. Liblightgrep can be cross-compiled for Windows with mingw on Fedora. As C++ features sometimes lag on VisualStudio, we do not support building liblighgrep in it, but you are welcome to try.
+
+Java bindings are provided via JNI. As with most things JNI, it's kind of cursed. We hope you don't need it and perhaps one day we'll deprecate it. An example Java program can be found in [src/java/src/main/java/com/lightboxtechnologies/lightgrep/](./src/java/src/main/java/com/lightboxtechnologies/lightgrep/).
+
+Python bindings are also provided, based on [ctypes](https://docs.python.org/3/library/ctypes.html). The module is located at [pylightgrep/lightgrep/__init__.py](./pylightgrep/lightgrep/__init__.py) and an example Python script is at [pylightgrep/lg_example.py](./pylightgrep/lg_example.py).
+
 Technical Info
 --------------
-Lightgrep is implemented in portable C++17 but exposes a concise C API. The core of the API is defined in [include/lightgrep/api.h](./include/lightgrep/api.h). You can see a small example program at [examples/c_example/main.c](./examples/c_example/main.c).
-
 Lightgrep depends on a number of [Boost](http://www.boost.org/) libraries and also on [ICU](http://www.icu-project.org).
 
 Install
