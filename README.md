@@ -208,7 +208,7 @@ Lightgrep's automata-based algorithm provides reliability in performance and is 
 
 ### Matching
 
-Perl, Python, Java, and most other engines define a notion of _precedence_ for matching. For example, given an input of `aaaaabc`, `a+b|a` will generate a single search hit from the first byte to the `b` as the left-branch of the alternation (as denoted by the "|" character) has higher precedence then the right branch which will match a single `a`. In contrast, `a|a+b` will generate five search hits on each occurrence of `a` while the `b` character will not be included in any reported search hits.
+Perl, Python, Java, and most other engines define a notion of _precedence_ for matching. For example, given an input of `aaaaabc`, `a+b|a` will generate only a single search hit from the first byte to the `b`. This is because the left-branch of the alternation (as denoted by the "|" character) has higher precedence then the right branch which will match a single `a`. In contrast, `a|a+b` will generate five search hits on each occurrence of `a` while the `b` character will not be included in any reported search hits.
 
 Some investigators feel that all possible matches of a keyword should be reported, without regard to these precedence rules. In some respects this would simplify lightgrep. However, by adhering to Perl's de facto matching standards, lightgrep can be tested and compared against several other engines to bolster its defensibility.
 
