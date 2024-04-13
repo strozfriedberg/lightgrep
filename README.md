@@ -176,7 +176,7 @@ The sampling algorithm is biased in order to generate samples from a broader sec
 
 ##### Lightgrep bytecode
 
-Lightgrep assembles patterns into a nondeterministic finite automaton (NFA) and then compiles that NFA into a program for a specialized virtual machine. Instructions in the virtual machine are 32-bit aligned and can be of different word sizes. While it's unlikely that the bytecode will help anyone better understand a given pattern set, lightgrep will print out the compiled program for a pattern set as text with the `prog` command.
+Lightgrep assembles patterns into a nondeterministic finite automaton (NFA) and then compiles that NFA into a program for a specialized virtual machine. Instructions in the virtual machine are 32-bit aligned and can be of different word sizes. When run with the `prog` command, lightgrep will print the compiled program for a pattern set to stdout.
 ```
 $ lightgrep -c prog -p "cat|code"
 00000000 Byte 0x63/'c'
