@@ -241,7 +241,7 @@ Lightgrep's core engine only understands _binary_ patterns. Rather than attempt 
 | \P{_property-name_} | `\P{White_Space}` | Specify all characters _not_ having a Unicode property |
 
 
-Lightgrep relies on the ICU libraries to translate character and property names to sets of codepoints. It also uses ICU to mapping codepoints to byte strings for legacy encodings. While ICU has its own regular expression engine, lightgrep does not use ICU in any aspect of searching.
+Lightgrep relies on the ICU libraries to translate character and property names to sets of codepoints. It also uses ICU to map codepoints to byte strings for legacy encodings. While ICU has its own regular expression engine, lightgrep does not use ICU in any aspect of searching.
 
 ##### Bytes is bytes
 
