@@ -126,7 +126,7 @@ pattern 0 trailing| : Could not parse
 pattern 1 *whatever : repetition of non-atom by *, at [0,1)
 $
 ```
-Lightgrep will return 0 if all the patterns parse successfully and nonzero if one or more of them could not be parsed. This functionality is useful when scripting with lightgrep.
+Lightgrep will return 0 if all the patterns parse successfully and nonzero if one or more of them could not be parsed, which can be helpful when scripting with lightgrep.
 
 ##### Graphviz output of finite state machine
 
