@@ -72,7 +72,7 @@ Miscellaneous:
 
 ### Searching
 
-To search a file, use `$ lightgrep keywords.txt <PATH_TO_FILE>`. By default lightgrep will report any search hits as tab-delimited data to stdout, in six columns: <PATH_TO_FILE> \t Starting offset \t Ending offset \t Keyword index \t Keyword \t Encoding.
+To search a file, use `$ lightgrep keywords.txt <PATH_TO_FILE>`. By default lightgrep will report any search hits as tab-delimited data to stdout, in six columns: `<PATH_TO_FILE> \t Starting offset \t Ending offset \t Keyword index \t Keyword \t Encoding`.
 
 ![Example of `lightgrep pytest/keys/----10.txt pytest/corpora/norvig1mb.txt`](documentation/gifs/lightgrep_search.gif)
 
