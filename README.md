@@ -102,7 +102,7 @@ Printing context also implies the `--mmap` flag, so that lightgrep does not need
 
 ##### Histograms
 
-In addition to outputting search hits, lightgrep can count the unique occurrences of matching text per keyword and report them as a separate histogram. This is useful when searching for patterns like phone numbers, email addresses, Social Security Numbers, credit card numbers, IPv4 addresses, etc. The histogram is tracked in memory with a hash table, so it possibly be memory-intensive depending on the patterns and input. The histogram feature is enabled by passing a path with the `--histogram-file` flag. The histogram will be written out to the file at the end of the search.
+In addition to outputting search hits, lightgrep can count the unique occurrences of matching text per keyword and report them as a histogram in a separate file. This is useful when searching for patterns like phone numbers, email addresses, IPv4 addresses, etc. The histogram is tracked in memory as a hash table, so it may be memory-intensive depending on the patterns and input. The histogram feature is enabled by passing a path with the `--histogram-file` flag. The histogram is written out to the file when the search completes.
 
 ##### Binary pattern files
 
