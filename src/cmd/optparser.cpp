@@ -147,7 +147,7 @@ void parse_opts(int argc, const char* const * argv,
     std::map<std::string,Options::CommandTypes> cmds;
     cmds.insert(std::make_pair("search",   Options::SEARCH));
     cmds.insert(std::make_pair("graph",    Options::GRAPH));
-    cmds.insert(std::make_pair("prog",     Options::PROGRAM));
+    cmds.insert(std::make_pair("program",     Options::PROGRAM));
     cmds.insert(std::make_pair("sample",     Options::SAMPLES));
     cmds.insert(std::make_pair("validate", Options::VALIDATE));
     cmds.insert(std::make_pair("analyze", Options::ANALYZE));

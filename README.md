@@ -34,7 +34,7 @@ Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]...
        lightgrep [OPTION]... [-p PATTERN | -k FILE]... [FILE]...
 
 Command selection:
-  -c [ --command ] CMD (=search)        command to perform [search|graph|prog|s
+  -c [ --command ] CMD (=search)        command to perform [search|graph|program|s
                                         amp|validate|analyze]
   --help                                display this help message
   --list-encodings                      list known encodings
@@ -106,7 +106,7 @@ In addition to outputting search hits, lightgrep can count the unique occurrence
 
 ##### Binary pattern files
 
-Lightgrep performs considerable analysis on a pattern set prior to searching input for the patterns. This can take a few seconds, even minutes, for large pattern sets, which can be tedious if you need to run the same searches repeatedly (especially in distributed computing scenarios). To mitigate this, lightgrep can output the search logic for a pattern set as a binary file, with `lightgrep -c prog --binary keywords.txt > keywords.bin` and then take that binary file for searching with `lightgrep --program-file keywords.bin file_to_search`, skipping any need to parse, analyze, and compile the patterns.
+Lightgrep performs considerable analysis on a pattern set prior to searching input for the patterns. This can take a few seconds, even minutes, for large pattern sets, which can be tedious if you need to run the same searches repeatedly (especially in distributed computing scenarios). To mitigate this, lightgrep can output the search logic for a pattern set as a binary file, with `lightgrep -c program --binary keywords.txt > keywords.bin` and then take that binary file for searching with `lightgrep --program-file keywords.bin file_to_search`, skipping any need to parse, analyze, and compile the patterns.
 
 ![Demonstration of saving a binary pattern file and then using it for a search](documentation/gifs/binary_file.gif)
 
@@ -176,9 +176,9 @@ The sampling algorithm is biased in order to generate samples from a broader sec
 
 ##### Lightgrep bytecode
 
-Lightgrep assembles patterns into a nondeterministic finite automaton (NFA) and then compiles that NFA into a program for a specialized virtual machine. Instructions in the virtual machine are 32-bit aligned and can be of different word sizes. When run with the `prog` command, lightgrep will print the compiled program for a pattern set to stdout.
+Lightgrep assembles patterns into a nondeterministic finite automaton (NFA) and then compiles that NFA into a program for a specialized virtual machine. Instructions in the virtual machine are 32-bit aligned and can be of different word sizes. When run with the `program` command, lightgrep will print the compiled program for a pattern set to stdout.
 ```
-$ lightgrep -c prog -p "cat|code"
+$ lightgrep -c program -p "cat|code"
 00000000 Byte 0x63/'c'
 00000001 Label 0
 00000002 Fork 0x00000008/8
