@@ -243,7 +243,7 @@ Lightgrep's core engine only understands _binary_ patterns. Rather than attempt 
 
 Lightgrep relies on the ICU libraries to translate character and property names to sets of codepoints. It also uses ICU to map codepoints to byte strings for legacy encodings. While ICU has its own regular expression engine, lightgrep does not use ICU in any aspect of searching.
 
-##### Bytes is bytes
+##### Bytes override
 
 Lightgrep has one novel extension in its syntax. Lightgrep uses `\z_hh_` to specify a literal byte by its hex value, regardless of the encoding selected. This may be useful when looking for normal strings in different encodings, but which are separated in a record by binary values, e.g., a null byte is expressed as `\z00`.
 
