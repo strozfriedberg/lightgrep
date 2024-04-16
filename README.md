@@ -265,7 +265,7 @@ Lightgrep is implemented in C++17. It depends on a few [Boost](http://www.boost.
 Building lightgrep requires a compiler with C++17 support (gcc or clang), pkg-config, a full GNU autotools install, and GNU bison.
 
 ### Theory and publications
-Lightgrep was borne of the need of a forensics search engine like EnCase's, but that didn't slow to the speed of a 2400 baud modem when given a couple hundred keywords, and of the path lighted by [Russ Cox with RE2](https://swtch.com/~rsc/regexp/).
+Lightgrep was inspired by the need for a forensics search engine like EnCase's, but with better performance, and by [Russ Cox's series about automata-based regular expression searching](https://swtch.com/~rsc/regexp/).
 
 [Lightgrep was first described](https://dl.ifip.org/db/conf/ifip11-9/df2011/StewartU11.pdf) in Springer's _Advances in Digital Forensics VII_, the proceedings of the 2011 IFIP 11.9 Digital Forensics working group conference. The key insight for supporting multipattern search was to use Thompson's NFA search algorithm with Ville Laurikari's tagged automata ([SPIRE 2000](https://laurikari.net/ville/spire2000-tnfa.pdf), [master's thesis](https://www.researchgate.net/publication/2398754_Efficient_Submatch_Addressing_for_Regular_Expressions)) concept.
 
