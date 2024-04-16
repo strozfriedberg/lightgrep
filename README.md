@@ -29,13 +29,13 @@ The `--help` flag will tell lightgrep to report on all its command-line switches
 ```
 lightgrep 1.5.0
 Copyright (c) 2010-2024, Stroz Friedberg, LLC
-Built Apr  8 2024
+Built Apr 16 2024
 Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]...
        lightgrep [OPTION]... [-p PATTERN | -k FILE]... [FILE]...
 
 Command selection:
-  -c [ --command ] CMD (=search)        command to perform [search|graph|program|s
-                                        amp|validate|analyze]
+  -c [ --command ] CMD (=search)        command to perform [search|graph|prog|s
+                                        ample|validate|analyze]
   --help                                display this help message
   --list-encodings                      list known encodings
   -V [ --version ]                      print version information and exit
@@ -43,7 +43,8 @@ Command selection:
 Pattern selection and interpretation:
   -k [ --keywords ] FILE                path to keywords file
   -p [ --pattern ] PATTERN              a keyword on the command-line
-  -e [ --encoding ] ENCODING (=ASCII)   encoding to use (e.g., ASCII, UTF-8)
+  -e [ --encoding ] ENCODING (=US-ASCII)
+                                        encoding to use (e.g., US-ASCII, UTF-8)
   -i [ --ignore-case ]                  ignore case distinctions
   -F [ --fixed-strings ]                interpret patterns as fixed strings
 
