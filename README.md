@@ -262,7 +262,7 @@ Technical Info
 ### Dependencies
 Lightgrep is implemented in C++17. It depends on a few [Boost](http://www.boost.org/) libraries and also on [ICU](http://www.icu-project.org). Building the unit tests requires [Catch2](https://github.com/catchorg/Catch2/releases). 
 
-Building lightgrep requires a contemporary gcc or clang for compiler with standard C++ packages, pkg-config, a full GNU autotools install, and GNU bison.
+Building lightgrep requires a compiler with C++17 support (gcc or clang), pkg-config, a full GNU autotools install, and GNU bison.
 
 ### Theory and publications
 Lightgrep was borne of the need of a forensics search engine like EnCase's, but that didn't slow to the speed of a 2400 baud modem when given a couple hundred keywords, and of the path lighted by [Russ Cox with RE2](https://swtch.com/~rsc/regexp/).
