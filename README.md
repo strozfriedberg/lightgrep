@@ -220,7 +220,7 @@ Lightgrep will match on all occurrences of provided patterns, regardless of the 
 
 #### Search hit ordering
 
-Lightgrep provides a partial ordering guarantee: search hits for the same keyword, i.e., with the same keyword index, will be reported in order of starting file offset. However, no guarantees are made about when search hits are reported relative to the current position in the stream being searched or relative to different keyword indices. Fixed-string keywords are generally reported as soon as they can be, but more complicated regular expressions may necessitate reading a lot of data, potentially up to the end of the stream, from their starting position in order to be resolved, due to the precedence rules.
+Lightgrep provides a partial ordering guarantee: search hits for the same keyword, i.e., with the same keyword index, will be reported in order of starting file offset. However, no guarantees are made about when search hits are reported relative to the current position in the stream being searched or relative to different keyword indices. Fixed-string keywords are reported as soon as they can be. Complicated regular expressions may necessitate reading more data beyond the end of the match, potentially to the end of the stream.
 
 ### Unicode & encodings
 
