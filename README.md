@@ -141,7 +141,7 @@ open gv.dot.svg
 
 ##### Keyword sampling
 
-Lightgrep can output samples of matching text for a pattern with the `sample` command. The command requires that you enter the maxinum number of samples for lightgrep to generate, though whether that number will be generated depends on the pattern and the sampling algorithm.
+Lightgrep can output samples of matching text for a pattern with the `sample` command. The command requires that you enter the maxinum number of samples for lightgrep to generate. There may be times when fewer samples are produced than this maximum, depending on both on the maximum number of possible matching texts for the pattern and on branch pruning choices made by the sampling algorithm.
 ```
 $ lightgrep -c sample -p "d[aeiou][dtnmbpgkszvw]{0,2}" 15
 da
