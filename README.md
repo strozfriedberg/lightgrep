@@ -204,7 +204,7 @@ Lightgrep supports a subset of [Perl regular expression syntax](https://perldoc.
 
 ### Unsupported features
 
-Lightgrep's automata-based algorithm provides reliability in performance and is a better fit for streaming through large inputs, but comes with the trade-off that some popular extended regular expression syntax and features are not supported. These include boundary assertions, lookaround assertions, back-references, and captured subgroups. These features tend to be used more for text-processing applications, while lightgrep's core mission is to provide multi-pattern search over binary streams for digital investigations. Limited support for assertions may be supported in a future version of lightgrep.
+Automata-based search algorithms provide stronger performance and storage guarantees than backtracking algorithms, but do not support some popular extended regular expression syntax and features, notably back-references. Lightgrep also does not support boundary assertions, lookaround assertions, or captured subgroups. These features tend to be used more for text-processing applications, while lightgrep's core mission is to provide multi-pattern search over binary streams for digital investigations. Limited support for assertions may be supported in a future version of lightgrep.
 
 ### Matching
 
