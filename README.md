@@ -226,7 +226,7 @@ Lightgrep provides a partial ordering guarantee: search hits for the same keywor
 
 ##### Unicode
 
-Lightgrep provides excellent support for Unicode. Regular expressions should be provided to lightgrep in UTF-8 and non-ASCII literals will work without issue.
+Lightgrep provides excellent support for Unicode. Regular expressions are provided to lightgrep in UTF-8 and non-ASCII literals work without issue. Characters can also be specified by numeric code point values and by name, and Unicode properties can be used in specifying character classes.
 
 Lightgrep's core engine only understands _binary_ patterns. Rather than attempt to decode input in specified encodings, Lightgrep transforms abstract Unicode-aware patterns to binary, given a specified encoding. For example, non-ASCII characters will be multiple bytes in UTF-8 (commonly used on Linux and macOS) and two bytes in UTF-16LE (commonly used on Windows). As a multi-pattern engine, lightgrep can search for the same pattern in a variety of encodings simultaneously; when it generates a search hit, it can then see which pattern matched and deduce the encoding from it. This approach makes lightgrep robust in the face of mixed-encoding/corrupt data, which is often encountered in file slack, unallocated disk space, and virtual memory swap files.
 
