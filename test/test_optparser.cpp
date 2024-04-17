@@ -168,7 +168,7 @@ TEST_CASE("mmapIncompatibleWithReadFromStdin") {
 }
 
 TEST_CASE("sampleOptions") {
-  const char* argv[] = {"lightgrep", "-c", "samp", "--program-file", "test-prog.txt", "3", "5"};
+  const char* argv[] = {"lightgrep", "-c", "sample", "--program-file", "test-prog.txt", "3", "5"};
   Options opts;
 
   po::options_description desc;
@@ -193,7 +193,7 @@ TEST_CASE("readFromStdinWhenNoInputsProvided") {
 }
 
 TEST_CASE("tooManyPositionalArguments") {
-  const char* argv[] = {"lightgrep", "-c", "samp", "--program-file", "test-prog.txt", "3", "5", "this", "is", "too", "many", "positional", "args"};
+  const char* argv[] = {"lightgrep", "-c", "sample", "--program-file", "test-prog.txt", "3", "5", "this", "is", "too", "many", "positional", "args"};
   Options opts;
 
   po::options_description desc;

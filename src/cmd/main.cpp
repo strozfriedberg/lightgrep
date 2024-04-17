@@ -40,9 +40,12 @@ namespace po = boost::program_options;
 namespace fs = std::filesystem;
 
 void printVersion(std::ostream& out) {
+  const std::string buildDate(__DATE__);
+  // ANSI C now defines __DATE__ as 11-char string of MMM DD YYYY, but double-check
+  const std::string year = buildDate.size() == 11 && buildDate[7] == '2' ? buildDate.substr(7, 4): "2024";
   out << "lightgrep " << VERSION << '\n'
-      << "Copyright (c) 2010-2017, Stroz Friedberg, LLC\n"
-         "Built " << __DATE__ << std::endl;
+      << "Copyright (c) 2010-" << year << ", Stroz Friedberg, LLC\n"
+         "Built " << buildDate << std::endl;
 }
 
 void printUsage(std::ostream& out) {
