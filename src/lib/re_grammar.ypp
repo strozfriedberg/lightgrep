@@ -386,12 +386,12 @@ atom:
   }
 | TEXT_START
   {
-    ParseNode *dot = ctx->add(ParseNode::DOT, '.');
+    ParseNode* dot = ctx->add(ParseNode::DOT, '.');
     $$ = ctx->add(ParseNode::LOOKBEHIND_NEG, dot);
   }
 | TEXT_END
   {
-    ParseNode *dot = ctx->add(ParseNode::DOT, '.');
+    ParseNode* dot = ctx->add(ParseNode::DOT, '.');
     $$ = ctx->add(ParseNode::LOOKAHEAD_NEG, dot);
   }
 | '^'
@@ -402,7 +402,7 @@ atom:
     ctx->USet.set(0x2028);            // LINE SEPARATOR
     ctx->USet.set(0x2029);            // PARAGRAPH SEPARATOR
 
-    ParseNode *linebreak = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+    ParseNode* linebreak = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
     $$ = ctx->add(ParseNode::LOOKBEHIND_NEG, linebreak);
   }
 | '$'
@@ -413,7 +413,7 @@ atom:
     ctx->USet.set(0x2028);            // LINE SEPARATOR
     ctx->USet.set(0x2029);            // PARAGRAPH SEPARATOR
 
-    ParseNode *linebreak = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
+    ParseNode* linebreak = ctx->add(ParseNode::CHAR_CLASS, ctx->USet);
     $$ = ctx->add(ParseNode::LOOKAHEAD_NEG, linebreak);
   }
 | literal
