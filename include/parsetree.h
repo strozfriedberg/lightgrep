@@ -22,6 +22,9 @@
 
 #include <iosfwd>
 #include <vector>
+#include <string>
+
+uint32_t nodesUpperBound(const std::string& expr);
 
 class ParseTree {
 public:
