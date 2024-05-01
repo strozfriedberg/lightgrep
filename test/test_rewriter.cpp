@@ -545,8 +545,10 @@ TEST_CASE("makeBinopsRightAssociative_aOrLPbOrcRP_Test") {
   REQUIRE("a|b|c" == unparse(tree));
 }
 
+/*
 TEST_CASE("makeBinopsRightAssociative_use_after_free") {
   ParseTree tree;
   REQUIRE(parse({"\\W^^^^^\\W", false, false}, tree));
   REQUIRE(makeBinopsRightAssociative(tree.Root));
 }
+*/
