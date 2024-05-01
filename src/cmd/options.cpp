@@ -162,9 +162,9 @@ void Options::populateContextOptions(const po::variables_map& optsMap, std::vect
   }
 
   if (optsMap.count("context") > 0) {
-      // "-C N" is equivalent to "-B N -A N"
-      AfterContext = BeforeContext;
-    }
+    // "-C N" is equivalent to "-B N -A N"
+    AfterContext = BeforeContext;
+  }
 
   if (BeforeContext != -1 || AfterContext != -1) {
     // -C N, -B N, -A N imply --mmap
