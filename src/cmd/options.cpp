@@ -129,9 +129,9 @@ void Options::validateAndPopulateOptions(const po::variables_map &optsMap, std::
 }
 
 void Options::validateAndPopulateKeyFiles(
-  const po::variables_map& optsMap, 
+  const po::variables_map& optsMap,
   std::vector<std::string>& pargs) {
-    
+
   if (!optsMap["program-file"].empty()) {
     if (!optsMap["pattern"].empty() || !optsMap["keywords"].empty()) {
       throw po::error("--program-file is incompatible with --pattern and --keywords");
@@ -160,7 +160,7 @@ void Options::populateContextOptions(const po::variables_map& optsMap, std::vect
   {
     throw po::error("Invalid context length argument. -C/-B/-A must not be negative.");
   }
-    
+
   if (optsMap.count("context") > 0) {
       // "-C N" is equivalent to "-B N -A N"
       AfterContext = BeforeContext;
