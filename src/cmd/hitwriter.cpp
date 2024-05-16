@@ -24,12 +24,14 @@ const char* find_trailing_context(const char* const hend, const char* const bend
   for (int i = lines + 1; i > 0 && rnl != bend; --i) {
     rnl = std::find(rnl + 1, bend, '\n');
   }
-  if (rnl != bend && *(rnl-1) == '\r') {
+
+  if (rnl > hend && rnl != bend && *(rnl-1) == '\r') {
     // Back up one byte on the right end in case of CRLF line endings;
     // not necessary for the left end due to the LF being on the right
     // half of the EOL.
     --rnl;
   }
+
   return rnl;
 }
 
