@@ -390,3 +390,19 @@ TEST_CASE("HistInfo::writeHitToHistogram Should Use DecodedContext Provided By W
     REQUIRE(called);
   };
 }
+
+TEST_CASE("zeroTrailingContextShouldWorkWhenHitsEndWithCR") {
+  const STest s(R"(\n.\r)");
+  const std::string textToSearch = "\r\nt\r\n";
+
+  std::ostringstream stream;
+  HitOutputData data(stream, s.Prog.get(), '\t', "--", 0, 0, false);
+  data.setPath("path/to/input/file");
+  data.setBuffer(textToSearch.data(), textToSearch.size(), 0);
+
+  const LG_SearchHit searchHit{1, 4, 0};
+
+  const HitBuffer actualHitBuffer = data.decodeContext(searchHit);
+  REQUIRE(actualHitBuffer.hit() == "\nt\r");
+  REQUIRE(actualHitBuffer.Context == "\r\nt\r");
+}
