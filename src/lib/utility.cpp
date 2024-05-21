@@ -22,17 +22,21 @@
 #include <set>
 
 std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
+  // pairs are (depth, vertex); we're using next as a min heap
   std::set<std::pair<uint32_t,NFA::VertexDescriptor>> next;
   next.emplace(0, 0);
 
+  // b[i] stores flags for which byte pairs starting at offset i admit matches
   std::vector<std::bitset<256*256>> b;
 
+  // lmin is the least match length seen so far
   uint32_t lmin = std::numeric_limits<uint32_t>::max()-1;
 
   uint32_t depth;
-  NFA::VertexDescriptor h;
+  NFA::VertexDescriptor h;  // head
 
   while (!next.empty()) {
+    // pop the top of the min heap
     std::tie(depth, h) = *next.begin();
     next.erase(next.begin());
 
@@ -42,25 +46,27 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
       break;
     }
 
+    // check if this vertex lowers lmin
     if (graph[h].IsMatch && depth < lmin) {
+      // this vertex has the least match length we've seen so far
       lmin = depth;
     }
 
-    // put successors in the queue if they're at lmin + 1 or less
+    // put successors in the heap if they're at lmin + 1 or less
     if (depth < lmin + 1) {
       for (const NFA::VertexDescriptor t : graph.outVertices(h)) {
-        next.emplace(depth+1, t);
+        next.emplace(depth + 1, t);
       }
     }
 
     // ensure that b[depth] exists
     if (b.size() <= depth) {
-      b.resize(depth+1);
+      b.resize(depth + 1);
     }
-  
-    // we use this pointer for getting sub-bitsets 
+
+    // we use this pointer for getting sub-bitsets; bb = bytes bits
     uint8_t* const bb = reinterpret_cast<uint8_t* const>(&b[depth]);
- 
+
     for (const NFA::VertexDescriptor t0 : graph.outVertices(h)) {
       ByteSet first;
       graph[t0].Trans->orBytes(first);
@@ -68,6 +74,12 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
       if (graph[t0].IsMatch) {
         // match; record each first byte followed by any byte
         for (uint32_t s = 0; s < 256; ++s) {
+          // first is a std::bitset<256>, so is 256 bits = 32 bytes long,
+          // and bb is a byte pointer into a std::bitset<256*256>, which
+          // has the same layout as an array of 256 std::bitset<256>s.
+          // Thus if we want to OR first into each of 256-bit chunk of bb,
+          // 32 bytes is the correct stride for advancing to the next index
+          // into which to do that.
           *reinterpret_cast<std::bitset<256>*>(bb + (s << 5)) |= first;
         }
       }
