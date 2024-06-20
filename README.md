@@ -35,7 +35,7 @@ Usage: lightgrep [OPTION]... PATTERN_FILE [FILE]...
 
 Command selection:
   -c [ --command ] CMD (=search)        command to perform [search|graph|progra
-                                        m|sample|validate|analyze]
+                                        m|sample|validate]
   --help                                display this help message
   --list-encodings                      list known encodings
   -V [ --version ]                      print version information and exit

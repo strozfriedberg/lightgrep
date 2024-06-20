@@ -53,7 +53,7 @@ void parse_opts(int argc, const char* const * argv,
   // Command selection options
   po::options_description general("Command selection");
   general.add_options()
-    ("command,c", po::value<std::string>(&command)->value_name("CMD")->default_value("search"), "command to perform [search|graph|program|sample|validate|analyze]")
+    ("command,c", po::value<std::string>(&command)->value_name("CMD")->default_value("search"), "command to perform [search|graph|program|sample|validate]")
     ("help", "display this help message")
     ("list-encodings", "list known encodings")
     ("version,V", "print version information and exit")
@@ -150,7 +150,6 @@ void parse_opts(int argc, const char* const * argv,
     cmds.insert(std::make_pair("program",     Options::PROGRAM));
     cmds.insert(std::make_pair("sample",     Options::SAMPLES));
     cmds.insert(std::make_pair("validate", Options::VALIDATE));
-    cmds.insert(std::make_pair("analyze", Options::ANALYZE));
 
     auto i = cmds.find(command);
     if (i != cmds.end()) {
@@ -168,7 +167,6 @@ void parse_opts(int argc, const char* const * argv,
   case Options::PROGRAM:
   case Options::SAMPLES:
   case Options::VALIDATE:
-  case Options::ANALYZE:
     opts.validateAndPopulateOptions(optsMap, pargs);
     break;
 
