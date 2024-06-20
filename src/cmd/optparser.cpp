@@ -53,7 +53,7 @@ void parse_opts(int argc, const char* const * argv,
   // Command selection options
   po::options_description general("Command selection");
   general.add_options()
-    ("command,c", po::value<std::string>(&command)->value_name("CMD")->default_value("search"), "command to perform [search|graph|prog|sample|validate|analyze]")
+    ("command,c", po::value<std::string>(&command)->value_name("CMD")->default_value("search"), "command to perform [search|graph|program|sample|validate|analyze]")
     ("help", "display this help message")
     ("list-encodings", "list known encodings")
     ("version,V", "print version information and exit")
