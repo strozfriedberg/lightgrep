@@ -25,7 +25,6 @@ public:
     PROGRAM,
     SAMPLES,
     VALIDATE,
-    ANALYZE,
     SHOW_VERSION,
     SHOW_HELP,
     LIST_ENCODINGS,

@@ -80,16 +80,6 @@ TEST_CASE("endThreePosArgs") {
   REQUIRE(inputs == opts.Inputs);
 }
 
-TEST_CASE("analyzeCommandOption") {
-  const char* argv[] = {"lightgrep", "-c", "analyze", "-p", "foo"};
-  Options opts;
-
-  po::options_description desc;
-  parse_opts(std::extent_v<decltype(argv)>, argv, desc, opts);
-
-  REQUIRE(Options::ANALYZE == opts.Command);
-}
-
 TEST_CASE("programFileOption") {
   const char* argv[] = {"lightgrep", "--program-file", "test-prog.txt", "test1.txt"};
   Options opts;

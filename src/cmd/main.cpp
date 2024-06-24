@@ -414,19 +414,6 @@ void validate(const Options& opts) {
   col.errors->outputErrors(std::cerr, printFilename);
 }
 
-void analyze(const Options& opts) {
-  std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
-
-  LgAppCollection col = parsePatterns(opts);
-  fsm = std::move(col.fsm);
-
-  NFAPtr g(fsm->Impl->Fsm);
-
-  std::string dominantPath = analyze(*g, 0);
-
-  std::cout << "Dominant path is {" << dominantPath << "}\n";
-}
-
 void writeSampleMatches(const Options& opts) {
 // TODO:
 // - This behavior should be turned into a C API, to avoid the cast of the FSM.
@@ -520,9 +507,6 @@ int main(int argc, char** argv) {
       break;
     case Options::VALIDATE:
       validate(opts);
-      break;
-    case Options::ANALYZE:
-      analyze(opts);
       break;
     case Options::SHOW_VERSION:
       printVersion(std::cout);
