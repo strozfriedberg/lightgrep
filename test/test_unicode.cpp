@@ -236,6 +236,10 @@ struct ContinuationTester<1,L,Converter> {
   }
 };
 
+// The utf8_to_unicode_tester_n tests are named such that n is the sequence
+// length in bytes. The utf8_to_unicode_tester_4 tests are divided into
+// numbered parts 1-8, due to their longer runtime.
+
 template <class Converter>
 void utf8_to_unicode_tester_1(Converter conv) {
   byte b[4];
