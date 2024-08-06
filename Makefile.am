@@ -336,17 +336,9 @@ test_test_CFLAGS = $(AM_CFLAGS) $(CATCH2_CFLAGS)
 test_test_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_ASIO_LIB) $(CATCH2_LIBS) $(STDCXX_LIB)
 
 pkgconfigdir = $(libdir)/pkgconfig
-nodist_pkgconfig_DATA = src/lib/lightgrep.pc
+pkgconfig_DATA = lightgrep.pc
 
-src/lib/lightgrep.pc: src/lib/lightgrep.pc.in Makefile
-	sed -e 's![@]prefix[@]!$(prefix)!g' \
-      -e 's![@]exec_prefix[@]!$(exec_prefix)!g' \
-      -e 's![@]includedir[@]!$(includedir)!g' \
-      -e 's![@]libdir[@]!$(libdir)!g' \
-      -e 's![@]PACKAGE_VERSION[@]!$(PACKAGE_VERSION)!g' \
-      $< >$@
-
-CLEANFILES = src/lib/lightgrep.pc include/lightgrep/encodings.h src/cmd/version.lo
+CLEANFILES = include/lightgrep/encodings.h src/cmd/version.lo
 
 if BUILD_DLL
 src/lib/.libs/version.o: config.h
