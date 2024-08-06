@@ -329,7 +329,14 @@ test_test_SOURCES = \
 	test/test_vectorfamily.cpp \
 	test/test_vm.cpp \
 	test/test_xorencoder.cpp \
-	test/unicode_sets.h
+	test/unicode_sets.h \
+	test/data/hectotest \
+	test/data/hectotest.dat \
+	test/data/kilotest \
+	test/data/kilotest.dat \
+	test/data/pats.0 \
+	test/data/pats.1 \
+	test/data/pats.2
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(CATCH2_CPPFLAGS)
 test_test_CFLAGS = $(AM_CFLAGS) $(CATCH2_CFLAGS)
