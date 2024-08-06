@@ -15,7 +15,6 @@
  *
  */
 
-
 #pragma once
 
 #ifdef HAVE_CONFIG_H

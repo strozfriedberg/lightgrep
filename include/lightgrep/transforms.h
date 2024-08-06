@@ -15,7 +15,6 @@
  *
  */
 
-
 #ifndef LIGHTGREP_C_TRANSFORMS_H_
 #define LIGHTGREP_C_TRANSFORMS_H_
 

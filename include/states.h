@@ -15,7 +15,6 @@
  *
  */
 
-
 #pragma once
 
 #include "byteset.h"

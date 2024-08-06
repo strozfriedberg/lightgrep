@@ -15,7 +15,6 @@
  *
  */
 
-
 #pragma once
 
 template <bool LE, typename B>

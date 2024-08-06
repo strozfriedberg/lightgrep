@@ -15,7 +15,6 @@
  *
  */
 
-
 #ifndef LIGHTGREP_C_SEARCH_HIT_H_
 #define LIGHTGREP_C_SEARCH_HIT_H_
 

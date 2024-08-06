@@ -15,7 +15,6 @@
  *
  */
 
-
 #pragma once
 
 #include "lightgrep/search_hit.h"

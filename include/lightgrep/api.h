@@ -15,7 +15,6 @@
  *
  */
 
-
 #ifndef LIGHTGREP_C_API_H_
 #define LIGHTGREP_C_API_H_
 

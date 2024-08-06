@@ -15,7 +15,6 @@
  *
  */
 
-
 #pragma once
 
 #include "parsetree.h"

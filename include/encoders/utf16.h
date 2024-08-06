@@ -15,7 +15,6 @@
  *
  */
 
-
 #pragma once
 
 #include "encoders/caching_encoder.h"

@@ -15,7 +15,6 @@
  *
  */
 
-
 #pragma once
 
 #define CONTINUATION(cp, i, end) \

@@ -15,7 +15,6 @@
  *
  */
 
-
 #pragma once
 
 #include "ostream_join_iterator.h"

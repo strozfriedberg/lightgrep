@@ -15,7 +15,6 @@
  *
  */
 
-
 #pragma once
 
 #include "decoders/decoder.h"

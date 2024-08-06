@@ -15,7 +15,6 @@
  *
  */
 
-
 #ifndef LIGHTGREP_C_UTIL_H
 #define LIGHTGREP_C_UTIL_H
 

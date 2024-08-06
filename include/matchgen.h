@@ -15,7 +15,6 @@
  *
  */
 
-
 #pragma once
 
 #include "fwd_pointers.h"
