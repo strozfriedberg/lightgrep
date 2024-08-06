@@ -100,7 +100,11 @@ AC_ARG_ENABLE([symbols],
   [enable_symbols=yes],
   [enable_symbols=no])
 
-AS_IF([test "x$enable_symbols" != "xno"], [SYMBOLS='-g'], [SYMBOLS='-s'])
+if test "x$enable_symbols" != "xno"; then
+  SYMBOLS='-g'
+else
+  AX_APPEND_LINK_FLAGS([-s], [LG_LDFLAGS])
+fi
 
 AX_APPEND_COMPILE_FLAGS([$SYMBOLS $OFLAGS], [LG_CFLAGS])
 AX_APPEND_COMPILE_FLAGS([$SYMBOLS $OFLAGS], [LG_CXXFLAGS])
