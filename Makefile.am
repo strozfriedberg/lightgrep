@@ -21,6 +21,95 @@ nodist_EXTRA_src_lib_liblightgrep_la_SOURCES = dummy.cpp # forces C++ linking
 noinst_LTLIBRARIES = $(LG_LIB_INT)
 
 src_lib_liblightgrepint_la_SOURCES = \
+	include/automata.h \
+	include/basic.h \
+	include/boost_asio.h \
+	include/boost_lexical_cast.h \
+	include/boost_program_options.h \
+	include/byteset.h \
+	include/c_api_util.h \
+	include/chain.h \
+	include/codegen.h \
+	include/compiler.h \
+	include/container_out.h \
+	include/decoders/asciidecoder.h \
+	include/decoders/bytesource.h \
+	include/decoders/decoder.h \
+	include/decoders/decoderfactory.h \
+	include/decoders/icudecoder.h \
+	include/decoders/ocedecoder.h \
+	include/decoders/rotdecoder.h \
+	include/decoders/utf16.h \
+	include/decoders/utf16decoder.h \
+	include/decoders/utf32.h \
+	include/decoders/utf32decoder.h \
+	include/decoders/utf8.h \
+	include/decoders/utf8decoder.h \
+	include/decoders/utfdecoderbase.h \
+	include/decoders/xordecoder.h \
+	include/encoders/ascii.h \
+	include/encoders/byteencoder.h \
+	include/encoders/caching_encoder.h \
+	include/encoders/charencoder.h \
+	include/encoders/concrete_encoders.h \
+	include/encoders/decorating_encoder.h \
+	include/encoders/encoder.h \
+	include/encoders/encoderbase.h \
+	include/encoders/encoderfactory.h \
+	include/encoders/icuencoder.h \
+	include/encoders/oceencoder.h \
+	include/encoders/rotencoder.h \
+	include/encoders/utf16.h \
+	include/encoders/utf32.h \
+	include/encoders/utf8.h \
+	include/encoders/utfbase.h \
+	include/encoders/xorencoder.h \
+	include/errors.h \
+	include/factor_analysis.h \
+	include/fragment.h \
+	include/fsmthingy.h \
+	include/fwd_pointers.h \
+	include/graph.h \
+	include/handles.h \
+	include/hitwriter.h \
+	include/icuconverter.h \
+	include/icuutil.h \
+	include/instructions.h \
+	include/lg_app.h \
+	include/matchgen.h \
+	include/nfabuilder.h \
+	include/nfaoptimizer.h \
+	include/options.h \
+	include/optparser.h \
+	include/ostream_join_iterator.h \
+	include/parsenode.h \
+	include/parser.h \
+	include/parsetree.h \
+	include/parseutil.h \
+	include/pattern.h \
+	include/pattern_map.h \
+	include/program.h \
+	include/rangeset.h \
+	include/reader.h \
+	include/rewriter.h \
+	include/searchcontroller.h \
+	include/searchhit.h \
+	include/sequences.h \
+	include/simplevectorfamily.h \
+	include/sparseset.h \
+	include/states.h \
+	include/staticvector.h \
+	include/thread.h \
+	include/timer.h \
+	include/transition.h \
+	include/transitionfactory.h \
+	include/unicode.h \
+	include/unparser.h \
+	include/util.h \
+	include/utility.h \
+	include/vectorfamily.h \
+	include/vm.h \
+	include/vm_interface.h \
 	src/lib/ascii.cpp \
 	src/lib/automata.cpp \
 	src/lib/byteencoder.cpp \
@@ -161,9 +250,14 @@ test_test_SOURCES = \
 	src/cmd/optparser.cpp \
 	src/cmd/util.cpp \
 	test/data_reader.cpp \
+	test/data_reader.h \
 	test/dtest.cpp \
+	test/dtest.h \
+	test/executor.h \
 	test/mockcallback.cpp \
+	test/mockcallback.h \
 	test/stest.cpp \
+	test/stest.h \
 	test/test_ascii.cpp \
 	test/test_auto_search_1.cpp \
 	test/test_auto_search_2.cpp \
@@ -192,6 +286,7 @@ test_test_SOURCES = \
 	test/test_factor_analysis.cpp \
 	test/test_graph.cpp \
 	test/test_helper.cpp \
+	test/test_helper.h \
 	test/test_hitwriter.cpp \
 	test/test_icu.cpp \
 	test/test_icudecoder.cpp \
@@ -213,10 +308,11 @@ test_test_SOURCES = \
 	test/test_rewriter.cpp \
 	test/test_rotencoder.cpp \
 	test/test_search_assertions.cpp \
-	test/test_search_switches.cpp \
 	test/test_search.cpp \
 	test/test_search_data.cpp \
 	test/test_search_data_driver.cpp \
+	test/test_search_switches.cpp \
+	test/test_sequences.h \
 	test/test_sparseset.cpp \
 	test/test_starts_with.cpp \
 	test/test_states.cpp \
@@ -232,7 +328,8 @@ test_test_SOURCES = \
 	test/test_utility.cpp \
 	test/test_vectorfamily.cpp \
 	test/test_vm.cpp \
-	test/test_xorencoder.cpp
+	test/test_xorencoder.cpp \
+	test/unicode_sets.h
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(CATCH2_CPPFLAGS)
 test_test_CFLAGS = $(AM_CFLAGS) $(CATCH2_CFLAGS)
