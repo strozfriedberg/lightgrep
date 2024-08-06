@@ -427,7 +427,7 @@ AC_MSG_NOTICE([CXXFLAGS: $CXXFLAGS])
 AC_MSG_NOTICE([LDFLAGS:  $LDFLAGS])
 AC_MSG_NOTICE([LIBS:     $LIBS])
 
-AC_CONFIG_FILES([Makefile liblightgrep.spec mingw-liblightgrep.spec])
+AC_CONFIG_FILES([Makefile liblightgrep.spec mingw-liblightgrep.spec lightgrep.pc])
 AC_OUTPUT
 
 # Force static linking of dependencies for our fat DLL.
