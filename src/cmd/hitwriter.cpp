@@ -105,6 +105,7 @@ void OutputInfo::writeGroupSeparator() {
 
 std::string escapeControlChars(const std::string& str) {
   std::string escaped;
+  escaped.reserve(str.size() + 4); // give some extra space for escaped characters
   for (const char c : str) {
     switch(c) {
       case '\a':
