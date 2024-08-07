@@ -197,16 +197,19 @@ TEST_CASE("testLgAddPatternWithNulls") {
   REQUIRE(result < 0);
   REQUIRE(err);
   REQUIRE(std::string(err->Message) == "hFsm parameter was null. Use lg_create_fsm() to allocate.");
+  lg_free_error(err);
 
   result = lg_add_pattern(fsm.get(), nullptr, "UTF-8", 17, &err);
   REQUIRE(result < 0);
   REQUIRE(err);
   REQUIRE(std::string(err->Message) == "hPattern parameter was null. Use lg_create_pattern() and lg_parse_pattern() first.");
+  lg_free_error(err);
 
   result = lg_add_pattern(fsm.get(), pat.get(), nullptr, 17, &err);
   REQUIRE(result < 0);
   REQUIRE(err);
   REQUIRE(std::string(err->Message) == "encoding string pointer was null. Please specify a valid encoding.");
+  lg_free_error(err);
 
   err = nullptr;
   LG_KeyOptions keyOpts;
