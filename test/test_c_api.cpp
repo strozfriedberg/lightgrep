@@ -81,6 +81,8 @@ TEST_CASE("testParsePatternWithBadPattern") {
   REQUIRE(errPtr->Index == -1);
   REQUIRE(errPtr->Pattern);
   REQUIRE(std::string(errPtr->Pattern) == s);
+
+  lg_free_error(errPtr);
 }
 
 TEST_CASE("testAddPatternWithBadPattern") {
@@ -538,11 +540,14 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
   }
 
   const LG_ContextOptions ctxOpts = LG_ContextOptions();
-  LG_HCONTEXT ctx = lg_create_context(prog2.get(), &ctxOpts);
+  std::shared_ptr<ContextHandle> ctx(
+    lg_create_context(prog2.get(), &ctxOpts),
+    lg_destroy_context
+  );
 
   const std::string s = "foo is totally bar";
 
   uint64_t numHits = 0;
-  lg_search(ctx, s.data(), s.data() + s.size(), 0, &numHits, gotHit);
+  lg_search(ctx.get(), s.data(), s.data() + s.size(), 0, &numHits, gotHit);
   REQUIRE(numHits == 2);
 }
