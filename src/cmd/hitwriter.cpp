@@ -103,20 +103,36 @@ void OutputInfo::writeGroupSeparator() {
   Out << GroupSeparator << '\n';
 }
 
-std::string escapeNewLinesAndCarriageReturns(std::string str) {
-  auto newLines = std::find(str.begin(), str.end(), '\n');
-  while (newLines != str.end()) {
-    str.replace(newLines, newLines + 1, "\\n");
-    newLines = std::find(str.begin(), str.end(), '\n');
+std::string escapeControlChars(const std::string& str) {
+  std::string escaped;
+  for (const char c : str) {
+    switch(c) {
+      case '\a':
+        escaped += "\\a";
+        continue;
+      case '\b':
+        escaped += "\\b";
+        continue;
+      case '\t':
+        escaped += "\\t";
+        continue;
+      case '\n':
+        escaped += "\\n";
+        continue;
+      case '\v':
+        escaped += "\\v";
+        continue;
+      case '\f':
+        escaped += "\\f";
+        continue;
+      case '\r':
+        escaped += "\\r";
+        continue;
+      default:
+        escaped += c;
+    }
   }
-
-  auto carriageReturns = std::find(str.begin(), str.end(), '\r');
-  while (carriageReturns != str.end()) {
-    str.replace(carriageReturns, carriageReturns + 1, "\\r");
-    carriageReturns = std::find(str.begin(), str.end(), '\r');
-  }
-
-  return str;
+  return escaped;
 }
 
 /********************************************* HistogramInfo ****************************************/
@@ -135,9 +151,9 @@ void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
 
   for (const auto& [hKey, count] : sortedHistogram) {
     histOut << count << sep
-            << escapeNewLinesAndCarriageReturns(hKey.HitText) << sep
+            << escapeControlChars(hKey.HitText) << sep
             << hKey.UserIndex << sep
-            << escapeNewLinesAndCarriageReturns(hKey.Pattern) << '\n';
+            << escapeControlChars(hKey.Pattern) << '\n';
   }
 }
 
