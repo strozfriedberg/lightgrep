@@ -128,7 +128,7 @@ TEST_CASE("testAddPatternListWithBadPatterns") {
   LG_KeyOptions keyOpts{0, 0, 0};
   LG_Error* errPtr = nullptr;
 
-  int result = lg_add_pattern_list(fsm.get(), badPatterns, fileName, defEnc, defEncNum, &keyOpts, &errPtr);
+  const int result = lg_add_pattern_list(fsm.get(), badPatterns, fileName, defEnc, defEncNum, &keyOpts, &errPtr);
 
   REQUIRE(result == -1);
   REQUIRE(errPtr);
