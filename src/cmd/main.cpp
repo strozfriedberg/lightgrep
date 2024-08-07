@@ -442,9 +442,6 @@ void writeSampleMatches(const Options& opts) {
 
 	std::ostream& out(opts.openOutput());
 
-  // Write a LE BOM because EnCase is silly and expectes a BOM for UTF-16LE
-  out << (char) 0xFF << (char) 0xFE;
-
   // parse the patterns one at a time
   std::unique_ptr<FSMHandle, void(*)(FSMHandle*)> fsm(nullptr, nullptr);
 
@@ -479,7 +476,7 @@ void writeSampleMatches(const Options& opts) {
     }
 
     out << std::string(buf.get(), len)
-        << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
+        << '\n';
   }
   else {
     // break on through the C API to get the graph
@@ -489,7 +486,7 @@ void writeSampleMatches(const Options& opts) {
     matchgen(*g, matches, opts.SampleLimit, opts.LoopLimit);
 
     for (const std::string& m : matches) {
-      out << m << (char) 0x0D << (char) 0x00 << (char) 0x0A << (char) 0x00;
+      out << m << '\n';
     }
   }
 
