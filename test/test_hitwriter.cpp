@@ -267,9 +267,9 @@ TEST_CASE("getHistogramFromHitOutputData") {
 }
 
 TEST_CASE("writeHistogram") {
-  const STest s({"c[auo]t", "foo", "[bch]at"});
+  const STest s({"c[auo]t", "foo", "[bch]at", "t\r\nf"});
   std::ostringstream stream, histStream;
-  const std::string textToSearch = "this is a cat in a hat\nfoobar\nhere is another cat in a hat";
+  const std::string textToSearch = "this is a cat in a hat\r\nfoobar\nhere is another cat in a hat";
 
   HitOutputData data(stream, s.Prog.get(), '\t', "--", -1, -1, false);
   data.setPath("path/to/input/file");
@@ -280,10 +280,11 @@ TEST_CASE("writeHistogram") {
   SearchHit searchHit1{10, 13, 0};
   SearchHit searchHit2{10, 13, 2};
   SearchHit searchHit3{19, 22, 2};
-  SearchHit searchHit4{23, 26, 1};
-  SearchHit searchHit5{46, 49, 0};
-  SearchHit searchHit6{46, 49, 2};
-  SearchHit searchHit7{55, 58, 2};
+  SearchHit searchHit4(21, 25, 3);
+  SearchHit searchHit5{24, 27, 1};
+  SearchHit searchHit6{47, 50, 0};
+  SearchHit searchHit7{47, 50, 2};
+  SearchHit searchHit8{56, 59, 2};
 
   data.writeHitToHistogram(searchHit1);
   data.writeHitToHistogram(searchHit2);
@@ -292,11 +293,12 @@ TEST_CASE("writeHistogram") {
   data.writeHitToHistogram(searchHit5);
   data.writeHitToHistogram(searchHit6);
   data.writeHitToHistogram(searchHit7);
+  data.writeHitToHistogram(searchHit8);
 
   CAPTURE(data.HistInfo.Histogram);
 
   data.writeHistogram(histStream);
-  std::string expectedOutput = "2\tcat\t0\tc[auo]t\n2\tcat\t2\t[bch]at\n2\that\t2\t[bch]at\n1\tfoo\t1\tfoo\n";
+  std::string expectedOutput = "2\tcat\t0\tc[auo]t\n2\tcat\t2\t[bch]at\n2\that\t2\t[bch]at\n1\tfoo\t1\tfoo\n1\tt\\r\\nf\t3\tt\\r\\nf\n";
   REQUIRE(histStream.str() == expectedOutput);
 }
 

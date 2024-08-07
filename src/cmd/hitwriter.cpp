@@ -103,6 +103,22 @@ void OutputInfo::writeGroupSeparator() {
   Out << GroupSeparator << '\n';
 }
 
+std::string escapeNewLinesAndCarriageReturns(std::string str) {
+  auto newLines = std::find(str.begin(), str.end(), '\n');
+  while (newLines != str.end()) {
+    str.replace(newLines, newLines + 1, "\\n");
+    newLines = std::find(str.begin(), str.end(), '\n');
+  }
+
+  auto carriageReturns = std::find(str.begin(), str.end(), '\r');
+  while (carriageReturns != str.end()) {
+    str.replace(carriageReturns, carriageReturns + 1, "\\r");
+    carriageReturns = std::find(str.begin(), str.end(), '\r');
+  }
+
+  return str;
+}
+
 /********************************************* HistogramInfo ****************************************/
 
 void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
@@ -119,9 +135,9 @@ void HistogramInfo::writeHistogram(std::ostream& histOut, char sep) {
 
   for (const auto& [hKey, count] : sortedHistogram) {
     histOut << count << sep
-            << hKey.HitText << sep
+            << escapeNewLinesAndCarriageReturns(hKey.HitText) << sep
             << hKey.UserIndex << sep
-            << hKey.Pattern << '\n';
+            << escapeNewLinesAndCarriageReturns(hKey.Pattern) << '\n';
   }
 }
 
