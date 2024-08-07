@@ -545,10 +545,38 @@ TEST_CASE("makeBinopsRightAssociative_aOrLPbOrcRP_Test") {
   REQUIRE("a|b|c" == unparse(tree));
 }
 
-/*
-TEST_CASE("makeBinopsRightAssociative_use_after_free") {
+TEST_CASE("makeBinopsRightAssociative_WCW_Test") {
+  ParseTree tree;
+  REQUIRE(parse({"\\W^\\W", false, false}, tree));
+  REQUIRE(makeBinopsRightAssociative(tree.Root));
+// TODO: implement unparse for ^?
+//  REQUIRE("\\W^\\W" == unparse(tree));
+}
+
+TEST_CASE("makeBinopsRightAssociative_WCCW_Test") {
+  ParseTree tree;
+  REQUIRE(parse({"\\W^^\\W", false, false}, tree));
+  REQUIRE(makeBinopsRightAssociative(tree.Root));
+//  REQUIRE("\\W^^\\W" == unparse(tree));
+}
+
+TEST_CASE("makeBinopsRightAssociative_WCCCW_Test") {
+  ParseTree tree;
+  REQUIRE(parse({"\\W^^^\\W", false, false}, tree));
+  REQUIRE(makeBinopsRightAssociative(tree.Root));
+//  REQUIRE("\\W^^^\\W" == unparse(tree));
+}
+
+TEST_CASE("makeBinopsRightAssociative_WCCCCW_Test") {
+  ParseTree tree;
+  REQUIRE(parse({"\\W^^^^\\W", false, false}, tree));
+  REQUIRE(makeBinopsRightAssociative(tree.Root));
+//  REQUIRE("\\W^^^^\\W" == unparse(tree));
+}
+
+TEST_CASE("makeBinopsRightAssociative_WCCCCCW_Test") {
   ParseTree tree;
   REQUIRE(parse({"\\W^^^^^\\W", false, false}, tree));
   REQUIRE(makeBinopsRightAssociative(tree.Root));
+//  REQUIRE("\\W^^^^^\\W" == unparse(tree));
 }
-*/
