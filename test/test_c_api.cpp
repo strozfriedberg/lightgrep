@@ -61,12 +61,16 @@ TEST_CASE("testDedupeOnDiffEncodings") {
 */
 
 TEST_CASE("testParsePatternWithBadPattern") {
-  std::string s = "*test";
-  LG_KeyOptions keyOpts{0, 0, 0};
+  const std::string s = "*test";
+  const LG_KeyOptions keyOpts{0, 0, 0};
   LG_Error* errPtr = nullptr;
-  LG_HPATTERN pat = lg_create_pattern();
 
-  int result = lg_parse_pattern(pat, s.c_str(), &keyOpts, &errPtr);
+  std::unique_ptr<PatternHandle, void(*)(PatternHandle*)> pat(
+    lg_create_pattern(),
+    lg_destroy_pattern
+  );
+
+  const int result = lg_parse_pattern(pat.get(), s.c_str(), &keyOpts, &errPtr);
 
   REQUIRE(keyOpts.FixedString == 0);
   REQUIRE(result == 0);
@@ -78,28 +82,38 @@ TEST_CASE("testParsePatternWithBadPattern") {
   REQUIRE(errPtr->Pattern);
   REQUIRE(std::string(errPtr->Pattern) == s);
 
+  lg_free_error(errPtr);
 }
 
 TEST_CASE("testAddPatternWithBadPattern") {
-  std::string s = "\\x{2642}";
-  std::string enc = "ASCII";
-  LG_KeyOptions keyOpts{0, 0, 0};
+  const std::string s = "\\x{2642}";
+  const std::string enc = "ASCII";
+  const LG_KeyOptions keyOpts{0, 0, 0};
   LG_Error* errPtr = nullptr;
-  LG_HPATTERN pat = lg_create_pattern();
-  LG_HFSM fsm = lg_create_fsm(0, 0);
 
-  int result = lg_parse_pattern(pat, s.c_str(), &keyOpts, &errPtr);
+  std::unique_ptr<PatternHandle, void(*)(PatternHandle*)> pat(
+    lg_create_pattern(),
+    lg_destroy_pattern
+  );
 
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(0, 0),
+    lg_destroy_fsm
+  );
+
+  const int result = lg_parse_pattern(pat.get(), s.c_str(), &keyOpts, &errPtr);
   REQUIRE(result == 1);
 
-  int tree = lg_add_pattern(fsm, pat, enc.c_str(), 0, &errPtr);
-
+  const int tree = lg_add_pattern(fsm.get(), pat.get(), enc.c_str(), 0, &errPtr);
   REQUIRE(tree < 0);
+
   REQUIRE(std::string(errPtr->Message) == "code point U+2642 does not exist in ASCII");
   REQUIRE(errPtr->Pattern);
   REQUIRE(std::string(errPtr->Pattern) == s);
   REQUIRE(errPtr->EncodingChain);
   REQUIRE(std::string(errPtr->EncodingChain) == enc);
+
+  lg_free_error(errPtr);
 }
 
 TEST_CASE("testAddPatternListWithBadPatterns") {
@@ -114,7 +128,9 @@ TEST_CASE("testAddPatternListWithBadPatterns") {
   LG_KeyOptions keyOpts{0, 0, 0};
   LG_Error* errPtr = nullptr;
 
-  int result = lg_add_pattern_list(fsm.get(), badPatterns, fileName, defEnc, defEncNum, &keyOpts, &errPtr);
+  const int result = lg_add_pattern_list(fsm.get(), badPatterns, fileName, defEnc, defEncNum, &keyOpts, &errPtr);
+
+  LG_Error* headErrPtr = errPtr;
 
   REQUIRE(result == -1);
   REQUIRE(errPtr);
@@ -125,6 +141,7 @@ TEST_CASE("testAddPatternListWithBadPatterns") {
   REQUIRE(std::string(errPtr->Pattern) == "\\x{2642}");
   REQUIRE(std::string(errPtr->EncodingChain) == "ASCII");
 
+  lg_free_error(headErrPtr);
 }
 
 TEST_CASE("testFreeErrorWithNull") {
@@ -145,8 +162,11 @@ TEST_CASE("testParsePatternWithNull") {
   REQUIRE(0 == std::strcmp(errPtr->Message, "hPattern parameter was null. Use lg_create_pattern() to allocate."));
   lg_free_error(errPtr);
 
-  LG_HPATTERN p = lg_create_pattern();
-  result = lg_parse_pattern(p, "foo", nullptr, &errPtr);
+  std::unique_ptr<PatternHandle, void(*)(PatternHandle*)> pat(
+    lg_create_pattern(),
+    lg_destroy_pattern
+  );
+  result = lg_parse_pattern(pat.get(), "foo", nullptr, &errPtr);
   REQUIRE(result == 0);
   REQUIRE(errPtr);
   REQUIRE(0 == std::strcmp(errPtr->Message, "LG_KeyOptions parameter was null. Please pass a valid struct."));
@@ -156,43 +176,51 @@ TEST_CASE("testParsePatternWithNull") {
   result = lg_parse_pattern(nullptr, "foo", &keyOpts, nullptr);
   REQUIRE(result == 0);
 
-  result = lg_parse_pattern(p, "foo", nullptr, nullptr);
+  result = lg_parse_pattern(pat.get(), "foo", nullptr, nullptr);
   REQUIRE(result == 0);
-
-  lg_destroy_pattern(p);
 }
 
 TEST_CASE("testLgAddPatternWithNulls") {
   int result = 1;
-  LG_HPATTERN pat = lg_create_pattern();
-  LG_HFSM fsm = lg_create_fsm(0, 0);
+
+  std::unique_ptr<PatternHandle, void(*)(PatternHandle*)> pat(
+    lg_create_pattern(),
+    lg_destroy_pattern
+  );
+
+  std::unique_ptr<FSMHandle,void(*)(FSMHandle*)> fsm(
+    lg_create_fsm(0, 0),
+    lg_destroy_fsm
+  );
+
   LG_Error* err = nullptr;
 
-  result = lg_add_pattern(nullptr, pat, "UTF-8", 17, &err);
+  result = lg_add_pattern(nullptr, pat.get(), "UTF-8", 17, &err);
   REQUIRE(result < 0);
   REQUIRE(err);
   REQUIRE(std::string(err->Message) == "hFsm parameter was null. Use lg_create_fsm() to allocate.");
+  lg_free_error(err);
 
-  result = lg_add_pattern(fsm, nullptr, "UTF-8", 17, &err);
+  result = lg_add_pattern(fsm.get(), nullptr, "UTF-8", 17, &err);
   REQUIRE(result < 0);
   REQUIRE(err);
   REQUIRE(std::string(err->Message) == "hPattern parameter was null. Use lg_create_pattern() and lg_parse_pattern() first.");
+  lg_free_error(err);
 
-  result = lg_add_pattern(fsm, pat, nullptr, 17, &err);
+  result = lg_add_pattern(fsm.get(), pat.get(), nullptr, 17, &err);
   REQUIRE(result < 0);
   REQUIRE(err);
   REQUIRE(std::string(err->Message) == "encoding string pointer was null. Please specify a valid encoding.");
+  lg_free_error(err);
 
   err = nullptr;
   LG_KeyOptions keyOpts;
-  REQUIRE(0 < lg_parse_pattern(pat, "foo", &keyOpts, &err));
+  REQUIRE(0 < lg_parse_pattern(pat.get(), "foo", &keyOpts, &err));
   REQUIRE(!err);
-  result = lg_add_pattern(fsm, pat, "UTF-39", 17, &err);
+  result = lg_add_pattern(fsm.get(), pat.get(), "UTF-39", 17, &err);
   REQUIRE(result < 0);
   REQUIRE(err);
-
-  lg_destroy_pattern(pat);
-  lg_destroy_fsm(fsm);
+  lg_free_error(err);
 }
 
 TEST_CASE("testLgAddPatternList") {
@@ -517,11 +545,14 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
   }
 
   const LG_ContextOptions ctxOpts = LG_ContextOptions();
-  LG_HCONTEXT ctx = lg_create_context(prog2.get(), &ctxOpts);
+  std::shared_ptr<ContextHandle> ctx(
+    lg_create_context(prog2.get(), &ctxOpts),
+    lg_destroy_context
+  );
 
   const std::string s = "foo is totally bar";
 
   uint64_t numHits = 0;
-  lg_search(ctx, s.data(), s.data() + s.size(), 0, &numHits, gotHit);
+  lg_search(ctx.get(), s.data(), s.data() + s.size(), 0, &numHits, gotHit);
   REQUIRE(numHits == 2);
 }

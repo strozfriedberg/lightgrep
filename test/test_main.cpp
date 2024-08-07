@@ -19,6 +19,7 @@
 #include "options.h"
 #include "lightgrep/api.h"
 
+#include <memory>
 #include <sstream>
 #include <catch2/catch_test_macros.hpp>
 
@@ -39,11 +40,14 @@ TEST_CASE("testWriteProgramWithBinaryOpt") {
     const std::string s = buf.str();
     const int buf_size = s.size();
 
-    LG_HPROGRAM prog = lg_read_program(s.data(), buf_size);
+    std::unique_ptr<ProgramHandle,void(*)(ProgramHandle*)> prog(
+      lg_read_program(s.data(), buf_size),
+      lg_destroy_program
+    );
 
     REQUIRE(prog);
-    REQUIRE(lg_prog_pattern_count(prog) == 3);
-    REQUIRE(std::string(lg_prog_pattern_info(prog, 0)->Pattern) == "foo");
-    REQUIRE(std::string(lg_prog_pattern_info(prog, 1)->Pattern) == "bar");
-    REQUIRE(std::string(lg_prog_pattern_info(prog, 2)->Pattern) == "test");
+    REQUIRE(lg_prog_pattern_count(prog.get()) == 3);
+    REQUIRE(std::string(lg_prog_pattern_info(prog.get(), 0)->Pattern) == "foo");
+    REQUIRE(std::string(lg_prog_pattern_info(prog.get(), 1)->Pattern) == "bar");
+    REQUIRE(std::string(lg_prog_pattern_info(prog.get(), 2)->Pattern) == "test");
 }
