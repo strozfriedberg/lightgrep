@@ -1495,7 +1495,7 @@ namespace {
 
 bool parse(const Pattern& p, ParseTree& tree) {
   std::vector<int> cp;
-  cp.reserve(nodesUpperBound(p.Expression)); // upper bound, no resizing
+  cp.reserve(p.Expression.size()); // upper bound, no resizing
   transform_utf8_to_unicode(
     p.Expression.begin(), p.Expression.end(), std::back_inserter(cp)
   );
@@ -1512,7 +1512,7 @@ bool parse(const Pattern& p, ParseTree& tree) {
   ctx.TextEnd = ctx.Text + cp.size();
 
   ctx.Tree = &tree;
-  ctx.Tree->init(cp.size());
+  ctx.Tree->init(nodesUpperBound(p.Expression));
 
 #if YYDEBUG
   yydebug = 1;
