@@ -61,12 +61,16 @@ TEST_CASE("testDedupeOnDiffEncodings") {
 */
 
 TEST_CASE("testParsePatternWithBadPattern") {
-  std::string s = "*test";
-  LG_KeyOptions keyOpts{0, 0, 0};
+  const std::string s = "*test";
+  const LG_KeyOptions keyOpts{0, 0, 0};
   LG_Error* errPtr = nullptr;
-  LG_HPATTERN pat = lg_create_pattern();
 
-  int result = lg_parse_pattern(pat, s.c_str(), &keyOpts, &errPtr);
+  std::unique_ptr<PatternHandle, void(*)(PatternHandle*)> pat(
+    lg_create_pattern(),
+    lg_destroy_pattern
+  );
+
+  const int result = lg_parse_pattern(pat.get(), s.c_str(), &keyOpts, &errPtr);
 
   REQUIRE(keyOpts.FixedString == 0);
   REQUIRE(result == 0);
@@ -77,7 +81,6 @@ TEST_CASE("testParsePatternWithBadPattern") {
   REQUIRE(errPtr->Index == -1);
   REQUIRE(errPtr->Pattern);
   REQUIRE(std::string(errPtr->Pattern) == s);
-
 }
 
 TEST_CASE("testAddPatternWithBadPattern") {
