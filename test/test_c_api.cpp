@@ -130,6 +130,8 @@ TEST_CASE("testAddPatternListWithBadPatterns") {
 
   const int result = lg_add_pattern_list(fsm.get(), badPatterns, fileName, defEnc, defEncNum, &keyOpts, &errPtr);
 
+  LG_Error* headErrPtr = errPtr;
+
   REQUIRE(result == -1);
   REQUIRE(errPtr);
   REQUIRE(std::string(errPtr->Pattern) == "+badpattern");
@@ -139,7 +141,7 @@ TEST_CASE("testAddPatternListWithBadPatterns") {
   REQUIRE(std::string(errPtr->Pattern) == "\\x{2642}");
   REQUIRE(std::string(errPtr->EncodingChain) == "ASCII");
 
-  lg_free_error(errPtr);
+  lg_free_error(headErrPtr);
 }
 
 TEST_CASE("testFreeErrorWithNull") {
