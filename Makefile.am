@@ -301,6 +301,7 @@ test_test_SOURCES = \
 	test/test_optparser.cpp \
 	test/test_ostream_join_iterator.cpp \
 	test/test_parser.cpp \
+	test/test_parsetree.cpp \
 	test/test_parseutil.cpp \
 	test/test_pattern_map.cpp \
 	test/test_program.cpp \

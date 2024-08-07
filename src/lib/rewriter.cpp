@@ -25,6 +25,10 @@
 void print_tree(std::ostream& out, const ParseNode& n) {
   switch (n.Type) {
   case ParseNode::REGEXP:
+  case ParseNode::LOOKBEHIND_POS:
+  case ParseNode::LOOKBEHIND_NEG:
+  case ParseNode::LOOKAHEAD_POS:
+  case ParseNode::LOOKAHEAD_NEG:
   case ParseNode::ALTERNATION:
   case ParseNode::CONCATENATION:
   case ParseNode::REPETITION:
@@ -422,6 +426,10 @@ bool makeBinopsRightAssociative(ParseNode* n, std::stack<ParseNode*>& branch) {
     if (!n->Child.Left) {
       return ret;
     }
+  case ParseNode::LOOKBEHIND_POS:
+  case ParseNode::LOOKBEHIND_NEG:
+  case ParseNode::LOOKAHEAD_POS:
+  case ParseNode::LOOKAHEAD_NEG:
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
     ret = makeBinopsRightAssociative(n->Child.Left, branch);
@@ -495,6 +503,11 @@ bool reduceTrailingNongreedyThenGreedy(ParseNode* n, std::stack<ParseNode*>& bra
     if (!n->Child.Left) {
       return ret;
     }
+
+  case ParseNode::LOOKBEHIND_POS:
+  case ParseNode::LOOKBEHIND_NEG:
+  case ParseNode::LOOKAHEAD_POS:
+  case ParseNode::LOOKAHEAD_NEG:
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
     ret = reduceTrailingNongreedyThenGreedy(n->Child.Left, branch);
@@ -597,6 +610,11 @@ bool reduceTrailingNongreedyThenEmpty(ParseNode* n, std::stack<ParseNode*>& bran
     if (!n->Child.Left) {
       return ret;
     }
+
+  case ParseNode::LOOKBEHIND_POS:
+  case ParseNode::LOOKBEHIND_NEG:
+  case ParseNode::LOOKAHEAD_POS:
+  case ParseNode::LOOKAHEAD_NEG:
   case ParseNode::REPETITION:
     ret = reduceTrailingNongreedyThenEmpty(n->Child.Left, branch);
     break;
