@@ -80,6 +80,10 @@ void printTree(std::ostream& out, const ParseNode& n) {
       printTree(out, *n.Child.Right);
     }
   case ParseNode::REGEXP:
+  case ParseNode::LOOKBEHIND_POS:
+  case ParseNode::LOOKBEHIND_NEG:
+  case ParseNode::LOOKAHEAD_POS:
+  case ParseNode::LOOKAHEAD_NEG:
   case ParseNode::REPETITION:
   case ParseNode::REPETITION_NG:
     if (n.Child.Left) {
