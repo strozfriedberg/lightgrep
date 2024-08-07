@@ -22,10 +22,11 @@
 #include <lightgrep/util.h>
 
 #include <iosfwd>
-#include <unordered_map>
+#include <functional>
+#include <memory>
 #include <string>
 #include <vector>
-#include <functional>
+#include <unordered_map>
 
 #include "searchhit.h"
 
@@ -138,7 +139,7 @@ public:
   ProgramHandle* Prog;
   ContextBuffer CtxBuf;
   HistogramInfo HistInfo;
-  LG_HDECODER Decoder;
+  std::unique_ptr<DecoderHandle, void(*)(DecoderHandle*)> Decoder;
   uint64_t NumHits = 0;
 
   HitOutputData(std::ostream& out, ProgramHandle* prog, char separator, const std::string& groupSep, int32_t beforeContext, int32_t afterContext, bool histEnabled);

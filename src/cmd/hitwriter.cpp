@@ -151,7 +151,7 @@ void HistogramInfo::writeHitToHistogram(const LG_SearchHit& hit, const LG_Patter
 /********************************************* HitOutputData ****************************************/
 
 HitOutputData::HitOutputData(std::ostream &out, ProgramHandle* prog, char separator, const std::string& groupSep, int32_t beforeContext, int32_t afterContext, bool histEnabled)
-              : OutInfo({out, "", beforeContext, afterContext, separator, groupSep}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder()) {}
+              : OutInfo({out, "", beforeContext, afterContext, separator, groupSep}), Prog(prog), HistInfo(HistogramInfo(histEnabled)), Decoder(lg_create_decoder(), lg_destroy_decoder) {}
 
 void HitOutputData::setBuffer(const char* buf, size_t blen, uint64_t boff) {
   HistInfo.resetCache();
@@ -179,7 +179,7 @@ HitBuffer HitOutputData::decodeContext(const LG_SearchHit& searchHit) {
   const LG_PatternInfo* info = lg_prog_pattern_info(Prog, searchHit.KeywordIndex);
 
   lg_hit_context(
-    Decoder,
+    Decoder.get(),
     cbeg, cend,
     CtxBuf.BufOff + (cbeg - CtxBuf.Buf),
     &inner,
