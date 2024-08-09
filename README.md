@@ -65,7 +65,7 @@ Input and output:
   --mmap                                memory-map input file(s)
 
 Miscellaneous:
-  --determinize-depth NUM (=4294967295) determinze NFA to NUM depth
+  --determinize-depth NUM (=4294967295) determinize NFA to NUM depth
   --binary                              output program as binary
   --program-file FILE                   read search program from file
   --verbose                             enable verbose output
