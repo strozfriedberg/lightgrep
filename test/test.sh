@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
 if hash parallel ; then
-  jobs=$(nproc)
+  jobs=$([ $(uname) = 'Darwin' ] && sysctl -n hw.logicalcpu_max || nproc)
 
   # RANDOM is only 15 bits; this gets us 32
   seed=$(( ($RANDOM << 17) | ($RANDOM << 2) | ($RANDOM & 0x03) ))
