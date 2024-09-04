@@ -107,7 +107,7 @@ void parse_opts(int argc, const char* const * argv,
   // Other options
   po::options_description misc("Miscellaneous");
   misc.add_options()
-    ("determinize-depth", po::value<uint32_t>(&opts.DeterminizeDepth)->value_name("NUM")->default_value(std::numeric_limits<uint32_t>::max()), "determinze NFA to NUM depth")
+    ("determinize-depth", po::value<uint32_t>(&opts.DeterminizeDepth)->value_name("NUM")->default_value(std::numeric_limits<uint32_t>::max()), "determinize NFA to NUM depth")
     ("binary", "output program as binary")
     ("program-file", po::value<std::string>(&opts.ProgramFile)->value_name("FILE"), "read search program from file")
     ("verbose", "enable verbose output")
