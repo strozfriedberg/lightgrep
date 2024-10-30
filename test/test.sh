@@ -1,5 +1,9 @@
 #!/bin/bash -ex
 
+if [ -e test/test.exe ] ; then
+  TEST="wine test/test.exe"
+fi
+
 if hash parallel ; then
   jobs=$([ $(uname) = 'Darwin' ] && sysctl -n hw.logicalcpu_max || nproc)
 
@@ -14,8 +18,8 @@ if hash parallel ; then
   # test order being random each time, the test order is fully
   # reproducible in case of a fault because Catch2 prints the seed used.
 
-  parallel -t test/test --shard-count $jobs --shard-index {} --order rand --rng-seed $seed ::: $(seq 0 $(($jobs - 1)))
+  parallel -t $TEST --shard-count $jobs --shard-index {} --order rand --rng-seed $seed ::: $(seq 0 $(($jobs - 1)))
 
 else
-  test/test
+  $TEST
 fi
