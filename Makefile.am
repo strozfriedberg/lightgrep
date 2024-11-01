@@ -237,7 +237,7 @@ AM_TESTS_ENVIRONMENT = builddir=`pwd`;
 
 check_PROGRAMS = test/test
 
-TESTS = $(check_PROGRAMS)
+TESTS = test/test.sh
 
 if BUILD_PYTHON
 TESTS += pylightgrep/test.sh

@@ -236,8 +236,12 @@ struct ContinuationTester<1,L,Converter> {
   }
 };
 
+// The utf8_to_unicode_tester_n tests are named such that n is the sequence
+// length in bytes. The utf8_to_unicode_tester_4 tests are divided into
+// numbered parts 1-8, due to their longer runtime.
+
 template <class Converter>
-void utf8_to_unicode_tester(Converter conv) {
+void utf8_to_unicode_tester_1(Converter conv) {
   byte b[4];
 
   //
@@ -246,6 +250,11 @@ void utf8_to_unicode_tester(Converter conv) {
   valid_range<1>("\x00", "\x7F", conv);
 
   invalid_range<1>("\x80", "\xBF", conv);           // bad starts
+}
+
+template <class Converter>
+void utf8_to_unicode_tester_2(Converter conv) {
+  byte b[4];
 
   invalid_range<2>("\xC0\x00", "\xC0\x7F", conv);   // bad continuations
   invalid_range<2>("\xC0\x80", "\xC0\xBF", conv);   // overlong forms
@@ -260,6 +269,11 @@ void utf8_to_unicode_tester(Converter conv) {
   for (b[0] = 0xC2; b[0] < 0xE0; ++b[0]) {
     ContinuationTester<1,2,Converter>()(b, conv);
   }
+}
+
+template <class Converter>
+void utf8_to_unicode_tester_3(Converter conv) {
+  byte b[4];
 
   //
   // [E0,F0) begin valid 3-byte sequences
@@ -299,6 +313,11 @@ void utf8_to_unicode_tester(Converter conv) {
   for (b[0] = 0xEE; b[0] < 0xF0; ++b[0]) {
     ContinuationTester<2,3,Converter>()(b, conv);
   }
+}
+
+template <class Converter>
+void utf8_to_unicode_tester_4_1(Converter conv) {
+  byte b[4];
 
   //
   // [0xF0,0xF5) begin valid 4-byte sequences
@@ -309,21 +328,63 @@ void utf8_to_unicode_tester(Converter conv) {
   // F0 [80,8F] [80,BF] [80,BF] are overlong forms
   // everything else is a bad continuation
   invalid_range<4>("\xF0\x00\x00\x00", "\xF0\x8F\xFF\xFF", conv);
+}
+
+template <class Converter>
+void utf8_to_unicode_tester_4_2(Converter conv) {
+  byte b[4];
 
   b[0] = 0xF0;
   for (b[1] = 0x90; b[1] < 0xC0; ++b[1]) {
     ContinuationTester<2,4,Converter>()(b, conv);
   }
+}
+
+template <class Converter>
+void utf8_to_unicode_tester_4_3(Converter conv) {
+  byte b[4];
 
   invalid_range<4>("\xF0\xC0\x00\x00", "\xF0\xFF\xFF\xFF", conv);
+}
+
+template <class Converter>
+void utf8_to_unicode_tester_4_4(Converter conv) {
+  byte b[4];
 
   // [F1,F4) have the full range of continuation bytes
-  for (b[0] = 0xF1; b[0] < 0xF4; ++b[0]) {
-    ContinuationTester<3,4,Converter>()(b, conv);
-  }
+  b[0] = 0xF1;
+  ContinuationTester<3,4,Converter>()(b, conv);
+}
+
+template <class Converter>
+void utf8_to_unicode_tester_4_5(Converter conv) {
+  byte b[4];
+
+  // [F1,F4) have the full range of continuation bytes
+  b[0] = 0xF2;
+  ContinuationTester<3,4,Converter>()(b, conv);
+}
+
+template <class Converter>
+void utf8_to_unicode_tester_4_6(Converter conv) {
+  byte b[4];
+
+  // [F1,F4) have the full range of continuation bytes
+  b[0] = 0xF3;
+  ContinuationTester<3,4,Converter>()(b, conv);
+}
+
+template <class Converter>
+void utf8_to_unicode_tester_4_7(Converter conv) {
+  byte b[4];
 
   // 4F lacks some continuation bytes due to 0x10FFFF Unicode limit
   invalid_range<4>("\xF4\x00\x00\x00", "\xF0\x7F\xFF\xFF", conv);
+}
+
+template <class Converter>
+void utf8_to_unicode_tester_4_8(Converter conv) {
+  byte b[4];
 
   b[0] = 0xF4;
   for (b[1] = 0x80; b[1] < 0x90; ++b[1]) {
@@ -337,8 +398,48 @@ void utf8_to_unicode_tester(Converter conv) {
   invalid_range<1>("\xF5", "\xFF", conv);          // bad starts
 }
 
-TEST_CASE("utf8_to_unicode_test") {
-  utf8_to_unicode_tester(utf8_to_unicode<const byte*>);
+TEST_CASE("utf8_to_unicode_test_1") {
+  utf8_to_unicode_tester_1(utf8_to_unicode<const byte*>);
+}
+
+TEST_CASE("utf8_to_unicode_test_2") {
+  utf8_to_unicode_tester_2(utf8_to_unicode<const byte*>);
+}
+
+TEST_CASE("utf8_to_unicode_test_3") {
+  utf8_to_unicode_tester_3(utf8_to_unicode<const byte*>);
+}
+
+TEST_CASE("utf8_to_unicode_test_4_1") {
+  utf8_to_unicode_tester_4_1(utf8_to_unicode<const byte*>);
+}
+
+TEST_CASE("utf8_to_unicode_test_4_2") {
+  utf8_to_unicode_tester_4_2(utf8_to_unicode<const byte*>);
+}
+
+TEST_CASE("utf8_to_unicode_test_4_3") {
+  utf8_to_unicode_tester_4_3(utf8_to_unicode<const byte*>);
+}
+
+TEST_CASE("utf8_to_unicode_test_4_4") {
+  utf8_to_unicode_tester_4_4(utf8_to_unicode<const byte*>);
+}
+
+TEST_CASE("utf8_to_unicode_test_4_5") {
+  utf8_to_unicode_tester_4_5(utf8_to_unicode<const byte*>);
+}
+
+TEST_CASE("utf8_to_unicode_test_4_6") {
+  utf8_to_unicode_tester_4_6(utf8_to_unicode<const byte*>);
+}
+
+TEST_CASE("utf8_to_unicode_test_4_7") {
+  utf8_to_unicode_tester_4_7(utf8_to_unicode<const byte*>);
+}
+
+TEST_CASE("utf8_to_unicode_test_4_8") {
+  utf8_to_unicode_tester_4_8(utf8_to_unicode<const byte*>);
 }
 
 template <class Iterator, class Container>
