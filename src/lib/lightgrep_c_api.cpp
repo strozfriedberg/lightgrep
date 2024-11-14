@@ -78,14 +78,11 @@ void lg_destroy_pattern(LG_HPATTERN hPattern) {
   delete hPattern;
 }
 
-// TODO:
-// * Review uses of exceptionTrap. We're likely using it in places where
-// it's not necessary.
-
-int lg_parse_pattern(LG_HPATTERN hPattern,
-                     const char* pattern,
-                     const LG_KeyOptions* options,
-                     LG_Error** err)
+int lg_parse_pattern_slice(LG_HPATTERN hPattern,
+                           const char* pattern,
+                           int patLen,
+                           const LG_KeyOptions* options,
+                           LG_Error** err) 
 {
   if (!hPattern) {
     setError(err, "hPattern parameter was null. Use lg_create_pattern() to allocate.");
@@ -97,7 +94,7 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
   }
   // set up the pattern handle
   hPattern->Pat = {
-    pattern,
+    std::string(pattern, patLen),
     static_cast<bool>(options->FixedString),
     static_cast<bool>(options->CaseInsensitive),
     static_cast<bool>(options->UnicodeMode)
@@ -109,6 +106,18 @@ int lg_parse_pattern(LG_HPATTERN hPattern,
   }
 
   return result;
+}
+
+// TODO:
+// * Review uses of exceptionTrap. We're likely using it in places where
+// it's not necessary.
+
+int lg_parse_pattern(LG_HPATTERN hPattern,
+                     const char* pattern,
+                     const LG_KeyOptions* options,
+                     LG_Error** err)
+{
+  return lg_parse_pattern_slice(hPattern, pattern, std::strlen(pattern), options, err);
 }
 
 LG_HFSM create_fsm(unsigned int patternCountHint, int numFsmStateSizeHint) {

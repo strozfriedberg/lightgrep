@@ -117,13 +117,20 @@ extern "C" {
 
   void lg_free_error(LG_Error* err);
 
-  // Create and destory an LG_HPATTERN.
+  // Create and destroy an LG_HPATTERN.
   // This can be reused when parsing pattern strings to avoid re-allocating memory.
   LG_HPATTERN lg_create_pattern();
 
   void lg_destroy_pattern(LG_HPATTERN hPattern);
 
   // Returns zero on failure, positive otherwise.
+  int lg_parse_pattern_slice(LG_HPATTERN hPattern,
+                       const char* pattern,
+                       int patLen,
+                       const LG_KeyOptions* options,
+                       LG_Error** err);
+
+  // Returns zero on failure, positive otherwise. Pattern must be null-terminated.
   int lg_parse_pattern(LG_HPATTERN hPattern,
                        const char* pattern,
                        const LG_KeyOptions* options,

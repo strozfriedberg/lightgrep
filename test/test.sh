@@ -2,6 +2,11 @@
 
 if [ -e test/test.exe ] ; then
   TEST="wine test/test.exe"
+elif [ -e test/test ] ; then
+  TEST="test/test"
+else
+  echo "No test program found!"
+  exit 1
 fi
 
 if hash parallel ; then

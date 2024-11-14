@@ -556,3 +556,17 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
   lg_search(ctx.get(), s.data(), s.data() + s.size(), 0, &numHits, gotHit);
   REQUIRE(numHits == 2);
 }
+
+TEST_CASE("parsePatternSlice") {
+  std::string patterns = "foo bar";
+  LG_HPATTERN hPat = lg_create_pattern();
+  LG_KeyOptions opts{0,0,0};
+  LG_Error* err = nullptr;
+  LG_HFSM fsm = lg_create_fsm(2, 0);
+  REQUIRE(lg_parse_pattern_slice(hPat, &patterns[0], 3, &opts, &err) > 0);
+  REQUIRE(lg_add_pattern(fsm, hPat, "ASCII", 0, &err) == 0);
+  REQUIRE(std::string(lg_fsm_pattern_info(fsm, 0)->Pattern) == "foo");
+  REQUIRE(lg_parse_pattern_slice(hPat, &patterns[4], 3, &opts, &err) > 0);
+  REQUIRE(lg_add_pattern(fsm, hPat, "ASCII", 1, &err) == 1);
+  REQUIRE(std::string(lg_fsm_pattern_info(fsm, 1)->Pattern) == "bar");
+}
