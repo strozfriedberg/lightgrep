@@ -558,7 +558,7 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
 }
 
 TEST_CASE("parsePatternSlice") {
-  std::string patterns = "foo bar";
+  const std::string patterns = "foo bar";
   LG_HPATTERN hPat = lg_create_pattern();
   LG_KeyOptions opts{0,0,0};
   LG_Error* err = nullptr;
@@ -569,4 +569,6 @@ TEST_CASE("parsePatternSlice") {
   REQUIRE(lg_parse_pattern_slice(hPat, &patterns[4], 3, &opts, &err) > 0);
   REQUIRE(lg_add_pattern(fsm, hPat, "ASCII", 1, &err) == 1);
   REQUIRE(std::string(lg_fsm_pattern_info(fsm, 1)->Pattern) == "bar");
+  lg_destroy_pattern(hPat);
+  lg_destroy_fsm(fsm);
 }
