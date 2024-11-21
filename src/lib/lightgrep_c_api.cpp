@@ -80,7 +80,7 @@ void lg_destroy_pattern(LG_HPATTERN hPattern) {
 
 int lg_parse_pattern_slice(LG_HPATTERN hPattern,
                            const char* pattern,
-                           int patLen,
+                           unsigned int patLen,
                            const LG_KeyOptions* options,
                            LG_Error** err) 
 {

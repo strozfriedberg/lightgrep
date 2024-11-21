@@ -126,7 +126,7 @@ extern "C" {
   // Returns zero on failure, positive otherwise.
   int lg_parse_pattern_slice(LG_HPATTERN hPattern,
                        const char* pattern,
-                       int patLen,
+                       unsigned int patLen,
                        const LG_KeyOptions* options,
                        LG_Error** err);
 
