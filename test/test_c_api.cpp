@@ -559,16 +559,14 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
 
 TEST_CASE("parsePatternSlice") {
   const std::string patterns = "foo bar";
-  LG_HPATTERN hPat = lg_create_pattern();
+  std::unique_ptr<PatternHandle, decltype(&lg_destroy_pattern)> hPat(lg_create_pattern(), lg_destroy_pattern);
   LG_KeyOptions opts{0,0,0};
   LG_Error* err = nullptr;
-  LG_HFSM fsm = lg_create_fsm(2, 0);
-  REQUIRE(lg_parse_pattern_slice(hPat, &patterns[0], 3, &opts, &err) > 0);
-  REQUIRE(lg_add_pattern(fsm, hPat, "ASCII", 0, &err) == 0);
-  REQUIRE(std::string(lg_fsm_pattern_info(fsm, 0)->Pattern) == "foo");
-  REQUIRE(lg_parse_pattern_slice(hPat, &patterns[4], 3, &opts, &err) > 0);
-  REQUIRE(lg_add_pattern(fsm, hPat, "ASCII", 1, &err) == 1);
-  REQUIRE(std::string(lg_fsm_pattern_info(fsm, 1)->Pattern) == "bar");
-  lg_destroy_pattern(hPat);
-  lg_destroy_fsm(fsm);
+  std::unique_ptr<FSMHandle, decltype(&lg_destroy_fsm)> fsm(lg_create_fsm(2, 0), lg_destroy_fsm);
+  REQUIRE(lg_parse_pattern_slice(hPat.get(), &patterns[0], 3, &opts, &err) > 0);
+  REQUIRE(lg_add_pattern(fsm.get(), hPat.get(), "ASCII", 0, &err) == 0);
+  REQUIRE(std::string(lg_fsm_pattern_info(fsm.get(), 0)->Pattern) == "foo");
+  REQUIRE(lg_parse_pattern_slice(hPat.get(), &patterns[4], 3, &opts, &err) > 0);
+  REQUIRE(lg_add_pattern(fsm.get(), hPat.get(), "ASCII", 1, &err) == 1);
+  REQUIRE(std::string(lg_fsm_pattern_info(fsm.get(), 1)->Pattern) == "bar");
 }
