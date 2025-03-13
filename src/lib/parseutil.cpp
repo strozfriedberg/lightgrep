@@ -71,7 +71,7 @@ int propertyGetter(const std::string& prop, UnicodeSet& us, bool case_insensitiv
 
   if (U_FAILURE(err)) {
     THROW_RUNTIME_ERROR_WITH_OUTPUT(
-      "Failed to convert string: " << u_errorName(err);
+      "Failed to convert string: " << u_errorName(err)
     );
   }
 
