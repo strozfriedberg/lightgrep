@@ -20,8 +20,10 @@
 
 #include <memory>
 
+#ifdef HAVE_ICU
 #include <unicode/uset.h>
 #include <unicode/ustring.h>
+#endif
 
 int parseHexChar(int c) {
   switch (c) {
@@ -60,6 +62,7 @@ int parseOctChar(int c) {
 }
 
 int propertyGetter(const std::string& prop, UnicodeSet& us, bool case_insensitive) {
+#if HAVE_ICU
   // ask ICU for the set corresponding to this property
   UErrorCode err = U_ZERO_ERROR;
 
@@ -89,8 +92,12 @@ int propertyGetter(const std::string& prop, UnicodeSet& us, bool case_insensitiv
 
   addUnicodeSet(us, icu_us.get());
   return 1;
+#else
+  THROW_RUNTIME_ERROR_WITH_OUTPUT("Property " << prop << " requires ICU");
+#endif
 }
 
+#ifdef HAVE_ICU
 bool caseDesensitizeUnicode(UnicodeSet& us) {
   std::unique_ptr<USet, void(*)(USet*)> icu_us(uset_openEmpty(), uset_close);
   convUnicodeSet(icu_us.get(), us);
@@ -104,6 +111,7 @@ bool caseDesensitizeUnicode(UnicodeSet& us) {
   convUnicodeSet(us, icu_us.get());
   return true;
 }
+#endif
 
 bool caseDesensitizeAscii(UnicodeSet& us) {
   const UnicodeSet::size_type orig_count = us.count();
@@ -126,30 +134,40 @@ bool caseDesensitizeAscii(UnicodeSet& us) {
     us.insert(r);
   }
 
+#ifdef HAVE_ICU
   // desensitize nonascii as normal
   const UnicodeSet nonascii(0x80, 0x110000);
   UnicodeSet high = us & nonascii;
   if (high.any() && caseDesensitizeUnicode(high)) {
     us |= high;
   }
+#endif
 
   // return true if closure added something
   return orig_count < us.count();
 }
 
 bool caseDesensitize(UnicodeSet& us, bool ascii_mode) {
+#ifdef HAVE_ICU
   return ascii_mode ? caseDesensitizeAscii(us) : caseDesensitizeUnicode(us);
+#else
+  return caseDesensitizeAscii(us);
+#endif
 }
 
 void setDigitClass(UnicodeSet& us, bool ascii_mode) {
+#ifdef HAVE_ICU
   if (ascii_mode) {
+#endif
     // \d = [0-9]
     us.insert('0', '9' + 1);
+#ifdef HAVE_ICU
   }
   else {
     // pcrepattern(3): \d = \p{Nd}
     propertyGetter("\\p{Nd}", us, false);
   }
+#endif
 }
 
 void setHorizontalSpaceClass(UnicodeSet& us) {
@@ -198,12 +216,15 @@ void setSpaceClass(UnicodeSet& us, bool ascii_mode) {
 }
 
 void setWordClass(UnicodeSet& us, bool ascii_mode) {
+#ifdef HAVE_ICU
   if (ascii_mode) {
+#endif
     // \w = [A-Za-z0-9_]
     us.insert('0', '9' + 1);
     us.insert('A', 'Z' + 1);
     us.set('_');
     us.insert('a', 'z' + 1);
+#ifdef HAVE_ICU
   }
   else {
     // pcrepattern(3): \w = [\p{L}\p{N}_]
@@ -211,4 +232,5 @@ void setWordClass(UnicodeSet& us, bool ascii_mode) {
     propertyGetter("\\p{N}", us, false);
     us.set('_');
   }
+#endif
 }

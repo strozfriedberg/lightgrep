@@ -36,7 +36,6 @@ src_lib_liblightgrepint_la_SOURCES = \
 	include/decoders/bytesource.h \
 	include/decoders/decoder.h \
 	include/decoders/decoderfactory.h \
-	include/decoders/icudecoder.h \
 	include/decoders/ocedecoder.h \
 	include/decoders/rotdecoder.h \
 	include/decoders/utf16.h \
@@ -56,7 +55,6 @@ src_lib_liblightgrepint_la_SOURCES = \
 	include/encoders/encoder.h \
 	include/encoders/encoderbase.h \
 	include/encoders/encoderfactory.h \
-	include/encoders/icuencoder.h \
 	include/encoders/oceencoder.h \
 	include/encoders/rotencoder.h \
 	include/encoders/utf16.h \
@@ -72,8 +70,6 @@ src_lib_liblightgrepint_la_SOURCES = \
 	include/graph.h \
 	include/handles.h \
 	include/hitwriter.h \
-	include/icuconverter.h \
-	include/icuutil.h \
 	include/instructions.h \
 	include/lg_app.h \
 	include/matchgen.h \
@@ -123,9 +119,6 @@ src_lib_liblightgrepint_la_SOURCES = \
 	src/lib/encoderfactory.cpp \
 	src/lib/errors.cpp \
 	src/lib/fsmthingy.cpp \
-	src/lib/icuconverter.cpp \
-	src/lib/icuencoder.cpp \
-	src/lib/icuutil.cpp \
 	src/lib/instructions.cpp \
 	src/lib/lightgrep_c_api.cpp \
 	src/lib/lightgrep_c_util.cpp \
@@ -153,6 +146,17 @@ src_lib_liblightgrepint_la_SOURCES = \
 	src/lib/decoders/decoderfactory.cpp \
 	src/lib/decoders/ocedecoder.cpp
 
+if HAVE_ICU
+src_lib_liblightgrepint_la_SOURCES += \
+	include/decoders/icudecoder.h \
+	include/encoders/icuencoder.h \
+	include/icuconverter.h \
+	include/icuutil.h \
+	src/lib/icuconverter.cpp \
+	src/lib/icuencoder.cpp \
+	src/lib/icuutil.cpp
+endif
+
 # TODO: Figure out how to build internal testing utilities
 # without exporting all C++ classes
 # src_lib_liblightgrep_la_LDFLAGS = -export-symbols-regex '^lg_'
@@ -174,14 +178,19 @@ src_lib_liblightgrep_la_HEADERS = \
 	include/lightgrep/search_hit.h
 
 noinst_PROGRAMS = \
-	examples/c_example/cex \
+	examples/c_example/cex
+
+if HAVE_ICU
+noinst_PROGRAMS += \
 	src/enc/enc \
 	src/val/val \
 	src/what/what
+endif
 
 examples_c_example_cex_SOURCES = examples/c_example/main.c
 examples_c_example_cex_LDADD = $(LG_LIB) $(ICU_LIBS) $(STDCXX_LIB)
 
+if HAVE_ICU
 src_enc_enc_SOURCES = src/enc/encodings.cpp
 src_enc_enc_LDADD = $(ICU_LIBS) $(STDCXX_LIB)
 
@@ -190,9 +199,15 @@ src_val_val_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
 
 src_what_what_SOURCES = src/what/what.cpp
 src_what_what_LDADD = $(LG_LIB_INT) $(ICU_LIBS) $(STDCXX_LIB)
+endif
 
+if HAVE_ICU
 $(srcdir)/include/lightgrep/encodings.h: src/enc/enc$(EXEEXT)
 	$(LOG_COMPILER) src/enc/enc$(EXEEXT) >$@
+else
+$(srcdir)/include/lightgrep/encodings.h: include/lightgrep/encodings.h.no_icu
+	cp $< $@
+endif
 
 BUILT_SOURCES = include/lightgrep/encodings.h
 
@@ -288,9 +303,6 @@ test_test_SOURCES = \
 	test/test_helper.cpp \
 	test/test_helper.h \
 	test/test_hitwriter.cpp \
-	test/test_icu.cpp \
-	test/test_icudecoder.cpp \
-	test/test_icuutil.cpp \
 	test/test_instructions.cpp \
 	test/test_main.cpp \
 	test/test_matchgen.cpp \
@@ -338,6 +350,13 @@ test_test_SOURCES = \
 	test/data/pats.0 \
 	test/data/pats.1 \
 	test/data/pats.2
+
+if HAVE_ICU
+test_test_SOURCES += \
+	test/test_icu.cpp \
+	test/test_icudecoder.cpp \
+	test/test_icuutil.cpp
+endif
 
 test_test_CPPFLAGS = $(AM_CPPFLAGS) $(CATCH2_CPPFLAGS)
 test_test_CFLAGS = $(AM_CFLAGS) $(CATCH2_CFLAGS)

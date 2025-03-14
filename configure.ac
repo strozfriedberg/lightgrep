@@ -155,33 +155,53 @@ fi
 # ICU
 #
 
-PKG_CHECK_MODULES([ICU], [icu-uc])
+AC_ARG_WITH(
+  [icu],
+  [AS_HELP_STRING([--without-icu],[Do not use icu even if it is installed])]
+  [AS_HELP_STRING([--with-icu=dir],[Specify that icu is installed in directory 'dir'])],
+  [],
+  [with_icu=maybe]
+)
 
-ICU_CPPFLAGS="$ICU_CFLAGS"
-ICU_CFLAGS=""
+AS_IF([test "x$with_icu" = "xyes" -o "x$with_icu" = "xmaybe"],
+  [
+    AX_PKG_CHECK_MODULES([ICU], [], [icu-uc], [], [with_icu=no])
 
-AX_APPEND_COMPILE_FLAGS([ \
-  -DU_USING_ICU_NAMESPACE=0 \
-  -DU_CHARSET_IS_UTF8=1 \
-  -DUNISTR_FROM_CHAR_EXPLICIT=explicit \
-  -DUNSTR_FROM_STRING_EXPLICIT=explicit \
-], [ICU_CPPFLAGS])
+    AS_IF([test "x$with_icu" != "xno"],
+      [
+        ICU_CPPFLAGS="$ICU_CFLAGS"
+        ICU_CFLAGS=""
 
-if test "x$enable_shared" != "xyes" -o "x$enable_shared_fat" = "xyes"; then
-  AX_APPEND_COMPILE_FLAGS([-DU_STATIC_IMPLEMENTATION], [ICU_CPPFLAGS])
-fi
+        AX_APPEND_COMPILE_FLAGS([ \
+          -DU_USING_ICU_NAMESPACE=0 \
+          -DU_CHARSET_IS_UTF8=1 \
+          -DUNISTR_FROM_CHAR_EXPLICIT=explicit \
+          -DUNSTR_FROM_STRING_EXPLICIT=explicit \
+        ], [ICU_CPPFLAGS])
 
-AC_SUBST([ICU_CPPFLAGS])
+        if test "x$enable_shared" != "xyes" -o "x$enable_shared_fat" = "xyes"; then
+          AX_APPEND_COMPILE_FLAGS([-DU_STATIC_IMPLEMENTATION], [ICU_CPPFLAGS])
+        fi
 
-case "$host" in
-*-*-mingw*)
-  for i in $ICU_LIBS ; do
-    ICU_LDFLAGS+=$(echo $i | grep '^-L')
-  done
-esac
+        AC_SUBST([ICU_CPPFLAGS])
 
-AC_SUBST([ICU_CPPFLAGS])
-AC_SUBST([ICU_LDFLAGS])
+        case "$host" in
+        *-*-mingw*)
+          for i in $ICU_LIBS ; do
+            ICU_LDFLAGS+=$(echo $i | grep '^-L')
+          done
+        esac
+
+        AC_SUBST([ICU_CPPFLAGS])
+        AC_SUBST([ICU_LDFLAGS])
+
+        AC_DEFINE(HAVE_ICU, 1, [Define if you have ICU.])
+      ]
+    )
+  ]
+)
+
+AM_CONDITIONAL([HAVE_ICU], [test "x$with_icu" = "xyes"])
 
 #
 # Boost
