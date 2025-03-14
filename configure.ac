@@ -201,7 +201,7 @@ AS_IF([test "x$with_icu" = "xyes" -o "x$with_icu" = "xmaybe"],
   ]
 )
 
-AM_CONDITIONAL([HAVE_ICU], [test "x$with_icu" = "xyes"])
+AM_CONDITIONAL([HAVE_ICU], [test "x$with_icu" != "xno"])
 
 #
 # Boost
