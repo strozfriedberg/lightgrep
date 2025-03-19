@@ -187,7 +187,7 @@ int lg_add_pattern(LG_HFSM hFsm,
 
 namespace {
   template <class E>
-  void addPatternHelper(LG_HFSM hFsm,
+  int addPatternHelper(LG_HFSM hFsm,
                   LG_HPATTERN hPat,
                   const std::string& pat,
                   LG_KeyOptions* keyOpts,
@@ -195,21 +195,28 @@ namespace {
                   int lnum,
                   LG_Error**& err)
   {
-    lg_parse_pattern(hPat, pat.c_str(), keyOpts, err);
+    auto ret = lg_parse_pattern(hPat, pat.c_str(), keyOpts, err);
     if (*err) {
       (*err)->Index = lnum;
       err = &((*err)->Next);
-      return;
+      return -1;
+    }
+    else if (ret == 0) {
+      return -1;
     }
 
+    bool hadError = false;
     for (const std::string& enc : encodings) {
-      lg_add_pattern(hFsm, hPat, enc.c_str(), lnum, err);
+      ret = lg_add_pattern(hFsm, hPat, enc.c_str(), lnum, err);
       if (*err) {
         (*err)->Index = lnum;
         err = &((*err)->Next);
-        continue;
+      }
+      if (ret == -1) {
+        hadError = true;
       }
     }
+    return hadError ? -1 : 0;
   }
 
   int addPatternList(LG_HFSM hFsm,
@@ -220,6 +227,7 @@ namespace {
                      const LG_KeyOptions* defaultOptions,
                      LG_Error** err)
   {
+    bool hadError = false;
     std::unique_ptr<PatternHandle,void(*)(PatternHandle*)> ph(
       lg_create_pattern(),
       lg_destroy_pattern
@@ -248,6 +256,7 @@ namespace {
 
       if (ccur == cend) { // FIXME: is this possible?
         if (err) {
+          hadError = true;
           *err = makeError("no pattern", nullptr, nullptr, source, lnum);
           err = &((*err)->Next);
         }
@@ -266,6 +275,7 @@ namespace {
 
         if (etok.begin() == etok.end()) {
           if (err) {
+            hadError = true;
             *err = makeError(
               "no encoding list",
               pat.c_str(), nullptr, source, lnum
@@ -285,16 +295,18 @@ namespace {
             }
           }
         }
-
-        addPatternHelper(hFsm, ph.get(), pat, &opts, etok, lnum, err);
+        if (addPatternHelper(hFsm, ph.get(), pat, &opts, etok, lnum, err) != 0) {
+          hadError = true;
+        }
       }
       else {
         // use default encodings and options
-        addPatternHelper(hFsm, ph.get(), pat, &opts, defEncs, lnum, err);
+        if (addPatternHelper(hFsm, ph.get(), pat, &opts, defEncs, lnum, err) != 0) {
+          hadError = true;
+        }
       }
     }
-
-    return err ? -1 : 0;
+    return hadError ? -1 : 0;
   }
 }
 
