@@ -15,11 +15,6 @@
  *
  */
 
-/*
-#include "container_out.h"
-#include <iostream>
-*/
-
 #include <algorithm>
 #include <cctype>
 #include <limits>
