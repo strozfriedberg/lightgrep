@@ -298,7 +298,6 @@ test_test_SOURCES = \
 	test/test_oceencoder.cpp \
 	test/test_options.cpp \
 	test/test_optparser.cpp \
-	test/test_ostream_join_iterator.cpp \
 	test/test_parser.cpp \
 	test/test_parsetree.cpp \
 	test/test_parseutil.cpp \
