@@ -190,7 +190,7 @@ namespace {
   int addPatternHelper(LG_HFSM hFsm,
                   LG_HPATTERN hPat,
                   const std::string& pat,
-                  LG_KeyOptions* keyOpts,
+                  const LG_KeyOptions* keyOpts,
                   const E& encodings,
                   int lnum,
                   LG_Error**& err)
@@ -266,26 +266,25 @@ namespace {
       // read the pattern
       const std::string pat(*ccur);
 
-      LG_KeyOptions opts(*defaultOptions);
-
-      if (++ccur != cend) {
+      if (++ccur != cend) { // has encodings & maybe options
         // read the encoding list
-        const std::string el(*ccur);
-        const tokenizer etok(el, char_separator(","));
+        const std::string encList(*ccur);
+        const tokenizer etok(encList, char_separator(","));
 
         if (etok.begin() == etok.end()) {
           if (err) {
-            hadError = true;
             *err = makeError(
               "no encoding list",
               pat.c_str(), nullptr, source, lnum
             );
             err = &((*err)->Next);
           }
+          hadError = true;
           continue;
         }
 
         // read the options
+        LG_KeyOptions opts(*defaultOptions);
         if (++ccur != cend) {
           opts.FixedString = boost::lexical_cast<bool>(*ccur);
           if (++ccur != cend) {
@@ -299,9 +298,8 @@ namespace {
           hadError = true;
         }
       }
-      else {
-        // use default encodings and options
-        if (addPatternHelper(hFsm, ph.get(), pat, &opts, defEncs, lnum, err) != 0) {
+      else { // use default encodings and options
+        if (addPatternHelper(hFsm, ph.get(), pat, defaultOptions, defEncs, lnum, err) != 0) {
           hadError = true;
         }
       }
