@@ -119,7 +119,7 @@ extern "C" {
 
   // Create and destroy an LG_HPATTERN.
   // This can be reused when parsing pattern strings to avoid re-allocating memory.
-  LG_HPATTERN lg_create_pattern();
+  LG_HPATTERN lg_create_pattern(void);
 
   void lg_destroy_pattern(LG_HPATTERN hPattern);
 
