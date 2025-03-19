@@ -31,7 +31,6 @@ src_lib_liblightgrepint_la_SOURCES = \
 	include/chain.h \
 	include/codegen.h \
 	include/compiler.h \
-	include/container_out.h \
 	include/decoders/asciidecoder.h \
 	include/decoders/bytesource.h \
 	include/decoders/decoder.h \
