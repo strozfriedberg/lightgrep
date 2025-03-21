@@ -162,6 +162,8 @@ int parseNamedCodePoint(Iterator& i, const Iterator& end) {
   }
 
   if (*i++ != '{') {
+    // A named codepoint is of the form {NAME}, the \N having already been
+    // consumed. The first character must be the opening curly brace.
     return -1;
   }
 
