@@ -63,7 +63,7 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
   // assemble the transformation chain
   std::unique_ptr<Encoder> enc;
 
-  if (charbyte == "ASCII" || charbyte == "US-ASCII") {
+  if (charbyte == "ASCII") {
     enc.reset(new ASCII);
   }
   else if (charbyte == "UTF-8") {
