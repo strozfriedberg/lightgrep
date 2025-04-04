@@ -17,10 +17,10 @@
  
  #pragma once
 
-#pragma clang diagnostic push
+#pragma GCC diagnostic push
 #if defined(__clang__)
-  #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  #pragma clang diagnostic ignored "-Wdeprecated-builtins"
+  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  #pragma GCC diagnostic ignored "-Wdeprecated-builtins"
 #endif
 #include <boost/lexical_cast.hpp>
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
