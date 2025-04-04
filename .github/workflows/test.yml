@@ -26,6 +26,7 @@ jobs:
         - name: bootstrap
           run: ./bootstrap.sh
         - name: check compiler
+          shell: bash
           run: |
             which ${CC}
             which ${CXX}
