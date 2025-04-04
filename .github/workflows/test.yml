@@ -6,6 +6,9 @@ on:
       - main
 jobs:
   run-tests:
+      strategy:
+        matrix:
+          compiler: [g++, clang]
       runs-on: ubuntu-latest
       steps:
         - name: Check out repository
@@ -13,7 +16,7 @@ jobs:
         - name: Install dependencies
           run: |
             sudo apt-get update
-            DEBIAN_FRONTEND=noninteractive sudo apt-get install -y autoconf autotools-dev bison catch2 flex g++ libboost-all-dev libicu-dev libtool make pkg-config
+            DEBIAN_FRONTEND=noninteractive sudo apt-get install -y autoconf autotools-dev bison catch2 flex ${{matrix.compiler}} libboost-all-dev libicu-dev libtool make pkg-config
         - name: bootstrap
           run: ./bootstrap.sh
         - name: configure
