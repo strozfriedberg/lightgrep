@@ -18,7 +18,6 @@
 #include <catch2/catch_test_macros.hpp>
 
 //#include "automata.h"
-#include "container_out.h"
 //#include "fragment.h"
 //#include "utility.h"
 #include "encoders/utf8.h"

@@ -21,7 +21,6 @@
 
 #include <iostream>
 
-#include "ostream_join_iterator.h"
 #include "util.h"
 
 std::ostream& Options::openOutput() const {
@@ -54,10 +53,9 @@ std::vector<std::pair<std::string,std::string>> Options::getPatternLines() const
       os << p << '\t';
 
       // encodings
-      std::copy(
-        Encodings.begin(), Encodings.end(),
-        ostream_join_iterator<std::string>(os, ",")
-      );
+      for (const auto& e : Encodings) {
+        os << e << ',';
+      }
 
       os << '\t';
 
@@ -197,9 +195,10 @@ void Options::validateAndPopulateSearchOptions(const po::variables_map& optsMap,
   }
 }
 
-void Options::populateSampleOptions(const po::variables_map& optsMap, std::vector<std::string>& pargs) {
-  SampleLimit =
-        std::numeric_limits<std::set<std::string>::size_type>::max();
+void Options::populateSampleOptions(const po::variables_map&, std::vector<std::string>& pargs) {
+  // FIXME: the map's no longer used and this function needs a rethink with tests.
+  // For example, SampleLimit is set to the max value of size_t, so it's a bad default.
+  SampleLimit = std::numeric_limits<std::set<std::string>::size_type>::max();
   LoopLimit = 1;
 
   if (!pargs.empty()) {
@@ -212,3 +211,4 @@ void Options::populateSampleOptions(const po::variables_map& optsMap, std::vecto
     }
   }
 }
+

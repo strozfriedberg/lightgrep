@@ -17,7 +17,6 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include "container_out.h"
 #include "encoders/utf16.h"
 
 template <bool LE>

@@ -16,7 +16,6 @@
  */
 
 #include "basic.h"
-#include "container_out.h"
 
 #include <catch2/catch_test_macros.hpp>
 
