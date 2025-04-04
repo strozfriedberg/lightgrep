@@ -10,9 +10,13 @@ jobs:
         matrix:
           compiler:
             - type: g++
-              env: CC=gcc CXX=g++
+              env:
+                CC: gcc
+                CXX: g++
             - type: clang
-              env: CC=clang CXX=clang++
+              env:
+                CC: clang
+                CXX: clang++
       runs-on: ubuntu-latest
       container:
         image: ubuntu:latest
@@ -25,12 +29,7 @@ jobs:
             DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf autotools-dev bison catch2 flex ${{matrix.compiler.type}} libboost-all-dev libicu-dev libtool make pkg-config
         - name: bootstrap
           run: ./bootstrap.sh
-        - name: check compiler
-          shell: bash
-          run: |
-            which ${CC}
-            which ${CXX}
         - name: configure
-          run: ./configure CC=${CC} CXX=${CXX}
+          run: ./configure CC=${{matrix.compiler.env.CC}} CXX=${{matrix.compiler.env.CXX}}
         - name: run tests
           run: make -j12 check
