@@ -14,13 +14,15 @@ jobs:
             - type: clang
               env: CC=clang CXX=clang++
       runs-on: ubuntu-latest
+      container:
+        image: ubuntu:latest
       steps:
         - name: Check out repository
           uses: actions/checkout@v4
         - name: Install dependencies
           run: |
-            sudo apt-get update
-            DEBIAN_FRONTEND=noninteractive sudo apt-get install -y autoconf autotools-dev bison catch2 flex ${{matrix.compiler.type}} libboost-all-dev libicu-dev libtool make pkg-config
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf autotools-dev bison catch2 flex ${{matrix.compiler.type}} libboost-all-dev libicu-dev libtool make pkg-config
         - name: bootstrap
           run: ./bootstrap.sh
         - name: configure
