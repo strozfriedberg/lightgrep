@@ -25,6 +25,10 @@ jobs:
             DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf autotools-dev bison catch2 flex ${{matrix.compiler.type}} libboost-all-dev libicu-dev libtool make pkg-config
         - name: bootstrap
           run: ./bootstrap.sh
+        - name: check compiler
+          run: |
+            which ${CC}
+            which ${CXX}
         - name: configure
           run: ./configure CC=${CC} CXX=${CXX}
         - name: run tests
