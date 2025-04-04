@@ -48,7 +48,8 @@ uint32_t nodesUpperBound(const std::string& expr) {
   uint32_t ub = 2*expr.length();
 
   // add extra nodes for ^, $, \b, \B
-  for (auto i = 0; (i = expr.find_first_of("^$bB", i)) != std::string::npos; ++i) {
+  auto i = expr.find_first_of("^$bB");
+  while (i != std::string::npos) {
     switch (expr[i]) {
     case '^':
     case '$':
@@ -56,13 +57,13 @@ uint32_t nodesUpperBound(const std::string& expr) {
       break;
     case 'B':
     case 'b':
-      if (i > 0 && expr[i-1] == '\\') {
+      if (i > 0 && expr[i - 1] == '\\') {
         ub += 6;
       }
       break;
     }
+    i = expr.find_first_of("^$bB", i + 1);
   }
-
   return ub;
 }
 

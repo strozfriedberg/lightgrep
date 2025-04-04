@@ -253,9 +253,6 @@ std::string analyze(const NFA& nfa, int minLength) {
     if (vi == 0) {
       continue;
     }
-    else if (vi < 0) {
-      continue;
-    }
     s += (nfa)[vi].Trans->label();
   }
 

@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/program_options.hpp>
+#include "boost_program_options.h"
 namespace po = boost::program_options;
 
 class Options {
