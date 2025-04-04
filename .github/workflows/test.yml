@@ -1,0 +1,22 @@
+name: Test
+run-name: Run tests
+on: 
+  pull_request:
+    branches:
+      - main
+jobs:
+  run-tests:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Check out repository
+          uses: actions/checkout@v4
+        - name: Install dependencies
+          run: |
+            sudo apt-get update
+            DEBIAN_FRONTEND=noninteractive sudo apt-get install -y autoconf autotools-dev bison catch2 flex g++ libboost-all-dev libicu-dev libtool make pkg-config
+        - name: bootstrap
+          run: ./bootstrap.sh
+        - name: configure
+          run: ./configure
+        - name: run tests
+          run: make -j12 check
