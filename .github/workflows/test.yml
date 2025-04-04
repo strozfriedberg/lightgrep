@@ -12,8 +12,8 @@ jobs:
           uses: actions/checkout@v4
         - name: Install dependencies
           run: |
-            apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf autotools-dev bison catch2 flex g++ libboost-all-dev libicu-dev libtool make pkg-config
+            sudo apt-get update
+            DEBIAN_FRONTEND=noninteractive sudo apt-get install -y autoconf autotools-dev bison catch2 flex g++ libboost-all-dev libicu-dev libtool make pkg-config
         - name: bootstrap
           run: ./bootstrap.sh
         - name: configure
