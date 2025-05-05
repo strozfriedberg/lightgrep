@@ -226,7 +226,11 @@ TEST_CASE("testLgAddPatternWithNulls") {
 TEST_CASE("testLgAddPatternList") {
   const char pats[] =
     "foo\tUTF-8,UTF-16LE\t0\n"
+#ifdef HAVE_ICU
     "bar\tISO-8859-11,UTF-16BE\t0\t1\n"
+#else
+    "bar\tUTF-16BE\t0\t1\n"
+#endif
     "\\w+\tUTF-8\t0\t1\t1\n";
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
@@ -458,7 +462,11 @@ void gotHit(void* ctx, const LG_SearchHit* const) {
 TEST_CASE("testLgWriteProgramLgReadProgram") {
   const char pats[] =
     "foo\tUTF-8,UTF-16LE\t0\t0\n"
+#ifdef HAVE_ICU
     "bar\tISO-8859-11,UTF-16BE\t0\t1\n";
+#else
+    "bar\tUTF-16BE\t0\t1\n";
+#endif
   const size_t patsNum = std::count(pats, pats + std::strlen(pats), '\n');
 
   const char* defEncs[] = { "ASCII", "UTF-8" };
@@ -512,7 +520,11 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
 
   const size_t p1count = lg_prog_pattern_count(prog1.get());
   const size_t p2count = lg_prog_pattern_count(prog2.get());
+#ifdef HAVE_ICU
   REQUIRE(4 == p1count);
+#else
+  REQUIRE(3 == p1count);
+#endif
   REQUIRE(p1count == p2count);
 
   for (size_t i = 0; i < p1count; ++i) {
@@ -554,7 +566,11 @@ TEST_CASE("testLgWriteProgramLgReadProgram") {
 
   uint64_t numHits = 0;
   lg_search(ctx.get(), s.data(), s.data() + s.size(), 0, &numHits, gotHit);
+#ifdef HAVE_ICU
   REQUIRE(numHits == 2);
+#else
+  REQUIRE(numHits == 1);
+#endif
 }
 
 TEST_CASE("parsePatternSlice") {

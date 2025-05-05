@@ -1,0 +1,54 @@
+// Copyright 2011-, Aon Cyber Solutions. All Rights Reserved.
+
+#ifndef LIGHTGREP_C_ENCODINGS_H_
+#define LIGHTGREP_C_ENCODINGS_H_
+
+#include "util.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+static const LG_TRANS LG_ENCODINGS[] = {
+  { "ASCII",                                           5 },
+  { "US-ASCII",                                        5 },
+  { "UTF-16BE",                                        1 },
+  { "UTF-16LE",                                        2 },
+  { "UTF-32BE",                                        3 },
+  { "UTF-32LE",                                        4 },
+  { "UTF-8",                                           0 }
+};
+
+static const char* const LG_CANONICAL_ENCODINGS[] = {
+  "UTF-8",                        //   0
+  "UTF-16BE",                     //   1
+  "UTF-16LE",                     //   2
+  "UTF-32BE",                     //   3
+  "UTF-32LE",                     //   4
+  "US-ASCII"                      //   5
+};
+
+// UTF-8
+static const int LG_ENCODING_UTF_8 = 0; // IANA* MIME* WINDOWS JAVA*
+
+// UTF-16BE
+static const int LG_ENCODING_UTF_16BE = 1; // IANA* MIME* JAVA*
+
+// UTF-16LE
+static const int LG_ENCODING_UTF_16LE = 2; // IANA* MIME* JAVA*
+
+// UTF-32BE
+static const int LG_ENCODING_UTF_32BE = 3; // IANA*
+
+// UTF-32LE
+static const int LG_ENCODING_UTF_32LE = 4; // IANA*
+
+// US-ASCII
+static const int LG_ENCODING_ASCII = 5; // IANA WINDOWS JAVA*
+static const int LG_ENCODING_US_ASCII = 5; // IANA MIME* WINDOWS JAVA
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LIGHTGREP_C_ENCODINGS_H_ */

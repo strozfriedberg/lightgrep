@@ -33,8 +33,6 @@
 
 #include "boost_program_options.h"
 
-#include <unicode/ucnv.h>
-
 #include "handles.h"
 #include "lg_app.h"
 #include "pattern.h"
@@ -435,10 +433,6 @@ void writeSampleMatches(const Options& opts) {
 // TODO:
 // - This behavior should be turned into a C API, to avoid the cast of the FSM.
 // - It should be unit tested.
-// - Output should be UTF-8. There's no longer any reason to support EnCase's UTF-16LE.
-
-// TODO: Writing sample matches should not be unconditionally EnCase-specific.
-// There should be a switch to turn on the behavior EnCase needs.
 
 	std::ostream& out(opts.openOutput());
 
@@ -457,26 +451,8 @@ void writeSampleMatches(const Options& opts) {
   fsm = std::move(col.fsm);
 
   if (err) {
-    std::stringstream ss;
-    ss << err->Message << " on pattern " << pnum
-        << ", '"<< err->Pattern << "'";
-    std::string msg(ss.str());
-
-    std::unique_ptr<char[]> buf(new char[4*msg.length()+1]);
-    UErrorCode ec = U_ZERO_ERROR;
-    const uint32_t len = ucnv_convert(
-      "UTF-16LE", "UTF-8",
-      buf.get(),
-      4*msg.length()+1,
-      msg.c_str(), -1,
-      &ec
-    );
-    if (U_FAILURE(ec)) {
-      std::cerr << "Error: " << u_errorName(ec) << std::endl;
-    }
-
-    out << std::string(buf.get(), len)
-        << '\n';
+    out << err->Message << " on pattern " << pnum
+        << ", '"<< err->Pattern << "'\n";
   }
   else {
     // break on through the C API to get the graph

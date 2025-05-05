@@ -17,6 +17,10 @@
 
 #pragma once
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include <algorithm>
 #include <iterator>
 
@@ -24,7 +28,9 @@
 #include "unicode.h"
 #include "rangeset.h"
 
+#ifdef HAVE_ICU
 #include <unicode/uchar.h>
+#endif
 
 int parseHexChar(int c);
 
@@ -156,6 +162,8 @@ int parseNamedCodePoint(Iterator& i, const Iterator& end) {
   }
 
   if (*i++ != '{') {
+    // A named codepoint is of the form {NAME}, the \N having already been
+    // consumed. The first character must be the opening curly brace.
     return -1;
   }
 
@@ -164,6 +172,7 @@ int parseNamedCodePoint(Iterator& i, const Iterator& end) {
     return parseHexCodePoint(i += 2, end);
   }
 
+#ifdef HAVE_ICU
   std::string name;
   if (prepareStringForICU(i, end, name) == -1) {
     return -1;
@@ -173,6 +182,9 @@ int parseNamedCodePoint(Iterator& i, const Iterator& end) {
   UErrorCode err = U_ZERO_ERROR;
   const int val = u_charFromName(U_UNICODE_CHAR_NAME, name.c_str(), &err);
   return U_FAILURE(err) ? -1 : val;
+#else
+  return -1;
+#endif
 }
 
 int propertyGetter(const std::string& prop, UnicodeSet& us, bool case_insensitive);

@@ -17,6 +17,10 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include "parser.h"
 #include "parsetree.h"
 #include "unicode_sets.h"
@@ -96,6 +100,7 @@ TEST_CASE("parseCC_A_CaseInsensitiveTest") {
   REQUIRE(expected == actual);
 }
 
+#ifdef HAVE_ICU
 TEST_CASE("parseCC_AtoZ_CaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
@@ -122,6 +127,7 @@ TEST_CASE("parseCC_AtoZ_CaseInsensitiveTest") {
 
   REQUIRE(expected == actual);
 }
+#endif
 
 TEST_CASE("parseCC_AtoZ_CaseInsensitiveAsciiTest") {
   ParseTree expected;
@@ -488,6 +494,7 @@ TEST_CASE("parseNegCC_A_CaseInsensitiveTest") {
   REQUIRE(expected == actual);
 }
 
+#ifdef HAVE_ICU
 TEST_CASE("parseNegCC_AtoZ_CaseInsensitiveTest") {
   ParseTree expected;
   expected.init(2);
@@ -514,6 +521,7 @@ TEST_CASE("parseNegCC_AtoZ_CaseInsensitiveTest") {
 
   REQUIRE(expected == actual);
 }
+#endif
 
 TEST_CASE("parseNegCC_AtoZ_CaseInsensitiveAsciiTest") {
   ParseTree expected;
@@ -810,6 +818,7 @@ TEST_CASE("parseFailNamedCodePointMissingLeftBraceTest") {
   REQUIRE(false);
 }
 
+#ifdef HAVE_ICU
 TEST_CASE("parseFailNamedCodePointMissingRightBraceTest") {
   ParseTree tree;
   try {
@@ -824,6 +833,7 @@ TEST_CASE("parseFailNamedCodePointMissingRightBraceTest") {
   }
   REQUIRE(false);
 }
+#endif
 
 TEST_CASE("parseFailHexCodeMissingValueTest") {
   ParseTree tree;
@@ -2132,6 +2142,7 @@ TEST_CASE("parse_ascii_mode_ks_02_Test") {
   REQUIRE(expected == actual);
 }
 
+#ifdef HAVE_ICU
 TEST_CASE("parse_ascii_mode_ks_03_Test") {
   ParseTree expected;
   expected.init(2);
@@ -2151,6 +2162,7 @@ TEST_CASE("parse_ascii_mode_ks_03_Test") {
 
   REQUIRE(expected == actual);
 }
+#endif
 
 TEST_CASE("parse_ascii_mode_ks_04_Test") {
   ParseTree expected;

@@ -15,10 +15,13 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include "chain.h"
 #include "decoders/asciidecoder.h"
 #include "decoders/bytesource.h"
-#include "decoders/icudecoder.h"
 #include "decoders/decoderfactory.h"
 #include "decoders/ocedecoder.h"
 #include "decoders/rotdecoder.h"
@@ -26,6 +29,10 @@
 #include "decoders/utf16decoder.h"
 #include "decoders/utf32decoder.h"
 #include "decoders/xordecoder.h"
+
+#ifdef HAVE_ICU
+#include "decoders/icudecoder.h"
+#endif
 
 #include "boost_lexical_cast.h"
 
@@ -77,7 +84,13 @@ std::shared_ptr<Decoder> DecoderFactory::get(const std::string& chain) {
     enc.reset(new UTF32BEDecoder(std::move(enc)));
   }
   else {
+#ifdef HAVE_ICU
     enc.reset(new ICUDecoder(charbyte.c_str(), std::move(enc)));
+#else
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "Unrecognized encoding '" << charbyte << "'"
+    );
+#endif
   }
 
   for (auto cc = charchar.crbegin(); cc != charchar.crend(); ++cc) {
