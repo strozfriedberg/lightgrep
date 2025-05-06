@@ -1,0 +1,35 @@
+name: Test
+run-name: Run tests
+on: 
+  pull_request:
+    branches:
+      - main
+jobs:
+  run-tests:
+      strategy:
+        matrix:
+          compiler:
+            - type: g++
+              env:
+                CC: gcc
+                CXX: g++
+            - type: clang
+              env:
+                CC: clang
+                CXX: clang++
+      runs-on: ubuntu-latest
+      container:
+        image: ubuntu:latest
+      steps:
+        - name: Check out repository
+          uses: actions/checkout@v4
+        - name: Install dependencies
+          run: |
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf autotools-dev bison catch2 flex ${{matrix.compiler.type}} libboost-all-dev libicu-dev libtool make pkg-config
+        - name: bootstrap
+          run: ./bootstrap.sh
+        - name: configure
+          run: ./configure CC=${{matrix.compiler.env.CC}} CXX=${{matrix.compiler.env.CXX}}
+        - name: run tests
+          run: make -j12 check
