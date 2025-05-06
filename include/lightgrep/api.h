@@ -119,7 +119,7 @@ extern "C" {
 
   // Create and destroy an LG_HPATTERN.
   // This can be reused when parsing pattern strings to avoid re-allocating memory.
-  LG_HPATTERN lg_create_pattern();
+  LG_HPATTERN lg_create_pattern(void);
 
   void lg_destroy_pattern(LG_HPATTERN hPattern);
 
@@ -142,10 +142,8 @@ extern "C" {
   // and fragmentation. A good rule of thumb is to pass the total number of
   // characters in all of the keywords. Everything will work fine with 0,
   // though.
-  LG_HFSM lg_create_fsm(
-    unsigned int patternCountHint,
-    unsigned int numFsmStateSizeHint
-  );
+  LG_HFSM lg_create_fsm(unsigned int patternCountHint,
+                        unsigned int numFsmStateSizeHint);
 
   void lg_destroy_fsm(LG_HFSM hFsm);
 
@@ -156,13 +154,11 @@ extern "C" {
   // are no constraints on the value of userIndex. Set it for each pattern
   // to whatever you want to see as the LG_PatternInfo::UserIndex for that
   // pattern.
-  int lg_add_pattern(
-    LG_HFSM hFsm,
-    LG_HPATTERN hPattern,
-    const char* encoding,
-    uint64_t userIndex,
-    LG_Error** err
-  );
+  int lg_add_pattern(LG_HFSM hFsm,
+                     LG_HPATTERN hPattern,
+                     const char* encoding,
+                     uint64_t userIndex,
+                     LG_Error** err);
 
   // Adds patterns to the FSM and Program. Each line of the pattern string
   // shall be formatted as tab separated columns:
@@ -177,15 +173,13 @@ extern "C" {
   // The values of defaultEncodings and defaultOptions are used in case of
   // omitted columns. The "source" parameter indicates the source of the
   // patterns string (e.g., a path) and is used in error messages.
-  int lg_add_pattern_list(
-    LG_HFSM hFsm,
-    const char* patterns,
-    const char* source,
-    const char** defaultEncodings,
-    unsigned int defaultEncodingsNum,
-    const LG_KeyOptions* defaultOptions,
-    LG_Error** err
-  );
+  int lg_add_pattern_list(LG_HFSM hFsm,
+                          const char* patterns,
+                          const char* source,
+                          const char** defaultEncodings,
+                          unsigned int defaultEncodingsNum,
+                          const LG_KeyOptions* defaultOptions,
+                          LG_Error** err);
 
   // The number of pattern-encoding pairs recognized by the FSM. This
   // will be one greater than the maximum pattern index accepted by
@@ -267,11 +261,11 @@ extern "C" {
   // In particular, it may not be possible to determine the full length of a
   // hit until the entire byte stream has been searched...
   uint64_t lg_search(LG_HCONTEXT hCtx,
-                         const char* bufStart,
-                         const char* bufEnd,   // pointer past the end of the buffer, i.e. bufEnd - bufStart == length of buffer
-                         const uint64_t startOffset,   // Increment this with each call, by the length of the previous buffer. i.e., startOffset += bufEnd - bufStart;
-                         void* userData,       // pass in what you like, it will be passed through to the callback function
-                         LG_HITCALLBACK_FN callbackFn);
+                     const char* bufStart,
+                     const char* bufEnd,   // pointer past the end of the buffer, i.e. bufEnd - bufStart == length of buffer
+                     const uint64_t startOffset,   // Increment this with each call, by the length of the previous buffer. i.e., startOffset += bufEnd - bufStart;
+                     void* userData,       // pass in what you like, it will be passed through to the callback function
+                     LG_HITCALLBACK_FN callbackFn);
 
   // ...which is why it's important you call lg_closeout_search() when finished
   // searching a byte stream. This will flush out any remaining search hits.
@@ -282,11 +276,11 @@ extern "C" {
   // Return value is the least offset for which a hit could still be returned
   // by further searching.
   uint64_t lg_search_resolve(LG_HCONTEXT hCtx,
-                         const char* bufStart,
-                         const char* bufEnd,
-                         const uint64_t startOffset,
-                         void* userData,
-                         LG_HITCALLBACK_FN callbackFn);
+                             const char* bufStart,
+                             const char* bufEnd,
+                             const uint64_t startOffset,
+                             void* userData,
+                             LG_HITCALLBACK_FN callbackFn);
 
 #ifdef __cplusplus
 }
