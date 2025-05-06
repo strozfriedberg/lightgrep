@@ -15,17 +15,25 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include "chain.h"
 #include "encoders/ascii.h"
 #include "encoders/concrete_encoders.h"
 #include "encoders/encoderfactory.h"
-#include "encoders/icuencoder.h"
+
 #include "encoders/oceencoder.h"
 #include "encoders/rotencoder.h"
 #include "encoders/utf8.h"
 #include "encoders/utf16.h"
 #include "encoders/utf32.h"
 #include "encoders/xorencoder.h"
+
+#ifdef HAVE_ICU
+#include "encoders/icuencoder.h"
+#endif
 
 #include <boost/lexical_cast.hpp>
 
@@ -74,7 +82,13 @@ std::shared_ptr<Encoder> EncoderFactory::get(const std::string& chain) {
     enc.reset(new UTF32BE);
   }
   else {
+#ifdef HAVE_ICU
     enc.reset(new ICUEncoder(charbyte));
+#else
+    THROW_RUNTIME_ERROR_WITH_OUTPUT(
+      "Unrecognized encoding '" << charbyte << "'"
+    );
+#endif
   }
 
   for (const std::string& bb : bytebyte) {

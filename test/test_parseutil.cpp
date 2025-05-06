@@ -21,6 +21,10 @@
 #include <iomanip>
 #include <sstream>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include "basic.h"
 #include "parseutil.h"
 #include "unicode_sets.h"
@@ -174,6 +178,7 @@ TEST_CASE("parseNamedCodePointNumberTest") {
   fixture(parseNamedCodePoint<SItr>, "{U+bogus}", -1, -1);
 }
 
+#ifdef HAVE_ICU
 TEST_CASE("parseNamedCodePointNameTest") {
   fixture(parseNamedCodePoint<SItr>, "{LATIN CAPITAL LETTER A}", 'A', 24);
   fixture(parseNamedCodePoint<SItr>, "{CYRILLIC SMALL LETTER DOUBLE MONOCULAR O}", 0xA66D, 42);
@@ -184,6 +189,7 @@ TEST_CASE("parseNamedCodePointNameTest") {
   fixture(parseNamedCodePoint<SItr>, "bogus", -1, -1);
   fixture(parseNamedCodePoint<SItr>, "{}", -1, -1);
 }
+#endif
 
 template <typename T, bool Func(UnicodeSet&)>
 void desensitizer(std::initializer_list<T> in,
@@ -201,6 +207,7 @@ void desensitizer(std::initializer_list<T> in,
   REQUIRE(eset == aset);
 }
 
+#ifdef HAVE_ICU
 TEST_CASE("caseDesensitize_a_Test") {
   desensitizer<uint32_t, caseDesensitizeUnicode>({ 'a' }, { 'A', 'a' });
 }
@@ -256,6 +263,7 @@ TEST_CASE("caseDesensitize_A_to_Z_Test") {
     }
   );
 }
+#endif
 
 TEST_CASE("caseDesensitizeAscii_a_Test") {
   desensitizer<uint32_t, caseDesensitizeAscii>({ 'a' }, { 'A', 'a' });
@@ -309,6 +317,7 @@ TEST_CASE("caseDesensitizeAscii_A_to_Z_Test") {
   );
 }
 
+#ifdef HAVE_ICU
 TEST_CASE("caseDesensitize_Sigma_Test") {
   // NB: ς is the version of σ which ends words in Greek
   desensitizer<uint32_t, caseDesensitizeUnicode>(
@@ -444,6 +453,7 @@ TEST_CASE("caseDesensitizeAscii_mixed_Test") {
     }
   );
 }
+#endif
 
 TEST_CASE("setDigitClass_Ascii_Test") {
   UnicodeSet aset;
@@ -477,6 +487,7 @@ TEST_CASE("setVerticalSpaceClass_Test") {
   REQUIRE(VSPACE == aset);
 }
 
+#ifdef HAVE_ICU
 TEST_CASE("Z_subset_hv_Test") {
   // Sanity check
   // \p{Z} subset of [\h\v]
@@ -484,6 +495,7 @@ TEST_CASE("Z_subset_hv_Test") {
   propertyGetter("\\p{Z}", z, false);
   REQUIRE((HSPACE | VSPACE) == (HSPACE | VSPACE | z));
 }
+#endif
 
 TEST_CASE("setSpaceClass_Unicode_Test") {
   UnicodeSet aset;
@@ -507,6 +519,7 @@ TEST_CASE("setWordClass_Ascii_Test") {
   REQUIRE(eset == aset);
 }
 
+#ifdef HAVE_ICU
 TEST_CASE("NdNlNo_Equals_N_Test") {
   // Sanity check
   // \p{N} = [\p{Nd}\p{Nl}\p{No}]
@@ -538,6 +551,7 @@ TEST_CASE("LuLlLtLmLo_Equals_L_Test") {
   propertyGetter("\\p{L}", l, false);
   REQUIRE((lu | ll | lt | lm | lo) == l);
 }
+#endif
 
 TEST_CASE("setWordClass_Unicode_Test") {
   UnicodeSet aset;
