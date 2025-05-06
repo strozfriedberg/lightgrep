@@ -242,8 +242,6 @@ struct ContinuationTester<1,L,Converter> {
 
 template <class Converter>
 void utf8_to_unicode_tester_1(Converter conv) {
-  byte b[4];
-
   //
   // [00,80) are valid 1-byte sequences
   //
@@ -317,8 +315,6 @@ void utf8_to_unicode_tester_3(Converter conv) {
 
 template <class Converter>
 void utf8_to_unicode_tester_4_1(Converter conv) {
-  byte b[4];
-
   //
   // [0xF0,0xF5) begin valid 4-byte sequences
   //
@@ -342,8 +338,6 @@ void utf8_to_unicode_tester_4_2(Converter conv) {
 
 template <class Converter>
 void utf8_to_unicode_tester_4_3(Converter conv) {
-  byte b[4];
-
   invalid_range<4>("\xF0\xC0\x00\x00", "\xF0\xFF\xFF\xFF", conv);
 }
 
@@ -376,8 +370,6 @@ void utf8_to_unicode_tester_4_6(Converter conv) {
 
 template <class Converter>
 void utf8_to_unicode_tester_4_7(Converter conv) {
-  byte b[4];
-
   // 4F lacks some continuation bytes due to 0x10FFFF Unicode limit
   invalid_range<4>("\xF4\x00\x00\x00", "\xF0\x7F\xFF\xFF", conv);
 }

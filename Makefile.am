@@ -31,7 +31,6 @@ src_lib_liblightgrepint_la_SOURCES = \
 	include/chain.h \
 	include/codegen.h \
 	include/compiler.h \
-	include/container_out.h \
 	include/decoders/asciidecoder.h \
 	include/decoders/bytesource.h \
 	include/decoders/decoder.h \
@@ -299,7 +298,6 @@ test_test_SOURCES = \
 	test/test_oceencoder.cpp \
 	test/test_options.cpp \
 	test/test_optparser.cpp \
-	test/test_ostream_join_iterator.cpp \
 	test/test_parser.cpp \
 	test/test_parsetree.cpp \
 	test/test_parseutil.cpp \
