@@ -20,6 +20,10 @@
 #include <algorithm>
 #include <cstring>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
 #include "stest.h"
 
 TEST_CASE("ai_switches_Search") {
@@ -34,7 +38,9 @@ TEST_CASE("ai_switches_Search") {
     {8, 11, 0},
     {12, 16, 2},
     {12, 16, 1},
+#ifdef HAVE_ICU
     {17, 23, 2},
+#endif
   };
   REQUIRE(expected == fixture.Hits);
 }

@@ -43,6 +43,8 @@ R"(// Copyright 2011-, Aon Cyber Solutions. All Rights Reserved.
 #ifndef LIGHTGREP_C_ENCODINGS_H_
 #define LIGHTGREP_C_ENCODINGS_H_
 
+#define LG_UNICODE_SUPPORT
+
 #include "util.h"
 
 #ifdef __cplusplus
