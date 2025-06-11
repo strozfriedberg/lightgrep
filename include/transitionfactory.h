@@ -66,8 +66,7 @@ public:
     return get(&BSet);
   }
 
-  template <class SetType>
-  Transition* getSmallest(const SetType& bset) {
+  Transition* getSmallest(const ByteSet& bset) {
     enum {
       NONE,
       ONE,
