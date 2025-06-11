@@ -73,7 +73,7 @@ public:
     return *this;
   }
 
-  void slow_for_each(std::function<void(uint32_t)> callback) {
+  void slow_for_each(std::function<void(uint64_t)> callback) {
     for (uint32_t i = 0; i < size(); i++) {
       if (this->test(i)) {
         callback(i);
