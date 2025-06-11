@@ -16,6 +16,7 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/benchmark/catch_benchmark.hpp>
 
 #include "basic.h"
 #include "byteset.h"
@@ -117,4 +118,32 @@ TEST_CASE("byteSetDifferenceNonemptyTest") {
 TEST_CASE("byteSetDifferenceSelfTest") {
   ByteSet a{0,5,17};
   REQUIRE((a - a).none());
+}
+
+void benchmark_slow_for_each(int n) {
+  BENCHMARK("Every " + std::to_string(n) + " bits set"){
+    std::cout << "Every " + std::to_string(n) + " bits set" << std::endl;
+    ByteSet b;
+    auto callback = [](uint32_t){};
+
+    for (int i = 0; i < 256; i += n) {
+      b.set(n);
+    }
+
+    for (int i = 0; i < 100; i++) {
+      b.slow_for_each(callback);
+    }
+  };
+}
+
+TEST_CASE("byteSetSlowForEach") {
+  uint32_t count = 0;
+  auto callback = [&count](uint32_t){ count += 1; };
+  ByteSet a{0, 1, 2, 3};
+  uint32_t expectedNumCallbacks = 4; // 4 set bits
+  a.slow_for_each(callback);
+  REQUIRE(count == expectedNumCallbacks);
+  for (int i = 1; i < 256; i = i << 1) {
+    benchmark_slow_for_each(i);
+  }
 }
