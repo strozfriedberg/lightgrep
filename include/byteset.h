@@ -73,7 +73,7 @@ public:
     return *this;
   }
 
-  void slow_for_each(std::function<void(uint64_t)> callback) {
+  void slow_for_each(std::function<void(uint64_t)> callback) const {
     for (uint32_t i = 0; i < size(); i++) {
       if (this->test(i)) {
         callback(i);
@@ -81,7 +81,7 @@ public:
     }
   }
 
-  void fast_for_each(std::function<void(uint64_t)> callback) {
+  void fast_for_each(std::function<void(uint64_t)> callback) const {
     // This is evil.
     uint64_t* words = reinterpret_cast<uint64_t*>(this);
     for (int i = 0; i < 4; i++) {
