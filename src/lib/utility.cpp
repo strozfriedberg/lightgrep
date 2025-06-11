@@ -125,11 +125,11 @@ std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescripto
 
   for (const NFA::VertexDescriptor ov : graph.outVertices(source)) {
     graph[ov].Trans->getBytes(permitted);
-    for (uint32_t i = 0; i < 256; ++i) {
-      if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
+    permitted.fast_for_each([&](uint64_t i){
+      if (std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
         ret[i].push_back(ov);
       }
-    }
+    });
   }
   return ret;
 }
