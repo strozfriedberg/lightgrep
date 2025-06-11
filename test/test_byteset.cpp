@@ -122,28 +122,54 @@ TEST_CASE("byteSetDifferenceSelfTest") {
 
 void benchmark_slow_for_each(int n) {
   BENCHMARK("Every " + std::to_string(n) + " bits set"){
-    std::cout << "Every " + std::to_string(n) + " bits set" << std::endl;
     ByteSet b;
-    auto callback = [](uint32_t){};
+    uint64_t count = 0;
+    auto callback = [&count](uint64_t){ count += 1; };
 
     for (int i = 0; i < 256; i += n) {
-      b.set(n);
+      b.set(i);
     }
 
-    for (int i = 0; i < 100; i++) {
-      b.slow_for_each(callback);
+    b.slow_for_each(callback);
+    REQUIRE(count == (256/n));
+  };
+}
+
+void benchmark_fast_for_each(int n) {
+  BENCHMARK("Every " + std::to_string(n) + " bits set"){
+    ByteSet b;
+    uint64_t count = 0;
+    auto callback = [&count](uint64_t){ count += 1; };
+
+    for (int i = 0; i < 256; i += n) {
+      b.set(i);
     }
+
+    b.fast_for_each(callback);
+    REQUIRE(count == (256/n));
   };
 }
 
 TEST_CASE("byteSetSlowForEach") {
-  uint32_t count = 0;
-  auto callback = [&count](uint32_t){ count += 1; };
+  uint64_t count = 0;
+  auto callback = [&count](uint64_t){ count += 1; };
   ByteSet a{0, 1, 2, 3};
-  uint32_t expectedNumCallbacks = 4; // 4 set bits
+  uint64_t expectedNumCallbacks = 4; // 4 set bits
   a.slow_for_each(callback);
   REQUIRE(count == expectedNumCallbacks);
-  for (int i = 1; i < 256; i = i << 1) {
+  for (int i = 2; i < 256; i = i << 1) {
     benchmark_slow_for_each(i);
+  }
+}
+
+TEST_CASE("byteSetFastForEach") {
+  uint64_t count = 0;
+  auto callback = [&count](uint64_t){ count += 1; };
+  ByteSet a{0, 1, 2, 3};
+  uint64_t expectedNumCallbacks = 4; // 4 set bits
+  a.fast_for_each(callback);
+  REQUIRE(count == expectedNumCallbacks);
+  for (int i = 2; i < 256; i = i << 1) {
+    benchmark_fast_for_each(i);
   }
 }

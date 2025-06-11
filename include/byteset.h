@@ -81,6 +81,24 @@ public:
     }
   }
 
+  void fast_for_each(std::function<void(uint64_t)> callback) {
+    // This is evil.
+    uint64_t* words = reinterpret_cast<uint64_t*>(this);
+    for (int i = 0; i < 4; i++) {
+      uint64_t word = words[i];
+      while (word != 0) {
+        // isolate least significant set bit
+        uint64_t lsb = word & -word;
+        // get the index of the set bit
+        uint64_t index = (i << 6) + __builtin_popcountll(word - 1);
+        callback(index);
+        // xor og word with lsb to get new word with the previous lsb unset
+        word ^= lsb;
+      }
+    }
+  }
+
+  
   using std::bitset<256>::set;
 
   bool operator<(const ByteSet& other) const {
