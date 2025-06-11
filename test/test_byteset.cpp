@@ -157,9 +157,9 @@ TEST_CASE("byteSetSlowForEach") {
   uint64_t expectedNumCallbacks = 4; // 4 set bits
   a.slow_for_each(callback);
   REQUIRE(count == expectedNumCallbacks);
-  for (int i = 2; i < 256; i = i << 1) {
-    benchmark_slow_for_each(i);
-  }
+  // for (int i = 2; i < 256; i = i << 1) {
+  //   benchmark_slow_for_each(i);
+  // }
 }
 
 TEST_CASE("byteSetFastForEach") {
@@ -169,7 +169,7 @@ TEST_CASE("byteSetFastForEach") {
   uint64_t expectedNumCallbacks = 4; // 4 set bits
   a.fast_for_each(callback);
   REQUIRE(count == expectedNumCallbacks);
-  for (int i = 2; i < 256; i = i << 1) {
-    benchmark_fast_for_each(i);
-  }
+  // for (int i = 2; i < 256; i = i << 1) {
+  //   benchmark_fast_for_each(i);
+  // }
 }
