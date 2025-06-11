@@ -88,11 +88,9 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
           ByteSet second;
           graph[t1].Trans->orBytes(second);
 
-          for (uint32_t s = 0; s < 256; ++s) {
-            if (second.test(s)) {
-              *reinterpret_cast<std::bitset<256>*>(bb + (s << 5)) |= first;
-            }
-          }
+          second.fast_for_each([&](uint64_t s){
+            *reinterpret_cast<std::bitset<256>*>(bb + (s << 5)) |= first;
+          });
         }
       }
     }
