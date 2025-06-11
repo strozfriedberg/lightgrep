@@ -16,10 +16,13 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/benchmark/catch_benchmark.hpp>
 
+#include "lightgrep/api.h"
 #include "basic.h"
 #include "byteset.h"
 
+#include <fstream>
 #include <iostream>
 
 TEST_CASE("byteSetSizeTest") {
@@ -117,4 +120,64 @@ TEST_CASE("byteSetDifferenceNonemptyTest") {
 TEST_CASE("byteSetDifferenceSelfTest") {
   ByteSet a{0,5,17};
   REQUIRE((a - a).none());
+}
+
+void benchmark_fast_for_each(int n) {
+  BENCHMARK("Every " + std::to_string(n) + " bits set"){
+    ByteSet b;
+    uint64_t count = 0;
+    auto callback = [&count](uint64_t){ count += 1; };
+
+    for (int i = 0; i < 256; i += n) {
+      b.set(i);
+    }
+
+    b.for_each_set_bit(callback);
+    REQUIRE(count == (256/n));
+  };
+}
+
+TEST_CASE("byteSetFastForEach") {
+  uint64_t count = 0;
+  auto callback = [&count](uint64_t){ count += 1; };
+  ByteSet a{0, 1, 2, 3};
+  uint64_t expectedNumCallbacks = 4; // 4 set bits
+  a.for_each_set_bit(callback);
+  REQUIRE(count == expectedNumCallbacks);
+  // for (int i = 2; i < 256; i = i << 1) {
+  //   benchmark_fast_for_each(i);
+  // }
+}
+
+std::string readfile(const std::string& path) {
+  std::ifstream f(path, std::ios::in);
+  std::string str;
+  f.seekg(0, std::ios::end);
+  str.reserve(f.tellg());
+  f.seekg(0, std::ios::beg);
+  str.assign((std::istreambuf_iterator<char>(f)),
+             std::istreambuf_iterator<char>());
+  return str;
+}
+
+TEST_CASE("twainCompilation") {
+  BENCHMARK("Search"){
+    LG_HFSM fsm = lg_create_fsm(0, 0);
+    std::string path = "pytest/keys/twain.txt";
+    std::string twain = readfile(path);
+    const char* defaultEncodings[] = {"UTF-8", "UTF-16LE"};
+    LG_KeyOptions opts{0, 0, 0};
+    LG_ProgramOptions progOpts{10};
+    LG_Error* err = nullptr;
+    lg_add_pattern_list(
+      fsm,
+      twain.c_str(),
+      path.c_str(),
+      defaultEncodings,
+      2,
+      &opts,
+      &err
+    );
+    LG_HPROGRAM prog = lg_create_program(fsm, &progOpts);
+  };
 }

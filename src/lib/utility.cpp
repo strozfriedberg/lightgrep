@@ -88,11 +88,9 @@ std::pair<uint32_t,std::bitset<256*256>> bestPair(const NFA& graph) {
           ByteSet second;
           graph[t1].Trans->orBytes(second);
 
-          for (uint32_t s = 0; s < 256; ++s) {
-            if (second.test(s)) {
-              *reinterpret_cast<std::bitset<256>*>(bb + (s << 5)) |= first;
-            }
-          }
+          second.for_each_set_bit([&](uint64_t s){
+            *reinterpret_cast<std::bitset<256>*>(bb + (s << 5)) |= first;
+          });
         }
       }
     }
@@ -125,11 +123,11 @@ std::vector<std::vector<NFA::VertexDescriptor>> pivotStates(NFA::VertexDescripto
 
   for (const NFA::VertexDescriptor ov : graph.outVertices(source)) {
     graph[ov].Trans->getBytes(permitted);
-    for (uint32_t i = 0; i < 256; ++i) {
-      if (permitted[i] && std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
+    permitted.for_each_set_bit([&](uint64_t i){
+      if (std::find(ret[i].begin(), ret[i].end(), ov) == ret[i].end()) {
         ret[i].push_back(ov);
       }
-    }
+    });
   }
   return ret;
 }
