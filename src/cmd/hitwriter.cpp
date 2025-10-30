@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ const char* find_trailing_context(const char* const hend, const char* const bend
 bool histogramKeyComp(const LG_Histogram::value_type& a, const LG_Histogram::value_type& b) {
   // order descending by count, then ascending by user index and hit text
   return (a.second > b.second)
-      || (a.second == b.second && (a.first.UserIndex < b.first.UserIndex 
+      || (a.second == b.second && (a.first.UserIndex < b.first.UserIndex
                                     || (a.first.UserIndex == b.first.UserIndex && a.first.HitText < b.first.HitText)));
 }
 

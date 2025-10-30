@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ void throw_on_error(UErrorCode err) {
 int main(int, char**) {
   // print copyright notice, ifdef guards, open extern "C" block
   std::cout <<
-R"(// Copyright 2011-, Aon Cyber Solutions. All Rights Reserved.
+R"(// Copyright 2011-, LevelBlue. All Rights Reserved.
 
 #ifndef LIGHTGREP_C_ENCODINGS_H_
 #define LIGHTGREP_C_ENCODINGS_H_

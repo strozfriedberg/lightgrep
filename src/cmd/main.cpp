@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ void printVersion(std::ostream& out) {
   // ANSI C now defines __DATE__ as 11-char string of MMM DD YYYY, but double-check
   const std::string year = buildDate.size() == 11 && buildDate[7] == '2' ? buildDate.substr(7, 4): "2024";
   out << "lightgrep " << VERSION << '\n'
-      << "Copyright (c) 2010-" << year << ", Aon Cyber Solutions\n"
+      << "Copyright (c) 2010-" << year << ", LevelBlue\n"
          "Built " << buildDate << std::endl;
 }
 

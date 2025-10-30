@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,7 +222,7 @@ TEST_CASE("hitOutputDataAndCallback") {
     const LG_SearchHit searchHit{44, 47, 0};
     const HitBuffer expectedHitBuffer{"foo", LG_Window{0, 3}, 44};
     const HitBuffer actualHitBuffer = data.decodeContext(searchHit);
-  
+
     REQUIRE(expectedHitBuffer.DataOffset == actualHitBuffer.DataOffset);
     REQUIRE(expectedHitBuffer.Context == actualHitBuffer.Context);
     REQUIRE(expectedHitBuffer.HitWindow.begin == actualHitBuffer.HitWindow.begin);

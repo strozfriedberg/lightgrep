@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,15 +89,15 @@ std::vector<char> PatternMap::marshall() const {
     std::memcpy(i, pi.Pattern, slen);
     i += slen;
 
-    slen = std::strlen(pi.EncodingChain) + 1; 
+    slen = std::strlen(pi.EncodingChain) + 1;
     std::memcpy(i, pi.EncodingChain, slen);
     i += slen;
 
     std::memcpy(i, &pi.UserIndex, sizeof(pi.UserIndex));
-    i += sizeof(pi.UserIndex); 
+    i += sizeof(pi.UserIndex);
   }
 
-  return buf; 
+  return buf;
 }
 
 size_t PatternMap::bufSize() const {
@@ -108,7 +108,7 @@ size_t PatternMap::bufSize() const {
     [](size_t s, const LG_PatternInfo& pi) {
       return s + std::strlen(pi.Pattern) + 1
                + std::strlen(pi.EncodingChain) + 1
-               + sizeof(pi.UserIndex); 
+               + sizeof(pi.UserIndex);
     }
   );
 }
@@ -121,9 +121,9 @@ std::unique_ptr<PatternMap> PatternMap::unmarshall(const void* buf, size_t len) 
   const char* pat;
   const char* chain;
   const char* idx;
-  
+
   const char* const end = i + len;
-  
+
   while (i < end) {
     pat = i;
     chain = pat + std::strlen(pat) + 1;
@@ -131,7 +131,7 @@ std::unique_ptr<PatternMap> PatternMap::unmarshall(const void* buf, size_t len) 
 
     p->usePattern(pat, chain, *reinterpret_cast<const uint64_t*>(idx));
 
-    i = idx + sizeof(LG_PatternInfo::UserIndex); 
+    i = idx + sizeof(LG_PatternInfo::UserIndex);
   }
 
   return p;
