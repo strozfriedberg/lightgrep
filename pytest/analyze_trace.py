@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-# Copyright 2024 Aon Cyber Solutions
+# Copyright 2025 LevelBlue
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import json
 import collections
 import math
 
-InstructionCodes = {  
+InstructionCodes = {
   0:'UNINITIALIZED',
   1:'BYTE_OP',
   2:'EITHER_OP',
@@ -104,7 +104,7 @@ class TraceStats:
         pass
     self.NumThreadsSegments.append((lastNumThreads, lastStart, bytes))
     self.NumBytes = bytes
-  
+
   def totalThreads(self):
     return sum(self.ThreadLifetimes.values())
 
@@ -162,7 +162,7 @@ class TraceStats:
     print("Instructions executed histogram:")
     for el in self.InstructionHist.most_common():
       print("  %s, %s, %s" % (el[0], el[1], float(el[1] * 100) / totalInstrs))
-    
+
     print("File segments (%s)" % (str(len(self.NumThreadsSegments))))
     for seg in self.NumThreadsSegments:
       print("  %s, %s, %s, %s" % (seg[0], seg[2] - seg[1], seg[1], seg[2]))

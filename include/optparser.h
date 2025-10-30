@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
- 
+
  #pragma once
 
 #include "options.h"

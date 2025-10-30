@@ -1,5 +1,5 @@
 
-# Copyright 2024 Aon Cyber Solutions
+# Copyright 2025 LevelBlue
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import setuptools
 setuptools.setup(
     name='lightgrep',
     version='0.1.0',
-    author='Joel Uckelman <joel.uckelman@aon.co.uk>',
+    author='Joel Uckelman <joel.uckelman@levelblue.com>',
     packages=['lightgrep'],
     package_data={
         'lightgrep': ['liblightgrep.so', 'liblightgrep.dylib']

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2024 Aon Cyber Solutions
+# Copyright 2025 LevelBlue
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import struct
 import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind(('127.0.0.1', 12777))  
+sock.bind(('127.0.0.1', 12777))
 sock.listen(1)
 conn, addr = sock.accept()
 

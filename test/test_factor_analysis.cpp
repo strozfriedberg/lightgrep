@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,21 +199,21 @@ TEST_CASE("testBFSdiscover") {
     breadthFirstSearch is templated off its third parameter, which it treats like a 2-arity function
     to which it passes a const ref to the graph and the vertex descriptor of the current vertex.
 
-    It's easy to run into compiler errors with functor template parameters in C++, but there's an 
-    easier way in C++11 (and beyond): just use C++ lambdas. C++ will deduce the type of the lambda 
+    It's easy to run into compiler errors with functor template parameters in C++, but there's an
+    easier way in C++11 (and beyond): just use C++ lambdas. C++ will deduce the type of the lambda
     and all will be well.
 
     In the lambda below, "[&discovered]" means that a -reference- to 'discovered' should be in scope
     within the lambda (i.e., closure). "(const NF&, NFA::VertexDescriptor)" are the function arguments
     to the lambda, and then "{ discovered.push_back(v); }" is the body of the lambda. By taking discovered
-    by reference, the lambda can easily manipulate its state, so after the call to breadthFirstSearch(), 
+    by reference, the lambda can easily manipulate its state, so after the call to breadthFirstSearch(),
     discovered is now size 4 and should match the "expected" std::vector.
 
     Big complicated lambdas are discouraged -- since they're anonymous, they can't be unit tested very easily
     if at all. But it's easy enough to imagine that you could create a struct with the necesssary members
-    for figuring out all the paths through the graph, and then that struct could have a method for updating 
+    for figuring out all the paths through the graph, and then that struct could have a method for updating
     those member data structures when a new vertex is visited, and the lambda passe to breadthFirstSearch()
-    could just take an instance of the struct as a closure and directly call the method. In this way the 
+    could just take an instance of the struct as a closure and directly call the method. In this way the
     lambda is nothing more than glue.
   */
   breadthFirstSearch(g, 0, [&discovered](const NFA&, NFA::VertexDescriptor v) {

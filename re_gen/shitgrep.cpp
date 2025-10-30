@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ struct Regex {
       throw std::runtime_error(ss.str());
     }
   }
-    
+
   ~Regex() {
     pcre_free(re);
     pcre_free_study(extra);
@@ -90,7 +90,7 @@ int do_one_match(
   const char* text, const size_t text_len, const unsigned int offset,
   int* ovector, const unsigned int ovector_size)
 {
-  int matches = pcre_exec( 
+  int matches = pcre_exec(
     re.re,
     re.extra,
     text,
@@ -108,7 +108,7 @@ int do_one_match(
     // is set for the pattern
     throw std::runtime_error("ovector is too small!");
   }
-    
+
   if (matches < 0) {
     std::ostringstream ss;
     ss << "pcre_exec: " << matches;
@@ -153,7 +153,7 @@ unsigned int match(
     // reject this patern with the same error message as lightgrep
     std::cerr << "state 0 is not allowed as a final state of the NFA"
               << std::endl;
-    return 0; 
+    return 0;
   }
 
   do {
@@ -169,7 +169,7 @@ unsigned int match(
     // advance to match end, but at least one char
     offset = std::max(offset+1, static_cast<unsigned int>(ovector[1]));
 
-  } while (offset < text_len); 
+  } while (offset < text_len);
 
   return total;
 }
@@ -180,7 +180,7 @@ void match_printer(int mstart, int mend, unsigned int patnum,
             << mend << '\t'
             << patnum << '\t'
             << pattern << '\t'
-            << charset << '\n';  
+            << charset << '\n';
 }
 
 const char* help_short() {
@@ -217,7 +217,7 @@ void do_matches(std::istream& is, const char* text, size_t text_len) {
 
   while (!is.eof()) {
     std::getline(is, pattern);
-    if (pattern.empty()) continue; // skip empty lines 
+    if (pattern.empty()) continue; // skip empty lines
 
     std::cerr << patnum << std::endl;
 
@@ -341,7 +341,7 @@ int main(int argc, char** argv)
     text_arg = 3;
   }
   else {
-    // get patterns from pattern file  
+    // get patterns from pattern file
     use_pfile = true;
     pat = argv[1];
     text_arg = 2;
@@ -391,7 +391,7 @@ int main(int argc, char** argv)
   //
   if (use_pfile) {
     std::ifstream ifs(pat, std::ios::in | std::ios::binary);
-  
+
     if (!ifs.is_open()) {
       std::cerr << "failed to open " << argv[1] << ": "
                 << std::strerror(errno) << std::endl;

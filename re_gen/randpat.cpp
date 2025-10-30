@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@
 #include "unparser.h"
 
 // C_17 is the largest Catalan number which fits in 32 bits
-// C_33 is the largest Catalan number which fits in 64 bits 
+// C_33 is the largest Catalan number which fits in 64 bits
 uint64 catalan(uint32 n) {
   return n == 0 ? 1 : catalan(n-1)*2*(2*n-1)/(n+1);
 }
@@ -60,14 +60,14 @@ int main(int argc, char** argv) {
 
   // C[i] is the ith Catalan number
   std::vector<uint64> C(nmax);
- 
+
   for (uint32 i = 0; i < nmax; ++i) {
     C[i] = catalan(i);
   }
 
   // sumC[n] is the sum of C[i], 0 <= i < n
   std::vector<uint64> sumC(C);
-  std::partial_sum(C.begin(), C.end(), sumC.begin()); 
+  std::partial_sum(C.begin(), C.end(), sumC.begin());
 
 /*
   std::copy(C.begin(), C.end(), std::ostream_iterator<uint64>(std::cout, "\n"));
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
     // Build a random n-node binary tree.
     ParseTree tree;
     tree.init(n+1); // extra node is for the REGEXP root
-    
+
     Node* ig = tree.add(Node(Node::IGNORE, (Node*) 0, (Node*) 0));
     tree.Root = tree.add(Node(Node::REGEXP, ig));
     std::vector<Node*> available(1, ig);
@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
       Node* c = tree.add(Node(Node::IGNORE, (Node*) 0, (Node*) 0));
 
       if (!p->Left) {
-        p->Left = c;  
+        p->Left = c;
         available.push_back(c);
       }
       else {
@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
         available[ni] = c;
       }
     }
- 
+
     // Assign types to the non-root nodes.
 
     std::stack<Node*> stack;
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
   */
       }
     }
-  
+
     std::cout << unparse(tree) << '\n';
   }
 

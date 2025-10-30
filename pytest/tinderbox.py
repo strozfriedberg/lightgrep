@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2024 Aon Cyber Solutions
+# Copyright 2025 LevelBlue
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -188,7 +188,7 @@ def main():
       commit = run(git_hash)[0].strip()
 
     task_result(commit)
- 
+
     # clean and build
     task_declare("Cleaning")
     run(scons_clean, scons_env)
@@ -201,16 +201,16 @@ def main():
 
     gcc_warnings = [ line for line in stderr if 'warning' in line ]
     gcc_errors = [ line for line in stderr if 'error' in line ]
-   
+
     if gcc_warnings:
       task_result("warnings")
       task_result(gcc_warnings)
-    
+
     if gcc_errors:
       task_failure()
       task_result(gcc_errors)
       sys.exit()
-  
+
     if not gcc_warnings:
       task_success()
 
@@ -223,7 +223,7 @@ def main():
       task_result(unit_failures)
       sys.exit()
     except ValueError:
-      task_success() 
+      task_success()
 
     # prepare for tests using the database
     with sqlite3.connect(dbfile) as db:

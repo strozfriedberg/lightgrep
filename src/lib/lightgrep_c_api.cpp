@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ int lg_parse_pattern_slice(LG_HPATTERN hPattern,
                            const char* pattern,
                            unsigned int patLen,
                            const LG_KeyOptions* options,
-                           LG_Error** err) 
+                           LG_Error** err)
 {
   if (!hPattern) {
     setError(err, "hPattern parameter was null. Use lg_create_pattern() to allocate.");

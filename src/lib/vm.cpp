@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -552,7 +552,7 @@ void Vm::startsWith(const byte* const beg, const byte* const end, const uint64_t
         break;
       }
     }
-  
+
     closeOut(hitFn, userData);
     reset();
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 class SearchHit: public LG_SearchHit {
 public:
   SearchHit() {}
-  SearchHit(const LG_SearchHit& s): LG_SearchHit{s.Start, s.End, s.KeywordIndex} {} 
+  SearchHit(const LG_SearchHit& s): LG_SearchHit{s.Start, s.End, s.KeywordIndex} {}
 
   // note that this takes the length
   SearchHit(uint64_t start, uint64_t end, uint32_t lbl) {

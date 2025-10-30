@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Aon Cyber Solutions
+ * Copyright 2025 LevelBlue
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ void updateQueue(
 }
 
 Lists breadthFirstSearch(
-  NFA::VertexDescriptor startingNode, 
+  NFA::VertexDescriptor startingNode,
   const NFA& graph) {
 
     //Create empty queue
@@ -211,10 +211,10 @@ List getShortestPath(Lists pos) {
   return s;
 }
 
-List dominantPath(  
+List dominantPath(
   NFA::VertexDescriptor startingNode,
   const NFA& graph) {
-        
+
   Lists pos(breadthFirstSearch(startingNode, graph));
 
   int n = pos.size();
