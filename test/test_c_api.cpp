@@ -248,10 +248,11 @@ TEST_CASE("testLgAddPatternList") {
 
   LG_Error* err = nullptr;
 
-  lg_add_pattern_list(
+  auto ret = lg_add_pattern_list(
     fsm.get(), pats, "testLgAddPatternList",
     defEncs, defEncsNum, &defOpts, &err
   );
+  REQUIRE(ret == 0);
 
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
   REQUIRE(!err);
@@ -276,10 +277,11 @@ TEST_CASE("testLgAddPatternListFixedString") {
 
   LG_Error* err = nullptr;
 
-  lg_add_pattern_list(
+  auto ret = lg_add_pattern_list(
     fsm.get(), pats, "testLgAddPatternListFixedString",
     defEncs, defEncsNum, &defOpts, &err
   );
+  REQUIRE(ret == 0);
 
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
   REQUIRE(!err);
@@ -302,11 +304,11 @@ TEST_CASE("testLgAddPatternListCRLFHeck") {
 
   LG_Error* err = nullptr;
 
-  lg_add_pattern_list(
+  auto ret = lg_add_pattern_list(
     fsm.get(), pats.c_str(), "testLgAddPatternListCRLFHeck",
     defEncs, 1, &opts, &err
   );
-
+  REQUIRE(ret == 0);
   REQUIRE(!err);
 
   const char* exp_pats[] = { "foo", "bar", "\baz", "quux", "xyzzy" };
@@ -361,10 +363,11 @@ TEST_CASE("testLgAddPatternListBadEncoding") {
 
   LG_Error* err = nullptr;
 
-  lg_add_pattern_list(
+  auto ret = lg_add_pattern_list(
     fsm.get(), pats, "testLgAddPatternListBadEncoding",
     defEncs, defEncsNum, &defOpts, &err
   );
+  REQUIRE(ret == -1);
 
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
 
@@ -408,11 +411,11 @@ TEST_CASE("testLgAddPatternListCopyOnWritePatternMap") {
   std::unique_ptr<LG_Error,void(*)(LG_Error*)> e{err, lg_free_error};
 
   // put some patterns into the fsm
-  lg_add_pattern_list(
+  auto ret = lg_add_pattern_list(
     fsm.get(), pats1, "whatever",
     defEncs, defEncsNum, &defOpts, &err
   );
-
+  REQUIRE(ret == 0);
   REQUIRE(!err);
 
   REQUIRE(lg_fsm_pattern_count(fsm.get()) == 1);
@@ -429,11 +432,11 @@ TEST_CASE("testLgAddPatternListCopyOnWritePatternMap") {
   // put more patterns into the fsm
   const char pats2[] = "bar\tUTF-8\t0\t0\n";
 
-  lg_add_pattern_list(
+  ret = lg_add_pattern_list(
     fsm.get(), pats2, "whatever",
     defEncs, defEncsNum, &defOpts, &err
   );
-
+  REQUIRE(ret == 0);
   REQUIRE(!err);
 
   REQUIRE(lg_fsm_pattern_count(fsm.get()) == 2);
